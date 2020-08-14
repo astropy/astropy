@@ -17,7 +17,7 @@ from erfa import ErfaWarning
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.coordinates.representation import REPRESENTATION_CLASSES, DUPLICATE_REPRESENTATIONS
-from astropy.coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
+from astropy.coordinates import (ICRS, FK4, FK5, Galactic, GCRS, SkyCoord, Angle,
                                  SphericalRepresentation, CartesianRepresentation,
                                  UnitSphericalRepresentation, AltAz,
                                  BaseCoordinateFrame, Attribute,
@@ -1409,6 +1409,20 @@ def test_equiv_skycoord():
     assert scf2.is_equivalent_frame(FK5(equinox='J2005'))
     assert not scf3.is_equivalent_frame(scf1)
     assert not scf3.is_equivalent_frame(FK5(equinox='J2005'))
+
+
+def test_equiv_skycoord_with_extra_attrs():
+    """Regression test for #10658."""
+    # GCRS has a CartesianRepresentationAttribute called obsgeoloc
+    gcrs = GCRS(1*u.deg, 2*u.deg, obsgeoloc=CartesianRepresentation([1, 2, 3], unit=u.m))
+    # Create a SkyCoord where obsgeoloc tags along as an extra attribute
+    sc1 = SkyCoord(gcrs).transform_to(ICRS)
+    # Now create a SkyCoord with an equivalent frame but without the extra attribute
+    sc2 = SkyCoord(sc1.frame)
+    # The SkyCoords are therefore not equivalent, but check both directions
+    assert not sc1.is_equivalent_frame(sc2)
+    # This way around raised a TypeError which is fixed by #10658
+    assert not sc2.is_equivalent_frame(sc1)
 
 
 def test_constellations():
