@@ -2,6 +2,27 @@ import numpy as np
 import pytest
 
 
+def test_science_state():
+    import astropy.units as u
+    from astropy.coordinates.astrom_provider import (
+        astrom_provider, AstromProvider, InterpolatingAstromProvider
+    )
+
+    assert astrom_provider.get().__class__ is AstromProvider
+
+    res = 300 * u.s
+    with astrom_provider.set(InterpolatingAstromProvider(res)):
+        assert isinstance(astrom_provider.get(), InterpolatingAstromProvider)
+        astrom_provider.get().mjd_resolution == res.to_value(u.day)
+
+    # context manager should have switched it back
+    assert astrom_provider.get().__class__ is AstromProvider
+
+    # must be a subclass of BaseAstromProvider
+    with pytest.raises(TypeError):
+        astrom_provider.set('foo')
+
+
 def test_astrom_provider():
     # I was having a pretty hard time in coming
     # up with a unit test only testing the astrom provider
