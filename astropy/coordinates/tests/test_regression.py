@@ -10,6 +10,7 @@ import io
 import copy
 import pytest
 import numpy as np
+from erfa import ErfaWarning
 
 from astropy import units as u
 from astropy.coordinates import (
@@ -22,7 +23,6 @@ from astropy.coordinates import (
     CylindricalRepresentation, CylindricalDifferential,
     CartesianDifferential)
 from astropy.coordinates.sites import get_builtin_sites
-from astropy.utils.exceptions import ErfaWarning
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.table import Table
