@@ -16,10 +16,7 @@ from .builtin_frames.utils import (
     pav2pv
 )
 
-__all__ = ["astrom_interpolation_resolution"]
-
-
-DEFAULT_PRECISION = None  # no MJD binning
+__all__ = ["astrom_interpolation_resolution", "get_astrom"]
 
 
 class astrom_interpolation_resolution(ScienceState):
@@ -41,7 +38,6 @@ def get_astrom(frame, tcode, interpolation_resolution=None):
     """
     TBD
     """
-
     assert tcode in ['apio13', 'apci', 'apcs', 'apci13', 'apco13']
 
     if interpolation_resolution is None:
