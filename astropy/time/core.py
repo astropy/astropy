@@ -32,7 +32,7 @@ from .formats import TimeFromEpoch  # noqa
 
 from astropy.extern import _strptime
 
-__all__ = ['Time', 'TimeDelta', 'TimeInfo', 'update_leap_seconds',
+__all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'update_leap_seconds',
            'TIME_SCALES', 'STANDARD_TIME_SCALES', 'TIME_DELTA_SCALES',
            'ScaleValueError', 'OperandTypeError']
 
@@ -317,53 +317,8 @@ class TimeDeltaInfo(TimeInfo):
         return out
 
 
-class Time(ShapedLikeNDArray):
-    """
-    Represent and manipulate times and dates for astronomy.
-
-    A `Time` object is initialized with one or more times in the ``val``
-    argument.  The input times in ``val`` must conform to the specified
-    ``format`` and must correspond to the specified time ``scale``.  The
-    optional ``val2`` time input should be supplied only for numeric input
-    formats (e.g. JD) where very high precision (better than 64-bit precision)
-    is required.
-
-    The allowed values for ``format`` can be listed with::
-
-      >>> list(Time.FORMATS)
-      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-       'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-       'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
-
-    See also: https://docs.astropy.org/en/stable/time/
-
-    Parameters
-    ----------
-    val : sequence, ndarray, number, str, bytes, or `~astropy.time.Time` object
-        Value(s) to initialize the time or times.  Bytes are decoded as ascii.
-    val2 : sequence, ndarray, or number; optional
-        Value(s) to initialize the time or times.  Only used for numerical
-        input, to help preserve precision.
-    format : str, optional
-        Format of input value(s)
-    scale : str, optional
-        Time scale of input value(s), must be one of the following:
-        ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
-    precision : int, optional
-        Digits of precision in string representation of time
-    in_subfmt : str, optional
-        Unix glob to select subformats for parsing input times
-    out_subfmt : str, optional
-        Unix glob to select subformat for outputting times
-    location : `~astropy.coordinates.EarthLocation` or tuple, optional
-        If given as an tuple, it should be able to initialize an
-        an EarthLocation instance, i.e., either contain 3 items with units of
-        length for geocentric coordinates, or contain a longitude, latitude,
-        and an optional height for geodetic coordinates.
-        Can be a single location, or one for each input time.
-    copy : bool, optional
-        Make a copy of the input values
-    """
+class TimeBase(ShapedLikeNDArray):
+    """Base time class from which Time and TimeDelta inherit."""
 
     SCALES = TIME_SCALES
     """List of time scales"""
@@ -379,75 +334,8 @@ class Time(ShapedLikeNDArray):
     # attribute where column attributes will be stored.
     _astropy_column_attrs = None
 
-    def __new__(cls, val, val2=None, format=None, scale=None,
-                precision=None, in_subfmt=None, out_subfmt=None,
-                location=None, copy=False):
-
-        # Because of import problems, this can only be done on
-        # first call of Time.
-        global _LEAP_SECONDS_CHECKED
-        if not _LEAP_SECONDS_CHECKED:
-            # *Must* set to True first as update_leap_seconds uses Time.
-            # In principle, this may cause wrong leap seconds in
-            # update_leap_seconds itself, but since expiration is in
-            # units of days, that is fine.
-            _LEAP_SECONDS_CHECKED = True
-            update_leap_seconds()
-
-        if isinstance(val, cls):
-            self = val.replicate(format=format, copy=copy)
-        else:
-            self = super().__new__(cls)
-
-        return self
-
     def __getnewargs__(self):
         return (self._time,)
-
-    def __init__(self, val, val2=None, format=None, scale=None,
-                 precision=None, in_subfmt=None, out_subfmt=None,
-                 location=None, copy=False):
-
-        if location is not None:
-            from astropy.coordinates import EarthLocation
-            if isinstance(location, EarthLocation):
-                self.location = location
-            else:
-                self.location = EarthLocation(*location)
-            if self.location.size == 1:
-                self.location = self.location.squeeze()
-        else:
-            if not hasattr(self, 'location'):
-                self.location = None
-
-        if isinstance(val, self.__class__):
-            # Update _time formatting parameters if explicitly specified
-            if precision is not None:
-                self._time.precision = precision
-            if in_subfmt is not None:
-                self._time.in_subfmt = in_subfmt
-            if out_subfmt is not None:
-                self._time.out_subfmt = out_subfmt
-            self.SCALES = TIME_TYPES[self.scale]
-            if scale is not None:
-                self._set_scale(scale)
-        else:
-            self._init_from_vals(val, val2, format, scale, copy,
-                                 precision, in_subfmt, out_subfmt)
-            self.SCALES = TIME_TYPES[self.scale]
-
-        if self.location is not None and (self.location.size > 1
-                                          and self.location.shape != self.shape):
-            try:
-                # check the location can be broadcast to self's shape.
-                self.location = np.broadcast_to(self.location, self.shape,
-                                                subok=True)
-            except Exception as err:
-                raise ValueError('The location with shape {} cannot be '
-                                 'broadcast against time with shape {}. '
-                                 'Typically, either give a single location or '
-                                 'one for each time.'
-                                 .format(self.location.shape, self.shape)) from err
 
     def _init_from_vals(self, val, val2, format, scale, copy,
                         precision=None, in_subfmt=None, out_subfmt=None):
@@ -565,81 +453,6 @@ class Time(ShapedLikeNDArray):
                              f'where the format keyword is optional: '
                              f'{problems}') from problems[formats[0][0]]
 
-    @classmethod
-    def now(cls):
-        """
-        Creates a new object corresponding to the instant in time this
-        method is called.
-
-        .. note::
-            "Now" is determined using the `~datetime.datetime.utcnow`
-            function, so its accuracy and precision is determined by that
-            function.  Generally that means it is set by the accuracy of
-            your system clock.
-
-        Returns
-        -------
-        nowtime
-            A new `Time` object (or a subclass of `Time` if this is called from
-            such a subclass) at the current time.
-        """
-        # call `utcnow` immediately to be sure it's ASAP
-        dtnow = datetime.utcnow()
-        return cls(val=dtnow, format='datetime', scale='utc')
-
-    info = TimeInfo()
-
-    @classmethod
-    def strptime(cls, time_string, format_string, **kwargs):
-        """
-        Parse a string to a Time according to a format specification.
-        See `time.strptime` documentation for format specification.
-
-        >>> Time.strptime('2012-Jun-30 23:59:60', '%Y-%b-%d %H:%M:%S')
-        <Time object: scale='utc' format='isot' value=2012-06-30T23:59:60.000>
-
-        Parameters
-        ----------
-        time_string : str, sequence, or ndarray
-            Objects containing time data of type string
-        format_string : str
-            String specifying format of time_string.
-        kwargs : dict
-            Any keyword arguments for ``Time``.  If the ``format`` keyword
-            argument is present, this will be used as the Time format.
-
-        Returns
-        -------
-        time_obj : `~astropy.time.Time`
-            A new `~astropy.time.Time` object corresponding to the input
-            ``time_string``.
-
-        """
-        time_array = np.asarray(time_string)
-
-        if time_array.dtype.kind not in ('U', 'S'):
-            err = "Expected type is string, a bytes-like object or a sequence"\
-                  " of these. Got dtype '{}'".format(time_array.dtype.kind)
-            raise TypeError(err)
-
-        to_string = (str if time_array.dtype.kind == 'U' else
-                     lambda x: str(x.item(), encoding='ascii'))
-        iterator = np.nditer([time_array, None],
-                             op_dtypes=[time_array.dtype, 'U30'])
-
-        for time, formatted in iterator:
-            tt, fraction = _strptime._strptime(to_string(time), format_string)
-            time_tuple = tt[:6] + (fraction,)
-            formatted[...] = '{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:06}'\
-                .format(*time_tuple)
-
-        format = kwargs.pop('format', None)
-        out = cls(*iterator.operands[1:], format='isot', **kwargs)
-        if format is not None:
-            out.format = format
-
-        return out
-
     @property
     def writeable(self):
         return self._time.jd1.flags.writeable & self._time.jd2.flags.writeable
@@ -713,42 +526,6 @@ class Time(ShapedLikeNDArray):
 
             raise TypeError("unhashable type: '{}' {}"
                             .format(self.__class__.__name__, reason))
-
-    def strftime(self, format_spec):
-        """
-        Convert Time to a string or a numpy.array of strings according to a
-        format specification.
-        See `time.strftime` documentation for format specification.
-
-        Parameters
-        ----------
-        format_spec : str
-            Format definition of return string.
-
-        Returns
-        -------
-        formatted : str or numpy.array
-            String or numpy.array of strings formatted according to the given
-            format string.
-
-        """
-        formatted_strings = []
-        for sk in self.replicate('iso')._time.str_kwargs():
-            date_tuple = date(sk['year'], sk['mon'], sk['day']).timetuple()
-            datetime_tuple = (sk['year'], sk['mon'], sk['day'],
-                              sk['hour'], sk['min'], sk['sec'],
-                              date_tuple[6], date_tuple[7], -1)
-            fmtd_str = format_spec
-            if '%f' in fmtd_str:
-                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(
-                    frac=sk['fracsec'], precision=self.precision))
-            fmtd_str = strftime(fmtd_str, datetime_tuple)
-            formatted_strings.append(fmtd_str)
-
-        if self.isscalar:
-            return formatted_strings[0]
-        else:
-            return np.array(formatted_strings).reshape(self.shape)
 
     @property
     def scale(self):
@@ -1094,7 +871,7 @@ class Time(ShapedLikeNDArray):
 
         # For non-Time object, use numpy to help figure out the length.  (Note annoying
         # case of a string input that has a length which is not the length we want).
-        if not isinstance(values, Time):
+        if not isinstance(values, self.__class__):
             values = np.asarray(values)
         n_values = len(values) if values.shape else 1
 
@@ -1112,43 +889,6 @@ class Time(ShapedLikeNDArray):
         out._time.jd2[idx0 + n_values:] = self._time.jd2[idx0:]
 
         return out
-
-    def _make_value_equivalent(self, item, value):
-        """Coerce setitem value into an equivalent Time object"""
-
-        # If there is a vector location then broadcast to the Time shape
-        # and then select with ``item``
-        if self.location is not None and self.location.shape:
-            self_location = np.broadcast_to(self.location, self.shape, subok=True)[item]
-        else:
-            self_location = self.location
-
-        if isinstance(value, Time):
-            # Make sure locations are compatible.  Location can be either None or
-            # a Location object.
-            if self_location is None and value.location is None:
-                match = True
-            elif ((self_location is None and value.location is not None)
-                  or (self_location is not None and value.location is None)):
-                match = False
-            else:
-                match = np.all(self_location == value.location)
-            if not match:
-                raise ValueError('cannot set to Time with different location: '
-                                 'expected location={} and '
-                                 'got location={}'
-                                 .format(self_location, value.location))
-        else:
-            try:
-                value = self.__class__(value, scale=self.scale, location=self_location)
-            except Exception:
-                try:
-                    value = self.__class__(value, scale=self.scale, format=self.format,
-                                           location=self_location)
-                except Exception as err:
-                    raise ValueError('cannot convert value to a compatible Time object: {}'
-                                     .format(err))
-        return value
 
     def __setitem__(self, item, value):
         if not self.writeable:
@@ -1180,172 +920,6 @@ class Time(ShapedLikeNDArray):
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
 
-    def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
-        """Light travel time correction to the barycentre or heliocentre.
-
-        The frame transformations used to calculate the location of the solar
-        system barycentre and the heliocentre rely on the erfa routine epv00,
-        which is consistent with the JPL DE405 ephemeris to an accuracy of
-        11.2 km, corresponding to a light travel time of 4 microseconds.
-
-        The routine assumes the source(s) are at large distance, i.e., neglects
-        finite-distance effects.
-
-        Parameters
-        ----------
-        skycoord : `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for.
-        kind : str, optional
-            ``'barycentric'`` (default) or ``'heliocentric'``
-        location : `~astropy.coordinates.EarthLocation`, optional
-            The location of the observatory to calculate the correction for.
-            If no location is given, the ``location`` attribute of the Time
-            object is used
-        ephemeris : str, optional
-            Solar system ephemeris to use (e.g., 'builtin', 'jpl'). By default,
-            use the one set with ``astropy.coordinates.solar_system_ephemeris.set``.
-            For more information, see `~astropy.coordinates.solar_system_ephemeris`.
-
-        Returns
-        -------
-        time_offset : `~astropy.time.TimeDelta`
-            The time offset between the barycentre or Heliocentre and Earth,
-            in TDB seconds.  Should be added to the original time to get the
-            time in the Solar system barycentre or the Heliocentre.
-            Also, the time conversion to BJD will then include the relativistic correction as well.
-        """
-
-        if kind.lower() not in ('barycentric', 'heliocentric'):
-            raise ValueError("'kind' parameter must be one of 'heliocentric' "
-                             "or 'barycentric'")
-
-        if location is None:
-            if self.location is None:
-                raise ValueError('An EarthLocation needs to be set or passed '
-                                 'in to calculate bary- or heliocentric '
-                                 'corrections')
-            location = self.location
-
-        from astropy.coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
-                                         HCRS, ICRS, GCRS, solar_system_ephemeris)
-
-        # ensure sky location is ICRS compatible
-        if not skycoord.is_transformable_to(ICRS()):
-            raise ValueError("Given skycoord is not transformable to the ICRS")
-
-        # get location of observatory in ITRS coordinates at this Time
-        try:
-            itrs = location.get_itrs(obstime=self)
-        except Exception:
-            raise ValueError("Supplied location does not have a valid `get_itrs` method")
-
-        with solar_system_ephemeris.set(ephemeris):
-            if kind.lower() == 'heliocentric':
-                # convert to heliocentric coordinates, aligned with ICRS
-                cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
-            else:
-                # first we need to convert to GCRS coordinates with the correct
-                # obstime, since ICRS coordinates have no frame time
-                gcrs_coo = itrs.transform_to(GCRS(obstime=self))
-                # convert to barycentric (BCRS) coordinates, aligned with ICRS
-                cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
-
-        # get unit ICRS vector to star
-        spos = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
-                represent_as(CartesianRepresentation).xyz)
-
-        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
-        cpos = np.rollaxis(cpos, 0, cpos.ndim)
-        spos = np.rollaxis(spos, 0, spos.ndim)
-
-        # calculate light travel time correction
-        tcor_val = (spos * cpos).sum(axis=-1) / const.c
-        return TimeDelta(tcor_val, scale='tdb')
-
-    def sidereal_time(self, kind, longitude=None, model=None):
-        """Calculate sidereal time.
-
-        Parameters
-        ---------------
-        kind : str
-            ``'mean'`` or ``'apparent'``, i.e., accounting for precession
-            only, or also for nutation.
-        longitude : `~astropy.units.Quantity`, `str`, or `None`; optional
-            The longitude on the Earth at which to compute the sidereal time.
-            Can be given as a `~astropy.units.Quantity` with angular units
-            (or an `~astropy.coordinates.Angle` or
-            `~astropy.coordinates.Longitude`), or as a name of an
-            observatory (currently, only ``'greenwich'`` is supported,
-            equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
-            the Time object is used.
-        model : str or `None`; optional
-            Precession (and nutation) model to use.  The available ones are:
-            - {0}: {1}
-            - {2}: {3}
-            If `None` (default), the last (most recent) one from the appropriate
-            list above is used.
-
-        Returns
-        -------
-        sidereal time : `~astropy.coordinates.Longitude`
-            Sidereal time as a quantity with units of hourangle
-        """  # docstring is formatted below
-
-        from astropy.coordinates import Longitude
-
-        if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
-            raise ValueError('The kind of sidereal time has to be {}'.format(
-                ' or '.join(sorted(SIDEREAL_TIME_MODELS.keys()))))
-
-        available_models = SIDEREAL_TIME_MODELS[kind.lower()]
-
-        if model is None:
-            model = sorted(available_models.keys())[-1]
-        else:
-            if model.upper() not in available_models:
-                raise ValueError(
-                    'Model {} not implemented for {} sidereal time; '
-                    'available models are {}'
-                    .format(model, kind, sorted(available_models.keys())))
-
-        if longitude is None:
-            if self.location is None:
-                raise ValueError('No longitude is given but the location for '
-                                 'the Time object is not set.')
-            longitude = self.location.lon
-        elif longitude == 'greenwich':
-            longitude = Longitude(0., u.degree,
-                                  wrap_angle=180. * u.degree)
-        else:
-            # sanity check on input
-            longitude = Longitude(longitude, u.degree,
-                                  wrap_angle=180. * u.degree)
-
-        gst = self._erfa_sidereal_time(available_models[model.upper()])
-        return Longitude(gst + longitude, u.hourangle)
-
-    if isinstance(sidereal_time.__doc__, str):
-        sidereal_time.__doc__ = sidereal_time.__doc__.format(
-            'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
-            'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
-
-    def _erfa_sidereal_time(self, model):
-        """Calculate a sidereal time using a IAU precession/nutation model."""
-
-        from astropy.coordinates import Longitude
-
-        erfa_function = model['function']
-        erfa_parameters = [getattr(getattr(self, scale)._time, jd_part)
-                           for scale in model['scales']
-                           for jd_part in ('jd1', 'jd2_filled')]
-
-        sidereal_time = erfa_function(*erfa_parameters)
-
-        if self.masked:
-            sidereal_time[self.mask] = np.nan
-
-        return Longitude(sidereal_time, u.radian).to(u.hourangle)
-
     def copy(self, format=None):
         """
         Return a fully independent copy the Time object, optionally changing
@@ -1371,7 +945,7 @@ class Time(ShapedLikeNDArray):
         """
         return self._apply('copy', format=format)
 
-    def replicate(self, format=None, copy=False):
+    def replicate(self, format=None, copy=False, cls=None):
         """
         Return a replica of the Time object, optionally changing the format.
 
@@ -1400,9 +974,9 @@ class Time(ShapedLikeNDArray):
         tm : Time object
             Replica of this object
         """
-        return self._apply('copy' if copy else 'replicate', format=format)
+        return self._apply('copy' if copy else 'replicate', format=format, cls=cls)
 
-    def _apply(self, method, *args, format=None, **kwargs):
+    def _apply(self, method, *args, format=None, cls=None, **kwargs):
         """Create a new time object, possibly applying a method to the arrays.
 
         Parameters
@@ -1450,7 +1024,7 @@ class Time(ShapedLikeNDArray):
             jd2 = apply_method(jd2)
 
         # Get a new instance of our class and set its attributes directly.
-        tm = super().__new__(self.__class__)
+        tm = super().__new__(cls or self.__class__)
         tm._time = TimeJD(jd1, jd2, self.scale, precision=0,
                           in_subfmt='*', out_subfmt='*', from_jd=True)
 
@@ -1759,153 +1333,6 @@ class Time(ShapedLikeNDArray):
 
         return val
 
-    def get_delta_ut1_utc(self, iers_table=None, return_status=False):
-        """Find UT1 - UTC differences by interpolating in IERS Table.
-
-        Parameters
-        ----------
-        iers_table : `~astropy.utils.iers.IERS` table, optional
-            Table containing UT1-UTC differences from IERS Bulletins A
-            and/or B.  Default: `~astropy.utils.iers.earth_orientation_table`
-            (which in turn defaults to the combined version provided by
-            `~astropy.utils.iers.IERS_Auto`).
-        return_status : bool
-            Whether to return status values.  If `False` (default), iers
-            raises `IndexError` if any time is out of the range
-            covered by the IERS table.
-
-        Returns
-        -------
-        ut1_utc : float or float array
-            UT1-UTC, interpolated in IERS Table
-        status : int or int array
-            Status values (if ``return_status=`True```)::
-            ``astropy.utils.iers.FROM_IERS_B``
-            ``astropy.utils.iers.FROM_IERS_A``
-            ``astropy.utils.iers.FROM_IERS_A_PREDICTION``
-            ``astropy.utils.iers.TIME_BEFORE_IERS_RANGE``
-            ``astropy.utils.iers.TIME_BEYOND_IERS_RANGE``
-
-        Notes
-        -----
-        In normal usage, UT1-UTC differences are calculated automatically
-        on the first instance ut1 is needed.
-
-        Examples
-        --------
-        To check in code whether any times are before the IERS table range::
-
-            >>> from astropy.utils.iers import TIME_BEFORE_IERS_RANGE
-            >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
-            >>> delta, status = t.get_delta_ut1_utc(return_status=True)  # doctest: +REMOTE_DATA
-            >>> status == TIME_BEFORE_IERS_RANGE  # doctest: +REMOTE_DATA
-            array([ True, False]...)
-        """
-        if iers_table is None:
-            from astropy.utils.iers import earth_orientation_table
-            iers_table = earth_orientation_table.get()
-
-        return iers_table.ut1_utc(self.utc, return_status=return_status)
-
-    # Property for ERFA DUT arg = UT1 - UTC
-    def _get_delta_ut1_utc(self, jd1=None, jd2=None):
-        """
-        Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
-        jd2 args because it gets called that way when converting time scales.
-        If delta_ut1_utc is not yet set, this will interpolate them from the
-        the IERS table.
-        """
-        # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
-        # seconds. It is obtained from tables published by the IERS.
-        if not hasattr(self, '_delta_ut1_utc'):
-            from astropy.utils.iers import earth_orientation_table
-            iers_table = earth_orientation_table.get()
-            # jd1, jd2 are normally set (see above), except if delta_ut1_utc
-            # is access directly; ensure we behave as expected for that case
-            if jd1 is None:
-                self_utc = self.utc
-                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2_filled
-                scale = 'utc'
-            else:
-                scale = self.scale
-            # interpolate UT1-UTC in IERS table
-            delta = iers_table.ut1_utc(jd1, jd2)
-            # if we interpolated using UT1 jds, we may be off by one
-            # second near leap seconds (and very slightly off elsewhere)
-            if scale == 'ut1':
-                # calculate UTC using the offset we got; the ERFA routine
-                # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta.to_value(u.s))
-                # calculate a better estimate using the nearly correct UTC
-                delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
-
-            self._set_delta_ut1_utc(delta)
-
-        return self._delta_ut1_utc
-
-    def _set_delta_ut1_utc(self, val):
-        del self.cache
-        if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
-            val = val.to(u.second).value
-        val = self._match_shape(val)
-        self._delta_ut1_utc = val
-
-    # Note can't use @property because _get_delta_tdb_tt is explicitly
-    # called with the optional jd1 and jd2 args.
-    delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
-    """UT1 - UTC time scale offset"""
-
-    # Property for ERFA DTR arg = TDB - TT
-    def _get_delta_tdb_tt(self, jd1=None, jd2=None):
-        if not hasattr(self, '_delta_tdb_tt'):
-            # If jd1 and jd2 are not provided (which is the case for property
-            # attribute access) then require that the time scale is TT or TDB.
-            # Otherwise the computations here are not correct.
-            if jd1 is None or jd2 is None:
-                if self.scale not in ('tt', 'tdb'):
-                    raise ValueError('Accessing the delta_tdb_tt attribute '
-                                     'is only possible for TT or TDB time '
-                                     'scales')
-                else:
-                    jd1 = self._time.jd1
-                    jd2 = self._time.jd2_filled
-
-            # First go from the current input time (which is either
-            # TDB or TT) to an approximate UT1.  Since TT and TDB are
-            # pretty close (few msec?), assume TT.  Similarly, since the
-            # UT1 terms are very small, use UTC instead of UT1.
-            njd1, njd2 = erfa.tttai(jd1, jd2)
-            njd1, njd2 = erfa.taiutc(njd1, njd2)
-            # subtract 0.5, so UT is fraction of the day from midnight
-            ut = day_frac(njd1 - 0.5, njd2)[1]
-
-            if self.location is None:
-                from astropy.coordinates import EarthLocation
-                location = EarthLocation.from_geodetic(0., 0., 0.)
-            else:
-                location = self.location
-            # Geodetic params needed for d_tdb_tt()
-            lon = location.lon
-            rxy = np.hypot(location.x, location.y)
-            z = location.z
-            self._delta_tdb_tt = erfa.dtdb(
-                jd1, jd2, ut, lon.to_value(u.radian),
-                rxy.to_value(u.km), z.to_value(u.km))
-
-        return self._delta_tdb_tt
-
-    def _set_delta_tdb_tt(self, val):
-        del self.cache
-        if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
-            val = val.to(u.second).value
-        val = self._match_shape(val)
-        self._delta_tdb_tt = val
-
-    # Note can't use @property because _get_delta_tdb_tt is explicitly
-    # called with the optional jd1 and jd2 args.
-    delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
-    """TDB - TT time scale offset"""
-
     def __sub__(self, other):
         if not isinstance(other, Time):
             try:
@@ -2078,7 +1505,583 @@ class Time(ShapedLikeNDArray):
     to_datetime.__doc__ = TimeDatetime.to_value.__doc__
 
 
-class TimeDelta(Time):
+class Time(TimeBase):
+    """
+    Represent and manipulate times and dates for astronomy.
+
+    A `Time` object is initialized with one or more times in the ``val``
+    argument.  The input times in ``val`` must conform to the specified
+    ``format`` and must correspond to the specified time ``scale``.  The
+    optional ``val2`` time input should be supplied only for numeric input
+    formats (e.g. JD) where very high precision (better than 64-bit precision)
+    is required.
+
+    The allowed values for ``format`` can be listed with::
+
+      >>> list(Time.FORMATS)
+      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
+       'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
+       'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+
+    See also: http://docs.astropy.org/en/stable/time/
+
+    Parameters
+    ----------
+    val : sequence, ndarray, number, str, bytes, or `~astropy.time.Time` object
+        Value(s) to initialize the time or times.  Bytes are decoded as ascii.
+    val2 : sequence, ndarray, or number; optional
+        Value(s) to initialize the time or times.  Only used for numerical
+        input, to help preserve precision.
+    format : str, optional
+        Format of input value(s)
+    scale : str, optional
+        Time scale of input value(s), must be one of the following:
+        ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+    precision : int, optional
+        Digits of precision in string representation of time
+    in_subfmt : str, optional
+        Unix glob to select subformats for parsing input times
+    out_subfmt : str, optional
+        Unix glob to select subformat for outputting times
+    location : `~astropy.coordinates.EarthLocation` or tuple, optional
+        If given as an tuple, it should be able to initialize an
+        an EarthLocation instance, i.e., either contain 3 items with units of
+        length for geocentric coordinates, or contain a longitude, latitude,
+        and an optional height for geodetic coordinates.
+        Can be a single location, or one for each input time.
+    copy : bool, optional
+        Make a copy of the input values
+    """
+    def __new__(cls, val, val2=None, format=None, scale=None,
+                precision=None, in_subfmt=None, out_subfmt=None,
+                location=None, copy=False):
+
+        # Because of import problems, this can only be done on
+        # first call of Time.
+        global _LEAP_SECONDS_CHECKED
+        if not _LEAP_SECONDS_CHECKED:
+            # *Must* set to True first as update_leap_seconds uses Time.
+            # In principle, this may cause wrong leap seconds in
+            # update_leap_seconds itself, but since expiration is in
+            # units of days, that is fine.
+            _LEAP_SECONDS_CHECKED = True
+            update_leap_seconds()
+
+        if isinstance(val, Time):
+            self = val.replicate(format=format, copy=copy, cls=cls)
+        else:
+            self = super().__new__(cls)
+
+        return self
+
+    def __init__(self, val, val2=None, format=None, scale=None,
+                 precision=None, in_subfmt=None, out_subfmt=None,
+                 location=None, copy=False):
+
+        if location is not None:
+            from astropy.coordinates import EarthLocation
+            if isinstance(location, EarthLocation):
+                self.location = location
+            else:
+                self.location = EarthLocation(*location)
+            if self.location.size == 1:
+                self.location = self.location.squeeze()
+        else:
+            if not hasattr(self, 'location'):
+                self.location = None
+
+        if isinstance(val, Time):
+            # Update _time formatting parameters if explicitly specified
+            if precision is not None:
+                self._time.precision = precision
+            if in_subfmt is not None:
+                self._time.in_subfmt = in_subfmt
+            if out_subfmt is not None:
+                self._time.out_subfmt = out_subfmt
+            self.SCALES = TIME_TYPES[self.scale]
+            if scale is not None:
+                self._set_scale(scale)
+        else:
+            self._init_from_vals(val, val2, format, scale, copy,
+                                 precision, in_subfmt, out_subfmt)
+            self.SCALES = TIME_TYPES[self.scale]
+
+        if self.location is not None and (self.location.size > 1
+                                          and self.location.shape != self.shape):
+            try:
+                # check the location can be broadcast to self's shape.
+                self.location = np.broadcast_to(self.location, self.shape,
+                                                subok=True)
+            except Exception as err:
+                raise ValueError('The location with shape {} cannot be '
+                                 'broadcast against time with shape {}. '
+                                 'Typically, either give a single location or '
+                                 'one for each time.'
+                                 .format(self.location.shape, self.shape)) from err
+
+    def _make_value_equivalent(self, item, value):
+        """Coerce setitem value into an equivalent Time object"""
+
+        # If there is a vector location then broadcast to the Time shape
+        # and then select with ``item``
+        if self.location is not None and self.location.shape:
+            self_location = np.broadcast_to(self.location, self.shape, subok=True)[item]
+        else:
+            self_location = self.location
+
+        if isinstance(value, Time):
+            # Make sure locations are compatible.  Location can be either None or
+            # a Location object.
+            if self_location is None and value.location is None:
+                match = True
+            elif ((self_location is None and value.location is not None)
+                  or (self_location is not None and value.location is None)):
+                match = False
+            else:
+                match = np.all(self_location == value.location)
+            if not match:
+                raise ValueError('cannot set to Time with different location: '
+                                 'expected location={} and '
+                                 'got location={}'
+                                 .format(self_location, value.location))
+        else:
+            try:
+                value = self.__class__(value, scale=self.scale, location=self_location)
+            except Exception:
+                try:
+                    value = self.__class__(value, scale=self.scale, format=self.format,
+                                           location=self_location)
+                except Exception as err:
+                    raise ValueError('cannot convert value to a compatible Time object: {}'
+                                     .format(err))
+        return value
+
+    @classmethod
+    def now(cls):
+        """
+        Creates a new object corresponding to the instant in time this
+        method is called.
+
+        .. note::
+            "Now" is determined using the `~datetime.datetime.utcnow`
+            function, so its accuracy and precision is determined by that
+            function.  Generally that means it is set by the accuracy of
+            your system clock.
+
+        Returns
+        -------
+        nowtime
+            A new `Time` object (or a subclass of `Time` if this is called from
+            such a subclass) at the current time.
+        """
+        # call `utcnow` immediately to be sure it's ASAP
+        dtnow = datetime.utcnow()
+        return cls(val=dtnow, format='datetime', scale='utc')
+
+    info = TimeInfo()
+
+    @classmethod
+    def strptime(cls, time_string, format_string, **kwargs):
+        """
+        Parse a string to a Time according to a format specification.
+        See `time.strptime` documentation for format specification.
+
+        >>> Time.strptime('2012-Jun-30 23:59:60', '%Y-%b-%d %H:%M:%S')
+        <Time object: scale='utc' format='isot' value=2012-06-30T23:59:60.000>
+
+        Parameters
+        ----------
+        time_string : str, sequence, or ndarray
+            Objects containing time data of type string
+        format_string : str
+            String specifying format of time_string.
+        kwargs : dict
+            Any keyword arguments for ``Time``.  If the ``format`` keyword
+            argument is present, this will be used as the Time format.
+
+        Returns
+        -------
+        time_obj : `~astropy.time.Time`
+            A new `~astropy.time.Time` object corresponding to the input
+            ``time_string``.
+
+        """
+        time_array = np.asarray(time_string)
+
+        if time_array.dtype.kind not in ('U', 'S'):
+            err = "Expected type is string, a bytes-like object or a sequence"\
+                  " of these. Got dtype '{}'".format(time_array.dtype.kind)
+            raise TypeError(err)
+
+        to_string = (str if time_array.dtype.kind == 'U' else
+                     lambda x: str(x.item(), encoding='ascii'))
+        iterator = np.nditer([time_array, None],
+                             op_dtypes=[time_array.dtype, 'U30'])
+
+        for time, formatted in iterator:
+            tt, fraction = _strptime._strptime(to_string(time), format_string)
+            time_tuple = tt[:6] + (fraction,)
+            formatted[...] = '{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:06}'\
+                .format(*time_tuple)
+
+        format = kwargs.pop('format', None)
+        out = cls(*iterator.operands[1:], format='isot', **kwargs)
+        if format is not None:
+            out.format = format
+
+        return out
+
+    def strftime(self, format_spec):
+        """
+        Convert Time to a string or a numpy.array of strings according to a
+        format specification.
+        See `time.strftime` documentation for format specification.
+
+        Parameters
+        ----------
+        format_spec : str
+            Format definition of return string.
+
+        Returns
+        -------
+        formatted : str or numpy.array
+            String or numpy.array of strings formatted according to the given
+            format string.
+
+        """
+        formatted_strings = []
+        for sk in self.replicate('iso')._time.str_kwargs():
+            date_tuple = date(sk['year'], sk['mon'], sk['day']).timetuple()
+            datetime_tuple = (sk['year'], sk['mon'], sk['day'],
+                              sk['hour'], sk['min'], sk['sec'],
+                              date_tuple[6], date_tuple[7], -1)
+            fmtd_str = format_spec
+            if '%f' in fmtd_str:
+                fmtd_str = fmtd_str.replace('%f', '{frac:0{precision}}'.format(
+                    frac=sk['fracsec'], precision=self.precision))
+            fmtd_str = strftime(fmtd_str, datetime_tuple)
+            formatted_strings.append(fmtd_str)
+
+        if self.isscalar:
+            return formatted_strings[0]
+        else:
+            return np.array(formatted_strings).reshape(self.shape)
+
+    def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
+        """Light travel time correction to the barycentre or heliocentre.
+
+        The frame transformations used to calculate the location of the solar
+        system barycentre and the heliocentre rely on the erfa routine epv00,
+        which is consistent with the JPL DE405 ephemeris to an accuracy of
+        11.2 km, corresponding to a light travel time of 4 microseconds.
+
+        The routine assumes the source(s) are at large distance, i.e., neglects
+        finite-distance effects.
+
+        Parameters
+        ----------
+        skycoord : `~astropy.coordinates.SkyCoord`
+            The sky location to calculate the correction for.
+        kind : str, optional
+            ``'barycentric'`` (default) or ``'heliocentric'``
+        location : `~astropy.coordinates.EarthLocation`, optional
+            The location of the observatory to calculate the correction for.
+            If no location is given, the ``location`` attribute of the Time
+            object is used
+        ephemeris : str, optional
+            Solar system ephemeris to use (e.g., 'builtin', 'jpl'). By default,
+            use the one set with ``astropy.coordinates.solar_system_ephemeris.set``.
+            For more information, see `~astropy.coordinates.solar_system_ephemeris`.
+
+        Returns
+        -------
+        time_offset : `~astropy.time.TimeDelta`
+            The time offset between the barycentre or Heliocentre and Earth,
+            in TDB seconds.  Should be added to the original time to get the
+            time in the Solar system barycentre or the Heliocentre.
+            Also, the time conversion to BJD will then include the relativistic correction as well.
+        """
+
+        if kind.lower() not in ('barycentric', 'heliocentric'):
+            raise ValueError("'kind' parameter must be one of 'heliocentric' "
+                             "or 'barycentric'")
+
+        if location is None:
+            if self.location is None:
+                raise ValueError('An EarthLocation needs to be set or passed '
+                                 'in to calculate bary- or heliocentric '
+                                 'corrections')
+            location = self.location
+
+        from astropy.coordinates import (UnitSphericalRepresentation, CartesianRepresentation,
+                                         HCRS, ICRS, GCRS, solar_system_ephemeris)
+
+        # ensure sky location is ICRS compatible
+        if not skycoord.is_transformable_to(ICRS()):
+            raise ValueError("Given skycoord is not transformable to the ICRS")
+
+        # get location of observatory in ITRS coordinates at this Time
+        try:
+            itrs = location.get_itrs(obstime=self)
+        except Exception:
+            raise ValueError("Supplied location does not have a valid `get_itrs` method")
+
+        with solar_system_ephemeris.set(ephemeris):
+            if kind.lower() == 'heliocentric':
+                # convert to heliocentric coordinates, aligned with ICRS
+                cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
+            else:
+                # first we need to convert to GCRS coordinates with the correct
+                # obstime, since ICRS coordinates have no frame time
+                gcrs_coo = itrs.transform_to(GCRS(obstime=self))
+                # convert to barycentric (BCRS) coordinates, aligned with ICRS
+                cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
+
+        # get unit ICRS vector to star
+        spos = (skycoord.icrs.represent_as(UnitSphericalRepresentation).
+                represent_as(CartesianRepresentation).xyz)
+
+        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
+        cpos = np.rollaxis(cpos, 0, cpos.ndim)
+        spos = np.rollaxis(spos, 0, spos.ndim)
+
+        # calculate light travel time correction
+        tcor_val = (spos * cpos).sum(axis=-1) / const.c
+        return TimeDelta(tcor_val, scale='tdb')
+
+    def sidereal_time(self, kind, longitude=None, model=None):
+        """Calculate sidereal time.
+
+        Parameters
+        ---------------
+        kind : str
+            ``'mean'`` or ``'apparent'``, i.e., accounting for precession
+            only, or also for nutation.
+        longitude : `~astropy.units.Quantity`, `str`, or `None`; optional
+            The longitude on the Earth at which to compute the sidereal time.
+            Can be given as a `~astropy.units.Quantity` with angular units
+            (or an `~astropy.coordinates.Angle` or
+            `~astropy.coordinates.Longitude`), or as a name of an
+            observatory (currently, only ``'greenwich'`` is supported,
+            equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
+            the Time object is used.
+        model : str or `None`; optional
+            Precession (and nutation) model to use.  The available ones are:
+            - {0}: {1}
+            - {2}: {3}
+            If `None` (default), the last (most recent) one from the appropriate
+            list above is used.
+
+        Returns
+        -------
+        sidereal time : `~astropy.coordinates.Longitude`
+            Sidereal time as a quantity with units of hourangle
+        """  # docstring is formatted below
+
+        from astropy.coordinates import Longitude
+
+        if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
+            raise ValueError('The kind of sidereal time has to be {}'.format(
+                ' or '.join(sorted(SIDEREAL_TIME_MODELS.keys()))))
+
+        available_models = SIDEREAL_TIME_MODELS[kind.lower()]
+
+        if model is None:
+            model = sorted(available_models.keys())[-1]
+        else:
+            if model.upper() not in available_models:
+                raise ValueError(
+                    'Model {} not implemented for {} sidereal time; '
+                    'available models are {}'
+                    .format(model, kind, sorted(available_models.keys())))
+
+        if longitude is None:
+            if self.location is None:
+                raise ValueError('No longitude is given but the location for '
+                                 'the Time object is not set.')
+            longitude = self.location.lon
+        elif longitude == 'greenwich':
+            longitude = Longitude(0., u.degree,
+                                  wrap_angle=180. * u.degree)
+        else:
+            # sanity check on input
+            longitude = Longitude(longitude, u.degree,
+                                  wrap_angle=180. * u.degree)
+
+        gst = self._erfa_sidereal_time(available_models[model.upper()])
+        return Longitude(gst + longitude, u.hourangle)
+
+    if isinstance(sidereal_time.__doc__, str):
+        sidereal_time.__doc__ = sidereal_time.__doc__.format(
+            'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
+            'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
+
+    def _erfa_sidereal_time(self, model):
+        """Calculate a sidereal time using a IAU precession/nutation model."""
+
+        from astropy.coordinates import Longitude
+
+        erfa_function = model['function']
+        erfa_parameters = [getattr(getattr(self, scale)._time, jd_part)
+                           for scale in model['scales']
+                           for jd_part in ('jd1', 'jd2_filled')]
+
+        sidereal_time = erfa_function(*erfa_parameters)
+
+        if self.masked:
+            sidereal_time[self.mask] = np.nan
+
+        return Longitude(sidereal_time, u.radian).to(u.hourangle)
+
+    def get_delta_ut1_utc(self, iers_table=None, return_status=False):
+        """Find UT1 - UTC differences by interpolating in IERS Table.
+
+        Parameters
+        ----------
+        iers_table : `~astropy.utils.iers.IERS` table, optional
+            Table containing UT1-UTC differences from IERS Bulletins A
+            and/or B.  Default: `~astropy.utils.iers.earth_orientation_table`
+            (which in turn defaults to the combined version provided by
+            `~astropy.utils.iers.IERS_Auto`).
+        return_status : bool
+            Whether to return status values.  If `False` (default), iers
+            raises `IndexError` if any time is out of the range
+            covered by the IERS table.
+
+        Returns
+        -------
+        ut1_utc : float or float array
+            UT1-UTC, interpolated in IERS Table
+        status : int or int array
+            Status values (if ``return_status=`True```)::
+            ``astropy.utils.iers.FROM_IERS_B``
+            ``astropy.utils.iers.FROM_IERS_A``
+            ``astropy.utils.iers.FROM_IERS_A_PREDICTION``
+            ``astropy.utils.iers.TIME_BEFORE_IERS_RANGE``
+            ``astropy.utils.iers.TIME_BEYOND_IERS_RANGE``
+
+        Notes
+        -----
+        In normal usage, UT1-UTC differences are calculated automatically
+        on the first instance ut1 is needed.
+
+        Examples
+        --------
+        To check in code whether any times are before the IERS table range::
+
+            >>> from astropy.utils.iers import TIME_BEFORE_IERS_RANGE
+            >>> t = Time(['1961-01-01', '2000-01-01'], scale='utc')
+            >>> delta, status = t.get_delta_ut1_utc(return_status=True)  # doctest: +REMOTE_DATA
+            >>> status == TIME_BEFORE_IERS_RANGE  # doctest: +REMOTE_DATA
+            array([ True, False]...)
+        """
+        if iers_table is None:
+            from astropy.utils.iers import earth_orientation_table
+            iers_table = earth_orientation_table.get()
+
+        return iers_table.ut1_utc(self.utc, return_status=return_status)
+
+    # Property for ERFA DUT arg = UT1 - UTC
+    def _get_delta_ut1_utc(self, jd1=None, jd2=None):
+        """
+        Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
+        jd2 args because it gets called that way when converting time scales.
+        If delta_ut1_utc is not yet set, this will interpolate them from the
+        the IERS table.
+        """
+        # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
+        # seconds. It is obtained from tables published by the IERS.
+        if not hasattr(self, '_delta_ut1_utc'):
+            from astropy.utils.iers import earth_orientation_table
+            iers_table = earth_orientation_table.get()
+            # jd1, jd2 are normally set (see above), except if delta_ut1_utc
+            # is access directly; ensure we behave as expected for that case
+            if jd1 is None:
+                self_utc = self.utc
+                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2_filled
+                scale = 'utc'
+            else:
+                scale = self.scale
+            # interpolate UT1-UTC in IERS table
+            delta = iers_table.ut1_utc(jd1, jd2)
+            # if we interpolated using UT1 jds, we may be off by one
+            # second near leap seconds (and very slightly off elsewhere)
+            if scale == 'ut1':
+                # calculate UTC using the offset we got; the ERFA routine
+                # is tolerant of leap seconds, so will do this right
+                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta.to_value(u.s))
+                # calculate a better estimate using the nearly correct UTC
+                delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
+
+            self._set_delta_ut1_utc(delta)
+
+        return self._delta_ut1_utc
+
+    def _set_delta_ut1_utc(self, val):
+        del self.cache
+        if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
+            val = val.to(u.second).value
+        val = self._match_shape(val)
+        self._delta_ut1_utc = val
+
+    # Note can't use @property because _get_delta_tdb_tt is explicitly
+    # called with the optional jd1 and jd2 args.
+    delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
+    """UT1 - UTC time scale offset"""
+
+    # Property for ERFA DTR arg = TDB - TT
+    def _get_delta_tdb_tt(self, jd1=None, jd2=None):
+        if not hasattr(self, '_delta_tdb_tt'):
+            # If jd1 and jd2 are not provided (which is the case for property
+            # attribute access) then require that the time scale is TT or TDB.
+            # Otherwise the computations here are not correct.
+            if jd1 is None or jd2 is None:
+                if self.scale not in ('tt', 'tdb'):
+                    raise ValueError('Accessing the delta_tdb_tt attribute '
+                                     'is only possible for TT or TDB time '
+                                     'scales')
+                else:
+                    jd1 = self._time.jd1
+                    jd2 = self._time.jd2_filled
+
+            # First go from the current input time (which is either
+            # TDB or TT) to an approximate UT1.  Since TT and TDB are
+            # pretty close (few msec?), assume TT.  Similarly, since the
+            # UT1 terms are very small, use UTC instead of UT1.
+            njd1, njd2 = erfa.tttai(jd1, jd2)
+            njd1, njd2 = erfa.taiutc(njd1, njd2)
+            # subtract 0.5, so UT is fraction of the day from midnight
+            ut = day_frac(njd1 - 0.5, njd2)[1]
+
+            if self.location is None:
+                from astropy.coordinates import EarthLocation
+                location = EarthLocation.from_geodetic(0., 0., 0.)
+            else:
+                location = self.location
+            # Geodetic params needed for d_tdb_tt()
+            lon = location.lon
+            rxy = np.hypot(location.x, location.y)
+            z = location.z
+            self._delta_tdb_tt = erfa.dtdb(
+                jd1, jd2, ut, lon.to_value(u.radian),
+                rxy.to_value(u.km), z.to_value(u.km))
+
+        return self._delta_tdb_tt
+
+    def _set_delta_tdb_tt(self, val):
+        del self.cache
+        if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
+            val = val.to(u.second).value
+        val = self._match_shape(val)
+        self._delta_tdb_tt = val
+
+    # Note can't use @property because _get_delta_tdb_tt is explicitly
+    # called with the optional jd1 and jd2 args.
+    delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
+    """TDB - TT time scale offset"""
+
+
+class TimeDelta(TimeBase):
     """
     Represent the time difference between two times.
 
@@ -2132,6 +2135,17 @@ class TimeDelta(Time):
     """Dict of time delta formats."""
 
     info = TimeDeltaInfo()
+
+    def __new__(cls, val, val2=None, format=None, scale=None,
+                precision=None, in_subfmt=None, out_subfmt=None,
+                location=None, copy=False):
+
+        if isinstance(val, TimeDelta):
+            self = val.replicate(format=format, copy=copy, cls=cls)
+        else:
+            self = super().__new__(cls)
+
+        return self
 
     def __init__(self, val, val2=None, format=None, scale=None, copy=False):
         if isinstance(val, TimeDelta):

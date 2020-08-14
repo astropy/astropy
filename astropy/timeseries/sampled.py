@@ -38,11 +38,11 @@ class TimeSeries(BaseTimeSeries):
         Data to initialize time series. This does not need to contain the times,
         which can be provided separately, but if it does contain the times they
         should be in a column called ``'time'`` to be automatically recognized.
-    time : `~astropy.time.Time` or iterable
+    time : `~astropy.time.Time`, `~astropy.time.TimeDelta` or iterable
         The times at which the values are sampled - this can be either given
-        directly as a `~astropy.time.Time` array or as any iterable that
-        initializes the `~astropy.time.Time` class. If this is given, then
-        the remaining time-related arguments should not be used.
+        directly as a `~astropy.time.Time` or `~astropy.time.TimeDelta` array
+        or as any iterable that initializes the `~astropy.time.Time` class. If
+        this is given, then the remaining time-related arguments should not be used.
     time_start : `~astropy.time.Time` or str
         The time of the first sample in the time series. This is an alternative
         to providing ``time`` and requires that ``time_delta`` is also provided.
@@ -92,7 +92,7 @@ class TimeSeries(BaseTimeSeries):
         elif time is not None and time_start is not None:
             raise TypeError("Cannot specify both 'time' and 'time_start'")
 
-        if time is not None and not isinstance(time, Time):
+        if time is not None and not isinstance(time, (Time, TimeDelta)):
             time = Time(time)
 
         if time_start is not None and not isinstance(time_start, Time):

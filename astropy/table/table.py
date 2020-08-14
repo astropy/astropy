@@ -3374,10 +3374,10 @@ class Table:
             astropy Columns + appropriate meta-data to allow subsequent decoding.
             """
             from . import serialize
-            from astropy.time import Time, TimeDelta
+            from astropy.time import TimeBase, TimeDelta
 
             # Convert any Time or TimeDelta columns and pay attention to masking
-            time_cols = [col for col in tbl.itercols() if isinstance(col, Time)]
+            time_cols = [col for col in tbl.itercols() if isinstance(col, TimeBase)]
             if time_cols:
 
                 # Make a light copy of table and clear any indices
