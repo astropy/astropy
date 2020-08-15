@@ -288,7 +288,7 @@ name and format. Here is a summary of all allowed formats for a binary table:
     B                        Unsigned byte                   1
     I                        16-bit integer                  2
     J                        32-bit integer                  4
-    K                        64-bit integer                  4
+    K                        64-bit integer                  8
     A                        character                       1
     E                        single precision floating point 4
     D                        double precision floating point 8
