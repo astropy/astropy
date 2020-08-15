@@ -42,7 +42,8 @@ import numpy as np
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import NUMPY_LT_1_17, NUMPY_LT_1_18
+from astropy.utils.compat import (NUMPY_LT_1_17, NUMPY_LT_1_18,
+                                  NUMPY_LT_1_20)
 from astropy.utils import isiterable
 
 
@@ -128,10 +129,12 @@ IGNORED_FUNCTIONS = {
     np.save, np.savez, np.savetxt, np.savez_compressed,
     # Polynomials
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
-    np.polymul, np.polysub, np.polyval, np.roots, np.vander,
+    np.polymul, np.polysub, np.polyval, np.roots, np.vander}
+if NUMPY_LT_1_20:
     # financial
-    np.fv, np.ipmt, np.irr, np.mirr, np.nper, np.npv, np.pmt, np.ppmt,
-    np.pv, np.rate}
+    IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
+                          np.npv, np.pmt, np.ppmt, np.pv, np.rate}
+
 if NUMPY_LT_1_18:
     IGNORED_FUNCTIONS |= {np.rank}
 else:
