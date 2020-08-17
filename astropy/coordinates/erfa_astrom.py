@@ -4,7 +4,6 @@ This module contains a helper function to fill erfa.astrom struct and a
 ScienceState, which allows to speed up coordinate transformations at the
 expense of accuracy.
 """
-from abc import ABCMeta, abstractmethod
 import warnings
 
 import numpy as np
@@ -24,42 +23,23 @@ from ..utils.exceptions import AstropyWarning
 __all__ = []
 
 
-class BaseAstromProvider(metaclass=ABCMeta):
-    '''
-    Baseclass for classes providing utility access to erfa astrometry functions.
-    '''
-
-    @abstractmethod
-    def apci(self, frame):
-        '''
-        Call ``erfa.apci`` with the correct information extracted from ``frame``.
-        '''
-        pass
-
-    @abstractmethod
-    def apcs(self, frame):
-        '''
-        Call ``erfa.apcs`` with the correct information extracted from ``frame``.
-        '''
-        pass
-
-    @abstractmethod
-    def apio13(self, frame):
-        '''
-        Call ``erfa.apcs`` with the correct information extracted from ``frame``.
-        '''
-        pass
-
-
-class AstromProvider(BaseAstromProvider):
+class ErfaAstrom:
     '''
     The default provider for astrometry values.
     A utility class to extract the necessary arguments for
-    erfa functions from frame attributes.
+    erfa functions from frame attributes, call the corresponding
+    erfa functions and return the astrom object.
     '''
 
     @staticmethod
     def apci(frame):
+        '''
+        Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
+
+        Arguments
+        ---------
+        frame: ``astropy.coordinate.CIRS``
+        '''
         jd1_tt, jd2_tt = get_jd12(frame.obstime, 'tt')
         cip = get_cip(jd1_tt, jd2_tt)
         earth_pv, earth_heliocentric = prepare_earth_position_vel(frame.obstime)
@@ -67,6 +47,13 @@ class AstromProvider(BaseAstromProvider):
 
     @staticmethod
     def apcs(frame):
+        '''
+        Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
+
+        Arguments
+        ---------
+        frame: ``astropy.coordinate.GCRS``
+        '''
         jd1_tt, jd2_tt = get_jd12(frame.obstime, 'tt')
         pv = pav2pv(
             frame.obsgeoloc.get_xyz(xyz_axis=-1).value,
@@ -77,6 +64,13 @@ class AstromProvider(BaseAstromProvider):
 
     @staticmethod
     def apio13(frame):
+        '''
+        Wrapper for ``erfa.apio13``, used in conversions AltAz <-> CIRS
+
+        Arguments
+        ---------
+        frame: ``astropy.coordinates.AltAz``
+        '''
         lon, lat, height = frame.location.to_geodetic('WGS84')
 
         jd1_utc, jd2_utc = get_jd12(frame.obstime, 'utc')
@@ -96,7 +90,7 @@ class AstromProvider(BaseAstromProvider):
         )
 
 
-class InterpolatingAstromProvider(AstromProvider):
+class ErfaAstromInterpolator(ErfaAstrom):
     '''
     A provider for astrometry values that does not call erfa
     for each individual timestamp but interpolates the linearly
@@ -205,16 +199,16 @@ class InterpolatingAstromProvider(AstromProvider):
         return erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
 
 
-class astrom_provider(ScienceState):
+class erfa_astrom(ScienceState):
     """
     ScienceState to select with astrom provider is used in
     coordinate transformations.
     """
 
-    _value = AstromProvider()
+    _value = ErfaAstrom()
 
     @classmethod
     def validate(cls, value):
-        if not isinstance(value, BaseAstromProvider):
-            raise TypeError(f'Must be an instance of {BaseAstromProvider!r}')
+        if not isinstance(value, ErfaAstrom):
+            raise TypeError(f'Must be an instance of {ErfaAstrom!r}')
         return value
