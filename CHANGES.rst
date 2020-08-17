@@ -21,8 +21,8 @@ astropy.coordinates
   representations. [#10337]
 
 - Add a new science state `~astropy.coordinates.erfa_astrom.erfa_astrom` and
-  two classes ``ErfaAstrom``, ``ErfaAstromInterpolator`` as a wrapper to
-  the ``pyerfa`` astrometric functions.
+  two classes ``ErfaAstrom``, ``ErfaAstromInterpolator`` as wrappers to
+  the ``pyerfa`` astrometric functions used in the coordinate transforms.
   Using ``ErfaAstromInterpolator``, which interpolates astrometric properties for
   ``SkyCoord`` instances with arrays of obstime, can dramatically speed up
   coordinate transformations while keeping microarcsecond resolution.
