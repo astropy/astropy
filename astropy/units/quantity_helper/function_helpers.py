@@ -42,22 +42,14 @@ import numpy as np
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import (NUMPY_LT_1_17, NUMPY_LT_1_18,
-                                  NUMPY_LT_1_20)
+from astropy.utils.compat import NUMPY_LT_1_18, NUMPY_LT_1_20
 from astropy.utils import isiterable
 
-
-if NUMPY_LT_1_17:  # pragma: no cover
-    # pre 1.16, overrides.py did not exist; in 1.16, it existed, but
-    # __array_function__ overrides were turned off by default.
-    ARRAY_FUNCTION_ENABLED = (hasattr(np.core, 'overrides') and
-                              np.core.overrides.ENABLE_ARRAY_FUNCTION)
-else:
-    # In 1.17, overrides are enabled by default, but it is still possible to
-    # turn them off using an environment variable.  We use getattr since it
-    # is planned to remove that possibility in later numpy versions.
-    ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides,
-                                     'ENABLE_ARRAY_FUNCTION', True)
+# In 1.17, overrides are enabled by default, but it is still possible to
+# turn them off using an environment variable.  We use getattr since it
+# is planned to remove that possibility in later numpy versions.
+ARRAY_FUNCTION_ENABLED = getattr(np.core.overrides,
+                                 'ENABLE_ARRAY_FUNCTION', True)
 SUBCLASS_SAFE_FUNCTIONS = set()
 """Functions with implementations supporting subclasses like Quantity."""
 FUNCTION_HELPERS = {}

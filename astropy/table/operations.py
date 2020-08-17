@@ -20,7 +20,6 @@ import numpy as np
 from astropy.utils import metadata
 from .table import Table, QTable, Row, Column, MaskedColumn
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_1_17
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -1168,7 +1167,7 @@ def _join(left, right, keys=None, join_type='inner',
 
             out[out_name] = col_cls.info.new_like(cols, n_out, metadata_conflicts, out_name)
 
-            if not NUMPY_LT_1_17 or issubclass(col_cls, (Column, Time)):
+            if issubclass(col_cls, (Column, Time)):
                 out[out_name][:] = np.where(right_mask,
                                             left[left_name].take(left_out),
                                             right[right_name].take(right_out))
