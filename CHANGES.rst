@@ -20,6 +20,16 @@ astropy.coordinates
   ``np.rot90``, or ``np.roll``) now work on coordinates, frames, and
   representations. [#10337]
 
+- Add a new science state `~astropy.coordinates.erfa_astrom.erfa_astrom` and
+  two classes ``ErfaAstrom``, ``ErfaAstromInterpolator`` as a wrapper to
+  the ``pyerfa`` astrometric functions.
+  Using ``ErfaAstromInterpolator``, which interpolates astrometric properties for
+  ``SkyCoord`` instances with arrays of obstime, can dramatically speed up
+  coordinate transformations while keeping microarcsecond resolution.
+  Depending on needed precision and the obstime array in question, speed ups
+  reach factors of 10x to >100x. [#10647]
+
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
