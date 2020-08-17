@@ -24,7 +24,6 @@ from astropy.table import QTable, MaskedColumn
 from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
                                 is_url_in_cache, get_readable_fileobj)
 from astropy.utils.state import ScienceState
-from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
 
@@ -462,13 +461,6 @@ class IERS_A(IERS):
 
     iers_table = None
 
-    if NUMPY_LT_1_17:
-        @staticmethod
-        def _quantity_where(condition, x, y):
-            result = y.to(x.unit)  # Makes copy.
-            result[condition] = x[condition]
-            return result
-
     @classmethod
     def _combine_a_b_columns(cls, iers_a):
         """
@@ -484,7 +476,7 @@ class IERS_A(IERS):
         # IERS B values in the table are consistent with the true ones.
         table = cls._substitute_iers_b(table)
 
-        q_where = cls._quantity_where if NUMPY_LT_1_17 else np.where
+        q_where = np.where
 
         # Combine A and B columns, using B where possible.
         b_bad = np.isnan(table['UT1_UTC_B'])
