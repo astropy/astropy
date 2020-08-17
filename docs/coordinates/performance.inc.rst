@@ -87,19 +87,19 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> # array with 10000 obstimes
    >>> obstime = Time.now() + np.linspace(0, 6, 10000) * u.hour
-   >>> location = EarthLocation.of_site('Roque de los Muchachos')
+   >>> location = EarthLocation.of_site('Roque de los Muchachos')  # doctest: +REMOTE_DATA
    >>> frame = AltAz(obstime=obstime, location=location)
-   >>> crab = SkyCoord.from_name('Crab')
+   >>> crab = SkyCoord.from_name('Crab')  # doctest: +REMOTE_DATA
 
    >>> # transform with default transformation and print duration
    >>> t0 = perf_counter()
-   >>> crab_altaz = crab.transform_to(frame)
+   >>> crab_altaz = crab.transform_to(frame)   # doctest: +REMOTE_DATA
    >>> print(f'Transformation took {perf_counter() - t0:.2f} s')
 
    >>> # transform with interpolating astrometric values
    >>> t0 = perf_counter()
    >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
-   >>>     crab_altaz_interpolated = crab.transform_to(frame)
+   >>>     crab_altaz_interpolated = crab.transform_to(frame)  # doctest: +REMOTE_DATA
    >>> print(f'Transformation took {perf_counter() - t0:.2f} s')
 
    >>> err = crab_altaz.separation(crab_altaz_interpolated)
