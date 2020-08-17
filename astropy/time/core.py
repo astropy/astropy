@@ -1334,20 +1334,19 @@ class TimeBase(ShapedLikeNDArray):
         return val
 
     def __sub__(self, other):
-        if not isinstance(other, Time):
-            try:
-                other = TimeDelta(other)
-            except Exception:
-                return NotImplemented
-
-        # Tdelta - something is dealt with in TimeDelta, so we have
         # T      - Tdelta = T
         # T      - T      = Tdelta
-        other_is_delta = isinstance(other, TimeDelta)
-
-        # we need a constant scale to calculate, which is guaranteed for
-        # TimeDelta, but not for Time (which can be UTC)
+        other_is_delta = not isinstance(other, Time)
         if other_is_delta:  # T - Tdelta
+            # Check other is really a TimeDelta or something that can initialize.
+            if not isinstance(other, TimeDelta):
+                try:
+                    other = TimeDelta(other)
+                except Exception:
+                    return NotImplemented
+
+            # we need a constant scale to calculate, which is guaranteed for
+            # TimeDelta, but not for Time (which can be UTC)
             out = self.replicate()
             if self.scale in other.SCALES:
                 if other.scale not in (out.scale, None):
@@ -1393,18 +1392,17 @@ class TimeBase(ShapedLikeNDArray):
         return out
 
     def __add__(self, other):
-        if not isinstance(other, Time):
+        # T      + Tdelta = T
+        # T      + T      = error
+        if isinstance(other, Time):
+            raise OperandTypeError(self, other, '+')
+
+        # Check other is really a TimeDelta or something that can initialize.
+        if not isinstance(other, TimeDelta):
             try:
                 other = TimeDelta(other)
             except Exception:
                 return NotImplemented
-
-        # Tdelta + something is dealt with in TimeDelta, so we have
-        # T      + Tdelta = T
-        # T      + T      = error
-
-        if not isinstance(other, TimeDelta):
-            raise OperandTypeError(self, other, '+')
 
         # ideally, we calculate in the scale of the Time item, since that is
         # what we want the output in, but this may not be possible, since
@@ -1437,6 +1435,8 @@ class TimeBase(ShapedLikeNDArray):
 
         return out
 
+    # Reverse addition is possible: <something-Tdelta-ish> + T
+    # but there is no case of <something> - T, so no __rsub__.
     def __radd__(self, other):
         return self.__add__(other)
 
@@ -2198,11 +2198,13 @@ class TimeDelta(TimeBase):
                 self.out_subfmt, from_jd=True)
 
     def __add__(self, other):
-        # only deal with TimeDelta + TimeDelta
+        # Only deal with TimeDelta + TimeDelta. If other is a Time then use
+        # Time.__add__ to do the calculation.
         if isinstance(other, Time):
-            if not isinstance(other, TimeDelta):
-                return other.__add__(self)
-        else:
+            return other.__add__(self)
+
+        # If not a TimeDelta then see if it can be turned into a TimeDelta.
+        if not isinstance(other, TimeDelta):
             try:
                 other = TimeDelta(other)
             except Exception:
@@ -2230,11 +2232,12 @@ class TimeDelta(TimeBase):
         return out
 
     def __sub__(self, other):
-        # only deal with TimeDelta - TimeDelta
+        # TimeDelta - Time is an error
         if isinstance(other, Time):
-            if not isinstance(other, TimeDelta):
-                raise OperandTypeError(self, other, '-')
-        else:
+            raise OperandTypeError(self, other, '-')
+
+        # If not a TimeDelta then see if it can be turned into a TimeDelta.
+        if not isinstance(other, TimeDelta):
             try:
                 other = TimeDelta(other)
             except Exception:
@@ -2281,7 +2284,7 @@ class TimeDelta(TimeBase):
         """Multiplication of `TimeDelta` objects by numbers/arrays."""
         # Check needed since otherwise the self.jd1 * other multiplication
         # would enter here again (via __rmul__)
-        if isinstance(other, Time) and not isinstance(other, TimeDelta):
+        if isinstance(other, Time):
             raise OperandTypeError(self, other, '*')
         elif ((isinstance(other, u.UnitBase)
                and other == u.dimensionless_unscaled)
