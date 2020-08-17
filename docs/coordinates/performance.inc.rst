@@ -56,3 +56,54 @@ properties::
 
 ..
   EXAMPLE END
+
+Improving Performance for Arrays of ``obstime``
+===============================================
+
+The most expensive operations when transforming between observer-dependent coordinate
+frames (e.g. ``AltAz``) and sky-fixed frames (e.g. ``ICRS``) are the calculation
+of astrometric values like precession and nutation matrices.
+
+If |skycoord| instances with a large ``obstime`` array are transformed,
+these calculations can be speed up by factors up to 100 and still keeping micro-arcsecond resolution
+by utilizing interpolation instead of calculating astrometric values for each individual point.
+
+This can be achieved through the ``erfa_astrom`` state and the ``ErfaAstromInterpolator``
+class like this
+
+..
+  EXAMPLE START
+  Improving performance for obstime arrays
+
+To use interpolation for the astrometric values in coordinate transformation, use::
+
+   >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+   >>> from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
+   >>> from astropy.time import Time
+   >>> from time import perf_counter
+   >>> import numpy as np
+   >>> import astropy.units as u
+
+
+   >>> # array with 10000 obstimes
+   >>> obstime = Time.now() + np.linspace(0, 6, 10000) * u.hour
+   >>> location = EarthLocation.of_site('Roque de los Muchachos')
+   >>> frame = AltAz(obstime=obstime, location=location)
+   >>> crab = SkyCoord.from_name('Crab')
+
+   >>> # transform with default transformation and print duration
+   >>> t0 = perf_counter()
+   >>> crab_altaz = crab.transform_to(frame)
+   >>> print(f'Transformation took {perf_counter() - t0:.2f} s')
+
+   >>> # transform with interpolating astrometric values
+   >>> t0 = perf_counter()
+   >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+   >>>     crab_altaz_interpolated = crab.transform_to(frame)
+   >>> print(f'Transformation took {perf_counter() - t0:.2f} s')
+
+   >>> err = crab_altaz.separation(crab_altaz_interpolated)
+   >>> print(f'Mean error of interpolation: {err.to(u.microarcsecond).mean():.4f}')
+
+..
+  EXAMPLE END
