@@ -93,12 +93,38 @@ class ErfaAstrom:
 class ErfaAstromInterpolator(ErfaAstrom):
     '''
     A provider for astrometry values that does not call erfa
-    for each individual timestamp but interpolates the linearly
+    for each individual timestamp but interpolates linearly
     between support points.
 
-    This can dramatically speed up coordinate transformations when
-    obstime is an array of many values (factors of 10 to > 100 depending
-    on the selected resolution and the time range of the values).
+    For the interpolation, float64 MJD values are used, so time precision
+    for the interpolation will be around a microsecond.
+
+    This can dramatically speed up coordinate transformations,
+    e.g. between CIRS and ICRS,
+    when obstime is an array of many values (factors of 10 to > 100 depending
+    on the selected resolution, number of points and the time range of the values).
+
+    The precision of the transformation will still be in the order of microseconds
+    for reasonable values of time_resolution, e.g. ``300 * u.s``.
+
+    Users should benchmark performance and accuracy with the default transformation
+    for their specific use case and then choose a suitable ``time_resolution``
+    from there.
+
+    This class is intended be used together with the ``erfa_astrom`` science state,
+    e.g. in a context manager like this
+
+    Example
+    -------
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
+    >>> import astropy.units as u
+    >>> from astropy.time import Time
+    >>> import numpy as np
+
+    >>> time = Time.now() + np.linspace(0, 4, 1000) * u.hour
+    >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+    >>>    cirs = SkyCoord.from_name('Crab').transform_to(CIRS(obstime=obstime))
     '''
 
     @u.quantity_input(time_resolution=u.day)
@@ -107,6 +133,13 @@ class ErfaAstromInterpolator(ErfaAstrom):
             warnings.warn(
                 f'Using {self.__class__.__name__} with `time_resolution`'
                 ' below 1ms might not improve performance',
+                AstropyWarning
+            )
+        if time_resolution.to_value(u.us) < 10:
+            warnings.warn(
+                f'Using {self.__class__.__name__} with `time_resolution`'
+                ' below 10 us is probably not practical since float64 for MJD '
+                ' is used for interpolation',
                 AstropyWarning
             )
         self.mjd_resolution = time_resolution.to_value(u.day)
@@ -166,6 +199,13 @@ class ErfaAstromInterpolator(ErfaAstrom):
         )
 
     def apci(self, frame):
+        '''
+        Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
+
+        Arguments
+        ---------
+        frame: ``astropy.coordinate.CIRS``
+        '''
         obstime = frame.obstime
         # no point in interpolating for a single value
         if obstime.size == 1:
@@ -181,6 +221,13 @@ class ErfaAstromInterpolator(ErfaAstrom):
         return astrom
 
     def apcs(self, frame):
+        '''
+        Wrapper for ``erfa.apcs``, used in conversions CIRS <-> ICRS
+
+        Arguments
+        ---------
+        frame: ``astropy.coordinate.GCRS``
+        '''
         obstime = frame.obstime
         # no point in interpolating for a single value
         if obstime.size == 1:
