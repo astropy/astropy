@@ -115,7 +115,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     Example
     -------
-    >>> from astropy.coordinates import SkyCoord 
+    >>> from astropy.coordinates import SkyCoord
     >>> from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
     >>> import astropy.units as u
     >>> from astropy.time import Time
