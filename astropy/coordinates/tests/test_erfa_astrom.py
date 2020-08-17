@@ -23,6 +23,7 @@ def test_science_state():
         erfa_astrom.set('foo')
 
 
+@pytest.mark.remote_data
 def test_erfa_astrom():
     # I was having a pretty hard time in coming
     # up with a unit test only testing the astrom provider
@@ -59,6 +60,7 @@ def test_erfa_astrom():
     assert np.all(ref.separation(interp_300s) < u.Quantity(1, u.microarcsecond))
 
 
+@pytest.mark.remote_data
 def test_interpolation_nd():
     '''
     Test that the interpolation also works for nd-arrays
