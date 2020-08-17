@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
     ARRAY_FUNCTION_ENABLED, SUBCLASS_SAFE_FUNCTIONS, UNSUPPORTED_FUNCTIONS,
     FUNCTION_HELPERS, DISPATCHED_FUNCTIONS, IGNORED_FUNCTIONS)
-from astropy.utils.compat import NUMPY_LT_1_18
+from astropy.utils.compat import NUMPY_LT_1_18, NUMPY_LT_1_20
 
 
 NO_ARRAY_FUNCTION = not ARRAY_FUNCTION_ENABLED
@@ -2135,9 +2135,10 @@ class TestLinAlg(metaclass=CoverageMeta):
 
 
 untested_functions = set()
-financial_functions = {f for f in all_wrapped_functions.values()
-                       if f in np.lib.financial.__dict__.values()}
-untested_functions |= financial_functions
+if NUMPY_LT_1_20:
+    financial_functions = {f for f in all_wrapped_functions.values()
+                           if f in np.lib.financial.__dict__.values()}
+    untested_functions |= financial_functions
 
 deprecated_functions = {
     np.asscalar
