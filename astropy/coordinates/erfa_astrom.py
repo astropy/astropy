@@ -115,7 +115,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     Example
     -------
-    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.coordinates import SkyCoord 
     >>> from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
     >>> import astropy.units as u
     >>> from astropy.time import Time
@@ -123,7 +123,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     >>> time = Time.now() + np.linspace(0, 4, 1000) * u.hour
     >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
-    ...    cirs = SkyCoord.from_name('Crab').transform_to(CIRS(obstime=obstime))
+    ...    cirs = SkyCoord.from_name('Crab').transform_to(CIRS(obstime=obstime))  # doctest: +REMOTE_DATA
     '''
 
     @u.quantity_input(time_resolution=u.day)
