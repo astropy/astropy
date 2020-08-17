@@ -77,7 +77,7 @@ class like this
 
 To use interpolation for the astrometric values in coordinate transformation, use::
 
-   >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+   >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz   # doctest: +REMOTE_DATA
    >>> from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
    >>> from astropy.time import Time
    >>> from time import perf_counter
