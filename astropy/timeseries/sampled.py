@@ -95,7 +95,7 @@ class TimeSeries(BaseTimeSeries):
         if time is not None and not isinstance(time, (Time, TimeDelta)):
             time = Time(time)
 
-        if time_start is not None and not isinstance(time_start, Time):
+        if time_start is not None and not isinstance(time_start, (Time, TimeDelta)):
             time_start = Time(time_start)
 
         if time_delta is not None and not isinstance(time_delta, (Quantity, TimeDelta)):

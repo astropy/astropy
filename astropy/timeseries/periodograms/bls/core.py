@@ -101,7 +101,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         self.t = t
 
-        if isinstance(self.t, Time):
+        if isinstance(self.t, (Time, TimeDelta)):
             self._tstart = self.t[0]
             trel = (self.t - self._tstart).to(u.day)
         else:
