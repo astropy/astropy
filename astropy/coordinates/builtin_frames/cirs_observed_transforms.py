@@ -17,7 +17,7 @@ from astropy.coordinates.representation import (SphericalRepresentation,
 from .cirs import CIRS
 from .altaz import AltAz
 from .utils import PIOVER2
-from ..astrom_provider import astrom_provider
+from ..erfa_astrom import erfa_astrom
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
@@ -49,7 +49,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
         cirs_dec = diffrepr.lat.to_value(u.radian)
 
     # first set up the astrometry context for CIRS<->AltAz
-    astrom = astrom_provider.get().apio13(altaz_frame)
+    astrom = erfa_astrom.get().apio13(altaz_frame)
 
     az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
@@ -76,7 +76,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     zen = PIOVER2 - usrepr.lat.to_value(u.radian)
 
     # first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
-    astrom = astrom_provider.get().apio13(altaz_coo)
+    astrom = erfa_astrom.get().apio13(altaz_coo)
 
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian

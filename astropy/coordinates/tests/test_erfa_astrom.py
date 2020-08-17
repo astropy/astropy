@@ -4,33 +4,33 @@ import pytest
 
 def test_science_state():
     import astropy.units as u
-    from astropy.coordinates.astrom_provider import (
-        astrom_provider, AstromProvider, InterpolatingAstromProvider
+    from astropy.coordinates.erfa_astrom import (
+        erfa_astrom, ErfaAstrom, ErfaAstromInterpolator
     )
 
-    assert astrom_provider.get().__class__ is AstromProvider
+    assert erfa_astrom.get().__class__ is ErfaAstrom
 
     res = 300 * u.s
-    with astrom_provider.set(InterpolatingAstromProvider(res)):
-        assert isinstance(astrom_provider.get(), InterpolatingAstromProvider)
-        astrom_provider.get().mjd_resolution == res.to_value(u.day)
+    with erfa_astrom.set(ErfaAstromInterpolator(res)):
+        assert isinstance(erfa_astrom.get(), ErfaAstromInterpolator)
+        erfa_astrom.get().mjd_resolution == res.to_value(u.day)
 
     # context manager should have switched it back
-    assert astrom_provider.get().__class__ is AstromProvider
+    assert erfa_astrom.get().__class__ is ErfaAstrom
 
-    # must be a subclass of BaseAstromProvider
+    # must be a subclass of BaseErfaAstrom
     with pytest.raises(TypeError):
-        astrom_provider.set('foo')
+        erfa_astrom.set('foo')
 
 
-def test_astrom_provider():
+def test_erfa_astrom():
     # I was having a pretty hard time in coming
     # up with a unit test only testing the astrom provider
     # that would not just test its implementation with its implementation
     # so we test a coordinate conversion using it
 
-    from astropy.coordinates.astrom_provider import (
-        astrom_provider, InterpolatingAstromProvider,
+    from astropy.coordinates.erfa_astrom import (
+        erfa_astrom, ErfaAstromInterpolator,
     )
     from astropy.coordinates import SkyCoord, EarthLocation, AltAz
     from astropy.time import Time
@@ -49,7 +49,7 @@ def test_astrom_provider():
     # do the reference transformation, no interpolation
     ref = coord.transform_to(altaz)
 
-    with astrom_provider.set(InterpolatingAstromProvider(300 * u.s)):
+    with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
         interp_300s = coord.transform_to(altaz)
 
     # make sure they are actually different
@@ -63,8 +63,8 @@ def test_interpolation_nd():
     '''
     Test that the interpolation also works for nd-arrays
     '''
-    from astropy.coordinates.astrom_provider import (
-        AstromProvider, InterpolatingAstromProvider
+    from astropy.coordinates.erfa_astrom import (
+        ErfaAstrom, ErfaAstromInterpolator
     )
 
     from astropy.coordinates import EarthLocation, AltAz, GCRS
@@ -77,8 +77,8 @@ def test_interpolation_nd():
         height=2200 * u.m,
     )
 
-    interp_provider = InterpolatingAstromProvider(300 * u.s)
-    provider = AstromProvider()
+    interp_provider = ErfaAstromInterpolator(300 * u.s)
+    provider = ErfaAstrom()
 
     for shape in [tuple(), (1, ), (100, ), (30, 20), (20, 10, 5), (10, 5, 3, 2)]:
         # create obstimes of the desired shapes
