@@ -123,7 +123,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     >>> time = Time.now() + np.linspace(0, 4, 1000) * u.hour
     >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
-    >>>    cirs = SkyCoord.from_name('Crab').transform_to(CIRS(obstime=obstime))
+    ...    cirs = SkyCoord.from_name('Crab').transform_to(CIRS(obstime=obstime))
     '''
 
     @u.quantity_input(time_resolution=u.day)
