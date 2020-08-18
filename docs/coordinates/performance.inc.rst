@@ -93,14 +93,14 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> # transform with default transformation and print duration
    >>> t0 = perf_counter()
-   >>> crab_altaz = crab.transform_to(frame)  # doctest:+REMOTE_DATA
+   >>> crab_altaz = crab.transform_to(frame)  # doctest:+REMOTE_DATA +IGNORE_WARNINGS
    >>> print(f'Transformation took {perf_counter() - t0:.2f} s')  # doctest:+ELLIPSIS
    Transformation took ... s
 
    >>> # transform with interpolating astrometric values
    >>> t0 = perf_counter()
    >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):  # doctest:+REMOTE_DATA
-   ...     crab_altaz_interpolated = crab.transform_to(frame)  # doctest:+REMOTE_DATA
+   ...     crab_altaz_interpolated = crab.transform_to(frame)  # doctest:+REMOTE_DATA +IGNORE_WARNINGS
    >>> print(f'Transformation took {perf_counter() - t0:.2f} s')  # doctest:+ELLIPSIS
    Transformation took ... s
 
