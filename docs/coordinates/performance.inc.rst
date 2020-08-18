@@ -87,7 +87,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> # array with 10000 obstimes
    >>> obstime = Time.now() + np.linspace(0, 6, 10000) * u.hour
-   >>> location = EarthLocation.of_site('Roque de los Muchachos')  # doctest:+REMOTE_DATA
+   >>> location = location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
    >>> frame = AltAz(obstime=obstime, location=location)  # doctest:+REMOTE_DATA
    >>> crab = SkyCoord.from_name('Crab')  # doctest:+REMOTE_DATA
 
