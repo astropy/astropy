@@ -1258,7 +1258,7 @@ int curlProgressCallback(void *clientp, double dltotal, double dlnow,
          if (urlname)
          {
             fprintf(stderr,"Downloading ");
-            fprintf(stderr,urlname);
+            fprintf(stderr,"%s",urlname);
             fprintf(stderr,"...\n");
          }
          isFirst = 0;
