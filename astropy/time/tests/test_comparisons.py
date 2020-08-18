@@ -106,7 +106,7 @@ def test_isclose_time(swap, time_delta):
     t2 = t1 + [-1, 0, 2] * u.s
     assert np.all(isclose_swap(t1, t2, atol=1.5 * u.s) == [True, True, False])
 
-    t2 = t1 + 2 * np.finfo(float).eps * u.day
+    t2 = t1 + 3 * np.finfo(float).eps * u.day
     assert not isclose_swap(t1, t2)
 
 
