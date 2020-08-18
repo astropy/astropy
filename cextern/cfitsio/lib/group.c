@@ -4204,7 +4204,7 @@ int ffgmf(fitsfile *gfptr, /* pointer to grouping table HDU to search       */
 
       if(location == NULL)
 	{
-	  ffpmsg("NULL Location string given ==> ingore location (ffgmf)");
+	  ffpmsg("NULL Location string given ==> ignore location (ffgmf)");
 	  *member = i;
 	  continue;
 	}
@@ -5939,21 +5939,21 @@ int  fits_get_url(fitsfile *fptr,       /* I ptr to FITS file to evaluate    */
       else if(fits_strcasecmp(tmpStr3,"stdin://")        == 0)        
 	{
 	  *status = URL_PARSE_ERROR;
-	  ffpmsg("cannot make vaild URL from stdin:// (fits_get_url)");
+	  ffpmsg("cannot make valid URL from stdin:// (fits_get_url)");
 	  *tmpStr1 = *tmpStr2 = 0;
 	}
 
       else if(fits_strcasecmp(tmpStr3,"stdout://")       == 0)       
 	{
 	  *status = URL_PARSE_ERROR;
-	  ffpmsg("cannot make vaild URL from stdout:// (fits_get_url)");
+	  ffpmsg("cannot make valid URL from stdout:// (fits_get_url)");
 	  *tmpStr1 = *tmpStr2 = 0;
 	}
 
       else if(fits_strcasecmp(tmpStr3,"irafmem://")      == 0)      
 	{
 	  *status = URL_PARSE_ERROR;
-	  ffpmsg("cannot make vaild URL from irafmem:// (fits_get_url)");
+	  ffpmsg("cannot make valid URL from irafmem:// (fits_get_url)");
 	  *tmpStr1 = *tmpStr2 = 0;
 	}
 
