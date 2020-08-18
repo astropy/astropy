@@ -2193,12 +2193,8 @@ class TimeDelta(TimeBase):
                 self.precision, self.in_subfmt,
                 self.out_subfmt, from_jd=True)
 
-    def __add__(self, other):
-        # Only deal with TimeDelta + TimeDelta. If other is a Time then use
-        # Time.__add__ to do the calculation.
-        if isinstance(other, Time):
-            return other.__add__(self)
-
+    def _add_sub(self, other, op):
+        """Perform common elements of addition / subtraction for two delta times"""
         # If not a TimeDelta then see if it can be turned into a TimeDelta.
         if not isinstance(other, TimeDelta):
             try:
@@ -2220,45 +2216,26 @@ class TimeDelta(TimeBase):
         else:
             out = other.replicate()
 
-        jd1 = self._time.jd1 + other._time.jd1
-        jd2 = self._time.jd2 + other._time.jd2
+        jd1 = op(self._time.jd1, other._time.jd1)
+        jd2 = op(self._time.jd2, other._time.jd2)
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
         return out
+
+    def __add__(self, other):
+        # If other is a Time then use Time.__add__ to do the calculation.
+        if isinstance(other, Time):
+            return other.__add__(self)
+
+        return self._add_sub(other, operator.add)
 
     def __sub__(self, other):
         # TimeDelta - Time is an error
         if isinstance(other, Time):
             raise OperandTypeError(self, other, '-')
 
-        # If not a TimeDelta then see if it can be turned into a TimeDelta.
-        if not isinstance(other, TimeDelta):
-            try:
-                other = TimeDelta(other)
-            except Exception:
-                return NotImplemented
-
-        # the scales should be compatible (e.g., cannot convert TDB to TAI)
-        if(self.scale is not None and self.scale not in other.SCALES
-           or other.scale is not None and other.scale not in self.SCALES):
-            raise TypeError("Cannot subtract TimeDelta instances with scales "
-                            "'{}' and '{}'".format(self.scale, other.scale))
-
-        # adjust the scale of other if the scale of self is set (or no scales)
-        if self.scale is not None or other.scale is None:
-            out = self.replicate()
-            if other.scale is not None:
-                other = getattr(other, self.scale)
-        else:
-            out = other.replicate()
-
-        jd1 = self._time.jd1 - other._time.jd1
-        jd2 = self._time.jd2 - other._time.jd2
-
-        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-
-        return out
+        return self._add_sub(other, operator.sub)
 
     def __radd__(self, other):
         return self.__add__(other)
