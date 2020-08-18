@@ -1333,113 +1333,6 @@ class TimeBase(ShapedLikeNDArray):
 
         return val
 
-    def __sub__(self, other):
-        # T      - Tdelta = T
-        # T      - T      = Tdelta
-        other_is_delta = not isinstance(other, Time)
-        if other_is_delta:  # T - Tdelta
-            # Check other is really a TimeDelta or something that can initialize.
-            if not isinstance(other, TimeDelta):
-                try:
-                    other = TimeDelta(other)
-                except Exception:
-                    return NotImplemented
-
-            # we need a constant scale to calculate, which is guaranteed for
-            # TimeDelta, but not for Time (which can be UTC)
-            out = self.replicate()
-            if self.scale in other.SCALES:
-                if other.scale not in (out.scale, None):
-                    other = getattr(other, out.scale)
-            else:
-                if other.scale is None:
-                    out._set_scale('tai')
-                else:
-                    if self.scale not in TIME_TYPES[other.scale]:
-                        raise TypeError("Cannot subtract Time and TimeDelta instances "
-                                        "with scales '{}' and '{}'"
-                                        .format(self.scale, other.scale))
-                    out._set_scale(other.scale)
-            # remove attributes that are invalidated by changing time
-            for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
-                if hasattr(out, attr):
-                    delattr(out, attr)
-
-        else:  # T - T
-            # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
-            if other.scale not in self.SCALES:
-                raise TypeError("Cannot subtract Time instances "
-                                "with scales '{}' and '{}'"
-                                .format(self.scale, other.scale))
-            self_time = (self._time if self.scale in TIME_DELTA_SCALES
-                         else self.tai._time)
-            # set up TimeDelta, subtraction to be done shortly
-            out = TimeDelta(self_time.jd1, self_time.jd2, format='jd',
-                            scale=self_time.scale)
-
-            if other.scale != out.scale:
-                other = getattr(other, out.scale)
-
-        jd1 = out._time.jd1 - other._time.jd1
-        jd2 = out._time.jd2 - other._time.jd2
-
-        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-
-        if other_is_delta:
-            # Go back to left-side scale if needed
-            out._set_scale(self.scale)
-
-        return out
-
-    def __add__(self, other):
-        # T      + Tdelta = T
-        # T      + T      = error
-        if isinstance(other, Time):
-            raise OperandTypeError(self, other, '+')
-
-        # Check other is really a TimeDelta or something that can initialize.
-        if not isinstance(other, TimeDelta):
-            try:
-                other = TimeDelta(other)
-            except Exception:
-                return NotImplemented
-
-        # ideally, we calculate in the scale of the Time item, since that is
-        # what we want the output in, but this may not be possible, since
-        # TimeDelta cannot be converted arbitrarily
-        out = self.replicate()
-        if self.scale in other.SCALES:
-            if other.scale not in (out.scale, None):
-                other = getattr(other, out.scale)
-        else:
-            if other.scale is None:
-                out._set_scale('tai')
-            else:
-                if self.scale not in TIME_TYPES[other.scale]:
-                    raise TypeError("Cannot add Time and TimeDelta instances "
-                                    "with scales '{}' and '{}'"
-                                    .format(self.scale, other.scale))
-                out._set_scale(other.scale)
-        # remove attributes that are invalidated by changing time
-        for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
-            if hasattr(out, attr):
-                delattr(out, attr)
-
-        jd1 = out._time.jd1 + other._time.jd1
-        jd2 = out._time.jd2 + other._time.jd2
-
-        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-
-        # Go back to left-side scale if needed
-        out._set_scale(self.scale)
-
-        return out
-
-    # Reverse addition is possible: <something-Tdelta-ish> + T
-    # but there is no case of <something> - T, so no __rsub__.
-    def __radd__(self, other):
-        return self.__add__(other)
-
     def _time_comparison(self, other, op):
         """If other is of same class as self, compare difference in self.scale.
         Otherwise, return NotImplemented
@@ -2076,6 +1969,113 @@ class Time(TimeBase):
     delta_tdb_tt = property(_get_delta_tdb_tt, _set_delta_tdb_tt)
     """TDB - TT time scale offset"""
 
+    def __sub__(self, other):
+        # T      - Tdelta = T
+        # T      - T      = Tdelta
+        other_is_delta = not isinstance(other, Time)
+        if other_is_delta:  # T - Tdelta
+            # Check other is really a TimeDelta or something that can initialize.
+            if not isinstance(other, TimeDelta):
+                try:
+                    other = TimeDelta(other)
+                except Exception:
+                    return NotImplemented
+
+            # we need a constant scale to calculate, which is guaranteed for
+            # TimeDelta, but not for Time (which can be UTC)
+            out = self.replicate()
+            if self.scale in other.SCALES:
+                if other.scale not in (out.scale, None):
+                    other = getattr(other, out.scale)
+            else:
+                if other.scale is None:
+                    out._set_scale('tai')
+                else:
+                    if self.scale not in TIME_TYPES[other.scale]:
+                        raise TypeError("Cannot subtract Time and TimeDelta instances "
+                                        "with scales '{}' and '{}'"
+                                        .format(self.scale, other.scale))
+                    out._set_scale(other.scale)
+            # remove attributes that are invalidated by changing time
+            for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
+                if hasattr(out, attr):
+                    delattr(out, attr)
+
+        else:  # T - T
+            # the scales should be compatible (e.g., cannot convert TDB to LOCAL)
+            if other.scale not in self.SCALES:
+                raise TypeError("Cannot subtract Time instances "
+                                "with scales '{}' and '{}'"
+                                .format(self.scale, other.scale))
+            self_time = (self._time if self.scale in TIME_DELTA_SCALES
+                         else self.tai._time)
+            # set up TimeDelta, subtraction to be done shortly
+            out = TimeDelta(self_time.jd1, self_time.jd2, format='jd',
+                            scale=self_time.scale)
+
+            if other.scale != out.scale:
+                other = getattr(other, out.scale)
+
+        jd1 = out._time.jd1 - other._time.jd1
+        jd2 = out._time.jd2 - other._time.jd2
+
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+
+        if other_is_delta:
+            # Go back to left-side scale if needed
+            out._set_scale(self.scale)
+
+        return out
+
+    def __add__(self, other):
+        # T      + Tdelta = T
+        # T      + T      = error
+        if isinstance(other, Time):
+            raise OperandTypeError(self, other, '+')
+
+        # Check other is really a TimeDelta or something that can initialize.
+        if not isinstance(other, TimeDelta):
+            try:
+                other = TimeDelta(other)
+            except Exception:
+                return NotImplemented
+
+        # ideally, we calculate in the scale of the Time item, since that is
+        # what we want the output in, but this may not be possible, since
+        # TimeDelta cannot be converted arbitrarily
+        out = self.replicate()
+        if self.scale in other.SCALES:
+            if other.scale not in (out.scale, None):
+                other = getattr(other, out.scale)
+        else:
+            if other.scale is None:
+                out._set_scale('tai')
+            else:
+                if self.scale not in TIME_TYPES[other.scale]:
+                    raise TypeError("Cannot add Time and TimeDelta instances "
+                                    "with scales '{}' and '{}'"
+                                    .format(self.scale, other.scale))
+                out._set_scale(other.scale)
+        # remove attributes that are invalidated by changing time
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt'):
+            if hasattr(out, attr):
+                delattr(out, attr)
+
+        jd1 = out._time.jd1 + other._time.jd1
+        jd2 = out._time.jd2 + other._time.jd2
+
+        out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
+
+        # Go back to left-side scale if needed
+        out._set_scale(self.scale)
+
+        return out
+
+    # Reverse addition is possible: <something-Tdelta-ish> + T
+    # but there is no case of <something> - T, so no __rsub__.
+    def __radd__(self, other):
+        return self.__add__(other)
+
 
 class TimeDelta(TimeBase):
     """
@@ -2259,6 +2259,13 @@ class TimeDelta(TimeBase):
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
 
         return out
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        out = self.__sub__(other)
+        return -out
 
     def __neg__(self):
         """Negation of a `TimeDelta` object."""
