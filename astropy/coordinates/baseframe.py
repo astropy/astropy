@@ -1301,40 +1301,45 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         if left_fattr is right_fattr:
             # shortcut if it's exactly the same object
             return True
+        elif left_fattr is None or right_fattr is None:
+            # shortcut if one attribute is unspecified and the other isn't
+            return False
 
-        if isinstance(left_fattr, r.BaseRepresentationOrDifferential):
-            if isinstance(right_fattr, r.BaseRepresentationOrDifferential):
-                # both are representations.
-                if (getattr(left_fattr, 'differentials', False) or
-                        getattr(right_fattr, 'differentials', False)):
-                    warnings.warn('Two representation frame attributes were '
-                                  'checked for equivalence when at least one of'
-                                  ' them has differentials.  This yields False '
-                                  'even if the underlying representations are '
-                                  'equivalent (although this may change in '
-                                  'future versions of Astropy)', AstropyWarning)
-                    return False
-                if isinstance(right_fattr, left_fattr.__class__):
-                    # if same representation type, compare components.
-                    return np.all([(getattr(left_fattr, comp) ==
-                                    getattr(right_fattr, comp))
-                                   for comp in left_fattr.components])
-                else:
-                    # convert to cartesian and see if they match
-                    return np.all(left_fattr.to_cartesian().xyz ==
-                                  right_fattr.to_cartesian().xyz)
+        left_is_repr = isinstance(left_fattr, r.BaseRepresentationOrDifferential)
+        right_is_repr = isinstance(right_fattr, r.BaseRepresentationOrDifferential)
+        if left_is_repr and right_is_repr:
+            # both are representations.
+            if (getattr(left_fattr, 'differentials', False) or
+                    getattr(right_fattr, 'differentials', False)):
+                warnings.warn('Two representation frame attributes were '
+                              'checked for equivalence when at least one of'
+                              ' them has differentials.  This yields False '
+                              'even if the underlying representations are '
+                              'equivalent (although this may change in '
+                              'future versions of Astropy)', AstropyWarning)
+                return False
+            if isinstance(right_fattr, left_fattr.__class__):
+                # if same representation type, compare components.
+                return np.all([(getattr(left_fattr, comp) ==
+                                getattr(right_fattr, comp))
+                               for comp in left_fattr.components])
+            else:
+                # convert to cartesian and see if they match
+                return np.all(left_fattr.to_cartesian().xyz ==
+                              right_fattr.to_cartesian().xyz)
+        elif left_is_repr or right_is_repr:
+            return False
+
+        left_is_coord = isinstance(left_fattr, BaseCoordinateFrame)
+        right_is_coord = isinstance(right_fattr, BaseCoordinateFrame)
+        if left_is_coord and right_is_coord:
+            # both are coordinates
+            if left_fattr.is_equivalent_frame(right_fattr):
+                return np.all(left_fattr == right_fattr)
             else:
                 return False
-
-        if isinstance(left_fattr, BaseCoordinateFrame):
-            if isinstance(right_fattr, BaseCoordinateFrame):
-                # both are coordinates
-                if left_fattr.is_equivalent_frame(right_fattr):
-                    return np.all(left_fattr == right_fattr)
-                else:
-                    return False
-            else:
-                return False
+        elif left_is_coord or right_is_coord:
+            return False
 
         return np.all(left_fattr == right_fattr)
 
