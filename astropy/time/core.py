@@ -1440,10 +1440,6 @@ class TimeBase(ShapedLikeNDArray):
     def __radd__(self, other):
         return self.__add__(other)
 
-    def __rsub__(self, other):
-        out = self.__sub__(other)
-        return -out
-
     def _time_comparison(self, other, op):
         """If other is of same class as self, compare difference in self.scale.
         Otherwise, return NotImplemented
