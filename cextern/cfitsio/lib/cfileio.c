@@ -1101,7 +1101,7 @@ move2hdu:
 
        if (rownum == 0)
        {
-          ffpmsg("row statisfying this expression doesn't exist::");
+          ffpmsg("row satisfying this expression doesn't exist::");
           ffpmsg(rowexpress);
           ffpmsg("Could not open the following image in a table cell:");
           ffpmsg(extspec);
@@ -5398,7 +5398,6 @@ int ffifile2(char *url,       /* input filename */
     int hasAt, hasDot, hasOper, followingOper, spaceTerm, rowFilter;
     int colStart, binStart, pixStart, compStart;
 
-
     /* must have temporary variable for these, in case inputs are NULL */
     char *infile;
     char *rowfilter;
@@ -6158,11 +6157,17 @@ int ffifile2(char *url,       /* input filename */
             ptr1 = strstr(rowfilter, "[Col ");
     }
 
-    if (ptr1)
-    {           /* find the end of the column specifier */
+    hasAt = 0;
+    while (ptr1) {
+
+        /* find the end of the column specifier */
         ptr2 = ptr1 + 5;
-        while (*ptr2 != ']')
-        {
+	/* Scan past any whitespace and check for @filename */
+	while (*ptr2 == ' ') ptr2++;
+	if (*ptr2 == '@') hasAt = 1;
+
+        while (*ptr2 != ']') {
+
             if (*ptr2 == '\0')
             {
                 ffpmsg("input file URL is missing closing bracket ']'");
@@ -6199,16 +6204,32 @@ int ffifile2(char *url,       /* input filename */
 
         collen = ptr2 - ptr1 - 1;
 
-        if (colspec)    /* copy the column specifier to output string */
-        {
-            if (collen > FLEN_FILENAME - 1) {
-                       free(infile);
-                       return(*status = URL_PARSE_ERROR);
-            }
+        if (colspec) {   /* copy the column specifier to output string */
 
-            strncpy(colspec, ptr1 + 1, collen);       
-            colspec[collen] = '\0';
- 
+            if (collen + strlen(colspec) > FLEN_FILENAME - 1) {
+	        free(infile);
+	        return(*status = URL_PARSE_ERROR);
+            }
+	    
+	    if (*colspec == 0) {
+	        strncpy(colspec, ptr1 + 1, collen);
+	        colspec[collen] = '\0';
+	    } else { /* Pre-existing colspec, append with ";" */
+	        strcat(colspec, ";");
+	        strncat(colspec, ptr1 + 5, collen-4); 
+		/* Note that strncat always null-terminates the destination string */
+
+		/* Special error checking here.  We can't allow there to be a
+		   col @filename.txt includes if there are multiple col expressions */
+		if (hasAt) {
+		  ffpmsg("input URL multiple column filter cannot use @filename.txt");
+		  free(infile);
+		  return(*status = URL_PARSE_ERROR);
+		}
+
+	    }
+
+	    collen = strlen(colspec);
             while (colspec[--collen] == ' ')
                 colspec[collen] = '\0';  /* strip trailing blanks */
         }
@@ -6216,6 +6237,11 @@ int ffifile2(char *url,       /* input filename */
         /* delete the column selection spec from the row filter string */
         strcpy(tmpstr, ptr2 + 1);  /* copy any chars after the colspec */
         strcpy(ptr1, tmpstr);      /* overwrite binspec */
+
+	/* Check for additional column specifiers */
+	ptr1 = strstr(rowfilter, "[col ");
+	if (!ptr1) ptr1 = strstr(rowfilter, "[COL ");
+	if (!ptr1) ptr1 = strstr(rowfilter, "[Col ");
     }
 
     /* --------------------------------------------------------- */
@@ -6359,17 +6385,75 @@ int ffifile2(char *url,       /* input filename */
     /* contain a rowfilter expression of the form "[expr]"              */
 
     if (rowfilterx && rowfilter[0]) {
-       ptr2 = rowfilter + strlen(rowfilter) - 1;
-       if( rowfilter[0]=='[' && *ptr2==']' ) {
-          *ptr2 = '\0';
+      hasAt = 0;
 
-	   if (strlen(rowfilter + 1)  > FLEN_FILENAME - 1)
-	   {
-                    free(infile);
-                    return(*status = URL_PARSE_ERROR);
-           }
+      /* Check for multiple expressions, which would appear as "[expr][expr]..." */
+      ptr1 = rowfilter;
+      while((*ptr1 == '[') && (ptr2 = strstr(rowfilter,"]["))-ptr1 > 2) {
+	 /* Advance past any white space */
+	 ptr3 = ptr1+1;
+	 while (*ptr3 == ' ') ptr3++;
+	 /* Check for @filename.txt */
+	 if (*ptr3 == '@') hasAt = 1;
 
-          strcpy(rowfilterx, rowfilter+1);
+	 /* Add expression of the form "((expr))&&", note the addition of 6 characters */
+	 if ((strlen(rowfilterx) + (ptr2-ptr1) + 6) > FLEN_FILENAME - 1) {
+	   free(infile);
+	   return (*status = URL_PARSE_ERROR);
+	 }
+
+	 /* Special error checking here.  We can't allow there to be a
+	    @filename.txt includes if there are multiple row expressions */
+	 if (*rowfilterx && hasAt) {
+	   ffpmsg("input URL multiple row filter cannot use @filename.txt");
+	   free(infile);
+	   return(*status = URL_PARSE_ERROR);
+	 }
+
+	 /* Append the expression */
+	 strcat(rowfilterx, "((");
+	 strncat(rowfilterx, ptr1+1, (ptr2-ptr1-1));
+	 /* Note that strncat always null-terminates the destination string */
+	 strcat(rowfilterx, "))&&");
+
+	 /* Advance to next expression */
+	 ptr1 = ptr2 + 1;
+      }
+
+      /* At final iteration, ptr1 points to beginning [ and ptr2 to ending ] */
+      ptr2 = rowfilter + strlen(rowfilter) - 1;
+      if( *ptr1=='[' && *ptr2==']' ) {
+	  /* Check for @include in final position */
+	  ptr3 = ptr1 + 1;
+	  while (*ptr3 == ' ') ptr3++;
+	  if (*ptr3 == '@') hasAt = 1;
+
+	  /* Check for overflow; add extra 4 characters if we have pre-existing expression */
+  	  if (strlen(rowfilterx) + (ptr2-ptr1 + (*rowfilterx)?4:0) > FLEN_FILENAME - 1) {
+	      free(infile);
+	      return(*status = URL_PARSE_ERROR);
+	  }
+
+	  /* Special error checking here.  We can't allow there to be a
+	     @filename.txt includes if there are multiple row expressions */
+	  if (*rowfilterx && hasAt) {
+	    ffpmsg("input URL multiple row filter cannot use @filename.txt");
+	    free(infile);
+	    return(*status = URL_PARSE_ERROR);
+	  }
+
+	  if (*rowfilterx) {
+	    /* A pre-existing row filter: we bracket by ((expr)) to be sure */
+	    strcat(rowfilterx, "((");
+	    strncat(rowfilterx, ptr1+1, (ptr2-ptr1-1));
+	    strcat(rowfilterx, "))");
+
+	  } else {
+	    /* We have only one filter, so just copy the expression alone.
+	       This will be the most typical case */
+	    strncat(rowfilterx, ptr1+1, (ptr2-ptr1-1));
+	  }
+
        } else {
           ffpmsg("input file URL lacks valid row filter expression");
           *status = URL_PARSE_ERROR;
