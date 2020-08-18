@@ -559,8 +559,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 class FittingWithOutlierRemoval:
     """
     This class combines an outlier removal technique with a fitting procedure.
-    Basically, given a number of iterations ``niter``, outliers are removed
-    and fitting is performed for each iteration.
+    Basically, given a maximum number of iterations ``niter``, outliers are
+    removed and fitting is performed for each iteration, until no new outliers
+    are found or ``niter`` is reached.
 
     Parameters
     ----------
@@ -577,9 +578,17 @@ class FittingWithOutlierRemoval:
         each model separately; otherwise, the same filtering must be performed
         in a loop over models, which is almost an order of magnitude slower.
     niter : int, optional
-        Number of iterations.
+        Maximum number of iterations.
     outlier_kwargs : dict, optional
         Keyword arguments for outlier_func.
+
+    Attributes
+    ----------
+    fit_info : dict
+        The ``fit_info`` (if any) from the last iteration of the wrapped
+        ``fitter`` during the most recent fit. An entry is also added with the
+        keyword ``niter`` that records the actual number of fitting iterations
+        performed (as opposed to the user-specified maximum).
     """
 
     def __init__(self, fitter, outlier_func, niter=3, **outlier_kwargs):
@@ -587,6 +596,7 @@ class FittingWithOutlierRemoval:
         self.outlier_func = outlier_func
         self.niter = niter
         self.outlier_kwargs = outlier_kwargs
+        self.fit_info = {'niter' : None}
 
     def __str__(self):
         return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
@@ -683,10 +693,11 @@ class FittingWithOutlierRemoval:
         if filtered_data.mask is np.ma.nomask:
             filtered_data.mask = False
         filtered_weights = weights
+        last_n_masked = filtered_data.mask.sum()
+        n = 0  # (allow recording no. of iterations when 0)
 
         # Perform the iterative fitting:
-        # TO DO: add a stopping criterion when results aren't changing?
-        for n in range(self.niter):
+        for n in range(1, self.niter + 1):
 
             # (Re-)evaluate the last model:
             model_vals = fitted_model(*coords, model_set_axis=False)
@@ -762,6 +773,16 @@ class FittingWithOutlierRemoval:
                 fitted_model = self.fitter(fitted_model, *coords,
                                            filtered_data,
                                            weights=filtered_weights, **kwargs)
+
+            # Stop iteration if the masked points are no longer changing (with
+            # cumulative rejection we only need to compare how many there are):
+            this_n_masked = filtered_data.mask.sum()  # (minimal overhead)
+            if this_n_masked == last_n_masked:
+                break
+            last_n_masked = this_n_masked
+
+        self.fit_info = {'niter' : n}
+        self.fit_info.update(getattr(self.fitter, 'fit_info', {}))
 
         return fitted_model, filtered_data.mask
 

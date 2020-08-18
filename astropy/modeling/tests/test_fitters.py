@@ -10,7 +10,7 @@ from unittest import mock
 import pytest
 import numpy as np
 from numpy import linalg
-from numpy.testing import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
@@ -894,3 +894,40 @@ def test_fitters_interface():
     _ = simplex(model, x, y, **simplex_kwargs)
     kwargs.pop('verblevel')
     _ = levmar(model, x, y, **kwargs)
+
+
+def test_fitting_with_outlier_removal_niter():
+    """
+    Test that FittingWithOutlierRemoval stops prior to reaching niter if the
+    set of masked points has converged and correctly reports the actual number
+    of iterations performed.
+    """
+
+    # 2 rows with some noise around a constant level and 1 deviant point:
+    x = np.arange(25)
+    with NumpyRNGContext(_RANDOM_SEED):
+        y = np.random.normal(loc=10., scale=1., size=(2,25))
+    y[0, 14] = 100.
+
+    # Fit 2 models with up to 5 iterations (should only take 2):
+    fitter = FittingWithOutlierRemoval(
+        fitter=LinearLSQFitter(), outlier_func=sigma_clip, niter=5,
+        sigma_lower=3., sigma_upper=3., maxiters=1
+    )
+    model, mask = fitter(models.Chebyshev1D(2, n_models=2), x, y)
+
+    # Confirm that only the deviant point was rejected, in 2 iterations:
+    assert_equal(np.where(mask), [[0], [14]])
+    assert fitter.fit_info['niter'] == 2
+
+    # Refit just the first row without any rejection iterations, to ensure
+    # there are no regressions for that special case:
+    fitter = FittingWithOutlierRemoval(
+        fitter=LinearLSQFitter(), outlier_func=sigma_clip, niter=0,
+        sigma_lower=3., sigma_upper=3., maxiters=1
+    )
+    model, mask = fitter(models.Chebyshev1D(2), x, y[0])
+
+    # Confirm that there were no iterations or rejected points:
+    assert mask.sum() == 0
+    assert fitter.fit_info['niter'] == 0
