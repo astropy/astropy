@@ -965,8 +965,9 @@ Other Changes and Additions
 - Ensure that astropy can be used inside Application bundles built with
   pyinstaller. [#8795]
 
-- Updated the bundled CFITSIO library to 3.480. See
-  ``cextern/cfitsio/docs/changes.txt`` for additional information. [#10256]
+- Updated the bundled CFITSIO library to 3.49. See
+  ``cextern/cfitsio/docs/changes.txt`` for additional information.
+  [#10256, #10665]
 
 - ``extract_array`` raises a ``ValueError`` if the data type of the
   input array is inconsistent with the ``fill_value``. [#10602]

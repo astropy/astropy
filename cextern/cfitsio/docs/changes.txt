@@ -1,4 +1,22 @@
                    Log of Changes Made to CFITSIO
+		   
+Version 3.49 - Aug 2020
+
+  - Fix to imcompress.c.  It now turns off quantization if ZSCALE
+    and ZZERO columns are missing.  Treatment will be the same as
+    if ZQUANTIZ were set to 'NONE', even if ZQUANTIZ is present
+    and set to something else.
+
+  - Added mutex to fits_execute_template() function so that the
+    creation of files using ASCII templates will be thread safe.
+    		   
+  - In fpack when using -table flag, replaced warning message with a
+    more detailed description mentioning FITS format update.
+		   
+  - Added flag to CMake builds to disable curl dependency.  Also
+    only add CURL_LIBRARIES to CMake link target if curl is found.
+		   
+  - Minor adjustment to download progress output.
                    
 Version 3.48 - Mar 2020
 

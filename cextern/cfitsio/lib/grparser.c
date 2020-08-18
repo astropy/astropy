@@ -1215,8 +1215,13 @@ int	fits_execute_template(fitsfile *ff, char *ngp_template, int *status)
    if (NULL == status) return(NGP_NUL_PTR);
    if (NGP_OK != *status) return(*status);
 
+   /* This function uses many global variables (local to this file) and
+      therefore is not thread-safe. */
+   FFLOCK;
+   
    if ((NULL == ff) || (NULL == ngp_template))
      { *status = NGP_NUL_PTR;
+       FFUNLOCK;
        return(*status);
      }
 
@@ -1229,6 +1234,7 @@ int	fits_execute_template(fitsfile *ff, char *ngp_template, int *status)
 
    if (NGP_OK != (r = ngp_delete_extver_tab()))
      { *status = r;
+       FFUNLOCK;
        return(r);
      }
 
@@ -1237,7 +1243,11 @@ int	fits_execute_template(fitsfile *ff, char *ngp_template, int *status)
      { fits_movabs_hdu(ff, 1, &tmp0, status);
        fits_get_hdrspace(ff, &keys_exist, &more_keys, status);
        fits_movabs_hdu(ff, my_hn, &tmp0, status);
-       if (NGP_OK != *status) return(*status);	/* error here means file is corrupted */
+       if (NGP_OK != *status) /* error here means file is corrupted */
+       {
+          FFUNLOCK;
+          return(*status);	
+       }
        if (keys_exist > 0) first_extension = 0;	/* if keywords exist assume PHDU already exist */
      }
    else
@@ -1263,10 +1273,16 @@ int	fits_execute_template(fitsfile *ff, char *ngp_template, int *status)
 
        fits_movabs_hdu(ff, my_hn, &tmp0, status);
      }
-   if (NGP_OK != *status) return(*status);
-                                                                          
-   if (NGP_OK != (*status = ngp_include_file(ngp_template))) return(*status);
-
+     
+   if (NGP_OK != *status) {
+      FFUNLOCK;
+      return(*status);
+   }                                                                       
+   if (NGP_OK != (*status = ngp_include_file(ngp_template))) {
+      FFUNLOCK;
+      return(*status);
+   }
+   
    for (i = strlen(ngp_template) - 1; i >= 0; i--) /* strlen is > 0, otherwise fopen failed */
     { 
 #ifdef MSDOS
@@ -1334,5 +1350,6 @@ int	fits_execute_template(fitsfile *ff, char *ngp_template, int *status)
    ngp_delete_extver_tab();	/* delete extver table (if present), error ignored */
    
    *status = r;
+   FFUNLOCK;
    return(r);
  }
