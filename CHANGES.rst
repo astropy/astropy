@@ -20,7 +20,7 @@ astropy.coordinates
   ``np.rot90``, or ``np.roll``) now work on coordinates, frames, and
   representations. [#10337]
 
-- Add a new science state `astropy.coordinates.erfa_astrom.erfa_astrom` and
+- Add a new science state ``astropy.coordinates.erfa_astrom.erfa_astrom`` and
   two classes ``ErfaAstrom``, ``ErfaAstromInterpolator`` as wrappers to
   the ``pyerfa`` astrometric functions used in the coordinate transforms.
   Using ``ErfaAstromInterpolator``, which interpolates astrometric properties for
