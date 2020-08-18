@@ -928,15 +928,18 @@ class TimeBase(ShapedLikeNDArray):
             Time object for comparison.
         atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
             Absoute tolerance for equality with units of time (e.g. ``u.s`` or
-            ``u.day``). Default is one bit in the 128-bit JD time representation,
-            equivalent to about 20 picosecs.
+            ``u.day``). Default is two bits in the 128-bit JD time representation,
+            equivalent to about 40 picosecs.
         """
         if not isinstance(other, Time):
             raise TypeError("'other' argument must be a Time instance, got "
                             f'{other.__class__.__name__} instead')
 
         if atol is None:
-            atol = np.finfo(float).eps * u.day
+            # Note: use 2 bits instead of 1 bit based on experience in precision
+            # tests, since taking the difference with a UTC time means one has
+            # to do a scale change.
+            atol = 2 * np.finfo(float).eps * u.day
 
         if not isinstance(atol, (u.Quantity, TimeDelta)):
             raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
