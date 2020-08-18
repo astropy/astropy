@@ -320,12 +320,6 @@ class TimeDeltaInfo(TimeInfo):
 class TimeBase(ShapedLikeNDArray):
     """Base time class from which Time and TimeDelta inherit."""
 
-    SCALES = TIME_SCALES
-    """List of time scales"""
-
-    FORMATS = TIME_FORMATS
-    """Dict of time formats"""
-
     # Make sure that reverse arithmetic (e.g., TimeDelta.__rmul__)
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 20000
@@ -1385,14 +1379,6 @@ class TimeBase(ShapedLikeNDArray):
     def __ge__(self, other):
         return self._time_comparison(other, operator.ge)
 
-    def to_datetime(self, timezone=None):
-        # TODO: this could likely go through to_value, as long as that
-        # had an **kwargs part that was just passed on to _time.
-        tm = self.replicate(format='datetime')
-        return tm._shaped_like_input(tm._time.to_value(timezone))
-
-    to_datetime.__doc__ = TimeDatetime.to_value.__doc__
-
 
 class Time(TimeBase):
     """
@@ -1441,6 +1427,12 @@ class Time(TimeBase):
     copy : bool, optional
         Make a copy of the input values
     """
+    SCALES = TIME_SCALES
+    """List of time scales"""
+
+    FORMATS = TIME_FORMATS
+    """Dict of time formats"""
+
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 location=None, copy=False):
@@ -2075,6 +2067,14 @@ class Time(TimeBase):
     # but there is no case of <something> - T, so no __rsub__.
     def __radd__(self, other):
         return self.__add__(other)
+
+    def to_datetime(self, timezone=None):
+        # TODO: this could likely go through to_value, as long as that
+        # had an **kwargs part that was just passed on to _time.
+        tm = self.replicate(format='datetime')
+        return tm._shaped_like_input(tm._time.to_value(timezone))
+
+    to_datetime.__doc__ = TimeDatetime.to_value.__doc__
 
 
 class TimeDelta(TimeBase):
