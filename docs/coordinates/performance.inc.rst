@@ -108,5 +108,8 @@ To use interpolation for the astrometric values in coordinate transformation, us
    >>> print(f'Mean error of interpolation: {err.to(u.microarcsecond).mean():.4f}')  # doctest:+ELLIPSIS +REMOTE_DATA
    Mean error of interpolation: 0.0063 uarcsec
 
+   >>> # To set erfa_astrom for a whole session, use it without context manager:
+   >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))
+
 ..
   EXAMPLE END
