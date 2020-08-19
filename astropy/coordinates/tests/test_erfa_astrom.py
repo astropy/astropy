@@ -89,7 +89,7 @@ def test_interpolation_nd():
     from astropy.time import Time
     import astropy.units as u
 
-    location = EarthLocation(
+    fact = EarthLocation(
         lon=-17.891105 * u.deg,
         lat=28.761584 * u.deg,
         height=2200 * u.m,
@@ -103,7 +103,7 @@ def test_interpolation_nd():
         delta_t = np.linspace(0, 12, np.prod(shape, dtype=int)) * u.hour
         obstime = (Time('2020-01-01T18:00') + delta_t).reshape(shape)
 
-        altaz = AltAz(location=location, obstime=obstime)
+        altaz = AltAz(location=fact, obstime=obstime)
         gcrs = GCRS(obstime=obstime)
 
         for frame, tcode in zip([altaz, altaz, gcrs], ['apio13', 'apci', 'apcs']):
@@ -112,3 +112,36 @@ def test_interpolation_nd():
 
             with_interp = getattr(interp_provider, tcode)(frame)
             assert with_interp.shape == shape
+
+
+@pytest.mark.remote_data
+def test_interpolation_broadcasting():
+    from astropy.coordinates.tests.utils import randomly_sample_sphere
+    from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+    from astropy.time import Time
+    import astropy.units as u
+
+    from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
+
+    # 1000 random locations on the sky
+    ra, dec, _ = randomly_sample_sphere(1000)
+    coord = SkyCoord(ra, dec)
+
+    # 300 times over the space of 10 hours
+    times = Time('2020-01-01T20:00') + np.linspace(-5, 5, 300) * u.hour
+
+    lst1 = EarthLocation(
+        lon=-17.891498 * u.deg,
+        lat=28.761443 * u.deg,
+        height=2200 * u.m,
+    )
+
+    # note the use of broadcasting so that 300 times are broadcast against 1000 positions
+    aa_frame = AltAz(obstime=times[:, np.newaxis], location=lst1)
+    aa_coord = coord.transform_to(aa_frame)
+
+    with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+        aa_coord_interp = coord.transform_to(aa_frame)
+
+    assert aa_coord.shape == aa_coord_interp.shape
+    assert np.all(aa_coord.separation(aa_coord_interp) < 1 * u.microarcsecond)
