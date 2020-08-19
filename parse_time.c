@@ -133,7 +133,7 @@ int parse_frac_from_char_array(char *chars, double *val,
     return 0;
 }
 
-int parse_iso_time(char *time, int max_str_len, char sep,
+int parse_iso_time(char *time, int max_str_len, /* char sep, */
                    int *year, int *month, int *day, int *hour,
                    int *minute, double *second)
 // Parse an ISO time in `chars`.
@@ -143,7 +143,7 @@ int parse_iso_time(char *time, int max_str_len, char sep,
 // Args:
 //  char *time: time string
 //  int max_str_len: max length of string (may be null-terminated before this)
-//  char sep: separator between date and time (normally ' ' or 'T')
+//  // char sep: separator between date and time (normally ' ' or 'T')
 //  int *year, *month, *day, *hour, *minute: output components (ints)
 //  double *second: output seconds
 //
@@ -154,6 +154,7 @@ int parse_iso_time(char *time, int max_str_len, char sep,
     int status = 0;
     int isec;
     double frac;
+    char sep = ' ';
     *month = 1;
     *day = 1;
     *hour = 0;
@@ -213,7 +214,7 @@ int main(int argc, char *argv[])
     int str_len;
 
     str_len = strlen(argv[1]);
-    status = parse_iso_time(argv[1], str_len, ' ', &year, &mon, &day, &hour, &min, &sec);
+    status = parse_iso_time(argv[1], str_len, &year, &mon, &day, &hour, &min, &sec);
     if (status != 0) {
         printf("ERROR: status = %d\n", status);
         return status;
@@ -221,10 +222,10 @@ int main(int argc, char *argv[])
         printf("%d %d %d %d %d %f\n", year, mon, day, hour, min, sec);
     }
 
-    printf("Start 100 million loops\n");
-    for (size_t i = 0; i < 100000000; i++)
+    printf("Start 10 million loops\n");
+    for (size_t i = 0; i < 10000000; i++)
     {
-            status = parse_iso_time(argv[1], str_len, ' ', &year, &mon, &day, &hour, &min, &sec);
+            status = parse_iso_time(argv[1], str_len, &year, &mon, &day, &hour, &min, &sec);
     }
     printf("Done\n");
 
