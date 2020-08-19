@@ -31,61 +31,70 @@ class ErfaAstrom:
     '''
 
     @staticmethod
-    def apci(frame):
+    def apci(frame_or_coord):
         '''
         Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
 
         Arguments
         ---------
-        frame: ``astropy.coordinate.CIRS``
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, a CIRS frame is expected.
         '''
-        jd1_tt, jd2_tt = get_jd12(frame.obstime, 'tt')
+        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
         cip = get_cip(jd1_tt, jd2_tt)
-        earth_pv, earth_heliocentric = prepare_earth_position_vel(frame.obstime)
+        earth_pv, earth_heliocentric = prepare_earth_position_vel(frame_or_coord.obstime)
         return erfa.apci(jd1_tt, jd2_tt, earth_pv, earth_heliocentric, *cip)
 
     @staticmethod
-    def apcs(frame):
+    def apcs(frame_or_coord):
         '''
         Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS
 
         Arguments
         ---------
-        frame: ``astropy.coordinate.GCRS``
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, a GCRS frame is expected.
         '''
-        jd1_tt, jd2_tt = get_jd12(frame.obstime, 'tt')
+        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
         obs_pv = pav2pv(
-            frame.obsgeoloc.get_xyz(xyz_axis=-1).value,
-            frame.obsgeovel.get_xyz(xyz_axis=-1).value
+            frame_or_coord.obsgeoloc.get_xyz(xyz_axis=-1).value,
+            frame_or_coord.obsgeovel.get_xyz(xyz_axis=-1).value
         )
-        earth_pv, earth_heliocentric = prepare_earth_position_vel(frame.obstime)
+        earth_pv, earth_heliocentric = prepare_earth_position_vel(frame_or_coord.obstime)
         return erfa.apcs(jd1_tt, jd2_tt, obs_pv, earth_pv, earth_heliocentric)
 
     @staticmethod
-    def apio13(frame):
+    def apio13(frame_or_coord):
         '''
         Wrapper for ``erfa.apio13``, used in conversions AltAz <-> CIRS
 
         Arguments
         ---------
-        frame: ``astropy.coordinates.AltAz``
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, an AltAz frame is expected.
         '''
-        lon, lat, height = frame.location.to_geodetic('WGS84')
+        lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
 
-        jd1_utc, jd2_utc = get_jd12(frame.obstime, 'utc')
-        dut1utc = get_dut1utc(frame.obstime)
+        jd1_utc, jd2_utc = get_jd12(frame_or_coord.obstime, 'utc')
+        dut1utc = get_dut1utc(frame_or_coord.obstime)
 
         return erfa.apio13(
             jd1_utc, jd2_utc, dut1utc,
             lon.to_value(u.radian),
             lat.to_value(u.radian),
             height.to_value(u.m),
-            *get_polar_motion(frame.obstime),
+            *get_polar_motion(frame_or_coord.obstime),
             # all below are already in correct units because they are QuantityFrameAttribues
-            frame.pressure.value,
-            frame.temperature.value,
-            frame.relative_humidity.value,
-            frame.obswl.value,
+            frame_or_coord.pressure.value,
+            frame_or_coord.temperature.value,
+            frame_or_coord.relative_humidity.value,
+            frame_or_coord.obswl.value,
         )
 
 
@@ -191,18 +200,21 @@ class ErfaAstromInterpolator(ErfaAstrom):
             for cip_component in cip_support
         )
 
-    def apci(self, frame):
+    def apci(self, frame_or_coord):
         '''
         Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
 
         Arguments
         ---------
-        frame: ``astropy.coordinate.CIRS``
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, a CIRS frame is expected.
         '''
-        obstime = frame.obstime
+        obstime = frame_or_coord.obstime
         # no point in interpolating for a single value
         if obstime.size == 1:
-            return super().apci(frame)
+            return super().apci(frame_or_coord)
 
         support = self._get_support_points(obstime)
 
@@ -213,18 +225,21 @@ class ErfaAstromInterpolator(ErfaAstrom):
         astrom = erfa.apci(jd1_tt, jd2_tt, earth_pv, earth_heliocentric, *cip)
         return astrom
 
-    def apcs(self, frame):
+    def apcs(self, frame_or_coord):
         '''
-        Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS
+        Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS
 
         Arguments
         ---------
-        frame: ``astropy.coordinate.GCRS``
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, a GCRS frame is expected.
         '''
-        obstime = frame.obstime
+        obstime = frame_or_coord.obstime
         # no point in interpolating for a single value
         if obstime.size == 1:
-            return super().apci(frame)
+            return super().apci(frame_or_coord)
 
         support = self._get_support_points(obstime)
 
@@ -233,8 +248,8 @@ class ErfaAstromInterpolator(ErfaAstrom):
         # have xyz in last dimension, and pos/vel in one-but-last.
         earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
         pv = pav2pv(
-            frame.obsgeoloc.get_xyz(xyz_axis=-1).value,
-            frame.obsgeovel.get_xyz(xyz_axis=-1).value
+            frame_or_coord.obsgeoloc.get_xyz(xyz_axis=-1).value,
+            frame_or_coord.obsgeovel.get_xyz(xyz_axis=-1).value
         )
         return erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
 
