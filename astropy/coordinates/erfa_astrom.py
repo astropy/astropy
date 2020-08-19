@@ -47,7 +47,7 @@ class ErfaAstrom:
     @staticmethod
     def apcs(frame):
         '''
-        Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
+        Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS
 
         Arguments
         ---------
@@ -221,7 +221,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     def apcs(self, frame):
         '''
-        Wrapper for ``erfa.apcs``, used in conversions CIRS <-> ICRS
+        Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS
 
         Arguments
         ---------
