@@ -133,19 +133,19 @@ int parse_frac_from_char_array(char *chars, double *val,
     return 0;
 }
 
-int parse_iso_time(char *time, int max_str_len, /* char sep, */
-                   int *year, int *month, int *day, int *hour,
-                   int *minute, double *second)
+int parse_iso_times(char *times, int n_times, int max_str_len,
+                   int *years, int *months, int *days, int *hours,
+                   int *minutes, double *seconds)
 // Parse an ISO time in `chars`.
 //
 // Example: "2020-01-24T12:13:14.5556"
 //
 // Args:
-//  char *time: time string
+//  char *times: time characters (flattened n_times x max_str_len array)
+//  int n_times: number of time strings (each max_str_len long)
 //  int max_str_len: max length of string (may be null-terminated before this)
-//  // char sep: separator between date and time (normally ' ' or 'T')
-//  int *year, *month, *day, *hour, *minute: output components (ints)
-//  double *second: output seconds
+//  int *year, *month, *day, *hour, *minute: output components (n_times long)
+//  double *second: output seconds (n_times long)
 //
 // Returns:
 //  int status: 0 for OK, < 0 for not OK
@@ -155,53 +155,69 @@ int parse_iso_time(char *time, int max_str_len, /* char sep, */
     int isec;
     double frac;
     char sep = ' ';
-    *month = 1;
-    *day = 1;
-    *hour = 0;
-    *minute = 0;
-    *second = 0.0;
+    char *time;
+    int *year, *month, *day, *hour, *minute;
+    double *second;
 
-    // Parse "2000-01-12 13:14:15.678"
-    //        01234567890123456789012
+    for (size_t ii = 0; ii < n_times; ii++)
+    {
+        // Set up pointers to ii element
+        time = times + ii * max_str_len;
+        year = years + ii;
+        month = months + ii;
+        day = days + ii;
+        hour = hours + ii;
+        minute = minutes + ii;
+        second = seconds + ii;
 
-    // Check for null termination before max_str_len. If called using a contiguous
-    // numpy 2-d array of chars there may or may not be null terminations.
-    str_len = max_str_len;
-    for (size_t i = 0; i < max_str_len; i++) {
-        if (time[i] == 0) {
-            str_len = i;
-            break;
+        // Initialize default values
+        *month = 1;
+        *day = 1;
+        *hour = 0;
+        *minute = 0;
+        *second = 0.0;
+
+        // Parse "2000-01-12 13:14:15.678"
+        //        01234567890123456789012
+
+        // Check for null termination before max_str_len. If called using a contiguous
+        // numpy 2-d array of chars there may or may not be null terminations.
+        str_len = max_str_len;
+        for (size_t i = 0; i < max_str_len; i++) {
+            if (time[i] == 0) {
+                str_len = i;
+                break;
+            }
         }
+
+        status = parse_int_from_char_array(time, year, str_len, 0, 0, 3);
+        if (status < 0) { return status; }
+
+        status = parse_int_from_char_array(time, month, str_len, '-', 4, 6);
+        if (status == -1) { return 0; }  // "2000" is OK
+        else if (status < 0) { return status; }
+
+        status = parse_int_from_char_array(time, day, str_len, '-', 7, 9);
+        // Any problems here indicate a bad date. "2000-01" is NOT OK.
+        if (status < 0) { return status; }
+
+        status = parse_int_from_char_array(time, hour, str_len, sep, 10, 12);
+        if (status == -1) { return 0; }  // "2000-01-02" is OK
+        else if (status < 0) { return status; }
+
+        status = parse_int_from_char_array(time, minute, str_len, ':', 13, 15);
+        // Any problems here indicate a bad date. "2000-01-02 12" is NOT OK.
+        if (status < 0) { return status; }
+
+        status = parse_int_from_char_array(time, &isec, str_len, ':', 16, 18);
+        if (status == -1) { return 0; }  // "2000-01-02 12:13" is OK
+        else if (status < 0) { return status; }
+
+        status = parse_frac_from_char_array(time, &frac, str_len, '.', 19);
+        if (status < 0) { return status; }
+
+        *second = isec + frac;
     }
-
-    status = parse_int_from_char_array(time, year, str_len, 0, 0, 3);
-    if (status < 0) { return status; }
-
-    status = parse_int_from_char_array(time, month, str_len, '-', 4, 6);
-    if (status == -1) { return 0; }  // "2000" is OK
-    else if (status < 0) { return status; }
-
-    status = parse_int_from_char_array(time, day, str_len, '-', 7, 9);
-    // Any problems here indicate a bad date. "2000-01" is NOT OK.
-    if (status < 0) { return status; }
-
-    status = parse_int_from_char_array(time, hour, str_len, sep, 10, 12);
-    if (status == -1) { return 0; }  // "2000-01-02" is OK
-    else if (status < 0) { return status; }
-
-    status = parse_int_from_char_array(time, minute, str_len, ':', 13, 15);
-    // Any problems here indicate a bad date. "2000-01-02 12" is NOT OK.
-    if (status < 0) { return status; }
-
-    status = parse_int_from_char_array(time, &isec, str_len, ':', 16, 18);
-    if (status == -1) { return 0; }  // "2000-01-02 12:13" is OK
-    else if (status < 0) { return status; }
-
-    status = parse_frac_from_char_array(time, &frac, str_len, '.', 19);
-    if (status < 0) { return status; }
-
-    *second = isec + frac;
-
     return 0;
 }
 
@@ -214,20 +230,13 @@ int main(int argc, char *argv[])
     int str_len;
 
     str_len = strlen(argv[1]);
-    status = parse_iso_time(argv[1], str_len, &year, &mon, &day, &hour, &min, &sec);
+    status = parse_iso_times(argv[1], 1, str_len, &year, &mon, &day, &hour, &min, &sec);
     if (status != 0) {
         printf("ERROR: status = %d\n", status);
         return status;
     } else {
         printf("%d %d %d %d %d %f\n", year, mon, day, hour, min, sec);
     }
-
-    printf("Start 10 million loops\n");
-    for (size_t i = 0; i < 10000000; i++)
-    {
-            status = parse_iso_time(argv[1], str_len, &year, &mon, &day, &hour, &min, &sec);
-    }
-    printf("Done\n");
 
     return status;
 }
