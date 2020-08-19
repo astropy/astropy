@@ -31,10 +31,6 @@ def test_warnings():
     from astropy.utils.exceptions import AstropyWarning
 
     with pytest.warns(AstropyWarning):
-        with erfa_astrom.set(ErfaAstromInterpolator(0.5 * u.ms)):
-            pass
-
-    with pytest.warns(AstropyWarning):
         with erfa_astrom.set(ErfaAstromInterpolator(9 * u.us)):
             pass
 
