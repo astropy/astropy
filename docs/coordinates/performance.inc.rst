@@ -62,11 +62,11 @@ Improving Performance for Arrays of ``obstime``
 
 The most expensive operations when transforming between observer-dependent coordinate
 frames (e.g. ``AltAz``) and sky-fixed frames (e.g. ``ICRS``) are the calculation
-of astrometric values like precession and nutation matrices.
+of the orientation and position of Earth.
 
 If |skycoord| instances with a large ``obstime`` array are transformed,
-these calculations can be speed up by factors up to 100 and still keeping micro-arcsecond resolution
-by utilizing interpolation instead of calculating astrometric values for each individual point.
+these calculations can be sped up by factors up to 100, whilst still keeping micro-arcsecond precision,
+by utilizing interpolation instead of calculating Earth orientation parameters for each individual point.
 
 This can be achieved through the ``erfa_astrom`` state and the ``ErfaAstromInterpolator``
 class like this
