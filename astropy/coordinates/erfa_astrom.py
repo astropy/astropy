@@ -54,12 +54,12 @@ class ErfaAstrom:
         frame: ``astropy.coordinate.GCRS``
         '''
         jd1_tt, jd2_tt = get_jd12(frame.obstime, 'tt')
-        pv = pav2pv(
+        obs_pv = pav2pv(
             frame.obsgeoloc.get_xyz(xyz_axis=-1).value,
             frame.obsgeovel.get_xyz(xyz_axis=-1).value
         )
         earth_pv, earth_heliocentric = prepare_earth_position_vel(frame.obstime)
-        return erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
+        return erfa.apcs(jd1_tt, jd2_tt, obs_pv, earth_pv, earth_heliocentric)
 
     @staticmethod
     def apio13(frame):
