@@ -288,12 +288,12 @@ Transforming between Frames
 
 To transform a frame object with data into another frame, use the
 ``transform_to`` method of an object, and provide it the frame you wish to
-transform to. This frame can either be a frame *class*, in which case
-the default attributes will be used, or a frame object (with or without
-data)::
+transform to.  This frame should be a frame object (with or without coordinate
+data).  If you wish to use all default frame attributes, you can instantiate
+the frame class with no arguments (i.e., empty parentheses)::
 
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
-    >>> cooi.transform_to(FK5)  # doctest: +FLOAT_CMP
+    >>> cooi.transform_to(FK5())  # doctest: +FLOAT_CMP
     <FK5 Coordinate (equinox=J2000.000): (ra, dec) in deg
         (1.50000661, 2.50000238)>
     >>> cooi.transform_to(FK5(equinox='J1975'))  # doctest: +FLOAT_CMP

@@ -50,11 +50,12 @@ import astropy.units as u
 # We'll use the data for the star HD 39881 from the `Simbad
 # <simbad.harvard.edu/simbad/>`_ database:
 
-c1 = coord.ICRS(ra=89.014303*u.degree, dec=13.924912*u.degree,
-                distance=(37.59*u.mas).to(u.pc, u.parallax()),
-                pm_ra_cosdec=372.72*u.mas/u.yr,
-                pm_dec=-483.69*u.mas/u.yr,
-                radial_velocity=0.37*u.km/u.s)
+c1 = coord.SkyCoord(ra=89.014303*u.degree, dec=13.924912*u.degree,
+                    distance=(37.59*u.mas).to(u.pc, u.parallax()),
+                    pm_ra_cosdec=372.72*u.mas/u.yr,
+                    pm_dec=-483.69*u.mas/u.yr,
+                    radial_velocity=0.37*u.km/u.s,
+                    frame='icrs')
 
 ##############################################################################
 # This is a high proper-motion star; suppose we'd like to transform its position
@@ -142,7 +143,7 @@ ring_dif = coord.CylindricalDifferential(
 )
 
 ring_rep = ring_rep.with_differentials(ring_dif)
-gc_rings = coord.Galactocentric(ring_rep)
+gc_rings = coord.SkyCoord(ring_rep, frame=coord.Galactocentric)
 
 ##############################################################################
 # First, let's visualize the geometry in Galactocentric coordinates. Here are
@@ -172,6 +173,8 @@ axes[1].set_ylabel('$v_y$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
 
 fig.tight_layout()
 
+plt.show()
+
 ##############################################################################
 # Now we can transform to Galactic coordinates and visualize the rings in
 # observable coordinates:
@@ -188,3 +191,5 @@ ax.set_xlabel('$l$ [deg]')
 ax.set_ylabel(r'$\mu_l \, \cos b$ [{0}]'.format((u.mas/u.yr).to_string('latex_inline')))
 
 ax.legend()
+
+plt.show()

@@ -150,7 +150,7 @@ def test_array_coordinates_transformations(arrshape, distance):
 
     print(raarr, decarr, distance)
     c = ICRS(ra=raarr*u.deg, dec=decarr*u.deg, distance=distance)
-    g = c.transform_to(Galactic)
+    g = c.transform_to(Galactic())
 
     assert g.l.shape == arrshape
 
@@ -161,7 +161,7 @@ def test_array_coordinates_transformations(arrshape, distance):
         assert g.distance.unit == c.distance.unit
 
     # now make sure round-tripping works through FK5
-    c2 = c.transform_to(FK5).transform_to(ICRS)
+    c2 = c.transform_to(FK5()).transform_to(ICRS())
     npt.assert_array_almost_equal(c.ra.radian, c2.ra.radian)
     npt.assert_array_almost_equal(c.dec.radian, c2.dec.radian)
 
@@ -171,7 +171,7 @@ def test_array_coordinates_transformations(arrshape, distance):
         assert c2.distance.unit == c.distance.unit
 
     # also make sure it's possible to get to FK4, which uses a direct transform function.
-    fk4 = c.transform_to(FK4)
+    fk4 = c.transform_to(FK4())
 
     npt.assert_array_almost_equal(fk4.ra.degree, 10.0004, decimal=4)
     npt.assert_array_almost_equal(fk4.dec.degree, 40.9953, decimal=4)
@@ -181,7 +181,7 @@ def test_array_coordinates_transformations(arrshape, distance):
         assert fk4.distance.unit == c.distance.unit
 
     # now check the reverse transforms run
-    cfk4 = fk4.transform_to(ICRS)
+    cfk4 = fk4.transform_to(ICRS())
     assert cfk4.ra.shape == arrshape
 
 

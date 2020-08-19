@@ -168,7 +168,7 @@ def sgr_to_galactic():
 # transform to `~astropy.coordinates.Galactic`). For example, to transform from
 # ICRS coordinates to ``Sagittarius``, we would do:
 
-icrs = coord.ICRS(280.161732*u.degree, 11.91934*u.degree)
+icrs = coord.SkyCoord(280.161732*u.degree, 11.91934*u.degree, frame='icrs')
 sgr = icrs.transform_to(Sagittarius)
 print(sgr)
 
@@ -176,8 +176,8 @@ print(sgr)
 # Or, to transform from the ``Sagittarius`` frame to ICRS coordinates (in this
 # case, a line along the ``Sagittarius`` x-y plane):
 
-sgr = Sagittarius(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
-                  Beta=np.zeros(128)*u.radian)
+sgr = coord.SkyCoord(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
+                     Beta=np.zeros(128)*u.radian, frame='sagittarius')
 icrs = sgr.transform_to(coord.ICRS)
 print(icrs)
 
@@ -203,10 +203,11 @@ plt.show()
 # transformation of velocity components is therefore natively supported as
 # well:
 
-sgr = Sagittarius(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
-                  Beta=np.zeros(128)*u.radian,
-                  pm_Lambda_cosBeta=np.random.uniform(-5, 5, 128)*u.mas/u.yr,
-                  pm_Beta=np.zeros(128)*u.mas/u.yr)
+sgr = coord.SkyCoord(Lambda=np.linspace(0, 2*np.pi, 128)*u.radian,
+                     Beta=np.zeros(128)*u.radian,
+                     pm_Lambda_cosBeta=np.random.uniform(-5, 5, 128)*u.mas/u.yr,
+                     pm_Beta=np.zeros(128)*u.mas/u.yr,
+                     frame='sagittarius')
 icrs = sgr.transform_to(coord.ICRS)
 print(icrs)
 

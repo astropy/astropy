@@ -107,7 +107,7 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
         tol = 750*u.milliarcsecond
 
     # now make sure the full stack round-tripping works
-    icrs2 = aacoo.transform_to(ICRS)
+    icrs2 = aacoo.transform_to(ICRS())
 
     adras = np.abs(fullstack_icrs.ra - icrs2.ra)[msk]
     addecs = np.abs(fullstack_icrs.dec - icrs2.dec)[msk]
@@ -144,7 +144,7 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     aacoo = fullstack_icrs.transform_to(fullstack_fiducial_altaz)
 
     # make sure the round-tripping works
-    icrs2 = aacoo.transform_to(ICRS)
+    icrs2 = aacoo.transform_to(ICRS())
     npt.assert_allclose(fullstack_icrs.ra.deg, icrs2.ra.deg)
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
 
