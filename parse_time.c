@@ -30,6 +30,14 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
 
     *val = 0;
 
+    // Check if string ends (has 0x00) before str_len.
+    for (size_t i = idx0; i <= idx1; i++) {
+        if (chars[i] == 0) {
+            str_len = i;
+            break;
+        }
+    }
+
     // String ends at exactly before the beginning of requested value,
     // e.g. "2000-01" (str_len=7) for day (idx0=7). This is OK in some
     // cases, e.g. before hour (2000-01-01).
@@ -125,14 +133,16 @@ int parse_frac_from_char_array(char *chars, double *val,
     return 0;
 }
 
-int parse_iso_time(char *time, char sep, int *year, int *month, int *day, int *hour,
-                    int *minute, double *second)
+int parse_iso_time(char *time, int max_str_len, char sep,
+                   int *year, int *month, int *day, int *hour,
+                   int *minute, double *second)
 // Parse an ISO time in `chars`.
 //
 // Example: "2020-01-24T12:13:14.5556"
 //
 // Args:
 //  char *time: time string
+//  int max_str_len: max length of string (may be null-terminated before this)
 //  char sep: separator between date and time (normally ' ' or 'T')
 //  int *year, *month, *day, *hour, *minute: output components (ints)
 //  double *second: output seconds
@@ -152,7 +162,17 @@ int parse_iso_time(char *time, char sep, int *year, int *month, int *day, int *h
 
     // Parse "2000-01-12 13:14:15.678"
     //        01234567890123456789012
-    str_len = strlen(time);
+
+    // Check for null termination before max_str_len. If called using a contiguous
+    // numpy 2-d array of chars there may or may not be null terminations.
+    str_len = max_str_len;
+    for (size_t i = 0; i < max_str_len; i++) {
+        if (time[i] == 0) {
+            str_len = i;
+            break;
+        }
+    }
+
     status = parse_int_from_char_array(time, year, str_len, 0, 0, 3);
     if (status < 0) { return status; }
 
@@ -190,8 +210,10 @@ int main(int argc, char *argv[])
     char minus = '-';
     int year, mon, day, hour, min;
     double sec;
+    int str_len;
 
-    status = parse_iso_time(argv[1], ' ', &year, &mon, &day, &hour, &min, &sec);
+    str_len = strlen(argv[1]);
+    status = parse_iso_time(argv[1], str_len, ' ', &year, &mon, &day, &hour, &min, &sec);
     if (status != 0) {
         printf("ERROR: status = %d\n", status);
         return status;
@@ -202,7 +224,7 @@ int main(int argc, char *argv[])
     printf("Start 100 million loops\n");
     for (size_t i = 0; i < 100000000; i++)
     {
-            status = parse_iso_time(argv[1], ' ', &year, &mon, &day, &hour, &min, &sec);
+            status = parse_iso_time(argv[1], str_len, ' ', &year, &mon, &day, &hour, &min, &sec);
     }
     printf("Done\n");
 
