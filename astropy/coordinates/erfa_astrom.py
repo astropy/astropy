@@ -128,12 +128,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     @u.quantity_input(time_resolution=u.day)
     def __init__(self, time_resolution):
-        if time_resolution.to_value(u.ms) < 1:
-            warnings.warn(
-                f'Using {self.__class__.__name__} with `time_resolution`'
-                ' below 1ms might not improve performance',
-                AstropyWarning
-            )
         if time_resolution.to_value(u.us) < 10:
             warnings.warn(
                 f'Using {self.__class__.__name__} with `time_resolution`'
