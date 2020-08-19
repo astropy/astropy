@@ -260,8 +260,8 @@ def test_converting_units():
     # converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
 
-    i4 = i2.transform_to(FK5).transform_to(ICRS)
-    i4_many = i2_many.transform_to(FK5).transform_to(ICRS)
+    i4 = i2.transform_to(FK5()).transform_to(ICRS())
+    i4_many = i2_many.transform_to(FK5()).transform_to(ICRS())
 
     ri2 = ''.join(rexrepr.split(repr(i2)))
     ri4 = ''.join(rexrepr.split(repr(i4)))
@@ -442,8 +442,8 @@ def test_transform():
     from astropy.time import Time
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
-    f = i.transform_to(FK5)
-    i2 = f.transform_to(ICRS)
+    f = i.transform_to(FK5())
+    i2 = f.transform_to(ICRS())
 
     assert i2.data.__class__ == r.UnitSphericalRepresentation
 
@@ -451,28 +451,28 @@ def test_transform():
     assert_allclose(i.dec, i2.dec)
 
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
-    f = i.transform_to(FK5)
-    i2 = f.transform_to(ICRS)
+    f = i.transform_to(FK5())
+    i2 = f.transform_to(ICRS())
 
     assert i2.data.__class__ != r.UnitSphericalRepresentation
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
-    f4 = f.transform_to(FK4)
+    f4 = f.transform_to(FK4())
     f4_2 = f.transform_to(FK4(equinox=f.equinox))
 
     # make sure attributes are copied over correctly
-    assert f4.equinox == FK4.get_frame_attr_names()['equinox']
+    assert f4.equinox == FK4().equinox
     assert f4_2.equinox == f.equinox
 
     # make sure self-transforms also work
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
-    i2 = i.transform_to(ICRS)
+    i2 = i.transform_to(ICRS())
 
     assert_allclose(i.ra, i2.ra)
     assert_allclose(i.dec, i2.dec)
 
     f = FK5(ra=1*u.deg, dec=2*u.deg, equinox=Time('J2001'))
-    f2 = f.transform_to(FK5)  # default equinox, so should be *different*
+    f2 = f.transform_to(FK5())  # default equinox, so should be *different*
     assert f2.equinox == FK5().equinox
     with pytest.raises(AssertionError):
         assert_allclose(f.ra, f2.ra)
@@ -481,7 +481,7 @@ def test_transform():
 
     # finally, check Galactic round-tripping
     i1 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
-    i2 = i1.transform_to(Galactic).transform_to(ICRS)
+    i2 = i1.transform_to(Galactic()).transform_to(ICRS())
 
     assert_allclose(i1.ra, i2.ra)
     assert_allclose(i1.dec, i2.dec)
@@ -1497,3 +1497,32 @@ def test_galactocentric_references(reset_galactocentric_defaults):
                 assert k not in galcen_custom.frame_attribute_references
             else:
                 assert k in galcen_custom.frame_attribute_references
+
+
+def test_coordinateattribute_transformation():
+    from astropy.coordinates import BaseCoordinateFrame, SkyCoord
+    from astropy.coordinates.attributes import CoordinateAttribute
+    from astropy.coordinates.builtin_frames import GCRS, HCRS
+
+    class FrameWithCoordinateAttribute(BaseCoordinateFrame):
+        coord_attr = CoordinateAttribute(HCRS)
+
+    hcrs = HCRS(1*u.deg, 2*u.deg, 3*u.AU, obstime='2001-02-03')
+    f1_frame = FrameWithCoordinateAttribute(coord_attr=hcrs)
+    f1_skycoord = FrameWithCoordinateAttribute(coord_attr=SkyCoord(hcrs))
+
+    # The input is already HCRS, so the frame attribute should not change it
+    assert f1_frame.coord_attr == hcrs
+    # The output should not be different if a SkyCoord is provided
+    assert f1_skycoord.coord_attr == f1_frame.coord_attr
+
+    gcrs = GCRS(4*u.deg, 5*u.deg, 6*u.AU, obstime='2004-05-06')
+    f2_frame = FrameWithCoordinateAttribute(coord_attr=gcrs)
+    f2_skycoord = FrameWithCoordinateAttribute(coord_attr=SkyCoord(gcrs))
+
+    # The input needs to be converted from GCRS to HCRS
+    assert isinstance(f2_frame.coord_attr, HCRS)
+    # The `obstime` frame attribute should have been "merged" in a SkyCoord-style transformation
+    assert f2_frame.coord_attr.obstime == gcrs.obstime
+    # The output should not be different if a SkyCoord is provided
+    assert f2_skycoord.coord_attr == f2_frame.coord_attr

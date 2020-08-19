@@ -46,7 +46,7 @@ def test_galactic_fk4():
         c1 = FK4(ra=r['lon_in']*u.deg, dec=r['lat_in']*u.deg,
                  obstime=Time(r['obstime']),
                  equinox=Time(r['equinox_fk4']))
-        c2 = c1.transform_to(Galactic)
+        c2 = c1.transform_to(Galactic())
 
         # Find difference
         diff = angular_separation(c2.l.radian, c2.b.radian,

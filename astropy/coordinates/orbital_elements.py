@@ -242,4 +242,4 @@ def calc_moon(t):
     ecliptic_coo = GeocentricTrueEcliptic(lon, lat, distance=dist,
                                           obstime=t, equinox=t)
 
-    return SkyCoord(ecliptic_coo.transform_to(ICRS))
+    return SkyCoord(ecliptic_coo.transform_to(ICRS()))

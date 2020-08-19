@@ -45,7 +45,7 @@ def test_icrs_fk5():
         # FK5 to ICRS
         c1 = FK5(ra=r['ra_in']*u.deg, dec=r['dec_in']*u.deg,
                  equinox=Time(r['equinox_fk5']))
-        c2 = c1.transform_to(ICRS)
+        c2 = c1.transform_to(ICRS())
 
         # Find difference
         diff = angular_separation(c2.ra.radian, c2.dec.radian,

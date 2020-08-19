@@ -40,7 +40,7 @@ def test_transform_classes():
                             register_graph=frame_transform_graph)
 
     c1 = TCoo1(ra=1*u.radian, dec=0.5*u.radian)
-    c2 = c1.transform_to(TCoo2)
+    c2 = c1.transform_to(TCoo2())
     assert_allclose(c2.ra.radian, 1)
     assert_allclose(c2.dec.radian, 0.5)
 
@@ -52,7 +52,7 @@ def test_transform_classes():
     trans2.register(frame_transform_graph)
 
     c3 = TCoo1(ra=1*u.deg, dec=2*u.deg)
-    c4 = c3.transform_to(TCoo2)
+    c4 = c3.transform_to(TCoo2())
 
     assert_allclose(c4.ra.degree, 1)
     assert_allclose(c4.ra.degree, 1)
@@ -72,7 +72,7 @@ def test_transform_decos():
     def trans(coo1, f):
         return TCoo2(ra=coo1.ra, dec=coo1.dec * 2)
 
-    c2 = c1.transform_to(TCoo2)
+    c2 = c1.transform_to(TCoo2())
     assert_allclose(c2.ra.degree, 1)
     assert_allclose(c2.dec.degree, 4)
 
@@ -84,7 +84,7 @@ def test_transform_decos():
                 [0, 1, 0],
                 [0, 0, 1]]
 
-    c4 = c3.transform_to(TCoo2)
+    c4 = c3.transform_to(TCoo2())
 
     assert_allclose(c4.cartesian.x, 2*u.pc)
     assert_allclose(c4.cartesian.y, 1*u.pc)
@@ -202,8 +202,8 @@ def test_obstime():
     fk4_50 = FK4(ra=1*u.deg, dec=2*u.deg, obstime=b1950)
     fk4_75 = FK4(ra=1*u.deg, dec=2*u.deg, obstime=j1975)
 
-    icrs_50 = fk4_50.transform_to(ICRS)
-    icrs_75 = fk4_75.transform_to(ICRS)
+    icrs_50 = fk4_50.transform_to(ICRS())
+    icrs_75 = fk4_75.transform_to(ICRS())
 
     # now check that the resulting coordinates are *different* - they should be,
     # because the obstime is different
@@ -292,7 +292,7 @@ def test_affine_transform_succeed(transfunc, rep):
     trans = t.AffineTransform(transfunc, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
 
-    c2 = c.transform_to(TCoo2)
+    c2 = c.transform_to(TCoo2())
 
     assert quantity_allclose(c2.data.to_cartesian().xyz,
                              expected_pos.to_cartesian().xyz)
@@ -322,7 +322,7 @@ def test_affine_transform_fail(transfunc):
     trans.register(frame_transform_graph)
 
     with pytest.raises(ValueError):
-        c.transform_to(TCoo2)
+        c.transform_to(TCoo2())
 
     trans.unregister(frame_transform_graph)
 
@@ -345,7 +345,7 @@ def test_too_many_differentials():
     c = TCoo1(rep.without_differentials())
     c._data = c._data.with_differentials({'s': dif1, 's2': dif2})
     with pytest.raises(ValueError):
-        c.transform_to(TCoo2)
+        c.transform_to(TCoo2())
 
     trans.unregister(frame_transform_graph)
 
@@ -370,7 +370,7 @@ def test_unit_spherical_with_differentials(rep):
     # register and do the transformation and check against expected
     trans = t.AffineTransform(transfunc.just_matrix, TCoo1, TCoo2)
     trans.register(frame_transform_graph)
-    c2 = c.transform_to(TCoo2)
+    c2 = c.transform_to(TCoo2())
 
     assert 's' in rep.differentials
     assert isinstance(c2.data.differentials['s'],
@@ -386,7 +386,7 @@ def test_unit_spherical_with_differentials(rep):
     trans.register(frame_transform_graph)
 
     with pytest.raises(TypeError):
-        c.transform_to(TCoo2)
+        c.transform_to(TCoo2())
 
     trans.unregister(frame_transform_graph)
 
@@ -431,7 +431,7 @@ def test_function_transform_with_differentials():
                pm_dec=1*u.marcsec/u.yr,)
 
     with pytest.warns(AstropyWarning, match=r'.*they have been dropped.*') as w:
-        t3.transform_to(TCoo2)
+        t3.transform_to(TCoo2())
     assert len(w) == 1
 
 
@@ -492,9 +492,9 @@ def test_static_matrix_combine_paths():
     t4.register(frame_transform_graph)
 
     c = Galactic(123*u.deg, 45*u.deg)
-    c1 = c.transform_to(BFrame)  # direct
-    c2 = c.transform_to(AFrame).transform_to(BFrame)  # thru A
-    c3 = c.transform_to(ICRS).transform_to(BFrame)  # thru ICRS
+    c1 = c.transform_to(BFrame())  # direct
+    c2 = c.transform_to(AFrame()).transform_to(BFrame())  # thru A
+    c3 = c.transform_to(ICRS()).transform_to(BFrame())  # thru ICRS
 
     assert quantity_allclose(c1.lon, c2.lon)
     assert quantity_allclose(c1.lat, c2.lat)

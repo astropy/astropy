@@ -114,7 +114,7 @@ def cirs_to_cirs(from_coo, to_frame):
         # current time*.  This has some subtle implications in terms of GR, but
         # is sort of glossed over in the current scheme because we are dropping
         # distances anyway.
-        return from_coo.transform_to(ICRS).transform_to(to_frame)
+        return from_coo.transform_to(ICRS()).transform_to(to_frame)
 
 
 # Now the GCRS-related transforms to/from ICRS
@@ -218,7 +218,7 @@ def gcrs_to_gcrs(from_coo, to_frame):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS
-        return from_coo.transform_to(ICRS).transform_to(to_frame)
+        return from_coo.transform_to(ICRS()).transform_to(to_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, HCRS)
@@ -333,4 +333,4 @@ def hcrs_to_hcrs(from_coo, to_frame):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS
-        return from_coo.transform_to(ICRS).transform_to(to_frame)
+        return from_coo.transform_to(ICRS()).transform_to(to_frame)

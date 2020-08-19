@@ -34,7 +34,7 @@ from astropy.io.misc.asdf.tags.helpers import skycoord_equal
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
 C_ICRS = ICRS(RA, DEC)
-C_FK5 = C_ICRS.transform_to(FK5)
+C_FK5 = C_ICRS.transform_to(FK5())
 J2001 = Time('J2001')
 
 
@@ -64,8 +64,8 @@ def teardown_function(func):
 
 
 def test_transform_to():
-    for frame in (FK5, FK5(equinox=Time('J1975.0')),
-                  FK4, FK4(equinox=Time('J1975.0')),
+    for frame in (FK5(), FK5(equinox=Time('J1975.0')),
+                  FK4(), FK4(equinox=Time('J1975.0')),
                   SkyCoord(RA, DEC, frame='fk4', equinox='J1980')):
         c_frame = C_ICRS.transform_to(frame)
         s_icrs = SkyCoord(RA, DEC, frame='icrs')

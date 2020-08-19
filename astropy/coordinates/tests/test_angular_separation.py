@@ -85,11 +85,11 @@ def test_proj_separations():
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
-    assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
+    assert_allclose(ncp.separation(ngp.transform_to(ICRS())).degree,
                     ncp.separation(ngp).degree)
 
     # distance from the north galactic pole to celestial pole
-    assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
+    assert_allclose(ncp.separation(ngp.transform_to(ICRS())).degree,
                     62.87174758503201)
 
 

@@ -55,7 +55,7 @@ def test_skyoffset_functional_ra():
         actual_xyz = actual.cartesian.xyz
 
         # back to ICRS
-        roundtrip = actual.transform_to(ICRS)
+        roundtrip = actual.transform_to(ICRS())
         roundtrip_xyz = roundtrip.cartesian.xyz
 
         # Verify
@@ -99,7 +99,7 @@ def test_skyoffset_functional_dec():
         actual_xyz = actual.cartesian.xyz
 
         # back to ICRS
-        roundtrip = actual.transform_to(ICRS)
+        roundtrip = actual.transform_to(ICRS())
 
         # Verify
         assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
@@ -145,7 +145,7 @@ def test_skyoffset_functional_ra_dec():
             actual_xyz = actual.cartesian.xyz
 
             # back to ICRS
-            roundtrip = actual.transform_to(ICRS)
+            roundtrip = actual.transform_to(ICRS())
 
             # Verify
             assert_allclose(actual_xyz, expected_xyz, atol=1E-5*u.kpc)
