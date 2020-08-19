@@ -164,7 +164,7 @@ def get_cip(jd1, jd2):
     return x, y, s
 
 
-def aticq(astrometric, astrom):
+def aticq(srepr, astrom):
     """
     A slightly modified version of the ERFA function ``eraAticq``.
 
@@ -189,7 +189,7 @@ def aticq(astrometric, astrom):
 
     Parameters
     ----------
-    astrometric : `~astropy.coordinates.CartesianRepresentation`
+    srepr : `~astropy.coordinates.SphericalRepresentation`
         Astrometric GCRS or CIRS position of object from observer
     astrom : eraASTROM array
         ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
@@ -201,21 +201,11 @@ def aticq(astrometric, astrom):
     dc : float or `~numpy.ndarray`
         Declination in radians
     """
-    # first of all get distance from object to observer
-    object_observer_distance = astrometric.norm()
     # ignore parallax effects if no distance, or far away
-    ignore_distance = object_observer_distance.unit == u.one
+    ignore_distance = srepr.distance.unit == u.one
 
     # RA, Dec to cartesian unit vectors
-    if not ignore_distance and u.allclose(astrometric.xyz, 0*u.km):
-        # special casing for positions at origin of frame
-        # replicating the behaviour of erfa.s2c with 0, 0 input
-        # which for reasons unknown gives the vector (1, 0, 0)
-        xhat = astrometric.unit_vectors()['x']
-        tmp = astrometric + 1*astrometric.x.unit*xhat
-        pos = (tmp/tmp.norm()).get_xyz(xyz_axis=-1).value
-    else:
-        pos = (astrometric / object_observer_distance).get_xyz(xyz_axis=-1).value
+    pos = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
 
     # Bias-precession-nutation, giving GCRS proper direction.
     ppr = erfa.trxp(astrom['bpn'], pos)
@@ -241,7 +231,7 @@ def aticq(astrometric, astrom):
             # and distance, respectively.
             eh = astrom['em'] * CartesianRepresentation(astrom['eh'], unit=u.au, xyz_axis=-1, copy=False)
             # unit vector from Sun to object
-            q = eh + object_observer_distance*CartesianRepresentation(before, unit=u.one, xyz_axis=-1, copy=False)
+            q = eh + srepr.distance*CartesianRepresentation(before, unit=u.one, xyz_axis=-1, copy=False)
             sundist = q.norm()
             q /= sundist
             # calculation above is extremely unstable very close to the sun
@@ -260,7 +250,7 @@ def aticq(astrometric, astrom):
     return erfa.anp(rc), dc
 
 
-def atciqz(astrometric, astrom):
+def atciqz(srepr, astrom):
     """
     A slightly modified version of the ERFA function ``eraAtciqz``.
 
@@ -285,7 +275,7 @@ def atciqz(astrometric, astrom):
 
     Parameters
     ----------
-    astrometric : `~astropy.coordinates.CartesianRepresentation`
+    srepr : `~astropy.coordinates.SphericalRepresentation`
         Astrometric ICRS position of object from observer
     astrom : eraASTROM array
         ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
@@ -297,21 +287,11 @@ def atciqz(astrometric, astrom):
     di : float or `~numpy.ndarray`
         Declination in radians
     """
-    # first of all get distance from object to observer
-    object_observer_distance = astrometric.norm()
     # ignore parallax effects if no distance, or far away
-    ignore_distance = object_observer_distance.unit == u.one
+    ignore_distance = srepr.distance.unit == u.one
 
     # BCRS coordinate direction (unit vector).
-    if not ignore_distance and u.allclose(astrometric.xyz, 0*u.km):
-        # special casing for positions at origin of frame
-        # replicating the behaviour of erfa.s2c with 0, 0 input
-        # which for reasons unknown gives the vector (1, 0, 0)
-        xhat = astrometric.unit_vectors()['x']
-        tmp = astrometric + 1*astrometric.x.unit*xhat
-        pco = (tmp/tmp.norm()).get_xyz(xyz_axis=-1).value
-    else:
-        pco = (astrometric / object_observer_distance).get_xyz(xyz_axis=-1).value
+    pco = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
 
     # Find BCRS direction of Sun to object
     if ignore_distance:
@@ -322,7 +302,7 @@ def atciqz(astrometric, astrom):
         # and distance, respectively.
         eh = astrom['em'] * CartesianRepresentation(astrom['eh'], unit=u.au, xyz_axis=-1, copy=False)
         # apply parallax to find unit vector from Sun to object
-        q = eh + astrometric
+        q = eh + srepr.represent_as(CartesianRepresentation)
         sundist = q.norm()
         q /= sundist
         # calculation above is extremely unstable very close to the sun

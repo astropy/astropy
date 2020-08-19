@@ -37,7 +37,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
-        cirs_ra, cirs_dec = atciqz(icrs_coo.cartesian.without_differentials(), astrom)
+        srepr = icrs_coo.spherical
+        cirs_ra, cirs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = UnitSphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
                                              lon=u.Quantity(cirs_ra, u.radian, copy=False),
@@ -51,7 +52,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
                                             xyz_axis=-1, copy=False)
         newcart = icrs_coo.cartesian - astrom_eb
         srepr = newcart.represent_as(SphericalRepresentation)
-        cirs_ra, cirs_dec = atciqz(newcart.without_differentials(), astrom)
+        cirs_ra, cirs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = SphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
                                          lon=u.Quantity(cirs_ra, u.radian, copy=False),
@@ -65,7 +66,8 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
     astrom = erfa_astrom.get().apci(cirs_coo)
-    i_ra, i_dec = aticq(cirs_coo.cartesian.without_differentials(), astrom)
+    srepr = cirs_coo.represent_as(SphericalRepresentation)
+    i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
@@ -79,7 +81,6 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
         # the distance in intermedrep is *not* a real distance as it does not
         # include the offset back to the SSB
-        srepr = cirs_coo.represent_as(SphericalRepresentation)
         intermedrep = SphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
                                               lon=u.Quantity(i_ra, u.radian, copy=False),
                                               distance=srepr.distance,
@@ -115,7 +116,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
-        gcrs_ra, gcrs_dec = atciqz(icrs_coo.cartesian.without_differentials(), astrom)
+        srepr = icrs_coo.represent_as(SphericalRepresentation)
+        gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = UnitSphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
                                              lon=u.Quantity(gcrs_ra, u.radian, copy=False),
@@ -130,7 +132,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         newcart = icrs_coo.cartesian - astrom_eb
 
         srepr = newcart.represent_as(SphericalRepresentation)
-        gcrs_ra, gcrs_dec = atciqz(newcart.without_differentials(), astrom)
+        gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = SphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
                                          lon=u.Quantity(gcrs_ra, u.radian, copy=False),
@@ -146,7 +148,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     # coordinate direction
     astrom = erfa_astrom.get().apcs(gcrs_coo)
 
-    i_ra, i_dec = aticq(gcrs_coo.cartesian.without_differentials(), astrom)
+    srepr = gcrs_coo.represent_as(SphericalRepresentation)
+    i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     if gcrs_coo.data.get_name() == 'unitspherical' or gcrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
@@ -160,7 +163,6 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
         # the distance in intermedrep is *not* a real distance as it does not
         # include the offset back to the SSB
-        srepr = gcrs_coo.represent_as(SphericalRepresentation)
         intermedrep = SphericalRepresentation(lat=u.Quantity(i_dec, u.radian, copy=False),
                                               lon=u.Quantity(i_ra, u.radian, copy=False),
                                               distance=srepr.distance,
@@ -196,7 +198,8 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
     astrom = erfa_astrom.get().apcs(gcrs_coo)
-    i_ra, i_dec = aticq(gcrs_coo.cartesian.without_differentials(), astrom)
+    srepr = gcrs_coo.represent_as(SphericalRepresentation)
+    i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     # convert to Quantity objects
     i_ra = u.Quantity(i_ra, u.radian, copy=False)
@@ -212,7 +215,6 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
 
         # Note that the distance in intermedrep is *not* a real distance as it
         # does not include the offset back to the Heliocentre
-        srepr = gcrs_coo.represent_as(SphericalRepresentation)
         intermedrep = SphericalRepresentation(lat=i_dec, lon=i_ra,
                                               distance=srepr.distance,
                                               copy=False)
