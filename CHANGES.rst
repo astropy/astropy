@@ -1,3 +1,16 @@
+4.3 (unreleased)
+================
+
+New Features
+------------
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- N-dimensional least-squares statistic and specific 1,2,3-D methods [#10670]
+  
+
+
 4.2 (unreleased)
 ================
 
