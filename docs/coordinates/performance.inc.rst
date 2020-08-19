@@ -109,7 +109,8 @@ To use interpolation for the astrometric values in coordinate transformation, us
    Mean error of interpolation: 0.0063 uarcsec
 
    >>> # To set erfa_astrom for a whole session, use it without context manager:
-   >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))
+   >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))  # doctest:+ELLIPSIS
+   ...
 
 ..
   EXAMPLE END
