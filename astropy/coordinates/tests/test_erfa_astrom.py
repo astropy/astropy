@@ -23,6 +23,22 @@ def test_science_state():
         erfa_astrom.set('foo')
 
 
+def test_warnings():
+    import astropy.units as u
+    from astropy.coordinates.erfa_astrom import (
+        erfa_astrom, ErfaAstromInterpolator
+    )
+    from astropy.utils.exceptions import AstropyWarning
+
+    with pytest.warns(AstropyWarning):
+        with erfa_astrom.set(ErfaAstromInterpolator(0.5 * u.ms)):
+            pass
+
+    with pytest.warns(AstropyWarning):
+        with erfa_astrom.set(ErfaAstromInterpolator(9 * u.us)):
+            pass
+
+
 @pytest.mark.remote_data
 def test_erfa_astrom():
     # I was having a pretty hard time in coming
