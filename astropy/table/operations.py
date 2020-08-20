@@ -1166,20 +1166,9 @@ def _join(left, right, keys=None, join_type='inner',
                                           .format(col_cls.__name__))
 
             out[out_name] = col_cls.info.new_like(cols, n_out, metadata_conflicts, out_name)
-
-            if issubclass(col_cls, (Column, Time)):
-                out[out_name][:] = np.where(right_mask,
-                                            left[left_name].take(left_out),
-                                            right[right_name].take(right_out))
-            else:
-                # np.where does not work for mixin columns (e.g. Quantity) so
-                # use a slower workaround.
-                non_right_mask = ~right_mask
-                if np.any(right_mask):
-                    out[out_name][:] = left[left_name].take(left_out)
-                if np.any(non_right_mask):
-                    out[out_name][non_right_mask] = right[right_name].take(right_out)[
-                        non_right_mask]
+            out[out_name][:] = np.where(right_mask,
+                                        left[left_name].take(left_out),
+                                        right[right_name].take(right_out))
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask
