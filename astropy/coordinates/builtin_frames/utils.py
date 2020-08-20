@@ -202,7 +202,8 @@ def aticq(srepr, astrom):
         Declination in radians
     """
     # ignore parallax effects if no distance, or far away
-    ignore_distance = srepr.distance.unit == u.one
+    srepr_distance = srepr.distance
+    ignore_distance = srepr_distance.unit == u.one
 
     # RA, Dec to cartesian unit vectors
     pos = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
@@ -229,17 +230,15 @@ def aticq(srepr, astrom):
             # Find BCRS direction of Sun to object.
             # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
             # and distance, respectively.
-            eh = astrom['em'] * CartesianRepresentation(astrom['eh'], unit=u.au, xyz_axis=-1, copy=False)
+            eh = astrom['em'][..., np.newaxis] * astrom['eh']
             # unit vector from Sun to object
-            q = eh + srepr.distance*CartesianRepresentation(before, unit=u.one, xyz_axis=-1, copy=False)
-            sundist = q.norm()
+            q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * before
+            sundist = np.linalg.norm(q, axis=-1, keepdims=True)
             q /= sundist
             # calculation above is extremely unstable very close to the sun
             # in these situations, default back to ldsun-style behaviour,
             # since this is reversible and drops to zero within stellar limb
-            close_to_sun = (sundist > 10*u.m)[..., np.newaxis]
-            q = np.where(close_to_sun,
-                         q.get_xyz(xyz_axis=-1).value, before)
+            q = np.where(sundist > 1.0e-10, q, before)
 
         after = erfa.ld(1.0, before, q, astrom['eh'], astrom['em'], 1e-6)
         d = after - before
@@ -288,7 +287,8 @@ def atciqz(srepr, astrom):
         Declination in radians
     """
     # ignore parallax effects if no distance, or far away
-    ignore_distance = srepr.distance.unit == u.one
+    srepr_distance = srepr.distance
+    ignore_distance = srepr_distance.unit == u.one
 
     # BCRS coordinate direction (unit vector).
     pco = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
@@ -298,19 +298,18 @@ def atciqz(srepr, astrom):
         # No distance to object, assume a long way away
         q = pco
     else:
+        # Find BCRS direction of Sun to object.
         # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
         # and distance, respectively.
-        eh = astrom['em'] * CartesianRepresentation(astrom['eh'], unit=u.au, xyz_axis=-1, copy=False)
-        # apply parallax to find unit vector from Sun to object
-        q = eh + srepr.represent_as(CartesianRepresentation)
-        sundist = q.norm()
+        eh = astrom['em'][..., np.newaxis] * astrom['eh']
+        # unit vector from Sun to object
+        q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * pco
+        sundist = np.linalg.norm(q, axis=-1, keepdims=True)
         q /= sundist
         # calculation above is extremely unstable very close to the sun
         # in these situations, default back to ldsun-style behaviour,
         # since this is reversible and drops to zero within stellar limb
-        close_to_sun = (sundist > 10*u.m)[..., np.newaxis]
-        q = np.where(close_to_sun,
-                     q.get_xyz(xyz_axis=-1).value, pco)
+        q = np.where(sundist > 1.0e-10, q, pco)
 
     # Light deflection by the Sun, giving BCRS natural direction.
     pnat = erfa.ld(1.0, pco, q, astrom['eh'], astrom['em'], 1e-6)
