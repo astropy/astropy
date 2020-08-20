@@ -86,7 +86,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
 
    >>> # array with 10000 obstimes
-   >>> obstime = Time.now() + np.linspace(0, 6, 10000) * u.hour
+   >>> obstime = Time('2020-01-01T20:00') + np.linspace(0, 6, 10000) * u.hour
    >>> location = location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
    >>> frame = AltAz(obstime=obstime, location=location)  # doctest:+REMOTE_DATA
    >>> crab = SkyCoord.from_name('Crab')  # doctest:+REMOTE_DATA
@@ -106,11 +106,11 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> err = crab_altaz.separation(crab_altaz_interpolated)  # doctest:+REMOTE_DATA
    >>> print(f'Mean error of interpolation: {err.to(u.microarcsecond).mean():.4f}')  # doctest:+ELLIPSIS +REMOTE_DATA
-   Mean error of interpolation: 0.0063 uarcsec
+   Mean error of interpolation: 0.0167 uarcsec
 
    >>> # To set erfa_astrom for a whole session, use it without context manager:
    >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))  # doctest:+ELLIPSIS
-   ...
+   <ScienceState erfa_astrom: ...>
 
 ..
   EXAMPLE END
