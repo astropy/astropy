@@ -111,7 +111,7 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
-    # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
+    # first set up the astrometry context for ICRS<->GCRS.
     astrom = erfa_astrom.get().apcs(gcrs_frame)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
