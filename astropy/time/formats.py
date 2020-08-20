@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import fnmatch
+import math
 import time
 import re
 import datetime
@@ -246,8 +247,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        # val1 cannot contain nan, but val2 can contain nan
-        isfinite1 = np.isfinite(val1)
+        # only forbid inf values, nan allowed
+        isfinite1 = ~np.isinf(val1)
         if val1.size > 1:  # Calling .all() on a scalar is surprisingly slow
             isfinite1 = isfinite1.all()  # Note: arr.all() about 3x faster than np.all(arr)
         elif val1.size == 0:
@@ -530,11 +531,14 @@ class TimeDecimalYear(TimeNumeric):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
 
-        if _isscalar(val1) and _isscalar(val2) and (np.isnan(val1) or np.isnan(val2)):
+        if _isscalar(val1) and _isscalar(val2) and (math.isnan(val1) or math.isnan(val2)):
             self.jd1 = self.jd2 = np.nan
             return
 
         sum12, err12 = two_sum(val1, val2)
+        val1 = np.broadcast_to(val1, sum12.shape)
+        val2 = np.broadcast_to(val2, sum12.shape)
+
         jd1 = np.empty_like(sum12)
         jd2 = np.empty_like(sum12)
         mask = np.isnan(sum12)
@@ -650,7 +654,10 @@ class TimeFromEpoch(TimeNumeric):
         # without another call to day_frac(). Note also that `round(jd2.item())`
         # is about 10x faster than `np.round(jd2)`` for a scalar.
         if self.epoch.scale == self.scale:
-            jd1_extra = np.round(jd2) if jd2.shape else round(jd2.item())
+            if jd1.shape:
+                jd1_extra = np.round(jd2)
+            else:
+                jd1_extra = round(jd2.item()) if not math.isnan(jd2.item()) else np.nan
             jd1 += jd1_extra
             jd2 -= jd1_extra
 
