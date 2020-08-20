@@ -1,327 +1,5 @@
-4.1rc1 (2020-05-25)
+4.1rc2 (2020-08-20)
 ===================
-4.2 (unreleased)
-================
-
-New Features
-------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-- Improve initialization time by a factor of four when creating a scalar ``Time``
-  object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
-  epoch time). [#10406]
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-API Changes
------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-Other Changes and Additions
----------------------------
-
-- Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
-  ``lex.lex``) to allow running in ``python -OO`` session without raising an
-  exception in ``astropy.units.format``. [#10379]
-
-
-4.1.1 (unreleased)
-==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-- No longer ignore attributes whose values were specified as empty
-  strings. [#10583]
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-- Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
-  projection on a WCSAxes. [#10442]
-
-astropy.wcs
-^^^^^^^^^^^
-
-- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
-  unintended lower/upper case issues [#10557]
-
-Other Changes and Additions
----------------------------
-
-
-4.1 (unreleased)
-================
 
 New Features
 ------------
@@ -405,6 +83,9 @@ astropy.io.votable
 - New ``exceptions.conf.max_warnings`` configuration item to control the number of times a
   type of warning appears before being suppressed. [#10152]
 
+- No longer ignore attributes whose values were specified as empty
+  strings. [#10583]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 - Added Plummer1D model to ``functional_models``. [#9896]
@@ -486,6 +167,10 @@ astropy.time
   ``1970-01-01 00:00:08 TAI`` and corresponds to the ``CLOCK_TAI`` clock
   available on some linux platforms. [#10081]
 
+- Improve initialization time by a factor of four when creating a scalar ``Time``
+  object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
+  epoch time). [#10406]
+
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -521,6 +206,9 @@ astropy.visualization
   ``simple_norm`` function.  This keyword is used to replace generated
   NaN values. [#10182]
 
+- Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
+  projection on a WCSAxes. [#10442]
+
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -532,6 +220,9 @@ astropy.wcs
 - Implemented support for the ``-TAB`` algorithm (WCS Paper III). [#9641]
 
 - Added an ``_as_mpl_axes`` method to the ``HightLevelWCSWrapper`` class. [#10138]
+
+- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
+  unintended lower/upper case issues [#10557]
 
 API Changes
 -----------
@@ -647,6 +338,10 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.11. [#10258]
 
 - Removed dependency on scikit-image. [#10214]
+
+- Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
+  ``lex.lex``) to allow running in ``python -OO`` session without raising an
+  exception in ``astropy.units.format``. [#10379]
 
 4.0.2 (unreleased)
 ==================
