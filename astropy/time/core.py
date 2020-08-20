@@ -416,7 +416,10 @@ class Time(ShapedLikeNDArray):
         if self.isscalar:
             return self.mask
 
-        return np.isnan(self.jd2.filled())
+        if np.ma.is_masked(self.jd2):
+            return np.isnan(self.jd2.filled())
+        else:
+            return np.isnan(self.jd2)
 
     def __getnewargs__(self):
         return (self._time,)

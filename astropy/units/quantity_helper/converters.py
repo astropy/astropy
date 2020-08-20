@@ -119,7 +119,7 @@ def can_have_arbitrary_unit(value):
     -------
     `True` if each member is either zero or not finite, `False` otherwise
     """
-    return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
+    return np.all(np.logical_or(value == 0.0, ~np.isfinite(value)))
 
 
 def converters_and_unit(function, method, *args):

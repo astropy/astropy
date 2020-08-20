@@ -216,8 +216,12 @@ class TimeFormat(metaclass=TimeFormatMeta):
         self._scale = val
 
     def mask_if_needed(self, value):
+        # fill value for integer array is not straight forward
+        # what could be an appriopriate value here?
+        # 999999 is the numpy default
+        fill_value = np.nan if value.dtype.kind == 'f' else 999999
         if self.masked:
-            value = np.ma.array(value, mask=self.mask, copy=False, fill_value=np.nan)
+            value = np.ma.array(value, mask=self.mask, copy=False, fill_value=fill_value)
         return value
 
     @property

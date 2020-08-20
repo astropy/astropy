@@ -76,7 +76,7 @@ def test_str():
 
     expected = ["masked_array(data=['2000-01-01 00:00:00.000', --],",
                 '             mask=[False,  True],',
-                "       fill_value='N/A',",
+                "       fill_value='999999',",
                 "            dtype='<U23')"]
 
     # Note that we need to take care to allow for big-endian platforms,
