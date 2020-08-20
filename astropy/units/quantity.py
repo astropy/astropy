@@ -426,8 +426,9 @@ class Quantity(np.ndarray):
             return self._new_view(obj)
 
         raise NotImplementedError('__array_wrap__ should not be used '
-                                  'with a context any more, since we require '
-                                  'numpy >=1.17.  Please raise an issue on '
+                                  'with a context any more since all use '
+                                  'should go through array_function. '
+                                  'Please raise an issue on '
                                   'https://github.com/astropy/astropy')
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
