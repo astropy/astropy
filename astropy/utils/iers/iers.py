@@ -24,7 +24,6 @@ from astropy.table import QTable, MaskedColumn
 from astropy.utils.data import (get_pkg_data_filename, clear_download_cache,
                                 is_url_in_cache, get_readable_fileobj)
 from astropy.utils.state import ScienceState
-from astropy.utils.compat import NUMPY_LT_1_17
 from astropy import utils
 from astropy.utils.exceptions import AstropyWarning
 
@@ -40,7 +39,7 @@ __all__ = ['Conf', 'conf', 'earth_orientation_table',
 
 # IERS-A default file name, URL, and ReadMe with content description
 IERS_A_FILE = 'finals2000A.all'
-IERS_A_URL = 'ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all'
+IERS_A_URL = 'ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all'  # noqa: E501
 IERS_A_URL_MIRROR = 'https://datacenter.iers.org/data/9/finals2000A.all'
 IERS_A_README = get_pkg_data_filename('data/ReadMe.finals2000A')
 
@@ -462,13 +461,6 @@ class IERS_A(IERS):
 
     iers_table = None
 
-    if NUMPY_LT_1_17:
-        @staticmethod
-        def _quantity_where(condition, x, y):
-            result = y.to(x.unit)  # Makes copy.
-            result[condition] = x[condition]
-            return result
-
     @classmethod
     def _combine_a_b_columns(cls, iers_a):
         """
@@ -484,21 +476,19 @@ class IERS_A(IERS):
         # IERS B values in the table are consistent with the true ones.
         table = cls._substitute_iers_b(table)
 
-        q_where = cls._quantity_where if NUMPY_LT_1_17 else np.where
-
         # Combine A and B columns, using B where possible.
         b_bad = np.isnan(table['UT1_UTC_B'])
-        table['UT1_UTC'] = q_where(b_bad, table['UT1_UTC_A'], table['UT1_UTC_B'])
+        table['UT1_UTC'] = np.where(b_bad, table['UT1_UTC_A'], table['UT1_UTC_B'])
         table['UT1Flag'] = np.where(b_bad, table['UT1Flag_A'], 'B')
         # Repeat for polar motions.
         b_bad = np.isnan(table['PM_X_B']) | np.isnan(table['PM_Y_B'])
-        table['PM_x'] = q_where(b_bad, table['PM_x_A'], table['PM_X_B'])
-        table['PM_y'] = q_where(b_bad, table['PM_y_A'], table['PM_Y_B'])
+        table['PM_x'] = np.where(b_bad, table['PM_x_A'], table['PM_X_B'])
+        table['PM_y'] = np.where(b_bad, table['PM_y_A'], table['PM_Y_B'])
         table['PolPMFlag'] = np.where(b_bad, table['PolPMFlag_A'], 'B')
 
         b_bad = np.isnan(table['dX_2000A_B']) | np.isnan(table['dY_2000A_B'])
-        table['dX_2000A'] = q_where(b_bad, table['dX_2000A_A'], table['dX_2000A_B'])
-        table['dY_2000A'] = q_where(b_bad, table['dY_2000A_A'], table['dY_2000A_B'])
+        table['dX_2000A'] = np.where(b_bad, table['dX_2000A_A'], table['dX_2000A_B'])
+        table['dY_2000A'] = np.where(b_bad, table['dY_2000A_A'], table['dY_2000A_B'])
         table['NutFlag'] = np.where(b_bad, table['NutFlag_A'], 'B')
 
         # Get the table index for the first row that has predictive values
