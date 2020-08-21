@@ -1051,7 +1051,8 @@ def test_data_noastropy_fallback(monkeypatch):
 
     with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
-    assert len(warning_lines) == 2
+    assert len(warning_lines) == 2, os.linesep.join(
+        [str(w.message) for w in warning_lines])
     assert 'Remote data cache could not be accessed' in str(warning_lines[0].message)
     assert 'temporary' in str(warning_lines[1].message)
 
