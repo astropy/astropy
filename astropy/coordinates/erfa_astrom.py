@@ -140,7 +140,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
         if time_resolution.to_value(u.us) < 10:
             warnings.warn(
                 f'Using {self.__class__.__name__} with `time_resolution`'
-                ' might lead to numerical inaccuracies'
+                ' below 10 microseconds might lead to numerical inaccuracies'
                 ' as the MJD-based interpolation is limited by floating point '
                 ' precision to about a microsecond of precision',
                 AstropyWarning
