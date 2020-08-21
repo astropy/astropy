@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Example of wrapping a C library function that accepts a C double array as
     input using the numpy.ctypeslib. """
 import time
@@ -20,20 +21,26 @@ libpt = npct.load_library("libparse_time.so", ".")
 # setup the return types and argument types
 libpt.parse_iso_times.restype = c_int
 libpt.parse_iso_times.argtypes = [array_1d_char, c_int, c_int,
-                             array_1d_int, array_1d_int, array_1d_int,
-                             array_1d_int, array_1d_int, array_1d_double]
+                                  array_1d_int, array_1d_int, array_1d_int,
+                                  array_1d_int, array_1d_int, array_1d_double]
+libpt.check_unicode.restype = c_int
+libpt.check_unicode.argtypes = [array_1d_char, c_int]
 
-
-val1 = np.array(['2020-01-01 12:13:14.4324'] * 1000000)
+n_times = 1000000
+# This fails as expected:
+#   val1 = np.array(['2020-01-01 1ᛦ:13:14.4324'] * n_times)
+val1 = np.array(['2020-01-01 12:13:14.4324'] * n_times)
 t0 = time.time()
-n_times = len(val1)
-val1_str_len = int(val1.dtype.itemsize // (4 if val1.dtype.kind == 'U' else 1))
+char_size = 4 if val1.dtype.kind == 'U' else 1
+val1_str_len = int(val1.dtype.itemsize // char_size)
 chars = val1.ravel().view(np.uint8)
-if val1.dtype.kind == 'U':
-    chars.shape = (-1, 4)
-    chars = chars[:, 0]
-
+if char_size == 4:
+    status = libpt.check_unicode(chars, len(chars) // 4)
+    if status < 0:
+        raise ValueError('input is not pure ASCII')
+    chars = chars[::4]
 chars = np.ascontiguousarray(chars)
+
 year = np.zeros(n_times, dtype=np.intc)
 month = np.zeros(n_times, dtype=np.intc)
 day = np.zeros(n_times, dtype=np.intc)

@@ -159,16 +159,16 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
     int *year, *month, *day, *hour, *minute;
     double *second;
 
+    time = times;
+    year = years;
+    month = months;
+    day = days;
+    hour = hours;
+    minute = minutes;
+    second = seconds;
+
     for (size_t ii = 0; ii < n_times; ii++)
     {
-        // Set up pointers to ii element
-        time = times + ii * max_str_len;
-        year = years + ii;
-        month = months + ii;
-        day = days + ii;
-        hour = hours + ii;
-        minute = minutes + ii;
-        second = seconds + ii;
 
         // Initialize default values
         *month = 1;
@@ -217,8 +217,33 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
         if (status < 0) { return status; }
 
         *second = isec + frac;
+
+        // Set up pointers to ii element
+        time += max_str_len;
+        year++;
+        month++;
+        day++;
+        hour++;
+        minute++;
+        second++;
+    }
+
+    return 0;
+}
+
+int check_unicode(char *chars, int n_unicode_char) {
+    char *ch;
+
+    ch = chars;
+    for (size_t i = 0; i < n_unicode_char; i++)
+    {
+        ch++;
+        if (*ch++) return -1;
+        if (*ch++) return -1;
+        if (*ch++) return -1;
     }
     return 0;
+
 }
 
 int main(int argc, char *argv[])
@@ -230,11 +255,15 @@ int main(int argc, char *argv[])
     int str_len;
 
     str_len = strlen(argv[1]);
-    status = parse_iso_times(argv[1], 1, str_len, &year, &mon, &day, &hour, &min, &sec);
-    if (status != 0) {
+    status = parse_iso_times(argv[1], 1, str_len,
+                             &year, &mon, &day, &hour, &min, &sec);
+    if (status != 0)
+    {
         printf("ERROR: status = %d\n", status);
         return status;
-    } else {
+    }
+    else
+    {
         printf("%d %d %d %d %d %f\n", year, mon, day, hour, min, sec);
     }
 
