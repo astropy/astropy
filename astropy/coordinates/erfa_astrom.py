@@ -149,9 +149,11 @@ class ErfaAstromInterpolator(ErfaAstrom):
     def _get_support_points(self, obstime):
         '''
         Calculate support points for the interpolation.
-        This includes the minimum and maximum timestamp in obstime
-        to improve precision when the time resolution is wider than
-        the time range or only a single value is requested.
+
+        We divide the MJD by the time resolution (as single float64 values),
+        and calculate ceil and floor.
+        Then we take the unique and sorted values and scale back to MJD.
+        This will create a sparse support for non-regular input obstimes.
         '''
         mjd_scaled = np.ravel(obstime.mjd / self. mjd_resolution)
 
@@ -160,10 +162,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
         mjd_upper = np.array(np.ceil(mjd_scaled), ndmin=1, copy=False)
 
         # unique already does sorting
-        mjd_u = np.unique(np.concatenate([
-            [mjd_scaled.min(), mjd_scaled.max()],
-            mjd_lower, mjd_upper,
-        ]))
+        mjd_u = np.unique(np.concatenate([mjd_lower, mjd_upper]))
 
         return Time(
             mjd_u * self.mjd_resolution,
