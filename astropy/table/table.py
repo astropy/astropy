@@ -1055,12 +1055,22 @@ class Table:
             # could be MaskedColumn).
             col_cls = masked_col_cls
 
+        elif data is None:
+            # Special case for data passed as the None object (for broadcasting
+            # to an object column). Need to turn data into numpy `None` scalar
+            # object, otherwise `Column` interprets data=None as no data instead
+            # of a object column of `None`.
+            data = np.array(None)
+            col_cls = self.ColumnClass
+
         elif not hasattr(data, 'dtype'):
             # `data` is none of the above, convert to numpy array or MaskedArray
             # assuming only that it is a scalar or sequence or N-d nested
             # sequence. This function is relatively intricate and tries to
             # maintain performance for common cases while handling things like
-            # list input with embedded np.ma.masked entries.
+            # list input with embedded np.ma.masked entries. If `data` is a
+            # scalar then it gets returned unchanged so the original object gets
+            # passed to `Column` later.
             data = _convert_sequence_data_to_array(data, dtype)
             copy = False  # Already made a copy above
             col_cls = masked_col_cls if isinstance(data, np.ma.MaskedArray) else self.ColumnClass
