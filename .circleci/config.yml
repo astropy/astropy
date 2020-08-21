@@ -48,6 +48,9 @@ jobs:
           name: Install dependencies
           command: pip install -e .[test] pytest-mpl
       - run:
+          name: Force scipy upgrade
+          command: pip install scipy -U
+      - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
@@ -62,6 +65,9 @@ jobs:
           name: Install dependencies
           command: pip install -e .[test] pytest-mpl
       - run:
+          name: Force scipy upgrade
+          command: pip install scipy -U
+      - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
@@ -75,6 +81,9 @@ jobs:
       - run:
           name: Install dependencies
           command: pip install -e .[test] pytest-mpl
+      - run:
+          name: Force scipy upgrade
+          command: pip install scipy -U
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar

@@ -100,7 +100,7 @@ matrix:
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
 
-        # For the Numpy 1.16 build we use oldestdeps not numpy116 since we can check
+        # For the Numpy 1.17 build we use oldestdeps not numpy117 since we can check
         # the oldest version of all dependencies where this is known. We also check
         # that tests do not open and leave open any files. This has a performance
         # impact on running the tests, hence why it is not enabled by default.

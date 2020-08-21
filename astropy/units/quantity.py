@@ -20,7 +20,6 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .utils import is_effectively_unity
 from .format.latex import Latex
-from astropy.utils.compat import NUMPY_LT_1_17
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.misc import isiterable
@@ -427,8 +426,9 @@ class Quantity(np.ndarray):
             return self._new_view(obj)
 
         raise NotImplementedError('__array_wrap__ should not be used '
-                                  'with a context any more, since we require '
-                                  'numpy >=1.16.  Please raise an issue on '
+                                  'with a context any more since all use '
+                                  'should go through array_function. '
+                                  'Please raise an issue on '
                                   'https://github.com/astropy/astropy')
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
@@ -1606,11 +1606,6 @@ class Quantity(np.ndarray):
         # Apply the function and turn it back into a Quantity.
         result = function(*args, **kwargs)
         return self._result_as_quantity(result, unit, out)
-
-    if NUMPY_LT_1_17:
-        def clip(self, a_min, a_max, out=None):
-            return self._wrap_function(np.clip, self._to_own_unit(a_min),
-                                       self._to_own_unit(a_max), out=out)
 
     def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
         return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
