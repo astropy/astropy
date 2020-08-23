@@ -747,6 +747,9 @@ Bug fixes
 astropy.config
 ^^^^^^^^^^^^^^
 
+- Added an extra fallback to ``os.expanduser('~')`` when trying to find the
+  user home directory. [#10570]
+
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
