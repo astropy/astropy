@@ -369,9 +369,11 @@ Examples
 To convert between ``Jy/beam`` and thermodynamic temperature::
 
     >>> import astropy.units as u
+    >>> from astropy.cosmology import default_cosmology
     >>> nu = 143 * u.GHz
     >>> t_k = 0.002632051878 * u.K
-    >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
+    >>> with default_cosmology.set("Planck15"):  # showing cosmology dependence
+    ...     t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
     <Quantity 1. MJy / sr>
 
 By default, this will use the :math:`T_{CMB}` value for the default cosmology in

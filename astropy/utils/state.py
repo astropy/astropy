@@ -2,9 +2,45 @@
 A simple class to manage a piece of global science state.  See
 :ref:`config-developer` for more details.
 """
-
+import copy
+from collections.abc import MappingView
+from types import MappingProxyType
 
 __all__ = ['ScienceState']
+
+
+class _StateProxy(MappingView):
+    """
+    `~collections.abc.MappingView` with mix-in read-only methods from
+    `~types.MappingProxyType`. Adds ``getitem``, ``keys``, ``values``,
+    and ``items`` methods. Deepcopying also now returns decoupled dict.
+
+    Parameters
+    ----------
+    mapping : Mapping
+        The mapping on which to apply the `~collections.abc.MappingView`
+
+    """
+
+    def __init__(self, mapping):
+        super().__init__(mapping)
+        self._mappingproxy = MappingProxyType(self._mapping)  # read-only
+
+    def __getitem__(self, key):
+        """Read-only ``getitem``."""
+        return self._mappingproxy[key]
+
+    def __deepcopy__(self, memo):
+        return copy.deepcopy(self._mapping, memo=memo)
+
+    def keys(self):
+        return self._mappingproxy.keys()
+
+    def values(self):
+        return self._mappingproxy.values()
+
+    def items(self):
+        return self._mappingproxy.items()
 
 
 class ScienceState:

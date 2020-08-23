@@ -1,3 +1,21 @@
+5.0 (unreleased)
+================
+
+New Features
+------------
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- entrypoints for registering cosmologies [#10673]
+
+- Change default Cosmology to Planck15 [#10673]
+  
+- Calls to Cosmology create instance of default cosmology, modified by passed arguments [#10673]
+  
+- ``default_cosmology`` interoperates with registry of known cosmologies to add cosmology instances and or associated parameters  [#10673]
+
+
 4.2 (unreleased)
 ================
 

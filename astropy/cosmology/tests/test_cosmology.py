@@ -5,7 +5,7 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from astropy.cosmology import core, funcs
+from astropy.cosmology import core, funcs, builtin
 from astropy.units import allclose
 from astropy import constants as const
 from astropy import units as u
@@ -51,8 +51,12 @@ def test_init():
     with pytest.raises(ValueError):
         cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27)
         cosmo.Odm(1)
+
+    with pytest.raises(TypeError):  # can't initiate ABC
+        core.FLRW()
+
     with pytest.raises(TypeError):
-        core.default_cosmology.validate(4)
+        builtin.default_cosmology.validate(4)
 
 
 def test_basic():
@@ -1554,7 +1558,7 @@ def test_z_at_value():
     # there we are checking internal consistency on the same architecture
     # and so can be more demanding
     z_at_value = funcs.z_at_value
-    cosmo = core.Planck13
+    cosmo = builtin.Planck13
     d = cosmo.luminosity_distance(3)
     assert allclose(z_at_value(cosmo.luminosity_distance, d), 3,
                     rtol=1e-8)
@@ -1601,7 +1605,7 @@ def test_z_at_value_roundtrip():
             'de_density_scale', 'w')
 
     import inspect
-    methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
+    methods = inspect.getmembers(builtin.Planck13, predicate=inspect.ismethod)
 
     for name, func in methods:
         if name.startswith('_') or name in skip:
@@ -1617,11 +1621,11 @@ def test_z_at_value_roundtrip():
 
     # Test distance functions between two redshifts
     z2 = 2.0
-    func_z1z2 = [lambda z1: core.Planck13._comoving_distance_z1z2(z1, z2),
+    func_z1z2 = [lambda z1: builtin.Planck13._comoving_distance_z1z2(z1, z2),
                  lambda z1:
-                 core.Planck13._comoving_transverse_distance_z1z2(z1, z2),
+                 builtin.Planck13._comoving_transverse_distance_z1z2(z1, z2),
                  lambda z1:
-                 core.Planck13.angular_diameter_distance_z1z2(z1, z2)]
+                 builtin.Planck13.angular_diameter_distance_z1z2(z1, z2)]
     for func in func_z1z2:
         fval = func(z)
         assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),

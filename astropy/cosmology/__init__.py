@@ -9,3 +9,4 @@ detailed usage examples and references.
 
 from .core import *
 from .funcs import *
+from .builtin import *

@@ -468,7 +468,7 @@ configuration file (see :ref:`astropy_config`). Alternatively, you can
 use the ``set`` function of `~astropy.cosmology.default_cosmology` to
 set a cosmology for the current Python session. If you have not set a
 default cosmology using one of the methods described above, then the
-cosmology module will default to using the nine-year WMAP parameters.
+cosmology module will default to using the Planck 2015 parameters.
 
 It is strongly recommended that you use the default cosmology through
 the `~astropy.cosmology.default_cosmology` science state object. An
