@@ -33,8 +33,11 @@ def _find_home():
         if 'HOME' in os.environ:
             homedir = os.environ['HOME']
         else:
-            raise OSError('Could not find unix home directory to search for '
-                          'astropy config dir')
+            try:
+                return os.path.expanduser('~')
+            except Exception as e:
+                raise OSError('Could not find unix home directory to search for '
+                              'astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
         if 'MSYSTEM' in os.environ and os.environ.get('HOME'):
             # Likely using an msys shell; use whatever it is using for its
