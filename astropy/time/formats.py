@@ -57,12 +57,12 @@ libpt = npct.load_library("_parse_times", Path(__file__).parent)
 
 # Set up the return types and argument types for parse_ymdhms_times()
 # int parse_ymdhms_times(char *times, int n_times, int max_str_len,
-#                    char *delims, int *starts, int *stops,
+#                    char *delims, int *starts, int *stops, int *break_allowed,
 #                    int *years, int *months, int *days, int *hours,
 #                    int *minutes, double *seconds)
 libpt.parse_ymdhms_times.restype = c_int
 libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int,
-                                     array_1d_char, array_1d_int, array_1d_int,
+                                     array_1d_char, array_1d_int, array_1d_int, array_1d_int,
                                      array_1d_int, array_1d_int, array_1d_int,
                                      array_1d_int, array_1d_int, array_1d_double]
 libpt.check_unicode.restype = c_int
@@ -1465,6 +1465,7 @@ class TimeISO(TimeString):
     delims = (0, ord('-'), ord('-'), ord(' '), ord(':'), ord(':'), ord('.'))
     starts = (0, 4, 7, 10, 13, 16, 19)
     stops = (3, 6, 9, 12, 15, 18, -1)
+    break_allowed = (0, 0, 0, 1, 0, 1, 1)
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
@@ -1492,9 +1493,10 @@ class TimeISO(TimeString):
         delims = np.array(self.delims, dtype=np.uint8)
         starts = np.array(self.starts, dtype=np.intc)
         stops = np.array(self.stops, dtype=np.intc)
+        break_allowed = np.array(self.break_allowed, dtype=np.intc)
 
         status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len,
-                                          delims, starts, stops,
+                                          delims, starts, stops, break_allowed,
                                           year, month, day, hour, minute, second)
         if status == 0:
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
@@ -1504,7 +1506,6 @@ class TimeISO(TimeString):
             self.jd1, self.jd2 = day_frac(jd1, jd2)
 
         else:
-            print(f'fast parsing failed status={status}')
             return super().set_jds(val1, val2)
 
     def parse_string(self, timestr, subfmts):
