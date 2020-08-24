@@ -134,7 +134,8 @@ int parse_frac_from_char_array(char *chars, double *val,
     return 0;
 }
 
-int parse_iso_times(char *times, int n_times, int max_str_len,
+int parse_ymdhms_times(char *times, int n_times, int max_str_len,
+                   char *delims, int *starts, int *stops,
                    int *years, int *months, int *days, int *hours,
                    int *minutes, double *seconds)
 // Parse an ISO time in `chars`.
@@ -190,30 +191,30 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
             }
         }
 
-        status = parse_int_from_char_array(time, year, str_len, 0, 0, 3);
+        status = parse_int_from_char_array(time, year, str_len, delims[0], starts[0], stops[0]);
         if (status < 0) { return status; }
 
-        status = parse_int_from_char_array(time, month, str_len, '-', 4, 6);
+        status = parse_int_from_char_array(time, month, str_len, delims[1], starts[1], stops[1]);
         if (status == -1) { continue; }  // "2000" is OK
         else if (status < 0) { return status; }
 
-        status = parse_int_from_char_array(time, day, str_len, '-', 7, 9);
+        status = parse_int_from_char_array(time, day, str_len, delims[2], starts[2], stops[2]);
         // Any problems here indicate a bad date. "2000-01" is NOT OK.
         if (status < 0) { return status; }
 
-        status = parse_int_from_char_array(time, hour, str_len, sep, 10, 12);
+        status = parse_int_from_char_array(time, hour, str_len, delims[3], starts[3], stops[3]);
         if (status == -1) { continue; }  // "2000-01-02" is OK
         else if (status < 0) { return status; }
 
-        status = parse_int_from_char_array(time, minute, str_len, ':', 13, 15);
+        status = parse_int_from_char_array(time, minute, str_len, delims[4], starts[4], stops[4]);
         // Any problems here indicate a bad date. "2000-01-02 12" is NOT OK.
         if (status < 0) { return status; }
 
-        status = parse_int_from_char_array(time, &isec, str_len, ':', 16, 18);
+        status = parse_int_from_char_array(time, &isec, str_len, delims[5], starts[5], stops[5]);
         if (status == -1) { continue; }  // "2000-01-02 12:13" is OK
         else if (status < 0) { return status; }
 
-        status = parse_frac_from_char_array(time, &frac, str_len, '.', 19);
+        status = parse_frac_from_char_array(time, &frac, str_len, delims[6], starts[6]);
         if (status < 0) { return status; }
 
         *second = isec + frac;
@@ -235,28 +236,4 @@ int check_unicode(char *chars, int n_unicode_char) {
     }
     return 0;
 
-}
-
-int main(int argc, char *argv[])
-{
-    int status;
-    char minus = '-';
-    int year, mon, day, hour, min;
-    double sec;
-    int str_len;
-
-    str_len = strlen(argv[1]);
-    status = parse_iso_times(argv[1], 1, str_len,
-                             &year, &mon, &day, &hour, &min, &sec);
-    if (status != 0)
-    {
-        printf("ERROR: status = %d\n", status);
-        return status;
-    }
-    else
-    {
-        printf("%d %d %d %d %d %f\n", year, mon, day, hour, min, sec);
-    }
-
-    return status;
 }
