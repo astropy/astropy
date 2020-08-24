@@ -47,8 +47,7 @@ FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
 
 
-# input type for the parse_iso_times function
-# must be a double array, with single dimension that is contiguous
+# Input types in the parse_times.c code
 array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
 array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='C_CONTIGUOUS')
 array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
@@ -56,12 +55,19 @@ array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
 # load the library, using numpy mechanisms
 libpt = npct.load_library("_parse_times", Path(__file__).parent)
 
-# setup the return types and argument types
-libpt.parse_iso_times.restype = c_int
-libpt.parse_iso_times.argtypes = [array_1d_char, c_int, c_int,
-                                  array_1d_int, array_1d_int, array_1d_int,
-                                  array_1d_int, array_1d_int, array_1d_double]
+# Set up the return types and argument types for parse_ymdhms_times()
+# int parse_ymdhms_times(char *times, int n_times, int max_str_len,
+#                    char *delims, int *starts, int *stops,
+#                    int *years, int *months, int *days, int *hours,
+#                    int *minutes, double *seconds)
+libpt.parse_ymdhms_times.restype = c_int
+libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int,
+                                     array_1d_char, array_1d_int, array_1d_int,
+                                     array_1d_int, array_1d_int, array_1d_int,
+                                     array_1d_int, array_1d_int, array_1d_double]
 libpt.check_unicode.restype = c_int
+
+# Set up returns types and args for the unicode checker
 libpt.check_unicode.argtypes = [array_1d_char, c_int]
 
 
@@ -1444,15 +1450,21 @@ class TimeISO(TimeString):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
-    fmt_fixed = [
-        {'index': (0, 4), 'name': 'year', 'type': 'int', 'required': True},
-        {'index': (4, 7), 'name': 'mon', 'start': '-', 'type': 'int', 'required': True},
-        {'index': (7, 10), 'name': 'day', 'start': '-', 'type': 'int', 'required': True},
-        {'index': (10, 13), 'name': 'hour', 'start': ' ', 'type': 'int'},
-        {'index': (13, 16), 'name': 'min', 'start': ':', 'type': 'int'},
-        {'index': (16, 19), 'name': 'isec', 'start': ':', 'type': 'int'},
-        {'index': (19, None), 'name': 'fsec', 'start': '.', 'type': 'fraction'},
-    ]
+    # Define positions and starting delimiter for year, month, day, hour,
+    # minute, seconds components of an ISO time. This is used by the fast
+    # C-parser parse_ymdhms_times()
+    #
+    #  "2000-01-12 13:14:15.678"
+    #   01234567890123456789012
+    #   yyyy-mm-dd hh:mm:ss.fff
+    # Parsed as ('yyyy', '-mm', '-dd', ' hh', ':mm', ':ss', '.fff')
+    #
+    # delims: character at corresponding `starts` position (0 => no character)
+    # starts: position where component starts (including delimiter if present)
+    # stops: position where component ends (-1 => continue to end of string)
+    delims = (0, ord('-'), ord('-'), ord(' '), ord(':'), ord(':'), ord('.'))
+    starts = (0, 4, 7, 10, 13, 16, 19)
+    stops = (3, 6, 9, 12, 15, 18, -1)
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
@@ -1477,8 +1489,13 @@ class TimeISO(TimeString):
         minute = np.zeros(n_times, dtype=np.intc)
         second = np.zeros(n_times, dtype=np.double)
 
-        status = libpt.parse_iso_times(chars, n_times, val1_str_len,
-                                       year, month, day, hour, minute, second)
+        delims = np.array(self.delims, dtype=np.uint8)
+        starts = np.array(self.starts, dtype=np.intc)
+        stops = np.array(self.stops, dtype=np.intc)
+
+        status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len,
+                                          delims, starts, stops,
+                                          year, month, day, hour, minute, second)
         if status == 0:
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                                   year, month, day, hour, minute, second)
@@ -1487,6 +1504,7 @@ class TimeISO(TimeString):
             self.jd1, self.jd2 = day_frac(jd1, jd2)
 
         else:
+            print(f'fast parsing failed status={status}')
             return super().set_jds(val1, val2)
 
     def parse_string(self, timestr, subfmts):
