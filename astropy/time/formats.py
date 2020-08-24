@@ -7,9 +7,12 @@ import datetime
 import warnings
 from decimal import Decimal
 from collections import OrderedDict, defaultdict
+from pathlib import Path
 
 import numpy as np
 import erfa
+import numpy.ctypeslib as npct
+from ctypes import c_int
 
 from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -42,6 +45,24 @@ TIME_DELTA_FORMATS = OrderedDict()
 # Rots et al. 2015, A&A 574:A36, and timescales used here.
 FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
+
+
+# input type for the parse_iso_times function
+# must be a double array, with single dimension that is contiguous
+array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
+array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='C_CONTIGUOUS')
+array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
+
+# load the library, using numpy mechanisms
+libpt = npct.load_library("_parse_times", Path(__file__).parent)
+
+# setup the return types and argument types
+libpt.parse_iso_times.restype = c_int
+libpt.parse_iso_times.argtypes = [array_1d_char, c_int, c_int,
+                                  array_1d_int, array_1d_int, array_1d_int,
+                                  array_1d_int, array_1d_int, array_1d_double]
+libpt.check_unicode.restype = c_int
+libpt.check_unicode.argtypes = [array_1d_char, c_int]
 
 
 def _regexify_subfmts(subfmts):
@@ -1438,32 +1459,34 @@ class TimeISO(TimeString):
         if self.in_subfmt != '*':
             return super().set_jds(val1, val2)
 
-        try:
-            val1_str_len = val1.dtype.itemsize // (4 if val1.dtype.kind == 'U' else 1)
-            chars = val1.ravel().view(np.uint8)
-            if val1.dtype.kind == 'U':
-                chars.shape = (-1, 4)
-                assert np.all(chars[:, 1:4] == 0)
-                chars = chars[:, 0]
+        char_size = 4 if val1.dtype.kind == 'U' else 1
+        val1_str_len = int(val1.dtype.itemsize // char_size)
+        chars = val1.ravel().view(np.uint8)
+        if char_size == 4:
+            status = libpt.check_unicode(chars, len(chars) // 4)
+            if status < 0:
+                raise ValueError('input is not pure ASCII')
+            chars = chars[::4]
+        chars = np.ascontiguousarray(chars)
 
-            chars.shape = (-1, val1_str_len)
+        n_times = len(chars) // val1_str_len
+        year = np.zeros(n_times, dtype=np.intc)
+        month = np.zeros(n_times, dtype=np.intc)
+        day = np.zeros(n_times, dtype=np.intc)
+        hour = np.zeros(n_times, dtype=np.intc)
+        minute = np.zeros(n_times, dtype=np.intc)
+        second = np.zeros(n_times, dtype=np.double)
 
-            out = {}
-            for spec in self.fmt_fixed:
-                out[spec['name']] = parse_numbers_from_char_array(chars, spec, val1_str_len)
-
-            out['sec'] = out['isec'] + out['fsec']
-
+        status = libpt.parse_iso_times(chars, n_times, val1_str_len,
+                                       year, month, day, hour, minute, second)
+        if status == 0:
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                  out['year'], out['mon'], out['day'],
-                                  out['hour'], out['min'], out['sec'])
+                                  year, month, day, hour, minute, second)
             jd1.shape = val1.shape
             jd2.shape = val1.shape
             self.jd1, self.jd2 = day_frac(jd1, jd2)
 
-        except Exception:
-            # import traceback
-            # traceback.print_exc()
+        else:
             return super().set_jds(val1, val2)
 
     def parse_string(self, timestr, subfmts):

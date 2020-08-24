@@ -28,7 +28,6 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
     char ch;
     int status = 0;
 
-    *val = 0;
 
     // Check if string ends (has 0x00) before str_len.
     for (size_t i = idx0; i <= idx1; i++) {
@@ -60,7 +59,9 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
         }
         idx0 += 1;
     }
+
     // Build up the value using reversed digits
+    *val = 0;
     for (int ii = idx1; ii >= idx0; ii--)
     {
         ch = chars[ii];
@@ -159,16 +160,15 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
     int *year, *month, *day, *hour, *minute;
     double *second;
 
-    time = times;
-    year = years;
-    month = months;
-    day = days;
-    hour = hours;
-    minute = minutes;
-    second = seconds;
-
     for (size_t ii = 0; ii < n_times; ii++)
     {
+        time = times + ii * max_str_len;
+        year = years + ii;
+        month = months + ii;
+        day = days + ii;
+        hour = hours + ii;
+        minute = minutes + ii;
+        second = seconds + ii;
 
         // Initialize default values
         *month = 1;
@@ -194,7 +194,7 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
         if (status < 0) { return status; }
 
         status = parse_int_from_char_array(time, month, str_len, '-', 4, 6);
-        if (status == -1) { return 0; }  // "2000" is OK
+        if (status == -1) { continue; }  // "2000" is OK
         else if (status < 0) { return status; }
 
         status = parse_int_from_char_array(time, day, str_len, '-', 7, 9);
@@ -202,7 +202,7 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
         if (status < 0) { return status; }
 
         status = parse_int_from_char_array(time, hour, str_len, sep, 10, 12);
-        if (status == -1) { return 0; }  // "2000-01-02" is OK
+        if (status == -1) { continue; }  // "2000-01-02" is OK
         else if (status < 0) { return status; }
 
         status = parse_int_from_char_array(time, minute, str_len, ':', 13, 15);
@@ -210,22 +210,13 @@ int parse_iso_times(char *times, int n_times, int max_str_len,
         if (status < 0) { return status; }
 
         status = parse_int_from_char_array(time, &isec, str_len, ':', 16, 18);
-        if (status == -1) { return 0; }  // "2000-01-02 12:13" is OK
+        if (status == -1) { continue; }  // "2000-01-02 12:13" is OK
         else if (status < 0) { return status; }
 
         status = parse_frac_from_char_array(time, &frac, str_len, '.', 19);
         if (status < 0) { return status; }
 
         *second = isec + frac;
-
-        // Set up pointers to ii element
-        time += max_str_len;
-        year++;
-        month++;
-        day++;
-        hour++;
-        minute++;
-        second++;
     }
 
     return 0;
