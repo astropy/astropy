@@ -2,12 +2,14 @@
 """ Example of wrapping a C library function that accepts a C double array as
     input using the numpy.ctypeslib. """
 import time
+from pathlib import Path
 
 import numpy as np
 import numpy.ctypeslib as npct
 from ctypes import c_int
 
 import erfa
+import astropy.time
 
 # input type for the parse_iso_times function
 # must be a double array, with single dimension that is contiguous
@@ -16,7 +18,8 @@ array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='C_CONTIGUOUS')
 array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
 
 # load the library, using numpy mechanisms
-libpt = npct.load_library("libparse_time.so", ".")
+# libpt = npct.load_library("libparse_time.so", ".")
+libpt = npct.load_library("_parse_times", Path(astropy.time.__file__).parent)
 
 # setup the return types and argument types
 libpt.parse_iso_times.restype = c_int
@@ -26,7 +29,7 @@ libpt.parse_iso_times.argtypes = [array_1d_char, c_int, c_int,
 libpt.check_unicode.restype = c_int
 libpt.check_unicode.argtypes = [array_1d_char, c_int]
 
-n_times = 1000000
+n_times = 10000000
 # This fails as expected:
 #   val1 = np.array(['2020-01-01 1ᛦ:13:14.4324'] * n_times)
 val1 = np.array(['2020-01-01 12:13:14.4324'] * n_times)
