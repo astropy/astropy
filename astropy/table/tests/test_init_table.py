@@ -514,6 +514,16 @@ def test_init_and_ref_from_dict(table_type, copy):
         assert x2[1] == -100
 
 
+def test_add_none_object_column():
+    """Test fix for a problem introduced in #10636 (see
+    https://github.com/astropy/astropy/pull/10636#issuecomment-676847515)
+    """
+    t = Table(data={'a': [1, 2, 3]})
+    t['b'] = None
+    assert all(val is None for val in t['b'])
+    assert t['b'].dtype.kind == 'O'
+
+
 @pytest.mark.usefixtures('table_type')
 def test_init_from_row_OrderedDict(table_type):
     row1 = OrderedDict([('b', 1), ('a', 0)])

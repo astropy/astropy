@@ -83,18 +83,15 @@ of the correct size, or a scalar value that will be broadcast::
 
 For more explicit control, the :meth:`~astropy.table.Table.add_column` and
 :meth:`~astropy.table.Table.add_columns` methods can be used to add one or
-multiple columns to a table. In both cases the new columns must be specified as
-|Column| or |MaskedColumn| objects::
+multiple columns to a table. In both cases the new column(s) can be specified as
+a list, an array (including |Column| or |MaskedColumn|), or a scalar::
 
   >>> from astropy.table import Column
-  >>> aa = Column(np.arange(5), name='aa')
-  >>> t.add_column(aa, index=0)  # Insert before the first table column
-  >>> bb = Column(np.arange(5))
-  >>> t.add_column(bb, name='bb')  # Append unnamed column to the table with 'bb' as name
-
-  # Make a new table with the same number of rows and add columns to original table
-  >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
-  >>> t.add_columns(t2.columns.values())
+  >>> t.add_column(np.arange(5), name='aa', index=0)  # Insert before first table column
+  >>> t.add_column(1.0, name='bb')  # Add column of all 1.0 to end of table
+  >>> c = Column(np.arange(5), name='e')
+  >>> t.add_column(c, index=0)  # Add Column using the existing column name 'e'
+  >>> t.add_columns([[1, 2, 3, 4, 5], ['v', 'w', 'x', 'y', 'z']], names=['h', 'i'])
 
 Finally, columns can also be added from :class:`~astropy.units.Quantity`
 objects, which automatically sets the ``.unit`` attribute on the column:
@@ -117,9 +114,9 @@ objects, which automatically sets the ``.unit`` attribute on the column:
 
 To remove a column from a table::
 
-  >>> t.remove_column('f')
-  >>> t.remove_columns(['aa', 'd1', 'd2', 'd3', 'e'])
-  >>> del t['g']
+  >>> t.remove_column('d1')
+  >>> t.remove_columns(['aa', 'd2', 'e'])
+  >>> del t['d3']
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])
 
