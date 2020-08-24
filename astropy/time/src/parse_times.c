@@ -28,19 +28,21 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
     char ch;
     int status = 0;
 
-
-    // Check if string ends (has 0x00) before str_len.
-    for (size_t i = idx0; i <= idx1; i++) {
-        if (chars[i] == 0) {
-            str_len = i;
-            break;
+    // Check if string ends (has 0x00) before str_len. Require that this segment
+    // of the string is entirely contained in the string (idx1 < str_len),
+    // remembering that idx1 is inclusive and counts from 0.
+    if (idx1 < str_len) {
+        for (size_t i = idx0; i <= idx1; i++) {
+            if (chars[i] == 0) {
+                str_len = i;
+                break;
+            }
         }
     }
-
-    // String ends at exactly before the beginning of requested value,
+    // String ends before the beginning of requested value,
     // e.g. "2000-01" (str_len=7) for day (idx0=7). This is OK in some
     // cases, e.g. before hour (2000-01-01).
-    if (idx0 == str_len) {
+    if (idx0 >= str_len) {
         return -1;
     }
 
@@ -135,7 +137,7 @@ int parse_frac_from_char_array(char *chars, double *val,
 }
 
 int parse_ymdhms_times(char *times, int n_times, int max_str_len,
-                   char *delims, int *starts, int *stops,
+                   char *delims, int *starts, int *stops, int *break_allowed,
                    int *years, int *months, int *days, int *hours,
                    int *minutes, double *seconds)
 // Parse an ISO time in `chars`.
@@ -192,27 +194,40 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len,
         }
 
         status = parse_int_from_char_array(time, year, str_len, delims[0], starts[0], stops[0]);
-        if (status < 0) { return status; }
+        if (status < 0) {
+            if (status == -1 && break_allowed[0]) { continue; }
+            else { return status; }
+        }
 
         status = parse_int_from_char_array(time, month, str_len, delims[1], starts[1], stops[1]);
-        if (status == -1) { continue; }  // "2000" is OK
-        else if (status < 0) { return status; }
+        if (status < 0) {
+            if (status == -1 && break_allowed[1]) { continue; }
+            else { return status; }
+        }
 
         status = parse_int_from_char_array(time, day, str_len, delims[2], starts[2], stops[2]);
-        // Any problems here indicate a bad date. "2000-01" is NOT OK.
-        if (status < 0) { return status; }
+        if (status < 0) {
+            if (status == -1 && break_allowed[2]) { continue; }
+            else { return status; }
+        }
 
         status = parse_int_from_char_array(time, hour, str_len, delims[3], starts[3], stops[3]);
-        if (status == -1) { continue; }  // "2000-01-02" is OK
-        else if (status < 0) { return status; }
+        if (status < 0) {
+            if (status == -1 && break_allowed[3]) { continue; }
+            else { return status; }
+        }
 
         status = parse_int_from_char_array(time, minute, str_len, delims[4], starts[4], stops[4]);
-        // Any problems here indicate a bad date. "2000-01-02 12" is NOT OK.
-        if (status < 0) { return status; }
+        if (status < 0) {
+            if (status == -1 && break_allowed[4]) { continue; }
+            else { return status; }
+        }
 
         status = parse_int_from_char_array(time, &isec, str_len, delims[5], starts[5], stops[5]);
-        if (status == -1) { continue; }  // "2000-01-02 12:13" is OK
-        else if (status < 0) { return status; }
+        if (status < 0) {
+            if (status == -1 && break_allowed[5]) { continue; }
+            else { return status; }
+        }
 
         status = parse_frac_from_char_array(time, &frac, str_len, delims[6], starts[6]);
         if (status < 0) { return status; }
