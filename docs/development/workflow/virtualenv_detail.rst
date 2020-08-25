@@ -142,10 +142,8 @@ to run.  Simply run ``'workon <env_name>'``.  You can also list all
 virtualenvs with ``lsvirtualenv``.  That just scratches the surface of the
 goodies included with virtualenvwrapper.
 
-The one caveat is that it does not support csh-like shells.  For csh-like
-shells there exists `virtualenvwrapper-csh`_, which implements most of the
-virtualenvwrapper functionality and is otherwise compatible with the original.
-There also exists `virtualenvwrapper-win`_, which ports virtualenvwrapper to
+The one caveat is that it does not support csh-like shells.
+There exists `virtualenvwrapper-win`_, which ports virtualenvwrapper to
 Windows batch scripts.
 
 venv
