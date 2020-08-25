@@ -26,7 +26,6 @@
 .. virtualenv
 .. _virtualenv: https://pypi.org/project/virtualenv
 .. _virtualenvwrapper: https://pypi.org/project/virtualenvwrapper
-.. _virtualenvwrapper-csh: https://bitbucket.org/embray/virtualenvwrapper-csh
 .. _virtualenvwrapper-win: https://github.com/davidmarble/virtualenvwrapper-win
 .. _venv: https://docs.python.org/dev/library/venv.html
 
