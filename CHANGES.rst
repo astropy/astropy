@@ -153,6 +153,8 @@ astropy.utils
   control downloading data from the Internet. Setting ``allow_internet=False``
   is the same as ``remote_timeout=0``. Using ``remote_timeout=0`` to control
   internet access will stop working in a future release. [#10632]
+- New ``is_url`` function so downstream packages do not have to secretly use
+  the hidden ``_is_url`` anymore. [#10684]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
