@@ -364,7 +364,6 @@ local  Local Time Scale          (LOCAL)
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA_ Time Scale and Calendar Tools
        `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
-.. [#] `<https://www.ucolick.org/~sla/leapsecs/timescales.html>`_
 
 .. note:: The ``local`` time scale is meant for free-running clocks or
    simulation times (i.e., to represent a time without a properly defined
