@@ -342,7 +342,7 @@ Time Scale
 The time scale (or `time standard
 <https://en.wikipedia.org/wiki/Time_standard>`_) is "a specification for
 measuring time: either the rate at which time passes; or points in time; or
-both" [#]_. See also [#]_ and [#]_.
+both" [#]_, [#]_.
 ::
 
   >>> Time.SCALES
