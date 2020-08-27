@@ -37,7 +37,7 @@ __all__ = [
     'get_pkg_data_fileobj', 'get_pkg_data_filename',
     'get_pkg_data_contents', 'get_pkg_data_fileobjs',
     'get_pkg_data_filenames',
-    'is_url_in_cache', 'get_cached_urls',
+    'is_url', 'is_url_in_cache', 'get_cached_urls',
     'cache_total_size', 'cache_contents',
     'export_download_cache', 'import_download_cache', 'import_file_to_cache',
     'check_download_cache',
@@ -109,20 +109,30 @@ class CacheMissingWarning(AstropyWarning):
     """
 
 
-def _is_url(string):
+def is_url(string):
     """
-    Test whether a string is a valid URL
+    Test whether a string is a valid URL.
 
     Parameters
     ----------
     string : str
-        The string to test
+        The string to test.
+
+    Returns
+    -------
+    status : bool
+        String is URL or not.
+
     """
     url = urllib.parse.urlparse(string)
     # we can't just check that url.scheme is not an empty string, because
     # file paths in windows would return a non-empty scheme (e.g. e:\\
     # returns 'e').
     return url.scheme.lower() in ['http', 'https', 'ftp', 'sftp', 'ssh', 'file']
+
+
+# Backward compatibility because some downstream packages allegedly uses it.
+_is_url = is_url
 
 
 def _is_inside(path, parent_path):
