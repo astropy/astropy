@@ -1024,6 +1024,8 @@ def test_get_pkg_data_contents():
 
 
 @pytest.mark.remote_data(source="astropy")
+@pytest.mark.filterwarnings("ignore:Remote data cache could not be accessed")
+@pytest.mark.filterwarnings(r"ignore:.*Cache directory cannot be read or created .*")
 def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
@@ -1052,13 +1054,7 @@ def test_data_noastropy_fallback(monkeypatch):
         # make sure the config dir search fails
         paths.get_cache_dir(rootname='astropy')
 
-    with pytest.warns(CacheMissingWarning) as warning_lines:
-        fnout = download_file(TESTURL, cache=True)
-    assert len(warning_lines) == 2, os.linesep.join(
-        [str(w.message) for w in warning_lines])
-    assert 'Remote data cache could not be accessed' in str(warning_lines[0].message)
-    assert 'temporary' in str(warning_lines[1].message)
-
+    fnout = download_file(TESTURL, cache=True)
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
