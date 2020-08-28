@@ -242,6 +242,41 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
                         rtol=1e-1)
 
+    def test_linear_fit_model_set_common_weight(self):
+        """Tests fitting multiple models simultaneously."""
+
+        init_model = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y_expected = init_model(x, model_set_axis=False)
+        assert y_expected.shape == (2, 10)
+
+        # Add a bit of random noise
+        with NumpyRNGContext(_RANDOM_SEED):
+            y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, weights=np.ones(10))
+        assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                        rtol=1e-1)
+
+    def test_linear_fit_model_set_weights(self):
+        """Tests fitting multiple models simultaneously."""
+
+        init_model = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y_expected = init_model(x, model_set_axis=False)
+        assert y_expected.shape == (2, 10)
+
+        # Add a bit of random noise
+        with NumpyRNGContext(_RANDOM_SEED):
+            y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+
+        weights = [np.ones(10), np.ones(10) / 2]
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, weights=weights)
+        assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                        rtol=1e-1)
+
     def test_linear_fit_2d_model_set(self):
         """Tests fitted multiple 2-D models simultaneously."""
 
@@ -290,6 +325,35 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model.c0, [2., 0.], atol=1e-14)
         assert_allclose(fitted_model.c1, [1., -2.], atol=1e-14)
         assert_allclose(fitted_model.c2, [0.5, 0.], atol=1e-14)
+
+    def test_linear_fit_2d_model_set_common_weight(self):
+        init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                                         n_models=2,
+                                         fixed={'c1_0': True, 'c0_1': True})
+
+        x, y = np.mgrid[0:5, 0:5]
+        zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, zz, weights=np.ones((5, 5)))
+
+        assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                        atol=1e-14)
+
+    def test_linear_fit_2d_model_set_weights(self):
+        init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                                         n_models=2,
+                                         fixed={'c1_0': True, 'c0_1': True})
+
+        x, y = np.mgrid[0:5, 0:5]
+        zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+
+        fitter = LinearLSQFitter()
+        weights = [np.ones((5, 5)), np.ones((5, 5))]
+        fitted_model = fitter(init_model, x, y, zz, weights=weights)
+
+        assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                        atol=1e-14)
 
     def test_linear_fit_2d_model_set_fixed_parameters(self):
         """
@@ -812,6 +876,17 @@ class TestWeightedFittingWithOutlierRemoval:
         fit, filtered = fitter(model, self.x1d, z1d, weights=self.weights1d)
         assert_allclose(fit.parameters, [0.8, 0.8], atol=1e-14)
 
+    def test_1d_set_with_weights_with_sigma_clip(self):
+        """1D model set with separate weights"""
+        model = models.Polynomial1D(0, n_models=2)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        z1d = np.array([self.z1d, self.z1d])
+        weights = np.array([self.weights1d, self.weights1d])
+
+        fit, filtered = fitter(model, self.x1d, z1d, weights=weights)
+        assert_allclose(fit.parameters, [0.8, 0.8], atol=1e-14)
+
     def test_2d_without_weights_without_sigma_clip(self):
         model = models.Polynomial2D(0)
         fitter = LinearLSQFitter()
@@ -835,8 +910,15 @@ class TestWeightedFittingWithOutlierRemoval:
             fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 1.0)     # outliers pulled it high
 
+    def test_2d_linear_with_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LinearLSQFitter()  # LinearLSQFitter doesn't handle weights properly in 2D
+        fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
     def test_2d_with_weights_with_sigma_clip(self):
-        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        """smoke test for #7020 - fails without fitting.py patch because
+        weights does not propagate"""
         model = models.Polynomial2D(0)
         fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
@@ -844,6 +926,16 @@ class TestWeightedFittingWithOutlierRemoval:
                           match=r'Model is linear in parameters'):
             fit, filtered = fitter(model, self.x, self.y, self.z,
                                    weights=self.weights)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+
+    def test_2d_linear_with_weights_with_sigma_clip(self):
+        """same as test above with a linear fitter."""
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        fit, filtered = fitter(model, self.x, self.y, self.z,
+                               weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
         assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
@@ -870,6 +962,20 @@ def test_fitters_with_weights():
     with pytest.warns(AstropyUserWarning,
                       match=r'Model is linear in parameters'):
         pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig)
+    assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
+
+
+def test_linear_fitters_with_weights():
+    """Regression test for #7035"""
+    Xin, Yin = np.mgrid[0:21, 0:21]
+    fitter = LinearLSQFitter()
+
+    zsig = np.random.normal(0, 0.01, size=Xin.shape)
+
+    p2 = models.Polynomial2D(3)
+    p2.parameters = np.arange(10)/1.2
+    z = p2(Xin, Yin)
+    pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig, weights=zsig**(-2))
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
 
 
