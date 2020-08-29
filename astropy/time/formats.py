@@ -20,7 +20,7 @@ from astropy import units as u
 
 from . import utils
 from .utils import day_frac, quantity_day_frac, two_sum, two_product
-
+from . import conf
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeUnixTai', 'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
@@ -1471,19 +1471,36 @@ class TimeISO(TimeString):
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
-        if self.in_subfmt != '*':
-            return super().set_jds(val1, val2)
+        # If specific input subformat is required then use the Python parser
+        if self.in_subfmt != '*' or conf.use_fast_parser == 'False':
+            super().set_jds(val1, val2)
+        else:
+            try:
+                self.set_jds_fast(val1)
+            except Exception:
+                if conf.use_fast_parser == 'force':
+                    raise
+                else:
+                    super().set_jds(val1, val2)
 
+    def set_jds_fast(self, val1):
+        """Use fast C parser to parse time strings in val1 and set jd1, jd2"""
+        # Handle bytes or str input and flatten down to a single array of uint8.
         char_size = 4 if val1.dtype.kind == 'U' else 1
         val1_str_len = int(val1.dtype.itemsize // char_size)
         chars = val1.ravel().view(np.uint8)
+
         if char_size == 4:
+            # Check that this is pure ASCII
             status = libpt.check_unicode(chars, len(chars) // 4)
             if status != 0:
                 raise ValueError('input is not pure ASCII')
+            # It might be possible to avoid this copy with cleverness in
+            # parse_times.c but leave that for another day.
             chars = chars[::4]
         chars = np.ascontiguousarray(chars)
 
+        # Pre-allocate output components
         n_times = len(chars) // val1_str_len
         year = np.zeros(n_times, dtype=np.intc)
         month = np.zeros(n_times, dtype=np.intc)
@@ -1492,23 +1509,30 @@ class TimeISO(TimeString):
         minute = np.zeros(n_times, dtype=np.intc)
         second = np.zeros(n_times, dtype=np.double)
 
+        # Set up parser parameters as numpy arrays for passing to C parser
         delims = np.array(self.delims, dtype=np.uint8)
         starts = np.array(self.starts, dtype=np.intc)
         stops = np.array(self.stops, dtype=np.intc)
         break_allowed = np.array(self.break_allowed, dtype=np.intc)
 
+        # Call C parser
         status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len, self.has_day_of_year,
                                           delims, starts, stops, break_allowed,
                                           year, month, day, hour, minute, second)
         if status == 0:
+            # All went well, finish the job
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                                   year, month, day, hour, minute, second)
             jd1.shape = val1.shape
             jd2.shape = val1.shape
             self.jd1, self.jd2 = day_frac(jd1, jd2)
-
         else:
-            return super().set_jds(val1, val2)
+            msgs = {1: 'time string ends at beginning of component where break is not allowed',
+                    2: 'time string ends in middle of component',
+                    3: 'required delimiter character not found',
+                    4: 'non-digit found where digit (0-9) required',
+                    5: 'bad day of year (1 <= doy <= 365 or 366 for leap year'}
+            raise ValueError(f'fast C time string parser failed: {msgs[status]}')
 
     def parse_string(self, timestr, subfmts):
         # Handle trailing 'Z' for UTC time
