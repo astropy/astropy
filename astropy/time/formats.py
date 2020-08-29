@@ -61,7 +61,7 @@ libpt = npct.load_library("_parse_times", Path(__file__).parent)
 #                    int *years, int *months, int *days, int *hours,
 #                    int *minutes, double *seconds)
 libpt.parse_ymdhms_times.restype = c_int
-libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int,
+libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
                                      array_1d_char, array_1d_int, array_1d_int, array_1d_int,
                                      array_1d_int, array_1d_int, array_1d_int,
                                      array_1d_int, array_1d_int, array_1d_double]
@@ -1465,7 +1465,9 @@ class TimeISO(TimeString):
     delims = (0, ord('-'), ord('-'), ord(' '), ord(':'), ord(':'), ord('.'))
     starts = (0, 4, 7, 10, 13, 16, 19)
     stops = (3, 6, 9, 12, 15, 18, -1)
+    # Break *before* y  m  d  h  m  s  f
     break_allowed = (0, 0, 0, 1, 0, 1, 1)
+    has_day_of_year = 0
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
@@ -1495,7 +1497,7 @@ class TimeISO(TimeString):
         stops = np.array(self.stops, dtype=np.intc)
         break_allowed = np.array(self.break_allowed, dtype=np.intc)
 
-        status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len,
+        status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len, self.has_day_of_year,
                                           delims, starts, stops, break_allowed,
                                           year, month, day, hour, minute, second)
         if status == 0:
@@ -1569,6 +1571,27 @@ class TimeYearDayTime(TimeISO):
                ('date',
                 '%Y:%j',
                 '{year:d}:{yday:03d}'))
+
+    # Define positions and starting delimiter for year, month, day, hour,
+    # minute, seconds components of an ISO time. This is used by the fast
+    # C-parser parse_ymdhms_times()
+    #
+    #  "2000:123:13:14:15.678"
+    #   012345678901234567890
+    #   yyyy:ddd:hh:mm:ss.fff
+    # Parsed as ('yyyy', ':ddd', ':hh', ':mm', ':ss', '.fff')
+    #
+    # delims: character at corresponding `starts` position (0 => no character)
+    # starts: position where component starts (including delimiter if present)
+    # stops: position where component ends (-1 => continue to end of string)
+
+    # Before: yr mon  doy     hour      minute    second    frac
+    delims = (0, 0, ord(':'), ord(':'), ord(':'), ord(':'), ord('.'))
+    starts = (0, -1, 4, 8, 11, 14, 17)
+    stops = (3, -1, 7, 10, 13, 16, -1)
+    # Break before:  y  m  d  h  m  s  f
+    break_allowed = (0, 0, 0, 1, 0, 1, 1)
+    has_day_of_year = 1
 
 
 class TimeDatetime64(TimeISOT):
