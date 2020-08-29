@@ -1479,7 +1479,7 @@ class TimeISO(TimeString):
         chars = val1.ravel().view(np.uint8)
         if char_size == 4:
             status = libpt.check_unicode(chars, len(chars) // 4)
-            if status < 0:
+            if status != 0:
                 raise ValueError('input is not pure ASCII')
             chars = chars[::4]
         chars = np.ascontiguousarray(chars)
