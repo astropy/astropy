@@ -5,8 +5,9 @@
 const char char_zero = 48;
 const char char_nine = 57;
 
-int parse_int_from_char_array(char *chars, int *val, int str_len,
-                              char delim, int idx0, int idx1)
+int parse_int_from_char_array(char *chars, int str_len,
+                              char delim, int idx0, int idx1,
+                              int *val)
 // Parse integer from positions idx0:idx1 (inclusive) within chars, optionally
 // starting with a delimiter.
 //
@@ -17,13 +18,23 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
 // int day, status;
 // status = parse_int_from_char_array("2020-01-24", &day, 10, '-', 7, 9);
 //
-// Args:
+// Inputs:
 //  char *chars: time string
-//  int *val: output value
 //  int str_len: length of *chars string
 //  char delim: optional character at position idx0 when delim > 0
 //  int idx0: start index for parsing integer
 //  int idx1: stop index (inclusive) for parsing integer
+//
+// Output:
+//  int *val: output value
+//
+// Returns:
+//  int status:
+//    0: OK
+//    1: String ends at the beginning of requested value
+//    2: String ends in the middle of requested value
+//    3: Required delimiter character not found
+//    4: Non-digit found where digit (0-9) required
 {
     int mult = 1;
     char digit;
@@ -45,13 +56,13 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
     // e.g. "2000-01" (str_len=7) for day (idx0=7). This is OK in some
     // cases, e.g. before hour (2000-01-01).
     if (idx0 >= str_len) {
-        return -1;
+        return 1;
     }
 
     // String ends in the middle of requested value. This implies a badly
     // formatted time.
     if (idx1 >= str_len) {
-        return -2;
+        return 2;
     }
 
     // Look for optional delimiter character, e.g. ':' before minute. If delim == 0
@@ -59,7 +70,7 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
     if (delim > 0) {
         // Required start character not found.
         if (chars[idx0] != delim) {
-            return -3;
+            return 3;
         }
         idx0 += 1;
     }
@@ -71,7 +82,7 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
         ch = chars[ii];
         if (ch < char_zero || ch > char_nine) {
             // Not a digit, implying badly formatted time.
-            return -4;
+            return 4;
         }
         digit = ch - char_zero;
         *val += digit * mult;
@@ -81,8 +92,8 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
     return 0;
 }
 
-int parse_frac_from_char_array(char *chars, double *val,
-                               int str_len, char delim, int idx0)
+int parse_frac_from_char_array(char *chars, int str_len, char delim, int idx0,
+                               double *val)
 // Parse trailing fraction starting from position idx0 in chars.
 //
 // Example: "2020-01-24T12:13:14.5556"
@@ -93,12 +104,21 @@ int parse_frac_from_char_array(char *chars, double *val,
 // float frac;
 // status = parse_frac_from_char_array("2020-01-24T12:13:14.5556", &frac, 24, '.', 19);
 //
-// Args:
+// Inputs:
 //  char *chars: time string
-//  double *val: output fraction value
 //  int str_len: length of *chars string
 //  char delim: optional character at position idx0 when delim > 0
-//  int idx0: start index for parsing fraction
+//  int idx0: start index for parsing integer
+//
+// Output:
+//  double *val: output value
+//
+// Returns:
+//  int status:
+//    0: OK
+//    1: String ends at the beginning of requested value
+//    3: Required delimiter character not found
+//    4: Non-digit found where digit (0-9) required
 {
     double mult = 0.1;
     char digit;
@@ -110,7 +130,7 @@ int parse_frac_from_char_array(char *chars, double *val,
     // String ends at exactly before the beginning of requested fraction.
     // e.g. "2000-01-01 12:13:14". Fraction value is zero.
     if (idx0 == str_len) {
-        return 0;
+        return 1;
     }
 
     // Look for optional delimiter character, e.g. '.' before fraction. If delim == 0
@@ -119,7 +139,7 @@ int parse_frac_from_char_array(char *chars, double *val,
     if (delim > 0) {
         // Required start character not found.
         if (chars[idx0] != delim) {
-            return -3;
+            return 3;
         }
         idx0 += 1;
     }
@@ -129,7 +149,7 @@ int parse_frac_from_char_array(char *chars, double *val,
         ch = chars[ii];
         if (ch < char_zero || ch > char_nine) {
             // Not a digit, implying badly formatted time.
-            return -4;
+            return 4;
         }
         digit = ch - char_zero;
         *val += digit * mult;
@@ -161,7 +181,7 @@ int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int 
 
     if (day_of_year < 1 || day_of_year > days_in_year) {
         // Error in day_of_year
-        return 1;
+        return 5;
     }
 
     for (int mon = 1; mon <= 12; mon++) {
@@ -189,7 +209,7 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
 //  int n_times: number of time strings (each max_str_len long)
 //  int max_str_len: max length of string (may be null-terminated before this)
 //  int has_day_of_year: time includes day-of-year instead of month, day-of-month
-//  char *delims: array of delimiters preceding yr, mon, day, hr, min, sec, frac
+//  char *delims: array of delimiters preceding yr, mon, day, hr, min, isec, frac
 //      components. Value of 0 means no preceding delimiter.
 //  int *starts, *stop: arrays of start/stop indexes into time string.
 //  int *break_allowed: if true (1) then the time string can legally end just
@@ -201,7 +221,13 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
 //  double *second: output seconds (n_times long)
 //
 // Returns:
-//  int status: 0 for OK, < 0 for not OK
+//  int status:
+//    0: OK
+//    1: String ends at the beginning of requested value
+//    2: String ends in the middle of requested value
+//    3: Required delimiter character not found
+//    4: Non-digit found where digit (0-9) required
+//    5: Bad day of year
 {
     int str_len;
     int status = 0;
@@ -243,25 +269,25 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
         }
 
         // Get each time component year, month, day, hour, minute, isec, frac
-        status = parse_int_from_char_array(time, year, str_len, delims[0], starts[0], stops[0]);
-        if (status < 0) {
-            if (status == -1 && break_allowed[0]) { continue; }
+        status = parse_int_from_char_array(time, str_len, delims[0], starts[0], stops[0], year);
+        if (status) {
+            if (status == 1 && break_allowed[0]) { continue; }
             else { return status; }
         }
 
         // Optionally parse month
         if (! has_day_of_year) {
-            status = parse_int_from_char_array(time, month, str_len, delims[1], starts[1], stops[1]);
-            if (status < 0) {
-                if (status == -1 && break_allowed[1]) { continue; }
+            status = parse_int_from_char_array(time, str_len, delims[1], starts[1], stops[1], month);
+            if (status) {
+                if (status == 1 && break_allowed[1]) { continue; }
                 else { return status; }
             }
         }
 
         // This might be day-of-month or day-of-year
-        status = parse_int_from_char_array(time, day, str_len, delims[2], starts[2], stops[2]);
-        if (status < 0) {
-            if (status == -1 && break_allowed[2]) { continue; }
+        status = parse_int_from_char_array(time, str_len, delims[2], starts[2], stops[2], day);
+        if (status) {
+            if (status == 1 && break_allowed[2]) { continue; }
             else { return status; }
         }
 
@@ -269,30 +295,32 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
             // day contains day of year at this point, but convert it to day of month
             status = convert_day_of_year_to_month_day(*year, *day, month, day);
             if (status) {
-                return -5;  // Error code for bad year
+                return status;
             }
         }
 
-        status = parse_int_from_char_array(time, hour, str_len, delims[3], starts[3], stops[3]);
-        if (status < 0) {
-            if (status == -1 && break_allowed[3]) { continue; }
+        status = parse_int_from_char_array(time, str_len, delims[3], starts[3], stops[3], hour);
+        if (status) {
+            if (status == 1 && break_allowed[3]) { continue; }
             else { return status; }
         }
 
-        status = parse_int_from_char_array(time, minute, str_len, delims[4], starts[4], stops[4]);
-        if (status < 0) {
-            if (status == -1 && break_allowed[4]) { continue; }
+        status = parse_int_from_char_array(time, str_len, delims[4], starts[4], stops[4], minute);
+        if (status) {
+            if (status == 1 && break_allowed[4]) { continue; }
             else { return status; }
         }
 
-        status = parse_int_from_char_array(time, &isec, str_len, delims[5], starts[5], stops[5]);
-        if (status < 0) {
-            if (status == -1 && break_allowed[5]) { continue; }
+        status = parse_int_from_char_array(time, str_len, delims[5], starts[5], stops[5], &isec);
+        if (status) {
+            if (status == 1 && break_allowed[5]) { continue; }
             else { return status; }
         }
 
-        status = parse_frac_from_char_array(time, &frac, str_len, delims[6], starts[6]);
-        if (status < 0) { return status; }
+        status = parse_frac_from_char_array(time, str_len, delims[6], starts[6], &frac);
+        if (status) {
+            if (status != 1 || ! break_allowed[6]) { return status; }
+        }
 
         *second = isec + frac;
     }
@@ -309,9 +337,9 @@ int check_unicode(char *chars, int n_unicode_char)
     for (size_t i = 0; i < n_unicode_char; i++)
     {
         ch++;
-        if (*ch++) return -1;
-        if (*ch++) return -1;
-        if (*ch++) return -1;
+        if (*ch++) return 1;
+        if (*ch++) return 1;
+        if (*ch++) return 1;
     }
     return 0;
 
