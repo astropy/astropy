@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+// ASCII codes for '0' and '9'
 const char char_zero = 48;
 const char char_nine = 57;
 
@@ -137,15 +138,19 @@ int parse_frac_from_char_array(char *chars, double *val,
     return 0;
 }
 
-// Inspired by from https://stackoverflow.com/questions/17634282
 static inline int is_leap_year (int year)
+// Determine if year is a leap year.
+// Inspired by from https://stackoverflow.com/questions/17634282
 {
   return ((year & 3) == 0)
           && ((year % 100 != 0)
               || (((year / 100) & 3) == 0));
 }
 
-int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int *day_of_month) {
+int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int *day_of_month)
+// Convert year and day_of_year into month, day_of_month
+// Inspired by from https://stackoverflow.com/questions/17634282, determine
+{
     int leap_year = is_leap_year(year) ? 1 : 0;
     int days_in_year = leap_year ? 366 : 365;
     const unsigned short int _mon_yday_normal[13] =
@@ -174,14 +179,24 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
                    char *delims, int *starts, int *stops, int *break_allowed,
                    int *years, int *months, int *days, int *hours,
                    int *minutes, double *seconds)
-// Parse an ISO time in `chars`.
+// Parse a string time in `chars` which has year, (month, day | day_of_year),
+// hour, minute, seconds components.
 //
-// Example: "2020-01-24T12:13:14.5556"
+// Examples: "2020-01-24T12:13:14.5556", "2020:123:12:13:14.5556"
 //
-// Args:
+// Inputs:
 //  char *times: time characters (flattened n_times x max_str_len array)
 //  int n_times: number of time strings (each max_str_len long)
 //  int max_str_len: max length of string (may be null-terminated before this)
+//  int has_day_of_year: time includes day-of-year instead of month, day-of-month
+//  char *delims: array of delimiters preceding yr, mon, day, hr, min, sec, frac
+//      components. Value of 0 means no preceding delimiter.
+//  int *starts, *stop: arrays of start/stop indexes into time string.
+//  int *break_allowed: if true (1) then the time string can legally end just
+//      before the corresponding component (e.g. "2000-01-01" is a valid time but
+//      "2000-01-01 12" is not).
+//
+// Outputs:
 //  int *year, *month, *day, *hour, *minute: output components (n_times long)
 //  double *second: output seconds (n_times long)
 //
@@ -227,12 +242,14 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
             }
         }
 
+        // Get each time component year, month, day, hour, minute, isec, frac
         status = parse_int_from_char_array(time, year, str_len, delims[0], starts[0], stops[0]);
         if (status < 0) {
             if (status == -1 && break_allowed[0]) { continue; }
             else { return status; }
         }
 
+        // Optionally parse month
         if (! has_day_of_year) {
             status = parse_int_from_char_array(time, month, str_len, delims[1], starts[1], stops[1]);
             if (status < 0) {
@@ -241,6 +258,7 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
             }
         }
 
+        // This might be day-of-month or day-of-year
         status = parse_int_from_char_array(time, day, str_len, delims[2], starts[2], stops[2]);
         if (status < 0) {
             if (status == -1 && break_allowed[2]) { continue; }
@@ -282,7 +300,9 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
     return 0;
 }
 
-int check_unicode(char *chars, int n_unicode_char) {
+int check_unicode(char *chars, int n_unicode_char)
+// Check if *chars is pure ASCII, assuming input is UTF-32
+{
     char *ch;
 
     ch = chars;
