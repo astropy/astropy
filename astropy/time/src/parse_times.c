@@ -5,8 +5,9 @@ const char char_zero = 48;
 const char char_nine = 57;
 
 int parse_int_from_char_array(char *chars, int *val, int str_len,
-                              char char_start, int idx0, int idx1)
-// Parse an integer from positions idx0:idx1 (inclusive) within chars.
+                              char delim, int idx0, int idx1)
+// Parse integer from positions idx0:idx1 (inclusive) within chars, optionally
+// starting with a delimiter.
 //
 // Example: "2020-01-24"
 //                  ^^^
@@ -19,7 +20,7 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
 //  char *chars: time string
 //  int *val: output value
 //  int str_len: length of *chars string
-//  char char_start: optional character at position idx0 when char_start > 0
+//  char delim: optional character at position idx0 when delim > 0
 //  int idx0: start index for parsing integer
 //  int idx1: stop index (inclusive) for parsing integer
 {
@@ -52,11 +53,11 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
         return -2;
     }
 
-    // Look for optional start character, e.g. ':' before minute. If char_start == 0
+    // Look for optional delimiter character, e.g. ':' before minute. If delim == 0
     // then no character is required.
-    if (char_start > 0) {
+    if (delim > 0) {
         // Required start character not found.
-        if (chars[idx0] != char_start) {
+        if (chars[idx0] != delim) {
             return -3;
         }
         idx0 += 1;
@@ -80,7 +81,7 @@ int parse_int_from_char_array(char *chars, int *val, int str_len,
 }
 
 int parse_frac_from_char_array(char *chars, double *val,
-                               int str_len, char char_start, int idx0)
+                               int str_len, char delim, int idx0)
 // Parse trailing fraction starting from position idx0 in chars.
 //
 // Example: "2020-01-24T12:13:14.5556"
@@ -95,7 +96,7 @@ int parse_frac_from_char_array(char *chars, double *val,
 //  char *chars: time string
 //  double *val: output fraction value
 //  int str_len: length of *chars string
-//  char char_start: optional character at position idx0 when char_start > 0
+//  char delim: optional character at position idx0 when delim > 0
 //  int idx0: start index for parsing fraction
 {
     double mult = 0.1;
@@ -111,12 +112,12 @@ int parse_frac_from_char_array(char *chars, double *val,
         return 0;
     }
 
-    // Look for optional start character, e.g. '.' before fraction. If char_start == 0
+    // Look for optional delimiter character, e.g. '.' before fraction. If delim == 0
     // then no character is required. This can happen for unusual formats like
     // Chandra GRETA time yyyyddd.hhmmssfff.
-    if (char_start > 0) {
+    if (delim > 0) {
         // Required start character not found.
-        if (chars[idx0] != char_start) {
+        if (chars[idx0] != delim) {
             return -3;
         }
         idx0 += 1;
