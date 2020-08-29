@@ -136,7 +136,40 @@ int parse_frac_from_char_array(char *chars, double *val,
     return 0;
 }
 
-int parse_ymdhms_times(char *times, int n_times, int max_str_len,
+// Inspired by from https://stackoverflow.com/questions/17634282
+static inline int is_leap_year (int year)
+{
+  return ((year & 3) == 0)
+          && ((year % 100 != 0)
+              || (((year / 100) & 3) == 0));
+}
+
+int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int *day_of_month) {
+    int leap_year = is_leap_year(year) ? 1 : 0;
+    int days_in_year = leap_year ? 366 : 365;
+    const unsigned short int _mon_yday_normal[13] =
+        { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
+    const unsigned short int _mon_yday_leap[13] =
+        { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
+    const unsigned short int *mon_yday = leap_year ? _mon_yday_leap :_mon_yday_normal;
+
+    if (day_of_year < 1 || day_of_year > days_in_year) {
+        // Error in day_of_year
+        return 1;
+    }
+
+    for (int mon = 1; mon <= 12; mon++) {
+        if (day_of_year <= mon_yday[mon]) {
+            *month = mon;
+            *day_of_month = day_of_year - mon_yday[mon - 1];
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of_year,
                    char *delims, int *starts, int *stops, int *break_allowed,
                    int *years, int *months, int *days, int *hours,
                    int *minutes, double *seconds)
@@ -199,16 +232,26 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len,
             else { return status; }
         }
 
-        status = parse_int_from_char_array(time, month, str_len, delims[1], starts[1], stops[1]);
-        if (status < 0) {
-            if (status == -1 && break_allowed[1]) { continue; }
-            else { return status; }
+        if (! has_day_of_year) {
+            status = parse_int_from_char_array(time, month, str_len, delims[1], starts[1], stops[1]);
+            if (status < 0) {
+                if (status == -1 && break_allowed[1]) { continue; }
+                else { return status; }
+            }
         }
 
         status = parse_int_from_char_array(time, day, str_len, delims[2], starts[2], stops[2]);
         if (status < 0) {
             if (status == -1 && break_allowed[2]) { continue; }
             else { return status; }
+        }
+
+        if (has_day_of_year) {
+            // day contains day of year at this point, but convert it to day of month
+            status = convert_day_of_year_to_month_day(*year, *day, month, day);
+            if (status) {
+                return -5;  // Error code for bad year
+            }
         }
 
         status = parse_int_from_char_array(time, hour, str_len, delims[3], starts[3], stops[3]);
