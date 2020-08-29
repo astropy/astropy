@@ -1543,6 +1543,8 @@ class TimeISOT(TimeISO):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
+    delims = (0, ord('-'), ord('-'), ord('T'), ord(':'), ord(':'), ord('.'))
+
 
 class TimeYearDayTime(TimeISO):
     """
