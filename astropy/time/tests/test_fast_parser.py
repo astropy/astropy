@@ -5,7 +5,7 @@ import re
 import numpy as np
 import pytest
 
-from astropy.time import Time, conf
+from astropy.time import Time, conf, TimeYearDayTime
 
 iso_times = ['2000-02-29', '1981-12-31 12:13', '1981-12-31 12:13:14', '2020-12-31 12:13:14.56']
 isot_times = [re.sub(' ', 'T', tm) for tm in iso_times]
@@ -89,3 +89,13 @@ def test_fast_iso_exceptions():
                            ('2020-10-10 *2:13:14', 'non-digit found where digit')]:
             with pytest.raises(ValueError, match=err):
                 Time(times, format='iso')
+
+
+def test_fast_no_use_fast_parser_attribute():
+    """Test deleting use_fast_parser class attribute to remove fast path"""
+    try:
+        del TimeYearDayTime.use_fast_parser
+        with pytest.raises(ValueError, match='Time 2000:0601 does not match yday format'):
+            Time('2000:0601', format='yday')
+    finally:
+        TimeYearDayTime.use_fast_parser = True
