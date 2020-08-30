@@ -1214,7 +1214,30 @@ class TimeString(TimeUnique):
     This class assumes that anything following the last decimal point to the
     right is a fraction of a second.
 
-    This is a reference implementation can be made much faster with effort.
+    **Fast C-based parser**
+
+    Time format classes can take advantage of a fast C-based parser if the times
+    are represented as a strings with year, month, day-of-month, hour, minute,
+    second, OR year, day-of-year, hour, minute, second. This can be a factor of
+    20 or more faster than the pure Python parser.
+
+    A subclass in this case must define these class attributes:
+
+    - use_fast_parser: must be True and specifically defined as a class
+          attribute for each applicable time format. An inherited attribute is
+          not checked, only the attribute in the class __dict__.
+
+    - delims: character at corresponding `starts` position (0 => no character)
+
+    - starts: position where component starts (including delimiter if present)
+
+    - stops: position where component ends (-1 => continue to end of string)
+
+    - break_allowed: if true (1) then the time string can legally end just
+          before the corresponding component (e.g. "2000-01-01" is a valid time
+          but "2000-01-01 12" is not).
+
+    - has_day_of_year: 0 if dates have year, month, day; 1 if year, day-of-year
     """
 
     def _check_val_type(self, val1, val2):
@@ -1269,6 +1292,25 @@ class TimeString(TimeUnique):
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
+        # If specific input subformat is required then use the Python parser.
+        # Also do this if Time format class does not define `use_fast_parser`
+        # or if the fast parser is entirely disabled.
+        if (self.in_subfmt != '*'
+                or not self.__class__.__dict__.get('use_fast_parser')
+                or conf.use_fast_parser == 'False'):
+            self.set_jds_python(val1, val2)
+        else:
+            try:
+                self.set_jds_fast(val1)
+            except Exception:
+                # Fall through to the Python parser unless fast is forced.
+                if conf.use_fast_parser == 'force':
+                    raise
+                else:
+                    self.set_jds_python(val1, val2)
+
+    def set_jds_python(self, val1, val2):
+        """Parse the time strings contained in val1 and set jd1, jd2"""
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
         # Be liberal in what we accept: convert bytes to ascii.
@@ -1287,6 +1329,57 @@ class TimeString(TimeUnique):
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               *iterator.operands[1:])
         self.jd1, self.jd2 = day_frac(jd1, jd2)
+
+    def set_jds_fast(self, val1):
+        """Use fast C parser to parse time strings in val1 and set jd1, jd2"""
+        # Handle bytes or str input and flatten down to a single array of uint8.
+        char_size = 4 if val1.dtype.kind == 'U' else 1
+        val1_str_len = int(val1.dtype.itemsize // char_size)
+        chars = val1.ravel().view(np.uint8)
+
+        if char_size == 4:
+            # Check that this is pure ASCII
+            status = libpt.check_unicode(chars, len(chars) // 4)
+            if status != 0:
+                raise ValueError('input is not pure ASCII')
+            # It might be possible to avoid this copy with cleverness in
+            # parse_times.c but leave that for another day.
+            chars = chars[::4]
+        chars = np.ascontiguousarray(chars)
+
+        # Pre-allocate output components
+        n_times = len(chars) // val1_str_len
+        year = np.zeros(n_times, dtype=np.intc)
+        month = np.zeros(n_times, dtype=np.intc)
+        day = np.zeros(n_times, dtype=np.intc)
+        hour = np.zeros(n_times, dtype=np.intc)
+        minute = np.zeros(n_times, dtype=np.intc)
+        second = np.zeros(n_times, dtype=np.double)
+
+        # Set up parser parameters as numpy arrays for passing to C parser
+        delims = np.array(self.delims, dtype=np.uint8)
+        starts = np.array(self.starts, dtype=np.intc)
+        stops = np.array(self.stops, dtype=np.intc)
+        break_allowed = np.array(self.break_allowed, dtype=np.intc)
+
+        # Call C parser
+        status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len, self.has_day_of_year,
+                                          delims, starts, stops, break_allowed,
+                                          year, month, day, hour, minute, second)
+        if status == 0:
+            # All went well, finish the job
+            jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                                  year, month, day, hour, minute, second)
+            jd1.shape = val1.shape
+            jd2.shape = val1.shape
+            self.jd1, self.jd2 = day_frac(jd1, jd2)
+        else:
+            msgs = {1: 'time string ends at beginning of component where break is not allowed',
+                    2: 'time string ends in middle of component',
+                    3: 'required delimiter character not found',
+                    4: 'non-digit found where digit (0-9) required',
+                    5: 'bad day of year (1 <= doy <= 365 or 366 for leap year'}
+            raise ValueError(f'fast C time string parser failed: {msgs[status]}')
 
     def str_kwargs(self):
         """
@@ -1380,81 +1473,13 @@ class TimeISO(TimeString):
     #   01234567890123456789012
     #   yyyy-mm-dd hh:mm:ss.fff
     # Parsed as ('yyyy', '-mm', '-dd', ' hh', ':mm', ':ss', '.fff')
-    #
-    # delims: character at corresponding `starts` position (0 => no character)
-    # starts: position where component starts (including delimiter if present)
-    # stops: position where component ends (-1 => continue to end of string)
+    use_fast_parser = True
     delims = (0, ord('-'), ord('-'), ord(' '), ord(':'), ord(':'), ord('.'))
     starts = (0, 4, 7, 10, 13, 16, 19)
     stops = (3, 6, 9, 12, 15, 18, -1)
     # Break *before* y  m  d  h  m  s  f
     break_allowed = (0, 0, 0, 1, 0, 1, 1)
     has_day_of_year = 0
-
-    def set_jds(self, val1, val2):
-        """Parse the time strings contained in val1 and set jd1, jd2"""
-        # If specific input subformat is required then use the Python parser
-        if self.in_subfmt != '*' or conf.use_fast_parser == 'False':
-            super().set_jds(val1, val2)
-        else:
-            try:
-                self.set_jds_fast(val1)
-            except Exception:
-                if conf.use_fast_parser == 'force':
-                    raise
-                else:
-                    super().set_jds(val1, val2)
-
-    def set_jds_fast(self, val1):
-        """Use fast C parser to parse time strings in val1 and set jd1, jd2"""
-        # Handle bytes or str input and flatten down to a single array of uint8.
-        char_size = 4 if val1.dtype.kind == 'U' else 1
-        val1_str_len = int(val1.dtype.itemsize // char_size)
-        chars = val1.ravel().view(np.uint8)
-
-        if char_size == 4:
-            # Check that this is pure ASCII
-            status = libpt.check_unicode(chars, len(chars) // 4)
-            if status != 0:
-                raise ValueError('input is not pure ASCII')
-            # It might be possible to avoid this copy with cleverness in
-            # parse_times.c but leave that for another day.
-            chars = chars[::4]
-        chars = np.ascontiguousarray(chars)
-
-        # Pre-allocate output components
-        n_times = len(chars) // val1_str_len
-        year = np.zeros(n_times, dtype=np.intc)
-        month = np.zeros(n_times, dtype=np.intc)
-        day = np.zeros(n_times, dtype=np.intc)
-        hour = np.zeros(n_times, dtype=np.intc)
-        minute = np.zeros(n_times, dtype=np.intc)
-        second = np.zeros(n_times, dtype=np.double)
-
-        # Set up parser parameters as numpy arrays for passing to C parser
-        delims = np.array(self.delims, dtype=np.uint8)
-        starts = np.array(self.starts, dtype=np.intc)
-        stops = np.array(self.stops, dtype=np.intc)
-        break_allowed = np.array(self.break_allowed, dtype=np.intc)
-
-        # Call C parser
-        status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len, self.has_day_of_year,
-                                          delims, starts, stops, break_allowed,
-                                          year, month, day, hour, minute, second)
-        if status == 0:
-            # All went well, finish the job
-            jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                  year, month, day, hour, minute, second)
-            jd1.shape = val1.shape
-            jd2.shape = val1.shape
-            self.jd1, self.jd2 = day_frac(jd1, jd2)
-        else:
-            msgs = {1: 'time string ends at beginning of component where break is not allowed',
-                    2: 'time string ends in middle of component',
-                    3: 'required delimiter character not found',
-                    4: 'non-digit found where digit (0-9) required',
-                    5: 'bad day of year (1 <= doy <= 365 or 366 for leap year'}
-            raise ValueError(f'fast C time string parser failed: {msgs[status]}')
 
     def parse_string(self, timestr, subfmts):
         # Handle trailing 'Z' for UTC time
@@ -1491,6 +1516,7 @@ class TimeISOT(TimeISO):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
+    use_fast_parser = True
     delims = (0, ord('-'), ord('-'), ord('T'), ord(':'), ord(':'), ord('.'))
 
 
@@ -1532,6 +1558,7 @@ class TimeYearDayTime(TimeISO):
     # stops: position where component ends (-1 => continue to end of string)
 
     # Before: yr mon  doy     hour      minute    second    frac
+    use_fast_parser = True
     delims = (0, 0, ord(':'), ord(':'), ord(':'), ord(':'), ord('.'))
     starts = (0, -1, 4, 8, 11, 14, 17)
     stops = (3, -1, 7, 10, 13, 16, -1)
