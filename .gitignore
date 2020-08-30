@@ -8,8 +8,10 @@
 __pycache__
 
 # Ignore .c files by default to avoid including generated code. If you want to
-# add a non-generated .c extension, use `git add -f filename.c`.
+# add a non-generated .c extension, put that into the src/ subdirectory of a
+# package or else use `git add -f filename.c`.
 *.c
+! astropy/*/src/*.c
 
 # Other generated files
 MANIFEST
