@@ -61,6 +61,8 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Added ``circstd`` function to obtain a circular standard deviation.
+
 astropy.table
 ^^^^^^^^^^^^^
 
