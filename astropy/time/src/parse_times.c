@@ -5,6 +5,16 @@
 const char char_zero = 48;
 const char char_nine = 57;
 
+// Distutils on Windows automatically exports ``PyInit__parse_times``,
+// create dummy to prevent linker complaining about missing symbol.
+// Based on convolution/src/convolve.c.
+#if defined(_MSC_VER)
+void PyInit__parse_times(void)
+{
+    return;
+}
+#endif
+
 int parse_int_from_char_array(char *chars, int str_len,
                               char delim, int idx0, int idx1,
                               int *val)
