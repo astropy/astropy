@@ -170,25 +170,7 @@ class base_constants_version(ScienceState):
         if 'astropy.constants' in sys.modules:
             raise RuntimeError('astropy.constants is already imported')
 
-        class _Context:
-            def __init__(self, parent, value):
-                self._value = value
-                self._parent = parent
-
-            def __enter__(self):
-                pass
-
-            def __exit__(self, type, value, tb):
-                self._parent._value = self._value
-
-            def __repr__(self):
-                return ('<ScienceState {}: {!r}>'
-                        .format(self._parent.__name__, self._parent._value))
-
-        ctx = _Context(cls, cls._value)
-        value = cls.validate(value)
-        cls._value = value
-        return ctx
+        return super().set(cls, value)
 
 
 class physical_constants(base_constants_version):

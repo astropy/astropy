@@ -29,6 +29,7 @@ astropy.coordinates
   Depending on needed precision and the obstime array in question, speed ups
   reach factors of 10x to >100x. [#10647]
 
+- ``galactocentric_frame_defaults`` can now also be used as a registry, with user-defined parameter values and metadata. [#10624]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
