@@ -60,7 +60,9 @@ def ufunc_model(name):
                'linear': False, 'fittable': False, '_separable': separable,
                '_is_dynamic': True, 'evaluate': evaluate}
 
-    return type(str(klass_name), (_NPUfuncModel,), members)
+    klass = type(str(klass_name), (_NPUfuncModel,), members)
+    klass.__module__ = 'astropy.modeling.math_functions'
+    return klass
 
 
 __all__ = []
