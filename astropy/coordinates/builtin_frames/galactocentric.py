@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
+from collections.abc import MappingView
+from types import MappingProxyType
+
 import numpy as np
 
 from astropy import units as u
 from astropy.utils.state import ScienceState
-from astropy.utils.decorators import format_doc
+from astropy.utils.decorators import format_doc, classproperty, deprecated
 from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
 from astropy.coordinates import representation as r
@@ -30,6 +34,25 @@ __all__ = ['Galactocentric']
 _ROLL0 = Angle(58.5986320306*u.degree)
 
 
+class _StateProxy(MappingView):
+    """
+    `~collections.abc.MappingView` with a read-only ``getitem`` through
+    `~types.MappingProxyType`.
+
+    """
+
+    def __init__(self, mapping):
+        super().__init__(mapping)
+        self._mappingproxy = MappingProxyType(self._mapping)  # read-only
+
+    def __getitem__(self, key):
+        """Read-only ``getitem``."""
+        return self._mappingproxy[key]
+
+    def __deepcopy__(self, memo):
+        return copy.deepcopy(self._mapping, memo=memo)
+
+
 class galactocentric_frame_defaults(ScienceState):
     """This class controls the global setting of default values for the frame
     attributes in the `~astropy.coordinates.Galactocentric` frame, which may be
@@ -41,12 +64,29 @@ class galactocentric_frame_defaults(ScienceState):
     ``Galactocentric`` or ``Galactocentric()`` with no explicit arguments.
 
     This class controls the parameter settings by specifying a string name,
-    which can be one of:
+    with the following pre-specified options:
 
     - 'pre-v4.0': The current default value, which sets the default frame
       attribute values to their original (pre-astropy-v4.0) values.
     - 'v4.0': The attribute values as updated in Astropy version 4.0.
     - 'latest': An alias of the most recent parameter set (currently: 'v4.0')
+
+    Alternatively, user-defined parameter settings may be registered, with
+    :meth:`~astropy.coordinates.galactocentric_frame_defaults.register`,
+    and used identically as pre-specified parameter sets. At minimum,
+    registrations must have unique names and a dictionary of parameters
+    with keys "galcen_coord", "galcen_distance", "galcen_v_sun", "z_sun",
+    "roll". See examples below.
+
+    This class also tracks the references for all parameter values in the
+    attribute ``references``, as well as any further information the registry.
+    The pre-specified options can be extended to include similar
+    state information as user-defined parameter settings -- for example, to add
+    parameter uncertainties.
+
+    The preferred method for getting a parameter set and metadata, by name, is
+    :meth:`~galactocentric_frame_defaults.get_from_registry` since
+    it ensures the immutability of the registry.
 
     See :ref:`astropy-coordinates-galactocentric-defaults` for more information.
 
@@ -82,73 +122,157 @@ class galactocentric_frame_defaults(ScienceState):
         <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             (266.4051, -28.936175)>, galcen_distance=8.0 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
 
+    Additional parameter sets may be registered, for instance to use the
+    Dehnen & Binney (1998) measurements of the solar motion. We can also
+    add metadata, such as the 1-sigma errors. In this example we will modify
+    the required key "parameters", change the recommended key "references" to
+    match "parameters", and add the extra key "error" (any key can be added)::
+
+        >>> state = galactocentric_frame_defaults.get_from_registry("v4.0")
+        >>> state["parameters"]["galcen_v_sun"] = (10.00, 225.25, 7.17) * (u.km / u.s)
+        >>> state["references"]["galcen_v_sun"] = "https://ui.adsabs.harvard.edu/full/1998MNRAS.298..387D"
+        >>> state["error"] = {"galcen_v_sun": (0.36, 0.62, 0.38) * (u.km / u.s)}
+        >>> galactocentric_frame_defaults.register(name="DB1998", **state)
+
+    Just as in the previous examples, the new parameter set can be retrieved with::
+
+        >>> state = galactocentric_frame_defaults.get_from_registry("DB1998")
+        >>> print(state["error"]["galcen_v_sun"])  # doctest: +FLOAT_CMP
+        [0.36 0.62 0.38] km / s
+
     """
 
     _latest_value = 'v4.0'
-    _references = None
     _value = None
+    _references = None
+    _state = dict()  # all other data
+
+    # Note: _StateProxy() produces read-only view of enclosed mapping.
+    _registry = {
+        "v4.0": {
+            "parameters": _StateProxy(
+                {
+                    "galcen_coord": ICRS(
+                        ra=266.4051 * u.degree, dec=-28.936175 * u.degree
+                    ),
+                    "galcen_distance": 8.122 * u.kpc,
+                    "galcen_v_sun": r.CartesianDifferential(
+                        [12.9, 245.6, 7.78] * (u.km / u.s)
+                    ),
+                    "z_sun": 20.8 * u.pc,
+                    "roll": 0 * u.deg,
+                }
+            ),
+            "references": _StateProxy(
+                {
+                    "galcen_coord": "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
+                    "galcen_distance": "https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G",
+                    "galcen_v_sun": [
+                        "https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D",
+                        "https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G",
+                        "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
+                    ],
+                    "z_sun": "https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1417B",
+                    "roll": None,
+                }
+            ),
+        },
+        "pre-v4.0": {
+            "parameters": _StateProxy(
+                {
+                    "galcen_coord": ICRS(
+                        ra=266.4051 * u.degree, dec=-28.936175 * u.degree
+                    ),
+                    "galcen_distance": 8.3 * u.kpc,
+                    "galcen_v_sun": r.CartesianDifferential(
+                        [11.1, 220 + 12.24, 7.25] * (u.km / u.s)
+                    ),
+                    "z_sun": 27.0 * u.pc,
+                    "roll": 0 * u.deg,
+                }
+            ),
+            "references": _StateProxy(
+                {
+                    "galcen_coord": "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
+                    "galcen_distance": "https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G",
+                    "galcen_v_sun": [
+                        "https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S",
+                        "https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B",
+                    ],
+                    "z_sun": "https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C",
+                    "roll": None,
+                }
+            ),
+        },
+    }
+
+    @classproperty  # read-only
+    def parameters(cls):
+        return cls._value
+
+    @classproperty  # read-only
+    def references(cls):
+        return cls._references
 
     @classmethod
-    def get_solar_params_from_string(cls, arg):
-        """Return Galactocentric solar parameters given string names for the
-        parameter sets.
+    def get_from_registry(cls, name: str):
         """
+        Return Galactocentric solar parameters and metadata given string names
+        for the parameter sets. This method ensures the returned state is a
+        mutable copy, so any changes made do not affect the registry state.
 
-        # Resolve the meaning of 'latest': The latest parameter set is from v4.0
+        Returns
+        -------
+        state : dict
+            Copy of the registry for the string name.
+            Should contain, at minimum:
+
+            - "parameters": dict
+                Galactocentric solar parameters
+            - "references" : Dict[str, Union[str, Sequence[str]]]
+                References for "parameters".
+                Fields are str or sequence of str.
+
+        Raises
+        ------
+        KeyError
+            If invalid string input to registry
+            to retrieve solar parameters for Galactocentric frame.
+
+        """
+        # Resolve the meaning of 'latest': latest parameter set is from v4.0
         # - update this as newer parameter choices are added
-        if arg == 'latest':
-            arg = cls._latest_value
+        if name == 'latest':
+            name = cls._latest_value
 
-        params = dict()
-        references = dict()
+        # Get the state from the registry.
+        # Copy to ensure registry is immutable to modifications of "_value".
+        # Raises KeyError if `name` is invalid string input to registry
+        # to retrieve solar parameters for Galactocentric frame.
+        state = copy.deepcopy(cls._registry[name])  # ensure mutable
 
-        # Currently, all versions use the same sky position for Sgr A*:
-        params['galcen_coord'] = ICRS(ra=266.4051*u.degree,
-                                      dec=-28.936175*u.degree)
-        references['galcen_coord'] = \
-            'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R'
+        return state
 
-        # The roll angle is the same for both frames:
-        params['roll'] = 0 * u.deg
+    @deprecated("v4.2", alternative="`get_from_registry`")
+    @classmethod
+    def get_solar_params_from_string(cls, arg):
+        """
+        Return Galactocentric solar parameters given string names
+        for the parameter sets.
 
-        if arg == 'pre-v4.0':
-            params['galcen_distance'] = 8.3 * u.kpc
-            references['galcen_distance'] = \
-                'https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G'
+        Returns
+        -------
+        parameters : dict
+            Copy of Galactocentric solar parameters from registry
 
-            params['galcen_v_sun'] = r.CartesianDifferential([11.1,
-                                                              220+12.24,
-                                                              7.25]*u.km/u.s)
-            references['galcen_v_sun'] = \
-                ['https://ui.adsabs.harvard.edu/#abs/2010MNRAS.403.1829S',
-                 'https://ui.adsabs.harvard.edu/#abs/2015ApJS..216...29B']
+        Raises
+        ------
+        KeyError
+            If invalid string input to registry
+            to retrieve solar parameters for Galactocentric frame.
 
-            params['z_sun'] = 27.0 * u.pc
-            references['z_sun'] = \
-                'https://ui.adsabs.harvard.edu/#abs/2001ApJ...553..184C'
-
-        elif arg == 'v4.0':
-            params['galcen_distance'] = 8.122 * u.kpc
-            references['galcen_distance'] = \
-                'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G'
-
-            params['galcen_v_sun'] = r.CartesianDifferential([12.9,
-                                                              245.6,
-                                                              7.78]*u.km/u.s)
-            references['galcen_v_sun'] = \
-                ['https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D',
-                 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
-                 'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R']
-
-            params['z_sun'] = 20.8 * u.pc
-            references['z_sun'] = \
-                'https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1417B'
-
-        else:
-            raise ValueError(f'Invalid string input to retrieve solar '
-                             f'parameters for Galactocentric frame: "{arg}"')
-
-        return params, references
+        """
+        return cls.get_from_registry(arg)["parameters"]
 
     @classmethod
     def validate(cls, value):
@@ -156,25 +280,61 @@ class galactocentric_frame_defaults(ScienceState):
             value = cls._latest_value
 
         if isinstance(value, str):
-            params, refs = cls.get_solar_params_from_string(value)
-            cls._references = refs
-            return params
+            state = cls.get_from_registry(value)
+            cls._references = state["references"]
+            cls._state = state
+            parameters = state["parameters"]
 
         elif isinstance(value, dict):
-            return value
+            parameters = value
 
         elif isinstance(value, Galactocentric):
             # turn the frame instance into a dict of frame attributes
-            attrs = dict()
+            parameters = dict()
             for k in value.frame_attributes:
-                attrs[k] = getattr(value, k)
-            cls._references = value.frame_attribute_references()
-            return attrs
+                parameters[k] = getattr(value, k)
+            cls._references = value.frame_attribute_references.copy()
+            cls._state = dict(parameters=parameters,
+                              references=cls._references)
 
         else:
             raise ValueError("Invalid input to retrieve solar parameters for "
                              "Galactocentric frame: input must be a string, "
                              "dict, or Galactocentric instance")
+
+        return parameters
+
+    @classmethod
+    def register(cls, name: str, parameters: dict, references=None,
+                 **meta: dict):
+        """Register a set of parameters.
+
+        Parameters
+        ----------
+        name : str
+            The registration name for the parameter and metadata set.
+        parameters : dict
+            The solar parameters for Galactocentric frame.
+        references : dict or None, optional
+            References for contents of `parameters`.
+            None becomes empty dict.
+        **meta: dict, optional
+            Any other properties to register.
+
+        """
+        # check on contents of `parameters`
+        must_have = {"galcen_coord", "galcen_distance", "galcen_v_sun",
+                     "z_sun", "roll"}
+        missing = must_have.difference(parameters)
+        if missing:
+            raise ValueError(f"Missing parameters: {missing}")
+
+        references = references or {}  # None -> {}
+
+        state = dict(parameters=parameters, references=references)
+        state.update(meta)  # meta never has keys "parameters" or "references"
+
+        cls._registry[name] = state
 
 
 doc_components = """
@@ -324,7 +484,7 @@ class Galactocentric(BaseCoordinateFrame):
         # for the solar parameters defined above
         default_params = galactocentric_frame_defaults.get()
         self.frame_attribute_references = \
-            galactocentric_frame_defaults._references.copy()
+            galactocentric_frame_defaults.references.copy()
 
         for k in default_params:
             if k in kwargs:
