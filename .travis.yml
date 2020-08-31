@@ -13,7 +13,7 @@ cache:
 
 notifications:
   slack:
-    on_success: never
+    on_success: always
     on_failure: always
     secure: gLrQgrHNqHs0lOPsfvjlh0v8k56mJifPNpht0BX55YV0n1u5alKCrKOVcKTFNFY0gOldhwFNFq4oy3o5EaZkDx+CO71qiwwJr7ex7zT70EjHzWxEG8l2Bww9J3xVzhGgQw6tMq57HHiuOoJ07TJPvVxL+E/WZmkxRAdlzUhcab4=
     if: type = cron
