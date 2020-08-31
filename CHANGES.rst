@@ -50,9 +50,6 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
-- Write keys to ASDF only if the value is present, to account
-  for a change in behavior in asdf 2.8. [#10674]
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
@@ -1044,6 +1041,9 @@ astropy.io.misc
 ^^^^^^^^^^^^^^^
 
 - Fix id URL in ``baseframe-1.0.0`` ASDF schema. [#10223]
+
+- Write keys to ASDF only if the value is present, to account
+  for a change in behavior in asdf 2.8. [#10674]
 
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
