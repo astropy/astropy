@@ -18,6 +18,7 @@ python:
       extra_requirements:
         - docs
         - all
+    - requirements: docs/rtd_requirements.txt
 
 # Don't build any extra formats
 formats: []
