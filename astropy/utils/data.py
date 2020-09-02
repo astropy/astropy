@@ -111,7 +111,7 @@ class CacheMissingWarning(AstropyWarning):
 
 def is_url(string):
     """
-    Test whether a string is a valid URL.
+    Test whether a string is a valid URL for :func:`download_file`.
 
     Parameters
     ----------

@@ -2168,6 +2168,8 @@ def test_download_ftp_file_properly_handles_socket_error():
      ('sftp://google.com', True),
      ('ssh://google.com', True),
      ('file:///c:/path/to/the%20file.txt', True),
-     ('google.com', False)])
+     ('google.com', False),
+     ('C:\\\\path\\\\file.docx', False),
+     ('data://file', False)])
 def test_string_is_url_check(s, ans):
     assert is_url(s) is ans
