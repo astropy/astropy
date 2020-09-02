@@ -1023,6 +1023,7 @@ def test_get_pkg_data_contents():
     assert contents1 == contents2
 
 
+# FIXME: Undo PR 10686 after socket warnings mystery is solved.
 @pytest.mark.remote_data(source="astropy")
 @pytest.mark.filterwarnings("ignore:Remote data cache could not be accessed")
 @pytest.mark.filterwarnings(r"ignore:.*Cache directory cannot be read or created .*")
