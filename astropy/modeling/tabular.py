@@ -310,7 +310,9 @@ def tabular_model(dim, name=None):
         _Tabular._id += 1
         name = f'Tabular{model_id}'
 
-    return type(str(name), (_Tabular,), members)
+    model_class = type(str(name), (_Tabular,), members)
+    model_class.__module__ = 'astropy.modeling.tabular'
+    return model_class
 
 
 Tabular1D = tabular_model(1, name='Tabular1D')
