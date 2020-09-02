@@ -35,7 +35,7 @@ def _find_home():
         else:
             try:
                 return os.path.expanduser('~')
-            except Exception as e:
+            except Exception:
                 raise OSError('Could not find unix home directory to search for '
                               'astropy config dir')
     elif os.name == 'nt':  # This is for all modern Windows (NT or after)
@@ -43,9 +43,6 @@ def _find_home():
             # Likely using an msys shell; use whatever it is using for its
             # $HOME directory
             homedir = os.environ['HOME']
-        # Next try for a network home
-        elif 'HOMESHARE' in os.environ:
-            homedir = os.environ['HOMESHARE']
         # See if there's a local home
         elif 'HOMEDRIVE' in os.environ and 'HOMEPATH' in os.environ:
             homedir = os.path.join(os.environ['HOMEDRIVE'],
@@ -65,6 +62,9 @@ def _find_home():
                 # As a final possible resort, see if HOME is present
                 if 'HOME' in os.environ:
                     homedir = os.environ['HOME']
+                # Final final resort: Network home
+                elif 'HOMESHARE' in os.environ:
+                    homedir = os.environ['HOMESHARE']
                 else:
                     raise OSError('Could not find windows home directory to '
                                   'search for astropy config dir')
