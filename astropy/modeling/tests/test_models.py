@@ -752,6 +752,16 @@ def test_tabular1d_inverse():
     assert_allclose(t(result), 100)
 
 
+@pytest.mark.skipif("not HAS_SCIPY_14")
+def test_tabular_module_name():
+    """
+    The module name must be set manually because
+    these classes are created dynamically.
+    """
+    for model in [models.Tabular1D, models.Tabular2D]:
+        assert model.__module__ == "astropy.modeling.tabular"
+
+
 class classmodel(FittableModel):
     f = Parameter(default=1)
     x = Parameter(default=0)

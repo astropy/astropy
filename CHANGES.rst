@@ -1034,6 +1034,7 @@ astropy.modeling
 - Fixed a problem with fitting ``Linear1D`` and ``Planar2D`` in model sets. [#10623]
 
 - Fixed reported module name of ``math_functions`` model classes. [#10694]
+- Fixed reported module name of ``tabular`` model classes. [#10709]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
