@@ -887,7 +887,12 @@ astropy.stats
 
 - Fixed bug with ``funcs.poisson_conf_interval`` where an integer for N
   with ``interval='kraft-burrows-nousek'`` would throw an error with
-  mpmath backend [#10427]
+  mpmath backend. [#10427]
+
+- Fixed bug in ``funcs.poisson_conf_interval`` with
+  ``interval='kraft-burrows-nousek'`` where certain combinations of source
+  and background count numbers led to ``ValueError`` due to the choice of 
+  starting value for numerical optimization. [#10618]
 
 
 astropy.table
