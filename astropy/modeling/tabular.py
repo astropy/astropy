@@ -278,7 +278,7 @@ def tabular_model(dim, name=None):
 
     >>> tab = tabular_model(2, name='Tabular2D')
     >>> print(tab)
-    <class 'abc.Tabular2D'>
+    <class 'astropy.modeling.tabular.Tabular2D'>
     Name: Tabular2D
     N_inputs: 2
     N_outputs: 1
