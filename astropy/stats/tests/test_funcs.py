@@ -614,8 +614,12 @@ def test_scipy_poisson_limit():
 
 @pytest.mark.skipif('not HAS_MPMATH')
 def test_mpmath_poisson_limit():
-    assert_allclose(funcs._mpmath_kraft_burrows_nousek(6., 2., .9),
-                    (0.81, 8.99), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(1., .1, .99),
+                    (0.00, 6.54), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(1., .5, .95),
+                    (0.00, 4.36), rtol=5e-3)
+    assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 0., .99),
+                    (1.17, 13.32), rtol=5e-3)
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(5., 2.5, .99),
                     (0, 10.67), rtol=1e-3)
     assert_allclose(funcs._mpmath_kraft_burrows_nousek(np.int32(6), 2., .9),
@@ -636,6 +640,10 @@ def test_mpmath_poisson_limit():
     assert_allclose(funcs.poisson_conf_interval(
         n=160, background=154.543,
         confidence_level=.95, interval='kraft-burrows-nousek')[:, 0], (0, 30.30454909))
+    # For this one we do not have the "true" answer from the publication,
+    # but we want to make sure that it at least runs without error
+    # see https://github.com/astropy/astropy/issues/9596
+    out = funcs._mpmath_kraft_burrows_nousek(1000., 900., .9)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
