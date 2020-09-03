@@ -1153,9 +1153,11 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
 def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''Upper limit on a poisson count rate
+
     The implementation is based on Kraft, Burrows and Nousek in
     `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
     The XMM-Newton upper limit server used the same formalism.
+
     Parameters
     ----------
     N : int or np.int32/np.int64
@@ -1165,9 +1167,11 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         from a large background area).
     CL : float or np.float32/np.float64
        Confidence level (number between 0 and 1)
+
     Returns
     -------
     S : source count limit
+
     Notes
     -----
     Requires the `mpmath <http://mpmath.org/>`_ library.  See
