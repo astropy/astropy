@@ -926,6 +926,11 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Fixed a bug where a float-typed integers in the argument ``x_range`` of
+  ``astropy.convolution.utils.discretize_oversample_1D`` (and the 2D version as
+  well) fails because it uses ``numpy.linspace``, which requires an ``int``.
+  [#10696]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
