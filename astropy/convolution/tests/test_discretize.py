@@ -183,7 +183,7 @@ def test_float_x_range_exception():
         return x ** 2 + y ** 2
     with pytest.raises(ValueError) as exc:
         discretize_model(f, (-10.002, 11.23))
-    assert exc.value.args[0] == ("The difference between the upper an lower"
+    assert exc.value.args[0] == ("The difference between the upper and lower"
                                  " limit of 'x_range' must be a whole number.")
 
 
@@ -192,7 +192,7 @@ def test_float_y_range_exception():
         return x ** 2 + y ** 2
     with pytest.raises(ValueError) as exc:
         discretize_model(f, (-10, 11), (-10.002, 11.23))
-    assert exc.value.args[0] == ("The difference between the upper an lower"
+    assert exc.value.args[0] == ("The difference between the upper and lower"
                                  " limit of 'y_range' must be a whole number.")
 
 
