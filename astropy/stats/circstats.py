@@ -13,8 +13,8 @@ are based on reference [1]_, which is also the basis for the R package
 import numpy as np
 from astropy.units import Quantity
 
-__all__ = ['circmean', 'circvar', 'circmoment', 'circcorrcoef', 'rayleightest',
-           'vtest', 'vonmisesmle']
+__all__ = ['circmean', 'circstd', 'circvar', 'circmoment', 'circcorrcoef',
+           'rayleightest', 'vtest', 'vonmisesmle']
 __doctest_requires__ = {'vtest': ['scipy']}
 
 
@@ -147,6 +147,83 @@ def circvar(data, axis=None, weights=None):
     """
 
     return 1.0 - _length(data, 1, 0.0, axis, weights)
+
+
+def circstd(data, axis=None, weights=None, method='angular'):
+    """ Computes the circular standard deviation of an array of circular data.
+
+    The standard deviation implemented here is based on the definitions given
+    by [1]_, which is also the same used by the R package 'CirStat' [2]_.
+
+    Two methods are implemented: 'angular' and 'circular'. The former is
+    defined as sqrt(2 * (1 - R)) and it is bounded in [0, 2*Pi]. The
+    latter is defined as sqrt(-2 * ln(R)) and it is bounded in [0, inf].
+
+    Following 'CircStat' the default method used to obtain the standard
+    deviation is 'angular'.
+
+    Parameters
+    ----------
+    data : numpy.ndarray or dimensionless Quantity
+        Array of circular (directional) data, which is assumed to be in
+        radians whenever ``data`` is ``numpy.ndarray``.
+    axis : int, optional
+        Axis along which circular variances are computed. The default is to
+        compute the variance of the flattened array.
+    weights : numpy.ndarray, optional
+        In case of grouped data, the i-th element of ``weights`` represents a
+        weighting factor for each group such that ``sum(weights, axis)``
+        equals the number of observations. See [3]_, remark 1.4, page 22,
+        for detailed explanation.
+    method : str, optional
+        The method used to estimate the standard deviation:
+
+        - 'angular' : obtains the angular deviation
+
+        - 'circular' : obtains the circular deviation
+
+
+    Returns
+    -------
+    circstd : numpy.ndarray or dimensionless Quantity
+        Angular or circular standard deviation.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.stats import circstd
+    >>> from astropy import units as u
+    >>> data = np.array([51, 67, 40, 109, 31, 358])*u.deg
+    >>> circstd(data) # doctest: +FLOAT_CMP
+    <Quantity 0.57195022>
+
+    Alternatively, using the 'circular' method:
+
+    >>> import numpy as np
+    >>> from astropy.stats import circstd
+    >>> from astropy import units as u
+    >>> data = np.array([51, 67, 40, 109, 31, 358])*u.deg
+    >>> circstd(data, method='circular') # doctest: +FLOAT_CMP
+    <Quantity 0.59766999>
+
+    References
+    ----------
+    .. [1] P. Berens. "CircStat: A MATLAB Toolbox for Circular Statistics".
+       Journal of Statistical Software, vol 31, issue 10, 2009.
+    .. [2] C. Agostinelli, U. Lund. "Circular Statistics from 'Topics in
+       Circular Statistics (2001)'". 2015.
+       <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
+    .. [3] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
+       Series on Multivariate Analysis, Vol. 5, 2001.
+
+    """
+    if method not in ('angular', 'circular'):
+        raise ValueError("method should be either 'angular' or 'circular'")
+
+    if method == 'angular':
+        return np.sqrt(2. * (1. - _length(data, 1, 0.0, axis, weights)))
+    else:
+        return np.sqrt(-2. * np.log(_length(data, 1, 0.0, axis, weights)))
 
 
 def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
