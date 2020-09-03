@@ -641,6 +641,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     This function has an optional dependency: Either `Scipy
     <https://www.scipy.org/>`_ or `mpmath <http://mpmath.org/>`_  need
     to be available (Scipy works only for N < 100).
+    This code is very intense numerically, which makes it much slower than
+    the other methods, in particular for large count numbers (above 1000
+    even with ``mpmath``). Fortunately, some of the other methods or a
+    Gaussian approximation usually work well in this regime.
 
     Examples
     --------
@@ -1182,6 +1186,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     N = mpf(float(N))
     B = mpf(float(B))
     CL = mpf(float(CL))
+    tol = 1e-4
 
     def eqn8(N, B):
         sumterms = [power(B, n) / factorial(n) for n in range(int(N) + 1)]
@@ -1209,19 +1214,33 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
         eqn7(S_min) here.
         '''
         y_S_max = eqn7(S_max, N, B)
-        if eqn7(0, N, B) >= y_S_max:
+        # If B > N, then N-B, the "most probable" values is < 0
+        # and thus s_min is certainly 0.
+        # Note: For small N, s_max is also close to 0 and root finding
+        # might find the wrong root, thus it is important to handle this
+        # case here and return the analytical answer (s_min = 0).
+        if (B >= N) or (eqn7(0, N, B) >= y_S_max):
             return 0.
         else:
             def eqn7ysmax(x):
                 return eqn7(x, N, B) - y_S_max
-            return findroot(eqn7ysmax, (N - B) / 2.)
+            return findroot(eqn7ysmax, [0., N - B], solver='ridder',
+                            tol=tol)
 
     def func(s):
         s_min = find_s_min(s, N, B)
         out = eqn9_left(s_min, s, N, B)
         return out - CL
 
-    S_max = findroot(func, N - B, tol=1e-4)
+    # Several numerical problems were found prevent the solvers from finding
+    # the roots unless the starting values are very close to the final values.
+    # Thus, this primitive, time-wasting, brute-force stepping here to get
+    # an interval that can be fed into the ridder solver.
+    s_max_guess = max(N - B, 1.)
+    while func(s_max_guess) < 0:
+        s_max_guess += 1
+    S_max = findroot(func, [s_max_guess - 1, s_max_guess], solver='ridder',
+                     tol=tol)
     S_min = find_s_min(S_max, N, B)
     return float(S_min), float(S_max)
 
