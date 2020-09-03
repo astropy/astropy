@@ -170,8 +170,8 @@ def get_icrs_coordinates(name, parse=False, cache=False):
             # There are some cases where urllib2 does not catch socket.timeout
             # especially while receiving response data on an already previously
             # working request
-            e.reason = "Request took longer than the allowed {:.1f} " \
-                       "seconds".format(data.conf.remote_timeout)
+            e.reason = ("Request took longer than the allowed "
+                        f"{data.conf.remote_timeout:.1f} seconds")
             exceptions.append(e)
             continue
 
@@ -181,16 +181,15 @@ def get_icrs_coordinates(name, parse=False, cache=False):
                     for url, e in zip(urls, exceptions)]
         raise NameResolveError("All Sesame queries failed. Unable to "
                                "retrieve coordinates. See errors per URL "
-                               "below: \n {}".format("\n".join(messages)))
+                               f"below: \n {os.linesep.join(messages)}")
 
     ra, dec = _parse_response(resp_data)
 
-    if ra is None and dec is None:
+    if ra is None or dec is None:
         if db == "A":
-            err = f"Unable to find coordinates for name '{name}'"
+            err = f"Unable to find coordinates for name '{name}' using {url}"
         else:
-            err = "Unable to find coordinates for name '{}' in database {}"\
-                  .format(name, database)
+            err = f"Unable to find coordinates for name '{name}' in database {database} using {url}"
 
         raise NameResolveError(err)
 
