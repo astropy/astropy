@@ -255,7 +255,9 @@ class TestLinearLSQFitter:
             y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
 
         fitter = LinearLSQFitter()
-        fitted_model = fitter(init_model, x, y, weights=np.ones(10))
+        weights = np.ones(10)
+        weights[[0, -1]] = 0
+        fitted_model = fitter(init_model, x, y, weights=weights)
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
                         rtol=1e-1)
 
@@ -271,7 +273,10 @@ class TestLinearLSQFitter:
         with NumpyRNGContext(_RANDOM_SEED):
             y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
 
-        weights = [np.ones(10), np.ones(10) / 2]
+        weights = np.ones_like(y)
+        # Put a null weight for the min and max values
+        weights[[0, 1], weights.argmin(axis=1)] = 0
+        weights[[0, 1], weights.argmax(axis=1)] = 0
         fitter = LinearLSQFitter()
         fitted_model = fitter(init_model, x, y, weights=weights)
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
