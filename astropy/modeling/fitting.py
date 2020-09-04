@@ -628,7 +628,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 if weights is not None:
                     # Same for weights
                     if weights.ndim > 2:
-                        weights = np.rollaxis(z, model_axis, z.ndim)
+                        weights = np.rollaxis(weights, model_axis, weights.ndim)
                         weights = weights.reshape(-1, weights.shape[-1])
                     else:
                         weights = weights.flatten()
@@ -674,7 +674,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 raise ValueError("x and weights should have the same length")
 
             if rhs.ndim == 2:
-                if weights is not None and weights.shape == rhs.shape:
+                if weights.shape == rhs.shape:
                     # separate weights for multiple models case: broadcast
                     # lhs to have more dimension (for each model)
                     lhs = lhs[..., np.newaxis] * weights[:, np.newaxis]
