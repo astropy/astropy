@@ -345,6 +345,22 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
                         atol=1e-14)
 
+    def test_linear_fit_flat_2d_model_set_common_weight(self):
+        init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                                         n_models=2,
+                                         fixed={'c1_0': True, 'c0_1': True})
+
+        x, y = np.mgrid[0:5, 0:5]
+        x, y = x.flatten(), y.flatten()
+        zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+        weights = np.ones(25)
+
+        fitter = LinearLSQFitter()
+        fitted_model = fitter(init_model, x, y, zz, weights=weights)
+
+        assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                        atol=1e-14)
+
     def test_linear_fit_2d_model_set_weights(self):
         init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
                                          n_models=2,
@@ -355,6 +371,22 @@ class TestLinearLSQFitter:
 
         fitter = LinearLSQFitter()
         weights = [np.ones((5, 5)), np.ones((5, 5))]
+        fitted_model = fitter(init_model, x, y, zz, weights=weights)
+
+        assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                        atol=1e-14)
+
+    def test_linear_fit_flat_2d_model_set_weights(self):
+        init_model = models.Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                                         n_models=2,
+                                         fixed={'c1_0': True, 'c0_1': True})
+
+        x, y = np.mgrid[0:5, 0:5]
+        x, y = x.flatten(), y.flatten()
+        zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+        weights = np.ones((2, 25))
+
+        fitter = LinearLSQFitter()
         fitted_model = fitter(init_model, x, y, zz, weights=weights)
 
         assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
@@ -970,12 +1002,29 @@ def test_fitters_with_weights():
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
 
 
-def test_linear_fitters_with_weights():
+def test_linear_fitter_with_weights():
     """Regression test for #7035"""
     Xin, Yin = np.mgrid[0:21, 0:21]
     fitter = LinearLSQFitter()
 
-    zsig = np.random.normal(0, 0.01, size=Xin.shape)
+    with NumpyRNGContext(_RANDOM_SEED):
+        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+
+    p2 = models.Polynomial2D(3)
+    p2.parameters = np.arange(10)/1.2
+    z = p2(Xin, Yin)
+    pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig, weights=zsig**(-2))
+    assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
+
+
+def test_linear_fitter_with_weights_flat():
+    """Same as the above #7035 test but with flattened inputs"""
+    Xin, Yin = np.mgrid[0:21, 0:21]
+    Xin, Yin = Xin.flatten(), Yin.flatten()
+    fitter = LinearLSQFitter()
+
+    with NumpyRNGContext(_RANDOM_SEED):
+        zsig = np.random.normal(0, 0.01, size=Xin.shape)
 
     p2 = models.Polynomial2D(3)
     p2.parameters = np.arange(10)/1.2
