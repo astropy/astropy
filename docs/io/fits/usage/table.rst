@@ -467,7 +467,7 @@ FITS Tables with Time Columns
 =============================
 
 The `FITS Time standard paper
-<http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ defines the formats
+<https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ defines the formats
 and keywords used to represent timing information in FITS files. The ``astropy``
 FITS package provides support for reading and writing native
 `~astropy.time.Time` columns and objects using this format. This is done
@@ -510,7 +510,7 @@ approach that ``astropy`` takes in some detail.
 
 To create FITS columns which adhere to the FITS Time standard, we have taken
 into account the following important points stated in the `FITS Time paper
-<http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_.
+<https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_.
 
 The strategy used to store `~astropy.time.Time` columns in FITS tables is to
 create a `~astropy.io.fits.Header` with the appropriate time coordinate

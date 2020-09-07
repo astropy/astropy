@@ -204,7 +204,7 @@ datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2
    these are translated to the formal names upon initialization. Furthermore,
    any specific realization information, such as ``UT(NIST)`` is stored only as
    long as the time scale is not changed.
-.. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
+.. [#] `Rots et al. 2015, A&A 574:A36 <https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
 
 Changing Format
 """""""""""""""
