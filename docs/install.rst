@@ -257,7 +257,7 @@ Note that you do **not** need to install the full XCode distribution (assuming
 you are using MacOS X 10.9 or later).
 
 The `instructions for building NumPy from source
-<https://docs.scipy.org/doc/numpy/user/building.html>`_ are a good
+<https://numpy.org/doc/stable/user/building.html>`_ are a good
 resource for setting up your environment to build Python packages.
 
 Obtaining the Source Packages
@@ -338,7 +338,7 @@ The C libraries currently bundled with ``astropy`` include:
   ``cextern/cfitsio/changes.txt`` for the bundled version. To use the
   system version, set ``ASTROPY_USE_SYSTEM_CFITSIO=1``.
 
-- `expat <http://expat.sourceforge.net/>`_ see ``cextern/expat/README`` for the
+- `expat <http://expat.sourceforge.io/>`_ see ``cextern/expat/README`` for the
   bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
 
 

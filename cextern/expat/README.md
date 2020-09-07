@@ -19,7 +19,7 @@ Expat supports the following compilers:
 - Microsoft Visual Studio >=8.0/2005
 
 Windows users should use the
-[`expat_win32` package](https://sourceforge.net/projects/expat/files/expat_win32/),
+[`expat_win32` package](https://sourceforge.io/projects/expat/files/expat_win32/),
 which includes both precompiled libraries and executables, and source code for
 developers.
 

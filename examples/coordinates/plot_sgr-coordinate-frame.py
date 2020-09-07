@@ -30,7 +30,7 @@ See Also
   https://arxiv.org/abs/astro-ph/0304198
 * Law & Majewski 2010, "The Sagittarius Dwarf Galaxy: A Model for Evolution in a
   Triaxial Milky Way Halo", https://arxiv.org/abs/1003.1132
-* David Law's Sgr info page http://www.stsci.edu/~dlaw/Sgr/
+* David Law's Sgr info page https://www.stsci.edu/~dlaw/Sgr/
 
 
 *By: Adrian Price-Whelan, Erik Tollerud*
@@ -69,7 +69,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
     of the Sagittarius dwarf galaxy, as described in
         https://ui.adsabs.harvard.edu/abs/2003ApJ...599.1082M
     and further explained in
-        http://www.stsci.edu/~dlaw/Sgr/.
+        https://www.stsci.edu/~dlaw/Sgr/.
 
     Parameters
     ----------
