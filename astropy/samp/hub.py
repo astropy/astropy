@@ -351,7 +351,7 @@ class SAMPHubServer:
         hub_metadata = {"samp.name": "Astropy SAMP Hub",
                         "samp.description.text": self._label,
                         "author.name": "The Astropy Collaboration",
-                        "samp.documentation.url": "http://docs.astropy.org/en/stable/samp",
+                        "samp.documentation.url": "https://docs.astropy.org/en/stable/samp",
                         "samp.icon.url": self._url + "/samp/icon"}
 
         result = self._register(self._hub_secret)

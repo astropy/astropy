@@ -27,7 +27,7 @@ class Distribution:
     `numpy.ndarray`, although anything compatible with `numpy.asanyarray` is
     possible.
 
-    See also: http://docs.astropy.org/en/stable/uncertainty/
+    See also: https://docs.astropy.org/en/stable/uncertainty/
 
     Parameters
     ----------

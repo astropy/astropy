@@ -73,7 +73,7 @@ intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', Non
 intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)
 intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)
 intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)
-intersphinx_mapping['packagetemplate'] = ('http://docs.astropy.org/projects/package-template/en/latest/', None)
+intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)
 intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
 
 # List of patterns, relative to source directory, that match files and

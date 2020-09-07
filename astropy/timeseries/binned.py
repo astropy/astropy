@@ -29,7 +29,7 @@ class BinnedTimeSeries(BaseTimeSeries):
     series, such as a flexible initializer for setting up the times, and
     attributes to access the start/center/end time of bins.
 
-    See also: http://docs.astropy.org/en/stable/timeseries/
+    See also: https://docs.astropy.org/en/stable/timeseries/
 
     Parameters
     ----------
@@ -226,7 +226,7 @@ class BinnedTimeSeries(BaseTimeSeries):
 
         This method uses the unified I/O infrastructure in Astropy which makes
         it easy to define readers/writers for various classes
-        (http://docs.astropy.org/en/stable/io/unified.html). By default, this
+        (https://docs.astropy.org/en/stable/io/unified.html). By default, this
         method will try and use readers defined specifically for the
         `astropy.timeseries.BinnedTimeSeries` class - however, it is also
         possible to use the ``format`` keyword to specify formats defined for
