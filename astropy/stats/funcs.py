@@ -543,7 +543,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     <http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf>`_  several
     possibilities but concludes that no single representation is
     suitable for all cases.  The suggestion has also been `floated
-    <http://adsabs.harvard.edu/abs/2012EPJP..127...24A>`_ that error
+    <https://ui.adsabs.harvard.edu/abs/2012EPJP..127...24A>`_ that error
     bars should be attached to theoretical predictions instead of
     observed data, which this function will not help with (but it's
     easy; then you really should use the square root of the theoretical
@@ -579,7 +579,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     package 'sherpa'. The `documentation
     <http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels>`_ claims
     it is based on a numerical approximation published in `Gehrels
-    (1986) <http://adsabs.harvard.edu/abs/1986ApJ...303..336G>`_ but it
+    (1986) <https://ui.adsabs.harvard.edu/abs/1986ApJ...303..336G>`_ but it
     does not actually appear there.  It is symmetrical, and while the
     upper limits are within about 1% of those given by
     'frequentist-confidence', the lower limits can be badly wrong. The
@@ -602,7 +602,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     :math:`\alpha` is the one-tailed probability of the normal
     distribution (at the point given by the parameter 'sigma'). See
     `Maxwell (2011)
-    <http://adsabs.harvard.edu/abs/2011arXiv1102.0822M>`_ for further
+    <https://ui.adsabs.harvard.edu/abs/2011arXiv1102.0822M>`_ for further
     details.
 
     **6. 'kraft-burrows-nousek'** This is a Bayesian approach which allows
@@ -629,12 +629,12 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
        = \left( \sum^N_{n=0} \frac{e^{-B}B^n}{n!}  \right)^{-1}
 
     See `Kraft, Burrows, and Nousek (1991)
-    <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_ for further
+    <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_ for further
     details.
 
     These formulas implement a positive, uniform prior.
     `Kraft, Burrows, and Nousek (1991)
-    <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_ discuss this
+    <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_ discuss this
     choice in more detail and show that the problem is relatively
     insensitive to the choice of prior.
 
@@ -1070,7 +1070,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     '''Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek
-    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
     The XMM-Newton upper limit server uses the same formalism.
 
     Parameters
@@ -1155,7 +1155,7 @@ def _mpmath_kraft_burrows_nousek(N, B, CL):
     '''Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
-    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
     The XMM-Newton upper limit server used the same formalism.
 
     Parameters
@@ -1249,7 +1249,7 @@ def _kraft_burrows_nousek(N, B, CL):
     '''Upper limit on a poisson count rate
 
     The implementation is based on Kraft, Burrows and Nousek in
-    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
+    `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_.
     The XMM-Newton upper limit server used the same formalism.
 
     Parameters

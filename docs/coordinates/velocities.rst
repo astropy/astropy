@@ -545,7 +545,7 @@ surface. For these reasons, the barycentric correction in
 be used for high precision work.
 
 Other considerations necessary for radial velocity corrections at the cm/s
-level are outlined in `Wright & Eastman (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
+level are outlined in `Wright & Eastman (2014) <https://ui.adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
 Most important is that the barycentric correction is, strictly speaking,
 *multiplicative*, so that you should apply it as:
 
@@ -564,4 +564,4 @@ the Wright & Eastmann (2014) paper to a level of 10 mm/s for a source at
 infinite distance. We do not include the Shapiro delay nor the light
 travel time correction from equation 28 of that paper. The neglected terms
 are not important unless you require accuracies of better than 1 cm/s.
-If you do require that precision, see `Wright & Eastmann (2014) <http://adsabs.harvard.edu/abs/2014PASP..126..838W>`_.
+If you do require that precision, see `Wright & Eastmann (2014) <https://ui.adsabs.harvard.edu/abs/2014PASP..126..838W>`_.

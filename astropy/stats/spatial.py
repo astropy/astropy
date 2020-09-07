@@ -47,7 +47,7 @@ class RipleysKEstimator:
     References
     ----------
     .. [1] Peebles, P.J.E. *The large scale structure of the universe*.
-       <http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1980lssu.book.....P&db_key=AST>
+       <https://ui.adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1980lssu.book.....P&db_key=AST>
     .. [2] Spatial descriptive statistics.
        <https://en.wikipedia.org/wiki/Spatial_descriptive_statistics>
     .. [3] Package spatstat.

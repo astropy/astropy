@@ -1598,7 +1598,7 @@ class SIP(Model):
 
     References
     ----------
-    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
+    .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
 
     n_inputs = 2

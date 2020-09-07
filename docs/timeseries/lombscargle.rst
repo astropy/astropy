@@ -935,5 +935,5 @@ Literature References
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
 .. [11] VanderPlas, J. *Understanding the Lomb-Scargle Periodogram*
-	arXiv:1703.09824 (2017)
-	http://adsabs.harvard.edu/abs/2017arXiv170309824V
+	ApJS 236.1:16 (2018)
+	https://ui.adsabs.harvard.edu/abs/2018ApJS..236...16V

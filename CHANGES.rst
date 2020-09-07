@@ -3175,7 +3175,7 @@ astropy.wcs
   Earth at the time of the event. The ITRS frame is identified with WCSs that
   use the ``TLON-`` and ``TLAT-`` coordinate types. There are several examples
   of WCSs where this syntax is used to describe terrestrial coordinate systems:
-  Section 7.4.1 of `WCS in FITS "Paper II" <http://adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
+  Section 7.4.1 of `WCS in FITS "Paper II" <https://ui.adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
   and the `WCSTools documentation <http://tdc-www.harvard.edu/software/wcstools/wcstools.multiwcs.html>`_.
   [#6990]
 
@@ -10509,7 +10509,7 @@ astropy.wcs
   that it could be used as input to "core FITS WCS".  As of astropy
   0.4, ``CRPIX`` is no longer added to the result, so the ``foc``
   space is correct as defined in the `SIP convention
-  <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
+  <https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
 
 - ``astropy.wcs.UnitConverter``, which was deprecated in astropy
   0.2, has been removed.  Use the ``astropy.units`` module
