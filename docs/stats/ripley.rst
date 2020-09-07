@@ -73,7 +73,7 @@ To use Ripley's K Function Estimators from ``astropy``'s stats sub-package:
 References
 ==========
 .. [1] Peebles, P.J.E. *The large scale structure of the universe*.
-       <https://ui.adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode=1980lssu.book.....P&db_key=AST>
+       <https://ui.adsabs.harvard.edu/abs/1980lssu.book.....P>
 .. [2] Ripley, B.D. *The second-order analysis of stationary point processes*.
        Journal of Applied Probability. 13: 255–266, 1976.
 .. [3] *Spatial descriptive statistics*.

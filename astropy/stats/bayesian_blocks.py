@@ -34,7 +34,7 @@ function.
 
 References
 ----------
-.. [1] https://ui.adsabs.harvard.edu/abs/2012arXiv1207.5578S
+.. [1] https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
 .. [2] https://www.astroml.org/ https://github.com//astroML/astroML/
 """
 import warnings
@@ -137,7 +137,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     References
     ----------
     .. [1] Scargle, J et al. (2012)
-       https://ui.adsabs.harvard.edu/abs/2012arXiv1207.5578S
+       https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
 
     See Also
     --------
@@ -192,7 +192,7 @@ class FitnessFunc:
     References
     ----------
     .. [1] Scargle, J et al. (2012)
-       https://ui.adsabs.harvard.edu/abs/2012arXiv1207.5578S
+       https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
         self.p0 = p0
