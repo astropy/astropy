@@ -191,7 +191,7 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     .. [2] Origin Lab. Comparing Two Fitting Functions.
        <https://www.originlab.com/doc/Origin-Help/PostFit-CompareFitFunc>
     .. [3] Astropy Models and Fitting
-        <http://docs.astropy.org/en/stable/modeling>
+        <https://docs.astropy.org/en/stable/modeling>
     """
 
     return bayesian_info_criterion(-0.5 * n_samples * np.log(ssr / n_samples),

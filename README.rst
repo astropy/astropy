@@ -14,7 +14,7 @@ Releases are `registered on PyPI <http://pypi.python.org/pypi/astropy>`_,
 and development is occurring at the
 `project's GitHub page <http://github.com/astropy/astropy>`_.
 
-For installation instructions, see the `online documentation <http://docs.astropy.org/>`_
+For installation instructions, see the `online documentation <https://docs.astropy.org/>`_
 or  `docs/install.rst <docs/install.rst>`_ in this source distribution.
 
 Contributing Code, Documentation, or Feedback
@@ -65,7 +65,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :alt: Astropy's PyPI Status
 
 .. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable
-    :target: http://docs.astropy.org/en/stable/?badge=stable
+    :target: https://docs.astropy.org/en/stable/?badge=stable
     :alt: Documentation Status
 
 .. |NumFOCUS| image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A

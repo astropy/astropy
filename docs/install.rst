@@ -386,7 +386,7 @@ Building Documentation
     Building the documentation is in general not necessary unless you are
     writing new documentation or do not have internet access, because
     the latest (and archive) versions of Astropy's documentation should
-    be available at `docs.astropy.org <http://docs.astropy.org>`_ .
+    be available at `docs.astropy.org <https://docs.astropy.org>`_ .
 
 Dependencies
 ^^^^^^^^^^^^

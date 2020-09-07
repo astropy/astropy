@@ -35,7 +35,7 @@ function.
 References
 ----------
 .. [1] https://ui.adsabs.harvard.edu/abs/2012arXiv1207.5578S
-.. [2] http://astroml.org/ https://github.com//astroML/astroML/
+.. [2] https://www.astroml.org/ https://github.com//astroML/astroML/
 """
 import warnings
 

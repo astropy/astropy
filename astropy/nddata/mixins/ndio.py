@@ -27,8 +27,8 @@ class NDDataRead(registry.UnifiedReadWrite):
 
     See also:
 
-    - http://docs.astropy.org/en/stable/nddata
-    - http://docs.astropy.org/en/stable/io/unified.html
+    - https://docs.astropy.org/en/stable/nddata
+    - https://docs.astropy.org/en/stable/io/unified.html
 
     Parameters
     ----------
@@ -77,8 +77,8 @@ class NDDataWrite(registry.UnifiedReadWrite):
 
     See also:
 
-    - http://docs.astropy.org/en/stable/nddata
-    - http://docs.astropy.org/en/stable/io/unified.html
+    - https://docs.astropy.org/en/stable/nddata
+    - https://docs.astropy.org/en/stable/io/unified.html
 
     Parameters
     ----------

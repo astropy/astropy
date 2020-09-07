@@ -33,7 +33,7 @@ class SimpleRSTData(FixedWidthData):
 class RST(FixedWidth):
     """reStructuredText simple format table.
 
-    See: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
+    See: https://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
 
     Example::
 

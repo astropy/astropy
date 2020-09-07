@@ -69,9 +69,9 @@ def _is_astropy_setup():
 # The location of the online documentation for astropy
 # This location will normally point to the current released version of astropy
 if 'dev' in __version__:
-    online_docs_root = 'http://docs.astropy.org/en/latest/'
+    online_docs_root = 'https://docs.astropy.org/en/latest/'
 else:
-    online_docs_root = f'http://docs.astropy.org/en/{__version__}/'
+    online_docs_root = f'https://docs.astropy.org/en/{__version__}/'
 
 
 def _check_requirement(name, minimum_version):
@@ -370,7 +370,7 @@ def online_help(query):
     else:
         version = 'v' + version
 
-    url = f"http://docs.astropy.org/en/{version}/search.html?{urlencode({'q': query})}"
+    url = f"https://docs.astropy.org/en/{version}/search.html?{urlencode({'q': query})}"
     webbrowser.open(url)
 
 

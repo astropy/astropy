@@ -1868,7 +1868,7 @@ class _UnitMetaClass(type):
                            "recognized inside a file reader or other code, "
                            "enable it with 'u.add_enabled_units'. "
                            "For details, see "
-                           "http://docs.astropy.org/en/latest/units/combining_and_defining.html"
+                           "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
                            .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
                         raise ValueError(msg)
@@ -1939,7 +1939,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
     - The last form, which creates a new `Unit` is described in detail
       below.
 
-    See also: http://docs.astropy.org/en/stable/units/
+    See also: https://docs.astropy.org/en/stable/units/
 
     Parameters
     ----------

@@ -17,8 +17,8 @@ Lomb-Scargle periodogram, with code examples based on ``astropy``, see
 *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at
 https://github.com/jakevdp/PracticalLombScargle/.
 
-.. _gatspy: http://www.astroml.org/gatspy/
-.. _astroml: http://astroml.org/
+.. _gatspy: https://www.astroml.org/gatspy/
+.. _astroml: https://www.astroml.org/
 
 Basic Usage
 ===========

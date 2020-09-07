@@ -213,7 +213,7 @@ class QuantityInfo(QuantityInfoBase):
 class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
-    See also: http://docs.astropy.org/en/stable/units/quantity.html
+    See also: https://docs.astropy.org/en/stable/units/quantity.html
 
     Parameters
     ----------
@@ -270,7 +270,7 @@ class Quantity(np.ndarray):
     Notes
     -----
     Quantities can also be created by multiplying a number or array with a
-    :class:`~astropy.units.Unit`. See http://docs.astropy.org/en/latest/units/
+    :class:`~astropy.units.Unit`. See https://docs.astropy.org/en/latest/units/
 
     """
     # Need to set a class-level default for _equivalencies, or
