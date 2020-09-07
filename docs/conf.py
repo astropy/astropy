@@ -226,7 +226,7 @@ try:
         'reference_url': {
             'astropy': None,
             'matplotlib': 'https://matplotlib.org/',
-            'numpy': 'http://docs.scipy.org/doc/numpy/',
+            'numpy': 'https://numpy.org/doc/stable/',
         },
         'abort_on_example_error': True
     }

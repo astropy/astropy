@@ -1325,7 +1325,7 @@ class Quantity(np.ndarray):
 
     # These functions need to be overridden to take into account the units
     # Array conversion
-    # http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#array-conversion
+    # https://numpy.org/doc/stable/reference/arrays.ndarray.html#array-conversion
 
     def item(self, *args):
         return self._new_view(super().item(*args))

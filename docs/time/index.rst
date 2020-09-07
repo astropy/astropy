@@ -806,7 +806,7 @@ To set one or more items as missing, assign the special value
    similar to how `Pandas missing data
    <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
    but somewhat different from `NumPy masked arrays
-   <https://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ which
+   <https://numpy.org/doc/stable/reference/maskedarray.html>`_ which
    maintain a separate mask array and retain the underlying data. In the
    |Time| object the ``mask`` attribute is read-only and cannot be directly set.
 

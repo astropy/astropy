@@ -330,7 +330,7 @@ def helper_clip(f, unit1, unit2, unit3):
 
 
 # list of ufuncs:
-# http://docs.scipy.org/doc/numpy/reference/ufuncs.html#available-ufuncs
+# https://numpy.org/doc/stable/reference/ufuncs.html#available-ufuncs
 
 UNSUPPORTED_UFUNCS |= {
     np.bitwise_and, np.bitwise_or, np.bitwise_xor, np.invert, np.left_shift,

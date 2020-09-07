@@ -10,7 +10,7 @@ Python astronomy packages. This repository contains the core package which is
 intended to contain much of the core functionality and some common tools needed
 for performing astronomy and astrophysics with Python.
 
-Releases are `registered on PyPI <http://pypi.python.org/pypi/astropy>`_,
+Releases are `registered on PyPI <https://pypi.org/project/astropy>`_,
 and development is occurring at the
 `project's GitHub page <http://github.com/astropy/astropy>`_.
 
@@ -61,7 +61,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :alt: Astropy's Coverage Status
 
 .. |PyPI Status| image:: https://img.shields.io/pypi/v/astropy.svg
-    :target: https://pypi.python.org/pypi/astropy
+    :target: https://pypi.org/project/astropy
     :alt: Astropy's PyPI Status
 
 .. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable

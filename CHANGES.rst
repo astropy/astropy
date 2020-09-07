@@ -9578,7 +9578,7 @@ astropy.table
 - The code base is now fully Python 2 and 3 compatible and no longer requires
   2to3. [#2033]
 
-- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in
+- `funcsigs <https://pypi.org/project/funcsigs>`_ is included in
   utils.compat, but defaults to the inspect module components where available
   (3.3+) [#3151].
 
@@ -10977,7 +10977,7 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Ported all bug fixes from PyFITS 3.2.1.  See the PyFITS changelog at
-  http://pyfits.readthedocs.io/en/v3.2.1/ [#2056]
+  https://pyfits.readthedocs.io/en/v3.2.1/ [#2056]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -11483,7 +11483,7 @@ astropy.utils
 astropy.extern.six
 ^^^^^^^^^^^^^^^^^^
 
-- Added `six <https://pypi.python.org/pypi/six/>`_ for python2/python3
+- Added `six <https://pypi.org/project/six/>`_ for python2/python3
   compatibility
 
 - Astropy now uses the ERFA library instead of the IAU SOFA library for

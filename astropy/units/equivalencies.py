@@ -319,7 +319,7 @@ def doppler_radio(rest):
 
     References
     ----------
-    `NRAO site defining the conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
+    `NRAO site defining the conventions <https://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
 
     Examples
     --------
@@ -384,7 +384,7 @@ def doppler_optical(rest):
 
     References
     ----------
-    `NRAO site defining the conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
+    `NRAO site defining the conventions <https://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
 
     Examples
     --------
@@ -450,7 +450,7 @@ def doppler_relativistic(rest):
 
     References
     ----------
-    `NRAO site defining the conventions <http://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
+    `NRAO site defining the conventions <https://www.gb.nrao.edu/~fghigo/gbtdoc/doppler.html>`_
 
     Examples
     --------
