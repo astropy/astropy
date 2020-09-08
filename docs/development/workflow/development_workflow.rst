@@ -90,7 +90,7 @@ remote, like ``astropy`` , is labeled by that remote, ``astropy/master``.
 
 This duplication of names can get very confusing when working with pull
 requests, especially when the official master branch, ``astropy/master``,
-changes due to other contibutions before your contributions are merged in.
+changes due to other contributions before your contributions are merged in.
 As a result, you should never do any work in your master
 branch, ``master``. Always work on a branch instead.
 
