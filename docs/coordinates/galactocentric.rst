@@ -77,7 +77,7 @@ vector pointing from the Sun to the GC, but the :math:`y'` and
 :math:`z'` axes point in arbitrary directions. We adopt the
 orientation of the Galactic plane as the normal to the north pole of
 Galactic coordinates defined by the IAU
-(`Blaauw et. al. 1960 <http://adsabs.harvard.edu/abs/1960MNRAS.121..164B>`_).
+(`Blaauw et. al. 1960 <https://ui.adsabs.harvard.edu/abs/1960MNRAS.121..164B>`_).
 This extra “roll” angle, :math:`\eta`, was measured by transforming a grid
 of points along :math:`l=0` to this interim frame and minimizing the square
 of their :math:`y'` positions. We find:

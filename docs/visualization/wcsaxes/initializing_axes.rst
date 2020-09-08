@@ -9,7 +9,7 @@ Basic initialization
 
 To make a plot using `~astropy.visualization.wcsaxes.WCSAxes`, we first read in
 the data using `astropy.io.fits
-<http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
+<https://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. In this example, we will use an example FITS file from the
 http://data.astropy.org server (the
 :func:`~astropy.utils.data.get_pkg_data_filename` function downloads the file

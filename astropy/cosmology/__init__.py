@@ -3,7 +3,7 @@
 distance measures and other cosmology-related calculations.
 
 See the `Astropy documentation
-<http://docs.astropy.org/en/latest/cosmology/index.html>`_ for more
+<https://docs.astropy.org/en/latest/cosmology/index.html>`_ for more
 detailed usage examples and references.
 """
 

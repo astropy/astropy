@@ -35,7 +35,7 @@ doc_components = """
 class Supergalactic(BaseCoordinateFrame):
     """
     Supergalactic Coordinates
-    (see Lahav et al. 2000, <http://adsabs.harvard.edu/abs/2000MNRAS.312..166L>,
+    (see Lahav et al. 2000, <https://ui.adsabs.harvard.edu/abs/2000MNRAS.312..166L>,
     and references therein).
     """
 

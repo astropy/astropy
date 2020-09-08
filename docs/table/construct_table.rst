@@ -299,7 +299,7 @@ NumPy Structured Array
 The structured array is the standard mechanism in ```numpy``` for storing
 heterogeneous table data. Most scientific I/O packages that read table
 files (e.g., `astropy.io.fits`, `astropy.io.votable`, and `asciitable
-<http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
+<https://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
 object that is based on the structured array. A structured array can be
 created using::
 
@@ -825,7 +825,7 @@ The column data values, shape, and data type are specified in one of two ways:
   The ``dtype`` argument can be any value which is an acceptable fixed-size
   data type initializer for the ``numpy.dtype()`` method. See the reference for
   `data type objects
-  <https://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_. Examples
+  <https://numpy.org/doc/stable/reference/arrays.dtypes.html>`_. Examples
   include:
 
   - Python non-string type (float, int, bool).

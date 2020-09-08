@@ -339,7 +339,7 @@ class Plummer1D(Fittable1DModel):
 
     References
     ----------
-    .. [1] http://adsabs.harvard.edu/full/1911MNRAS..71..460P
+    .. [1] https://ui.adsabs.harvard.edu/abs/1911MNRAS..71..460P
     """
 
     mass = Parameter(default=1.0)
