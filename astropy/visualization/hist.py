@@ -13,7 +13,7 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
     a string specified how bins are computed, the parameters are the same
     as pylab.hist().
 
-    This function was ported from astroML: http://astroml.org/
+    This function was ported from astroML: https://www.astroml.org/
 
     Parameters
     ----------

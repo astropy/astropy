@@ -167,7 +167,7 @@ def test_supergalactic():
     assert allclose(lon0_gal.b.deg, 0, atol=1e-9)
 
     # Test Galactic<->ICRS with some positions that appear in Foley et al. 2008
-    # (http://adsabs.harvard.edu/abs/2008A%26A...484..143F)
+    # (https://ui.adsabs.harvard.edu/abs/2008A%26A...484..143F)
 
     # GRB 021219
     supergalactic = Supergalactic(sgl=29.91*u.degree, sgb=+73.72*u.degree)

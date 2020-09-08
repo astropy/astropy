@@ -3006,7 +3006,7 @@ astropy.wcs
   Earth at the time of the event. The ITRS frame is identified with WCSs that
   use the ``TLON-`` and ``TLAT-`` coordinate types. There are several examples
   of WCSs where this syntax is used to describe terrestrial coordinate systems:
-  Section 7.4.1 of `WCS in FITS "Paper II" <http://adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
+  Section 7.4.1 of `WCS in FITS "Paper II" <https://ui.adsabs.harvard.edu/abs/2002A%26A...395.1077C>`_
   and the `WCSTools documentation <http://tdc-www.harvard.edu/software/wcstools/wcstools.multiwcs.html>`_.
   [#6990]
 
@@ -7713,7 +7713,7 @@ Other Changes and Additions
   cluttering the ``astropy.coordinates`` documentation with increasingly
   irrelevant material.  To see the migration guide, we recommend you simply look
   to the archived documentation for previous versions, e.g.
-  http://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates
+  https://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates
   [#4203]
 
 - In ``astropy.coordinates``, the transformations between GCRS, CIRS,
@@ -9408,7 +9408,7 @@ astropy.table
 - The code base is now fully Python 2 and 3 compatible and no longer requires
   2to3. [#2033]
 
-- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in
+- `funcsigs <https://pypi.org/project/funcsigs>`_ is included in
   utils.compat, but defaults to the inspect module components where available
   (3.3+) [#3151].
 
@@ -10145,7 +10145,7 @@ astropy.config
   configuration items have moved, and some have been changed to science state
   values.  The old locations should continue to work until astropy 0.5, but
   deprecation warnings will be displayed.  See the `Configuration transition
-  <http://docs.astropy.org/en/v0.4/config/config_0_4_transition.html>`_
+  <https://docs.astropy.org/en/v0.4/config/config_0_4_transition.html>`_
   docs for a detailed description of the changes and how to update existing
   code. [#2094]
 
@@ -10339,7 +10339,7 @@ astropy.wcs
   that it could be used as input to "core FITS WCS".  As of astropy
   0.4, ``CRPIX`` is no longer added to the result, so the ``foc``
   space is correct as defined in the `SIP convention
-  <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
+  <https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S>`__. [#2360]
 
 - ``astropy.wcs.UnitConverter``, which was deprecated in astropy
   0.2, has been removed.  Use the ``astropy.units`` module
@@ -10807,7 +10807,7 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Ported all bug fixes from PyFITS 3.2.1.  See the PyFITS changelog at
-  http://pyfits.readthedocs.io/en/v3.2.1/ [#2056]
+  https://pyfits.readthedocs.io/en/v3.2.1/ [#2056]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
@@ -11032,7 +11032,7 @@ New Features
       °
 
   See `handling-unicode
-  <http://docs.astropy.org/en/v0.3/development/codeguide.html#unicode-guidelines>`_
+  <https://docs.astropy.org/en/v0.3/development/codeguide.html#unicode-guidelines>`_
   for more information. [#1441]
 
 - ``astropy.utils.misc.find_api_page`` is now imported into the top-level.
@@ -11313,7 +11313,7 @@ astropy.utils
 astropy.extern.six
 ^^^^^^^^^^^^^^^^^^
 
-- Added `six <https://pypi.python.org/pypi/six/>`_ for python2/python3
+- Added `six <https://pypi.org/project/six/>`_ for python2/python3
   compatibility
 
 - Astropy now uses the ERFA library instead of the IAU SOFA library for

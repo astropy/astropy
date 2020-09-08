@@ -33,7 +33,7 @@ the rest of PyFITS functions without this extension module.
 .. _PyFITS: https://github.com/spacetelescope/pyfits
 .. _Python: https://www.python.org/
 .. _FITS: https://fits.gsfc.nasa.gov/
-.. _Numpy: https://www.numpy.org/
+.. _Numpy: https://numpy.org/
 
 
 What is the development status of PyFITS?
@@ -59,7 +59,7 @@ so patches and issue reports should be posted on the Astropy issue tracker.
 
 The current (and last) stable release is 3.4.0.
 
-.. _Space Telescope Science Institute: http://www.stsci.edu/
+.. _Space Telescope Science Institute: https://www.stsci.edu/
 .. _AURA: https://www.aura-astronomy.org/
 .. _3-clause BSD license: https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22New_BSD_License.22_or_.22Modified_BSD_License.22.29
 .. _GitHub project: https://github.com/spacetelescope/PyFITS

@@ -352,7 +352,7 @@ class Table:
     where each column has a unique identifier and may contain additional
     metadata such as the data unit, format, and description.
 
-    See also: http://docs.astropy.org/en/stable/table/
+    See also: https://docs.astropy.org/en/stable/table/
 
     Parameters
     ----------
@@ -3442,8 +3442,8 @@ class QTable(Table):
 
     See also:
 
-    - http://docs.astropy.org/en/stable/table/
-    - http://docs.astropy.org/en/stable/table/mixin_columns.html
+    - https://docs.astropy.org/en/stable/table/
+    - https://docs.astropy.org/en/stable/table/mixin_columns.html
 
     Parameters
     ----------

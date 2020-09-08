@@ -1272,7 +1272,7 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             # be last, so that its first dimension is the same length as the x
             # coordinates.  This is in line with the expectations of
             # numpy.linalg.lstsq:
-            # http://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.lstsq.html
+            # https://numpy.org/doc/stable/reference/generated/numpy.linalg.lstsq.html
             # That is, each model should be represented by a column.  TODO:
             # Obviously this is a detail of np.linalg.lstsq and should be
             # handled specifically by any fitters that use it...

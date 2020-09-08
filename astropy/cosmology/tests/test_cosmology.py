@@ -381,7 +381,7 @@ def test_flat_z1():
     # calculators on 27th Feb 2012:
 
     # Wright: http://www.astro.ucla.edu/~wright/CosmoCalc.html
-    #         (http://adsabs.harvard.edu/abs/2006PASP..118.1711W)
+    #         (https://ui.adsabs.harvard.edu/abs/2006PASP..118.1711W)
     # Kempner: http://www.kempner.net/cosmic.php
     # iCosmos: http://www.icosmos.co.uk/index.html
 

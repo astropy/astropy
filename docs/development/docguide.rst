@@ -122,7 +122,7 @@ command. Provided that Sphinx is installed, the above command will temporarily
 install sphinx-astropy_ and all its dependencies automatically.
 
 .. _astropy-helpers: https://github.com/astropy/astropy-helpers
-.. _NumPy: https://www.numpy.org/
+.. _NumPy: https://numpy.org/
 .. _numpydoc: https://pypi.org/project/numpydoc/
 .. _Matplotlib: https://matplotlib.org/
 .. _SciPy: https://www.scipy.org/

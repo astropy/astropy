@@ -13,7 +13,7 @@ document being parsed.  A start tag is an example of the kind of
 structures for which you may register handlers.
 
 Windows users should use the
-[`expat_win32` package](https://sourceforge.net/projects/expat/files/expat_win32/),
+[`expat_win32` package](https://sourceforge.io/projects/expat/files/expat_win32/),
 which includes both precompiled libraries and executables, and source code for
 developers.
 

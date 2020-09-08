@@ -507,7 +507,7 @@ These take advantage of the :func:`~astropy.io.ascii.convert_numpy`
 function which returns a two-element tuple ``(converter_func, converter_type)``
 as described in the previous section. The type provided to
 :func:`~astropy.io.ascii.convert_numpy` must be a valid `NumPy type
-<https://docs.scipy.org/doc/numpy/user/basics.types.html>`_ such as
+<https://numpy.org/doc/stable/user/basics.types.html>`_ such as
 ``numpy.int``, ``numpy.uint``, ``numpy.int8``, ``numpy.int64``,
 ``numpy.float``, ``numpy.float64``, or ``numpy.str``.
 

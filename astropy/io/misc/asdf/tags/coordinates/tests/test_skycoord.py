@@ -13,7 +13,7 @@ from asdf.tests.helpers import assert_roundtrip_tree
 
 
 # These tests are cribbed directly from the Examples section of
-# http://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html
+# https://docs.astropy.org/en/stable/api/astropy.coordinates.SkyCoord.html
 
 
 def test_scalar_skycoord(tmpdir):

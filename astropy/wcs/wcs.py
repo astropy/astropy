@@ -217,7 +217,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
     on the WCS keywords and supplementary data read from a FITS file.
 
-    See also: http://docs.astropy.org/en/stable/wcs/
+    See also: https://docs.astropy.org/en/stable/wcs/
 
     Parameters
     ----------

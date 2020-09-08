@@ -330,7 +330,7 @@ class Time(ShapedLikeNDArray):
        'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
        'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
 
-    See also: http://docs.astropy.org/en/stable/time/
+    See also: https://docs.astropy.org/en/stable/time/
 
     Parameters
     ----------
@@ -2100,8 +2100,8 @@ class TimeDelta(Time):
 
     See also:
 
-    - http://docs.astropy.org/en/stable/time/
-    - http://docs.astropy.org/en/stable/time/index.html#time-deltas
+    - https://docs.astropy.org/en/stable/time/
+    - https://docs.astropy.org/en/stable/time/index.html#time-deltas
 
     Parameters
     ----------

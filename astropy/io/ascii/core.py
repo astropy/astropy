@@ -860,7 +860,7 @@ def convert_numpy(numpy_type):
     ----------
     numpy_type : numpy data-type
         The numpy type required of an array returned by ``converter``. Must be a
-        valid `numpy type <https://docs.scipy.org/doc/numpy/user/basics.types.html>`_
+        valid `numpy type <https://numpy.org/doc/stable/user/basics.types.html>`_
         (e.g., numpy.uint, numpy.int8, numpy.int64, numpy.float64) or a python
         type covered by a numpy type (e.g., int, float, str, bool).
 

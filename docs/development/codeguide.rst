@@ -544,7 +544,7 @@ Further tips and hints relating to the coding guidelines are included below.
 
     codeguide_emacs
 
-.. _Numpy: https://www.numpy.org/
+.. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/

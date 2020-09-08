@@ -410,7 +410,7 @@ personal computers.
 If at this point you want to preserve all of the changes you made and write it
 to a new file, you can use the :meth:`HDUList.writeto` method (see below).
 
-.. _Numpy documentation: https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+.. _Numpy documentation: https://numpy.org/doc/stable/reference/arrays.indexing.html
 
 .. topic:: Examples:
 
@@ -654,7 +654,7 @@ numbers::
 
     It is not necessary to create a :class:`Column` object explicitly
     if the data is stored in a
-    `structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_.
+    `structured array <https://numpy.org/doc/stable/user/basics.rec.html>`_.
 
 Next, create a :class:`ColDefs` (column-definitions) object for all columns::
 

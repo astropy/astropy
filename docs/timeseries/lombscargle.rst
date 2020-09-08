@@ -15,8 +15,8 @@ The code here is adapted from the `astroml`_ package ([4]_, [5]_) and the `gatsp
 For a detailed practical discussion of the lomb-scargle periodogram, with code
 examples based on astropy, see *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at https://github.com/jakevdp/PracticalLombScargle/.
 
-.. _gatspy: http://www.astroml.org/gatspy/
-.. _astroml: http://astroml.org/
+.. _gatspy: https://www.astroml.org/gatspy/
+.. _astroml: https://www.astroml.org/
 
 
 Basic Usage
@@ -858,5 +858,5 @@ Literature References
        periodogram. A new formalism for the floating-mean and Keplerian
        periodograms*, A&A 496, 577-584 (2009)
 .. [11] VanderPlas, J. *Understanding the Lomb-Scargle Periodogram*
-	arXiv:1703.09824 (2017)
-	http://adsabs.harvard.edu/abs/2017arXiv170309824V
+	ApJS 236.1:16 (2018)
+	https://ui.adsabs.harvard.edu/abs/2018ApJS..236...16V

@@ -29,7 +29,7 @@ wrapper function and an associated set of classes to provide alternate scalings.
 The SDSS SkyServer color images were made using a variation on this technique.
 To generate a color PNG file with the default (arcsinh) scaling:
 
-.. _Lupton et al. (2004): http://adsabs.harvard.edu/abs/2004PASP..116..133L
+.. _Lupton et al. (2004): https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 
 .. plot::
     :include-source:

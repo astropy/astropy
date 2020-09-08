@@ -39,7 +39,7 @@ doc_footer = """
     -----
     .. [1] Blaauw, A.; Gum, C. S.; Pawsey, J. L.; Westerhout, G. (1960), "The
        new I.A.U. system of galactic coordinates (1958 revision),"
-       `MNRAS, Vol 121, pp.123 <http://adsabs.harvard.edu/abs/1960MNRAS.121..123B>`_.
+       `MNRAS, Vol 121, pp.123 <https://ui.adsabs.harvard.edu/abs/1960MNRAS.121..123B>`_.
 """
 
 

@@ -494,7 +494,7 @@ class TestRunner(TestRunnerBase):
                 import pytest_pep8  # pylint: disable=W0611
             except ImportError:
                 raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
-                                  'http://pypi.python.org/pypi/pytest-pep8')
+                                  'https://pypi.org/project/pytest-pep8')
             else:
                 return ['--pep8', '-k', 'pep8']
 
