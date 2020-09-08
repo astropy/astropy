@@ -9,6 +9,6 @@ Contributions from the community are encouraged!
 
 Longer-form tutorials (or tutorials for
 `affiliated packages <http://affiliated.astropy.org>`_) belong at
-http://tutorials.astropy.org (and can be submitted at
+https://learn.astropy.org (and can be submitted at
 `the associated github repository <https://github.com/astropy/astropy-tutorials>`_).
 

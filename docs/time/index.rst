@@ -204,7 +204,7 @@ datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2
    these are translated to the formal names upon initialization. Furthermore,
    any specific realization information, such as ``UT(NIST)`` is stored only as
    long as the time scale is not changed.
-.. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
+.. [#] `Rots et al. 2015, A&A 574:A36 <https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
 
 Changing Format
 """""""""""""""
@@ -796,7 +796,7 @@ To set one or more items as missing, assign the special value
    similar to how `Pandas missing data
    <https://pandas.pydata.org/pandas-docs/stable/missing_data.html>`_ works,
    but somewhat different from `NumPy masked arrays
-   <https://docs.scipy.org/doc/numpy/reference/maskedarray.html>`_ which
+   <https://numpy.org/doc/stable/reference/maskedarray.html>`_ which
    maintain a separate mask array and retain the underlying data. In the
    |Time| object the ``mask`` attribute is read-only and cannot be directly set.
 

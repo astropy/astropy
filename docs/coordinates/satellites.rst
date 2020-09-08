@@ -29,7 +29,7 @@ Finding TEME Coordinates from TLE Data
 
 There is currently no support in `astropy.coordinates` for computing satellite orbits
 from TLE orbital element sets. Full support for handling TLE files is available in
-the `Skyfield <http://rhodesmill.org/skyfield/>`_ library, but some advice for dealing
+the `Skyfield <https://rhodesmill.org/skyfield/>`_ library, but some advice for dealing
 with satellite data in ``astropy`` is below.
 
 .. EXAMPLE START Using sgp4 to get a TEME coordinate

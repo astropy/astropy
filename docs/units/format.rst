@@ -201,7 +201,7 @@ Normally, passing an unrecognized unit string raises an exception::
   or angstrom? If this is meant to be a custom unit, define it with
   'u.def_unit'. To have it recognized inside a file reader or other
   code, enable it with 'u.add_enabled_units'. For details, see
-  http://docs.astropy.org/en/latest/units/combining_and_defining.html
+  https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
 However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control

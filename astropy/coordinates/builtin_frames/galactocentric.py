@@ -106,7 +106,7 @@ class galactocentric_frame_defaults(ScienceState):
         params['galcen_coord'] = ICRS(ra=266.4051*u.degree,
                                       dec=-28.936175*u.degree)
         references['galcen_coord'] = \
-            'http://adsabs.harvard.edu/abs/2004ApJ...616..872R'
+            'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R'
 
         # The roll angle is the same for both frames:
         params['roll'] = 0 * u.deg

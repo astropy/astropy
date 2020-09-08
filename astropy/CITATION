@@ -7,7 +7,7 @@ the following acknowledgment:
 
 where (Astropy Collaboration, 2018) is a citation to this paper:
 
-  http://adsabs.harvard.edu/abs/2018AJ....156..123T
+  https://ui.adsabs.harvard.edu/abs/2018AJ....156..123T
 
 An earlier paper is also available describing the status of the package at
 the time of v0.2. If you have used Astropy for a long time, you are
@@ -18,7 +18,7 @@ encouraged to acknowledge both papers:
 
 where (Astropy Collaboration, 2013) is a citation to this paper:
 
-  http://adsabs.harvard.edu/abs/2013A%26A...558A..33A
+  https://ui.adsabs.harvard.edu/abs/2013A%26A...558A..33A
 
 We encourage you to also include citations to the papers in the main text
 wherever appropriate.
@@ -80,7 +80,7 @@ archivePrefix = "arXiv",
       eid = {123},
     pages = {123},
       doi = {10.3847/1538-3881/aabc4f},
-   adsurl = {http://adsabs.harvard.edu/abs/2018AJ....156..123T},
+   adsurl = {https://ui.adsabs.harvard.edu/abs/2018AJ....156..123T},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 
@@ -107,6 +107,6 @@ archivePrefix = "arXiv",
       eid = {A33},
     pages = {A33},
       doi = {10.1051/0004-6361/201322068},
-   adsurl = {http://adsabs.harvard.edu/abs/2013A%26A...558A..33A},
+   adsurl = {https://ui.adsabs.harvard.edu/abs/2013A%26A...558A..33A},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }

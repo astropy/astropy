@@ -447,16 +447,15 @@ It can also be used for in-place conversion::
 Subclassing Quantity
 ====================
 
-To subclass |quantity|, one generally proceeds as one would when subclassing
-:class:`~numpy.ndarray`, i.e., one typically needs to override ``__new__``
-(rather than ``__init__``) and uses the ``numpy.ndarray.__array_finalize__``
-method to update attributes.  For details, see the `numpy documentation on
-subclassing
-<https://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`__.  For
-examples, one can look at |quantity| itself, where, e.g., the
-``astropy.units.Quantity.__array_finalize__`` method is used to pass on the
-``unit``, at :class:`~astropy.coordinates.Angle`, where strings are parsed
-as angles in the ``astropy.coordinates.Angle.__new__`` method and at
+To subclass |Quantity|, you generally proceed as you would when subclassing
+:class:`~numpy.ndarray` (i.e., you typically need to override ``__new__``,
+rather than ``__init__``, and use the ``numpy.ndarray.__array_finalize__``
+method to update attributes). For details, see the `NumPy documentation on
+subclassing <https://numpy.org/doc/stable/user/basics.subclassing.html>`_.
+To get a sense of what is involved, have a look at |Quantity| itself, where, for
+example, the ``astropy.units.Quantity.__array_finalize__`` method is used to
+pass on the ``unit``, at :class:`~astropy.coordinates.Angle`, where strings are
+parsed as angles in the ``astropy.coordinates.Angle.__new__`` method and at
 :class:`~astropy.coordinates.Longitude`, where the
 ``astropy.coordinates.Longitude.__array_finalize__`` method is used to pass
 on the angle at which longitudes wrap.

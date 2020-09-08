@@ -30,7 +30,7 @@ class TimeSeries(BaseTimeSeries):
     for folding time series, and a ``time`` attribute for easy access to the
     time values.
 
-    See also: http://docs.astropy.org/en/stable/timeseries/
+    See also: https://docs.astropy.org/en/stable/timeseries/
 
     Parameters
     ----------
@@ -322,7 +322,7 @@ class TimeSeries(BaseTimeSeries):
 
         This method uses the unified I/O infrastructure in Astropy which makes
         it easy to define readers/writers for various classes
-        (http://docs.astropy.org/en/stable/io/unified.html). By default, this
+        (https://docs.astropy.org/en/stable/io/unified.html). By default, this
         method will try and use readers defined specifically for the
         `astropy.timeseries.TimeSeries` class - however, it is also
         possible to use the ``format`` keyword to specify formats defined for

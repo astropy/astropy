@@ -261,7 +261,7 @@ Note that you do **not** need to install the full XCode distribution (assuming
 you are using MacOS X 10.9 or later).
 
 The `instructions for building NumPy from source
-<https://docs.scipy.org/doc/numpy/user/building.html>`_ are a good
+<https://numpy.org/doc/stable/user/building.html>`_ are a good
 resource for setting up your environment to build Python packages.
 
 Obtaining the Source Packages
@@ -394,7 +394,7 @@ Building Documentation
     Building the documentation is in general not necessary unless you are
     writing new documentation or do not have internet access, because
     the latest (and archive) versions of Astropy's documentation should
-    be available at `docs.astropy.org <http://docs.astropy.org>`_ .
+    be available at `docs.astropy.org <https://docs.astropy.org>`_ .
 
 Dependencies
 ^^^^^^^^^^^^

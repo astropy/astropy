@@ -12,7 +12,7 @@ Slicing the WCS object
 
 Like the example introduced in :ref:`initialization`, we will read in the
 data using `astropy.io.fits
-<http://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
+<https://docs.astropy.org/en/stable/io/fits/index.html>`_ and parse the WCS
 information. The original FITS file can be downloaded from `here
 <http://www.astropy.org/astropy-data/l1448/l1448_13co.fits>`_.
 

@@ -10,7 +10,7 @@ table by using the ``numpy.ma`` masked array package to define masked columns
 and by supporting :ref:`mixin_columns` that provide masking. This allows
 handling tables with missing or invalid entries in much the same manner as for
 standard (unmasked) tables. It is useful to be familiar with the `masked array
-<https://docs.scipy.org/doc/numpy/reference/maskedarray.generic.html>`_
+<https://numpy.org/doc/stable/reference/maskedarray.generic.html>`_
 documentation when using masked tables within `astropy.table`.
 
 In a nutshell, the concept is to define a boolean mask that mirrors
@@ -20,7 +20,7 @@ Operations involving column or row access and slicing are unchanged.
 The key difference is that arithmetic or reduction operations involving
 columns or column slices follow the rules for `operations
 on masked arrays
-<https://docs.scipy.org/doc/numpy/reference/maskedarray.generic.html#operations-on-masked-arrays>`_.
+<https://numpy.org/doc/stable/reference/maskedarray.generic.html#operations-on-masked-arrays>`_.
 
 .. Important:: Changes in ``astropy`` 4.0
 
@@ -34,7 +34,7 @@ on masked arrays
    the behavior of the floating point ``NaN``, for which the sum of an
    array including one or more ``NaN's`` will result in ``NaN``.
 
-   See `this page <https://www.numpy.org/neps/>`_ for information on NumPy
+   See `this page <https://numpy.org/neps/>`_ for information on NumPy
    Enhancement Proposals 24, 25, and 26.
 
 Table Creation

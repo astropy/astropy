@@ -96,7 +96,7 @@ def test_against_hor2eq():
 def test_against_pyephem():
     """Check that Astropy gives consistent results with one PyEphem example.
 
-    PyEphem: http://rhodesmill.org/pyephem/
+    PyEphem: https://rhodesmill.org/pyephem/
 
     See example input and output here:
     https://gist.github.com/zonca/1672906

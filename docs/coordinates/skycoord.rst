@@ -912,7 +912,7 @@ in a |SkyCoord| object. Here, a randomly generated data set will be used.
 
 First we need to import the required packages. We use
 `matplotlib <https://matplotlib.org/>`_ here for
-plotting and `numpy <https://www.numpy.org/>`_  to get the value of pi and to
+plotting and `numpy <https://numpy.org/>`_  to get the value of pi and to
 generate our random data.
 
     >>> from astropy import units as u
@@ -966,7 +966,7 @@ its usual position to avoid overlap with the axis labels.
 
     # First we need to import the required packages. We use
     # `matplotlib <https://matplotlib.org/>`_ here for
-    # plotting and `numpy <https://www.numpy.org/>`_  to get the value of pi and to
+    # plotting and `numpy <https://numpy.org/>`_  to get the value of pi and to
     # generate our random data.
     from astropy import units as u
     from astropy.coordinates import SkyCoord

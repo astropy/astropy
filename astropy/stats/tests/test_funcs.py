@@ -590,7 +590,7 @@ def test_scipy_poisson_limit():
 
     Test numbers are from table1 1, 3 in
     Kraft, Burrows and Nousek in
-    `ApJ 374, 344 (1991) <http://adsabs.harvard.edu/abs/1991ApJ...374..344K>`_
+    `ApJ 374, 344 (1991) <https://ui.adsabs.harvard.edu/abs/1991ApJ...374..344K>`_
     '''
     assert_allclose(funcs._scipy_kraft_burrows_nousek(5., 2.5, .99),
                     (0, 10.67), rtol=1e-3)

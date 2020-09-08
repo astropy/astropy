@@ -807,7 +807,7 @@ Time as a dimension in astronomical data presents challenges in its
 representation in FITS files. The standard has therefore been extended to
 describe rigorously the time coordinate in the ``World Coordinate System``
 framework. Refer to `FITS WCS paper IV
-<http://adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ for details.
+<https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R/>`_ for details.
 
 Allowing ``Time`` columns to be written as time coordinate
 columns in FITS tables thus involves storing time values in a way that

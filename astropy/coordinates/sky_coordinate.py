@@ -163,7 +163,7 @@ class SkyCoord(ShapedLikeNDArray):
     argument ``representation_type='cartesian'`` (for example) along with data
     in ``x``, ``y``, and ``z``.
 
-    See also: http://docs.astropy.org/en/stable/coordinates/
+    See also: https://docs.astropy.org/en/stable/coordinates/
 
     Examples
     --------

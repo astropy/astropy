@@ -113,7 +113,7 @@ In addition, the sphinx-astropy_ includes a few small extensions:
 * ``sphinx_astropy.ext.doctest`` - an extension that makes it possible to
   add metadata about doctests inside ``.rst`` files
 
-.. _NumPy: https://www.numpy.org/
+.. _NumPy: https://numpy.org/
 .. _numpydoc: https://pypi.org/project/numpydoc/
 .. _Matplotlib: https://matplotlib.org/
 .. _SciPy: https://www.scipy.org/

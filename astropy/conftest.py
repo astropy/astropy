@@ -123,6 +123,6 @@ def pytest_terminal_summary(terminalreporter):
         'especially, but not limited to tests involving logging and warning '
         'handling.  Unless you are certain as to the cause of the failure, '
         'please check that the failure occurs outside IPython as well.  See '
-        'http://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
+        'https://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
         'tests-when-running-the-tests-in-ipython for more information.',
         yellow=True, bold=True)

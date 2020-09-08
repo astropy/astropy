@@ -4,7 +4,7 @@ Combine 3 images to produce a properly-scaled RGB image following Lupton et al. 
 
 The three images must be aligned and have the same pixel scale and size.
 
-For details, see : http://adsabs.harvard.edu/abs/2004PASP..116..133L
+For details, see : https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 """
 
 import numpy as np
@@ -225,7 +225,7 @@ class AsinhMapping(Mapping):
 
     This reduces to a linear stretch if Q == 0
 
-    See http://adsabs.harvard.edu/abs/2004PASP..116..133L
+    See https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L
 
     Parameters
     ----------
