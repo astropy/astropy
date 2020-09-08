@@ -545,6 +545,8 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         has_fixed = any(model_copy.fixed.values())
 
+        # This is also done by _convert_inputs, but we need it here to allow
+        # checking the array dimensionality before that gets called:
         if weights is not None:
             weights = np.asarray(weights, dtype=float)
 
@@ -565,11 +567,15 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         if len(farg) == 2:
             x, y = farg
 
-            if weights is not None and weights.ndim > 1:
-                # If we have separate weights for multiple models we need
-                # to apply the same conversion as for the data.
-                _, weights = _convert_input(x, weights, n_models=len(model_copy),
-                                            model_set_axis=model_copy.model_set_axis)
+            if weights is not None:
+                # If we have separate weights for each model, apply the same
+                # conversion as for the data, otherwise check common weights
+                # as if for a single model:
+                _, weights = _convert_input(
+                    x, weights,
+                    n_models=len(model_copy) if weights.ndim == y.ndim else 1,
+                    model_set_axis=model_copy.model_set_axis
+                )
 
             # map domain into window
             if hasattr(model_copy, 'domain'):
@@ -586,11 +592,15 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         else:
             x, y, z = farg
 
-            if weights is not None and weights.ndim > 2:
-                # If we have separate weights for multiple models we need
-                # to apply the same conversion as for the data.
-                _, _, weights = _convert_input(x, y, weights, n_models=len(model_copy),
-                                               model_set_axis=model_copy.model_set_axis)
+            if weights is not None:
+                # If we have separate weights for each model, apply the same
+                # conversion as for the data, otherwise check common weights
+                # as if for a single model:
+                _, _, weights = _convert_input(
+                    x, y, weights,
+                    n_models=len(model_copy) if weights.ndim == z.ndim else 1,
+                    model_set_axis=model_copy.model_set_axis
+                )
 
             # map domain into window
             if hasattr(model_copy, 'x_domain'):
@@ -628,9 +638,14 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 if weights is not None:
                     # Same for weights
                     if weights.ndim > 2:
+                        # Separate 2D weights for each model:
                         weights = np.rollaxis(weights, model_axis, weights.ndim)
                         weights = weights.reshape(-1, weights.shape[-1])
+                    elif weights.ndim == z.ndim:
+                        # Separate, flattened weights for each model:
+                        weights = weights.T if model_axis == 0 else weights
                     else:
+                        # Common weights for all the models:
                         weights = weights.flatten()
             else:
                 rhs = z.flatten()
@@ -670,8 +685,6 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
-            if len(lhs) != len(weights):
-                raise ValueError("x and weights should have the same length")
 
             if rhs.ndim == 2:
                 if weights.shape == rhs.shape:
@@ -1532,11 +1545,15 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
     if n_models > 1:
+        data_shape = y.shape if z is None else z.shape
+        if model_set_axis >= len(data_shape):
+            raise ValueError("model_set_axis out of range")
+        if data_shape[model_set_axis] != n_models:
+            raise ValueError(
+                "Number of data sets (y or z array) is expected to equal "
+                "the number of parameter sets"
+            )
         if z is None:
-            if y.shape[model_set_axis] != n_models:
-                raise ValueError(
-                    "Number of data sets (y array is expected to equal "
-                    "the number of parameter sets)")
             # For a 1-D model the y coordinate's model-set-axis is expected to
             # be last, so that its first dimension is the same length as the x
             # coordinates.  This is in line with the expectations of
@@ -1546,16 +1563,23 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             # Obviously this is a detail of np.linalg.lstsq and should be
             # handled specifically by any fitters that use it...
             y = np.rollaxis(y, model_set_axis, y.ndim)
+            y_shape = y.shape[:-1]
         else:
             # Shape of z excluding model_set_axis
             z_shape = z.shape[:model_set_axis] + z.shape[model_set_axis + 1:]
-
-            if not (x.shape == y.shape == z_shape):
-                raise ValueError("x, y and z should have the same shape")
+    else:
+        if z is None:
+            y_shape = y.shape
+        else:
+            z_shape = z.shape
 
     if z is None:
+        if y_shape != x.shape:
+            raise ValueError("x and y should have the same shape")
         farg = (x, y)
     else:
+        if not (x.shape == y.shape == z_shape):
+            raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
     return farg
 
