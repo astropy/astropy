@@ -27,7 +27,7 @@ directly with::
 
 For more information, see:
 
-  http://docs.astropy.org/en/latest/development/testguide.html#running-tests
+  https://docs.astropy.org/en/latest/development/testguide.html#running-tests
 """
 
 if 'test' in sys.argv:
@@ -52,7 +52,7 @@ You can also build the documentation with Sphinx directly using::
 
 For more information, see:
 
-  http://docs.astropy.org/en/latest/install.html#builddocs
+  https://docs.astropy.org/en/latest/install.html#builddocs
 """
 
 if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:

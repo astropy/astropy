@@ -19,7 +19,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 # The following is based on the FITS WCS Paper IV, "Representations of time
 # coordinates in FITS".
-# http://adsabs.harvard.edu/abs/2015A%26A...574A..36R
+# https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R
 
 
 # FITS WCS standard specified "4-3" form for non-linear coordinate types

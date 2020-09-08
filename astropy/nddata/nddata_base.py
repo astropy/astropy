@@ -16,7 +16,7 @@ class NDDataBase(metaclass=ABCMeta):
     `NDData` for a subclass that defines this interface on `numpy.ndarray`-like
     ``data``.
 
-    See also: http://docs.astropy.org/en/stable/nddata/
+    See also: https://docs.astropy.org/en/stable/nddata/
 
     """
 

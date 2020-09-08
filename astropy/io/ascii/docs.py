@@ -7,8 +7,8 @@ READ_DOCSTRING = """
 
     See also:
 
-    - http://docs.astropy.org/en/stable/io/ascii/
-    - http://docs.astropy.org/en/stable/io/ascii/read.html
+    - https://docs.astropy.org/en/stable/io/ascii/
+    - https://docs.astropy.org/en/stable/io/ascii/read.html
 
     Parameters
     ----------
@@ -124,8 +124,8 @@ WRITE_DOCSTRING = """
 
     See also:
 
-    - http://docs.astropy.org/en/stable/io/ascii/
-    - http://docs.astropy.org/en/stable/io/ascii/write.html
+    - https://docs.astropy.org/en/stable/io/ascii/
+    - https://docs.astropy.org/en/stable/io/ascii/write.html
 
     Parameters
     ----------

@@ -144,7 +144,7 @@ See Also
     The statsmodels package provides functionality for estimating
     different statistical models, tests, and data exploration.
 
-* `astroML <http://www.astroml.org/>`_
+* `astroML <https://www.astroml.org/>`_
     The astroML package is a Python module for machine learning and
     data mining. Some of the tools from this package have been
     migrated here, but there are still a number of tools there that

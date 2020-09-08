@@ -2,7 +2,7 @@
 Emacs setup for following coding guidelines
 *******************************************
 
-.. _flycheck: http://www.flycheck.org/
+.. _flycheck: https://www.flycheck.org/
 .. _flake8: http://flake8.pycqa.org/
 
 The Astropy coding guidelines are listed in :doc:`codeguide`. Here, we describe

@@ -25,7 +25,7 @@ class TableRead(registry.UnifiedReadWrite):
       >>> Table.read.help('fits')  # Get detailed help on Table FITS reader
       >>> Table.read.list_formats()  # Print list of available formats
 
-    See also: http://docs.astropy.org/en/stable/io/unified.html
+    See also: https://docs.astropy.org/en/stable/io/unified.html
 
     Parameters
     ----------
@@ -98,9 +98,9 @@ class TableWrite(registry.UnifiedReadWrite):
 
     The ``serialize_method`` argument is explained in the section on
     `Table serialization methods
-    <http://docs.astropy.org/en/latest/io/unified.html#table-serialization-methods>`_.
+    <https://docs.astropy.org/en/latest/io/unified.html#table-serialization-methods>`_.
 
-    See also: http://docs.astropy.org/en/stable/io/unified.html
+    See also: https://docs.astropy.org/en/stable/io/unified.html
 
     Parameters
     ----------
