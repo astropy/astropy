@@ -432,7 +432,7 @@ dependencies, including:
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
-   as a conda package or a system install but not in pip)
+  as a conda package or a system install but not in pip)
 
 .. Note::
     Both of the ``pip`` install methods above do not include `Graphviz
