@@ -28,6 +28,8 @@ jobs:
         pypi_connection_name : 'pypi_endpoint'
       targets:
       - sdist
-      - wheels_linux
+      - wheels_*linux_i686
+      - wheels_*linux_x86_64
       - wheels_macos
-      - wheels_windows
+      - wheels_*win32
+      - wheels_*win_amd64
