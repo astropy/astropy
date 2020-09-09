@@ -1541,12 +1541,14 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 
     if z is not None:
         z = np.asanyarray(z, dtype=float)
+        data_ndim, data_shape = z.ndim, z.shape
+    else:
+        data_ndim, data_shape = y.ndim, y.shape
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
-    if n_models > 1:
-        data_shape = y.shape if z is None else z.shape
-        if model_set_axis >= len(data_shape):
+    if n_models > 1 or data_ndim > x.ndim:
+        if (model_set_axis or 0) >= data_ndim:
             raise ValueError("model_set_axis out of range")
         if data_shape[model_set_axis] != n_models:
             raise ValueError(
@@ -1563,22 +1565,18 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             # Obviously this is a detail of np.linalg.lstsq and should be
             # handled specifically by any fitters that use it...
             y = np.rollaxis(y, model_set_axis, y.ndim)
-            y_shape = y.shape[:-1]
+            data_shape = y.shape[:-1]
         else:
             # Shape of z excluding model_set_axis
-            z_shape = z.shape[:model_set_axis] + z.shape[model_set_axis + 1:]
-    else:
-        if z is None:
-            y_shape = y.shape
-        else:
-            z_shape = z.shape
+            data_shape = (z.shape[:model_set_axis] +
+                          z.shape[model_set_axis + 1:])
 
     if z is None:
-        if y_shape != x.shape:
+        if data_shape != x.shape:
             raise ValueError("x and y should have the same shape")
         farg = (x, y)
     else:
-        if not (x.shape == y.shape == z_shape):
+        if not (x.shape == y.shape == data_shape):
             raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
     return farg
