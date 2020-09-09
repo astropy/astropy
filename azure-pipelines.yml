@@ -20,7 +20,7 @@ trigger:
 jobs:
   - template: publish.yml@OpenAstronomy
     parameters:
-      test_command: pytest -p no:warnings --pyargs astropy
+      test_command: pytest -p no:warnings --astropy-header --pyargs astropy
       test_extras: test
       ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/v') }}:
         pypi_connection_name : 'pypi_endpoint'
