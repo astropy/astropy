@@ -1,0 +1,31 @@
+variables:
+  CIBW_BUILD: cp36-* cp37-* cp38-*
+
+resources:
+  repositories:
+  - repository: OpenAstronomy
+    type: github
+    endpoint: astropy
+    name: OpenAstronomy/azure-pipelines-templates
+    ref: master
+
+trigger:
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - 'v*'
+
+jobs:
+  - template: publish.yml@OpenAstronomy
+    parameters:
+      test_command: pytest -p no:warnings --pyargs astropy
+      test_extras: test
+      ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/v') }}:
+        pypi_connection_name : 'pypi_endpoint'
+      targets:
+      - sdist
+      - wheels_linux
+      - wheels_macos
+      - wheels_windows
