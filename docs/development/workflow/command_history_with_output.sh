@@ -71,7 +71,7 @@ Finished processing dependencies for astropy==0.4.dev6873
 # Check setup by running tests
 #
 $ cd astropy/coordinates/tests    # get ready to run coordinate tests
-$ py.test                         # test
+$ pytest                          # test
 ============================= test session starts ==============================
 platform darwin -- Python 2.7.6 -- pytest-2.4.2
 
@@ -127,7 +127,7 @@ test_api.py                test_transformations.py
 #
 # After edit, re-test
 #
-$ py.test test_arrays.py # Hopefully this FAILS--we are trying to expose bug
+$ pytest test_arrays.py # Hopefully this FAILS--we are trying to expose bug
 
 Running tests with Astropy version 0.4.dev6873.
 Running tests in test_arrays.py.
@@ -226,7 +226,7 @@ $ git commit -m'Add test for array coordinate length (issue #1761)'
 #
 # Test change
 #
-$ py.test test_arrays.py   # Did our fix actually fix the problem?
+$ pytest test_arrays.py   # Did our fix actually fix the problem?
 ============================= test session starts ==============================
 platform darwin -- Python 2.7.6 -- pytest-2.4.2
 
@@ -260,7 +260,7 @@ test_arrays.py .............
 # Great! We fixed it!
 #
 # Run all of the coordinate tests to make sure we broke nothing...
-$ py.test                        # do all of the coordinate tests pass?
+$ pytest                         # do all of the coordinate tests pass?
 ============================= test session starts ==============================
 platform darwin -- Python 2.7.6 -- pytest-2.4.2
 
@@ -362,7 +362,7 @@ $ cd astropy/coordinates/tests   # back to add more tests
 #
 # Now re-test
 #
-$ py.test test_arrays.py  # do these tests pass with the new tests?
+$ pytest test_arrays.py  # do these tests pass with the new tests?
 ============================= test session starts ==============================
 platform darwin -- Python 2.7.6 -- pytest-2.4.2
 
