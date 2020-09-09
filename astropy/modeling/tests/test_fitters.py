@@ -1033,6 +1033,103 @@ def test_linear_fitter_with_weights_flat():
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
 
 
+class Test1ModelSet:
+    """
+    Check that fitting a single model works with a length-1 model set axis.
+    It's not clear that this was originally intended usage, but it can be
+    convenient, eg. when fitting a range of image rows that may be a single
+    row, and some existing scripts might rely on it working.
+    Currently this does not work with FittingWithOutlierRemoval.
+    """
+
+    def setup_class(self):
+        self.x1 = np.arange(0, 10)
+        self.y1 = np.array([0.5 + 2.5*self.x1])
+        self.w1 = np.ones((10,))
+        self.y1[0,8] = 100.
+        self.w1[8] = 0.
+        self.y2, self.x2 = np.mgrid[0:10, 0:10]
+        self.z2 = np.array([1 - 0.1*self.x2 + 0.2*self.y2])
+        self.w2 = np.ones((10, 10))
+        self.z2[0,1,2] = 100.
+        self.w2[1,2] = 0.
+
+    def test_linear_1d_common_weights(self):
+        model = models.Polynomial1D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x1, self.y1, weights=self.w1)
+        assert_allclose(model.c0, 0.5, atol=1e-12)
+        assert_allclose(model.c1, 2.5, atol=1e-12)
+
+    def test_linear_1d_separate_weights(self):
+        model = models.Polynomial1D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x1, self.y1,
+                       weights=self.w1[np.newaxis, ...])
+        assert_allclose(model.c0, 0.5, atol=1e-12)
+        assert_allclose(model.c1, 2.5, atol=1e-12)
+
+    def test_linear_1d_separate_weights_axis_1(self):
+        model = models.Polynomial1D(1, model_set_axis=1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x1, self.y1.T,
+                       weights=self.w1[..., np.newaxis])
+        assert_allclose(model.c0, 0.5, atol=1e-12)
+        assert_allclose(model.c1, 2.5, atol=1e-12)
+
+    def test_linear_2d_common_weights(self):
+        model = models.Polynomial2D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x2, self.y2, self.z2, weights=self.w2)
+        assert_allclose(model.c0_0, 1., atol=1e-12)
+        assert_allclose(model.c1_0, -0.1, atol=1e-12)
+        assert_allclose(model.c0_1, 0.2, atol=1e-12)
+
+    def test_linear_2d_separate_weights(self):
+        model = models.Polynomial2D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x2, self.y2, self.z2,
+                       weights=self.w2[np.newaxis, ...])
+        assert_allclose(model.c0_0, 1., atol=1e-12)
+        assert_allclose(model.c1_0, -0.1, atol=1e-12)
+        assert_allclose(model.c0_1, 0.2, atol=1e-12)
+
+    def test_linear_2d_separate_weights_axis_2(self):
+        model = models.Polynomial2D(1, model_set_axis=2)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x2, self.y2, np.rollaxis(self.z2, 0, 3),
+                       weights=self.w2[..., np.newaxis])
+        assert_allclose(model.c0_0, 1., atol=1e-12)
+        assert_allclose(model.c1_0, -0.1, atol=1e-12)
+        assert_allclose(model.c0_1, 0.2, atol=1e-12)
+
+    # # The following 2 cases also happen to work, but model set fitting is
+    # # only supported by the linear fitter so I've left them commented out
+    # # for now.
+    #
+    # def test_levmar_2d_separate_weights(self):
+    #     model = models.Polynomial2D(1)
+    #     fitter = LevMarLSQFitter()
+    #     with pytest.warns(AstropyUserWarning,
+    #                       match=r'Model is linear in parameters'):
+    #         model = fitter(model, self.x2, self.y2, self.z2,
+    #                        weights=self.w2[np.newaxis, ...])
+    #     assert_allclose(model.c0_0, 1., atol=1e-12)
+    #     assert_allclose(model.c1_0, -0.1, atol=1e-12)
+    #     assert_allclose(model.c0_1, 0.2, atol=1e-12)
+    #
+    # def test_slsqp_2d_separate_weights(self):
+    #     model = models.Polynomial2D(1)
+    #     fitter = SLSQPLSQFitter()
+    #     with pytest.warns(AstropyUserWarning,
+    #                       match=r'Model is linear in parameters'):
+    #         model = fitter(model, self.x2, self.y2, self.z2,
+    #                        weights=self.w2[np.newaxis, ...])
+    #     assert_allclose(model.c0_0, 1., rtol=1e-6, atol=1e-12)
+    #     assert_allclose(model.c1_0, -0.1, rtol=1e-6, atol=1e-12)
+    #     assert_allclose(model.c0_1, 0.2, rtol=1e-6, atol=1e-12)
+
+
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
 def test_fitters_interface():
