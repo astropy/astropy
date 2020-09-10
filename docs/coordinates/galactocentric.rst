@@ -13,7 +13,7 @@ The `~astropy.coordinates.Galactocentric` frame
 class is meant to be flexible enough to support all common definitions of such a
 transformation, but with reasonable default parameter values, such as the solar
 velocity relative to the Galactic center, the solar height above the Galactic
-midplane, etc. Below, `we decribe our generalized definition of the
+midplane, etc. Below, `we describe our generalized definition of the
 transformation <astropy-coordinates-galactocentric-transformation>`_ from the
 ICRS to/from Galactocentric coordinates, and `describe how to customize the
 default Galactocentric parameters

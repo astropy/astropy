@@ -20,11 +20,6 @@ accessed through the ``python setup.py test`` command.
 
 .. _pytest: https://pytest.org/en/latest/
 
-.. note::
-
-    The ``pytest`` project was formerly called ``py.test``, and you may
-    see the two spellings used interchangeably in the documentation.
-
 .. _testing-dependencies:
 
 Testing Dependencies

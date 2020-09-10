@@ -147,6 +147,7 @@ once by calling ``reload`` with no parameters::
 Or if you want to reload all Astropy configuration at once, use the
 `~astropy.config.reload_config` function::
 
+    >>> from astropy import config
     >>> config.reload_config('astropy')
 
 You can also reset a configuration parameter back to its default value. Note

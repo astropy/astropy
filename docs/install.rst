@@ -242,9 +242,9 @@ For Fedora/RHEL::
 .. note:: Building the developer version of ``astropy`` may require
           newer versions of the above packages than are available in
           your distribution's repository.  If so, you could either try
-          a more up to date version (such as Debian ``testing``), or
-          install more up-to-date versions using ``pip`` or ``conda``
-          in a virtual environment.
+          a more up-to-date distribution (such as Debian ``testing``),
+          or install more up-to-date versions of the packages using
+          ``pip`` or ``conda`` in a virtual environment.
 
 Prerequisites for Mac OS X
 --------------------------
@@ -328,8 +328,8 @@ libraries. By default, these internal copies are used to build
 one of those libraries, you can pass one or more of the
 ``--use-system-X`` flags to the ``setup.py build`` command.
 
-For example, to build ``astropy`` using the system `libexpat
-<http://www.libexpat.org/>`_, use::
+For example, to build ``astropy`` using the system's expat parser
+library, use::
 
     python setup.py build --use-system-expat
 
@@ -361,7 +361,7 @@ The C libraries currently bundled with ``astropy`` include:
 - `erfa <https://github.com/liberfa>`_ see ``cextern/erfa/README.rst`` for the
   bundled version.
 
-- `expat <http://expat.sourceforge.io/>`_ see ``cextern/expat/README`` for the
+- `expat <https://expat.sourceforge.io/>`_ see ``cextern/expat/README`` for the
   bundled version.
 
 
