@@ -31,15 +31,15 @@ Astropy Documentation
 The ``astropy`` package contains key functionality and common tools needed for
 performing astronomy and astrophysics with Python.  It is at the core of the
 `Astropy Project <http://www.astropy.org/about.html>`_, which aims to enable
-the community to develop a robust ecosystem of `Affiliated Packages
-<http://www.astropy.org/affiliated/index.html>`_ covering a broad range of
-needs for astronomical research, data processing, and data analysis.
+the community to develop a robust ecosystem of `affiliated packages`_
+covering a broad range of needs for astronomical research, data
+processing, and data analysis.
 
 .. Important:: If you use Astropy for work presented in a publication or talk
    please help the project via proper `citation or acknowledgement
    <https://www.astropy.org/acknowledging.html>`_.  This also applies to use of
-   software or `affiliated packages <http://www.astropy.org/affiliated/>`_ that
-   depend on the astropy core package.
+   software or `affiliated packages`_ that depend on the astropy
+   core package.
 
 .. _getting-started:
 
@@ -176,3 +176,4 @@ Index
 * :ref:`search`
 
 .. _feedback@astropy.org: mailto:feedback@astropy.org
+.. _affiliated packages: https://www.astropy.org/affiliated/
