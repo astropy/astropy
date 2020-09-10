@@ -62,7 +62,6 @@ env:
         # to open a GUI window.
         - SETUP_XVFB=True
 
-        - CIBW_BUILD="cp36-* cp37-* cp38-*"
         - CIBW_TEST_EXTRAS: test
         - CIBW_TEST_COMMAND: python3 -m pytest -p no:warnings --astropy-header -k "not test_data_out_of_range" --pyargs astropy
 
@@ -230,20 +229,39 @@ matrix:
 
       # Wheel building using cibuildwheel
 
-      # Linux wheels
+      # Linux wheels (32-bit)
       - language: python
         services: docker
         env: SETUP_METHOD='cibuildwheel'
+             CIBW_BUILD="cp3[678]-manylinux_i686"
+
+      # Linux wheels (64-bit)
+      - language: python
+        services: docker
+        env: SETUP_METHOD='cibuildwheel'
+             CIBW_BUILD="cp3[678]-manylinux_x86_64"
 
       # Mac wheels
       - os: osx
         language: shell
         env: SETUP_METHOD='cibuildwheel'
+             CIBW_BUILD="cp3[678]-macosx"
 
-      # Windows wheels
+      # Windows wheels (32-bit)
       - os: windows
         language: shell
         env: SETUP_METHOD='cibuildwheel'
+             CIBW_BUILD="cp3[678]-win32"
+        before_install:
+          - choco install python --version 3.8.0
+          - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+          - ln -s /c/Python38/python.exe /c/Python38/python3.exe
+
+      # Windows wheels (64-bit)
+      - os: windows
+        language: shell
+        env: SETUP_METHOD='cibuildwheel'
+             CIBW_BUILD="cp3[678]-win_amd64"
         before_install:
           - choco install python --version 3.8.0
           - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
