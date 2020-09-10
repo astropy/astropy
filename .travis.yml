@@ -224,6 +224,25 @@ matrix:
     #       env: TOXENV="py37-test-devdeps"
     #            TOXPOSARGS="--remote-data=any"
 
+      # Wheel building using cibuildwheel
+
+      # Linux wheels
+      - services: docker
+        env: SETUP_METHOD='cibuildwheel'
+
+      # Mac wheels
+      - os: osx
+        language: shell
+        env: SETUP_METHOD='cibuildwheel'
+
+      # Windows wheels
+      - os: windows
+        language: shell
+        env: SETUP_METHOD='cibuildwheel'
+        before_install:
+          - choco install python --version 3.8.0
+          - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+
 before_install:
 
     # We need to use CCOMPILER otherwise Travis overwrites CC if we define it
@@ -244,12 +263,14 @@ before_install:
     - echo "TOXPOSARGS="$TOXPOSARGS
 
 install:
+
     # language: python is only available for Linux, so for other platforms
     # we need to use ci-helpers to set up Python.
-    - if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
+    - if [[ $SETUP_METHOD == tox && ($TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows) ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
         source ci-helpers/travis/setup_conda.sh;
       fi
+
     # For APT key updates, see https://ftp-master.debian.org/keys.html
     - if [ $SETUP_METHOD == 'apt' ]; then
         curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
@@ -258,15 +279,21 @@ install:
         sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
       fi
 
+    - if [ $SETUP_METHOD == cibuildwheel ]; then
+        python3 -m pip install cibuildwheel==1.6.0;
+      fi
+
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
         pip install tox;
         tox $TOXARGS -- $TOXPOSARGS;
-      else
+      elif [ $SETUP_METHOD == 'apt' ] then
         python3 -m venv --system-site-packages tests;
         source tests/bin/activate;
         pip3 install -e .[test];
         python3 -m pytest;
+      else
+        python3 -m cibuildwheel --output-dir wheelhouse
       fi
 
 after_success:
