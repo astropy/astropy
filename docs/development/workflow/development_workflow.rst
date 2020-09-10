@@ -90,7 +90,7 @@ remote, like ``astropy`` , is labeled by that remote, ``astropy/master``.
 
 This duplication of names can get very confusing when working with pull
 requests, especially when the official master branch, ``astropy/master``,
-changes due to other contibutions before your contributions are merged in.
+changes due to other contributions before your contributions are merged in.
 As a result, you should never do any work in your master
 branch, ``master``. Always work on a branch instead.
 
@@ -336,7 +336,7 @@ In more detail
 #. Add tests of your new code, if appropriate. Some changes (e.g. to
    documentation) do not need tests. Detailed instructions are at
    :ref:`writing-tests`, but if you have no experience writing tests or
-   with the `py.test`_ testing framework submit your changes without adding
+   with the `pytest`_ testing framework submit your changes without adding
    tests, but mention in the pull request that you have not written tests.
    An example of writing a test is in
    :ref:`astropy-fix-add-tests`.

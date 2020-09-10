@@ -304,7 +304,7 @@ Failing Logging Tests When Running the Tests in IPython
 When running the Astropy tests using ``astropy.test()`` in an IPython
 interpreter, some of the tests in the ``astropy/tests/test_logger.py`` *might*
 fail depending on the version of IPython or other factors.
-This is due to mutually incompatible behaviors in IPython and py.test, and is
+This is due to mutually incompatible behaviors in IPython and pytest, and is
 not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
