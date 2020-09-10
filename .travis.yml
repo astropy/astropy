@@ -62,6 +62,8 @@ env:
         # to open a GUI window.
         - SETUP_XVFB=True
 
+        - CIBW_BUILD="cp36-* cp37-* cp38-*"
+
 # stages:
 #    # Do the style check and a single test job, don't proceed if it fails
 #    - name: Initial tests
