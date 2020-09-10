@@ -62,8 +62,8 @@ env:
         # to open a GUI window.
         - SETUP_XVFB=True
 
-        - CIBW_TEST_REQUIRES: pytest
-        - CIBW_TEST_COMMAND: python3 -m pytest -p no:warnings -k "not test_data_out_of_range" --pyargs astropy
+        - CIBW_TEST_EXTRAS=test
+        - CIBW_TEST_COMMAND='python3 -m pytest -p no:warnings -k "not test_data_out_of_range" --pyargs astropy'
 
 # stages:
 #    # Do the style check and a single test job, don't proceed if it fails
