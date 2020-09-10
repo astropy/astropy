@@ -14,7 +14,9 @@ x = np.linspace(-20, 360, 100)
 @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
 def test_math():
     for name in math_functions.__all__:
-        model = getattr(math_functions, name)()
+        model_class = getattr(math_functions, name)
+        assert model_class.__module__ == 'astropy.modeling.math_functions'
+        model = model_class()
         func = getattr(np, model.func.__name__)
         if model.n_inputs == 1:
             assert_allclose(model(x), func(x))
