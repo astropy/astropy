@@ -27,8 +27,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-HAS_SCIPY_14 = HAS_SCIPY and minversion(scipy, "0.14")
-
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_custom_model(amplitude=4, frequency=1):
@@ -542,7 +540,7 @@ def test_model_instance_repr():
     assert repr(m) == '<Gaussian1D(amplitude=1.5, mean=2.5, stddev=3.5)>'
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular_interp_1d():
     """
     Test Tabular1D model.
@@ -582,7 +580,7 @@ def test_tabular_interp_1d():
                              [100, 10, 20, 30, 100] * u.nJy)
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular_interp_2d():
     table = np.array([
         [-0.04614432, -0.02512547, -0.00619557, 0.0144165, 0.0297525],
@@ -637,7 +635,7 @@ def test_tabular_interp_2d():
     assert model.bounding_box == bbox
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular_nd():
     a = np.arange(24).reshape((2, 3, 4))
     x, y, z = np.mgrid[:2, :3, :4]
@@ -688,7 +686,7 @@ def test_with_bounding_box():
     assert_allclose(trans3(1, 7, 5, with_bounding_box=True), [11, 14, 4])
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular_with_bounding_box():
     points = np.arange(5)
     values = np.array([1.5, 3.4, 6.7, 7, 32])
@@ -699,7 +697,7 @@ def test_tabular_with_bounding_box():
     assert t.inverse(result, with_bounding_box=True) == 1.
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular_bounding_box_with_units():
     points = np.arange(5)*u.pix
     lt = np.arange(5)*u.AA
@@ -710,7 +708,7 @@ def test_tabular_bounding_box_with_units():
     assert t.inverse(result, with_bounding_box=True) == 1*u.pix
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular1d_inverse():
     """Test that the Tabular1D inverse is defined"""
     points = np.arange(5)
@@ -750,6 +748,16 @@ def test_tabular1d_inverse():
     t = models.Tabular1D(points, values, bounds_error=False, fill_value=None)
     result = t.inverse(100)
     assert_allclose(t(result), 100)
+
+
+@pytest.mark.skipif("not HAS_SCIPY")
+def test_tabular_module_name():
+    """
+    The module name must be set manually because
+    these classes are created dynamically.
+    """
+    for model in [models.Tabular1D, models.Tabular2D]:
+        assert model.__module__ == "astropy.modeling.tabular"
 
 
 class classmodel(FittableModel):

@@ -24,8 +24,6 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-HAS_SCIPY_14 = HAS_SCIPY and minversion(scipy, "0.14")
-
 
 @pytest.mark.parametrize(('expr', 'result'),
                          [(lambda x, y: x + y, [5.0, 5.0]),
@@ -566,7 +564,7 @@ def test_name_index():
         g['bozo']
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_tabular_in_compound():
     """
     Issue #7411 - evaluate should not change the shape of the output.
@@ -620,7 +618,7 @@ def test_bounding_box():
     # val3 = g(.1, .1, with_bounding_box=True)
 
 
-@pytest.mark.skipif("not HAS_SCIPY_14")
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_bounding_box_with_units():
     points = np.arange(5) * u.pix
     lt = np.arange(5) * u.AA
