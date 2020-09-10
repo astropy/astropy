@@ -227,7 +227,8 @@ matrix:
       # Wheel building using cibuildwheel
 
       # Linux wheels
-      - services: docker
+      - language: python
+        services: docker
         env: SETUP_METHOD='cibuildwheel'
 
       # Mac wheels
