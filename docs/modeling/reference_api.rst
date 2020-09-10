@@ -9,7 +9,6 @@ Capabilities
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
-.. automodapi:: astropy.modeling.tabular
 .. automodapi:: astropy.modeling.separable
 
 Pre-Defined Models
@@ -21,5 +20,4 @@ Pre-Defined Models
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
 .. automodapi:: astropy.modeling.rotations
-.. autoclass::  astropy.modeling.tabular.Tabular1D
-.. autoclass::  astropy.modeling.tabular.Tabular2D
+.. automodapi:: astropy.modeling.tabular
