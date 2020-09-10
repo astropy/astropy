@@ -9,15 +9,16 @@ import warnings
 import numpy as np
 import erfa
 
-from ..time import Time
-from ..utils.state import ScienceState
-from .. import units as u
+from astropy.time import Time
+from astropy.utils.state import ScienceState
+import astropy.units as u
+from astropy.utils.exceptions import AstropyWarning
+
 from .builtin_frames.utils import (
     get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc,
     pav2pv
 )
 
-from ..utils.exceptions import AstropyWarning
 
 __all__ = []
 
@@ -50,7 +51,7 @@ class ErfaAstrom:
     @staticmethod
     def apcs(frame_or_coord):
         '''
-        Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS
+        Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS
 
         Arguments
         ---------
@@ -130,9 +131,10 @@ class ErfaAstromInterpolator(ErfaAstrom):
     >>> from astropy.time import Time
     >>> import numpy as np
 
-    >>> obstime = Time.now() + np.linspace(0, 4, 1000) * u.hour
+    >>> obstime = Time('2010-01-01T20:00:00') + np.linspace(0, 4, 1000) * u.hour
+    >>> crab = SkyCoord(ra='05h34m31.94s', dec='22d00m52.2s')
     >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
-    ...    cirs = SkyCoord.from_name('Crab').transform_to(CIRS(obstime=obstime))  # doctest: +REMOTE_DATA
+    ...    cirs = crab.transform_to(CIRS(obstime=obstime))
     '''
 
     @u.quantity_input(time_resolution=u.day)
@@ -156,14 +158,13 @@ class ErfaAstromInterpolator(ErfaAstrom):
         Then we take the unique and sorted values and scale back to MJD.
         This will create a sparse support for non-regular input obstimes.
         '''
-        mjd_scaled = np.ravel(obstime.mjd / self. mjd_resolution)
-
-        # ndmin=1 needed in case only a single coordinate is transformed
-        mjd_lower = np.array(np.floor(mjd_scaled), ndmin=1, copy=False)
-        mjd_upper = np.array(np.ceil(mjd_scaled), ndmin=1, copy=False)
+        mjd_scaled = np.ravel(obstime.mjd / self.mjd_resolution)
 
         # unique already does sorting
-        mjd_u = np.unique(np.concatenate([mjd_lower, mjd_upper]))
+        mjd_u = np.unique(np.concatenate([
+            np.floor(mjd_scaled),
+            np.ceil(mjd_scaled),
+        ]))
 
         return Time(
             mjd_u * self.mjd_resolution,
@@ -218,10 +219,10 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
         support = self._get_support_points(obstime)
 
-        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
         cip = self._get_cip(support, obstime)
         earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
 
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
         astrom = erfa.apci(jd1_tt, jd2_tt, earth_pv, earth_heliocentric, *cip)
         return astrom
 
@@ -243,7 +244,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
         support = self._get_support_points(obstime)
 
-        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
         # get the position and velocity arrays for the observatory.  Need to
         # have xyz in last dimension, and pos/vel in one-but-last.
         earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
@@ -251,6 +251,8 @@ class ErfaAstromInterpolator(ErfaAstrom):
             frame_or_coord.obsgeoloc.get_xyz(xyz_axis=-1).value,
             frame_or_coord.obsgeovel.get_xyz(xyz_axis=-1).value
         )
+
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
         return erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
 
 

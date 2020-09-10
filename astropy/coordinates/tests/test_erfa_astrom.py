@@ -53,7 +53,7 @@ def test_erfa_astrom():
         lat=28.761584 * u.deg,
         height=2200 * u.m,
     )
-    obstime = Time('2020-01-01T18:00') + np.linspace(0, 12, 1000) * u.hour
+    obstime = Time('2020-01-01T18:00') + np.linspace(0, 1, 100) * u.hour
 
     altaz = AltAz(location=location, obstime=obstime)
     coord = SkyCoord(ra=83.63308333, dec=22.0145, unit=u.deg)
@@ -92,7 +92,7 @@ def test_interpolation_nd():
     interp_provider = ErfaAstromInterpolator(300 * u.s)
     provider = ErfaAstrom()
 
-    for shape in [tuple(), (1, ), (100, ), (30, 20), (20, 10, 5), (10, 5, 3, 2)]:
+    for shape in [tuple(), (1, ), (10, ), (3, 2), (2, 10, 5), (4, 5, 3, 2)]:
         # create obstimes of the desired shapes
         delta_t = np.linspace(0, 12, np.prod(shape, dtype=int)) * u.hour
         obstime = (Time('2020-01-01T18:00') + delta_t).reshape(shape)
@@ -117,11 +117,11 @@ def test_interpolation_broadcasting():
     from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
 
     # 1000 random locations on the sky
-    ra, dec, _ = randomly_sample_sphere(1000)
+    ra, dec, _ = randomly_sample_sphere(100)
     coord = SkyCoord(ra, dec)
 
-    # 300 times over the space of 10 hours
-    times = Time('2020-01-01T20:00') + np.linspace(-5, 5, 300) * u.hour
+    # 30 times over the space of 1 hours
+    times = Time('2020-01-01T20:00') + np.linspace(-0.5, 0.5, 30) * u.hour
 
     lst1 = EarthLocation(
         lon=-17.891498 * u.deg,

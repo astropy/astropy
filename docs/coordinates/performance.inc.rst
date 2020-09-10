@@ -65,12 +65,9 @@ The most expensive operations when transforming between observer-dependent coord
 frames (e.g. ``AltAz``) and sky-fixed frames (e.g. ``ICRS``) are the calculation
 of the orientation and position of Earth.
 
-If |skycoord| instances with a large ``obstime`` array are transformed,
+If |skycoord| instances are transformed for a large  number of closely spaced ``obstime``,
 these calculations can be sped up by factors up to 100, whilst still keeping micro-arcsecond precision,
 by utilizing interpolation instead of calculating Earth orientation parameters for each individual point.
-
-This can be achieved through the ``erfa_astrom`` state and the ``ErfaAstromInterpolator``
-class like this
 
 ..
   EXAMPLE START
@@ -87,25 +84,25 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
 
    >>> # array with 10000 obstimes
-   >>> obstime = Time('2020-01-01T20:00') + np.linspace(0, 6, 10000) * u.hour
+   >>> obstime = Time('2010-01-01T20:00') + np.linspace(0, 6, 10000) * u.hour
    >>> location = location = EarthLocation(lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m)
-   >>> frame = AltAz(obstime=obstime, location=location)  # doctest:+REMOTE_DATA
-   >>> crab = SkyCoord.from_name('Crab')  # doctest:+REMOTE_DATA
+   >>> frame = AltAz(obstime=obstime, location=location)
+   >>> crab = SkyCoord(ra='05h34m31.94s', dec='22d00m52.2s')
 
    >>> # transform with default transformation and print duration
    >>> t0 = perf_counter()
-   >>> crab_altaz = crab.transform_to(frame)  # doctest:+REMOTE_DATA +IGNORE_WARNINGS
-   >>> print(f'Transformation took {perf_counter() - t0:.2f} s')  # doctest:+ELLIPSIS
-   Transformation took ... s
+   >>> crab_altaz = crab.transform_to(frame)  # doctest:+IGNORE_WARNINGS +REMOTE_DATA
+   >>> print(f'Transformation took {perf_counter() - t0:.2f} s')  # doctest:+IGNORE_OUTPUT
+   Transformation took 1.77 s
 
    >>> # transform with interpolating astrometric values
    >>> t0 = perf_counter()
-   >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):  # doctest:+REMOTE_DATA
-   ...     crab_altaz_interpolated = crab.transform_to(frame)  # doctest:+REMOTE_DATA +IGNORE_WARNINGS
-   >>> print(f'Transformation took {perf_counter() - t0:.2f} s')  # doctest:+ELLIPSIS
-   Transformation took ... s
+   >>> with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)): # doctest:+REMOTE_DATA
+   ...     crab_altaz_interpolated = crab.transform_to(frame)  # doctest:+IGNORE_WARNINGS +REMOTE_DATA
+   >>> print(f'Transformation took {perf_counter() - t0:.2f} s')  # doctest:+IGNORE_OUTPUT
+   Transformation took 0.03 s
 
-   >>> err = crab_altaz.separation(crab_altaz_interpolated)  # doctest:+REMOTE_DATA
+   >>> err = crab_altaz.separation(crab_altaz_interpolated)  # doctest:+IGNORE_WARNINGS +REMOTE_DATA
    >>> print(f'Mean error of interpolation: {err.to(u.microarcsecond).mean():.4f}')  # doctest:+ELLIPSIS +REMOTE_DATA
    Mean error of interpolation: 0.0167 uarcsec
 
