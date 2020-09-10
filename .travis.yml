@@ -63,7 +63,7 @@ env:
         - SETUP_XVFB=True
 
         - CIBW_TEST_EXTRAS=test
-        - CIBW_TEST_COMMAND='python3 -m pytest --astropy-header -p no:warnings -k "not test_data_out_of_range" --pyargs astropy'
+        - CIBW_TEST_COMMAND='python -m pytest --astropy-header -p no:warnings -k "not test_data_out_of_range" --pyargs astropy'
 
 # stages:
 #    # Do the style check and a single test job, don't proceed if it fails
