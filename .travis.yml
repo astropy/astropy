@@ -63,6 +63,8 @@ env:
         - SETUP_XVFB=True
 
         - CIBW_BUILD="cp36-* cp37-* cp38-*"
+        - CIBW_TEST_EXTRAS: test
+        - CIBW_TEST_COMMAND: python3 -m pytest -p no:warnings --astropy-header -k "not test_data_out_of_range" --pyargs astropy
 
 # stages:
 #    # Do the style check and a single test job, don't proceed if it fails
