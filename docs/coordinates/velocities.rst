@@ -528,7 +528,7 @@ Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
 
 The correction computed by `~astropy.coordinates.SkyCoord.radial_velocity_correction`
 uses the optical approximation :math:`v = zc` (see :ref:`astropy-units-doppler-equivalencies`
-for details). The corretion can be added to any observed radial velocity
+for details). The correction can be added to any observed radial velocity
 to provide a correction that is accurate to a level of approximately 3 m/s.
 If you need more precise corrections, there are a number of subtleties of
 which you must be aware.

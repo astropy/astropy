@@ -33,7 +33,7 @@
 .. _conda: https://conda.io/docs/
 
 .. pytest
-.. _py.test: https://pytest.org/en/latest/
+.. _pytest: https://pytest.org/en/latest/
 
 .. pychecker
 .. _pychecker: https://pypi.org/project/PyChecker

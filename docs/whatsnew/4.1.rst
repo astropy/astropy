@@ -192,7 +192,7 @@ functionality in table joining that allows users to create custom fuzzy join
 functions.  An example would be to use natural language processing tools to join
 on words that are sufficiently similar.
 
-For detais see :ref:`astropy-table-join-functions`.
+For details see :ref:`astropy-table-join-functions`.
 
 .. _whatsnew-4.1-table-custom-attr:
 

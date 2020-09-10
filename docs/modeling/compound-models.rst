@@ -1387,7 +1387,7 @@ spectrographs when the slit locations may be moved (e.g., fiber fed or
 commandable slit masks), or different orders may be selected (e.g., Eschelle).
 In the case of order, one may have a function of pixel ``x``, ``y``, ``spectral_order``
 that map into ``RA``, ``Dec`` and ``lambda``. Without specifying ``spectral_order``, it is
-ambiguious what ``RA``, ``Dec`` and ``Lambda`` corresponds to a pixel location. It
+ambiguous what ``RA``, ``Dec`` and ``Lambda`` corresponds to a pixel location. It
 is usually possible to define a function of all three inputs. Presuming
 this model is ``general_transform`` then ``fix_inputs`` may be used to define
 the transform for a specific order as follows:

@@ -136,8 +136,8 @@ For a list of the bodies for which positions can be calculated, do:
 Precision of the Built-In Ephemeris
 ===================================
 
-The algorithm for calcuting positions and velocities for planets other than
-Earth used by ERFA is due to J.L. Simon, P. Bretagnon, J. Chapront,
+The algorithm for calculating positions and velocities for planets other than
+Earth used by ERFA_ is due to J.L. Simon, P. Bretagnon, J. Chapront,
 M. Chapront-Touze, G. Francou and J. Laskar (Bureau des Longitudes, Paris,
 France).  From comparisons with JPL ephemeris DE102, they quote the maximum
 errors over the interval 1800-2050 below. For more details see
