@@ -245,7 +245,7 @@ matrix:
       - os: osx
         language: shell
         env: SETUP_METHOD='cibuildwheel'
-             CIBW_BUILD="cp3[678]-macosx"
+             CIBW_BUILD="cp3[678]-macosx_x86_64"
 
       # Windows wheels (32-bit)
       - os: windows
