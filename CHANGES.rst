@@ -865,6 +865,8 @@ astropy.modeling
 
 - Fixed reported module name of ``math_functions`` model classes. [#10694]
 
+- Fixed reported module name of ``tabular`` model classes. [#10709]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -893,7 +895,7 @@ astropy.stats
 
 - Fixed bug in ``funcs.poisson_conf_interval`` with
   ``interval='kraft-burrows-nousek'`` where certain combinations of source
-  and background count numbers led to ``ValueError`` due to the choice of 
+  and background count numbers led to ``ValueError`` due to the choice of
   starting value for numerical optimization. [#10618]
 
 
