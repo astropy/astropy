@@ -289,7 +289,7 @@ script:
     - if [ $SETUP_METHOD == 'tox' ]; then
         pip install tox;
         tox $TOXARGS -- $TOXPOSARGS;
-      elif [ $SETUP_METHOD == 'apt' ] then
+      elif [ $SETUP_METHOD == 'apt' ]; then
         python3 -m venv --system-site-packages tests;
         source tests/bin/activate;
         pip3 install -e .[test];
