@@ -294,7 +294,7 @@ script:
         pip3 install -e .[test];
         python3 -m pytest;
       else
-        python3 -m cibuildwheel --output-dir wheelhouse
+        python3 -m cibuildwheel --output-dir wheelhouse;
       fi
 
 after_success:
