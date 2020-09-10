@@ -104,7 +104,7 @@ layout, described at :ref:`testing-guidelines`.
 Change to that directory and run the current tests with::
 
     cd astropy/coordinates/test
-    py.test
+    pytest
 
 The tests all pass, so I need to write a new test to expose this bug.
 
@@ -142,7 +142,7 @@ is to look at other tests. The full test is in the traceback below and in
 `pull request 1917`_
 
 Write the test, then see if it works as expected--remember, in this case we
-expect to *fail*. Running ``py.test test_arrays.py`` gives the expected
+expect to *fail*. Running ``pytest test_arrays.py`` gives the expected
 result; an excerpt from the output is::
 
     ================= FAILURES =============================
@@ -310,9 +310,9 @@ Test your change
 There are a few levels at which you want to test:
 
 + Does this code change make the test we wrote succeed now? Check
-  by running ``py.test tests/test_arrays.py`` in the ``coordinates``
+  by running ``pytest tests/test_arrays.py`` in the ``coordinates``
   directory. In this case, yes!
-+ Do the rest of the coordinate tests still pass? Check by running ``py.test``
++ Do the rest of the coordinate tests still pass? Check by running ``pytest``
   in the ``coordinates`` directory. In this case, yes--we have not broken
   anything!
 + Do all of the astropy tests still succeed? Check by moving to the top level
@@ -401,7 +401,7 @@ have included but didn't:
 
 Both of these are mentioned in the pull request so it doesn't hurt to check
 them. In this case they also provide an opportunity to illustrate a feature
-of the `py.test`_ framework.
+of the `pytest`_ framework.
 
 I'll move back to the directory containing the tests with
 ``cd astropy/coordinates/tests`` to make it a bit easier to run just the test
@@ -437,7 +437,7 @@ behave like an array of one coordinate if they try to index it later on. It
 also provides an opportunity to demonstrate a test when the desired result
 is an error.
 
-The `py.test`_ framework makes testing for an exception relatively
+The `pytest`_ framework makes testing for an exception relatively
 easy; you put the code you expect to fail in a ``with`` block::
 
     with pytest.raises(TypeError):

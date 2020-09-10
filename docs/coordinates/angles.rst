@@ -50,7 +50,7 @@ There are a number of ways to create an |Angle|::
     <Angle 1.03416667 deg>
     >>> Angle('1d2m3.4s')              # Degree, arcmin, arcsec.  # doctest: +FLOAT_CMP
     <Angle 1.03427778 deg>
-    >>> Angle('1d2m3.4sS')              # Degree, arcmin, arcsec, diection.  # doctest: +FLOAT_CMP
+    >>> Angle('1d2m3.4sS')              # Degree, arcmin, arcsec, direction.  # doctest: +FLOAT_CMP
     <Angle -1.03427778 deg>
     >>> Angle('-1h2m3s')               # Hour, minute, second  # doctest: +FLOAT_CMP
     <Angle -1.03416667 hourangle>

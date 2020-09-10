@@ -445,7 +445,7 @@ by an attribute - ``model_set_axis``. In the above case ``model_set_axis=0``::
     >>> g.model_set_axis
     0
 
-This indicates that elements along the 0-th axis will be passed as inputs to inidvidual models.
+This indicates that elements along the 0-th axis will be passed as inputs to individual models.
 Sometimes it may be useful to pass inputs along a different axis, for example the 1st axis::
 
     >>> x = np.array([[0, 0, 0], [0.1, 0.1, 0.1]]).T

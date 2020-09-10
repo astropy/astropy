@@ -240,9 +240,9 @@ For Fedora/RHEL::
 .. note:: Building the developer version of ``astropy`` may require
           newer versions of the above packages than are available in
           your distribution's repository.  If so, you could either try
-          a more up to date version (such as Debian ``testing``), or
-          install more up-to-date versions using ``pip`` or ``conda``
-          in a virtual environment.
+          a more up-to-date distribution (such as Debian ``testing``),
+          or install more up-to-date versions of the packages using
+          ``pip`` or ``conda`` in a virtual environment.
 
 Prerequisites for Mac OS X
 --------------------------
@@ -320,7 +320,8 @@ one of those libraries, you can set environment variables with the
 pattern ``ASTROPY_USE_SYSTEM_???`` to ``1`` when building/installing
 the package.
 
-For example, to build ``astropy`` using the system expat, use::
+For example, to build ``astropy`` using the system's expat parser
+library, use::
 
     ASTROPY_USE_SYSTEM_EXPAT=1 pip install -e .
 
@@ -338,7 +339,7 @@ The C libraries currently bundled with ``astropy`` include:
   ``cextern/cfitsio/changes.txt`` for the bundled version. To use the
   system version, set ``ASTROPY_USE_SYSTEM_CFITSIO=1``.
 
-- `expat <http://expat.sourceforge.io/>`_ see ``cextern/expat/README`` for the
+- `expat <https://libexpat.github.io/>`_ see ``cextern/expat/README`` for the
   bundled version. To use the system version, set ``ASTROPY_USE_SYSTEM_EXPAT=1``.
 
 
@@ -431,7 +432,7 @@ dependencies, including:
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
-   as a conda package or a system install but not in pip)
+  as a conda package or a system install but not in pip)
 
 .. Note::
     Both of the ``pip`` install methods above do not include `Graphviz
