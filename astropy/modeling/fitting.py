@@ -708,21 +708,39 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         a = None  # need for calculating covarience
 
-        if weights is not None and weights.ndim > 1:
+        if ((masked and len(model_copy) > 1) or
+            (weights is not None and weights.ndim > 1)):
 
-            # separate weights for multiple models case: Numpy's lstsq
-            # supports multiple dimensions only for rhs, so we need to loop
-            # manually on the models.  This may be fixed in the future with
-            # https://github.com/numpy/numpy/pull/15777
+            # Separate masks or weights for multiple models case: Numpy's
+            # lstsq supports multiple dimensions only for rhs, so we need to
+            # loop manually on the models. This may be fixed in the future
+            # with https://github.com/numpy/numpy/pull/15777.
 
-            scl = scl.T
-            lacoef = np.zeros(lhs.shape[-2:], dtype=rhs.dtype)
+            # Initialize empty array of coefficients and populate it one model
+            # at a time. The shape matches the number of coefficients from the
+            # Vandermonde matrix and the number of models from the RHS:
+            lacoef = np.zeros(lhs.shape[1:2] + rhs.shape[-1:], dtype=rhs.dtype)
 
-            for model_lhs, model_rhs, model_lacoef in zip(lhs.T, rhs.T, lacoef.T):
+            # Arrange the lhs as a stack of 2D matrices that we can iterate
+            # over to get the correctly-orientated lhs for each model:
+            if lhs.ndim > 2:
+                lhs_stack = np.rollaxis(lhs, -1, 0)
+            else:
+                lhs_stack = np.broadcast_to(lhs, rhs.shape[-1:] + lhs.shape)
+
+            # Loop over the models and solve for each one. By this point, the
+            # model set axis is the second of two. Transpose rather than using,
+            # say, np.moveaxis(array, -1, 0), since it's slightly faster and
+            # lstsq can't handle >2D arrays anyway. This could perhaps be
+            # optimized by collecting together models with identical masks
+            # (eg. those with no rejected points) into one operation, though it
+            # will still be relatively slow when calling lstsq repeatedly.
+            for model_lhs, model_rhs, model_lacoef in \
+                zip(lhs_stack, rhs.T, lacoef.T):
 
                 # Cull masked points on both sides of the matrix equation:
                 good = ~model_rhs.mask if masked else slice(None)
-                model_lhs = model_lhs.T[good]
+                model_lhs = model_lhs[good]
                 model_rhs = model_rhs[good][..., np.newaxis]
 
                 # Solve for this model:
@@ -730,7 +748,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                                                              model_rhs, rcond)
                 model_lacoef[:] = t_coef.T
 
-        elif len(model_copy) == 1 or not masked:
+        else:
 
             # If we're fitting one or more models over a common set of points,
             # we only have to solve a single matrix equation, which is an order
@@ -742,38 +760,11 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
                                                          rhs[good], rcond)
 
-        else:
-
-            # Where fitting multiple models with masked pixels, initialize an
-            # empty array of coefficients and populate it one model at a time.
-            # The shape matches the number of coefficients from the Vandermonde
-            # matrix and the number of models from the RHS:
-            lacoef = np.zeros(lhs.shape[-1:] + rhs.shape[-1:], dtype=rhs.dtype)
-
-            # Loop over the models and solve for each one. By this point, the
-            # model set axis is the second of two. Transpose rather than using,
-            # say, np.moveaxis(array, -1, 0), since it's slightly faster and
-            # lstsq can't handle >2D arrays anyway. This could perhaps be
-            # optimized by collecting together models with identical masks
-            # (eg. those with no rejected points) into one operation, though it
-            # will still be relatively slow when calling lstsq repeatedly.
-            for model_rhs, model_lacoef in zip(rhs.T, lacoef.T):
-
-                # Cull masked points on both sides of the matrix equation:
-                good = ~model_rhs.mask
-                model_lhs = lhs[good]
-                model_rhs = model_rhs[good][..., np.newaxis]
-                a = model_lhs
-                # Solve for this model:
-                t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
-                                                             model_rhs, rcond)
-                model_lacoef[:] = t_coef.T
-
         self.fit_info['residuals'] = resids
         self.fit_info['rank'] = rank
         self.fit_info['singular_values'] = sval
 
-        lacoef = (lacoef.T / scl).T
+        lacoef /= scl[:, np.newaxis] if scl.ndim < rhs.ndim else scl
         self.fit_info['params'] = lacoef
 
         _fitter_to_model_params(model_copy, lacoef.flatten())
