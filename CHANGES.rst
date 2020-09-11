@@ -827,6 +827,9 @@ astropy.modeling
 
 - Fixed reported module name of ``tabular`` model classes. [#10709]
 
+- Do not create new ``math_functions`` models for ufuncs that are
+  only aliases (divide and mod). [#10697]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
