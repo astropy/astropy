@@ -1,12 +1,17 @@
 import numpy as np
 import pytest
 
+import astropy.units as u
+from astropy.time import Time
+from astropy.utils.exceptions import AstropyWarning
+from astropy.coordinates import EarthLocation, AltAz, GCRS, SkyCoord
+
+from astropy.coordinates.erfa_astrom import (
+    erfa_astrom, ErfaAstrom, ErfaAstromInterpolator
+)
+
 
 def test_science_state():
-    import astropy.units as u
-    from astropy.coordinates.erfa_astrom import (
-        erfa_astrom, ErfaAstrom, ErfaAstromInterpolator
-    )
 
     assert erfa_astrom.get().__class__ is ErfaAstrom
 
@@ -24,11 +29,6 @@ def test_science_state():
 
 
 def test_warnings():
-    import astropy.units as u
-    from astropy.coordinates.erfa_astrom import (
-        erfa_astrom, ErfaAstromInterpolator
-    )
-    from astropy.utils.exceptions import AstropyWarning
 
     with pytest.warns(AstropyWarning):
         with erfa_astrom.set(ErfaAstromInterpolator(9 * u.us)):
@@ -40,13 +40,6 @@ def test_erfa_astrom():
     # up with a unit test only testing the astrom provider
     # that would not just test its implementation with its implementation
     # so we test a coordinate conversion using it
-
-    from astropy.coordinates.erfa_astrom import (
-        erfa_astrom, ErfaAstromInterpolator,
-    )
-    from astropy.coordinates import SkyCoord, EarthLocation, AltAz
-    from astropy.time import Time
-    import astropy.units as u
 
     location = EarthLocation(
         lon=-17.891105 * u.deg,
@@ -75,13 +68,6 @@ def test_interpolation_nd():
     '''
     Test that the interpolation also works for nd-arrays
     '''
-    from astropy.coordinates.erfa_astrom import (
-        ErfaAstrom, ErfaAstromInterpolator
-    )
-
-    from astropy.coordinates import EarthLocation, AltAz, GCRS
-    from astropy.time import Time
-    import astropy.units as u
 
     fact = EarthLocation(
         lon=-17.891105 * u.deg,
