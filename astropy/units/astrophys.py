@@ -59,6 +59,10 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
          namespace=_ns, prefixes=False,
          doc="cycle: angular measurement, a full turn or rotation")
 
+def_unit(['spat', 'sp'], 4.0 * _numpy.pi * si.sr,
+         namespace=_ns, prefixes=False,
+         doc="spat: the solid angle of the sphere, 4pi sr")
+
 ###########################################################################
 # MASS
 
