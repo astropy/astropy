@@ -22,3 +22,6 @@ def test_math():
             assert_allclose(model(x), func(x))
         elif model.n_inputs == 2:
             assert_allclose(model(x, x), func(x, x))
+
+    assert math_functions.ModUfunc is math_functions.RemainderUfunc
+    assert math_functions.DivideUfunc is math_functions.True_divideUfunc
