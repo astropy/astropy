@@ -14,14 +14,23 @@ trig_ufuncs = ["sin", "cos", "tan", "arcsin", "arccos", "arctan", "arctan2",
                "arctanh", "deg2rad", "rad2deg"]
 
 
-math_ops = ["add", "subtract", "multiply", "divide", "logaddexp", "logaddexp2",
+math_ops = ["add", "subtract", "multiply", "logaddexp", "logaddexp2",
             "true_divide", "floor_divide", "negative", "positive", "power",
-            "remainder", "mod", "fmod", "divmod", "absolute", "fabs", "rint",
+            "remainder", "fmod", "divmod", "absolute", "fabs", "rint",
             "exp", "exp2", "log", "log2", "log10", "expm1", "log1p", "sqrt",
-            "square", "cbrt", "reciprocal"]
+            "square", "cbrt", "reciprocal", "divide", "mod"]
 
 
 supported_ufuncs = trig_ufuncs + math_ops
+
+
+# These names are just aliases for other ufunc objects
+# in the numpy API.  The alias name must occur later
+# in the lists above.
+alias_ufuncs = {
+    "divide": "true_divide",
+    "mod": "remainder",
+}
 
 
 class _NPUfuncModel(Model):
@@ -68,7 +77,13 @@ def ufunc_model(name):
 __all__ = []
 
 for name in supported_ufuncs:
-    m = ufunc_model(name)
-    klass_name = m.__name__
-    globals()[klass_name] = m
-    __all__.append(klass_name)
+    if name in alias_ufuncs:
+        klass_name = _make_class_name(name)
+        alias_klass_name = _make_class_name(alias_ufuncs[name])
+        globals()[klass_name] = globals()[alias_klass_name]
+        __all__.append(klass_name)
+    else:
+        m = ufunc_model(name)
+        klass_name = m.__name__
+        globals()[klass_name] = m
+        __all__.append(klass_name)
