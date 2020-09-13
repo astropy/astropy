@@ -1498,3 +1498,15 @@ def test_coordinateattribute_transformation():
     assert f2_frame.coord_attr.obstime == gcrs.obstime
     # The output should not be different if a SkyCoord is provided
     assert f2_skycoord.coord_attr == f2_frame.coord_attr
+
+
+def test_realize_frame_accepts_kwargs():
+    c1 = ICRS(x=1*u.pc, y=2*u.pc, z=3*u.pc,
+              representation_type=r.CartesianRepresentation)
+    new_data = r.CartesianRepresentation(x=11*u.pc, y=12*u.pc, z=13*u.pc)
+
+    c2 = c1.realize_frame(new_data, representation_type="cartesian")
+    c3 = c1.realize_frame(new_data, representation_type="cylindrical")
+
+    assert c2.representation_type == r.CartesianRepresentation
+    assert c3.representation_type == r.CylindricalRepresentation
