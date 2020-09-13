@@ -588,6 +588,8 @@ def _get_representation_attrs(frame, units, kwargs):
     for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):
         value = kwargs.pop(frame_attr_name, None)
         if value is not None:
+            if unit is not None and isinstance(value, u.Quantity):
+                raise ValueError("Cannot specify unit= and pass Quantities as keyword arguments at the same time")
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
 
     # also check the differentials.  They aren't included in the units keyword,

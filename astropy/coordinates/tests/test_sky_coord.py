@@ -1809,3 +1809,20 @@ def test_multiple_aliases():
     assert isinstance(coord.transform_to('alias_2').frame, MultipleAliasesFrame)
 
     ftrans.unregister(frame_transform_graph)
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"ra": 1, "dec": 1 * u.deg, "unit": "deg"},
+    {"ra": 1, "dec": 1 * u.deg, "unit": ("deg", "deg")},
+    {"ra": 1 * u.deg, "dec": 1 * u.deg, "unit": "deg"},
+    {"ra": 1 * u.deg, "dec": 1 * u.deg, "unit": ("deg", "deg")},
+    {"ra": 1, "dec": 1, "distance": 1 * u.pc, "unit": "deg"},
+    {"ra": 1, "dec": 1, "distance": 1 * u.pc, "unit": ("deg", "deg", "pc")},
+])
+def test_passing_both_unit_and_quantities_raises_error(kwargs):
+    # https://github.com/astropy/astropy/issues/10725
+    with pytest.raises(ValueError) as excinfo:
+        SkyCoord(**kwargs)
+    assert (
+        "Cannot specify unit= and pass Quantities as keyword arguments at the same time" in excinfo.exconly()
+    )
