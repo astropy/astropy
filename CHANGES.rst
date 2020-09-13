@@ -31,6 +31,10 @@ astropy.coordinates
 
 - ``galactocentric_frame_defaults`` can now also be used as a registry, with user-defined parameter values and metadata. [#10624]
 
+- Method ``.realize_frame`` from coordinate frames now accepts ``**kwargs``,
+  including ``representation_type``. [#10727]
+
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

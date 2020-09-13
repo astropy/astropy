@@ -973,7 +973,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         """
         return self._replicate(None, copy=copy, **kwargs)
 
-    def realize_frame(self, data):
+    def realize_frame(self, data, **kwargs):
         """
         Generates a new frame with new data from another frame (which may or
         may not have data). Roughly speaking, the converse of
@@ -984,13 +984,16 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         data : `~astropy.coordinates.BaseRepresentation`
             The representation to use as the data for the new frame.
 
+        Any additional keywords are treated as frame attributes to be set on the
+        new frame object. In particular, `representation_type` can be specified.
+
         Returns
         -------
         frameobj : same as this frame
             A new object with the same frame attributes as this one, but
             with the ``data`` as the coordinate data.
         """
-        return self._replicate(data)
+        return self._replicate(data, **kwargs)
 
     def represent_as(self, base, s='base', in_frame_units=False):
         """
