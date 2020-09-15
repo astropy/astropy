@@ -104,7 +104,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> err = crab_altaz.separation(crab_altaz_interpolated)  # doctest:+IGNORE_WARNINGS +REMOTE_DATA
    >>> print(f'Mean error of interpolation: {err.to(u.microarcsecond).mean():.4f}')  # doctest:+ELLIPSIS +REMOTE_DATA
-   Mean error of interpolation: 0.0198 uarcsec
+   Mean error of interpolation: 0.0... uarcsec
 
    >>> # To set erfa_astrom for a whole session, use it without context manager:
    >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))  # doctest:+SKIP
