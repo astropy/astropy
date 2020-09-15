@@ -104,7 +104,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
 
    >>> err = crab_altaz.separation(crab_altaz_interpolated)  # doctest:+IGNORE_WARNINGS +REMOTE_DATA
    >>> print(f'Mean error of interpolation: {err.to(u.microarcsecond).mean():.4f}')  # doctest:+ELLIPSIS +REMOTE_DATA
-   Mean error of interpolation: 0.0167 uarcsec
+   Mean error of interpolation: 0.0... uarcsec
 
    >>> # To set erfa_astrom for a whole session, use it without context manager:
    >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))  # doctest:+SKIP
@@ -113,7 +113,7 @@ To use interpolation for the astrometric values in coordinate transformation, us
   EXAMPLE END
 
 
-Here, we look into choosing an appropriate ``time_resolution``. 
+Here, we look into choosing an appropriate ``time_resolution``.
 We will transform a single sky coordinate for lots of observation times from
 ``ICRS`` to ``AltAz`` and evaluate precision and runtime for different values
 for ``time_resolution`` compared to the non-interpolating, default approach.
