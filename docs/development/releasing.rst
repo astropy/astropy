@@ -141,7 +141,7 @@ packages that use the full bugfix/maintenance branch approach.)
   At this point if all goes well, the wheels and sdist will be build
   in the `Azure core package pipeline`_ and uploaded to PyPI!
 
-#. In the unlikely event there are any issues with the wheel building for the tag
+#. In the event there are any issues with the wheel building for the tag
    (which shouldn't really happen if it was passing for the release branch),
    you'll have to fix whatever the problem is. First you will need to back out
    the release procedure by dropping the commits you made for release and
