@@ -90,9 +90,11 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git checkout v1.2.x
 
 #. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
-   for the `astropy core repository`_ branch you are going to release. You may
-   also want to locally run the tests (with remote data on to ensure all of the
-   tests actually run), using tox to do a thorough test in an isolated environment::
+   for the `astropy core repository`_ branch you are going to release. Also check that
+   the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing. This
+   You may also want to locally run the tests (with remote data on to ensure all
+   of the tests actually run), using tox to do a thorough test in an isolated
+   environment::
 
       $ pip install tox --upgrade
       $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
@@ -109,47 +111,26 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
+#. Push the branch back to GitHub, e.g.::
+
+      $ git push upstream v1.2.x
+
+   and make sure that the CI services mentioned above (includnig the Azure pipeline)
+   are still passing.
+
+   .. note::
+
+      You may need to replace ``upstream`` here with ``astropy`` or
+      whatever remote name you use for the `astropy core repository`_.
+
 #. Tag the commit with ``v<version>``, being certain to sign the tag with the
    ``-s`` option::
 
       $ git tag -s v<version> -m "Tagging v<version>"
 
-#. Now go back and check out the tag of the released version with
-   ``git checkout v<version>``.  For example::
+#. Push up the tag to the `astropy core repository`_.
 
-      $ git checkout v1.2.2
-
-   Don't forget to remove any non-committed files both from the main working tree with::
-
-      $ git clean -dfx
-
-#. Make sure the source distribution doesn't inherit limited permissions
-   following your default umask::
-
-     $ umask 0022
-     $ chmod -R a+Xr .
-
-#. (Optional) Create the source distribution by doing::
-
-     $ python -m pep517.build --source .
-
-#. (Optional) Run the tests in an environment that mocks up a "typical user" scenario.
-   This is not strictly necessary because you ran the tests above, but
-   it can sometimes be useful to catch subtle bugs that might come from you
-   using a customized developer environment.  For more on setting up virtual
-   environments, see :ref:`virtual_envs`, but for the sake of example we will
-   assume you're using `Anaconda`_. Do::
-
-      $ conda create -n astropy_release_test_v<version> numpy
-      $ conda activate astropy_release_test_v<version>
-      $ pip install dist/astropy-<version>.tar.gz[all]
-      $ python -c 'import astropy; astropy.test(remote_data=True)'
-      $ conda deactivate
-
-#. Push up the tag to the `astropy core repository`_
-   (the tag needs to be available for wheels in the next step)::
-
-      $ git push upstream v<version branch>
+      $ git push upstream v<tag version>
 
    .. note::
 
@@ -158,19 +139,14 @@ packages that use the full bugfix/maintenance branch approach.)
       Also, it might be tempting to use the ``--tags`` argument to ``git push``,
       but this should *not* be done, as it might push up some unintended tags.
 
-#. Build and test the Astropy wheels.  See the `wheel builder README
-   <https://github.com/MacPython/astropy-wheels>`_ for instructions.  In
-   summary, clone the wheel-building repo, edit the ``.travis.yml``
-   text file with the branch or commit for the release,
-   commit and then push back up to github.  This will trigger a wheel build
-   and test on OSX, Linux, and Windows. Check the build has passed on on the
-   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.
-   You'll need commit privileges to the ``astropy-wheels`` repo; ask Tom Kooij
-   or on the mailing list if you do not have them.
+  At this point if all goes well, the wheels and sdist will be build
+  in the `Azure core package pipeline`_ and uploaded to PyPI!
 
-#. If the tests do *not* pass, you'll have to fix whatever the problem is.
-   First you will need to back out the release procedure by dropping the commits
-   you made for release and removing the tag you created::
+#. In the event there are any issues with the wheel building for the tag
+   (which shouldn't really happen if it was passing for the release branch),
+   you'll have to fix whatever the problem is. First you will need to back out
+   the release procedure by dropping the commits you made for release and
+   removing the tag you created::
 
       $ git reset --hard HEAD^^^^ # you could also use the SHA hash of the commit before your first changelog edit
       $ git tag -d v<version>
@@ -180,35 +156,7 @@ packages that use the full bugfix/maintenance branch approach.)
       Any re-pushing the same tag back out to GitHub hereafter would be
       a force-push.
 
-#. Once the tests are all passing, it's time to actually proceed with the
-   release! This has two steps:
-
-   * build and upload the Astropy wheels;
-   * make and upload the Astropy source release.
-
-#. For the wheel build / upload, follow the `wheel builder README`_
-   instructions again.  Edit the ``.travis.yml`` file
-   to give the release tag to build.  Check the build has passed on on the
-   Travis-CI interface at https://travis-ci.org/MacPython/astropy-wheels.  Now
-   follow the instructions in the page above to download the built wheels to a
-   local machine and upload to PyPI. If you use the ``wheel_download.py`` script,
-   make sure you loop through all the available OS to get all the wheels.
-
-#. Now the wheels are built and uploaded, you can upload the source release.
-   For safety's sake, you may want to clean the repo yet again to make sure
-   you didn't leave anything from the previous step::
-
-      $ git clean -dfx
-
-#. Upload the source distribution to PyPI; this is preceded by re-running
-   the source build command, which makes sure the source code is packaged up and ready
-   to be uploaded. You also need to GPG sign the release, before using twine to
-   upload it to PyPI. (You may need to install `twine`_ if you haven't used it yet)::
-
-      $ python -m pep517.build --source .
-      $ gpg --detach-sign -a dist/astropy-<version>.tar.gz
-      $ twine check dist/*
-      $ twine upload dist/astropy-<version>*
+  Once the sdist and wheels are uploaded, the release is done!
 
 Congratulations!  You have completed the release! Now there are just a few
 clean-up tasks to finalize the process.
@@ -760,3 +708,4 @@ that for you.  You can delete this tag by doing::
 .. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
 .. _Anaconda: https://conda.io/docs/
 .. _twine: https://packaging.python.org/key_projects/#twine
+.. _Azure core package pipeline: https://dev.azure.com/astropy-project/astropy/_build
