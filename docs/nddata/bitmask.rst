@@ -8,7 +8,7 @@ It is common to use `bit fields <https://en.wikipedia.org/wiki/Bit_field>`_,
 such as integer variables whose individual bits represent some attributes, to
 characterize the state of data. For example, Hubble Space Telescope (HST) uses
 arrays of bit fields to characterize data quality (DQ) of HST images. See, for
-example, DQ field values for `WFPC2 image data <http://documents.stsci.edu/hst/wfpc2/documents/handbooks/dhb/wfpc2_ch34.html#1971480>`_ and `WFC3 image data <http://www.stsci.edu/hst/wfc3/documents/handbooks/currentDHB Chapter2_data_structure3.html#567105>`_.
+example, DQ field values for `WFPC2 image data (see Table 3.3) <https://www.stsci.edu/files/live/sites/www/files/home/hst/instrumentation/legacy/wfpc2/_documents/wfpc2_dhb.pdf>`_ and `WFC3 image data (see Table 3.3) <https://hst-docs.stsci.edu/wfc3dhb/chapter-3-wfc3-data-calibration/3-3-ir-data-calibration-steps#id-3.3IRDataCalibrationSteps-3.3.1DataQualityInitialization>`_.
 As you can see, the meaning assigned to various *bit flags* for the two
 instruments is generally different.
 
