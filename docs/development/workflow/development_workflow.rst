@@ -422,12 +422,12 @@ it into Astropy:
    pull request message.  This is still a good way to start a preliminary
    code review.
 
-You may also opt to open a work-in-progress pull request.
-If you do so, instead of clicking "Create pull request", click on the small
-down arrow next to it and select "Create draft pull request". This will let
-the maintainers know that your work is not ready for a full review nor to be
-merged yet. In addition, if your commits are not ready for CI testing, you
-should also use ``[ci skip]`` or ``[skip ci]`` directive in your commit message.
+   You may also opt to open a work-in-progress pull request.
+   If you do so, instead of clicking "Create pull request", click on the small
+   down arrow next to it and select "Create draft pull request". This will let
+   the maintainers know that your work is not ready for a full review nor to be
+   merged yet. In addition, if your commits are not ready for CI testing, you
+   should also use ``[ci skip]`` or ``[skip ci]`` directive in your commit message.
 
 .. _revise and push:
 
