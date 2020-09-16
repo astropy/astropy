@@ -821,7 +821,7 @@ def test_download_parallel_update(temp_cache, tmpdir):
         assert get_file_contents(r_3) == c_plus
 
 
-@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
+@pytest.mark.skipif(sys.version_info < (3, 8),
                     reason="causes mystery segfault! possibly bug #10008")
 def test_update_parallel(temp_cache, valid_urls):
     u, c = next(valid_urls)

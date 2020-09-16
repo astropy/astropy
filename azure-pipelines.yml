@@ -1,0 +1,46 @@
+# NOTE: this Azure configuration is used only for building the sdist and wheels.
+# It uses the OpenAstronomy azure template described in detail at
+# https://openastronomy-azure-pipelines.readthedocs.io/en/latest/
+
+resources:
+  repositories:
+  - repository: OpenAstronomy
+    type: github
+    endpoint: astropy
+    name: OpenAstronomy/azure-pipelines-templates
+    ref: master
+
+# NOTE: for now we only use Azure Pipelines on v* branches and tags
+# for building the source and wheel distributions. If you want to
+# make changes to this configuration via a pull request, you can
+# *temporarily* change the branches include trigger to just '*'
+trigger:
+  branches:
+    include:
+    - 'v*'
+  tags:
+    include:
+    - 'v*'
+
+jobs:
+  - template: publish.yml@OpenAstronomy
+    parameters:
+
+      # FIXME: we exclude the test_data_out_of_range test since it
+      # currently fails, see https://github.com/astropy/astropy/issues/10409
+      test_command: pytest -p no:warnings --astropy-header -k "not test_data_out_of_range" --pyargs astropy
+      test_extras: test
+
+      # NOTE: for v* tags, we auto-release to PyPI. See
+      # https://openastronomy-azure-pipelines.readthedocs.io/en/latest/publish.html
+      # for information on how to configure things on the Azure Pipelines side
+      ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/v') }}:
+        pypi_connection_name : 'pypi_endpoint'
+
+      targets:
+      - sdist
+      - wheels_cp3[678]*linux_i686
+      - wheels_cp3[678]*linux_x86_64
+      - wheels_cp3[678]*macosx_x86_64
+      - wheels_cp3[678]*win32
+      - wheels_cp3[678]*win_amd64
