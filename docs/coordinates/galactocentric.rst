@@ -171,7 +171,13 @@ up-to-date list of valid names, see the docstring of
 like ``'pre-v4.0'``, which sets the default parameter values to their original
 definition (i.e. pre-astropy-v4.0) values, and ``'v4.0'``, which sets the
 default parameter values to a more modern set of measurements as updated in
-Astropy version 4.0.
+Astropy version 4.0. Also, custom sets of measurements can be registered to
+`~astropy.coordinates.galactocentric_frame_defaults` and used like the
+built-in options.
+
+`~astropy.coordinates.galactocentric_frame_defaults` also tracks the
+references (i.e. scientific papers that define the parameter values) for all
+parameter values, as well as any further specified metadata information.
 
 As with other `~astropy.utils.state.ScienceState` subclasses, the
 `~astropy.coordinates.galactocentric_frame_defaults` class can be used to
@@ -222,6 +228,21 @@ attributes that are explicitly specified::
     ...     print(Galactocentric(galcen_distance=8.0*u.kpc)) # doctest: +FLOAT_CMP
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.0 kpc, galcen_v_sun=(11.1, 232.24, 7.25) km / s, z_sun=27.0 pc, roll=0.0 deg)>
+
+
+Additional parameter sets may be registered, for instance to use the Dehnen & Binney (1998) measurements of the solar motion. We can also add metadata, such as the 1-sigma errors::
+
+    >>> state = galactocentric_frame_defaults.get_from_registry("v4.0")
+    >>> state["parameters"]["galcen_v_sun"] = (10.00, 225.25, 7.17) * (u.km / u.s)
+    >>> state["references"]["galcen_v_sun"] = "http://www.adsabs.harvard.edu/full/1998MNRAS.298..387D"
+    >>> state["error"] = {"galcen_v_sun": (0.36, 0.62, 0.38) * (u.km / u.s)}
+    >>> galactocentric_frame_defaults.register(name="DB1998", **state)
+
+Just as in the previous examples, the new parameter set can be get / set::
+
+    >>> state = galactocentric_frame_defaults.get_from_registry("DB1998")
+    >>> print(state["error"]["galcen_v_sun"])  # doctest: +FLOAT_CMP
+    [0.36 0.62 0.38] km / s
 
 ..
   EXAMPLE END

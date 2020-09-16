@@ -1419,6 +1419,26 @@ def test_galactocentric_defaults(reset_galactocentric_defaults):
         else:
             assert getattr(galcen_40, k) == getattr(galcen_latest, k)
 
+    # test validate Galactocentric
+    with galactocentric_frame_defaults.set('latest'):
+        params = galactocentric_frame_defaults.validate(galcen_latest)
+        references = galcen_latest.frame_attribute_references
+        state = dict(parameters=params, references=references)
+
+        assert galactocentric_frame_defaults.parameters == params
+        assert galactocentric_frame_defaults.references == references
+        assert galactocentric_frame_defaults._state == state
+
+    # Test not one of accepted parameter types
+    with pytest.raises(ValueError):
+        galactocentric_frame_defaults.validate(ValueError)
+
+    # test parameters property
+    assert (
+        galactocentric_frame_defaults.parameters
+        == galactocentric_frame_defaults.parameters
+    )
+
 
 def test_galactocentric_references(reset_galactocentric_defaults):
     # references in the "scientific paper"-sense
