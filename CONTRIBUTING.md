@@ -114,7 +114,7 @@ Other Tips
   This will still execute CircleCI.
 
 - If your commit makes substantial changes to the documentation but no code
-  changes, then you can use ``[ci skip]``, which will all CI except RTD,
+  changes, then you can use ``[ci skip]``, which will skip all CI except RTD,
   where the documentation is built. The exception to this rule
   is when your changes to documentation include code snippets that need to
   be tested using ``doctest``.
@@ -125,6 +125,8 @@ Other Tips
   message.
 
       $ git commit -m "Fixed typo [ci skip]"
+
+- ``[ci skip]`` and ``[skip ci]`` are the same and can be used interchangeably.
 
 Checklist for Contributed Code
 ------------------------------
