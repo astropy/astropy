@@ -21,6 +21,10 @@ trigger:
   tags:
     include:
     - 'v*'
+pr:
+  branches:
+    include:
+    - 'v*'
 
 jobs:
   - template: publish.yml@OpenAstronomy
