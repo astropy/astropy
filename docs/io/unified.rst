@@ -971,7 +971,7 @@ and ``meta``.
 
 By default, when writing a table to HDF5 the code will attempt to store each
 key/value pair within the table ``meta`` as HDF5 attributes of the table
-dataset. This will fail as the values within ``meta`` are not objects that can
+dataset. This will fail if the values within ``meta`` are not objects that can
 be stored as HDF5 attributes. In addition, if the table columns being stored
 have defined values for any of the above-listed column attributes, these
 metadata will *not* be stored and a warning will be issued.
@@ -987,30 +987,16 @@ the call to ``write()``::
 
     >>> t.write('observations.hdf5', path='data', serialize_meta=True)
 
+The table metadata are stored as a dataset of strings by serializing the
+metadata in YAML following the `ECSV header format
+<https://github.com/astropy/astropy-APEs/blob/master/APE6.rst#header-details>`_
+definition. Since there are YAML parsers for most common languages, one can
+easily access and use the table metadata if reading the HDF5 in a non-astropy
+application.
+
 As of ``astropy`` 3.0, by specifying ``serialize_meta=True`` one can also store
 to HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
 `~astropy.coordinates.SkyCoord` columns.
-
-compatibility_mode
-~~~~~~~~~~~~~~~~~~
-
-The way metadata are saved in the HDF5 dataset has changed in ``astropy`` 3.0.
-Previously, the metadata were serialized with YAML and this was stored as an
-HDF5 attribute. This process was subject to a fixed limit on the size of an
-attribute. Starting with 3.0 the YAML-serialized metadata are stored as a
-separate dataset as described above, with no size limit.
-
-Files using the old convention are automatically recognized and will always be
-read correctly.
-
-If for some reason you need to *write* in the old format, you should
-specify the deprecated ``compatibility_mode`` keyword::
-
-    >>> t.write('observations.hdf5', path='updated_data', serialize_meta=True,
-    ...         compatibility_mode=True)
-
-.. warning:: The ``compatibility_mode`` keyword will be removed in a future
-   version of ``astropy``, so your code should be changed.
 
 .. _table_io_pandas:
 
