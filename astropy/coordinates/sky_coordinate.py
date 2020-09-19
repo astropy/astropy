@@ -222,9 +222,9 @@ class SkyCoord(ShapedLikeNDArray):
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied coordinate values.
         If only one unit is supplied then it applies to all values.
-        Notice that passing only one unit might lead to unit conversion errors
+        Note that passing only one unit might lead to unit conversion errors
         if the coordinate values are expected to have mixed physical meanings
-        (e.g. angles and distances).
+        (e.g., angles and distances).
     obstime : valid `~astropy.time.Time` initializer, optional
         Time(s) of observation.
     equinox : valid `~astropy.time.Time` initializer, optional
