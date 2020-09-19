@@ -1004,7 +1004,8 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                               http_headers=http_headers,
                                               ftp_tls=False)
         except urllib.error.URLError as e:
-            if e.reason.startswith("ftp error: error_perm"):
+            # e.reason might not be a string, e.g. socket.gaierror
+            if str(e.reason).startswith("ftp error: error_perm"):
                 ftp_tls = True
             else:
                 raise
