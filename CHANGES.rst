@@ -34,9 +34,6 @@ astropy.coordinates
 - Method ``.realize_frame`` from coordinate frames now accepts ``**kwargs``,
   including ``representation_type``. [#10727]
 
-- The initializer of ``SkyCoord`` now raises a more helpful error if mixed
-  quantities and unit-less components are passed. [#10749]
-
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
