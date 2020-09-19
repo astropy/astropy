@@ -2109,3 +2109,11 @@ def test_empty_url(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file('file://', cache=True, sources=[u])
     assert not is_url_in_cache('file:///')
+
+
+@pytest.mark.remote_data
+def test_download_ftp_file_properly_handles_socket_error():
+    faulty_url = "ftp://anonymous:mail%40astropy.org@nonexisting/pub/products/iers/finals2000A.all"
+    with pytest.raises(urllib.error.URLError) as excinfo:
+        download_file(faulty_url)
+    assert "Name or service not known" in excinfo.exconly()
