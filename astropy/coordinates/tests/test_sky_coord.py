@@ -1814,17 +1814,14 @@ def test_multiple_aliases():
 @pytest.mark.parametrize("kwargs, error_message", [
     (
         {"ra": 1, "dec": 1, "distance": 1 * u.pc, "unit": "deg"},
-        "Unit 'deg' (angle) could not be applied to 'distance'",
+        r"Unit 'deg' \(angle\) could not be applied to 'distance'. ",
     ),
     (
         {"rho": 1 * u.m, "phi": 1, "z": 1 * u.m, "unit": "deg", "representation_type": "cylindrical"},
-        "Unit 'deg' (angle) could not be applied to 'rho'",
+        r"Unit 'deg' \(angle\) could not be applied to 'rho'. ",
     ),
 ])
 def test_passing_inconsistent_coordinates_and_units_raises_helpful_error(kwargs, error_message):
     # https://github.com/astropy/astropy/issues/10725
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match=error_message):
         SkyCoord(**kwargs)
-    assert (
-        error_message in excinfo.exconly()
-    )
