@@ -8,7 +8,7 @@ from types import MappingProxyType
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.state import ScienceState
+from astropy.utils.state import ScienceState, _IndexedMappingView
 from astropy.utils.decorators import format_doc, classproperty, deprecated
 from astropy.coordinates.angles import Angle
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product, matrix_transpose
@@ -32,25 +32,6 @@ __all__ = ['Galactocentric']
 # This is not used directly, but accessed via `get_roll0`.  We define it here to
 # prevent having to create new Angle objects every time `get_roll0` is called.
 _ROLL0 = Angle(58.5986320306*u.degree)
-
-
-class _StateProxy(MappingView):
-    """
-    `~collections.abc.MappingView` with a read-only ``getitem`` through
-    `~types.MappingProxyType`.
-
-    """
-
-    def __init__(self, mapping):
-        super().__init__(mapping)
-        self._mappingproxy = MappingProxyType(self._mapping)  # read-only
-
-    def __getitem__(self, key):
-        """Read-only ``getitem``."""
-        return self._mappingproxy[key]
-
-    def __deepcopy__(self, memo):
-        return copy.deepcopy(self._mapping, memo=memo)
 
 
 class galactocentric_frame_defaults(ScienceState):
@@ -145,12 +126,13 @@ class galactocentric_frame_defaults(ScienceState):
     _latest_value = 'v4.0'
     _value = None
     _references = None
-    _state = dict()  # all other data
+    _state = dict()  # all other data (made by ScienceState if not included)
+    _state_value_name_ = "parameters"  # what cls._value gets from `_state`
 
-    # Note: _StateProxy() produces read-only view of enclosed mapping.
+    # Note: _IndexedMappingView() produces read-only view of enclosed mapping.
     _registry = {
         "v4.0": {
-            "parameters": _StateProxy(
+            "parameters": _IndexedMappingView(
                 {
                     "galcen_coord": ICRS(
                         ra=266.4051 * u.degree, dec=-28.936175 * u.degree
@@ -163,7 +145,7 @@ class galactocentric_frame_defaults(ScienceState):
                     "roll": 0 * u.deg,
                 }
             ),
-            "references": _StateProxy(
+            "references": _IndexedMappingView(
                 {
                     "galcen_coord": "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
                     "galcen_distance": "https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G",
@@ -178,7 +160,7 @@ class galactocentric_frame_defaults(ScienceState):
             ),
         },
         "pre-v4.0": {
-            "parameters": _StateProxy(
+            "parameters": _IndexedMappingView(
                 {
                     "galcen_coord": ICRS(
                         ra=266.4051 * u.degree, dec=-28.936175 * u.degree
@@ -191,7 +173,7 @@ class galactocentric_frame_defaults(ScienceState):
                     "roll": 0 * u.deg,
                 }
             ),
-            "references": _StateProxy(
+            "references": _IndexedMappingView(
                 {
                     "galcen_coord": "https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R",
                     "galcen_distance": "https://ui.adsabs.harvard.edu/#abs/2009ApJ...692.1075G",
@@ -206,13 +188,16 @@ class galactocentric_frame_defaults(ScienceState):
         },
     }
 
-    @classproperty  # read-only
+    # Note: double unnecessary since cls.parameters already works and ._value
+    # redirects to this. But now it's very clear that parameter exists.
+    @classproperty  # read-only.
     def parameters(cls):
         return cls._value
 
-    @classproperty  # read-only
-    def references(cls):
-        return cls._references
+    # @deprecated("v4.2")
+    @classproperty  # read-only. For backward compatibility
+    def _references(cls):
+        return cls._state["references"]
 
     @classmethod
     def get_from_registry(cls, name: str):
@@ -280,10 +265,8 @@ class galactocentric_frame_defaults(ScienceState):
             value = cls._latest_value
 
         if isinstance(value, str):
-            state = cls.get_from_registry(value)
-            cls._references = state["references"]
-            cls._state = state
-            parameters = state["parameters"]
+            cls._state = cls.get_from_registry(value)
+            parameters = cls._state["parameters"]
 
         elif isinstance(value, dict):
             parameters = value
@@ -293,9 +276,9 @@ class galactocentric_frame_defaults(ScienceState):
             parameters = dict()
             for k in value.frame_attributes:
                 parameters[k] = getattr(value, k)
-            cls._references = value.frame_attribute_references.copy()
+            references = value.frame_attribute_references.copy()
             cls._state = dict(parameters=parameters,
-                              references=cls._references)
+                              references=references)
 
         else:
             raise ValueError("Invalid input to retrieve solar parameters for "
@@ -385,7 +368,7 @@ doc_footer = """
         ...                    dec=[-17.3, 81.52] * u.degree,
         ...                    distance=[11.5, 24.12] * u.kpc,
         ...                    frame='icrs')
-        >>> c.transform_to(coord.Galactocentric) # doctest: +FLOAT_CMP
+        >>> c.transform_to(coord.Galactocentric()) # doctest: +FLOAT_CMP
         <SkyCoord (Galactocentric: galcen_coord=<ICRS Coordinate: (ra, dec) in deg
             (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg): (x, y, z) in kpc
             [( -9.43489286, -9.40062188, 6.51345359),
@@ -406,7 +389,7 @@ doc_footer = """
         >>> c = coord.SkyCoord(x=[-8.3, 4.5] * u.kpc,
         ...                    y=[0., 81.52] * u.kpc,
         ...                    z=[0.027, 24.12] * u.kpc,
-        ...                    frame=coord.Galactocentric)
+        ...                    frame=coord.Galactocentric())
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
             [( 88.22423301, 29.88672864,  0.17813456),

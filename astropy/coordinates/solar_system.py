@@ -104,7 +104,11 @@ class solar_system_ephemeris(ScienceState):
     .. [3] https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/a_old_versions/
     """
     _value = 'builtin'
-    _kernel = None
+    _state = {"kernel": None}  # _kernel = None
+
+    @classproperty  # read-only.
+    def _kernel(cls):
+        return cls._state["kernel"]
 
     @classmethod
     def validate(cls, value):
@@ -122,11 +126,11 @@ class solar_system_ephemeris(ScienceState):
         if cls._kernel is None or cls._kernel.origin != value:
             if cls._kernel is not None:
                 cls._kernel.daf.file.close()
-                cls._kernel = None
+                cls._state["kernel"] = None
             kernel = _get_kernel(value)
             if kernel is not None:
                 kernel.origin = value
-            cls._kernel = kernel
+            cls._state["kernel"] = kernel
         return cls._kernel
 
     @classproperty
