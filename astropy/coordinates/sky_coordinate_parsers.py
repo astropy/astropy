@@ -596,7 +596,7 @@ def _get_representation_attrs(frame, units, kwargs):
                     "This can occur when passing units for some coordinate components "
                     "when other components are specified as Quantity objects. "
                     "Either pass a list of units for all components (and unit-less coordinate data), "
-                    "or pass Quantities for all components"
+                    "or pass Quantities for all components."
                 )
                 raise u.UnitConversionError(error_message) from err
 
