@@ -588,7 +588,17 @@ def _get_representation_attrs(frame, units, kwargs):
     for frame_attr_name, repr_attr_class, unit in zip(frame_attr_names, repr_attr_classes, units):
         value = kwargs.pop(frame_attr_name, None)
         if value is not None:
-            valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+            try:
+                valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
+            except u.UnitConversionError as err:
+                error_message = (
+                    f"Unit '{unit}' ({unit.physical_type}) could not be applied to '{frame_attr_name}'. "
+                    "This can occur when passing units for some coordinate components "
+                    "when other components are specified as Quantity objects. "
+                    "Either pass a list of units for all components (and unit-less coordinate data), "
+                    "or pass Quantities for all components."
+                )
+                raise u.UnitConversionError(error_message) from err
 
     # also check the differentials.  They aren't included in the units keyword,
     # so we only look for the names.

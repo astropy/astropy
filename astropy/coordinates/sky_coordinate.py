@@ -220,9 +220,11 @@ class SkyCoord(ShapedLikeNDArray):
         Type of coordinate frame this `SkyCoord` should represent. Defaults to
         to ICRS if not given or given as None.
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
-        Units for supplied ``LON`` and ``LAT`` values, respectively.  If
-        only one unit is supplied then it applies to both ``LON`` and
-        ``LAT``.
+        Units for supplied coordinate values.
+        If only one unit is supplied then it applies to all values.
+        Note that passing only one unit might lead to unit conversion errors
+        if the coordinate values are expected to have mixed physical meanings
+        (e.g., angles and distances).
     obstime : valid `~astropy.time.Time` initializer, optional
         Time(s) of observation.
     equinox : valid `~astropy.time.Time` initializer, optional
