@@ -16,7 +16,7 @@ from astropy.modeling import models
 from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
     SimplexLSQFitter, SLSQPLSQFitter, LinearLSQFitter, LevMarLSQFitter,
-    JointFitter, Fitter, FittingWithOutlierRemoval)
+    JointFitter, Fitter, FittingWithOutlierRemoval, Covariance)
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import get_pkg_data_filename
 from astropy.stats import sigma_clip
@@ -906,7 +906,7 @@ def test_fitting_with_outlier_removal_niter():
     # 2 rows with some noise around a constant level and 1 deviant point:
     x = np.arange(25)
     with NumpyRNGContext(_RANDOM_SEED):
-        y = np.random.normal(loc=10., scale=1., size=(2,25))
+        y = np.random.normal(loc=10., scale=1., size=(2, 25))
     y[0, 14] = 100.
 
     # Fit 2 models with up to 5 iterations (should only take 2):
@@ -931,3 +931,140 @@ def test_fitting_with_outlier_removal_niter():
     # Confirm that there were no iterations or rejected points:
     assert mask.sum() == 0
     assert fitter.fit_info['niter'] == 0
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+class TestFittingUncertanties:
+    """
+    Test that parameter covariance is calculated correctly for the fitters
+    that do so (currently LevMarLSQFitter, LinearLSQFitter).
+    """
+    example_1D_models = [models.Polynomial1D(2), models.Linear1D()]
+    example_1D_sets = [models.Polynomial1D(2, n_models=2, model_set_axis=False),
+                       models.Linear1D(n_models=2, slope=[1., 1.], intercept=[0, 0])]
+
+    def setup_class(self):
+        self.x = np.arange(10)
+        self.x_grid = np.random.randint(0, 100, size=100).reshape(10, 10)
+        self.y_grid = np.random.randint(0, 100, size=100).reshape(10, 10)
+        self.rand_grid = np.random.random(100).reshape(10, 10)
+        self.rand = self.rand_grid[0]
+
+    @pytest.mark.parametrize(('single_model', 'model_set'),
+                             list(zip(example_1D_models, example_1D_sets)))
+    def test_1d_models(self, single_model, model_set):
+        """ Test that fitting uncertanties are computed correctly for 1D models
+            and 1D model sets. Use covariance/stds given by LevMarLSQFitter as
+            a benchmark since they are returned by the numpy fitter.
+        """
+        levmar_fitter = LevMarLSQFitter(calc_uncertanties=True)
+        linlsq_fitter = LinearLSQFitter(calc_uncertanties=True)
+
+        # test 1D single models
+        # fit single model w/ nonlinear fitter
+        y = single_model(self.x) + self.rand
+        with pytest.warns(AstropyUserWarning,
+                          match=r'Model is linear in parameters'):
+            fit_model_levmar = levmar_fitter(single_model, self.x, y)
+        cov_model_levmar = fit_model_levmar.cov_matrix.cov_matrix
+
+        # fit single model w/ linlsq fitter
+        fit_model_linlsq = linlsq_fitter(single_model, self.x, y)
+        cov_model_linlsq = fit_model_linlsq.cov_matrix.cov_matrix
+
+        # check covariance, stds computed correctly computed
+        assert_allclose(cov_model_linlsq, cov_model_levmar)
+        assert_allclose(np.sqrt(np.diag(cov_model_linlsq)),
+                        fit_model_linlsq.stds.stds)
+
+        # now test 1D model sets
+        # fit set of models w/ linear fitter
+        y = model_set(self.x, model_set_axis=False) +\
+            np.array([self.rand, self.rand])
+        fit_1d_set_linlsq = linlsq_fitter(model_set, self.x, y)
+        cov_1d_set_linlsq = [j.cov_matrix for j in
+                             fit_1d_set_linlsq.cov_matrix]
+
+        # make sure cov matrix from single model fit w/ levmar fitter matches
+        # the cov matrix of first model in the set
+        assert_allclose(cov_1d_set_linlsq[0], cov_model_levmar)
+        assert_allclose(np.sqrt(np.diag(cov_1d_set_linlsq[0])),
+                        fit_1d_set_linlsq.stds[0].stds)
+
+    def test_2d_models(self):
+        """
+        Test that fitting uncertanties are computed correctly for 2D models
+        and 2D model sets. Use covariance/stds given by LevMarLSQFitter as
+        a benchmark since they are returned by the numpy fitter.
+        """
+        levmar_fitter = LevMarLSQFitter(calc_uncertanties=True)
+        linlsq_fitter = LinearLSQFitter(calc_uncertanties=True)
+        single_model = models.Polynomial2D(2, c0_0=2)
+        model_set = models.Polynomial2D(degree=2, n_models=2, c0_0=[2, 3],
+                                        model_set_axis=False)
+
+        # fit single model w/ nonlinear fitter
+        z_grid = single_model(self.x_grid, self.y_grid) + self.rand_grid
+        with pytest.warns(AstropyUserWarning,
+                          match=r'Model is linear in parameters'):
+            fit_model_levmar = levmar_fitter(single_model, self.x_grid,
+                                             self.y_grid, z_grid)
+        cov_model_levmar = fit_model_levmar.cov_matrix.cov_matrix
+
+        # fit single model w/ nonlinear fitter
+        fit_model_linlsq = linlsq_fitter(single_model, self.x_grid,
+                                         self.y_grid, z_grid)
+        cov_model_linlsq = fit_model_linlsq.cov_matrix.cov_matrix
+        assert_allclose(cov_model_levmar, cov_model_linlsq)
+        assert_allclose(np.sqrt(np.diag(cov_model_linlsq)),
+                        fit_model_linlsq.stds.stds)
+
+        # fit 2d model set
+        z_grid = model_set(self.x_grid, self.y_grid) + np.array((self.rand_grid,
+                                                                 self.rand_grid))
+
+        fit_2d_set_linlsq = linlsq_fitter(model_set, self.x_grid, self.y_grid,
+                                          z_grid)
+        cov_2d_set_linlsq = [j.cov_matrix for j in fit_2d_set_linlsq.cov_matrix]
+
+        # make sure cov matrix from single model fit w/ levmar fitter matches
+        # the cov matrix of first model in the set
+        assert_allclose(cov_2d_set_linlsq[0], cov_model_levmar)
+        assert_allclose(np.sqrt(np.diag(cov_2d_set_linlsq[0])),
+                        fit_2d_set_linlsq.stds[0].stds)
+
+    def test_covariance_std_printing_indexing(self, capsys):
+        """
+        Test printing methods and indexing.
+        """
+
+        # test str representation for Covariance/stds
+        fitter = LinearLSQFitter(calc_uncertanties=True)
+        mod = models.Linear1D()
+        fit_mod = fitter(mod, self.x, mod(self.x)+self.rand)
+        print(fit_mod.cov_matrix)
+        captured = capsys.readouterr()
+        assert "slope    | 0.001" in captured.out
+        assert "intercept| -0.006,  0.041" in captured.out
+
+        print(fit_mod.stds)
+        captured = capsys.readouterr()
+        assert "slope    | 0.038" in captured.out
+        assert "intercept| 0.203" in captured.out
+
+        # test 'pprint' for Covariance/stds
+        print(fit_mod.cov_matrix.pprint(round_val=5, max_lines=1))
+        captured = capsys.readouterr()
+        assert "slope    | 0.00144" in captured.out
+        assert "intercept" not in captured.out
+
+        print(fit_mod.stds.pprint(max_lines=1, round_val=5))
+        captured = capsys.readouterr()
+        assert "slope    | 0.03799" in captured.out
+        assert "intercept" not in captured.out
+
+        # test indexing for Covariance class.
+        assert fit_mod.cov_matrix[0, 0] == fit_mod.cov_matrix['slope', 'slope']
+
+        # test indexing for stds class.
+        assert fit_mod.stds[1] == fit_mod.stds['intercept']

@@ -57,6 +57,84 @@ STATISTICS = [leastsquare]
 OPTIMIZERS = [Simplex, SLSQP]
 
 
+class Covariance():
+    """Class for covariance matrix calculated by fitter. """
+
+    def __init__(self, cov_matrix, param_names):
+        self.cov_matrix = cov_matrix
+        self.param_names = param_names
+
+    def pprint(self, max_lines, round_val):
+        # Print and label lower triangle of covariance matrix
+        # Print rows for params up to `max_lines`, round floats to 'round_val'
+        longest_name = max([len(x) for x in self.param_names])
+        ret_str = 'parameter variances / covariances \n'
+        fstring = f'{"": <{longest_name}}| {{0}}\n'
+        for i, row in enumerate(self.cov_matrix):
+            if i <= max_lines-1:
+                param = self.param_names[i]
+                ret_str += fstring.replace(' '*len(param), param, 1).\
+                           format(repr(np.round(row[:i+1], round_val))[7:-2])
+            else:
+                ret_str += '...'
+        return(ret_str.rstrip())
+
+    def __repr__(self):
+        return(self.pprint(max_lines=10, round_val=3))
+
+    def __getitem__(self, params):
+        # index covariance matrix by parameter names or indicies
+        if len(params) != 2:
+            raise ValueError('Covariance must be indexed by two values.')
+        if all(isinstance(item, str) for item in params):
+            i1, i2 = self.param_names.index(params[0]), self.param_names.index(params[1])
+        elif all(isinstance(item, int) for item in params):
+            i1, i2 = params
+        else:
+            raise TypeError('Covariance can be indexed by two parameter names or integer indicies.')
+        return(self.cov_matrix[i1][i2])
+
+
+class StandardDeviations():
+    """ Class for fitting uncertanties."""
+
+    def __init__(self, cov_matrix, param_names):
+        self.param_names = param_names
+        self.stds = self._calc_stds(cov_matrix)
+
+    def _calc_stds(self, cov_matrix):
+        # sometimes scipy lstsq returns a non-sensical negative vals in the
+        # diagonals of the cov_x it computes.
+        stds = [np.sqrt(x) if x > 0 else None for x in np.diag(cov_matrix)]
+        return stds
+
+    def pprint(self, max_lines, round_val):
+        longest_name = max([len(x) for x in self.param_names])
+        ret_str = 'standard deviations\n'
+        fstring = '{0}{1}| {2}\n'
+        for i, std in enumerate(self.stds):
+            if i <= max_lines-1:
+                param = self.param_names[i]
+                ret_str += fstring.format(param,
+                                          ' ' * (longest_name - len(param)),
+                                          str(np.round(std, round_val)))
+            else:
+                ret_str += '...'
+        return(ret_str.rstrip())
+
+    def __repr__(self):
+        return(self.pprint(max_lines=10, round_val=3))
+
+    def __getitem__(self, param):
+        if isinstance(param, str):
+            i = self.param_names.index(param)
+        elif isinstance(param, int):
+            i = param
+        else:
+            raise TypeError('Standard deviation can be indexed by paramater name or integer.')
+        return(self.stds[i])
+
+
 class ModelsError(Exception):
     """Base class for model exceptions"""
 
@@ -197,6 +275,7 @@ class Fitter(metaclass=_FitterMeta):
         A callable implementing an optimization algorithm
     statistic : callable
         Statistic function
+
     """
 
     supported_constraints = []
@@ -244,12 +323,19 @@ class Fitter(metaclass=_FitterMeta):
         res = self._stat_method(meas, model, *args[1:-1])
         return res
 
+    @staticmethod
+    def _add_fitting_uncertanties(*args):
+        """
+        When available, calculate and sets the parameter covariance matrix
+        (model.cov_matrix) and standard deviations (model.stds).
+        """
+        return None
+
     @abc.abstractmethod
     def __call__(self):
         """
         This method performs the actual fitting and modifies the parameter list
         of a model.
-
         Fitter subclasses should implement this method.
         """
 
@@ -262,11 +348,9 @@ class Fitter(metaclass=_FitterMeta):
 class LinearLSQFitter(metaclass=_FitterMeta):
     """
     A class performing a linear least square fitting.
-
     Uses `numpy.linalg.lstsq` to do the fitting.
     Given a model and data, fits the model to the data and changes the
     model's parameters. Keeps a dictionary of auxiliary fitting information.
-
     Notes
     -----
     Note that currently LinearLSQFitter does not support compound models.
@@ -275,12 +359,90 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     supported_constraints = ['fixed']
     supports_masked_input = True
 
-    def __init__(self):
+    def __init__(self, calc_uncertanties=False):
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
                          'params': None
                          }
+        self._calc_uncertanties=calc_uncertanties
+
+    @staticmethod
+    def _is_invertable(m):
+        """Check if inverse of matrix can be obtained."""
+        if m.shape[0] != m.shape[1]:
+            return False
+        if np.linalg.matrix_rank(m) < m.shape[0]:
+            return False
+        return True
+
+    def _add_fitting_uncertanties(self, model, a, n_coeff, x, y, z=None,
+                                  resids=None):
+        """
+        Calculate and parameter covariance matrix and standard deviations
+        and set `cov_matrix` and `stds` attributes.
+        """
+        x_dot_x_prime = np.dot(a.T, a)
+        masked = False or hasattr(y, 'mask')
+
+        # check if invertable. if not, can't calc covariance.
+        if not self._is_invertable(x_dot_x_prime):
+            return(model)
+        inv_x_dot_x_prime = np.linalg.inv(x_dot_x_prime)
+
+        if z is None:  # 1D models
+            if len(model) == 1:  # single model
+                mask = None
+                if masked:
+                    mask = y.mask
+                xx = np.ma.array(x, mask=mask)
+                RSS = [(1/(xx.count()-n_coeff)) * resids]
+
+            if len(model) > 1:  # model sets
+                RSS = []   # collect sum residuals squared for each model in set
+                for j in range(len(model)):
+                    mask = None
+                    if masked:
+                        mask = y.mask[..., j].flatten()
+                    xx = np.ma.array(x, mask=mask)
+                    eval_y = model(xx, model_set_axis=False)
+                    eval_y = np.rollaxis(eval_y, model.model_set_axis)[j]
+                    RSS.append((1/(xx.count()-n_coeff)) * np.sum((y[..., j] - eval_y)**2))
+
+        else:  # 2D model
+            if len(model) == 1:
+                mask = None
+                if masked:
+                    warnings.warn('Calculation of fitting uncertanties '
+                                'for 2D models with masked values not '
+                                'currently supported.\n',
+                                 AstropyUserWarning)
+                    return
+                xx, yy = np.ma.array(x, mask=mask), np.ma.array(y, mask=mask)
+                # len(xx) instead of xx.count. this will break if values are masked?
+                RSS = [(1/(len(xx)-n_coeff)) * resids]
+            else:
+                RSS = []
+                for j in range(len(model)):
+                    eval_z = model(x, y, model_set_axis=False)
+                    mask = None  # need to figure out how to deal w/ masking here.
+                    if model.model_set_axis == 1:
+                        # model_set_axis passed when evalauting only refers to input shapes
+                        # so output must be reshaped for model_set_axis=1.
+                        eval_z = np.rollaxis(eval_z, 1)
+                    eval_z = eval_z[j]
+                    RSS.append([(1/(len(x)-n_coeff)) * np.sum((z[j] - eval_z)**2)])
+
+        covs = [inv_x_dot_x_prime * r for r in RSS]
+        free_param_names = [x for x in model.fixed if (model.fixed[x] is False)
+                            and (model.tied[x] is False)]
+
+        if len(covs) == 1:
+            model.cov_matrix = Covariance(covs[0], model.param_names)
+            model.stds = StandardDeviations(covs[0], free_param_names)
+        else:
+            model.cov_matrix = [Covariance(cov, model.param_names) for cov in covs]
+            model.stds = [StandardDeviations(cov, free_param_names) for cov in covs]
 
     @staticmethod
     def _deriv_with_constraints(model, param_indices, x=None, y=None):
@@ -357,6 +519,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         -------
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
+
         """
 
         if not model.fittable:
@@ -499,6 +662,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         masked = np.any(np.ma.getmask(rhs))
 
+        a = None  # need for calculating covarience
         if len(model_copy) == 1 or not masked:
 
             # If we're fitting one or more models over a common set of points,
@@ -506,7 +670,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # of magnitude faster than calling lstsq() once per model below:
 
             good = ~rhs.mask if masked else slice(None)  # latter is a no-op
-
+            a = lhs[good]
             # Solve for one or more models:
             lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
                                                          rhs[good], rcond)
@@ -532,7 +696,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 good = ~model_rhs.mask
                 model_lhs = lhs[good]
                 model_rhs = model_rhs[good][..., np.newaxis]
-
+                a = model_lhs
                 # Solve for this model:
                 t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
                                                              model_rhs, rcond)
@@ -545,6 +709,8 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         lacoef = (lacoef.T / scl).T
         self.fit_info['params'] = lacoef
 
+        _fitter_to_model_params(model_copy, lacoef.flatten())
+
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
         if hasattr(model_copy, '_order') and len(model_copy) == 1 \
@@ -552,7 +718,12 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
 
-        _fitter_to_model_params(model_copy, lacoef.flatten())
+        # calculate and set covariance matrix and standard devs. on model
+        if self._calc_uncertanties:
+            if len(y) > len(lacoef):
+                self._add_fitting_uncertanties(model_copy, a*scl,
+                                               len(lacoef), x, y, z, resids)
+
         return model_copy
 
 
@@ -596,7 +767,7 @@ class FittingWithOutlierRemoval:
         self.outlier_func = outlier_func
         self.niter = niter
         self.outlier_kwargs = outlier_kwargs
-        self.fit_info = {'niter' : None}
+        self.fit_info = {'niter': None}
 
     def __str__(self):
         return ("Fitter: {0}\nOutlier function: {1}\nNum. of iterations: {2}" +
@@ -631,7 +802,6 @@ class FittingWithOutlierRemoval:
             Weights to be passed to the fitter.
         kwargs : dict, optional
             Keyword arguments to be passed to the fitter.
-
         Returns
         -------
         fitted_model : `~astropy.modeling.FittableModel`
@@ -781,7 +951,7 @@ class FittingWithOutlierRemoval:
                 break
             last_n_masked = this_n_masked
 
-        self.fit_info = {'niter' : n}
+        self.fit_info = {'niter': n}
         self.fit_info.update(getattr(self.fitter, 'fit_info', {}))
 
         return fitted_model, filtered_data.mask
@@ -805,12 +975,12 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
     documentation for details on the meaning of these values. Note that the
     ``x`` return value is *not* included (as it is instead the parameter values
     of the returned model).
-
     Additionally, one additional element of ``fit_info`` is computed whenever a
     model is fit, with the key 'param_cov'. The corresponding value is the
     covariance matrix of the parameters as a 2D numpy array.  The order of the
     matrix elements matches the order of the parameters in the fitted model
     (i.e., the same order as ``model.param_names``).
+
     """
 
     supported_constraints = ['fixed', 'tied', 'bounds']
@@ -818,7 +988,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
     The constraint types supported by this fitter type.
     """
 
-    def __init__(self):
+    def __init__(self, calc_uncertanties=False):
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
@@ -828,7 +998,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                          'ierr': None,
                          'param_jac': None,
                          'param_cov': None}
-
+        self._calc_uncertanties=calc_uncertanties
         super().__init__()
 
     def objective_function(self, fps, *args):
@@ -841,6 +1011,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             parameters returned by the fitter
         args : list
             [model, [weights], [input coordinates]]
+
         """
 
         model = args[0]
@@ -851,6 +1022,19 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             return np.ravel(model(*args[2: -1]) - meas)
         else:
             return np.ravel(weights * (model(*args[2: -1]) - meas))
+
+    @staticmethod
+    def _add_fitting_uncertanties(model, cov_matrix):
+        """
+        Set ``cov_matrix`` and ``stds`` attributes on model with parameter
+        covariance matrix returned by ``optimize.leastsq``.
+        """
+
+        free_param_names = [x for x in model.fixed if (model.fixed[x] is False)
+                            and (model.tied[x] is False)]
+
+        model.cov_matrix = Covariance(cov_matrix, free_param_names)
+        model.stds = StandardDeviations(cov_matrix, free_param_names)
 
     @fitter_unit_support
     def __call__(self, model, x, y, z=None, weights=None,
@@ -895,6 +1079,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         -------
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
+
         """
 
         from scipy import optimize
@@ -928,6 +1113,11 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         else:
             self.fit_info['param_cov'] = None
 
+        if self._calc_uncertanties is True:
+            if self.fit_info['param_cov'] is not None:
+                self._add_fitting_uncertanties(model_copy,
+                                               self.fit_info['param_cov'])
+
         return model_copy
 
     @staticmethod
@@ -935,7 +1125,6 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         """
         Wraps the method calculating the Jacobian of the function to account
         for model constraints.
-
         `scipy.optimize.leastsq` expects the function derivative to have the
         above signature (parlist, (argtuple)). In order to accommodate model
         constraints, instead of using p directly, we set the parameter list in
@@ -990,7 +1179,6 @@ class SLSQPLSQFitter(Fitter):
     """
     SLSQP optimization algorithm and least squares statistic.
 
-
     Raises
     ------
     ModelLinearityError
@@ -1025,7 +1213,6 @@ class SLSQPLSQFitter(Fitter):
             1/sigma.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
-
         verblevel : int
             0-silent
             1-print summary upon completion,
@@ -1044,6 +1231,7 @@ class SLSQPLSQFitter(Fitter):
         -------
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
+
         """
 
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
@@ -1059,7 +1247,6 @@ class SLSQPLSQFitter(Fitter):
 
 class SimplexLSQFitter(Fitter):
     """
-
     Simplex algorithm and least squares statistic.
 
     Raises
@@ -1096,7 +1283,6 @@ class SimplexLSQFitter(Fitter):
             1/sigma.
         kwargs : dict
             optional keyword arguments to be passed to the optimizer or the statistic
-
         maxiter : int
             maximum number of iterations
         acc : float
@@ -1109,6 +1295,7 @@ class SimplexLSQFitter(Fitter):
         -------
         model_copy : `~astropy.modeling.FittableModel`
             a copy of the input model with parameters set by the fitter
+
         """
 
         model_copy = _validate_model(model,
@@ -1127,7 +1314,6 @@ class SimplexLSQFitter(Fitter):
 class JointFitter(metaclass=_FitterMeta):
     """
     Fit models which share a parameter.
-
     For example, fit two gaussians to two data sets but keep
     the FWHM the same.
 
@@ -1139,6 +1325,7 @@ class JointFitter(metaclass=_FitterMeta):
         a list of joint parameters
     initvals : list
         a list of initial values
+
     """
 
     def __init__(self, models, jointparameters, initvals):
@@ -1178,6 +1365,7 @@ class JointFitter(metaclass=_FitterMeta):
         args : dict
             tuple of measured and input coordinates
             args is always passed as a tuple from optimize.leastsq
+
         """
 
         lstsqargs = list(args)
@@ -1390,7 +1578,6 @@ def _model_to_fit_params(model):
     with a fitter that doesn't natively support fixed or tied parameters.
     In particular, it removes fixed/tied parameters from the parameter
     array.
-
     These may be a subset of the model parameters, if some of them are held
     constant or tied.
     """
@@ -1460,19 +1647,15 @@ def populate_entry_points(entry_points):
     This injects entry points into the `astropy.modeling.fitting` namespace.
     This provides a means of inserting a fitting routine without requirement
     of it being merged into astropy's core.
-
     Parameters
     ----------
-
     entry_points : a list of `~pkg_resources.EntryPoint`
                   entry_points are objects which encapsulate
                   importable objects and are defined on the
                   installation of a package.
-
     Notes
     -----
     An explanation of entry points can be found `here <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`
-
     """
 
     for entry_point in entry_points:
