@@ -691,6 +691,11 @@ class Model(metaclass=_ModelMeta):
     # model inputs. Only has an effect if input_units is defined.
     input_units_equivalencies = None
 
+    # Covariance matrix can be set by fitter if available.
+    # If cov_matrix is availble, then std will set as well
+    _cov_matrix = None
+    _stds = None
+
     def __init__(self, *args, meta=None, name=None, **kwargs):
         super().__init__()
         self._default_inputs_outputs()
@@ -1284,6 +1289,46 @@ class Model(metaclass=_ModelMeta):
         """
 
         return self._user_bounding_box is not None
+
+    @property
+    def cov_matrix(self):
+        """
+        Fitter should set covariance matrix, if available.
+        """
+        return self._cov_matrix
+
+    @cov_matrix.setter
+    def cov_matrix(self, cov):
+
+        self._cov_matrix = cov
+
+        unfix_untied_params = [p for p in self.param_names if (self.fixed[p] is False)
+                               and (self.tied[p] is False)]
+        if type(cov) == list:  # model set
+            param_stds = []
+            for c in cov:
+                param_stds.append([np.sqrt(x) if x > 0 else None for x in np.diag(c.cov_matrix)])
+            for p, param_name in enumerate(unfix_untied_params):
+                par = getattr(self, param_name)
+                par.std = [item[p] for item in param_stds]
+                setattr(self, param_name, par)
+        else:
+            param_stds = [np.sqrt(x) if x > 0 else None for x in np.diag(cov.cov_matrix)]
+            for param_name in unfix_untied_params:
+                par = getattr(self, param_name)
+                par.std = param_stds.pop(0)
+                setattr(self, param_name, par)
+
+    @property
+    def stds(self):
+        """
+        Standard deviation of parameters, if covariance matrix is available.
+        """
+        return self._stds
+
+    @stds.setter
+    def stds(self, stds):
+        self._stds = stds
 
     @property
     def separable(self):
