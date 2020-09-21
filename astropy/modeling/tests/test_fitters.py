@@ -1063,8 +1063,8 @@ class TestFittingUncertanties:
         assert "slope    | 0.03799" in captured.out
         assert "intercept" not in captured.out
 
-        # test indexing for Covariance class
+        # test indexing for Covariance class.
         assert fit_mod.cov_matrix[0, 0] == fit_mod.cov_matrix['slope', 'slope']
 
-        # test indexing for stds class
+        # test indexing for stds class.
         assert fit_mod.stds[1] == fit_mod.stds['intercept']
