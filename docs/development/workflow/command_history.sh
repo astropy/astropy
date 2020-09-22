@@ -22,7 +22,6 @@ git push --set-upstream mwcraig i-1761 # Hey GitHub, get ready to receive my wor
 #
 conda create -n apy-1761 --clone root   # copy my default environment
 source activate apy-1761                # switch to this environment
-# next step DOES NOT WORK in python 3
 pip install -e .                        # install astropy
 #
 # Check setup by running tests

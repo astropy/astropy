@@ -334,7 +334,7 @@ class TestRunner(TestRunnerBase):
             warnings.warn(
                 "The coverage option is ignored on run_tests, since it "
                 "can not be made to work in that context.  Use "
-                "'pytest --coverage' instead.",
+                "'python setup.py test --coverage' instead.",
                 AstropyWarning)
 
         return []
@@ -378,7 +378,7 @@ class TestRunner(TestRunnerBase):
 
             if ext in ('.rst', ''):
                 if kwargs['docs_path'] is None:
-                    # This shouldn't happen from "pytest"
+                    # This shouldn't happen from "python setup.py test"
                     raise ValueError(
                         "Can not test .rst files without a docs_path "
                         "specified.")
