@@ -2116,4 +2116,5 @@ def test_download_ftp_file_properly_handles_socket_error():
     faulty_url = "ftp://anonymous:mail%40astropy.org@nonexisting/pub/products/iers/finals2000A.all"
     with pytest.raises(urllib.error.URLError) as excinfo:
         download_file(faulty_url)
-    assert "Name or service not known" in excinfo.exconly()
+    errmsg = excinfo.exconly()
+    assert "Name or service not known" in errmsg or 'getaddrinfo failed' in errmsg
