@@ -1112,11 +1112,29 @@ BP_1_1  =  -1.711876336719E-05
 A_DMAX  =    44.72893589844534
 B_DMAX  =    44.62692873032506
 """
+    # A known header that failed before
+    header_str_prob = """
+NAXIS   =                    2 / number of array dimensions
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =               1024.5 / Pixel coordinate of reference point
+CRPIX2  =               1024.5 / Pixel coordinate of reference point
+CD1_1   = -1.7445934400771E-05 / Coordinate transformation matrix element
+CD1_2   = -4.9826985362578E-08 / Coordinate transformation matrix element
+CD2_1   = -5.0068838822312E-08 / Coordinate transformation matrix element
+CD2_2   =  1.7530614610951E-05 / Coordinate transformation matrix element
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection
+CRVAL1  =      5.8689341666667 / [deg] Coordinate value at reference point
+CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
+"""
+
     header_linear = fits.Header.fromstring(header_str_linear, sep='\n')
     header_sip = fits.Header.fromstring(header_str_sip, sep='\n')
+    header_prob = fits.Header.fromstring(header_str_prob, sep='\n')
 
     true_wcs_linear = WCS(header_linear, relax=True)
     true_wcs_sip = WCS(header_sip, relax=True)
+    true_wcs_prob = WCS(header_prob, relax=True)
 
     # Getting the pixel coordinates
     x, y = np.meshgrid(list(range(10)), list(range(10)))
@@ -1126,6 +1144,7 @@ B_DMAX  =    44.62692873032506
     # Calculating the true sky positions
     world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
     world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
+    world_pix_prob = true_wcs_prob.pixel_to_world(x, y)
 
     # Fitting the wcs, no distortion.
     fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
@@ -1134,6 +1153,10 @@ B_DMAX  =    44.62692873032506
     # Fitting the wcs, with distortion.
     fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
                                       proj_point='center', sip_degree=2)
+
+    # Fitting the problematic WCS
+    fit_wcs_prob = fit_wcs_from_points((x, y), world_pix_prob,
+                                       proj_point='center', sip_degree=None)
 
     # Validate that the true sky coordinates calculated with `true_wcs_linear`
     # match sky coordinates calculated from the wcs fit with only linear terms
@@ -1155,16 +1178,28 @@ B_DMAX  =    44.62692873032506
     assert dists.max() < 7e-6*u.deg
     assert np.std(dists) < 2.5e-6*u.deg
 
+    # Validate that the true sky coordinates calculated from the problematic
+    # WCS match
+
+    world_pix_prob_new = fit_wcs_prob.pixel_to_world(x, y)
+    dists = world_pix_prob.separation(world_pix_prob_new)
+
+    assert dists.max() < 7e-6*u.deg
+    assert np.std(dists) < 2.5e-6*u.deg
+
     # Test 360->0 degree crossover
     header_linear["CRVAL1"] = 352.3497414839765
     header_sip["CRVAL1"] = 352.3497414839765
+    header_prob["CRVAL1"] = 352.3497414839765
 
     true_wcs_linear = WCS(header_linear, relax=True)
     true_wcs_sip = WCS(header_sip, relax=True)
+    true_wcs_prob = WCS(header_prob)
 
     # Calculating the true sky positions
     world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
     world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
+    world_pix_prob = true_wcs_prob.pixel_to_world(x, y)
 
     # Fitting the wcs, no distortion.
     fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
@@ -1173,6 +1208,10 @@ B_DMAX  =    44.62692873032506
     # Fitting the wcs, with distortion.
     fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
                                       proj_point='center', sip_degree=2)
+
+    # Fitting the problem WCS
+    fit_wcs_prob = fit_wcs_from_points((x, y), world_pix_prob,
+                                       proj_point='center', sip_degree=None)
 
     # Validate that the true sky coordinates calculated with `true_wcs_linear`
     # match sky coordinates calculated from the wcs fit with only linear terms
@@ -1183,6 +1222,20 @@ B_DMAX  =    44.62692873032506
 
     assert dists.max() < 7e-5*u.deg
     assert np.std(dists) < 2.5e-5*u.deg
+
+    # Validate fit with SIP
+    world_pix_sip_new = fit_wcs_sip.pixel_to_world(x, y)
+    dists = world_pix_sip.separation(world_pix_sip_new)
+
+    assert dists.max() < 7e-6*u.deg
+    assert np.std(dists) < 2.5e-6*u.deg
+
+    # Validate the problematic WCS
+    world_pix_prob_new = fit_wcs_prob.pixel_to_world(x, y)
+    dists = world_pix_prob.separation(world_pix_prob_new)
+
+    assert dists.max() < 7e-6*u.deg
+    assert np.std(dists) < 2.5e-6*u.deg
 
     # Test CRPIX bounds requirement
     wcs_str = """
@@ -1223,8 +1276,8 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     wcs_header = fits.Header.fromstring(wcs_str, sep='\n')
     ffi_wcs = WCS(wcs_header)
 
-    yi, xi = (1000,1000)
-    y, x = (10,200)
+    yi, xi = (1000, 1000)
+    y, x = (10, 200)
 
     center_coord = SkyCoord(ffi_wcs.all_pix2world([[xi+x//2, yi+y//2]], 0), unit='deg')[0]
     ypix, xpix = [arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y]]
@@ -1234,6 +1287,8 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (200, 10)
+
+    
 
 
 @pytest.mark.remote_data
