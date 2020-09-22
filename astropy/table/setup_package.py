@@ -5,7 +5,7 @@ from setuptools import Extension
 
 import numpy
 
-ROOT = os.path.relpath(os.path.dirname(__file__))
+ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 def get_extensions():

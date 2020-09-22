@@ -11,7 +11,7 @@ from extension_helpers import import_file
 wcs_setup_package = import_file(join('astropy', 'wcs', 'setup_package.py'))
 
 
-MODELING_ROOT = os.path.relpath(os.path.dirname(__file__))
+MODELING_ROOT = os.path.abspath(os.path.dirname(__file__))
 MODELING_SRC = join(MODELING_ROOT, 'src')
 SRC_FILES = [join(MODELING_SRC, 'projections.c.templ'),
              __file__]

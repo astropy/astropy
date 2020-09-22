@@ -6,7 +6,7 @@ from setuptools import Extension
 
 import numpy
 
-C_CONVOLVE_PKGDIR = os.path.relpath(os.path.dirname(__file__))
+C_CONVOLVE_PKGDIR = os.path.abspath(os.path.dirname(__file__))
 
 SRC_FILES = [os.path.join(C_CONVOLVE_PKGDIR, filename)
              for filename in ['src/convolve.c']]
