@@ -23,19 +23,19 @@ git push --set-upstream mwcraig i-1761 # Hey GitHub, get ready to receive my wor
 conda create -n apy-1761 --clone root   # copy my default environment
 source activate apy-1761                # switch to this environment
 # next step DOES NOT WORK in python 3
-python setup.py develop                 # install astropy
+pip install -e .                        # install astropy
 #
 # Check setup by running tests
 #
 cd astropy/coordinates/tests    # get ready to run coordinate tests
-py.test                         # test
+pytest                          # test
 ls                              # what is here?
 #
 # Write a test in test_arrays.py to expose this bug
 #
 # After edit, re-test
 #
-py.test test_arrays.py          # Hopefully this succeeds
+pytest test_arrays.py           # Hopefully this succeeds
 #
 # Commit changes to local git
 #
@@ -54,10 +54,10 @@ cd ..                           # up a level to coordinates
 #
 # Test change
 #
-py.test tests/test_arrays.py   # Did our fix actually fix the problem?
-py.test                        # do all of the coordinate tests pass?
+pytest tests/test_arrays.py    # Did our fix actually fix the problem?
+pytest                         # do all of the coordinate tests pass?
 cd ../..                       # up to the top level to check all of the tests
-python setup.py test           # grab a coffee now; this takes a while
+pytest                         # grab a coffee now; this takes a while
 #
 # Success! Commit our change
 #
@@ -80,14 +80,14 @@ cd astropy/coordinates/tests   # back to add more tests
 #
 # Now re-test
 #
-py.test test_arrays.py  # do these tests pass with the new tests?
+pytest test_arrays.py   # do these tests pass with the new tests?
 #   yes! now move up a couple of levels to check all tests
 #
 #   Do I really have to re-test everything? It certainly never hurts and
 #   potentially saves time for the maintainers if you have introduced a bug.
 #
 cd ../../..          # back to the top level
-python setup.py test # grab another coffee....
+pytest               # grab another coffee....
 #
 # Success! Time to commit
 #

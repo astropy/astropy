@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import os
 
-
 import numpy as np
-
 
 __all__ = ['raises', 'assert_equal', 'assert_almost_equal',
            'assert_true', 'setup_function', 'teardown_function',
@@ -33,7 +30,7 @@ def teardown_function(function):
     os.chdir(CWD)
 
 
-# Compatibility functions to convert from nose to py.test
+# Compatibility functions to convert from nose to pytest
 def assert_equal(a, b):
     assert a == b
 

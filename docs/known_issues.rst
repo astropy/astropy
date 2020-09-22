@@ -253,7 +253,7 @@ versions with ``conda search astropy``.
 Locale Errors in MacOS X and Linux
 ----------------------------------
 
-On MacOS X, you may see the following error when running ``setup.py``::
+On MacOS X, you may see the following error when running ``pip``::
 
     ...
     ValueError: unknown locale: UTF-8
@@ -294,7 +294,7 @@ see something like::
     LC_TIME="en_US.UTF-8"
     LC_ALL="en_US.UTF-8"
 
-If so, you can go ahead and try running ``setup.py`` again (in the new
+If so, you can go ahead and try running ``pip`` again (in the new
 terminal).
 
 
