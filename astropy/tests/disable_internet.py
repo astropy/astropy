@@ -9,7 +9,7 @@ pytest_remotedata plugin: - ``@pytest.mark.remote_data`` for tests that
 require remote data access - ``@pytest.mark.internet_off`` for tests that
 should only run when remote data access is disabled.  Remote data access for
 the test suite is controlled by the ``--remote-data`` command line flag. This
-is either passed to ``pytest`` directly or to the ``setup.py test`` command.
+is passed to ``pytest`` directly.
 
 TODO: This module should eventually be removed once backwards compatibility
 is no longer supported.

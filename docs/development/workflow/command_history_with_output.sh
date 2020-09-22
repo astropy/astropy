@@ -54,9 +54,7 @@ Output not shown
 $ source activate apy-1761                # switch to this environment
 prepending /Users/mcraig/anaconda/envs/apy-1761/bin to PATH
 
-# next step DOES NOT WORK in python 3
-$ python setup.py develop   # install astropy, python 2
-# using python 3? do this instead: python3 setup.py install
+$ pip install -e .      # install astropy
 Configured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-
 gxx-include-dir=/usr/include/c++/4.2.1
 running develop
@@ -305,7 +303,7 @@ accuracy/test_icrs_fk5.py .
 
 # So far, so good, now check ALL tests
 $ cd ../../..                       # up to the top level to check all of the tests
-$ python setup.py test           # grab a coffee now; this takes a while
+$ pytest                            # grab a coffee now; this takes a while
 onfigured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
 Freezing version number to astropy/version.py
 running test
@@ -400,7 +398,7 @@ test_arrays.py .............
 #   potentially saves time for the maintainers if you have introduced a bug.
 #
 $ cd ../../..          # back to the top level
-$ python setup.py test # grab another coffee....
+$ pytest               # grab another coffee....
 OUTPUT OMITTED
 
 #

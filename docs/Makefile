@@ -129,5 +129,5 @@ linkcheck:
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
 doctest:
-	@echo "Run 'python setup.py test' in the root directory to run doctests " \
+	@echo "Run 'pytest' in the root directory to run doctests " \
 	@echo "in the documentation."

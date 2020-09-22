@@ -57,6 +57,9 @@ by ``CHANGES.md`` in the instructions.
 
         python -m pep517.build --source .
 
+   All following instructions will assume you have ``pyproject.toml``, so
+   please adjust accordingly if that is not the case yet.
+
    In both cases, make sure that generated file is good to go by going inside
    ``dist``, expanding the tar file, going inside the expanded directory, and
    running the tests with::
@@ -112,7 +115,7 @@ by ``CHANGES.md`` in the instructions.
 
        conda create -n myaffilpkg_rel_test astropy <any more dependencies here>
        source activate myaffilpkg_rel_test
-       python setup.py sdist
+       python -m pep517.build --source .
        cd dist
        pip install myaffilpkg-version.tar.gz
        python -c 'import myaffilpkg; myaffilpkg.test()'
@@ -124,7 +127,7 @@ by ``CHANGES.md`` in the instructions.
    all pass, you can proceed on.
 
 #. If you did the previous step, do ``git clean -fxd`` again to remove anything
-   you made there.  Run ``python setup.py build sdist --format=gztar`` to
+   you made there.  Run ``python -m pep517.build --source .`` to
    create the files for upload.  Then you can upload to PyPI via ``twine``::
 
         twine upload dist/*

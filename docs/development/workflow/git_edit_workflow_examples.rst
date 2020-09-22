@@ -316,8 +316,8 @@ There are a few levels at which you want to test:
   in the ``coordinates`` directory. In this case, yes--we have not broken
   anything!
 + Do all of the astropy tests still succeed? Check by moving to the top level
-  directory (the one that contains ``setup.py``) and run ``python setup.py
-  test``. This may take several minutes depending on the speed of your system.
+  directory (the one that contains ``setup.py``) and run ``pytest``.
+  This may take several minutes depending on the speed of your system.
   Success again!
 
 .. note::

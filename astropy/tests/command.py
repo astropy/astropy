@@ -1,8 +1,4 @@
-"""
-Implements the wrapper for the Astropy test runner in the form of the
-``./setup.py test`` distutils command.
-"""
-
+"""Implements the wrapper for the Astropy test runner."""
 
 import os
 import stat
@@ -262,7 +258,7 @@ class AstropyTest(Command, metaclass=FixRemoteDataOption):
 
         # On OSX the default path for temp files is under /var, but in most
         # cases on OSX /var is actually a symlink to /private/var; ensure we
-        # dereference that link, because py.test is very sensitive to relative
+        # dereference that link, because pytest is very sensitive to relative
         # paths...
 
         tmp_dir = tempfile.mkdtemp(prefix=self.package_name + '-test-',
