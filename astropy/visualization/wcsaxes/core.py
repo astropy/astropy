@@ -536,7 +536,7 @@ class WCSAxes(Axes):
 
         return coords
 
-    def get_transform(self, frame):
+    def get_transform(self, frame, slices=None):
         """
         Return a transform from the specified frame to display coordinates.
 
@@ -567,16 +567,16 @@ class WCSAxes(Axes):
                   the specified frame to the pixel/data coordinates.
                 * :class:`~astropy.coordinates.BaseCoordinateFrame` instance.
         """
-        return self._get_transform_no_transdata(frame).inverted() + self.transData
+        return self._get_transform_no_transdata(frame, slices).inverted() + self.transData
 
-    def _get_transform_no_transdata(self, frame):
+    def _get_transform_no_transdata(self, frame, slices=None):
         """
         Return a transform from data to the specified frame
         """
 
         if isinstance(frame, WCS):
 
-            transform, coord_meta = transform_coord_meta_from_wcs(frame, self.frame_class)
+            transform, coord_meta = transform_coord_meta_from_wcs(frame, self.frame_class, slices)
             transform_world2pixel = transform.inverted()
 
             if self._transform_pixel2world.frame_out == transform_world2pixel.frame_in:
