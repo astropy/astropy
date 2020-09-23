@@ -492,7 +492,7 @@ See Also
 Some references that are particularly useful in understanding subtleties of the
 coordinate systems implemented here include:
 
-* `USNO Circular 179 <https://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
+* `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
 * `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
