@@ -96,7 +96,7 @@ class Covariance():
 
 
 class StandardDeviations():
-    """ Class for fitting uncertanties."""
+    """ Class for fitting uncertainties."""
 
     def __init__(self, cov_matrix, param_names):
         self.param_names = param_names
@@ -324,7 +324,7 @@ class Fitter(metaclass=_FitterMeta):
         return res
 
     @staticmethod
-    def _add_fitting_uncertanties(*args):
+    def _add_fitting_uncertainties(*args):
         """
         When available, calculate and sets the parameter covariance matrix
         (model.cov_matrix) and standard deviations (model.stds).
@@ -359,13 +359,13 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     supported_constraints = ['fixed']
     supports_masked_input = True
 
-    def __init__(self, calc_uncertanties=False):
+    def __init__(self, calc_uncertainties=False):
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
                          'params': None
                          }
-        self._calc_uncertanties=calc_uncertanties
+        self._calc_uncertainties=calc_uncertainties
 
     @staticmethod
     def _is_invertable(m):
@@ -376,7 +376,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             return False
         return True
 
-    def _add_fitting_uncertanties(self, model, a, n_coeff, x, y, z=None,
+    def _add_fitting_uncertainties(self, model, a, n_coeff, x, y, z=None,
                                   resids=None):
         """
         Calculate and parameter covariance matrix and standard deviations
@@ -413,7 +413,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             if len(model) == 1:
                 mask = None
                 if masked:
-                    warnings.warn('Calculation of fitting uncertanties '
+                    warnings.warn('Calculation of fitting uncertainties '
                                 'for 2D models with masked values not '
                                 'currently supported.\n',
                                  AstropyUserWarning)
@@ -719,9 +719,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                           AstropyUserWarning)
 
         # calculate and set covariance matrix and standard devs. on model
-        if self._calc_uncertanties:
+        if self._calc_uncertainties:
             if len(y) > len(lacoef):
-                self._add_fitting_uncertanties(model_copy, a*scl,
+                self._add_fitting_uncertainties(model_copy, a*scl,
                                                len(lacoef), x, y, z, resids)
 
         return model_copy
@@ -988,7 +988,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
     The constraint types supported by this fitter type.
     """
 
-    def __init__(self, calc_uncertanties=False):
+    def __init__(self, calc_uncertainties=False):
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
@@ -998,7 +998,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                          'ierr': None,
                          'param_jac': None,
                          'param_cov': None}
-        self._calc_uncertanties=calc_uncertanties
+        self._calc_uncertainties=calc_uncertainties
         super().__init__()
 
     def objective_function(self, fps, *args):
@@ -1024,7 +1024,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             return np.ravel(weights * (model(*args[2: -1]) - meas))
 
     @staticmethod
-    def _add_fitting_uncertanties(model, cov_matrix):
+    def _add_fitting_uncertainties(model, cov_matrix):
         """
         Set ``cov_matrix`` and ``stds`` attributes on model with parameter
         covariance matrix returned by ``optimize.leastsq``.
@@ -1113,9 +1113,9 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         else:
             self.fit_info['param_cov'] = None
 
-        if self._calc_uncertanties is True:
+        if self._calc_uncertainties is True:
             if self.fit_info['param_cov'] is not None:
-                self._add_fitting_uncertanties(model_copy,
+                self._add_fitting_uncertainties(model_copy,
                                                self.fit_info['param_cov'])
 
         return model_copy
