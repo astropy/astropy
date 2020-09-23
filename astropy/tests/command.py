@@ -1,5 +1,9 @@
-"""Implements the wrapper for the Astropy test runner."""
+"""Implements the wrapper for the Astropy test runner.
 
+This is for backward-compatibility for other downstream packages and can be removed
+once astropy-helpers has reached end-of-life.
+
+"""
 import os
 import stat
 import shutil

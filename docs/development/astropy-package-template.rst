@@ -57,8 +57,10 @@ by ``CHANGES.md`` in the instructions.
 
         python -m pep517.build --source .
 
-   All following instructions will assume you have ``pyproject.toml``, so
-   please adjust accordingly if that is not the case yet.
+   All following instructions will assume you have ``pyproject.toml``.
+   If you do not use ``pyproject.toml`` yet, please see
+   https://docs.astropy.org/en/v4.0.1/development/astropy-package-template.html
+   instead.
 
    In both cases, make sure that generated file is good to go by going inside
    ``dist``, expanding the tar file, going inside the expanded directory, and
