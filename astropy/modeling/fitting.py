@@ -709,7 +709,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         a = None  # need for calculating covarience
 
         if ((masked and len(model_copy) > 1) or
-            (weights is not None and weights.ndim > 1)):
+                (weights is not None and weights.ndim > 1)):
 
             # Separate masks or weights for multiple models case: Numpy's
             # lstsq supports multiple dimensions only for rhs, so we need to
@@ -735,8 +735,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # optimized by collecting together models with identical masks
             # (eg. those with no rejected points) into one operation, though it
             # will still be relatively slow when calling lstsq repeatedly.
-            for model_lhs, model_rhs, model_lacoef in \
-                zip(lhs_stack, rhs.T, lacoef.T):
+            for model_lhs, model_rhs, model_lacoef in zip(lhs_stack, rhs.T, lacoef.T):
 
                 # Cull masked points on both sides of the matrix equation:
                 good = ~model_rhs.mask if masked else slice(None)
@@ -772,7 +771,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
         if hasattr(model_copy, '_order') and len(model_copy) == 1 \
-            and not has_fixed and rank != model_copy._order:
+                and not has_fixed and rank != model_copy._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
 

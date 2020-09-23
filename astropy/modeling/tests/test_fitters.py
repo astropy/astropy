@@ -242,6 +242,17 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
                         rtol=1e-1)
 
+    def test_linear_fit_model_set_errors(self):
+        init_model = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y = init_model(x, model_set_axis=False)
+
+        fitter = LinearLSQFitter()
+        with pytest.raises(ValueError):
+            fitter(init_model, x[:5], y)
+        with pytest.raises(ValueError):
+            fitter(init_model, x, y[:, :5])
+
     def test_linear_fit_model_set_common_weight(self):
         """Tests fitting multiple models simultaneously."""
 
@@ -299,6 +310,19 @@ class TestLinearLSQFitter:
         fitted_model = fitter(init_model, x, y, z)
         assert_allclose(fitted_model(x, y, model_set_axis=False), z_expected,
                         rtol=1e-1)
+
+    def test_linear_fit_2d_model_set_errors(self):
+
+        init_model = models.Polynomial2D(degree=2, c0_0=[1, 1], n_models=2)
+        x = np.arange(10)
+        y = np.arange(10)
+        z = init_model(x, y, model_set_axis=False)
+
+        fitter = LinearLSQFitter()
+        with pytest.raises(ValueError):
+            fitter(init_model, x[:5], y, z)
+        with pytest.raises(ValueError):
+            fitter(init_model, x, y, z[:, :5])
 
     def test_linear_fit_fixed_parameter(self):
         """
