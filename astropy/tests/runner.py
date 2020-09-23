@@ -190,7 +190,7 @@ class TestRunnerBase:
     def run_tests(self, **kwargs):
         # The following option will include eggs inside a .eggs folder in
         # sys.path when running the tests. This is possible so that when
-        # runnning pytest, test dependencies installed via e.g.
+        # running pytest, test dependencies installed via e.g.
         # tests_requires are available here. This is not an advertised option
         # since it is only for internal use
         if kwargs.pop('add_local_eggs_to_path', False):
