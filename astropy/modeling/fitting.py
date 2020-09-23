@@ -83,7 +83,7 @@ class Covariance():
         return(self.pprint(max_lines=10, round_val=3))
 
     def __getitem__(self, params):
-        # index covariance matrix by parameter names or indicies
+        # index covariance matrix by parameter names or indices
         if len(params) != 2:
             raise ValueError('Covariance must be indexed by two values.')
         if all(isinstance(item, str) for item in params):
@@ -91,7 +91,7 @@ class Covariance():
         elif all(isinstance(item, int) for item in params):
             i1, i2 = params
         else:
-            raise TypeError('Covariance can be indexed by two parameter names or integer indicies.')
+            raise TypeError('Covariance can be indexed by two parameter names or integer indices.')
         return(self.cov_matrix[i1][i2])
 
 
@@ -131,7 +131,7 @@ class StandardDeviations():
         elif isinstance(param, int):
             i = param
         else:
-            raise TypeError('Standard deviation can be indexed by paramater name or integer.')
+            raise TypeError('Standard deviation can be indexed by parameter name or integer.')
         return(self.stds[i])
 
 
@@ -207,7 +207,7 @@ def fitter_unit_support(func):
 
                 # Create a dictionary mapping the real model inputs and outputs
                 # names to the data. This remapping of names must be done here, after
-                # the the input data is converted to the correct units.
+                # the input data is converted to the correct units.
                 rename_data = {model.inputs[0]: x}
                 if z is not None:
                     rename_data[model.outputs[0]] = z
@@ -414,9 +414,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 mask = None
                 if masked:
                     warnings.warn('Calculation of fitting uncertainties '
-                                'for 2D models with masked values not '
-                                'currently supported.\n',
-                                 AstropyUserWarning)
+                                  'for 2D models with masked values not '
+                                  'currently supported.\n',
+                                  AstropyUserWarning)
                     return
                 xx, yy = np.ma.array(x, mask=mask), np.ma.array(y, mask=mask)
                 # len(xx) instead of xx.count. this will break if values are masked?
@@ -427,7 +427,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     eval_z = model(x, y, model_set_axis=False)
                     mask = None  # need to figure out how to deal w/ masking here.
                     if model.model_set_axis == 1:
-                        # model_set_axis passed when evalauting only refers to input shapes
+                        # model_set_axis passed when evaluating only refers to input shapes
                         # so output must be reshaped for model_set_axis=1.
                         eval_z = np.rollaxis(eval_z, 1)
                     eval_z = eval_z[j]
@@ -1572,7 +1572,7 @@ def _fitter_to_model_params(model, fps):
                 slice_ = param_metrics[name]['slice']
 
                 # To handle multiple tied constraints, model parameters
-                # need to be updated after each iterration.
+                # need to be updated after each iteration.
                 parameters[slice_] = value
                 model._array_to_parameters()
 
