@@ -741,6 +741,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                 good = ~model_rhs.mask if masked else slice(None)
                 model_lhs = model_lhs[good]
                 model_rhs = model_rhs[good][..., np.newaxis]
+                a = model_lhs
 
                 # Solve for this model:
                 t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
