@@ -1440,12 +1440,12 @@ class ColDefs(NotifierMixin):
             # Determine the appropriate dimensions for items in the column
             # (typically just 1D)
             dim = array.dtype[idx].shape[::-1]
-            if dim and (len(dim) > 1 or 'A' in format):
+            if dim and (len(dim) > 0 or 'A' in format):
                 if 'A' in format:
                     # n x m string arrays must include the max string
                     # length in their dimensions (e.g. l x n x m)
                     dim = (array.dtype[idx].base.itemsize,) + dim
-                dim = repr(dim).replace(' ', '')
+                dim = '(' + ','.join(str(d) for d in dim) + ')'
             else:
                 dim = None
 
@@ -2264,7 +2264,6 @@ def _parse_tdim(tdim):
     """Parse the ``TDIM`` value into a tuple (may return an empty tuple if
     the value ``TDIM`` value is empty or invalid).
     """
-
     m = tdim and TDIM_RE.match(tdim)
     if m:
         dims = m.group('dims')
