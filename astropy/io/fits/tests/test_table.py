@@ -1772,7 +1772,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_oned_array_single_element(self):
         # a table with rows that are 1d arrays of a single value
-        data = np.array([1, 2]).view([('x', 'int64', (1, ))])
+        data = np.array([(1, ), (2, )], dtype=([('x', 'i4', (1, ))]))
         thdu = fits.BinTableHDU.from_columns(data)
 
         thdu.writeto(self.temp('onedtable.fits'))
