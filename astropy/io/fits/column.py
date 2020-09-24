@@ -172,7 +172,7 @@ Regular expression for valid table column names.  See FITS Standard v3.0 section
 TDEF_RE = re.compile(r'(?P<label>^T[A-Z]*)(?P<num>[1-9][0-9 ]*$)')
 
 # table dimension keyword regular expression (fairly flexible with whitespace)
-TDIM_RE = re.compile(r'\(\s*(?P<dims>(?:\d+,\s*)+\s*\d+)\s*\)\s*')
+TDIM_RE = re.compile(r'\(\s*(?P<dims>(?:\d+\s*)(?:,\s*\d+\s*)*\s*)\)\s*')
 
 # value for ASCII table cell with value = TNULL
 # this can be reset by user.
