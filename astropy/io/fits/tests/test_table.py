@@ -560,7 +560,7 @@ class TestTableFunctions(FitsTestCase):
         for i in range(len(t1[1].columns)):
             hdu.data.field(i)[nrows1:] = t2[1].data.field(i)
 
-        hdu.writeto(self.temp('newtable.fits'))
+        hdu.writeto(self.temp('newtable.fits'), overwrite=True,)
 
         info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
                 (1, '', 1, 'BinTableHDU', 19, '8R x 5C', '[10A, J, 10A, 5E, L]',
@@ -1717,11 +1717,13 @@ class TestTableFunctions(FitsTestCase):
              ([2, 3, 4, 5, 6, 7], 'row3' * 2)], formats='6i4,a8')
 
         thdu = fits.BinTableHDU.from_columns(data)
-        # Modify the TDIM fields to my own specification
-        thdu.header['TDIM1'] = '(2,3)'
-        thdu.header['TDIM2'] = '(4,2)'
 
         thdu.writeto(self.temp('newtable.fits'))
+
+        with fits.open(self.temp('newtable.fits'), mode='update') as hdul:
+            # Modify the TDIM fields to my own specification
+            hdul[1].header['TDIM1'] = '(2,3)'
+            hdul[1].header['TDIM2'] = '(4,2)'
 
         with fits.open(self.temp('newtable.fits')) as hdul:
             thdu = hdul[1]
