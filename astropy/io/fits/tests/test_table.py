@@ -1768,6 +1768,19 @@ class TestTableFunctions(FitsTestCase):
         assert t.field(1).dtype.str[-1] == '5'
         assert t.field(1).shape == (3, 4, 3)
 
+    def test_oned_array_single_element(self):
+        # a table with rows that are 1d arrays of a single value
+        data = np.array([1, 2]).view([('x', 'int64', (1, ))])
+        thdu = fits.BinTableHDU.from_columns(data)
+
+        thdu.writeto(self.temp('onedtable.fits'))
+
+        with fits.open(self.temp('onedtable.fits')) as hdul:
+            thdu = hdul[1]
+
+            c = thdu.data.field(0)
+            assert c.shape == (2, 1)
+
     def test_bin_table_init_from_string_array_column(self):
         """
         Tests two ways of creating a new `BinTableHDU` from a column of
