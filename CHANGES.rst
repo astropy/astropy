@@ -47,6 +47,8 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix handling of 1-dimensional arrays with single elements in BinaryTableHDUs [#10768]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
