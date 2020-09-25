@@ -455,6 +455,9 @@ def get_body(body, time, location=None, ephemeris=None):
 
     Notes
     -----
+    The coordinate returned is the apparent position, which is the position of
+    the body at time *t* minus the light travel time from the *body* to the
+    observing *location*.
     """
     if location is None:
         location = time.location
