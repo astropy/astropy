@@ -2082,7 +2082,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     assert not is_url_in_cache(u)
 
 
-@pytest.mark.xfail('TRAVIS')
+@pytest.mark.skipif("TRAVIS", reason="Flaky on Travis CI")
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
     url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"
