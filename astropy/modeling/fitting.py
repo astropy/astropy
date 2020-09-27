@@ -1187,7 +1187,7 @@ class SLSQPLSQFitter(Fitter):
 
     Notes
     ------
-    See https://docs.astropy.org/en/stable/api/astropy.modeling.optimizers.SLSQP.html
+    See also the `~astropy.modeling.optimizers.SLSQP` optimizer.
 
     """
 
