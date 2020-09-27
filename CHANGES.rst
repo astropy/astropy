@@ -452,6 +452,7 @@ astropy.config
 
 - Add new function ``generate_config`` to generate the configuration file and
   include it in the documentation. [#10148]
+
 - The environment variable ``ASTROPY_SUPPRESS_CONFIG`` can now be used to
   avoid loading of configuration files on import and in
   ``astropy.config.configuration.get_config``. [#5907, #10090]
