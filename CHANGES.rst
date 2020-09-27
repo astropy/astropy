@@ -792,6 +792,8 @@ astropy.io.fits
 - Fix repr for commentary cards and strip spaces for commentary keywords.
   [#10640]
 
+- Fix compilation of cfitsio with Xcode 12. [#10772]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
