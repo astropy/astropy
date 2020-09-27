@@ -32,7 +32,7 @@ class Angle(u.SpecificTypeQuantity):
     :class:`~astropy.coordinates.Angle`.
 
     The input parser is flexible and supports a variety of formats. 
-    The examples below illustrate common ways of initializing a `Angle`
+    The examples below illustrate common ways of initializing an `Angle`
     object. First some imports::
     
       >>> from . import angle_utilities as util
