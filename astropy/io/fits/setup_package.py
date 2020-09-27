@@ -42,6 +42,8 @@ def _get_compression_extension():
                 '-Wno-declaration-after-statement'
             ])
 
+            cfg['define_macros'].append(('HAVE_UNISTD_H', None))
+
             if not debug:
                 # these switches are to silence warnings from compiling CFITSIO
                 # For full silencing, some are added that only are used in
