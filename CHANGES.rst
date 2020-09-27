@@ -776,6 +776,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix integer formats of ``TFORMn=Iw`` columns in ASCII tables to correctly read
+  values exceeding int32 - setting int16, int32 or int64 according to ``w``. [#9901]
+
 - Fix unclosed memory-mapped FITS files in ``FITSDiff`` when difference found.
   [#10159]
 

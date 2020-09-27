@@ -320,6 +320,10 @@ class _AsciiColumnFormat(_BaseColumnFormat):
         self.format, self.width, self.precision = \
             _parse_ascii_tformat(format, strict)
 
+        # If no width has been specified, set the dtype here to default as well
+        if format == self.format:
+            self.recformat = ASCII2NUMPY[format]
+
         # This is to support handling logical (boolean) data from binary tables
         # in an ASCII table
         self._pseudo_logical = False
@@ -2470,9 +2474,13 @@ def _convert_ascii_format(format, reverse=False):
 
         # The following logic is taken from CFITSIO:
         # For integers, if the width <= 4 we can safely use 16-bit ints for all
+        # values, if width >= 10 we may need to accomodate 64-bit ints.
         # values [for the non-standard J format code just always force 64-bit]
-        if format == 'I' and width <= 4:
-            recformat = 'i2'
+        if format == 'I':
+            if width <= 4:
+                recformat = 'i2'
+            elif width > 9:
+                recformat = 'i8'
         elif format == 'A':
             recformat += str(width)
 
