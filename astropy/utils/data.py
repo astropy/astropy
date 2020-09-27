@@ -1522,7 +1522,7 @@ def clear_download_cache(hashorurl=None, pkgname='astropy'):
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
 
 
-def _get_download_cache_loc(pkgname='astropy'):
+def get_download_cache_loc(pkgname='astropy'):
     """Finds the path to the cache directory and makes them if they don't exist.
 
     Parameters
@@ -1555,6 +1555,11 @@ def _get_download_cache_loc(pkgname='astropy'):
         estr = '' if len(e.args) < 1 else (': ' + str(e))
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
         raise
+
+
+def _get_download_cache_loc(pkgname='astropy'):
+    # do we need a warnings.AstropyDeprecationWarning ?
+    return get_download_cache_loc(pkgname=pkgname)
 
 
 def _url_to_dirname(url):
