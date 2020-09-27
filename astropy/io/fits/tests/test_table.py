@@ -17,6 +17,7 @@ except ImportError:
     HAVE_OBJGRAPH = False
 
 from astropy.io import fits
+from astropy.table import Table
 from astropy.units import UnitsWarning
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -308,6 +309,20 @@ class TestTableFunctions(FitsTestCase):
         hdu.writeto(self.temp('toto.fits'), overwrite=True)
         with open(self.temp('toto.fits')) as f:
             assert '4.95652173913043548D+00' in f.read()
+        with fits.open(self.temp('toto.fits')) as hdul:
+            assert comparerecords(hdu.data, hdul[1].data)
+
+        # Test Integer precision according to width
+
+        c1 = fits.Column(name='t2', format='I2', array=[91, 92, 93])
+        c2 = fits.Column(name='t4', format='I5', array=[91, 92, 93])
+        c3 = fits.Column(name='t8', format='I10', array=[91, 92, 93])
+        hdu = fits.TableHDU.from_columns([c1, c2, c3])
+
+        assert c1.array.dtype == np.int16
+        assert c2.array.dtype == np.int32
+        assert c3.array.dtype == np.int64
+        hdu.writeto(self.temp('toto.fits'), overwrite=True)
         with fits.open(self.temp('toto.fits')) as hdul:
             assert comparerecords(hdu.data, hdul[1].data)
 
@@ -2606,6 +2621,21 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp("b.fits")) as hdul:
             assert hdul[1].data['c1'][0] == 10
 
+    def test_ascii_inttypes(self):
+        """
+        Test correct integer dtypes according to ASCII table field widths.
+        Regression for https://github.com/astropy/astropy/issues/9899
+        """
+        i08 = np.array([2**3, 2**23, -2**22, 10, 2**23], dtype='i4')
+        i10 = np.array([2**8, 2**31-1, -2**29, 30, 2**31-1], dtype='i8')
+        i20 = np.array([2**16, 2**63-1, -2**63, 40, 2**63-1], dtype='i8')
+        i02 = np.array([2**8, 2**13, -2**9, 50, 2**13], dtype='i2')
+        t0 = Table([i08, i08*2, i10, i20, i02])
+
+        t1 = Table.read(self.data('ascii_i4-i20.fits'))
+        assert t1.dtype == t0.dtype
+        assert comparerecords(t1, t0)
+
 
 @contextlib.contextmanager
 def _refcounting(type_):
@@ -2878,6 +2908,18 @@ class TestColumnFunctions(FitsTestCase):
         assert c.format.recformat == 'i2'
         c = fits.Column('TEST', 'I', ascii=True)
         assert c.format == 'I10'
+        assert c.format.recformat == 'i4'
+
+        # With specified widths, integer precision should be set appropriately
+        c = fits.Column('TEST', 'I4', ascii=True)
+        assert c.format == 'I4'
+        assert c.format.recformat == 'i2'
+        c = fits.Column('TEST', 'I9', ascii=True)
+        assert c.format == 'I9'
+        assert c.format.recformat == 'i4'
+        c = fits.Column('TEST', 'I12', ascii=True)
+        assert c.format == 'I12'
+        assert c.format.recformat == 'i8'
 
         c = fits.Column('TEST', 'E')
         assert c.format == 'E'
