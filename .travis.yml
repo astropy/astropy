@@ -213,7 +213,7 @@ matrix:
           python: 3.8
           dist: bionic
           name: bundling with pyinstaller
-          stage: Cron tests
+          stage: Initial tests
           env: TOXENV="pyinstaller"
 
     allow_failures:
