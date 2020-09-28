@@ -373,6 +373,20 @@ def test_compose_si_to_cgs(unit):
         assert cgs[0] == unit.cgs
 
 
+def test_to_si():
+    """Check units that are not official derived units.
+
+    Should not appear on its own or as part of a composite unit.
+    """
+    # TODO: extend to all units not listed in Tables 1--6 of
+    # https://physics.nist.gov/cuu/Units/units.html
+    # See gh-10585.
+    # This was always the case
+    assert u.bar.si is not u.bar
+    # But this used to fail.
+    assert u.bar not in (u.kg/(u.s**2*u.sr*u.nm)).si._bases
+
+
 def test_to_cgs():
     assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
     assert u.Pa.to_system(u.cgs)[1]._scale == 10.0

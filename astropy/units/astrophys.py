@@ -100,6 +100,12 @@ def_unit(['Ry', 'rydberg'],
          "constant",
          format={'latex': r'R_{\infty}', 'unicode': 'R∞'})
 
+##########################################################################
+# PRESSURE
+
+def_unit(['bar'], 1e5 * si.Pa, namespace=_ns,
+         prefixes=[(['m'], ['milli'], 1.e-3)],
+         doc="bar: pressure")
 
 ###########################################################################
 # ILLUMINATION
