@@ -112,6 +112,7 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
 - ``Quantity.to`` has gained a ``copy`` option to allow copies to be avoided
   when the units do not change. [#10517]
 
@@ -218,6 +219,10 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- The ``bar`` unit is no longer wrongly considered an SI unit, meaning that
+  SI decompositions like ``(u.kg*u.s**-2* u.sr**-1 * u.nm**-1).si`` will
+  no longer include it. [#10586]
 
 astropy.utils
 ^^^^^^^^^^^^^
