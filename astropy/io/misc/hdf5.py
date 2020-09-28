@@ -162,7 +162,8 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         if new_version_meta:
             header = meta.get_header_from_yaml(
                 h.decode('utf-8') for h in input_save[meta_path(path)])
-        elif old_version_meta:
+        else:
+            # Must be old_version_meta is True. if (A or B) and not A then B is True
             header = meta.get_header_from_yaml(
                 h.decode('utf-8') for h in input.attrs[META_KEY])
         if 'meta' in list(header.keys()):

@@ -1040,10 +1040,12 @@ def _apply_join_funcs(left, right, keys, join_funcs):
     right = right.copy(copy_data=False)
     for key, join_func in join_funcs.items():
         ids1, ids2 = join_func(left[key], right[key])
-        for ii in itertools.count(1):
-            id_key = key + '_' * ii + 'id'
-            if id_key not in left.columns and id_key not in right.columns:
-                break
+        # Define a unique id_key name, and keep adding underscores until we have
+        # a name not yet present.
+        id_key = key + '_id'
+        while id_key in left.columns or id_key in right.columns:
+            id_key = id_key[:-2] + '_id'
+
         keys = tuple(id_key if orig_key == key else orig_key for orig_key in keys)
         left.add_column(ids1, index=0, name=id_key)  # [id_key] = ids1
         right.add_column(ids2, index=0, name=id_key)  # [id_key] = ids2

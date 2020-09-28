@@ -630,8 +630,7 @@ class BaseHeader:
 
     def process_lines(self, lines):
         """Generator to yield non-blank and non-comment lines"""
-        if self.comment:
-            re_comment = re.compile(self.comment)
+        re_comment = re.compile(self.comment) if self.comment else None
         # Yield non-comment lines
         for line in lines:
             if line.strip() and (not self.comment or not re_comment.match(line)):
@@ -1055,10 +1054,16 @@ class BaseOutputter:
             last_err = 'no converters defined'
 
             while not hasattr(col, 'data'):
+                # Try converters, popping the unsuccessful ones from the list.
+                # If there are no converters left here then fail.
+                if not col.converters:
+                    raise ValueError(f'Column {col.name} failed to convert: {last_err}')
+
+                converter_func, converter_type = col.converters[0]
+                if not issubclass(converter_type, col.type):
+                    raise TypeError('converter type does not match column type')
+
                 try:
-                    converter_func, converter_type = col.converters[0]
-                    if not issubclass(converter_type, col.type):
-                        raise TypeError('converter type does not match column type')
                     col.data = converter_func(col.str_vals)
                     col.type = converter_type
                 except (TypeError, ValueError) as err:
@@ -1073,8 +1078,6 @@ class BaseOutputter:
                         .format(converter_type.__name__, col.name), AstropyWarning)
                     col.converters.insert(0, convert_numpy(numpy.str))
                     last_err = err
-                except IndexError:
-                    raise ValueError(f'Column {col.name} failed to convert: {last_err}')
 
 
 def _deduplicate_names(names):

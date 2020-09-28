@@ -4,8 +4,8 @@ from os.path import abspath, dirname, join
 
 from .table import Table
 
-from astropy.io import registry as io_registry
-from astropy import config as _config
+import astropy.io.registry as io_registry
+import astropy.config as _config
 from astropy import extern
 
 

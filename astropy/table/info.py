@@ -178,11 +178,11 @@ def serialize_method_as(tbl, serialize_method):
     # values as appropriate and keep a backup copy.  If ``serialize_method``
     # is None or empty then don't do anything.
 
-    if serialize_method:
-        # Original serialize_method dict, keyed by column name.  This only
-        # gets set if there is an override.
-        original_sms = {}
+    # Original serialize_method dict, keyed by column name.  This only
+    # gets used and set if there is an override.
+    original_sms = {}
 
+    if serialize_method:
         # Go through every column and if it has a serialize_method info
         # attribute then potentially update it for the duration of the write.
         for col in tbl.itercols():

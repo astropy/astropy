@@ -13,7 +13,7 @@ import erfa
 
 from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy import units as u
+import astropy.units as u
 
 from . import _parse_times
 from . import utils
@@ -1401,11 +1401,8 @@ class TimeString(TimeUnique):
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
 
-        if '{yday:' in str_fmt:
-            has_yday = True
-        else:
-            has_yday = False
-            yday = None
+        yday = None
+        has_yday = '{yday:' in str_fmt
 
         ihrs = ihmsfs['h']
         imins = ihmsfs['m']
@@ -1784,7 +1781,7 @@ class TimeEpochDateString(TimeString):
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
             except (IndexError, ValueError, UnicodeEncodeError):
-                raise ValueError(f'Time {time_str} does not match {self.name} format')
+                raise ValueError(f'Time {val} does not match {self.name} format')
             else:
                 years[...] = year
 
