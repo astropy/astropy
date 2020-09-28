@@ -119,8 +119,6 @@ astropy.units
 - Added the ``spat`` unit of solid angle that represents the full sphere.
   [#10726]
 
-- The ``bar`` unit is no longer wrongly considered an SI unit. [#10586]
-
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -221,6 +219,10 @@ astropy.uncertainty
 
 astropy.units
 ^^^^^^^^^^^^^
+
+- The ``bar`` unit is no longer wrongly considered an SI unit, meaning that
+  SI decompositions like ``(u.kg*u.s**-2* u.sr**-1 * u.nm**-1).si`` will
+  no longer include it. [#10586]
 
 astropy.utils
 ^^^^^^^^^^^^^
