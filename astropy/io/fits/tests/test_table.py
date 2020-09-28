@@ -560,7 +560,7 @@ class TestTableFunctions(FitsTestCase):
         for i in range(len(t1[1].columns)):
             hdu.data.field(i)[nrows1:] = t2[1].data.field(i)
 
-        hdu.writeto(self.temp('newtable.fits'), overwrite=True,)
+        hdu.writeto(self.temp('newtable.fits'))
 
         info = [(0, 'PRIMARY', 1, 'PrimaryHDU', 4, (), '', ''),
                 (1, '', 1, 'BinTableHDU', 19, '8R x 5C', '[10A, J, 10A, 5E, L]',
@@ -1782,6 +1782,7 @@ class TestTableFunctions(FitsTestCase):
 
             c = thdu.data.field(0)
             assert c.shape == (2, 1)
+            assert thdu.header['TDIM1'] == '(1)'
 
     def test_bin_table_init_from_string_array_column(self):
         """
