@@ -189,6 +189,10 @@ class TableFormatter:
         max_lines, max_width : int
 
         """
+        # Declare to keep static type checker happy.
+        lines = None
+        width = None
+
         if max_lines is None:
             max_lines = conf.max_lines
 
@@ -539,7 +543,6 @@ class TableFormatter:
         # "Print" all the values into temporary lists by column for subsequent
         # use and to determine the width
         max_lines, max_width = self._get_pprint_size(max_lines, max_width)
-        cols = []
 
         if show_unit is None:
             show_unit = any(col.info.unit for col in table.columns.values())
@@ -562,6 +565,8 @@ class TableFormatter:
         # pprint_exclude_names attributes and get the set of columns to show.
         pprint_include_names = _get_pprint_include_names(table)
 
+        cols = []
+        outs = None  # Initialize so static type checker is happy
         for align_, col in zip(align, table.columns.values()):
             if col.info.name not in pprint_include_names:
                 continue
