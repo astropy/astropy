@@ -71,10 +71,10 @@ packages that use the full bugfix/maintenance branch approach.)
    periodically) and committing.
 
 #. To build the source distribution in an isolated environment and make sure you
-   have all the dependencies required for it, install the `pep517
-   <https://pypi.org/project/pep517/>`_ package::
+   have all the dependencies required for it, install the
+   `build <https://pypi.org/project/build/>`_ package::
 
-      $ pip install pep517 --upgrade
+      $ pip install build --upgrade
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on

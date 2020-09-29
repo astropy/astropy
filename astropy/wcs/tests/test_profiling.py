@@ -59,7 +59,7 @@ def test_read_spec_files():
     assert len(hdr_spec_file_list) == n_spec_files, (
         "test_spectra has wrong number data files: found {}, expected "
         " {}".format(len(hdr_spec_file_list), n_spec_files))
-    # b.t.w.  If this assert happens, py.test reports one more test
+    # b.t.w.  If this assert happens, pytest reports one more test
     # than it would have otherwise.
 
 

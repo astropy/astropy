@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # This file needs to be included here to make sure commands such
-# as ``python setup.py test ... -t docs/...`` works, since this
+# as ``pytest docs/...`` works, since this
 # will ignore the conftest.py file at the root of the repository
 # and the one in astropy/conftest.py
 

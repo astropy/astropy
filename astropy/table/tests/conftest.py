@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
-All of the py.test fixtures used by astropy.table are defined here.
+All of the pytest fixtures used by astropy.table are defined here.
 
-`conftest.py` is a "special" module name for py.test that is always
+`conftest.py` is a "special" module name for pytest that is always
 imported, but is not looked in for tests, and it is the recommended
 place to put fixtures that are shared between modules.  These fixtures
 can not be defined in a module by a different name and still be shared

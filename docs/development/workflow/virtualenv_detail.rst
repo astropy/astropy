@@ -8,7 +8,7 @@ Using virtualenv
 `virtualenv`_ is a tool for creating and activating isolated Python
 environments that allow installing and experimenting with Python packages
 without disrupting your production Python environment.  When using commands
-such as ``python setup.py develop``, for example, it is strongly recommended to
+such as ``pip install -e .``, for example, it is strongly recommended to
 do so within a virtualenv.  This is generally preferable to installing a
 development version of Astropy into your system site-packages and having to
 keep track of whether or not your environment is in a "known good"
@@ -69,8 +69,7 @@ your default Python version:
        (astropy-dev) $ deactivate
 
 #. Now as long as the virtualenv is activated, packages you install with
-   ``pip``, or by manually running ``python setup.py install`` will
-   automatically install into your virtualenv instead of the system
+   ``pip`` will automatically install into your virtualenv instead of the system
    site-packages.  Consider installing Astropy in develop mode into the
    virtualenv as described :ref:`activate_development_astropy`.
 

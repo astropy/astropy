@@ -66,7 +66,7 @@ if COMPRESSION_SUPPORTED:
         if compression.CFITSIO_VERSION >= 3.35:
             CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
     except AttributeError:
-        # This generally shouldn't happen unless running setup.py in an
+        # This generally shouldn't happen unless running pip in an
         # environment where an old build of pyfits exists
         CFITSIO_SUPPORTS_GZIPDATA = True
         CFITSIO_SUPPORTS_Q_FORMAT = True

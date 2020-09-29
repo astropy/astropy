@@ -10,7 +10,7 @@ def func(i):
     pseudo-random amount.
 
     FIXME: This function should be defined in test_console.py, but Astropy's
-    `python setup.py test` interacts strangely with Python's `multiprocessing`
+    test runner interacts strangely with Python's `multiprocessing`
     module. I was getting a mysterious PicklingError until I moved this
     function into a separate module. (It worked fine in a standalone pytest
     script.)"""

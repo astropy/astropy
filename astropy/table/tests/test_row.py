@@ -31,7 +31,7 @@ class TestRow():
 
     @property
     def t(self):
-        # py.test wants to run this method once before table_types is run
+        # pytest wants to run this method once before table_types is run
         # to set Table and Column.  In this case just return None, which would
         # cause any downstream test to fail if this happened in any other context.
         if self._column_type is None:
