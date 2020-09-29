@@ -236,8 +236,7 @@ def _initialize_astropy():
                 _rollback_import(
                     'An error occurred while attempting to rebuild the '
                     'extension modules.  Please try manually running '
-                    '`./setup.py develop` or `./setup.py build_ext '
-                    '--inplace` to see what the issue was.  Extension '
+                    '`./setup.py build_ext --inplace` to see what the issue was. Extension '
                     'modules must be successfully compiled and importable '
                     'in order to import astropy.')
                 # Reraise the Exception only in case it wasn't an Exception,
