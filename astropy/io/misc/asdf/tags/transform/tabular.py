@@ -47,12 +47,12 @@ class TabularType(TransformType):
     @classmethod
     def to_tree_transform(cls, model, ctx):
         node = {}
-        node["fill_value"] = model.fill_value
+        if model.fill_value is not None:
+            node["fill_value"] = model.fill_value
         node["lookup_table"] = model.lookup_table
         node["points"] = [p for p in model.points]
         node["method"] = str(model.method)
         node["bounds_error"] = model.bounds_error
-        node["name"] = model.name
         return node
 
     @classmethod
