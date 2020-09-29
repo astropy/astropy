@@ -24,10 +24,12 @@ class SpectralCoordType(AstropyType):
     def to_tree(cls, spec_coord, ctx):
         node = {}
         if isinstance(spec_coord, SpectralCoord):
-            node['value'] = custom_tree_to_tagged_tree(spec_coord.value, ctx)
-            node['unit'] = custom_tree_to_tagged_tree(spec_coord.unit, ctx)
-            node['observer'] = custom_tree_to_tagged_tree(spec_coord.observer, ctx)
-            node['target'] = custom_tree_to_tagged_tree(spec_coord.target, ctx)
+            node['value'] = spec_coord.value
+            node['unit'] = spec_coord.unit
+            if spec_coord.observer is not None:
+                node['observer'] = spec_coord.observer
+            if spec_coord.target is not None:
+                node['target'] = spec_coord.target
             return node
         raise TypeError(f"'{spec_coord}' is not a valid SpectralCoord")
 
