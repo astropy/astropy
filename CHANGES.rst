@@ -1081,6 +1081,8 @@ astropy.modeling
 - Do not create new ``math_functions`` models for ufuncs that are
   only aliases (divide and mod). [#10697]
 
+- Fix calculation of the ``Moffat2D`` derivative with respect to gamma. [#10784]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 

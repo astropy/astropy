@@ -2324,7 +2324,7 @@ class Moffat2D(Fittable2DModel):
                  (gamma ** 2 * (1 + rr_gg)))
         d_alpha = -amplitude * d_A * np.log(1 + rr_gg)
         d_gamma = (2 * amplitude * alpha * d_A * rr_gg /
-                   (gamma ** 3 * (1 + rr_gg)))
+                   (gamma * (1 + rr_gg)))
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
     @property
