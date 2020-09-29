@@ -368,7 +368,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         self._calc_uncertainties=calc_uncertainties
 
     @staticmethod
-    def _is_invertable(m):
+    def _is_invertible(m):
         """Check if inverse of matrix can be obtained."""
         if m.shape[0] != m.shape[1]:
             return False
@@ -377,7 +377,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         return True
 
     def _add_fitting_uncertainties(self, model, a, n_coeff, x, y, z=None,
-                                  resids=None):
+                                   resids=None):
         """
         Calculate and parameter covariance matrix and standard deviations
         and set `cov_matrix` and `stds` attributes.
@@ -385,8 +385,8 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         x_dot_x_prime = np.dot(a.T, a)
         masked = False or hasattr(y, 'mask')
 
-        # check if invertable. if not, can't calc covariance.
-        if not self._is_invertable(x_dot_x_prime):
+        # check if invertible. if not, can't calc covariance.
+        if not self._is_invertible(x_dot_x_prime):
             return(model)
         inv_x_dot_x_prime = np.linalg.inv(x_dot_x_prime)
 
