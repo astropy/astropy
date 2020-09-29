@@ -96,7 +96,10 @@ class CoordinatesMap:
             # Set up aliases for coordinates
             if isinstance(name, tuple):
                 for nm in name:
-                    self._aliases[nm] = index
+                    # Do not replace an alias already in the map if we have
+                    # more than one alias for this axis.
+                    if nm.lower() not in self._aliases:
+                        self._aliases[nm] = index
             else:
                 self._aliases[name.lower()] = index
 
