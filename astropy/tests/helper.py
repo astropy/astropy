@@ -14,7 +14,7 @@ import pytest
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
-    # imported from within py.test.  See
+    # imported from within pytest.  See
     # https://github.com/astropy/astropy/pull/537 for a detailed explanation.
     import pkg_resources  # pylint: disable=W0611  # noqa
 except ImportError:
@@ -131,7 +131,7 @@ class raises:
 _deprecations_as_exceptions = False
 _include_astropy_deprecations = True
 _modules_to_ignore_on_import = set([
-    r'compiler',  # A deprecated stdlib module used by py.test
+    r'compiler',  # A deprecated stdlib module used by pytest
     r'scipy',
     r'pygments',
     r'ipykernel',
@@ -242,7 +242,7 @@ def treat_deprecations_as_exceptions():
     # Hide the next couple of DeprecationWarnings
     warnings.simplefilter('ignore', DeprecationWarning)
     # Here's the wrinkle: a couple of our third-party dependencies
-    # (py.test and scipy) are still using deprecated features
+    # (pytest and scipy) are still using deprecated features
     # themselves, and we'd like to ignore those.  Fortunately, those
     # show up only at import time, so if we import those things *now*,
     # before we turn the warnings into exceptions, we're golden.

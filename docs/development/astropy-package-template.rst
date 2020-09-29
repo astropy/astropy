@@ -48,14 +48,19 @@ by ``CHANGES.md`` in the instructions.
 
         python setup.py build sdist --format=gztar
 
-   If it does, then first make sure the `pep517 <https://pypi.org/project/pep517/>`_
+   If it does, then first make sure the `build <https://pypi.org/project/build/>`_
    package is installed and up-to-date::
 
-        pip install pep517 --upgrade
+        pip install build --upgrade
 
    then create the source distribution with::
 
-        python -m pep517.build --source .
+        python -m build --sdist .
+
+   All following instructions will assume you have ``pyproject.toml``.
+   If you do not use ``pyproject.toml`` yet, please see
+   https://docs.astropy.org/en/v4.0.1/development/astropy-package-template.html
+   instead.
 
    In both cases, make sure that generated file is good to go by going inside
    ``dist``, expanding the tar file, going inside the expanded directory, and
@@ -112,7 +117,7 @@ by ``CHANGES.md`` in the instructions.
 
        conda create -n myaffilpkg_rel_test astropy <any more dependencies here>
        source activate myaffilpkg_rel_test
-       python setup.py sdist
+       python -m build --sdist .
        cd dist
        pip install myaffilpkg-version.tar.gz
        python -c 'import myaffilpkg; myaffilpkg.test()'
@@ -124,7 +129,7 @@ by ``CHANGES.md`` in the instructions.
    all pass, you can proceed on.
 
 #. If you did the previous step, do ``git clean -fxd`` again to remove anything
-   you made there.  Run ``python setup.py build sdist --format=gztar`` to
+   you made there.  Run ``python -m build --sdist .`` to
    create the files for upload.  Then you can upload to PyPI via ``twine``::
 
         twine upload dist/*

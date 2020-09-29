@@ -1,4 +1,4 @@
-"""Implements the Astropy TestRunner which is a thin wrapper around py.test."""
+"""Implements the Astropy TestRunner which is a thin wrapper around pytest."""
 
 import inspect
 import os
@@ -190,7 +190,7 @@ class TestRunnerBase:
     def run_tests(self, **kwargs):
         # The following option will include eggs inside a .eggs folder in
         # sys.path when running the tests. This is possible so that when
-        # runnning python setup.py test, test dependencies installed via e.g.
+        # running pytest, test dependencies installed via e.g.
         # tests_requires are available here. This is not an advertised option
         # since it is only for internal use
         if kwargs.pop('add_local_eggs_to_path', False):
@@ -240,7 +240,7 @@ class TestRunnerBase:
 
         # Have to use nested with statements for cross-Python support
         # Note, using these context managers here is superfluous if the
-        # config_dir or cache_dir options to py.test are in use, but it's
+        # config_dir or cache_dir options to pytest are in use, but it's
         # also harmless to nest the contexts
         with set_temp_config(astropy_config, delete=True):
             with set_temp_cache(astropy_cache, delete=True):
@@ -432,7 +432,7 @@ class TestRunner(TestRunnerBase):
     def verbose(self, verbose, kwargs):
         """
         verbose : bool, optional
-            Convenience option to turn on verbose output from py.test. Passing
+            Convenience option to turn on verbose output from pytest. Passing
             True is the same as specifying ``-v`` in ``args``.
         """
         if verbose:
@@ -444,7 +444,7 @@ class TestRunner(TestRunnerBase):
     def pastebin(self, pastebin, kwargs):
         """
         pastebin : ('failed', 'all', None), optional
-            Convenience option for turning on py.test pastebin output. Set to
+            Convenience option for turning on pytest pastebin output. Set to
             'failed' to upload info for failed tests, or 'all' to upload info
             for all tests.
         """
