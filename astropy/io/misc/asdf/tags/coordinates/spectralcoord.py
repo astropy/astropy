@@ -25,8 +25,10 @@ class SpectralCoordType(AstropyType):
         if isinstance(spec_coord, SpectralCoord):
             node['value'] = spec_coord.value
             node['unit'] = spec_coord.unit
-            node['observer'] = spec_coord.observer
-            node['target'] = spec_coord.target
+            if spec_coord.observer is not None:
+                node['observer'] = spec_coord.observer
+            if spec_coord.target is not None:
+                node['target'] = spec_coord.target
             return node
         raise TypeError(f"'{spec_coord}' is not a valid SpectralCoord")
 
