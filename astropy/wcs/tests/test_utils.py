@@ -1186,42 +1186,41 @@ B_DMAX  =    44.62692873032506
 
     # Test CRPIX bounds requirement
     wcs_str = """
-WCSAXES =                    2 / Number of coordinate axes                      
-CRPIX1  =               1045.0 / Pixel coordinate of reference point            
-CRPIX2  =               1001.0 / Pixel coordinate of reference point            
-PC1_1   =  0.00056205870415378 / Coordinate transformation matrix element       
-PC1_2   =    -0.00569181083243 / Coordinate transformation matrix element       
-PC2_1   =   0.0056776810932466 / Coordinate transformation matrix element       
-PC2_2   =   0.0004208048403273 / Coordinate transformation matrix element       
-CDELT1  =                  1.0 / [deg] Coordinate increment at reference point  
-CDELT2  =                  1.0 / [deg] Coordinate increment at reference point  
-CUNIT1  = 'deg'                / Units of coordinate increment and value        
-CUNIT2  = 'deg'                / Units of coordinate increment and value        
-CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection           
-CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection               
-CRVAL1  =      104.57797893504 / [deg] Coordinate value at reference point      
-CRVAL2  =     -74.195502593322 / [deg] Coordinate value at reference point      
-LONPOLE =                180.0 / [deg] Native longitude of celestial pole       
-LATPOLE =     -74.195502593322 / [deg] Native latitude of celestial pole        
-TIMESYS = 'TDB'                / Time scale                                     
-TIMEUNIT= 'd'                  / Time units                                     
-DATEREF = '1858-11-17'         / ISO-8601 fiducial time                         
-MJDREFI =                  0.0 / [d] MJD of fiducial time, integer part         
-MJDREFF =                  0.0 / [d] MJD of fiducial time, fractional part      
-DATE-OBS= '2019-03-27T03:30:13.832Z' / ISO-8601 time of observation             
-MJD-OBS =      58569.145993426 / [d] MJD of observation                         
-MJD-OBS =      58569.145993426 / [d] MJD at start of observation                
-TSTART  =      1569.6467941661 / [d] Time elapsed since fiducial time at start  
-DATE-END= '2019-03-27T04:00:13.831Z' / ISO-8601 time at end of observation      
-MJD-END =      58569.166826748 / [d] MJD at end of observation                  
-TSTOP   =      1569.6676274905 / [d] Time elapsed since fiducial time at end    
-TELAPSE =        0.02083332443 / [d] Elapsed time (start to stop)               
-TIMEDEL =    0.020833333333333 / [d] Time resolution                            
-TIMEPIXR=                  0.5 / Reference position of timestamp in binned data 
-RADESYS = 'ICRS'               / Equatorial coordinate system                   
-DATE-REF= '1858-11-17'                                                          
-END                                                                             
-                                                                                
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =               1045.0 / Pixel coordinate of reference point
+CRPIX2  =               1001.0 / Pixel coordinate of reference point
+PC1_1   =  0.00056205870415378 / Coordinate transformation matrix element
+PC1_2   =    -0.00569181083243 / Coordinate transformation matrix element
+PC2_1   =   0.0056776810932466 / Coordinate transformation matrix element
+PC2_2   =   0.0004208048403273 / Coordinate transformation matrix element
+CDELT1  =                  1.0 / [deg] Coordinate increment at reference point
+CDELT2  =                  1.0 / [deg] Coordinate increment at reference point
+CUNIT1  = 'deg'                / Units of coordinate increment and value
+CUNIT2  = 'deg'                / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection
+CRVAL1  =      104.57797893504 / [deg] Coordinate value at reference point
+CRVAL2  =     -74.195502593322 / [deg] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =     -74.195502593322 / [deg] Native latitude of celestial pole
+TIMESYS = 'TDB'                / Time scale
+TIMEUNIT= 'd'                  / Time units
+DATEREF = '1858-11-17'         / ISO-8601 fiducial time
+MJDREFI =                  0.0 / [d] MJD of fiducial time, integer part
+MJDREFF =                  0.0 / [d] MJD of fiducial time, fractional part
+DATE-OBS= '2019-03-27T03:30:13.832Z' / ISO-8601 time of observation
+MJD-OBS =      58569.145993426 / [d] MJD of observation
+MJD-OBS =      58569.145993426 / [d] MJD at start of observation
+TSTART  =      1569.6467941661 / [d] Time elapsed since fiducial time at start
+DATE-END= '2019-03-27T04:00:13.831Z' / ISO-8601 time at end of observation
+MJD-END =      58569.166826748 / [d] MJD at end of observation
+TSTOP   =      1569.6676274905 / [d] Time elapsed since fiducial time at end
+TELAPSE =        0.02083332443 / [d] Elapsed time (start to stop)
+TIMEDEL =    0.020833333333333 / [d] Time resolution
+TIMEPIXR=                  0.5 / Reference position of timestamp in binned data
+RADESYS = 'ICRS'               / Equatorial coordinate system
+DATE-REF= '1858-11-17'
+END
 """
 
     ffi_wcs = WCS(wcs_str)
