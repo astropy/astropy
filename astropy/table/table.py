@@ -3631,6 +3631,7 @@ class QTable(Table):
         return has_info_class(col, MixinInfo)
 
     def _convert_col_for_table(self, col):
+        from astropy.units import Unit
         if isinstance(col, Column) and getattr(col, 'unit', None) is not None:
             # What to do with MaskedColumn with units: leave as MaskedColumn or
             # turn into Quantity and drop mask?  Assuming we have masking support
@@ -3643,7 +3644,10 @@ class QTable(Table):
             # We need to turn the column into a quantity, or a subclass
             # identified in the unit (such as u.mag()).
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
-            qcol = q_cls(col.data, col.unit, copy=False)
+            try:
+                qcol = q_cls(col.data, Unit(str(col.unit)), copy=False)
+            except ValueError:
+                qcol = q_cls(col.data, col.unit, copy=False)
             qcol.info = col.info
             col = qcol
         else:
