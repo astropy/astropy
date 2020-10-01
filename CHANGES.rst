@@ -794,6 +794,8 @@ astropy.io.fits
 
 - Fix compilation of cfitsio with Xcode 12. [#10772]
 
+- Fix handling of 1-dimensional arrays with a single element in ``BinTableHDU`` [#10768]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

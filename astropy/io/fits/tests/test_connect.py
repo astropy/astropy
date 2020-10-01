@@ -263,6 +263,15 @@ class TestSingleTable:
         del t1, t2, t3
         gc.collect()
 
+    def test_oned_single_element(self, tmpdir):
+        filename = str(tmpdir.join('test_oned_single_element.fits'))
+        table = Table({'x': [[1], [2]]})
+        table.write(filename, overwrite=True)
+
+        read = Table.read(filename)
+        assert read['x'].shape == (2, 1)
+        assert len(read['x'][0]) == 1
+
 
 class TestMultipleHDU:
 
