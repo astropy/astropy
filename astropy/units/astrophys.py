@@ -166,5 +166,3 @@ del si
 from .utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
-
-

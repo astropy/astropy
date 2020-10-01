@@ -955,8 +955,9 @@ def coffee(is_adam=False, is_brigitta=False):  # pragma: no cover
 # AREAS
 
 def_unit(['barn', 'barn'], 10 ** -28 * si.m ** 2, namespace=_ns, prefixes=True,
-         doc="barn: unit of area used in HEP")
+    doc="barn: unit of area used in HEP")
 
+    
 ##########################################################################
 # PRESSURE
 
