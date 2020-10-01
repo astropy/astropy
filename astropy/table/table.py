@@ -14,7 +14,7 @@ import numpy as np
 from numpy import ma
 
 from astropy import log
-from astropy.units import Quantity, QuantityInfo
+from astropy.units import Quantity, QuantityInfo, Unit
 from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData, MetaAttribute
@@ -3631,7 +3631,6 @@ class QTable(Table):
         return has_info_class(col, MixinInfo)
 
     def _convert_col_for_table(self, col):
-        from astropy.units import Unit
         if isinstance(col, Column) and getattr(col, 'unit', None) is not None:
             # What to do with MaskedColumn with units: leave as MaskedColumn or
             # turn into Quantity and drop mask?  Assuming we have masking support
