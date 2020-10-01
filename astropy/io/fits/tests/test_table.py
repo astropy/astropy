@@ -1717,11 +1717,13 @@ class TestTableFunctions(FitsTestCase):
              ([2, 3, 4, 5, 6, 7], 'row3' * 2)], formats='6i4,a8')
 
         thdu = fits.BinTableHDU.from_columns(data)
-        # Modify the TDIM fields to my own specification
-        thdu.header['TDIM1'] = '(2,3)'
-        thdu.header['TDIM2'] = '(4,2)'
 
         thdu.writeto(self.temp('newtable.fits'))
+
+        with fits.open(self.temp('newtable.fits'), mode='update') as hdul:
+            # Modify the TDIM fields to my own specification
+            hdul[1].header['TDIM1'] = '(2,3)'
+            hdul[1].header['TDIM2'] = '(4,2)'
 
         with fits.open(self.temp('newtable.fits')) as hdul:
             thdu = hdul[1]
@@ -1767,6 +1769,20 @@ class TestTableFunctions(FitsTestCase):
 
         assert t.field(1).dtype.str[-1] == '5'
         assert t.field(1).shape == (3, 4, 3)
+
+    def test_oned_array_single_element(self):
+        # a table with rows that are 1d arrays of a single value
+        data = np.array([(1, ), (2, )], dtype=([('x', 'i4', (1, ))]))
+        thdu = fits.BinTableHDU.from_columns(data)
+
+        thdu.writeto(self.temp('onedtable.fits'))
+
+        with fits.open(self.temp('onedtable.fits')) as hdul:
+            thdu = hdul[1]
+
+            c = thdu.data.field(0)
+            assert c.shape == (2, 1)
+            assert thdu.header['TDIM1'] == '(1)'
 
     def test_bin_table_init_from_string_array_column(self):
         """
