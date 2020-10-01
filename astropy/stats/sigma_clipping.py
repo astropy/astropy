@@ -384,8 +384,8 @@ class SigmaClip:
                     # indices outside the growth radius, so masked points won't
                     # "grow" in that dimension:
                     if n not in axis:
-                        dim[dim!=cenidx] = size
-            kernel = sum(((idx-cenidx)**2 for idx in indices)) <= self.grow**2
+                        dim[dim != cenidx] = size
+            kernel = sum(((idx - cenidx)**2 for idx in indices)) <= self.grow**2
             del indices
 
         nchanged = 1
