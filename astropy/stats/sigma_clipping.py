@@ -168,7 +168,7 @@ class SigmaClip:
     grow : float or `False`, optional
         Radius within which to mask the neighbouring pixels of those that
         fall outwith the clipping limits (only applied along ``axis``, if
-        specified). A value of 1 will mask the nearest pixels in a cross
+        specified). As an example, for a 2D image a value of 1 will mask the nearest pixels in a cross
         pattern around each deviant pixel, while 1.5 will also reject the
         nearest diagonal neighbours and so on.
 
@@ -629,7 +629,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     grow : float or `False`, optional
         Radius within which to mask the neighbouring pixels of those that
         fall outwith the clipping limits (only applied along ``axis``, if
-        specified). A value of 1 will mask the nearest pixels in a cross
+        specified). As an example, for a 2D image a value of 1 will mask the nearest pixels in a cross
         pattern around each deviant pixel, while 1.5 will also reject the
         nearest diagonal neighbours and so on.
 
@@ -787,7 +787,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     grow : float or `False`, optional
         Radius within which to mask the neighbouring pixels of those that
         fall outwith the clipping limits (only applied along ``axis``, if
-        specified). A value of 1 will mask the nearest pixels in a cross
+        specified). As an example, for a 2D image a value of 1 will mask the nearest pixels in a cross
         pattern around each deviant pixel, while 1.5 will also reject the
         nearest diagonal neighbours and so on.
 
