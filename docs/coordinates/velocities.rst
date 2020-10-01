@@ -225,7 +225,7 @@ the existing frame using
         (1., 2., 3.)>
     >>> vel_to_add = CartesianDifferential(4*u.km/u.s, 5*u.km/u.s, 6*u.km/u.s)
     >>> newdata = icrs.data.to_cartesian().with_differentials(vel_to_add)
-    >>> icrs.realize_frame(newdata) # doctest: +FLOAT_CMP
+    >>> icrs.realize_frame(newdata, representation_type="spherical", differential_type="sphericalcoslat") # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
         (1., 2., 3.)
      (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
@@ -243,7 +243,7 @@ specifying the differentials because of the lack of explicit unit information::
         (1., 2.)>
     >>> rv_to_add = RadialDifferential(500*u.km/u.s)
     >>> data_with_rv = icrs_no_distance.data.with_differentials({'s':rv_to_add})
-    >>> icrs_no_distance.realize_frame(data_with_rv) # doctest: +FLOAT_CMP
+    >>> icrs_no_distance.realize_frame(data_with_rv, differential_type="sphericalcoslat") # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
         (1., 2.)
      (radial_velocity) in km / s

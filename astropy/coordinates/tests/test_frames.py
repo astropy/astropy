@@ -1531,3 +1531,25 @@ def test_transform_to_retains_representation(distance):
     assert cfk4.representation_type == cfk4.default_representation
 
     assert g2.representation_type == g2.default_representation
+
+
+def test_instantiate_frame_with_representation_keeps_type():
+    # https://github.com/astropy/astropy/issues/6435
+    # and https://github.com/astropy/astropy/issues/10253
+    rep = r.CartesianRepresentation([1, 2, 3] * u.au)
+    c1 = ICRS(rep)
+
+    assert c1.representation_type == rep.__class__
+
+
+def test_representation_can_be_overridden():
+    # See discussion in https://github.com/astropy/astropy/issues/6435
+    rep = r.CartesianRepresentation([1, 2, 3] * u.au)
+    c1 = ICRS(rep, representation_type=r.CylindricalRepresentation)
+
+    assert c1.representation_type == r.CylindricalRepresentation
+
+    urep = r.UnitSphericalRepresentation(10 * u.deg, 20 * u.deg)
+    c2 = ICRS(urep, representation_type=r.SphericalRepresentation)
+
+    assert c2.representation_type == r.SphericalRepresentation

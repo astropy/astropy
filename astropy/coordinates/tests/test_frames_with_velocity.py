@@ -325,4 +325,4 @@ def test_velocity_units():
 def test_frame_with_velocity_without_distance_can_be_transformed():
     frame = CIRS(1*u.deg, 2*u.deg, pm_dec=1*u.mas/u.yr, pm_ra_cosdec=2*u.mas/u.yr)
     rep = frame.transform_to(ICRS())
-    assert "<ICRS Coordinate: (ra, dec, distance) in" in repr(rep)
+    assert "<ICRS Coordinate: (ra, dec) in" in repr(rep)

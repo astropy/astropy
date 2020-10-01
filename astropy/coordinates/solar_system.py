@@ -522,4 +522,4 @@ def _apparent_position_in_true_coordinates(skycoord):
     # (same as in builtin_frames.utils.get_cip).
     rbpn = erfa.pnm06a(jd1, jd2)
     return SkyCoord(skycoord.frame.realize_frame(
-        skycoord.cartesian.transform(rbpn)))
+        skycoord.cartesian.transform(rbpn), representation_type="spherical"))

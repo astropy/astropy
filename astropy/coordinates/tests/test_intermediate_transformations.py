@@ -89,7 +89,7 @@ def test_icrs_gcrs(icoo):
     gcrscoo = icoo.transform_to(gcrs_frames[0])  # uses the default time
     # first do a round-tripping test
     icoo2 = gcrscoo.transform_to(ICRS())
-    assert_allclose(icoo.distance, icoo2.distance)
+    assert_allclose(icoo.spherical.distance, icoo2.spherical.distance)
     assert_allclose(icoo.ra, icoo2.ra)
     assert_allclose(icoo.dec, icoo2.dec)
     assert isinstance(icoo2.data, icoo.data.__class__)
@@ -181,9 +181,9 @@ def test_gcrs_itrs():
     assert not allclose(gcrs.dec, gcrs6_2.dec)
 
     # also try with the cartesian representation
-    gcrsc = gcrs.realize_frame(gcrs.data)
-    gcrsc.representation_type = CartesianRepresentation
+    gcrsc = gcrs.realize_frame(gcrs.data, representation_type=CartesianRepresentation)
     gcrsc2 = gcrsc.transform_to(ITRS()).transform_to(gcrsc)
+    gcrsc2.representation_type = SphericalRepresentation
     assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
     assert_allclose(gcrsc.spherical.lat, gcrsc2.dec)
 
@@ -324,7 +324,7 @@ def test_gcrs_altaz_moonish(testframe):
     Sanity-check that an object resembling the moon goes to the right place with
     a GCRS->AltAz transformation
     """
-    moon = GCRS(MOONDIST_CART, obstime=testframe.obstime)
+    moon = GCRS(MOONDIST_CART, obstime=testframe.obstime, representation_type=SphericalRepresentation)
 
     moonaa = moon.transform_to(testframe)
 
@@ -362,7 +362,7 @@ def test_cirs_altaz_moonish(testframe):
     Sanity-check that an object resembling the moon goes to the right place with
     a CIRS<->AltAz transformation
     """
-    moon = CIRS(MOONDIST_CART, obstime=testframe.obstime)
+    moon = CIRS(MOONDIST_CART, obstime=testframe.obstime, representation_type=SphericalRepresentation)
 
     moonaa = moon.transform_to(testframe)
     assert 1000*u.km < np.abs(moonaa.distance - moon.distance).to(u.km) < 7000*u.km

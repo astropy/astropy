@@ -76,7 +76,7 @@ def gcrs_to_cirs(gcrs_coo, cirs_frame):
     # now get the pmatrix
     pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
     crepr = gcrs_coo2.cartesian.transform(pmat)
-    return cirs_frame.realize_frame(crepr)
+    return cirs_frame.realize_frame(crepr, representation_type=gcrs_coo.representation_type)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, GCRS)
@@ -84,7 +84,7 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
     newrepr = cirs_coo.cartesian.transform(matrix_transpose(pmat))
-    gcrs = GCRS(newrepr, obstime=cirs_coo.obstime)
+    gcrs = GCRS(newrepr, obstime=cirs_coo.obstime, representation_type=cirs_coo.representation_type)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
@@ -98,7 +98,7 @@ def cirs_to_itrs(cirs_coo, itrs_frame):
     # now get the pmatrix
     pmat = cirs_to_itrs_mat(itrs_frame.obstime)
     crepr = cirs_coo2.cartesian.transform(pmat)
-    return itrs_frame.realize_frame(crepr)
+    return itrs_frame.realize_frame(crepr, representation_type=cirs_coo.representation_type)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, CIRS)
@@ -106,7 +106,7 @@ def itrs_to_cirs(itrs_coo, cirs_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = cirs_to_itrs_mat(itrs_coo.obstime)
     newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
-    cirs = CIRS(newrepr, obstime=itrs_coo.obstime)
+    cirs = CIRS(newrepr, obstime=itrs_coo.obstime, representation_type=itrs_coo.representation_type)
 
     # now do any needed offsets (no-op if same obstime)
     return cirs.transform_to(cirs_frame)
@@ -134,7 +134,7 @@ def gcrs_to_precessedgeo(from_coo, to_frame):
     # now precess to the requested equinox
     pmat = gcrs_precession_mat(to_frame.equinox)
     crepr = gcrs_coo.cartesian.transform(pmat)
-    return to_frame.realize_frame(crepr)
+    return to_frame.realize_frame(crepr, representation_type=from_coo.representation_type)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, PrecessedGeocentric, GCRS)
@@ -145,7 +145,8 @@ def precessedgeo_to_gcrs(from_coo, to_frame):
     gcrs_coo = GCRS(crepr,
                     obstime=to_frame.obstime,
                     obsgeoloc=to_frame.obsgeoloc,
-                    obsgeovel=to_frame.obsgeovel)
+                    obsgeovel=to_frame.obsgeovel,
+                    representation_type=from_coo.representation_type)
 
     # then move to the GCRS that's actually desired
     return gcrs_coo.transform_to(to_frame)
@@ -160,7 +161,7 @@ def teme_to_itrs(teme_coo, itrs_frame):
     # now get the pmatrix
     pmat = teme_to_itrs_mat(itrs_frame.obstime)
     crepr = teme_coo2.cartesian.transform(pmat)
-    return itrs_frame.realize_frame(crepr)
+    return itrs_frame.realize_frame(crepr, representation_type=teme_coo.representation_type)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, TEME)
@@ -168,7 +169,7 @@ def itrs_to_teme(itrs_coo, teme_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = teme_to_itrs_mat(itrs_coo.obstime)
     newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
-    teme = TEME(newrepr, obstime=itrs_coo.obstime)
+    teme = TEME(newrepr, obstime=itrs_coo.obstime, representation_type=itrs_coo.representation_type)
 
     # now do any needed offsets (no-op if same obstime)
     return teme.transform_to(teme_frame)

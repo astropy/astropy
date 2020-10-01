@@ -96,7 +96,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
     if np.all(from_coo.obstime == to_frame.obstime):
-        return to_frame.realize_frame(from_coo.data)
+        return to_frame.realize_frame(from_coo.data, representation_type=from_coo.representation_type)
     else:
         # the CIRS<-> CIRS transform actually goes through ICRS.  This has a
         # subtle implication that a point in CIRS is uniquely determined
@@ -179,7 +179,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 def gcrs_to_gcrs(from_coo, to_frame):
     if (np.all(from_coo.obstime == to_frame.obstime) and
             np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
-        return to_frame.realize_frame(from_coo.data)
+        return to_frame.realize_frame(from_coo.data, representation_type=from_coo.representation_type)
     else:
         # like CIRS, we do this self-transform via ICRS
         return from_coo.transform_to(ICRS()).transform_to(to_frame)

@@ -933,14 +933,14 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
             if self.symmetric_finite_difference:
                 fwdxyz = (fromcoord_cart.xyz +
                           fromcoord_cart.differentials['s'].d_xyz*halfdt)
-                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
+                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz), representation_type=fromcoord.representation_type), toframe)
                 backxyz = (fromcoord_cart.xyz -
                            fromcoord_cart.differentials['s'].d_xyz*halfdt)
-                back = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz)), toframe)
+                back = supcall(fromcoord.realize_frame(CartesianRepresentation(backxyz), representation_type=fromcoord.representation_type), toframe)
             else:
                 fwdxyz = (fromcoord_cart.xyz +
                           fromcoord_cart.differentials['s'].d_xyz*dt)
-                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz)), toframe)
+                fwd = supcall(fromcoord.realize_frame(CartesianRepresentation(fwdxyz), representation_type=fromcoord.representation_type), toframe)
                 back = reprwithoutdiff
             diffxyz = (fwd.cartesian - back.cartesian).xyz / dt
 
@@ -990,7 +990,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
             newdiff = CartesianDifferential(diffxyz)
             reprwithdiff = reprwithoutdiff.data.to_cartesian().with_differentials(newdiff)
-            return reprwithoutdiff.realize_frame(reprwithdiff)
+            return reprwithoutdiff.realize_frame(reprwithdiff, representation_type=reprwithoutdiff.representation_type)
         else:
             return supcall(fromcoord, toframe)
 
@@ -1210,7 +1210,7 @@ class AffineTransform(BaseAffineTransform):
         M, vec = self.transform_func(fromcoord, toframe)
         newrep = self._apply_transform(fromcoord, M, vec)
 
-        return toframe.realize_frame(newrep)
+        return toframe.realize_frame(newrep, representation_type=fromcoord.representation_type)
 
 
 class StaticMatrixTransform(BaseAffineTransform):
@@ -1259,7 +1259,7 @@ class StaticMatrixTransform(BaseAffineTransform):
 
     def __call__(self, fromcoord, toframe):
         newrep = self._apply_transform(fromcoord, self.matrix, None)
-        return toframe.realize_frame(newrep)
+        return toframe.realize_frame(newrep, representation_type=fromcoord.representation_type)
 
 
 class DynamicMatrixTransform(BaseAffineTransform):
@@ -1309,7 +1309,7 @@ class DynamicMatrixTransform(BaseAffineTransform):
     def __call__(self, fromcoord, toframe):
         M = self.matrix_func(fromcoord, toframe)
         newrep = self._apply_transform(fromcoord, M, None)
-        return toframe.realize_frame(newrep)
+        return toframe.realize_frame(newrep, representation_type=fromcoord.representation_type)
 
 
 class CompositeTransform(CoordinateTransform):

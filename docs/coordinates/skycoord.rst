@@ -1051,6 +1051,7 @@ As the next step, those coordinates are transformed into an
 Again, as in the last example, we need to convert the coordinates in radians
 and make sure they are between :math:`-\pi` and :math:`\pi`:
 
+    >>> c_gal_icrs.representation_type = "spherical"
     >>> ra_rad = c_gal_icrs.ra.wrap_at(180 * u.deg).radian
     >>> dec_rad = c_gal_icrs.dec.radian
 

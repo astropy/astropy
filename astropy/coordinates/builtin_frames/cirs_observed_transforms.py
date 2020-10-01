@@ -91,7 +91,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
         loccirs = altaz_coo.location.get_itrs(altaz_coo.obstime).transform_to(cirs_frame)
 
         astrometric_rep = SphericalRepresentation(lon=cirs_ra, lat=cirs_dec,
-                                                  distance=altaz_coo.distance)
+                                                  distance=altaz_coo.spherical.distance)
         newrepr = astrometric_rep + loccirs.cartesian
         cirs_at_aa_time = CIRS(newrepr, obstime=altaz_coo.obstime)
 

@@ -624,6 +624,10 @@ class SkyCoord(ShapedLikeNDArray):
                      set(frame_kwargs.keys())):
             frame_kwargs.pop(attr)
 
+        # Ensure transformed coordinates have representation and differential types
+        # as set by the destination frame
+        new_coord.set_representation_cls(frame.default_representation, frame.default_differential)
+
         return self.__class__(new_coord, **frame_kwargs)
 
     def apply_space_motion(self, new_obstime=None, dt=None):

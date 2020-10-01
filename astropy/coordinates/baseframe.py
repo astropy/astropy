@@ -463,6 +463,13 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                     'and other positional arguments')
 
             if representation_data is not None:
+                if not hasattr(self, '_representation'):
+                    # Representation has not been set yet, do it now
+                    # This saves the need to specify the type twice in cases like
+                    # `ICRS(CartesianRepresentation(...), representation_type="cartesian")`
+                    # and effectively overrides the default representation of the frame,
+                    # see https://github.com/astropy/astropy/issues/6435
+                    self.set_representation_cls(representation_data.__class__)
                 diffs = representation_data.differentials
                 differential_data = diffs.get('s', None)
                 if ((differential_data is None and len(diffs) > 0) or

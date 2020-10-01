@@ -34,6 +34,11 @@ astropy.coordinates
 - Method ``.realize_frame`` from coordinate frames now accepts ``**kwargs``,
   including ``representation_type``. [#10727]
 
+- Initializing a ``BaseCoordinateFrame`` from a ``BaseRepresentation`` now sets its ``representation_type``
+  to the class of the argument. This means that the default representation of the frame might be overridden,
+  and therefore the readily available attributes might change. To retain the previous behaviour,
+  pass a explicit ``representation_type=`` to the initializer and to methods like ``.realize_frame```. [#10788]
+
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^

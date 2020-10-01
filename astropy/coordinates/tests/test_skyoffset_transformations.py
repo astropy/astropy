@@ -292,10 +292,10 @@ def test_skyoffset_lonwrap():
     sc2 = SkyCoord(-10*u.deg, -45*u.deg, frame=SkyOffsetFrame(origin=origin))
     assert sc2.lon < 180 * u.deg
 
-    sc3 = sc.realize_frame(sc.represent_as('cartesian'))
+    sc3 = sc.realize_frame(sc.represent_as('cartesian'), representation_type="spherical")
     assert sc3.lon < 180 * u.deg
 
-    sc4 = sc2.realize_frame(sc2.represent_as('cartesian'))
+    sc4 = sc2.realize_frame(sc2.represent_as('cartesian'), representation_type="spherical")
     assert sc4.lon < 180 * u.deg
 
 

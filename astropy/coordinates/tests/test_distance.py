@@ -98,7 +98,7 @@ def test_distances():
     # system
     # csum = ICRS(c1.cartesian + c2.cartesian)
     csumrep = CartesianRepresentation(c1.cartesian.xyz + c2.cartesian.xyz)
-    csum = ICRS(csumrep)
+    csum = ICRS(csumrep, representation_type="spherical")
 
     npt.assert_allclose(csumrep.x.value, -8.12016610185)
     npt.assert_allclose(csumrep.y.value, 3.19380597435)

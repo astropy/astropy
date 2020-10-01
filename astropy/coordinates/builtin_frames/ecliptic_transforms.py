@@ -70,14 +70,14 @@ def gcrs_to_geoecliptic(gcrs_coo, to_frame):
 
     rmat = _mean_ecliptic_rotation_matrix(to_frame.equinox)
     newrepr = gcrs_coo2.cartesian.transform(rmat)
-    return to_frame.realize_frame(newrepr)
+    return to_frame.realize_frame(newrepr, representation_type=gcrs_coo.representation_type)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GeocentricMeanEcliptic, GCRS)
 def geoecliptic_to_gcrs(from_coo, gcrs_frame):
     rmat = _mean_ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = from_coo.cartesian.transform(matrix_transpose(rmat))
-    gcrs = GCRS(newrepr, obstime=from_coo.obstime)
+    gcrs = GCRS(newrepr, obstime=from_coo.obstime, representation_type=from_coo.representation_type)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
@@ -148,14 +148,14 @@ def gcrs_to_true_geoecliptic(gcrs_coo, to_frame):
 
     rmat = _true_ecliptic_rotation_matrix(to_frame.equinox)
     newrepr = gcrs_coo2.cartesian.transform(rmat)
-    return to_frame.realize_frame(newrepr)
+    return to_frame.realize_frame(newrepr, representation_type=gcrs_coo.representation_type)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GeocentricTrueEcliptic, GCRS)
 def true_geoecliptic_to_gcrs(from_coo, gcrs_frame):
     rmat = _true_ecliptic_rotation_matrix(from_coo.equinox)
     newrepr = from_coo.cartesian.transform(matrix_transpose(rmat))
-    gcrs = GCRS(newrepr, obstime=from_coo.obstime)
+    gcrs = GCRS(newrepr, obstime=from_coo.obstime, representation_type=from_coo.representation_type)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)

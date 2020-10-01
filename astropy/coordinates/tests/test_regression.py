@@ -408,8 +408,12 @@ def test_regression_6236():
     rep1 = UnitSphericalRepresentation([0., 1]*u.deg, [2., 3.]*u.deg)
     rep2 = SphericalRepresentation([10., 11]*u.deg, [12., 13.]*u.deg,
                                    [14., 15.]*u.kpc)
-    mf1 = MyFrame(rep1, my_attr=1.*u.km)
-    mf2 = mf1.realize_frame(rep2)
+    # NOTE: As discussed in https://github.com/astropy/astropy/issues/6435,
+    # the type of the representation should take precedence over the frame default representation
+    # and having to set the representation_type here is an acceptable change
+    # after https://github.com/astropy/astropy/issues/7784 was fixed in https://github.com/astropy/astropy/pull/10727
+    mf1 = MyFrame(rep1, my_attr=1.*u.km, representation_type=CartesianRepresentation)
+    mf2 = mf1.realize_frame(rep2, representation_type=CartesianRepresentation)
     # Normally, data is stored as is, but the representation gets set to a
     # default, even if a different representation instance was passed in.
     # realize_frame should do the same. Just in case, check attrs are passed.
@@ -418,9 +422,9 @@ def test_regression_6236():
     assert mf1.representation_type is CartesianRepresentation
     assert mf2.representation_type is CartesianRepresentation
     assert mf2.my_attr == mf1.my_attr
-    # It should be independent of whether I set the reprensentation explicitly
+    # It should be independent of whether I set the representation explicitly
     mf3 = MyFrame(rep1, my_attr=1.*u.km, representation_type='unitspherical')
-    mf4 = mf3.realize_frame(rep2)
+    mf4 = mf3.realize_frame(rep2, representation_type=CartesianRepresentation)
     assert mf3.data is rep1
     assert mf4.data is rep2
     assert mf3.representation_type is UnitSphericalRepresentation
