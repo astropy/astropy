@@ -2601,6 +2601,12 @@ def test_set_units_descriptions_read():
         assert t['a'].info.description == 'hi'
         assert t['b'].info.description == 'there'
 
+def test_qtable_unit_parsing():
+    """Test QTable unit parsing fix #10786"""
+    filename = get_pkg_data_filename('data/nonstandard_units.xml',
+                                     'astropy.io.votable.tests')
+    a = QTable.read(filename)
+    assert not isinstance(a['Flux1'].unit, u.UnrecognizedUnit)
 
 def test_broadcasting_8933():
     """Explicitly check re-work of code related to broadcasting in #8933"""
