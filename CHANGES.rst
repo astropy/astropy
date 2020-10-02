@@ -193,6 +193,11 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Added a ``grow`` parameter to ``SigmaClip``, ``sigma_clip`` and
+  ``sigma_clipped_stats``, to allow expanding the masking of each deviant
+  value to its neighbours within a specified radius. [#10613]
+
+
 astropy.table
 ^^^^^^^^^^^^^
 
