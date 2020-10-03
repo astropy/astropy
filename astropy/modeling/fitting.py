@@ -966,13 +966,18 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
 class SLSQPLSQFitter(Fitter):
     """
-    SLSQP optimization algorithm and least squares statistic.
+    Sequential Least Squares Programming (SLSQP) optimization algorithm and
+    least squares statistic.
 
 
     Raises
     ------
     ModelLinearityError
         A linear model is passed to a nonlinear fitter
+
+    Notes
+    ------
+    See also the `~astropy.modeling.optimizers.SLSQP` optimizer.
 
     """
 
