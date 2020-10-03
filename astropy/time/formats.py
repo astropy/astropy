@@ -45,9 +45,6 @@ FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
 
 
-
-
-
 def _regexify_subfmts(subfmts):
     """
     Iterate through each of the sub-formats and try substituting simple
