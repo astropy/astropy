@@ -91,6 +91,12 @@ def test_fast_iso_exceptions():
                 Time(times, format='iso')
 
 
+def test_fast_non_ascii():
+    with pytest.raises(ValueError, match='input is not pure ASCII'):
+        with conf.set_temp('use_fast_parser', 'force'):
+            Time('2020-01-01 1ᛦ:13:14.4324')
+
+
 def test_fast_no_use_fast_parser_attribute():
     """Test deleting use_fast_parser class attribute to remove fast path"""
     try:
