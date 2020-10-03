@@ -11,8 +11,6 @@ from pathlib import Path
 
 import numpy as np
 import erfa
-import numpy.ctypeslib as npct
-from ctypes import c_int
 
 from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -47,28 +45,7 @@ FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'ET': 'tt',
                           'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
 
 
-# Input types in the parse_times.c code
-array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
-array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='C_CONTIGUOUS')
-array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
 
-# load the library, using numpy mechanisms
-libpt = npct.load_library("_parse_times", Path(__file__).parent)
-
-# Set up the return types and argument types for parse_ymdhms_times()
-# int parse_ymdhms_times(char *times, int n_times, int max_str_len,
-#                    char *delims, int *starts, int *stops, int *break_allowed,
-#                    int *years, int *months, int *days, int *hours,
-#                    int *minutes, double *seconds)
-libpt.parse_ymdhms_times.restype = c_int
-libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
-                                     array_1d_char, array_1d_int, array_1d_int, array_1d_int,
-                                     array_1d_int, array_1d_int, array_1d_int,
-                                     array_1d_int, array_1d_int, array_1d_double]
-libpt.check_unicode.restype = c_int
-
-# Set up returns types and args for the unicode checker
-libpt.check_unicode.argtypes = [array_1d_char, c_int]
 
 
 def _regexify_subfmts(subfmts):
@@ -173,6 +150,38 @@ class TimeFormat(metaclass=TimeFormatMeta):
         else:
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
+
+    @classproperty(lazy=True)
+    def lib_parse_time(cls):
+        """Class property for ctypes library for fast C parsing of string times."""
+        import numpy.ctypeslib as npct
+        from ctypes import c_int
+
+        # Input types in the parse_times.c code
+        array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
+        array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='C_CONTIGUOUS')
+        array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
+
+        # load the library, using numpy mechanisms
+        libpt = npct.load_library("_parse_times", Path(__file__).parent)
+
+        # Set up the return types and argument types for parse_ymdhms_times()
+        # int parse_ymdhms_times(char *times, int n_times, int max_str_len,
+        #                    char *delims, int *starts, int *stops, int *break_allowed,
+        #                    int *years, int *months, int *days, int *hours,
+        #                    int *minutes, double *seconds)
+        libpt.parse_ymdhms_times.restype = c_int
+        libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
+                                             array_1d_char, array_1d_int, array_1d_int,
+                                             array_1d_int,
+                                             array_1d_int, array_1d_int, array_1d_int,
+                                             array_1d_int, array_1d_int, array_1d_double]
+        libpt.check_unicode.restype = c_int
+
+        # Set up returns types and args for the unicode checker
+        libpt.check_unicode.argtypes = [array_1d_char, c_int]
+
+        return libpt
 
     @classmethod
     def _get_allowed_subfmt(cls, subfmt):
@@ -1339,7 +1348,7 @@ class TimeString(TimeUnique):
 
         if char_size == 4:
             # Check that this is pure ASCII
-            status = libpt.check_unicode(chars, len(chars) // 4)
+            status = self.lib_parse_time.check_unicode(chars, len(chars) // 4)
             if status != 0:
                 raise ValueError('input is not pure ASCII')
             # It might be possible to avoid this copy with cleverness in
@@ -1363,9 +1372,10 @@ class TimeString(TimeUnique):
         break_allowed = np.array(self.break_allowed, dtype=np.intc)
 
         # Call C parser
-        status = libpt.parse_ymdhms_times(chars, n_times, val1_str_len, self.has_day_of_year,
-                                          delims, starts, stops, break_allowed,
-                                          year, month, day, hour, minute, second)
+        status = self.lib_parse_time.parse_ymdhms_times(
+            chars, n_times, val1_str_len, self.has_day_of_year,
+            delims, starts, stops, break_allowed,
+            year, month, day, hour, minute, second)
         if status == 0:
             # All went well, finish the job
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
