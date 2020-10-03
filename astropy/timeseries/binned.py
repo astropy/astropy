@@ -107,10 +107,10 @@ class BinnedTimeSeries(BaseTimeSeries):
         if time_bin_end is None and time_bin_size is None:
             raise TypeError("Either 'time_bin_size' or 'time_bin_end' should be specified")
 
-        if not isinstance(time_bin_start, Time):
+        if not isinstance(time_bin_start, (Time, TimeDelta)):
             time_bin_start = Time(time_bin_start)
 
-        if time_bin_end is not None and not isinstance(time_bin_end, Time):
+        if time_bin_end is not None and not isinstance(time_bin_end, (Time, TimeDelta)):
             time_bin_end = Time(time_bin_end)
 
         if time_bin_size is not None and not isinstance(time_bin_size, (Quantity, TimeDelta)):

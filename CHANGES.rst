@@ -216,6 +216,11 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Refactor ``Time`` and ``TimeDelta`` classes to inherit from a common
+  ``TimeBase`` class. The ``TimeDelta`` class no longer inherits from ``Time``.
+  A number of methods that only apply to ``Time`` (e.g. ``light_travel_time``)
+  are no longer available in the ``TimeDelta`` class. [#10656]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
