@@ -705,6 +705,50 @@ The current time can be determined as a |Time| object using the
 
 The two should be very close to each other.
 
+Fast C-based Date String Parser
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Time formats that are based on a date string representation of time, including
+`~astropy.time.TimeISO`, `~astropy.time.TimeISOT`, and
+`~astropy.time.TimeYearDayTime`, make use of a fast C-based date parser that
+improves speed by a factor of 20 or more for large arrays of times.
+
+The C parser is stricter than the Python-based parser (which relies on
+`~time.strptime`). In particular fields like the month or day of year must
+always have a fixed number of ASCII digits. As an example the Python parser will
+accept ``2000-1-2T3:04:5.23`` while the C parser requires
+``2000-01-02T03:04:05.23``
+
+Use of the C parser is enabled by default except when the input subformat
+``in_subfmt`` argument is different from the default value of ``'*'``. If the
+fast C parser fails to parse the date values then the |Time| initializer will
+automatically fall through to the Python parser.
+
+In rare cases where you need to explicitly control which parser gets used there
+is a configuration item ``time.conf.use_fast_parser`` that can be set. The
+default is ``'True'``, which means to try the fast parser and fall through to
+Python parser if needed.  Note that the configuration value is a string, not a
+bool object.
+
+For example to disable the C parser use::
+
+  >>> from astropy.time import conf
+  >>> date = '2000-1-2T3:04:5.23'
+  >>> t = Time(date, format='isot')  # Succeeds by default
+  >>> with conf.set_temp('use_fast_parser', 'False'):
+  ...     t = Time(date, format='isot')
+  ...     print(t)
+  2000-01-02T03:04:05.230
+
+To force the user of the C parser (for example in testing) use::
+
+  >>> with conf.set_temp('use_fast_parser', 'force'):
+  ...     try:
+  ...          t = Time(date, format='isot')
+  ...     except ValueError as err:
+  ...          print(err)
+  Input values did not match the format class isot:
+  ValueError: fast C time string parser failed: non-digit found where digit (0-9) required
 
 Using Time Objects
 ------------------
