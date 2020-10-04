@@ -66,19 +66,16 @@ class AxisLabels(Text):
             return
 
         text_size = renderer.points_to_pixels(self.get_size())
+        # Flatten the bboxes for all coords and all axes
+        ticklabels_bbox_list = []
+        for bbcoord in ticklabels_bbox.values():
+            for bbaxis in bbcoord.values():
+                ticklabels_bbox_list += bbaxis
 
         for axis in self.get_visible_axes():
-
-            # Flatten the bboxes for all coords and all axes
-            ticklabels_bbox_list = []
-            for bbcoord in ticklabels_bbox.values():
-                for bbaxis in bbcoord.values():
-                    ticklabels_bbox_list += bbaxis
-
             if self.get_visibility_rule() == 'ticks':
                 if not ticks_locs[axis]:
                     continue
-
             elif self.get_visibility_rule() == 'labels':
                 if not coord_ticklabels_bbox:
                     continue
