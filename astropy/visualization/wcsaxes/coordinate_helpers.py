@@ -109,6 +109,7 @@ class CoordinateHelper:
         self.ticklabels = TickLabels(self.frame,
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
+        self.ticklabels.parent_coords = self
         self.ticks.display_minor_ticks(rcParams['xtick.minor.visible'])
         self.minor_frequency = 5
 
@@ -117,6 +118,7 @@ class CoordinateHelper:
                                      transform=None,  # display coordinates
                                      figure=parent_axes.get_figure())
 
+        self.axislabels.parent_coords = self
         # Initialize container for the grid lines
         self.grid_lines = []
 
@@ -591,25 +593,26 @@ class CoordinateHelper:
 
         renderer.close_group('grid lines')
 
-    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox, ticks_locs):
+    def _draw_ticks(self, renderer, ticklabels_bbox, ticks_locs):
 
         renderer.open_group('ticks')
 
         self.ticks.draw(renderer, ticks_locs)
-        self.ticklabels.draw(renderer, bboxes=bboxes,
+
+        self.ticklabels.draw(renderer, bboxes=None,
                              ticklabels_bbox=ticklabels_bbox,
                              tick_out_size=self.ticks.out_size)
 
         renderer.close_group('ticks')
 
-    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
+    def _draw_axislabels(self, renderer, ticklabels_bbox, ticks_locs, visible_ticks):
         # Render the default axis label if no axis label is set.
         if self._auto_axislabel and not self.get_axislabel():
             self.set_axislabel(self._get_default_axislabel())
 
         renderer.open_group('axis labels')
 
-        self.axislabels.draw(renderer, bboxes=bboxes,
+        self.axislabels.draw(renderer, bboxes=None,
                              ticklabels_bbox=ticklabels_bbox,
                              coord_ticklabels_bbox=ticklabels_bbox[self],
                              ticks_locs=ticks_locs,

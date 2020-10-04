@@ -158,4 +158,4 @@ class AxisLabels(Text):
             super().draw(renderer)
 
             bb = super().get_window_extent(renderer)
-            bboxes.append(bb)
+            self.parent_coords.parent_axes._bboxes.append(bb)

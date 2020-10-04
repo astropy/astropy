@@ -417,7 +417,7 @@ class WCSAxes(Axes):
         for coords in self._all_coords:
 
             for coord in coords:
-                coord._draw_ticks(renderer, bboxes=self._bboxes,
+                coord._draw_ticks(renderer,
                                   ticklabels_bbox=ticklabels_bbox[coord],
                                   ticks_locs=ticks_locs[coord])
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
@@ -425,7 +425,7 @@ class WCSAxes(Axes):
         for coords in self._all_coords:
 
             for coord in coords:
-                coord._draw_axislabels(renderer, bboxes=self._bboxes,
+                coord._draw_axislabels(renderer,
                                        ticklabels_bbox=ticklabels_bbox,
                                        ticks_locs=ticks_locs[coord],
                                        visible_ticks=visible_ticks)

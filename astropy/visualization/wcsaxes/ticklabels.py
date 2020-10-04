@@ -227,6 +227,7 @@ class TickLabels(Text):
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
+                bboxes = self.parent_coords.parent_axes._bboxes
                 if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
                     super().draw(renderer)
                     bboxes.append(bb)
