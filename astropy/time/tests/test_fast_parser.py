@@ -100,8 +100,9 @@ def test_fast_non_ascii():
 def test_fast_no_use_fast_parser_attribute():
     """Test deleting use_fast_parser class attribute to remove fast path"""
     try:
-        del TimeYearDayTime.use_fast_parser
+        pars = TimeYearDayTime.fast_parser_pars
+        del TimeYearDayTime.fast_parser_pars
         with pytest.raises(ValueError, match='Time 2000:0601 does not match yday format'):
             Time('2000:0601', format='yday')
     finally:
-        TimeYearDayTime.use_fast_parser = True
+        TimeYearDayTime.use_fast_parser = pars

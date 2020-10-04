@@ -1223,27 +1223,35 @@ class TimeString(TimeUnique):
     **Fast C-based parser**
 
     Time format classes can take advantage of a fast C-based parser if the times
-    are represented as a strings with year, month, day-of-month, hour, minute,
-    second, OR year, day-of-year, hour, minute, second. This can be a factor of
-    20 or more faster than the pure Python parser.
+    are represented as fixed-format strings with year, month, day-of-month,
+    hour, minute, second, OR year, day-of-year, hour, minute, second. This can
+    be a factor of 20 or more faster than the pure Python parser.
 
-    A subclass in this case must define these class attributes:
+    Fixed format means that the components always have the same number of
+    characters. The Python parser will accept ``2001-9-2`` as a date, but the C
+    parser would require ``2001-09-02``.
 
-    - use_fast_parser: must be True and specifically defined as a class
-          attribute for each applicable time format. An inherited attribute is
-          not checked, only the attribute in the class __dict__.
+    A subclass in this case must define a class attribute ``fast_parser_pars``
+    which is a `dict` with all of the keys below. An inherited attribute is not
+    checked, only an attribute in the class ``__dict__``.
 
-    - delims: character at corresponding ``starts`` position (0 => no character)
+    - ``delims`` (tuple of int): ASCII code for character at corresponding
+      ``starts`` position (0 => no character)
 
-    - starts: position where component starts (including delimiter if present)
+    - ``starts`` (tuple of int): position where component starts (including
+      delimiter if present). Use -1 for the month component for format that use
+      day of year.
 
-    - stops: position where component ends (-1 => continue to end of string)
+    - ``stops`` (tuple of int): position where component ends. Use -1 to
+      continue to end of string, or for the month component for formats that use
+      day of year.
 
-    - break_allowed: if true (1) then the time string can legally end just
-          before the corresponding component (e.g. "2000-01-01" is a valid time
-          but "2000-01-01 12" is not).
+    - ``break_allowed`` (tuple of int): if true (1) then the time string can
+          legally end just before the corresponding component (e.g. "2000-01-01"
+          is a valid time but "2000-01-01 12" is not).
 
-    - has_day_of_year: 0 if dates have year, month, day; 1 if year, day-of-year
+    - ``has_day_of_year`` (int): 0 if dates have year, month, day; 1 if year,
+      day-of-year
     """
 
     def _check_val_type(self, val1, val2):
@@ -1302,7 +1310,7 @@ class TimeString(TimeUnique):
         # Also do this if Time format class does not define `use_fast_parser`
         # or if the fast parser is entirely disabled.
         if (self.in_subfmt != '*'
-                or not self.__class__.__dict__.get('use_fast_parser')
+                or 'fast_parser_pars' not in self.__class__.__dict__
                 or conf.use_fast_parser == 'False'):
             jd1, jd2 = self.get_jds_python(val1, val2)
         else:
@@ -1368,14 +1376,15 @@ class TimeString(TimeUnique):
         second = np.zeros(n_times, dtype=np.double)
 
         # Set up parser parameters as numpy arrays for passing to C parser
-        delims = np.array(self.delims, dtype=np.uint8)
-        starts = np.array(self.starts, dtype=np.intc)
-        stops = np.array(self.stops, dtype=np.intc)
-        break_allowed = np.array(self.break_allowed, dtype=np.intc)
+        pars = self.fast_parser_pars
+        delims = np.array(pars['delims'], dtype=np.uint8)
+        starts = np.array(pars['starts'], dtype=np.intc)
+        stops = np.array(pars['stops'], dtype=np.intc)
+        break_allowed = np.array(pars['break_allowed'], dtype=np.intc)
 
         # Call C parser
         status = self.lib_parse_time.parse_ymdhms_times(
-            chars, n_times, val1_str_len, self.has_day_of_year,
+            chars, n_times, val1_str_len, pars['has_day_of_year'],
             delims, starts, stops, break_allowed,
             year, month, day, hour, minute, second)
         if status == 0:
@@ -1487,13 +1496,14 @@ class TimeISO(TimeString):
     #   01234567890123456789012
     #   yyyy-mm-dd hh:mm:ss.fff
     # Parsed as ('yyyy', '-mm', '-dd', ' hh', ':mm', ':ss', '.fff')
-    use_fast_parser = True
-    delims = (0, ord('-'), ord('-'), ord(' '), ord(':'), ord(':'), ord('.'))
-    starts = (0, 4, 7, 10, 13, 16, 19)
-    stops = (3, 6, 9, 12, 15, 18, -1)
-    # Break *before* y  m  d  h  m  s  f
-    break_allowed = (0, 0, 0, 1, 0, 1, 1)
-    has_day_of_year = 0
+    fast_parser_pars = dict(
+        delims=(0, ord('-'), ord('-'), ord(' '), ord(':'), ord(':'), ord('.')),
+        starts=(0, 4, 7, 10, 13, 16, 19),
+        stops=(3, 6, 9, 12, 15, 18, -1),
+        # Break allowed *before*
+        #              y  m  d  h  m  s  f
+        break_allowed=(0, 0, 0, 1, 0, 1, 1),
+        has_day_of_year=0)
 
     def parse_string(self, timestr, subfmts):
         # Handle trailing 'Z' for UTC time
@@ -1530,8 +1540,15 @@ class TimeISOT(TimeISO):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
-    use_fast_parser = True
-    delims = (0, ord('-'), ord('-'), ord('T'), ord(':'), ord(':'), ord('.'))
+    # See TimeISO for expanation
+    fast_parser_pars = dict(
+        delims=(0, ord('-'), ord('-'), ord('T'), ord(':'), ord(':'), ord('.')),
+        starts=(0, 4, 7, 10, 13, 16, 19),
+        stops=(3, 6, 9, 12, 15, 18, -1),
+        # Break allowed *before*
+        #              y  m  d  h  m  s  f
+        break_allowed=(0, 0, 0, 1, 0, 1, 1),
+        has_day_of_year=0)
 
 
 class TimeYearDayTime(TimeISO):
@@ -1571,14 +1588,14 @@ class TimeYearDayTime(TimeISO):
     # starts: position where component starts (including delimiter if present)
     # stops: position where component ends (-1 => continue to end of string)
 
-    # Before: yr mon  doy     hour      minute    second    frac
-    use_fast_parser = True
-    delims = (0, 0, ord(':'), ord(':'), ord(':'), ord(':'), ord('.'))
-    starts = (0, -1, 4, 8, 11, 14, 17)
-    stops = (3, -1, 7, 10, 13, 16, -1)
-    # Break before:  y  m  d  h  m  s  f
-    break_allowed = (0, 0, 0, 1, 0, 1, 1)
-    has_day_of_year = 1
+    fast_parser_pars = dict(
+        delims=(0, 0, ord(':'), ord(':'), ord(':'), ord(':'), ord('.')),
+        starts=(0, -1, 4, 8, 11, 14, 17),
+        stops=(3, -1, 7, 10, 13, 16, -1),
+        # Break allowed before:
+        #              y  m  d  h  m  s  f
+        break_allowed=(0, 0, 0, 1, 0, 1, 1),
+        has_day_of_year=1)
 
 
 class TimeDatetime64(TimeISOT):
