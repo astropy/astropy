@@ -85,7 +85,7 @@ class AxisLabels(Text):
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
-            xcen, ycen, normal_angle = self._frame[axis]._halfway_x_y_angle()
+            x, y, normal_angle = self._frame[axis]._halfway_x_y_angle()
 
             label_angle = (normal_angle - 90.) % 360.
             if 135 < label_angle < 225:
@@ -105,45 +105,32 @@ class AxisLabels(Text):
                     coord_ticklabels_bbox[axis] = [None]
 
                 visible = axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None
+
                 if axis == 'l':
                     if visible:
-                        left = coord_ticklabels_bbox[axis][0].xmin
-                    else:
-                        left = xcen
-                    xpos = left - padding
-                    self.set_position((xpos, ycen))
+                        x = coord_ticklabels_bbox[axis][0].xmin
+                    x = x - padding
 
                 elif axis == 'r':
                     if visible:
-                        right = coord_ticklabels_bbox[axis][0].x1
-                    else:
-                        right = xcen
-                    xpos = right + padding
-                    self.set_position((xpos, ycen))
+                        x = coord_ticklabels_bbox[axis][0].x1
+                    x = x + padding
 
                 elif axis == 'b':
                     if visible:
-                        bottom = coord_ticklabels_bbox[axis][0].ymin
-                    else:
-                        bottom = ycen
-                    ypos = bottom - padding
-                    self.set_position((xcen, ypos))
+                        y = coord_ticklabels_bbox[axis][0].ymin
+                    y = y - padding
 
                 elif axis == 't':
                     if visible:
-                        top = coord_ticklabels_bbox[axis][0].y1
-                    else:
-                        top = ycen
-                    ypos = top + padding
-                    self.set_position((xcen, ypos))
+                        y = coord_ticklabels_bbox[axis][0].y1
+                    y = y + padding
 
             else:  # arbitrary axis
+                x = x + np.cos(np.radians(normal_angle)) * (padding + text_size * 1.5)
+                y = y + np.sin(np.radians(normal_angle)) * (padding + text_size * 1.5)
 
-                dx = np.cos(np.radians(normal_angle)) * (padding + text_size * 1.5)
-                dy = np.sin(np.radians(normal_angle)) * (padding + text_size * 1.5)
-
-                self.set_position((xcen + dx, ycen + dy))
-
+            self.set_position((x, y))
             super().draw(renderer)
 
             bb = super().get_window_extent(renderer)
