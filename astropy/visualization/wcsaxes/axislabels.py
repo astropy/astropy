@@ -65,6 +65,9 @@ class AxisLabels(Text):
         if not self.get_visible():
             return
 
+        ticklabels_bbox = self.parent_coords.parent_axes._ticklabels_bbox
+        coord_ticklabels_bbox = ticklabels_bbox[self.parent_coords]
+
         text_size = renderer.points_to_pixels(self.get_size())
 
         for axis in self.get_visible_axes():

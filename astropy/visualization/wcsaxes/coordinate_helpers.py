@@ -600,7 +600,7 @@ class CoordinateHelper:
         self.ticks.draw(renderer, ticks_locs)
 
         self.ticklabels.draw(renderer, bboxes=None,
-                             ticklabels_bbox=ticklabels_bbox,
+                             ticklabels_bbox=None,
                              tick_out_size=self.ticks.out_size)
 
         renderer.close_group('ticks')
@@ -613,8 +613,8 @@ class CoordinateHelper:
         renderer.open_group('axis labels')
 
         self.axislabels.draw(renderer, bboxes=None,
-                             ticklabels_bbox=ticklabels_bbox,
-                             coord_ticklabels_bbox=ticklabels_bbox[self],
+                             ticklabels_bbox=None,
+                             coord_ticklabels_bbox=None,
                              ticks_locs=ticks_locs,
                              visible_ticks=visible_ticks)
 

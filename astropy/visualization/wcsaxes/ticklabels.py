@@ -120,6 +120,8 @@ class TickLabels(Text):
         if not self.get_visible():
             return
 
+        ticklabels_bbox = self.parent_coords.parent_axes._ticklabels_bbox[self.parent_coords]
+
         self.simplify_labels()
 
         text_size = renderer.points_to_pixels(self.get_size())
