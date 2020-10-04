@@ -11,6 +11,15 @@ from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
+    """
+    Parameters
+    ----------
+    frame : astropy.visualization.wcsaxes.frame.BaseFrame
+    minpad : float
+    args, kwargs :
+        args and kwargs are handed directly to the parent
+        `matplotlib.text.Text` constructor.
+    """
 
     def __init__(self, frame, minpad=1, *args, **kwargs):
 
@@ -59,6 +68,60 @@ class AxisLabels(Text):
     def get_visibility_rule(self):
         return self._visibility_rule
 
+    def _get_position(self, ticklabels_bbox_list, coord_ticklabels_bbox, axis, xcen, ycen,
+                      visible_ticks, padding, normal_angle):
+        # Find label position by looking at the bounding box of ticks'
+        # labels and the image. It sets the default padding at 1 times the
+        # axis label font size which can also be changed by setting
+        # the minpad parameter.
+        if isinstance(self._frame, RectangularFrame):
+
+            if len(ticklabels_bbox_list) > 0 and ticklabels_bbox_list[0] is not None:
+                coord_ticklabels_bbox[axis] = [mtransforms.Bbox.union(ticklabels_bbox_list)]
+            else:
+                coord_ticklabels_bbox[axis] = [None]
+
+            if axis == 'l':
+                if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    left = coord_ticklabels_bbox[axis][0].xmin
+                else:
+                    left = xcen
+                xpos = left - padding
+                x, y = xpos, ycen
+
+            elif axis == 'r':
+                if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    right = coord_ticklabels_bbox[axis][0].x1
+                else:
+                    right = xcen
+                xpos = right + padding
+                x, y = xpos, ycen
+
+            elif axis == 'b':
+                if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    bottom = coord_ticklabels_bbox[axis][0].ymin
+                else:
+                    bottom = ycen
+                ypos = bottom - padding
+                x, y = xcen, ypos
+
+            elif axis == 't':
+                if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    top = coord_ticklabels_bbox[axis][0].y1
+                else:
+                    top = ycen
+                ypos = top + padding
+                x, y = xcen, ypos
+
+        else:  # arbitrary axis
+
+            dx = np.cos(np.radians(normal_angle)) * (padding + text_size * 1.5)
+            dy = np.sin(np.radians(normal_angle)) * (padding + text_size * 1.5)
+            x = xcen + dx
+            y = ycen + dy
+
+        return x, y
+
     def draw(self, renderer, bboxes, ticklabels_bbox,
              coord_ticklabels_bbox, ticks_locs, visible_ticks):
 
@@ -104,56 +167,9 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
 
-            # Find label position by looking at the bounding box of ticks'
-            # labels and the image. It sets the default padding at 1 times the
-            # axis label font size which can also be changed by setting
-            # the minpad parameter.
-
-            if isinstance(self._frame, RectangularFrame):
-
-                if len(ticklabels_bbox_list) > 0 and ticklabels_bbox_list[0] is not None:
-                    coord_ticklabels_bbox[axis] = [mtransforms.Bbox.union(ticklabels_bbox_list)]
-                else:
-                    coord_ticklabels_bbox[axis] = [None]
-
-                if axis == 'l':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        left = coord_ticklabels_bbox[axis][0].xmin
-                    else:
-                        left = xcen
-                    xpos = left - padding
-                    self.set_position((xpos, ycen))
-
-                elif axis == 'r':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        right = coord_ticklabels_bbox[axis][0].x1
-                    else:
-                        right = xcen
-                    xpos = right + padding
-                    self.set_position((xpos, ycen))
-
-                elif axis == 'b':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        bottom = coord_ticklabels_bbox[axis][0].ymin
-                    else:
-                        bottom = ycen
-                    ypos = bottom - padding
-                    self.set_position((xcen, ypos))
-
-                elif axis == 't':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        top = coord_ticklabels_bbox[axis][0].y1
-                    else:
-                        top = ycen
-                    ypos = top + padding
-                    self.set_position((xcen, ypos))
-
-            else:  # arbitrary axis
-
-                dx = np.cos(np.radians(normal_angle)) * (padding + text_size * 1.5)
-                dy = np.sin(np.radians(normal_angle)) * (padding + text_size * 1.5)
-
-                self.set_position((xcen + dx, ycen + dy))
+            xy = self._get_position(ticklabels_bbox_list, coord_ticklabels_bbox, axis, xcen, ycen,
+                                    visible_ticks, padding, normal_angle)
+            self.set_position(xy)
 
             super().draw(renderer)
 
