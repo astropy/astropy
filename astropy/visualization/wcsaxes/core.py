@@ -404,31 +404,23 @@ class WCSAxes(Axes):
         self._bboxes = []
         # This generates a structure like [coords][axis] = [...]
         self._ticklabels_bbox = defaultdict(partial(defaultdict, list))
-        ticks_locs = defaultdict(partial(defaultdict, list))
+        self._ticks_locs = defaultdict(partial(defaultdict, list))
 
         visible_ticks = []
 
         for coords in self._all_coords:
-
             coords.frame.update()
             for coord in coords:
                 coord._draw_grid(renderer)
 
         for coords in self._all_coords:
-
             for coord in coords:
-                coord._draw_ticks(renderer,
-                                  ticklabels_bbox=None,
-                                  ticks_locs=ticks_locs[coord])
+                coord._draw_ticks(renderer)
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
         for coords in self._all_coords:
-
             for coord in coords:
-                coord._draw_axislabels(renderer,
-                                       ticklabels_bbox=None,
-                                       ticks_locs=ticks_locs[coord],
-                                       visible_ticks=visible_ticks)
+                coord._draw_axislabels(renderer)
 
         self.coords.frame.draw(renderer)
 

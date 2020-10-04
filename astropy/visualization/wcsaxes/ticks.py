@@ -151,6 +151,7 @@ class Ticks(Line2D):
         """
         Draw the ticks.
         """
+        ticks_locs = self.parent_coords.parent_axes._ticks_locs[self.parent_coords]
 
         if not self.get_visible():
             return

@@ -104,6 +104,7 @@ class CoordinateHelper:
         self.dpi_transform = Affine2D()
         self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
         self.ticks = Ticks(transform=parent_axes.transData + self.offset_transform)
+        self.ticks.parent_coords = self
 
         # Initialize tick labels
         self.ticklabels = TickLabels(self.frame,
@@ -593,19 +594,18 @@ class CoordinateHelper:
 
         renderer.close_group('grid lines')
 
-    def _draw_ticks(self, renderer, ticklabels_bbox, ticks_locs):
+    def _draw_ticks(self, renderer):
 
         renderer.open_group('ticks')
 
-        self.ticks.draw(renderer, ticks_locs)
-
+        self.ticks.draw(renderer, None)
         self.ticklabels.draw(renderer, bboxes=None,
                              ticklabels_bbox=None,
-                             tick_out_size=self.ticks.out_size)
+                             tick_out_size=None)
 
         renderer.close_group('ticks')
 
-    def _draw_axislabels(self, renderer, ticklabels_bbox, ticks_locs, visible_ticks):
+    def _draw_axislabels(self, renderer):
         # Render the default axis label if no axis label is set.
         if self._auto_axislabel and not self.get_axislabel():
             self.set_axislabel(self._get_default_axislabel())
@@ -615,8 +615,8 @@ class CoordinateHelper:
         self.axislabels.draw(renderer, bboxes=None,
                              ticklabels_bbox=None,
                              coord_ticklabels_bbox=None,
-                             ticks_locs=ticks_locs,
-                             visible_ticks=visible_ticks)
+                             ticks_locs=None,
+                             visible_ticks=None)
 
         renderer.close_group('axis labels')
 
