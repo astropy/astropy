@@ -1233,7 +1233,7 @@ class TimeString(TimeUnique):
           attribute for each applicable time format. An inherited attribute is
           not checked, only the attribute in the class __dict__.
 
-    - delims: character at corresponding `starts` position (0 => no character)
+    - delims: character at corresponding ``starts`` position (0 => no character)
 
     - starts: position where component starts (including delimiter if present)
 
@@ -1304,19 +1304,22 @@ class TimeString(TimeUnique):
         if (self.in_subfmt != '*'
                 or not self.__class__.__dict__.get('use_fast_parser')
                 or conf.use_fast_parser == 'False'):
-            self.set_jds_python(val1, val2)
+            jd1, jd2 = self.get_jds_python(val1, val2)
         else:
             try:
-                self.set_jds_fast(val1)
+                jd1, jd2 = self.get_jds_fast(val1, val2)
             except Exception:
                 # Fall through to the Python parser unless fast is forced.
                 if conf.use_fast_parser == 'force':
                     raise
                 else:
-                    self.set_jds_python(val1, val2)
+                    jd1, jd2 = self.get_jds_python(val1, val2)
 
-    def set_jds_python(self, val1, val2):
-        """Parse the time strings contained in val1 and set jd1, jd2"""
+        self.jd1 = jd1
+        self.jd2 = jd2
+
+    def get_jds_python(self, val1, val2):
+        """Parse the time strings contained in val1 and get jd1, jd2"""
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
         # Be liberal in what we accept: convert bytes to ascii.
@@ -1334,10 +1337,12 @@ class TimeString(TimeUnique):
 
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               *iterator.operands[1:])
-        self.jd1, self.jd2 = day_frac(jd1, jd2)
+        jd1, jd2 = day_frac(jd1, jd2)
 
-    def set_jds_fast(self, val1):
-        """Use fast C parser to parse time strings in val1 and set jd1, jd2"""
+        return jd1, jd2
+
+    def get_jds_fast(self, val1, val2):
+        """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
         # Handle bytes or str input and flatten down to a single array of uint8.
         char_size = 4 if val1.dtype.kind == 'U' else 1
         val1_str_len = int(val1.dtype.itemsize // char_size)
@@ -1379,7 +1384,7 @@ class TimeString(TimeUnique):
                                   year, month, day, hour, minute, second)
             jd1.shape = val1.shape
             jd2.shape = val1.shape
-            self.jd1, self.jd2 = day_frac(jd1, jd2)
+            jd1, jd2 = day_frac(jd1, jd2)
         else:
             msgs = {1: 'time string ends at beginning of component where break is not allowed',
                     2: 'time string ends in middle of component',
@@ -1387,6 +1392,8 @@ class TimeString(TimeUnique):
                     4: 'non-digit found where digit (0-9) required',
                     5: 'bad day of year (1 <= doy <= 365 or 366 for leap year'}
             raise ValueError(f'fast C time string parser failed: {msgs[status]}')
+
+        return jd1, jd2
 
     def str_kwargs(self):
         """
