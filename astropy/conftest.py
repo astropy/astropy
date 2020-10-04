@@ -6,6 +6,7 @@ making use of astropy's test runner).
 """
 import os
 import builtins
+import sys
 import tempfile
 import warnings
 
@@ -19,6 +20,15 @@ import pytest
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
 try:
+    # This is needed to silence a warning from matplotlib caused by
+    # PyInstaller's matplotlib runtime hook.  This can be removed once the
+    # issue is fixed upstream in PyInstaller, and only impacts us when running
+    # the tests from a PyInstaller bundle.
+    # See https://github.com/astropy/astropy/issues/10785
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # The above checks whether we are running in a PyInstaller bundle.
+        warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*",
+                                category=UserWarning)
     import matplotlib
 except ImportError:
     HAS_MATPLOTLIB = False
