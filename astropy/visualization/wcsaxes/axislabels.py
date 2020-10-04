@@ -104,8 +104,9 @@ class AxisLabels(Text):
                 else:
                     coord_ticklabels_bbox[axis] = [None]
 
+                visible = axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None
                 if axis == 'l':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    if visible:
                         left = coord_ticklabels_bbox[axis][0].xmin
                     else:
                         left = xcen
@@ -113,7 +114,7 @@ class AxisLabels(Text):
                     self.set_position((xpos, ycen))
 
                 elif axis == 'r':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    if visible:
                         right = coord_ticklabels_bbox[axis][0].x1
                     else:
                         right = xcen
@@ -121,7 +122,7 @@ class AxisLabels(Text):
                     self.set_position((xpos, ycen))
 
                 elif axis == 'b':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    if visible:
                         bottom = coord_ticklabels_bbox[axis][0].ymin
                     else:
                         bottom = ycen
@@ -129,7 +130,7 @@ class AxisLabels(Text):
                     self.set_position((xcen, ypos))
 
                 elif axis == 't':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
+                    if visible:
                         top = coord_ticklabels_bbox[axis][0].y1
                     else:
                         top = ycen
