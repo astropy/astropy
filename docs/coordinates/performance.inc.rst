@@ -156,7 +156,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
 
 
     # now the interpolating approach for different time resolutions
-    resolutions = 10.0**np.arange(-1, 6) * u.s
+    resolutions = 10.0**np.arange(-1, 5) * u.s
     times = []
     seps = []
 
