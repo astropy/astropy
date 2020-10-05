@@ -58,7 +58,7 @@ plot_pre_code = ""
 needs_sphinx = '1.7'
 
 # To perform a Sphinx version check that needs to be more specific than
-# major.minor, call `check_sphinx_version("x.y.z")` here.
+# major.minor, call `check_sphinx_version("X.Y.Z")` here.
 check_sphinx_version("1.2.1")
 
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
