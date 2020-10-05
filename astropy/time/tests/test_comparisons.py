@@ -113,7 +113,7 @@ def test_isclose_time(swap, time_delta):
 def test_isclose_time_exceptions():
     t1 = Time('2020:001')
     t2 = t1 + 1 * u.s
-    match = "'other' argument must be a Time instance, got float instead"
+    match = "'other' argument must support subtraction with Time"
     with pytest.raises(TypeError, match=match):
         t1.isclose(1.5)
 
@@ -179,7 +179,7 @@ def test_isclose_timedelta(swap, time_delta, other_quantity):
 def test_isclose_timedelta_exceptions():
     t1 = TimeDelta(1 * u.s)
     t2 = t1 + 1 * u.s
-    match = "'other' argument must be a Quantity or TimeDelta instance, got float instead"
+    match = "other' argument must support conversion to days"
     with pytest.raises(TypeError, match=match):
         t1.isclose(1.5)
 
