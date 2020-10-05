@@ -1219,23 +1219,20 @@ TELAPSE =        0.02083332443 / [d] Elapsed time (start to stop)
 TIMEDEL =    0.020833333333333 / [d] Time resolution
 TIMEPIXR=                  0.5 / Reference position of timestamp in binned data
 RADESYS = 'ICRS'               / Equatorial coordinate system
-DATE-REF= '1858-11-17'
-END
 """
-
-    ffi_wcs = WCS(wcs_str)
+    wcs_header = fits.Header.fromstring(wcs_str, sep='\n')
+    ffi_wcs = WCS(wcs_header)
 
     yi, xi = (1000,1000)
     y, x = (10,200)
 
     center_coord = SkyCoord(ffi_wcs.all_pix2world([[xi+x//2, yi+y//2]], 0), unit='deg')[0]
-    pix_inds = np.mgrid[xi : xi + x, yi : yi + y]
-    world_pix = SkyCoord(ffi_wcs.all_pix2world(pix_inds, 0), unit='deg')
+    ypix, xpix = [arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y]]
+    world_pix = SkyCoord(*ffi_wcs.all_pix2world(xpix, ypix, 0), unit='deg')
 
-    fit_wcs = fit_wcs_from_points([pix_inds[:, 0], pix_inds[:, 1]],
-                                  world_pix, proj_point='center')
+    fit_wcs = fit_wcs_from_points((ypix, xpix), world_pix, proj_point='center')
 
-    assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1006]).all()
+    assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (200, 10)
 
 
