@@ -576,7 +576,7 @@ def test_insert_exceptions():
 
     # Bad shape
     with pytest.raises(ValueError, match='could not broadcast input array from '
-                       r'shape \(2,2\) into shape \(2\)'):
+                       r'shape \(2,2\) into shape \(2,?\)'):
         sc0.insert(0, sc4)
 
 
