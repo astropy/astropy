@@ -135,7 +135,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
     np.random.seed(1337)
 
     # 100_000 times randomly distributed over 12 hours
-    t = Time('2020-01-01T20:00:00') + np.random.uniform(0, 12, 100_000) * u.hour
+    t = Time('2020-01-01T20:00:00') + np.random.uniform(0, 1, 10_000) * u.hour
 
     location = location = EarthLocation(
         lon=-17.89 * u.deg, lat=28.76 * u.deg, height=2200 * u.m
@@ -156,7 +156,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
 
 
     # now the interpolating approach for different time resolutions
-    resolutions = 10.0**np.arange(-1, 6) * u.s
+    resolutions = 10.0**np.arange(-1, 5) * u.s
     times = []
     seps = []
 
@@ -167,7 +167,7 @@ for ``time_resolution`` compared to the non-interpolating, default approach.
             duration = perf_counter() - t0
 
         print(
-            f'Interpolation with {resolution.value: 8.0f} {str(resolution.unit)}'
+            f'Interpolation with {resolution.value: 9.1f} {str(resolution.unit)}'
             f' resolution took {duration:.4f} s'
             f' ({reference / duration:5.1f}x faster) '
         )
