@@ -268,7 +268,7 @@ The primary modifications to the release procedure are:
 
 * When entering tagging the release, include a ``b?`` or ``rc??`` suffix after
   the version number, e.g. "1.2b1" or "1.2rc1".  It is critical that you follow this
-  numbering scheme (``x.yb#`` or ``x.y.zrc#``), as it will ensure the release
+  numbering scheme (``X.Yb#`` or ``X.Y.Zrc#``), as it will ensure the release
   is ordered "before" the main release by various automated tools, and also
   tells PyPI that this is a "pre-release."
 * Do not do steps in :ref:`post-release-procedure`.
