@@ -101,7 +101,6 @@ class WCSAxes(Axes):
         """
 
         super().__init__(fig, rect, **kwargs)
-        self._bboxes = []
 
         if frame_class is not None:
             self.frame_class = frame_class
@@ -395,37 +394,51 @@ class WCSAxes(Axes):
         if rcParams['axes.grid']:
             self.grid()
 
+    @property
+    def _bboxes(self):
+        bboxes = []
+        for coords in self._all_coords:
+            for coord in coords:
+                bboxes += coord._bboxes
+        return bboxes
+
     def draw_wcsaxes(self, renderer):
         if not self.axison:
             return
         # Here need to find out range of all coordinates, and update range for
         # each coordinate axis. For now, just assume it covers the whole sky.
 
-        self._bboxes = []
         # This generates a structure like [coords][axis] = [...]
         ticklabels_bbox = defaultdict(partial(defaultdict, list))
         ticks_locs = defaultdict(partial(defaultdict, list))
 
         visible_ticks = []
 
+        # Do drawing. Note that these are in separate loops and in a particular
+        # order, as drawing each subsequent component depends on the results
+        # of drawing the previous component(s).
+
+        # Draw grid
         for coords in self._all_coords:
 
             coords.frame.update()
             for coord in coords:
                 coord._draw_grid(renderer)
 
+        # Draw ticks
         for coords in self._all_coords:
 
             for coord in coords:
-                coord._draw_ticks(renderer, bboxes=self._bboxes,
+                coord._draw_ticks(renderer,
                                   ticklabels_bbox=ticklabels_bbox[coord],
                                   ticks_locs=ticks_locs[coord])
                 visible_ticks.extend(coord.ticklabels.get_visible_axes())
 
+        # Draw labels
         for coords in self._all_coords:
 
             for coord in coords:
-                coord._draw_axislabels(renderer, bboxes=self._bboxes,
+                coord._draw_axislabels(renderer,
                                        ticklabels_bbox=ticklabels_bbox,
                                        ticks_locs=ticks_locs[coord],
                                        visible_ticks=visible_ticks)

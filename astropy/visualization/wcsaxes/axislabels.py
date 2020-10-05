@@ -7,6 +7,8 @@ from matplotlib import rcParams
 from matplotlib.text import Text
 import matplotlib.transforms as mtransforms
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import _NONE
 from .frame import RectangularFrame
 
 
@@ -30,6 +32,7 @@ class AxisLabels(Text):
         self.set_va('center')
         self._minpad = minpad
         self._visibility_rule = 'labels'
+        self._bboxes = []
 
     def get_minpad(self, axis):
         try:
@@ -62,8 +65,15 @@ class AxisLabels(Text):
     def draw(self, renderer, bboxes, ticklabels_bbox,
              coord_ticklabels_bbox, ticks_locs, visible_ticks):
 
+        if bboxes is not _NONE:
+            warnings.warn('The "bboxes" argument is deprecated and un-used.',
+                          AstropyDeprecationWarning)
+
         if not self.get_visible():
             return
+
+        # Reset list of bounding boxes
+        self._bboxes = []
 
         text_size = renderer.points_to_pixels(self.get_size())
 
@@ -158,4 +168,4 @@ class AxisLabels(Text):
             super().draw(renderer)
 
             bb = super().get_window_extent(renderer)
-            bboxes.append(bb)
+            self._bboxes.append(bb)

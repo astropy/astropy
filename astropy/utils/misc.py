@@ -31,6 +31,11 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'OrderedDescriptor', 'OrderedDescriptorContainer']
 
 
+# Create a dummy object to pass interanlly to deprecated parameteres; if a user passes
+# anything that isn't this object, we know to raise an unused argument warning
+_NONE = object()
+
+
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
 

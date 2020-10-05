@@ -6,6 +6,8 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.text import Text
 
+from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import _NONE
 from .frame import RectangularFrame
 
 
@@ -23,6 +25,7 @@ class TickLabels(Text):
         self.set_visible_axes('all')
         self.set_pad(rcParams['xtick.major.pad'])
         self._exclude_overlapping = False
+        self._bboxes = []
 
         # Check rcParams
 
@@ -117,8 +120,15 @@ class TickLabels(Text):
 
     def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
 
+        if bboxes is not _NONE:
+            warnings.warn('The "bboxes" argument is deprecated and un-used.',
+                          AstropyDeprecationWarning)
+
         if not self.get_visible():
             return
+
+        # Reset list of bounding boxes
+        self._bboxes = []
 
         self.simplify_labels()
 
@@ -227,7 +237,7 @@ class TickLabels(Text):
                 # that has a key starting bit such as -0:30 where the -0
                 # might be dropped from all other labels.
 
-                if not self._exclude_overlapping or bb.count_overlaps(bboxes) == 0:
+                if not self._exclude_overlapping or bb.count_overlaps(self._bboxes) == 0:
                     super().draw(renderer)
-                    bboxes.append(bb)
+                    self._bboxes.append(bb)
                     ticklabels_bbox[axis].append(bb)
