@@ -931,10 +931,6 @@ class TimeBase(ShapedLikeNDArray):
             ``u.day``). Default is two bits in the 128-bit JD time representation,
             equivalent to about 40 picosecs.
         """
-        if not isinstance(other, Time):
-            raise TypeError("'other' argument must be a Time instance, got "
-                            f'{other.__class__.__name__} instead')
-
         if atol is None:
             # Note: use 2 bits instead of 1 bit based on experience in precision
             # tests, since taking the difference with a UTC time means one has
@@ -945,7 +941,17 @@ class TimeBase(ShapedLikeNDArray):
             raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
                             f'{atol.__class__.__name__} instead')
 
-        return abs(self - other) <= atol
+        try:
+            # Separate these out so user sees where the problem is
+            dt = self - other
+            dt = abs(dt)
+            out = dt <= atol
+        except Exception as err:
+            raise TypeError("'other' argument must support subtraction with Time "
+                            f"and return a value that supports comparison with "
+                            f"{atol.__class__.__name__}: {err}")
+
+        return out
 
     def light_travel_time(self, skycoord, kind='barycentric', location=None, ephemeris=None):
         """Light travel time correction to the barycentre or heliocentre.
@@ -2675,9 +2681,10 @@ class TimeDelta(TimeBase):
         rtol : float
             Relative tolerance for equality
         """
-        if not isinstance(other, (u.Quantity, TimeDelta)):
-            raise TypeError("'other' argument must be a Quantity or TimeDelta instance, got "
-                            f'{other.__class__.__name__} instead')
+        try:
+            other_day = other.to_value(u.day)
+        except Exception as err:
+            raise TypeError(f"'other' argument must support conversion to days: {err}")
 
         if atol is None:
             atol = np.finfo(float).eps * u.day
@@ -2686,7 +2693,7 @@ class TimeDelta(TimeBase):
             raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
                             f'{atol.__class__.__name__} instead')
 
-        return np.isclose(self.to_value(u.day), other.to_value(u.day),
+        return np.isclose(self.to_value(u.day), other_day,
                           rtol=rtol, atol=atol.to_value(u.day))
 
 
