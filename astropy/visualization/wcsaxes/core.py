@@ -623,6 +623,7 @@ class WCSAxes(Axes):
             return
 
         bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
+        bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 
         if bb:
             _bbox = Bbox.union(bb)
