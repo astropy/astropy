@@ -83,7 +83,7 @@ class Covariance():
         return(self.pprint(max_lines=10, round_val=3))
 
     def __getitem__(self, params):
-        # index covariance matrix by parameter names or indicies
+        # index covariance matrix by parameter names or indices
         if len(params) != 2:
             raise ValueError('Covariance must be indexed by two values.')
         if all(isinstance(item, str) for item in params):
@@ -91,12 +91,12 @@ class Covariance():
         elif all(isinstance(item, int) for item in params):
             i1, i2 = params
         else:
-            raise TypeError('Covariance can be indexed by two parameter names or integer indicies.')
+            raise TypeError('Covariance can be indexed by two parameter names or integer indices.')
         return(self.cov_matrix[i1][i2])
 
 
 class StandardDeviations():
-    """ Class for fitting uncertanties."""
+    """ Class for fitting uncertainties."""
 
     def __init__(self, cov_matrix, param_names):
         self.param_names = param_names
@@ -131,7 +131,7 @@ class StandardDeviations():
         elif isinstance(param, int):
             i = param
         else:
-            raise TypeError('Standard deviation can be indexed by paramater name or integer.')
+            raise TypeError('Standard deviation can be indexed by parameter name or integer.')
         return(self.stds[i])
 
 
@@ -207,7 +207,7 @@ def fitter_unit_support(func):
 
                 # Create a dictionary mapping the real model inputs and outputs
                 # names to the data. This remapping of names must be done here, after
-                # the the input data is converted to the correct units.
+                # the input data is converted to the correct units.
                 rename_data = {model.inputs[0]: x}
                 if z is not None:
                     rename_data[model.outputs[0]] = z
@@ -324,7 +324,7 @@ class Fitter(metaclass=_FitterMeta):
         return res
 
     @staticmethod
-    def _add_fitting_uncertanties(*args):
+    def _add_fitting_uncertainties(*args):
         """
         When available, calculate and sets the parameter covariance matrix
         (model.cov_matrix) and standard deviations (model.stds).
@@ -359,16 +359,16 @@ class LinearLSQFitter(metaclass=_FitterMeta):
     supported_constraints = ['fixed']
     supports_masked_input = True
 
-    def __init__(self, calc_uncertanties=False):
+    def __init__(self, calc_uncertainties=False):
         self.fit_info = {'residuals': None,
                          'rank': None,
                          'singular_values': None,
                          'params': None
                          }
-        self._calc_uncertanties=calc_uncertanties
+        self._calc_uncertainties=calc_uncertainties
 
     @staticmethod
-    def _is_invertable(m):
+    def _is_invertible(m):
         """Check if inverse of matrix can be obtained."""
         if m.shape[0] != m.shape[1]:
             return False
@@ -376,8 +376,8 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             return False
         return True
 
-    def _add_fitting_uncertanties(self, model, a, n_coeff, x, y, z=None,
-                                  resids=None):
+    def _add_fitting_uncertainties(self, model, a, n_coeff, x, y, z=None,
+                                   resids=None):
         """
         Calculate and parameter covariance matrix and standard deviations
         and set `cov_matrix` and `stds` attributes.
@@ -385,8 +385,8 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         x_dot_x_prime = np.dot(a.T, a)
         masked = False or hasattr(y, 'mask')
 
-        # check if invertable. if not, can't calc covariance.
-        if not self._is_invertable(x_dot_x_prime):
+        # check if invertible. if not, can't calc covariance.
+        if not self._is_invertible(x_dot_x_prime):
             return(model)
         inv_x_dot_x_prime = np.linalg.inv(x_dot_x_prime)
 
@@ -413,10 +413,10 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             if len(model) == 1:
                 mask = None
                 if masked:
-                    warnings.warn('Calculation of fitting uncertanties '
-                                'for 2D models with masked values not '
-                                'currently supported.\n',
-                                 AstropyUserWarning)
+                    warnings.warn('Calculation of fitting uncertainties '
+                                  'for 2D models with masked values not '
+                                  'currently supported.\n',
+                                  AstropyUserWarning)
                     return
                 xx, yy = np.ma.array(x, mask=mask), np.ma.array(y, mask=mask)
                 # len(xx) instead of xx.count. this will break if values are masked?
@@ -427,7 +427,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     eval_z = model(x, y, model_set_axis=False)
                     mask = None  # need to figure out how to deal w/ masking here.
                     if model.model_set_axis == 1:
-                        # model_set_axis passed when evalauting only refers to input shapes
+                        # model_set_axis passed when evaluating only refers to input shapes
                         # so output must be reshaped for model_set_axis=1.
                         eval_z = np.rollaxis(eval_z, 1)
                     eval_z = eval_z[j]
@@ -719,9 +719,9 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                           AstropyUserWarning)
 
         # calculate and set covariance matrix and standard devs. on model
-        if self._calc_uncertanties:
+        if self._calc_uncertainties:
             if len(y) > len(lacoef):
-                self._add_fitting_uncertanties(model_copy, a*scl,
+                self._add_fitting_uncertainties(model_copy, a*scl,
                                                len(lacoef), x, y, z, resids)
 
         return model_copy
@@ -988,7 +988,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
     The constraint types supported by this fitter type.
     """
 
-    def __init__(self, calc_uncertanties=False):
+    def __init__(self, calc_uncertainties=False):
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
@@ -998,7 +998,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                          'ierr': None,
                          'param_jac': None,
                          'param_cov': None}
-        self._calc_uncertanties=calc_uncertanties
+        self._calc_uncertainties=calc_uncertainties
         super().__init__()
 
     def objective_function(self, fps, *args):
@@ -1024,7 +1024,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             return np.ravel(weights * (model(*args[2: -1]) - meas))
 
     @staticmethod
-    def _add_fitting_uncertanties(model, cov_matrix):
+    def _add_fitting_uncertainties(model, cov_matrix):
         """
         Set ``cov_matrix`` and ``stds`` attributes on model with parameter
         covariance matrix returned by ``optimize.leastsq``.
@@ -1113,9 +1113,9 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         else:
             self.fit_info['param_cov'] = None
 
-        if self._calc_uncertanties is True:
+        if self._calc_uncertainties is True:
             if self.fit_info['param_cov'] is not None:
-                self._add_fitting_uncertanties(model_copy,
+                self._add_fitting_uncertainties(model_copy,
                                                self.fit_info['param_cov'])
 
         return model_copy
@@ -1572,7 +1572,7 @@ def _fitter_to_model_params(model, fps):
                 slice_ = param_metrics[name]['slice']
 
                 # To handle multiple tied constraints, model parameters
-                # need to be updated after each iterration.
+                # need to be updated after each iteration.
                 parameters[slice_] = value
                 model._array_to_parameters()
 

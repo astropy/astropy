@@ -67,7 +67,7 @@ astropy.modeling
   fitter in ``FittingWithOutlierRemoval`` and also record the actual number of
   iterations performed in it. [#10642]
 
-- Added attributes for fitting uncertanties (covariance matrix, standard
+- Added attributes for fitting uncertainties (covariance matrix, standard
   deviations) to models. Parameter covariance matrix can be accessed via
   ``model.cov_matrix``, standard deviations by ``model.stds`` or individually
   for each parameter by ``parameter.std``. Currently implemented for

@@ -953,12 +953,12 @@ class TestFittingUncertanties:
     @pytest.mark.parametrize(('single_model', 'model_set'),
                              list(zip(example_1D_models, example_1D_sets)))
     def test_1d_models(self, single_model, model_set):
-        """ Test that fitting uncertanties are computed correctly for 1D models
+        """ Test that fitting uncertainties are computed correctly for 1D models
             and 1D model sets. Use covariance/stds given by LevMarLSQFitter as
             a benchmark since they are returned by the numpy fitter.
         """
-        levmar_fitter = LevMarLSQFitter(calc_uncertanties=True)
-        linlsq_fitter = LinearLSQFitter(calc_uncertanties=True)
+        levmar_fitter = LevMarLSQFitter(calc_uncertainties=True)
+        linlsq_fitter = LinearLSQFitter(calc_uncertainties=True)
 
         # test 1D single models
         # fit single model w/ nonlinear fitter
@@ -993,12 +993,12 @@ class TestFittingUncertanties:
 
     def test_2d_models(self):
         """
-        Test that fitting uncertanties are computed correctly for 2D models
+        Test that fitting uncertainties are computed correctly for 2D models
         and 2D model sets. Use covariance/stds given by LevMarLSQFitter as
         a benchmark since they are returned by the numpy fitter.
         """
-        levmar_fitter = LevMarLSQFitter(calc_uncertanties=True)
-        linlsq_fitter = LinearLSQFitter(calc_uncertanties=True)
+        levmar_fitter = LevMarLSQFitter(calc_uncertainties=True)
+        linlsq_fitter = LinearLSQFitter(calc_uncertainties=True)
         single_model = models.Polynomial2D(2, c0_0=2)
         model_set = models.Polynomial2D(degree=2, n_models=2, c0_0=[2, 3],
                                         model_set_axis=False)
@@ -1039,7 +1039,7 @@ class TestFittingUncertanties:
         """
 
         # test str representation for Covariance/stds
-        fitter = LinearLSQFitter(calc_uncertanties=True)
+        fitter = LinearLSQFitter(calc_uncertainties=True)
         mod = models.Linear1D()
         fit_mod = fitter(mod, self.x, mod(self.x)+self.rand)
         print(fit_mod.cov_matrix)
