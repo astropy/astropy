@@ -101,6 +101,11 @@ astropy.time
   object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
   epoch time). [#10406]
 
+- Improve initialization time by a factor of ~25 or more for large arrays of
+  string times in ISO, ISOT or year day-of-year formats. This is done with a new
+  C-based time parser that can be adapted for other fixed-format custom time
+  formats. [#10360]
+
 - Numpy functions that broadcast, change shape, or index (like ``np.broadcast_to``,
   ``np.rot90``, or ``np.roll``) now work on times. [#10337, #10502]
 
