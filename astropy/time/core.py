@@ -914,6 +914,45 @@ class TimeBase(ShapedLikeNDArray):
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
 
+    def isclose(self, other, atol=None):
+        """Returns a boolean or boolean array where two Time objects are
+        element-wise equal within a time tolerance.
+
+        This evaluates the expression below::
+
+          abs(self - other) <= atol
+
+        Parameters
+        ----------
+        other : `~astropy.time.Time`
+            Time object for comparison.
+        atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
+            Absoute tolerance for equality with units of time (e.g. ``u.s`` or
+            ``u.day``). Default is two bits in the 128-bit JD time representation,
+            equivalent to about 40 picosecs.
+        """
+        if atol is None:
+            # Note: use 2 bits instead of 1 bit based on experience in precision
+            # tests, since taking the difference with a UTC time means one has
+            # to do a scale change.
+            atol = 2 * np.finfo(float).eps * u.day
+
+        if not isinstance(atol, (u.Quantity, TimeDelta)):
+            raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
+                            f'{atol.__class__.__name__} instead')
+
+        try:
+            # Separate these out so user sees where the problem is
+            dt = self - other
+            dt = abs(dt)
+            out = dt <= atol
+        except Exception as err:
+            raise TypeError("'other' argument must support subtraction with Time "
+                            f"and return a value that supports comparison with "
+                            f"{atol.__class__.__name__}: {err}")
+
+        return out
+
     def copy(self, format=None):
         """
         Return a fully independent copy the Time object, optionally changing
@@ -2456,6 +2495,40 @@ class TimeDelta(TimeBase):
                 raise ValueError('cannot convert value to a compatible TimeDelta '
                                  'object: {}'.format(err))
         return value
+
+    def isclose(self, other, atol=None, rtol=0.0):
+        """Returns a boolean or boolean array where two TimeDelta objects are
+        element-wise equal within a time tolerance.
+
+        This effectively evaluates the expression below::
+
+          abs(self - other) <= atol + rtol * abs(other)
+
+        Parameters
+        ----------
+        other : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
+            Quantity or TimeDelta object for comparison.
+        atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
+            Absolute tolerance for equality with units of time (e.g. ``u.s`` or
+            ``u.day``). Default is one bit in the 128-bit JD time representation,
+            equivalent to about 20 picosecs.
+        rtol : float
+            Relative tolerance for equality
+        """
+        try:
+            other_day = other.to_value(u.day)
+        except Exception as err:
+            raise TypeError(f"'other' argument must support conversion to days: {err}")
+
+        if atol is None:
+            atol = np.finfo(float).eps * u.day
+
+        if not isinstance(atol, (u.Quantity, TimeDelta)):
+            raise TypeError("'atol' argument must be a Quantity or TimeDelta instance, got "
+                            f'{atol.__class__.__name__} instead')
+
+        return np.isclose(self.to_value(u.day), other_day,
+                          rtol=rtol, atol=atol.to_value(u.day))
 
 
 class ScaleValueError(Exception):
