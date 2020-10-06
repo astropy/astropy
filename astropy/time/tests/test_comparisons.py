@@ -6,6 +6,7 @@ import pytest
 import numpy as np
 
 from astropy.time import Time, TimeDelta
+import astropy.units as u
 
 
 class TestTimeComparisons:
@@ -73,3 +74,115 @@ class TestTimeComparisons:
         dt_gt_td0 = dt > TimeDelta(0., format='sec')
         assert np.all(dt_gt_td0 == np.array([False, False, False, False, False,
                                              False, True, True, True, True]))
+
+
+@pytest.mark.parametrize('swap', [True, False])
+@pytest.mark.parametrize('time_delta', [True, False])
+def test_isclose_time(swap, time_delta):
+    """Test functionality of Time.isclose() method.
+
+    Run every test with 2 args in original order and swapped, and using
+    Quantity or TimeDelta for atol (when provided)."""
+
+    def isclose_swap(t1, t2, **kwargs):
+        if swap:
+            t1, t2 = t2, t1
+        if 'atol' in kwargs and time_delta:
+            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        return t1.isclose(t2, **kwargs)
+
+    # Start with original demonstration from #8742. In this issue both t2 == t1
+    # and t3 == t1 give False, but this may change with a newer ERFA.
+    t1 = Time("2018-07-24T10:41:56.807015240")
+    t2 = t1 + 0.0 * u.s
+    t3 = t1 + TimeDelta(0.0 * u.s)
+    assert isclose_swap(t1, t2)
+    assert isclose_swap(t1, t3)
+
+    t2 = t1 + 1 * u.s
+    assert isclose_swap(t1, t2, atol=1.5 / 86400 * u.day)  # Test different unit
+    assert not isclose_swap(t1, t2, atol=0.5 / 86400 * u.day)
+
+    t2 = t1 + [-1, 0, 2] * u.s
+    assert np.all(isclose_swap(t1, t2, atol=1.5 * u.s) == [True, True, False])
+
+    t2 = t1 + 3 * np.finfo(float).eps * u.day
+    assert not isclose_swap(t1, t2)
+
+
+def test_isclose_time_exceptions():
+    t1 = Time('2020:001')
+    t2 = t1 + 1 * u.s
+    match = "'other' argument must support subtraction with Time"
+    with pytest.raises(TypeError, match=match):
+        t1.isclose(1.5)
+
+    match = "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    with pytest.raises(TypeError, match=match):
+        t1.isclose(t2, 1.5)
+
+
+@pytest.mark.parametrize('swap', [True, False])
+@pytest.mark.parametrize('time_delta', [True, False])
+@pytest.mark.parametrize('other_quantity', [True, False])
+def test_isclose_timedelta(swap, time_delta, other_quantity):
+    """Test functionality of TimeDelta.isclose() method.
+
+    Run every test with 2 args in original order and swapped, and using
+    Quantity or TimeDelta for atol (when provided), and using Quantity or
+    TimeDelta for the other argument."""
+
+    def isclose_swap(t1, t2, **kwargs):
+        if swap:
+            t1, t2 = t2, t1
+        if 'atol' in kwargs and time_delta:
+            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        return t1.isclose(t2, **kwargs)
+
+    def isclose_other_quantity(t1, t2, **kwargs):
+        if other_quantity:
+            t2 = t2.to(u.day)
+        if 'atol' in kwargs and time_delta:
+            kwargs['atol'] = TimeDelta(kwargs['atol'])
+        return t1.isclose(t2, **kwargs)
+
+    t1 = TimeDelta(1.0 * u.s)
+    t2 = t1 + 0.0 * u.s
+    t3 = t1 + TimeDelta(0.0 * u.s)
+    assert isclose_swap(t1, t2)
+    assert isclose_swap(t1, t3)
+    assert isclose_other_quantity(t1, t2)
+    assert isclose_other_quantity(t1, t3)
+
+    t2 = t1 + 1 * u.s
+    assert isclose_swap(t1, t2, atol=1.5 / 86400 * u.day)
+    assert not isclose_swap(t1, t2, atol=0.5 / 86400 * u.day)
+    assert isclose_other_quantity(t1, t2, atol=1.5 / 86400 * u.day)
+    assert not isclose_other_quantity(t1, t2, atol=0.5 / 86400 * u.day)
+
+    t1 = TimeDelta(0 * u.s)
+    t2 = t1 + [-1, 0, 2] * u.s
+    assert np.all(isclose_swap(t1, t2, atol=1.5 * u.s) == [True, True, False])
+    assert np.all(isclose_other_quantity(t1, t2, atol=1.5 * u.s) == [True, True, False])
+
+    # Check with rtol
+    # 1 * 0.6 + 0.5 = 1.1 --> 1 <= 1.1 --> True
+    # 0 * 0.6 + 0.5 = 0.5 --> 0 <= 0.5 --> True
+    # 2 * 0.6 + 0.5 = 1.7 --> 2 <= 1.7 --> False
+    assert np.all(t1.isclose(t2, atol=0.5 * u.s, rtol=0.6) == [True, True, False])
+
+    t2 = t1 + 2 * np.finfo(float).eps * u.day
+    assert not isclose_swap(t1, t2)
+    assert not isclose_other_quantity(t1, t2)
+
+
+def test_isclose_timedelta_exceptions():
+    t1 = TimeDelta(1 * u.s)
+    t2 = t1 + 1 * u.s
+    match = "other' argument must support conversion to days"
+    with pytest.raises(TypeError, match=match):
+        t1.isclose(1.5)
+
+    match = "'atol' argument must be a Quantity or TimeDelta instance, got float instead"
+    with pytest.raises(TypeError, match=match):
+        t1.isclose(t2, 1.5)
