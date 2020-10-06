@@ -220,7 +220,9 @@ def test_compound_without_units(model):
     assert isinstance(z, np.ndarray)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
+# FIXME: See https://github.com/astropy/astropy/issues/10675
+# @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.skip(reason='Flaky and ill-conditioned')
 def test_compound_fitting_with_units():
     x = np.linspace(-5, 5, 15) * u.Angstrom
     y = np.linspace(-5, 5, 15) * u.Angstrom
