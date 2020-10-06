@@ -1,3 +1,34 @@
+5.0 (unreleased)
+================
+
+New Features
+------------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- ``galactocentric_frame_defaults`` parameters and references can be accessed
+  as attributes. [#10751]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``ScienceState`` adopts multiple-attribute states, now stored in dict
+  ``_state``. [#10751]
+
+  + Items in ``_state`` can be accessed as attributes.
+  + ``ScienceState.validate`` returns the whole state, not just primary value
+  + Central state value (previously "_value") now determined by attribute
+    ``_state_value_name_``, defaulting to "value".
+
+- ``ScienceStateContext`` is the new contextmanager returned by
+  ``ScienceState.set`` [#10751]
+
+  + Now works in ``with`` statements.
+  + ``ScienceState`` controls which ``ScienceStateContext`` or subclass is
+    returned, using the ``_context_`` attribute.
+
+
 4.2 (unreleased)
 ================
 
@@ -113,21 +144,6 @@ astropy.utils
 
 - ``ShapedLikeNDArray`` has gained the capability to use numpy functions
   that broadcast, change shape, or index. [#10337]
-- ``ScienceState`` adopts multiple-attribute states, now stored in dict
-  ``_state``. [#10751]
-
-  + Items in ``_state`` can be accessed as attributes.
-  + ``ScienceState.validate`` returns the whole state, not just primary value
-  + Central state value (previously "_value") now determined by attribute
-    ``_state_value_name_``, defaulting to "value".
-
-- ``ScienceStateContext`` is the new contextmanager returned by
-  ``ScienceState.set`` [#10751]
-
-  + Now works in ``with`` statements.
-  + ``ScienceState`` controls which ``ScienceStateContext`` or subclass is
-    returned, using the ``_context_`` attribute.
-
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -162,9 +178,6 @@ astropy.coordinates
   deprecated.  Frame classes can still be passed to the ``transform_to()``
   method of the high-level ``SkyCoord`` class, and using ``SkyCoord`` is
   recommended for all typical use cases of transforming coordinates. [#10475]
-
-- ``galactocentric_frame_defaults`` parameters and references can be accessed
-  as attributes. [#10751]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
