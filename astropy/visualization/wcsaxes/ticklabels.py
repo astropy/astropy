@@ -24,6 +24,10 @@ class TickLabels(Text):
         self.set_pad(rcParams['xtick.major.pad'])
         self._exclude_overlapping = False
 
+        # Stale if either xy positions haven't been calculated, or if
+        # something changes that requires recomputing the positions
+        self._stale = True
+
         # Check rcParams
 
         if 'color' not in kwargs:
@@ -52,6 +56,7 @@ class TickLabels(Text):
             self.angle[axis].append(angle)
             self.text[axis].append(text)
             self.disp[axis].append(axis_displacement)
+        self._stale = True
 
     def sort(self):
         """
@@ -64,6 +69,7 @@ class TickLabels(Text):
             self.angle[axis] = sort_using(self.angle[axis], self.disp[axis])
             self.text[axis] = sort_using(self.text[axis], self.disp[axis])
             self.disp[axis] = sort_using(self.disp[axis], self.disp[axis])
+        self._stale = True
 
     def simplify_labels(self):
         """
@@ -97,14 +103,18 @@ class TickLabels(Text):
                 if self.text[axis][i] == '$$':
                     self.text[axis][i] = ''
 
+        self._stale = True
+
     def set_pad(self, value):
         self._pad = value
+        self._stale = True
 
     def get_pad(self):
         return self._pad
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = visible_axes
+        self._stale = True
 
     def get_visible_axes(self):
         if self._visible_axes == 'all':
@@ -115,36 +125,36 @@ class TickLabels(Text):
     def set_exclude_overlapping(self, exclude_overlapping):
         self._exclude_overlapping = exclude_overlapping
 
-    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
-
-        if not self.get_visible():
+    def _set_xy_alignments(self, renderer, tick_out_size):
+        """
+        Compute and set the x, y positions and the horizontal/vertical alignment of
+        each label.
+        """
+        if not self._stale:
             return
 
         self.simplify_labels()
-
         text_size = renderer.points_to_pixels(self.get_size())
 
-        for axis in self.get_visible_axes():
+        visible_axes = self.get_visible_axes()
+        self.xy = {axis: {} for axis in visible_axes}
+        self.ha = {axis: {} for axis in visible_axes}
+        self.va = {axis: {} for axis in visible_axes}
 
+        for axis in visible_axes:
             for i in range(len(self.world[axis])):
-
                 # In the event that the label is empty (which is not expected
                 # but could happen in unforeseen corner cases), we should just
                 # skip to the next label.
                 if self.text[axis][i] == '':
                     continue
 
-                self.set_text(self.text[axis][i])
-
                 x, y = self.pixel[axis][i]
-
                 pad = renderer.points_to_pixels(self.get_pad() + tick_out_size)
 
                 if isinstance(self._frame, RectangularFrame):
-
                     # This is just to preserve the current results, but can be
                     # removed next time the reference images are re-generated.
-
                     if np.abs(self.angle[axis][i]) < 45.:
                         ha = 'right'
                         va = 'bottom'
@@ -166,16 +176,15 @@ class TickLabels(Text):
                         dx = 0
                         dy = pad
 
-                    self.set_position((x + dx, y + dy))
-                    self.set_ha(ha)
-                    self.set_va(va)
+                    x = x + dx
+                    y = y + dy
 
                 else:
-
                     # This is the more general code for arbitrarily oriented
                     # axes
 
                     # Set initial position and find bounding box
+                    self.set_text(self.text[axis][i])
                     self.set_position((x, y))
                     bb = super().get_window_extent(renderer)
 
@@ -217,11 +226,44 @@ class TickLabels(Text):
                     dx += ddx * pad
                     dy += ddy * pad
 
-                    self.set_position((x - dx, y - dy))
-                    self.set_ha('center')
-                    self.set_va('center')
+                    x = x - dx
+                    y = y - dy
 
-                bb = super().get_window_extent(renderer)
+                    ha = 'center'
+                    va = 'center'
+
+                self.xy[axis][i] = (x, y)
+                self.ha[axis][i] = ha
+                self.va[axis][i] = va
+
+        self._stale = False
+
+    def _get_bb(self, axis, i, renderer):
+        """
+        Get the bounding box of an individual label. n.b. _set_xy_alignment()
+        must be called before this method.
+        """
+        if self.text[axis][i] == '':
+            return
+
+        self.set_text(self.text[axis][i])
+        self.set_position(self.xy[axis][i])
+        self.set_ha(self.ha[axis][i])
+        self.set_va(self.va[axis][i])
+        return super().get_window_extent(renderer)
+
+    def draw(self, renderer, bboxes, ticklabels_bbox, tick_out_size):
+        if not self.get_visible():
+            return
+
+        self._set_xy_alignments(renderer, tick_out_size)
+
+        for axis in self.get_visible_axes():
+            for i in range(len(self.world[axis])):
+                # This implicitly sets the label text, position, alignment
+                bb = self._get_bb(axis, i, renderer)
+                if bb is None:
+                    continue
 
                 # TODO: the problem here is that we might get rid of a label
                 # that has a key starting bit such as -0:30 where the -0
