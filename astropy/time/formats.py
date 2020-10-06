@@ -1307,8 +1307,9 @@ class TimeString(TimeUnique):
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
         # If specific input subformat is required then use the Python parser.
-        # Also do this if Time format class does not define `use_fast_parser`
-        # or if the fast parser is entirely disabled.
+        # Also do this if Time format class does not define `use_fast_parser` or
+        # if the fast parser is entirely disabled. Note that `use_fast_parser`
+        # is ignored for format classes that don't have a fast parser.
         if (self.in_subfmt != '*'
                 or 'fast_parser_pars' not in self.__class__.__dict__
                 or conf.use_fast_parser == 'False'):

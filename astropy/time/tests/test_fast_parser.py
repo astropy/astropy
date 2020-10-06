@@ -97,12 +97,22 @@ def test_fast_non_ascii():
             Time('2020-01-01 1ᛦ:13:14.4324')
 
 
-def test_fast_no_use_fast_parser_attribute():
-    """Test deleting use_fast_parser class attribute to remove fast path"""
+def test_fast_subclass():
+    """Test subclass where use_fast_parser class attribute is not in __dict__"""
+    class TimeYearDayTimeSubClass(TimeYearDayTime):
+        name = 'yday_subclass'
+
+    # Inheritance works
+    assert hasattr(TimeYearDayTimeSubClass, 'fast_parser_pars')
+    assert 'fast_parser_pars' not in TimeYearDayTimeSubClass.__dict__
+
     try:
-        pars = TimeYearDayTime.fast_parser_pars
-        del TimeYearDayTime.fast_parser_pars
-        with pytest.raises(ValueError, match='Time 2000:0601 does not match yday format'):
-            Time('2000:0601', format='yday')
+        # For YearDayTime, forcing the fast parser with a bad date will give
+        # "fast C time string parser failed: time string ends in middle of component".
+        # But since YearDayTimeSubClass does not have fast_parser_pars it will
+        # use the Python parser.
+        with pytest.raises(ValueError, match='Time 2000:0601 does not match yday_subclass format'):
+            with conf.set_temp('use_fast_parser', 'force'):
+                Time('2000:0601', format='yday_subclass')
     finally:
-        TimeYearDayTime.use_fast_parser = pars
+        del TimeYearDayTimeSubClass._registry['yday_subclass']
