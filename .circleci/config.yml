@@ -25,13 +25,13 @@ jobs:
           command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest-astropy pytest-xdist Cython jinja2
       - run:
           name: Run tests for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50"
+          command: /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50 --assert=plain"
       - run:
           name: Install dependencies for Python 3.7
           command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy pytest-astropy pytest-xdist Cython jinja2 pandas
       - run:
           name: Run tests for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50"
+          command: /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50 --assert=plain"
       # We use the 3.8 build to check that running tests twice in a row in the
       # same Python session works without issues. This catches cases where
       # running the tests changes the module state permanently. Note that we
