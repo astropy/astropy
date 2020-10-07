@@ -116,7 +116,7 @@ using the ``.frame_attribute_references`` attribute::
     <Galactocentric Frame (galcen_coord=<ICRS Coordinate: (ra, dec) in deg
         (266.4051, -28.936175)>, galcen_distance=8.122 kpc, galcen_v_sun=(12.9, 245.6, 7.78) km / s, z_sun=20.8 pc, roll=0.0 deg)>
     >>> galcen.frame_attribute_references
-    {'galcen_coord': 'http://adsabs.harvard.edu/abs/2004ApJ...616..872R',
+    {'galcen_coord': 'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R',
      'galcen_distance': 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
      'galcen_v_sun': ['https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D',
       'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
@@ -129,7 +129,7 @@ reference list::
     >>> import astropy.units as u
     >>> galcen = coord.Galactocentric(z_sun=10*u.pc)
     >>> galcen.frame_attribute_references
-    {'galcen_coord': 'http://adsabs.harvard.edu/abs/2004ApJ...616..872R',
+    {'galcen_coord': 'https://ui.adsabs.harvard.edu/abs/2004ApJ...616..872R',
      'galcen_distance': 'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
      'galcen_v_sun': ['https://ui.adsabs.harvard.edu/abs/2018RNAAS...2..210D',
       'https://ui.adsabs.harvard.edu/abs/2018A%26A...615L..15G',
