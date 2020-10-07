@@ -1,9 +1,9 @@
-# NOTE: First try _scm_version if it exists and setuptools_scm is installed
+# NOTE: First try _dev.scm_version if it exists and setuptools_scm is installed
 # This file is not included in astropy wheels/tarballs, so otherwise it will
 # fall back on the generated _version module.
 try:
     try:
-        from ._dev._scm_version import version
+        from ._dev.scm_version import version
     except ImportError:
         from ._version import version
 except Exception:
