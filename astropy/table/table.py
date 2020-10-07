@@ -626,6 +626,8 @@ class Table:
         # user-supplied meta directly.
         if meta is not None:
             self.meta = deepcopy(meta) if copy else meta
+        else:
+            self.meta = {}
 
         # Whatever happens above, the masked property should be set to a boolean
         if self.masked not in (None, True, False):
@@ -1737,6 +1739,10 @@ class Table:
             self.remove_rows(item)
         else:
             raise IndexError('illegal key or index value')
+
+    def __getattr__(self, what):
+        if what in self.columns:
+            return self[what]
 
     def _ipython_key_completions_(self):
         return self.colnames

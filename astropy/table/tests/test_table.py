@@ -146,10 +146,12 @@ class TestSetTableColumn(SetupData):
         t['aa'] = np.array([1, 2, 3]) * u.m
         assert np.all(t['aa'] == np.array([1, 2, 3]))
         assert t['aa'].unit == u.m
+        assert t.aa is t['aa']
 
         t['bb'] = 3 * u.m
         assert np.all(t['bb'] == 3)
         assert t['bb'].unit == u.m
+        assert t.bb is t['bb']
 
     def test_set_new_col_existing_table(self, table_types):
         """Create a new column in an existing table using the item access syntax"""
@@ -162,6 +164,7 @@ class TestSetTableColumn(SetupData):
         assert t.colnames == ['a', 'bb']
         assert t['bb'].meta == self.b.meta
         assert t['bb'].format == self.b.format
+        assert t.bb is t['bb']
 
         # Add another column
         t['c'] = t['a']
