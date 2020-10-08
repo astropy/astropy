@@ -108,4 +108,4 @@ py:class an object providing a view on D's values
 py:class a shallow copy of D
 
 # This extends the numpydoc list above to fix lincheck warning
-py:class reference target not found: (k, v)
+py:class (k, v), remove and return some (key, value) pair as a
