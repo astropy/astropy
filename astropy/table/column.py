@@ -383,6 +383,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             if meta is None:
                 meta = data.info.meta
 
+        elif isinstance(data, list) and data == []:
+            # We should special case the empty list since np.array([], dtype)
+            # does not return an empty array with the requested dtype, and in
+            # numpy 1.20-dev this is giving a DeprecationWarning.
+            # TODO: Adjust when/if the numpy behaviour behaviour changes.
+            # Hopefully, this clause can again be removed.  NUMPY_LT_1_20.
+            self_data = np.empty(0, dtype=dtype)
         else:
             if np.dtype(dtype).char == 'S':
                 data = cls._encode_str(data)
