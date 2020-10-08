@@ -155,13 +155,6 @@ jobs:
               rm -r docs/_build/html/.doctrees
             fi
 
-      - store_artifacts:
-          path: docs/_build/html
-
-      - run:
-          name: "Built documentation is available at:"
-          command: DOCS_URL="${CIRCLE_BUILD_URL}/artifacts/${CIRCLE_NODE_INDEX}/${CIRCLE_WORKING_DIRECTORY/#\~/$HOME}/docs/_build/html/index.html"; echo $DOCS_URL
-
 workflows:
   version: 2
   tests_and_docs:
