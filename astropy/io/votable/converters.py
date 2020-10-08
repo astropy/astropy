@@ -493,7 +493,7 @@ class VarArray(Array):
         Array.__init__(self, field, config)
 
         self._base = base
-        self.default = np.array([], dtype=self._base.format)
+        self.default = np.empty(0, dtype=self._base.format)
 
     def output(self, value, mask):
         output = self._base.output
