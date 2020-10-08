@@ -705,6 +705,10 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         lhs /= scl
 
         masked = np.any(np.ma.getmask(rhs))
+        if weights is not None and not masked and np.any(np.isnan(lhs)):
+            raise ValueError('Found NaNs in the coefficient matrix, which '
+                             'should not happen and would crash the lapack '
+                             'routine. Maybe check that weights are not null.')
 
         a = None  # need for calculating covarience
 
