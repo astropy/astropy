@@ -131,11 +131,11 @@ Earth used by ERFA is due to J.L. Simon, P. Bretagnon, J. Chapront,
 M. Chapront-Touze, G. Francou and J. Laskar (Bureau des Longitudes, Paris,
 France).  From comparisons with JPL ephemeris DE102, they quote the maximum
 errors over the interval 1800-2050 below. For more details see
-`cextern/erfa/plan94.c
-<https://github.com/astropy/astropy/blob/master/cextern/erfa/plan94.c>`_.
+`plan94.c
+<https://github.com/liberfa/erfa/blob/master/src/plan94.c>`_.
 For the Earth, the rms errors in position and velocity are about 4.6 km and
-1.4 mm/s, respectively (see `cextern/erfa/epv00.c
-<https://github.com/astropy/astropy/blob/master/cextern/erfa/epv00.c>`_).
+1.4 mm/s, respectively (see `epv00.c
+<https://github.com/liberfa/erfa/blob/master/src/epv00.c>`_).
 
 .. list-table::
 
