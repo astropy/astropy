@@ -272,6 +272,14 @@ class TestLinearLSQFitter:
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
                         rtol=1e-1)
 
+        # Check that using null weights raises an error
+        # ValueError: On entry to DLASCL parameter number 4 had an illegal value
+        with pytest.raises(ValueError,
+                           match='Found NaNs in the coefficient matrix'):
+            with pytest.warns(RuntimeWarning,
+                              match=r'invalid value encountered in true_divide'):
+                fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
+
     def test_linear_fit_model_set_weights(self):
         """Tests fitting multiple models simultaneously."""
 
@@ -291,6 +299,27 @@ class TestLinearLSQFitter:
         fitter = LinearLSQFitter()
         fitted_model = fitter(init_model, x, y, weights=weights)
         assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                        rtol=1e-1)
+
+        # Check that using null weights raises an error
+        weights[0] = 0
+        with pytest.raises(ValueError,
+                           match='Found NaNs in the coefficient matrix'):
+            with pytest.warns(RuntimeWarning,
+                              match=r'invalid value encountered in true_divide'):
+                fitted_model = fitter(init_model, x, y, weights=weights)
+
+        # Now we mask the values where weight is 0
+        with pytest.warns(RuntimeWarning,
+                          match=r'invalid value encountered in true_divide'):
+            fitted_model = fitter(init_model, x,
+                                  np.ma.array(y, mask=np.isclose(weights, 0)),
+                                  weights=weights)
+        # Parameters for the first model are all NaNs
+        assert np.all(np.isnan(fitted_model.param_sets[:, 0]))
+        assert np.all(np.isnan(fitted_model(x, model_set_axis=False)[0]))
+        # Second model is fitted correctly
+        assert_allclose(fitted_model(x, model_set_axis=False)[1], y_expected[1],
                         rtol=1e-1)
 
     def test_linear_fit_2d_model_set(self):
