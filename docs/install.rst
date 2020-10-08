@@ -520,6 +520,6 @@ The most convenient way to test that your Astropy built correctly
     python setup.py test
 
 There are also alternative methods of :ref:`running-tests`. Note that you will
-need `pytest <http://pytest.org>`_ to be installed for this to work.
+need `pytest`_ to be installed for this to work.
 
 .. include:: development/workflow/known_projects.inc

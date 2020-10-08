@@ -18,8 +18,6 @@ The testing framework used by astropy (and packages using the :doc:`Astropy
 package template <astropy-package-template>`) is the `pytest`_ framework,
 accessed through the ``python setup.py test`` command.
 
-.. _pytest: https://pytest.org/en/latest/
-
 .. _testing-dependencies:
 
 Testing Dependencies
