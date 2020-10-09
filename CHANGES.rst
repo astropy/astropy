@@ -406,6 +406,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix a bug that prevented ``Time`` columns from being used to sort a table.
+  [#10824]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -435,7 +438,7 @@ astropy.wcs
 - Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
   unintended lower/upper case issues [#10557]
 - Added bounds to ``fit_wcs_from_points`` to ensure CRPIX is on
-  input image. [#10346] 
+  input image. [#10346]
 
 Other Changes and Additions
 ---------------------------
