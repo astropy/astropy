@@ -43,6 +43,7 @@ except ImportError:
 
 
 class TestConvolve1D:
+
     def test_list(self):
         """
         Test that convolve works correctly when inputs are lists
@@ -64,6 +65,26 @@ class TestConvolve1D:
         z = convolve(x, y, boundary=None)
         assert_array_almost_equal_nulp(z,
             np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
+
+    @pytest.mark.parametrize(('boundary', 'nan_treatment',
+                              'normalize_kernel', 'preserve_nan', 'dtype'),
+                             itertools.product(BOUNDARY_OPTIONS,
+                                               NANHANDLING_OPTIONS,
+                                               NORMALIZE_OPTIONS,
+                                               PRESERVE_NAN_OPTIONS,
+                                               VALID_DTYPES))
+    def test_quantity(self, boundary, nan_treatment,
+                      normalize_kernel, preserve_nan, dtype):
+        """
+        Test that convolve works correctly when input array is a Quantity
+        """
+
+        x = np.array([1, 4, 5, 6, 5, 7, 8], dtype=dtype) * u.ph
+        y = np.array([0.2, 0.6, 0.2], dtype=dtype)
+        z = convolve(x, y, boundary=boundary, nan_treatment=nan_treatment,
+                          normalize_kernel=normalize_kernel, preserve_nan=preserve_nan)
+
+        assert x.unit == z.unit
 
     @pytest.mark.parametrize(('boundary', 'nan_treatment',
                               'normalize_kernel', 'preserve_nan', 'dtype'),
