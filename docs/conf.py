@@ -255,7 +255,7 @@ linkcheck_ignore = ['https://journals.aas.org/manuscript-preparation/',
                     'https://maia.usno.navy.mil/',
                     'https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer',
                     'https://aa.usno.navy.mil/publications/docs/Circular_179.php',
-                    'https://iraf.net/forum/viewtopic.php?showtopic=134139',
+                    r'https://iraf.net/forum/viewtopic.php\?showtopic\=134139',
                     r'https://github\.com/astropy/astropy/(?:issues|pull)/\d+']
 linkcheck_timeout = 180
 linkcheck_anchors = False
