@@ -7,7 +7,9 @@ include CITATION
 include astropy/CITATION
 
 include ah_bootstrap.py
+include setup.py
 include setup.cfg
+include pyproject.toml
 include astropy/tests/coveragerc
 recursive-include astropy *.pyx *.c *.h *.map *.templ
 
