@@ -518,6 +518,8 @@ def _apparent_position_in_true_coordinates(skycoord):
     are defined w.r.t to the true equinox and poles of the Earth
     """
     jd1, jd2 = get_jd12(skycoord.obstime, 'tt')
-    _, _, _, _, _, _, _, rbpn = erfa.pn00a(jd1, jd2)
+    # Classical NPB matrix, IAU 2006/2000A
+    # (same as in builtin_frames.utils.get_cip).
+    rbpn = erfa.pnm06a(jd1, jd2)
     return SkyCoord(skycoord.frame.realize_frame(
         skycoord.cartesian.transform(rbpn)))
