@@ -919,7 +919,7 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
-4.0.2 (unreleased)
+4.0.2 (2020-10-10)
 ==================
 
 New Features
