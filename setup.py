@@ -9,6 +9,11 @@
 import os
 import builtins
 
+# Because we have a pyproject.toml file, the isolated build environment
+# doesn't allow the ah_bootstrap file to be imported unless the current
+# directory is added to the Python path
+import sys
+sys.path.append(os.path.abspath("."))
 import ah_bootstrap  # noqa
 
 from astropy_helpers.distutils_helpers import is_distutils_display_option

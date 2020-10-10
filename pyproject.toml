@@ -1,0 +1,18 @@
+# NOTE: the v4.0.x branch of astropy still uses astropy-helpers
+# but we include pyproject.toml here so that python -m build can
+# work out of the box. In setup.py, we manually ensure that
+# astropy_helpers can be imported as an additional build time
+# dependency.
+
+[build-system]
+requires = ["setuptools",
+            "wheel",
+            "cython==0.29.14",
+            "jinja2==2.10.3",
+            # NOTE: we can't use the oldest-supported-numpy package
+            # here because it conflicts with the setup_requires
+            # setting in setup.cfg which is present in the v4.0.x
+            # branch.
+            "numpy==1.16.*; python_version<='3.7'",
+            "numpy==1.17.*; python_version>='3.8'"]
+build-backend = 'setuptools.build_meta'
