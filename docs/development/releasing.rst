@@ -84,7 +84,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. Also check that
-   the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing. This
+   the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing.
    You may also want to locally run the tests (with remote data on to ensure all
    of the tests actually run), using tox to do a thorough test in an isolated
    environment::
