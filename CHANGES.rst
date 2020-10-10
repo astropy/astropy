@@ -40,7 +40,6 @@ astropy.wcs
 Bug fixes
 ---------
 
-
 astropy.config
 ^^^^^^^^^^^^^^
 
@@ -96,12 +95,6 @@ astropy.coordinates
 
 - Fixed reporting of ``EarthLocation.info`` which previously raised an exception.
   [#10592]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -179,12 +172,6 @@ astropy.modeling
 
 - Fix calculation of the ``Moffat2D`` derivative with respect to gamma. [#10784]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -235,21 +222,11 @@ astropy.table
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
 
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
 - Ensure that for size-1 array ``Time``, the location also properly becomes
   a scalar when indexed with 0. [#10113]
-
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
