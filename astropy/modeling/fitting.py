@@ -1672,7 +1672,10 @@ class EmceeFitter(Fitter):
 
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
         farg = _convert_input(x, y)
-        farg = (model_copy, weights) + farg
+        if weights is not None:
+            farg = (model_copy, weights) + farg
+        else:
+            farg = (model_copy) + farg
         p0, _ = _model_to_fit_params(model_copy)
 
         fitparams, self.fit_info = self._opt_method(
