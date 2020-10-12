@@ -919,7 +919,90 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
-4.0.2 (unreleased)
+4.0.3 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+4.0.2 (2020-10-10)
 ==================
 
 New Features
@@ -960,7 +1043,6 @@ astropy.wcs
 
 Bug fixes
 ---------
-
 
 astropy.config
 ^^^^^^^^^^^^^^
@@ -1017,12 +1099,6 @@ astropy.coordinates
 
 - Fixed reporting of ``EarthLocation.info`` which previously raised an exception.
   [#10592]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -1100,12 +1176,6 @@ astropy.modeling
 
 - Fix calculation of the ``Moffat2D`` derivative with respect to gamma. [#10784]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -1167,13 +1237,6 @@ astropy.time
 
 - Ensure that for size-1 array ``Time``, the location also properly becomes
   a scalar when indexed with 0. [#10113]
-
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
