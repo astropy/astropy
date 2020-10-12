@@ -213,10 +213,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
             For this function, a CIRS frame is expected.
         '''
         obstime = frame_or_coord.obstime
-        # no point in interpolating for a single value
-        if obstime.size == 1:
-            return super().apci(frame_or_coord)
-
         support = self._get_support_points(obstime)
 
         cip = self._get_cip(support, obstime)
@@ -239,9 +235,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
         '''
         obstime = frame_or_coord.obstime
         # no point in interpolating for a single value
-        if obstime.size == 1:
-            return super().apcs(frame_or_coord)
-
         support = self._get_support_points(obstime)
 
         # get the position and velocity arrays for the observatory.  Need to
