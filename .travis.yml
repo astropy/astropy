@@ -258,6 +258,7 @@ install:
         sudo apt-get -qq update;
         sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
       fi
+    - where python
 
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
