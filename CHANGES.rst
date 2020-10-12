@@ -435,7 +435,7 @@ astropy.wcs
 - Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
   unintended lower/upper case issues [#10557]
 - Added bounds to ``fit_wcs_from_points`` to ensure CRPIX is on
-  input image. [#10346] 
+  input image. [#10346]
 
 Other Changes and Additions
 ---------------------------
@@ -1155,6 +1155,9 @@ astropy.table
 
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
+
+- Fixed a small bug where initializing an empty ``Column`` with a structured dtype
+  with a length and a shape failed to give the requested dtype. [#10819]
 
 astropy.tests
 ^^^^^^^^^^^^^
