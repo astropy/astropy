@@ -353,8 +353,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 description=None, unit=None, format=None, meta=None,
                 copy=False, copy_indices=True):
         if data is None:
-            dtype = (np.dtype(dtype).str, shape)
-            self_data = np.zeros(length, dtype=dtype)
+            self_data = np.zeros((length,)+shape, dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, '_name'):
             # When unpickling a MaskedColumn, ``data`` will be a bare
             # BaseColumn with none of the expected attributes.  In this case
