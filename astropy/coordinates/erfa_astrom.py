@@ -240,7 +240,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
         obstime = frame_or_coord.obstime
         # no point in interpolating for a single value
         if obstime.size == 1:
-            return super().apci(frame_or_coord)
+            return super().apcs(frame_or_coord)
 
         support = self._get_support_points(obstime)
 
