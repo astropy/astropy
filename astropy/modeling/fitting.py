@@ -33,8 +33,10 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy import uncertainty as astrounc
 from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
+from .samplers import EmceeSampler
 from .statistic import (leastsquare)
 from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
 
@@ -47,7 +49,8 @@ except ImportError:
 
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
-           'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
+           'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',
+           'EmceeFitter']
 
 
 # Statistic functions implemented in `astropy.modeling.statistic.py
@@ -1464,6 +1467,230 @@ class JointFitter(metaclass=_FitterMeta):
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
             model.parameters = np.array(mparams)
+
+
+class EmceeFitter(Fitter):
+    """
+    Use emcee to determine the fit including priors.
+    Returns the best fit as well as posteriors on the parameters.
+    TBR - More details!
+
+    Parameters
+    ----------
+    statistic : function
+        function that returns the statistic (chi2), default=leastsquare
+    nsteps : int
+        number of steps for the sampler
+    burnfrac : float
+        fraction of samples to ignore when computing the posteriors
+    save_sample : str
+        hdf5 file to save samples to during the sampling run
+    """
+
+    def __init__(self, statistic=leastsquare, nsteps=100, burnfrac=0.1, save_samples=None):
+        super().__init__(optimizer=EmceeSampler, statistic=statistic)
+        self.nsteps = nsteps
+        self.burnfrac = burnfrac
+        self.fit_info = {}
+        self.save_samples = save_samples
+
+    # add lnlike and lnprior and have log_probability just be the combo of the two
+    def log_prior(self, fps, *args):
+        """
+        Computes the natural log of the prior.
+        Currently only handles flat priors set using parameter bounds.
+
+        Parameters
+        ----------
+        fps : list
+            parameters returned by the fitter
+        args : list
+            [model, [other_args], [input coordinates]]
+            other_args may include weights or any other quantities specific for
+            a statistic
+
+        Returns
+        -------
+        log(prior) : float
+            natural log of the prior probability
+        """
+        # pameter bound priors = flat priors between two limits
+        #   EMCEE uses an explicit return of -np.inf to designate such bounds
+        # need to be handled explicitly to get good sampler chains
+        #   standard astropy modeling fitting results in chains not accurately
+        #   reflecting the bounds
+        model = args[0]
+        k = 0
+        for cname in model.param_names:
+            if not model.fixed[cname]:
+                if model.bounds[cname][0] is not None:
+                    if fps[k] < model.bounds[cname][0]:
+                        return -np.inf
+                if model.bounds[cname][1] is not None:
+                    if fps[k] > model.bounds[cname][1]:
+                        return -np.inf
+                k += 1
+
+        # no other priors, so return 0.0 = log(1.0)
+        return 0.0
+
+    def log_likelihood(self, fps, *args):
+        """
+        Computes the natural log of the likelihood.
+
+        Parameters
+        ----------
+        fps : list
+            parameters returned by the fitter
+        args : list
+            [model, [other_args], [input coordinates]]
+            other_args may include weights or any other quantities specific for
+            a statistic
+
+        Returns
+        -------
+        log(likelihood) : float
+            natural log of the likelihood probability
+        """
+        # assume the standard leastsquare
+        res = self.objective_function(fps, *args)
+
+        # convert to a log value - assumes chisqr/Gaussian unc model
+        return -0.5 * res
+
+    def log_probability(self, fps, *args):
+        """
+        Compute the natural log of the probability by combining the
+        likelihood and prior probabilties.
+
+        Parameters
+        ----------
+        fps : list
+            parameters returned by the fitter
+        args : list
+            [model, [other_args], [input coordinates]]
+            other_args may include weights or any other quantities specific for
+            a statistic
+
+        Returns
+        -------
+        log(prob) : float
+            natural log of the probability
+
+        Notes
+        -----
+        The list of arguments (args) is set in the `__call__` method.
+        Fitters may overwrite this method, e.g. when statistic functions
+        require other arguments.
+        """
+        lp = self.log_prior(fps, *args)
+        if not np.isfinite(lp):
+            return -np.inf
+        return lp + self.log_likelihood(fps, *args)
+
+    def _set_uncs_and_posterior(self, model):
+        """
+        Set the symmetric and asymmetric Gaussian uncertainties
+        and sets the posteriors to astropy.unc distributions
+
+        Parameters
+        ----------
+        model : astropy model
+            model giving the result from the fitting
+
+        Returns
+        -------
+        model : astropy model
+            model updated with uncertainties
+        """
+        sampler = self.fit_info["sampler"]
+        nwalkers, nsteps = sampler.lnprobability.shape
+        # discard the 1st burn_frac (burn in)
+        flat_samples = sampler.get_chain(discard=int(self.burnfrac * nsteps), flat=True)
+        nflatsteps, ndim = flat_samples.shape
+
+        nparams = len(model.parameters)
+        model.uncs = np.zeros((nparams))
+        model.uncs_plus = np.zeros((nparams))
+        model.uncs_minus = np.zeros((nparams))
+        k = 0
+        for i, pname in enumerate(model.param_names):
+            if not model.fixed[pname]:
+                mcmc = np.percentile(flat_samples[:, k], [16, 50, 84])
+
+                # set the uncertainty arrays - could be done via the parameter objects
+                # but would need an update to the model properties to make this happen
+                model.parameters[i] = mcmc[1]
+                model.uncs[i] = 0.5 * (mcmc[2] - mcmc[0])
+                model.uncs_plus[i] = mcmc[2] - mcmc[1]
+                model.uncs_minus[i] = mcmc[1] - mcmc[0]
+
+                # set the posterior distribution to the samples
+                param = getattr(model, pname)
+                param.posterior = astrounc.Distribution(flat_samples[:, k])
+                k += 1
+            else:
+                model.uncs[i] = 0.0
+                model.uncs_plus[i] = 0.0
+                model.uncs_minus[i] = 0.0
+                # set the posterior distribution to the samples
+                param = getattr(model, pname)
+                param.posterior = None
+
+            # now set uncertainties on the parameter objects themselves
+            param = getattr(model, pname)
+            param.unc = model.uncs[i]
+            param.unc_plus = model.uncs_plus[i]
+            param.unc_minus = model.uncs_minus[i]
+
+        return model
+
+    def __call__(self, model, x, y, weights=None, **kwargs):
+        """
+        Fit data to this model.
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.FittableModel`
+            model to fit to x, y
+        x : array
+            input coordinates
+        y : array
+            input coordinates
+        weights : array, optional
+            Weights for fitting.
+            For data with Gaussian uncertainties, the weights should be
+            1/sigma.
+        kwargs : dict
+            optional keyword arguments to be passed to the optimizer or the statistic
+
+        Returns
+        -------
+        model_copy : `~astropy.modeling.FittableModel`
+            a copy of the input model with parameters set by the fitter
+        """
+
+        model_copy = _validate_model(model, self._opt_method.supported_constraints)
+        farg = _convert_input(x, y)
+        farg = (model_copy, weights) + farg
+        p0, _ = _model_to_fit_params(model_copy)
+
+        fitparams, self.fit_info = self._opt_method(
+            self.log_probability,
+            p0,
+            farg,
+            self.nsteps,
+            save_samples=self.save_samples,
+            **kwargs
+        )
+
+        # set the output model parameters to the "best fit" parameters
+        _fitter_to_model_params(model_copy, fitparams)
+
+        # get and set the symmetric and asymmetric uncertainties on each parameter
+        model_copy = self._set_uncs_and_posterior(model_copy)
+
+        return model_copy
 
 
 def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
