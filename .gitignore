@@ -12,6 +12,7 @@ __pycache__
 # package or else use `git add -f filename.c`.
 *.c
 !astropy/*/src/*.c
+astropy/modeling/src/projections.c
 
 # Other generated files
 MANIFEST
