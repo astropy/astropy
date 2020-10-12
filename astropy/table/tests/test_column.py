@@ -909,3 +909,11 @@ def test_structured_masked_column_roundtrip():
     assert len(mc.dtype.fields) == 2
     mc2 = table.MaskedColumn(mc)
     assert_array_equal(mc2, mc)
+
+
+@pytest.mark.parametrize('dtype', ['i4,f4', 'f4,(2,)f8'])
+def test_structured_empty_column_init(dtype):
+    dtype = np.dtype(dtype)
+    c = table.Column(length=5, shape=(2,), dtype=dtype)
+    assert c.shape == (5, 2)
+    assert c.dtype == dtype
