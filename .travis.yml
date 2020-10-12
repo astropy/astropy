@@ -115,6 +115,7 @@ matrix:
           name: Python 3.8 with all optional dependencies
           stage: Initial tests
           env: TOXENV="py38-test-alldeps"
+               TOXARGS="-v --develop"
                TOXPOSARGS="--durations=50"
           compiler: clang
 
