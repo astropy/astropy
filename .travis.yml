@@ -258,11 +258,10 @@ install:
         sudo apt-get -qq update;
         sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
       fi
-    - copy C:\\tools\\miniconda3\\envs\\test\\python.exe C:\\tools\\miniconda3\\envs\\test\\Lib\\venv\\scripts\\nt\\
 
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
-        pip install tox;
+        pip install -U pip tox;
         tox $TOXARGS -- $TOXPOSARGS;
       else
         python3 -m venv --system-site-packages tests;
