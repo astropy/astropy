@@ -166,7 +166,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
 
     @property
     def uncertainty(self):
-        """The known uncertainty in this constant's value."""
+        """The known absolute uncertainty in this constant's value."""
 
         return self._uncertainty
 
