@@ -19,7 +19,7 @@ from astropy.coordinates import (
     get_moon, FK4, FK4NoETerms, BaseCoordinateFrame, ITRS,
     QuantityAttribute, UnitSphericalRepresentation,
     SphericalRepresentation, CartesianRepresentation,
-    FunctionTransform,
+    FunctionTransform, get_body,
     CylindricalRepresentation, CylindricalDifferential,
     CartesianDifferential)
 from astropy.coordinates.sites import get_builtin_sites
@@ -656,3 +656,20 @@ def test_regression_10422(mjd):
         loc = EarthLocation(88258.0 * u.m, -4924882.2 * u.m, 3943729.0 * u.m)
         p, v = loc.get_gcrs_posvel(obstime=t)
         assert p.shape == v.shape == t.shape
+
+
+@pytest.mark.remote_data
+def test_regression_10291():
+    """
+    According to https://eclipse.gsfc.nasa.gov/OH/transit12.html,
+    the minimum separation between Venus and the Sun during the 2012
+    transit is 554 arcseconds for an observer at the Geocenter.
+
+    If light deflection from the Sun is incorrectly applied, this increases
+    to 557 arcseconds.
+    """
+    t = Time('2012-06-06 01:29:36')
+    sun = get_body('sun', t)
+    venus = get_body('venus', t)
+    assert_quantity_allclose(venus.separation(sun),
+                             554.427*u.arcsecond, atol=0.001*u.arcsecond)

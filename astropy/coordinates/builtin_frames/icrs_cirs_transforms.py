@@ -37,10 +37,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
-        usrepr = icrs_coo.represent_as(UnitSphericalRepresentation)
-        i_ra = usrepr.lon.to_value(u.radian)
-        i_dec = usrepr.lat.to_value(u.radian)
-        cirs_ra, cirs_dec = atciqz(i_ra, i_dec, astrom)
+        srepr = icrs_coo.spherical
+        cirs_ra, cirs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = UnitSphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
                                              lon=u.Quantity(cirs_ra, u.radian, copy=False),
@@ -53,11 +51,8 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         astrom_eb = CartesianRepresentation(astrom['eb'], unit=u.au,
                                             xyz_axis=-1, copy=False)
         newcart = icrs_coo.cartesian - astrom_eb
-
         srepr = newcart.represent_as(SphericalRepresentation)
-        i_ra = srepr.lon.to_value(u.radian)
-        i_dec = srepr.lat.to_value(u.radian)
-        cirs_ra, cirs_dec = atciqz(i_ra, i_dec, astrom)
+        cirs_ra, cirs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = SphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
                                          lon=u.Quantity(cirs_ra, u.radian, copy=False),
@@ -68,14 +63,11 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
-    srepr = cirs_coo.represent_as(SphericalRepresentation)
-    cirs_ra = srepr.lon.to_value(u.radian)
-    cirs_dec = srepr.lat.to_value(u.radian)
-
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
     astrom = erfa_astrom.get().apci(cirs_coo)
-    i_ra, i_dec = aticq(cirs_ra, cirs_dec, astrom)
+    srepr = cirs_coo.represent_as(SphericalRepresentation)
+    i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     if cirs_coo.data.get_name() == 'unitspherical' or cirs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
@@ -119,15 +111,13 @@ def cirs_to_cirs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
-    # first set up the astrometry context for ICRS<->GCRS. There are a few steps...
+    # first set up the astrometry context for ICRS<->GCRS.
     astrom = erfa_astrom.get().apcs(gcrs_frame)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
-        usrepr = icrs_coo.represent_as(UnitSphericalRepresentation)
-        i_ra = usrepr.lon.to_value(u.radian)
-        i_dec = usrepr.lat.to_value(u.radian)
-        gcrs_ra, gcrs_dec = atciqz(i_ra, i_dec, astrom)
+        srepr = icrs_coo.represent_as(SphericalRepresentation)
+        gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = UnitSphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
                                              lon=u.Quantity(gcrs_ra, u.radian, copy=False),
@@ -142,9 +132,7 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         newcart = icrs_coo.cartesian - astrom_eb
 
         srepr = newcart.represent_as(SphericalRepresentation)
-        i_ra = srepr.lon.to_value(u.radian)
-        i_dec = srepr.lat.to_value(u.radian)
-        gcrs_ra, gcrs_dec = atciqz(i_ra, i_dec, astrom)
+        gcrs_ra, gcrs_dec = atciqz(srepr.without_differentials(), astrom)
 
         newrep = SphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
                                          lon=u.Quantity(gcrs_ra, u.radian, copy=False),
@@ -156,15 +144,12 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference,
                                  GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
-    srepr = gcrs_coo.represent_as(SphericalRepresentation)
-    gcrs_ra = srepr.lon.to_value(u.radian)
-    gcrs_dec = srepr.lat.to_value(u.radian)
-
     # set up the astrometry context for ICRS<->GCRS and then convert to BCRS
     # coordinate direction
     astrom = erfa_astrom.get().apcs(gcrs_coo)
 
-    i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
+    srepr = gcrs_coo.represent_as(SphericalRepresentation)
+    i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     if gcrs_coo.data.get_name() == 'unitspherical' or gcrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just use the coordinate direction to yield the
@@ -210,14 +195,11 @@ def gcrs_to_hcrs(gcrs_coo, hcrs_frame):
         frameattrs['obstime'] = hcrs_frame.obstime
         gcrs_coo = gcrs_coo.transform_to(GCRS(**frameattrs))
 
-    srepr = gcrs_coo.represent_as(SphericalRepresentation)
-    gcrs_ra = srepr.lon.to_value(u.radian)
-    gcrs_dec = srepr.lat.to_value(u.radian)
-
     # set up the astrometry context for ICRS<->GCRS and then convert to ICRS
     # coordinate direction
     astrom = erfa_astrom.get().apcs(gcrs_coo)
-    i_ra, i_dec = aticq(gcrs_ra, gcrs_dec, astrom)
+    srepr = gcrs_coo.represent_as(SphericalRepresentation)
+    i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
     # convert to Quantity objects
     i_ra = u.Quantity(i_ra, u.radian, copy=False)
