@@ -1054,10 +1054,21 @@ def test_data_noastropy_fallback(monkeypatch):
 
     with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
-    assert len(warning_lines) == 2, os.linesep.join(
-        [str(w.message) for w in warning_lines])
-    assert 'Remote data cache could not be accessed' in str(warning_lines[0].message)
-    assert 'temporary' in str(warning_lines[1].message)
+    n_warns = len(warning_lines)
+
+    assert n_warns in (2, 4), f'Expected 2 or 4 warnings, got {n_warns}'
+
+    partial_warn_msgs = ['remote data cache could not be accessed', 'temporary file']
+    if n_warns == 4:
+        partial_warn_msgs.extend(['socket', 'socket'])
+
+    for wl in warning_lines:
+        cur_w = str(wl).lower()
+        for i, partial_msg in enumerate(partial_warn_msgs):
+            if partial_msg in cur_w:
+                del partial_warn_msgs[i]
+                break
+    assert len(partial_warn_msgs) == 0, f'Got some unexpected warnings: {partial_warn_msgs}'
 
     assert os.path.isfile(fnout)
 
