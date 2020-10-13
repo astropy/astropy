@@ -261,7 +261,7 @@ install:
 
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
-        pip install -U pip tox;
+        pip install -U pip wheel setuptools tox;
         tox $TOXARGS -- $TOXPOSARGS;
       else
         python3 -m venv --system-site-packages tests;
