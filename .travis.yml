@@ -225,6 +225,13 @@ matrix:
           env: TOXENV="py37-test-devdeps"
                TOXPOSARGS="--remote-data=any"
 
+        # Mysterious failure, cannot find python.exe
+        - os: windows
+          stage: Final tests
+          name: Python 3.7 with all optional dependencies
+          env: PYTHON_VERSION=3.7
+               TOXENV='py37-test-alldeps'
+
 before_install:
 
     # We need to use CCOMPILER otherwise Travis overwrites CC if we define it
