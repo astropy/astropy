@@ -80,7 +80,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Fixed installation with pip<19. [#10837]
+- Fixed installation of the source distribution with pip<19. [#10837]
 
 4.0.2 (2020-10-10)
 ==================
