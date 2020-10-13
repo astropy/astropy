@@ -131,13 +131,6 @@ matrix:
                TOXPOSARGS="--remote-data=astropy"
                LC_CTYPE=C.ascii LC_ALL=C
 
-        # Try on Windows
-        - os: windows
-          stage: Final tests
-          name: Python 3.7 with all optional dependencies
-          env: PYTHON_VERSION=3.7
-               TOXENV='py37-test-alldeps'
-
         # Do a PEP8/pyflakes test with flake8
         - language: python
           python: 3.7

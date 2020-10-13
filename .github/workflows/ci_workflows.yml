@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Daily 5 AM build
+    # * is a special character in YAML so you have to quote this string
+    - cron: '0 5 * * *'
+
+env:
+  SETUP_XVFB: True
+  TOXARGS: "-v"
+  TOXPOSARGS: ""
+
+jobs:
+  win_all_deps_tests:
+    runs-on: windows-latest
+    env:
+      TOXENV: 'py37-test-alldeps'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Fetch tags
+      run: git fetch --prune --unshallow --tags
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+    - name: Run tests
+      run: |
+        pip install tox;
+        tox $TOXARGS -- $TOXPOSARGS;
