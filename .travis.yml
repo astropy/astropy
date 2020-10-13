@@ -136,7 +136,7 @@ matrix:
           stage: Initial tests
           name: Python 3.7 with all optional dependencies
           env: PYTHON_VERSION=3.7
-               TOXENV='py37-test-windeps'
+               TOXENV='py37-test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
@@ -261,7 +261,7 @@ install:
 
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
-        pip install tox;
+        pip install tox virtualenv==20.0.33;
         tox $TOXARGS -- $TOXPOSARGS;
       else
         python3 -m venv --system-site-packages tests;
