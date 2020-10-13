@@ -48,7 +48,7 @@ env:
         # that tox passes through to the {posargs} indicator in tox.ini.
         # The latter can be used for example to pass arguments to pytest.
         - TOXENV='test'
-        - TOXARGS='-rv'
+        - TOXARGS='-v'
         - TOXPOSARGS=''
 
         # For installing without tox, we can rely mostly on what Debian already
