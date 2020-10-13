@@ -136,7 +136,7 @@ matrix:
           stage: Initial tests
           name: Python 3.7 with all optional dependencies
           env: PYTHON_VERSION=3.7
-               TOXENV='py37-test-alldeps'
+               TOXENV='py37-test-windeps'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
@@ -258,7 +258,6 @@ install:
         sudo apt-get -qq update;
         sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
       fi
-    - where python
 
 script:
     - if [ $SETUP_METHOD == 'tox' ]; then
