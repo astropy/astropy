@@ -499,3 +499,17 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
     assert ax.get_ylabel() == labels[1]
     for i in range(2):
         assert ax.coords[i].get_axislabel() == labels[i]
+
+
+def test_bbox_size():
+    # Test for the size of a WCSAxes bbox
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+    fig.add_axes(ax)
+    fig.canvas.draw()
+    renderer = fig.canvas.renderer
+    ax_bbox = ax.get_tightbbox(renderer)
+    assert ax_bbox.x0 == 11.38888888888889
+    assert ax_bbox.x1 == 576
+    assert ax_bbox.y0 == 3.5
+    assert ax_bbox.y1 == 432
