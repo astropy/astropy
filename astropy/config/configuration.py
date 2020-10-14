@@ -29,8 +29,7 @@ from astropy.utils.compat.context import nullcontext
 
 from .paths import get_config_dir
 
-__all__ = ['InvalidConfigurationItemWarning',
-           'ConfigurationMissingWarning', 'get_config',
+__all__ = ['InvalidConfigurationItemWarning', 'get_config',
            'reload_config', 'ConfigNamespace', 'ConfigItem',
            'generate_config']
 
@@ -39,14 +38,6 @@ class InvalidConfigurationItemWarning(AstropyWarning):
     """ A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
-    """
-
-
-class ConfigurationMissingWarning(AstropyWarning):
-    """ A Warning that is issued when the configuration directory cannot be
-    accessed (usually due to a permissions problem). If this warning appears,
-    configuration items will be set to their defaults rather than read from the
-    configuration file, and no configuration will persist across sessions.
     """
 
 
@@ -573,12 +564,8 @@ def get_config(packageormod=None, reload=False, rootname=None):
             else:
                 cfgfn = path.join(get_config_dir(rootname=rootname), pkgname + '.cfg')
             cobj = configobj.ConfigObj(cfgfn, interpolation=False)
-        except OSError as e:
-            msg = ('Configuration defaults will be used due to ')
-            errstr = '' if len(e.args) < 1 else (':' + str(e.args[0]))
-            msg += e.__class__.__name__ + errstr
-            msg += f' on {cfgfn}'
-            warn(ConfigurationMissingWarning(msg))
+        except OSError:
+            pass
 
             # This caches the object, so if the file becomes accessible, this
             # function won't see it unless the module is reloaded
