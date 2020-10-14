@@ -1510,3 +1510,24 @@ def test_realize_frame_accepts_kwargs():
 
     assert c2.representation_type == r.CartesianRepresentation
     assert c3.representation_type == r.CylindricalRepresentation
+
+
+@pytest.mark.parametrize("distance", (None, 10 * u.au))
+def test_transform_to_retains_representation(distance):
+    c = ICRS(ra=1 * u.deg, dec=2 * u.deg, distance=distance)
+    g = c.transform_to(Galactic())
+    fk4 = c.transform_to(FK4())
+    cfk4 = fk4.transform_to(ICRS())
+
+    c2 = FK5(ra=150 * u.deg, dec=-17 * u.deg, distance=1 * u.pc)
+    g2 = c2.transform_to(Galactic())
+
+    # Representation of ICRS is always SphericalRepresentation,
+    # even when underlying data is UnitSphericalRepresentation
+    assert c.representation_type == r.SphericalRepresentation
+
+    assert g.representation_type == g.default_representation
+    assert fk4.representation_type == fk4.default_representation
+    assert cfk4.representation_type == cfk4.default_representation
+
+    assert g2.representation_type == g2.default_representation
