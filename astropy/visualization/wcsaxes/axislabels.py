@@ -66,19 +66,16 @@ class AxisLabels(Text):
             return
 
         text_size = renderer.points_to_pixels(self.get_size())
+        # Flatten the bboxes for all coords and all axes
+        ticklabels_bbox_list = []
+        for bbcoord in ticklabels_bbox.values():
+            for bbaxis in bbcoord.values():
+                ticklabels_bbox_list += bbaxis
 
         for axis in self.get_visible_axes():
-
-            # Flatten the bboxes for all coords and all axes
-            ticklabels_bbox_list = []
-            for bbcoord in ticklabels_bbox.values():
-                for bbaxis in bbcoord.values():
-                    ticklabels_bbox_list += bbaxis
-
             if self.get_visibility_rule() == 'ticks':
                 if not ticks_locs[axis]:
                     continue
-
             elif self.get_visibility_rule() == 'labels':
                 if not coord_ticklabels_bbox:
                     continue
@@ -88,16 +85,7 @@ class AxisLabels(Text):
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
-            x_disp, y_disp = self._frame[axis].pixel[:, 0], self._frame[axis].pixel[:, 1]
-            d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))])
-            xcen = np.interp(d[-1] / 2., d, x_disp)
-            ycen = np.interp(d[-1] / 2., d, y_disp)
-
-            # Find segment along which the mid-point lies
-            imin = np.searchsorted(d, d[-1] / 2.) - 1
-
-            # Find normal of the axis label facing outwards on that segment
-            normal_angle = self._frame[axis].normal_angle[imin] + 180.
+            x, y, normal_angle = self._frame[axis]._halfway_x_y_angle()
 
             label_angle = (normal_angle - 90.) % 360.
             if 135 < label_angle < 225:
@@ -116,45 +104,33 @@ class AxisLabels(Text):
                 else:
                     coord_ticklabels_bbox[axis] = [None]
 
+                visible = axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None
+
                 if axis == 'l':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        left = coord_ticklabels_bbox[axis][0].xmin
-                    else:
-                        left = xcen
-                    xpos = left - padding
-                    self.set_position((xpos, ycen))
+                    if visible:
+                        x = coord_ticklabels_bbox[axis][0].xmin
+                    x = x - padding
 
                 elif axis == 'r':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        right = coord_ticklabels_bbox[axis][0].x1
-                    else:
-                        right = xcen
-                    xpos = right + padding
-                    self.set_position((xpos, ycen))
+                    if visible:
+                        x = coord_ticklabels_bbox[axis][0].x1
+                    x = x + padding
 
                 elif axis == 'b':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        bottom = coord_ticklabels_bbox[axis][0].ymin
-                    else:
-                        bottom = ycen
-                    ypos = bottom - padding
-                    self.set_position((xcen, ypos))
+                    if visible:
+                        y = coord_ticklabels_bbox[axis][0].ymin
+                    y = y - padding
 
                 elif axis == 't':
-                    if axis in visible_ticks and coord_ticklabels_bbox[axis][0] is not None:
-                        top = coord_ticklabels_bbox[axis][0].y1
-                    else:
-                        top = ycen
-                    ypos = top + padding
-                    self.set_position((xcen, ypos))
+                    if visible:
+                        y = coord_ticklabels_bbox[axis][0].y1
+                    y = y + padding
 
             else:  # arbitrary axis
+                x = x + np.cos(np.radians(normal_angle)) * (padding + text_size * 1.5)
+                y = y + np.sin(np.radians(normal_angle)) * (padding + text_size * 1.5)
 
-                dx = np.cos(np.radians(normal_angle)) * (padding + text_size * 1.5)
-                dy = np.sin(np.radians(normal_angle)) * (padding + text_size * 1.5)
-
-                self.set_position((xcen + dx, ycen + dy))
-
+            self.set_position((x, y))
             super().draw(renderer)
 
             bb = super().get_window_extent(renderer)

@@ -86,6 +86,23 @@ class Spine:
         dy = self.pixel[1:, 1] - self.pixel[:-1, 1]
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
+    def _halfway_x_y_angle(self):
+        """
+        Return the x, y, normal_angle values halfway along the spine
+        """
+        x_disp, y_disp = self.pixel[:, 0], self.pixel[:, 1]
+        # Get distance along the path
+        d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))])
+        xcen = np.interp(d[-1] / 2., d, x_disp)
+        ycen = np.interp(d[-1] / 2., d, y_disp)
+
+        # Find segment along which the mid-point lies
+        imin = np.searchsorted(d, d[-1] / 2.) - 1
+
+        # Find normal of the axis label facing outwards on that segment
+        normal_angle = self.normal_angle[imin] + 180.
+        return xcen, ycen, normal_angle
+
 
 class SpineXAligned(Spine):
     """
