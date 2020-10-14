@@ -510,6 +510,6 @@ def test_bbox_size():
     renderer = fig.canvas.renderer
     ax_bbox = ax.get_tightbbox(renderer)
     assert ax_bbox.x0 == 11.38888888888889
-    assert ax_bbox.x1 == 576
+    assert ax_bbox.x1 == 579.5
     assert ax_bbox.y0 == 3.5
     assert ax_bbox.y1 == 432
