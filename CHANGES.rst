@@ -455,6 +455,10 @@ astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 - Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
   projection on a WCSAxes. [#10442]
+- The position of tick labels are now only calculated when needed. If any text
+  parameters are changed (color, font weight, size etc.) that don't effect the
+  tick label position, the positions are not recomputed, improving performance.
+  [#10806]
 
 astropy.wcs
 ^^^^^^^^^^^
