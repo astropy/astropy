@@ -113,6 +113,7 @@ jobs:
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
                SCIPY_VERSION=0.18 MATPLOTLIB_VERSION=2.1
+               PYTEST_VERSION=4
                INSTALL_CMD='python setup.py build_ext --inplace'
                PIP_DEPENDENCIES='pytest-astropy pytest-openfiles==0.4.0'
                TEST_CMD='pytest --open-files --doctest-rst'
