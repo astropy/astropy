@@ -919,7 +919,7 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
-4.0.3 (unreleased)
+4.0.4 (unreleased)
 ==================
 
 Bug Fixes
@@ -1005,6 +1005,23 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+
+4.0.3 (2020-10-14)
+==================
+
+Bug Fixes
+---------
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a small bug where initializing an empty ``Column`` with a structured dtype
+  with a length and a shape failed to give the requested dtype. [#10819]
+
+Other Changes and Additions
+---------------------------
+
+- Fixed installation of the source distribution with pip<19. [#10837, #10852]
 
 4.0.2 (2020-10-10)
 ==================
@@ -1229,9 +1246,6 @@ astropy.table
 
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
-
-- Fixed a small bug where initializing an empty ``Column`` with a structured dtype
-  with a length and a shape failed to give the requested dtype. [#10819]
 
 astropy.tests
 ^^^^^^^^^^^^^
