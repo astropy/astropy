@@ -327,10 +327,7 @@ def test_config_noastropy_fallback(monkeypatch):
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present
-    with pytest.warns(configuration.ConfigurationMissingWarning,
-                      match='Configuration defaults will be used') as w:
-        test_configitem()
-    assert len(w) == 1
+    test_configitem()
 
 
 def test_configitem_setters():
@@ -375,12 +372,6 @@ def test_empty_config_file():
 
     content = get_content('data/not_empty.cfg')
     assert not is_unedited_config_file(content)
-
-    content = get_content('data/astropy.0.3.cfg')
-    assert is_unedited_config_file(content)
-
-    content = get_content('data/astropy.0.3.windows.cfg')
-    assert is_unedited_config_file(content)
 
 
 class TestAliasRead:
