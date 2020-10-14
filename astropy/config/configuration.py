@@ -565,12 +565,11 @@ def get_config(packageormod=None, reload=False, rootname=None):
                 cfgfn = path.join(get_config_dir(rootname=rootname), pkgname + '.cfg')
             cobj = configobj.ConfigObj(cfgfn, interpolation=False)
         except OSError:
-            pass
-
-            # This caches the object, so if the file becomes accessible, this
-            # function won't see it unless the module is reloaded
+            # This can happen when HOME is not set
             cobj = configobj.ConfigObj(interpolation=False)
 
+        # This caches the object, so if the file becomes accessible, this
+        # function won't see it unless the module is reloaded
         _cfgobjs[pkgname] = cobj
 
     if secname:  # not the root package
