@@ -465,6 +465,9 @@ astropy.visualization
 - Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
   projection on a WCSAxes. [#10442]
 
+- Fix support for referencing WCSAxes coordinates by their world axes names.
+  [#10484]
+
 astropy.wcs
 ^^^^^^^^^^^
 
