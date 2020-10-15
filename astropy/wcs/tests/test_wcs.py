@@ -13,11 +13,13 @@ from numpy.testing import (
 
 from astropy import wcs
 from astropy.wcs import _wcs  # noqa
+from astropy import units as u
 from astropy.utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from astropy.utils.misc import NumpyRNGContext
 from astropy.utils.exceptions import (
     AstropyUserWarning, AstropyWarning, AstropyDeprecationWarning)
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
@@ -908,71 +910,41 @@ def test_tpv_copy():
 def test_hst_wcs():
     path = get_pkg_data_filename("data/dist_lookup.fits.gz")
 
-    hdulist = fits.open(path)
-    # wcslib will complain about the distortion parameters if they
-    # weren't correctly deleted from the header
-    w = wcs.WCS(hdulist[1].header, hdulist)
+    with fits.open(path) as hdulist:
+        # wcslib will complain about the distortion parameters if they
+        # weren't correctly deleted from the header
+        w = wcs.WCS(hdulist[1].header, hdulist)
 
-    # Exercise the main transformation functions, mainly just for
-    # coverage
-    w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
-    w.det2im([0, 100, 200], [0, -100, 200], 0)
+        # Check pixel scale and area
+        assert_quantity_allclose(
+            w.proj_plane_pixel_scales(), [1.38484378e-05, 1.39758488e-05] * u.deg)
+        assert_quantity_allclose(
+            w.proj_plane_pixel_area(), 1.93085492e-10 * (u.deg * u.deg))
 
-    w.cpdis1 = w.cpdis1
-    w.cpdis2 = w.cpdis2
+        # Exercise the main transformation functions, mainly just for
+        # coverage
+        w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
+        w.det2im([0, 100, 200], [0, -100, 200], 0)
 
-    w.det2im1 = w.det2im1
-    w.det2im2 = w.det2im2
+        w.cpdis1 = w.cpdis1
+        w.cpdis2 = w.cpdis2
 
-    w.sip = w.sip
+        w.det2im1 = w.det2im1
+        w.det2im2 = w.det2im2
 
-    w.cpdis1.cdelt = w.cpdis1.cdelt
-    w.cpdis1.crpix = w.cpdis1.crpix
-    w.cpdis1.crval = w.cpdis1.crval
-    w.cpdis1.data = w.cpdis1.data
+        w.sip = w.sip
 
-    assert w.sip.a_order == 4
-    assert w.sip.b_order == 4
-    assert w.sip.ap_order == 0
-    assert w.sip.bp_order == 0
-    assert_array_equal(w.sip.crpix, [2048., 1024.])
-    wcs.WCS(hdulist[1].header, hdulist)
-    hdulist.close()
+        w.cpdis1.cdelt = w.cpdis1.cdelt
+        w.cpdis1.crpix = w.cpdis1.crpix
+        w.cpdis1.crval = w.cpdis1.crval
+        w.cpdis1.data = w.cpdis1.data
 
-
-def test_hst_wcs():
-    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
-
-    hdulist = fits.open(path)
-    # wcslib will complain about the distortion parameters if they
-    # weren't correctly deleted from the header
-    w = wcs.WCS(hdulist[1].header, hdulist)
-
-    # Exercise the main transformation functions, mainly just for
-    # coverage
-    w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
-    w.det2im([0, 100, 200], [0, -100, 200], 0)
-
-    w.cpdis1 = w.cpdis1
-    w.cpdis2 = w.cpdis2
-
-    w.det2im1 = w.det2im1
-    w.det2im2 = w.det2im2
-
-    w.sip = w.sip
-
-    w.cpdis1.cdelt = w.cpdis1.cdelt
-    w.cpdis1.crpix = w.cpdis1.crpix
-    w.cpdis1.crval = w.cpdis1.crval
-    w.cpdis1.data = w.cpdis1.data
-
-    assert w.sip.a_order == 4
-    assert w.sip.b_order == 4
-    assert w.sip.ap_order == 0
-    assert w.sip.bp_order == 0
-    assert_array_equal(w.sip.crpix, [2048., 1024.])
-    wcs.WCS(hdulist[1].header, hdulist)
-    hdulist.close()
+        assert w.sip.a_order == 4
+        assert w.sip.b_order == 4
+        assert w.sip.ap_order == 0
+        assert w.sip.bp_order == 0
+        assert_array_equal(w.sip.crpix, [2048., 1024.])
+        wcs.WCS(hdulist[1].header, hdulist)
 
 
 def test_cpdis_comments():
