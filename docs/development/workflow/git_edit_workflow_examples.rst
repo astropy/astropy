@@ -8,7 +8,7 @@ Contributing code to Astropy, a worked example
 **********************************************
 
 This example is based on fixing `Issue 1761`_ from the list
-of `Astropy issues on GitHub <https://github.com/astropy/astropy/issues>`_.
+of `astropy issues on GitHub <https://github.com/astropy/astropy/issues>`_.
 It resulted in `pull request 1917`_.
 
 The issue title was "len() does not work for coordinates" with description
@@ -18,32 +18,23 @@ many coordinates are present."
 This particular example was chosen because it was tagged as easy in GitHub;
 seemed like the best place to start out!
 
-Short on time? Don't want to read a long tutorial?
-==================================================
-
-There is a minimalist, command-only version of this at :ref:`command_history`.
-You should  have `pull request 1917`_ open as you read the commands so you can
-see the edits made to the code.
-
-There is also a very exciting terminal-cast at :ref:`terminal_cast`.
-
 Before you begin
 ================
 
 Make sure you have a local copy of astropy set up as described in
 :ref:`get_devel`. In a nutshell, the output of ``git remote -v``, run in the
-directory where your local of Astropy resides, should be something like this::
+directory where your local of ``astropy`` resides, should be something like this::
 
-    astropy   git://github.com/astropy/astropy.git (fetch)
-    astropy   git://github.com/astropy/astropy.git (push)
+    astropy   git@github.com:astropy/astropy.git (fetch)
+    astropy   git@github.com:astropy/astropy.git (push)
     your-user-name     git@github.com:your-user-name/astropy.git (fetch)
     your-user-name     git@github.com:your-user-name/astropy.git (push)
 
 The precise form of the URLs for ``your-user-name`` depends on the
 authentication method you set up with GitHub.
 
-The important point is that ``astropy`` should point to the official Astropy
-repo and ``your-user-name`` should point to *your* copy of Astropy on GitHub.
+The important point is that ``astropy`` should point to the official ``astropy``
+repo and ``your-user-name`` should point to *your* copy of ``astropy`` on GitHub.
 
 
 Grab the latest updates to astropy
@@ -52,98 +43,97 @@ Grab the latest updates to astropy
 A few steps in this tutorial take only a single command. They are broken out
 separately to outline the process in words as well as code.
 
-Inform your local copy of Astropy about the latest changes in the development
+Inform your local copy of ``astropy`` about the latest changes in the development
 version with::
 
     git fetch astropy --tags
 
 Set up an isolated workspace
 ============================
-+ Make a new `git`_ branch for fixing this issue, check it out, and let my
-  GitHub account know about this branch::
 
-    git branch fix-1761 astropy/master   # branch based on latest from GitHub
-    git checkout fix-1761                   # switch to this branch
-    git push --set-upstream origin fix-1761 # tell my github acct about it
++ Make a new `git`_ branch for fixing this issue and switch to the branch::
 
-+ Make a python environment just for this fix and switch to that environment.
-  The example below shows the necessary steps in the Anaconda python
+    git checkout astropy/master -b fix-1761
+
++ Make a Python environment just for this fix and switch to that environment.
+  The example below shows the necessary steps in the Miniconda/Anaconda Python
   distribution::
 
-        conda create -n apy-1761 --clone root  # Anaconda distribution only
-        source activate apy-1761
+    conda create -n apy-1761 python=3.9 # replace 3.9 with desired version
+    conda activate apy-1761
 
   If you are using a different distribution, see :ref:`virtual_envs` for
   instructions for creating and activating a new environment.
+
 + Install our branch in this environment with::
 
-    pip install -e .
+    pip install -e .[test]
 
-  Remember also to use the proper version of pip or python in this context.
-
-Do you really have to set up a separate python environment for each fix? No,
-but you definitely want to have a python environment for your work on code
-contributions. Making new environments is fast, doesn't take much space and
+Do you really have to set up a separate Python environment for each fix? No,
+but you definitely want to have a Python environment for your work on code
+contributions. Making new environments is fast, does not take much space, and
 provide a way to keep your work organized.
+
+If installation fails, try to upgrade ``pip`` using ``pip install pip -U``
+command. It is also a good practice to keep your ``conda`` up-to-date by
+running ``conda update conda -n base`` when prompted to do so; maybe ``git`` too.
 
 Test first, please
 ==================
 
-It would be hard to overstate the importance of testing to Astropy. Tests are
+It would be hard to overstate the importance of testing in Astropy. Tests are
 what gives you confidence that new code does what it should and that it
-doesn't break old code.
+does not break old code.
 
 You should at least run the relevant tests before you make any changes to make
-sure that your python environment is set up properly.
+sure that your Python environment is set up properly.
 
 The first challenge is figuring out where to look for relevant tests. `Issue
 1761`_ is a problem in the `~astropy.coordinates` package, so the tests for
-it are in ``astropy/coordinates/tests``. The rest of Astropy has a similar
-layout, described at :ref:`testing-guidelines`.
+it are in ``astropy/coordinates/tests``. The rest of ``astropy`` has a similar
+layout, as described at :ref:`testing-guidelines`.
 
-Change to that directory and run the current tests with::
+Run the current tests in that directory with::
 
-    cd astropy/coordinates/test
-    pytest
+    pytest astropy/coordinates/tests
 
-The tests all pass, so I need to write a new test to expose this bug.
+If the bug you are working on involves remote data access, you need to run
+the tests with an extra flag, i.e., ``pytest ... --remote-data``.
 
+In the event where all the tests passed with the bug present, new tests are
+needed to expose this bug.
 
-There are several files with tests in them, though::
+A subpackage organizes its tests into multiple test modules; e.g.::
 
-    $ ls
+    $ ls astropy/coordinates/tests
     test_angles.py
     test_angular_separation.py
-    test_api.py
+    test_api_ape5.py
     test_arrays.py
-    test_distance.py
-    test_formatting.py
-    test_matching.py
-    test_name_resolve.py
-    test_transformations.py
+    ...
 
 `Issue 1761`_ affects arrays of coordinates, so it seems sensible to put the
-new test in ``test_arrays.py``. As with all of the steps, if you are not
-sure, ask on the `astropy-dev mailing list`_.
+new test in ``test_arrays.py``. As with all of the steps, when in doubt,
+please ask on the `astropy-dev mailing list`_.
 
 The goal at this point may be a little counter-intuitive: write a test that we
-know will fail with the current code. This test allows Astropy to check,
-in an automated way, whether our fix actually works and to make sure future
-changes to code do not break our fix.
+know will fail with the current code. This test allows ``astropy`` to check,
+in an automated way, whether our fix actually works and to prevent
+regression (i.e., make sure future changes to code do not break our fix).
 
 Looking over the existing code in ``test_arrays.py``, each test is a function
-whose name starts with ``test_``; the last test in the file is
-``test_array_indexing`` so an appropriate place to add the test is right after
-that.
+with a name that starts with ``test_``. An appropriate place to add the test is
+after the last test function in the file.
 
-Give the test a reasonably clear name; I chose: ``test_array_len``. The
+Give the test a reasonably clear name; e.g., ``test_array_len``. The
 easiest way to figure out what you need to import and how to set up the test
 is to look at other tests. The full test is in the traceback below and in
-`pull request 1917`_
+`pull request 1917`_.
 
-Write the test, then see if it works as expected--remember, in this case we
-expect to *fail*. Running ``pytest test_arrays.py`` gives the expected
-result; an excerpt from the output is::
+Write the test, then see if it works as expected; remember, in this case we
+expect it to *fail* without the patch from `pull request 1917`_.
+Running ``pytest astropy/coordinates/tests/test_arrays.py`` would give the expected failure;
+an excerpt from the output is::
 
     ================= FAILURES =============================
     ______________ test_array_len __________________________
@@ -160,7 +150,7 @@ result; an excerpt from the output is::
     >       assert len(c) == input_length
     E       TypeError: object of type 'ICRS' has no len()
 
-    test_arrays.py:291: TypeError
+    astropy/coordinates/tests/test_arrays.py:291: TypeError
 
 Success!
 
@@ -171,7 +161,7 @@ Keep `git`_ commits small and focused on one logical piece at a time. The test
 we just wrote is one logical change, so we will commit it. You could, if you
 prefer, wait and commit this test along with your fix.
 
-For this tutorial I'll commit the test separately. If you aren't sure what to
+For this tutorial, we will commit the test separately. If you are not sure what to
 do, ask on `astropy-dev mailing list`_.
 
 Check what was changed
@@ -181,24 +171,23 @@ We can see what has changed with ``git status``::
 
     $ git status
     On branch fix-1761
-    Your branch is up-to-date with 'origin/fix-1761'.
+    Your branch is up-to-date with 'astropy/master'.
 
     Changes not staged for commit:
       (use "git add <file>..." to update what will be committed)
       (use "git checkout -- <file>..." to discard changes in working directory)
 
-        modified:   test_arrays.py
+        modified:   astropy/coordinates/tests/test_arrays.py
 
     no changes added to commit (use "git add" and/or "git commit -a")
 
 There are two bits of information here:
 
-+ one file changed, ``test_arrays.py``
-+ We have not added our changes to git yet, so it is listed under ``Changes
-  not staged for commit``.
++ one file changed; i.e., ``astropy/coordinates/tests/test_arrays.py``
++ this file has not been added to git's staging area yet, so it is listed
+  under ``Changes not staged for commit``.
 
-For more extensive changes it can be useful to use ``git diff`` to see what
-changes have been made::
+Use ``git diff`` to see what changes have been made::
 
     $ git diff
     diff --git a/astropy/coordinates/tests/test_arrays.py b/astropy/coordinates/test
@@ -209,6 +198,7 @@ changes have been made::
          assert c2.equinox == c1.equinox
          assert c3.equinox == c1.equinox
          assert c4.equinox == c1.equinox
+    +
     +
     +def test_array_len():
     +    from .. import ICRS
@@ -229,13 +219,13 @@ Stage the change
 
 `git`_ requires you to add changes in two steps:
 
-+ stage the change with ``git add test_arrays.py``; this adds the file to
++ stage the change with ``git add ...``; this adds the file to
   the list of items that will be added to the repo when you are ready to
   commit.
-+ commit the change with ``git commit``; this actually adds the changes to
++ commit the change with ``git commit ...``; this actually adds the changes to
   your repo.
 
-These can be combined into one step; the advantage of doing it in two steps
+These can be combined into one step (not recommended); the advantage of doing it in two steps
 is that it is easier to undo staging than committing. As we will see later,
 ``git status`` even tells you how to do it.
 
@@ -246,19 +236,19 @@ staged, commit the changes as one commit.
 
 In this case, first stage the change::
 
-    git add test_arrays.py
+    git add astropy/coordinates/tests/test_arrays.py
 
 You get no notice at the command line that anything has changed, but
 ``git status`` will let you know::
 
     $ git status
     On branch fix-1761
-    Your branch is up-to-date with 'origin/fix-1761'.
+    Your branch is up-to-date with 'astropy/master'.
 
     Changes to be committed:
       (use "git reset HEAD <file>..." to unstage)
 
-        modified:   test_arrays.py
+        modified:   astropy/coordinates/tests/test_arrays.py
 
 Note that `git`_ helpfully includes the command necessary to unstage the
 change if you want to.
@@ -266,25 +256,25 @@ change if you want to.
 Commit your change
 ------------------
 
-I prefer to make commits frequently, so I'll commit the test without the fix::
+Next, we will commit the test without the fix::
 
-    $ git commit -m'Add test for array coordinate length (issue #1761)'
+    $ git commit -m "Add test for array coordinate length (issue #1761)"
     [fix-1761 dd4ef8c] Add test for array coordinate length (issue #1761)
-     1 file changed, 11 insertions(+)
+     1 file changed, 12 insertions(+)
 
-Commit messages should be short and descriptive. Including the GitHub issue
+Commit messages should be concise. Including the GitHub issue
 number allows GitHub to automatically create links to the relevant issue.
 
 Use ``git status`` to get a recap of where we are so far::
 
     $ git status
     On branch fix-1761
-    Your branch is ahead of 'origin/fix-1761' by 1 commit.
+    Your branch is ahead of 'astropy/master' by 1 commit.
       (use "git push" to publish your local commits)
 
     nothing to commit, working directory clean
 
-In other words, we have made a change to our local copy of astropy but we
+In other words, we have made a change to our local copy of ``astropy`` but we
 have not pushed (transferred) that change to our GitHub account.
 
 Fix the issue
@@ -293,10 +283,11 @@ Fix the issue
 Write the code
 --------------
 
-Now that we have a test written, we'll fix the issue. A full discussion of
+Now that we have a test written, we will fix the issue. A full discussion of
 the fix is beyond the scope of this tutorial, but the fix is to add a
 ``__len__`` method to ``astropy.coordinates.SphericalCoordinatesBase`` in
-``coordsystems.py``. All of the spherical coordinate systems inherit from
+``coordsystems.py`` (the code has since been refactored, if you try to look
+for it). All of the spherical coordinate systems inherit from
 this base class and it is this base class that implements the
 ``__getitem__`` method that allows indexing of coordinate arrays.
 
@@ -310,14 +301,14 @@ Test your change
 There are a few levels at which you want to test:
 
 + Does this code change make the test we wrote succeed now? Check
-  by running ``pytest tests/test_arrays.py`` in the ``coordinates``
-  directory. In this case, yes!
-+ Do the rest of the coordinate tests still pass? Check by running ``pytest``
-  in the ``coordinates`` directory. In this case, yes--we have not broken
+  by running ``pytest astropy/coordinates/tests/test_arrays.py``.
+  In this case, yes!
++ Do the rest of the coordinate tests still pass? Check by running
+  ``pytest astropy/coordinates/``. In this case, yes, we have not broken
   anything!
-+ Do all of the astropy tests still succeed? Check by moving to the top level
-  directory (the one that contains ``setup.py``) and run ``pytest``.
-  This may take several minutes depending on the speed of your system.
++ Do all of the astropy tests still succeed? Check by running ``pytest``
+  from the top-level directory.
+  This may take a while depending on the speed of your system.
   Success again!
 
 .. note::
@@ -327,14 +318,14 @@ There are a few levels at which you want to test:
 Stage and commit your change
 ----------------------------
 
-Add the file to your git repo in two steps: stage, then commit.
+Add the file to your `git`_ repo in two steps: stage, then commit.
 
 To make this a little different than the commit we did above, make sure you
 are still in the top level directory and check the ``git status``::
 
     $ git status
     On branch fix-1761
-    Your branch is ahead of 'origin/fix-1761' by 1 commit.
+    Your branch is ahead of 'astropy/master' by 1 commit.
       (use "git push" to publish your local commits)
 
     Changes not staged for commit:
@@ -352,7 +343,7 @@ Stage the change with::
 
     git add astropy/coordinates/coordsystems.py
 
-For this commit it is helpful to use a multi-line commit message that will
+For this commit, it is helpful to use a multi-line commit message that will
 automatically close the issue on GitHub when this change is accepted. The
 snippet below accomplishes that in bash (and similar shells)::
 
@@ -363,58 +354,51 @@ snippet below accomplishes that in bash (and similar shells)::
     [fix-1761 f196771] Add len() to coordinates
      1 file changed, 4 insertions(+)
 
-If this was not a tutorial I would write the commit message in a git gui or
-run ``git commit`` without a message and git would put me in an editor.
+Another option for multi-line commit message is to use a Git GUI or to
+run ``git commit`` without a message to get prompted by an editor.
 
-However you do it, the message after committing should look like this::
+The message after committing should look like this when you inspect with
+``git log``::
 
     Add len() to coordinates
 
     Closes #1761
 
-You can check the commit messages by running ``git log``. If the commit
-message doesn't look right, ask about fixing it at `astropy-dev mailing list`_.
+If the commit message does not look right, run ``git commit --amend``.
+If you still run into problems, please ask about fixing it at
+`astropy-dev mailing list`_.
 
-Push your changes to your GitHub fork of astropy
-================================================
+At this point, none of the Astropy maintainers know anything about
+your changes.
 
-This one is easy: ``git push``
-
-This copies the changes made on your computer to your copy of Astropy on
-GitHub. At this point none of the Astropy maintainers know anything about
-your change.
-
-We'll take care of that in a moment with a "pull request", but first...
+We will take care of that in a moment with a "pull request", but first,
+see :ref:`astropy-fix-add-tests`.
 
 .. _astropy-fix-add-tests:
 
-Stop and think: any more tests or other changes?
+Stop and think: Any more tests or other changes?
 ================================================
 
 It never hurts to pause at this point and review whether your proposed
-changes are complete. In this case I realized there were some tests I could
-have included but didn't:
+changes are complete. In this case, there are some more tests that could
+be included, such as:
 
 + What happens when ``len()`` is called on a coordinate that is *not* an
   array?
 + Does ``len()`` work when the coordinate is an array with one entry?
 
-Both of these are mentioned in the pull request so it doesn't hurt to check
-them. In this case they also provide an opportunity to illustrate a feature
+Both of these are mentioned in `pull request 1917`_, so it does not hurt to check
+them. In this case, they also provide an opportunity to illustrate a feature
 of the `pytest`_ framework.
 
-I'll move back to the directory containing the tests with
-``cd astropy/coordinates/tests`` to make it a bit easier to run just the test
-I want.
+The second case is easier, so it will be handled first following the
+development cycle we used above:
 
-The second case is easier, so I'll handle that one first following the cycle
-we used above:
-
-+ Make the change in ``test_arrays.py``
++ Make the change in ``astropy/coordinates/tests/test_arrays.py``
 + Test the change
 
-The test passed; rather than committing this one change I'll also implement
-the check for the scalar case.
+The test passed; but rather than committing this one change, we will also
+implement the check for the scalar case.
 
 One could imagine two different desirable outcomes here:
 
@@ -423,7 +407,7 @@ One could imagine two different desirable outcomes here:
 + ``len(scalar_coordinate)`` returns 1 since there is one coordinate.
 
 If you encounter a case like this and are not sure what to do, ask. The best
-place to ask is in GitHub on the page for the issue you are fixing.
+place to ask is on GitHub on the page for the issue you are fixing.
 
 Alternatively, make a choice and be clear in your pull request on GitHub what
 you chose and why; instructions for that are below.
@@ -431,26 +415,26 @@ you chose and why; instructions for that are below.
 Testing for an expected error
 -----------------------------
 
-In this case I opted for raising a `TypeError`, because
+In this case, we opted for raising a `TypeError`, because
 the user needs to know that the coordinate they created is not going to
-behave like an array of one coordinate if they try to index it later on. It
-also provides an opportunity to demonstrate a test when the desired result
-is an error.
+behave like an array of one coordinate if they try to index it later on.
 
 The `pytest`_ framework makes testing for an exception relatively
 easy; you put the code you expect to fail in a ``with`` block::
 
+    c = ICRS(0, 0, unit=(u.degree, u.degree))
+
     with pytest.raises(TypeError):
-        c = ICRS(0, 0, unit=(u.degree, u.degree))
         len(c)
 
-I added this to ``test_array_len`` in ``test_arrays.py`` and re-ran the test
-to make sure it works as desired.
+A test like this can be added ``test_array_len`` in ``test_arrays.py``.
+In your own work, you may also choose to put that into a new test function,
+if you wish.
 
 Aside: Python lesson--let others do your work
 ---------------------------------------------
 
-The actual fix to this issue was very, very short. In ``coordsystems.py`` two
+The actual fix to this issue was very, very short. In ``coordsystems.py``, two
 lines were added::
 
     def __len__(self):
@@ -468,18 +452,24 @@ scalars in ``Angle`` and in coordinates.
 Commit any additional changes
 =============================
 
-Follow the cycle you saw above:
+Continue to follow the development cycle above for other files that you need
+to modify, including changelog (see :ref:`git_edit_changelog`) and
+documentation, as needed:
 
-+ Check that **all** Astropy tests still pass; see :ref:`test_changes`
++ Check that **all** ``astropy`` tests still pass; see :ref:`test_changes`
 + ``git status`` to see what needs to be staged and committed
-+ ``git add`` to stage the changes
-+ ``git commit`` to commit the changes
++ ``git add ...`` to stage the changes
++ ``git commit ...`` to commit the changes
++ ``git log`` to inspect the change history
 
 The `git`_ commands, without their output, are::
 
     git status
     git add astropy/coordinates/tests/test_arrays.py
-    git commit -m"Add tests of len() for scalar coordinate and length 1 coordinate"
+    git commit -m "Add tests of len() for scalar coordinate and length 1 coordinate"
+    git log
+
+.. _git_edit_changelog:
 
 Edit the changelog
 ==================
@@ -489,31 +479,31 @@ contributor makes the appropriate updates as they propose changes.
 
 Changes are in the file ``CHANGES.rst`` in the top-level directory (the
 directory where ``setup.py`` is). Put the change under the list that matches
-the milestone (aka release) that is set for the issue in GitHub. If you are
-proposing a new feature in a pull request you may need to wait on this change
+the milestone (a.k.a. release) that is set by a maintainer for the issue in GitHub. If you are
+proposing a new feature in a pull request, you may need to wait on this change
 until the pull request is discussed.
 
-This issue was tagged for 0.3.1, as shown in the image below, so the changelog
+This issue was tagged for ``astropy`` 0.3.1, as shown in the image below, so the changelog
 entry went there.
 
     .. image:: milestone.png
 
-The entry in ``CHANGES.rst`` should summarize was you did and include the
-pull request number. For writing changelog entries you don't need to know
+The entry in ``CHANGES.rst`` should summarize what you did and include the
+pull request number. For writing changelog entries, you do not need to know
 much about the markup language being used (though you can read as much as
 you want about it at the `Sphinx primer`_); look at other entries and
-imitate.
+emulate.
 
-For this issue the entry was the line that starts ``- Implemented``::
+For this issue, the entry was the line that started with ``- Implemented``::
 
     astropy.coordinates
     ^^^^^^^^^^^^^^^^^^^
 
     - Implemented ``len()`` for coordinate objects. [#1761]
 
-Starting the line with a ``-`` makes a bulleted list item, indenting it makes
-it a sublist of ``astropy.coordinates`` and putting ``len()`` in double
-backticks makes that text render in a monospace font.
+Starting the line with a ``-`` makes a bulleted list item, making
+it a sub-list of ``astropy.coordinates`` and putting ``len()`` in
+double-backtick makes that text render in a monospaced font.
 
 Commit your changes to the CHANGES.rst
 --------------------------------------
@@ -521,22 +511,21 @@ Commit your changes to the CHANGES.rst
 You can use ``git status`` as above or jump right to staging and committing::
 
     git add CHANGES.rst
-    git commit -m"Add changelog entry for 1761"
+    git commit -m "Add changelog entry for 1761"
 
+Push your changes to your GitHub fork of astropy
+================================================
 
-Push your changes to GitHub
-===========================
+Use this command to push your local changes out to your copy of ``astropy``
+on GitHub before asking for the changes to be reviewed::
 
-One last push to GitHub with these changes before asking for the changes to
-be reviewed::
+    git push your-user-name fix-1761
 
-    git push
+Propose your changes as a pull request
+======================================
 
-Ask for your changes to be merged with a pull request
-=====================================================
-
-This stage requires to go to your GitHub account and navigate to *your* copy
-of astropy; the url will be something like
+This stage requires going to your GitHub account and navigate to *your* copy
+of ``astropy``; the url will be something like
 ``https://github.com/your-user-name/astropy``.
 
 Once there, select the branch that contains your fix from the branches
@@ -544,25 +533,25 @@ dropdown:
 
     .. image:: worked_example_switch_branch.png
 
-After selecting the correct branch click on the "Pull Request" button, like
-that in the image below:
+After selecting the correct branch, click on the "Pull Request" button,
+as shown below:
 
     .. image:: pull_button.png
 
 Name your pull request something sensible. Include the issue number with a
 leading ``#`` in the description of the pull request so that a link is
-created to the original issue.
+created to the original issue, as stated in ``astropy``'s pull request template.
 
-Please see `pull request 1917`_ for the pull request from this example.
+Please see `pull request 1917`_ for the pull request showcased in this tutorial.
 
 Revise and push as necessary
 ============================
 
 You may be asked to make changes in the discussion of the pull request. Make
-those changes in your local copy, commit them to your local repo and push them
+those changes in your local copy, commit them to your local repo, and push them
 to GitHub. GitHub will automatically update your pull request.
 
-.. _Issue 1761: https://github.com/astropy/astropy/issues/1917
-.. _pull request 1917: https://github.com/astropy/astropy/issues/1917
-.. _Sphinx primer: http://sphinx-doc.org/rest.html
+.. _Issue 1761: https://github.com/astropy/astropy/issues/1761
+.. _pull request 1917: https://github.com/astropy/astropy/pull/1917
+.. _Sphinx primer: https://www.sphinx-doc.org/
 .. _test commit: https://github.com/mwcraig/astropy/commit/cf7d5ac15d7c63ae28dac638c6484339bac5f8de
