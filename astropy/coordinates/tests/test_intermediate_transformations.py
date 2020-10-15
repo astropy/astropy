@@ -14,7 +14,7 @@ from astropy.coordinates import (
     EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
-    HCRS, HeliocentricMeanEcliptic, TEME)
+    HCRS, HeliocentricMeanEcliptic, TEME, TETE)
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 
@@ -586,3 +586,34 @@ def test_ephemerides():
 
     # CIRS should be the same
     assert_allclose(sep_cirs, 0.0*u.deg, atol=1*u.microarcsecond)
+
+
+@pytest.mark.remote_data
+def test_tete_transforms():
+    """
+    We test the TETE transforms for proper behaviour here.
+
+    The TETE transforms are tested for accuracy against JPL Horizons in
+    test_solar_system.py. Here we are looking to check for consistency and
+    errors in the self transform.
+    """
+    loc = EarthLocation.from_geodetic("-22°57'35.1", "-67°47'14.1", 5186*u.m)
+    time = Time('2020-04-06T00:00')
+    p, v = loc.get_gcrs_posvel(time)
+
+    gcrs_frame = GCRS(obstime=time, obsgeoloc=p, obsgeovel=v)
+    moon = SkyCoord(169.24113968*u.deg, 10.86086666*u.deg, 358549.25381755*u.km, frame=gcrs_frame)
+
+    tete_frame = TETE(obstime=time, obsgeoloc=p, obsgeovel=v)
+    # need to set obsgeoloc/vel explicity or skycoord behaviour over-writes
+    tete_geo = TETE(obstime=time, obsgeoloc=[0, 0, 0]*u.km, obsgeovel=[0, 0, 0]*u.km/u.s)
+
+    # test self-transform by comparing to GCRS-TETE-ITRS-TETE route
+    tete_coo1 = moon.transform_to(tete_frame)
+    tete_coo2 = moon.transform_to(tete_geo)
+    assert_allclose(tete_coo1.separation_3d(tete_coo2), 0*u.mm, atol=100*u.mm)
+
+    # test TETE-ITRS transform by comparing GCRS-CIRS-ITRS to GCRS-TETE-ITRS
+    itrs1 = moon.transform_to(CIRS()).transform_to(ITRS())
+    itrs2 = moon.transform_to(TETE()).transform_to(ITRS())
+    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=100*u.mm)

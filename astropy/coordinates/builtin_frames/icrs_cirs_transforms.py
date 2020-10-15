@@ -24,6 +24,7 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
+from .equatorial import TETE
 from .utils import aticq, atciqz
 
 from ..erfa_astrom import erfa_astrom

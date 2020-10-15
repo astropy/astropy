@@ -13,14 +13,14 @@ import erfa
 
 from .sky_coordinate import SkyCoord
 from astropy.utils.data import download_file
-from astropy.utils.decorators import classproperty
+from astropy.utils.decorators import classproperty, deprecated
 from astropy.utils.state import ScienceState
 from astropy.utils import indent
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from .representation import CartesianRepresentation
 from .orbital_elements import calc_moon
-from .builtin_frames import GCRS, ICRS
+from .builtin_frames import GCRS, ICRS, TETE
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
@@ -512,14 +512,17 @@ def get_moon(time, location=None, ephemeris=None):
 get_moon.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
+deprecation_msg = """
+The use of _apparent_position_in_true_coordinates is deprecated because
+astropy now implements a True Equator True Equinox Frame (TETE), which
+should be used instead.
+"""
+@deprecated('4.2', deprecation_msg)
 def _apparent_position_in_true_coordinates(skycoord):
     """
     Convert Skycoord in GCRS frame into one in which RA and Dec
     are defined w.r.t to the true equinox and poles of the Earth
     """
-    jd1, jd2 = get_jd12(skycoord.obstime, 'tt')
-    # Classical NPB matrix, IAU 2006/2000A
-    # (same as in builtin_frames.utils.get_cip).
-    rbpn = erfa.pnm06a(jd1, jd2)
-    return SkyCoord(skycoord.frame.realize_frame(
-        skycoord.cartesian.transform(rbpn)))
+    tete_frame = TETE(obstime=skycoord.obstime, obsgeoloc=skycoord.obsgeoloc,
+                      obsgeovel=skycoord.obsgeovel)
+    return skycoord.transform_to(tete_frame)
