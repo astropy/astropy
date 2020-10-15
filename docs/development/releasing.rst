@@ -28,7 +28,7 @@ Standard Release Procedure
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
 
-#. Create a github milestone for the next bugfix version, move any remaining
+#. Create a GitHub milestone for the next bugfix version, move any remaining
    issues from the version you are about to release, and close the milestone.
    When releasing a major release, close the last milestone on the previous
    maintenance branch, too.
@@ -39,7 +39,7 @@ packages that use the full bugfix/maintenance branch approach.)
       maintainers about their relevant pull requests, so that the maintainers
       have the option to re-milestone their work.
 
-#. If there are any issues in the Github issue tracker that are labeled
+#. If there are any issues in the GitHub issue tracker that are labeled
    ``affects-dev`` but are issues that apply to this release, update them to
    ``affects-release``.  Similarly, if any issues remain open for this release,
    re-assign them to the next relevant milestone.
@@ -69,12 +69,6 @@ packages that use the full bugfix/maintenance branch approach.)
    in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
    periodically) and committing.
 
-#. To build the source distribution in an isolated environment and make sure you
-   have all the dependencies required for it, install the
-   `build <https://pypi.org/project/build/>`_ package::
-
-      $ pip install build --upgrade
-
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on
    this.
@@ -90,7 +84,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
 #. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. Also check that
-   the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing. This
+   the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing.
    You may also want to locally run the tests (with remote data on to ensure all
    of the tests actually run), using tox to do a thorough test in an isolated
    environment::
@@ -127,7 +121,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git tag -s v<version> -m "Tagging v<version>"
 
-#. Push up the tag to the `astropy core repository`_.
+#. Push up the tag to the `astropy core repository`_::
 
       $ git push upstream v<tag version>
 
@@ -138,8 +132,8 @@ packages that use the full bugfix/maintenance branch approach.)
       Also, it might be tempting to use the ``--tags`` argument to ``git push``,
       but this should *not* be done, as it might push up some unintended tags.
 
-  At this point if all goes well, the wheels and sdist will be build
-  in the `Azure core package pipeline`_ and uploaded to PyPI!
+   At this point if all goes well, the wheels and sdist will be build
+   in the `Azure core package pipeline`_ and uploaded to PyPI!
 
 #. In the event there are any issues with the wheel building for the tag
    (which shouldn't really happen if it was passing for the release branch),
