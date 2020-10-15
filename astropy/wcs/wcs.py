@@ -1012,10 +1012,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         if dist == 'CPDIS':
             d_kw = 'DP'
-            # err_kw = 'CPERR'
         else:
             d_kw = 'DQ'
-            # err_kw = 'CQERR'
 
         def write_dist(num, cpdis):
             if cpdis is None:
@@ -2456,9 +2454,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """
         from astropy.wcs import utils as wcs_utils  # Avoid circular import
-        val = wcs_utils.proj_plane_pixel_scales(self)
+        values = wcs_utils.proj_plane_pixel_scales(self)
         units = [u.Unit(x) for x in self.wcs.cunit]
-        return list(map(operator.mul, val, units))  # Can have different units
+        return [value * unit for (value, unit) in zip(values, units)]  # Can have different units
 
     def proj_plane_pixel_area(self):
         """Same as :func:`astropy.wcs.utils.proj_plane_pixel_area`
@@ -2466,9 +2464,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """
         from astropy.wcs import utils as wcs_utils  # Avoid circular import
-        val = wcs_utils.proj_plane_pixel_area(self)
+        value = wcs_utils.proj_plane_pixel_area(self)
         unit = u.Unit(self.wcs.cunit[0]) * u.Unit(self.wcs.cunit[1])  # 2D only
-        return val * unit
+        return value * unit
 
     def to_fits(self, relax=False, key=None):
         """
