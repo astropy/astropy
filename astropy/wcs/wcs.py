@@ -2452,13 +2452,13 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     def proj_plane_pixel_scales(self):
         """Same as :func:`astropy.wcs.utils.proj_plane_pixel_scales`
-        but returns a `~astropy.units.Quantity`.
+        but returns a list of `~astropy.units.Quantity`.
 
         """
         from astropy.wcs import utils as wcs_utils  # Avoid circular import
         val = wcs_utils.proj_plane_pixel_scales(self)
         units = [u.Unit(x) for x in self.wcs.cunit]
-        return u.Quantity(list(map(operator.mul, val, units)))
+        return list(map(operator.mul, val, units))  # Can have different units
 
     def proj_plane_pixel_area(self):
         """Same as :func:`astropy.wcs.utils.proj_plane_pixel_area`
