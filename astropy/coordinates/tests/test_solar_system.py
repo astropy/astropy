@@ -7,13 +7,12 @@ from urllib.error import HTTPError
 from astropy.time import Time
 from astropy import units as u
 from astropy.constants import c
-from astropy.coordinates.builtin_frames import GCRS
+from astropy.coordinates.builtin_frames import GCRS, TETE
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.sky_coordinate import SkyCoord
-from astropy.coordinates.representation import CartesianRepresentation
+from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
 from astropy.coordinates.solar_system import (get_body, get_moon, BODY_NAME_TO_KERNEL_SPEC,
-                                              _apparent_position_in_true_coordinates,
-                                              _get_apparent_body_position,
+                                              _get_apparent_body_position, solar_system_ephemeris,
                                               get_body_barycentric, get_body_barycentric_posvel)
 from astropy.coordinates.funcs import get_sun
 from astropy.tests.helper import assert_quantity_allclose
@@ -28,7 +27,7 @@ else:
     HAS_JPLEPHEM = True
 
 try:
-    from skyfield.api import Loader  # pylint: disable=W0611
+    from skyfield.api import Loader, Topos  # pylint: disable=W0611
 except ImportError:
     HAS_SKYFIELD = False
 else:
@@ -68,7 +67,7 @@ def test_positions_skyfield(tmpdir):
     skyfield_t = ts.from_astropy(t)
 
     if location is not None:
-        earth = earth.topos(latitude_degrees=location.lat.to_value(u.deg),
+        earth = earth+Topos(latitude_degrees=location.lat.to_value(u.deg),
                             longitude_degrees=location.lon.to_value(u.deg),
                             elevation_m=location.height.to_value(u.m))
 
@@ -78,9 +77,9 @@ def test_positions_skyfield(tmpdir):
 
     if location is not None:
         obsgeoloc, obsgeovel = location.get_gcrs_posvel(t)
-        frame = GCRS(obstime=t, obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
+        frame = TETE(obstime=t, obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
     else:
-        frame = GCRS(obstime=t)
+        frame = TETE(obstime=t)
 
     ra, dec, dist = skyfield_mercury.radec(epoch='date')
     skyfield_mercury = SkyCoord(ra.to(u.deg), dec.to(u.deg), distance=dist.to(u.km),
@@ -92,14 +91,10 @@ def test_positions_skyfield(tmpdir):
     skyfield_moon = SkyCoord(ra.to(u.deg), dec.to(u.deg), distance=dist.to(u.km),
                              frame=frame)
 
-    moon_astropy = get_moon(t, location, ephemeris='de430')
-    mercury_astropy = get_body('mercury', t, location, ephemeris='de430')
-    jupiter_astropy = get_body('jupiter', t, location, ephemeris='de430')
-
-    # convert to true equator and equinox
-    jupiter_astropy = _apparent_position_in_true_coordinates(jupiter_astropy)
-    mercury_astropy = _apparent_position_in_true_coordinates(mercury_astropy)
-    moon_astropy = _apparent_position_in_true_coordinates(moon_astropy)
+    # planet positions w.r.t true equator and equinox
+    moon_astropy = get_moon(t, location, ephemeris='de430').transform_to(frame)
+    mercury_astropy = get_body('mercury', t, location, ephemeris='de430').transform_to(frame)
+    jupiter_astropy = get_body('jupiter', t, location, ephemeris='de430').transform_to(frame)
 
     assert (moon_astropy.separation(skyfield_moon) <
             skyfield_angular_separation_tolerance)
@@ -125,16 +120,17 @@ class TestPositionsGeocentric:
     def setup(self):
         self.t = Time('1980-03-25 00:00')
         self.frame = GCRS(obstime=self.t)
+        self.apparent_frame = TETE(obstime=self.t)
         # Results returned by JPL Horizons web interface
         self.horizons = {
             'mercury': SkyCoord(ra='22h41m47.78s', dec='-08d29m32.0s',
-                                distance=c*6.323037*u.min, frame=self.frame),
+                                distance=c*6.323037*u.min, frame=self.apparent_frame),
             'moon': SkyCoord(ra='07h32m02.62s', dec='+18d34m05.0s',
-                             distance=c*0.021921*u.min, frame=self.frame),
+                             distance=c*0.021921*u.min, frame=self.apparent_frame),
             'jupiter': SkyCoord(ra='10h17m12.82s', dec='+12d02m57.0s',
-                                distance=c*37.694557*u.min, frame=self.frame),
+                                distance=c*37.694557*u.min, frame=self.apparent_frame),
             'sun': SkyCoord(ra='00h16m31.00s', dec='+01d47m16.9s',
-                            distance=c*8.294858*u.min, frame=self.frame)}
+                            distance=c*8.294858*u.min, frame=self.apparent_frame)}
 
     @pytest.mark.parametrize(('body', 'sep_tol', 'dist_tol'),
                              (('mercury', 7.*u.arcsec, 1000*u.km),
@@ -151,7 +147,7 @@ class TestPositionsGeocentric:
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy = _apparent_position_in_true_coordinates(astropy)
+        astropy = astropy.transform_to(self.apparent_frame)
 
         # Assert sky coordinates are close.
         assert astropy.separation(horizons) < sep_tol
@@ -168,7 +164,7 @@ class TestPositionsGeocentric:
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy = _apparent_position_in_true_coordinates(astropy)
+        astropy = astropy.transform_to(self.apparent_frame)
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
@@ -185,7 +181,7 @@ class TestPositionsGeocentric:
         horizons = self.horizons['moon']
 
         # convert to true equator and equinox
-        astropy = _apparent_position_in_true_coordinates(astropy)
+        astropy = astropy.transform_to(self.apparent_frame)
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
@@ -210,14 +206,16 @@ class TestPositionKittPeak:
         obsgeoloc, obsgeovel = kitt_peak.get_gcrs_posvel(self.t)
         self.frame = GCRS(obstime=self.t,
                           obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
+        self.apparent_frame = TETE(obstime=self.t,
+                                   obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
         # Results returned by JPL Horizons web interface
         self.horizons = {
             'mercury': SkyCoord(ra='13h38m58.50s', dec='-13d34m42.6s',
-                                distance=c*7.699020*u.min, frame=self.frame),
+                                distance=c*7.699020*u.min, frame=self.apparent_frame),
             'moon': SkyCoord(ra='12h33m12.85s', dec='-05d17m54.4s',
-                             distance=c*0.022054*u.min, frame=self.frame),
+                             distance=c*0.022054*u.min, frame=self.apparent_frame),
             'jupiter': SkyCoord(ra='09h09m55.55s', dec='+16d51m57.8s',
-                                distance=c*49.244937*u.min, frame=self.frame)}
+                                distance=c*49.244937*u.min, frame=self.apparent_frame)}
 
     @pytest.mark.parametrize(('body', 'sep_tol', 'dist_tol'),
                              (('mercury', 7.*u.arcsec, 500*u.km),
@@ -234,7 +232,7 @@ class TestPositionKittPeak:
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy = _apparent_position_in_true_coordinates(astropy)
+        astropy = astropy.transform_to(self.apparent_frame)
 
         # Assert sky coordinates are close.
         assert astropy.separation(horizons) < sep_tol
@@ -251,7 +249,7 @@ class TestPositionKittPeak:
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
-        astropy = _apparent_position_in_true_coordinates(astropy)
+        astropy = astropy.transform_to(self.apparent_frame)
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
@@ -268,7 +266,7 @@ class TestPositionKittPeak:
         horizons = self.horizons['moon']
 
         # convert to true equator and equinox
-        astropy = _apparent_position_in_true_coordinates(astropy)
+        astropy = astropy.transform_to(self.apparent_frame)
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
@@ -292,6 +290,43 @@ class TestPositionKittPeak:
         assert_quantity_allclose(coord_by_name.ra, coord_by_kspec.ra)
         assert_quantity_allclose(coord_by_name.dec, coord_by_kspec.dec)
         assert_quantity_allclose(coord_by_name.distance, coord_by_kspec.distance)
+
+
+@pytest.mark.remote_data
+def test_horizons_consistency_with_precision():
+    """
+    A test to compare at high precision against output of JPL horizons.
+
+    Tests ephemerides, and conversions from ICRS to GCRS to TETE. We are aiming for
+    better than 2 milli-arcsecond precision.
+
+    We use the Moon since it is nearby, and moves fast in the sky so we are
+    testing for parallax, proper handling of light deflection and aberration.
+    """
+    # JPL Horizon values for 2020_04_06 00:00 to 23:00 in 1 hour steps
+    # JPL Horizons has a known offset (frame bias) of 51.02 mas in RA. We correct that here
+    ra_apparent_horizons = [
+        170.167332531, 170.560688674, 170.923834838, 171.271663481, 171.620188972, 171.985340827,
+        172.381766539, 172.821772139, 173.314502650, 173.865422398, 174.476108551, 175.144332386,
+        175.864375310, 176.627519827, 177.422655853, 178.236955730, 179.056584831, 179.867427392,
+        180.655815385, 181.409252074, 182.117113814, 182.771311578, 183.366872837, 183.902395443
+    ] * u.deg + 51.02376467 * u.mas
+    dec_apparent_horizons = [
+        10.269112037, 10.058820647, 9.837152044, 9.603724551, 9.358956528, 9.104012390, 8.840674927,
+        8.571162442, 8.297917326, 8.023394488, 7.749873882, 7.479312991, 7.213246666, 6.952732614,
+        6.698336823, 6.450150213, 6.207828142, 5.970645962, 5.737565957, 5.507313851, 5.278462034,
+        5.049521497, 4.819038911, 4.585696512
+    ] * u.deg
+    with solar_system_ephemeris.set('de430'):
+        loc = EarthLocation.from_geodetic(-67.787260*u.deg, -22.959748*u.deg, 5186*u.m)
+        times = Time('2020-04-06 00:00') + np.arange(0, 24, 1)*u.hour
+        astropy = get_body('moon', times, loc)
+
+        apparent_frame = TETE(obstime=times, obsgeoloc=astropy.obsgeoloc, obsgeovel=astropy.obsgeovel)
+        astropy = astropy.transform_to(apparent_frame)
+        usrepr = UnitSphericalRepresentation(ra_apparent_horizons, dec_apparent_horizons)
+        horizons = apparent_frame.realize_frame(usrepr)
+    assert_quantity_allclose(astropy.separation(horizons), 0*u.mas, atol=1.5*u.mas)
 
 
 @pytest.mark.remote_data
