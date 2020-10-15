@@ -33,6 +33,7 @@ import uuid
 import io
 import itertools
 import os
+import operator
 import re
 import textwrap
 import warnings
@@ -47,9 +48,9 @@ from astropy.io import fits
 from . import docstrings
 from . import _wcs
 
+from astropy import units as u
 from astropy.utils.compat import possible_filename
 from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
-
 
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
@@ -2448,6 +2449,26 @@ reduce these to 2 dimensions using the naxis kwarg.
             Invalid coordinate transformation parameters.
         """.format(docstrings.TWO_OR_MORE_ARGS('2', 8),
                    docstrings.RETURNS('pixel coordinates', 8))
+
+    def proj_plane_pixel_scales(self):
+        """Same as :func:`astropy.wcs.utils.proj_plane_pixel_scales`
+        but returns a `~astropy.units.Quantity`.
+
+        """
+        from astropy.wcs import utils as wcs_utils  # Avoid circular import
+        val = wcs_utils.proj_plane_pixel_scales(self)
+        units = [u.Unit(x) for x in self.wcs.cunit]
+        return u.Quantity(list(map(operator.mul, val, units)))
+
+    def proj_plane_pixel_area(self):
+        """Same as :func:`astropy.wcs.utils.proj_plane_pixel_area`
+        but returns a `~astropy.units.Quantity`.
+
+        """
+        from astropy.wcs import utils as wcs_utils  # Avoid circular import
+        val = wcs_utils.proj_plane_pixel_area(self)
+        unit = u.Unit(self.wcs.cunit[0]) * u.Unit(self.wcs.cunit[1])  # 2D only
+        return val * unit
 
     def to_fits(self, relax=False, key=None):
         """

@@ -184,6 +184,8 @@ astropy.wcs
   ``SlicedLowLevelWCS`` to record information about any world axes removed by
   slicing a WCS. [#10195]
 
+- New ``WCS.proj_plane_pixel_scales()`` and ``WCS.proj_plane_pixel_area()``
+  methods to return pixel scales and area, respectively, as Quantity. [#10872]
 
 API Changes
 -----------
