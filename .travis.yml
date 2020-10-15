@@ -150,10 +150,10 @@ matrix:
         # unstable, we combine them into a single unstable build that we can
         # mark as an allowed failure below.
         - language: python
-          python: 3.7
-          name: Python 3.7 with remote data and dev version of key dependencies
+          python: 3.9
+          name: Python 3.9 with remote data and dev version of key dependencies
           stage: Final tests
-          env: TOXENV="py37-test-devdeps"
+          env: TOXENV="py39-test-devdeps"
                TOXPOSARGS="--remote-data=any"
 
         # We check numpy-dev also in a job that only runs from cron, so that
@@ -162,10 +162,10 @@ matrix:
         # We also install all dependencies via pip here so we pick up the latest
         # releases.
         - language: python
-          python: 3.7
-          name: Python 3.7 with dev version of key dependencies
+          python: 3.9
+          name: Python 3.9 with dev version of key dependencies
           stage: Cron tests
-          env: TOXENV="py37-test-devdeps"
+          env: TOXENV="py39-test-devdeps"
 
         # Run documentation link check in a cron job.
         # Was originally in CircleCI doc build but links are too flaky, so
@@ -182,10 +182,10 @@ matrix:
 
         # Test against Python dev in cron job.
         - language: python
-          python: 3.9-dev
+          python: 3.10-dev
           dist: bionic
           name: Python dev with basic dependencies
-          stage: Cron tests
+          stage: Initial tests
           env: TOXENV="pydev-test"
                TOXPOSARGS="--durations=50"
           compiler: clang
@@ -219,10 +219,10 @@ matrix:
 
     allow_failures:
         - language: python
-          python: 3.7
-          name: Python 3.7 with remote data and dev version of key dependencies
+          python: 3.9
+          name: Python 3.9 with remote data and dev version of key dependencies
           stage: Final tests
-          env: TOXENV="py37-test-devdeps"
+          env: TOXENV="py39-test-devdeps"
                TOXPOSARGS="--remote-data=any"
 
 before_install:
