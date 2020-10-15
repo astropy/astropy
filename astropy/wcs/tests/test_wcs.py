@@ -1446,3 +1446,14 @@ def test_invalid_coordinate_masking():
     assert_allclose(wx, [-33, -33, 6])
     assert_allclose(wy, [np.nan, 178.75, 177.5])
     assert_allclose(wz, [np.nan, -28.75, -27.5])
+
+
+def test_no_pixel_area():
+    w = wcs.WCS(naxis=3)
+
+    # Pixel area cannot be computed
+    with pytest.raises(ValueError, match='Pixel area is defined only for 2D pixels'):
+        w.proj_plane_pixel_area()
+
+    # Pixel scales still possible
+    assert_quantity_allclose(w.proj_plane_pixel_scales(), 1)
