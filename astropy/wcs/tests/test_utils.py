@@ -1234,7 +1234,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     fit_wcs = fit_wcs_from_points((ypix, xpix), world_pix, proj_point='center')
 
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
-    assert fit_wcs.pixel_shape == (200, 10)
+    assert fit_wcs.pixel_shape == (1200, 1010)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

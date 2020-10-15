@@ -1,0 +1,1 @@
+``fit_wcs_from_points`` now produces a WCS with integer ``NAXIXn`` values.
