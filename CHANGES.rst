@@ -34,6 +34,9 @@ astropy.coordinates
 - Method ``.realize_frame`` from coordinate frames now accepts ``**kwargs``,
   including ``representation_type``. [#10727]
 
+- Avoid an unnecessary call to ``erfa.epv00`` in transformations between
+  ``CIRS`` and ``ICRS``, improving performance by 50 %. [#10814]
+
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
