@@ -804,6 +804,27 @@ class TimePlotDate(TimeFromEpoch):
     epoch_scale = 'utc'
     epoch_format = 'jd'
 
+    @lazyproperty
+    def epoch(self):
+        """Reference epoch time from which the time interval is measured"""
+        try:
+            # Matplotlib >= 3.3 has a get_epoch() function
+            from matplotlib.dates import get_epoch
+        except ImportError:
+            # If no get_epoch() then the epoch is '0001-01-01'
+            _epoch = self._epoch
+        else:
+            # Get the matplotlib date epoch as an ISOT string in UTC
+            epoch_utc = get_epoch()
+            from erfa import ErfaWarning
+            with warnings.catch_warnings():
+                # Catch possible dubious year warnings from erfa
+                warnings.filterwarnings('ignore', category=ErfaWarning)
+                _epoch = Time(epoch_utc, scale='utc', format='isot')
+            _epoch.format = 'jd'
+
+        return _epoch
+
 
 class TimeStardate(TimeFromEpoch):
     """
