@@ -1060,7 +1060,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         raise ValueError("sip_degree must be None, or integer.")
 
     # set pixel_shape to span of input points
-    wcs.pixel_shape = (xp.max()+1-xp.min(), yp.max()+1-yp.min())
+    wcs.pixel_shape = np.clip(np.ceil(np.max(xy, axis=1)).astype(int), 1, None)
 
     # determine CRVAL from input
     close = lambda l, p: p[np.argmin(np.abs(l))]
