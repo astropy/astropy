@@ -133,10 +133,10 @@ matrix:
 
         # Try on Windows
         - os: windows
-          stage: Final tests
-          name: Python 3.7 with all optional dependencies
-          env: PYTHON_VERSION=3.7
-               TOXENV='py37-test-alldeps'
+          stage: Initial tests
+          name: Python 3.8 with all optional dependencies
+          env: PYTHON_VERSION=3.8
+               TOXENV='py38-test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
