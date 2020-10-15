@@ -119,7 +119,6 @@ class TestPositionsGeocentric:
 
     def setup(self):
         self.t = Time('1980-03-25 00:00')
-        self.frame = GCRS(obstime=self.t)
         self.apparent_frame = TETE(obstime=self.t)
         # Results returned by JPL Horizons web interface
         self.horizons = {
@@ -204,8 +203,6 @@ class TestPositionKittPeak:
                                                 height=2120*u.m)
         self.t = Time('2014-09-25T00:00', location=kitt_peak)
         obsgeoloc, obsgeovel = kitt_peak.get_gcrs_posvel(self.t)
-        self.frame = GCRS(obstime=self.t,
-                          obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
         self.apparent_frame = TETE(obstime=self.t,
                                    obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
         # Results returned by JPL Horizons web interface

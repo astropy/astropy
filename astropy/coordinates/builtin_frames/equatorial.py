@@ -37,13 +37,13 @@ doc_footer_tete = """
         position of the Earth.
     obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The position of the observer relative to the center-of-mass of the
-        Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
+        Earth, oriented the same as GCRS. Either [0, 0, 0],
         `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
         i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
         Defaults to [0, 0, 0], meaning a geocentric observer.
     obsgeovel : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
         The velocity of the observer relative to the center-of-mass of the
-        Earth, oriented the same as BCRS/ICRS. Either [0, 0, 0],
+        Earth, oriented the same as GCRS. Either [0, 0, 0],
         `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
         i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity
         units.  Defaults to [0, 0, 0], meaning a geocentric observer.
@@ -65,21 +65,20 @@ class TETE(BaseRADecFrame):
     Calculation of the true equator and equinox involves the application of both precession
     and nutation, whilst only applying precession gives a mean equator and equinox.
 
-    TETE coordinates are often referred to as "apparent" coordinates, although CIRS
-    has replaced TETE as the modern system to use for apparent coordinates. TETE is the
-    apparent coordinate system used by JPL Horizons and is the correct coordinate
-    system to use when combining the right ascension with local apparent sidereal time
-    to calculate the hour angle.
+    TETE coordinates are often referred to as "apparent" coordinates, or
+    "apparent place". TETE is the apparent coordinate system used by JPL Horizons
+    and is the correct coordinate system to use when combining the right ascension
+    with local apparent sidereal time to calculate the hour angle.
 
     For more background on TETE, see the references provided in the
-    :ref:`astropy-coordinates-seealso` section of the documentation. (Of
-    particular note is Sections 5 and 6 of
+    :ref:`astropy-coordinates-seealso` section of the documentation.
+    Of particular note are Sections 5 and 6 of
     `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_) and
-    particularly the diagram at the top of page 57.
+    especially the diagram at the top of page 57.
 
     This frame also includes frames that are defined *relative* to the Earth,
     but that are offset (in both position and velocity) from the Earth. You
-    may see non-geocentric coordinates referred to as "topocentric".
+    may see such non-geocentric coordinates referred to as "topocentric".
 
     The frame attributes are listed under **Other Parameters**.
     """

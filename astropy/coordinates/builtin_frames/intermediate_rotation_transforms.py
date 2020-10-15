@@ -89,7 +89,8 @@ def gcrs_precession_mat(equinox):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, TETE)
 def gcrs_to_tete(gcrs_coo, tete_frame):
     # first apply GCRS self transform to correct time and observatory position/velocity
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=tete_frame.obstime, obsgeoloc=tete_frame.obsgeoloc,
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=tete_frame.obstime,
+                                           obsgeoloc=tete_frame.obsgeoloc,
                                            obsgeovel=tete_frame.obsgeovel))
 
     jd1, jd2 = get_jd12(tete_frame.obstime, 'tt')
