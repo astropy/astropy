@@ -51,12 +51,9 @@ version with::
 Set up an isolated workspace
 ============================
 
-+ Make a new `git`_ branch for fixing this issue, check it out, and let my
-  GitHub account know about this branch::
++ Make a new `git`_ branch for fixing this issue and switch to the branch::
 
-    git checkout astropy/master -b fix-1761 # branch based on latest from GitHub
-                                            # and switch to this branch
-    git push your-user-name fix-1761        # tell my GitHub acct about it
+    git checkout astropy/master -b fix-1761
 
 + Make a Python environment just for this fix and switch to that environment.
   The example below shows the necessary steps in the Miniconda/Anaconda Python
@@ -70,7 +67,7 @@ Set up an isolated workspace
 
 + Install our branch in this environment with::
 
-    pip install -e .
+    pip install -e .[test]
 
 Do you really have to set up a separate Python environment for each fix? No,
 but you definitely want to have a Python environment for your work on code
@@ -96,20 +93,19 @@ The first challenge is figuring out where to look for relevant tests. `Issue
 it are in ``astropy/coordinates/tests``. The rest of ``astropy`` has a similar
 layout, as described at :ref:`testing-guidelines`.
 
-Change to that directory and run the current tests with::
+Run the current tests in that directory with::
 
-    cd astropy/coordinates/tests
-    pytest
+    pytest astropy/coordinates/tests
 
 If the bug you are working on involves remote data access, you need to run
-the tests with an extra flag, i.e., ``pytest --remote-data``.
+the tests with an extra flag, i.e., ``pytest ... --remote-data``.
 
 In the event where all the tests passed with the bug present, new tests are
 needed to expose this bug.
 
-A subpackage organize its tests into multiple test modules; e.g.::
+A subpackage organizes its tests into multiple test modules; e.g.::
 
-    $ ls
+    $ ls astropy/coordinates/tests
     test_angles.py
     test_angular_separation.py
     test_api_ape5.py
@@ -126,7 +122,7 @@ in an automated way, whether our fix actually works and to prevent
 regression (i.e., make sure future changes to code do not break our fix).
 
 Looking over the existing code in ``test_arrays.py``, each test is a function
-whose name starts with ``test_``. An appropriate place to add the test is
+with a name that starts with ``test_``. An appropriate place to add the test is
 after the last test function in the file.
 
 Give the test a reasonably clear name; e.g., ``test_array_len``. The
@@ -136,7 +132,7 @@ is to look at other tests. The full test is in the traceback below and in
 
 Write the test, then see if it works as expected; remember, in this case we
 expect it to *fail* without the patch from `pull request 1917`_.
-Running ``pytest test_arrays.py`` would give the expected failure;
+Running ``pytest astropy/coordinates/tests/test_arrays.py`` would give the expected failure;
 an excerpt from the output is::
 
     ================= FAILURES =============================
@@ -154,7 +150,7 @@ an excerpt from the output is::
     >       assert len(c) == input_length
     E       TypeError: object of type 'ICRS' has no len()
 
-    test_arrays.py:291: TypeError
+    astropy/coordinates/tests/test_arrays.py:291: TypeError
 
 Success!
 
@@ -181,13 +177,13 @@ We can see what has changed with ``git status``::
       (use "git add <file>..." to update what will be committed)
       (use "git checkout -- <file>..." to discard changes in working directory)
 
-        modified:   test_arrays.py
+        modified:   astropy/coordinates/tests/test_arrays.py
 
     no changes added to commit (use "git add" and/or "git commit -a")
 
 There are two bits of information here:
 
-+ one file changed; i.e., ``test_arrays.py``
++ one file changed; i.e., ``astropy/coordinates/tests/test_arrays.py``
 + this file has not been added to git's staging area yet, so it is listed
   under ``Changes not staged for commit``.
 
@@ -240,7 +236,7 @@ staged, commit the changes as one commit.
 
 In this case, first stage the change::
 
-    git add test_arrays.py
+    git add astropy/coordinates/tests/test_arrays.py
 
 You get no notice at the command line that anything has changed, but
 ``git status`` will let you know::
@@ -252,7 +248,7 @@ You get no notice at the command line that anything has changed, but
     Changes to be committed:
       (use "git reset HEAD <file>..." to unstage)
 
-        modified:   test_arrays.py
+        modified:   astropy/coordinates/tests/test_arrays.py
 
 Note that `git`_ helpfully includes the command necessary to unstage the
 change if you want to.
@@ -305,13 +301,13 @@ Test your change
 There are a few levels at which you want to test:
 
 + Does this code change make the test we wrote succeed now? Check
-  by running ``pytest tests/test_arrays.py`` in the ``coordinates``
-  directory. In this case, yes!
-+ Do the rest of the coordinate tests still pass? Check by running ``pytest``
-  in the ``coordinates`` directory. In this case, yes, we have not broken
+  by running ``pytest astropy/coordinates/tests/test_arrays.py``.
+  In this case, yes!
++ Do the rest of the coordinate tests still pass? Check by running
+  ``pytest astropy/coordinates/``. In this case, yes, we have not broken
   anything!
-+ Do all of the astropy tests still succeed? Check by moving to the top level
-  directory (the one that contains ``setup.py``) and run ``pytest``.
++ Do all of the astropy tests still succeed? Check by running ``pytest``
+  from the top-level directory.
   This may take a while depending on the speed of your system.
   Success again!
 
@@ -372,15 +368,7 @@ If the commit message does not look right, run ``git commit --amend``.
 If you still run into problems, please ask about fixing it at
 `astropy-dev mailing list`_.
 
-Push your changes to your GitHub fork of astropy
-================================================
-
-Use this command to push your local changes out to your copy of ``astropy``
-on GitHub::
-
-    git push your-user-name fix-1761
-
-At this point none of the Astropy maintainers know anything about
+At this point, none of the Astropy maintainers know anything about
 your changes.
 
 We will take care of that in a moment with a "pull request", but first,
@@ -403,14 +391,10 @@ Both of these are mentioned in `pull request 1917`_, so it does not hurt to chec
 them. In this case, they also provide an opportunity to illustrate a feature
 of the `pytest`_ framework.
 
-We will move back to the directory containing the tests with
-``cd astropy/coordinates/tests`` to make it a bit easier to run just the test
-desired.
-
 The second case is easier, so it will be handled first following the
 development cycle we used above:
 
-+ Make the change in ``test_arrays.py``
++ Make the change in ``astropy/coordinates/tests/test_arrays.py``
 + Test the change
 
 The test passed; but rather than committing this one change, we will also
@@ -529,11 +513,11 @@ You can use ``git status`` as above or jump right to staging and committing::
     git add CHANGES.rst
     git commit -m "Add changelog entry for 1761"
 
-Push your changes to GitHub
-===========================
+Push your changes to your GitHub fork of astropy
+================================================
 
-One last push to GitHub with these changes before asking for the changes to
-be reviewed::
+Use this command to push your local changes out to your copy of ``astropy``
+on GitHub before asking for the changes to be reviewed::
 
     git push your-user-name fix-1761
 
