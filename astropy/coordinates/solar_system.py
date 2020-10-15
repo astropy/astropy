@@ -517,6 +517,8 @@ The use of _apparent_position_in_true_coordinates is deprecated because
 astropy now implements a True Equator True Equinox Frame (TETE), which
 should be used instead.
 """
+
+
 @deprecated('4.2', deprecation_msg)
 def _apparent_position_in_true_coordinates(skycoord):
     """
