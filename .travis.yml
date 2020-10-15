@@ -131,9 +131,9 @@ matrix:
         # Try on Windows
         - os: windows
           stage: Final tests
-          name: Python 3.7 with all optional dependencies
-          env: PYTHON_VERSION=3.7
-               TOXENV='py37-test-alldeps'
+          name: Python 3.8 with all optional dependencies
+          env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+               TOXENV='py38-test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
         - language: python
@@ -222,6 +222,11 @@ matrix:
 
 before_install:
 
+    - if [[ $TRAVIS_OS_NAME == windows ]]; then
+        choco install --no-progress python --version 3.8;
+        python -m pip install --upgrade pip;
+      fi
+
     # We need to use CCOMPILER otherwise Travis overwrites CC if we define it
     # in env: above.
     - if [ ! -z $CCOMPILER ]; then
@@ -245,9 +250,10 @@ before_install:
     - echo "TOXPOSARGS="$TOXPOSARGS
 
 install:
-    # language: python is only available for Linux, so for other platforms
+    # language: python is only available for Linux, so for OSX
     # we need to use ci-helpers to set up Python.
-    - if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
+    # For Windows, we use choco above.
+    - if [[ $TRAVIS_OS_NAME == osx ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
         source ci-helpers/travis/setup_conda.sh;
       fi
