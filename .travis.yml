@@ -228,7 +228,7 @@ matrix:
 before_install:
 
     - if [[ $TRAVIS_OS_NAME == windows ]]; then
-        choco install python --version 3.8;
+        choco install --no-progress python --version 3.8;
         python -m pip install --upgrade pip;
       fi
 
