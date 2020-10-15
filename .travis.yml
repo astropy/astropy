@@ -1,6 +1,5 @@
-# We set the language to c because python isn't supported on the MacOS X nodes
-# on Travis. However, the language ends up being irrelevant anyway, since we
-# install Python ourselves using conda.
+# We set the language to c because python isn't supported on the MacOS X and Windows nodes
+# on Travis. However, the language ends up being irrelevant anyway.
 language: c
 
 compiler: gcc
@@ -92,7 +91,6 @@ matrix:
           env: PYTHON_VERSION=3.7
                TOXENV="py37-test-alldeps"
                TOXPOSARGS="--remote-data=astropy"
-               CONDA_DEPENDENCIES="clang"
                CCOMPILER=clang
 
         # Try all python versions and Numpy versions. Since we can assume that
@@ -135,7 +133,7 @@ matrix:
         - os: windows
           stage: Final tests
           name: Python 3.8 with all optional dependencies
-          env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+          env: PYTHON_VERSION=3.8
                TOXENV='py38-test-alldeps'
 
         # Do a PEP8/pyflakes test with flake8
@@ -227,11 +225,6 @@ matrix:
 
 before_install:
 
-    - if [[ $TRAVIS_OS_NAME == windows ]]; then
-        choco install --no-progress python --version 3.8;
-        python -m pip install --upgrade pip;
-      fi
-
     # We need to use CCOMPILER otherwise Travis overwrites CC if we define it
     # in env: above.
     - if [ ! -z $CCOMPILER ]; then
@@ -252,10 +245,9 @@ before_install:
 install:
     # language: python is only available for Linux, so for OSX
     # we need to use ci-helpers to set up Python.
-    # For Windows, we use choco above.
-    - if [[ $TRAVIS_OS_NAME == osx ]]; then
+    - if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
-        source ci-helpers/travis/setup_conda.sh;
+        source ci-helpers/travis/setup_python.sh;
       fi
     # For APT key updates, see https://ftp-master.debian.org/keys.html
     - if [ $SETUP_METHOD == 'apt' ]; then
