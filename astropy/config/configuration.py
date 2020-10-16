@@ -10,7 +10,6 @@ configuration files for Astropy and affiliated packages.
 """
 
 import io
-import re
 import pathlib
 import pkgutil
 import warnings
@@ -24,14 +23,13 @@ from contextlib import contextmanager
 from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
-from astropy.utils.introspection import resolve_name
 from astropy.utils.compat.context import nullcontext
 
 from .paths import get_config_dir
 
-__all__ = ['InvalidConfigurationItemWarning', 'get_config',
+__all__ = ('InvalidConfigurationItemWarning', 'get_config',
            'reload_config', 'ConfigNamespace', 'ConfigItem',
-           'generate_config']
+           'generate_config', 'create_config_file')
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -701,102 +699,59 @@ def is_unedited_config_file(content, template_content=None):
     return not any(len(v) > 0 for v in raw_cfg.values())
 
 
-# this is not in __all__ because it's not intended that a user uses it
-def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='astropy'):
+def create_config_file(pkg, rootname='astropy', force=False):
     """
-    Checks if the configuration file for the specified package exists,
-    and if not, copy over the default configuration.  If the
-    configuration file looks like it has already been edited, we do
-    not write over it, but instead write a file alongside it named
-    ``pkg.version.cfg`` as a "template" for the user.
+    Create the default configuration file for the specified package.
+    If the file already exists, it is updated only if it has not been
+    modified.  Otherwise the ``force`` flag is needed to overwrite it.
 
     Parameters
     ----------
     pkg : str
         The package to be updated.
-    default_cfg_dir_or_fn : str
-        The filename or directory name where the default configuration file is.
-        If a directory name, ``'pkg.cfg'`` will be used in that directory.
-    version : str, optional
-        The current version of the given package.  If not provided, it will
-        be obtained from ``pkg.__version__``.
     rootname : str
         Name of the root configuration directory.
+    force : bool
+        Force updating the file if it already exists.
 
     Returns
     -------
     updated : bool
         If the profile was updated, `True`, otherwise `False`.
 
-    Raises
-    ------
-    AttributeError
-        If the version number of the package could not determined.
-
     """
 
-    if path.isdir(default_cfg_dir_or_fn):
-        default_cfgfn = path.join(default_cfg_dir_or_fn, pkg + '.cfg')
-    else:
-        default_cfgfn = default_cfg_dir_or_fn
-
-    if not path.isfile(default_cfgfn):
-        # There is no template configuration file, which basically
-        # means the affiliated package is not using the configuration
-        # system, so just return.
-        return False
+    # local import to prevent using the logger before it is configured
+    from astropy.logger import log
 
     cfgfn = get_config(pkg, rootname=rootname).filename
 
-    with open(default_cfgfn, 'rt', encoding='latin-1') as fr:
-        template_content = fr.read()
+    template_content = io.StringIO()
+    generate_config(pkg, template_content)
+    template_content.seek(0)
+    template_content = template_content.read()
 
-    doupdate = False
-    if cfgfn is not None:
-        if path.exists(cfgfn):
-            with open(cfgfn, 'rt', encoding='latin-1') as fd:
-                content = fd.read()
+    doupdate = True
 
-            identical = (content == template_content)
+    if cfgfn is not None and path.exists(cfgfn):
+        with open(cfgfn, 'rt', encoding='latin-1') as fd:
+            content = fd.read()
 
-            if not identical:
-                doupdate = is_unedited_config_file(
-                    content, template_content)
-        elif path.exists(path.dirname(cfgfn)):
-            doupdate = True
-            identical = False
+        identical = (content == template_content)
 
-    if version is None:
-        version = resolve_name(pkg, '__version__')
+        if not identical:
+            doupdate = is_unedited_config_file(
+                content, template_content)
 
-    # Don't install template files for dev versions, or we'll end up
-    # spamming `~/.astropy/config`.
-    if version and 'dev' not in version and cfgfn is not None:
-        template_path = path.join(
-            get_config_dir(rootname=rootname), f'{pkg}.{version}.cfg')
-        needs_template = not path.exists(template_path)
-    else:
-        needs_template = False
-
-    if doupdate or needs_template:
-        if needs_template:
-            with open(template_path, 'wt', encoding='latin-1') as fw:
-                fw.write(template_content)
-            # If we just installed a new template file and we can't
-            # update the main configuration file because it has user
-            # changes, display a warning.
-            if not identical and not doupdate:
-                warn(
-                    "The configuration options in {} {} may have changed, "
-                    "your configuration file was not updated in order to "
-                    "preserve local changes.  A new configuration template "
-                    "has been saved to '{}'.".format(
-                        pkg, version, template_path),
-                    ConfigurationChangedWarning)
-
-        if doupdate and not identical:
-            with open(cfgfn, 'wt', encoding='latin-1') as fw:
-                fw.write(template_content)
-            return True
+    if doupdate or force:
+        with open(cfgfn, 'wt', encoding='latin-1') as fw:
+            fw.write(template_content)
+        log.info('The configuration file has been successfully written '
+                 f'to {cfgfn}')
+        return True
+    elif not doupdate:
+        log.warning('The configuration file already exists and seems to '
+                    'have been customized, so it has not been updated. '
+                    'Use force=True if you really want to update it.')
 
     return False
