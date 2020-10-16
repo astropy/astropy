@@ -274,6 +274,22 @@ Support for ASDF serialization of models
 All models (excluding model sets) can be written to an ASDF file. Constraints
 of type ``fixed`` and ``bounds`` can also be serialized.
 
+
+.. _whatsnew-4.1-light-defelction-fix:
+
+Realistic treatment of solar light deflection for nearby objects
+================================================================
+
+The machinery underlying the `astropy.coordinates` transformations was updated
+to correct an issue where coordinates were always assumed to be at infinite
+distance when computing the effect of light deflection by the sun.  With this
+change, light deflection by the Sun is accurate also for solar system objects.
+Even for those, the results will change only slightly (by 3 arcsec in the
+worst case).
+
+For more context and discussion on this topic see
+`Github issue #10666 <https://github.com/astropy/astropy/pull/10666>`_.
+
 Full change log
 ===============
 
