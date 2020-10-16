@@ -228,7 +228,8 @@ cdef class CParser:
         # https://github.com/astropy/astropy/issues/8858 for more details.
         if parallel:
             warnings.warn('parallel reading does not currently work, '
-                          'so falling back to serial reading', AstropyWarning)
+                          'so falling back to serial reading (see '
+                          'https://github.com/astropy/astropy/issues/8858 for more details)', AstropyWarning)
             parallel = False
 
         if fast_reader:
