@@ -627,6 +627,87 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fix a bug where for light deflection by the Sun it was always assumed that the
+  source was at infinite distance, which in the (rare and) absolute worst-case
+  scenario could lead to errors up to 3 arcsec. [#10666]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- For FIELDs with datatype="char", store the values as strings instead
+  of bytes. [#9505]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
 - WCS objects with a spectral axis will now return ``SpectralCoord``
   objects when calling ``pixel_to_world`` instead of ``Quantity``
   (note that ``SpectralCoord`` is a sub-class of ``Quantity``). [#10185]
@@ -684,10 +765,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Fix a bug where for light deflection by the Sun it was always assumed that the
-  source was at infinite distance, which in the (rare and) absolute worst-case
-  scenario could lead to errors up to 3 arcsec. [#10666]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
