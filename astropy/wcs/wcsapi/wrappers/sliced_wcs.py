@@ -153,7 +153,6 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
             raise ValueError("Cannot slice WCS: the resulting WCS should have "
                              "at least one pixel and one world dimension.")
 
-
     @lazyproperty
     def dropped_world_dimensions(self):
         """
@@ -226,7 +225,6 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
 
         pixel_arrays_new = np.broadcast_arrays(*pixel_arrays_new)
         return self._wcs.pixel_to_world_values(*pixel_arrays_new)
-
 
     def pixel_to_world_values(self, *pixel_arrays):
         world_arrays = self._pixel_to_world_values_all(*pixel_arrays)

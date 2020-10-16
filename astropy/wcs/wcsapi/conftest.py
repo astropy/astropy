@@ -75,7 +75,6 @@ def cube_4d_fitswcs():
     return wcs
 
 
-
 class Spectral1DLowLevelWCS(BaseLowLevelWCS):
 
     @property
