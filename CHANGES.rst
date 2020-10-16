@@ -825,6 +825,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Fix a bug where for light deflection by the Sun it was always assumed that the
+  source was at infinite distance, which in the (rare and) absolute worst-case
+  scenario could lead to errors up to 3 arcsec. [#10666]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -939,10 +943,6 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
-
-- Fix a bug where for light deflection by the Sun it was always assumed that the
-  source was at infinite distance, which in the (rare and) absolute worst-case
-  scenario could lead to errors up to 3 arcsec. [#10666]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
