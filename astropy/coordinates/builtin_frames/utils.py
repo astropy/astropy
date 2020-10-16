@@ -14,7 +14,6 @@ from astropy import _erfa as erfa
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
-from ..representation import CartesianRepresentation
 
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
@@ -154,15 +153,12 @@ def get_cip(jd1, jd2):
     return x, y, s
 
 
-def aticq(srepr, astrom):
+def aticq(ri, di, astrom):
     """
     A slightly modified version of the ERFA function ``eraAticq``.
 
     ``eraAticq`` performs the transformations between two coordinate systems,
     with the details of the transformation being encoded into the ``astrom`` array.
-
-    There are two issues with the version of aticq in ERFA. Both are associated
-    with the handling of light deflection.
 
     The companion function ``eraAtciqz`` is meant to be its inverse. However, this
     is not true for directions close to the Solar centre, since the light deflection
@@ -173,30 +169,22 @@ def aticq(srepr, astrom):
     same approach used by the ERFA functions above, except that they use a threshold of
     9 arcseconds.
 
-    In addition, ERFA's aticq assumes a distant source, so there is no difference between
-    the object-Sun vector and the observer-Sun vector. This can lead to errors of up to a
-    few arcseconds in the worst case (e.g a Venus transit).
-
     Parameters
     ----------
-    srepr : `~astropy.coordinates.SphericalRepresentation`
-        Astrometric GCRS or CIRS position of object from observer
+    ri : float or `~numpy.ndarray`
+        right ascension, radians
+    di : float or `~numpy.ndarray`
+        declination, radians
     astrom : eraASTROM array
         ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
 
     Returns
     --------
     rc : float or `~numpy.ndarray`
-        Right Ascension in radians
     dc : float or `~numpy.ndarray`
-        Declination in radians
     """
-    # ignore parallax effects if no distance, or far away
-    srepr_distance = srepr.distance
-    ignore_distance = srepr_distance.unit == u.one
-
     # RA, Dec to cartesian unit vectors
-    pos = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
+    pos = erfa.s2c(ri, di)
 
     # Bias-precession-nutation, giving GCRS proper direction.
     ppr = erfa.trxp(astrom['bpn'], pos)
@@ -213,24 +201,7 @@ def aticq(srepr, astrom):
     d = np.zeros_like(pnat)
     for j in range(5):
         before = norm(pnat-d)
-        if ignore_distance:
-            # No distance to object, assume a long way away
-            q = before
-        else:
-            # Find BCRS direction of Sun to object.
-            # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
-            # and distance, respectively.
-            eh = astrom['em'][..., np.newaxis] * astrom['eh']
-            # unit vector from Sun to object
-            q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * before
-            sundist = np.linalg.norm(q, axis=-1, keepdims=True)
-            q /= sundist
-            # calculation above is extremely unstable very close to the sun
-            # in these situations, default back to ldsun-style behaviour,
-            # since this is reversible and drops to zero within stellar limb
-            q = np.where(sundist > 1.0e-10, q, before)
-
-        after = erfa.ld(1.0, before, q, astrom['eh'], astrom['em'], 1e-6)
+        after = erfa.ld(1.0, before, before, astrom['eh'], astrom['em'], 5e-8)
         d = after - before
     pco = norm(pnat-d)
 
@@ -239,15 +210,12 @@ def aticq(srepr, astrom):
     return erfa.anp(rc), dc
 
 
-def atciqz(srepr, astrom):
+def atciqz(rc, dc, astrom):
     """
     A slightly modified version of the ERFA function ``eraAtciqz``.
 
     ``eraAtciqz`` performs the transformations between two coordinate systems,
     with the details of the transformation being encoded into the ``astrom`` array.
-
-    There are two issues with the version of atciqz in ERFA. Both are associated
-    with the handling of light deflection.
 
     The companion function ``eraAticq`` is meant to be its inverse. However, this
     is not true for directions close to the Solar centre, since the light deflection
@@ -258,51 +226,25 @@ def atciqz(srepr, astrom):
     same approach used by the ERFA functions above, except that they use a threshold of
     9 arcseconds.
 
-    In addition, ERFA's atciqz assumes a distant source, so there is no difference between
-    the object-Sun vector and the observer-Sun vector. This can lead to errors of up to a
-    few arcseconds in the worst case (e.g a Venus transit).
-
     Parameters
     ----------
-    srepr : `~astropy.coordinates.SphericalRepresentation`
-        Astrometric ICRS position of object from observer
+    rc : float or `~numpy.ndarray`
+        right ascension, radians
+    dc : float or `~numpy.ndarray`
+        declination, radians
     astrom : eraASTROM array
         ERFA astrometry context, as produced by, e.g. ``eraApci13`` or ``eraApcs13``
 
     Returns
     --------
     ri : float or `~numpy.ndarray`
-        Right Ascension in radians
     di : float or `~numpy.ndarray`
-        Declination in radians
     """
-    # ignore parallax effects if no distance, or far away
-    srepr_distance = srepr.distance
-    ignore_distance = srepr_distance.unit == u.one
-
     # BCRS coordinate direction (unit vector).
-    pco = erfa.s2c(srepr.lon.radian, srepr.lat.radian)
-
-    # Find BCRS direction of Sun to object
-    if ignore_distance:
-        # No distance to object, assume a long way away
-        q = pco
-    else:
-        # Find BCRS direction of Sun to object.
-        # astrom['eh'] and astrom['em'] contain Sun to observer unit vector,
-        # and distance, respectively.
-        eh = astrom['em'][..., np.newaxis] * astrom['eh']
-        # unit vector from Sun to object
-        q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * pco
-        sundist = np.linalg.norm(q, axis=-1, keepdims=True)
-        q /= sundist
-        # calculation above is extremely unstable very close to the sun
-        # in these situations, default back to ldsun-style behaviour,
-        # since this is reversible and drops to zero within stellar limb
-        q = np.where(sundist > 1.0e-10, q, pco)
+    pco = erfa.s2c(rc, dc)
 
     # Light deflection by the Sun, giving BCRS natural direction.
-    pnat = erfa.ld(1.0, pco, q, astrom['eh'], astrom['em'], 1e-6)
+    pnat = erfa.ld(1.0, pco, pco, astrom['eh'], astrom['em'], 5e-8)
 
     # Aberration, giving GCRS proper direction.
     ppr = erfa.ab(pnat, astrom['v'], astrom['em'], astrom['bm1'])
