@@ -620,7 +620,7 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
                           width=78)
 
     if filename is None:
-        filename = get_config(pkgname).filename
+        filename = get_config_filename(package)
 
     with contextlib.ExitStack() as stack:
         if isinstance(filename, (str, pathlib.Path)):
@@ -724,8 +724,9 @@ def create_config_file(pkg, rootname='astropy', force=False):
     # local import to prevent using the logger before it is configured
     from astropy.logger import log
 
-    cfgfn = get_config(pkg, rootname=rootname).filename
+    cfgfn = get_config_filename(pkg, rootname=rootname)
 
+    # generate the default config template
     template_content = io.StringIO()
     generate_config(pkg, template_content)
     template_content.seek(0)
@@ -733,6 +734,7 @@ def create_config_file(pkg, rootname='astropy', force=False):
 
     doupdate = True
 
+    # if the file already exists, check that it has not been modified
     if cfgfn is not None and path.exists(cfgfn):
         with open(cfgfn, 'rt', encoding='latin-1') as fd:
             content = fd.read()
