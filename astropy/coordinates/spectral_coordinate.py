@@ -656,7 +656,8 @@ class SpectralCoord(SpectralQuantity):
         -------
         `SpectralCoord`
             New spectral coordinate with the target/observer velocity changed
-            to incorporate the shift.
+            to incorporate the shift. This is always a new object even if
+            ``target_shift`` and ``observer_shift`` are both `None`.
         """
 
         if observer_shift is not None and (self.target is None or
