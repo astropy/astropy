@@ -233,8 +233,8 @@ def aticq(srepr, astrom):
             eh = astrom['em'][..., np.newaxis] * astrom['eh']
             # unit vector from Sun to object
             q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * before
-            sundist = np.linalg.norm(q, axis=-1, keepdims=True)
-            q /= sundist
+            sundist, q = erfa.pn(q)
+            sundist = sundist[..., np.newaxis]
             # calculation above is extremely unstable very close to the sun
             # in these situations, default back to ldsun-style behaviour,
             # since this is reversible and drops to zero within stellar limb
@@ -304,8 +304,8 @@ def atciqz(srepr, astrom):
         eh = astrom['em'][..., np.newaxis] * astrom['eh']
         # unit vector from Sun to object
         q = eh + srepr_distance[..., np.newaxis].to_value(u.au) * pco
-        sundist = np.linalg.norm(q, axis=-1, keepdims=True)
-        q /= sundist
+        sundist, q = erfa.pn(q)
+        sundist = sundist[..., np.newaxis]
         # calculation above is extremely unstable very close to the sun
         # in these situations, default back to ldsun-style behaviour,
         # since this is reversible and drops to zero within stellar limb
