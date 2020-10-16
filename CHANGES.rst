@@ -39,6 +39,7 @@ astropy.coordinates
 
 - Avoid an unnecessary call to ``erfa.epv00`` in transformations between
   ``CIRS`` and ``ICRS``, improving performance by 50 %. [#10814]
+
 - A new equatorial coordinate frame, with RA and Dec measured w.r.t to the True
   Equator and Equinox (TETE). This frame is commonly known as "apparent place"
   and is the correct frame for coordinates returned from JPL Horizons. [#10867]
