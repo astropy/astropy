@@ -9,7 +9,7 @@ from astropy.coordinates.representation import UnitSphericalRepresentation
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 
 
-__all__ = ['SphericalCircle', 'WarpableRectangle']
+__all__ = ['Quadrangle', 'SphericalCircle']
 
 
 def _rotate_polygon(lon, lat, lon0, lat0):
@@ -90,13 +90,17 @@ class SphericalCircle(Polygon):
         super().__init__(vertices, **kwargs)
 
 
-class WarpableRectangle(Polygon):
+class Quadrangle(Polygon):
     """
-    Create a rectangular patch that can be visually warped.  This functions
-    similarly to `matplotlib.patches.Rectangle` except that:
-    * Each of the edges of the rectangle has a large number of vertices so that
-      it will render as a curved line if appropriate for the WCS transformation.
-    * It accepts `~astropy.units.Quantity` inputs.
+    Create a patch representing a latitude-longitude quadrangle.
+
+    The edges of the quadrangle lie on two lines of constant longitude and two
+    lines of constant latitude (or the equivalent component names in the
+    coordinate frame of interest, such as right ascension and declination).
+    Note that lines of constant latitude are not great circles.
+
+    Unlike `matplotlib.patches.Rectangle`, the edges of this patch will render
+    as curved lines if appropriate for the WCS transformation.
 
     Parameters
     ----------
@@ -104,12 +108,12 @@ class WarpableRectangle(Polygon):
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
         a single `~astropy.units.Quantity` array with two elements.
     width : `~astropy.units.Quantity`
-        The width of the rectangle (e.g., longitude or right ascension)
+        The width of the quadrangle in longitude (or, e.g., right ascension)
     height : `~astropy.units.Quantity`
-        The height of the rectangle (e.g., latitude or declination)
+        The height of the quadrangle in latitude (or, e.g., declination)
     resolution : int, optional
-        The number of points that make up each side of the rectangle -
-        increase this to get a smoother rectangle.
+        The number of points that make up each side of the quadrangle -
+        increase this to get a smoother quadrangle.
     vertex_unit : `~astropy.units.Unit`
         The units in which the resulting polygon should be defined - this
         should match the unit that the transformation (e.g. the WCS
@@ -126,7 +130,7 @@ class WarpableRectangle(Polygon):
         # a single 2-element Quantity.
         longitude, latitude = u.Quantity(anchor).to_value(vertex_unit)
 
-        # Convert the rectangle dimensions to the appropriate units
+        # Convert the quadrangle dimensions to the appropriate units
         width = width.to_value(vertex_unit)
         height = height.to_value(vertex_unit)
 
@@ -134,7 +138,7 @@ class WarpableRectangle(Polygon):
         lon_seq = longitude + np.linspace(0, width, resolution + 1)
         lat_seq = latitude + np.linspace(0, height, resolution + 1)
 
-        # Trace the path of the rectangle
+        # Trace the path of the quadrangle
         lon = np.concatenate([lon_seq[:-1],
                               np.repeat(lon_seq[-1], resolution),
                               np.flip(lon_seq[1:]),
