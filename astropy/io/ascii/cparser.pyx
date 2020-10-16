@@ -224,7 +224,8 @@ cdef class CParser:
         # warning. We keep the parallel code below so that it can be fixed in
         # future, but if it cannot be fixed we should remove the parallel code
         # and deprecate the option itself. For now the warning is not a
-        # deprecation warning since we may still fix it in future.
+        # deprecation warning since we may still fix it in future. See
+        # https://github.com/astropy/astropy/issues/8858 for more details.
         if parallel:
             warnings.warn('parallel reading does not currently work, '
                           'so falling back to serial reading', AstropyWarning)
