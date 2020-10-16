@@ -31,26 +31,51 @@ class Angle(u.SpecificTypeQuantity):
     below), string, `~astropy.units.Quantity` or another
     :class:`~astropy.coordinates.Angle`.
 
-    The input parser is flexible and supports a variety of formats::
+    The input parser is flexible and supports a variety of formats.
+    The examples below illustrate common ways of initializing an `Angle`
+    object. First some imports::
 
-      Angle('10.2345d')
-      Angle(['10.2345d', '-20d'])
-      Angle('1:2:30.43 degrees')
-      Angle('1 2 0 hours')
-      Angle(np.arange(1, 8), unit=u.deg)
-      Angle('1°2′3″')
-      Angle('1°2′3″N')
-      Angle('1d2m3.4s')
-      Angle('1d2m3.4sS')
-      Angle('-1h2m3s')
-      Angle('-1h2m3sE')
-      Angle('-1h2.5m')
-      Angle('-1h2.5mW')
-      Angle('-1:2.5', unit=u.deg)
-      Angle((10, 11, 12), unit='hourangle')  # (h, m, s)
-      Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
-      Angle(10.2345 * u.deg)
-      Angle(Angle(10.2345 * u.deg))
+      >>> from . import angle_utilities as util
+      >>> from astropy import units as u
+
+    The angle values can now be provided::
+
+      >>> Angle('10.2345d')
+      <Angle 10.2345 deg>
+      >>> Angle(['10.2345d', '-20d'])
+      <Angle [ 10.2345, -20.    ] deg>
+      >>> Angle('1:2:30.43 degrees')
+      <Angle 1.04178611 deg>
+      >>> Angle('1 2 0 hours')
+      <Angle 1.03333333 hourangle>
+      >>> Angle(np.arange(1, 8), unit=u.deg)
+      <Angle [1., 2., 3., 4., 5., 6., 7.] deg>
+      >>> Angle('1°2′3″')
+      <Angle 1.03416667 deg>
+      >>> Angle('1°2′3″N')
+      <Angle 1.03416667 deg>
+      >>> Angle('1d2m3.4s')
+      <Angle 1.03427778 deg>
+      >>> Angle('1d2m3.4sS')
+      <Angle -1.03427778 deg>
+      >>> Angle('-1h2m3s')
+      <Angle -1.03416667 hourangle>
+      >>> Angle('-1h2m3sE')
+      <Angle -1.03416667 hourangle>
+      >>> Angle('-1h2.5m')
+      <Angle -1.04166667 hourangle>
+      >>> Angle('-1h2.5mW')
+      <Angle 1.04166667 hourangle>
+      >>> Angle('-1:2.5', unit=u.deg)
+      <Angle -1.04166667 deg>
+      >>> Angle((10, 11, 12), unit='hourangle')  # (h, m, s)
+      <Angle 10.18666667 hourangle>
+      >>> Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
+      <Angle -1.03416667 deg>
+      >>> Angle(10.2345 * u.deg)
+      <Angle 10.2345 deg>
+      >>> Angle(Angle(10.2345 * u.deg))
+      <Angle 10.2345 deg>
 
     Parameters
     ----------
