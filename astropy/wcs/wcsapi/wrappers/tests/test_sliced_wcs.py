@@ -15,6 +15,8 @@ from astropy.wcs.wcsapi.wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_s
 from astropy.wcs.wcsapi.utils import wcs_info_str
 import astropy.units as u
 
+from astropy.coordinates.spectral_coordinate import SpectralCoord
+
 # To test the slicing we start off from standard FITS WCS
 # objects since those implement the low-level API. We create
 # a WCS for a spectral cube with axes in non-standard order
@@ -781,26 +783,30 @@ def test_dropped_dimensions():
 
     sub = SlicedLowLevelWCS(wcs, np.s_[:, 0])
 
+    waocomp =sub.dropped_world_dimensions.pop("world_axis_object_components")
+    assert len(waocomp) == 1 and waocomp[0][0] == "spectral" and waocomp[0][1] == 0
+    waocls = sub.dropped_world_dimensions.pop("world_axis_object_classes")
+    assert len(waocls) == 1 and "spectral" in waocls and waocls["spectral"][0] == u.Quantity
     validate_info_dict(sub.dropped_world_dimensions, {
         "value": [0.5],
         "world_axis_physical_types": ["em.freq"],
         "world_axis_names": ["Frequency"],
         "world_axis_units": ["Hz"],
         "serialized_classes": False,
-        "world_axis_object_components": [('freq', 0, 'value')],
-        "world_axis_object_classes": {'freq': (u.Quantity, (), {'unit': u.Hz})}
         })
 
     sub = SlicedLowLevelWCS(wcs, np.s_[:, 0, 0])
 
+    waocomp =sub.dropped_world_dimensions.pop("world_axis_object_components")
+    assert len(waocomp) == 1 and waocomp[0][0] == "spectral" and waocomp[0][1] == 0
+    waocls = sub.dropped_world_dimensions.pop("world_axis_object_classes")
+    assert len(waocls) == 1 and "spectral" in waocls and waocls["spectral"][0] == u.Quantity
     validate_info_dict(sub.dropped_world_dimensions, {
         "value": [0.5],
         "world_axis_physical_types": ["em.freq"],
         "world_axis_names": ["Frequency"],
         "world_axis_units": ["Hz"],
         "serialized_classes": False,
-        "world_axis_object_components": [('freq', 0, 'value')],
-        "world_axis_object_classes": {'freq': (u.Quantity, (), {'unit': u.Hz})}
         })
 
     sub = SlicedLowLevelWCS(wcs, np.s_[0, :, 0])
@@ -846,22 +852,25 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
 
     dwd = sub.dropped_world_dimensions
     wao_classes = dwd.pop("world_axis_object_classes")
+    wao_components = dwd.pop("world_axis_object_components")
+
     validate_info_dict(dwd, {
         "value": [ 4.e+00, -2.e+00,  1.e+10],
         "world_axis_physical_types": ["pos.eq.ra", "pos.eq.dec", "em.freq"],
         "world_axis_names": ['Right Ascension', 'Declination', 'Frequency'],
         "world_axis_units": ["deg", "deg", "Hz"],
         "serialized_classes": False,
-        "world_axis_object_components": [('celestial', 0, 'spherical.lon.degree'),
-                                         ('celestial', 1, 'spherical.lat.degree'),
-                                         ('freq', 0, 'value')],
         })
 
     assert wao_classes['celestial'][0] is SkyCoord
     assert wao_classes['celestial'][1] == ()
     assert isinstance(wao_classes['celestial'][2]['frame'], ICRS)
     assert wao_classes['celestial'][2]['unit'] is u.deg
-    assert wao_classes['freq'] == (u.Quantity, (), {'unit': u.Hz})
+    assert wao_classes['spectral'][0:3] == (u.Quantity, (), {})
+
+    assert wao_components[0] == ('celestial', 0, 'spherical.lon.degree')
+    assert wao_components[1] == ('celestial', 1, 'spherical.lat.degree')
+    assert wao_components[2][0:2] == ('spectral', 0)
 
     sub = SlicedLowLevelWCS(cube_4d_fitswcs, np.s_[12, 12])
 
@@ -875,11 +884,9 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
         "world_axis_units": ["Hz", "s"],
         "serialized_classes": False,
         })
-    assert wao_components[0] == ('freq', 0, 'value')
+    assert wao_components[0][0:2] == ('spectral', 0)
     assert wao_components[1][0] == 'time'
     assert wao_components[1][1] == 0
 
-    assert wao_classes['freq'] == (u.Quantity, (), {'unit': u.Hz})
-    assert wao_classes['time'][0] == Time
-    assert wao_classes['time'][1] == tuple()
-    assert wao_classes['time'][2] == {}
+    assert wao_classes['spectral'][0:3] == (u.Quantity, (), {})
+    assert wao_classes['time'][0:3] == (Time, (), {})
