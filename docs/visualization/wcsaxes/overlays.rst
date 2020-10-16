@@ -111,7 +111,6 @@ For example, you can add markers with positions defined in the FK5 system using:
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
-    from matplotlib.patches import Rectangle
     import matplotlib.pyplot as plt
 
     filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
@@ -137,8 +136,8 @@ In the case of :meth:`~matplotlib.axes.Axes.scatter` and :meth:`~matplotlib.axes
 Patches/shapes/lines
 ********************
 
-Transformations can also be passed to Matplotlib patches. For example, we can
-use the :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method above to plot a rectangle
+Transformations can also be passed to Astropy or Matplotlib patches. For example, we can
+use the :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` method above to plot a quadrangle
 in FK5 equatorial coordinates:
 
 .. plot::
@@ -148,7 +147,6 @@ in FK5 equatorial coordinates:
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
-    from matplotlib.patches import Rectangle
     import matplotlib.pyplot as plt
 
     filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
@@ -165,11 +163,20 @@ in FK5 equatorial coordinates:
    :include-source:
    :align: center
 
-    r = Rectangle((266.0, -28.9), 0.3, 0.15, edgecolor='green', facecolor='none',
-                  transform=ax.get_transform('fk5'))
+    from astropy import units as u
+    from astropy.visualization.wcsaxes import Quadrangle
+
+    r = Quadrangle((266.0, -28.9)*u.deg, 0.3*u.deg, 0.15*u.deg,
+                   edgecolor='green', facecolor='none',
+                   transform=ax.get_transform('fk5'))
     ax.add_patch(r)
 
-In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -28.9deg). However, it is **very important** to note that while the height will indeed be 0.15 degrees, the width will not strictly represent 0.3 degrees on the sky, but an interval of 0.3 degrees in longitude (which, depending on the latitude, will represent a different angle on the sky). In other words, if the width and height are set to the same value, the resulting polygon will not be a square, and the same applies to the `~matplotlib.patches.Circle` patch, which will not actually produce a circle:
+In this case, the quadrangle will be plotted at FK5 J2000 coordinates (266deg, -28.9deg).
+See the `Quadrangles`_ section for more information on `~astropy.visualization.wcsaxes.Quadrangle`.
+
+However, it is **very important** to note that while the height will indeed be 0.15 degrees, the width will not strictly represent 0.3 degrees on the sky, but an interval of 0.3 degrees in longitude (which, depending on the latitude, will represent a different angle on the sky).
+In other words, if the width and height are set to the same value, the resulting polygon will not be a square.
+The same applies to the `~matplotlib.patches.Circle` patch, which will not actually produce a circle:
 
 .. plot::
    :context:
@@ -178,12 +185,13 @@ In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -2
 
     from matplotlib.patches import Circle
 
-    r = Rectangle((266.4, -28.9), 0.3, 0.3, edgecolor='cyan', facecolor='none',
-                  transform=ax.get_transform('fk5'))
+    r = Quadrangle((266.4, -28.9)*u.deg, 0.3*u.deg, 0.3*u.deg,
+                   edgecolor='cyan', facecolor='none',
+                   transform=ax.get_transform('fk5'))
     ax.add_patch(r)
 
     c = Circle((266.4, -29.1), 0.15, edgecolor='yellow', facecolor='none',
-                  transform=ax.get_transform('fk5'))
+               transform=ax.get_transform('fk5'))
     ax.add_patch(c)
 
 
@@ -197,6 +205,60 @@ In this case, the rectangle will be plotted at FK5 J2000 coordinates (266deg, -2
 
                To plot 'true' spherical circles, see the `Spherical patches`_
                section.
+
+Quadrangles
+***********
+
+`~astropy.visualization.wcsaxes.Quadrangle` is the recommended patch for plotting a quadrangle, as opposed to Matplotlib's `~matplotlib.patches.Rectangle`.
+The edges of a quadrangle lie on two lines of constant longitude and two lines of constant latitude (or the equivalent component names in the coordinate frame of interest, such as right ascension and declination).
+The edges of `~astropy.visualization.wcsaxes.Quadrangle` will render as curved lines if appropriate for the WCS transformation.
+In contrast, `~matplotlib.patches.Rectangle` will always have straight edges.
+Here's a comparison of the two types of patches for plotting a quadrangle in `~astropy.coordinates.ICRS` coordinates on `~astropy.coordinates.Galactic` axes:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    from astropy import units as u
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    from astropy.visualization.wcsaxes import Quadrangle
+    import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    from matplotlib.patches import Rectangle
+
+    # Set the Galactic axes such that the plot includes the ICRS south pole
+    ax = plt.subplot(projection=wcs)
+    ax.set_xlim(0, 10000)
+    ax.set_ylim(-10000, 0)
+
+    # Overlay the ICRS coordinate grid
+    overlay = ax.get_coords_overlay('icrs')
+    overlay.grid(color='black', ls='dotted')
+
+    # Add a quadrangle patch (100 degrees by 20 degrees)
+    q = Quadrangle((255, -70)*u.deg, 100*u.deg, 20*u.deg,
+                   label='Quadrangle', edgecolor='blue', facecolor='none',
+                   transform=ax.get_transform('icrs'))
+    ax.add_patch(q)
+
+    # Add a rectangle patch (100 degrees by 20 degrees)
+    r = Rectangle((255, -70), 100, 20,
+                  label='Rectangle', edgecolor='red', facecolor='none', linestyle='--',
+                  transform=ax.get_transform('icrs'))
+    ax.add_patch(r)
+
+    plt.legend(loc='upper right')
 
 Contours
 ********
@@ -247,7 +309,6 @@ In the case where you are making a plot of a celestial image, and want to plot a
     from astropy.wcs import WCS
     from astropy.io import fits
     from astropy.utils.data import get_pkg_data_filename
-    from matplotlib.patches import Rectangle
     import matplotlib.pyplot as plt
 
     filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
