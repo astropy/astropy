@@ -760,7 +760,6 @@ def test_1d_sliced_low_level(time_1d_wcs):
     assert np.allclose(world, [27, 29])
 
 
-
 def validate_info_dict(result, expected):
     result_value = result.pop("value")
     expected_value = expected.pop("value")
@@ -772,16 +771,13 @@ def validate_info_dict(result, expected):
 def test_dropped_dimensions():
     wcs = WCS_SPECTRAL_CUBE
 
-
     sub = SlicedLowLevelWCS(wcs, np.s_[:, :, :])
 
     assert sub.dropped_world_dimensions == {}
 
-
     sub = SlicedLowLevelWCS(wcs, np.s_[:, 2:5, :])
 
     assert sub.dropped_world_dimensions == {}
-
 
     sub = SlicedLowLevelWCS(wcs, np.s_[:, 0])
 
@@ -795,7 +791,6 @@ def test_dropped_dimensions():
         "world_axis_object_classes": {'freq': (u.Quantity, (), {'unit': u.Hz})}
         })
 
-
     sub = SlicedLowLevelWCS(wcs, np.s_[:, 0, 0])
 
     validate_info_dict(sub.dropped_world_dimensions, {
@@ -807,7 +802,6 @@ def test_dropped_dimensions():
         "world_axis_object_components": [('freq', 0, 'value')],
         "world_axis_object_classes": {'freq': (u.Quantity, (), {'unit': u.Hz})}
         })
-
 
     sub = SlicedLowLevelWCS(wcs, np.s_[0, :, 0])
 
@@ -826,7 +820,6 @@ def test_dropped_dimensions():
     assert wao_classes['celestial'][1] == ()
     assert isinstance(wao_classes['celestial'][2]['frame'], Galactic)
     assert wao_classes['celestial'][2]['unit'] is u.deg
-
 
     sub = SlicedLowLevelWCS(wcs, np.s_[5, :5, 12])
 
@@ -869,7 +862,6 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
     assert isinstance(wao_classes['celestial'][2]['frame'], ICRS)
     assert wao_classes['celestial'][2]['unit'] is u.deg
     assert wao_classes['freq'] == (u.Quantity, (), {'unit': u.Hz})
-
 
     sub = SlicedLowLevelWCS(cube_4d_fitswcs, np.s_[12, 12])
 
