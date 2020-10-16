@@ -26,6 +26,12 @@ pr:
     include:
     - 'v*'
 
+# Build Linux wheels using manylinux1 for compatibility with old versions
+# of pip and old platforms.
+variables:
+  CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
+  CIBW_MANYLINUX_I686_IMAGE: manylinux1
+
 jobs:
   - template: publish.yml@OpenAstronomy
     parameters:
