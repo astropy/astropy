@@ -121,7 +121,10 @@ See: https://github.com/astropy/astropy/issues/7582
 
 Numpy array creation functions cannot be used to initialize Quantity
 --------------------------------------------------------------------
-Trying the following example will throw an UnitConversionError::
+Trying the following example will throw an UnitConversionError
+on NumPy before version 1.20 and ignore the unit in later versions:
+
+.. doctest-requires:: numpy<1.20
 
     >>> my_quantity = u.Quantity(1, u.m)
     >>> np.full(10, my_quantity)  # doctest: +IGNORE_EXCEPTION_DETAIL
@@ -130,6 +133,7 @@ Trying the following example will throw an UnitConversionError::
     UnitConversionError: 'm' (length) and '' (dimensionless) are not convertible
 
 A workaround for this at the moment would be to do::
+
     >>> np.full(10, 1) << u.m
     <Quantity [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.] m>
 
