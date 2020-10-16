@@ -51,21 +51,6 @@ def _is_astropy_source(path=None):
     return os.path.exists(os.path.join(source_dir, '.astropy-root'))
 
 
-def _is_astropy_setup():
-    """
-    Returns whether we are currently being imported in the context of running
-    Astropy's setup.py.
-    """
-
-    main_mod = sys.modules.get('__main__')
-    if not main_mod:
-        return False
-
-    return (getattr(main_mod, '__file__', False) and
-            os.path.basename(main_mod.__file__).rstrip('co') == 'setup.py' and
-            _is_astropy_source(main_mod.__file__))
-
-
 # The location of the online documentation for astropy
 # This location will normally point to the current released version of astropy
 if 'dev' in __version__:
@@ -205,48 +190,24 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 def _initialize_astropy():
+
     from . import config
-
-    def _rollback_import(message):
-        log.error(message)
-        # Now disable exception logging to avoid an annoying error in the
-        # exception logger before we raise the import error:
-        _teardown_log()
-
-        # Roll back any astropy sub-modules that have been imported thus
-        # far
-
-        for key in list(sys.modules):
-            if key.startswith('astropy.'):
-                del sys.modules[key]
-        raise ImportError('astropy')
 
     try:
         from .utils import _compiler
     except ImportError:
         if _is_astropy_source():
-            log.warning('You appear to be trying to import astropy from '
-                        'within a source checkout without building the '
-                        'extension modules first.  Attempting to (re)build '
-                        'extension modules:')
-
-            try:
-                _rebuild_extensions()
-            except BaseException as exc:
-                _rollback_import(
-                    'An error occurred while attempting to rebuild the '
-                    'extension modules.  Please try manually running '
-                    '`./setup.py build_ext --inplace` to see what the issue was. Extension '
-                    'modules must be successfully compiled and importable '
-                    'in order to import astropy.')
-                # Reraise the Exception only in case it wasn't an Exception,
-                # for example if a "SystemExit" or "KeyboardInterrupt" was
-                # invoked.
-                if not isinstance(exc, Exception):
-                    raise
-
+            raise ImportError('You appear to be trying to import astropy from '
+                              'within a source checkout or from an editable '
+                              'installation without building the extension '
+                              'modules first. Either run:\n\n'
+                              '  pip install -e .\n\nor\n\n'
+                              '  python setup.py build_ext --inplace\n\n'
+                              'to make sure the extension modules are built '
+                              '(note that if you use the latter you may need '
+                              'to install build dependencies manually)')
         else:
-            # Outright broken installation; don't be nice.
+            # Outright broken installation, just raise standard error
             raise
 
     # add these here so we only need to cleanup the namespace at the end
@@ -258,49 +219,6 @@ def _initialize_astropy():
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
         warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
-
-
-def _rebuild_extensions():
-    global __version__
-    global __githash__
-
-    import subprocess
-    import time
-
-    from .utils.console import Spinner
-
-    devnull = open(os.devnull, 'w')
-    old_cwd = os.getcwd()
-    os.chdir(os.path.join(os.path.dirname(__file__), os.pardir))
-    try:
-        sp = subprocess.Popen([sys.executable, 'setup.py', 'build_ext',
-                               '--inplace'], stdout=devnull,
-                               stderr=devnull)
-        with Spinner('Rebuilding extension modules') as spinner:
-            while sp.poll() is None:
-                next(spinner)
-                time.sleep(0.05)
-    finally:
-        os.chdir(old_cwd)
-        devnull.close()
-
-    if sp.returncode != 0:
-        raise OSError('Running setup.py build_ext --inplace failed '
-                      'with error code {}: try rerunning this command '
-                      'manually to check what the error was.'.format(
-                          sp.returncode))
-
-    # Try re-loading module-level globals from the astropy.version module,
-    # which may not have existed before this function ran
-    try:
-        from .version import version as __version__
-    except ImportError:
-        pass
-
-    try:
-        from .version import githash as __githash__
-    except ImportError:
-        pass
 
 
 # Set the bibtex entry to the article referenced in CITATION.
