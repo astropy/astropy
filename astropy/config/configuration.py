@@ -699,11 +699,11 @@ def is_unedited_config_file(content, template_content=None):
     return not any(len(v) > 0 for v in raw_cfg.values())
 
 
-def create_config_file(pkg, rootname='astropy', force=False):
+def create_config_file(pkg, rootname='astropy', overwrite=False):
     """
     Create the default configuration file for the specified package.
     If the file already exists, it is updated only if it has not been
-    modified.  Otherwise the ``force`` flag is needed to overwrite it.
+    modified.  Otherwise the ``overwrite`` flag is needed to overwrite it.
 
     Parameters
     ----------
@@ -711,7 +711,7 @@ def create_config_file(pkg, rootname='astropy', force=False):
         The package to be updated.
     rootname : str
         Name of the root configuration directory.
-    force : bool
+    overwrite : bool
         Force updating the file if it already exists.
 
     Returns
@@ -745,7 +745,7 @@ def create_config_file(pkg, rootname='astropy', force=False):
             doupdate = is_unedited_config_file(
                 content, template_content)
 
-    if doupdate or force:
+    if doupdate or overwrite:
         with open(cfgfn, 'wt', encoding='latin-1') as fw:
             fw.write(template_content)
         log.info('The configuration file has been successfully written '
@@ -754,6 +754,6 @@ def create_config_file(pkg, rootname='astropy', force=False):
     elif not doupdate:
         log.warning('The configuration file already exists and seems to '
                     'have been customized, so it has not been updated. '
-                    'Use force=True if you really want to update it.')
+                    'Use overwrite=True if you really want to update it.')
 
     return False
