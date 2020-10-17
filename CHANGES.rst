@@ -778,6 +778,11 @@ astropy.extern
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
+- Partially fixed a performance issue when reading in parallel mode. Parallel
+  reading currently has substantially worse performance than the default serial
+  reading, so we now ignore the parallel option and fall back to serial reading.
+  [#10880]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 

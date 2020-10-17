@@ -219,6 +219,19 @@ cdef class CParser:
                 expchar = 'A'
         parallel = fast_reader.pop('parallel', False)
 
+        # FIXME: for now the parallel mode does not work correctly and is worse
+        # than non-parallel mode so we disable parallel mode if set and emit a
+        # warning. We keep the parallel code below so that it can be fixed in
+        # future, but if it cannot be fixed we should remove the parallel code
+        # and deprecate the option itself. For now the warning is not a
+        # deprecation warning since we may still fix it in future. See
+        # https://github.com/astropy/astropy/issues/8858 for more details.
+        if parallel:
+            warnings.warn('parallel reading does not currently work, '
+                          'so falling back to serial reading (see '
+                          'https://github.com/astropy/astropy/issues/8858 for more details)', AstropyWarning)
+            parallel = False
+
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
 
