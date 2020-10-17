@@ -314,7 +314,7 @@ class Latex(core.BaseReader):
         ``ascii.latex.latexdicts``. The following generates in table in
         style preferred by A&A and some other journals::
 
-            >>> ascii.write(data, Writer=ascii.Latex, 
+            >>> ascii.write(data, Writer=ascii.Latex,
             ...             latexdict=ascii.latex.latexdicts['AA'])
             \begin{table}
             \begin{tabular}{cc}
