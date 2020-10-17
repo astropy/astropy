@@ -106,6 +106,11 @@ astropy.time
 - Add new ``isclose()`` method to ``Time`` and ``TimeDelta`` classes to allow
   comparison of time objects to within a specified tolerance. [#10646]
 
+- Change behavior so that when getting a single item out of an array-valued
+  ``Time`` or ``TimeDelta`` object, the ``info`` attribute is no longer copied.
+  This improves performance, especially when the object is an indexed column in
+  a ``Table``. [#10889]
+
 - Improve initialization time by a factor of four when creating a scalar ``Time``
   object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
   epoch time). [#10406]
@@ -115,6 +120,10 @@ astropy.time
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
+
+- Improve memory and speed performance when iterating over the entire time
+  column of a ``TimeSeries`` object. Previously this involved O(N^2) operations
+  and memory. [#10889]
 
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
