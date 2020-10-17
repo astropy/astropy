@@ -1200,6 +1200,8 @@ class Table:
                 # still pass if this line is deleted.  (Each col.info attribute access
                 # is expensive).
                 col.info._copy_indices = True
+            else:
+                newcol.info.indices = []
 
             newcols.append(newcol)
 
