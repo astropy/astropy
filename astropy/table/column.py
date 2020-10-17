@@ -972,11 +972,11 @@ class Column(BaseColumn):
 
       Examples::
 
-        col = Column(data=[1, 2], name='name')  # shape=(2,)
-        col = Column(data=[[1, 2], [3, 4]], name='name')  # shape=(2, 2)
-        col = Column(data=[1, 2], name='name', dtype=float)
-        col = Column(data=np.array([1, 2]), name='name')
-        col = Column(data=['hello', 'world'], name='name')
+        >>> col = Column(data=[1, 2], name='name')  # shape=(2,)
+        >>> col = Column(data=[[1, 2], [3, 4]], name='name')  # shape=(2, 2)
+        >>> col = Column(data=[1, 2], name='name', dtype=float)
+        >>> col = Column(data=np.array([1, 2]), name='name')
+        >>> col = Column(data=['hello', 'world'], name='name')
 
       The ``dtype`` argument can be any value which is an acceptable
       fixed-size data-type initializer for the numpy.dtype() method.  See
@@ -994,8 +994,8 @@ class Column(BaseColumn):
 
       Examples::
 
-        col = Column(name='name', length=5)
-        col = Column(name='name', dtype=int, length=10, shape=(3,4))
+        >>> col = Column(name='name', length=5)
+        >>> col = Column(name='name', dtype=int, length=10, shape=(3,4))
 
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.
@@ -1321,9 +1321,9 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
       Examples::
 
-        col = MaskedColumn(data=[1, 2], name='name')
-        col = MaskedColumn(data=[1, 2], name='name', mask=[True, False])
-        col = MaskedColumn(data=[1, 2], name='name', dtype=float, fill_value=99)
+        >>> col = MaskedColumn(data=[1, 2], name='name')
+        >>> col = MaskedColumn(data=[1, 2], name='name', mask=[True, False])
+        >>> col = MaskedColumn(data=[1, 2], name='name', dtype=float, fill_value=99)
 
       The ``mask`` argument will be cast as a boolean array and specifies
       which elements are considered to be missing or invalid.
@@ -1345,8 +1345,8 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
       Examples::
 
-        col = MaskedColumn(name='name', length=5)
-        col = MaskedColumn(name='name', dtype=int, length=10, shape=(3,4))
+        >>> col = MaskedColumn(name='name', length=5)
+        >>> col = MaskedColumn(name='name', dtype=int, length=10, shape=(3,4))
 
       The default ``dtype`` is ``np.float64``.  The ``shape`` argument is the
       array shape of a single cell in the column.

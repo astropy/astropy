@@ -220,8 +220,8 @@ class Latex(core.BaseReader):
 
     Examples::
 
-        caption = r'My table \label{mytable}'
-        caption = 'My table \\\\label{mytable}'
+        >>> caption = r'My table \label{mytable}'
+        >>> caption = 'My table \\\\label{mytable}'
 
     **latexdict** : Dictionary of extra parameters for the LaTeX output
 
@@ -229,8 +229,19 @@ class Latex(core.BaseReader):
             The default is ``\\begin{table}``.  The following would generate a table,
             which spans the whole page in a two-column document::
 
-                ascii.write(data, sys.stdout, Writer = ascii.Latex,
-                            latexdict = {'tabletype': 'table*'})
+              >>> from astropy.io import ascii
+              >>> import sys
+              >>> data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
+              >>> ascii.write(data, sys.stdout, Writer = ascii.Latex,
+              ...             latexdict = {'tabletype': 'table*'})
+              \begin{table*}
+              \begin{tabular}{ccc}
+              name & mass & speed \\
+              bike & 75 & 10 \\
+              car & 1200 & 130 \\
+              \end{tabular}
+              \end{table*}
+
 
             If ``None``, the table environment will be dropped, keeping only
             the ``tabular`` environment.
@@ -259,10 +270,19 @@ class Latex(core.BaseReader):
             names is added, which contains the values of the
             dictionary. Example::
 
-              from astropy.io import ascii
-              data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
-              ascii.write(data, Writer=ascii.Latex,
-                               latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
+              >>> from astropy.io import ascii
+              >>> data = {'name': ['bike', 'car'], 'mass': [75,1200], 'speed': [10, 130]}
+              >>> ascii.write(data, Writer=ascii.Latex,
+              ...             latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
+              \begin{table}
+              \begin{tabular}{ccc}
+              name & mass & speed \\
+               & kg & km/h \\
+              bike & 75 & 10 \\
+              car & 1200 & 130 \\
+              \end{tabular}
+              \end{table}
+
 
             If the column has no entry in the ``units`` dictionary, it defaults
             to the **unit** attribute of the column. If this attribute is not
@@ -271,34 +291,65 @@ class Latex(core.BaseReader):
         Run the following code to see where each element of the
         dictionary is inserted in the LaTeX table::
 
-            from astropy.io import ascii
-            data = {'cola': [1,2], 'colb': [3,4]}
-            ascii.write(data, Writer=ascii.Latex, latexdict=ascii.latex.latexdicts['template'])
+            >>> from astropy.io import ascii
+            >>> data = {'cola': [1,2], 'colb': [3,4]}
+            >>> ascii.write(data, Writer=ascii.Latex, latexdict=ascii.latex.latexdicts['template'])
+            \begin{tabletype}[tablealign]
+            preamble
+            \caption{caption}
+            \begin{tabular}{col_align}
+            header_start
+            cola & colb \\
+             &  \\
+            header_end
+            data_start
+            1 & 3 \\
+            2 & 4 \\
+            data_end
+            \end{tabular}
+            tablefoot
+            \end{tabletype}
 
         Some table styles are predefined in the dictionary
         ``ascii.latex.latexdicts``. The following generates in table in
         style preferred by A&A and some other journals::
 
-            ascii.write(data, Writer=ascii.Latex, latexdict=ascii.latex.latexdicts['AA'])
+            >>> ascii.write(data, Writer=ascii.Latex, 
+            ...             latexdict=ascii.latex.latexdicts['AA'])
+            \begin{table}
+            \begin{tabular}{cc}
+            \hline \hline
+            cola & colb \\
+            \hline
+            1 & 3 \\
+            2 & 4 \\
+            \hline
+            \end{tabular}
+            \end{table}
 
         As an example, this generates a table, which spans all columns
         and is centered on the page::
 
-            ascii.write(data, Writer=ascii.Latex, col_align='|lr|',
-                        latexdict={'preamble': r'\begin{center}',
-                                   'tablefoot': r'\end{center}',
-                                   'tabletype': 'table*'})
+            >>> ascii.write(data, Writer=ascii.Latex, col_align='|lr|',
+            ...             latexdict={'preamble': r'\begin{center}',
+            ...                        'tablefoot': r'\end{center}',
+            ...                        'tabletype': 'table*'})
+            \begin{table*}
+            \begin{center}
+            \begin{tabular}{|lr|}
+            cola & colb \\
+            1 & 3 \\
+            2 & 4 \\
+            \end{tabular}
+            \end{center}
+            \end{table*}
 
     **caption** : Set table caption
-        Shorthand for::
-
-            latexdict['caption'] = caption
+        Shorthand for:: ``latexdict['caption'] = caption``
 
     **col_align** : Set the column alignment.
         If not present this will be auto-generated for centered
-        columns. Shorthand for::
-
-            latexdict['col_align'] = col_align
+        columns. Shorthand for:: ``latexdict['col_align'] = col_align``
 
     '''
     _format_name = 'latex'

@@ -71,13 +71,13 @@ def sortmore(*args, **kw):
     --------
     Capture sorting indices::
 
-        l = list('CharacterS')
-        In [1]: sortmore( l, range(len(l)) )
-        Out[1]: (['C', 'S', 'a', 'a', 'c', 'e', 'h', 'r', 'r', 't'],
-                 [0, 9, 2, 4, 5, 7, 1, 3, 8, 6])
-        In [2]: sortmore( l, range(len(l)), key=str.lower )
-        Out[2]: (['a', 'a', 'C', 'c', 'e', 'h', 'r', 'r', 'S', 't'],
-                 [2, 4, 0, 5, 7, 1, 3, 8, 9, 6])
+        >>> l = list('CharacterS')
+        >>> sortmore( l, range(len(l)) )
+        (['C', 'S', 'a', 'a', 'c', 'e', 'h', 'r', 'r', 't'], [0, 9, 2, 4, 5, 7, 1, 3, 8, 6])
+
+        >>> sortmore( l, range(len(l)), key=str.lower )
+        (['a', 'a', 'C', 'c', 'e', 'h', 'r', 'r', 'S', 't'], [2, 4, 0, 5, 7, 1, 3, 8, 9, 6])
+
     """
 
     first = list(args[0])

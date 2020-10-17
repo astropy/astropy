@@ -2369,18 +2369,26 @@ class TimeDelta(TimeBase):
         To convert to a ``TimeDelta`` format and optional sub-format the options
         are::
 
-          tm = TimeDelta(1.0 * u.s)
-          tm.to_value('jd')  # equivalent of tm.jd
-          tm.to_value('jd', 'decimal')  # convert to 'jd' as a Decimal object
-          tm.to_value('jd', subfmt='decimal')
-          tm.to_value(format='jd', subfmt='decimal')
+          >>> tm = TimeDelta(1.0 * u.s)
+          >>> tm.to_value('jd')  # equivalent of tm.jd
+          1.1574074074074073e-05
+          >>> tm.to_value('jd', 'decimal')  # convert to 'jd' as a Decimal object
+          Decimal('0.00001157407407407407349934653356671177')
+          >>> tm.to_value('jd', subfmt='decimal')
+          Decimal('0.00001157407407407407349934653356671177')
+          >>> tm.to_value(format='jd', subfmt='decimal')
+          Decimal('0.00001157407407407407349934653356671177')
 
         To convert to a unit with optional equivalencies, the options are::
 
-          tm.to_value('hr')  # convert to u.hr (hours)
-          tm.to_value('hr', [])  # specify equivalencies as a positional arg
-          tm.to_value('hr', equivalencies=[])
-          tm.to_value(unit='hr', equivalencies=[])
+          >>> tm.to_value('hr')  # convert to u.hr (hours)
+          0.0002777777777777778
+          >>> tm.to_value('hr', [])  # specify equivalencies as a positional arg
+          0.0002777777777777778
+          >>> tm.to_value('hr', equivalencies=[])
+          0.0002777777777777778
+          >>> tm.to_value(unit='hr', equivalencies=[])
+          0.0002777777777777778
 
         The built-in `~astropy.time.TimeDelta` options for ``format`` are:
         {'jd', 'sec', 'datetime'}.
