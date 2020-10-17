@@ -146,7 +146,7 @@ between 500 and 900nm::
 
     >>> import numpy as np
     >>> wavs = SpectralCoord(np.linspace(500, 900, 9) * u.nm, redshift=0.5)
-    >>> wavs
+    >>> wavs  # doctest: +FLOAT_CMP
     <SpectralCoord
        (observer to target:
           radial_velocity=115304.79153846153 km / s
@@ -184,7 +184,7 @@ this method is to give a single value that will be applied to the target - if
 this value does not have units, it is interpreted as a redshift::
 
     >>> wavs_orig = wavs_rest.with_radial_velocity_shift(0.5)
-    >>> wavs_orig
+    >>> wavs_orig  # doctest: +FLOAT_CMP
     <SpectralCoord
        (observer to target:
           radial_velocity=115304.79153846153 km / s

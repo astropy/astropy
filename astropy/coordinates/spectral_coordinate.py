@@ -24,6 +24,7 @@ class NoDistanceWarning(AstropyUserWarning):
 
 
 KMS = u.km / u.s
+C_KMS = c.to(KMS)
 ZERO_VELOCITIES = CartesianDifferential([0, 0, 0] * KMS)
 
 # Default distance to use for target when none is provided
@@ -37,7 +38,7 @@ def _velocity_to_redshift(velocity):
     """
     Convert a velocity to a relativistic redshift.
     """
-    beta = velocity / c
+    beta = velocity / C_KMS
     return np.sqrt((1 + beta) / (1 - beta)) - 1
 
 
@@ -46,7 +47,7 @@ def _redshift_to_velocity(redshift):
     Convert a relativistic redshift to a velocity.
     """
     zponesq = (1 + redshift) ** 2
-    return (c * (zponesq - 1) / (zponesq + 1))
+    return (C_KMS * (zponesq - 1) / (zponesq + 1))
 
 
 def _relativistic_velocity_addition(vel1, vel2):
