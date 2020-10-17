@@ -33,7 +33,6 @@ import uuid
 import io
 import itertools
 import os
-import operator
 import re
 import textwrap
 import warnings
@@ -2449,22 +2448,83 @@ reduce these to 2 dimensions using the naxis kwarg.
                    docstrings.RETURNS('pixel coordinates', 8))
 
     def proj_plane_pixel_scales(self):
-        """Same as :func:`astropy.wcs.utils.proj_plane_pixel_scales`
-        but returns a list of `~astropy.units.Quantity`.
-
         """
-        from astropy.wcs import utils as wcs_utils  # Avoid circular import
-        values = wcs_utils.proj_plane_pixel_scales(self)
+        Calculate pixel scales along each axis of the image pixel at
+        the ``CRPIX`` location once it is projected onto the
+        "plane of intermediate world coordinates" as defined in
+        `Greisen & Calabretta 2002, A&A, 395, 1061 <https://ui.adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+
+        .. note::
+            This method is concerned **only** about the transformation
+            "image plane"->"projection plane" and **not** about the
+            transformation "celestial sphere"->"projection plane"->"image plane".
+            Therefore, this function ignores distortions arising due to
+            non-linear nature of most projections.
+
+        .. note::
+            This method only returns sensible answers if the WCS contains
+            celestial axes, i.e., the `~astropy.wcs.WCS.celestial` WCS object.
+
+        Returns
+        -------
+        scale : list of `~astropy.units.Quantity`
+            A vector of projection plane increments corresponding to each
+            pixel side (axis).
+
+        See Also
+        --------
+        astropy.wcs.utils.proj_plane_pixel_scales
+
+        """  # noqa: E501
+        from astropy.wcs.utils import proj_plane_pixel_scales  # Avoid circular import
+        values = proj_plane_pixel_scales(self.celestial)
         units = [u.Unit(x) for x in self.wcs.cunit]
         return [value * unit for (value, unit) in zip(values, units)]  # Can have different units
 
     def proj_plane_pixel_area(self):
-        """Same as :func:`astropy.wcs.utils.proj_plane_pixel_area`
-        but returns a `~astropy.units.Quantity`.
-
         """
-        from astropy.wcs import utils as wcs_utils  # Avoid circular import
-        value = wcs_utils.proj_plane_pixel_area(self)
+        For a **celestial** WCS (see `astropy.wcs.WCS.celestial`), returns pixel
+        area of the image pixel at the ``CRPIX`` location once it is projected
+        onto the "plane of intermediate world coordinates" as defined in
+        `Greisen & Calabretta 2002, A&A, 395, 1061 <https://ui.adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+
+        .. note::
+            This function is concerned **only** about the transformation
+            "image plane"->"projection plane" and **not** about the
+            transformation "celestial sphere"->"projection plane"->"image plane".
+            Therefore, this function ignores distortions arising due to
+            non-linear nature of most projections.
+
+        .. note::
+            This method only returns sensible answers if the WCS contains
+            celestial axes, i.e., the `~astropy.wcs.WCS.celestial` WCS object.
+
+        Returns
+        -------
+        area : `~astropy.units.Quantity`
+            Area (in the projection plane) of the pixel at ``CRPIX`` location.
+
+        Raises
+        ------
+        ValueError
+            Pixel area is defined only for 2D pixels. Most likely the
+            `~astropy.wcs.Wcsprm.cd` matrix of the `~astropy.wcs.WCS.celestial`
+            WCS is not a square matrix of second order.
+
+        Notes
+        -----
+
+        Depending on the application, square root of the pixel area can be used to
+        represent a single pixel scale of an equivalent square pixel
+        whose area is equal to the area of a generally non-square pixel.
+
+        See Also
+        --------
+        astropy.wcs.utils.proj_plane_pixel_area
+
+        """  # noqa: E501
+        from astropy.wcs.utils import proj_plane_pixel_area  # Avoid circular import
+        value = proj_plane_pixel_area(self)
         unit = u.Unit(self.wcs.cunit[0]) * u.Unit(self.wcs.cunit[1])  # 2D only
         return value * unit
 
@@ -2586,7 +2646,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """
         # default precision for numerical WCS keywords
-        precision = WCSHDO_P14
+        precision = WCSHDO_P14  # Defined by C-ext  # noqa: F821
         display_warning = False
         if relax is None:
             display_warning = True
@@ -2597,7 +2657,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             relax &= ~WCSHDO_SIP
         else:
             do_sip = relax
-            relax = WCSHDO_all if relax is True else WCSHDO_safe
+            relax = WCSHDO_all if relax is True else WCSHDO_safe  # Defined by C-ext  # noqa: F821
 
         relax = precision | relax
 
@@ -2968,7 +3028,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         the spectral axis, followed by any others.
         Assumes at least celestial axes are present.
         """
-        return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES])
+        return self.sub([WCSSUB_CELESTIAL, WCSSUB_SPECTRAL, WCSSUB_STOKES])  # Defined by C-ext  # noqa: F821 E501
 
     def slice(self, view, numpy_order=True):
         """
@@ -3101,7 +3161,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         A copy of the current WCS with only the celestial axes included
         """
-        return self.sub([WCSSUB_CELESTIAL])
+        return self.sub([WCSSUB_CELESTIAL])  # Defined by C-ext  # noqa: F821
 
     @property
     def is_celestial(self):
@@ -3119,7 +3179,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         A copy of the current WCS with only the spectral axes included
         """
-        return self.sub([WCSSUB_SPECTRAL])
+        return self.sub([WCSSUB_SPECTRAL])  # Defined by C-ext  # noqa: F821
 
     @property
     def is_spectral(self):
