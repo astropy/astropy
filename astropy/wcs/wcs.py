@@ -2477,7 +2477,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """  # noqa: E501
         from astropy.wcs.utils import proj_plane_pixel_scales  # Avoid circular import
-        values = proj_plane_pixel_scales(self.celestial)
+        values = proj_plane_pixel_scales(self)
         units = [u.Unit(x) for x in self.wcs.cunit]
         return [value * unit for (value, unit) in zip(values, units)]  # Can have different units
 
