@@ -13,6 +13,9 @@ astropy.constants
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
 
+- Methods ``convolve`` and ``convolve_fft`` both now return Quantity arrays if user
+  input is given in one. [#10822]
+
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 

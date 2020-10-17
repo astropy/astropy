@@ -8,6 +8,7 @@ from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
 
 from astropy.convolution.convolve import convolve_fft, convolve
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy import units as u
 from astropy.utils.compat.context import nullcontext
 
 VALID_DTYPES = ('>f4', '<f4', '>f8', '<f8')
@@ -68,6 +69,22 @@ def assert_floatclose(x, y):
 
 
 class TestConvolve1D:
+
+    @pytest.mark.parametrize(option_names, options)
+    def test_quantity(self, boundary, nan_treatment, normalize_kernel):
+        """
+        Test that convolve_fft works correctly when input array is a Quantity
+        """
+
+        x = np.array([1., 4., 5., 6., 5., 7., 8.], dtype='float64') * u.ph
+        y = np.array([0.2, 0.6, 0.2], dtype='float64')
+
+        with expected_boundary_warning(boundary=boundary):
+            z = convolve_fft(x, y, boundary=boundary,
+                             nan_treatment=nan_treatment,
+                             normalize_kernel=normalize_kernel)
+
+        assert x.unit == z.unit
 
     @pytest.mark.parametrize(option_names, options)
     def test_unity_1_none(self, boundary, nan_treatment, normalize_kernel):
