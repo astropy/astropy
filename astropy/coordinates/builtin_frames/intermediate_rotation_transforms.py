@@ -148,8 +148,10 @@ def itrs_to_tete(itrs_coo, tete_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, CIRS)
 def gcrs_to_cirs(gcrs_coo, cirs_frame):
-    # first get us to a 0 pos/vel GCRS at the target obstime
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime))
+    # first get us to GCRS at the target obstime and pos/vel
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime,
+                                           obsgeoloc=cirs_frame.obsgeoloc,
+                                           obsgeovel=cirs_frame.obsgeovel))
 
     # now get the pmatrix
     pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
@@ -162,7 +164,10 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
     newrepr = cirs_coo.cartesian.transform(matrix_transpose(pmat))
-    gcrs = GCRS(newrepr, obstime=cirs_coo.obstime)
+    gcrs = GCRS(newrepr,
+                obstime=cirs_coo.obstime,
+                obsgeoloc=cirs_coo.obsgeoloc,
+                obsgeovel=cirs_coo.obsgeovel)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
@@ -170,8 +175,10 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, ITRS)
 def cirs_to_itrs(cirs_coo, itrs_frame):
-    # first get us to CIRS at the target obstime
-    cirs_coo2 = cirs_coo.transform_to(CIRS(obstime=itrs_frame.obstime))
+    # first get us to geocentric CIRS at the target obstime
+    cirs_coo2 = cirs_coo.transform_to(CIRS(obstime=itrs_frame.obstime,
+                                           obsgeoloc=[0, 0, 0] * u.km,
+                                           obsgeovel=[0, 0, 0] * u.km/u.s))
 
     # now get the pmatrix
     pmat = cirs_to_itrs_mat(itrs_frame.obstime)
@@ -195,11 +202,6 @@ def itrs_to_itrs(from_coo, to_frame):
     # this self-transform goes through CIRS right now, which implicitly also
     # goes back to ICRS
     return from_coo.transform_to(CIRS()).transform_to(to_frame)
-
-# TODO: implement GCRS<->CIRS if there's call for it.  The thing that's awkward
-# is that they both have obstimes, so an extra set of transformations are necessary.
-# so unless there's a specific need for that, better to just have it go through the above
-# two steps anyway
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, PrecessedGeocentric)
