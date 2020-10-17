@@ -1757,8 +1757,16 @@ def test_join_non_1d_key_column():
         table.join(t1, t2, keys='a')
 
 
+def test_argsort_time_column():
+    """Regression test for #10823."""
+    times = Time(['2016-01-01', '2018-01-01', '2017-01-01'])
+    t = Table([times], names=['time'])
+    i = t.argsort('time')
+    assert np.all(i == times.argsort())
+
+
 def test_sort_indexed_table():
-    """Test fix for #9473 and #6545"""
+    """Test fix for #9473 and #6545 - and another regression test for #10823."""
     t = Table([[1, 3, 2], [6, 4, 5]], names=('a', 'b'))
     t.add_index('a')
     t.sort('a')
@@ -1768,9 +1776,18 @@ def test_sort_indexed_table():
     assert np.all(t['b'] == [4, 5, 6])
     assert np.all(t['a'] == [3, 2, 1])
 
-    from astropy.timeseries import TimeSeries
     times = ['2016-01-01', '2018-01-01', '2017-01-01']
     tm = Time(times)
+    t2 = Table([tm, [3, 2, 1]], names=['time', 'flux'])
+    t2.sort('flux')
+    assert np.all(t2['flux'] == [1, 2, 3])
+    t2.sort('time')
+    assert np.all(t2['flux'] == [3, 1, 2])
+    assert np.all(t2['time'] == tm[[0, 2, 1]])
+
+    # Using the table as a TimeSeries implicitly sets the index, so
+    # this test is a bit different from the above.
+    from astropy.timeseries import TimeSeries
     ts = TimeSeries(time=times)
     ts['flux'] = [3, 2, 1]
     ts.sort('flux')

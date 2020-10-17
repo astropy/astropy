@@ -409,6 +409,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix a bug that prevented ``Time`` columns from being used to sort a table.
+  [#10824]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
