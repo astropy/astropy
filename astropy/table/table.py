@@ -2886,13 +2886,15 @@ class Table:
         if keys:
             # For multiple keys return a structured array which gets sorted,
             # while for a single key return a single ndarray.  Sorting a
-            # one-column structured array is much slower than ndarray, e.g. a
-            # factor of ~6 for a 10 million long random array.
+            # one-column structured array is slower than ndarray (e.g. a
+            # factor of ~6 for a 10 million long random array), and much slower
+            # for in principle sortable columns like Time, which get stored as
+            # object arrays.
             if len(keys) > 1:
                 kwargs['order'] = keys
                 data = self.as_array(names=keys)
             else:
-                data = self[keys[0]].view(np.ndarray)
+                data = self[keys[0]]
         else:
             # No keys provided so sort on all columns.
             data = self.as_array()
@@ -2900,7 +2902,9 @@ class Table:
         if kind:
             kwargs['kind'] = kind
 
-        idx = data.argsort(**kwargs)
+        # np.argsort will look for a possible .argsort method (e.g., for Time),
+        # and if that fails cast to an array and try sorting that way.
+        idx = np.argsort(data, **kwargs)
 
         return idx[::-1] if reverse else idx
 
