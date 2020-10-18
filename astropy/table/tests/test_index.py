@@ -9,7 +9,7 @@ from .test_table import SetupData
 from astropy.table.bst import BST
 from astropy.table.sorted_array import SortedArray
 from astropy.table.soco import SCEngine, HAS_SOCO
-from astropy.table.table import QTable, Row, Table
+from astropy.table import QTable, Row, Table, Column, hstack
 from astropy import units as u
 from astropy.time import Time
 from astropy.table.column import BaseColumn
@@ -548,3 +548,34 @@ def test_table_index_time_warning(engine):
     with warnings.catch_warnings(record=True) as wlist:
         tab.add_index(('a', 'b'), engine=engine)
     assert len(wlist) == 0
+
+
+@pytest.mark.parametrize('col', [
+    Column(np.arange(50000, 50005)),
+    np.arange(50000, 50005) * u.m,
+    Time(np.arange(50000, 50005), format='mjd')])
+def test_table_index_does_not_propagate_to_column_slices(col):
+    # They lost contact to the parent table, so they should also not have
+    # information on the indices; this helps prevent large memory usage if,
+    # e.g., a large time column is turned into an object array; see gh-10688.
+    tab = QTable()
+    tab['t'] = col
+    tab.add_index('t')
+    t = tab['t']
+    assert t.info.indices
+    tx = t[1:]
+    assert not tx.info.indices
+    tabx = tab[1:]
+    t = tabx['t']
+    assert t.info.indices
+
+
+def test_hstack_qtable_table():
+    # Check in particular that indices are initialized or copied correctly
+    # for a Column that is being converted to a Quantity.
+    qtab = QTable([np.arange(5.)*u.m], names=['s'])
+    qtab.add_index('s')
+    tab = Table([Column(np.arange(5.), unit=u.s)], names=['t'])
+    qstack = hstack([qtab, tab])
+    assert qstack['t'].info.indices == []
+    assert qstack.indices == []
