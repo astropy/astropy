@@ -10,6 +10,7 @@ import subprocess
 import pytest
 import numpy as np
 
+from astropy.io.fits.hdu.base import _ValidHDU, _NonstandardHDU
 from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
@@ -930,6 +931,55 @@ class TestHDUListFunctions(FitsTestCase):
         read_exts = [ext for ext in f[1:4] if ext.header['EXTNAME'] == 'SCI']
         assert len(read_exts) == 2
         f.close()
+
+    def test_read_non_standard_hdu(self):
+        filename = self.temp('bad-fits.fits')
+        hdu = fits.PrimaryHDU()
+        hdu.header['FOO'] = 'BAR'
+        buf = io.BytesIO()
+        hdu.writeto(buf)
+        buf.seek(0)
+        hdustr = buf.read()
+        hdustr = hdustr.replace(b'SIMPLE  =                    T',
+                                b'SIMPLE  =                    F')
+        with open(filename, mode='wb') as f:
+            f.write(hdustr)
+
+        with fits.open(filename) as hdul:
+            assert isinstance(hdul[0], _NonstandardHDU)
+            assert hdul[0].header['FOO'] == 'BAR'
+
+    def test_proper_error_raised_on_non_fits_file(self):
+        filename = self.temp('not-fits.fits')
+        with open(filename, mode='w', encoding='utf=8') as f:
+            f.write('Not a FITS file')
+
+        # This should raise an OSError because there is no end card.
+        with pytest.raises(OSError, match='No SIMPLE card found, this file '
+                           'does not appear to be a valid FITS file'):
+            fits.open(filename)
+
+    def test_proper_error_raised_on_invalid_fits_file(self):
+        filename = self.temp('bad-fits.fits')
+        hdu = fits.PrimaryHDU()
+        hdu.header['FOO'] = 'BAR'
+        buf = io.BytesIO()
+        hdu.writeto(buf)
+        # write 80 additional bytes so the block will have the correct size
+        buf.write(b' '*80)
+        buf.seek(0)
+        buf.seek(80)  # now remove the SIMPLE card
+        with open(filename, mode='wb') as f:
+            f.write(buf.read())
+
+        # This should raise an OSError because there is no end card.
+        with pytest.raises(OSError, match='No SIMPLE card found, this file '
+                           'does not appear to be a valid FITS file'):
+            fits.open(filename)
+
+        with fits.open(filename, ignore_missing_simple=True) as hdul:
+            assert isinstance(hdul[0], _ValidHDU)
+            assert hdul[0].header['FOO'] == 'BAR'
 
     def test_proper_error_raised_on_non_fits_file_with_unicode(self):
         """
