@@ -939,13 +939,13 @@ class TestHDUListFunctions(FitsTestCase):
         with unicode content that is not actually a FITS file. See:
         https://github.com/astropy/astropy/issues/5594#issuecomment-266583218
         """
-        import codecs
         filename = self.temp('not-fits-with-unicode.fits')
-        with codecs.open(filename, mode='w', encoding='utf=8') as f:
+        with open(filename, mode='w', encoding='utf=8') as f:
             f.write('Ce\xe7i ne marche pas')
 
         # This should raise an OSError because there is no end card.
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match='No SIMPLE card found, this file '
+                           'does not appear to be a valid FITS file'):
             fits.open(filename)
 
     def test_no_resource_warning_raised_on_non_fits_file(self):
