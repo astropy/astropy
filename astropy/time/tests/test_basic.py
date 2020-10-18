@@ -878,7 +878,7 @@ class TestSubFormat:
             #   val = matplotlib.dates.date2num('2000-01-01')
             val = 730120.0
         else:
-            val = date2num('2000-01-01')
+            val = date2num(datetime.datetime(2000, 1, 1))
         t = Time('2000-01-01 00:00:00', scale='utc')
         assert np.allclose(t.plot_date, val, atol=1e-5, rtol=0)
 
