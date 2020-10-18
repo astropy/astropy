@@ -362,8 +362,7 @@ def read(table, guess=None, **kwargs):
                 # special testing value to avoid falling back on the slow reader
                 if fast_reader['enable'] == 'force':
                     raise core.InconsistentTableError(
-                        'fast reader {} exception: {}'
-                        .format(fast_reader_rdr.__class__, err))
+                        f'fast reader {fast_reader_rdr.__class__} exception: {err}')
                 # If the fast reader doesn't work, try the slow version
                 reader = get_reader(**new_kwargs)
                 dat = reader.read(table)
@@ -438,7 +437,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
                                 'status': 'Disabled: reader only available in fast version',
-                                'dt': '{:.3f} ms'.format(0.0)})
+                                'dt': f'{0.0:.3f} ms'})
             continue
 
         # If user required a fast reader then skip all non-fast readers
@@ -447,7 +446,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': guess_kwargs['Reader'].__class__,
                                 'status': 'Disabled: no fast version of reader available',
-                                'dt': '{:.3f} ms'.format(0.0)})
+                                'dt': f'{0.0:.3f} ms'})
             continue
 
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
@@ -501,14 +500,13 @@ def _guess(table, read_kwargs, format, fast_reader):
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
                                 'Reader': reader.__class__,
                                 'status': 'Success (guessing)',
-                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
+                                'dt': f'{(time.time() - t0) * 1000:.3f} ms'})
             return dat
 
         except guess_exception_classes as err:
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'status': '{}: {}'.format(err.__class__.__name__,
-                                                          str(err)),
-                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
+                                'status': f'{err.__class__.__name__}: {str(err)}',
+                                'dt': f'{(time.time() - t0) * 1000:.3f} ms'})
             failed_kwargs.append(guess_kwargs)
     else:
         # Failed all guesses, try the original read_kwargs without column requirements
@@ -523,8 +521,7 @@ def _guess(table, read_kwargs, format, fast_reader):
 
         except guess_exception_classes as err:
             _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
-                                'status': '{}: {}'.format(err.__class__.__name__,
-                                                          str(err))})
+                                'status': f'{err.__class__.__name__}: {str(err)}'})
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:

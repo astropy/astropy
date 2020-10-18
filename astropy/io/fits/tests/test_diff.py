@@ -666,7 +666,7 @@ class TestDiff(FitsTestCase):
         assert 'Headers contain differences' not in report
         assert 'Data contains differences' in report
         for y in range(10):
-            assert 'Data differs at [{}, 1]'.format(y + 1) in report
+            assert f'Data differs at [{y + 1}, 1]' in report
         assert '100 different pixels found (100.00% different).' in report
 
     def test_partially_identical_files3(self):

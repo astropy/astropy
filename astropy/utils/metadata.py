@@ -59,8 +59,7 @@ def common_dtype(arrs):
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
         incompat_types = [dtype(arr).name for arr in arrs]
-        tme = MergeConflictError('Arrays have incompatible types {}'
-                                 .format(incompat_types))
+        tme = MergeConflictError(f'Arrays have incompatible types {incompat_types}')
         tme._incompat_types = incompat_types
         raise tme
 
@@ -297,9 +296,7 @@ def _warn_str_func(key, left, right):
 
 
 def _error_str_func(key, left, right):
-    out = ('Cannot merge meta key {!r} '
-           'types {!r} and {!r}'
-           .format(key, type(left), type(right)))
+    out = f'Cannot merge meta key {key!r} types {type(left)!r} and {type(right)!r}'
     return out
 
 

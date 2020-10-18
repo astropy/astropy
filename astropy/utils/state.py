@@ -61,8 +61,7 @@ class ScienceState:
                 value_repr, lb, _ = repr(self._parent._value).partition('\n')
                 if lb:
                     value_repr += '...'
-                return ('<ScienceState {}: {}>'
-                        .format(self._parent.__name__, value_repr))
+                return (f'<ScienceState {self._parent.__name__}: {value_repr}>')
 
         ctx = _Context(cls, cls._value)
         value = cls.validate(value)

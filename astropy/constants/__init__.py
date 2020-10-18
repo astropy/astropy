@@ -77,8 +77,7 @@ def set_enabled_constants(modname):
         codata_context = modmodule.codata
         iaudata_context = modmodule.iaudata
     except ImportError as exc:
-        exc.args += ('Context manager does not currently handle {}'
-                     .format(modname),)
+        exc.args += (f'Context manager does not currently handle {modname}',)
         raise
 
     module = find_current_module()

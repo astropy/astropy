@@ -605,8 +605,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         if kwargs:
             raise TypeError(
-                'Coordinate frame got unexpected keywords: {}'.format(
-                    list(kwargs)))
+                f'Coordinate frame got unexpected keywords: {list(kwargs)}')
 
         # We do ``is None`` because self._data might evaluate to false for
         # empty arrays or data == 0
@@ -622,8 +621,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                         self._no_data_shape = check_broadcast(*shapes.values())
                     except ValueError:
                         raise ValueError(
-                            "non-scalar attributes with inconsistent "
-                            "shapes: {}".format(shapes))
+                            f"non-scalar attributes with inconsistent shapes: {shapes}")
 
                     # Above, we checked that it is possible to broadcast all
                     # shapes.  By getting and thus validating the attributes,
@@ -1395,11 +1393,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             frameattrs = f' ({frameattrs})'
 
         if data_repr:
-            return '<{} Coordinate{}: {}>'.format(self.__class__.__name__,
-                                                  frameattrs, data_repr)
+            return f'<{self.__class__.__name__} Coordinate{frameattrs}: {data_repr}>'
         else:
-            return '<{} Frame{}>'.format(self.__class__.__name__,
-                                         frameattrs)
+            return f'<{self.__class__.__name__} Frame{frameattrs}>'
 
     def _data_repr(self):
         """Returns a string representation of the coordinate data."""
@@ -1483,9 +1479,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                 attrstr = attr._astropy_repr_in_frame()
             else:
                 attrstr = str(attr)
-            attr_strs.append("{attribute_name}={attrstr}".format(
-                attribute_name=attribute_name,
-                attrstr=attrstr))
+            attr_strs.append(f"{attribute_name}={attrstr}")
 
         return ', '.join(attr_strs)
 

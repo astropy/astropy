@@ -258,8 +258,7 @@ class FixedWidthData(basic.BasicData):
         if self.header.position_line is not None:
             char = self.header.position_char
             if len(char) != 1:
-                raise ValueError('Position_char="{}" must be a single '
-                                 'character'.format(char))
+                raise ValueError(f'Position_char="{char}" must be a single character')
             vals = [char * col.width for col in self.cols]
             lines.append(self.splitter.join(vals, widths))
 

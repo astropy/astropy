@@ -1192,8 +1192,7 @@ class TimeString(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         if val1.dtype.kind not in ('S', 'U') and val1.size:
-            raise TypeError('Input values for {} class must be strings'
-                            .format(self.name))
+            raise TypeError(f'Input values for {self.name} class must be strings')
         if val2 is not None:
             raise ValueError(
                 f'{self.name} objects do not accept a val2 but you provided {val2}')
@@ -1237,8 +1236,7 @@ class TimeString(TimeUnique):
             vals[-1] = vals[-1] + fracsec
             return vals
         else:
-            raise ValueError('Time {} does not match {} format'
-                             .format(timestr, self.name))
+            raise ValueError(f'Time {timestr} does not match {self.name} format')
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
@@ -1501,8 +1499,7 @@ class TimeFITS(TimeString):
             if tm:
                 break
         else:
-            raise ValueError('Time {} does not match {} format'
-                             .format(timestr, self.name))
+            raise ValueError(f'Time {timestr} does not match {self.name} format')
         tm = tm.groupdict()
         # Scale and realization are deprecated and strings in this form
         # are no longer created.  We issue a warning but still use the value.
@@ -1608,8 +1605,7 @@ class TimeEpochDateString(TimeString):
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
             except (IndexError, ValueError, UnicodeEncodeError):
-                raise ValueError('Time {} does not match {} format'
-                                 .format(time_str, self.name))
+                raise ValueError(f'Time {time_str} does not match {self.name} format')
             else:
                 years[...] = year
 

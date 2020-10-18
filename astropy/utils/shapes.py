@@ -82,8 +82,7 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
 
     def __len__(self):
         if self.isscalar:
-            raise TypeError("Scalar {!r} object has no len()"
-                            .format(self.__class__.__name__))
+            raise TypeError(f"Scalar {self.__class__.__name__!r} object has no len()")
         return self.shape[0]
 
     def __bool__(self):

@@ -92,8 +92,8 @@ def comparerecords(a, b):
               isinstance(fieldb, fits.column._VLF)):
             for row in range(len(fielda)):
                 if np.any(fielda[row] != fieldb[row]):
-                    print('fielda[{}]: {}'.format(row, fielda[row]))
-                    print('fieldb[{}]: {}'.format(row, fieldb[row]))
+                    print(f'fielda[{row}]: {fielda[row]}')
+                    print(f'fieldb[{row}]: {fieldb[row]}')
                     print(f'field {i} differs in row {row}')
         else:
             if np.any(fielda != fieldb):

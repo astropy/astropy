@@ -151,7 +151,7 @@ class TestRow():
             .format(row.__class__.__name__,
                     'index=0',
                     ' masked=True' if table.masked else ''),
-            '<table id="table{}">'.format(id(table)),
+            f'<table id="table{id(table)}">',
             '<thead><tr><th>a</th><th>b</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1</td><td>4</td></tr>',

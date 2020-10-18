@@ -41,8 +41,7 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
     if ellipsoid is None:
         ellipsoid = default
     if ellipsoid not in ELLIPSOIDS:
-        raise ValueError('Ellipsoid {} not among known ones ({})'
-                         .format(ellipsoid, ELLIPSOIDS))
+        raise ValueError(f'Ellipsoid {ellipsoid} not among known ones ({ELLIPSOIDS})')
     return ellipsoid
 
 
@@ -435,18 +434,15 @@ class EarthLocation(u.Quantity):
         if use_google:  # Google
             pars = urllib.parse.urlencode({'address': address,
                                            'key': google_api_key})
-            geo_url = ("https://maps.googleapis.com/maps/api/geocode/json?{}"
-                       .format(pars))
+            geo_url = f"https://maps.googleapis.com/maps/api/geocode/json?{pars}"
 
         else:  # OpenStreetMap
             pars = urllib.parse.urlencode({'q': address,
                                            'format': 'json'})
-            geo_url = ("https://nominatim.openstreetmap.org/search?{}"
-                       .format(pars))
+            geo_url = f"https://nominatim.openstreetmap.org/search?{pars}"
 
         # get longitude and latitude location
-        err_str = ("Unable to retrieve coordinates for address '{address}'; "
-                   "{{msg}}".format(address=address))
+        err_str = f"Unable to retrieve coordinates for address '{address}'; {{msg}}"
         geo_result = _get_json_result(geo_url, err_str=err_str,
                                       use_google=use_google)
 
@@ -464,11 +460,9 @@ class EarthLocation(u.Quantity):
             pars = {'locations': f'{lat:.8f},{lon:.8f}',
                     'key': google_api_key}
             pars = urllib.parse.urlencode(pars)
-            ele_url = ("https://maps.googleapis.com/maps/api/elevation/json?{}"
-                       .format(pars))
+            ele_url = f"https://maps.googleapis.com/maps/api/elevation/json?{pars}"
 
-            err_str = ("Unable to retrieve elevation for address '{address}'; "
-                       "{{msg}}".format(address=address))
+            err_str = f"Unable to retrieve elevation for address '{address}'; {{msg}}"
             ele_result = _get_json_result(ele_url, err_str=err_str,
                                           use_google=use_google)
             height = ele_result[0]['elevation']*u.meter

@@ -149,7 +149,7 @@ def test_data_info():
                'dtype = float64',
                'unit = m / s',
                'description = description',
-               'class = {}'.format(type(c).__name__),
+               f'class = {type(c).__name__}',
                'n_bad = 1',
                'length = 3']
         assert out.getvalue().splitlines() == exp

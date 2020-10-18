@@ -133,8 +133,7 @@ zmin and zmax satisfying fval = func(z).""")
                                            full_output=1, xtol=ztol)
 
     if ierr != 0:
-        warnings.warn('Maximum number of function calls ({}) reached'.format(
-            ncall))
+        warnings.warn(f'Maximum number of function calls ({ncall}) reached')
 
     if np.allclose(zbest, zmax):
         raise CosmologyError("Best guess z is very close the upper z limit.\n"

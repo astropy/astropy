@@ -153,7 +153,7 @@ def horoscope(birthday, corrected=True, chinese=False):
         else:
             zodiac_sign = get_sign(birthday.to_datetime())
         url = f"http://www.astrology.com/us/horoscope/daily-overview.aspx?sign={zodiac_sign}"
-        summ_title_sfx = 'on {}'.format(today.strftime("%Y-%m-%d"))
+        summ_title_sfx = f"on {today.strftime('%Y-%m-%d')}"
 
         res = Request(url, headers=headers)
         with urlopen(res) as f:
@@ -165,7 +165,7 @@ def horoscope(birthday, corrected=True, chinese=False):
                 raise CelestialError(err_msg)
 
     print("*"*79)
-    color_print("Horoscope for {} {}:".format(zodiac_sign.capitalize(), summ_title_sfx),
+    color_print(f"Horoscope for {zodiac_sign.capitalize()} {summ_title_sfx}:",
                 'green')
     print("*"*79)
     for block in textwrap.wrap(desc, 79):

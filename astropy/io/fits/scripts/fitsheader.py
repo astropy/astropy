@@ -194,7 +194,7 @@ class HeaderFormatter:
             else:
                 header = self._hdulist[hdukey].header
         except (IndexError, KeyError):
-            message = '{}: Extension {} not found.'.format(self.filename, hdukey)
+            message = f'{self.filename}: Extension {hdukey} not found.'
             if self.verbose:
                 log.warning(message)
             raise ExtensionNotFoundException(message)
@@ -359,7 +359,7 @@ def print_headers_as_comparison(args):
     if len(np.unique(hdus)) > 1:
         for tab in tables:
             new_column = table.Column(
-                ['{}:{}'.format(row['hdu'], row['keyword']) for row in tab])
+                [f"{row['hdu']}:{row['keyword']}" for row in tab])
             tab.add_column(new_column, name='hdu+keyword')
         keyword_column_name = 'hdu+keyword'
     else:

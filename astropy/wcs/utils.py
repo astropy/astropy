@@ -1098,7 +1098,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         if '-SIP' not in wcs.wcs.ctype[0]:
             wcs.wcs.ctype = [x + '-SIP' for x in wcs.wcs.ctype]
 
-        coef_names = ['{0}_{1}'.format(i, j) for i in range(degree+1)
+        coef_names = [f'{i}_{j}' for i in range(degree+1)
                       for j in range(degree+1) if (i+j) < (degree+1) and
                       (i+j) > 1]
         p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.cd.flatten(),

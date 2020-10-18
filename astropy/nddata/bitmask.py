@@ -122,7 +122,7 @@ class BitFlagNameMeta(type):
                     raise AttributeError("Version cannot be modified.")
                 return super().__setattr__(name, val)
 
-            err_msg = "Bit flags are read-only. Unable to reassign attribute {}".format(name)
+            err_msg = f"Bit flags are read-only. Unable to reassign attribute {name}"
             if cls._locked:
                 raise AttributeError(err_msg)
 
@@ -155,7 +155,7 @@ class BitFlagNameMeta(type):
         try:
             return flagnames[name.lower()]
         except KeyError:
-            raise AttributeError("Flag '{}' not defined".format(name))
+            raise AttributeError(f"Flag '{name}' not defined")
 
     def __getitem__(cls, key):
         return cls.__getattr__(key)
@@ -186,7 +186,7 @@ class BitFlagNameMeta(type):
                              .format(cls.__name__, cls.mro()[-2].__name__))
 
     def __repr__(cls):
-        return "<{:s} '{:s}'>".format(cls.mro()[-2].__name__, cls.__name__)
+        return f"<{cls.mro()[-2].__name__:s} '{cls.__name__:s}'>"
 
 
 class BitFlagNameMap(metaclass=BitFlagNameMeta):

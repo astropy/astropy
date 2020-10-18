@@ -242,8 +242,7 @@ class TransformGraph:
                 if fromsys:
                     break
             else:
-                raise ValueError('Could not find transform {} in the '
-                                 'graph'.format(transform))
+                raise ValueError(f'Could not find transform {transform} in the graph')
 
         else:
             if transform is None:

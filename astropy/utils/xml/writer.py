@@ -233,7 +233,7 @@ class XMLWriter:
         """
         self._flush()
         self.write(self.get_indentation_spaces())
-        self.write("<!-- {} -->\n".format(self.xml_escape_cdata(comment)))
+        self.write(f"<!-- {self.xml_escape_cdata(comment)} -->\n")
 
     def data(self, text):
         """
@@ -261,8 +261,7 @@ class XMLWriter:
             if not self._tags:
                 raise ValueError(f"unbalanced end({tag})")
             if tag != self._tags[-1]:
-                raise ValueError("expected end({}), got {}".format(
-                        self._tags[-1], tag))
+                raise ValueError(f"expected end({self._tags[-1]}), got {tag}")
         else:
             if not self._tags:
                 raise ValueError("unbalanced end()")

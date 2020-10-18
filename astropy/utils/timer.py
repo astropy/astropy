@@ -256,8 +256,7 @@ class RunTimePredictor:
 
         x_arr = np.array(list(self._cache_good.keys()))
         if x_arr.size < min_datapoints:
-            raise ValueError('requires {} points but has {}'.format(
-                min_datapoints, x_arr.size))
+            raise ValueError(f'requires {min_datapoints} points but has {x_arr.size}')
 
         if model is None:
             model = modeling.models.Polynomial1D(1)
@@ -365,7 +364,7 @@ class RunTimePredictor:
         ax.set_yscale(yscale)
 
         ax.set_xlabel(xlabeltext)
-        ax.set_ylabel('Run time ({})'.format(cur_u.to_string()))
+        ax.set_ylabel(f'Run time ({cur_u.to_string()})')
         ax.set_title(self._funcname)
         ax.legend(loc='best', numpoints=1)
 

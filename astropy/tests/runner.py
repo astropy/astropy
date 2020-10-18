@@ -217,7 +217,7 @@ class TestRunnerBase:
         passed_kwargs = set(kwargs.keys())
         if not passed_kwargs.issubset(allowed_kwargs):
             wrong_kwargs = list(passed_kwargs.difference(allowed_kwargs))
-            raise TypeError("run_tests() got an unexpected keyword argument {}".format(wrong_kwargs[0]))
+            raise TypeError(f"run_tests() got an unexpected keyword argument {wrong_kwargs[0]}")
 
         args = self._generate_args(**kwargs)
 

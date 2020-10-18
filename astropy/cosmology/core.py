@@ -295,8 +295,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         if self.name is None:
             return f"{self.__class__.__name__}("
         else:
-            return "{}(name=\"{}\", ".format(self.__class__.__name__,
-                                               self.name)
+            return f"{self.__class__.__name__}(name=\"{self.name}\", "
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
