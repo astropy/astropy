@@ -6,11 +6,17 @@ import pytest
 pytest.importorskip('matplotlib')  # noqa
 
 import matplotlib.pyplot as plt
+import matplotlib.dates
 from erfa import ErfaWarning
 
 from astropy.time import Time
 from astropy.visualization.time import time_support
 from astropy.utils.compat.context import nullcontext
+
+# Matplotlib 3.3 added a settable epoch for plot dates and changed the default
+# from 0000-12-31 to 1970-01-01. This can be checked by the existence of
+# get_epoch() in matplotlib.dates.
+MPL_EPOCH_1970 = hasattr(matplotlib.dates, 'get_epoch')
 
 # Since some of the examples below use times/dates in the future, we use the
 # TAI time scale to avoid ERFA warnings about dubious years.
@@ -123,7 +129,8 @@ FORMAT_CASES = [
   ('jyear', ['2020', '2040', '2060']),
   ('jyear_str', ['J2020.000', 'J2040.000', 'J2060.000']),
   ('mjd', ['60000', '66000', '72000', '78000']),
-  ('plot_date', ['738000', '744000', '750000', '756000']),
+  ('plot_date', (['18000', '24000', '30000', '36000'] if MPL_EPOCH_1970 else
+                 ['738000', '744000', '750000', '756000'])),
   ('unix', ['1500000000', '2000000000', '2500000000', '3000000000']),
   ('yday', ['2020:001:00:00:00.000', '2040:001:00:00:00.000', '2060:001:00:00:00.000']),
 ]
