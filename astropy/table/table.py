@@ -3651,6 +3651,7 @@ class QTable(Table):
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
             qcol = q_cls(col.data, col.unit, copy=False)
             qcol.info = col.info
+            qcol.info.indices = col.info.indices
             col = qcol
         else:
             col = super()._convert_col_for_table(col)
