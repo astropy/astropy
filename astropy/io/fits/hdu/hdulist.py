@@ -405,6 +405,7 @@ class HDUList(list, _Verify):
 
         return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
                              save_backup=save_backup, cache=cache,
+                             ignore_missing_simple=ignore_missing_simple,
                              lazy_load_hdus=lazy_load_hdus, **kwargs)
 
     @classmethod
