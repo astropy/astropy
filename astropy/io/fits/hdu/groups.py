@@ -140,7 +140,7 @@ class GroupData(FITS_rec):
                 parbzeros = [None] * npars
 
             if parnames is None:
-                parnames = ['PAR{}'.format(idx + 1) for idx in range(npars)]
+                parnames = [f'PAR{idx + 1}' for idx in range(npars)]
 
             if len(parnames) != npars:
                 raise ValueError('The number of parameter data arrays does '
@@ -153,7 +153,7 @@ class GroupData(FITS_rec):
 
             fits_fmt = GroupsHDU._bitpix2tform[bitpix]  # -32 -> 'E'
             format = FITS2NUMPY[fits_fmt]  # 'E' -> 'f4'
-            data_fmt = '{}{}'.format(str(input.shape[1:]), format)
+            data_fmt = f'{str(input.shape[1:])}{format}'
             formats = ','.join(([format] * npars) + [data_fmt])
             gcount = input.shape[0]
 

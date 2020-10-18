@@ -179,7 +179,7 @@ class Row:
             descr_vals.append('masked=True')
 
         return table._base_repr_(html, descr_vals, max_width=-1,
-                                 tableid='table{}'.format(id(self._table)))
+                                 tableid=f'table{id(self._table)}')
 
     def _repr_html_(self):
         return self._base_repr_(html=True)

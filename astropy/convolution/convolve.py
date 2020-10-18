@@ -176,8 +176,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     """
 
     if boundary not in BOUNDARY_OPTIONS:
-        raise ValueError("Invalid boundary option: must be one of {}"
-                         .format(BOUNDARY_OPTIONS))
+        raise ValueError(f"Invalid boundary option: must be one of {BOUNDARY_OPTIONS}")
 
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")

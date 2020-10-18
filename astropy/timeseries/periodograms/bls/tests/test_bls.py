@@ -29,8 +29,7 @@ def assert_allclose_blsresults(blsresult, other, **kwargs):
             raise AssertionError(f"missing key '{k}'")
         if k == "objective":
             assert v == other[k], (
-                "Mismatched objectives. Expected '{}', got '{}'"
-                .format(v, other[k])
+                f"Mismatched objectives. Expected '{v}', got '{other[k]}'"
             )
             continue
         assert_quantity_allclose(v, other[k], **kwargs)

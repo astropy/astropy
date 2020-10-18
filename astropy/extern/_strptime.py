@@ -249,8 +249,8 @@ class TimeRE(dict):
         else:
             return ''
         regex = '|'.join(re_escape(stuff) for stuff in to_convert)
-        regex = '(?P<%s>%s' % (directive, regex)
-        return '%s)' % regex
+        regex = f'(?P<{directive}>{regex}'
+        return f'{regex})'
 
     def pattern(self, format):
         """Return regex pattern for the format string.
@@ -273,7 +273,7 @@ class TimeRE(dict):
                                            format[:directive_index-1],
                                            self[format[directive_index]])
             format = format[directive_index+1:]
-        return "%s%s" % (processed_format, format)
+        return f"{processed_format}{format}"
 
     def compile(self, format):
         """Return a compiled re object for the format string."""
@@ -343,15 +343,13 @@ def _strptime(data_string, format="%a %b %d %H:%M:%S %Y"):
                                     (bad_directive, format)) from None
             # IndexError only occurs when the format string is "%"
             except IndexError:
-                raise ValueError("stray %% in format '%s'" % format) from None
+                raise ValueError(f"stray % in format '{format}'") from None
             _regex_cache[format] = format_regex
     found = format_regex.match(data_string)
     if not found:
-        raise ValueError("time data %r does not match format %r" %
-                         (data_string, format))
+        raise ValueError(f"time data {data_string!r} does not match format {format!r}")
     if len(data_string) != found.end():
-        raise ValueError("unconverted data remains: %s" %
-                          data_string[found.end():])
+        raise ValueError(f"unconverted data remains: {data_string[found.end():]}")
 
     year = None
     month = day = 1

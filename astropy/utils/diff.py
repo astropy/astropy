@@ -87,7 +87,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
 
         if num_diffs > 3:
             fileobj.write(fixed_width_indent(
-                '  ...and at {:d} more indices.\n'.format(num_diffs - 3),
+                f'  ...and at {num_diffs - 3:d} more indices.\n',
                 indent_width))
             return False
 

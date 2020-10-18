@@ -259,7 +259,7 @@ class InterpolationLoopError(InterpolationError):
     def __init__(self, option):
         InterpolationError.__init__(
             self,
-            'interpolation loop detected in value "%s".' % option)
+            f'interpolation loop detected in value "{option}".')
 
 
 class RepeatSectionError(ConfigObjError):
@@ -272,7 +272,7 @@ class RepeatSectionError(ConfigObjError):
 class MissingInterpolationOption(InterpolationError):
     """A value specified for interpolation was missing."""
     def __init__(self, option):
-        msg = 'missing option "%s" in interpolation.' % option
+        msg = f'missing option "{option}" in interpolation.'
         InterpolationError.__init__(self, msg)
 
 
@@ -579,7 +579,7 @@ class Section(dict):
         creating a new sub-section.
         """
         if not isinstance(key, str):
-            raise ValueError('The key "%s" is not a string.' % key)
+            raise ValueError(f'The key "{key}" is not a string.')
 
         # add the comment
         if key not in self.comments:
@@ -617,9 +617,9 @@ class Section(dict):
                 elif isinstance(value, (list, tuple)):
                     for entry in value:
                         if not isinstance(entry, str):
-                            raise TypeError('Value is not a string "%s".' % entry)
+                            raise TypeError(f'Value is not a string "{entry}".')
                 else:
-                    raise TypeError('Value is not a string "%s".' % value)
+                    raise TypeError(f'Value is not a string "{value}".')
             dict.__setitem__(self, key, value)
 
 
@@ -821,7 +821,7 @@ class Section(dict):
         elif oldkey in self.sections:
             the_list = self.sections
         else:
-            raise KeyError('Key "%s" not found.' % oldkey)
+            raise KeyError(f'Key "{oldkey}" not found.')
         pos = the_list.index(oldkey)
         #
         val = self[oldkey]
@@ -963,7 +963,7 @@ class Section(dict):
                 else:
                     return self.main._bools[val.lower()]
             except KeyError:
-                raise ValueError('Value "%s" is neither True nor False' % val)
+                raise ValueError(f'Value "{val}" is neither True nor False')
 
 
     def as_int(self, key):
@@ -1208,7 +1208,7 @@ class ConfigObj(Section):
             # TODO: check the values too.
             for entry in options:
                 if entry not in OPTION_DEFAULTS:
-                    raise TypeError('Unrecognized option "%s".' % entry)
+                    raise TypeError(f'Unrecognized option "{entry}".')
             for entry, value in list(OPTION_DEFAULTS.items()):
                 if entry not in options:
                     options[entry] = value
@@ -1235,7 +1235,7 @@ class ConfigObj(Section):
                     content = h.readlines() or []
             elif self.file_error:
                 # raise an error if the file doesn't exist
-                raise IOError('Config file not found: "%s".' % self.filename)
+                raise IOError(f'Config file not found: "{self.filename}".')
             else:
                 # file doesn't already exist
                 if self.create_empty:
@@ -1302,9 +1302,9 @@ class ConfigObj(Section):
         self._parse(content)
         # if we had any errors, now is the time to raise them
         if self._errors:
-            info = "at line %s." % self._errors[0].line_number
+            info = f"at line {self._errors[0].line_number}."
             if len(self._errors) > 1:
-                msg = "Parsing failed with several errors.\nFirst error %s" % info
+                msg = f"Parsing failed with several errors.\nFirst error {info}"
                 error = ConfigObjError(msg)
             else:
                 error = self._errors[0]
@@ -1620,7 +1620,7 @@ class ConfigObj(Section):
             mat = self._keyword.match(line)
             if mat is None:
                 self._handle_error(
-                    'Invalid line ({0!r}) (matched as neither section nor keyword)'.format(line),
+                    f'Invalid line ({line!r}) (matched as neither section nor keyword)',
                     ParseError, infile, cur_index)
             else:
                 # is a keyword value
@@ -1728,7 +1728,7 @@ class ConfigObj(Section):
         """
         line = infile[cur_index]
         cur_index += 1
-        message = '{0} at line {1}.'.format(text, cur_index)
+        message = f'{text} at line {cur_index}.'
         error = ErrorClass(message, cur_index, line)
         if self.raise_errors:
             # raise the error - parsing stops here
@@ -1785,7 +1785,7 @@ class ConfigObj(Section):
                 # string type is for the python version we're dealing with
                 value = str(value)
             else:
-                raise TypeError('Value "%s" is not a string.' % value)
+                raise TypeError(f'Value "{value}" is not a string.')
 
         if not value:
             return '""'
@@ -1802,7 +1802,7 @@ class ConfigObj(Section):
             # for normal values either single or double quotes will do
             elif '\n' in value:
                 # will only happen if multiline is off - e.g. '\n' in key
-                raise ConfigObjError('Value "%s" cannot be safely quoted.' % value)
+                raise ConfigObjError(f'Value "{value}" cannot be safely quoted.')
             elif ((value[0] not in wspace_plus) and
                     (value[-1] not in wspace_plus) and
                     (',' not in value)):
@@ -1821,7 +1821,7 @@ class ConfigObj(Section):
 
     def _get_single_quote(self, value):
         if ("'" in value) and ('"' in value):
-            raise ConfigObjError('Value "%s" cannot be safely quoted.' % value)
+            raise ConfigObjError(f'Value "{value}" cannot be safely quoted.')
         elif '"' in value:
             quot = squot
         else:
@@ -1831,7 +1831,7 @@ class ConfigObj(Section):
 
     def _get_triple_quote(self, value):
         if (value.find('"""') != -1) and (value.find("'''") != -1):
-            raise ConfigObjError('Value "%s" cannot be safely quoted.' % value)
+            raise ConfigObjError(f'Value "{value}" cannot be safely quoted.')
         if value.find('"""') == -1:
             quot = tdquot
         else:
@@ -1936,9 +1936,9 @@ class ConfigObj(Section):
             except ConfigObjError as e:
                 # FIXME: Should these errors have a reference
                 #        to the already parsed ConfigObj ?
-                raise ConfigspecError('Parsing configspec failed: %s' % e)
+                raise ConfigspecError(f'Parsing configspec failed: {e}')
             except IOError as e:
-                raise IOError('Reading configspec failed: %s' % e)
+                raise IOError(f'Reading configspec failed: {e}')
 
         self.configspec = configspec
 
@@ -2277,7 +2277,7 @@ class ConfigObj(Section):
                 out[entry] = False
             else:
                 ret_false = False
-                msg = 'Value %r was provided as a section' % entry
+                msg = f'Value {entry!r} was provided as a section'
                 out[entry] = validator.baseErrorClass(msg)
         for entry in incorrect_sections:
             ret_true = False
@@ -2285,7 +2285,7 @@ class ConfigObj(Section):
                 out[entry] = False
             else:
                 ret_false = False
-                msg = 'Section %r was provided as a single value' % entry
+                msg = f'Section {entry!r} was provided as a single value'
                 out[entry] = validator.baseErrorClass(msg)
 
         # Missing sections will have been created as empty ones when the

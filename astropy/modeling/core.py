@@ -351,7 +351,7 @@ class _ModelMeta(abc.ABCMeta):
 
         __call__.__signature__ = sig
 
-        return type('_{0}BoundingBox'.format(cls.name), (_BoundingBox,),
+        return type(f'_{cls.name}BoundingBox', (_BoundingBox,),
                     {'__call__': __call__})
 
     def _handle_special_methods(cls, members, pdict):
@@ -365,8 +365,7 @@ class _ModelMeta(abc.ABCMeta):
             wrapper.__module__ = cls.__module__
             wrapper.__doc__ = getattr(cls, wrapper.__name__).__doc__
             if hasattr(cls, '__qualname__'):
-                wrapper.__qualname__ = '{0}.{1}'.format(
-                    cls.__qualname__, wrapper.__name__)
+                wrapper.__qualname__ = f'{cls.__qualname__}.{wrapper.__name__}'
 
         if ('__call__' not in members and 'n_inputs' in members and
                 isinstance(members['n_inputs'], int) and members['n_inputs'] > 0):
@@ -476,7 +475,7 @@ class _ModelMeta(abc.ABCMeta):
                     break
                 bases.append(base.name)
             if bases:
-                return '{0} ({1})'.format(cls.name, ' -> '.join(bases))
+                return f"{cls.name} ({' -> '.join(bases)})"
             return cls.name
 
         try:
@@ -492,7 +491,7 @@ class _ModelMeta(abc.ABCMeta):
 
             for keyword, value in default_keywords + keywords:
                 if value is not None:
-                    parts.append('{0}: {1}'.format(keyword, value))
+                    parts.append(f'{keyword}: {value}')
 
             return '\n'.join(parts)
         except Exception:
@@ -2331,22 +2330,21 @@ class Model(metaclass=_ModelMeta):
         parts = [repr(a) for a in args]
 
         parts.extend(
-            "{0}={1}".format(name,
-                             param_repr_oneline(getattr(self, name)))
+            f"{name}={param_repr_oneline(getattr(self, name))}"
             for name in self.param_names)
 
         if self.name is not None:
-            parts.append('name={0!r}'.format(self.name))
+            parts.append(f'name={self.name!r}')
 
         for kwarg, value in kwargs.items():
             if kwarg in defaults and defaults[kwarg] == value:
                 continue
-            parts.append('{0}={1!r}'.format(kwarg, value))
+            parts.append(f'{kwarg}={value!r}')
 
         if len(self) > 1:
-            parts.append("n_models={0}".format(len(self)))
+            parts.append(f"n_models={len(self)}")
 
-        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
+        return f"<{self.__class__.__name__}({', '.join(parts)})>"
 
     def _format_str(self, keywords=[], defaults={}):
         """
@@ -2365,14 +2363,14 @@ class Model(metaclass=_ModelMeta):
             ('Model set size', len(self))
         ]
 
-        parts = ['{0}: {1}'.format(keyword, value)
+        parts = [f'{keyword}: {value}'
                  for keyword, value in default_keywords
                  if value is not None]
 
         for keyword, value in keywords:
             if keyword.lower() in defaults and defaults[keyword.lower()] == value:
                 continue
-            parts.append('{0}: {1}'.format(keyword, value))
+            parts.append(f'{keyword}: {value}')
         parts.append('Parameters:')
 
         if len(self) == 1:
@@ -2758,7 +2756,7 @@ class CompoundModel(Model):
         newnames = []
         for item in names:
             if item is None:
-                newnames.append('None_{}'.format(nonecount))
+                newnames.append(f'None_{nonecount}')
                 nonecount += 1
             else:
                 newnames.append(item)
@@ -2908,7 +2906,7 @@ class CompoundModel(Model):
         if name in self._param_names:
             return self.__dict__[name]
         else:
-            raise AttributeError('Attribute "{}" not found'.format(name))
+            raise AttributeError(f'Attribute "{name}" not found')
 
     def __getitem__(self, index):
         if self._leaflist is None:
@@ -2962,7 +2960,7 @@ class CompoundModel(Model):
             if getattr(leaf, 'name', None) == str_index:
                 found.append(nleaf)
         if len(found) == 0:
-            raise IndexError("No component with name '{}' found".format(str_index))
+            raise IndexError(f"No component with name '{str_index}' found")
         if len(found) > 1:
             raise IndexError("Multiple components found using '{}' as name\n"
                              "at indices {}".format(str_index, found))
@@ -3024,7 +3022,7 @@ class CompoundModel(Model):
         operands = deque()
 
         if format_leaf is None:
-            format_leaf = lambda i, l: '[{0}]'.format(i)
+            format_leaf = lambda i, l: f'[{i}]'
 
         for node in self.traverse_postorder():
             if not isinstance(node, CompoundModel):
@@ -3038,10 +3036,10 @@ class CompoundModel(Model):
             if isinstance(node, CompoundModel):
                 if (isinstance(node.left, CompoundModel) and
                         OPERATOR_PRECEDENCE[node.left.op] < oper_order):
-                    left = '({0})'.format(left)
+                    left = f'({left})'
                 if (isinstance(node.right, CompoundModel) and
                         OPERATOR_PRECEDENCE[node.right.op] < oper_order):
-                    right = '({0})'.format(right)
+                    right = f'({right})'
 
             operands.append(' '.join((left, node.op, right)))
 
@@ -3130,7 +3128,7 @@ class CompoundModel(Model):
             if not isinstance(leaf, dict):
                 for param_name in leaf.param_names:
                     param = getattr(leaf, param_name)
-                    new_param_name = "{}_{}".format(param_name, lindex)
+                    new_param_name = f"{param_name}_{lindex}"
                     self.__dict__[new_param_name] = param
                     self._parameters_[new_param_name] = param
                     self._param_names.append(new_param_name)

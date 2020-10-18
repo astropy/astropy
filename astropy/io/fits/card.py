@@ -375,8 +375,7 @@ class Card(_Verify):
                 try:
                     self._value = _int_or_float(self._value)
                 except ValueError:
-                    raise ValueError('value {} is not a float'.format(
-                            self._value))
+                    raise ValueError(f'value {self._value} is not a float')
 
     @value.deleter
     def value(self):
@@ -1037,7 +1036,7 @@ class Card(_Verify):
 
             value = value_format.format(word)
 
-            output.append('{:80}'.format(headstr + value))
+            output.append(f'{headstr + value:80}')
 
         # do the comment string
         comment_format = "{}"
@@ -1076,8 +1075,7 @@ class Card(_Verify):
         self._verified = True
 
         errs = _ErrList([])
-        fix_text = ('Fixed {!r} card to meet the FITS '
-                    'standard.'.format(self.keyword))
+        fix_text = f'Fixed {self.keyword!r} card to meet the FITS standard.'
 
         # Don't try to verify cards that already don't meet any recognizable
         # standard
@@ -1110,8 +1108,7 @@ class Card(_Verify):
                     # Keyword should be uppercase unless it's a HIERARCH card
                     errs.append(self.run_option(
                         option,
-                        err_text='Card keyword {!r} is not upper case.'.format(
-                                  keyword),
+                        err_text=f'Card keyword {keyword!r} is not upper case.',
                         fix_text=fix_text,
                         fix=self._fix_keyword))
 
@@ -1222,17 +1219,16 @@ def _format_value(value):
 
     # must be before int checking since bool is also int
     elif isinstance(value, (bool, np.bool_)):
-        return '{:>20}'.format(repr(value)[0])  # T or F
+        return f'{repr(value)[0]:>20}'  # T or F
 
     elif _is_int(value):
         return f'{value:>20d}'
 
     elif isinstance(value, (float, np.floating)):
-        return '{:>20}'.format(_format_float(value))
+        return f'{_format_float(value):>20}'
 
     elif isinstance(value, (complex, np.complexfloating)):
-        val_str = '({}, {})'.format(_format_float(value.real),
-                                    _format_float(value.imag))
+        val_str = f'({_format_float(value.real)}, {_format_float(value.imag)})'
         return f'{val_str:>20}'
 
     elif isinstance(value, Undefined):
@@ -1257,7 +1253,7 @@ def _format_float(value):
             exponent = exponent[1:]
         else:
             sign = ''
-        value_str = '{}E{}{:02d}'.format(significand, sign, int(exponent))
+        value_str = f'{significand}E{sign}{int(exponent):02d}'
 
     # Limit the value string to at most 20 characters.
     str_len = len(value_str)

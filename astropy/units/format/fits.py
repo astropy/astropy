@@ -123,7 +123,7 @@ class Fits(generic.Generic):
                     "that are not powers of 10.  Multiply your data by "
                     "{:e}.".format(unit.scale))
             elif unit.scale != 1.0:
-                parts.append('10**{}'.format(int(base)))
+                parts.append(f'10**{int(base)}')
 
             pairs = list(zip(unit.bases, unit.powers))
             if len(pairs):
@@ -144,8 +144,7 @@ class Fits(generic.Generic):
             scale = unit.scale
             unit = copy.copy(unit)
             unit._scale = 1.0
-            return '{} (with data multiplied by {})'.format(
-                cls.to_string(unit), scale)
+            return f'{cls.to_string(unit)} (with data multiplied by {scale})'
         return s
 
     @classmethod

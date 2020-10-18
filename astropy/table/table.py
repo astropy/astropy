@@ -267,7 +267,7 @@ class TableColumns(OrderedDict):
 
     def __repr__(self):
         names = (f"'{x}'" for x in self.keys())
-        return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
+        return f"<{self.__class__.__name__} names=({','.join(names)})>"
 
     def _rename_column(self, name, new_name):
         if name == new_name:
@@ -594,8 +594,7 @@ class Table:
             data = [[]] * n_cols
 
         else:
-            raise ValueError('Data type {} not allowed to init Table'
-                             .format(type(data)))
+            raise ValueError(f'Data type {type(data)} not allowed to init Table')
 
         # Set up defaults if names and/or dtype are not specified.
         # A value of None means the actual value will be inferred
@@ -1151,8 +1150,7 @@ class Table:
 
         lengths = set(len(col) for col in cols)
         if len(lengths) > 1:
-            raise ValueError('Inconsistent data column lengths: {}'
-                             .format(lengths))
+            raise ValueError(f'Inconsistent data column lengths: {lengths}')
 
         # Make sure that all Column-based objects have correct class.  For
         # plain Table this is self.ColumnClass, but for instance QTable will
@@ -1275,17 +1273,17 @@ class Table:
             descr_vals = [self.__class__.__name__]
             if self.masked:
                 descr_vals.append('masked=True')
-            descr_vals.append('length={}'.format(len(self)))
+            descr_vals.append(f'length={len(self)}')
 
         descr = ' '.join(descr_vals)
         if html:
             from astropy.utils.xml.writer import xml_escape
-            descr = '<i>{}</i>\n'.format(xml_escape(descr))
+            descr = f'<i>{xml_escape(descr)}</i>\n'
         else:
             descr = f'<{descr}>\n'
 
         if tableid is None:
-            tableid = 'table{id}'.format(id=id(self))
+            tableid = f'table{id(self)}'
 
         data_lines, outs = self.formatter._pformat_table(
             self, tableid=tableid, html=html, max_width=max_width,
@@ -1372,7 +1370,7 @@ class Table:
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, align=align)
         if outs['show_length']:
-            lines.append('Length = {} rows'.format(len(self)))
+            lines.append(f'Length = {len(self)} rows')
 
         n_header = outs['n_header']
 
@@ -1449,8 +1447,7 @@ class Table:
         from IPython.display import HTML
 
         if tableid is None:
-            tableid = 'table{}-{}'.format(id(self),
-                                          np.random.randint(1, 1e6))
+            tableid = f'table{id(self)}-{np.random.randint(1, 1000000.0)}'
 
         jsv = JSViewer(display_length=display_length)
         if show_row_index:
@@ -1573,7 +1570,7 @@ class Table:
             tableid=tableid, tableclass=tableclass, align=align)
 
         if outs['show_length']:
-            lines.append('Length = {} rows'.format(len(self)))
+            lines.append(f'Length = {len(self)} rows')
 
         return lines
 
@@ -1666,8 +1663,7 @@ class Table:
             # For all, a new table is constructed with slice of all columns
             return self._new_from_slice(item)
         else:
-            raise ValueError('Illegal type {} for table item access'
-                             .format(type(item)))
+            raise ValueError(f'Illegal type {type(item)} for table item access')
 
     def __setitem__(self, item, value):
         # If the item is a string then it must be the name of a column.
@@ -1719,8 +1715,7 @@ class Table:
                     col[item] = val
 
             else:
-                raise ValueError('Illegal type {} for table item access'
-                                 .format(type(item)))
+                raise ValueError(f'Illegal type {type(item)} for table item access')
 
     def __delitem__(self, item):
         if isinstance(item, str):
@@ -1932,7 +1927,7 @@ class Table:
               2 0.2    b   y
         """
         if default_name is None:
-            default_name = 'col{}'.format(len(self.columns))
+            default_name = f'col{len(self.columns)}'
 
         # Convert col data to acceptable object for insertion into self.columns.
         # Note that along with the lines above and below, this allows broadcasting
@@ -2074,7 +2069,7 @@ class Table:
         elif len(names) != len(cols):
             raise ValueError('Number of names must match number of cols')
 
-        default_names = ['col{}'.format(ii + len(self.columns))
+        default_names = [f'col{ii + len(self.columns)}'
                          for ii in range(len(cols))]
 
         for ii in reversed(np.argsort(indexes)):
@@ -3532,9 +3527,7 @@ class Table:
 
             not_found = set(units.keys()) - set(names)
             if not_found:
-                warnings.warn('`units` contains additionial columns: {}'.format(
-                    not_found
-                ))
+                warnings.warn(f'`units` contains additionial columns: {not_found}')
 
             units = [units.get(name) for name in names]
 

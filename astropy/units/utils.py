@@ -68,8 +68,7 @@ def _iter_unit_summary(namespace):
         doc = _get_first_sentence(unit.__doc__).strip()
         represents = ''
         if isinstance(unit, core.Unit):
-            represents = ":math:`{}`".format(
-                unit._represents.to_string('latex')[1:-1])
+            represents = f":math:`{unit._represents.to_string('latex')[1:-1]}`"
         aliases = ', '.join(f'``{x}``' for x in unit.aliases)
 
         yield (unit, doc, represents, aliases, 'Yes' if unit.name in has_prefixes else 'No')

@@ -147,7 +147,7 @@ class TestHeaderFunctions(FitsTestCase):
                     "/ abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeab")
         c = fits.Card('abc', 'a' * 68, 'abcdefg')
         with pytest.warns(fits.verify.VerifyWarning):
-            assert str(c) == "ABC     = '{}'".format('a' * 68)
+            assert str(c) == f"ABC     = '{'a' * 68}'"
 
     def test_constructor_filter_illegal_data_structures(self):
         """Test that Card constructor raises exceptions on bad arguments"""

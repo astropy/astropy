@@ -492,14 +492,11 @@ def binned_binom_proportion(x, success, bins=10, range=None,
 
 def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
     if sigma != 1:
-        raise ValueError("Only sigma=1 supported for interval {}"
-                         .format(name))
+        raise ValueError(f"Only sigma=1 supported for interval {name}")
     if background != 0:
-        raise ValueError("background not supported for interval {}"
-                         .format(name))
+        raise ValueError(f"background not supported for interval {name}")
     if confidence_level is not None:
-        raise ValueError("confidence_level not supported for interval {}"
-                         .format(name))
+        raise ValueError(f"confidence_level not supported for interval {name}")
 
 
 @deprecated_renamed_argument('conflevel', 'confidence_level', '4.0')
@@ -757,8 +754,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
                                      cache=True)(n, background, confidence_level)
         conf_interval = np.vstack(conf_interval)
     else:
-        raise ValueError("Invalid method for Poisson confidence intervals: "
-                         "{}".format(interval))
+        raise ValueError(f"Invalid method for Poisson confidence intervals: {interval}")
     return conf_interval
 
 

@@ -102,7 +102,7 @@ class FitsHDU(NonstandardExtHDU):
         if len(hdulist) > 1:
             for idx, hdu in enumerate(hdulist[1:]):
                 cards.append(('XIND' + str(idx + 1), hdu._header_offset,
-                              'byte offset of extension {}'.format(idx + 1)))
+                              f'byte offset of extension {idx + 1}'))
 
         cards.append(('COMPRESS', compress, 'Uses gzip compression'))
         header = Header(cards)

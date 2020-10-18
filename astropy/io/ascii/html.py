@@ -100,9 +100,9 @@ class HTMLInputter(core.BaseInputter):
                 break
         else:
             if isinstance(self.html['table_id'], int):
-                err_descr = 'number {}'.format(self.html['table_id'])
+                err_descr = f"number {self.html['table_id']}"
             else:
-                err_descr = "id '{}'".format(self.html['table_id'])
+                err_descr = f"id '{self.html['table_id']}'"
             raise core.InconsistentTableError(
                 f'ERROR: HTML table {err_descr} not found')
 

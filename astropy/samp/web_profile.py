@@ -55,7 +55,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/x-cross-domain-policy')
-            self.send_header("Content-Length", "{}".format(len(response)))
+            self.send_header("Content-Length", f"{len(response)}")
             self.end_headers()
             self.wfile.write(response.encode('utf-8'))
             self.wfile.flush()
@@ -68,7 +68,7 @@ class WebProfileRequestHandler(SAMPSimpleXMLRPCRequestHandler):
 
             self.send_response(200, 'OK')
             self.send_header('Content-Type', 'text/xml')
-            self.send_header("Content-Length", "{}".format(len(response)))
+            self.send_header("Content-Length", f"{len(response)}")
             self.end_headers()
             self.wfile.write(response.encode('utf-8'))
             self.wfile.flush()
@@ -163,17 +163,17 @@ def web_profile_text_dialog(request, queue):
         samp_name = request[0]["samp.name"]
 
     text = \
-        """A Web application which declares to be
+        f"""A Web application which declares to be
 
-Name: {}
-Origin: {}
+Name: {samp_name}
+Origin: {request[2]}
 
 is requesting to be registered with the SAMP Hub.
 Pay attention that if you permit its registration, such
 application will acquire all current user privileges, like
 file read/write.
 
-Do you give your consent? [yes|no]""".format(samp_name, request[2])
+Do you give your consent? [yes|no]"""
 
     print(text)
     answer = input(">>> ")

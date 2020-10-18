@@ -114,7 +114,7 @@ class Result:
             fail(reason)
             return
         except http.client.HTTPException as e:
-            fail("HTTPException: {}".format(str(e)))
+            fail(f"HTTPException: {str(e)}")
             return
         except (socket.timeout, socket.error) as e:
             fail("Timeout")
@@ -223,8 +223,7 @@ class Result:
     def validate_with_votlint(self, path_to_stilts_jar):
         filename = self.get_vo_xml_path()
         p = subprocess.Popen(
-            "java -jar {} votlint validate=false {}".format(
-                path_to_stilts_jar, filename),
+            f"java -jar {path_to_stilts_jar} votlint validate=false {filename}",
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if len(stdout) or p.returncode:

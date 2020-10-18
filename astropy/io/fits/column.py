@@ -1425,8 +1425,7 @@ class ColDefs(NotifierMixin):
     def _init_from_sequence(self, columns):
         for idx, col in enumerate(columns):
             if not isinstance(col, Column):
-                raise TypeError('Element {} in the ColDefs input is not a '
-                                'Column.'.format(idx))
+                raise TypeError(f'Element {idx} in the ColDefs input is not a Column.')
 
         self._init_from_coldefs(columns)
 
@@ -1494,7 +1493,7 @@ class ColDefs(NotifierMixin):
             valid_kwargs, invalid_kwargs = Column._verify_keywords(**kwargs)
             for val in invalid_kwargs.values():
                 warnings.warn(
-                    'Invalid keyword for column {}: {}'.format(idx + 1, val[1]),
+                    f'Invalid keyword for column {idx + 1}: {val[1]}',
                     VerifyWarning)
             # Special cases for recformat and dim
             # TODO: Try to eliminate the need for these special cases
@@ -1865,7 +1864,7 @@ class ColDefs(NotifierMixin):
                                  "definitions.\n".format(attr))
                     continue
                 output.write(f"{attr}:\n")
-                output.write('    {}\n'.format(getattr(self, attr + 's')))
+                output.write(f"    {getattr(self, attr + 's')}\n")
             else:
                 ret[attr] = getattr(self, attr + 's')
 

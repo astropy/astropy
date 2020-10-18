@@ -240,7 +240,7 @@ class SigmaClip:
         attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
                  'stdfunc', 'grow']
         for attr in attrs:
-            lines.append('    {}: {}'.format(attr, getattr(self, attr)))
+            lines.append(f'    {attr}: {getattr(self, attr)}')
         return '\n'.join(lines)
 
     def _parse_cenfunc(self, cenfunc):

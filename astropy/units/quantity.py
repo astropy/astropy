@@ -837,9 +837,7 @@ class Quantity(np.ndarray):
         """
         if not self._include_easy_conversion_members:
             raise AttributeError(
-                "'{}' object has no '{}' member".format(
-                    self.__class__.__name__,
-                    attr))
+                f"'{self.__class__.__name__}' object has no '{attr}' member")
 
         def get_virtual_unit_attribute():
             registry = get_current_unit_registry().registry
@@ -857,8 +855,7 @@ class Quantity(np.ndarray):
 
         if value is None:
             raise AttributeError(
-                "{} instance has no attribute '{}'".format(
-                    self.__class__.__name__, attr))
+                f"{self.__class__.__name__} instance has no attribute '{attr}'")
         else:
             return value
 
@@ -1180,8 +1177,7 @@ class Quantity(np.ndarray):
         # with array2string
         pops = np.get_printoptions()
 
-        format_spec = '.{}g'.format(
-            precision if precision is not None else pops['precision'])
+        format_spec = f".{precision if precision is not None else pops['precision']}g"
 
         def float_formatter(value):
             return Latex.format_exponential_notation(value,

@@ -43,8 +43,7 @@ def compare_arrays(arr1in, arr2in, verbose=False):
                 nfail += 1
                 if verbose:
                     sys.stdout.write(
-                        '\n        {} elements in field {} differ\n'.format(
-                            w.size, n2))
+                        f'\n        {w.size} elements in field {n2} differ\n')
             else:
                 if verbose:
                     sys.stdout.write('OK\n')

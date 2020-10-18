@@ -292,8 +292,7 @@ class CDS(Base):
             return cls._parse_unit(t.value)
         except ValueError as e:
             raise ValueError(
-                "At col {}, {}".format(
-                    t.lexpos, str(e)))
+                f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
@@ -341,8 +340,7 @@ class CDS(Base):
             if power == 1:
                 out.append(cls._get_unit_name(base))
             else:
-                out.append('{}{}'.format(
-                    cls._get_unit_name(base), int(power)))
+                out.append(f'{cls._get_unit_name(base)}{int(power)}')
         return '.'.join(out)
 
     @classmethod

@@ -901,7 +901,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             for i in range(det2im.data.ndim):
                 jth = {1: '1st', 2: '2nd', 3: '3rd'}.get(i + 1, f'{i + 1}th')
-                hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
+                hdulist[0].header[f'{d_kw}{num:d}.AXIS.{i + 1:d}'] = (
                     i + 1, f'Axis number of the {jth} variable in a D2IM function')
 
             image = fits.ImageHDU(det2im.data, name='D2IMARR')
@@ -1026,7 +1026,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             for i in range(cpdis.data.ndim):
                 jth = {1: '1st', 2: '2nd', 3: '3rd'}.get(i + 1, f'{i + 1}th')
-                hdulist[0].header['{}{:d}.AXIS.{:d}'.format(d_kw, num, i + 1)] = (
+                hdulist[0].header[f'{d_kw}{num:d}.AXIS.{i + 1:d}'] = (
                     i + 1,
                     f'Axis number of the {jth} variable in a {dist} function')
 
@@ -2779,7 +2779,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 description.append(s.format(*self.wcs.cd[i]))
 
-        description.append('NAXIS : {}'.format('  '.join(map(str, self._naxis))))
+        description.append(f"NAXIS : {'  '.join(map(str, self._naxis))}")
         return '\n'.join(description)
 
     def get_axis_types(self):
@@ -3293,7 +3293,7 @@ def validate(source):
             self._key = key
 
         def __repr__(self):
-            result = ["  WCS key '{}':".format(self._key or ' ')]
+            result = [f"  WCS key '{self._key or ' '}':"]
             if len(self):
                 for entry in self:
                     for i, line in enumerate(entry.splitlines()):

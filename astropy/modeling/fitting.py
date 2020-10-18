@@ -1410,8 +1410,7 @@ class JointFitter(metaclass=_FitterMeta):
 
     def _verify_input(self):
         if len(self.models) <= 1:
-            raise TypeError("Expected >1 models, {} is given".format(
-                len(self.models)))
+            raise TypeError(f"Expected >1 models, {len(self.models)} is given")
         if len(self.jointparams.keys()) < 2:
             raise TypeError("At least two parameters are expected, "
                             "{} is given".format(len(self.jointparams.keys())))

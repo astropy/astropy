@@ -32,8 +32,7 @@ def readable_directory(arg):
 
     if not os.access(arg, os.R_OK):
         raise argparse.ArgumentTypeError(
-            "{} exists but is not readable with its current "
-            "permissions".format(arg))
+            f"{arg} exists but is not readable with its current permissions")
 
     return arg
 
@@ -49,7 +48,6 @@ def writeable_directory(arg):
 
     if not os.access(arg, os.W_OK):
         raise argparse.ArgumentTypeError(
-            "{} exists but is not writeable with its current "
-            "permissions".format(arg))
+            f"{arg} exists but is not writeable with its current permissions")
 
     return arg

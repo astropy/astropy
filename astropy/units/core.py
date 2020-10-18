@@ -874,8 +874,7 @@ class UnitBase:
             unit_str = unit.to_string('unscaled')
             physical_type = unit.physical_type
             if physical_type != 'unknown':
-                unit_str = "'{}' ({})".format(
-                    unit_str, physical_type)
+                unit_str = f"'{unit_str}' ({physical_type})"
             else:
                 unit_str = f"'{unit_str}'"
             return unit_str
@@ -884,8 +883,7 @@ class UnitBase:
         other_str = get_err_str(other)
 
         raise UnitConversionError(
-            "{} and {} are not convertible".format(
-                unit_str, other_str))
+            f"{unit_str} and {other_str} are not convertible")
 
     def _get_converter(self, other, equivalencies=[]):
         other = Unit(other)
@@ -1128,8 +1126,7 @@ class UnitBase:
 
         if not is_final_result(self):
             result = UnitsError(
-                "Cannot represent unit {} in terms of the given "
-                "units".format(self))
+                f"Cannot represent unit {self} in terms of the given units")
             cached_results[key] = result
             raise result
 
@@ -1411,7 +1408,7 @@ class UnitBase:
             Outputs a HTML table representation within Jupyter notebooks.
             """
             if len(self) == 0:
-                return "<p>{}</p>".format(self.NO_EQUIV_UNITS_MSG)
+                return f"<p>{self.NO_EQUIV_UNITS_MSG}</p>"
             else:
                 # HTML tags to use to compose the table in HTML
                 blank_table = '<table style="width:50%">{}</table>'
@@ -1719,8 +1716,7 @@ class IrreducibleUnit(NamedUnit):
                                              _error_check=False)
 
             raise UnitConversionError(
-                "Unit {} can not be decomposed into the requested "
-                "bases".format(self))
+                f"Unit {self} can not be decomposed into the requested bases")
 
         return self
 
@@ -1742,7 +1738,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     __reduce__ = object.__reduce__
 
     def __repr__(self):
-        return "UnrecognizedUnit({})".format(str(self))
+        return f"UnrecognizedUnit({str(self)})"
 
     def __bytes__(self):
         return self.name.encode('ascii', 'replace')
@@ -2097,8 +2093,7 @@ class CompositeUnit(UnitBase):
             return super().__repr__()
         else:
             if self._scale != 1.0:
-                return 'Unit(dimensionless with a scale of {})'.format(
-                    self._scale)
+                return f'Unit(dimensionless with a scale of {self._scale})'
             else:
                 return 'Unit(dimensionless)'
 

@@ -179,9 +179,9 @@ def _skycoord_constructor(loader, node):
 # Straight from yaml's Representer
 def _complex_representer(self, data):
     if data.imag == 0.0:
-        data = '%r' % data.real
+        data = f'{data.real!r}'
     elif data.real == 0.0:
-        data = '%rj' % data.imag
+        data = f'{data.imag!r}j'
     elif data.imag > 0:
         data = f'{data.real!r}+{data.imag!r}j'
     else:

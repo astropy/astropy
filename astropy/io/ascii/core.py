@@ -708,8 +708,7 @@ class BaseHeader:
                 if (_is_number(name) or len(name) == 0
                         or name[0] in bads or name[-1] in bads):
                     raise InconsistentTableError(
-                        'Column name {!r} does not meet strict name requirements'
-                        .format(name))
+                        f'Column name {name!r} does not meet strict name requirements')
         # When guessing require at least two columns
         if guessing and len(self.colnames) <= 1:
             raise ValueError('Table format guessing requires at least two columns, got {}'

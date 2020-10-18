@@ -1705,8 +1705,7 @@ class InverseSIP(Model):
                          name=name, meta=meta)
 
     def __repr__(self):
-        return '<{}({!r})>'.format(self.__class__.__name__,
-                                   [self.sip1d_ap, self.sip1d_bp])
+        return f'<{self.__class__.__name__}({[self.sip1d_ap, self.sip1d_bp]!r})>'
 
     def __str__(self):
         parts = [f'Model: {self.__class__.__name__}']

@@ -387,7 +387,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         # By default, try to give a representation using `Unit(<string>)`,
         # with string such that parsing it would give the correct FunctionUnit.
         if callable(self.function_unit):
-            return 'Unit("{}")'.format(self.to_string())
+            return f'Unit("{self.to_string()}")'
 
         else:
             return '{}("{}"{})'.format(
@@ -570,8 +570,7 @@ class FunctionQuantity(Quantity):
         # another argument might know what to do.
         if function not in self._supported_ufuncs:
             raise UnitTypeError(
-                "Cannot use ufunc '{}' with function quantities"
-                .format(function.__name__))
+                f"Cannot use ufunc '{function.__name__}' with function quantities")
 
         return super().__array_ufunc__(function, method, *inputs, **kwargs)
 

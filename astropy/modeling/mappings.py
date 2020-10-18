@@ -88,8 +88,7 @@ class Mapping(FittableModel):
         if len(args) != self.n_inputs:
             name = self.name if self.name is not None else "Mapping"
 
-            raise TypeError('{} expects {} inputs; got {}'.format(
-                name, self.n_inputs, len(args)))
+            raise TypeError(f'{name} expects {self.n_inputs} inputs; got {len(args)}')
 
         result = tuple(args[idx] for idx in self._mapping)
 

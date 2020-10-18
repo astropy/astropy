@@ -215,8 +215,7 @@ class _File:
                 self.memmap = False
 
     def __repr__(self):
-        return '<{}.{} {}>'.format(self.__module__, self.__class__.__name__,
-                                   self._file)
+        return f'<{self.__module__}.{self.__class__.__name__} {self._file}>'
 
     # Support the 'with' statement
     def __enter__(self):

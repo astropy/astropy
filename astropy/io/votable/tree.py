@@ -2016,7 +2016,7 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
         warn_unknown_attrs('GROUP', extra.keys(), config, pos)
 
     def __repr__(self):
-        return '<GROUP>... {} entries ...</GROUP>'.format(len(self._entries))
+        return f'<GROUP>... {len(self._entries)} entries ...</GROUP>'
 
     @property
     def ref(self):
@@ -2947,8 +2947,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                             assert type(chunk) == bytes
                         except Exception as e:
                             vo_reraise(
-                                e, additional="(in row {:d}, col '{}')".format(
-                                    row, fields[i].ID))
+                                e, additional=f"(in row {row:d}, col '{fields[i].ID}')")
                         data.write(chunk)
 
                 w._flush()
@@ -3539,8 +3538,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                             ns_version = '1.3'
                         else:
                             ns_version = config['version']
-                        correct_ns = ('http://www.ivoa.net/xml/VOTable/v{}'.format(
-                                ns_version))
+                        correct_ns = f'http://www.ivoa.net/xml/VOTable/v{ns_version}'
                         if data['xmlns'] != correct_ns:
                             vo_warn(
                                 W41, (correct_ns, data['xmlns']), config, pos)

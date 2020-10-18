@@ -250,7 +250,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
         if np.sum(notided) == 0:
             break
     else:
-        raise ValueError('Could not find constellation for coordinates {}'.format(constel_coord[notided]))
+        raise ValueError(f'Could not find constellation for coordinates {constel_coord[notided]}')
 
     if short_name:
         names = ctable['name'][constellidx]

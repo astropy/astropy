@@ -47,13 +47,11 @@ class CompoundType(TransformType):
         oper = _tag_to_method_mapping[tag]
         left = node['forward'][0]
         if not isinstance(left, Model):
-            raise TypeError("Unknown model type '{0}'".format(
-                node['forward'][0]._tag))
+            raise TypeError(f"Unknown model type '{node['forward'][0]._tag}'")
         right = node['forward'][1]
         if (not isinstance(right, Model) and
                 not (oper == 'fix_inputs' and isinstance(right, dict))):
-            raise TypeError("Unknown model type '{0}'".format(
-                node['forward'][1]._tag))
+            raise TypeError(f"Unknown model type '{node['forward'][1]._tag}'")
         if oper == 'fix_inputs':
             right = dict(zip(right['keys'], right['values']))
             model = CompoundModel('fix_inputs', left, right)
