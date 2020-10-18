@@ -602,7 +602,7 @@ def generate_config(pkgname='astropy', filename=None):
 
     Parameters
     ----------
-    packageormod : str or None
+    pkgname : str or None
         The package for which to retrieve the configuration object.
     filename : str or file object or None
         If None, the default configuration path is taken from `get_config`.
@@ -628,7 +628,7 @@ def generate_config(pkgname='astropy', filename=None):
                           width=78)
 
     if filename is None:
-        filename = get_config(package).filename
+        filename = get_config(pkgname).filename
 
     with contextlib.ExitStack() as stack:
         if isinstance(filename, (str, pathlib.Path)):
