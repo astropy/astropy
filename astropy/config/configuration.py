@@ -23,7 +23,7 @@ from warnings import warn
 from contextlib import contextmanager
 
 from astropy.extern.configobj import configobj, validate
-from astropy.utils import find_current_module
+from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import resolve_name
 
@@ -609,7 +609,7 @@ def generate_config(pkgname='astropy', filename=None):
 
     """
     package = importlib.import_module(pkgname)
-    with warnings.catch_warnings():
+    with silence(), warnings.catch_warnings():
         warnings.simplefilter('ignore')
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
