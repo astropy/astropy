@@ -639,7 +639,24 @@ def generate_config(pkgname='astropy', filename=None):
 
         # Parse the subclasses, ordered by their module name
         subclasses = ConfigNamespace.__subclasses__()
+        processed = set()
+
         for conf in sorted(subclasses, key=lambda x: x.__module__):
+            mod = conf.__module__
+
+            # Skip modules for other packages, e.g. astropy modules that
+            # would be imported when running the function for astroquery.
+            if mod.split('.')[0] != pkgname:
+                continue
+
+            # Check that modules are not processed twice, which can happen
+            # when they are imported in another module.
+            if mod in processed:
+                print(mod, 'already processed')
+                continue
+            else:
+                processed.add(mod)
+
             print_module = True
             for item in conf().values():
                 if print_module:
