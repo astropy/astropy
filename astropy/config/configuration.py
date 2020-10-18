@@ -610,7 +610,7 @@ def generate_config(pkgname='astropy', filename=None):
     """
     package = importlib.import_module(pkgname)
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore', AstropyDeprecationWarning)
+        warnings.simplefilter('ignore')
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
 
