@@ -985,6 +985,7 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fixed incorrect value computed for ``CRPIX`` in ``WCS.slice()``. [#10897]
 
 Other Changes and Additions
 ---------------------------

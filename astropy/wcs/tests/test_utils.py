@@ -110,12 +110,12 @@ def test_slice():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
     mywcs.wcs.cdelt = [0.1, 0.1]
-    mywcs.wcs.crpix = [1, 1]
+    mywcs.wcs.crpix = [5, 6]
     mywcs._naxis = [1000, 500]
     pscale = 0.1  # from cdelt
 
     slice_wcs = mywcs.slice([slice(1, None), slice(0, None)])
-    assert np.all(slice_wcs.wcs.crpix == np.array([1, 0]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([5, 5]))
     assert slice_wcs._naxis == [1000, 499]
 
     # test that CRPIX maps to CRVAL:
@@ -125,7 +125,7 @@ def test_slice():
     )
 
     slice_wcs = mywcs.slice([slice(1, None, 2), slice(0, None, 4)])
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([2, 3]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.4, 0.2]))
     assert slice_wcs._naxis == [250, 250]
 
@@ -189,20 +189,20 @@ def test_slice_getitem():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
     mywcs.wcs.cdelt = [0.1, 0.1]
-    mywcs.wcs.crpix = [1, 1]
+    mywcs.wcs.crpix = [5, 6]
 
     slice_wcs = mywcs[1::2, 0::4]
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.625, 0.25]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([2, 3]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.4, 0.2]))
 
     mywcs.wcs.crpix = [2, 2]
     slice_wcs = mywcs[1::2, 0::4]
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.875, 0.75]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([1.25, 1]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.4, 0.2]))
 
     # Default: numpy order
     slice_wcs = mywcs[1::2]
-    assert np.all(slice_wcs.wcs.crpix == np.array([2, 0.75]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([2, 1]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.1, 0.2]))
 
 
@@ -210,17 +210,17 @@ def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
     mywcs.wcs.cdelt = [0.1, 0.1]
-    mywcs.wcs.crpix = [1, 1]
+    mywcs.wcs.crpix = [3, 3]
 
     slice_wcs = mywcs.slice([slice(1, None), slice(0, None)], numpy_order=False)
-    assert np.all(slice_wcs.wcs.crpix == np.array([0, 1]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([2, 3]))
 
     slice_wcs = mywcs.slice([slice(1, None, 2), slice(0, None, 4)], numpy_order=False)
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.25, 0.625]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([1.5, 1.5]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.2, 0.4]))
 
     slice_wcs = mywcs.slice([slice(1, None, 2)], numpy_order=False)
-    assert np.all(slice_wcs.wcs.crpix == np.array([0.25, 1]))
+    assert np.all(slice_wcs.wcs.crpix == np.array([1.5, 3]))
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.2, 0.1]))
 
 

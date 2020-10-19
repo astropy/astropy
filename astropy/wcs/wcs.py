@@ -3093,11 +3093,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if iview.step not in (None, 1):
                     crpix = self.wcs.crpix[wcs_index]
                     cdelt = self.wcs.cdelt[wcs_index]
-                    # equivalently (keep this comment so you can compare eqns):
-                    # wcs_new.wcs.crpix[wcs_index] =
-                    # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
-                    crp = ((crpix - iview.start - 1.)/iview.step
-                           + 0.5 + 1./iview.step/2.)
+                    crp = (crpix - 1 - iview.start) / iview.step + 1
                     wcs_new.wcs.crpix[wcs_index] = crp
                     if wcs_new.sip is not None:
                         sip_crpix[wcs_index] = crp
