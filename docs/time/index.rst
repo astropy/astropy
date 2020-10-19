@@ -862,8 +862,6 @@ available format names is in the `time format`_ section.
   '2010-01-01 00:00:00.000'
   >>> t.unix      # seconds since 1970.0 (UTC)
   1262304000.0
-  >>> t.plot_date # Date value for plotting with matplotlib plot_date()
-  733773.0
   >>> t.datetime  # Representation as datetime.datetime object
   datetime.datetime(2010, 1, 1, 0, 0)
 
