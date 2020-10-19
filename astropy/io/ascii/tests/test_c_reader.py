@@ -1167,7 +1167,6 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
             t = ascii.read(StringIO(s), format='no_header',
                            guess=guess, fast_reader=fast_reader)
         assert t['col1'][0] == 0.0
-        assert len(w) == 0
 
     # Test OverflowError at precision limit with laxer rtol
     if parallel:
