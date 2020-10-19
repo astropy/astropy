@@ -12,14 +12,8 @@ jobs:
           command: |
               mkdir -p $HOME/.astropy/config/
               printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-      # In addition to testing 32-bit, we also use the 3.6 and 3.7 builds to
+      # In addition to testing 32-bit, we also use the 3.7 builds to
       # test the ability to run the test suite in parallel.
-      - run:
-          name: Install dependencies for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/pip install tox
-      - run:
-          name: Run tests for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/python -m tox -e py36-test -- -n=4 --durations=50
       - run:
           name: Install dependencies for Python 3.7
           command: /opt/python/cp37-cp37m/bin/pip install tox

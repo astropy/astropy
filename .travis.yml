@@ -97,10 +97,10 @@ matrix:
         # that tests do not open and leave open any files. This has a performance
         # impact on running the tests, hence why it is not enabled by default.
         - language: python
-          python: 3.6
+          python: 3.7
           stage: Comprehensive tests
-          name: Python 3.6 with oldest supported version of all dependencies
-          env: TOXENV="py36-test-oldestdeps"
+          name: Python 3.7 with oldest supported version of all dependencies
+          env: TOXENV="py37-test-oldestdeps"
                TOXPOSARGS="--open-files"
 
         # Now try with all optional dependencies.
