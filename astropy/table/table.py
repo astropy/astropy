@@ -887,12 +887,7 @@ class Table:
         for row in data:
             names_from_data.update(row)
 
-        # Put names into a preferred order, either using the first row of data
-        # if it is ordered, or alphabetically.  Starting with Python 3.7, dict
-        # is ordered so this test can be relaxed.  (In practice CPython 3.6 is
-        # this way, but not according to the formal spec).
-        if (isinstance(data[0], OrderedDict)
-                and set(data[0].keys()) == names_from_data):
+        if set(data[0].keys()) == names_from_data:
             names_from_data = list(data[0].keys())
         else:
             names_from_data = sorted(names_from_data)

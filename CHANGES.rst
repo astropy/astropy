@@ -424,6 +424,8 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+- Minimum version of supported Python is now 3.7. [#10900]
+
 - Minimum version of supported Numpy is now 1.17. [#10664]
 
 - The private ``_erfa`` module has been converted to its own package,
