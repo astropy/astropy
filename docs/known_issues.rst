@@ -127,7 +127,7 @@ on NumPy before version 1.20 and ignore the unit in later versions:
 .. doctest-requires:: numpy<1.20
 
     >>> my_quantity = u.Quantity(1, u.m)
-    >>> np.full(10, my_quantity)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> np.full(10, my_quantity)  # doctest: +SKIP
     Traceback (most recent call last):
     ...
     UnitConversionError: 'm' (length) and '' (dimensionless) are not convertible
