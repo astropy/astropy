@@ -319,6 +319,20 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         """Convert the representation to its Cartesian form.
 
         Note that any differentials get dropped.
+        Also note that orientation information at the origin is *not* preserved by
+        conversions through Cartesian coordinates. For example, transforming
+        an angular position defined at distance=0 through cartesian coordinates
+        and back will lose the original angular coordinates::
+
+            >>> import astropy.units as u
+            >>> import astropy.coordinates as coord
+            >>> rep = coord.SphericalRepresentation(
+            ...     lon=15*u.deg,
+            ...     lat=-11*u.deg,
+            ...     distance=0*u.pc)
+            >>> rep.to_cartesian().represent_as(coord.SphericalRepresentation)
+            <SphericalRepresentation (lon, lat, distance) in (rad, rad, pc)
+                (0., 0., 0.)>
 
         Returns
         -------
@@ -858,7 +872,10 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         """Convert coordinates to another representation.
 
         If the instance is of the requested class, it is returned unmodified.
-        By default, conversion is done via cartesian coordinates.
+        By default, conversion is done via Cartesian coordinates.
+        Also note that orientation information at the origin is *not* preserved by
+        conversions through Cartesian coordinates. See the docstring for
+        `~astropy.coordinates.BaseRepresentation.represent_as()` for an example.
 
         Parameters
         ----------
