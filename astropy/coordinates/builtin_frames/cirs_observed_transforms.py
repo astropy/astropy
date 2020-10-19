@@ -45,6 +45,10 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
     # first set up the astrometry context for CIRS<->AltAz
     astrom = erfa_astrom.get().apio13(altaz_frame)
+    # Note: this is inefficient. Really we should write our own apio13 version and
+    # strip out pvobs calls. However, we don't need a diurnal aberration/parallax
+    # term because we have already accounted for that in transforming to topocentric
+    # CIRS.
     astrom['diurab'] = 0
     az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
@@ -53,13 +57,10 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
                                           lon=u.Quantity(az, u.radian, copy=False),
                                           copy=False)
     else:
-        # now we get the distance as the cartesian distance from the earth
-        # location to the coordinate location
-        locitrs = altaz_frame.location.get_itrs(obstime)
-        distance = locitrs.separation_3d(cirs_coo)
+        # since we've transformed to CIRS at the observatory location, just use CIRS distance
         rep = SphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
                                       lon=u.Quantity(az, u.radian, copy=False),
-                                      distance=distance,
+                                      distance=cirs_coo.distance,
                                       copy=False)
     return altaz_frame.realize_frame(rep)
 
@@ -87,7 +88,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
                            obsgeoloc=obsgeoloc,
                            obsgeovel=obsgeovel)
 
-    # this final transform may be a no-op if the obstimes are the same
+    # this final transform may be a no-op if the obstimes and locations are the same
     return cirs_at_aa_time.transform_to(cirs_frame)
 
 
