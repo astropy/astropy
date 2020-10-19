@@ -844,12 +844,6 @@ class TestSubFormat:
         assert allclose_sec(t.cxcsec, t_cxcsec)
         assert allclose_sec(t.tt.cxcsec, t_cxcsec)
 
-        # Value from:
-        #   d = datetime.datetime(2000, 1, 1)
-        #   matplotlib.pylab.dates.date2num(d)
-        t = Time('2000-01-01 00:00:00', scale='utc')
-        assert np.allclose(t.plot_date, 730120.0, atol=1e-5, rtol=0)
-
         # Round trip through epoch time
         for scale in ('utc', 'tt'):
             t = Time('2000:001', scale=scale)
@@ -864,6 +858,29 @@ class TestSubFormat:
         # Values from issue #1118
         t = Time('2004-09-16T23:59:59', scale='utc')
         assert allclose_sec(t.unix, 1095379199.0)
+
+    def test_plot_date(self):
+        """Test the plot_date format.
+
+        Depending on the situation with matplotlib, this can give different
+        results because the plot date epoch time changed in matplotlib 3.3. This
+        test tries to use the matplotlib date2num function to make the test
+        independent of version, but if matplotlib isn't available then the code
+        (and test) use the pre-3.3 epoch.
+        """
+        try:
+            from matplotlib.dates import date2num
+        except ImportError:
+            # No matplotlib, in which case this uses the epoch 0000-12-31
+            # as per matplotlib < 3.3.
+            # Value from:
+            #   matplotlib.dates.set_epoch('0000-12-31')
+            #   val = matplotlib.dates.date2num('2000-01-01')
+            val = 730120.0
+        else:
+            val = date2num(datetime.datetime(2000, 1, 1))
+        t = Time('2000-01-01 00:00:00', scale='utc')
+        assert np.allclose(t.plot_date, val, atol=1e-5, rtol=0)
 
 
 class TestNumericalSubFormat:
