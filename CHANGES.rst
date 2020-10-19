@@ -997,6 +997,10 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Fix a problem with the ``plot_date`` format for matplotlib >= 3.3 caused by
+  a change in the matplotlib plot date default reference epoch in that release.
+  [#10876]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
