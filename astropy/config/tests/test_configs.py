@@ -8,8 +8,7 @@ import subprocess
 
 import pytest
 
-from astropy.config import configuration
-from astropy.config import paths
+from astropy.config import configuration, set_temp_config, paths
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -163,6 +162,26 @@ def test_generate_config(tmp_path):
         assert '[visualization.wcsaxes]' in c
         assert '## Whether to log exceptions before raising them.' in c
         assert '# log_exceptions = False' in c
+
+
+def test_generate_config2(tmp_path):
+    """Test that generate_config works with the default filename."""
+
+    with set_temp_config(tmp_path):
+        from astropy.config.configuration import generate_config
+        generate_config('astropy')
+
+    assert os.path.exists(tmp_path / 'astropy' / 'astropy.cfg')
+
+    with open(tmp_path / 'astropy' / 'astropy.cfg') as fp:
+        conf = fp.read()
+
+    # test that the output contains some lines that we expect
+    assert '# unicode_output = False' in conf
+    assert '[io.fits]' in conf
+    assert '[visualization.wcsaxes]' in conf
+    assert '## Whether to log exceptions before raising them.' in conf
+    assert '# log_exceptions = False' in conf
 
 
 def test_configitem():
