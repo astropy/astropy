@@ -1174,11 +1174,15 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
         pytest.skip("Catching warnings broken in parallel mode")
     elif not fast_reader:
         pytest.skip("Python/numpy reader does not raise on Overflow")
-    with pytest.warns(AstropyWarning, match=r'OverflowError converting to '
-                      r'FloatType in column col1, possibly resulting in '
-                      r'degraded precision'):
+    with pytest.warns(None) as warning_lines:
         t = ascii.read(StringIO('0.' + 314 * '0' + '1'), format='no_header',
                        guess=guess, fast_reader=fast_reader)
+
+    n_warns = len(warning_lines)
+    assert n_warns in (0, 1), f'Expected 0 or 1 warning, found {n_warns}'
+    if n_warns == 1:
+        assert 'OverflowError converting to FloatType in column col1, possibly resulting in degraded precision' in str(warning_lines[0].message)  # noqa
+
     assert_almost_equal(t['col1'][0], 1.e-315, rtol=1.e-10, atol=1.e-324)
 
 
