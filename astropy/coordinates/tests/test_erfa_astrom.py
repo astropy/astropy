@@ -58,7 +58,7 @@ def test_erfa_astrom():
         interp_300s = coord.transform_to(altaz)
 
     # make sure they are actually different
-    assert np.any(ref.separation(interp_300s) > 0.01 * u.microarcsecond)
+    assert np.any(ref.separation(interp_300s) > 0.005 * u.microarcsecond)
 
     # make sure the resolution is as good as we expect
     assert np.all(ref.separation(interp_300s) < 1 * u.microarcsecond)
