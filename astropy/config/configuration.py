@@ -20,7 +20,7 @@ import contextlib
 from os import path
 from textwrap import TextWrapper
 from warnings import warn
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
@@ -594,7 +594,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj
 
 
-def generate_config(pkgname='astropy', filename=None):
+def generate_config(pkgname='astropy', filename=None, verbose=False):
     """Generates a configuration file, from the list of `ConfigItem`
     objects for each subpackage.
 
@@ -608,8 +608,9 @@ def generate_config(pkgname='astropy', filename=None):
         If None, the default configuration path is taken from `get_config`.
 
     """
+    verbosity = nullcontext if verbose else silence
     package = importlib.import_module(pkgname)
-    with silence(), warnings.catch_warnings():
+    with verbosity(), warnings.catch_warnings():
         warnings.simplefilter('ignore')
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
