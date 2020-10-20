@@ -652,7 +652,6 @@ def generate_config(pkgname='astropy', filename=None):
             # Check that modules are not processed twice, which can happen
             # when they are imported in another module.
             if mod in processed:
-                print(mod, 'already processed')
                 continue
             else:
                 processed.add(mod)
