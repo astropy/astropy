@@ -146,18 +146,6 @@ def itrs_to_tete(itrs_coo, tete_frame):
     return tete.transform_to(tete_frame)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, TETE)
-def tete_to_tete(from_coo, to_frame):
-    if (np.all(from_coo.obstime == to_frame.obstime) and
-            np.all(from_coo.obsgeoloc == to_frame.obsgeoloc) and
-            np.all(from_coo.obsgeovel == to_frame.obsgeovel)):
-        return to_frame.realize_frame(from_coo.data)
-    else:
-        # can't do self-transform via ITRS due to infinite recursion
-        # therefore we will go through GCRS
-        return from_coo.transform_to(GCRS()).transform_to(to_frame)
-
-
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, CIRS)
 def gcrs_to_cirs(gcrs_coo, cirs_frame):
     # first get us to a 0 pos/vel GCRS at the target obstime

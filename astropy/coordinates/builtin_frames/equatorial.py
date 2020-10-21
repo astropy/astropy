@@ -89,6 +89,8 @@ class TETE(BaseRADecFrame):
     obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0],
                                                  unit=u.m/u.s)
 
+# Self transform goes through ICRS and is defined in icrs_cirs_transforms.py
+
 
 @format_doc(base_doc, components="", footer=doc_footer_teme)
 class TEME(BaseCoordinateFrame):
