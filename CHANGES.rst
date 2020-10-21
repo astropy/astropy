@@ -40,6 +40,10 @@ astropy.coordinates
 - Avoid an unnecessary call to ``erfa.epv00`` in transformations between
   ``CIRS`` and ``ICRS``, improving performance by 50 %. [#10814]
 
+- Added a context manager ``impose_finite_difference_dt`` to the
+  ``TransformGraph`` class to override the finite-difference time step
+  attribute (``finite_difference_dt``) for all transformations in the graph
+  with that attribute. [#10341]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
