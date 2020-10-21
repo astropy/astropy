@@ -954,10 +954,18 @@ class TestHDUListFunctions(FitsTestCase):
         with open(filename, mode='w', encoding='utf=8') as f:
             f.write('Not a FITS file')
 
+        match = ('No SIMPLE card found, this file '
+                 'does not appear to be a valid FITS file')
+
         # This should raise an OSError because there is no end card.
-        with pytest.raises(OSError, match='No SIMPLE card found, this file '
-                           'does not appear to be a valid FITS file'):
+        with pytest.raises(OSError, match=match):
             fits.open(filename)
+
+        with pytest.raises(OSError, match=match):
+            fits.open(filename, mode='append')
+
+        with pytest.raises(OSError, match=match):
+            fits.open(filename, mode='update')
 
     def test_proper_error_raised_on_invalid_fits_file(self):
         filename = self.temp('bad-fits.fits')
@@ -972,10 +980,18 @@ class TestHDUListFunctions(FitsTestCase):
         with open(filename, mode='wb') as f:
             f.write(buf.read())
 
+        match = ('No SIMPLE card found, this file '
+                 'does not appear to be a valid FITS file')
+
         # This should raise an OSError because there is no end card.
-        with pytest.raises(OSError, match='No SIMPLE card found, this file '
-                           'does not appear to be a valid FITS file'):
+        with pytest.raises(OSError, match=match):
             fits.open(filename)
+
+        with pytest.raises(OSError, match=match):
+            fits.open(filename, mode='append')
+
+        with pytest.raises(OSError, match=match):
+            fits.open(filename, mode='update')
 
         with fits.open(filename, ignore_missing_simple=True) as hdul:
             assert isinstance(hdul[0], _ValidHDU)
