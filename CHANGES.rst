@@ -222,6 +222,12 @@ astropy.table
   Instead, use the ``SCEngine`` indexing engine, which is similar in
   performance and relies on the ``sortedcontainers`` package. [#10622]
 
+- When slicing a mixin column in a table that had indices, the indices are no
+  longer copied since they generally are not useful, having the wrong shape.
+  With this, the behaviour becomes the same as that for a regular ``Column``.
+  (Note that this does not affect slicing of a table; sliced columns in those
+  will continue to carry a sliced version of any indices). [#10890]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

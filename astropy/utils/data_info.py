@@ -501,7 +501,7 @@ class BaseColumnInfo(DataInfo):
     without importing the table package.
     """
     attr_names = DataInfo.attr_names.union(['parent_table', 'indices'])
-    _attrs_no_copy = set(['parent_table'])
+    _attrs_no_copy = set(['parent_table', 'indices'])
 
     # Context for serialization.  This can be set temporarily via
     # ``serialize_context_as(context)`` context manager to allow downstream
@@ -612,7 +612,6 @@ class BaseColumnInfo(DataInfo):
             if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
                 # boolean mask
                 item = np.where(item)[0]
-            threshold = 0.6
             # Empirical testing suggests that recreating a BST/RBT index is
             # more effective than relabelling when less than ~60% of
             # the total number of rows are involved, and is in general

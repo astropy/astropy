@@ -1200,6 +1200,8 @@ class Table:
                 # still pass if this line is deleted.  (Each col.info attribute access
                 # is expensive).
                 col.info._copy_indices = True
+            else:
+                newcol.info.indices = []
 
             newcols.append(newcol)
 
@@ -3649,6 +3651,7 @@ class QTable(Table):
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
             qcol = q_cls(col.data, col.unit, copy=False)
             qcol.info = col.info
+            qcol.info.indices = col.info.indices
             col = qcol
         else:
             col = super()._convert_col_for_table(col)
