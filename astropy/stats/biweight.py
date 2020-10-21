@@ -51,6 +51,8 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     biweight location tuning constant ``c`` is typically 6.0 (the
     default).
 
+    If :math:`MAD` is zero, then the median will be returned.
+
     Parameters
     ----------
     data : array_like
@@ -126,9 +128,10 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
-        mad[mad == 0] = 1.  # prevent divide by zero
 
-    u = d / (c * mad)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        u = d / (c * mad)
 
     # now remove the outlier points
     # ignore RuntimeWarnings for comparisons with NaN data values
@@ -137,12 +140,16 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     u = (1 - u ** 2) ** 2
     u[mask] = 0
 
-    # Along the input axis if data is constant, d will be zero, thus
-    # the median value will be returned along that axis.
-    # Ignore RuntimeWarnings for divide by zero if all NaN along an axis
+    # If mad == 0 along the specified ``axis`` in the input data, return
+    # the median value along that axis.
+    # Ignore RuntimeWarnings for divide by zero
     with np.errstate(divide='ignore', invalid='ignore'):
-        return M.squeeze() + (sum_func(d * u, axis=axis) /
-                              sum_func(u, axis=axis))
+        value = M.squeeze() + (sum_func(d * u, axis=axis) /
+                               sum_func(u, axis=axis))
+        where_func = np.where
+        if isinstance(data, np.ma.MaskedArray):
+            where_func = np.ma.where  # return MaskedArray
+        return where_func(mad.squeeze() == 0, M.squeeze(), value)
 
 
 def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
