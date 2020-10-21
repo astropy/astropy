@@ -12,8 +12,8 @@ import shutil
 
 def get_source_range(lines, tag):
     srclines = enumerate(lines)
-    start_tag = f'#--! {tag}-start'
-    end_tag = f'#--! {tag}-end'
+    start_tag = '#--! %s-start' % tag
+    end_tag = '#--! %s-end' % tag
 
     for start_index, line in srclines:
         if line.strip().startswith(start_tag):
@@ -28,7 +28,7 @@ def get_source_range(lines, tag):
 def filter_section(lines, tag):
     filtered_lines = []
     include = True
-    tag_text = f'#--! {tag}'
+    tag_text = '#--! %s' % tag
     for line in lines:
         if line.strip().startswith(tag_text):
             include = not include

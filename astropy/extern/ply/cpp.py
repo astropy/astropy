@@ -169,8 +169,8 @@ class Preprocessor(object):
         self.lexprobe()
 
         tm = time.localtime()
-        self.define(f"__DATE__ \"{time.strftime('%b %d %Y', tm)}\"")
-        self.define(f"__TIME__ \"{time.strftime('%H:%M:%S', tm)}\"")
+        self.define("__DATE__ \"%s\"" % time.strftime("%b %d %Y",tm))
+        self.define("__TIME__ \"%s\"" % time.strftime("%H:%M:%S",tm))
         self.parser = None
 
     # -----------------------------------------------------------------------------
@@ -258,7 +258,7 @@ class Preprocessor(object):
             self.lexer.input(c)
             tok = self.lexer.token()
             if not tok or tok.value != c:
-                print(f"Unable to lex '{c}' required for preprocessor")
+                print("Unable to lex '%s' required for preprocessor" % c)
 
     # ----------------------------------------------------------------------
     # add_path()
@@ -626,7 +626,7 @@ class Preprocessor(object):
         if not source:
             source = ""
 
-        self.define(f"__FILE__ \"{source}\"")
+        self.define("__FILE__ \"%s\"" % source)
 
         self.source = source
         chunk = []
@@ -789,7 +789,7 @@ class Preprocessor(object):
             except IOError:
                 pass
         else:
-            print(f"Couldn't find '{filename}'")
+            print("Couldn't find '%s'" % filename)
 
     # ----------------------------------------------------------------------
     # define()
