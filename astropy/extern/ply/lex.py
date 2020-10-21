@@ -178,11 +178,11 @@ class Lexer:
         filename = os.path.join(outputdir, basetabmodule) + '.py'
         with open(filename, 'w') as tf:
             tf.write('# %s.py. This file automatically created by PLY (version %s). Don\'t edit!\n' % (basetabmodule, __version__))
-            tf.write(f'_tabversion   = {repr(__tabversion__)}\n')
-            tf.write(f'_lextokens    = set({repr(tuple(sorted(self.lextokens)))})\n')
-            tf.write(f'_lexreflags   = {repr(int(self.lexreflags))}\n')
-            tf.write(f'_lexliterals  = {repr(self.lexliterals)}\n')
-            tf.write(f'_lexstateinfo = {repr(self.lexstateinfo)}\n')
+            tf.write('_tabversion   = %s\n' % repr(__tabversion__))
+            tf.write('_lextokens    = set(%s)\n' % repr(tuple(sorted(self.lextokens))))
+            tf.write('_lexreflags   = %s\n' % repr(int(self.lexreflags)))
+            tf.write('_lexliterals  = %s\n' % repr(self.lexliterals))
+            tf.write('_lexstateinfo = %s\n' % repr(self.lexstateinfo))
 
             # Rewrite the lexstatere table, replacing function objects with function names
             tabre = {}
@@ -192,18 +192,18 @@ class Lexer:
                     titem.append((retext, _funcs_to_names(func, renames)))
                 tabre[statename] = titem
 
-            tf.write(f'_lexstatere   = {repr(tabre)}\n')
-            tf.write(f'_lexstateignore = {repr(self.lexstateignore)}\n')
+            tf.write('_lexstatere   = %s\n' % repr(tabre))
+            tf.write('_lexstateignore = %s\n' % repr(self.lexstateignore))
 
             taberr = {}
             for statename, ef in self.lexstateerrorf.items():
                 taberr[statename] = ef.__name__ if ef else None
-            tf.write(f'_lexstateerrorf = {repr(taberr)}\n')
+            tf.write('_lexstateerrorf = %s\n' % repr(taberr))
 
             tabeof = {}
             for statename, ef in self.lexstateeoff.items():
                 tabeof[statename] = ef.__name__ if ef else None
-            tf.write(f'_lexstateeoff = {repr(tabeof)}\n')
+            tf.write('_lexstateeoff = %s\n' % repr(tabeof))
 
     # ------------------------------------------------------------
     # readtab() - Read lexer information from a tab file
@@ -212,7 +212,7 @@ class Lexer:
         if isinstance(tabfile, types.ModuleType):
             lextab = tabfile
         else:
-            exec(f'import {tabfile}')
+            exec('import %s' % tabfile)
             lextab = sys.modules[tabfile]
 
         if getattr(lextab, '_tabversion', '0.0') != __tabversion__:
@@ -386,7 +386,7 @@ class Lexer:
                     newtok = self.lexerrorf(tok)
                     if lexpos == self.lexpos:
                         # Error method didn't change text position at all. This is an error.
-                        raise LexError(f"Scanning error. Illegal character '{lexdata[lexpos]}'", lexdata[lexpos:])
+                        raise LexError("Scanning error. Illegal character '%s'" % (lexdata[lexpos]), lexdata[lexpos:])
                     lexpos = self.lexpos
                     if not newtok:
                         continue
@@ -757,7 +757,7 @@ class LexerReflect(object):
                     continue
 
                 try:
-                    c = re.compile(f'(?P<{fname}>{_get_regex(f)})', self.reflags)
+                    c = re.compile('(?P<%s>%s)' % (fname, _get_regex(f)), self.reflags)
                     if c.match(''):
                         self.log.error("%s:%d: Regular expression for rule '%s' matches empty string", file, line, f.__name__)
                         self.error = True
@@ -781,7 +781,7 @@ class LexerReflect(object):
                     continue
 
                 try:
-                    c = re.compile(f'(?P<{name}>{r})', self.reflags)
+                    c = re.compile('(?P<%s>%s)' % (name, r), self.reflags)
                     if (c.match('')):
                         self.log.error("Regular expression for rule '%s' matches empty string", name)
                         self.error = True
@@ -948,13 +948,13 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
 
         # Add rules defined by functions first
         for fname, f in linfo.funcsym[state]:
-            regex_list.append(f'(?P<{fname}>{_get_regex(f)})')
+            regex_list.append('(?P<%s>%s)' % (fname, _get_regex(f)))
             if debug:
                 debuglog.info("lex: Adding rule %s -> '%s' (state '%s')", fname, _get_regex(f), state)
 
         # Now add all of the simple rules
         for name, r in linfo.strsym[state]:
-            regex_list.append(f'(?P<{name}>{r})')
+            regex_list.append('(?P<%s>%s)' % (name, r))
             if debug:
                 debuglog.info("lex: Adding rule %s -> '%s' (state '%s')", name, r, state)
 
@@ -1033,7 +1033,7 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
                 else:
                     parts = lextab.split('.')
                     pkgname = '.'.join(parts[:-1])
-                    exec(f'import {pkgname}')
+                    exec('import %s' % pkgname)
                     srcfile = getattr(sys.modules[pkgname], '__file__', '')
             outputdir = os.path.dirname(srcfile)
         try:
@@ -1041,7 +1041,7 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
             if lextab in sys.modules:
                 del sys.modules[lextab]
         except IOError as e:
-            errorlog.warning(f"Couldn't write lextab module {lextab!r}. {e}")
+            errorlog.warning("Couldn't write lextab module %r. %s" % (lextab, e))
 
     return lexobj
 

@@ -257,7 +257,7 @@ _paramstring = r'''
     )
     '''
 
-_matchstring = f'^{_paramstring}*'
+_matchstring = '^%s*' % _paramstring
 
 # Python pre 2.2.1 doesn't have bool
 try:
@@ -297,7 +297,7 @@ def dottedQuadToNum(ip):
         return struct.unpack('!L',
             socket.inet_aton(ip.strip()))[0]
     except socket.error:
-        raise ValueError(f'Not a good dotted-quad IP: {ip}')
+        raise ValueError('Not a good dotted-quad IP: %s' % ip)
     return
 
 
@@ -345,12 +345,12 @@ def numToDottedQuad(num):
 
     # no need to intercept here, 4294967295L is fine
     if num > long(4294967295) or num < 0:
-        raise ValueError(f'Not a good numeric IP: {num}')
+        raise ValueError('Not a good numeric IP: %s' % num)
     try:
         return socket.inet_ntoa(
             struct.pack('!L', long(num)))
     except (socket.error, struct.error, OverflowError):
-        raise ValueError(f'Not a good numeric IP: {num}')
+        raise ValueError('Not a good numeric IP: %s' % num)
 
 
 class ValidateError(Exception):
@@ -380,7 +380,7 @@ class VdtUnknownCheckError(ValidateError):
         Traceback (most recent call last):
         VdtUnknownCheckError: the check "yoda" is unknown.
         """
-        ValidateError.__init__(self, f'the check "{value}" is unknown.')
+        ValidateError.__init__(self, 'the check "%s" is unknown.' % (value,))
 
 
 class VdtParamError(SyntaxError):
@@ -392,7 +392,7 @@ class VdtParamError(SyntaxError):
         Traceback (most recent call last):
         VdtParamError: passed an incorrect value "jedi" for parameter "yoda".
         """
-        SyntaxError.__init__(self, f'passed an incorrect value "{value}" for parameter "{name}".')
+        SyntaxError.__init__(self, 'passed an incorrect value "%s" for parameter "%s".' % (value, name))
 
 
 class VdtTypeError(ValidateError):
@@ -404,7 +404,7 @@ class VdtTypeError(ValidateError):
         Traceback (most recent call last):
         VdtTypeError: the value "jedi" is of the wrong type.
         """
-        ValidateError.__init__(self, f'the value "{value}" is of the wrong type.')
+        ValidateError.__init__(self, 'the value "%s" is of the wrong type.' % (value,))
 
 
 class VdtValueError(ValidateError):
@@ -416,7 +416,7 @@ class VdtValueError(ValidateError):
         Traceback (most recent call last):
         VdtValueError: the value "jedi" is unacceptable.
         """
-        ValidateError.__init__(self, f'the value "{value}" is unacceptable.')
+        ValidateError.__init__(self, 'the value "%s" is unacceptable.' % (value,))
 
 
 class VdtValueTooSmallError(VdtValueError):
@@ -428,7 +428,7 @@ class VdtValueTooSmallError(VdtValueError):
         Traceback (most recent call last):
         VdtValueTooSmallError: the value "0" is too small.
         """
-        ValidateError.__init__(self, f'the value "{value}" is too small.')
+        ValidateError.__init__(self, 'the value "%s" is too small.' % (value,))
 
 
 class VdtValueTooBigError(VdtValueError):
@@ -440,7 +440,7 @@ class VdtValueTooBigError(VdtValueError):
         Traceback (most recent call last):
         VdtValueTooBigError: the value "1" is too big.
         """
-        ValidateError.__init__(self, f'the value "{value}" is too big.')
+        ValidateError.__init__(self, 'the value "%s" is too big.' % (value,))
 
 
 class VdtValueTooShortError(VdtValueError):
@@ -454,7 +454,7 @@ class VdtValueTooShortError(VdtValueError):
         """
         ValidateError.__init__(
             self,
-            f'the value "{value}" is too short.')
+            'the value "%s" is too short.' % (value,))
 
 
 class VdtValueTooLongError(VdtValueError):
@@ -466,7 +466,7 @@ class VdtValueTooLongError(VdtValueError):
         Traceback (most recent call last):
         VdtValueTooLongError: the value "jedie" is too long.
         """
-        ValidateError.__init__(self, f'the value "{value}" is too long.')
+        ValidateError.__init__(self, 'the value "%s" is too long.' % (value,))
 
 
 class Validator(object):
@@ -665,7 +665,7 @@ class Validator(object):
             arg_match = self._matchfinder.match(arg_string)
             if arg_match is None:
                 # Bad syntax
-                raise VdtParamError(f'Bad syntax in check "{check}".')
+                raise VdtParamError('Bad syntax in check "%s".' % check)
             fun_args = []
             fun_kwargs = {}
             # pull out args of group 2
@@ -736,7 +736,7 @@ class Validator(object):
         """
         fun_name, fun_args, fun_kwargs, default = self._parse_with_caching(check)
         if default is None:
-            raise KeyError(f'Check "{check}" has no default value.')
+            raise KeyError('Check "%s" has no default value.' % check)
         value = self._handle_none(default)
         if value is None:
             return value
@@ -1469,4 +1469,4 @@ if __name__ == '__main__':
     failures, tests = doctest.testmod(
         m, globs=globs,
         optionflags=doctest.IGNORE_EXCEPTION_DETAIL | doctest.ELLIPSIS)
-    assert not failures, f'{failures} failures out of {tests} tests'
+    assert not failures, '{} failures out of {} tests'.format(failures, tests)
