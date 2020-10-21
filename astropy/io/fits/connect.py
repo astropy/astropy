@@ -17,12 +17,9 @@ from astropy.utils.exceptions import (AstropyUserWarning,
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
 from .column import KEYWORD_NAMES, _fortran_to_python_format
 from .convenience import table_to_hdu
-from .hdu.hdulist import fitsopen as fits_open
+from .hdu.hdulist import fitsopen as fits_open, FITS_SIGNATURE
 from .util import first
 
-
-# FITS file signature as per RFC 4047
-FITS_SIGNATURE = b'SIMPLE  =                    T'
 
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
