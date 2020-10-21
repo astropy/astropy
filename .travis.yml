@@ -270,7 +270,8 @@ script:
       else
         python3 -m venv --system-site-packages tests;
         source tests/bin/activate;
-        pip3 install -e .[test];
+        pip3 install --editable .[test];
+        pip3 install --upgrade pytest-astropy;
         python3 -m pytest;
       fi
 
