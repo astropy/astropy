@@ -100,14 +100,16 @@ def cirs_to_cirs(from_coo, to_frame):
             np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
         return to_frame.realize_frame(from_coo.data)
     else:
-        # the CIRS<-> CIRS transform actually goes through GCRS. Previously
-        # this went through ICRS, but this seems unecessary since the
-        # transform between GCRS and ICRS for the same topocentric position
-        # is a simple matrix transform.
-        return from_coo.transform_to(GCRS()).transform_to(to_frame)
-
+        # the CIRS<-> CIRS transform actually goes through ICRS.  This has a
+        # subtle implication that a point in CIRS is uniquely determined
+        # by the corresponding astrometric ICRS coordinate *at its
+        # current time*.  This has some subtle implications in terms of GR, but
+        # is sort of glossed over in the current scheme because we are dropping
+        # distances anyway.
+        return from_coo.transform_to(ICRS()).transform_to(to_frame)
 
 # Now the GCRS-related transforms to/from ICRS
+
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
