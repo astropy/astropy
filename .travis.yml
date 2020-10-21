@@ -56,7 +56,7 @@ env:
         # Note that this also means it can be used to test whether astropy can
         # properly use the system libraries, since the python3-astropy package
         # pulls those in (i.e., one can and should use ASTROPY_USE_SYSTEM_ALL=1).
-        - APT_DEPENDENCIES="python3-pip python3-dev libpython3.8-dev python3.8-dev libexpat1-dev zlib1g-dev libc6-dev python3-venv python3-setuptools cython3 python3-astropy python3-numpy wcslib-dev libcfitsio-dev python3-pytest-astropy ipython3 python3-pytest-cov python3-pytest-xdist python3-objgraph python3-coverage python3-attr python3-colorama tzdata"
+        - APT_DEPENDENCIES="python3-astropy python3-venv python3-dev cython3 astro-development tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -114,7 +114,7 @@ matrix:
         # Now try with all optional dependencies.
         - language: python
           python: 3.8
-          dist: bionic
+          dist: focal
           name: Python 3.8 with all optional dependencies
           stage: Initial tests
           env: TOXENV="py38-test-alldeps"
@@ -195,8 +195,8 @@ matrix:
         - name: big-endian s390x architecture with apt
           arch: s390x
           language: c
-          dist: bionic
-          stage: Cron tests
+          dist: focal
+          stage: Initial tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
 
@@ -204,8 +204,8 @@ matrix:
         - name: arm64 architecture with apt
           arch: arm64
           language: c
-          dist: bionic
-          stage: Cron tests
+          dist: focal
+          stage: Initial tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
 
@@ -259,10 +259,8 @@ install:
       fi
     # For APT key updates, see https://ftp-master.debian.org/keys.html
     - if [ $SETUP_METHOD == 'apt' ]; then
-        curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
-        echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
         sudo apt-get -qq update;
-        sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
+        sudo apt-get install -y ${APT_DEPENDENCIES};
       fi
 
 script:
