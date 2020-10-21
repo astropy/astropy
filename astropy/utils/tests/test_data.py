@@ -26,6 +26,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 import py.path
 import pytest
 
+from astropy import units as _u  # u is taken
 from astropy.config import paths
 import astropy.utils.data
 from astropy.utils.data import (
@@ -1361,9 +1362,11 @@ def test_cache_contents_agrees_with_get_urls(temp_cache, valid_urls):
         assert cache_contents()[u] == h
 
 
-def test_free_space_checker_huge(tmpdir):
+@pytest.mark.parametrize('desired_size',
+                         [1_000_000_000_000_000_000, 1 * _u.Ebyte])
+def test_free_space_checker_huge(tmpdir, desired_size):
     with pytest.raises(OSError):
-        check_free_space_in_dir(str(tmpdir), 1_000_000_000_000_000_000)
+        check_free_space_in_dir(str(tmpdir), desired_size)
 
 
 def test_get_free_space_file_directory(tmpdir):
@@ -1372,7 +1375,16 @@ def test_get_free_space_file_directory(tmpdir):
         pass
     with pytest.raises(OSError):
         get_free_space_in_dir(str(fn))
-    assert get_free_space_in_dir(str(tmpdir)) > 0
+
+    free_space = get_free_space_in_dir(str(tmpdir))
+    assert free_space > 0 and not hasattr(free_space, 'unit')
+
+    # TODO: If unit=True starts to auto-guess prefix, this needs updating.
+    free_space = get_free_space_in_dir(str(tmpdir), unit=True)
+    assert free_space > 0 and free_space.unit == _u.byte
+
+    free_space = get_free_space_in_dir(str(tmpdir), unit=_u.Mbit)
+    assert free_space > 0 and free_space.unit == _u.Mbit
 
 
 def test_download_file_bogus_settings(invalid_urls, temp_cache):
@@ -2096,7 +2108,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
 @pytest.mark.skipif("TRAVIS", reason="Flaky on Travis CI")
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
-    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"
+    url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"  # noqa
     download_file(url)
 
 
