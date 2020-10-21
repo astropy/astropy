@@ -498,6 +498,9 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     :math:`x` and :math:`y` variables.  The biweight midvariance tuning
     constant ``c`` is typically 9.0 (the default).
 
+    If :math:`MAD_x` or :math:`MAD_y` are zero, then zero will be
+    returned for that element.
+
     For the standard definition of biweight midcovariance,
     :math:`n_{xy}` is the total number of observations of each variable.
     That definition is used if ``modify_sample_size`` is `False`, which
@@ -613,9 +616,9 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     # set up the weighting
     mad = median_absolute_deviation(data, axis=1)
-    mad[mad == 0] = 1.  # prevent divide by zero
 
-    u = (d.T / (c * mad)).T
+    with np.errstate(divide='ignore', invalid='ignore'):
+        u = (d.T / (c * mad)).T
 
     # now remove the outlier points
     mask = np.abs(u) < 1
@@ -631,12 +634,17 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     usub5 = (1. - 5. * u)
     usub1[~mask] = 0.
 
-    numerator = d * usub1 ** 2
-    denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
-    numerator_matrix = np.dot(numerator, numerator.T)
-    denominator_matrix = np.dot(denominator, denominator.T)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        numerator = d * usub1 ** 2
+        denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
+        numerator_matrix = np.dot(numerator, numerator.T)
+        denominator_matrix = np.dot(denominator, denominator.T)
 
-    return n * (numerator_matrix / denominator_matrix)
+        value = n * (numerator_matrix / denominator_matrix)
+        idx = np.where(mad == 0)[0]
+        value[idx, :] = 0
+        value[:, idx] = 0
+        return value
 
 
 def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
