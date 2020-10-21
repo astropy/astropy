@@ -140,6 +140,11 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Added the ``Quadrangle`` patch for ``WCSAxes`` for a latitude-longitude
+  quadrangle.  Unlike ``matplotlib.patches.Rectangle``, the edges of this
+  patch will be rendered as curved lines if appropriate for the WCS
+  transformation. [#10862]
+
 astropy.wcs
 ^^^^^^^^^^^
 
