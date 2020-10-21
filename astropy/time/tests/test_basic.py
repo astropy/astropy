@@ -2220,21 +2220,6 @@ def test_broadcasting_writeable():
     t[2] = Time(58000, format="mjd")
 
 
-def test_info_no_copy():
-    """Test that getting a single item from a Time object does not copy info.
-    See #10889.
-    """
-    tm = Time([1, 2], format='cxcsec')
-    t = Table([tm], names=['tm'])
-    t.add_index('tm')
-    val = t['tm'][0]
-    assert 'info' not in val.__dict__
-    assert val.info.indices is None
-    val = t['tm'][:]
-    assert 'info' in val.__dict__
-    assert val.info.indices is not None
-
-
 def test_format_subformat_compatibility():
     """Test that changing format with out_subfmt defined is not a problem.
     See #9812, #9810."""

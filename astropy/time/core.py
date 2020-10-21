@@ -1086,7 +1086,7 @@ class TimeBase(ShapedLikeNDArray):
         # time object is not a scalar (issue #10688).
         # See PR #3898 for further explanation and justification, along
         # with Quantity.__array_finalize__
-        if 'info' in self.__dict__ and tm.shape:
+        if 'info' in self.__dict__:
             tm.info = self.info
 
         # Make the new internal _time object corresponding to the format
