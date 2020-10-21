@@ -1,329 +1,3 @@
-4.1rc2 (2020-08-20)
-===================
-4.2 (unreleased)
-================
-
-New Features
-------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-- Improve initialization time by a factor of four when creating a scalar ``Time``
-  object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
-  epoch time). [#10406]
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-API Changes
------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
-  float64. [#10542]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
-- Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
-  ``lex.lex``) to allow running in ``python -OO`` session without raising an
-  exception in ``astropy.units.format``. [#10379]
-
-
-4.1.1 (unreleased)
-==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-- Fix a bug that prevented ``Time`` columns from being used to sort a table.
-  [#10824]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
-  unintended lower/upper case issues [#10557]
-- Added bounds to ``fit_wcs_from_points`` to ensure CRPIX is on
-  input image. [#10346]
-
-Other Changes and Additions
----------------------------
-
-
 4.1 (unreleased)
 ================
 
@@ -675,6 +349,10 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
+
+- Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
+  float64. [#10542]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
@@ -686,6 +364,9 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fix a bug that prevented ``Time`` columns from being used to sort a table.
+  [#10824]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -714,6 +395,12 @@ astropy.wcs
 - WCS objects with a spectral axis will now return ``SpectralCoord``
   objects when calling ``pixel_to_world`` instead of ``Quantity``
   (note that ``SpectralCoord`` is a sub-class of ``Quantity``). [#10185]
+
+  - Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
+    unintended lower/upper case issues [#10557]
+
+  - Added bounds to ``fit_wcs_from_points`` to ensure CRPIX is on
+    input image. [#10346]
 
 Other Changes and Additions
 ---------------------------
@@ -750,94 +437,22 @@ Other Changes and Additions
   ``lex.lex``) to allow running in ``python -OO`` session without raising an
   exception in ``astropy.units.format``. [#10379]
 
-4.0.2 (unreleased)
-4.0.3 (unreleased)
+4.0.3 (2020-10-14)
 ==================
 
 Bug Fixes
 ---------
 
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-- Partially fixed a performance issue when reading in parallel mode. Parallel
-  reading currently has substantially worse performance than the default serial
-  reading, so we now ignore the parallel option and fall back to serial reading.
-  [#10880]
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
+- Fixed a small bug where initializing an empty ``Column`` with a structured dtype
+  with a length and a shape failed to give the requested dtype. [#10819]
 
 Other Changes and Additions
 ---------------------------
 
+- Fixed installation of the source distribution with pip<19. [#10837, #10852]
 
 4.0.2 (2020-10-10)
 ==================
@@ -1063,9 +678,6 @@ astropy.table
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
 
-- Fixed a small bug where initializing an empty ``Column`` with a structured dtype
-  with a length and a shape failed to give the requested dtype. [#10819]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -1124,7 +736,6 @@ Other Changes and Additions
 
 - ``extract_array`` raises a ``ValueError`` if the data type of the
   input array is inconsistent with the ``fill_value``. [#10602]
-
 
 4.0.1 (2020-03-27)
 ==================
