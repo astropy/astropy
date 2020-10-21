@@ -35,12 +35,15 @@ def test_biweight_location_constant_axis_2d():
 
     val1 = 100.
     val2 = 2.
+    val3 = 5.
     data = np.arange(50).reshape(10, 5)
     data[2] = val1
     data[7] = val2
+    data[8] = [val3, 0.8, val3, -0.8, val3]
     cbl = biweight_location(data, axis=1)
     assert_allclose(cbl[2], val1)
     assert_allclose(cbl[7], val2)
+    assert_allclose(cbl[8], val3)
 
 
 def test_biweight_location_constant_axis_3d():
