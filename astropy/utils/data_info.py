@@ -535,6 +535,16 @@ class BaseColumnInfo(DataInfo):
         if bound:
             self._format_funcs = {}
 
+    def __set__(self, instance, value):
+        # For Table columns do not set `info` when the instance is a scalar.
+        try:
+            if not instance.shape:
+                return
+        except AttributeError:
+            pass
+
+        super().__set__(instance, value)
+
     def iter_str_vals(self):
         """
         This is a mixin-safe version of Column.iter_str_vals.
