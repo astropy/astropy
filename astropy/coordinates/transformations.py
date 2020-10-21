@@ -22,7 +22,7 @@ from warnings import warn
 
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, OrderedDict
-from contextlib import suppress
+from contextlib import suppress, contextmanager
 from inspect import signature
 
 import numpy as np
@@ -674,6 +674,37 @@ class TransformGraph:
                      register_graph=self, **kwargs)
             return func
         return deco
+
+    @contextmanager
+    def impose_finite_difference_dt(self, dt):
+        """
+        Context manager to impose a finite-difference time step on all applicable transformations
+
+        For each transformation in this transformation graph that has the attribute
+        ``finite_difference_dt``, that attribute is set to the provided value.  The only standard
+        transformation with this attribute is
+        `~astropy.coordinates.transformations.FunctionTransformWithFiniteDifference`.
+
+        Parameters
+        ----------
+        dt : `~astropy.units.Quantity` or callable
+            If a quantity, this is the size of the differential used to do the finite difference.
+            If a callable, should accept ``(fromcoord, toframe)`` and return the ``dt`` value.
+        """
+        key = 'finite_difference_dt'
+        saved_settings = []
+
+        try:
+            for to_frames in self._graph.values():
+                for transform in to_frames.values():
+                    if hasattr(transform, key):
+                        old_setting = (transform, key, getattr(transform, key))
+                        saved_settings.append(old_setting)
+                        setattr(transform, key, dt)
+            yield
+        finally:
+            for setting in saved_settings:
+                setattr(*setting)
 
 
 # <-------------------Define the builtin transform classes-------------------->

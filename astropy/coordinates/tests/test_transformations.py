@@ -7,7 +7,7 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import transformations as t
-from astropy.coordinates.builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz
+from astropy.coordinates.builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz, HCRS
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
@@ -586,3 +586,38 @@ def test_remove_transform_errors():
 
     with pytest.raises(ValueError):
         graph.remove_transform(TCoo1, TCoo1, 1)
+
+
+def test_impose_finite_difference_dt():
+    class H1(HCRS):
+        pass
+
+    class H2(HCRS):
+        pass
+
+    class H3(HCRS):
+        pass
+
+    graph = t.TransformGraph()
+    tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
+
+    # Set up a number of transforms with different time steps
+    old_dt = 1*u.min
+    transform1 = t.FunctionTransformWithFiniteDifference(tfun, H1, H1, register_graph=graph,
+                                                         finite_difference_dt=old_dt)
+    transform2 = t.FunctionTransformWithFiniteDifference(tfun, H2, H2, register_graph=graph,
+                                                         finite_difference_dt=old_dt * 2)
+    transform3 = t.FunctionTransformWithFiniteDifference(tfun, H2, H3, register_graph=graph,
+                                                         finite_difference_dt=old_dt * 3)
+
+    # Check that all of the transforms have the same new time step
+    new_dt = 1*u.yr
+    with graph.impose_finite_difference_dt(new_dt):
+        assert transform1.finite_difference_dt == new_dt
+        assert transform2.finite_difference_dt == new_dt
+        assert transform3.finite_difference_dt == new_dt
+
+    # Check that all of the original time steps have been restored
+    assert transform1.finite_difference_dt == old_dt
+    assert transform2.finite_difference_dt == old_dt * 2
+    assert transform3.finite_difference_dt == old_dt * 3
