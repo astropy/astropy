@@ -833,7 +833,7 @@ class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
     Parameters
     ----------
     lam : float
-        Radius of the cylinder in spherical radii, λ.  Default is 0.
+        Radius of the cylinder in spherical radii, λ.  Default is 1.
     """
 
     lam = Parameter(default=1)
