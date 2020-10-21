@@ -87,12 +87,6 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
         .. versionadded:: 1.3
 
-    ignore_missing_simple : bool, optional
-        Do not issue an exception when the SIMPLE keyword is missing.
-        Default is `False`.
-
-        .. versionadded:: 4.2
-
     uint : bool, optional
         Interpret signed integer data where ``BZERO`` is the central value and
         ``BSCALE == 1`` as unsigned integer data.  For example, ``int16`` data
@@ -103,6 +97,12 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     ignore_missing_end : bool, optional
         Do not issue an exception when opening a file that is missing an
         ``END`` card in the last header. Default is `False`.
+
+    ignore_missing_simple : bool, optional
+        Do not issue an exception when the SIMPLE keyword is missing.
+        Default is `False`.
+
+        .. versionadded:: 4.2
 
     checksum : bool, str, optional
         If `True`, verifies that both ``DATASUM`` and ``CHECKSUM`` card values
