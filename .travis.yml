@@ -196,7 +196,7 @@ matrix:
           arch: s390x
           language: c
           dist: bionic
-          stage: Cron tests
+          stage: Initial tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
 
@@ -204,8 +204,8 @@ matrix:
         - name: arm64 architecture with apt
           arch: arm64
           language: c
-          dist: bionic
-          stage: Cron tests
+          dist: focal
+          stage: Initial tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
 
