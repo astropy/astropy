@@ -344,9 +344,11 @@ def test_biweight_midvariance_constant_axis_2d():
     data = np.arange(50).reshape(10, 5)
     data[2] = 100.
     data[7] = 2.
+    data[8] = [5.0, 0.8, 5.0, -0.8, 5.0]
     bw = biweight_midvariance(data, axis=1)
     assert_allclose(bw[2], 0.)
     assert_allclose(bw[7], 0.)
+    assert_allclose(bw[8], 0.)
 
 
 def test_biweight_midvariance_constant_axis_3d():
@@ -385,8 +387,18 @@ def test_biweight_midcovariance_2d():
 
 def test_biweight_midcovariance_constant():
     data = np.ones((3, 10))
+    val3 = 5.0
+    data[1] = [val3, 0.8, val3, -0.8, val3, val3, val3, 1.0, val3, -0.7]
     cov = biweight_midcovariance(data)
     assert_allclose(cov, np.zeros((3, 3)))
+
+    rng = np.random.default_rng(123)
+    data = rng.random((5, 5))
+    val3 = 5.0
+    data[1] = [val3, 0.8, val3, -0.8, val3]
+    cov = biweight_midcovariance(data)
+    assert_allclose(cov[1, :], 0.)
+    assert_allclose(cov[:, 1], 0.)
 
 
 def test_biweight_midcovariance_midvariance():
