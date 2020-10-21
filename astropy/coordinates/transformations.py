@@ -1030,8 +1030,8 @@ class BaseAffineTransform(CoordinateTransform):
     subclasses.
 
     This base class is needed because ``AffineTransform`` and the matrix
-    transform classes share the ``_apply_transform()`` method, but have
-    different ``__call__()`` methods. ``StaticMatrixTransform`` passes in a
+    transform classes share the ``__call__()`` method, but differ in how they
+    generate the affine parameters.  ``StaticMatrixTransform`` passes in a
     matrix stored as a class attribute, and both of the matrix transforms pass
     in ``None`` for the offset. Hence, user subclasses would likely want to
     subclass this (rather than ``AffineTransform``) if they want to provide
@@ -1047,6 +1047,10 @@ class BaseAffineTransform(CoordinateTransform):
 
         data = fromcoord.data
         has_velocity = 's' in data.differentials
+
+        # Bail out if no transform is actually requested
+        if matrix is None and offset is None:
+            return data
 
         # list of unit differentials
         _unit_diffs = (SphericalDifferential._unit_differential,
@@ -1189,6 +1193,15 @@ class BaseAffineTransform(CoordinateTransform):
 
         return newrep
 
+    def __call__(self, fromcoord, toframe):
+        params = self._affine_params(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, *params)
+        return toframe.realize_frame(newrep)
+
+    @abstractmethod
+    def _affine_params(self, fromcoord, toframe):
+        pass
+
 
 class AffineTransform(BaseAffineTransform):
     """
@@ -1235,12 +1248,8 @@ class AffineTransform(BaseAffineTransform):
         super().__init__(fromsys, tosys, priority=priority,
                          register_graph=register_graph)
 
-    def __call__(self, fromcoord, toframe):
-
-        M, vec = self.transform_func(fromcoord, toframe)
-        newrep = self._apply_transform(fromcoord, M, vec)
-
-        return toframe.realize_frame(newrep)
+    def _affine_params(self, fromcoord, toframe):
+        return self.transform_func(fromcoord, toframe)
 
 
 class StaticMatrixTransform(BaseAffineTransform):
@@ -1287,9 +1296,8 @@ class StaticMatrixTransform(BaseAffineTransform):
         super().__init__(fromsys, tosys, priority=priority,
                          register_graph=register_graph)
 
-    def __call__(self, fromcoord, toframe):
-        newrep = self._apply_transform(fromcoord, self.matrix, None)
-        return toframe.realize_frame(newrep)
+    def _affine_params(self, fromcoord, toframe):
+        return self.matrix, None
 
 
 class DynamicMatrixTransform(BaseAffineTransform):
@@ -1330,16 +1338,11 @@ class DynamicMatrixTransform(BaseAffineTransform):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 
-        def _transform_func(fromcoord, toframe):
-            return self.matrix_func(fromcoord, toframe), None
-
         super().__init__(fromsys, tosys, priority=priority,
                          register_graph=register_graph)
 
-    def __call__(self, fromcoord, toframe):
-        M = self.matrix_func(fromcoord, toframe)
-        newrep = self._apply_transform(fromcoord, M, None)
-        return toframe.realize_frame(newrep)
+    def _affine_params(self, fromcoord, toframe):
+        return self.matrix_func(fromcoord, toframe), None
 
 
 class CompositeTransform(CoordinateTransform):
