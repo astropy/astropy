@@ -589,7 +589,6 @@ def test_ephemerides():
     assert_allclose(sep_cirs, 0.0*u.deg, atol=1*u.microarcsecond)
 
 
-@pytest.mark.remote_data
 def test_tete_transforms():
     """
     We test the TETE transforms for proper behaviour here.
