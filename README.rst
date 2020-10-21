@@ -49,7 +49,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
 .. |Travis Status| image:: https://img.shields.io/travis/astropy/astropy/master?logo=travis%20ci&logoColor=white&label=Travis%20CI
-    :target: https://travis-ci.org/astropy/astropy
+    :target: https://travis-ci.com/astropy/astropy
     :alt: Astropy's Travis CI Status
 
 .. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
