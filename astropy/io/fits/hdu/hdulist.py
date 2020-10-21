@@ -31,6 +31,9 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
+# FITS file signature as per RFC 4047
+FITS_SIGNATURE = b'SIMPLE  =                    T'
+
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
              cache=True, lazy_load_hdus=None, ignore_missing_simple=False,
@@ -1074,25 +1077,16 @@ class HDUList(list, _Verify):
 
         if hdulist._file and hdulist._file.readonly:
             pos = hdulist._file.tell()
-            raise_error = False
+            simple = hdulist._file.read(30)
+            match_sig = (simple[:-1] == FITS_SIGNATURE[:-1] and
+                         simple[-1:] in (b'T', b'F'))
 
-            try:
-                simple = hdulist._file.read(30).decode('ascii')
-            except UnicodeDecodeError:
-                raise_error = True
-            else:
-                if simple != 'SIMPLE  =                    T':
-                    if simple == 'SIMPLE  =                    F':
-                        # This case is managed by _NonstandardHDU
-                        pass
-                    elif not ignore_missing_simple:
-                        raise_error = True
-
-            if raise_error:
+            if not match_sig and not ignore_missing_simple:
                 if hdulist._file.close_on_error:
                     hdulist._file.close()
                 raise OSError('No SIMPLE card found, this file does not '
                               'appear to be a valid FITS file')
+
             hdulist._file.seek(pos)
 
         # Store additional keyword args that were passed to fits.open
