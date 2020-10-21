@@ -1747,6 +1747,17 @@ def isclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
     Return a boolean array where two arrays are element-wise equal
     within a tolerance.
 
+    .. note::
+
+        `astropy.units.isclose()` behaves slightly different than
+        `numpy.isclose` because of the default absolute tolerance in
+        `numpy.isclose`. In ``numpy``, the default absolute tolerance,
+        ``atol``, is set to ``atol=1e-8`` because there can be a proper
+        absolute comparison between the input without having to scale them by
+        unit conversions. In this function, there is no natural way to set
+        ``atol`` by default because it will depend on the units of the input.
+
+
     Parameters
     ----------
     a, b : array_like or :class:`~astropy.units.Quantity`
