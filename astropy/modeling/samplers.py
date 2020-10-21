@@ -82,6 +82,7 @@ class EmceeSampler(Optimization):
                     k += 1
 
         # Set up the backend
+        save_backend = None
         if save_samples:
             # Don't forget to clear it in case the file already exists
             save_backend = emcee.backends.HDFBackend(save_samples)

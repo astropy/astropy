@@ -1588,10 +1588,10 @@ class EmceeFitter(Fitter):
             return -np.inf
         return lp + self.log_likelihood(fps, *args)
 
-    def _set_uncs_and_posterior(self, model):
+    def _set_values_and_posteriors(self, model):
         """
-        Set the symmetric and asymmetric Gaussian uncertainties
-        and sets the posteriors to astropy.unc distributions
+        Set the "best" fit values, uncertaintes, covariance, and
+        the posteriors (using astropy.unc distributions)
 
         Parameters
         ----------
@@ -1609,39 +1609,38 @@ class EmceeFitter(Fitter):
         flat_samples = sampler.get_chain(discard=int(self.burnfrac * nsteps), flat=True)
         nflatsteps, ndim = flat_samples.shape
 
-        nparams = len(model.parameters)
-        model.uncs = np.zeros((nparams))
-        model.uncs_plus = np.zeros((nparams))
-        model.uncs_minus = np.zeros((nparams))
+        # number of non-fixed parameters
+        nparams = ndim
+
+        # compute the covariance matrix and set the posteriors
+        cov = np.zeros((nparams, nparams))
         k = 0
+        mean_vals = np.mean(flat_samples, axis=0)
         for i, pname in enumerate(model.param_names):
             if not model.fixed[pname]:
-                mcmc = np.percentile(flat_samples[:, k], [16, 50, 84])
-
-                # set the uncertainty arrays - could be done via the parameter objects
-                # but would need an update to the model properties to make this happen
-                model.parameters[i] = mcmc[1]
-                model.uncs[i] = 0.5 * (mcmc[2] - mcmc[0])
-                model.uncs_plus[i] = mcmc[2] - mcmc[1]
-                model.uncs_minus[i] = mcmc[1] - mcmc[0]
-
                 # set the posterior distribution to the samples
                 param = getattr(model, pname)
                 param.posterior = astrounc.Distribution(flat_samples[:, k])
+                param.value = mean_vals[k]
+
+                # compute terms of the covariance matrix
+                devk = (flat_samples[:, k] - mean_vals[k])
+                for l in range(k + 1):
+                    cov[k, l] = np.sum(devk * (flat_samples[:, l] - mean_vals[l]))
+                    cov[l, k] = cov[k, l]
+
                 k += 1
             else:
-                model.uncs[i] = 0.0
-                model.uncs_plus[i] = 0.0
-                model.uncs_minus[i] = 0.0
-                # set the posterior distribution to the samples
                 param = getattr(model, pname)
                 param.posterior = None
+        cov = cov / (nflatsteps - 1)
 
-            # now set uncertainties on the parameter objects themselves
-            param = getattr(model, pname)
-            param.unc = model.uncs[i]
-            param.unc_plus = model.uncs_plus[i]
-            param.unc_minus = model.uncs_minus[i]
+        # set the model uncertainty info
+        free_param_names = [x for x in model.fixed if (model.fixed[x] is False)
+                            and (model.tied[x] is False)]
+
+        model.cov_matrix = Covariance(cov, free_param_names)
+        model.stds = StandardDeviations(cov, free_param_names)
 
         return model
 
@@ -1691,7 +1690,7 @@ class EmceeFitter(Fitter):
         _fitter_to_model_params(model_copy, fitparams)
 
         # get and set the symmetric and asymmetric uncertainties on each parameter
-        model_copy = self._set_uncs_and_posterior(model_copy)
+        model_copy = self._set_values_and_posteriors(model_copy)
 
         return model_copy
 
