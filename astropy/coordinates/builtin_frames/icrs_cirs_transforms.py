@@ -24,6 +24,7 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
+from .equatorial import TETE
 from .utils import aticq, atciqz
 
 from ..erfa_astrom import erfa_astrom
@@ -287,4 +288,16 @@ def hcrs_to_hcrs(from_coo, to_frame):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS
+        return from_coo.transform_to(ICRS()).transform_to(to_frame)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, TETE)
+def tete_to_tete(from_coo, to_frame):
+    if (np.all(from_coo.obstime == to_frame.obstime) and
+            np.all(from_coo.obsgeoloc == to_frame.obsgeoloc) and
+            np.all(from_coo.obsgeovel == to_frame.obsgeovel)):
+        return to_frame.realize_frame(from_coo.data)
+    else:
+        # can't do self-transform via ITRS due to infinite recursion
+        # therefore we will go through ICRS, a la CIRS and GCRS
         return from_coo.transform_to(ICRS()).transform_to(to_frame)
