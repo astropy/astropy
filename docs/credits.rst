@@ -116,7 +116,7 @@ Core Package Contributors
 * Eric Depagne
 * Eric Jeschke
 * Eric Koch
-* Erik M. Bray
+* E. Madison Bray
 * Erik Tollerud
 * Erin Allard
 * Esteban Pardo Sánchez

@@ -30,9 +30,9 @@ In addition to these major changes, Astropy v4.0 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* 211 issues have been closed since v4.0
-* 275 pull requests have been merged since v4.0
-* 62 distinct people have contributed code to this release, 25 of which are first time contributors to Astropy
+* 381 issues have been closed since v4.0
+* 511 pull requests have been merged since v4.0
+* 66 distinct people have contributed code to this release, 23 of which are first time contributors to Astropy
 
 .. _whatsnew-4.1-spectralcoord:
 
@@ -305,6 +305,7 @@ The people who have contributed to the code for this release are:
 .. hlist::
   :columns: 4
 
+  * Adam Ginsburg
   * Adrian Price-Whelan
   * Albert Y. Shih
   * Alex Conley
@@ -322,9 +323,11 @@ The people who have contributed to the code for this release are:
   * Clare Shanahan
   * Dan Foreman-Mackey
   * Daniel Ruschel Dutra  *
+  * David Shupe
   * David Stansby
   * Derek Homeier
   * Ed Slavich  *
+  * Erik M. Bray
   * Erik Tollerud
   * Erin Allard  *
   * Gabriel Perren  *
@@ -341,6 +344,7 @@ The people who have contributed to the code for this release are:
   * M S R Dinesh  *
   * Manodeep Sinha  *
   * Marten van Kerkwijk
+  * Matthew Craig
   * Max Voronkov  *
   * Maximilian Nöthe
   * Michael Lindner-D'Addario  *
