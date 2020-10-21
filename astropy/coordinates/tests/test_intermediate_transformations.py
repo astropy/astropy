@@ -15,6 +15,7 @@ from astropy.coordinates import (
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
     HCRS, HeliocentricMeanEcliptic, TEME, TETE)
+from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 
@@ -617,3 +618,15 @@ def test_tete_transforms():
     itrs1 = moon.transform_to(CIRS()).transform_to(ITRS())
     itrs2 = moon.transform_to(TETE()).transform_to(ITRS())
     assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=100*u.mm)
+
+    # test round trip GCRS->TETE->GCRS
+    new_moon = moon.transform_to(TETE()).transform_to(moon)
+    assert_allclose(new_moon.separation_3d(moon), 0*u.mm, atol=100*u.mm)
+
+    # test round trip via ITRS
+    tete_rt = tete_coo1.transform_to(ITRS(obstime=time)).transform_to(tete_coo1)
+    assert_allclose(tete_rt.separation_3d(tete_coo1), 0*u.mm, atol=100*u.mm)
+
+    # ensure deprecated routine remains consistent
+    tete_alt = _apparent_position_in_true_coordinates(moon)
+    assert_allclose(tete_coo1.separation_3d(tete_alt), 0*u.mm, atol=100*u.mm)
