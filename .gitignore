@@ -65,6 +65,7 @@ venv
 cover
 htmlcov
 .hypothesis
+.github_cache
 
 # Mac OSX
 .DS_Store
