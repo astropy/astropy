@@ -4,6 +4,7 @@ import os
 import glob
 
 from distutils.extension import Extension
+from distutils.dep_util import newer
 
 import numpy
 from extension_helpers import import_file
@@ -24,15 +25,30 @@ GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'),
 
 
 def get_extensions():
+    gen_files_exist = all(os.path.isfile(fn) for fn in GEN_FILES)
+    gen_files_outdated = False
+    if os.path.isdir(ERFA_SRC):
+        # assume thet 'erfaversion.c' is updated at each release at least
+        src = os.path.join(ERFA_SRC, 'erfaversion.c')
+        gen_files_outdated = any(newer(src, fn) for fn in GEN_FILES)
+    elif not gen_files_exist:
+        raise RuntimeError(
+            'Missing "liberfa" source files, unable to generate '
+            '"erfa/ufunc.c" and "erfa/core.py". '
+            'Please check your source tree. '
+            'Maybe "git submodule update" could help.')
 
-    gen = import_file(os.path.join(ERFAPKGDIR, 'erfa_generator.py'))
-    gen.main(verbose=False)
+    if not gen_files_exist or gen_files_outdated:
+        print('Run "erfa_generator.py"')
+        #cmd = [sys.executable, 'erfa_generator.py', ERFA_SRC, '--quiet']
+        #subprocess.run(cmd, check=True)
+
+        gen = import_file(os.path.join(ERFAPKGDIR, 'erfa_generator.py'))
+        gen.main(verbose=False)
 
     sources = [os.path.join(ERFAPKGDIR, fn)
                for fn in ("ufunc.c", "pav2pv.c", "pv2pav.c")]
-
     include_dirs = [numpy.get_include()]
-
     libraries = []
 
     if (int(os.environ.get('ASTROPY_USE_SYSTEM_ERFA', 0)) or
