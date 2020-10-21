@@ -1075,7 +1075,8 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
-        if hdulist._file and hdulist._file.readonly:
+        if (hdulist._file and hdulist._file.mode != 'ostream' and
+                hdulist._file.size > 0):
             pos = hdulist._file.tell()
             simple = hdulist._file.read(30)
             match_sig = (simple[:-1] == FITS_SIGNATURE[:-1] and
