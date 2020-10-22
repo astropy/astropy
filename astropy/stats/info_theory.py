@@ -112,6 +112,8 @@ def bayesian_info_criterion(log_likelihood, n_params, n_samples):
     return n_params*np.log(n_samples) - 2.0*log_likelihood
 
 
+# NOTE: bic_t - bic_g doctest is skipped because it produced slightly
+# different result in arm64 and big-endian s390x CI jobs.
 def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     r"""
     Computes the Bayesian Information Criterion (BIC) assuming that the
@@ -177,7 +179,7 @@ def bayesian_info_criterion_lsq(ssr, n_params, n_samples):
     >>> # Compute the bics
     >>> bic_t = bayesian_info_criterion_lsq(ssr_t, 4, x.shape[0])
     >>> bic_g = bayesian_info_criterion_lsq(ssr_g, 3, x.shape[0])
-    >>> bic_t - bic_g # doctest: +FLOAT_CMP
+    >>> bic_t - bic_g  # doctest: +SKIP
     30.644474706065466
 
     Hence, there is a very strong evidence that the Gaussian model has a
