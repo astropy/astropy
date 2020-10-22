@@ -20,12 +20,13 @@ import contextlib
 from os import path
 from textwrap import TextWrapper
 from warnings import warn
-from contextlib import contextmanager, nullcontext
+from contextlib import contextmanager
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import resolve_name
+from astropy.utils.compat.context import nullcontext
 
 from .paths import get_config_dir
 
