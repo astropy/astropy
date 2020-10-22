@@ -775,7 +775,7 @@ astropy.visualization
 
 - The ``AsinhStretch`` and ``SinhStretch`` ``a`` value is restricted
   to be ``0 < a <= 1``. [#10177]
-  
+
 Bug Fixes
 ---------
 
@@ -7969,7 +7969,7 @@ Other Changes and Additions
   cluttering the ``astropy.coordinates`` documentation with increasingly
   irrelevant material.  To see the migration guide, we recommend you simply look
   to the archived documentation for previous versions, e.g.
-  https://docs.astropy.org/en/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates
+  https://docs.astropy.org/en/docs-archive/v1.0/coordinates/index.html#migrating-from-pre-v0-4-coordinates
   [#4203]
 
 - In ``astropy.coordinates``, the transformations between GCRS, CIRS,
@@ -11288,7 +11288,7 @@ New Features
       °
 
   See `handling-unicode
-  <https://docs.astropy.org/en/v0.3/development/codeguide.html#unicode-guidelines>`_
+  <https://docs.astropy.org/en/docs-archive/v0.3/development/codeguide.html#unicode-guidelines>`_
   for more information. [#1441]
 
 - ``astropy.utils.misc.find_api_page`` is now imported into the top-level.
