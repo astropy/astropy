@@ -7,6 +7,12 @@ import pytest
 import numpy as np
 
 from astropy.utils.data_info import dtype_info_name
+from astropy.table import QTable
+from astropy.table.index import SlicedIndex
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+
 
 STRING_TYPE_NAMES = {(True, 'S'): 'bytes',
                      (True, 'U'): 'str'}
@@ -43,3 +49,56 @@ def test_dtype_info_name(input, output):
       'V' raw data (void)
     """
     assert dtype_info_name(input) == output
+
+
+def test_info_no_copy_numpy():
+    """Test that getting a single item from Table column object does not copy info.
+    See #10889.
+    """
+    col = [1, 2]
+    t = QTable([col], names=['col'])
+    t.add_index('col')
+    val = t['col'][0]
+    # Returns a numpy scalar (e.g. np.float64) with no .info
+    assert isinstance(val, np.number)
+    with pytest.raises(AttributeError):
+        val.info
+    val = t['col'][:]
+    assert val.info.indices == []
+
+
+cols = [[1, 2] * u.m,
+        Time([1, 2], format='cxcsec')]
+
+
+@pytest.mark.parametrize('col', cols)
+def test_info_no_copy_mixin_with_index(col):
+    """Test that getting a single item from Table column object does not copy info.
+    See #10889.
+    """
+    t = QTable([col], names=['col'])
+    t.add_index('col')
+    val = t['col'][0]
+    assert 'info' not in val.__dict__
+    assert val.info.indices is None
+    val = t['col'][:]
+    assert 'info' in val.__dict__
+    assert val.info.indices is None
+    val = t[:]['col']
+    assert 'info' in val.__dict__
+    assert isinstance(val.info.indices[0], SlicedIndex)
+
+
+def test_info_no_copy_skycoord():
+    """Test that getting a single item from Table SkyCoord column object does
+    not copy info.  Cannot create an index on a SkyCoord currently.
+    """
+    col = SkyCoord([1, 2], [1, 2], unit='deg'),
+    t = QTable([col], names=['col'])
+    val = t['col'][0]
+    assert 'info' not in val.__dict__
+    assert val.info.indices is None
+    val = t['col'][:]
+    assert val.info.indices is None
+    val = t[:]['col']
+    assert val.info.indices == []
