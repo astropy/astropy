@@ -1598,7 +1598,7 @@ astropy.cosmology
 - The final version of the Planck 2018 cosmological parameters are included
   as the ``Planck2018`` object.  The parameters are identical to those of the
   ``Planck2018_arXiv_v2`` object.   The latter will be removed in a future
-  release. [#9515 ]
+  release. [#10915]
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
