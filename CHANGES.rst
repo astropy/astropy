@@ -152,6 +152,10 @@ astropy.visualization
   quadrangle.  Unlike ``matplotlib.patches.Rectangle``, the edges of this
   patch will be rendered as curved lines if appropriate for the WCS
   transformation. [#10862]
+- The position of tick labels are now only calculated when needed. If any text
+  parameters are changed (color, font weight, size etc.) that don't effect the
+  tick label position, the positions are not recomputed, improving performance.
+  [#10806]
 
 astropy.wcs
 ^^^^^^^^^^^
