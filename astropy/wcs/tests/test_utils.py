@@ -1288,8 +1288,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (200, 10)
 
-    
-
 
 @pytest.mark.remote_data
 @pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
