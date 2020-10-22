@@ -388,6 +388,8 @@ Other Changes and Additions
   reduce the number of FITS ``VerifyWarning`` warnings when working with WCSes
   containing lookup table distortions. [#10513]
 
+- When importing astropy without first building the extension modules first,
+  raise an error directly instead of trying to auto-build. [#10883]
 
 4.1.1 (unreleased)
 ==================
