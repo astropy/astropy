@@ -609,10 +609,16 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
         If None, the default configuration path is taken from `get_config`.
 
     """
-    verbosity = nullcontext if verbose else silence
+    if verbose:
+        verbosity = nullcontext
+        filter_warnings = AstropyDeprecationWarning
+    else:
+        verbosity = silence
+        filter_warnings = Warning
+
     package = importlib.import_module(pkgname)
     with verbosity(), warnings.catch_warnings():
-        warnings.simplefilter('ignore')
+        warnings.simplefilter('ignore', category=filter_warnings)
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
 
