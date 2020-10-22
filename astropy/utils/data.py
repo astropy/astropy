@@ -25,6 +25,7 @@ from warnings import warn
 
 import astropy.config.paths
 from astropy import config as _config
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
@@ -1602,8 +1603,13 @@ class CacheDamaged(ValueError):
         self.bad_files = bad_files if bad_files is not None else []
 
 
+@deprecated_renamed_argument('check_hashes', None, '4.2')
 def check_download_cache(check_hashes=False, pkgname='astropy'):
     """Do a consistency check on the cache.
+
+    .. note::
+
+        This function will not return anything in a future release.
 
     Because the cache is shared by all versions of astropy in all virtualenvs
     run by your user, possibly concurrently, it could accumulate problems.
@@ -1623,9 +1629,6 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
 
     Parameters
     ----------
-    check_hashes : boolean, optional
-        Deprecated; does nothing.
-
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
@@ -1746,6 +1749,7 @@ def _rmtree(path, replace=None):
                     raise
 
 
+@deprecated_renamed_argument('hexdigest', None, '4.2')
 def import_file_to_cache(url_key, filename,
                          hexdigest=None,
                          remove_original=False,
@@ -1773,8 +1777,6 @@ def import_file_to_cache(url_key, filename,
         location.
     filename : str
         The file whose contents you want to import.
-    hexdigest : ignored
-        Deprecated, has no effect.
     remove_original : bool
         Whether to remove the original file (``filename``) once import is
         complete.
