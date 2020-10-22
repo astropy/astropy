@@ -23,9 +23,10 @@ from warnings import warn
 from contextlib import contextmanager
 
 from astropy.extern.configobj import configobj, validate
-from astropy.utils import find_current_module
+from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import resolve_name
+from astropy.utils.compat.context import nullcontext
 
 from .paths import get_config_dir
 
@@ -594,7 +595,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
         return cobj
 
 
-def generate_config(pkgname='astropy', filename=None):
+def generate_config(pkgname='astropy', filename=None, verbose=False):
     """Generates a configuration file, from the list of `ConfigItem`
     objects for each subpackage.
 
@@ -602,15 +603,22 @@ def generate_config(pkgname='astropy', filename=None):
 
     Parameters
     ----------
-    packageormod : str or None
+    pkgname : str or None
         The package for which to retrieve the configuration object.
     filename : str or file object or None
         If None, the default configuration path is taken from `get_config`.
 
     """
+    if verbose:
+        verbosity = nullcontext
+        filter_warnings = AstropyDeprecationWarning
+    else:
+        verbosity = silence
+        filter_warnings = Warning
+
     package = importlib.import_module(pkgname)
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', AstropyDeprecationWarning)
+    with verbosity(), warnings.catch_warnings():
+        warnings.simplefilter('ignore', category=filter_warnings)
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
 
@@ -628,7 +636,7 @@ def generate_config(pkgname='astropy', filename=None):
                           width=78)
 
     if filename is None:
-        filename = get_config(package).filename
+        filename = get_config(pkgname).filename
 
     with contextlib.ExitStack() as stack:
         if isinstance(filename, (str, pathlib.Path)):
@@ -639,7 +647,23 @@ def generate_config(pkgname='astropy', filename=None):
 
         # Parse the subclasses, ordered by their module name
         subclasses = ConfigNamespace.__subclasses__()
+        processed = set()
+
         for conf in sorted(subclasses, key=lambda x: x.__module__):
+            mod = conf.__module__
+
+            # Skip modules for other packages, e.g. astropy modules that
+            # would be imported when running the function for astroquery.
+            if mod.split('.')[0] != pkgname:
+                continue
+
+            # Check that modules are not processed twice, which can happen
+            # when they are imported in another module.
+            if mod in processed:
+                continue
+            else:
+                processed.add(mod)
+
             print_module = True
             for item in conf().values():
                 if print_module:
