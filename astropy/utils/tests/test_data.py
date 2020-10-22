@@ -57,7 +57,7 @@ from astropy.utils.data import (
     download_files_in_parallel,
 )
 
-TRAVIS = os.environ.get('TRAVIS', False)
+TRAVIS = os.environ.get('TRAVIS', False) == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
