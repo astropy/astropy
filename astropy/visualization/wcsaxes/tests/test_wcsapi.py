@@ -464,7 +464,7 @@ def test_coord_meta_wcsapi():
 @pytest.mark.remote_data(source='astropy')
 @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
                                 tolerance=0, style={})
-def test_wcsapi_5d(plt_close):
+def test_wcsapi_5d_with_names(plt_close):
     # Test for plotting image and also setting values of ticks
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=LowLevelWCS5D())
