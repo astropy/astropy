@@ -120,6 +120,10 @@ astropy.time
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
+- Improve memory and speed performance when iterating over the entire time
+  column of a ``TimeSeries`` object. Previously this involved O(N^2) operations
+  and memory. [#10889]
+
 astropy.uncertainty
 ^^^^^^^^^^^^^^^^^^^
 
@@ -236,6 +240,11 @@ astropy.table
   With this, the behaviour becomes the same as that for a regular ``Column``.
   (Note that this does not affect slicing of a table; sliced columns in those
   will continue to carry a sliced version of any indices). [#10890]
+
+- Change behavior so that when getting a single item out of a mixin column such
+  as ``Time``, ``TimeDelta``, ``SkyCoord`` or ``Quantity``, the ``info``
+  attribute is no longer copied. This improves performance, especially when the
+  object is an indexed column in a ``Table``. [#10889]
 
 astropy.tests
 ^^^^^^^^^^^^^

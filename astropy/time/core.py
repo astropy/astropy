@@ -1082,7 +1082,8 @@ class TimeBase(ShapedLikeNDArray):
 
             setattr(tm, attr, val)
 
-        # Copy other 'info' attr only if it has actually been defined.
+        # Copy other 'info' attr only if it has actually been defined and the
+        # time object is not a scalar (issue #10688).
         # See PR #3898 for further explanation and justification, along
         # with Quantity.__array_finalize__
         if 'info' in self.__dict__:

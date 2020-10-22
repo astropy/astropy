@@ -477,9 +477,9 @@ def test_add_column(mixin_cols):
                 assert getattr(t['m'].info, attr) == getattr(t[name].info, attr)
     # Also check that one can set using a scalar.
     s = m[0]
-    if type(s) is type(m):
+    if type(s) is type(m) and 'info' in s.__dict__:
         # We're not going to worry about testing classes for which scalars
-        # are a different class than the real array (and thus loose info, etc.)
+        # are a different class than the real array, or where info is not copied.
         t['s'] = m[0]
         assert_table_name_col_equal(t, 's', m[0])
         for attr in attrs:
@@ -488,7 +488,7 @@ def test_add_column(mixin_cols):
 
     # While we're add it, also check a length-1 table.
     t = QTable([m[1:2]], names=['m'])
-    if type(s) is type(m):
+    if type(s) is type(m) and 'info' in s.__dict__:
         t['s'] = m[0]
         assert_table_name_col_equal(t, 's', m[0])
         for attr in attrs:
