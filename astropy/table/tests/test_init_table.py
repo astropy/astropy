@@ -546,8 +546,10 @@ def test_init_from_row_OrderedDict(table_type):
     rows34 = [row3, row4]
     t1 = table_type(rows=rows12)
     t2 = table_type(rows=rows34)
+    t3 = t2[sorted(t2.colnames)]
     assert t1.colnames == ['b', 'a']
-    assert t2.colnames == ['a', 'b']
+    assert t2.colnames == ['b', 'a']
+    assert t3.colnames == ['a', 'b']
 
 
 def test_init_from_rows_as_generator():

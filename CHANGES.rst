@@ -294,6 +294,12 @@ astropy.table
 
 - Raise a TypeError when a scalar column is added to an unsized table. [#10476]
 
+- The order of columns when creating a table from a ``list`` of ``dict`` may be
+  changed. Previously, the order was alphabetical because the ``dict`` keys
+  were assumed to be in random order. Since Python 3.7, the keys are always in
+  order of insertion, so ``Table`` now uses the order of keys in the first row
+  to set the column order. To alphabetize the columns to match the previous
+  behavior, use ``t = t[sorted(t.colnames)]``. [#10900]
 
 astropy.tests
 ^^^^^^^^^^^^^
