@@ -4,15 +4,18 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
-from astropy.wcs.wcs import FITSFixedWarning
+from astropy.wcs.wcs import WCS, FITSFixedWarning
+from astropy.time import Time
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
-from astropy.coordinates import SkyCoord, Galactic
+from astropy.coordinates import SkyCoord, Galactic, ICRS
 from astropy.units import Quantity
-from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
-    SlicedLowLevelWCS, sanitize_slices, combine_slices)
+from astropy.wcs.wcsapi.wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
+from astropy.wcs.wcsapi.utils import wcs_info_str
 import astropy.units as u
+
+from astropy.coordinates.spectral_coordinate import SpectralCoord
 
 # To test the slicing we start off from standard FITS WCS
 # objects since those implement the low-level API. We create
@@ -757,3 +760,133 @@ def test_1d_sliced_low_level(time_1d_wcs):
     world = sll.pixel_to_world_values([1, 2])
     assert isinstance(world, np.ndarray)
     assert np.allclose(world, [27, 29])
+
+
+def validate_info_dict(result, expected):
+    result_value = result.pop("value")
+    expected_value = expected.pop("value")
+
+    np.testing.assert_allclose(result_value, expected_value)
+    assert result == expected
+
+
+def test_dropped_dimensions():
+    wcs = WCS_SPECTRAL_CUBE
+
+    sub = SlicedLowLevelWCS(wcs, np.s_[:, :, :])
+
+    assert sub.dropped_world_dimensions == {}
+
+    sub = SlicedLowLevelWCS(wcs, np.s_[:, 2:5, :])
+
+    assert sub.dropped_world_dimensions == {}
+
+    sub = SlicedLowLevelWCS(wcs, np.s_[:, 0])
+
+    waocomp =sub.dropped_world_dimensions.pop("world_axis_object_components")
+    assert len(waocomp) == 1 and waocomp[0][0] == "spectral" and waocomp[0][1] == 0
+    waocls = sub.dropped_world_dimensions.pop("world_axis_object_classes")
+    assert len(waocls) == 1 and "spectral" in waocls and waocls["spectral"][0] == u.Quantity
+    validate_info_dict(sub.dropped_world_dimensions, {
+        "value": [0.5],
+        "world_axis_physical_types": ["em.freq"],
+        "world_axis_names": ["Frequency"],
+        "world_axis_units": ["Hz"],
+        "serialized_classes": False,
+        })
+
+    sub = SlicedLowLevelWCS(wcs, np.s_[:, 0, 0])
+
+    waocomp =sub.dropped_world_dimensions.pop("world_axis_object_components")
+    assert len(waocomp) == 1 and waocomp[0][0] == "spectral" and waocomp[0][1] == 0
+    waocls = sub.dropped_world_dimensions.pop("world_axis_object_classes")
+    assert len(waocls) == 1 and "spectral" in waocls and waocls["spectral"][0] == u.Quantity
+    validate_info_dict(sub.dropped_world_dimensions, {
+        "value": [0.5],
+        "world_axis_physical_types": ["em.freq"],
+        "world_axis_names": ["Frequency"],
+        "world_axis_units": ["Hz"],
+        "serialized_classes": False,
+        })
+
+    sub = SlicedLowLevelWCS(wcs, np.s_[0, :, 0])
+
+    dwd = sub.dropped_world_dimensions
+    wao_classes = dwd.pop("world_axis_object_classes")
+    validate_info_dict(dwd, {
+        "value": [12.86995801, 20.49217541],
+        "world_axis_physical_types": ["pos.galactic.lat", "pos.galactic.lon"],
+        "world_axis_names": ["Latitude", "Longitude"],
+        "world_axis_units": ["deg", "deg"],
+        "serialized_classes": False,
+        "world_axis_object_components": [('celestial', 1, 'spherical.lat.degree'), ('celestial', 0, 'spherical.lon.degree')],
+        })
+
+    assert wao_classes['celestial'][0] is SkyCoord
+    assert wao_classes['celestial'][1] == ()
+    assert isinstance(wao_classes['celestial'][2]['frame'], Galactic)
+    assert wao_classes['celestial'][2]['unit'] is u.deg
+
+    sub = SlicedLowLevelWCS(wcs, np.s_[5, :5, 12])
+
+    dwd = sub.dropped_world_dimensions
+    wao_classes = dwd.pop("world_axis_object_classes")
+    validate_info_dict(dwd, {
+        "value": [11.67648267, 21.01921192],
+        "world_axis_physical_types": ["pos.galactic.lat", "pos.galactic.lon"],
+        "world_axis_names": ["Latitude", "Longitude"],
+        "world_axis_units": ["deg", "deg"],
+        "serialized_classes": False,
+        "world_axis_object_components": [('celestial', 1, 'spherical.lat.degree'), ('celestial', 0, 'spherical.lon.degree')],
+        })
+
+    assert wao_classes['celestial'][0] is SkyCoord
+    assert wao_classes['celestial'][1] == ()
+    assert isinstance(wao_classes['celestial'][2]['frame'], Galactic)
+    assert wao_classes['celestial'][2]['unit'] is u.deg
+
+
+def test_dropped_dimensions_4d(cube_4d_fitswcs):
+
+    sub = SlicedLowLevelWCS(cube_4d_fitswcs, np.s_[:, 12, 5, 5])
+
+    dwd = sub.dropped_world_dimensions
+    wao_classes = dwd.pop("world_axis_object_classes")
+    wao_components = dwd.pop("world_axis_object_components")
+
+    validate_info_dict(dwd, {
+        "value": [ 4.e+00, -2.e+00,  1.e+10],
+        "world_axis_physical_types": ["pos.eq.ra", "pos.eq.dec", "em.freq"],
+        "world_axis_names": ['Right Ascension', 'Declination', 'Frequency'],
+        "world_axis_units": ["deg", "deg", "Hz"],
+        "serialized_classes": False,
+        })
+
+    assert wao_classes['celestial'][0] is SkyCoord
+    assert wao_classes['celestial'][1] == ()
+    assert isinstance(wao_classes['celestial'][2]['frame'], ICRS)
+    assert wao_classes['celestial'][2]['unit'] is u.deg
+    assert wao_classes['spectral'][0:3] == (u.Quantity, (), {})
+
+    assert wao_components[0] == ('celestial', 0, 'spherical.lon.degree')
+    assert wao_components[1] == ('celestial', 1, 'spherical.lat.degree')
+    assert wao_components[2][0:2] == ('spectral', 0)
+
+    sub = SlicedLowLevelWCS(cube_4d_fitswcs, np.s_[12, 12])
+
+    dwd = sub.dropped_world_dimensions
+    wao_classes = dwd.pop("world_axis_object_classes")
+    wao_components = dwd.pop("world_axis_object_components")
+    validate_info_dict(dwd, {
+        "value": [1.e+10, 5.e+00],
+        "world_axis_physical_types": ["em.freq", "time"],
+        "world_axis_names": ["Frequency", "Time"],
+        "world_axis_units": ["Hz", "s"],
+        "serialized_classes": False,
+        })
+    assert wao_components[0][0:2] == ('spectral', 0)
+    assert wao_components[1][0] == 'time'
+    assert wao_components[1][1] == 0
+
+    assert wao_classes['spectral'][0:3] == (u.Quantity, (), {})
+    assert wao_classes['time'][0:3] == (Time, (), {})

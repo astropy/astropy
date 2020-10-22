@@ -162,6 +162,10 @@ astropy.wcs
 
 - ``WCS.to_header()`` now appends comments to SIP coefficients. [#10480]
 
+- A new property ``dropped_world_dimensions`` has been added to
+  ``SlicedLowLevelWCS`` to record information about any world axes removed by
+  slicing a WCS. [#10195]
+
 
 API Changes
 -----------
