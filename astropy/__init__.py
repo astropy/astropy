@@ -203,9 +203,7 @@ def _initialize_astropy():
                               'modules first. Either run:\n\n'
                               '  pip install -e .\n\nor\n\n'
                               '  python setup.py build_ext --inplace\n\n'
-                              'to make sure the extension modules are built '
-                              '(note that if you use the latter you may need '
-                              'to install build dependencies manually)')
+                              'to make sure the extension modules are built ')
         else:
             # Outright broken installation, just raise standard error
             raise
