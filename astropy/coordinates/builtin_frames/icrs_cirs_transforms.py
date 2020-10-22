@@ -298,6 +298,7 @@ def tete_to_tete(from_coo, to_frame):
             np.all(from_coo.obsgeovel == to_frame.obsgeovel)):
         return to_frame.realize_frame(from_coo.data)
     else:
-        # can't do self-transform via ITRS due to infinite recursion
-        # therefore we will go through ICRS, a la CIRS and GCRS
+        # We perform the self-transform through ICRS, since any change in obstime
+        # will require handling the change in pos/vel of the Earth and it's impact
+        # on aberration.
         return from_coo.transform_to(ICRS()).transform_to(to_frame)
