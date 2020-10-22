@@ -600,6 +600,20 @@ def test_teme_itrf():
     )
 
 
+def test_teme_loopback():
+    from_coo = TEME(1*u.AU, 2*u.AU, 3*u.AU, obstime='2001-01-01')
+    to_frame = TEME(obstime='2001-06-30')
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the coordinate
+    assert not allclose(explicit_coo.cartesian.xyz, from_coo.cartesian.xyz, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert_allclose(explicit_coo.cartesian.xyz, implicit_coo.cartesian.xyz, rtol=1e-10)
+
+
 @pytest.mark.remote_data
 def test_earth_orientation_table(monkeypatch):
     """Check that we can set the IERS table used as Earth Reference.
