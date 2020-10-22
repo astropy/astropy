@@ -428,9 +428,6 @@ astropy.io.misc
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
-- No longer ignore attributes whose values were specified as empty
-  strings. [#10583]
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -445,9 +442,6 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
-
-- Fix a bug that prevented ``Time`` columns from being used to sort a table.
-  [#10824]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -469,22 +463,15 @@ astropy.utils
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
-- Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
-  projection on a WCSAxes. [#10442]
 
 astropy.wcs
 ^^^^^^^^^^^
-
-- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
-  unintended lower/upper case issues [#10557]
-- Added bounds to ``fit_wcs_from_points`` to ensure CRPIX is on
-  input image. [#10346]
 
 Other Changes and Additions
 ---------------------------
 
 
-4.1 (unreleased)
+4.1 (2020-10-21)
 ================
 
 New Features
@@ -499,12 +486,6 @@ astropy.config
 - ``ConfigNamespace.__iter__`` and ``ConfigNamespace.keys`` now yield ``ConfigItem``
   names defined within it. Similarly, ``items`` and ``values`` would yield like a
   Python dictionary would. [#10139]
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -536,14 +517,9 @@ astropy.coordinates
 - Allow in-place modification of array-valued ``Representation`` and ``Differential``
   objects, including of representations with attached differentials. [#10210]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
+
 - Functional Units can now be processed in CDS-tables. [#9971]
 
 - Allow reading in ASCII tables which have duplicate column names. [#9939]
@@ -574,14 +550,14 @@ astropy.io.fits
 
 - Add HDU name and ver to FITSDiff report where appropriate [#10197]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
 - New ``exceptions.conf.max_warnings`` configuration item to control the number of times a
   type of warning appears before being suppressed. [#10152]
+
+- No longer ignore attributes whose values were specified as empty
+  strings. [#10583]
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
@@ -616,12 +592,6 @@ astropy.nddata
 
 - Added a ``cache`` keyword option to allow caching for ``CCDData.read`` if
   filename is a URL. [#10265]
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -662,9 +632,6 @@ astropy.table
 - Added support for coordinate ``Representation`` and ``Differential`` mixin
   columns. [#10210]
 
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
@@ -673,11 +640,9 @@ astropy.time
   ``1970-01-01 00:00:08 TAI`` and corresponds to the ``CLOCK_TAI`` clock
   available on some linux platforms. [#10081]
 
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
+- Improve initialization time by a factor of four when creating a scalar ``Time``
+  object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
+  epoch time). [#10406]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -701,6 +666,7 @@ astropy.units
 
 astropy.utils
 ^^^^^^^^^^^^^
+
 - Added a new ``MetaAttribute`` class to support easily adding custom attributes
   to a subclass of classes like ``Table`` or ``NDData`` that have a ``meta``
   attribute. [#10097]
@@ -712,6 +678,9 @@ astropy.visualization
   ``PowerStretch``, and ``ImageNormalize`` classes and the
   ``simple_norm`` function.  This keyword is used to replace generated
   NaN values. [#10182]
+
+- Fixed an issue where ticks were sometimes not drawn at the edges of a spherical
+  projection on a WCSAxes. [#10442]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -725,17 +694,11 @@ astropy.wcs
 
 - Added an ``_as_mpl_axes`` method to the ``HightLevelWCSWrapper`` class. [#10138]
 
+- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
+  unintended lower/upper case issues [#10557]
+
 API Changes
 -----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -756,12 +719,6 @@ astropy.coordinates
   and ``Differentials`` can now be initialized with an instance of their own class
   if that instance is passed in as the first argument. [#10210]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
@@ -771,38 +728,17 @@ astropy.io.ascii
   ``converters`` dict names referred to the *input* table column names, but now
   they refer to the *output* table column names. [#9739]
 
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+- For FIELDs with datatype="char", store the values as strings instead
+  of bytes. [#9505]
 
 astropy.table
 ^^^^^^^^^^^^^
+
 - ``Table.from_pandas`` now supports a ``units`` dictionary as argument to pass units
   for columns in the ``DataFrame``. [#9472]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -811,15 +747,6 @@ astropy.time
   have allowed values at the time of being set, either when creating the object
   or when setting those properties on an existing ``Time`` instance.  Previously
   the validation of those properties was not strictly enforced. [#9868]
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -846,21 +773,9 @@ astropy.visualization
 
 - The ``AsinhStretch`` and ``SinhStretch`` ``a`` value is restricted
   to be ``0 < a <= 1``. [#10177]
-
-astropy.wcs
-^^^^^^^^^^^
-
+  
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -868,24 +783,6 @@ astropy.coordinates
 - Fix a bug where for light deflection by the Sun it was always assumed that the
   source was at infinite distance, which in the (rare and) absolute worst-case
   scenario could lead to errors up to 3 arcsec. [#10666]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
@@ -895,38 +792,15 @@ astropy.io.votable
 
 astropy.modeling
 ^^^^^^^^^^^^^^^^
-astropy.nddata
-^^^^^^^^^^^^^^
 
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
+- Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
+  float64. [#10542]
 
 astropy.table
 ^^^^^^^^^^^^^
 
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
+- Fix a bug that prevented ``Time`` columns from being used to sort a table.
+  [#10824]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -934,6 +808,12 @@ astropy.wcs
 - WCS objects with a spectral axis will now return ``SpectralCoord``
   objects when calling ``pixel_to_world`` instead of ``Quantity``
   (note that ``SpectralCoord`` is a sub-class of ``Quantity``). [#10185]
+
+- Add .upper() to ctype or ctype names to wcsapi/fitwcs.py to mitigate bugs from
+  unintended lower/upper case issues [#10557]
+
+- Added bounds to ``fit_wcs_from_points`` to ensure CRPIX is on
+  input image. [#10346]
 
 Other Changes and Additions
 ---------------------------
@@ -965,6 +845,10 @@ Other Changes and Additions
 - The bundled version of PLY was updated to 3.11. [#10258]
 
 - Removed dependency on scikit-image. [#10214]
+
+- Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
+  ``lex.lex``) to allow running in ``python -OO`` session without raising an
+  exception in ``astropy.units.format``. [#10379]
 
 4.0.4 (unreleased)
 ==================
@@ -1298,9 +1182,6 @@ astropy.table
 
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
