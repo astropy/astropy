@@ -398,6 +398,9 @@ Bug Fixes
 astropy.config
 ^^^^^^^^^^^^^^
 
+- Fix a few issues with ``generate_config`` when used with other packages.
+  [#10893]
+
 astropy.constants
 ^^^^^^^^^^^^^^^^^
 
