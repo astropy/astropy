@@ -62,6 +62,19 @@ def spectral_cube_3d_fitswcs():
     return wcs
 
 
+@pytest.fixture
+def cube_4d_fitswcs():
+    wcs = WCS(naxis=4)
+    wcs.wcs.ctype = 'RA---CAR', 'DEC--CAR', 'FREQ', 'TIME'
+    wcs.wcs.cunit = 'deg', 'deg', 'Hz', 's'
+    wcs.wcs.cdelt = -2., 2., 3.e9, 1
+    wcs.wcs.crval = 4., 0., 4.e9, 3,
+    wcs.wcs.crpix = 6., 7., 11., 11.
+    wcs.wcs.cname = 'Right Ascension', 'Declination', 'Frequency', 'Time'
+    wcs.wcs.mjdref = (30042, 0)
+    return wcs
+
+
 class Spectral1DLowLevelWCS(BaseLowLevelWCS):
 
     @property
