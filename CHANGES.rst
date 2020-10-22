@@ -1,3 +1,19 @@
+4.1.1 (unreleased)
+==================
+
+New Features
+------------
+
+API Changes
+-----------
+
+Bug Fixes
+---------
+
+Other Changes and Additions
+---------------------------
+
+
 4.1 (2020-10-21)
 ================
 
@@ -300,21 +316,9 @@ astropy.visualization
 
 - The ``AsinhStretch`` and ``SinhStretch`` ``a`` value is restricted
   to be ``0 < a <= 1``. [#10177]
-
-astropy.wcs
-^^^^^^^^^^^
-
+  
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -322,24 +326,6 @@ astropy.coordinates
 - Fix a bug where for light deflection by the Sun it was always assumed that the
   source was at infinite distance, which in the (rare and) absolute worst-case
   scenario could lead to errors up to 3 arcsec. [#10666]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
 
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
@@ -353,41 +339,11 @@ astropy.modeling
 - Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
   float64. [#10542]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
 astropy.table
 ^^^^^^^^^^^^^
 
 - Fix a bug that prevented ``Time`` columns from being used to sort a table.
   [#10824]
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
