@@ -286,6 +286,12 @@ astropy.utils
   have been moved to their own module, ``astropy.utils.shapes``. They remain
   importable from ``astropy.utils``. [#10337]
 
+- ``check_hashes`` keyword in ``check_download_cache`` is deprecated and will
+  be removed in a future release. [#10628]
+
+- ``hexdigest`` keyword in ``import_file_to_cache`` is deprecated and will
+  be removed in a future release. [#10628]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
