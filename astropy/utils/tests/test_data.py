@@ -843,8 +843,10 @@ def test_update_parallel(temp_cache, valid_urls):
         assert get_file_contents(f) == c2
 
 
-@pytest.mark.skipif(sys.version_info < (3, 8),
-                    reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif(sys.version_info < (3, 8) or
+                    (sys.platform.startswith('win') and TRAVIS),
+                    reason="mystery segfault that is possibly bug #10008 "
+                           "for python < 3.8, flaky cache error on Windows CI")
 def test_update_parallel_multi(temp_cache, valid_urls):
     u, c = next(valid_urls)
     iucs = list(islice(valid_urls, N_THREAD_HAMMER))
