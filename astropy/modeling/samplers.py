@@ -9,7 +9,12 @@ import numpy as np
 
 from astropy.modeling.optimizers import Optimization
 
-import emcee
+try:
+    import emcee
+except ImportError:
+    HAS_EMCEE = False
+else:
+    HAS_EMCEE = True
 
 
 all = ["EmceeSampler"]
