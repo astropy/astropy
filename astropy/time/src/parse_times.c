@@ -343,21 +343,3 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
 
     return 0;
 }
-
-int check_unicode(char *chars, int n_unicode_char)
-// Check if *chars is pure ASCII, assuming input is UTF-32
-{
-    char *ch;
-    int ii;
-
-    ch = chars;
-    for (ii = 0; ii < n_unicode_char; ii++)
-    {
-        ch++;
-        if (*ch++) return 1;
-        if (*ch++) return 1;
-        if (*ch++) return 1;
-    }
-    return 0;
-
-}
