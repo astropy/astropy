@@ -3,6 +3,7 @@
 import fnmatch
 import time
 import re
+import sys
 import datetime
 import warnings
 from decimal import Decimal
@@ -1279,11 +1280,6 @@ class TimeString(TimeUnique):
                                              array_1d_char, array_1d_int, array_1d_int,
                                              array_1d_int, array_1d_time_struct]
 
-        libpt.check_unicode.restype = c_int
-
-        # Set up returns types and args for the unicode checker
-        libpt.check_unicode.argtypes = [array_1d_char, c_int]
-
         return libpt
 
     def _check_val_type(self, val1, val2):
@@ -1384,20 +1380,28 @@ class TimeString(TimeUnique):
 
     def get_jds_fast(self, val1, val2):
         """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
-        # Handle bytes or str input and flatten down to a single array of uint8.
-        char_size = 4 if val1.dtype.kind == 'U' else 1
-        val1_str_len = int(val1.dtype.itemsize // char_size)
-        chars = val1.ravel().view(np.uint8)
+        # For the views below to work, we need at least a 1-dimensional array.
+        # (val1.ravel() would also give a 1-dimensional array, but that makes
+        # a copy if the array is not contiguous, so leave that for the end.)
+        v1 = np.atleast_1d(val1)
 
-        if char_size == 4:
-            # Check that this is pure ASCII
-            status = self.lib_parse_time.check_unicode(chars, len(chars) // 4)
-            if status != 0:
+        # Handle bytes or str input and flatten down to a single array of uint8.
+        if val1.dtype.kind == 'U':
+            val1_str_len = val1.dtype.itemsize // 4
+            # Check that this is pure ASCII.
+            if np.any(v1.view(np.uint32) > 127):
                 raise ValueError('input is not pure ASCII')
-            # It might be possible to avoid this copy with cleverness in
-            # parse_times.c but leave that for another day.
-            chars = chars[::4]
-        chars = np.ascontiguousarray(chars)
+
+            # It might be possible to avoid having ravel() make a copy with
+            # cleverness in parse_times.c but leave that for another day.
+            if sys.byteorder == 'big':  # pragma: no cover
+                chars = v1.view(np.uint8)[..., 3::4].ravel()
+            else:
+                chars = v1.view(np.uint8)[..., ::4].ravel()
+
+        else:
+            val1_str_len = val1.dtype.itemsize
+            chars = v1.view(np.uint8).ravel()
 
         # Pre-allocate output components
         n_times = len(chars) // val1_str_len
