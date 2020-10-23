@@ -319,16 +319,16 @@ the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
     >>> sc_ttau.with_observer_stationary_relative_to('gcrs')  # doctest: +FLOAT_CMP +REMOTE_DATA
     <SpectralCoord
        (observer: <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (x, y, z) in m
-                      (-5878853.86160149, -192921.84793754, -2470794.19798818)
+                      (-5878853.86171412, -192921.84773269, -2470794.19765021)
                    (v_x, v_y, v_z) in km / s
-                      (-1.09225512e-08, 8.96006823e-08, -1.49346888e-08)>
+                      (4.33251262e-09, 8.96175625e-08, -1.49258412e-08)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
                  (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
                     (1.37949782e-15, 1.46375638e-15, 23.9)>
         observer to target (computed from above):
-          radial_velocity=40.67408633585573 km / s
-          redshift=0.00013568335305236268)
+          radial_velocity=40.674086368345165 km / s
+          redshift=0.00013568335316072044)
       [200.00024141, 210.00025348, 220.00026555, 230.00027762, 240.00028969,
        250.00030176, 260.00031383, 270.0003259 , 280.00033797, 290.00035004,
        300.00036211] GHz>

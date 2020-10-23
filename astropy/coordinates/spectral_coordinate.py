@@ -50,13 +50,6 @@ def _redshift_to_velocity(redshift):
     return (C_KMS * (zponesq - 1) / (zponesq + 1))
 
 
-def _relativistic_velocity_addition(vel1, vel2):
-    """
-    Add two velocities using the full relativistic equation.
-    """
-    return (vel1 + vel2) / (1 + vel1 * vel2 / c ** 2)
-
-
 def _apply_relativistic_doppler_shift(scoord, velocity):
     """
     Given a `SpectralQuantity` and a velocity, return a new `SpectralQuantity`
