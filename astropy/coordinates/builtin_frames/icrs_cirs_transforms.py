@@ -24,6 +24,7 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
+from .equatorial import TETE
 from .utils import aticq, atciqz
 
 from ..erfa_astrom import erfa_astrom
@@ -287,4 +288,17 @@ def hcrs_to_hcrs(from_coo, to_frame):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS
+        return from_coo.transform_to(ICRS()).transform_to(to_frame)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, TETE)
+def tete_to_tete(from_coo, to_frame):
+    if (np.all(from_coo.obstime == to_frame.obstime) and
+            np.all(from_coo.obsgeoloc == to_frame.obsgeoloc) and
+            np.all(from_coo.obsgeovel == to_frame.obsgeovel)):
+        return to_frame.realize_frame(from_coo.data)
+    else:
+        # We perform the self-transform through ICRS, since any change in obstime
+        # will require handling the change in pos/vel of the Earth and it's impact
+        # on aberration.
         return from_coo.transform_to(ICRS()).transform_to(to_frame)
