@@ -54,7 +54,7 @@ astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
 - The final version of the Planck 2018 cosmological parameters are included
-  as the ``Planck18`` object, which is now the default cosmology.  The 
+  as the ``Planck18`` object, which is now the default cosmology.  The
   parameters are identical to those of the ``Planck18_arXiv_v2`` object,
   which is now deprecated and will be removed in a future release. [#10915]
 
@@ -278,6 +278,9 @@ astropy.table
   as ``Time``, ``TimeDelta``, ``SkyCoord`` or ``Quantity``, the ``info``
   attribute is no longer copied. This improves performance, especially when the
   object is an indexed column in a ``Table``. [#10889]
+
+- Raise a TypeError when a scalar column is added to an unsized table. [#10476]
+
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -1230,6 +1233,10 @@ astropy.table
 
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
+
+
+astropy.tests
+^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^

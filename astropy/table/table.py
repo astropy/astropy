@@ -1942,9 +1942,13 @@ class Table:
         col = self._convert_data_to_col(col, name=name, copy=copy,
                                         default_name=default_name)
 
+        # Assigning a scalar column to an empty table should result in an
+        # exception (see #3811).
+        if col.shape == () and len(self) == 0:
+            raise TypeError('Empty table cannot have column set to scalar value')
         # Make col data shape correct for scalars.  The second test is to allow
         # broadcasting an N-d element to a column, e.g. t['new'] = [[1, 2]].
-        if (col.shape == () or col.shape[0] == 1) and len(self) > 0:
+        elif (col.shape == () or col.shape[0] == 1) and len(self) > 0:
             new_shape = (len(self),) + getattr(col, 'shape', ())[1:]
             if isinstance(col, np.ndarray):
                 col = np.broadcast_to(col, shape=new_shape,
