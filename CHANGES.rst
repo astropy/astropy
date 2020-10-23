@@ -48,6 +48,11 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
+- The final version of the Planck 2018 cosmological parameters are included
+  as the ``Planck2018`` object.  The parameters are identical to those of the
+  ``Planck2018_arXiv_v2`` object.   The latter will be removed in a future
+  release. [#10915]
+
 astropy.extern
 ^^^^^^^^^^^^^^
 
@@ -1595,10 +1600,11 @@ astropy.coordinates
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
-- The final version of the Planck 2018 cosmological parameters are included
-  as the ``Planck2018`` object.  The parameters are identical to those of the
-  ``Planck2018_arXiv_v2`` object.   The latter will be removed in a future
-  release. [#10915]
+
+- The pre-publication Planck 2018 cosmological parameters are included as the
+  ``Planck2018_arXiv_v2`` object.  Please note that the values are preliminary,
+  and when the paper is accepted a final version will be included as
+  ``Planck18``. [#8111]
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
