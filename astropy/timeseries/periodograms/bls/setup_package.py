@@ -7,7 +7,7 @@ from setuptools import Extension
 
 import numpy
 
-BLS_ROOT = os.path.abspath(os.path.dirname(__file__))
+BLS_ROOT = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
