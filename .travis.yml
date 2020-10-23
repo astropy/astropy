@@ -184,10 +184,8 @@ matrix:
 
         # Also regularly try the big-endian s390 architecture, in the
         # process checking that installing dependencies with apt works,
-        # and that astropy can properly use the system libraries.
-        # The latter is easy since the python3-astropy package, which is
-        # used to install the regular dependencies, also pulls those in.
-        # Hence, one can and should use ASTROPY_USE_SYSTEM_ALL=1.
+        # and that astropy can properly use the system libraries,
+        # i.e., runs properly with ASTROPY_USE_SYSTEM_ALL=1.
         - name: big-endian s390x architecture with apt
           arch: s390x
           language: c
@@ -198,11 +196,15 @@ matrix:
           addons:
               apt:
                   packages:
-                      - python3-astropy
-                      - python3-venv
+                      - python3-venv  # build dependencies
                       - cython3
-                      - wcslib-dev
-                      - libcfitsio-dev
+                      - wcslib-dev  # also pulls in libwcs7
+                      - libcfitsio-dev  # also pulls in libcfitsio9
+                      - liberfa1  # required dependencies
+                      - python3-configobj
+                      - python3-numpy
+                      - python3-ply
+                      - python3-pytest-astropy
 
         # And with an arm64 processor, again with apt for convenience.
         - name: arm64 architecture with apt
@@ -215,11 +217,16 @@ matrix:
           addons:
               apt:
                   packages:
-                      - python3-astropy
                       - python3-venv
                       - cython3
                       - wcslib-dev
                       - libcfitsio-dev
+                      - liberfa1
+                      - python3-configobj
+                      - python3-numpy
+                      - python3-ply
+                      - python3-pytest-astropy
+                      - python3-astropy
 
         # Regularly make sure that astropy can be used in application bundles
         - language: python
