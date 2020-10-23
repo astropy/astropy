@@ -55,6 +55,7 @@ from astropy.utils.data import (
     check_free_space_in_dir,
     _get_download_cache_loc,
     download_files_in_parallel,
+    is_url
 )
 
 TRAVIS = os.environ.get('TRAVIS', False) == "true"
@@ -2156,4 +2157,19 @@ def test_download_ftp_file_properly_handles_socket_error():
     with pytest.raises(urllib.error.URLError) as excinfo:
         download_file(faulty_url)
     errmsg = excinfo.exconly()
-    assert "Name or service not known" in errmsg or 'getaddrinfo failed' in errmsg or 'Temporary failure in name resolution' in errmsg
+    assert "Name or service not known" in errmsg or 'getaddrinfo failed' in errmsg or 'Temporary failure in name resolution' in errmsg  # noqa
+
+
+@pytest.mark.parametrize(
+    ('s', 'ans'),
+    [('http://googlecom', True),
+     ('https://google.com', True),
+     ('ftp://google.com', True),
+     ('sftp://google.com', True),
+     ('ssh://google.com', True),
+     ('file:///c:/path/to/the%20file.txt', True),
+     ('google.com', False),
+     ('C:\\\\path\\\\file.docx', False),
+     ('data://file', False)])
+def test_string_is_url_check(s, ans):
+    assert is_url(s) is ans
