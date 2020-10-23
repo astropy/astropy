@@ -16,15 +16,17 @@ except ImportError:
 
 # Tell Hypothesis that we might be running slow tests, to print the seed blob
 # so we can easily reproduce failures from CI, and derive a fuzzing profile
-# to try many more inputs.  Select profiles with the HYPOTHESIS_PROFILE
-# environment variable, defaulting to automatic CI detection.
+# to try many more inputs when we detect a scheduled build or when specifically
+# requested using the HYPOTHESIS_PROFILE=fuzz environment variable or
+# `pytest --hypothesis-profile=fuzz ...` argument.
 
-hypothesis.settings.register_profile('normal', deadline=None)
-hypothesis.settings.register_profile('ci', deadline=None, print_blob=True)
 hypothesis.settings.register_profile(
-    'fuzzing', parent=hypothesis.settings.get_profile('ci'), max_examples=10**4
+    'ci', deadline=None, print_blob=True, derandomize=True
 )
-default = 'ci' if os.environ.get('CI') == 'true' else 'normal'
+hypothesis.settings.register_profile(
+    'fuzzing', deadline=None, print_blob=True, max_examples=10**4
+)
+default = 'fuzzing' if os.environ.get('TRAVIS_EVENT_TYPE') == 'cron' else 'ci'
 hypothesis.settings.load_profile(os.environ.get('HYPOTHESIS_PROFILE', default))
 
 # Make sure we use temporary directories for the config and cache
