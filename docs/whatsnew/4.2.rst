@@ -14,7 +14,7 @@ the 4.1.x series of releases.
 
 In particular, this release includes:
 
-*
+*  :ref:`whatsnew-4.2-cosmology`
 *
 
 In addition to these major changes, Astropy v4.1 includes a large number of
@@ -25,6 +25,18 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v4.1
 * xxx distinct people have contributed code
 
+.. _whatsnew-4.2-cosmology:
+
+Planck 2018 is accepted and now the default cosmology
+=====================================================
+
+The accepted version of the Planck 2018 cosmological parameters has been included
+and has become the default cosmology.  It is identical to the previous, preliminary
+version (Planck18_arXiv_v2), which is deprecated and will be removed in a future release.
+
+  >>> from astropy.cosmology import Planck18
+  >>> Planck18.age(0)  
+  <Quantity 13.7868853 Gyr>
 
 Full change log
 ===============

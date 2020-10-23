@@ -302,6 +302,7 @@ WMAP7     Komatsu et al. 2011            70.4  0.272 Yes
 WMAP9     Hinshaw et al. 2013            69.3  0.287 Yes
 Planck13  Planck Collab 2013, Paper XVI  67.8  0.307 Yes
 Planck15  Planck Collab 2015, Paper XIII 67.7  0.307 Yes
+Planck18  Planck Collab 2018, Paper VI   67.7  0.310 Yes
 ========  ============================== ====  ===== =======
 
 Currently, all are instances of `~astropy.cosmology.FlatLambdaCDM`.

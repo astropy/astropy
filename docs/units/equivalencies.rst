@@ -512,7 +512,7 @@ the ``H0`` from the current default cosmology:
 
     >>> distance = 100 * (u.Mpc/u.littleh)
     >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
-    <Quantity 147.62326543 Mpc>
+    <Quantity 147.79781259 Mpc>
 
 This equivalency also allows a common magnitude formulation of little h
 scaling:
