@@ -464,12 +464,24 @@ def test_with_observer_stationary_relative_to():
                                                  differential_type='cartesian'),
                                                  velocity=[-2**0.5, 0, -2**0.5] * u.km / u.s)
 
+    # And velocities should have three elements
+
+    with pytest.raises(ValueError, match='velocity should be a Quantity vector with 3 elements'):
+        sc2.with_observer_stationary_relative_to(ICRS, velocity=[-2**0.5, 0, -2**0.5, -3] * u.km / u.s)
+
     # Make sure things don't change depending on what frame class is used for reference
     sc11 = sc2.with_observer_stationary_relative_to(SkyCoord(ICRS(0 * u.km, 0 * u.km, 0 * u.km,
                                                                   2**0.5 * u.km / u.s, 0 * u.km / u.s, 2**0.5 * u.km / u.s,
                                                                   representation_type='cartesian',
                                                                   differential_type='cartesian')).transform_to(Galactic))
     assert_quantity_allclose(sc11.radial_velocity, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
+
+    # Check that it is possible to preserve the observer frame
+    sc12 = sc2.with_observer_stationary_relative_to(LSRD)
+    sc13 = sc2.with_observer_stationary_relative_to(LSRD, preserve_observer_frame=True)
+
+    assert isinstance(sc12.observer, Galactic)
+    assert isinstance(sc13.observer, ICRS)
 
 
 def test_los_shift_radial_velocity():
@@ -519,6 +531,22 @@ def test_los_shift_radial_velocity():
 
     sc12 = sc10.with_radial_velocity_shift(-3 * u.km / u.s)
     assert_quantity_allclose(sc12.radial_velocity, -2 * u.km / u.s)
+
+    # Check that things work if radial_velocity wasn't specified at all
+
+    sc13 = SpectralCoord(500 * u.nm)
+    sc14 = sc13.with_radial_velocity_shift(1 * u.km / u.s)
+    assert_quantity_allclose(sc14.radial_velocity, 1 * u.km / u.s)
+
+    sc15 = sc1.with_radial_velocity_shift()
+    assert_quantity_allclose(sc15.radial_velocity, 1 * u.km / u.s)
+
+    # Check that units are verified
+
+    with pytest.raises(u.UnitsError, match="Argument must have unit physical "
+                                           "type 'speed' for radial velocty or "
+                                           "'dimensionless' for redshift."):
+        sc1.with_radial_velocity_shift(target_shift=1 * u.kg)
 
 
 @pytest.mark.xfail
@@ -627,11 +655,6 @@ def test_shift_to_rest_galaxy():
     with pytest.raises(AttributeError):
         assert_frame_allclose(rest_spc.observer, rest_spc.target)
 
-    with pytest.raises(ValueError):
-        # *any* observer shift should fail, since we didn't specify one at the
-        # outset
-        rest_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
-
 
 def test_shift_to_rest_star_withobserver():
     rv = -8.3283011*u.km/u.s
@@ -654,8 +677,7 @@ def test_shift_to_rest_star_withobserver():
     rest_spc = observed_spc.to_rest()
     assert_quantity_allclose(rest_spc, rest_line_wls)
 
-    with pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
-        barycentric_spc = observed_spc._change_observer_to(ICRS(CartesianRepresentation([0, 0, 0] * u.au)))
+    barycentric_spc = observed_spc.with_observer_stationary_relative_to('icrs')
     baryrest_spc = barycentric_spc.to_rest()
     assert quantity_allclose(baryrest_spc, rest_line_wls)
 
