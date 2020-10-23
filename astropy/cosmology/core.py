@@ -3355,6 +3355,8 @@ class default_cosmology(ScienceState):
         if value is None:
             value = 'Planck15'
         if isinstance(value, str):
+            if value == 'Planck18_arXiv_v2':
+                print("WARNING: %s is deprecated".format(value))
             return cls.get_cosmology_from_string(value)
         elif isinstance(value, Cosmology):
             return value
