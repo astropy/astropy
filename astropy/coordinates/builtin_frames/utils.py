@@ -42,25 +42,23 @@ def get_polar_motion(time):
     iers_table = iers.earth_orientation_table.get()
     xp, yp, status = iers_table.pm_xy(time, return_status=True)
 
-    wmsg = None
+    wmsg = (
+        'Tried to get polar motions for times {} IERS data is '
+        'valid. Defaulting to polar motion from the 50-yr mean for those. '
+        'This may affect precision at the arcsec level'
+    )
     if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
-        wmsg = ('Tried to get polar motions for times before IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean for those. '
-                'This may affect precision at the 10s of arcsec level')
         xp[status == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
         yp[status == iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
 
-        warnings.warn(wmsg, AstropyWarning)
+        warnings.warn(wmsg.format('before'), AstropyWarning)
 
     if np.any(status == iers.TIME_BEYOND_IERS_RANGE):
-        wmsg = ('Tried to get polar motions for times after IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean for those. '
-                'This may affect precision at the 10s of arcsec level')
 
         xp[status == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
         yp[status == iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
 
-        warnings.warn(wmsg, AstropyWarning)
+        warnings.warn(wmsg.format('after'), AstropyWarning)
 
     return xp.to_value(u.radian), yp.to_value(u.radian)
 
