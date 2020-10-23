@@ -507,6 +507,10 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Objective functions called by ``astropy.wcs.fit_wcs_from_points`` were
+  treating longitude and latitude distances equally. Now longitude scaled properly. [#10759]
+
+
 Other Changes and Additions
 ---------------------------
 

@@ -891,9 +891,12 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     w_obj.wcs.crpix = crpix
     lon2, lat2 = w_obj.wcs_pix2world(x, y, 0)
 
-    resids = np.concatenate((lon-lon2, lat-lat2))
-    resids[resids > 180] = 360 - resids[resids > 180]
-    resids[resids < -180] = 360	+ resids[resids < -180]
+    lat_resids = lat - lat2
+    lon_resids = lon - lon2
+    # In case the longitude has wrapped around
+    lon_resids = np.mod(lon_resids - 180.0, 360.0) - 180.0
+
+    resids = np.concatenate((lon_resids * np.cos(np.radians(lat)), lat_resids))
 
     return resids
 
@@ -914,7 +917,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
         WCS object
     """
 
-    from ..modeling.models import SIP, InverseSIP   # here to avoid circular import
+    from ..modeling.models import SIP   # here to avoid circular import
 
     # unpack params
     crpix = params[0:2]
@@ -942,9 +945,6 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     x, y = np.dot(w_obj.wcs.cd, (x-w_obj.wcs.crpix[0], y-w_obj.wcs.crpix[1]))
 
     resids = np.concatenate((x-xo, y-yo))
-    # to avoid bad restuls if near 360 -> 0 degree crossover
-    resids[resids > 180] = 360 - resids[resids > 180]
-    resids[resids < -180] = 360 + resids[resids < -180]
 
     return resids
 
