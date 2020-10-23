@@ -194,21 +194,53 @@ jobs:
                EXTRAS_INSTALL="docs"
 
         # Also regularly try the big-endian s390 architecture, in the
-        # process checking that installing dependencies with apt works.
+        # process checking that installing dependencies with apt works,
+        # and that astropy can properly use the system libraries,
+        # i.e., runs properly with ASTROPY_USE_SYSTEM_ALL=1.
         - name: big-endian s390 architecture with apt
           arch: s390x
           language: c
-          dist: bionic
+          dist: focal
           stage: Final tests
-          env: USE_CI_HELPERS=False APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage python3-attr tzdata"
+          env: USE_CI_HELPERS=False
+               SETUP_METHOD='apt'
+               ASTROPY_USE_SYSTEM_ALL=1
+          addons:
+              apt:
+                  packages:
+                      - python3-venv  # build dependencies
+                      - cython3
+                      - wcslib-dev  # also pulls in libwcs7
+                      - libcfitsio-dev  # also pulls in libcfitsio9
+                      - liberfa1  # required dependencies
+                      - python3-configobj
+                      - python3-numpy
+                      - python3-ply
+                      - python3-pytest-astropy
+
 
         # And with an arm64 processor, again with apt for convenience.
         - name: arm64 architecture with apt
           arch: arm64
           language: c
-          dist: bionic
           stage: Final tests
-          env: USE_CI_HELPERS=False APT_DEPENDENCIES="python3-pip python3-dev python3-venv python3-setuptools cython3 ipython3 python3-jinja2 python3-numpy python3-pytest-astropy python3-pytest-cov python3-pytest-xdist python3-pytest-filter-subpackage python3-objgraph python3-coverage python3-attr tzdata"
+          dist: focal
+          env: USE_CI_HELPERS=False
+               SETUP_METHOD='apt'
+               ASTROPY_USE_SYSTEM_ALL=1
+          addons:
+              apt:
+                  packages:
+                      - python3-venv
+                      - cython3
+                      - wcslib-dev
+                      - libcfitsio-dev
+                      - liberfa1
+                      - python3-configobj
+                      - python3-numpy
+                      - python3-ply
+                      - python3-pytest-astropy
+                      - python3-astropy
 
         # Regularly make sure that astropy can be used in application bundles
         - language: python
@@ -262,13 +294,6 @@ install:
         fi
       fi
 
-    # For APT key updates, see https://ftp-master.debian.org/keys.html
-    - if [ $TRAVIS_CPU_ARCH == s390x ] || [ $TRAVIS_CPU_ARCH == arm64 ]; then
-        curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
-        echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
-        sudo apt-get -qq update;
-        sudo apt-get install -y --no-install-recommends ${APT_DEPENDENCIES};
-      fi
 
 script:
 
