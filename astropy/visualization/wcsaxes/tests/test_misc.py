@@ -20,8 +20,10 @@ from astropy.visualization.wcsaxes.frame import (
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
-MATPLOTLIB_LT_21 = Version(matplotlib.__version__) < Version("2.1")
-MATPLOTLIB_LT_22 = Version(matplotlib.__version__) < Version("2.2")
+mpl_version = Version(matplotlib.__version__)
+MATPLOTLIB_LT_21 = mpl_version < Version("2.1")
+MATPLOTLIB_LT_22 = mpl_version < Version("2.2")
+MATPLOTLIB_33 = mpl_version.major == 3 or mpl_version.minor == 3
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
@@ -499,3 +501,18 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
     assert ax.get_ylabel() == labels[1]
     for i in range(2):
         assert ax.coords[i].get_axislabel() == labels[i]
+
+
+@pytest.mark.skipif('not MATPLOTLIB_33')
+def test_bbox_size():
+    # Test for the size of a WCSAxes bbox
+    fig = plt.figure()
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+    fig.add_axes(ax)
+    fig.canvas.draw()
+    renderer = fig.canvas.renderer
+    ax_bbox = ax.get_tightbbox(renderer)
+    assert np.allclose(ax_bbox.x0, 11.38888888888889)
+    assert np.allclose(ax_bbox.x1, 576)
+    assert np.allclose(ax_bbox.y0, 3.5)
+    assert np.allclose(ax_bbox.y1, 432)
