@@ -149,10 +149,12 @@ astropy.utils
 
 - ``get_free_space_in_dir`` now takes a new ``unit`` keyword and
   ``check_free_space_in_dir`` takes ``size`` defined as ``Quantity``. [#10627]
+
 - New ``astropy.utils.data.conf.allow_internet`` configuration item to
   control downloading data from the Internet. Setting ``allow_internet=False``
   is the same as ``remote_timeout=0``. Using ``remote_timeout=0`` to control
   internet access will stop working in a future release. [#10632]
+
 - New ``is_url`` function so downstream packages do not have to secretly use
   the hidden ``_is_url`` anymore. [#10684]
 
@@ -799,7 +801,7 @@ astropy.visualization
 
 - The ``AsinhStretch`` and ``SinhStretch`` ``a`` value is restricted
   to be ``0 < a <= 1``. [#10177]
-  
+
 Bug Fixes
 ---------
 
