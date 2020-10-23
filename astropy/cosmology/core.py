@@ -3333,7 +3333,7 @@ class default_cosmology(ScienceState):
         ...     # WMAP7 cosmology in effect
         ...     pass
     """
-    _value = 'Planck15'
+    _value = 'Planck18'
 
     @staticmethod
     def get_cosmology_from_string(arg):
@@ -3353,10 +3353,10 @@ class default_cosmology(ScienceState):
     @classmethod
     def validate(cls, value):
         if value is None:
-            value = 'Planck15'
+            value = 'Planck18'
         if isinstance(value, str):
             if value == 'Planck18_arXiv_v2':
-                print("WARNING: %s is deprecated".format(value))
+                print("WARNING: {} cosmology is deprecated".format(value))
             return cls.get_cosmology_from_string(value)
         elif isinstance(value, Cosmology):
             return value
