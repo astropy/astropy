@@ -5,6 +5,16 @@
 const char char_zero = 48;
 const char char_nine = 57;
 
+#pragma pack(4)
+struct time_struct_t {
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
+    double second;
+};
+
 // Distutils on Windows automatically exports ``PyInit__parse_times``,
 // create dummy to prevent linker complaining about missing symbol.
 // Based on convolution/src/convolve.c.
@@ -206,10 +216,10 @@ int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int 
     return 0;
 }
 
+
 int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of_year,
                    char *delims, int *starts, int *stops, int *break_allowed,
-                   int *years, int *months, int *days, int *hours,
-                   int *minutes, double *seconds)
+                   struct time_struct_t *time_structs)
 // Parse a string time in `chars` which has year, (month, day | day_of_year),
 // hour, minute, seconds components.
 //
@@ -245,26 +255,21 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
     int isec;
     double frac;
     char *time;
-    int *year, *month, *day, *hour, *minute;
     double *second;
     int i, ii;
+    struct time_struct_t *tm;
 
     for (ii = 0; ii < n_times; ii++)
     {
         time = times + ii * max_str_len;
-        year = years + ii;
-        month = months + ii;
-        day = days + ii;
-        hour = hours + ii;
-        minute = minutes + ii;
-        second = seconds + ii;
+        tm = time_structs + ii;
 
         // Initialize default values
-        *month = 1;
-        *day = 1;
-        *hour = 0;
-        *minute = 0;
-        *second = 0.0;
+        tm->month = 1;
+        tm->day = 1;
+        tm->hour = 0;
+        tm->minute = 0;
+        tm->second = 0.0;
 
         // Parse "2000-01-12 13:14:15.678"
         //        01234567890123456789012
@@ -280,7 +285,7 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
         }
 
         // Get each time component year, month, day, hour, minute, isec, frac
-        status = parse_int_from_char_array(time, str_len, delims[0], starts[0], stops[0], year);
+        status = parse_int_from_char_array(time, str_len, delims[0], starts[0], stops[0], &tm->year);
         if (status) {
             if (status == 1 && break_allowed[0]) { continue; }
             else { return status; }
@@ -288,7 +293,7 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
 
         // Optionally parse month
         if (! has_day_of_year) {
-            status = parse_int_from_char_array(time, str_len, delims[1], starts[1], stops[1], month);
+            status = parse_int_from_char_array(time, str_len, delims[1], starts[1], stops[1], &tm->month);
             if (status) {
                 if (status == 1 && break_allowed[1]) { continue; }
                 else { return status; }
@@ -296,7 +301,7 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
         }
 
         // This might be day-of-month or day-of-year
-        status = parse_int_from_char_array(time, str_len, delims[2], starts[2], stops[2], day);
+        status = parse_int_from_char_array(time, str_len, delims[2], starts[2], stops[2], &tm->day);
         if (status) {
             if (status == 1 && break_allowed[2]) { continue; }
             else { return status; }
@@ -304,19 +309,19 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
 
         if (has_day_of_year) {
             // day contains day of year at this point, but convert it to day of month
-            status = convert_day_of_year_to_month_day(*year, *day, month, day);
+            status = convert_day_of_year_to_month_day(tm->year, tm->day, &tm->month, &tm->day);
             if (status) {
                 return status;
             }
         }
 
-        status = parse_int_from_char_array(time, str_len, delims[3], starts[3], stops[3], hour);
+        status = parse_int_from_char_array(time, str_len, delims[3], starts[3], stops[3], &tm->hour);
         if (status) {
             if (status == 1 && break_allowed[3]) { continue; }
             else { return status; }
         }
 
-        status = parse_int_from_char_array(time, str_len, delims[4], starts[4], stops[4], minute);
+        status = parse_int_from_char_array(time, str_len, delims[4], starts[4], stops[4], &tm->minute);
         if (status) {
             if (status == 1 && break_allowed[4]) { continue; }
             else { return status; }
@@ -333,7 +338,7 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
             if (status != 1 || ! break_allowed[6]) { return status; }
         }
 
-        *second = isec + frac;
+        tm->second = isec + frac;
     }
 
     return 0;

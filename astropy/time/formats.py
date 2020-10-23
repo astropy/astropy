@@ -149,6 +149,15 @@ class TimeFormat(metaclass=TimeFormatMeta):
             self.set_jds(val1, val2)
 
     @classproperty(lazy=True)
+    def time_struct_dtype(cls):
+        return np.dtype([('year', np.intc),
+                         ('month', np.intc),
+                         ('day', np.intc),
+                         ('hour', np.intc),
+                         ('minute', np.intc),
+                         ('second', np.double)])
+
+    @classproperty(lazy=True)
     def lib_parse_time(cls):
         """Class property for ctypes library for fast C parsing of string times."""
         import numpy.ctypeslib as npct
@@ -156,8 +165,10 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
         # Input types in the parse_times.c code
         array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
-        array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='C_CONTIGUOUS')
         array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
+
+        array_1d_time_struct = npct.ndpointer(dtype=cls.time_struct_dtype,
+                                              ndim=1, flags='C_CONTIGUOUS')
 
         # load the library, using numpy mechanisms
         libpt = npct.load_library("_parse_times", Path(__file__).parent)
@@ -170,9 +181,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
         libpt.parse_ymdhms_times.restype = c_int
         libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
                                              array_1d_char, array_1d_int, array_1d_int,
-                                             array_1d_int,
-                                             array_1d_int, array_1d_int, array_1d_int,
-                                             array_1d_int, array_1d_int, array_1d_double]
+                                             array_1d_int, array_1d_time_struct]
+
         libpt.check_unicode.restype = c_int
 
         # Set up returns types and args for the unicode checker
@@ -1369,12 +1379,7 @@ class TimeString(TimeUnique):
 
         # Pre-allocate output components
         n_times = len(chars) // val1_str_len
-        year = np.zeros(n_times, dtype=np.intc)
-        month = np.zeros(n_times, dtype=np.intc)
-        day = np.zeros(n_times, dtype=np.intc)
-        hour = np.zeros(n_times, dtype=np.intc)
-        minute = np.zeros(n_times, dtype=np.intc)
-        second = np.zeros(n_times, dtype=np.double)
+        time_struct = np.empty(n_times, dtype=self.time_struct_dtype)
 
         # Set up parser parameters as numpy arrays for passing to C parser
         pars = self.fast_parser_pars
@@ -1386,12 +1391,18 @@ class TimeString(TimeUnique):
         # Call C parser
         status = self.lib_parse_time.parse_ymdhms_times(
             chars, n_times, val1_str_len, pars['has_day_of_year'],
-            delims, starts, stops, break_allowed,
-            year, month, day, hour, minute, second)
+            delims, starts, stops, break_allowed, time_struct)
+
         if status == 0:
+            print(time_struct)
             # All went well, finish the job
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                  year, month, day, hour, minute, second)
+                                  time_struct['year'],
+                                  time_struct['month'],
+                                  time_struct['day'],
+                                  time_struct['hour'],
+                                  time_struct['minute'],
+                                  time_struct['second'])
             jd1.shape = val1.shape
             jd2.shape = val1.shape
             jd1, jd2 = day_frac(jd1, jd2)
