@@ -190,7 +190,7 @@ matrix:
           arch: s390x
           language: c
           dist: focal
-          stage: Initial tests
+          stage: Cron tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
           addons:
@@ -211,7 +211,7 @@ matrix:
           arch: arm64
           language: c
           dist: focal
-          stage: Initial tests
+          stage: Cron tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
           addons:
