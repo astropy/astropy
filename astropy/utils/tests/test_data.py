@@ -56,7 +56,7 @@ from astropy.utils.data import (
     download_files_in_parallel,
 )
 
-TRAVIS = os.environ.get('TRAVIS', False)
+TRAVIS = os.environ.get('TRAVIS', False) == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
@@ -841,8 +841,10 @@ def test_update_parallel(temp_cache, valid_urls):
         assert get_file_contents(f) == c2
 
 
-@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
-                    reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif(sys.version_info < (3, 8) or
+                    (sys.platform.startswith('win') and TRAVIS),
+                    reason="mystery segfault that is possibly bug #10008 "
+                           "for python < 3.8, flaky cache error on Windows CI")
 def test_update_parallel_multi(temp_cache, valid_urls):
     u, c = next(valid_urls)
     iucs = list(islice(valid_urls, N_THREAD_HAMMER))
