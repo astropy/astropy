@@ -480,6 +480,9 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fix support for referencing WCSAxes coordinates by their world axes names.
+  [#10484]
+
 astropy.wcs
 ^^^^^^^^^^^
 
