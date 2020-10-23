@@ -29,6 +29,7 @@ import pytest
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 import astropy.utils.data
+from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.data import (
     CacheMissingWarning,
     CacheDamaged,
@@ -62,6 +63,7 @@ from astropy.utils.data import (
 CI = os.environ.get('CI', False) == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
+TESTURL_SSL = "https://www.astropy.org"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
 
 # NOTE: Python can be built without bz2 or lzma.
@@ -638,6 +640,28 @@ def test_download_cache():
     # Make sure lockdir was released
     lockdir = os.path.join(download_dir, "lock")
     assert not os.path.isdir(lockdir), "Cache dir lock was not released!"
+
+
+@pytest.mark.remote_data(source="astropy")
+def test_download_certificate_verification_failed():
+    """Tests for https://github.com/astropy/astropy/pull/10434"""
+
+    # First test the expected exception when download fails due to a
+    # certificate verification error; we simulate this by passing a bogus
+    # CA directory to the ssl_context argument
+    ssl_context = {'cafile': None, 'capath': '/does/not/exist'}
+    with pytest.raises(urllib.error.URLError) as exc:
+        download_file(TESTURL_SSL, cache=False, ssl_context=ssl_context)
+
+    msg = f'verification of TLS/SSL certificate at {TESTURL_SSL} failed'
+    assert msg in str(exc.value)
+
+    with pytest.warns(AstropyWarning) as warning_lines:
+        fnout = download_file(TESTURL_SSL, cache=False,
+                ssl_context=ssl_context, allow_insecure=True)
+
+    assert os.path.isfile(fnout)
+    assert len(warning_lines) == 1 and msg in str(warning_lines[0])
 
 
 def test_download_cache_after_clear(tmpdir, temp_cache, valid_urls):
@@ -1708,7 +1732,7 @@ def test_download_file_wrong_size(monkeypatch):
     def mockurl(remote_url, timeout=None):
         yield MockURL()
 
-    def mockurl_builder(tlscontext=None):
+    def mockurl_builder(*args, tlscontext=None, **kwargs):
         mock_opener = type('MockOpener', (object,), {})()
         mock_opener.open = mockurl
         return mock_opener
@@ -1723,7 +1747,7 @@ def test_download_file_wrong_size(monkeypatch):
         def read(self, length=None):
             return self.reader.read(length)
 
-    monkeypatch.setattr(urllib.request, "build_opener", mockurl_builder)
+    monkeypatch.setattr(astropy.utils.data, "_build_urlopener", mockurl_builder)
 
     with pytest.raises(urllib.error.ContentTooShortError):
         report_length = 1024
