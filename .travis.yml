@@ -38,7 +38,8 @@ env:
     global:
 
         # Set defaults to avoid repeating in most cases
-        # By default, we run our jobs with tox.
+        # By default, we run our jobs with tox,
+        # but a method using 'apt' is used for a few cases.
         - SETUP_METHOD='tox'
 
         # The following three variables are for tox. TOXENV is a standard
@@ -49,13 +50,6 @@ env:
         - TOXENV='test'
         - TOXARGS='-v'
         - TOXPOSARGS=''
-
-        # For installing without tox, we can rely mostly on what Debian already
-        # includes.  This is only used if SETUP_METHOD='apt'.
-        # Note that this also means it can be used to test whether astropy can
-        # properly use the system libraries, since the python3-astropy package
-        # pulls those in (i.e., one can and should use ASTROPY_USE_SYSTEM_ALL=1).
-        - APT_DEPENDENCIES="python3-pip python3-dev libpython3.8-dev python3.8-dev libexpat1-dev zlib1g-dev libc6-dev python3-venv python3-setuptools cython3 python3-astropy python3-numpy wcslib-dev libcfitsio-dev python3-pytest-astropy ipython3 python3-pytest-cov python3-pytest-xdist python3-objgraph python3-coverage python3-attr python3-colorama tzdata"
 
         # The following is needed to avoid issues if e.g. Matplotlib tries
         # to open a GUI window.
@@ -189,23 +183,50 @@ matrix:
           compiler: clang
 
         # Also regularly try the big-endian s390 architecture, in the
-        # process checking that installing dependencies with apt works.
+        # process checking that installing dependencies with apt works,
+        # and that astropy can properly use the system libraries,
+        # i.e., runs properly with ASTROPY_USE_SYSTEM_ALL=1.
         - name: big-endian s390x architecture with apt
           arch: s390x
           language: c
-          dist: bionic
+          dist: focal
           stage: Cron tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
+          addons:
+              apt:
+                  packages:
+                      - python3-venv  # build dependencies
+                      - cython3
+                      - wcslib-dev  # also pulls in libwcs7
+                      - libcfitsio-dev  # also pulls in libcfitsio9
+                      - liberfa1  # required dependencies
+                      - python3-configobj
+                      - python3-numpy
+                      - python3-ply
+                      - python3-pytest-astropy
 
         # And with an arm64 processor, again with apt for convenience.
         - name: arm64 architecture with apt
           arch: arm64
           language: c
-          dist: bionic
+          dist: focal
           stage: Cron tests
           env: SETUP_METHOD='apt'
                ASTROPY_USE_SYSTEM_ALL=1
+          addons:
+              apt:
+                  packages:
+                      - python3-venv
+                      - cython3
+                      - wcslib-dev
+                      - libcfitsio-dev
+                      - liberfa1
+                      - python3-configobj
+                      - python3-numpy
+                      - python3-ply
+                      - python3-pytest-astropy
+                      - python3-astropy
 
         # Regularly make sure that astropy can be used in application bundles
         - language: python
@@ -248,13 +269,6 @@ install:
     - if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
         source ci-helpers/travis/setup_python.sh;
-      fi
-    # For APT key updates, see https://ftp-master.debian.org/keys.html
-    - if [ $SETUP_METHOD == 'apt' ]; then
-        curl https://ftp-master.debian.org/keys/archive-key-10.asc | sudo apt-key add -;
-        echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list;
-        sudo apt-get -qq update;
-        sudo apt-get install -t testing -y --no-install-recommends ${APT_DEPENDENCIES};
       fi
 
 script:
