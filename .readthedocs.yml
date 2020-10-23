@@ -1,5 +1,8 @@
 version: 2
 
+submodules:
+  include: all
+
 python:
   install:
     - requirements: pip-requirements-doc
