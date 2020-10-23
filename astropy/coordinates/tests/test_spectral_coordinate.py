@@ -527,7 +527,6 @@ def test_los_shift_radial_velocity():
     assert_quantity_allclose(sc14.radial_velocity, 1 * u.km / u.s)
 
 
-
 @pytest.mark.xfail
 def test_relativistic_radial_velocity():
 
