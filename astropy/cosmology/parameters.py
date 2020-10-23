@@ -90,7 +90,7 @@ Planck18_arXiv_v2 = dict(
     Neff=3.046,
     flat=True,
     m_nu=[0., 0., 0.06],
-    reference=("Planck Collaboration 2018, arXiv:1807.06209 v2 (Paper VI),"
+    reference=("DEPRECATED: Planck Collaboration 2018, arXiv:1807.06209 v2 (Paper VI),"
                " Table 2 (TT, TE, EE + lowE + lensing + BAO)")
 )
 
