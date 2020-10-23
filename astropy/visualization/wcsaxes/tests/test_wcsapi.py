@@ -23,6 +23,13 @@ from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
                                                   transform_coord_meta_from_wcs,
                                                   apply_slices)
 
+
+@pytest.fixture
+def plt_close():
+    yield
+    plt.close('all')
+
+
 WCS2D = WCS(naxis=2)
 WCS2D.wcs.ctype = ['x', 'y']
 WCS2D.wcs.cunit = ['km', 'km']
@@ -156,6 +163,8 @@ def test_coord_type_from_ctype(cube_wcs):
     assert coord_meta['format_unit'] == [u.deg, u.deg]
     assert coord_meta['wrap'] == [None, None]
     assert coord_meta['default_axis_label'] == ['Longitude', 'pos.galactic.lat']
+    assert coord_meta['name'] == [('pos.galactic.lon', 'glon-tan', 'glon', 'Longitude'),
+                                  ('pos.galactic.lat', 'glat-tan', 'glat')]
 
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ['HPLN-TAN', 'HPLT-TAN']
@@ -335,35 +344,38 @@ def test_apply_slices(sub_wcs, wcs_slice, wcsaxes_slices, world_map, ndim):
 
 # parametrize here to pass to the fixture
 @pytest.mark.parametrize("wcs_slice", [np.s_[:,:,0,:]])
-def test_sliced_ND_input(sub_wcs, wcs_slice):
+def test_sliced_ND_input(wcs_4d, sub_wcs, wcs_slice, plt_close):
     slices_wcsaxes = [0, 'x', 'y']
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        _, coord_meta = transform_coord_meta_from_wcs(sub_wcs, RectangularFrame, slices=slices_wcsaxes)
+    for sub_wcs in (sub_wcs, SlicedLowLevelWCS(wcs_4d, wcs_slice)):
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=FutureWarning)
+            _, coord_meta = transform_coord_meta_from_wcs(sub_wcs, RectangularFrame, slices=slices_wcsaxes)
 
-    assert all(len(x) == 3 for x in coord_meta.values())
+        assert all(len(x) == 3 for x in coord_meta.values())
 
-    coord_meta['name'] = ['time', 'custom:pos.helioprojective.lat', 'custom:pos.helioprojective.lon']
-    coord_meta['type'] = ['scalar', 'latitude', 'longitude']
-    coord_meta['wrap'] = [None, None, 180.0]
-    coord_meta['unit'] = [u.Unit("min"), u.Unit("deg"), u.Unit("deg")]
-    coord_meta['visible'] = [False, True, True]
-    coord_meta['format_unit'] = [u.Unit("min"), u.Unit("arcsec"), u.Unit("arcsec")]
-    coord_meta['default_axislabel_position'] = ['', 'b', 't']
-    coord_meta['default_ticklabel_position'] = ['', 'b', 't']
-    coord_meta['default_ticks_position'] = ['', 'btlr', 'btlr']
+        assert coord_meta['name'] == ['time',
+                                      ('custom:pos.helioprojective.lat', 'hplt-tan', 'hplt'),
+                                      ('custom:pos.helioprojective.lon', 'hpln-tan', 'hpln')]
+        assert coord_meta['type'] == ['scalar', 'latitude', 'longitude']
+        assert coord_meta['wrap'] == [None, None, 180.0]
+        assert coord_meta['unit'] == [u.Unit("min"), u.Unit("deg"), u.Unit("deg")]
+        assert coord_meta['visible'] == [False, True, True]
+        assert coord_meta['format_unit'] == [u.Unit("min"), u.Unit("arcsec"), u.Unit("arcsec")]
+        assert coord_meta['default_axislabel_position'] == ['', 'b', 'l']
+        assert coord_meta['default_ticklabel_position'] == ['', 'b', 'l']
+        assert coord_meta['default_ticks_position'] == ['', 'bltr', 'bltr']
 
-    # Validate the axes initialize correctly
-    plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
-    plt.close('all')
+        # Validate the axes initialize correctly
+        plt.subplot(projection=sub_wcs, slices=slices_wcsaxes)
 
 
 class LowLevelWCS5D(BaseLowLevelWCS):
+    pixel_dim = 2
 
     @property
     def pixel_n_dim(self):
-        return 2
+        return self.pixel_dim
 
     @property
     def world_n_dim(self):
@@ -376,6 +388,10 @@ class LowLevelWCS5D(BaseLowLevelWCS):
     @property
     def world_axis_units(self):
         return ['Hz', 'day', 'deg', 'deg', '']
+
+    @property
+    def world_axis_names(self):
+        return ['Frequency', '', 'RA', 'DEC', '']
 
     def pixel_to_world_values(self, *pixel_arrays):
         pixel_arrays = (list(pixel_arrays) * 3)[:-1]  # make list have 5 elements
@@ -399,23 +415,6 @@ class LowLevelWCS5D(BaseLowLevelWCS):
                 'time': (Time, (), {'format': 'mjd'}),
                 'freq': (Quantity, (), {'unit': 'Hz'}),
                 'stokes': (Quantity, (), {'unit': 'one'})}
-
-
-class TestWCSAPI:
-
-    def teardown_method(self, method):
-        plt.close('all')
-
-    @pytest.mark.remote_data(source='astropy')
-    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
-                                   tolerance=0, style={})
-    def test_wcsapi_5d(self):
-        # Test for plotting image and also setting values of ticks
-        fig = plt.figure(figsize=(6, 6))
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=LowLevelWCS5D())
-        ax.set_xlim(-0.5, 148.5)
-        ax.set_ylim(-0.5, 148.5)
-        return fig
 
 
 def test_edge_axes():
@@ -443,3 +442,32 @@ def test_edge_axes():
                             np.array([90.0, 180.0, 180.0, 270.0, 0.0]))
     np.testing.assert_equal(lat.ticks.world['l'],
                             np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0]))
+
+
+def test_coord_meta_wcsapi():
+    wcs = LowLevelWCS5D()
+    wcs.pixel_dim = 5
+    _, coord_meta = transform_coord_meta_from_wcs(wcs, RectangularFrame, slices=[0, 0, 'x', 'y', 0])
+
+    assert coord_meta['name'] == [('em.freq', 'Frequency'), 'time', ('pos.eq.ra', 'RA'), ('pos.eq.dec', 'DEC'), 'phys.polarization.stokes']
+    assert coord_meta['type'] == ['scalar', 'scalar', 'longitude', 'latitude', 'scalar']
+    assert coord_meta['wrap'] == [None, None, None, None, None]
+    assert coord_meta['unit'] == [u.Unit("Hz"), u.Unit("d"), u.Unit("deg"), u.Unit("deg"), u.one]
+    assert coord_meta['visible'] == [True, True, True, True, True]
+    assert coord_meta['format_unit'] == [u.Unit("Hz"), u.Unit("d"), u.Unit("hourangle"), u.Unit("deg"), u.one]
+    assert coord_meta['default_axislabel_position'] == ['b', 'l', 't', 'r', '']
+    assert coord_meta['default_ticklabel_position'] == ['b', 'l', 't', 'r', '']
+    assert coord_meta['default_ticks_position'] == ['b', 'l', 't', 'r', '']
+    assert coord_meta['default_axis_label'] == ['Frequency', 'time', 'RA', 'DEC', 'phys.polarization.stokes']
+
+
+@pytest.mark.remote_data(source='astropy')
+@pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                tolerance=0, style={})
+def test_wcsapi_5d_with_names(plt_close):
+    # Test for plotting image and also setting values of ticks
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=LowLevelWCS5D())
+    ax.set_xlim(-0.5, 148.5)
+    ax.set_ylim(-0.5, 148.5)
+    return fig
