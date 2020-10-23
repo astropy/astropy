@@ -316,7 +316,7 @@ velocity frame stationary with respect to the center of the Earth (so removing
 the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
 *Geocentric Celestial Reference System* (GCRS)::
 
-    >>> sc_ttau.with_observer_stationary_relative_to('gcrs')  # doctest: +FLOAT_CMP +REMOTE_DATA
+    >>> sc_ttau.with_observer_stationary_relative_to('gcrs')  # doctest: +SKIP
     <SpectralCoord
        (observer: <GCRS Coordinate (obstime=2019-04-24T02:32:10.000, obsgeoloc=(0., 0., 0.) m, obsgeovel=(0., 0., 0.) m / s): (x, y, z) in m
                       (-5878853.86171412, -192921.84773269, -2470794.19765021)
