@@ -20,7 +20,7 @@ import threading
 import re
 
 from contextlib import contextmanager
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
 from astropy.utils.decorators import deprecated
 
@@ -49,7 +49,7 @@ def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
 
     indented = '\n'.join(' ' * (width * shift) + l if l else ''
-                         for l in s.splitlines())
+                         for l in s.splitlines())  # noqa: E741
     if s[-1] == '\n':
         indented += '\n'
 
@@ -265,7 +265,7 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     resurl = None
 
-    for l in decompressed.strip().splitlines():
+    for l in decompressed.strip().splitlines():  # noqa: E741
         ls = l.split()
         name = ls[0]
         loc = ls[3]
@@ -517,9 +517,9 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
 
     Subclasses of `OrderedDescriptor` must define a value for a class attribute
     called ``_class_attribute_``.  This is the name of a class attribute on the
-    *container* class for these descriptors, which will be set to an
-    `~collections.OrderedDict` at class creation time.  This
-    `~collections.OrderedDict` will contain a mapping of all class attributes
+    *container* class for these descriptors, which will be set to a
+    `dict` (insertion-ordered) at class creation time.  This
+    `dict` will contain a mapping of all class attributes
     that were assigned instances of the `OrderedDescriptor` subclass, to the
     instances themselves.  See the documentation for
     `OrderedDescriptorContainer` for a concrete example.
@@ -610,7 +610,7 @@ class OrderedDescriptorContainer(type):
 
     Then when a class with the `OrderedDescriptorContainer` metaclass is
     created, it will automatically be assigned a class attribute ``_examples_``
-    referencing an `~collections.OrderedDict` containing all instances of
+    referencing a `dict` (insertion-ordered) containing all instances of
     ``ExampleDecorator`` defined in the class body, mapped to by the names of
     the attributes they were assigned to.
 
@@ -697,8 +697,7 @@ class OrderedDescriptorContainer(type):
     `OrderedDescriptorContainer` did for us::
 
         >>> Point2D.typed_attributes
-        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
-        ('y', <TypedAttribute(name=y, type=(float, int))>)])
+        {'x': <TypedAttribute(name=x, type=(float, int))>, 'y': <TypedAttribute(name=y, type=(float, int))>}
 
     If we create a subclass, it does *not* by default add inherited descriptors
     to ``typed_attributes``::
@@ -707,7 +706,7 @@ class OrderedDescriptorContainer(type):
         ...     z = TypedAttribute((float, int))
         ...
         >>> Point3D.typed_attributes
-        OrderedDict([('z', <TypedAttribute(name=z, type=(float, int))>)])
+        {'z': <TypedAttribute(name=z, type=(float, int))>}
 
     However, if we specify ``_inherit_descriptors_`` from ``Point2D`` then
     it will do so::
@@ -717,16 +716,14 @@ class OrderedDescriptorContainer(type):
         ...     z = TypedAttribute((float, int))
         ...
         >>> Point3D.typed_attributes
-        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
-        ('y', <TypedAttribute(name=y, type=(float, int))>),
-        ('z', <TypedAttribute(name=z, type=(float, int))>)])
+        {'x': <TypedAttribute(name=x, type=(float, int))>, 'y': <TypedAttribute(name=y, type=(float, int))>, 'z': <TypedAttribute(name=z, type=(float, int))>}
 
     .. note::
 
         Hopefully it is clear from these examples that this construction
         also allows a class of type `OrderedDescriptorContainer` to use
         multiple different `OrderedDescriptor` classes simultaneously.
-    """
+    """  # noqa: E501
 
     _inherit_descriptors_ = ()
 
@@ -787,7 +784,7 @@ class OrderedDescriptorContainer(type):
 
         for descriptor_cls, instances in descriptors.items():
             instances.sort()
-            instances = OrderedDict((key, value) for value, key in instances)
+            instances = dict((key, value) for value, key in instances)
             setattr(cls, descriptor_cls._class_attribute_, instances)
 
         super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
@@ -815,7 +812,7 @@ def _set_locale(name):
     ==========
     name : str
         Locale name, e.g. "C" or "fr_FR".
-    """
+    """  # noqa: E501
     name = str(name)
 
     with LOCALE_LOCK:

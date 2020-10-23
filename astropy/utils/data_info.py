@@ -23,7 +23,6 @@ import warnings
 from io import StringIO
 from copy import deepcopy
 from functools import partial
-from collections import OrderedDict
 from contextlib import contextmanager
 
 import numpy as np
@@ -145,7 +144,7 @@ def data_info_factory(names, funcs):
             else:
                 outs.append(str(out))
 
-        return OrderedDict(zip(names, outs))
+        return dict(zip(names, outs))
     return func
 
 
@@ -268,7 +267,7 @@ class DataInfo(metaclass=DataInfoMeta):
     bound : bool
         If True this is a descriptor attribute in a class definition, else it
         is a DataInfo() object that is bound to a data object instance. Default is False.
-    """
+    """  # noqa: E501
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
@@ -403,7 +402,7 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
         If a function is specified then that function will be called with the
         data object as its single argument.  The function must return an
-        OrderedDict containing the information attributes.
+        dict (insertion-ordered) containing the information attributes.
 
         If a list is provided then the information attributes will be
         appended for each of the options, in order.
@@ -437,17 +436,18 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
             Info option, defaults to 'attributes'.
         out : file-like object, None
             Output destination, defaults to sys.stdout.  If None then the
-            OrderedDict with information attributes is returned
+            dict (insertion-ordered) with information attributes is returned
 
         Returns
         -------
-        info : OrderedDict if out==None else None
+        info : dict or None
+            dict if out==None else None
         """
         if out == '':
             out = sys.stdout
 
         dat = self._parent
-        info = OrderedDict()
+        info = dict()
         name = dat.info.name
         if name is not None:
             info['name'] = name

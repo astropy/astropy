@@ -7,7 +7,6 @@ from functools import wraps
 
 import warnings
 
-from collections import OrderedDict
 from collections.abc import Mapping
 from copy import deepcopy
 
@@ -398,12 +397,12 @@ class MetaData:
         if instance is None:
             return self
         if not hasattr(instance, '_meta'):
-            instance._meta = OrderedDict()
+            instance._meta = dict()
         return instance._meta
 
     def __set__(self, instance, value):
         if value is None:
-            instance._meta = OrderedDict()
+            instance._meta = dict()
         else:
             if isinstance(value, Mapping):
                 if self.copy:

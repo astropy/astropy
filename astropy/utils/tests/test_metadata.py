@@ -48,7 +48,7 @@ class MetaBaseTest:
     @pytest.mark.parametrize(('meta'), (["ceci n'est pas un meta", 1.2, [1, 2, 3]]))
     def test_non_mapping_set(self, meta):
         with pytest.raises(TypeError):
-            d = self.test_class(*self.args, meta=meta)
+            self.test_class(*self.args, meta=meta)
 
     def test_meta_fits_header(self):
 
