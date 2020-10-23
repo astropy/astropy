@@ -250,6 +250,14 @@ class TestEmptyData():
         t.add_column(table_types.Column(name='a'))  # dtype is not specified
         assert len(t['a']) == 0
 
+    def test_scalar(self, table_types):
+        """Test related to #3811 where setting empty tables to scalar values
+        should raise an error instead of having an error raised when accessing
+        the table."""
+        t = table_types.Table()
+        with pytest.raises(TypeError, match='Empty table cannot have column set to scalar value'):
+            t.add_column(0)
+
     def test_add_via_setitem_and_slice(self, table_types):
         """Test related to #3023 where a MaskedColumn is created with name=None
         and then gets changed to name='a'.  After PR #2790 this test fails
