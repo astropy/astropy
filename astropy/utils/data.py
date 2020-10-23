@@ -71,8 +71,12 @@ class Conf(_config.ConfigNamespace):
     remote_timeout = _config.ConfigItem(
         10.,
         'Time to wait for remote data queries (in seconds). Set this to zero '
-        'to prevent any attempt to download anything.',
+        'to prevent any attempt to download anything (this will stop working '
+        'in a future release, use allow_internet=False instead).',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
+    allow_internet = _config.ConfigItem(
+        True,
+        'If False, prevents any attempt to download from Internet.')
     compute_hash_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
         'Block size for computing file hashes.')
@@ -188,8 +192,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     remote_timeout : float
         Timeout for remote requests in seconds (default is the configurable
-        `astropy.utils.data.Conf.remote_timeout`, which is 3s by default).
-        Set this to zero to prevent any attempt at downloading.
+        `astropy.utils.data.Conf.remote_timeout`).
 
     sources : list of str, optional
         If provided, a list of URLs to try to obtain the file from. The
@@ -487,7 +490,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     --------
     get_pkg_data_contents : returns the contents of a file or url as a bytes object
     get_pkg_data_filename : returns a local name for a file containing the data
-    """
+    """  # noqa
 
     datafn = _find_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):
@@ -551,9 +554,7 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
 
     remote_timeout : float
         Timeout for the requests in seconds (default is the
-        configurable `astropy.utils.data.Conf.remote_timeout`, which
-        is 3s by default). Set this to zero to prevent any attempt
-        at downloading.
+        configurable `astropy.utils.data.Conf.remote_timeout`).
 
     Raises
     ------
@@ -999,8 +1000,16 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
     if timeout == 0:
         raise urllib.error.URLError(
             f"URL {remote_url} was supposed to be downloaded but timeout was set to 0; "
-            f"if this is unexpected check the astropy config file for the option "
-            f"remote_timeout")
+            f"if this is unexpected check the astropy.cfg file for the option "
+            f"remote_timeout. If this is intentional, this will stop working "
+            f"in a future release. Use astropy.utils.data.conf.allow_internet=False instead.")
+
+    if not conf.allow_internet:
+        raise urllib.error.URLError(
+            f"URL {remote_url} was supposed to be downloaded but "
+            f"allow_internet is {conf.allow_internet}; "
+            f"if this is unexpected check the astropy.cfg file for the option "
+            f"allow_internet")
 
     if remote_url is None:
         remote_url = source_url
@@ -1121,9 +1130,8 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         displayed when outputting to a terminal.
 
     timeout : float, optional
-        The timeout, in seconds.  Otherwise, use
-        `astropy.utils.data.Conf.remote_timeout`. Set this to zero to prevent
-        any attempt to download anything.
+        Timeout for remote requests in seconds (default is the configurable
+        `astropy.utils.data.Conf.remote_timeout`).
 
     sources : list of str, optional
         If provided, a list of URLs to try to obtain the file from. The
@@ -1357,8 +1365,7 @@ def download_files_in_parallel(urls,
 
     timeout : float, optional
         Timeout for each individual requests in seconds (default is the
-        configurable `astropy.utils.data.Conf.remote_timeout`). Set this to
-        zero to prevent any attempt to download anything.
+        configurable `astropy.utils.data.Conf.remote_timeout`).
 
     sources : dict, optional
         If provided, for each URL a list of URLs to try to obtain the
