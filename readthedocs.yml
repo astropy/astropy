@@ -1,5 +1,7 @@
 python:
   setup_py_install: false
   pip_install: false
-
+  install:
+    - requirements: pip-requirements-doc
+    
 formats: []
