@@ -99,22 +99,19 @@ Using tox to set up a development environment
 ---------------------------------------------
 
 As noted, running ``tox`` can be quite slow, yet it has the advantage over the
-other methods that it puts together a consistent set of dependencies.  One can
+other methods that it puts together a consistent set of dependencies.  You can
 speed up matters by using ``tox`` to set up a virtual environment for
-development and then use direct ``pytest`` commands within that environment.
-For instance::
+development, activate that, and then use direct ``pytest`` commands within that
+environment. For instance::
 
     tox -e test-alldeps --develop --notest
     source .tox/test-alldeps/bin/activate
 
 Now, one can run any of the ``pytest`` commands below to only run tests that
-are relevant to the development one is doing.  If the development includes
-documentation, one could install the documentation dependencies in the same
-environment, and then check the documentation build with::
+are relevant to the development one is doing.  Once you are happy with everything,
+you get out of the virtual environment with::
 
-    pip install -e .[docs]
-    cd docs
-    make html
+    deactivate
 
 .. _running-pytest:
 
