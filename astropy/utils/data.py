@@ -23,16 +23,14 @@ import ftplib
 from tempfile import NamedTemporaryFile, gettempdir, TemporaryDirectory, mkdtemp
 from warnings import warn
 
+import certifi
+
 import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
-# Use certifi CA certificate store on Windows due to unreliable CA
-# certificate system store
-if os.name == 'nt':
-    import certifi
 
 # Order here determines order in the autosummary
 __all__ = [
@@ -1071,11 +1069,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
             else:
                 raise
 
-    if os.name == 'nt':
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
-    else:
-        ssl_context = ssl.create_default_context()
-
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
     https_handler = urllib.request.HTTPSHandler(context=ssl_context)
 
     if ftp_tls:
