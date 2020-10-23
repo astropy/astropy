@@ -12,7 +12,6 @@ import inspect
 import json
 import os
 import signal
-import ssl
 import sys
 import traceback
 import unicodedata
@@ -25,8 +24,6 @@ from collections import defaultdict, OrderedDict
 
 from astropy.utils.decorators import deprecated
 
-if os.name == 'nt':
-    import certifi
 
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
@@ -201,8 +198,8 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     """
     import webbrowser
-    import urllib.request
     from zlib import decompress
+    from astropy.utils.data import get_readable_fileobj
 
     if (not isinstance(obj, str) and
             hasattr(obj, '__module__') and
@@ -233,20 +230,10 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     # Custom request headers; see
     # https://github.com/astropy/astropy/issues/8990
-    req = urllib.request.Request(
-        baseurl + 'objects.inv', headers={'User-Agent': f'Astropy/{version}'})
-
-    if os.name == 'nt':
-        ssl_context = ssl.create_default_context(cafile=certifi.where())
-    else:
-        ssl_context = ssl.create_default_context()
-
-    if timeout is None:
-        uf = urllib.request.urlopen(req, context=ssl_context)
-    else:
-        uf = urllib.request.urlopen(req, timeout=timeout, context=ssl_context)
-
-    try:
+    url = baseurl + 'objects.inv'
+    headers={'User-Agent': f'Astropy/{version}'}
+    with get_readable_fileobj(url, encoding='binary', remote_timeout=timeout,
+            http_headers=headers) as uf:
         oiread = uf.read()
 
         # need to first read/remove the first four lines, which have info before
@@ -266,8 +253,6 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
                              'has changed?'.format(baseurl + 'objects.inv'))
 
         compressed = oiread[(idx+1):]
-    finally:
-        uf.close()
 
     decompressed = decompress(compressed).decode('utf-8')
 
