@@ -82,6 +82,10 @@ astropy.utils
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
+- Fixed the caclulation of the tight bounding box of a ``WCSAxes``. This should
+  also significantly improve the application of ``tight_layout()`` to figures
+  containing ``WCSAxes``. [#10797]
+
 astropy.wcs
 ^^^^^^^^^^^
 
