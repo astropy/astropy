@@ -15,7 +15,7 @@ from .version import version as __version__
 __minimum_python_version__ = '3.7'
 __minimum_numpy_version__ = '1.17.0'
 __minimum_erfa_version__ = '1.7'
-__minimum_scipy_version__ = '0.18'
+__minimum_scipy_version__ = '1.0'
 # ASDF is an optional dependency, but this is the minimum version that is
 # compatible with Astropy when it is installed.
 __minimum_asdf_version__ = '2.6.0'
