@@ -49,8 +49,8 @@ astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
 - The final version of the Planck 2018 cosmological parameters are included
-  as the ``Planck2018`` object, which is now the default cosmology.  The 
-  parameters are identical to those of the ``Planck2018_arXiv_v2`` object,
+  as the ``Planck18`` object, which is now the default cosmology.  The 
+  parameters are identical to those of the ``Planck18_arXiv_v2`` object,
   which is now deprecated and will be removed in a future release. [#10915]
 
 astropy.extern
