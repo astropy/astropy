@@ -148,49 +148,6 @@ class TimeFormat(metaclass=TimeFormatMeta):
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
 
-    @classproperty(lazy=True)
-    def time_struct_dtype(cls):
-        return np.dtype([('year', np.intc),
-                         ('month', np.intc),
-                         ('day', np.intc),
-                         ('hour', np.intc),
-                         ('minute', np.intc),
-                         ('second_int', np.intc),
-                         ('second_frac', np.double)])
-
-    @classproperty(lazy=True)
-    def lib_parse_time(cls):
-        """Class property for ctypes library for fast C parsing of string times."""
-        import numpy.ctypeslib as npct
-        from ctypes import c_int
-
-        # Input types in the parse_times.c code
-        array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
-        array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
-
-        array_1d_time_struct = npct.ndpointer(dtype=cls.time_struct_dtype,
-                                              ndim=1, flags='C_CONTIGUOUS')
-
-        # load the library, using numpy mechanisms
-        libpt = npct.load_library("_parse_times", Path(__file__).parent)
-
-        # Set up the return types and argument types for parse_ymdhms_times()
-        # int parse_ymdhms_times(char *times, int n_times, int max_str_len,
-        #                    char *delims, int *starts, int *stops, int *break_allowed,
-        #                    int *years, int *months, int *days, int *hours,
-        #                    int *minutes, double *seconds)
-        libpt.parse_ymdhms_times.restype = c_int
-        libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
-                                             array_1d_char, array_1d_int, array_1d_int,
-                                             array_1d_int, array_1d_time_struct]
-
-        libpt.check_unicode.restype = c_int
-
-        # Set up returns types and args for the unicode checker
-        libpt.check_unicode.argtypes = [array_1d_char, c_int]
-
-        return libpt
-
     @classmethod
     def _get_allowed_subfmt(cls, subfmt):
         """Get an allowed subfmt for this class, either the input ``subfmt``
@@ -1265,6 +1222,49 @@ class TimeString(TimeUnique):
       day-of-year
     """
 
+    @classproperty(lazy=True)
+    def time_struct_dtype(cls):
+        return np.dtype([('year', np.intc),
+                         ('month', np.intc),
+                         ('day', np.intc),
+                         ('hour', np.intc),
+                         ('minute', np.intc),
+                         ('second_int', np.intc),
+                         ('second_frac', np.double)])
+
+    @classproperty(lazy=True)
+    def lib_parse_time(cls):
+        """Class property for ctypes library for fast C parsing of string times."""
+        import numpy.ctypeslib as npct
+        from ctypes import c_int
+
+        # Input types in the parse_times.c code
+        array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
+        array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
+
+        array_1d_time_struct = npct.ndpointer(dtype=cls.time_struct_dtype,
+                                              ndim=1, flags='C_CONTIGUOUS')
+
+        # load the library, using numpy mechanisms
+        libpt = npct.load_library("_parse_times", Path(__file__).parent)
+
+        # Set up the return types and argument types for parse_ymdhms_times()
+        # int parse_ymdhms_times(char *times, int n_times, int max_str_len,
+        #                    char *delims, int *starts, int *stops, int *break_allowed,
+        #                    int *years, int *months, int *days, int *hours,
+        #                    int *minutes, double *seconds)
+        libpt.parse_ymdhms_times.restype = c_int
+        libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
+                                             array_1d_char, array_1d_int, array_1d_int,
+                                             array_1d_int, array_1d_time_struct]
+
+        libpt.check_unicode.restype = c_int
+
+        # Set up returns types and args for the unicode checker
+        libpt.check_unicode.argtypes = [array_1d_char, c_int]
+
+        return libpt
+
     def _check_val_type(self, val1, val2):
         if val1.dtype.kind not in ('S', 'U') and val1.size:
             raise TypeError('Input values for {} class must be strings'
@@ -1395,7 +1395,6 @@ class TimeString(TimeUnique):
             delims, starts, stops, break_allowed, time_struct)
 
         if status == 0:
-            print(time_struct)
             # All went well, finish the job
             jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                                   time_struct['year'],
