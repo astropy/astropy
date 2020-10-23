@@ -5,6 +5,7 @@
 const char char_zero = 48;
 const char char_nine = 57;
 
+// Use pragma pack to prevent fill bytes
 #pragma pack(4)
 struct time_struct_t {
     int year;
@@ -12,7 +13,8 @@ struct time_struct_t {
     int day;
     int hour;
     int minute;
-    double second;
+    int second_int;
+    double second_frac;
 };
 
 // Distutils on Windows automatically exports ``PyInit__parse_times``,
@@ -255,7 +257,6 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
     int isec;
     double frac;
     char *time;
-    double *second;
     int i, ii;
     struct time_struct_t *tm;
 
@@ -269,7 +270,8 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
         tm->day = 1;
         tm->hour = 0;
         tm->minute = 0;
-        tm->second = 0.0;
+        tm->second_int = 0;
+        tm->second_frac = 0.0;
 
         // Parse "2000-01-12 13:14:15.678"
         //        01234567890123456789012
@@ -327,18 +329,16 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
             else { return status; }
         }
 
-        status = parse_int_from_char_array(time, str_len, delims[5], starts[5], stops[5], &isec);
+        status = parse_int_from_char_array(time, str_len, delims[5], starts[5], stops[5], &tm->second_int);
         if (status) {
             if (status == 1 && break_allowed[5]) { continue; }
             else { return status; }
         }
 
-        status = parse_frac_from_char_array(time, str_len, delims[6], starts[6], &frac);
+        status = parse_frac_from_char_array(time, str_len, delims[6], starts[6], &tm->second_frac);
         if (status) {
             if (status != 1 || ! break_allowed[6]) { return status; }
         }
-
-        tm->second = isec + frac;
     }
 
     return 0;

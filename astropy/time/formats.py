@@ -155,7 +155,8 @@ class TimeFormat(metaclass=TimeFormatMeta):
                          ('day', np.intc),
                          ('hour', np.intc),
                          ('minute', np.intc),
-                         ('second', np.double)])
+                         ('second_int', np.intc),
+                         ('second_frac', np.double)])
 
     @classproperty(lazy=True)
     def lib_parse_time(cls):
@@ -1402,7 +1403,7 @@ class TimeString(TimeUnique):
                                   time_struct['day'],
                                   time_struct['hour'],
                                   time_struct['minute'],
-                                  time_struct['second'])
+                                  time_struct['second_int'] + time_struct['second_frac'])
             jd1.shape = val1.shape
             jd2.shape = val1.shape
             jd1, jd2 = day_frac(jd1, jd2)
