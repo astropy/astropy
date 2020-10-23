@@ -33,40 +33,6 @@ jobs:
           name: Run tests for Python 3.8
           command: /opt/python/cp38-cp38/bin/python -m tox -e py38-test-double
 
-  image-tests-mpl212:
-    docker:
-      - image: astropy/image-tests-py36-mpl212:1.10
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies
-          command: pip install -e .[test] pytest-mpl
-      - run:
-          name: Force scipy upgrade
-          command: pip install scipy -U
-      - run:
-          name: Run tests
-          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
-      - store_artifacts:
-          path: results
-
-  image-tests-mpl222:
-    docker:
-      - image: astropy/image-tests-py36-mpl222:1.10
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies
-          command: pip install -e .[test] pytest-mpl
-      - run:
-          name: Force scipy upgrade
-          command: pip install scipy -U
-      - run:
-          name: Run tests
-          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
-      - store_artifacts:
-          path: results
-
   image-tests-mpl302:
     docker:
       - image: astropy/image-tests-py37-mpl302:1.10
@@ -117,8 +83,6 @@ workflows:
   tests:
     jobs:
       - 32bit-and-parallel
-      - image-tests-mpl212
-      - image-tests-mpl222
       - image-tests-mpl302
       - image-tests-mpl310
       - image-tests-mpldev
