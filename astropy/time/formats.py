@@ -1258,6 +1258,20 @@ class TimeString(TimeUnique):
       day-of-year
     """
 
+    def __init_subclass__(cls, **kwargs):
+        if 'fast_parser_pars' in cls.__dict__:
+            fpp = cls.fast_parser_pars
+            fpp = np.array(list(zip(map(chr, fpp['delims']),
+                                    fpp['starts'],
+                                    fpp['stops'],
+                                    fpp['break_allowed'])),
+                           _parse_times.dt_pars)
+            if cls.fast_parser_pars['has_day_of_year']:
+                fpp['start'][1] = fpp['stop'][1] = -1
+            cls._fast_parser = _parse_times.create_parser(fpp)
+
+        super().__init_subclass__(**kwargs)
+
     def _check_val_type(self, val1, val2):
         if val1.dtype.kind not in ('S', 'U') and val1.size:
             raise TypeError(f'Input values for {self.name} class must be strings')
@@ -1313,7 +1327,7 @@ class TimeString(TimeUnique):
         # if the fast parser is entirely disabled. Note that `use_fast_parser`
         # is ignored for format classes that don't have a fast parser.
         if (self.in_subfmt != '*'
-                or 'fast_parser_pars' not in self.__class__.__dict__
+                or '_fast_parser' not in self.__class__.__dict__
                 or conf.use_fast_parser == 'False'):
             jd1, jd2 = self.get_jds_python(val1, val2)
         else:
@@ -1354,7 +1368,7 @@ class TimeString(TimeUnique):
 
     def get_jds_fast(self, val1, val2):
         """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
-        # Handle bytes or str input and flatten down to a single array of uint8.
+        # Handle bytes or str input and convert to uint8.
         if val1.dtype.kind == 'U':
             val1_str_len = val1.dtype.itemsize // 4
             val1_uint32 = val1.view((np.uint32, val1_str_len))
@@ -1370,15 +1384,8 @@ class TimeString(TimeUnique):
             val1_str_len = val1.dtype.itemsize
             chars = val1.view((_parse_times.dt_u1, val1_str_len))
 
-        # Set up the ufunc for the parsing and call it.
-        fpp = self.fast_parser_pars
-        parser_info = np.array(list(zip([chr(delim) for delim in fpp['delims']],
-                                        fpp['starts'], fpp['stops'],
-                                        fpp['break_allowed'])), _parse_times.dt_pars)
-        if fpp['has_day_of_year']:
-            parser_info['start'][1] = parser_info['stop'][1] = -1
-        gufunc = _parse_times.create_parser(parser_info)
-        time_struct = gufunc(chars)
+        # Call the fast parsing ufunc.
+        time_struct = self._fast_parser(chars)
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
                               time_struct['year'],
                               time_struct['month'],
