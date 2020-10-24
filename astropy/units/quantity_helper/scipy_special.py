@@ -16,11 +16,14 @@ from .helpers import (get_converter,
 
 # ufuncs that require dimensionless input and give dimensionless output.
 dimensionless_to_dimensionless_sps_ufuncs = (
-    'erf', 'gamma', 'gammasgn', 'psi', 'rgamma', 'erfc', 'erfcx', 'erfi',
+    'erf','erfc', 'erfcx', 'erfi', 'erfinv', 'erfcinv', 'gamma', 'gammaln',
+    'loggamma', 'gammasgn', 'psi', 'rgamma', 'digamma',
     'wofz', 'dawsn', 'entr', 'exprel', 'expm1', 'log1p', 'exp2', 'exp10',
     'j0', 'j1', 'y0', 'y1', 'i0', 'i0e', 'i1', 'i1e',
-    'k0', 'k0e', 'k1', 'k1e', 'itj0y0', 'it2j0y0', 'iti0k0', 'it2i0k0',
-    'loggamma')
+    'k0', 'k0e', 'k1', 'k1e', 'itj0y0', 'it2j0y0', 'iti0k0', 'it2i0k0'
+    ,'ndtr', 'ndtri')
+
+
 scipy_special_ufuncs = dimensionless_to_dimensionless_sps_ufuncs
 # ufuncs that require input in degrees and give dimensionless output.
 degree_to_dimensionless_sps_ufuncs = ('cosdg', 'sindg', 'tandg', 'cotdg')

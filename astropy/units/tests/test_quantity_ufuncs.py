@@ -1248,10 +1248,10 @@ if HAS_SCIPY:
         assert sps.erf in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
-
         erf_like_ufuncs = (
-            sps.erf, sps.gamma, sps.loggamma, sps.gammasgn, sps.psi,
-            sps.rgamma, sps.erfc, sps.erfcx, sps.erfi, sps.wofz, sps.dawsn,
+            sps.erf, sps.erfc, sps.erfcx, sps.erfi, sps.erfinv, sps.erfcinv,
+            sps.gamma, sps.gammaln, sps.loggamma, sps.gammasgn, sps.psi,
+            sps.rgamma, sps.digamma, sps.wofz, sps.dawsn,
             sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2, sps.exp10)
 
         @pytest.mark.parametrize('function', erf_like_ufuncs)
