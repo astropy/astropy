@@ -272,6 +272,7 @@ install:
       fi
 
 script:
+    # for apt, doctestplus on focal is rather out of date, so get new version.
     - if [ $SETUP_METHOD == 'tox' ]; then
         pip install tox;
         tox $TOXARGS -- $TOXPOSARGS;
@@ -279,6 +280,7 @@ script:
         python3 -m venv --system-site-packages tests;
         source tests/bin/activate;
         pip3 install -e .[test];
+        pip3 install -U pytest-doctestplus;
         python3 -m pytest;
       fi
 
