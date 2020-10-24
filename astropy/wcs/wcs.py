@@ -3222,7 +3222,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             except AttributeError:
                 pc = 1
 
-        pccd = np.array(np.dot(cdelt, pc))
+        pccd = np.dot(cdelt, pc)
 
         return pccd
 
