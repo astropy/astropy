@@ -1380,31 +1380,26 @@ class TimeString(TimeUnique):
 
     def get_jds_fast(self, val1, val2):
         """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
-        # For the views below to work, we need at least a 1-dimensional array.
-        # (val1.ravel() would also give a 1-dimensional array, but that makes
-        # a copy if the array is not contiguous, so leave that for the end.)
-        v1 = np.atleast_1d(val1)
-
         # Handle bytes or str input and flatten down to a single array of uint8.
         if val1.dtype.kind == 'U':
             val1_str_len = val1.dtype.itemsize // 4
             # Check that this is pure ASCII.
-            if np.any(v1.view(np.uint32) > 127):
+            if np.any(val1.view((np.uint32, val1_str_len)) > 127):
                 raise ValueError('input is not pure ASCII')
 
             # It might be possible to avoid having ravel() make a copy with
             # cleverness in parse_times.c but leave that for another day.
             if sys.byteorder == 'big':  # pragma: no cover
-                chars = v1.view(np.uint8)[..., 3::4].ravel()
+                chars = val1.view((np.uint8, 4*val1_str_len))[..., 3::4].ravel()
             else:
-                chars = v1.view(np.uint8)[..., ::4].ravel()
+                chars = val1.view((np.uint8, 4*val1_str_len))[..., ::4].ravel()
 
         else:
             val1_str_len = val1.dtype.itemsize
-            chars = v1.view(np.uint8).ravel()
+            chars = val1.view((np.uint8, val1_str_len)).ravel()
 
         # Pre-allocate output components
-        n_times = len(chars) // val1_str_len
+        n_times = val1.size
         time_struct = np.empty(n_times, dtype=self.time_struct_dtype)
 
         # Set up parser parameters as numpy arrays for passing to C parser
