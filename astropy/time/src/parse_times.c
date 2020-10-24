@@ -254,8 +254,6 @@ int parse_ymdhms_times(char *times, int n_times, int max_str_len, int has_day_of
 {
     int str_len;
     int status = 0;
-    int isec;
-    double frac;
     char *time;
     int i, ii;
     struct time_struct_t *tm;
