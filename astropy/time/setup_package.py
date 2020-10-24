@@ -15,7 +15,7 @@ SRC_FILES = [os.path.join(C_TIME_PKGDIR, filename)
 
 if sys.platform.startswith('win'):
     extra_compile_args = ['/DNDEBUG']
-    extra_link_args = ['/EXPORT:parse_ymdhms_times', '/EXPORT:check_unicode']
+    extra_link_args = ['/EXPORT:parse_ymdhms_times']
 else:
     extra_compile_args = ['-UNDEBUG', '-fPIC']
     extra_link_args = []
