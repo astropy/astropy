@@ -306,7 +306,8 @@ script:
         python3 -m venv --system-site-packages tests;
         source tests/bin/activate;
         pip3 install -e .[test];
-        pytest-3;
+        pip3 install -U pytest-doctestplus;
+        python3 -m pytest;
       fi
 
 after_success:
