@@ -1370,7 +1370,7 @@ class TimeString(TimeUnique):
 
     def get_jds_fast(self, val1, val2):
         """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
-        # Handle bytes or str input and flatten down to a single array of uint8.
+        # Handle bytes or str input and convert to uint8.
         if val1.dtype.kind == 'U':
             val1_str_len = val1.dtype.itemsize // 4
             val1_uint32 = val1.view((np.uint32, val1_str_len))
@@ -1380,21 +1380,16 @@ class TimeString(TimeUnique):
 
             # It might be possible to avoid making a copy via astype with
             # cleverness in parse_times.c but leave that for another day.
-            chars = val1_uint32.astype(_parse_times.dt_u1)
+            chars = val1_uint32.astype(np.uint8)
 
         else:
             val1_str_len = val1.dtype.itemsize
-            chars = val1.view((_parse_times.dt_u1, val1_str_len))
+            chars = val1.view((np.uint8, val1_str_len))
 
-        # Set up the ufunc for the parsing and call it.
-        time_struct = self._fast_parser(chars)
+        # Call the fast parsing ufunc.
+        time_tuple = self._fast_parser(chars)
         jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                              time_struct['year'],
-                              time_struct['month'],
-                              time_struct['day'],
-                              time_struct['hour'],
-                              time_struct['minute'],
-                              time_struct['second_int'] + time_struct['second_frac'])
+                              *time_tuple)
         return day_frac(jd1, jd2)
 
     def str_kwargs(self):
