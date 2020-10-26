@@ -24,7 +24,7 @@ hypothesis.settings.register_profile(
     'ci', deadline=None, print_blob=True, derandomize=True
 )
 hypothesis.settings.register_profile(
-    'fuzzing', deadline=None, print_blob=True, max_examples=10**4
+    'fuzzing', deadline=None, print_blob=True, max_examples=1000
 )
 default = 'fuzzing' if (os.environ.get('TRAVIS_EVENT_TYPE') == 'cron' and os.environ.get('TRAVIS_CPU_ARCH') != 'arm64') else 'ci'  # noqa: E501
 hypothesis.settings.load_profile(os.environ.get('HYPOTHESIS_PROFILE', default))
