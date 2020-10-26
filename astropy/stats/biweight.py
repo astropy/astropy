@@ -621,7 +621,9 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
         u = (d.T / (c * mad)).T
 
     # now remove the outlier points
-    mask = np.abs(u) < 1
+    # ignore RuntimeWarnings for comparisons with NaN data values
+    with np.errstate(invalid='ignore'):
+        mask = np.abs(u) < 1
     u = u ** 2
 
     if modify_sample_size:
