@@ -1105,7 +1105,7 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     # Deprecation warning in Python 3.9 when N is float, see
     # https://github.com/astropy/astropy/issues/10832
     if not isinstance(N, int):
-        N = int(N)
+        N = round(N)
 
     def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
