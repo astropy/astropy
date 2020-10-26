@@ -54,6 +54,9 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Fixed an issue in biweight stats when MAD=0 to give the same output
+  with and without an input ``axis``. [#10912]
+
 astropy.table
 ^^^^^^^^^^^^^
 
