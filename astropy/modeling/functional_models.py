@@ -700,7 +700,7 @@ class Sersic1D(Fittable1DModel):
                 from scipy.special import gammaincinv
                 cls._gammaincinv = gammaincinv
             except ValueError:
-                raise ImportError('Sersic1D model requires scipy')
+                raise ImportError('Sersic1D model requires scipy.')
 
         return (amplitude * np.exp(
             -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))

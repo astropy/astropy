@@ -430,15 +430,15 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Minimum version of supported Python is now 3.7. [#10900]
+- Minimum version of required Python is now 3.7. [#10900]
 
-- Minimum version of supported Numpy is now 1.17. [#10664]
+- Minimum version of required Numpy is now 1.17. [#10664]
 
-- Minimum version of supported Scipy is now 1.1. [#10900]
+- Minimum version of required Scipy is now 1.1. [#10900]
 
-- Minimum version of supported PyYAML is now 3.13. [#10900]
+- Minimum version of required PyYAML is now 3.13. [#10900]
 
-- Minimum version of supported Matplotlib is now 3.0. [#10900]
+- Minimum version of required Matplotlib is now 3.0. [#10900]
 
 - The private ``_erfa`` module has been converted to its own package,
   ``pyerfa``, which is a required dependency for astropy, and can be imported

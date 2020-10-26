@@ -212,7 +212,7 @@ class _Tabular(Model):
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not has_scipy:  # pragma: no cover
-            raise ImportError("This model requires scipy")
+            raise ImportError("Tabular model requires scipy.")
         result = interpn(self.points, self.lookup_table, inputs,
                          method=self.method, bounds_error=self.bounds_error,
                          fill_value=self.fill_value)
