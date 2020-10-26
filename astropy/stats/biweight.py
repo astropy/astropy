@@ -51,6 +51,8 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     biweight location tuning constant ``c`` is typically 6.0 (the
     default).
 
+    If :math:`MAD` is zero, then the median will be returned.
+
     Parameters
     ----------
     data : array_like
@@ -122,13 +124,13 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
     if axis is None and mad == 0.:
-        return M  # return median if data is a constant array
+        return M  # mad == 0 means data is constant or mostly constant
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
-        mad[mad == 0] = 1.  # prevent divide by zero
 
-    u = d / (c * mad)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        u = d / (c * mad)
 
     # now remove the outlier points
     # ignore RuntimeWarnings for comparisons with NaN data values
@@ -137,12 +139,16 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     u = (1 - u ** 2) ** 2
     u[mask] = 0
 
-    # Along the input axis if data is constant, d will be zero, thus
-    # the median value will be returned along that axis.
-    # Ignore RuntimeWarnings for divide by zero if all NaN along an axis
+    # If mad == 0 along the specified ``axis`` in the input data, return
+    # the median value along that axis.
+    # Ignore RuntimeWarnings for divide by zero
     with np.errstate(divide='ignore', invalid='ignore'):
-        return M.squeeze() + (sum_func(d * u, axis=axis) /
-                              sum_func(u, axis=axis))
+        value = M.squeeze() + (sum_func(d * u, axis=axis) /
+                               sum_func(u, axis=axis))
+        where_func = np.where
+        if isinstance(data, np.ma.MaskedArray):
+            where_func = np.ma.where  # return MaskedArray
+        return where_func(mad.squeeze() == 0, M.squeeze(), value)
 
 
 def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
@@ -174,6 +180,8 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
     <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_.  The
     biweight midvariance tuning constant ``c`` is typically 9.0 (the
     default).
+
+    If :math:`MAD` is zero, then zero will be returned.
 
     For the standard definition of biweight scale, :math:`n` is the
     total number of points in the array (or along the input ``axis``, if
@@ -285,6 +293,8 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     biweight midvariance tuning constant ``c`` is typically 9.0 (the
     default).
 
+    If :math:`MAD` is zero, then zero will be returned.
+
     For the standard definition of `biweight midvariance
     <https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance>`_,
     :math:`n` is the total number of points in the array (or along the
@@ -381,13 +391,13 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
     if axis is None and mad == 0.:
-        return 0.  # return zero if data is a constant array
+        return 0.  # mad == 0 means data is constant or mostly constant
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
-        mad[mad == 0] = 1.  # prevent divide by zero
 
-    u = d / (c * mad)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        u = d / (c * mad)
 
     # now remove the outlier points
     # ignore RuntimeWarnings for comparisons with NaN data values
@@ -416,8 +426,15 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     f2[~mask] = 0.
     f2 = np.abs(np.sum(f2, axis=axis))**2
 
+    # If mad == 0 along the specified ``axis`` in the input data, return
+    # 0.0 along that axis.
+    # Ignore RuntimeWarnings for divide by zero.
     with np.errstate(divide='ignore', invalid='ignore'):
-        return n * f1 / f2
+        value = n * f1 / f2
+        where_func = np.where
+        if isinstance(data, np.ma.MaskedArray):
+            where_func = np.ma.where  # return MaskedArray
+        return where_func(mad.squeeze() == 0, 0., value)
 
 
 def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
@@ -480,6 +497,9 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     <https://en.wikipedia.org/wiki/Median_absolute_deviation>`_ of the
     :math:`x` and :math:`y` variables.  The biweight midvariance tuning
     constant ``c`` is typically 9.0 (the default).
+
+    If :math:`MAD_x` or :math:`MAD_y` are zero, then zero will be
+    returned for that element.
 
     For the standard definition of biweight midcovariance,
     :math:`n_{xy}` is the total number of observations of each variable.
@@ -596,12 +616,14 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     # set up the weighting
     mad = median_absolute_deviation(data, axis=1)
-    mad[mad == 0] = 1.  # prevent divide by zero
 
-    u = (d.T / (c * mad)).T
+    with np.errstate(divide='ignore', invalid='ignore'):
+        u = (d.T / (c * mad)).T
 
     # now remove the outlier points
-    mask = np.abs(u) < 1
+    # ignore RuntimeWarnings for comparisons with NaN data values
+    with np.errstate(invalid='ignore'):
+        mask = np.abs(u) < 1
     u = u ** 2
 
     if modify_sample_size:
@@ -614,12 +636,17 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     usub5 = (1. - 5. * u)
     usub1[~mask] = 0.
 
-    numerator = d * usub1 ** 2
-    denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
-    numerator_matrix = np.dot(numerator, numerator.T)
-    denominator_matrix = np.dot(denominator, denominator.T)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        numerator = d * usub1 ** 2
+        denominator = (usub1 * usub5).sum(axis=1)[:, np.newaxis]
+        numerator_matrix = np.dot(numerator, numerator.T)
+        denominator_matrix = np.dot(denominator, denominator.T)
 
-    return n * (numerator_matrix / denominator_matrix)
+        value = n * (numerator_matrix / denominator_matrix)
+        idx = np.where(mad == 0)[0]
+        value[idx, :] = 0
+        value[:, idx] = 0
+        return value
 
 
 def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
