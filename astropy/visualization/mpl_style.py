@@ -4,7 +4,8 @@
 # plotting style. It is no longer documented/recommended as of Astropy v3.0
 # but is kept here for backward-compatibility.
 
-# This is a required dependency of matplotlib, so should be present.
+# This is a required dependency of matplotlib, so should be present if
+# matplotlib is installed.
 from cycler import cycler
 
 __all__ = ['astropy_mpl_style_1', 'astropy_mpl_style']
