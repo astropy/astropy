@@ -36,12 +36,15 @@ def test_biweight_location_constant_axis_2d():
 
     val1 = 100.
     val2 = 2.
+    val3 = 5.
     data = np.arange(50).reshape(10, 5)
     data[2] = val1
     data[7] = val2
+    data[8] = [val3, 0.8, val3, -0.8, val3]
     cbl = biweight_location(data, axis=1)
     assert_allclose(cbl[2], val1)
     assert_allclose(cbl[7], val2)
+    assert_allclose(cbl[8], val3)
 
 
 def test_biweight_location_constant_axis_3d():
@@ -163,7 +166,9 @@ def test_biweight_location_masked():
     assert bw_loc_masked.mask[-1]  # last mask element is True
 
     data1d_masked.data[0] = np.nan  # unmasked NaN
-    assert biweight_location(data1d_masked) is np.ma.masked
+    bw_loc = biweight_location(data1d_masked)
+    assert bw_loc.shape == ()
+    assert np.all(bw_loc.mask) or bw_loc is np.ma.masked
     assert_equal(biweight_location(data1d_masked, ignore_nan=True),
                  biweight_location(data1d[1:], ignore_nan=True))
 
@@ -340,9 +345,11 @@ def test_biweight_midvariance_constant_axis_2d():
     data = np.arange(50).reshape(10, 5)
     data[2] = 100.
     data[7] = 2.
+    data[8] = [5.0, 0.8, 5.0, -0.8, 5.0]
     bw = biweight_midvariance(data, axis=1)
     assert_allclose(bw[2], 0.)
     assert_allclose(bw[7], 0.)
+    assert_allclose(bw[8], 0.)
 
 
 def test_biweight_midvariance_constant_axis_3d():
@@ -381,8 +388,18 @@ def test_biweight_midcovariance_2d():
 
 def test_biweight_midcovariance_constant():
     data = np.ones((3, 10))
+    val3 = 5.0
+    data[1] = [val3, 0.8, val3, -0.8, val3, val3, val3, 1.0, val3, -0.7]
     cov = biweight_midcovariance(data)
     assert_allclose(cov, np.zeros((3, 3)))
+
+    rng = np.random.default_rng(123)
+    data = rng.random((5, 5))
+    val3 = 5.0
+    data[1] = [val3, 0.8, val3, -0.8, val3]
+    cov = biweight_midcovariance(data)
+    assert_allclose(cov[1, :], 0.)
+    assert_allclose(cov[:, 1], 0.)
 
 
 def test_biweight_midcovariance_midvariance():
