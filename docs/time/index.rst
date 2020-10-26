@@ -705,6 +705,9 @@ The current time can be determined as a |Time| object using the
 
 The two should be very close to each other.
 
+
+.. _time-fast-c-parser
+
 Fast C-based Date String Parser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
