@@ -1343,7 +1343,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0) to be
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -1402,7 +1402,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Notes
         -----
-        This method requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0) to be
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in

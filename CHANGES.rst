@@ -8,7 +8,7 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - N-dimensional least-squares statistic and specific 1,2,3-D methods [#10670]
-  
+
 
 
 4.2 (unreleased)
@@ -434,7 +434,11 @@ Other Changes and Additions
 
 - Minimum version of supported Numpy is now 1.17. [#10664]
 
-- Minimum version of supported Scipy is now 1.0. [#10900]
+- Minimum version of supported Scipy is now 1.1. [#10900]
+
+- Minimum version of supported PyYAML is now 3.13. [#10900]
+
+- Minimum version of supported Matplotlib is now 3.0. [#10900]
 
 - The private ``_erfa`` module has been converted to its own package,
   ``pyerfa``, which is a required dependency for astropy, and can be imported

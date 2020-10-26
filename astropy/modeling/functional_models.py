@@ -700,7 +700,7 @@ class Sersic1D(Fittable1DModel):
                 from scipy.special import gammaincinv
                 cls._gammaincinv = gammaincinv
             except ValueError:
-                raise ImportError('Sersic1D model requires scipy > 0.11.')
+                raise ImportError('Sersic1D model requires scipy')
 
         return (amplitude * np.exp(
             -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
@@ -2125,7 +2125,7 @@ class AiryDisk2D(Fittable2DModel):
                 cls._rz = jn_zeros(1, 1)[0] / np.pi
                 cls._j1 = j1
             except ValueError:
-                raise ImportError('AiryDisk2D model requires scipy > 0.11.')
+                raise ImportError('AiryDisk2D model requires scipy.')
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
 
@@ -2438,7 +2438,7 @@ class Sersic2D(Fittable2DModel):
                 from scipy.special import gammaincinv
                 cls._gammaincinv = gammaincinv
             except ValueError:
-                raise ImportError('Sersic2D model requires scipy > 0.11.')
+                raise ImportError('Sersic2D model requires scipy.')
 
         bn = cls._gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
