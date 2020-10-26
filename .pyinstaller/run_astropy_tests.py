@@ -14,8 +14,8 @@ if len(sys.argv) > 1:
     print("Extra arguments passed, exiting early")
     sys.exit(1)
 
-# Copy over the astropy 'tests' directories and their contents
-for root, dirnames, _ in os.walk(os.path.join(ROOT, 'astropy')):
+for root, dirnames, files in os.walk(os.path.join(ROOT, 'astropy')):
+    # Copy over the astropy 'tests' directories and their contents
     for dirname in dirnames:
         final_dir = os.path.relpath(os.path.join(root.replace('astropy', 'astropy_tests'), dirname), ROOT)
         # We only copy over 'tests' directories, but not astropy/tests (only
@@ -31,6 +31,11 @@ for root, dirnames, _ in os.walk(os.path.join(ROOT, 'astropy')):
                 os.makedirs(final_dir, exist_ok=True)
                 with open(os.path.join(final_dir, '__init__.py'), 'w') as f:
                     f.write("#")
+    # Copy over all conftest.py files
+    for file in files:
+        if file == 'conftest.py':
+            final_file = os.path.relpath(os.path.join(root.replace('astropy', 'astropy_tests'), file), ROOT)
+            shutil.copy2(os.path.join(root, file), final_file)
 
 # Add the top-level __init__.py file
 with open(os.path.join('astropy_tests', '__init__.py'), 'w') as f:
