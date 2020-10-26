@@ -460,13 +460,13 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    # While these are meant to be a single positional argument,
-    # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
-
+    # Matplotlib internally sometimes calls set_xlabel(label=...).
     def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
         """Set x-label."""
         if xlabel is None:
-            raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
+            xlabel = kwargs.pop('label', None)
+            if xlabel is None:
+                raise TypeError("set_xlabel() missing 1 required positional argument: 'xlabel'")
         for coord in self.coords:
             if ('b' in coord.axislabels.get_visible_axes() or
                 'h' in coord.axislabels.get_visible_axes()):
