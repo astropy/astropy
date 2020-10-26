@@ -10,14 +10,18 @@ from numpy.testing import assert_allclose
 from astropy.modeling.models import (Polynomial1D, Polynomial2D, Legendre1D, Legendre2D,
                                      Chebyshev2D, Chebyshev1D, Hermite1D, Hermite2D,
                                      Linear1D, Planar2D)
-from astropy.modeling.fitting import LinearLSQFitter
+from astropy.modeling.fitting import LinearLSQFitter, FittingWithOutlierRemoval
 from astropy.modeling.core import Model
 from astropy.modeling.parameters import Parameter
+from astropy.utils import NumpyRNGContext
+from astropy.stats import sigma_clip
 
 
 x = np.arange(4)
 xx = np.array([x, x + 10])
 xxx = np.arange(24).reshape((3, 4, 2))
+
+_RANDOM_SEED = 0x1337
 
 
 class TParModel(Model):
@@ -311,3 +315,262 @@ def test_fitting_shapes():
 def test_compound_model_sets():
     with pytest.raises(ValueError):
         Polynomial1D(1, n_models=2, model_set_axis=1) | Polynomial1D(1, n_models=2, model_set_axis=0)
+
+
+def test_linear_fit_model_set_errors():
+    init_model = Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+    x = np.arange(10)
+    y = init_model(x, model_set_axis=False)
+
+    fitter = LinearLSQFitter()
+    with pytest.raises(ValueError):
+        fitter(init_model, x[:5], y)
+    with pytest.raises(ValueError):
+        fitter(init_model, x, y[:, :5])
+
+
+def test_linear_fit_model_set_common_weight():
+    """Tests fitting multiple models simultaneously."""
+
+    init_model = Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+    x = np.arange(10)
+    y_expected = init_model(x, model_set_axis=False)
+    assert y_expected.shape == (2, 10)
+
+    # Add a bit of random noise
+    with NumpyRNGContext(_RANDOM_SEED):
+        y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+
+    fitter = LinearLSQFitter()
+    weights = np.ones(10)
+    weights[[0, -1]] = 0
+    fitted_model = fitter(init_model, x, y, weights=weights)
+    assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                    rtol=1e-1)
+
+    # Check that using null weights raises an error
+    # ValueError: On entry to DLASCL parameter number 4 had an illegal value
+    with pytest.raises(ValueError,
+                       match='Found NaNs in the coefficient matrix'):
+        with pytest.warns(RuntimeWarning,
+                          match=r'invalid value encountered in true_divide'):
+            fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
+
+
+def test_linear_fit_model_set_weights():
+    """Tests fitting multiple models simultaneously."""
+
+    init_model = Polynomial1D(degree=2, c0=[1, 1], n_models=2)
+    x = np.arange(10)
+    y_expected = init_model(x, model_set_axis=False)
+    assert y_expected.shape == (2, 10)
+
+    # Add a bit of random noise
+    with NumpyRNGContext(_RANDOM_SEED):
+        y = y_expected + np.random.normal(0, 0.01, size=y_expected.shape)
+
+    weights = np.ones_like(y)
+    # Put a null weight for the min and max values
+    weights[[0, 1], weights.argmin(axis=1)] = 0
+    weights[[0, 1], weights.argmax(axis=1)] = 0
+    fitter = LinearLSQFitter()
+    fitted_model = fitter(init_model, x, y, weights=weights)
+    assert_allclose(fitted_model(x, model_set_axis=False), y_expected,
+                    rtol=1e-1)
+
+    # Check that using null weights raises an error
+    weights[0] = 0
+    with pytest.raises(ValueError,
+                       match='Found NaNs in the coefficient matrix'):
+        with pytest.warns(RuntimeWarning,
+                          match=r'invalid value encountered in true_divide'):
+            fitted_model = fitter(init_model, x, y, weights=weights)
+
+    # Now we mask the values where weight is 0
+    with pytest.warns(RuntimeWarning,
+                      match=r'invalid value encountered in true_divide'):
+        fitted_model = fitter(init_model, x,
+                              np.ma.array(y, mask=np.isclose(weights, 0)),
+                              weights=weights)
+    # Parameters for the first model are all NaNs
+    assert np.all(np.isnan(fitted_model.param_sets[:, 0]))
+    assert np.all(np.isnan(fitted_model(x, model_set_axis=False)[0]))
+    # Second model is fitted correctly
+    assert_allclose(fitted_model(x, model_set_axis=False)[1], y_expected[1],
+                    rtol=1e-1)
+
+
+def test_linear_fit_2d_model_set_errors():
+
+    init_model = Polynomial2D(degree=2, c0_0=[1, 1], n_models=2)
+    x = np.arange(10)
+    y = np.arange(10)
+    z = init_model(x, y, model_set_axis=False)
+
+    fitter = LinearLSQFitter()
+    with pytest.raises(ValueError):
+        fitter(init_model, x[:5], y, z)
+    with pytest.raises(ValueError):
+        fitter(init_model, x, y, z[:, :5])
+
+
+def test_linear_fit_2d_model_set_common_weight():
+    init_model = Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                              n_models=2,
+                              fixed={'c1_0': True, 'c0_1': True})
+
+    x, y = np.mgrid[0:5, 0:5]
+    zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+
+    fitter = LinearLSQFitter()
+    fitted_model = fitter(init_model, x, y, zz, weights=np.ones((5, 5)))
+
+    assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                    atol=1e-14)
+
+
+def test_linear_fit_flat_2d_model_set_common_weight():
+    init_model = Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                              n_models=2,
+                              fixed={'c1_0': True, 'c0_1': True})
+
+    x, y = np.mgrid[0:5, 0:5]
+    x, y = x.flatten(), y.flatten()
+    zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+    weights = np.ones(25)
+
+    fitter = LinearLSQFitter()
+    fitted_model = fitter(init_model, x, y, zz, weights=weights)
+
+    assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                    atol=1e-14)
+
+
+def test_linear_fit_2d_model_set_weights():
+    init_model = Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                              n_models=2,
+                              fixed={'c1_0': True, 'c0_1': True})
+
+    x, y = np.mgrid[0:5, 0:5]
+    zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+
+    fitter = LinearLSQFitter()
+    weights = [np.ones((5, 5)), np.ones((5, 5))]
+    fitted_model = fitter(init_model, x, y, zz, weights=weights)
+
+    assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                    atol=1e-14)
+
+
+def test_linear_fit_flat_2d_model_set_weights():
+    init_model = Polynomial2D(degree=2, c1_0=[1, 2], c0_1=[-0.5, 1],
+                              n_models=2,
+                              fixed={'c1_0': True, 'c0_1': True})
+
+    x, y = np.mgrid[0:5, 0:5]
+    x, y = x.flatten(), y.flatten()
+    zz = np.array([1+x-0.5*y+0.1*x*x, 2*x+y-0.2*y*y])
+    weights = np.ones((2, 25))
+
+    fitter = LinearLSQFitter()
+    fitted_model = fitter(init_model, x, y, zz, weights=weights)
+
+    assert_allclose(fitted_model(x, y, model_set_axis=False), zz,
+                    atol=1e-14)
+
+
+class Test1ModelSet:
+    """
+    Check that fitting a single model works with a length-1 model set axis.
+    It's not clear that this was originally intended usage, but it can be
+    convenient, eg. when fitting a range of image rows that may be a single
+    row, and some existing scripts might rely on it working.
+    Currently this does not work with FittingWithOutlierRemoval.
+    """
+
+    def setup_class(self):
+        self.x1 = np.arange(0, 10)
+        self.y1 = np.array([0.5 + 2.5*self.x1])
+        self.w1 = np.ones((10,))
+        self.y1[0, 8] = 100.
+        self.w1[8] = 0.
+        self.y2, self.x2 = np.mgrid[0:10, 0:10]
+        self.z2 = np.array([1 - 0.1*self.x2 + 0.2*self.y2])
+        self.w2 = np.ones((10, 10))
+        self.z2[0, 1, 2] = 100.
+        self.w2[1, 2] = 0.
+
+    def test_linear_1d_common_weights(self):
+        model = Polynomial1D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x1, self.y1, weights=self.w1)
+        assert_allclose(model.c0, 0.5, atol=1e-12)
+        assert_allclose(model.c1, 2.5, atol=1e-12)
+
+    def test_linear_1d_separate_weights(self):
+        model = Polynomial1D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x1, self.y1,
+                       weights=self.w1[np.newaxis, ...])
+        assert_allclose(model.c0, 0.5, atol=1e-12)
+        assert_allclose(model.c1, 2.5, atol=1e-12)
+
+    def test_linear_1d_separate_weights_axis_1(self):
+        model = Polynomial1D(1, model_set_axis=1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x1, self.y1.T,
+                       weights=self.w1[..., np.newaxis])
+        assert_allclose(model.c0, 0.5, atol=1e-12)
+        assert_allclose(model.c1, 2.5, atol=1e-12)
+
+    def test_linear_2d_common_weights(self):
+        model = Polynomial2D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x2, self.y2, self.z2, weights=self.w2)
+        assert_allclose(model.c0_0, 1., atol=1e-12)
+        assert_allclose(model.c1_0, -0.1, atol=1e-12)
+        assert_allclose(model.c0_1, 0.2, atol=1e-12)
+
+    def test_linear_2d_separate_weights(self):
+        model = Polynomial2D(1)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x2, self.y2, self.z2,
+                       weights=self.w2[np.newaxis, ...])
+        assert_allclose(model.c0_0, 1., atol=1e-12)
+        assert_allclose(model.c1_0, -0.1, atol=1e-12)
+        assert_allclose(model.c0_1, 0.2, atol=1e-12)
+
+    def test_linear_2d_separate_weights_axis_2(self):
+        model = Polynomial2D(1, model_set_axis=2)
+        fitter = LinearLSQFitter()
+        model = fitter(model, self.x2, self.y2, np.rollaxis(self.z2, 0, 3),
+                       weights=self.w2[..., np.newaxis])
+        assert_allclose(model.c0_0, 1., atol=1e-12)
+        assert_allclose(model.c1_0, -0.1, atol=1e-12)
+        assert_allclose(model.c0_1, 0.2, atol=1e-12)
+
+    # # The following 2 cases also happen to work, but model set fitting is
+    # # only supported by the linear fitter so I've left them commented out
+    # # for now.
+    #
+    # def test_levmar_2d_separate_weights(self):
+    #     model = Polynomial2D(1)
+    #     fitter = LevMarLSQFitter()
+    #     with pytest.warns(AstropyUserWarning,
+    #                       match=r'Model is linear in parameters'):
+    #         model = fitter(model, self.x2, self.y2, self.z2,
+    #                        weights=self.w2[np.newaxis, ...])
+    #     assert_allclose(model.c0_0, 1., atol=1e-12)
+    #     assert_allclose(model.c1_0, -0.1, atol=1e-12)
+    #     assert_allclose(model.c0_1, 0.2, atol=1e-12)
+    #
+    # def test_slsqp_2d_separate_weights(self):
+    #     model = Polynomial2D(1)
+    #     fitter = SLSQPLSQFitter()
+    #     with pytest.warns(AstropyUserWarning,
+    #                       match=r'Model is linear in parameters'):
+    #         model = fitter(model, self.x2, self.y2, self.z2,
+    #                        weights=self.w2[np.newaxis, ...])
+    #     assert_allclose(model.c0_0, 1., rtol=1e-6, atol=1e-12)
+    #     assert_allclose(model.c1_0, -0.1, rtol=1e-6, atol=1e-12)
+    #     assert_allclose(model.c0_1, 0.2, rtol=1e-6, atol=1e-12)
