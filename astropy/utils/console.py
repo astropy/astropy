@@ -116,19 +116,7 @@ def _get_stdout(stderr=False):
         stream = 'stdout'
 
     sys_stream = getattr(sys, stream)
-    if not isatty(sys_stream) or _IPython.OutStream is None:
-        return sys_stream
-
-    # Our system stream is an atty and we're in ipython.
-    ipyio_stream = _IPython.get_stream(stream)
-
-    if ipyio_stream is not None and isatty(ipyio_stream):
-        # Use the IPython console output stream
-        return ipyio_stream
-    else:
-        # sys.stdout was set to some other non-TTY stream (a file perhaps)
-        # so just use it directly
-        return sys_stream
+    return sys_stream
 
 
 def isatty(file):
