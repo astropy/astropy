@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+import sys
 
 from packaging.version import Version
 import pytest
@@ -21,6 +22,7 @@ from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
 mpl_version = Version(matplotlib.__version__)
+MATPLOTLIB_LT_31 = mpl_version < Version('3.1')
 MATPLOTLIB_EQ_33 = mpl_version.major == 3 and mpl_version.minor == 3
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
@@ -72,6 +74,9 @@ COORDSYS= 'icrs    '
 """, sep='\n')
 
 
+@pytest.mark.skipif(MATPLOTLIB_LT_31 and sys.version_info >= (3, 9),
+                    reason='PY_SSIZE_T_CLEAN warning with Python 3.9 and '
+                    'Matplotlib 3.0, GH issue 10954')
 @pytest.mark.parametrize('grid_type', ['lines', 'contours'])
 def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
