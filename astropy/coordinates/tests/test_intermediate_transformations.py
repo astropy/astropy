@@ -347,6 +347,27 @@ def test_precessed_geocentric():
     assert_allclose(gcrs_coo.distance, gcrs2_roundtrip.distance)
 
 
+def test_precessed_geocentric_different_obstime():
+    # Create two PrecessedGeocentric frames with different obstime
+    precessedgeo1 = PrecessedGeocentric(obstime='2021-09-07')
+    precessedgeo2 = PrecessedGeocentric(obstime='2021-06-07')
+
+    # GCRS->PrecessedGeocentric should give different results for the two frames
+    gcrs_coord = GCRS(10*u.deg, 20*u.deg, 3*u.AU, obstime=precessedgeo1.obstime)
+    pg_coord1 = gcrs_coord.transform_to(precessedgeo1)
+    pg_coord2 = gcrs_coord.transform_to(precessedgeo2)
+    assert not pg_coord1.is_equivalent_frame(pg_coord2)
+    assert not allclose(pg_coord1.cartesian.xyz, pg_coord2.cartesian.xyz)
+
+    # Looping back to GCRS should return the original coordinate
+    loopback1 = pg_coord1.transform_to(gcrs_coord)
+    loopback2 = pg_coord2.transform_to(gcrs_coord)
+    assert loopback1.is_equivalent_frame(gcrs_coord)
+    assert loopback2.is_equivalent_frame(gcrs_coord)
+    assert_allclose(loopback1.cartesian.xyz, gcrs_coord.cartesian.xyz)
+    assert_allclose(loopback2.cartesian.xyz, gcrs_coord.cartesian.xyz)
+
+
 # shared by parametrized tests below.  Some use the whole AltAz, others use just obstime
 totest_frames = [AltAz(location=EarthLocation(-90*u.deg, 65*u.deg),
                        obstime=Time('J2000')),  # J2000 is often a default so this might work when others don't
