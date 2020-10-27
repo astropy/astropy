@@ -3648,7 +3648,7 @@ class QTable(Table):
             # We need to turn the column into a quantity, or a subclass
             # identified in the unit (such as u.mag()).
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
-            qcol = q_cls(col.data, col.unit, copy=False)
+            qcol = q_cls(col.data, col.unit, dtype=col.dtype, copy=False)
             qcol.info = col.info
             qcol.info.indices = col.info.indices
             col = qcol

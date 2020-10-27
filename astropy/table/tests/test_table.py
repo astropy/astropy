@@ -2278,6 +2278,15 @@ def test_replace_column_qtable():
     assert t['a'].info.format is None
 
 
+@pytest.mark.parametrize("col_vals", [[1.1, 2.2], [3, 4]])
+def test_column_quantity_conversion_qtable(col_vals):
+    """Ensure dtype is preserved in ``QTable`` ``Column`` to ``Quantity`` conversion.  #10943"""
+    t = table.QTable([col_vals], names=['a'])
+    exp_dtype = t['a'].dtype
+    t['a'].unit = u.m
+    assert t['a'].dtype is exp_dtype
+
+
 def test_replace_update_column_via_setitem():
     """
     Test table update like ``t['a'] = value``.  This leverages off the
