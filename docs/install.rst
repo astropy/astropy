@@ -55,7 +55,7 @@ Requirements
 - `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
   ephemeris of Solar System objects.
 
-- `matplotlib <https://matplotlib.org/>`_ 2.0 or later: To provide plotting
+- `matplotlib <https://matplotlib.org/>`_ |minimum_matplotlib_version| or later: To provide plotting
   functionality that `astropy.visualization` enhances.
 
 - `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of

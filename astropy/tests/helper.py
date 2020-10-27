@@ -143,7 +143,7 @@ _warnings_to_ignore_by_pyver = {
         # https://github.com/astropy/astropy/pull/7372
         (r"Importing from numpy\.testing\.decorators is deprecated, "
          r"import from numpy\.testing instead\.", DeprecationWarning),
-        # inspect raises this slightly different warning on Python 3.6-3.7.
+        # inspect raises this slightly different warning on Python 3.7.
         # Keeping it since e.g. lxml as of 3.8.0 is still calling getargspec()
         (r"inspect\.getargspec\(\) is deprecated, use "
          r"inspect\.signature\(\) or inspect\.getfullargspec\(\)",

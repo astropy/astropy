@@ -21,8 +21,6 @@ from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
 mpl_version = Version(matplotlib.__version__)
-MATPLOTLIB_LT_21 = mpl_version < Version("2.1")
-MATPLOTLIB_LT_22 = mpl_version < Version("2.2")
 MATPLOTLIB_EQ_33 = mpl_version.major == 3 and mpl_version.minor == 3
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
@@ -305,7 +303,6 @@ def test_contour_return():
     assert isinstance(cset, QuadContourSet)
 
 
-@pytest.mark.skipif('MATPLOTLIB_LT_21')
 def test_contour_empty():
 
     # Regression test for a bug that caused contour to crash if no contours
@@ -438,7 +435,7 @@ def test_time_wcs(time_spectral_wcs_2d):
     plt.subplot(projection=time_spectral_wcs_2d)
 
 
-@pytest.mark.skipif('MATPLOTLIB_LT_22 or TEX_UNAVAILABLE')
+@pytest.mark.skipif('TEX_UNAVAILABLE')
 def test_simplify_labels_usetex(ignore_matplotlibrc, tmpdir):
     """Regression test for https://github.com/astropy/astropy/issues/8004."""
     plt.rc('text', usetex=True)

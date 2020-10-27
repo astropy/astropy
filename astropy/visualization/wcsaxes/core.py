@@ -460,11 +460,7 @@ class WCSAxes(Axes):
 
         self._drawn = True
 
-    # MATPLOTLIB_LT_30: The ``kwargs.pop('label', None)`` is to ensure
-    # compatibility with Matplotlib 2.x (which has label) and 3.x (which has
-    # xlabel). While these are meant to be a single positional argument,
-    # Matplotlib internally sometimes specifies e.g. set_xlabel(xlabel=...).
-
+    # Matplotlib internally sometimes calls set_xlabel(label=...).
     def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
         """Set x-label."""
         if xlabel is None:
@@ -617,7 +613,7 @@ class WCSAxes(Axes):
 
         # FIXME: we should determine what to do with the extra arguments here.
         # Note that the expected signature of this method is different in
-        # Matplotlib 3.x compared to 2.x.
+        # Matplotlib 3.x compared to 2.x, but we only support 3.x now.
 
         if not self.get_visible():
             return
