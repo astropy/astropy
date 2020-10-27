@@ -23,7 +23,7 @@ from astropy.visualization.wcsaxes.transforms import CurvedTransform
 mpl_version = Version(matplotlib.__version__)
 MATPLOTLIB_LT_21 = mpl_version < Version("2.1")
 MATPLOTLIB_LT_22 = mpl_version < Version("2.2")
-MATPLOTLIB_EQ_33 = mpl_version.major == 3 and mpl_version.minor == 3
+MATPLOTLIB_GE_30 = mpl_version.major >= 3
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
@@ -503,17 +503,25 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
         assert ax.coords[i].get_axislabel() == labels[i]
 
 
-# The bounding box calculation is very dependent on Matplotlib versions.
-@pytest.mark.skipif('not MATPLOTLIB_EQ_33')
 def test_bbox_size():
     # Test for the size of a WCSAxes bbox
+    x0 = 11.38888888888889
+    y0 = 3.5
+    # Upper bounding box limits changed between Matplotlib major versions.
+    if MATPLOTLIB_GE_30:
+        x1 = 576.0
+        y1 = 432.0
+    else:
+        x1 = 579.5
+        y1 = 435.5
+
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
     fig.canvas.draw()
     renderer = fig.canvas.renderer
     ax_bbox = ax.get_tightbbox(renderer)
-    assert np.allclose(ax_bbox.x0, 11.38888888888889)
-    assert np.allclose(ax_bbox.x1, 576)
-    assert np.allclose(ax_bbox.y0, 3.5)
-    assert np.allclose(ax_bbox.y1, 432)
+    assert np.allclose(ax_bbox.x0, x0)
+    assert np.allclose(ax_bbox.x1, x1)
+    assert np.allclose(ax_bbox.y0, y0)
+    assert np.allclose(ax_bbox.y1, y1)
