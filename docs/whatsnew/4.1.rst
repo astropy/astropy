@@ -297,7 +297,7 @@ To see a detailed list of all changes in version v4.1, including changes in
 API, please see the :ref:`changelog`.
 
 
-Contributors to the v4.0 release
+Contributors to the v4.1 release
 ================================
 
 The people who have contributed to the code for this release are:
