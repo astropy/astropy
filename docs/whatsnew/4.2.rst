@@ -14,7 +14,8 @@ the 4.1.x series of releases.
 
 In particular, this release includes:
 
-*  :ref:`whatsnew-4.2-cosmology`
+* :ref:`whatsnew-4.2-cosmology`
+* :ref:`whatsnew-4.2-time-perf-imp`
 *
 
 In addition to these major changes, Astropy v4.1 includes a large number of
@@ -38,6 +39,7 @@ version (Planck18_arXiv_v2), which is deprecated and will be removed in a future
   >>> Planck18.age(0)
   <Quantity 13.7868853 Gyr>
 
+.. _whatsnew-4.2-time-perf-imp:
 
 Time performance improvements
 =============================
@@ -50,7 +52,7 @@ also be used for custom user-defined Time formats. For details see
 :ref:`time-fast-c-parser`.
 
 In addition the performance for creating a scalar ``Time`` object in a epoch
-format like ``unix``, ``unix_tai`` or ``cxcsec`` was improved by a factor of 4.
+format like ``unix``, ``unix_tai``, or ``cxcsec`` was improved by a factor of 4.
 
 Full change log
 ===============
