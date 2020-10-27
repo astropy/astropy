@@ -42,7 +42,7 @@ def test_units():
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_units_errbarr():
-    pytest.importorskip("matplotlib", minversion="2.2")
+    pytest.importorskip("matplotlib")
     plt.figure()
 
     with quantity_support():

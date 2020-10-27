@@ -63,10 +63,6 @@ def get_scipy_special_helpers():
     import scipy.special as sps
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
-        # TODO: Revert https://github.com/astropy/astropy/pull/7219 when
-        #       astropy requires scipy>=0.18, and loggamma is guaranteed
-        #       to exist.
-        # See https://github.com/astropy/astropy/issues/7159
         ufunc = getattr(sps, name, None)
         if ufunc:
             SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless

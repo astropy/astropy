@@ -4,10 +4,12 @@
 # plotting style. It is no longer documented/recommended as of Astropy v3.0
 # but is kept here for backward-compatibility.
 
+from astropy import __minimum_matplotlib_version__
 from astropy.utils import minversion
 
 # This returns False if matplotlib cannot be imported
-MATPLOTLIB_GE_1_5 = minversion('matplotlib', '1.5')
+MATPLOTLIB = minversion('matplotlib', __minimum_matplotlib_version__)
+
 
 __all__ = ['astropy_mpl_style_1', 'astropy_mpl_style']
 
@@ -75,12 +77,13 @@ color_cycle = ['#348ABD',   # blue
                '#188487',   # turquoise
                '#E24A33']   # orange
 
-if MATPLOTLIB_GE_1_5:
+if MATPLOTLIB:
     # This is a dependency of matplotlib, so should be present.
     from cycler import cycler
     astropy_mpl_style_1['axes.prop_cycle'] = cycler('color', color_cycle)
 else:
     astropy_mpl_style_1['axes.color_cycle'] = color_cycle
+
 
 astropy_mpl_style = astropy_mpl_style_1
 """The most recent version of the astropy plotting style."""

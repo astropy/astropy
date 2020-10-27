@@ -1098,19 +1098,13 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     from scipy.optimize import brentq
     from scipy.integrate import quad
+    from scipy.special import factorial
 
     from math import exp
 
     def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
-        # Create an array containing the factorials. scipy.special.factorial
-        # requires SciPy 0.14 (#5064) therefore this is calculated by using
-        # numpy.cumprod. This could be replaced by factorial again as soon as
-        # older SciPy are not supported anymore but the cumprod alternative
-        # might also be a bit faster.
-        factorial_n = np.ones(n.shape, dtype=np.float64)
-        np.cumprod(n[1:], out=factorial_n[1:])
-        return 1. / (exp(-B) * np.sum(np.power(B, n) / factorial_n))
+        return 1. / (exp(-B) * np.sum(np.power(B, n) / factorial(n)))
 
     # The parameters of eqn8 do not vary between calls so we can calculate the
     # result once and reuse it. The same is True for the factorial of N.

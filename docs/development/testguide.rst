@@ -299,7 +299,7 @@ If we place this in a ``test.py`` file and then run::
 The result is::
 
     ============================= test session starts ==============================
-    python: platform darwin -- Python 3.6.0 -- pytest-3.2.0
+    python: platform darwin -- Python 3.x.x -- pytest-x.x.x
     test object 1: /Users/username/tmp/test.py
 
     test.py F

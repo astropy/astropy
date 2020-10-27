@@ -96,6 +96,7 @@ rst_epilog += """
 .. |minimum_scipy_version| replace:: {0.__minimum_scipy_version__}
 .. |minimum_yaml_version| replace:: {0.__minimum_yaml_version__}
 .. |minimum_asdf_version| replace:: {0.__minimum_asdf_version__}
+.. |minimum_matplotlib_version| replace:: {0.__minimum_matplotlib_version__}
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy

@@ -212,7 +212,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     Notes
     -----
-    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_
     to be installed or it will fail.
 
     If you are using this function to search in a catalog for matches around
@@ -318,7 +318,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
 
     Notes
     -----
-    This function requires `SciPy <https://www.scipy.org/>`_ (>=0.12.0)
+    This function requires `SciPy <https://www.scipy.org/>`_
     to be installed or it will fail.
 
     In the current implementation, the return values are always sorted in the

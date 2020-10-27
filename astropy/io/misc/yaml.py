@@ -19,7 +19,7 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.EarthLocation`
 - `astropy.table.SerializedColumn`
 
-.. note:: This module requires PyYaml version 3.12 or later.
+.. note:: This module requires PyYaml version 3.13 or later.
 
 Example
 =======
@@ -71,10 +71,10 @@ from astropy.table import SerializedColumn
 try:
     import yaml
 except ImportError:
-    raise ImportError('The PyYAML package is required for astropy.io.misc.yaml and must be 3.12 or later')
+    raise ImportError('The PyYAML package is required for astropy.io.misc.yaml and must be 3.13 or later')
 else:
-    if not minversion(yaml, '3.12'):
-        raise ImportError('The PyYAML package is required for astropy.io.misc.yaml and must be 3.12 or later')
+    if not minversion(yaml, '3.13'):
+        raise ImportError('The PyYAML package is required for astropy.io.misc.yaml and must be 3.13 or later')
 
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']

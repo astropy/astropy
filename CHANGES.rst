@@ -8,7 +8,7 @@ astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - N-dimensional least-squares statistic and specific 1,2,3-D methods [#10670]
-  
+
 
 
 4.2 (unreleased)
@@ -294,6 +294,12 @@ astropy.table
 
 - Raise a TypeError when a scalar column is added to an unsized table. [#10476]
 
+- The order of columns when creating a table from a ``list`` of ``dict`` may be
+  changed. Previously, the order was alphabetical because the ``dict`` keys
+  were assumed to be in random order. Since Python 3.7, the keys are always in
+  order of insertion, so ``Table`` now uses the order of keys in the first row
+  to set the column order. To alphabetize the columns to match the previous
+  behavior, use ``t = t[sorted(t.colnames)]``. [#10900]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -424,7 +430,15 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Minimum version of supported Numpy is now 1.17. [#10664]
+- Minimum version of required Python is now 3.7. [#10900]
+
+- Minimum version of required Numpy is now 1.17. [#10664]
+
+- Minimum version of required Scipy is now 1.1. [#10900]
+
+- Minimum version of required PyYAML is now 3.13. [#10900]
+
+- Minimum version of required Matplotlib is now 3.0. [#10900]
 
 - The private ``_erfa`` module has been converted to its own package,
   ``pyerfa``, which is a required dependency for astropy, and can be imported

@@ -92,15 +92,8 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
             out_fn = os.path.splitext(out_fn)[0]
         out_fn += '.png'
 
-    # need to explicitly define the output format due to a bug in
-    # matplotlib (<= 2.1), otherwise the format will always be PNG
+    # explicitly define the output format
     out_format = os.path.splitext(out_fn)[1][1:]
-
-    # workaround for matplotlib 2.0.0 bug where png images are inverted
-    # (mpl-#7656)
-    if (out_format.lower() == 'png' and
-            matplotlib.__version__[:5] == '2.0.0'):
-        image = image[::-1]
 
     try:
         cm.get_cmap(cmap)

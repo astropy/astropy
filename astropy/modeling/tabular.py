@@ -22,17 +22,13 @@ import abc
 import numpy as np
 
 from astropy import units as u
-from astropy.utils import minversion
 from .core import Model
 
 try:
-    import scipy
     from scipy.interpolate import interpn
     has_scipy = True
 except ImportError:
     has_scipy = False
-
-has_scipy = has_scipy and minversion(scipy, "0.14")
 
 __all__ = ['tabular_model', 'Tabular1D', 'Tabular2D']
 
@@ -216,7 +212,7 @@ class _Tabular(Model):
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T
         if not has_scipy:  # pragma: no cover
-            raise ImportError("This model requires scipy >= v0.14")
+            raise ImportError("Tabular model requires scipy.")
         result = interpn(self.points, self.lookup_table, inputs,
                          method=self.method, bounds_error=self.bounds_error,
                          fill_value=self.fill_value)
