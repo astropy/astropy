@@ -500,7 +500,8 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
         assert ax.coords[i].get_axislabel() == labels[i]
 
 
-# The bounding box calculation is very dependent on Matplotlib versions.
+# The bounding box calculation yields different results between Matplotlib 2.x and 3.x versions;
+# restrict to a single version to be safe.
 @pytest.mark.skipif('not MATPLOTLIB_EQ_33')
 def test_bbox_size():
     # Test for the size of a WCSAxes bbox
