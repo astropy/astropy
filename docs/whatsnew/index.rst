@@ -12,8 +12,8 @@ functionality highlighted in these pages.
    :maxdepth: 1
 
    4.2
-   4.1
 
+* `What's New in Astropy 4.1? <https://docs.astropy.org/en/v4.0/whatsnew/4.0.html>`__
 * `What's New in Astropy 4.0? <https://docs.astropy.org/en/v4.0/whatsnew/4.0.html>`__
 * `What's New in Astropy 3.2? <https://docs.astropy.org/en/v3.2/whatsnew/3.2.html>`__
 * `What's New in Astropy 3.1? <https://docs.astropy.org/en/v3.1.2/whatsnew/3.1.html>`__
