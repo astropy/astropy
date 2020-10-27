@@ -244,9 +244,9 @@ def precessedgeo_to_gcrs(from_coo, to_frame):
     pmat = gcrs_precession_mat(from_coo.equinox)
     crepr = from_coo.cartesian.transform(matrix_transpose(pmat))
     gcrs_coo = GCRS(crepr,
-                    obstime=to_frame.obstime,
-                    obsgeoloc=to_frame.obsgeoloc,
-                    obsgeovel=to_frame.obsgeovel)
+                    obstime=from_coo.obstime,
+                    obsgeoloc=from_coo.obsgeoloc,
+                    obsgeovel=from_coo.obsgeovel)
 
     # then move to the GCRS that's actually desired
     return gcrs_coo.transform_to(to_frame)
