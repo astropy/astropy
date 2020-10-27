@@ -744,6 +744,14 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
         else:
             conf_interval[0, n == 0] = 0
     elif interval == 'kraft-burrows-nousek':
+        # Deprecation warning in Python 3.9 when N is float, so we force int,
+        # see https://github.com/astropy/astropy/issues/10832
+        if np.isscalar(n):
+            if not isinstance(n, int):
+                raise TypeError('Number of counts must be integer.')
+        elif not issubclass(n.dtype.type, np.integer):
+            raise TypeError('Number of counts must be integer.')
+
         if confidence_level is None:
             raise ValueError('Set confidence_level for method {}. (sigma is '
                              'ignored.)'.format(interval))
@@ -1101,11 +1109,6 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
     from scipy.special import factorial
 
     from math import exp
-
-    # Deprecation warning in Python 3.9 when N is float, see
-    # https://github.com/astropy/astropy/issues/10832
-    if not isinstance(N, int):
-        N = round(N)
 
     def eqn8(N, B):
         n = np.arange(N + 1, dtype=np.float64)
