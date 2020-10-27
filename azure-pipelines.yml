@@ -49,7 +49,7 @@ jobs:
 
       targets:
       - sdist
-      # The linux builds are the fastest so run all three in one job
+      # The linux builds are the fastest so run all in one job
       - wheels_cp3[78]*linux_i686
       - wheels_cp3[78]*linux_x86_64
       # macos is a little slower so split it into two
