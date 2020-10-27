@@ -40,7 +40,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl
+          command: pip install -e .[test] git+https://github.com/Cadair/pytest-mpl@refactor
       - run:
           name: Force scipy upgrade
           command: pip install scipy -U
@@ -57,7 +57,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl
+          command: pip install -e .[test] git+https://github.com/Cadair/pytest-mpl@refactor
       - run:
           name: Run tests
           command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
