@@ -403,9 +403,6 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
-- Fixed a bug when a column in ``QTable`` is converted to ``Quantity``,
-  datatype is sometimes not preserved. [#10950]
-
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -988,6 +985,9 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fixed a bug when an integer-type ``Column`` in ``QTable`` is converted to
+  ``Quantity`` by setting the unit, the datatype is changed to float. [#10950]
 
 astropy.tests
 ^^^^^^^^^^^^^
