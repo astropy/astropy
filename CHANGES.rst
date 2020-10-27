@@ -119,6 +119,9 @@ astropy.samp
 astropy.stats
 ^^^^^^^^^^^^^
 
+- Passing float ``n`` to ``poisson_conf_interval(..., interval='kraft-burrows-nousek')``
+  now raises ``TypeError`` as its value must be an integer. [#10838]
+
 astropy.table
 ^^^^^^^^^^^^^
 
