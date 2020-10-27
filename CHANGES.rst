@@ -257,6 +257,8 @@ astropy.stats
   ``sigma_clipped_stats``, to allow expanding the masking of each deviant
   value to its neighbours within a specified radius. [#10613]
 
+- Passing float ``n`` to ``poisson_conf_interval(..., interval='kraft-burrows-nousek')``
+  now raises ``TypeError`` as its value must be an integer. [#10838]
 
 astropy.table
 ^^^^^^^^^^^^^
