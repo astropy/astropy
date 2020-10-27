@@ -622,8 +622,9 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
         for mod in pkgutil.walk_packages(path=package.__path__,
                                          prefix=package.__name__ + '.'):
 
-            if mod.module_finder.path.endswith(('test', 'tests')):
-                # Skip test modules
+            if (mod.module_finder.path.endswith(('test', 'tests')) or
+                    mod.name.endswith('setup_package')):
+                # Skip test and setup_package modules
                 continue
             if mod.name.split('.')[-1].startswith('_'):
                 # Skip private modules
