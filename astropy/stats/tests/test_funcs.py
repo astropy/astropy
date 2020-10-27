@@ -690,7 +690,7 @@ def test_poisson_conf_kbn_value_errors():
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError):
         with pytest.warns(AstropyDeprecationWarning):
-            funcs.poisson_conf_interval(20., interval='kraft-burrows-nousek',
+            funcs.poisson_conf_interval(20, interval='kraft-burrows-nousek',
                                         background=10., conflevel=.95)
 
 
