@@ -145,6 +145,9 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     with np.errstate(divide='ignore', invalid='ignore'):
         value = M.squeeze() + (sum_func(d * u, axis=axis) /
                                sum_func(u, axis=axis))
+        if np.isscalar(value):
+            return value
+
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
