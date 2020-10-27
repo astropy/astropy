@@ -169,13 +169,7 @@ def test_generate_config2(tmp_path):
 
     with set_temp_config(tmp_path):
         from astropy.config.configuration import generate_config
-        try:
-            generate_config('astropy')
-        except ValueError as err:
-            if sys.platform.startswith('win') and 'path is on mount' in str(err):
-                pytest.xfail("See Github issue 10747")
-            else:
-                raise
+        generate_config('astropy')
 
     assert os.path.exists(tmp_path / 'astropy' / 'astropy.cfg')
 
