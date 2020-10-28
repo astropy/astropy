@@ -305,6 +305,13 @@ Planck15  Planck Collab 2015, Paper XIII 67.7  0.307 Yes
 Planck18  Planck Collab 2018, Paper VI   67.7  0.310 Yes
 ========  ============================== ====  ===== =======
 
+.. note::
+
+  Unlike the Planck 2015 paper, the Planck 2018 paper included massive
+  neutrinos in ``Om0`` but Planck18 here included them in ``m_nu`` instead
+  for consistency. Hence, the ``Om0`` value in Planck18 differs slightly
+  from the Planck 2018 paper.
+
 Currently, all are instances of `~astropy.cosmology.FlatLambdaCDM`.
 More details about exactly where each set of parameters comes from
 are available in the docstring for each object::
