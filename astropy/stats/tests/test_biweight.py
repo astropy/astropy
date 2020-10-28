@@ -151,7 +151,8 @@ def test_biweight_location_nan():
     data2d_masked = np.ma.masked_invalid(data2d)
 
     assert np.isnan(biweight_location(data1d))
-    assert np.isnan(biweight_location(data1d_masked))
+    bw_loc = biweight_location(data1d_masked)
+    assert not isinstance(bw_loc, np.ma.MaskedArray)
     assert np.isnan(biweight_location(data2d))
 
     for axis in (0, 1):
@@ -176,7 +177,7 @@ def test_biweight_location_masked():
 
     bw_loc = biweight_location(data1d_masked)
     assert_allclose(bw_loc, 2.7456117)
-    assert bw_loc.shape == ()
+    assert np.isscalar(bw_loc)
 
     bw_loc = biweight_location(data2d, ignore_nan=True, axis=1)
     bw_loc_masked = biweight_location(data2d_masked, axis=1)
@@ -191,7 +192,8 @@ def test_biweight_location_masked():
 
     data1d_masked.data[0] = np.nan  # unmasked NaN
     bw_loc = biweight_location(data1d_masked)
-    assert bw_loc.shape == ()
+    assert not isinstance(bw_loc, np.ma.MaskedArray)
+    assert np.isscalar(bw_loc)
     assert np.isnan(bw_loc)
     assert_equal(biweight_location(data1d_masked, ignore_nan=True),
                  biweight_location(data1d[1:], ignore_nan=True))
@@ -299,6 +301,30 @@ def test_biweight_midvariance_ignore_nan():
 
 @pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
 @pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+def test_biweight_scale_nan():
+    data1d = np.array([1, 3, 5, 500, 2, np.nan])
+    all_nan = data1d.copy()
+    all_nan[:] = np.nan
+    data2d = np.array([data1d, data1d, all_nan])
+    data1d_masked = np.ma.masked_invalid(data1d)
+    data1d_masked.data[0] = np.nan
+    data2d_masked = np.ma.masked_invalid(data2d)
+
+    assert np.isnan(biweight_scale(data1d))
+    bw_scl = biweight_scale(data1d_masked)
+    assert not isinstance(bw_scl, np.ma.MaskedArray)
+    assert np.isnan(bw_scl)
+    assert np.isnan(biweight_scale(data2d))
+    assert_allclose(biweight_scale(data2d_masked), 1.709926, atol=1e-5)
+
+    for axis in (0, 1):
+        assert np.all(np.isnan(biweight_scale(data2d, axis=axis)))
+        assert isinstance(biweight_scale(data2d_masked, axis=axis),
+                          np.ma.MaskedArray)
+
+
+@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_biweight_midvariance_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -310,6 +336,10 @@ def test_biweight_midvariance_masked():
                  biweight_midvariance(data1d_masked))
     assert_equal(biweight_midvariance(data2d, ignore_nan=True),
                  biweight_midvariance(data2d_masked))
+
+    bw_scl = biweight_midvariance(data1d_masked)
+    assert_allclose(bw_scl, 2.9238456)
+    assert np.isscalar(bw_scl)
 
     bw_loc = biweight_midvariance(data2d, ignore_nan=True, axis=1)
     bw_loc_masked = biweight_midvariance(data2d_masked, axis=1)
@@ -323,7 +353,10 @@ def test_biweight_midvariance_masked():
     assert bw_loc_masked.mask[-1]  # last mask element is True
 
     data1d_masked.data[0] = np.nan  # unmasked NaN
-    assert np.isnan(biweight_midvariance(data1d_masked))
+    bw_scl = biweight_midvariance(data1d_masked)
+    assert not isinstance(bw_scl, np.ma.MaskedArray)
+    assert np.isscalar(bw_scl)
+    assert np.isnan(bw_scl)
     assert_equal(biweight_midvariance(data1d_masked, ignore_nan=True),
                  biweight_midvariance(data1d[1:], ignore_nan=True))
 
