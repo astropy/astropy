@@ -395,10 +395,12 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None and mad == 0.:
-        return 0.  # mad == 0 means data is constant or mostly constant
-
-    if axis is not None:
+    if axis is None:
+        if mad == 0.:  # data is constant or mostly constant
+            return 0.0
+        if np.isnan(mad):  # data contains NaNs and ignore_nan=False
+            return np.nan
+    else:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
 
     with np.errstate(divide='ignore', invalid='ignore'):
