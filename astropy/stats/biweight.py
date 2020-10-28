@@ -123,8 +123,10 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None and mad == 0.:
-        return M  # mad == 0 means data is constant or mostly constant
+    # mad = 0 means data is constant or mostly constant
+    # mad = np.nan means data contains NaNs and ignore_nan=False
+    if axis is None and (mad == 0. or np.isnan(mad)):
+        return M
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
@@ -145,6 +147,9 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     with np.errstate(divide='ignore', invalid='ignore'):
         value = M.squeeze() + (sum_func(d * u, axis=axis) /
                                sum_func(u, axis=axis))
+        if np.isscalar(value):
+            return value
+
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
@@ -390,10 +395,12 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None and mad == 0.:
-        return 0.  # mad == 0 means data is constant or mostly constant
-
-    if axis is not None:
+    if axis is None:
+        if mad == 0.:  # data is constant or mostly constant
+            return 0.0
+        if np.isnan(mad):  # data contains NaNs and ignore_nan=False
+            return np.nan
+    else:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
 
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -431,6 +438,9 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     # Ignore RuntimeWarnings for divide by zero.
     with np.errstate(divide='ignore', invalid='ignore'):
         value = n * f1 / f2
+        if np.isscalar(value):
+            return value
+
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
