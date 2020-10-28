@@ -10,6 +10,7 @@ from numpy.testing import assert_array_equal
 
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy import table
+from astropy import time
 from astropy import units as u
 
 
@@ -904,3 +905,17 @@ def test_structured_empty_column_init(dtype):
     c = table.Column(length=5, shape=(2,), dtype=dtype)
     assert c.shape == (5, 2)
     assert c.dtype == dtype
+
+
+def test_column_value_access():
+    """Can a column's underlying data consistently be accessed via `.value`,
+    whether it is a `Column`, `MaskedColumn`, `Quantity`, or `Time`?"""
+    data = np.array([1, 2, 3])
+    tbl = table.QTable({'a': table.Column(data),
+                        'b': table.MaskedColumn(data),
+                        'c': u.Quantity(data),
+                        'd': time.Time(data, format='mjd')})
+    assert type(tbl['a'].value) == np.ndarray
+    assert type(tbl['b'].value) == np.ma.MaskedArray
+    assert type(tbl['c'].value) == np.ndarray
+    assert type(tbl['d'].value) == np.ndarray

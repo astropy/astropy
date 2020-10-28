@@ -125,6 +125,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Added ``Column.value`` as an alias for the existing ``Column.data`` attribute.
+  This makes accessing a column's underlying data array consistent with the
+  ``.value`` attribute available for ``Time`` and ``Quantity`` objects. [#10859]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
