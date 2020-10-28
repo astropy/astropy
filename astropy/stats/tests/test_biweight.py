@@ -167,7 +167,7 @@ def test_biweight_location_masked():
     data1d_masked.data[0] = np.nan  # unmasked NaN
     bw_loc = biweight_location(data1d_masked)
     assert bw_loc.shape == ()
-    assert np.all(bw_loc.mask) or bw_loc is np.ma.masked
+    assert np.isnan(bw_loc)
     assert_equal(biweight_location(data1d_masked, ignore_nan=True),
                  biweight_location(data1d[1:], ignore_nan=True))
 
