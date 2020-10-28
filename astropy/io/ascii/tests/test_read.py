@@ -191,14 +191,14 @@ def test_read_with_names_arg(fast_reader):
 def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING {}'.format(testfile['name']))
+            print(f"\n\n******** SKIPPING {testfile['name']}")
             continue
-        print('\n\n******** READING {}'.format(testfile['name']))
+        print(f"\n\n******** READING {testfile['name']}")
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
-            if ('Reader' in test_opts and 'fast_{}'.format(test_opts['Reader']._format_name)
+            if ('Reader' in test_opts and f"fast_{test_opts['Reader']._format_name}"
                     in core.FAST_CLASSES):  # has fast version
                 if 'Inputter' not in test_opts:  # fast reader doesn't allow this
                     test_opts['fast_reader'] = fast_reader
@@ -212,15 +212,15 @@ def test_read_all_files(fast_reader):
 def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING {}'.format(testfile['name']))
+            print(f"\n\n******** SKIPPING {testfile['name']}")
             continue
-        print('\n\n******** READING {}'.format(testfile['name']))
+        print(f"\n\n******** READING {testfile['name']}")
         for guess in (True, False):
             test_opts = testfile['opts'].copy()
             if 'guess' not in test_opts:
                 test_opts['guess'] = guess
             if 'Reader' in test_opts:
-                format = 'ascii.{}'.format(test_opts['Reader']._format_name)
+                format = f"ascii.{test_opts['Reader']._format_name}"
                 del test_opts['Reader']
             else:
                 format = 'ascii'
@@ -235,11 +235,11 @@ def test_read_all_files_via_table(fast_reader):
 def test_guess_all_files():
     for testfile in get_testfiles():
         if testfile.get('skip'):
-            print('\n\n******** SKIPPING {}'.format(testfile['name']))
+            print(f"\n\n******** SKIPPING {testfile['name']}")
             continue
         if not testfile['opts'].get('guess', True):
             continue
-        print('\n\n******** READING {}'.format(testfile['name']))
+        print(f"\n\n******** READING {testfile['name']}")
         for filter_read_opts in (['Reader', 'delimiter', 'quotechar'], []):
             # Copy read options except for those in filter_read_opts
             guess_opts = dict((k, v) for k, v in testfile['opts'].items()
@@ -1444,7 +1444,7 @@ def test_read_chunks_formats(masked):
     """
     t1 = simple_table(size=102, cols=10, kinds='fS', masked=masked)
     for i, name in enumerate(t1.colnames):
-        t1.rename_column(name, 'col{}'.format(i + 1))
+        t1.rename_column(name, f'col{i + 1}')
 
     # TO DO commented_header does not currently work due to the special-cased
     # implementation of header parsing.

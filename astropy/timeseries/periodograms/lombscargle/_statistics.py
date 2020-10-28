@@ -92,8 +92,7 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
     elif normalization == 'log':
         return 0.5 * Nk * np.exp(-0.5 * Nk * z)
     else:
-        raise ValueError("normalization='{}' is not recognized"
-                         "".format(normalization))
+        raise ValueError(f"normalization='{normalization}' is not recognized")
 
 
 def fap_single(z, N, normalization, dH=1, dK=3):
@@ -143,8 +142,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
     elif normalization == 'log':
         return np.exp(-0.5 * Nk * z)
     else:
-        raise ValueError("normalization='{}' is not recognized"
-                         "".format(normalization))
+        raise ValueError(f"normalization='{normalization}' is not recognized")
 
 
 def inv_fap_single(fap, N, normalization, dH=1, dK=3):
@@ -197,8 +195,7 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
         elif normalization == 'log':
             return -2 / Nk * np.log(fap)
         else:
-            raise ValueError("normalization='{}' is not recognized"
-                             "".format(normalization))
+            raise ValueError(f"normalization='{normalization}' is not recognized")
 
 
 def cdf_single(z, N, normalization, dH=1, dK=3):

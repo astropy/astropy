@@ -33,12 +33,12 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii - 1, ndims, 2 ** ii - 1, ndims
                                               ("", "fft_pad=False")):
                         statement = f"convolve{convolve_type}(array, kernel, boundary='fill', {extra})"
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                        print("%17f" % (besttime), end=' ')
+                        print(f"{besttime:17f}", end=' ')
                 else:
                     print("%17s" % "skipped", end=' ')
                     statement = "convolve_fft(array, kernel, boundary='fill')"
                     besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                    print("%17f" % (besttime), end=' ')
+                    print(f"{besttime:17f}", end=' ')
 
                 print()
 
@@ -59,12 +59,12 @@ kernel = np.random.random([%i]*%i)""") % (2 ** ii, ndims, 2 ** ii, ndims)
                     else:
                         statement = f"convolve{convolve_type}(array, kernel, boundary='fill')"
                         besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                        print("%17f" % (besttime), end=' ')
+                        print(f"{besttime:17f}", end=' ')
             else:
                 print("%17s" % "skipped", end=' ')
                 statement = "convolve_fft(array, kernel, boundary='fill')"
                 besttime = min(timeit.Timer(stmt=statement, setup=setup).repeat(3, 10))
-                print("%17f" % (besttime), end=' ')
+                print(f"{besttime:17f}", end=' ')
 
             print()
 

@@ -276,14 +276,13 @@ def test_angle_formatting():
     assert str(angle) == angle.to_string()
 
     res = 'Angle as HMS: 3h36m29.7888s'
-    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour)) == res
+    assert f"Angle as HMS: {angle.to_string(unit=u.hour)}" == res
 
     res = 'Angle as HMS: 3:36:29.7888'
-    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep=":")) == res
+    assert f"Angle as HMS: {angle.to_string(unit=u.hour, sep=':')}" == res
 
     res = 'Angle as HMS: 3:36:29.79'
-    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep=":",
-                                      precision=2)) == res
+    assert f"Angle as HMS: {angle.to_string(unit=u.hour, sep=':', precision=2)}" == res
 
     # Note that you can provide one, two, or three separators passed as a
     # tuple or list
@@ -298,22 +297,20 @@ def test_angle_formatting():
                                                    precision=4)) == res
 
     res = 'Angle as HMS: 3-36-29.7888'
-    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, sep="-",
-                                                    precision=4)) == res
+    assert f"Angle as HMS: {angle.to_string(unit=u.hour, sep='-', precision=4)}" == res
 
     res = 'Angle as HMS: 03h36m29.7888s'
-    assert "Angle as HMS: {}".format(angle.to_string(unit=u.hour, precision=4,
-                                                  pad=True)) == res
+    assert f"Angle as HMS: {angle.to_string(unit=u.hour, precision=4, pad=True)}" == res
 
     # Same as above, in degrees
 
     angle = Angle("3 36 29.78880", unit=u.degree)
 
     res = 'Angle as DMS: 3d36m29.7888s'
-    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree)) == res
+    assert f"Angle as DMS: {angle.to_string(unit=u.degree)}" == res
 
     res = 'Angle as DMS: 3:36:29.7888'
-    assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep=":")) == res
+    assert f"Angle as DMS: {angle.to_string(unit=u.degree, sep=':')}" == res
 
     res = 'Angle as DMS: 3:36:29.79'
     assert "Angle as DMS: {}".format(angle.to_string(unit=u.degree, sep=":",
@@ -340,10 +337,10 @@ def test_angle_formatting():
                                                   pad=True)) == res
 
     res = 'Angle as rad: 0.0629763rad'
-    assert "Angle as rad: {}".format(angle.to_string(unit=u.radian)) == res
+    assert f"Angle as rad: {angle.to_string(unit=u.radian)}" == res
 
     res = 'Angle as rad decimal: 0.0629763'
-    assert "Angle as rad decimal: {}".format(angle.to_string(unit=u.radian, decimal=True)) == res
+    assert f"Angle as rad decimal: {angle.to_string(unit=u.radian, decimal=True)}" == res
 
     # check negative angles
 

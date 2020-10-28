@@ -179,7 +179,7 @@ class AstropyLogger(Logger):
         # AstropyWarning.  The name of subclasses of AstropyWarning should
         # be displayed.
         if type(warning) not in (AstropyWarning, AstropyUserWarning):
-            message = '{}: {}'.format(warning.__class__.__name__, args[0])
+            message = f'{warning.__class__.__name__}: {args[0]}'
         else:
             message = str(args[0])
 
@@ -255,7 +255,7 @@ class AstropyLogger(Logger):
 
         # include the the error type in the message.
         if len(value.args) > 0:
-            message = '{}: {}'.format(etype.__name__, str(value))
+            message = f'{etype.__name__}: {str(value)}'
         else:
             message = str(etype.__name__)
 

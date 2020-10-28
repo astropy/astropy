@@ -1007,8 +1007,7 @@ class Header:
         """
 
         if len(args) > 2:
-            raise TypeError('Header.pop expected at most 2 arguments, got '
-                            '{}'.format(len(args)))
+            raise TypeError(f'Header.pop expected at most 2 arguments, got {len(args)}')
 
         if len(args) == 0:
             key = -1
@@ -1404,8 +1403,7 @@ class Header:
             if self._cards[idx].keyword.upper() == norm_keyword:
                 return idx
         else:
-            raise ValueError('The keyword {!r} is not in the '
-                             ' header.'.format(keyword))
+            raise ValueError(f'The keyword {keyword!r} is not in the  header.')
 
     def insert(self, key, card, useblanks=True, after=False):
         """
@@ -1560,8 +1558,7 @@ class Header:
                 raise ValueError('Regular and commentary keys can not be '
                                  'renamed to each other.')
         elif not force and newkeyword in self:
-            raise ValueError('Intended keyword {} already exists in header.'
-                             .format(newkeyword))
+            raise ValueError(f'Intended keyword {newkeyword} already exists in header.')
 
         idx = self.index(oldkeyword)
         card = self._cards[idx]
@@ -2301,5 +2298,4 @@ def _check_padding(header_str, block_size, is_eof, check_block_size=True):
         # now, but maybe it shouldn't?
         actual_len = len(header_str) - block_size + BLOCK_SIZE
         # TODO: Pass this error to validation framework
-        raise ValueError('Header size is not multiple of {}: {}'
-                         .format(BLOCK_SIZE, actual_len))
+        raise ValueError(f'Header size is not multiple of {BLOCK_SIZE}: {actual_len}')

@@ -69,7 +69,7 @@ def _format_message(message, name, config=None, pos=None):
     if pos is None:
         pos = ('?', '?')
     filename = config.get('filename', '?')
-    return '{}:{}:{}: {}: {}'.format(filename, pos[0], pos[1], name, message)
+    return f'{filename}:{pos[0]}:{pos[1]}: {name}: {message}'
 
 
 def _suppressed_warning(warning, config, stacklevel=2):
@@ -167,8 +167,7 @@ def parse_vowarning(line):
             result['is_warning'] = (warning[0].upper() == 'W')
             result['is_exception'] = not result['is_warning']
             result['number'] = int(match.group('warning')[1:])
-            result['doc_url'] = "io/votable/api_exceptions.html#{}".format(
-                warning.lower())
+            result['doc_url'] = f"io/votable/api_exceptions.html#{warning.lower()}"
         else:
             result['is_warning'] = False
             result['is_exception'] = False
@@ -1509,7 +1508,7 @@ def _build_doc_string():
 
         for name, cls in classes:
             out.write(f".. _{name}:\n\n")
-            msg = "{}: {}".format(cls.__name__, cls.get_short_name())
+            msg = f"{cls.__name__}: {cls.get_short_name()}"
             if not isinstance(msg, str):
                 msg = msg.decode('utf-8')
             out.write(msg)

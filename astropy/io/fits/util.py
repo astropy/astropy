@@ -905,7 +905,7 @@ def _rstrip_inplace(array):
     # View the array as appropriate integers. The last dimension will
     # equal the number of characters in each string.
     bpc = 1 if dt.kind == 'S' else 4
-    dt_int = "({},){}u{}".format(dt.itemsize // bpc, dt.byteorder, bpc)
+    dt_int = f"({dt.itemsize // bpc},){dt.byteorder}u{bpc}"
     b = array.view(dt_int, np.ndarray)
     # For optimal speed, work in chunks of the internal ufunc buffer size.
     bufsize = np.getbufsize()

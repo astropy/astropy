@@ -82,6 +82,5 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
     elif normalization == 'standard':
         p /= chi2_ref
     else:
-        raise ValueError("normalization='{}' "
-                         "not recognized".format(normalization))
+        raise ValueError(f"normalization='{normalization}' not recognized")
     return p

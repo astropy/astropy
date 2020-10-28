@@ -92,7 +92,7 @@ def _construct_odict(load, node):
         if len(subnode.value) != 1:
             raise yaml.constructor.ConstructorError(
                 "while constructing an ordered map", node.start_mark,
-                "expected a single mapping item, but found {} items".format(len(subnode.value)),
+                f"expected a single mapping item, but found {len(subnode.value)} items",
                 subnode.start_mark)
 
         key_node, value_node = subnode.value[0]

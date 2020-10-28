@@ -241,7 +241,7 @@ class SAMPHubServer:
         prot = 'http'
 
         self._port = self._server.socket.getsockname()[1]
-        addr = "{}:{}".format(self._addr or self._host_name, self._port)
+        addr = f"{self._addr or self._host_name}:{self._port}"
         self._url = urlunparse((prot, addr, '', '', '', ''))
         self._server.register_introspection_functions()
         self._register_standard_api(self._server)
@@ -671,8 +671,7 @@ class SAMPHubServer:
 
             # Dictionary stored with the public id
 
-            log.debug("set_xmlrpc_callback: {} {}".format(private_key,
-                                                          xmlrpc_addr))
+            log.debug(f"set_xmlrpc_callback: {private_key} {xmlrpc_addr}")
 
             server_proxy_pool = None
 
@@ -684,8 +683,7 @@ class SAMPHubServer:
             self._xmlrpc_endpoints[public_id] = (xmlrpc_addr,
                                                 server_proxy_pool)
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
         return ""
 
@@ -696,8 +694,7 @@ class SAMPHubServer:
         self._private_keys[private_key] = (public_id, time.time())
         self._update_last_activity_time(private_key)
         self._notify_register(private_key)
-        log.debug("register: private-key = {} and self-id = {}"
-                  .format(private_key, public_id))
+        log.debug(f"register: private-key = {private_key} and self-id = {public_id}")
         return {"samp.self-id": public_id,
                 "samp.private-key": private_key,
                 "samp.hub-id": self._hub_public_id}
@@ -768,8 +765,7 @@ class SAMPHubServer:
             self._metadata[private_key] = metadata
             self._notify_metadata(private_key)
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
         return ""
 
     def _get_metadata(self, private_key, client_id):
@@ -780,16 +776,14 @@ class SAMPHubServer:
                       .format(private_key, client_id))
             if client_private_key is not None:
                 if client_private_key in self._metadata:
-                    log.debug("--> metadata = {}"
-                              .format(self._metadata[client_private_key]))
+                    log.debug(f"--> metadata = {self._metadata[client_private_key]}")
                     return self._metadata[client_private_key]
                 else:
                     return {}
             else:
                 raise SAMPProxyError(6, "Invalid client ID")
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _declare_subscriptions(self, private_key, mtypes):
 
@@ -838,8 +832,7 @@ class SAMPHubServer:
             self._notify_subscriptions(private_key)
 
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
         return ""
 
@@ -862,8 +855,7 @@ class SAMPHubServer:
             else:
                 raise SAMPProxyError(6, "Invalid client ID")
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _get_registered_clients(self, private_key):
 
@@ -878,8 +870,7 @@ class SAMPHubServer:
                       .format(private_key, reg_clients))
             return reg_clients
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _get_subscribed_clients(self, private_key, mtype):
 
@@ -896,8 +887,7 @@ class SAMPHubServer:
                       "clients = {}".format(private_key, mtype, sub_clients))
             return sub_clients
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     @staticmethod
     def get_mtype_subtypes(mtype):
@@ -966,8 +956,7 @@ class SAMPHubServer:
                                                             message))
             return {}
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _notify_(self, sender_private_key, recipient_public_id, message):
 
@@ -1004,8 +993,7 @@ class SAMPHubServer:
             recipient_ids = self._notify_all_(private_key, message)
             return recipient_ids
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _notify_all_(self, sender_private_key, message):
 
@@ -1040,8 +1028,7 @@ class SAMPHubServer:
                                                           message))
             return msg_id
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _call_(self, sender_private_key, sender_public_id,
                recipient_public_id, msg_id, message):
@@ -1081,8 +1068,7 @@ class SAMPHubServer:
             msg_id = self._call_all_(private_key, public_id, msg_tag, message)
             return msg_id
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _call_all_(self, sender_private_key, sender_public_id, msg_tag,
                    message):
@@ -1131,8 +1117,7 @@ class SAMPHubServer:
 
             return response
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
     def _reply(self, private_key, msg_id, response):
         """
@@ -1144,8 +1129,7 @@ class SAMPHubServer:
             self._launch_thread(target=self._reply_, args=(private_key, msg_id,
                                                            response))
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
         return {}
 
@@ -1333,8 +1317,7 @@ class SAMPHubServer:
             else:
                 self._web_profile_callbacks[private_key] = queue.Queue()
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
         return ""
 
     def _web_profile_pullCallbacks(self, private_key, timeout_secs):
@@ -1350,8 +1333,7 @@ class SAMPHubServer:
                 pass
             return callback
         else:
-            raise SAMPProxyError(5, "Private-key {} expired or invalid."
-                                 .format(private_key))
+            raise SAMPProxyError(5, f"Private-key {private_key} expired or invalid.")
 
 
 class WebProfileDialog:

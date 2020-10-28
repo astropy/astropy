@@ -148,8 +148,7 @@ class Angle(u.SpecificTypeQuantity):
         elif unit == u.degree:
             return util.dms_to_degrees(*angle)
         else:
-            raise u.UnitsError("Can not parse '{}' as unit '{}'"
-                               .format(angle, unit))
+            raise u.UnitsError(f"Can not parse '{angle}' as unit '{unit}'")
 
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
@@ -342,9 +341,7 @@ class Angle(u.SpecificTypeQuantity):
                     func = plain_unit_format
             else:
                 raise ValueError(
-                    "'{}' can not be represented in sexagesimal "
-                    "notation".format(
-                        unit.name))
+                    f"'{unit.name}' can not be represented in sexagesimal notation")
 
         else:
             raise u.UnitsError(

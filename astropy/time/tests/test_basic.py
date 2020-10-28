@@ -552,7 +552,7 @@ class TestBasic:
             if month == 6:
                 yyyy_mm_dd_plus1 = f'{year:04d}-07-01'
             else:
-                yyyy_mm_dd_plus1 = '{:04d}-01-01'.format(year + 1)
+                yyyy_mm_dd_plus1 = f'{year + 1:04d}-01-01'
 
             with pytest.warns(ErfaWarning):
                 t1 = Time(yyyy_mm_dd + ' 23:59:61.0', scale='utc')

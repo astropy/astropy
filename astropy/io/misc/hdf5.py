@@ -112,8 +112,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
             arrays = _find_all_structured_arrays(input)
 
             if len(arrays) == 0:
-                raise ValueError("no table found in HDF5 group {}".
-                                 format(path))
+                raise ValueError(f"no table found in HDF5 group {path}")
             elif len(arrays) > 0:
                 path = arrays[0] if path is None else path + '/' + arrays[0]
                 if len(arrays) > 1:

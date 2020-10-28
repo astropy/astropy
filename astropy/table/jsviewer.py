@@ -154,8 +154,7 @@ class JSViewer:
             return conf.datatables_url[:-3]
 
     def ipynb(self, table_id, css=None, sort_columns='[]'):
-        html = '<style>{}</style>'.format(css if css is not None
-                                          else DEFAULT_CSS_NB)
+        html = f'<style>{css if css is not None else DEFAULT_CSS_NB}</style>'
         html += IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
@@ -174,7 +173,7 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
                          table_class="display compact", jskwargs=None,
                          css=DEFAULT_CSS, htmldict=None):
     if table_id is None:
-        table_id = 'table{id}'.format(id=id(table))
+        table_id = f'table{id(table)}'
 
     jskwargs = jskwargs or {}
     jsv = JSViewer(**jskwargs)

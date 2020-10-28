@@ -35,7 +35,7 @@ class TestMultiD():
 
         lines = t.pformat(html=True)
         assert lines == [
-            '<table id="table{id}">'.format(id=id(t)),
+            f'<table id="table{id(t)}">',
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
             '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
@@ -44,7 +44,7 @@ class TestMultiD():
         masked = 'masked=True ' if t.masked else ''
         assert t._repr_html_().splitlines() == [
             f'<i>{table_type.__name__} {masked}length=2</i>',
-            '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
+            f'<table id="table{id(t)}" class="{nbclass}">',
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
@@ -76,7 +76,7 @@ class TestMultiD():
 
         lines = t.pformat(html=True)
         assert lines == [
-            '<table id="table{id}">'.format(id=id(t)),
+            f'<table id="table{id(t)}">',
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<tr><td>1</td><td>3</td><td>5</td></tr>',
             '<tr><td>10</td><td>30</td><td>50</td></tr>',
@@ -85,7 +85,7 @@ class TestMultiD():
         masked = 'masked=True ' if t.masked else ''
         assert t._repr_html_().splitlines() == [
             f'<i>{table_type.__name__} {masked}length=2</i>',
-            '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
+            f'<table id="table{id(t)}" class="{nbclass}">',
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1</td><td>3</td><td>5</td></tr>', '<tr><td>10</td><td>30</td><td>50</td></tr>',
@@ -105,7 +105,7 @@ def test_html_escaping():
     nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
         '<i>Table length=3</i>',
-        '<table id="table{id}" class="{nbclass}">'.format(id=id(t), nbclass=nbclass),
+        f'<table id="table{id(t)}" class="{nbclass}">',
         '<thead><tr><th>col0</th></tr></thead>',
         '<thead><tr><th>str33</th></tr></thead>',
         '<tr><td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td></tr>',
@@ -569,7 +569,7 @@ def test_html():
     t = Table([dat], names=['a'])
 
     lines = t.pformat(html=True)
-    assert lines == ['<table id="table{id}">'.format(id=id(t)),
+    assert lines == [f'<table id="table{id(t)}">',
                      '<thead><tr><th>a</th></tr></thead>',
                      '<tr><td>1.0</td></tr>',
                      '<tr><td>2.0</td></tr>',
@@ -577,7 +577,7 @@ def test_html():
 
     lines = t.pformat(html=True, tableclass='table-striped')
     assert lines == [
-        '<table id="table{id}" class="table-striped">'.format(id=id(t)),
+        f'<table id="table{id(t)}" class="table-striped">',
         '<thead><tr><th>a</th></tr></thead>',
         '<tr><td>1.0</td></tr>',
         '<tr><td>2.0</td></tr>',
@@ -585,7 +585,7 @@ def test_html():
 
     lines = t.pformat(html=True, tableclass=['table', 'table-striped'])
     assert lines == [
-        '<table id="table{id}" class="table table-striped">'.format(id=id(t)),
+        f'<table id="table{id(t)}" class="table table-striped">',
         '<thead><tr><th>a</th></tr></thead>',
         '<tr><td>1.0</td></tr>',
         '<tr><td>2.0</td></tr>',

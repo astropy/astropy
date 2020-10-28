@@ -141,7 +141,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
     if isinstance(verify, bool):
         verify = 'exception' if verify else 'warn'
     elif verify not in VERIFY_OPTIONS:
-        raise ValueError('verify should be one of {}'.format('/'.join(VERIFY_OPTIONS)))
+        raise ValueError(f"verify should be one of {'/'.join(VERIFY_OPTIONS)}")
 
     if datatype_mapping is None:
         datatype_mapping = {}
@@ -307,7 +307,7 @@ def validate(source, output=None, xmllint=False, filename=None):
                 else:
                     color = 'red'
                 color_print(
-                    '{:d}: '.format(w['nline']), '',
+                    f"{w['nline']:d}: ", '',
                     warning or 'EXC', color,
                     ': ', '',
                     textwrap.fill(

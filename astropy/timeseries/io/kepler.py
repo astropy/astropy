@@ -74,7 +74,7 @@ def kepler_fits_reader(filename):
     # Filter out NaN rows
     nans = np.isnan(tab['time'].data)
     if np.any(nans):
-        warnings.warn('Ignoring {} rows with NaN times'.format(np.sum(nans)))
+        warnings.warn(f'Ignoring {np.sum(nans)} rows with NaN times')
     tab = tab[~nans]
 
     # Time column is dependent on source and we correct it here

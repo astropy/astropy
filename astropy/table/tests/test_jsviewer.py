@@ -106,7 +106,7 @@ def test_write_jsviewer_default(tmpdir):
     ref = REFERENCE % dict(
         lines=format_lines(t['a'], t['b']),
         table_class='display compact',
-        table_id='table%s' % id(t),
+        table_id=f'table{id(t)}',
         length='50',
         display_length='10, 25, 50, 100, 500, 1000',
         datatables_css_url='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css',
@@ -133,7 +133,7 @@ def test_write_jsviewer_mixin(tmpdir, mixin):
     ref = REFERENCE % dict(
         lines=format_lines(t['a'], t['b']),
         table_class='display compact',
-        table_id='table%s' % id(t),
+        table_id=f'table{id(t)}',
         length='50',
         display_length='10, 25, 50, 100, 500, 1000',
         datatables_css_url='https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css',

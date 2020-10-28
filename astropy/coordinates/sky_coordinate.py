@@ -923,7 +923,7 @@ class SkyCoord(ShapedLikeNDArray):
             lonargs.update(styles[style]['lonargs'])
             latargs.update(styles[style]['latargs'])
         else:
-            raise ValueError('Invalid style.  Valid options are: {}'.format(",".join(styles)))
+            raise ValueError(f"Invalid style.  Valid options are: {','.join(styles)}")
 
         lonargs.update(kwargs)
         latargs.update(kwargs)

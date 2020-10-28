@@ -1164,10 +1164,8 @@ class _ValidHDU(_BaseHDU, _Verify):
             # if the supposed location is specified
             if pos is not None:
                 if not pos(index):
-                    err_text = ("'{}' card at the wrong place "
-                                "(card {}).".format(keyword, index))
-                    fix_text = ("Fixed by moving it to the right place "
-                                "(card {}).".format(insert_pos))
+                    err_text = f"'{keyword}' card at the wrong place (card {index})."
+                    fix_text = f"Fixed by moving it to the right place (card {insert_pos})."
 
                     def fix(self=self, index=index, insert_pos=insert_pos):
                         card = self._header.cards[index]
@@ -1181,10 +1179,8 @@ class _ValidHDU(_BaseHDU, _Verify):
             if test:
                 val = self._header[keyword]
                 if not test(val):
-                    err_text = ("'{}' card has invalid value '{}'.".format(
-                            keyword, val))
-                    fix_text = ("Fixed by setting a new value '{}'.".format(
-                            fix_value))
+                    err_text = f"'{keyword}' card has invalid value '{val}'."
+                    fix_text = f"Fixed by setting a new value '{fix_value}'."
 
                     if fixable:
                         def fix(self=self, keyword=keyword, val=fix_value):
@@ -1226,7 +1222,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum()
 
         if when is None:
-            when = 'data unit checksum updated {}'.format(self._get_timestamp())
+            when = f'data unit checksum updated {self._get_timestamp()}'
 
         self._header[datasum_keyword] = (str(cs), when)
         return cs
@@ -1273,7 +1269,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data_cs = self._calculate_datasum()
 
         if when is None:
-            when = 'HDU checksum updated {}'.format(self._get_timestamp())
+            when = f'HDU checksum updated {self._get_timestamp()}'
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if datasum_keyword in self._header:

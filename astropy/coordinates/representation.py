@@ -266,8 +266,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 c_str = ' and '.join(components)
             else:
                 c_str = ', '.join(components[:2]) + ', and ' + components[2]
-            raise ValueError("Input parameters {} cannot be broadcast"
-                             .format(c_str))
+            raise ValueError(f"Input parameters {c_str} cannot be broadcast")
 
         if copy:
             attrs = [attr.copy() for attr in attrs]
@@ -538,7 +537,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         return unitstr
 
     def __str__(self):
-        return '{} {:s}'.format(_array2string(self._values), self._unitstr)
+        return f'{_array2string(self._values)} {self._unitstr:s}'
 
     def __repr__(self):
         prefixstr = '    '
@@ -802,8 +801,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         unit_vectors : dict of `CartesianRepresentation`
             The keys are the component names.
         """
-        raise NotImplementedError("{} has not implemented unit vectors"
-                                  .format(type(self)))
+        raise NotImplementedError(f"{type(self)} has not implemented unit vectors")
 
     def scale_factors(self):
         r"""Scale factors for each component's direction.
@@ -817,8 +815,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
         scale_factors : dict of `~astropy.units.Quantity`
             The keys are the component names.
         """
-        raise NotImplementedError("{} has not implemented scale factors."
-                                  .format(type(self)))
+        raise NotImplementedError(f"{type(self)} has not implemented scale factors.")
 
     def _re_represent_differentials(self, new_rep, differential_class):
         """Re-represent the differentials to the specified classes.
@@ -2252,8 +2249,7 @@ class MetaBaseDifferential(abc.ABCMeta):
 
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
-            raise ValueError("Differential class {} already defined"
-                             .format(repr_name))
+            raise ValueError(f"Differential class {repr_name} already defined")
 
         DIFFERENTIAL_CLASSES[repr_name] = cls
         _invalidate_reprdiff_cls_hash()
@@ -2263,8 +2259,7 @@ class MetaBaseDifferential(abc.ABCMeta):
             if not hasattr(cls, component):
                 setattr(cls, component,
                         property(_make_getter(component),
-                                 doc=("Component '{}' of the Differential."
-                                      .format(component))))
+                                 doc=f"Component '{component}' of the Differential."))
 
 
 class BaseDifferential(BaseRepresentationOrDifferential,

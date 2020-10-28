@@ -232,6 +232,5 @@ class VOUnit(generic.Generic):
             scale = unit.scale
             unit = copy.copy(unit)
             unit._scale = 1.0
-            return '{} (with data multiplied by {})'.format(
-                cls.to_string(unit), scale)
+            return f'{cls.to_string(unit)} (with data multiplied by {scale})'
         return s

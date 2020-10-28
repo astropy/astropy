@@ -66,8 +66,7 @@ def convert_normalization(Z, N, from_normalization, to_normalization,
 
     for norm in from_to:
         if norm not in NORMALIZATIONS:
-            raise ValueError("{} is not a valid normalization"
-                             "".format(from_normalization))
+            raise ValueError(f"{from_normalization} is not a valid normalization")
 
     if from_normalization == to_normalization:
         return Z

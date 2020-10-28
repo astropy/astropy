@@ -137,7 +137,7 @@ def bool_to_bitarray(value):
     if bit_no != 7:
         bytes.append(byte)
 
-    return struct_pack("{}B".format(len(bytes)), *bytes)
+    return struct_pack(f"{len(bytes)}B", *bytes)
 
 
 class Converter:
@@ -583,7 +583,7 @@ class NumericArray(Array):
 
         self._base = base
         self._arraysize = arraysize
-        self.format = "{}{}".format(tuple(arraysize), base.format)
+        self.format = f"{tuple(arraysize)}{base.format}"
 
         self._items = 1
         for dim in arraysize:
@@ -702,11 +702,11 @@ class FloatingPoint(Numeric):
 
         if precision is not None:
             if precision.startswith("E"):
-                format_parts.append('.{:d}g'.format(int(precision[1:])))
+                format_parts.append(f'.{int(precision[1:]):d}g')
             elif precision.startswith("F"):
-                format_parts.append('.{:d}f'.format(int(precision[1:])))
+                format_parts.append(f'.{int(precision[1:]):d}f')
             else:
-                format_parts.append('.{:d}f'.format(int(precision)))
+                format_parts.append(f'.{int(precision):d}f')
 
         format_parts.append('}')
 

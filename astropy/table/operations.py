@@ -64,8 +64,7 @@ def _get_list_of_tables(tables):
             try:
                 tables[ii] = Table([val])
             except (ValueError, TypeError):
-                raise TypeError('cannot convert {} to table column.'
-                                .format(val))
+                raise TypeError(f'cannot convert {val} to table column.')
 
     return tables
 
@@ -948,8 +947,7 @@ def common_dtype(cols):
     try:
         return metadata.common_dtype(cols)
     except metadata.MergeConflictError as err:
-        tme = TableMergeError('Columns have incompatible types {}'
-                              .format(err._incompat_types))
+        tme = TableMergeError(f'Columns have incompatible types {err._incompat_types}')
         tme._incompat_types = err._incompat_types
         raise tme
 
@@ -1359,7 +1357,7 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
         raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
 
     if table_names is None:
-        table_names = ['{}'.format(ii + 1) for ii in range(len(arrays))]
+        table_names = [f'{ii + 1}' for ii in range(len(arrays))]
     if len(arrays) != len(table_names):
         raise ValueError('Number of arrays must match number of table_names')
 

@@ -400,8 +400,8 @@ def check_write_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e.value):
             raise e
         return
-    print('Expected:\n{}'.format(test_def['out']))
-    print('Actual:\n{}'.format(out.getvalue()))
+    print(f"Expected:\n{test_def['out']}")
+    print(f'Actual:\n{out.getvalue()}')
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
@@ -411,7 +411,7 @@ def check_write_table_via_table(test_def, table, fast_writer):
 
     test_def = copy.deepcopy(test_def)
     if 'Writer' in test_def['kwargs']:
-        format = 'ascii.{}'.format(test_def['kwargs']['Writer']._format_name)
+        format = f"ascii.{test_def['kwargs']['Writer']._format_name}"
         del test_def['kwargs']['Writer']
     else:
         format = 'ascii'
@@ -422,8 +422,8 @@ def check_write_table_via_table(test_def, table, fast_writer):
         if 'not in the list of formats with fast writers' not in str(e.value):
             raise e
         return
-    print('Expected:\n{}'.format(test_def['out']))
-    print('Actual:\n{}'.format(out.getvalue()))
+    print(f"Expected:\n{test_def['out']}")
+    print(f'Actual:\n{out.getvalue()}')
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 

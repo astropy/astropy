@@ -666,8 +666,7 @@ class UnifiedReadWrite:
                 doc = read_write_func.__doc__
             else:
                 # General docs
-                header = ('{}.{} general documentation\n'
-                          .format(cls.__name__, method_name))
+                header = f'{cls.__name__}.{method_name} general documentation\n'
                 doc = getattr(cls, method_name).__doc__
 
             reader_doc = re.sub('.', '=', header)

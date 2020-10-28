@@ -143,8 +143,7 @@ class base_constants_version(ScienceState):
     @classmethod
     def validate(cls, value):
         if value not in cls._versions:
-            raise ValueError('Must be one of {}'
-                             .format(list(cls._versions.keys())))
+            raise ValueError(f'Must be one of {list(cls._versions.keys())}')
         return cls._versions[value]
 
     @classmethod
