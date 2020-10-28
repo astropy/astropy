@@ -17,10 +17,10 @@ def _fix(content, indent=0):
 
 def TWO_OR_MORE_ARGS(naxis, indent=0):
     return _fix(
-"""args : flexible
+f"""args : flexible
     There are two accepted forms for the positional arguments:
 
-        - 2 arguments: An *N* x *{}* array of coordinates, and an
+        - 2 arguments: An *N* x *{naxis}* array of coordinates, and an
           *origin*.
 
         - more than 2 arguments: An array for each axis, followed by
@@ -30,14 +30,14 @@ def TWO_OR_MORE_ARGS(naxis, indent=0):
     Here, *origin* is the coordinate in the upper left corner of the
     image.  In FITS and Fortran standards, this is 1.  In Numpy and C
     standards this is 0.
-""".format(naxis), indent)
+""", indent)
 
 
 def RETURNS(out_type, indent=0):
-    return _fix("""result : array
-    Returns the {}.  If the input was a single array and
+    return _fix(f"""result : array
+    Returns the {out_type}.  If the input was a single array and
     origin, a single array is returned, otherwise a tuple of arrays is
-    returned.""".format(out_type), indent)
+    returned.""", indent)
 
 
 def ORIGIN(indent=0):

@@ -649,9 +649,7 @@ class ProgressBar:
         else:
             t = ((time.time() - self._start_time) * (1.0 - frac)) / frac
             prefix = ' ETA '
-        write(' {:>4s}/{:>4s}'.format(
-            human_file_size(value),
-            self._human_total))
+        write(f' {human_file_size(value):>4s}/{self._human_total:>4s}')
         write(f' ({frac:>6.2%})')
         write(prefix)
         if t is not None:

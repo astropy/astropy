@@ -88,7 +88,7 @@ def write_warning(w, line, xml_lines):
     if not warning['is_something']:
         w.data(line)
     else:
-        w.write('Line {:d}: '.format(warning['nline']))
+        w.write(f"Line {warning['nline']:d}: ")
         if warning['warning']:
             w.write('<a href="{}/{}">{}</a>: '.format(
                 online_docs_root, warning['doc_url'], warning['warning']))
@@ -167,7 +167,7 @@ def write_result_row(w, result):
                 w.data(result.url.decode('ascii'))
             else:
                 w.element('a', result.url.decode('ascii'),
-                          href='{}/index.html'.format(result.get_htmlpath()))
+                          href=f'{result.get_htmlpath()}/index.html')
 
         if 'network_error' in result and result['network_error'] is not None:
             w.element('td', str(result['network_error']),
@@ -229,7 +229,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
             return
         with w.tag('center'):
             if j > 0:
-                w.element('a', '<< ', href='{}_{:02d}.html'.format(basename, j-1))
+                w.element('a', '<< ', href=f'{basename}_{j - 1:02d}.html')
             for i in range(npages):
                 if i == j:
                     w.data(str(i+1))
@@ -239,7 +239,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
                         href=f'{basename}_{i:02d}.html')
                 w.data(' ')
             if j < npages - 1:
-                w.element('a', '>>', href='{}_{:02d}.html'.format(basename, j+1))
+                w.element('a', '>>', href=f'{basename}_{j + 1:02d}.html')
 
     npages = int(ceil(float(len(results)) / chunk_size))
 
@@ -283,7 +283,7 @@ def add_subset(w, basename, name, subresults, inside=['p'], total=None):
             w.element('a', name, href=f'{basename}_00.html')
             for element in reversed(inside):
                 w.end(element)
-        numbers = '{:d} ({:.2%})'.format(len(subresults), percentage)
+        numbers = f'{len(subresults):d} ({percentage:.2%})'
         with w.tag('td'):
             w.data(numbers)
 
@@ -305,5 +305,5 @@ def write_index_table(root, basename, name, subresults, inside=None,
     if total is None:
         total = len(subresults)
     percentage = (float(len(subresults)) / total)
-    numbers = '{:d} ({:.2%})'.format(len(subresults), percentage)
+    numbers = f'{len(subresults):d} ({percentage:.2%})'
     write_table(basename, name + ' ' + numbers, subresults, root, chunk_size)

@@ -105,7 +105,7 @@ class FITS_record:
         outlist = []
         for idx in range(len(self)):
             outlist.append(repr(self[idx]))
-        return '({})'.format(', '.join(outlist))
+        return f"({', '.join(outlist)})"
 
     def field(self, field):
         """
@@ -1001,7 +1001,7 @@ class FITS_rec(np.recarray):
                 field = field[:, :nitems]
             if _str:
                 fmt = field.dtype.char
-                dtype = ('|{}{}'.format(fmt, dim[-1]), dim[:-1])
+                dtype = (f'|{fmt}{dim[-1]}', dim[:-1])
                 field.dtype = dtype
             else:
                 field.shape = (field.shape[0],) + dim
@@ -1326,7 +1326,7 @@ def _ascii_encode(inarray, out=None):
     the item that couldn't be encoded.
     """
 
-    out_dtype = np.dtype(('S{}'.format(inarray.dtype.itemsize // 4),
+    out_dtype = np.dtype((f'S{inarray.dtype.itemsize // 4}',
                          inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)

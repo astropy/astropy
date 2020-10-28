@@ -34,8 +34,7 @@ def get_converter(from_unit, to_unit):
         return from_unit._apply_equivalencies(
                 from_unit, to_unit, get_current_unit_registry().equivalencies)
     except AttributeError:
-        raise UnitTypeError("Unit '{}' cannot be converted to '{}'"
-                            .format(from_unit, to_unit))
+        raise UnitTypeError(f"Unit '{from_unit}' cannot be converted to '{to_unit}'")
     if scale == 1.:
         return None
     else:

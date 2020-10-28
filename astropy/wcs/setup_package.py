@@ -136,7 +136,7 @@ its contents, edit astropy/wcs/docstrings.py
 """)
     for key in keys:
         val = docs[key]
-        h_file.write('extern char doc_{}[{}];\n'.format(key, len(val)))
+        h_file.write(f'extern char doc_{key}[{len(val)}];\n')
     h_file.write("\n#endif\n\n")
 
     write_if_different(
@@ -160,7 +160,7 @@ MSVC, do not support string literals greater than 256 characters.
 """)
     for key in keys:
         val = docs[key]
-        c_file.write('char doc_{0}[{1}] = {{\n'.format(key, len(val)))
+        c_file.write(f'char doc_{key}[{len(val)}] = {{\n')
         for i in range(0, len(val), 12):
             section = val[i:i+12]
             c_file.write('    ')

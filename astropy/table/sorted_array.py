@@ -66,8 +66,7 @@ class SortedArray:
         if self.unique and 0 <= pos < len(self.row_index) and \
            all(self.data[pos][i] == key[i] for i in range(len(key))):
             # already exists
-            raise ValueError('Cannot add duplicate value "{}" in a '
-                             'unique index'.format(key))
+            raise ValueError(f'Cannot add duplicate value "{key}" in a unique index')
         self.data.insert_row(pos, key)
         self.row_index = self.row_index.insert(pos, row)
 

@@ -114,8 +114,7 @@ def validate_schema(filename, version='1.1'):
         as strings
     """
     if version not in ('1.0', '1.1', '1.2', '1.3'):
-        log.info('{} has version {}, using schema 1.1'.format(
-            filename, version))
+        log.info(f'{filename} has version {version}, using schema 1.1')
         version = '1.1'
 
     if version in ('1.1', '1.2', '1.3'):

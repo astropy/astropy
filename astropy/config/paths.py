@@ -287,8 +287,8 @@ class set_temp_cache(_SetTempPath):
 
 
 def _find_or_create_root_dir(dirnm, linkto, pkgname='astropy'):
-    innerdir = os.path.join(_find_home(), '.{}'.format(pkgname))
-    maindir = os.path.join(_find_home(), '.{}'.format(pkgname), dirnm)
+    innerdir = os.path.join(_find_home(), f'.{pkgname}')
+    maindir = os.path.join(_find_home(), f'.{pkgname}', dirnm)
 
     if not os.path.exists(maindir):
         # first create .astropy dir if needed

@@ -277,8 +277,7 @@ class BoxLeastSquares(BasePeriodogram):
         try:
             oversample = int(oversample)
         except TypeError:
-            raise ValueError("oversample must be an int, got {}"
-                             .format(oversample))
+            raise ValueError(f"oversample must be an int, got {oversample}")
         if oversample < 1:
             raise ValueError("oversample must be greater than or equal to 1")
 

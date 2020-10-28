@@ -56,8 +56,7 @@ class Console(base.Base):
             parts.append(m)
 
         if ex:
-            parts.append("10{}".format(
-                cls._format_superscript(ex)))
+            parts.append(f"10{cls._format_superscript(ex)}")
 
         return cls._times.join(parts)
 

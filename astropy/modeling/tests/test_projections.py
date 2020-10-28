@@ -44,7 +44,7 @@ def test_Sky2Pix(code):
 
     params = []
     for i in range(3):
-        key = 'PV2_{}'.format(i + 1)
+        key = f'PV2_{i + 1}'
         if key in header:
             params.append(header[key])
 
@@ -71,7 +71,7 @@ def test_Pix2Sky(code):
 
     params = []
     for i in range(3):
-        key = 'PV2_{}'.format(i + 1)
+        key = f'PV2_{i + 1}'
         if key in header:
             params.append(header[key])
 
@@ -99,7 +99,7 @@ def test_Sky2Pix_unit(code):
 
     params = []
     for i in range(3):
-        key = 'PV2_{}'.format(i + 1)
+        key = f'PV2_{i + 1}'
         if key in header:
             params.append(header[key])
 
@@ -126,7 +126,7 @@ def test_Pix2Sky_unit(code):
 
     params = []
     for i in range(3):
-        key = 'PV2_{}'.format(i + 1)
+        key = f'PV2_{i + 1}'
         if key in header:
             params.append(header[key])
 

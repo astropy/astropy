@@ -95,7 +95,7 @@ class SpectralQuantity(SpecificTypeQuantity):
             result.__array_finalize__(self)
         else:
             if result is self:
-                raise TypeError("Cannot store the result of this operation in {0}".format(self.__class__.__name__))
+                raise TypeError(f"Cannot store the result of this operation in {self.__class__.__name__}")
             if result.dtype.kind == 'b':
                 result = result.view(np.ndarray)
             else:
@@ -173,7 +173,7 @@ class SpectralQuantity(SpecificTypeQuantity):
                                  "convention")
 
         if value is not None and value not in DOPPLER_CONVENTIONS:
-            raise ValueError("doppler_convention should be one of {0}".format('/'.join(sorted(DOPPLER_CONVENTIONS))))
+            raise ValueError(f"doppler_convention should be one of {'/'.join(sorted(DOPPLER_CONVENTIONS))}")
 
         self._doppler_convention = value
 
@@ -235,7 +235,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         if doppler_convention is None:
             doppler_convention = self._doppler_convention
         elif doppler_convention not in DOPPLER_CONVENTIONS:
-            raise ValueError("doppler_convention should be one of {0}".format('/'.join(sorted(DOPPLER_CONVENTIONS))))
+            raise ValueError(f"doppler_convention should be one of {'/'.join(sorted(DOPPLER_CONVENTIONS))}")
 
         if self.unit.is_equivalent(KMS) and unit.is_equivalent(KMS):
 

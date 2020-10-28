@@ -663,7 +663,7 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.remote_data(source='astropy')
     def test_open_from_remote_url(self):
         for dataurl in (conf.dataurl, conf.dataurl_mirror):
-            remote_url = '{}/{}'.format(dataurl, 'allsky/allsky_rosat.fits')
+            remote_url = f"{dataurl}/allsky/allsky_rosat.fits"
             try:
                 with urllib.request.urlopen(remote_url) as urlobj:
                     with fits.open(urlobj) as fits_handle:

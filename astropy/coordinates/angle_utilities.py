@@ -344,8 +344,7 @@ class _AngleParser:
                 angle, lexer=self._thread_local._lexer, debug=debug)
         except ValueError as e:
             if str(e):
-                raise ValueError("{} in angle {!r}".format(
-                    str(e), angle))
+                raise ValueError(f"{str(e)} in angle {angle!r}")
             else:
                 raise ValueError(
                     f"Syntax error parsing angle {angle!r}")
@@ -668,7 +667,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
         literal.append('{1:02d}{sep[1]}')
     if fields == 3:
         if precision is None:
-            last_value = '{:.4f}'.format(abs(values[2]))
+            last_value = f'{abs(values[2]):.4f}'
             last_value = last_value.rstrip('0').rstrip('.')
         else:
             last_value = '{0:.{precision}f}'.format(

@@ -168,4 +168,4 @@ class SCEngine:
         self._nodes.update(nodes)
 
     def __repr__(self):
-        return '{!r}'.format(list(self._nodes))
+        return f'{list(self._nodes)!r}'

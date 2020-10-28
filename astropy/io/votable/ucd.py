@@ -110,8 +110,7 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
     else:
         m = re.search(r'[^A-Za-z0-9_.;\-]', ucd)
     if m is not None:
-        raise ValueError("UCD has invalid character '{}' in '{}'".format(
-                m.group(0), ucd))
+        raise ValueError(f"UCD has invalid character '{m.group(0)}' in '{ucd}'")
 
     word_component_re = r'[A-Za-z0-9][A-Za-z0-9\-_]*'
     word_re = fr'{word_component_re}(\.{word_component_re})*'
@@ -138,16 +137,14 @@ def parse_ucd(ucd, check_controlled_vocabulary=False, has_colon=False):
                 if not _ucd_singleton.is_primary(word):
                     if _ucd_singleton.is_secondary(word):
                         raise ValueError(
-                            "Secondary word '{}' is not valid as a primary "
-                            "word".format(word))
+                            f"Secondary word '{word}' is not valid as a primary word")
                     else:
                         raise ValueError(f"Unknown word '{word}'")
             else:
                 if not _ucd_singleton.is_secondary(word):
                     if _ucd_singleton.is_primary(word):
                         raise ValueError(
-                            "Primary word '{}' is not valid as a secondary "
-                            "word".format(word))
+                            f"Primary word '{word}' is not valid as a secondary word")
                     else:
                         raise ValueError(f"Unknown word '{word}'")
 

@@ -224,8 +224,7 @@ class HDUList(list, _Verify):
 
         for idx, hdu in enumerate(hdus):
             if not isinstance(hdu, _BaseHDU):
-                raise TypeError("Element {} in the HDUList input is "
-                                "not an HDU.".format(idx))
+                raise TypeError(f"Element {idx} in the HDUList input is not an HDU.")
 
         super().__init__(hdus)
 
@@ -353,8 +352,7 @@ class HDUList(list, _Verify):
         try:
             self._try_while_unread_hdus(super().__setitem__, _key, hdu)
         except IndexError:
-            raise IndexError('Extension {} is out of bound or not found.'
-                             .format(key))
+            raise IndexError(f'Extension {key} is out of bound or not found.')
 
         self._resize = True
         self._truncate = False
@@ -1235,8 +1233,7 @@ class HDUList(list, _Verify):
         # each element calls their own verify
         for idx, hdu in enumerate(self):
             if idx > 0 and (not isinstance(hdu, ExtensionHDU)):
-                err_text = ("HDUList's element {} is not an "
-                            "extension HDU.".format(str(idx)))
+                err_text = f"HDUList's element {str(idx)} is not an extension HDU."
 
                 err = self.run_option(option, err_text=err_text, fixable=False)
                 errs.append(err)

@@ -68,6 +68,5 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
     elif normalization == 'model':
         p /= 0.5 * t.size * np.mean(y ** 2) - p
     else:
-        raise ValueError("normalization='{}' "
-                         "not recognized".format(normalization))
+        raise ValueError(f"normalization='{normalization}' not recognized")
     return p

@@ -494,7 +494,7 @@ class Ipac(basic.Basic):
             for keyword in keydict:
                 try:
                     val = keydict[keyword]['value']
-                    lines.append('\\{}={!r}'.format(keyword.strip(), val))
+                    lines.append(f'\\{keyword.strip()}={val!r}')
                     # meta is not standardized: Catch some common Errors.
                 except TypeError:
                     warn("Table metadata keyword {0} has been skipped.  "

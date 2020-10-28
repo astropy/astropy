@@ -437,8 +437,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
         n += 1
     elif n != n2:
         raise ValueError(
-            "with {} condition(s), either {} or {} functions are expected"
-            .format(n, n, n+1)
+            f"with {n} condition(s), either {n} or {n + 1} functions are expected"
         )
 
     y = np.zeros(x.shape, x.dtype)

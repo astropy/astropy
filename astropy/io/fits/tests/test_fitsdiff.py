@@ -145,20 +145,23 @@ class TestFITSDiff_script(FitsTestCase):
         numdiff = fitsdiff.main(["-r", "1e-2", tmp_a, tmp_b])
         assert numdiff == 1
         out, err = capsys.readouterr()
-        assert out == """
- fitsdiff: {}
- a: {}
- b: {}
+        assert out == f"""
+ fitsdiff: {version}
+ a: {tmp_a}
+ b: {tmp_b}
  Maximum number of different data values to be reported: 10
  Relative tolerance: 0.01, Absolute tolerance: 0.0
 
-Primary HDU:\n\n   Data contains differences:
+Primary HDU:
+
+   Data contains differences:
      Data differs at [1, 2]:
         a> 10.0
          ?  ^
         b> 11.0
          ?  ^
-     1 different pixels found (1.00% different).\n""".format(version, tmp_a, tmp_b)
+     1 different pixels found (1.00% different).
+"""
         assert err == ""
 
     def test_wildcard(self):
@@ -179,14 +182,15 @@ Primary HDU:\n\n   Data contains differences:
         numdiff = fitsdiff.main([tmp_a, tmp_b])
         assert numdiff == 0
         out, err = capsys.readouterr()
-        assert out == """
- fitsdiff: {}
- a: {}
- b: {}
+        assert out == f"""
+ fitsdiff: {version}
+ a: {tmp_a}
+ b: {tmp_b}
  Maximum number of different data values to be reported: 10
  Relative tolerance: 0.0, Absolute tolerance: 0.0
 
-No differences found.\n""".format(version, tmp_a, tmp_b)
+No differences found.
+"""
         assert err == ""
 
     def test_quiet(self, capsys):

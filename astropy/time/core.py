@@ -477,8 +477,7 @@ class TimeBase(ShapedLikeNDArray):
     def format(self, format):
         """Set time format"""
         if format not in self.FORMATS:
-            raise ValueError('format must be one of {}'
-                             .format(list(self.FORMATS)))
+            raise ValueError(f'format must be one of {list(self.FORMATS)}')
         format_cls = self.FORMATS[format]
 
         # Get the new TimeFormat object to contain time in new format.  Possibly
@@ -518,8 +517,7 @@ class TimeBase(ShapedLikeNDArray):
             else:
                 raise
 
-            raise TypeError("unhashable type: '{}' {}"
-                            .format(self.__class__.__name__, reason))
+            raise TypeError(f"unhashable type: '{self.__class__.__name__}' {reason}")
 
     @property
     def scale(self):
@@ -753,8 +751,7 @@ class TimeBase(ShapedLikeNDArray):
         # TODO: add a precision argument (but ensure it is keyword argument
         # only, to make life easier for TimeDelta.to_value()).
         if format not in self.FORMATS:
-            raise ValueError('format must be one of {}'
-                             .format(list(self.FORMATS)))
+            raise ValueError(f'format must be one of {list(self.FORMATS)}')
 
         cache = self.cache['format']
         # Try to keep cache behaviour like it was in astropy < 4.0.
@@ -1093,8 +1090,7 @@ class TimeBase(ShapedLikeNDArray):
         # in the copy.  If the format is unchanged this process is lightweight
         # and does not create any new arrays.
         if new_format not in tm.FORMATS:
-            raise ValueError('format must be one of {}'
-                             .format(list(tm.FORMATS)))
+            raise ValueError(f'format must be one of {list(tm.FORMATS)}')
 
         NewFormat = tm.FORMATS[new_format]
 

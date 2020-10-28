@@ -111,8 +111,8 @@ def test_iau_fullstack(fullstack_icrs, fullstack_fiducial_altaz,
 
     adras = np.abs(fullstack_icrs.ra - icrs2.ra)[msk]
     addecs = np.abs(fullstack_icrs.dec - icrs2.dec)[msk]
-    assert np.all(adras < tol), 'largest RA change is {} mas, > {}'.format(np.max(adras.arcsec*1000), tol)
-    assert np.all(addecs < tol), 'largest Dec change is {} mas, > {}'.format(np.max(addecs.arcsec*1000), tol)
+    assert np.all(adras < tol), f'largest RA change is {np.max(adras.arcsec * 1000)} mas, > {tol}'
+    assert np.all(addecs < tol), f'largest Dec change is {np.max(addecs.arcsec * 1000)} mas, > {tol}'
 
     # check that we're consistent with the ERFA alt/az result
     iers_tab = iers.earth_orientation_table.get()

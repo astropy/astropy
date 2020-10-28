@@ -47,8 +47,7 @@ class Latex(base.Base):
                 # `u.deg**2` returns `deg^{2}` instead of `{}^{\circ}^{2}`.
                 if re.match(r".*\^{[^}]*}$", base_latex): # ends w/ superscript?
                     base_latex = base.short_names[0]
-                out.append('{0}^{{{1}}}'.format(base_latex,
-                                                utils.format_power(power)))
+                out.append(f'{base_latex}^{{{utils.format_power(power)}}}')
         return r'\,'.join(out)
 
     @classmethod

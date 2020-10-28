@@ -307,8 +307,7 @@ class _DistributionRepr:
         else:  # numpy array-like
             firstparen = reprarr.find('(')
             reprarr = reprarr[firstparen:]
-            return '{}{} with n_samples={}'.format(self.__class__.__name__,
-                                                   reprarr, self.n_samples)
+            return f'{self.__class__.__name__}{reprarr} with n_samples={self.n_samples}'
             return reprarr
 
     def __str__(self):

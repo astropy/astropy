@@ -505,8 +505,7 @@ def test_all_world2pix(fname=None, ext=0,
         fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
         ext = ('SCI', 1)
     if not os.path.isfile(fname):
-        raise OSError("Input file '{:s}' to 'test_all_world2pix' not found."
-                      .format(fname))
+        raise OSError(f"Input file '{fname:s}' to 'test_all_world2pix' not found.")
     h = fits.open(fname)
     w = wcs.WCS(h[ext].header, h)
     h.close()
@@ -552,10 +551,8 @@ def test_all_world2pix(fname=None, ext=0,
         if e.divergent is not None:
             ndiv = e.divergent.shape[0]
             print(f"There are {ndiv} diverging solutions.")
-            print("Indices of diverging solutions:\n{}"
-                  .format(e.divergent))
-            print("Diverging solutions:\n{}\n"
-                  .format(e.best_solution[e.divergent]))
+            print(f"Indices of diverging solutions:\n{e.divergent}")
+            print(f"Diverging solutions:\n{e.best_solution[e.divergent]}\n")
             print("Mean radius of the diverging solutions: {}"
                   .format(np.mean(
                       np.linalg.norm(e.best_solution[e.divergent], axis=1))))
@@ -568,19 +565,15 @@ def test_all_world2pix(fname=None, ext=0,
         nslow = 0
         if e.slow_conv is not None:
             nslow = e.slow_conv.shape[0]
-            print("There are {} slowly converging solutions."
-                  .format(nslow))
-            print("Indices of slowly converging solutions:\n{}"
-                  .format(e.slow_conv))
-            print("Slowly converging solutions:\n{}\n"
-                  .format(e.best_solution[e.slow_conv]))
+            print(f"There are {nslow} slowly converging solutions.")
+            print(f"Indices of slowly converging solutions:\n{e.slow_conv}")
+            print(f"Slowly converging solutions:\n{e.best_solution[e.slow_conv]}\n")
         else:
             print("There are no slowly converging solutions.\n")
 
         print("There are {} converged solutions."
               .format(e.best_solution.shape[0] - ndiv - nslow))
-        print("Best solutions (all points):\n{}"
-              .format(e.best_solution))
+        print(f"Best solutions (all points):\n{e.best_solution}")
         print(f"Accuracy:\n{e.accuracy}\n")
         print("\nFinished running 'test_all_world2pix' with errors.\n"
               "ERROR: {}\nRun time: {}\n"
@@ -1029,8 +1022,8 @@ def test_no_truncate_crval():
 
     header = w.to_header()
     for ii in range(3):
-        assert header['CRVAL{}'.format(ii + 1)] == w.wcs.crval[ii]
-        assert header['CDELT{}'.format(ii + 1)] == w.wcs.cdelt[ii]
+        assert header[f'CRVAL{ii + 1}'] == w.wcs.crval[ii]
+        assert header[f'CDELT{ii + 1}'] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_try2():
@@ -1048,8 +1041,8 @@ def test_no_truncate_crval_try2():
 
     header = w.to_header()
     for ii in range(3):
-        assert header['CRVAL{}'.format(ii + 1)] == w.wcs.crval[ii]
-        assert header['CDELT{}'.format(ii + 1)] == w.wcs.cdelt[ii]
+        assert header[f'CRVAL{ii + 1}'] == w.wcs.crval[ii]
+        assert header[f'CDELT{ii + 1}'] == w.wcs.cdelt[ii]
 
 
 def test_no_truncate_crval_p17():

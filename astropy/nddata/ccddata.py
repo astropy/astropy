@@ -56,8 +56,7 @@ def _arithmetic(op):
             # Wrap it again as CCDData so it checks the final unit.
             _config_ccd_requires_unit = True
             return result.__class__(result)
-        inner.__doc__ = ("See `astropy.nddata.NDArithmeticMixin.{}`."
-                         "".format(func.__name__))
+        inner.__doc__ = f"See `astropy.nddata.NDArithmeticMixin.{func.__name__}`."
         return sharedmethod(inner)
     return decorator
 
@@ -69,8 +68,7 @@ def _uncertainty_unit_equivalent_to_parent(uncertainty_type, unit, parent_unit):
         return unit == (parent_unit ** 2)
     elif uncertainty_type is InverseVariance:
         return unit == (1 / (parent_unit ** 2))
-    raise ValueError("unsupported uncertainty type: {}"
-                     .format(uncertainty_type))
+    raise ValueError(f"unsupported uncertainty type: {uncertainty_type}")
 
 
 class CCDData(NDDataArray):
@@ -432,7 +430,7 @@ class CCDData(NDDataArray):
 
         if len(key) > 8 and len(value) > 72:
             short_name = key[:8]
-            self.meta['HIERARCH {}'.format(key.upper())] = (
+            self.meta[f'HIERARCH {key.upper()}'] = (
                 short_name, f"Shortened name for {key}")
             self.meta[short_name] = value
         else:
@@ -518,7 +516,7 @@ def _generate_wcs_and_update_header(hdr):
         keyword = '{}_{}_{}'
         polynomials = ['A', 'B', 'AP', 'BP']
         for poly in polynomials:
-            order = wcs.sip.__getattribute__('{}_order'.format(poly.lower()))
+            order = wcs.sip.__getattribute__(f'{poly.lower()}_order')
             for i, j in itertools.product(range(order), repeat=2):
                 new_hdr.remove(keyword.format(poly, i, j),
                                ignore_missing=True)
@@ -624,8 +622,7 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                     # present in the extension header.
                     comb_hdr.extend(hdr, unique=True)
                     hdr = comb_hdr
-                    log.info("first HDU with data is extension "
-                             "{}.".format(hdu))
+                    log.info(f"first HDU with data is extension {hdu}.")
                     break
 
         if 'bunit' in hdr:

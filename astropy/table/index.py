@@ -567,8 +567,7 @@ class SlicedIndex:
     def __repr__(self):
         if self.original:
             return repr(self.index)
-        return 'Index slice {} of\n{}'.format(
-            (self.start, self.stop, self.step), self.index)
+        return f'Index slice {self.start, self.stop, self.step} of\n{self.index}'
 
     def __str__(self):
         return repr(self)
@@ -907,7 +906,7 @@ class TableLoc:
                 for row, val in zip(rows, value):
                     self.table[row] = val
             else:
-                raise ValueError('Right side should contain {} values'.format(len(rows)))
+                raise ValueError(f'Right side should contain {len(rows)} values')
 
 
 class TableLocIndices(TableLoc):

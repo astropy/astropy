@@ -378,8 +378,7 @@ class OGIP(generic.Generic):
             return cls._parse_unit(t.value)
         except ValueError as e:
             raise ValueError(
-                "At col {}, '{}': {}".format(
-                    t.lexpos, t.value, str(e)))
+                f"At col {t.lexpos}, '{t.value}': {str(e)}")
 
     @classmethod
     def _validate_unit(cls, unit, detailed_exception=True):
@@ -439,11 +438,9 @@ class OGIP(generic.Generic):
             else:
                 power = utils.format_power(power)
                 if '/' in power:
-                    out.append('{}**({})'.format(
-                        cls._get_unit_name(base), power))
+                    out.append(f'{cls._get_unit_name(base)}**({power})')
                 else:
-                    out.append('{}**{}'.format(
-                        cls._get_unit_name(base), power))
+                    out.append(f'{cls._get_unit_name(base)}**{power}')
         return ' '.join(out)
 
     @classmethod
@@ -455,9 +452,7 @@ class OGIP(generic.Generic):
             # Can't use np.log10 here, because p[0] may be a Python long.
             if math.log10(unit.scale) % 1.0 != 0.0:
                 warnings.warn(
-                    "'{}' scale should be a power of 10 in "
-                    "OGIP format".format(
-                        unit.scale),
+                    f"'{unit.scale}' scale should be a power of 10 in OGIP format",
                     core.UnitsWarning)
 
         return generic._to_string(cls, unit)

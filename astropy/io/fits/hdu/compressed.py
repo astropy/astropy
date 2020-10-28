@@ -1918,7 +1918,7 @@ class CompImageHDU(BinTableHDU):
         if seed == DITHER_SEED_CHECKSUM:
             # Determine the tile dimensions from the ZTILEn keywords
             naxis = self._header['ZNAXIS']
-            tile_dims = [self._header['ZTILE{}'.format(idx + 1)]
+            tile_dims = [self._header[f'ZTILE{idx + 1}']
                          for idx in range(naxis)]
             tile_dims.reverse()
 

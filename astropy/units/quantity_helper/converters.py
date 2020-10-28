@@ -63,8 +63,7 @@ class UfuncHelpers(dict):
         import the helpers for that module.
         """
         if ufunc in self.UNSUPPORTED:
-            raise TypeError("Cannot use ufunc '{}' with quantities"
-                            .format(ufunc.__name__))
+            raise TypeError(f"Cannot use ufunc '{ufunc.__name__}' with quantities")
 
         for module, module_info in list(self.modules.items()):
             if ufunc.__name__ in module_info['names']:
@@ -245,8 +244,7 @@ def converters_and_unit(function, method, *args):
         else:
             if method in {'reduce', 'accumulate',
                           'reduceat', 'outer'} and nin != 2:
-                raise ValueError("{} only supported for binary functions"
-                                 .format(method))
+                raise ValueError(f"{method} only supported for binary functions")
 
             raise TypeError("Unexpected ufunc method {}.  If this should "
                             "work, please raise an issue on"

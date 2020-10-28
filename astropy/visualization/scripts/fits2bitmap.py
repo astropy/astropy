@@ -83,8 +83,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
         return 1
 
     if image.ndim != 2:
-        log.critical('data in FITS extension {} is not a 2D array'
-                     .format(ext))
+        log.critical(f'data in FITS extension {ext} is not a 2D array')
 
     if out_fn is None:
         out_fn = os.path.splitext(filename)[0]
@@ -98,8 +97,7 @@ def fits2bitmap(filename, ext=0, out_fn=None, stretch='linear',
     try:
         cm.get_cmap(cmap)
     except ValueError:
-        log.critical('{} is not a valid matplotlib colormap name.'
-                     .format(cmap))
+        log.critical(f'{cmap} is not a valid matplotlib colormap name.')
         return 1
 
     norm = simple_norm(image, stretch=stretch, power=power, asinh_a=asinh_a,

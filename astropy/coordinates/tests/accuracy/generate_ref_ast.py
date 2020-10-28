@@ -38,8 +38,8 @@ def ref_fk4_no_e_fk4(fnout='fk4_no_e_fk4.csv'):
     for i in range(N):
 
         # Set up frames for AST
-        frame_fk4ne = Ast.SkyFrame('System=FK4-NO-E,Epoch={epoch},Equinox=B1950'.format(epoch=obstime[i]))
-        frame_fk4 = Ast.SkyFrame('System=FK4,Epoch={epoch},Equinox=B1950'.format(epoch=obstime[i]))
+        frame_fk4ne = Ast.SkyFrame(f'System=FK4-NO-E,Epoch={obstime[i]},Equinox=B1950')
+        frame_fk4 = Ast.SkyFrame(f'System=FK4,Epoch={obstime[i]},Equinox=B1950')
 
         # FK4 to FK4 (no E-terms)
         frameset = frame_fk4.convert(frame_fk4ne)
@@ -97,8 +97,8 @@ def ref_fk4_no_e_fk5(fnout='fk4_no_e_fk5.csv'):
     for i in range(N):
 
         # Set up frames for AST
-        frame_fk4 = Ast.SkyFrame('System=FK4-NO-E,Epoch={epoch},Equinox={equinox_fk4}'.format(epoch=obstime[i], equinox_fk4=equinox_fk4[i]))
-        frame_fk5 = Ast.SkyFrame('System=FK5,Epoch={epoch},Equinox={equinox_fk5}'.format(epoch=obstime[i], equinox_fk5=equinox_fk5[i]))
+        frame_fk4 = Ast.SkyFrame(f'System=FK4-NO-E,Epoch={obstime[i]},Equinox={equinox_fk4[i]}')
+        frame_fk5 = Ast.SkyFrame(f'System=FK5,Epoch={obstime[i]},Equinox={equinox_fk5[i]}')
 
         # FK4 to FK5
         frameset = frame_fk4.convert(frame_fk5)
@@ -157,8 +157,8 @@ def ref_galactic_fk4(fnout='galactic_fk4.csv'):
     for i in range(N):
 
         # Set up frames for AST
-        frame_gal = Ast.SkyFrame('System=Galactic,Epoch={epoch}'.format(epoch=obstime[i]))
-        frame_fk4 = Ast.SkyFrame('System=FK4,Epoch={epoch},Equinox={equinox_fk4}'.format(epoch=obstime[i], equinox_fk4=equinox_fk4[i]))
+        frame_gal = Ast.SkyFrame(f'System=Galactic,Epoch={obstime[i]}')
+        frame_fk4 = Ast.SkyFrame(f'System=FK4,Epoch={obstime[i]},Equinox={equinox_fk4[i]}')
 
         # ICRS to FK5
         frameset = frame_gal.convert(frame_fk4)
@@ -216,8 +216,8 @@ def ref_icrs_fk5(fnout='icrs_fk5.csv'):
     for i in range(N):
 
         # Set up frames for AST
-        frame_icrs = Ast.SkyFrame('System=ICRS,Epoch={epoch}'.format(epoch=obstime[i]))
-        frame_fk5 = Ast.SkyFrame('System=FK5,Epoch={epoch},Equinox={equinox_fk5}'.format(epoch=obstime[i], equinox_fk5=equinox_fk5[i]))
+        frame_icrs = Ast.SkyFrame(f'System=ICRS,Epoch={obstime[i]}')
+        frame_fk5 = Ast.SkyFrame(f'System=FK5,Epoch={obstime[i]},Equinox={equinox_fk5[i]}')
 
         # ICRS to FK5
         frameset = frame_icrs.convert(frame_fk5)

@@ -437,7 +437,7 @@ class Generic(Base):
                     p[0] = function_unit(p[3])
                     return
 
-            raise ValueError("'{}' is not a recognized function".format(p[1]))
+            raise ValueError(f"'{p[1]}' is not a recognized function")
 
         def p_error(p):
             raise ValueError()
@@ -459,8 +459,7 @@ class Generic(Base):
             return cls._parse_unit(t.value)
         except ValueError as e:
             raise ValueError(
-                "At col {}, {}".format(
-                    t.lexpos, str(e)))
+                f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
@@ -481,8 +480,7 @@ class Generic(Base):
 
         if detailed_exception:
             raise ValueError(
-                '{} is not a valid unit. {}'.format(
-                    s, did_you_mean(s, registry)))
+                f'{s} is not a valid unit. {did_you_mean(s, registry)}')
         else:
             raise ValueError()
 
@@ -517,9 +515,7 @@ class Generic(Base):
 
     @classmethod
     def _convert_superscript(cls, m):
-        return '({})'.format(
-            m.group().translate(cls._superscript_translations)
-        )
+        return f'({m.group().translate(cls._superscript_translations)})'
 
     @classmethod
     def _convert_deg(cls, m):
@@ -588,11 +584,9 @@ class Generic(Base):
             else:
                 power = utils.format_power(power)
                 if '/' in power or '.' in power:
-                    out.append('{}({})'.format(
-                        cls._get_unit_name(base), power))
+                    out.append(f'{cls._get_unit_name(base)}({power})')
                 else:
-                    out.append('{}{}'.format(
-                        cls._get_unit_name(base), power))
+                    out.append(f'{cls._get_unit_name(base)}{power}')
         return ' '.join(out)
 
     @classmethod

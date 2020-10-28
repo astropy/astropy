@@ -58,7 +58,7 @@ def quantity_support(format='latex_inline'):
         elif n == 2:
             return 'π'
         elif n % 2 == 0:
-            return '{}π'.format(n / 2)
+            return f'{n / 2}π'
         else:
             return f'{n}π/2'
 
