@@ -123,8 +123,10 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
     # set up the weighting
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
-    if axis is None and mad == 0.:
-        return M  # mad == 0 means data is constant or mostly constant
+    # mad = 0 means data is constant or mostly constant
+    # mad = np.nan means data contains NaNs and ignore_nan=False
+    if axis is None and (mad == 0. or np.isnan(mad)):
+        return M
 
     if axis is not None:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
