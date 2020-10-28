@@ -58,8 +58,8 @@ def test_biweight_location_constant_axis_3d():
 
 
 def test_biweight_location_small():
-    cbl = biweight_location([1, 3, 5, 500, 2])
-    assert abs(cbl - 2.745) < 1e-3
+    bw_loc = biweight_location([1, 3, 5, 500, 2])
+    assert_allclose(bw_loc, 2.7456117)
 
 
 def test_biweight_location_axis():
@@ -141,6 +141,27 @@ def test_biweight_location_ignore_nan():
 
 @pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
 @pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
+def test_biweight_location_nan():
+    data1d = np.array([1, 3, 5, 500, 2, np.nan])
+    all_nan = data1d.copy()
+    all_nan[:] = np.nan
+    data2d = np.array([data1d, data1d, all_nan])
+    data1d_masked = np.ma.masked_invalid(data1d)
+    data1d_masked.data[0] = np.nan
+    data2d_masked = np.ma.masked_invalid(data2d)
+
+    assert np.isnan(biweight_location(data1d))
+    assert np.isnan(biweight_location(data1d_masked))
+    assert np.isnan(biweight_location(data2d))
+
+    for axis in (0, 1):
+        assert np.all(np.isnan(biweight_location(data2d, axis=axis)))
+        assert isinstance(biweight_location(data2d_masked, axis=axis),
+                          np.ma.MaskedArray)
+
+
+@pytest.mark.filterwarnings('ignore:All-NaN slice encountered')
+@pytest.mark.filterwarnings('ignore:Invalid value encountered in median')
 def test_biweight_location_masked():
     data1d = np.array([1, 3, 5, 500, 2, np.nan])
     data2d = np.array([data1d, data1d])
@@ -152,6 +173,10 @@ def test_biweight_location_masked():
                  biweight_location(data1d_masked))
     assert_equal(biweight_location(data2d, ignore_nan=True),
                  biweight_location(data2d_masked))
+
+    bw_loc = biweight_location(data1d_masked)
+    assert_allclose(bw_loc, 2.7456117)
+    assert bw_loc.shape == ()
 
     bw_loc = biweight_location(data2d, ignore_nan=True, axis=1)
     bw_loc_masked = biweight_location(data2d_masked, axis=1)
@@ -200,7 +225,7 @@ def test_biweight_midvariance():
 def test_biweight_midvariance_small():
     data = [1, 3, 5, 500, 2]
     var = biweight_midvariance(data)
-    assert_allclose(var, 2.9238456)    # verified with R
+    assert_allclose(var, 2.9238456)  # verified with R
 
     var = biweight_midvariance(data, modify_sample_size=True)
     assert_allclose(var, 2.3390765)
