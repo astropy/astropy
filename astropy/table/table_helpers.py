@@ -179,4 +179,4 @@ class ArrayWrapper:
         return self.data.shape
 
     def __repr__(self):
-        return (f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>")
+        return f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>"

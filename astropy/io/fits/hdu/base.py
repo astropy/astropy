@@ -1165,8 +1165,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             if pos is not None:
                 if not pos(index):
                     err_text = f"'{keyword}' card at the wrong place (card {index})."
-                    fix_text = ("Fixed by moving it to the right place "
-                                "(card {}).".format(insert_pos))
+                    fix_text = f"Fixed by moving it to the right place (card {insert_pos})."
 
                     def fix(self=self, index=index, insert_pos=insert_pos):
                         card = self._header.cards[index]
