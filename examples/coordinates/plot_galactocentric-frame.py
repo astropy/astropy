@@ -168,8 +168,8 @@ axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker='None', linewidth=3)
 axes[1].set_xlim(-250, 250)
 axes[1].set_ylim(-250, 250)
 
-axes[1].set_xlabel('$v_x$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
-axes[1].set_ylabel('$v_y$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
+axes[1].set_xlabel(f"$v_x$ [{(u.km / u.s).to_string('latex_inline')}]")
+axes[1].set_ylabel(f"$v_y$ [{(u.km / u.s).to_string('latex_inline')}]")
 
 fig.tight_layout()
 
