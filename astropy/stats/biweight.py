@@ -436,6 +436,9 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     # Ignore RuntimeWarnings for divide by zero.
     with np.errstate(divide='ignore', invalid='ignore'):
         value = n * f1 / f2
+        if np.isscalar(value):
+            return value
+
         where_func = np.where
         if isinstance(data, np.ma.MaskedArray):
             where_func = np.ma.where  # return MaskedArray
