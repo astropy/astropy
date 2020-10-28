@@ -1447,7 +1447,7 @@ class Table:
         from IPython.display import HTML
 
         if tableid is None:
-            tableid = f'table{id(self)}-{np.random.randint(1, 1000000.0)}'
+            tableid = f'table{id(self)}-{np.random.randint(1, 1e6)}'
 
         jsv = JSViewer(display_length=display_length)
         if show_row_index:
@@ -3527,7 +3527,7 @@ class Table:
 
             not_found = set(units.keys()) - set(names)
             if not_found:
-                warnings.warn(f'`units` contains additionial columns: {not_found}')
+                warnings.warn(f'`units` contains additional columns: {not_found}')
 
             units = [units.get(name) for name in names]
 
