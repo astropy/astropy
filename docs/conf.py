@@ -107,7 +107,7 @@ rst_epilog += """
 
 project = u'Astropy'
 author = u'The Astropy Developers'
-copyright = u'2011–{0}, '.format(datetime.utcnow().year) + author
+copyright = f'2011–{datetime.utcnow().year}, ' + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -168,7 +168,7 @@ modindex_common_prefix = ['astropy.']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = '{0} v{1}'.format(project, release)
+html_title = f'{project} v{release}'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'
@@ -222,7 +222,7 @@ try:
     sphinx_gallery_conf = {
         'backreferences_dir': 'generated/modules', # path to store the module using example template
         'filename_pattern': '^((?!skip_).)*$', # execute all examples except those that start with "skip_"
-        'examples_dirs': '..{}examples'.format(os.sep), # path to the examples scripts
+        'examples_dirs': f'..{os.sep}examples', # path to the examples scripts
         'gallery_dirs': 'generated/examples', # path to save gallery generated examples
         'reference_url': {
             'astropy': None,
