@@ -390,5 +390,4 @@ column.
           return self.data.shape
 
       def __repr__(self):
-          return ("<{0} name='{1}' data={2}>"
-                  .format(self.__class__.__name__, self.info.name, self.data))
+          return f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>"

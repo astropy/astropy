@@ -334,7 +334,7 @@ example, to create the following compound model:
     for z in (0.2, 0.4, 0.6):
         g = RedshiftScaleFactor(z) | Gaussian1D(1, 0.75, 0.1)
         plt.plot(x, g(x), color=plt.cm.OrRd(z),
-                 label='$z={0}$'.format(z))
+                 label=f'$z={z}$')
 
     plt.xlabel('Energy')
     plt.ylabel('Flux')
@@ -362,7 +362,7 @@ model *instances*:
         sc = Scale(1. / (1 + z))  # Rescale the flux to conserve energy
         g = rs | g0 | sc
         plt.plot(x, g(x), color=plt.cm.OrRd(z),
-                 label='$z={0}$'.format(z))
+                 label=f'$z={z}$')
 
     plt.xlabel('Wavelength')
     plt.ylabel('Flux')
@@ -409,7 +409,7 @@ example:
         plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
         plt.yticks([])
-        plt.title('Rotated $ {0}^\circ $'.format(theta))
+        plt.title(f'Rotated $ {theta}^\circ $')
 
 .. note::
 

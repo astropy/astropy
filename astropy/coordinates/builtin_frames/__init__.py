@@ -120,23 +120,24 @@ def make_transform_graph_docs(transform_graph):
     from astropy.coordinates.transformations import trans_to_color
     html_list_items = []
     for cls, color in trans_to_color.items():
-        block = """
+        block = f"""
             <li style='list-style: none;'>
                 <p style="font-size: 12px;line-height: 24px;font-weight: normal;color: #848484;padding: 0;margin: 0;">
-                    <b>{}:</b>
-                    <span style="font-size: 24px; color: {};"><b>➝</b></span>
+                    <b>{cls.__name__}:</b>
+                    <span style="font-size: 24px; color: {color};"><b>➝</b></span>
                 </p>
             </li>
-        """.format(cls.__name__, color)
+        """
         html_list_items.append(block)
 
-    graph_legend = """
+    nl = '\n'
+    graph_legend = f"""
     .. raw:: html
 
         <ul>
-            {}
+            {nl.join(html_list_items)}
         </ul>
-    """.format("\n".join(html_list_items))
+    """
     docstr = docstr + dedent(graph_legend)
 
     return docstr

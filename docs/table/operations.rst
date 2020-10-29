@@ -189,7 +189,7 @@ particular groups, for example::
 You can iterate over the group subtables and corresponding keys with::
 
   >>> for key, group in zip(obs_by_name.groups.keys, obs_by_name.groups):
-  ...     print('****** {0} *******'.format(key['name']))
+  ...     print(f'****** {key["name"]} *******')
   ...     print(group)
   ...     print('')
   ...
@@ -241,7 +241,7 @@ To generate grouping in columns::
   >>> cg = c.group_by(key_vals)
 
   >>> for key, group in zip(cg.groups.keys, cg.groups):
-  ...     print('****** {0} *******'.format(key))
+  ...     print(f'****** {key} *******')
   ...     print(group)
   ...     print('')
   ...
@@ -318,7 +318,7 @@ A single column of data can be aggregated as well::
   >>> cg = c.group_by(key_vals)
   >>> cg_sums = cg.groups.aggregate(np.sum)
   >>> for key, cg_sum in zip(cg.groups.keys, cg_sums):
-  ...     print('Sum for {0} = {1}'.format(key, cg_sum))
+  ...     print(f'Sum for {key} = {cg_sum}')
   ...
   Sum for bar = 2
   Sum for foo = 8

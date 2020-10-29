@@ -74,7 +74,7 @@ time = Time('2012-7-12 23:00:00') - utcoffset
 # observed from Bear Mountain at 11pm on 2012 July 12.
 
 m33altaz = m33.transform_to(AltAz(obstime=time,location=bear_mountain))
-print("M33's Altitude = {0.alt:.2}".format(m33altaz))
+print(f"M33's Altitude = {m33altaz.alt:.2}")
 
 ##############################################################################
 # This is helpful since it turns out M33 is barely above the horizon at this
