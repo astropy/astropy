@@ -50,13 +50,16 @@ jobs:
       targets:
       - sdist
       # The linux builds are the fastest so run all in one job
-      - wheels_cp3[78]*linux_i686
-      - wheels_cp3[78]*linux_x86_64
+      - wheels_cp3[789]*linux_i686
+      - wheels_cp3[789]*linux_x86_64
       # macos is a little slower so split it into two
       - wheels_cp37*macosx_x86_64
       - wheels_cp38*macosx_x86_64
+      - wheels_cp39*macosx_x86_64
       # windows is the slowest, so do one python version per build
       - wheels_cp37*win32
       - wheels_cp37*win_amd64
       - wheels_cp38*win32
       - wheels_cp38*win_amd64
+      - wheels_cp39*win32
+      - wheels_cp39*win_amd64
