@@ -54,7 +54,7 @@ like ``0.003f`` will not work when applied to a ``numpy`` array or non-scalar
 |Quantity|. Use :func:`numpy.array_str` instead. For instance::
 
     >>> q = np.linspace(0,1,10) * u.m
-    >>> "{0} {1}".format(np.array_str(q.value, precision=1), q.unit)  # doctest: +FLOAT_CMP
+    >>> f"{np.array_str(q.value, precision=1)} {q.unit}"  # doctest: +FLOAT_CMP
     '[0.  0.1 0.2 0.3 0.4 0.6 0.7 0.8 0.9 1. ] m'
 
 Examine the NumPy documentation for more examples with :func:`numpy.array_str`.

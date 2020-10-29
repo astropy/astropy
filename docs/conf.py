@@ -89,19 +89,19 @@ templates_path.append('_templates')
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-rst_epilog += """
-.. |minimum_python_version| replace:: {0.__minimum_python_version__}
-.. |minimum_numpy_version| replace:: {0.__minimum_numpy_version__}
-.. |minimum_erfa_version| replace:: {0.__minimum_erfa_version__}
-.. |minimum_scipy_version| replace:: {0.__minimum_scipy_version__}
-.. |minimum_yaml_version| replace:: {0.__minimum_yaml_version__}
-.. |minimum_asdf_version| replace:: {0.__minimum_asdf_version__}
-.. |minimum_matplotlib_version| replace:: {0.__minimum_matplotlib_version__}
+rst_epilog += f"""
+.. |minimum_python_version| replace:: {astropy.__minimum_python_version__}
+.. |minimum_numpy_version| replace:: {astropy.__minimum_numpy_version__}
+.. |minimum_erfa_version| replace:: {astropy.__minimum_erfa_version__}
+.. |minimum_scipy_version| replace:: {astropy.__minimum_scipy_version__}
+.. |minimum_yaml_version| replace:: {astropy.__minimum_yaml_version__}
+.. |minimum_asdf_version| replace:: {astropy.__minimum_asdf_version__}
+.. |minimum_matplotlib_version| replace:: {astropy.__minimum_matplotlib_version__}
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
 .. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
-""".format(astropy)
+"""
 
 # -- Project information ------------------------------------------------------
 

@@ -37,9 +37,9 @@ more). For example::
 You can also use Python's `format` string method to create more complex
 string expressions, such as IAU-style coordinates or even full sentences::
 
-  >>> 'SDSS J{0}{1}'.format(c.ra.to_string(unit=u.hourangle, sep='', precision=2, pad=True), c.dec.to_string(sep='', precision=2, alwayssign=True, pad=True))
+  >>> f'SDSS J{c.ra.to_string(unit=u.hourangle, sep="", precision=2, pad=True)}{c.dec.to_string(sep="", precision=2, alwayssign=True, pad=True)}'
   'SDSS J123049.42+122328.03'
-  >>> 'The galaxy M87, at an RA of {0.ra.hour:.2f} hours and Dec of {0.dec.deg:.1f} degrees, has an impressive jet.'.format(c)
+  >>> f'The galaxy M87, at an RA of {c.ra.hour:.2f} hours and Dec of {c.dec.deg:.1f} degrees, has an impressive jet.'
   'The galaxy M87, at an RA of 12.51 hours and Dec of 12.4 degrees, has an impressive jet.'
 
 ..

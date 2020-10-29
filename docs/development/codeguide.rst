@@ -266,8 +266,7 @@ The following example class shows a way to implement this::
 
         def __repr__(self):
             # Return unicode object containing no non-ASCII characters
-            return '<FloatList [{0}]>'.format(', '.join(
-                str(x) for x in self.x))
+            return f'<FloatList [{", ".join(str(x) for x in self.x)}]>'
 
         def __bytes__(self):
             return b'|'.join(bytes(x) for x in self.x)
