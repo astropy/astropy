@@ -168,8 +168,8 @@ axes[1].plot(gc_rings.v_x.T, gc_rings.v_y.T, marker='None', linewidth=3)
 axes[1].set_xlim(-250, 250)
 axes[1].set_ylim(-250, 250)
 
-axes[1].set_xlabel('$v_x$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
-axes[1].set_ylabel('$v_y$ [{0}]'.format((u.km/u.s).to_string("latex_inline")))
+axes[1].set_xlabel(f"$v_x$ [{(u.km / u.s).to_string('latex_inline')}]")
+axes[1].set_ylabel(f"$v_y$ [{(u.km / u.s).to_string('latex_inline')}]")
 
 fig.tight_layout()
 
@@ -180,7 +180,7 @@ plt.show()
 # observable coordinates:
 gal_rings = gc_rings.transform_to(coord.Galactic)
 
-fig,ax = plt.subplots(1, 1, figsize=(8,6))
+fig, ax = plt.subplots(1, 1, figsize=(8, 6))
 for i in range(len(ring_distances)):
     ax.plot(gal_rings[i].l.degree, gal_rings[i].pm_l_cosb.value,
             label=str(ring_distances[i]), marker='None', linewidth=3)
@@ -188,7 +188,7 @@ for i in range(len(ring_distances)):
 ax.set_xlim(360, 0)
 
 ax.set_xlabel('$l$ [deg]')
-ax.set_ylabel(r'$\mu_l \, \cos b$ [{0}]'.format((u.mas/u.yr).to_string('latex_inline')))
+ax.set_ylabel(fr'$\mu_l \, \cos b$ [{(u.mas/u.yr).to_string("latex_inline")}]')
 
 ax.legend()
 
