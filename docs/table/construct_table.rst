@@ -910,11 +910,11 @@ following example this is used to make a LaTeX ready output::
 
     >>> t = Table([[1,2],[1.234e9,2.34e-12]], names = ('a','b'))
     >>> def latex_exp(value):
-    ...     val = '{0:8.2}'.format(value)
+    ...     val = f'{value:8.2}'
     ...     mant, exp = val.split('e')
     ...     # remove leading zeros
     ...     exp = exp[0] + exp[1:].lstrip('0')
-    ...     return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
+    ...     return f'$ {mant} \\times 10^{{ {exp} }}$'
     >>> t['b'].format = latex_exp
     >>> t['a'].format = '.4f'
     >>> import sys
@@ -1248,7 +1248,7 @@ breakage in this case. ::
                Additional keyword args (ignored currently).
           """
           if kwargs:
-              warnings.warn('unexpected keyword args {}'.format(kwargs))
+              warnings.warn(f'unexpected keyword args {kwargs}')
 
           cols = list(self.values())
           names = list(self.keys())
@@ -1261,7 +1261,7 @@ breakage in this case. ::
           if not copy and strict_copy:
               for name, col in zip(names, cols):
                   if not isinstance(col, np.ndarray):
-                      raise ValueError('cannot have copy=False because column {} is '
-                                       'not an ndarray'.format(name))
+                      raise ValueError(f'cannot have copy=False because column {name} is '
+                                       'not an ndarray')
 
           return cls(cols, names=names, copy=copy)

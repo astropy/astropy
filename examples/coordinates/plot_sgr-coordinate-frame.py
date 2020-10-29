@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 ==========================================================
 Create a new coordinate class (for the Sagittarius stream)
 ==========================================================
@@ -218,20 +218,20 @@ axes[0].plot(sgr.Lambda.degree,
              sgr.pm_Lambda_cosBeta.value,
              linestyle='none', marker='.')
 axes[0].set_xlabel(r"$\Lambda$ [deg]")
-axes[0].set_ylabel(r"$\mu_\Lambda \, \cos B$ [{0}]"
-                   .format(sgr.pm_Lambda_cosBeta.unit.to_string('latex_inline')))
+axes[0].set_ylabel(
+    fr"$\mu_\Lambda \, \cos B$ [{sgr.pm_Lambda_cosBeta.unit.to_string('latex_inline')}]")
 
 axes[1].set_title("ICRS")
 axes[1].plot(icrs.ra.degree, icrs.pm_ra_cosdec.value,
              linestyle='none', marker='.')
-axes[1].set_ylabel(r"$\mu_\alpha \, \cos\delta$ [{0}]"
-                   .format(icrs.pm_ra_cosdec.unit.to_string('latex_inline')))
+axes[1].set_ylabel(
+    fr"$\mu_\alpha \, \cos\delta$ [{icrs.pm_ra_cosdec.unit.to_string('latex_inline')}]")
 
 axes[2].set_title("ICRS")
 axes[2].plot(icrs.ra.degree, icrs.pm_dec.value,
              linestyle='none', marker='.')
 axes[2].set_xlabel("RA [deg]")
-axes[2].set_ylabel(r"$\mu_\delta$ [{0}]"
-                   .format(icrs.pm_dec.unit.to_string('latex_inline')))
+axes[2].set_ylabel(
+    fr"$\mu_\delta$ [{icrs.pm_dec.unit.to_string('latex_inline')}]")
 
 plt.show()

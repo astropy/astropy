@@ -326,7 +326,7 @@ We can then phase the data and plot the Lomb-Scargle model fit:
     ax.invert_yaxis()
     ax.set(xlabel='phase',
            ylabel='magnitude',
-           title='phased data at frequency={0:.2f}'.format(best_frequency))
+           title=f'phased data at frequency={best_frequency:.2f}')
 
 The best-fit model parameters can be computed with the
 :func:`~astropy.timeseries.LombScargle.model_parameters` method of the

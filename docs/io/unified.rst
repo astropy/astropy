@@ -374,7 +374,7 @@ a table you can view the available keywords in a readable format using:
 .. doctest-skip::
 
   >>> for key, value in t.meta.items():
-  ...     print('{0} = {1}'.format(key, value))
+  ...     print(f'{key} = {value}')
 
 This does not include the "internal" FITS keywords that are required to specify
 the FITS table properties (e.g., ``NAXIS``, ``TTYPE1``). ``HISTORY`` and

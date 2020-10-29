@@ -503,8 +503,8 @@ class AstropyLogger(Logger):
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
             except OSError as e:
                 warnings.warn(
-                    'log file {!r} could not be opened for writing: '
-                    '{}'.format(log_file_path, str(e)), RuntimeWarning)
+                    f'log file {log_file_path!r} could not be opened for writing: {str(e)}',
+                    RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)

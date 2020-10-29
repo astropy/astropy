@@ -327,7 +327,7 @@ a factor of 10 with negligible loss of information.
     # Full model image
     plt.subplot(121)
     plt.imshow(full_image, origin='lower')
-    plt.title('Full Models\nTiming: {:.2f} seconds'.format(t_full), fontsize=16)
+    plt.title(f'Full Models\nTiming: {t_full:.2f} seconds', fontsize=16)
     plt.xlabel('x')
     plt.ylabel('y')
 
@@ -340,7 +340,7 @@ a factor of 10 with negligible loss of information.
         pos = (model.x_mean.value - dx / 2, model.y_mean.value - dy / 2)
         r = Rectangle(pos, dx, dy, edgecolor='w', facecolor='none', alpha=.25)
         ax.add_patch(r)
-    plt.title('Bounded Models\nTiming: {:.2f} seconds'.format(t_bb), fontsize=16)
+    plt.title(f'Bounded Models\nTiming: {t_bb:.2f} seconds', fontsize=16)
     plt.xlabel('x')
     plt.ylabel('y')
 
@@ -349,8 +349,7 @@ a factor of 10 with negligible loss of information.
     plt.subplot(111)
     plt.imshow(diff, vmin=-max_err, vmax=max_err)
     plt.colorbar(format='%.1e')
-    plt.title('Difference Image\nTotal Flux Err = {:.0e}'.format(
-        ((flux - np.sum(bb_image)) / flux)))
+    plt.title(f'Difference Image\nTotal Flux Err = {((flux - np.sum(bb_image)) / flux):.0e}')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.show()
