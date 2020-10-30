@@ -78,10 +78,6 @@ class Conf(_config.ConfigNamespace):
         'Default User-Agent for HTTP request headers. This can be overwritten '
         'for a particular call via http_headers option, where available. '
         'This only provides the default value when not set by https_headers.')
-    default_allow_insecure = _config.ConfigItem(
-        False,
-        'Whether or not to allow insecure TLS/SSL connections to hosts with '
-        'unverifiable certificates.')
     remote_timeout = _config.ConfigItem(
         10.,
         'Time to wait for remote data queries (in seconds). Set this to zero '
@@ -1218,7 +1214,7 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                   sources=None, pkgname='astropy', http_headers=None,
-                  ssl_context=None, allow_insecure=None):
+                  ssl_context=None, allow_insecure=False):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1293,13 +1289,12 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         Allow downloading files over a TLS/SSL connection even when the server
         certificate verification failed.  When set to `True` the potentially
         insecure download is allowed to proceed, but an
-        `~astropy.utils.exceptions.AstropyWarning` is issued.  The default
-        value for this can be set by
-        ``astropy.utils.data.conf.default_allow_insecure``.  If you are getting
-        frequently certificate verification warnings, consider installing or
-        upgrading `certifi`_ package, which provides frequently updated
-        certificates for common root CAs (i.e., a set similar to those used by
-        web browsers).  If installed, Astropy will use it automatically.
+        `~astropy.utils.exceptions.AstropyWarning` is issued.  If you are
+        frequently getting certificate verification warnings, consider
+        installing or upgrading `certifi`_ package, which provides frequently
+        updated certificates for common root CAs (i.e., a set similar to those
+        used by web browsers).  If installed, Astropy will use it
+        automatically.
 
         .. _certifi: https://pypi.org/project/certifi/
 
@@ -1329,8 +1324,6 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
     if http_headers is None:
         http_headers = {'User-Agent': conf.default_http_user_agent,
                         'Accept': '*/*'}
-    if allow_insecure is None:
-        allow_insecure = conf.default_allow_insecure
 
     missing_cache = ""
 
