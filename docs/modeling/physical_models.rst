@@ -77,15 +77,6 @@ give the wavelength and frequency of the maximum for :math:`B_\lambda`
 and :math:`B_\nu`, respectively, calculated using `Wein's Law
 <https://en.wikipedia.org/wiki/Wien%27s_displacement_law>`_.
 
-.. note::
-
-    Prior to v4.0, the ``BlackBody1D`` and the functions ``blackbody_nu`` and ``blackbody_lambda``
-    were provided.  ``BlackBody1D`` was a more limited blackbody model that was
-    specific to integrated fluxes from sources.  The capabilities of all three
-    can be obtained with :class:`~astropy.modeling.physical_models.BlackBody`.
-    See :doc:`blackbody_deprecated`
-    and `astropy issue #9066 <https://github.com/astropy/astropy/issues/9066>`_ for details.
-
 Drude1D
 =======
 
