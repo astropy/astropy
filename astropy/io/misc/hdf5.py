@@ -12,7 +12,7 @@ import numpy as np
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
-from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 META_KEY = '__table_column_meta__'
@@ -68,8 +68,8 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
 
     Parameters
     ----------
-    input : str or :class:`h5py:File` or :class:`h5py:Group` or
-        :class:`h5py:Dataset` If a string, the filename to read the table from.
+    input : str or :class:`h5py.File` or :class:`h5py.Group` or
+        :class:`h5py.Dataset` If a string, the filename to read the table from.
         If an h5py object, either the file or the group object to read the
         table from.
     path : str
@@ -203,7 +203,7 @@ def _encode_mixins(tbl):
     # YAML bit, for backward compatibility (i.e. not requiring YAML to write
     # Quantity).
     try:
-        import yaml
+        import yaml  # noqa
     except ImportError:
         for col in tbl.itercols():
             if (has_info_class(col, MixinInfo) and
@@ -232,7 +232,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
     ----------
     table : `~astropy.table.Table`
         Data table that is to be written to file.
-    output : str or :class:`h5py:File` or :class:`h5py:Group`
+    output : str or :class:`h5py.File` or :class:`h5py.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
     path : str
