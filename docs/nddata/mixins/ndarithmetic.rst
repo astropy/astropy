@@ -198,17 +198,17 @@ Meta
 The ``handle_meta`` parameter for the arithmetic operations implements what the
 resulting ``meta`` will be. The options are the same as for the ``mask``:
 
-- If ``None`` the resulting ``meta`` will be an empty `collections.OrderedDict`.
+- If ``None`` the resulting ``meta`` will be an empty `dict`.
 
       >>> ndd1 = NDDataRef(1, meta={'object': 'sun'})
       >>> ndd2 = NDDataRef(1, meta={'object': 'moon'})
       >>> ndd1.add(ndd2, handle_meta=None).meta
-      OrderedDict()
+      {}
 
   For ``meta`` this is the default so you do not need to pass it in this case::
 
       >>> ndd1.add(ndd2).meta
-      OrderedDict()
+      {}
 
 - If ``"first_found"`` or ``"ff"``, the resulting ``meta`` will be the ``meta``
   of the first operand or if that contains no keys, the ``meta`` of the second

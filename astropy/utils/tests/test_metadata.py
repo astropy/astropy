@@ -21,7 +21,7 @@ class MetaBaseTest:
 
     def test_none(self):
         d = self.test_class(*self.args)
-        assert isinstance(d.meta, OrderedDict)
+        assert isinstance(d.meta, dict)
         assert len(d.meta) == 0
 
     @pytest.mark.parametrize(('meta'), ([dict([('a', 1)]),

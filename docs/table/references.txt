@@ -4,5 +4,4 @@
 .. |Column| replace:: :class:`~astropy.table.Column`
 .. |MaskedColumn| replace:: :class:`~astropy.table.MaskedColumn`
 .. |TableColumns| replace:: :class:`~astropy.table.TableColumns`
-.. _OrderedDict: https://docs.python.org/3/library/collections.html#collections.OrderedDict
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`

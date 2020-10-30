@@ -299,15 +299,15 @@ also includes `~astropy.io.fits.Header` objects::
     'Edwin Hubble'
 
 If the ``meta`` property is not provided or explicitly set to ``None``, it will
-default to an empty `collections.OrderedDict`::
+default to an empty `dict`::
 
     >>> ndd.meta = None
     >>> ndd.meta
-    OrderedDict()
+    {}
 
     >>> ndd = NDData([1,2,3])
     >>> ndd.meta
-    OrderedDict()
+    {}
 
 The ``meta`` object therefore supports adding or updating these values::
 

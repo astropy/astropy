@@ -256,12 +256,10 @@ will be marked as missing (masked)::
     5  10  --
    15  --  50
 
-You can also preserve the column order by using ``OrderedDict``. If the first
-item is an ``OrderedDict`` then the order is preserved:
+The column order is automatically the order given in the ``dict``:
 
-  >>> from collections import OrderedDict
-  >>> row1 = OrderedDict([('b', 1), ('a', 0)])
-  >>> row2 = OrderedDict([('b', 11), ('a', 10)])
+  >>> row1 = dict([('b', 1), ('a', 0)])
+  >>> row2 = dict([('b', 11), ('a', 10)])
   >>> rows = [row1, row2]
   >>> Table(rows=rows, dtype=('i4', 'i4'))
   <Table length=2>
@@ -642,8 +640,7 @@ for the ``data`` argument.
     key values in each dict define the column names and each row must
     have identical column names. The ``names`` argument may be supplied
     to specify column ordering. If it is not provided, the column order will
-    default to alphabetical. If the first item is an ``OrderedDict``, then the
-    column order is preserved. The ``dtype`` list may be specified, and must
+    default to insertion-order. The ``dtype`` list may be specified, and must
     correspond to the order of output columns. If any row's keys do not match
     the rest of the rows, a ValueError will be thrown.
 
@@ -690,10 +687,10 @@ meta
 ----
 
 The ``meta`` argument is an object that contains metadata associated
-with the table. It is recommended that this object be a dict or
-OrderedDict_, but the only firm requirement is that it can be copied with
+with the table. It is recommended that this object be a dict,
+but the only firm requirement is that it can be copied with
 the standard library ``copy.deepcopy()`` routine. By default, ``meta`` is
-an empty OrderedDict_.
+an empty dict.
 
 copy
 ----

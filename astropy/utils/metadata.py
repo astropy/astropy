@@ -403,14 +403,18 @@ class MetaData:
     def __set__(self, instance, value):
         if value is None:
             instance._meta = dict()
-        else:
-            if isinstance(value, Mapping):
-                if self.copy:
-                    instance._meta = deepcopy(value)
-                else:
-                    instance._meta = value
+            return
+
+        if isinstance(value, (list, tuple)):
+            value = dict(value)
+
+        if isinstance(value, Mapping):
+            if self.copy:
+                instance._meta = deepcopy(value)
             else:
-                raise TypeError("meta attribute must be dict-like")
+                instance._meta = value
+        else:
+            raise TypeError(f"meta attribute must be dict-like, but got {value}")
 
 
 class MetaAttribute:

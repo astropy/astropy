@@ -88,8 +88,6 @@ def test_write_full():
     """
     Write a full-featured table with common types and explicitly checkout output
     """
-    from astropy.utils.diff import report_diff_values
-
     t = T_DTYPES['bool', 'int64', 'float64', 'str']
     lines = ['# %ECSV 0.9',
              '# ---',
@@ -114,8 +112,8 @@ def test_write_full():
              '#   datatype: string',
              '#   description: descr_str',
              '#   meta: {meta str: 1}',
-             '# meta: !!omap',
-             '# - comments: [comment1, comment2]',
+             '# meta:',
+             '#   comments: [comment1, comment2]',
              '# schema: astropy-2.0',
              'bool int64 float64 str',
              'False 0 0.0 "ab 0"',
@@ -124,7 +122,7 @@ def test_write_full():
 
     out = StringIO()
     t.write(out, format='ascii.ecsv')
-    assert report_diff_values(os.linesep.join(lines), out.getvalue(), fileobj=sys.stderr)
+    assert out.getvalue().splitlines() == lines
 
 
 @pytest.mark.skipif('not HAS_YAML')
