@@ -91,9 +91,9 @@ conveniently with the ``get_pkg_data_*`` functions::
     available to verify remote connections.  In rare cases, certificate
     verification may still fail if the remote server is misconfigured (e.g.,
     with expired certificates).  In this case, you may pass the
-    ``allow_insecure=True`` argument to :func:`~astropy.utils.data.download_file`,
-    or add the setting ``astropy.utils.iers.conf.default_allow_insecure =
-    True`` in the :ref:`astropy config file <astropy_config>`.
+    ``allow_insecure=True`` argument to
+    :func:`~astropy.utils.data.download_file` to allow the download with a
+    warning instead.
 
 
 Usage From Outside Astropy
