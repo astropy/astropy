@@ -962,6 +962,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed use of weights with ``LinearLSQFitter``. [#10687]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
