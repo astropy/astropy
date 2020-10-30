@@ -74,7 +74,7 @@ function gives the bolometric flux using
 The :meth:`~astropy.modeling.physical_models.BlackBody.lambda_max` and
 :meth:`~astropy.modeling.physical_models.BlackBody.nu_max` member functions
 give the wavelength and frequency of the maximum for :math:`B_\lambda`
-and :math:`B_\nu`, respectively, calculated using `Wein's Law
+and :math:`B_\nu`, respectively, calculated using `Wien's Law
 <https://en.wikipedia.org/wiki/Wien%27s_displacement_law>`_.
 
 Drude1D
