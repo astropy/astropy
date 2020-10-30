@@ -548,29 +548,3 @@ class Test1ModelSet:
         assert_allclose(model.c0_0, 1., atol=1e-12)
         assert_allclose(model.c1_0, -0.1, atol=1e-12)
         assert_allclose(model.c0_1, 0.2, atol=1e-12)
-
-    # # The following 2 cases also happen to work, but model set fitting is
-    # # only supported by the linear fitter so I've left them commented out
-    # # for now.
-    #
-    # def test_levmar_2d_separate_weights(self):
-    #     model = Polynomial2D(1)
-    #     fitter = LevMarLSQFitter()
-    #     with pytest.warns(AstropyUserWarning,
-    #                       match=r'Model is linear in parameters'):
-    #         model = fitter(model, self.x2, self.y2, self.z2,
-    #                        weights=self.w2[np.newaxis, ...])
-    #     assert_allclose(model.c0_0, 1., atol=1e-12)
-    #     assert_allclose(model.c1_0, -0.1, atol=1e-12)
-    #     assert_allclose(model.c0_1, 0.2, atol=1e-12)
-    #
-    # def test_slsqp_2d_separate_weights(self):
-    #     model = Polynomial2D(1)
-    #     fitter = SLSQPLSQFitter()
-    #     with pytest.warns(AstropyUserWarning,
-    #                       match=r'Model is linear in parameters'):
-    #         model = fitter(model, self.x2, self.y2, self.z2,
-    #                        weights=self.w2[np.newaxis, ...])
-    #     assert_allclose(model.c0_0, 1., rtol=1e-6, atol=1e-12)
-    #     assert_allclose(model.c1_0, -0.1, rtol=1e-6, atol=1e-12)
-    #     assert_allclose(model.c0_1, 0.2, rtol=1e-6, atol=1e-12)
