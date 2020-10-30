@@ -812,6 +812,17 @@ class TestWeightedFittingWithOutlierRemoval:
         fit, filtered = fitter(model, self.x1d, z1d, weights=self.weights1d)
         assert_allclose(fit.parameters, [0.8, 0.8], atol=1e-14)
 
+    def test_1d_set_with_weights_with_sigma_clip(self):
+        """1D model set with separate weights"""
+        model = models.Polynomial1D(0, n_models=2)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        z1d = np.array([self.z1d, self.z1d])
+        weights = np.array([self.weights1d, self.weights1d])
+
+        fit, filtered = fitter(model, self.x1d, z1d, weights=weights)
+        assert_allclose(fit.parameters, [0.8, 0.8], atol=1e-14)
+
     def test_2d_without_weights_without_sigma_clip(self):
         model = models.Polynomial2D(0)
         fitter = LinearLSQFitter()
@@ -835,8 +846,15 @@ class TestWeightedFittingWithOutlierRemoval:
             fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
         assert(fit.parameters[0] > 1.0)     # outliers pulled it high
 
+    def test_2d_linear_with_weights_without_sigma_clip(self):
+        model = models.Polynomial2D(0)
+        fitter = LinearLSQFitter()  # LinearLSQFitter doesn't handle weights properly in 2D
+        fit = fitter(model, self.x, self.y, self.z, weights=self.weights)
+        assert(fit.parameters[0] > 1.0)     # outliers pulled it high
+
     def test_2d_with_weights_with_sigma_clip(self):
-        """smoke test for #7020 - fails without fitting.py patch because weights does not propagate"""
+        """smoke test for #7020 - fails without fitting.py patch because
+        weights does not propagate"""
         model = models.Polynomial2D(0)
         fitter = FittingWithOutlierRemoval(LevMarLSQFitter(), sigma_clip,
                                            niter=3, sigma=3.)
@@ -844,6 +862,16 @@ class TestWeightedFittingWithOutlierRemoval:
                           match=r'Model is linear in parameters'):
             fit, filtered = fitter(model, self.x, self.y, self.z,
                                    weights=self.weights)
+        assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
+        assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
+
+    def test_2d_linear_with_weights_with_sigma_clip(self):
+        """same as test above with a linear fitter."""
+        model = models.Polynomial2D(0)
+        fitter = FittingWithOutlierRemoval(LinearLSQFitter(), sigma_clip,
+                                           niter=3, sigma=3.)
+        fit, filtered = fitter(model, self.x, self.y, self.z,
+                               weights=self.weights)
         assert(fit.parameters[0] > 10**(-2))  # weights pulled it > 0
         assert(fit.parameters[0] < 1.0)       # outliers didn't pull it out of [-1:1] because they had been removed
 
@@ -870,6 +898,37 @@ def test_fitters_with_weights():
     with pytest.warns(AstropyUserWarning,
                       match=r'Model is linear in parameters'):
         pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig)
+    assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
+
+
+def test_linear_fitter_with_weights():
+    """Regression test for #7035"""
+    Xin, Yin = np.mgrid[0:21, 0:21]
+    fitter = LinearLSQFitter()
+
+    with NumpyRNGContext(_RANDOM_SEED):
+        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+
+    p2 = models.Polynomial2D(3)
+    p2.parameters = np.arange(10)/1.2
+    z = p2(Xin, Yin)
+    pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig, weights=zsig**(-2))
+    assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
+
+
+def test_linear_fitter_with_weights_flat():
+    """Same as the above #7035 test but with flattened inputs"""
+    Xin, Yin = np.mgrid[0:21, 0:21]
+    Xin, Yin = Xin.flatten(), Yin.flatten()
+    fitter = LinearLSQFitter()
+
+    with NumpyRNGContext(_RANDOM_SEED):
+        zsig = np.random.normal(0, 0.01, size=Xin.shape)
+
+    p2 = models.Polynomial2D(3)
+    p2.parameters = np.arange(10)/1.2
+    z = p2(Xin, Yin)
+    pmod = fitter(models.Polynomial2D(3), Xin, Yin, z + zsig, weights=zsig**(-2))
     assert_allclose(pmod.parameters, p2.parameters, atol=10 ** (-2))
 
 
