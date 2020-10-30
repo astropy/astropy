@@ -15,7 +15,6 @@ from .functional_models import *
 from .physical_models import *
 from .powerlaws import *
 from .tabular import *
-from .blackbody import BlackBody1D
 from . import math_functions as math
 
 # Deprecated models that are not defined in __all__
