@@ -381,6 +381,11 @@ class LinearLSQFitter(metaclass=_FitterMeta):
 
         has_fixed = any(model_copy.fixed.values())
 
+        # This is also done by _convert_inputs, but we need it here to allow
+        # checking the array dimensionality before that gets called:
+        if weights is not None:
+            weights = np.asarray(weights, dtype=float)
+
         if has_fixed:
 
             # The list of fixed params is the complement of those being fitted:
@@ -398,6 +403,16 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         if len(farg) == 2:
             x, y = farg
 
+            if weights is not None:
+                # If we have separate weights for each model, apply the same
+                # conversion as for the data, otherwise check common weights
+                # as if for a single model:
+                _, weights = _convert_input(
+                    x, weights,
+                    n_models=len(model_copy) if weights.ndim == y.ndim else 1,
+                    model_set_axis=model_copy.model_set_axis
+                )
+
             # map domain into window
             if hasattr(model_copy, 'domain'):
                 x = self._map_domain_window(model_copy, x)
@@ -412,6 +427,16 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             rhs = y
         else:
             x, y, z = farg
+
+            if weights is not None:
+                # If we have separate weights for each model, apply the same
+                # conversion as for the data, otherwise check common weights
+                # as if for a single model:
+                _, _, weights = _convert_input(
+                    x, y, weights,
+                    n_models=len(model_copy) if weights.ndim == z.ndim else 1,
+                    model_set_axis=model_copy.model_set_axis
+                )
 
             # map domain into window
             if hasattr(model_copy, 'x_domain'):
@@ -445,8 +470,23 @@ class LinearLSQFitter(metaclass=_FitterMeta):
                     # but z has a second axis for the model set. NB. This is
                     # ~5-10x faster than using rollaxis.
                     rhs = z.T if model_axis == 0 else z
+
+                if weights is not None:
+                    # Same for weights
+                    if weights.ndim > 2:
+                        # Separate 2D weights for each model:
+                        weights = np.rollaxis(weights, model_axis, weights.ndim)
+                        weights = weights.reshape(-1, weights.shape[-1])
+                    elif weights.ndim == z.ndim:
+                        # Separate, flattened weights for each model:
+                        weights = weights.T if model_axis == 0 else weights
+                    else:
+                        # Common weights for all the models:
+                        weights = weights.flatten()
             else:
                 rhs = z.flatten()
+                if weights is not None:
+                    weights = weights.flatten()
 
         # If the derivative is defined along rows (as with non-linear models)
         if model_copy.col_fit_deriv:
@@ -481,14 +521,18 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             rhs = rhs - sum_of_implicit_terms
 
         if weights is not None:
-            weights = np.asarray(weights, dtype=float)
-            if len(x) != len(weights):
-                raise ValueError("x and weights should have the same length")
+
             if rhs.ndim == 2:
-                lhs *= weights[:, np.newaxis]
-                # Don't modify in-place in case rhs was the original dependent
-                # variable array
-                rhs = rhs * weights[:, np.newaxis]
+                if weights.shape == rhs.shape:
+                    # separate weights for multiple models case: broadcast
+                    # lhs to have more dimension (for each model)
+                    lhs = lhs[..., np.newaxis] * weights[:, np.newaxis]
+                    rhs = rhs * weights
+                else:
+                    lhs *= weights[:, np.newaxis]
+                    # Don't modify in-place in case rhs was the original
+                    # dependent variable array
+                    rhs = rhs * weights[:, np.newaxis]
             else:
                 lhs *= weights[:, np.newaxis]
                 rhs = rhs * weights
@@ -497,26 +541,32 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         lhs /= scl
 
         masked = np.any(np.ma.getmask(rhs))
+        if weights is not None and not masked and np.any(np.isnan(lhs)):
+            raise ValueError('Found NaNs in the coefficient matrix, which '
+                             'should not happen and would crash the lapack '
+                             'routine. Maybe check that weights are not null.')
 
-        if len(model_copy) == 1 or not masked:
+        a = None  # need for calculating covarience
 
-            # If we're fitting one or more models over a common set of points,
-            # we only have to solve a single matrix equation, which is an order
-            # of magnitude faster than calling lstsq() once per model below:
+        if ((masked and len(model_copy) > 1) or
+                (weights is not None and weights.ndim > 1)):
 
-            good = ~rhs.mask if masked else slice(None)  # latter is a no-op
+            # Separate masks or weights for multiple models case: Numpy's
+            # lstsq supports multiple dimensions only for rhs, so we need to
+            # loop manually on the models. This may be fixed in the future
+            # with https://github.com/numpy/numpy/pull/15777.
 
-            # Solve for one or more models:
-            lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
-                                                         rhs[good], rcond)
+            # Initialize empty array of coefficients and populate it one model
+            # at a time. The shape matches the number of coefficients from the
+            # Vandermonde matrix and the number of models from the RHS:
+            lacoef = np.zeros(lhs.shape[1:2] + rhs.shape[-1:], dtype=rhs.dtype)
 
-        else:
-
-            # Where fitting multiple models with masked pixels, initialize an
-            # empty array of coefficients and populate it one model at a time.
-            # The shape matches the number of coefficients from the Vandermonde
-            # matrix and the number of models from the RHS:
-            lacoef = np.zeros(lhs.shape[-1:] + rhs.shape[-1:], dtype=rhs.dtype)
+            # Arrange the lhs as a stack of 2D matrices that we can iterate
+            # over to get the correctly-orientated lhs for each model:
+            if lhs.ndim > 2:
+                lhs_stack = np.rollaxis(lhs, -1, 0)
+            else:
+                lhs_stack = np.broadcast_to(lhs, rhs.shape[-1:] + lhs.shape)
 
             # Loop over the models and solve for each one. By this point, the
             # model set axis is the second of two. Transpose rather than using,
@@ -525,29 +575,42 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # optimized by collecting together models with identical masks
             # (eg. those with no rejected points) into one operation, though it
             # will still be relatively slow when calling lstsq repeatedly.
-            for model_rhs, model_lacoef in zip(rhs.T, lacoef.T):
+            for model_lhs, model_rhs, model_lacoef in zip(lhs_stack, rhs.T, lacoef.T):
 
                 # Cull masked points on both sides of the matrix equation:
-                good = ~model_rhs.mask
-                model_lhs = lhs[good]
+                good = ~model_rhs.mask if masked else slice(None)
+                model_lhs = model_lhs[good]
                 model_rhs = model_rhs[good][..., np.newaxis]
+                a = model_lhs
 
                 # Solve for this model:
                 t_coef, resids, rank, sval = np.linalg.lstsq(model_lhs,
                                                              model_rhs, rcond)
                 model_lacoef[:] = t_coef.T
 
+        else:
+
+            # If we're fitting one or more models over a common set of points,
+            # we only have to solve a single matrix equation, which is an order
+            # of magnitude faster than calling lstsq() once per model below:
+
+            good = ~rhs.mask if masked else slice(None)  # latter is a no-op
+            a = lhs[good]
+            # Solve for one or more models:
+            lacoef, resids, rank, sval = np.linalg.lstsq(lhs[good],
+                                                         rhs[good], rcond)
+
         self.fit_info['residuals'] = resids
         self.fit_info['rank'] = rank
         self.fit_info['singular_values'] = sval
 
-        lacoef = (lacoef.T / scl).T
+        lacoef /= scl[:, np.newaxis] if scl.ndim < rhs.ndim else scl
         self.fit_info['params'] = lacoef
 
         # TODO: Only Polynomial models currently have an _order attribute;
         # maybe change this to read isinstance(model, PolynomialBase)
         if hasattr(model_copy, '_order') and len(model_copy) == 1 \
-            and not has_fixed and rank != model_copy._order:
+                and not has_fixed and rank != model_copy._order:
             warnings.warn("The fit may be poorly conditioned\n",
                           AstropyUserWarning)
 
@@ -1264,15 +1327,21 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
 
     if z is not None:
         z = np.asanyarray(z, dtype=float)
+        data_ndim, data_shape = z.ndim, z.shape
+    else:
+        data_ndim, data_shape = y.ndim, y.shape
 
     # For compatibility with how the linear fitter code currently expects to
     # work, shift the dependent variable's axes to the expected locations
-    if n_models > 1:
+    if n_models > 1 or data_ndim > x.ndim:
+        if (model_set_axis or 0) >= data_ndim:
+            raise ValueError("model_set_axis out of range")
+        if data_shape[model_set_axis] != n_models:
+            raise ValueError(
+                "Number of data sets (y or z array) is expected to equal "
+                "the number of parameter sets"
+            )
         if z is None:
-            if y.shape[model_set_axis] != n_models:
-                raise ValueError(
-                    "Number of data sets (y array is expected to equal "
-                    "the number of parameter sets)")
             # For a 1-D model the y coordinate's model-set-axis is expected to
             # be last, so that its first dimension is the same length as the x
             # coordinates.  This is in line with the expectations of
@@ -1282,16 +1351,19 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             # Obviously this is a detail of np.linalg.lstsq and should be
             # handled specifically by any fitters that use it...
             y = np.rollaxis(y, model_set_axis, y.ndim)
+            data_shape = y.shape[:-1]
         else:
             # Shape of z excluding model_set_axis
-            z_shape = z.shape[:model_set_axis] + z.shape[model_set_axis + 1:]
-
-            if not (x.shape == y.shape == z_shape):
-                raise ValueError("x, y and z should have the same shape")
+            data_shape = (z.shape[:model_set_axis] +
+                          z.shape[model_set_axis + 1:])
 
     if z is None:
+        if data_shape != x.shape:
+            raise ValueError("x and y should have the same shape")
         farg = (x, y)
     else:
+        if not (x.shape == y.shape == data_shape):
+            raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
     return farg
 
