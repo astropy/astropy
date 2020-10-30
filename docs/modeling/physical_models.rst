@@ -77,6 +77,16 @@ give the wavelength and frequency of the maximum for :math:`B_\lambda`
 and :math:`B_\nu`, respectively, calculated using `Wien's Law
 <https://en.wikipedia.org/wiki/Wien%27s_displacement_law>`_.
 
+.. _deprecated-blackbody:
+
+Note on old blackbody module
+----------------------------
+
+Prior to v4.0, blackbody functionality was provided by the
+``astropy.modeling.blackbody`` module, which was then removed in v4.3.
+If you are still using the removed ``blackbody`` module, please see
+`Blackbody Module (deprecated capabilities) <https://docs.astropy.org/en/v4.1/modeling/blackbody_deprecated.html>`_.
+
 Drude1D
 =======
 
