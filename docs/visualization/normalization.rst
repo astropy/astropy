@@ -299,7 +299,6 @@ composite stretch can stretch residual images with negative values:
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     # ImageNormalize normalizes values to [0,1] before applying the stretch
-    norm = ImageNormalize(stretch=stretch)
-    im = ax.imshow(image, origin='lower', norm=norm, cmap='gray',
-        vmin=-5, vmax=5)
+    norm = ImageNormalize(stretch=stretch, vmin=-5, vmax=5)
+    im = ax.imshow(image, origin='lower', norm=norm, cmap='gray')
     fig.colorbar(im)
