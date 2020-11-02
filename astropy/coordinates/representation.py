@@ -2134,7 +2134,7 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         ----------
         other_class : `~astropy.coordinates.BaseRepresentation` subclass
             The type of representation to turn the coordinates into.
-        base : instance of ``self.base_representation``, optional
+        base : instance of ``self.base_representation``
             Base relative to which the differentials are defined.  If the other
             class is a differential representation, the base will be converted
             to its ``base_representation``.
@@ -2232,13 +2232,17 @@ class BaseDifferential(BaseRepresentationOrDifferential,
         base : instance of ``self.base_representation``
             Base relative to which the differentials are defined. This is
             required to calculate the physical size of the differential for
-            all but cartesian differentials.
+            all but Cartesian differentials or radial differentials.
 
         Returns
         -------
         norm : `astropy.units.Quantity`
             Vector norm, with the same shape as the representation.
         """
+        # RadialDifferential overrides this function, so there is no handling here
+        if not isinstance(self, CartesianDifferential) and base is None:
+            raise ValueError("`base` must be provided to calculate the norm of a"
+                             f" {type(self).__name__}")
         return self.to_cartesian(base).norm()
 
 
@@ -2731,6 +2735,9 @@ class RadialDifferential(BaseDifferential):
     def to_cartesian(self, base):
         return self.d_distance * base.represent_as(
             UnitSphericalRepresentation).to_cartesian()
+
+    def norm(self, base=None):
+        return self.d_distance
 
     @classmethod
     def from_cartesian(cls, other, base):

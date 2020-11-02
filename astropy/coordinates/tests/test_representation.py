@@ -27,6 +27,10 @@ from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 PhysicsSphericalRepresentation,
                                                 CartesianDifferential,
                                                 SphericalDifferential,
+                                                CylindricalDifferential,
+                                                PhysicsSphericalDifferential,
+                                                UnitSphericalDifferential,
+                                                UnitSphericalCosLatDifferential,
                                                 _combine_xyz)
 
 
@@ -1505,3 +1509,23 @@ def test_dtype_preservation_in_indexing():
     cr0 = cr[0]
     # This used to fail.
     assert cr0.xyz.dtype == xyz.dtype
+
+
+@pytest.mark.parametrize('cls',
+                         [SphericalDifferential,
+                          SphericalCosLatDifferential,
+                          CylindricalDifferential,
+                          PhysicsSphericalDifferential,
+                          UnitSphericalDifferential,
+                          UnitSphericalCosLatDifferential])
+def test_differential_norm_noncartesian(cls):
+    # The norm of a non-Cartesian differential without specifying `base` should error
+    rep = cls(0, 0, 0)
+    with pytest.raises(ValueError, match=r"`base` must be provided .* " + cls.__name__):
+        rep.norm()
+
+
+def test_differential_norm_radial():
+    # Unlike most non-Cartesian differentials, the norm of a radial differential does not require `base`
+    rep = RadialDifferential(1*u.km/u.s)
+    assert_allclose_quantity(rep.norm(), 1*u.km/u.s)
