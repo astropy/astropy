@@ -1746,9 +1746,8 @@ class Model(metaclass=_ModelMeta):
                     # If we allow dimensionless input, we add the units to the
                     # input values without conversion, otherwise we raise an
                     # exception.
-
                     if (not self.input_units_allow_dimensionless[input_name] and
-                        input_unit is not dimensionless_unscaled and
+                        not input_unit.is_equivalent(dimensionless_unscaled) and
                         input_unit is not None):
                         if np.any(inputs[i] != 0):
                             raise UnitsError("{0}: Units of input '{1}', (dimensionless), could not be "
