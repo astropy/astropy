@@ -74,17 +74,18 @@ function gives the bolometric flux using
 The :meth:`~astropy.modeling.physical_models.BlackBody.lambda_max` and
 :meth:`~astropy.modeling.physical_models.BlackBody.nu_max` member functions
 give the wavelength and frequency of the maximum for :math:`B_\lambda`
-and :math:`B_\nu`, respectively, calculated using `Wein's Law
+and :math:`B_\nu`, respectively, calculated using `Wien's Law
 <https://en.wikipedia.org/wiki/Wien%27s_displacement_law>`_.
 
-.. note::
+.. _deprecated-blackbody:
 
-    Prior to v4.0, the ``BlackBody1D`` and the functions ``blackbody_nu`` and ``blackbody_lambda``
-    were provided.  ``BlackBody1D`` was a more limited blackbody model that was
-    specific to integrated fluxes from sources.  The capabilities of all three
-    can be obtained with :class:`~astropy.modeling.physical_models.BlackBody`.
-    See :doc:`blackbody_deprecated`
-    and `astropy issue #9066 <https://github.com/astropy/astropy/issues/9066>`_ for details.
+Note on old blackbody module
+----------------------------
+
+Prior to v4.0, blackbody functionality was provided by the
+``astropy.modeling.blackbody`` module, which was then removed in v4.3.
+If you are still using the removed ``blackbody`` module, please see
+`Blackbody Module (deprecated capabilities) <https://docs.astropy.org/en/v4.1/modeling/blackbody_deprecated.html>`_.
 
 Drude1D
 =======
