@@ -347,3 +347,14 @@ def test_models_fitting(model):
             assert par_aft.unit is None or par_aft.unit is u.rad
         else:
             assert par_aft.unit.is_equivalent(par_bef.unit)
+
+
+def test_model_dimensionless_inputs():
+    """
+    Regression test for #10982
+    Test that models accept non-Quantity inputs when coefficients have units
+    and the expected input is dimensionless.
+    """
+
+    model = Linear1D(3 * u.km, 5000 * u.m)
+    assert(model(6) == 23 * u.km)
