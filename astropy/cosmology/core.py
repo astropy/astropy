@@ -1758,14 +1758,10 @@ class LambdaCDM(FLRW):
           Comoving distance in Mpc between each input redshift.
         """
         from scipy.special import ellipkinc
-        if isiterable(z1):
-            z1 = np.asarray(z1)
-        if isiterable(z2):
-            z2 = np.asarray(z2)
-        if isiterable(z1) and isiterable(z2):
-            if z1.shape != z2.shape:
-                msg = "z1 and z2 have different shapes"
-                raise ValueError(msg)
+        try:
+            z1, z2 = np.broadcast_arrays(z1, z2)
+        except ValueError as e:
+            raise ValueError("z1 and z2 have different shapes") from e
 
         # The analytic solution is not valid for any of Om0, Ode0, Ok0 == 0.
         # Use the explicit integral solution for these cases.
@@ -1829,12 +1825,10 @@ class LambdaCDM(FLRW):
         d : `~astropy.units.Quantity`
           Comoving distance in Mpc between each input redshift.
         """
-        if isiterable(z1):
-            z1 = np.asarray(z1)
-            z2 = np.asarray(z2)
-            if z1.shape != z2.shape:
-                msg = "z1 and z2 have different shapes"
-                raise ValueError(msg)
+        try:
+            z1, z2 = np.broadcast_arrays(z1, z2)
+        except ValueError as e:
+            raise ValueError("z1 and z2 have different shapes") from e
 
         return self._hubble_distance * (z2 - z1)
 
@@ -1858,12 +1852,10 @@ class LambdaCDM(FLRW):
         d : `~astropy.units.Quantity`
           Comoving distance in Mpc between each input redshift.
         """
-        if isiterable(z1):
-            z1 = np.asarray(z1)
-            z2 = np.asarray(z2)
-            if z1.shape != z2.shape:
-                msg = "z1 and z2 have different shapes"
-                raise ValueError(msg)
+        try:
+            z1, z2 = np.broadcast_arrays(z1, z2)
+        except ValueError as e:
+            raise ValueError("z1 and z2 have different shapes") from e
 
         prefactor = 2 * self._hubble_distance
         return prefactor * ((1+z1)**(-1./2) - (1+z2)**(-1./2))
@@ -1891,12 +1883,10 @@ class LambdaCDM(FLRW):
         d : `~astropy.units.Quantity`
           Comoving distance in Mpc between each input redshift.
         """
-        if isiterable(z1):
-            z1 = np.asarray(z1)
-            z2 = np.asarray(z2)
-            if z1.shape != z2.shape:
-                msg = "z1 and z2 have different shapes"
-                raise ValueError(msg)
+        try:
+            z1, z2 = np.broadcast_arrays(z1, z2)
+        except ValueError as e:
+            raise ValueError("z1 and z2 have different shapes") from e
 
         s = ((1 - self._Om0) / self._Om0) ** (1./3)
         # Use np.sqrt here to handle negative s (Om0>1).
