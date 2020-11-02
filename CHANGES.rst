@@ -933,6 +933,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- The ``norm()`` method for ``RadialDifferential`` no longer requires ``base``
+  to be specified.  The ``norm()`` method for other non-Cartesian differential
+  classes now gives a clearer error message if ``base`` is not specified. [#10969]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
