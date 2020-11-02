@@ -110,6 +110,8 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Removed deprecated ``astropy.modeling.blackbody`` module. [#10972]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
