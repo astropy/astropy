@@ -2155,12 +2155,12 @@ class Model(metaclass=_ModelMeta):
                 _val = param._setter(value)
             if isinstance(_val, Quantity):
                 param.internal_unit = _val.unit
-                param._internal_value = np.array(_val.value)
+                param._internal_value = np.array(_val.value, copy=False)
             else:
                 param.internal_unit = None
-                param._internal_value = np.array(_val)
+                param._internal_value = np.array(_val, copy=False)
         else:
-            param._value = np.array(value)
+            param._value = np.array(value, copy=False)
 
     def _initialize_slices(self):
 

@@ -340,10 +340,10 @@ class Parameter(OrderedDescriptor):
                             "a parameter to a quantity simply set the "
                             "parameter directly without using .value")
         if self._setter is None:
-            self._value = np.array(value, dtype=np.float64)
+            self._value = np.array(value, dtype=np.float64, copy=False)
         else:
             self._internal_value = np.array(self._setter(value),
-                                            dtype=np.float64)
+                                            dtype=np.float64, copy=False)
 
     @property
     def unit(self):

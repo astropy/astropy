@@ -1050,7 +1050,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
     The constraint types supported by this fitter type.
     """
 
-    def __init__(self, calc_uncertainties=False):
+    def __init__(self, calc_uncertainties=False, inplace=False):
         self.fit_info = {'nfev': None,
                          'fvec': None,
                          'fjac': None,
@@ -1060,7 +1060,8 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                          'ierr': None,
                          'param_jac': None,
                          'param_cov': None}
-        self._calc_uncertainties=calc_uncertainties
+        self._calc_uncertainties = calc_uncertainties
+        self._inplace = inplace
         super().__init__()
 
     def objective_function(self, fps, *args):
@@ -1146,7 +1147,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
 
         from scipy import optimize
 
-        model_copy = _validate_model(model, self.supported_constraints)
+        model_copy = _validate_model(model, self.supported_constraints, copy=not self._inplace)
         farg = (model_copy, weights, ) + _convert_input(x, y, z)
         if model_copy.fit_deriv is None or estimate_jacobian:
             dfunc = None
@@ -1178,7 +1179,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         if self._calc_uncertainties is True:
             if self.fit_info['param_cov'] is not None:
                 self._add_fitting_uncertainties(model_copy,
-                                               self.fit_info['param_cov'])
+                                                self.fit_info['param_cov'])
 
         return model_copy
 
@@ -1696,7 +1697,7 @@ def _validate_constraints(supported_constraints, model):
         raise UnsupportedConstraintError(message.format('inequality'))
 
 
-def _validate_model(model, supported_constraints):
+def _validate_model(model, supported_constraints, copy=True):
     """
     Check that model and fitter are compatible and return a copy of the model.
     """
@@ -1713,8 +1714,9 @@ def _validate_model(model, supported_constraints):
                          "one data set at a time.")
     _validate_constraints(supported_constraints, model)
 
-    model_copy = model.copy()
-    return model_copy
+    if copy:
+        return model.copy()
+    return model
 
 
 def populate_entry_points(entry_points):

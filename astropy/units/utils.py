@@ -290,6 +290,6 @@ def resolve_fractions(a, b):
 def quantity_asanyarray(a, dtype=None):
     from .quantity import Quantity
     if not isinstance(a, np.ndarray) and not np.isscalar(a) and any(isinstance(x, Quantity) for x in a):
-        return Quantity(a, dtype=dtype)
+        return Quantity(a, dtype=dtype, copy=False)  # don't copy to match asanyarray
     else:
         return np.asanyarray(a, dtype=dtype)
