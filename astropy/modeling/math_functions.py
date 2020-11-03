@@ -2,7 +2,6 @@
 """
 Define Numpy Ufuncs as Models.
 """
-import warnings
 import numpy as np
 
 from astropy.modeling.core import Model
@@ -54,13 +53,11 @@ def ufunc_model(name):
         separable = True
 
         def evaluate(self, x):
-            warnings.warn("Models in math_functions are experimental.", AstropyUserWarning)
             return self.func(x)
     else:
         separable = False
 
         def evaluate(self, x, y):
-            warnings.warn("Models in math_functions are experimental.", AstropyUserWarning)
             return self.func(x, y)
 
     klass_name = _make_class_name(name)

@@ -9,8 +9,6 @@ from astropy.modeling import math_functions
 x = np.linspace(-20, 360, 100)
 
 
-@pytest.mark.filterwarnings(
-    r'ignore:Models in math_functions are experimental\.')
 @pytest.mark.filterwarnings(r'ignore:.*:RuntimeWarning')
 def test_math():
     for name in math_functions.__all__:
