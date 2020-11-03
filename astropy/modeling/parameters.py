@@ -340,10 +340,16 @@ class Parameter(OrderedDescriptor):
                             "a parameter to a quantity simply set the "
                             "parameter directly without using .value")
         if self._setter is None:
-            self._value = np.array(value, dtype=np.float64, copy=False)
+            if hasattr(self, '_value') and isinstance(self._value, np.ndarray) and self._value.ndim > 0:
+                self._value[:] = value
+            else:
+                self._value = np.array(value, dtype=np.float64, copy=False)
         else:
-            self._internal_value = np.array(self._setter(value),
-                                            dtype=np.float64, copy=False)
+            if hasattr(self, '_internal_value') and isinstance(self._internal_value, np.ndarray) and self._internal_value.ndim > 0:
+                self._internal_value[:] = self._setter(value)
+            else:
+                self._internal_value = np.array(self._setter(value),
+                                                dtype=np.float64, copy=False)
 
     @property
     def unit(self):
