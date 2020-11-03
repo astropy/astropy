@@ -1958,6 +1958,22 @@ class Model(metaclass=_ModelMeta):
         """
         return 1
 
+    @property
+    def iter_models(self):
+        """
+        An iterable of model instances with parameters shared with this model set.
+        """
+        if len(self) == 1:
+            return self
+
+        for i in range(len(self)):
+            params = {}
+            for pname in self.param_names:
+                pslice = [slice(None)] * len(self._param_metrics[pname]['shape'])
+                pslice[self._model_set_axis] = slice(i, i+1)
+                params[pname] = getattr(self, pname)[tuple(pslice)]
+            yield type(self)(**params)
+
     def _initialize_constraints(self, kwargs):
         """
         Pop parameter constraint values off the keyword arguments passed to
