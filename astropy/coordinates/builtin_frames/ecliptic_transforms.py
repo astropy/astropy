@@ -20,7 +20,7 @@ from .gcrs import GCRS
 from .ecliptic import (GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic,
                        GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic,
                        HeliocentricEclipticIAU76, CustomBarycentricEcliptic)
-from .utils import get_jd12, EQUINOX_J2000
+from .utils import get_jd12, get_offset_sun_from_barycenter, EQUINOX_J2000
 from astropy.coordinates.errors import UnitsError
 
 
@@ -105,15 +105,14 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
 
-    # get barycentric sun coordinate
-    # this goes here to avoid circular import errors
-    from astropy.coordinates.solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
+    # get the offset of the barycenter from the Sun
+    ssb_from_sun = get_offset_sun_from_barycenter(to_frame.obstime, reverse=True,
+                                                  include_velocity=bool(from_coo.data.differentials))
 
     # now compute the matrix to precess to the right orientation
     rmat = _mean_ecliptic_rotation_matrix(to_frame.equinox)
 
-    return rmat, (-bary_sun_pos).transform(rmat)
+    return rmat, ssb_from_sun.transform(rmat)
 
 
 @frame_transform_graph.transform(AffineTransform,
@@ -126,14 +125,10 @@ def helioecliptic_to_icrs(from_coo, to_frame):
     rmat = _mean_ecliptic_rotation_matrix(from_coo.equinox)
 
     # now offset back to barycentric, which is the correct center for ICRS
+    sun_from_ssb = get_offset_sun_from_barycenter(from_coo.obstime,
+                                                  include_velocity=bool(from_coo.data.differentials))
 
-    # this goes here to avoid circular import errors
-    from astropy.coordinates.solar_system import get_body_barycentric
-
-    # get barycentric sun coordinate
-    bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
-
-    return matrix_transpose(rmat), bary_sun_pos
+    return matrix_transpose(rmat), sun_from_ssb
 
 
 # TrueEcliptic frames
@@ -177,15 +172,14 @@ def icrs_to_true_helioecliptic(from_coo, to_frame):
     if not u.m.is_equivalent(from_coo.cartesian.x.unit):
         raise UnitsError(_NEED_ORIGIN_HINT.format(from_coo.__class__.__name__))
 
-    # get barycentric sun coordinate
-    # this goes here to avoid circular import errors
-    from astropy.coordinates.solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric('sun', to_frame.obstime)
+    # get the offset of the barycenter from the Sun
+    ssb_from_sun = get_offset_sun_from_barycenter(to_frame.obstime, reverse=True,
+                                                  include_velocity=bool(from_coo.data.differentials))
 
     # now compute the matrix to precess to the right orientation
     rmat = _true_ecliptic_rotation_matrix(to_frame.equinox)
 
-    return rmat, (-bary_sun_pos).transform(rmat)
+    return rmat, ssb_from_sun.transform(rmat)
 
 
 @frame_transform_graph.transform(AffineTransform,
@@ -198,14 +192,10 @@ def true_helioecliptic_to_icrs(from_coo, to_frame):
     rmat = _true_ecliptic_rotation_matrix(from_coo.equinox)
 
     # now offset back to barycentric, which is the correct center for ICRS
+    sun_from_ssb = get_offset_sun_from_barycenter(from_coo.obstime,
+                                                  include_velocity=bool(from_coo.data.differentials))
 
-    # this goes here to avoid circular import errors
-    from astropy.coordinates.solar_system import get_body_barycentric
-
-    # get barycentric sun coordinate
-    bary_sun_pos = get_body_barycentric('sun', from_coo.obstime)
-
-    return matrix_transpose(rmat), bary_sun_pos
+    return matrix_transpose(rmat), sun_from_ssb
 
 
 # Other ecliptic frames
@@ -218,26 +208,23 @@ def ecliptic_to_iau76_icrs(from_coo, to_frame):
     rmat = _obliquity_only_rotation_matrix()
 
     # now offset back to barycentric, which is the correct center for ICRS
-    # get barycentric sun coordinate
-    # this goes here to avoid circular import errors
-    from astropy.coordinates.solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric("sun", from_coo.obstime)
+    sun_from_ssb = get_offset_sun_from_barycenter(from_coo.obstime,
+                                                  include_velocity=bool(from_coo.data.differentials))
 
-    return matrix_transpose(rmat), bary_sun_pos
+    return matrix_transpose(rmat), sun_from_ssb
 
 
 @frame_transform_graph.transform(AffineTransform,
                                  ICRS, HeliocentricEclipticIAU76)
 def icrs_to_iau76_ecliptic(from_coo, to_frame):
-    # get barycentric sun coordinate
-    # this goes here to avoid circular import errors
-    from astropy.coordinates.solar_system import get_body_barycentric
-    bary_sun_pos = get_body_barycentric("sun", to_frame.obstime)
+    # get the offset of the barycenter from the Sun
+    ssb_from_sun = get_offset_sun_from_barycenter(to_frame.obstime, reverse=True,
+                                                  include_velocity=bool(from_coo.data.differentials))
 
     # now compute the matrix to precess to the right orientation
     rmat = _obliquity_only_rotation_matrix()
 
-    return rmat, (-bary_sun_pos).transform(rmat)
+    return rmat, ssb_from_sun.transform(rmat)
 
 
 @frame_transform_graph.transform(DynamicMatrixTransform,
