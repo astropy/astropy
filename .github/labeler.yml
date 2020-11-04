@@ -1,5 +1,16 @@
 Docs:
-  - any: ['docs/*', 'docs/_static/*', 'docs/_templates/*', 'docs/development/**/*', 'docs/whatsnew/*', 'examples/**/*', 'licenses/*', 'CITATION', '.mailmap', 'readthedocs.yml', '*.md', '*.rst', '!CHANGES.rst']
+  - docs/*
+  - docs/_static/*
+  - docs/_templates/*
+  - docs/development/**/*
+  - docs/whatsnew/*
+  - examples/**/*
+  - licenses/*
+  - CITATION
+  - .mailmap
+  - readthedocs.yml
+  - '*.md'
+  - any: ['*.rst', '!CHANGES.rst']
 
 testing:
   - astropy/tests/**/*
@@ -30,6 +41,7 @@ Release:
 
 config:
   - '**/config/**/*'
+  - astropy/extern/configobj/**/*
 
 constants:
   - '**/constants/**/*'
@@ -87,6 +99,7 @@ stats:
 
 table:
   - '**/table/**/*'
+  - astropy/extern/jquery/**/*
 
 time:
   - '**/time/**/*'
@@ -102,21 +115,24 @@ unified-io:
 
 units:
   - '**/units/**/*'
+  - astropy/extern/ply/**/*
 
 utils:
-  - any: ['astropy/utils/**/*', 'docs/utils/*', '!astropy/utils/iers/*', '!astropy/utils/iers/**/*', '!docs/utils/iers.rst']
+  - cextern/expat/**/*
+  - any: ['**/utils/**/*', '!astropy/utils/iers/**/*', '!docs/utils/iers.rst']
 
 utils.iers:
   - astropy/utils/iers/**/*
   - docs/utils/iers.rst
 
 visualization:
-  - any: ['**/visualization/**/*', '!astropy/visualization/wcsaxes/**/*']
+  - any: ['**/visualization/**/*', '!**/visualization/wcsaxes/**/*']
 
 visualization.wcsaxes:
   - '**/visualization/wcsaxes/**/*'
 
 wcs:
+  - cextern/wcslib/**/*
   - any: ['**/wcs/**/*', '!astropy/wcs/wcsapi/**/*', '!docs/wcs/wcsapi.rst']
 
 wcs.wcsapi:
