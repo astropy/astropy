@@ -317,6 +317,9 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Fixed an issue where some models would not accept values without units as
+  dimensionless arguments. [#10982]
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
