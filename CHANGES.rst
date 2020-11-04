@@ -1167,6 +1167,11 @@ astropy.coordinates
   to be specified.  The ``norm()`` method for other non-Cartesian differential
   classes now gives a clearer error message if ``base`` is not specified. [#10969]
 
+- The transformations between ``ICRS`` and any of the heliocentric ecliptic
+  frames (``HeliocentricMeanEcliptic``, ``HeliocentricTrueEcliptic``, and
+  ``HeliocentricEclipticIAU76``) now correctly account for the small motion of
+  the Sun when transforming a coordinate with velocity information. [#10970]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
