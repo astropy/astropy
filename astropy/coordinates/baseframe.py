@@ -451,8 +451,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             if fnm in kwargs:
                 value = kwargs.pop(fnm)
                 setattr(self, '_' + fnm, value)
-                # Validate attribute by getting it.  If the instance has data,
-                # this also checks its shape is OK.  If not, we do it below.
+                # Validate attribute by getting it. If the instance has data,
+                # this also checks its shape is OK. If not, we do it below.
                 values[fnm] = getattr(self, fnm)
             else:
                 setattr(self, '_' + fnm, fdefault)
