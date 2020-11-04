@@ -11,7 +11,9 @@ from astropy.units import allclose as quantity_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic, HeliocentricEclipticIAU76
+from astropy.coordinates.solar_system import get_body_barycentric_posvel
 from astropy.constants import R_sun, R_earth
+from astropy.time import Time
 
 
 def test_against_pytpm_doc_example():
@@ -81,6 +83,26 @@ def test_ecliptic_true_mean_preserve_latitude(trueframe, meanframe):
 
     assert not quantity_allclose(truecoo.lon, meancoo.lon)
     assert quantity_allclose(truecoo.lat, meancoo.lat, atol=1e-10*u.arcsec)
+
+
+@pytest.mark.parametrize('frame',
+                         [HeliocentricMeanEcliptic,
+                          HeliocentricTrueEcliptic,
+                          HeliocentricEclipticIAU76])
+def test_helioecliptic_induced_velocity(frame):
+    # Create a coordinate with zero speed in ICRS
+    time = Time('2021-01-01')
+    icrs = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.AU,
+                pm_ra_cosdec=0*u.deg/u.s, pm_dec=0*u.deg/u.s, radial_velocity=0*u.m/u.s)
+
+    # Transforming to a helioecliptic frame should give an induced speed equal to the Sun's speed
+    transformed = icrs.transform_to(frame(obstime=time))
+    _, vel = get_body_barycentric_posvel('sun', time)
+    assert quantity_allclose(transformed.velocity.norm(), vel.norm())
+
+    # Transforming back to ICRS should get back to zero speed
+    back = transformed.transform_to(ICRS())
+    assert quantity_allclose(back.velocity.norm(), 0*u.m/u.s, atol=1e-10*u.m/u.s)
 
 
 def test_ecl_geo():
