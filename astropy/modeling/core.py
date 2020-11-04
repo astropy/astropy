@@ -1974,6 +1974,46 @@ class Model(metaclass=_ModelMeta):
                 params[pname] = getattr(self, pname)[tuple(pslice)]
             yield type(self)(**params)
 
+    @classmethod
+    def from_models(cls, models, model_set_axis=None):
+        """
+        Generate a model set from an iterable of models.
+
+        Parameters
+        ----------
+        models : iterable of `.Model`
+            A list of models to convert into a model set.
+
+        model_set_axis: int, optional
+            This argument changes how parameter values are combined.  Normally the
+            first axis of each input parameter array (properly the 0th axis) is
+            taken as the axis corresponding to the model sets.  However, any axis
+            of an input array may be taken as this "model set axis".  This accepts
+            negative integers as well--for example use ``model_set_axis=-1`` if the
+            last (most rapidly changing) axis should be associated with the model
+            sets.
+
+        Returns
+        -------
+        model: `.Model`
+            An instance of the model with length equal to the length of the input model list.
+        """
+        if not isiterable(models) and all(isinstance(m, Model) for m in models):
+            raise TypeError("models must be an iterable of model instances.")
+
+        models = list(models)
+        if not all(isinstance(m, cls) for m in models):
+            raise TypeError("All models in the input must be of the same type as this model.")
+
+        if not all((m._parameters.shape == models[0]._parameters.shape for m in models)):
+            raise ValueError("All models in the input must have the same shape parameters.")
+
+        params = {pname: np.stack([getattr(m, pname).value for m in models],
+                                  axis=model_set_axis or 0) for pname in cls.param_names}
+        output_model = cls(n_models=len(models), model_set_axis=model_set_axis, **params)
+
+        return output_model
+
     def _initialize_constraints(self, kwargs):
         """
         Pop parameter constraint values off the keyword arguments passed to
