@@ -14,7 +14,7 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
-from ..representation import CartesianRepresentation
+from ..representation import CartesianRepresentation, CartesianDifferential
 
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
@@ -376,3 +376,40 @@ def prepare_earth_position_vel(time):
         )
 
     return earth_pv, earth_heliocentric
+
+
+def get_offset_sun_from_barycenter(time, include_velocity=False, reverse=False):
+    """
+    Returns the offset of the Sun center from the solar-system barycenter (SSB).
+
+    Parameters
+    ----------
+    time : `~astropy.time.Time`
+        Time at which to calculate the offset
+    include_velocity : `bool`
+        If ``True``, attach the velocity as a differential.  Defaults to ``False``.
+    reverse : `bool`
+        If ``True``, return the offset of the barycenter from the SSB.  Defaults to ``False``.
+
+    Returns
+    -------
+    `~astropy.coordinates.CartesianRepresentation`
+        The offset
+    """
+    if include_velocity:
+        # Import here to avoid a circular import
+        from astropy.coordinates.solar_system import get_body_barycentric_posvel
+        offset_pos, offset_vel = get_body_barycentric_posvel('sun', time)
+        if reverse:
+            offset_pos, offset_vel = -offset_pos, -offset_vel
+        offset_vel = offset_vel.represent_as(CartesianDifferential)
+        offset_pos = offset_pos.with_differentials(offset_vel)
+
+    else:
+        # Import here to avoid a circular import
+        from astropy.coordinates.solar_system import get_body_barycentric
+        offset_pos = get_body_barycentric('sun', time)
+        if reverse:
+            offset_pos = -offset_pos
+
+    return offset_pos
