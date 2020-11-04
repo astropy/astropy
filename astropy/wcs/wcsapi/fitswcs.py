@@ -98,10 +98,14 @@ CTYPE_TO_UCD1 = {
     'TLAT': 'pos.bodyrc.lat',
     'HPLT': 'custom:pos.helioprojective.lat',
     'HPLN': 'custom:pos.helioprojective.lon',
+    'HPRZ': 'custom:pos.helioprojective.z',
     'HGLN': 'custom:pos.heliographic.stonyhurst.lon',
     'HGLT': 'custom:pos.heliographic.stonyhurst.lat',
     'CRLN': 'custom:pos.heliographic.carrington.lon',
     'CRLT': 'custom:pos.heliographic.carrington.lat',
+    'SOLX': 'custom:pos.heliocentric.x',
+    'SOLY': 'custom:pos.heliocentric.y',
+    'SOLZ': 'custom:pos.heliocentric.z',
 
     # Spectral coordinates (WCS paper 3)
     'FREQ': 'em.freq',  # Frequency
@@ -129,7 +133,11 @@ CTYPE_TO_UCD1 = {
     'TCG': 'time',
     'TCB': 'time',
     'TDB': 'time',
-    'LOCAL': 'time'
+    'LOCAL': 'time',
+
+    # Distance coordinates
+    'DIST': 'pos.distance',
+    'DSUN': 'custom:pos.distance.sunToObserver'
 
     # UT() and TT() are handled separately in world_axis_physical_types
 
