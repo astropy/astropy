@@ -1,17 +1,8 @@
 Docs:
-  - docs/**/*
-  - examples/**/*
-  - licenses/*
-  - CITATION
-  - .mailmap
-  - .readthedocs.yml
-  - '*.md'
-  - '*.rst'
+  - any: ['docs/*', 'docs/_static/*', 'docs/_templates/*', 'docs/development/**/*', 'docs/whatsnew/*', 'examples/**/*', 'licenses/*', 'CITATION', '.mailmap', 'readthedocs.yml', '*.md', '*.rst', '!CHANGES.rst']
 
 testing:
   - astropy/tests/**/*
-  - astropy/*/tests/*
-  - astropy/**/tests/*
   - codecov.yml
   - conftest.py
   - '**/conftest.py'
