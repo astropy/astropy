@@ -427,6 +427,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             representation_type, differential_type = self._infer_representation_differential_type(
                 representation_type, differential_type)
             self.set_representation_cls(representation_type, **differential_type)
+        else:
+            self._representation = {'base': self.default_representation,
+                                    's': self.default_differential}
 
         representation_data, differential_data = self._infer_representation_differential_data(
             args, copy, kwargs)
@@ -552,10 +555,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                      'velocity differential is supported. Got: '
                                      '{}'.format(diffs))
 
-        # This calls self.get_representation_cls()
-        # and sets self._representation to the defaults if it was not set earlier
-        # (specifically if representation_type or differential_type were passed to the initializer)
-        elif self.representation_type:
+        else:
             representation_cls = self.get_representation_cls()
             # Get any representation data passed in to the frame initializer
             # using keyword or positional arguments for the component names
@@ -748,10 +748,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         -------
         representation : `~astropy.coordinates.BaseRepresentation` or `~astropy.coordinates.BaseDifferential`.
         """
-        if not hasattr(self, '_representation'):
-            self._representation = {'base': self.default_representation,
-                                    's': self.default_differential}
-
         if which is not None:
             return self._representation[which]
         else:
