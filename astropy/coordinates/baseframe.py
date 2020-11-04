@@ -424,31 +424,110 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         representation_type = kwargs.pop('representation_type', representation_type)
 
         if representation_type is not None or differential_type is not None:
+            representation_type, differential_type = self._infer_representation_differential_type(
+                representation_type, differential_type)
+            self.set_representation_cls(representation_type, **differential_type)
 
-            if representation_type is None:
-                representation_type = self.default_representation
+        representation_data, differential_data = self._infer_representation_differential_data(
+            args, copy, kwargs)
 
-            if (inspect.isclass(differential_type)
-                    and issubclass(differential_type, r.BaseDifferential)):
-                # TODO: assumes the differential class is for the velocity
-                # differential
-                differential_type = {'s': differential_type}
+        if differential_data:
+            self._data = representation_data.with_differentials(
+                {'s': differential_data})
+        else:
+            self._data = representation_data  # possibly None.
 
-            elif isinstance(differential_type, str):
-                # TODO: assumes the differential class is for the velocity
-                # differential
-                diff_cls = r.DIFFERENTIAL_CLASSES[differential_type]
-                differential_type = {'s': diff_cls}
+        # Set frame attributes, if any
 
-            elif differential_type is None:
-                if representation_type == self.default_representation:
-                    differential_type = {'s': self.default_differential}
+        values = {}
+        for fnm, fdefault in self.get_frame_attr_names().items():
+            # Read-only frame attributes are defined as FrameAttribute
+            # descriptors which are not settable, so set 'real' attributes as
+            # the name prefaced with an underscore.
+
+            if fnm in kwargs:
+                value = kwargs.pop(fnm)
+                setattr(self, '_' + fnm, value)
+                # Validate attribute by getting it.  If the instance has data,
+                # this also checks its shape is OK.  If not, we do it below.
+                values[fnm] = getattr(self, fnm)
+            else:
+                setattr(self, '_' + fnm, fdefault)
+                self._attr_names_with_defaults.append(fnm)
+
+        if kwargs:
+            raise TypeError(
+                f'Coordinate frame got unexpected keywords: {list(kwargs)}')
+
+        # We do ``is None`` because self._data might evaluate to false for
+        # empty arrays or data == 0
+        if self._data is None:
+            # No data: we still need to check that any non-scalar attributes
+            # have consistent shapes. Collect them for all attributes with
+            # size > 1 (which should be array-like and thus have a shape).
+            shapes = {fnm: value.shape for fnm, value in values.items()
+                      if getattr(value, 'shape', ())}
+            if shapes:
+                if len(shapes) > 1:
+                    try:
+                        self._no_data_shape = check_broadcast(*shapes.values())
+                    except ValueError:
+                        raise ValueError(
+                            f"non-scalar attributes with inconsistent shapes: {shapes}")
+
+                    # Above, we checked that it is possible to broadcast all
+                    # shapes.  By getting and thus validating the attributes,
+                    # we verify that the attributes can in fact be broadcast.
+                    for fnm in shapes:
+                        getattr(self, fnm)
                 else:
-                    differential_type = {'s': 'base'}  # see set_representation_cls()
+                    self._no_data_shape = shapes.popitem()[1]
 
-            self.set_representation_cls(representation_type,
-                                        **differential_type)
+            else:
+                self._no_data_shape = ()
 
+        # else:
+        # The logic of this block is not related to the previous one
+        if self._data is not None:
+            # This makes the cache keys backwards-compatible, but also adds
+            # support for having differentials attached to the frame data
+            # representation object.
+            if 's' in self._data.differentials:
+                # TODO: assumes a velocity unit differential
+                key = (self._data.__class__.__name__,
+                       self._data.differentials['s'].__class__.__name__,
+                       False)
+            else:
+                key = (self._data.__class__.__name__, False)
+
+            # Set up representation cache.
+            self.cache['representation'][key] = self._data
+
+    def _infer_representation_differential_type(self, representation_type, differential_type):
+        if representation_type is None:
+            representation_type = self.default_representation
+
+        if (inspect.isclass(differential_type)
+                and issubclass(differential_type, r.BaseDifferential)):
+            # TODO: assumes the differential class is for the velocity
+            # differential
+            differential_type = {'s': differential_type}
+
+        elif isinstance(differential_type, str):
+            # TODO: assumes the differential class is for the velocity
+            # differential
+            diff_cls = r.DIFFERENTIAL_CLASSES[differential_type]
+            differential_type = {'s': diff_cls}
+
+        elif differential_type is None:
+            if representation_type == self.default_representation:
+                differential_type = {'s': self.default_differential}
+            else:
+                differential_type = {'s': 'base'}  # see set_representation_cls()
+
+        return representation_type, differential_type
+
+    def _infer_representation_differential_data(self, args, copy, kwargs):
         # if not set below, this is a frame with no data
         representation_data = None
         differential_data = None
@@ -456,7 +535,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         args = list(args)  # need to be able to pop them
         if (len(args) > 0) and (isinstance(args[0], r.BaseRepresentation) or
                                 args[0] is None):
-            representation_data = args.pop(0)
+            representation_data = args.pop(0)  # This can still be None
             if len(args) > 0:
                 raise TypeError(
                     'Cannot create a frame with both a representation object '
@@ -473,6 +552,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                                      'velocity differential is supported. Got: '
                                      '{}'.format(diffs))
 
+        # This calls self.get_representation_cls()
+        # and sets self._representation to the defaults if it was not set earlier
+        # (specifically if representation_type or differential_type were passed to the initializer)
         elif self.representation_type:
             representation_cls = self.get_representation_cls()
             # Get any representation data passed in to the frame initializer
@@ -582,71 +664,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                         raise ValueError(
                             "Differential data units are not compatible with"
                             "time-derivative of representation data units")
-            self._data = representation_data.with_differentials(
-                {'s': differential_data})
-        else:
-            self._data = representation_data  # possibly None.
 
-        values = {}
-        for fnm, fdefault in self.get_frame_attr_names().items():
-            # Read-only frame attributes are defined as FrameAttribue
-            # descriptors which are not settable, so set 'real' attributes as
-            # the name prefaced with an underscore.
-
-            if fnm in kwargs:
-                value = kwargs.pop(fnm)
-                setattr(self, '_' + fnm, value)
-                # Validate attribute by getting it.  If the instance has data,
-                # this also checks its shape is OK.  If not, we do it below.
-                values[fnm] = getattr(self, fnm)
-            else:
-                setattr(self, '_' + fnm, fdefault)
-                self._attr_names_with_defaults.append(fnm)
-
-        if kwargs:
-            raise TypeError(
-                f'Coordinate frame got unexpected keywords: {list(kwargs)}')
-
-        # We do ``is None`` because self._data might evaluate to false for
-        # empty arrays or data == 0
-        if self._data is None:
-            # No data: we still need to check that any non-scalar attributes
-            # have consistent shapes. Collect them for all attributes with
-            # size > 1 (which should be array-like and thus have a shape).
-            shapes = {fnm: value.shape for fnm, value in values.items()
-                      if getattr(value, 'shape', ())}
-            if shapes:
-                if len(shapes) > 1:
-                    try:
-                        self._no_data_shape = check_broadcast(*shapes.values())
-                    except ValueError:
-                        raise ValueError(
-                            f"non-scalar attributes with inconsistent shapes: {shapes}")
-
-                    # Above, we checked that it is possible to broadcast all
-                    # shapes.  By getting and thus validating the attributes,
-                    # we verify that the attributes can in fact be broadcast.
-                    for fnm in shapes:
-                        getattr(self, fnm)
-                else:
-                    self._no_data_shape = shapes.popitem()[1]
-
-            else:
-                self._no_data_shape = ()
-        else:
-            # This makes the cache keys backwards-compatible, but also adds
-            # support for having differentials attached to the frame data
-            # representation object.
-            if 's' in self._data.differentials:
-                # TODO: assumes a velocity unit differential
-                key = (self._data.__class__.__name__,
-                       self._data.differentials['s'].__class__.__name__,
-                       False)
-            else:
-                key = (self._data.__class__.__name__, False)
-
-            # Set up representation cache.
-            self.cache['representation'][key] = self._data
+        return representation_data, differential_data
 
     @lazyproperty
     def cache(self):
