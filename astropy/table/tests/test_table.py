@@ -2267,12 +2267,14 @@ def test_qtable_quantity_int_conversion():
 
     tab = QTable(dict(time=[1, 2, 3]))
     tab['length'] = [9, 8, 7]
-    tab['length'].unit = u.m
+    with pytest.warns(UserWarning, match="dtype is converted to float"):
+        tab['length'].unit = u.m
     assert np.issubdtype(tab['length'].dtype, np.float)
 
     # same for dimensionless unit
     tab['col2'] = [6, 5, 4]
-    tab['col2'].unit = u.dimensionless_unscaled
+    with pytest.warns(UserWarning, match="dtype is converted to float"):
+        tab['col2'].unit = u.dimensionless_unscaled
     assert np.issubdtype(tab['col2'].dtype, np.float)
 
     # An implied behavior is that when QTable reads a file with a Column of int data with units,

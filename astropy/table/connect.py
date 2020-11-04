@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 from astropy.io import registry
 
 from .info import serialize_method_as
@@ -72,7 +73,9 @@ class TableRead(registry.UnifiedReadWrite):
                 raise TypeError('could not convert reader output to {} '
                                 'class.'.format(cls.__name__))
 
-        out._set_column_attribute('unit', units)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=".*dtype is converted to float.*")
+            out._set_column_attribute('unit', units)
         out._set_column_attribute('description', descriptions)
 
         return out

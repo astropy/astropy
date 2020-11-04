@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from collections import OrderedDict
+import warnings
 
 import pytest
 import numpy as np
@@ -399,8 +400,11 @@ class TestJoin():
         meta2 = OrderedDict([('b', [3, 4]), ('c', {'b': 1}), ('a', 1)])
 
         # Key col 'a', should first value ('cm')
-        t1['a'].unit = 'cm'
-        t2['a'].unit = 'm'
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=".*dtype is converted to float.*")
+            # Some test data generated warnings. Ignore them (warning emission has its own test)
+            t1['a'].unit = 'cm'
+            t2['a'].unit = 'm'
         # Key col 'b', take first value 't1_b'
         t1['b'].info.description = 't1_b'
         # Key col 'b', take first non-empty value 't1_b'

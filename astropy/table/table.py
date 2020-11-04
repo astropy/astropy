@@ -3624,6 +3624,8 @@ class QTable(Table):
 
     """
 
+    _dtype_before_conversion = None
+
     def _is_mixin_for_table(self, col):
         """
         Determine if ``col`` should be added to the table directly as
@@ -3647,11 +3649,21 @@ class QTable(Table):
             qcol = q_cls(col.data, col.unit, copy=False)
             qcol.info = col.info
             qcol.info.indices = col.info.indices
+            if np.issubdtype(getattr(col, 'dtype', None), np.int):
+                self._dtype_before_conversion = col.dtype
             col = qcol
         else:
             col = super()._convert_col_for_table(col)
 
         return col
+
+    def replace_column(self, name, col, copy=True):
+        super().replace_column(name, col, copy)
+        if self._dtype_before_conversion is not None:
+            warnings.warn("dtype is converted to float for Quantity column '{}'. "
+                          "See https://docs.astropy.org/en/stable/api/astropy.table.QTable.html"
+                          "".format(col.info.name))
+            self._dtype_before_conversion = None
 
 
 class NdarrayMixin(np.ndarray):

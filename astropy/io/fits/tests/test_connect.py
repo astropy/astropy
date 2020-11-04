@@ -108,8 +108,11 @@ class TestSingleTable:
     def test_with_units(self, table_type, tmpdir):
         filename = str(tmpdir.join('test_with_units.fits'))
         t1 = table_type(self.data)
-        t1['a'].unit = u.m
-        t1['c'].unit = u.km / u.s
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=".*dtype is converted to float.*")
+            # Some test data generated warnings. Ignore them (warning emission has its own test)
+            t1['a'].unit = u.m
+            t1['c'].unit = u.km / u.s
         t1.write(filename, overwrite=True)
         t2 = table_type.read(filename)
         assert equal_data(t1, t2)

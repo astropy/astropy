@@ -595,7 +595,8 @@ def test_qtable_column_conversion():
     assert isinstance(qtab['i'], table.column.Column)
     assert isinstance(qtab['f'], table.column.Column)
 
-    qtab['i'].unit = 'km/s'
+    with pytest.warns(UserWarning, match="dtype is converted to float"):
+        qtab['i'].unit = 'km/s'
     assert isinstance(qtab['i'], u.Quantity)
     assert isinstance(qtab['f'], table.column.Column)
 
