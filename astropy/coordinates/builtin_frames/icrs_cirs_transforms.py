@@ -25,7 +25,7 @@ from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
 from .equatorial import TETE
-from .utils import aticq, atciqz
+from .utils import aticq, atciqz, get_offset_sun_from_barycenter
 
 from ..erfa_astrom import erfa_astrom
 
@@ -245,19 +245,8 @@ def hcrs_to_icrs(hcrs_coo, icrs_frame):
     if isinstance(hcrs_coo.data, UnitSphericalRepresentation):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(hcrs_coo.__class__.__name__))
 
-    if hcrs_coo.data.differentials:
-        from astropy.coordinates.solar_system import get_body_barycentric_posvel
-        bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
-                                                                 hcrs_coo.obstime)
-        bary_sun_vel = bary_sun_vel.represent_as(CartesianDifferential)
-        bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
-
-    else:
-        from astropy.coordinates.solar_system import get_body_barycentric
-        bary_sun_pos = get_body_barycentric('sun', hcrs_coo.obstime)
-        bary_sun_vel = None
-
-    return None, bary_sun_pos
+    return None, get_offset_sun_from_barycenter(hcrs_coo.obstime,
+                                                include_velocity=bool(hcrs_coo.data.differentials))
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, HCRS)
@@ -266,20 +255,8 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
     if isinstance(icrs_coo.data, UnitSphericalRepresentation):
         raise u.UnitsError(_NEED_ORIGIN_HINT.format(icrs_coo.__class__.__name__))
 
-    if icrs_coo.data.differentials:
-        from astropy.coordinates.solar_system import get_body_barycentric_posvel
-        bary_sun_pos, bary_sun_vel = get_body_barycentric_posvel('sun',
-                                                                 hcrs_frame.obstime)
-        bary_sun_pos = -bary_sun_pos
-        bary_sun_vel = -bary_sun_vel.represent_as(CartesianDifferential)
-        bary_sun_pos = bary_sun_pos.with_differentials(bary_sun_vel)
-
-    else:
-        from astropy.coordinates.solar_system import get_body_barycentric
-        bary_sun_pos = -get_body_barycentric('sun', hcrs_frame.obstime)
-        bary_sun_vel = None
-
-    return None, bary_sun_pos
+    return None, get_offset_sun_from_barycenter(hcrs_frame.obstime, reverse=True,
+                                                include_velocity=bool(icrs_coo.data.differentials))
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HCRS, HCRS)
