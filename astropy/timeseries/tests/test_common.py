@@ -45,7 +45,7 @@ class CommonTimeSeriesTests:
         self.series.add_row(self._row)
 
     def test_set_unit(self):
-        self.series['d'] = [1, 2, 3]
+        self.series['d'] = [1., 2., 3.]
         self.series['d'].unit = 's'
 
     def test_replace_column(self):
