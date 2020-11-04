@@ -7,7 +7,6 @@ coordinates.
 import abc
 import functools
 import operator
-from collections import OrderedDict
 import inspect
 import warnings
 
@@ -679,7 +678,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     Notes
     -----
     All representation classes should subclass this base representation class,
-    and define an ``attr_classes`` attribute, an `~collections.OrderedDict`
+    and define an ``attr_classes`` attribute, a `dict`
     which maps component names to the class that creates them. They must also
     define a ``to_cartesian`` method and a ``from_cartesian`` class method. By
     default, transformations are done via the cartesian system, but classes
@@ -1253,9 +1252,9 @@ class CartesianRepresentation(BaseRepresentation):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    attr_classes = OrderedDict([('x', u.Quantity),
-                                ('y', u.Quantity),
-                                ('z', u.Quantity)])
+    attr_classes = {'x': u.Quantity,
+                    'y': u.Quantity,
+                    'z': u.Quantity}
 
     _xyz = None
 
@@ -1313,14 +1312,14 @@ class CartesianRepresentation(BaseRepresentation):
     def unit_vectors(self):
         l = np.broadcast_to(1.*u.one, self.shape, subok=True)
         o = np.broadcast_to(0.*u.one, self.shape, subok=True)
-        return OrderedDict(
-            (('x', CartesianRepresentation(l, o, o, copy=False)),
-             ('y', CartesianRepresentation(o, l, o, copy=False)),
-             ('z', CartesianRepresentation(o, o, l, copy=False))))
+        return {
+            'x': CartesianRepresentation(l, o, o, copy=False),
+            'y': CartesianRepresentation(o, l, o, copy=False),
+            'z': CartesianRepresentation(o, o, l, copy=False)}
 
     def scale_factors(self):
         l = np.broadcast_to(1.*u.one, self.shape, subok=True)
-        return OrderedDict((('x', l), ('y', l), ('z', l)))
+        return {'x': l, 'y': l, 'z': l}
 
     def get_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.
@@ -1546,8 +1545,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    attr_classes = OrderedDict([('lon', Longitude),
-                                ('lat', Latitude)])
+    attr_classes = {'lon': Longitude,
+                    'lat': Latitude}
 
     @classproperty
     def _dimensional_representation(cls):
@@ -1581,16 +1580,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def unit_vectors(self):
         sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
         sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
-        return OrderedDict(
-            (('lon', CartesianRepresentation(-sinlon, coslon, 0., copy=False)),
-             ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
-                                             coslat, copy=False))))
+        return {
+            'lon': CartesianRepresentation(-sinlon, coslon, 0., copy=False),
+            'lat': CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
+                                           coslat, copy=False)}
 
     def scale_factors(self, omit_coslat=False):
         sf_lat = np.broadcast_to(1./u.radian, self.shape, subok=True)
         sf_lon = sf_lat if omit_coslat else np.cos(self.lat) / u.radian
-        return OrderedDict((('lon', sf_lon),
-                            ('lat', sf_lat)))
+        return {'lon': sf_lon,
+                'lat': sf_lat}
 
     def to_cartesian(self):
         """
@@ -1746,7 +1745,7 @@ class RadialRepresentation(BaseRepresentation):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    attr_classes = OrderedDict([('distance', u.Quantity)])
+    attr_classes = {'distance': u.Quantity}
 
     def __init__(self, distance, differentials=None, copy=True):
         super().__init__(distance, differentials=differentials, copy=copy)
@@ -1765,7 +1764,7 @@ class RadialRepresentation(BaseRepresentation):
 
     def scale_factors(self):
         l = np.broadcast_to(1.*u.one, self.shape, subok=True)
-        return OrderedDict((('distance', l),))
+        return {'distance': l}
 
     def to_cartesian(self):
         """Cannot convert radial representation to cartesian."""
@@ -1832,9 +1831,9 @@ class SphericalRepresentation(BaseRepresentation):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    attr_classes = OrderedDict([('lon', Longitude),
-                                ('lat', Latitude),
-                                ('distance', u.Quantity)])
+    attr_classes = {'lon': Longitude,
+                    'lat': Latitude,
+                    'distance': u.Quantity}
     _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat=None, distance=None, differentials=None,
@@ -1883,20 +1882,20 @@ class SphericalRepresentation(BaseRepresentation):
     def unit_vectors(self):
         sinlon, coslon = np.sin(self.lon), np.cos(self.lon)
         sinlat, coslat = np.sin(self.lat), np.cos(self.lat)
-        return OrderedDict(
-            (('lon', CartesianRepresentation(-sinlon, coslon, 0., copy=False)),
-             ('lat', CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
-                                             coslat, copy=False)),
-             ('distance', CartesianRepresentation(coslat*coslon, coslat*sinlon,
-                                                  sinlat, copy=False))))
+        return {
+            'lon': CartesianRepresentation(-sinlon, coslon, 0., copy=False),
+            'lat': CartesianRepresentation(-sinlat*coslon, -sinlat*sinlon,
+                                           coslat, copy=False),
+            'distance': CartesianRepresentation(coslat*coslon, coslat*sinlon,
+                                                sinlat, copy=False)}
 
     def scale_factors(self, omit_coslat=False):
         sf_lat = self.distance / u.radian
         sf_lon = sf_lat if omit_coslat else sf_lat * np.cos(self.lat)
         sf_distance = np.broadcast_to(1.*u.one, self.shape, subok=True)
-        return OrderedDict((('lon', sf_lon),
-                            ('lat', sf_lat),
-                            ('distance', sf_distance)))
+        return {'lon': sf_lon,
+                'lat': sf_lat,
+                'distance': sf_distance}
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
@@ -1996,9 +1995,9 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    attr_classes = OrderedDict([('phi', Angle),
-                                ('theta', Angle),
-                                ('r', u.Quantity)])
+    attr_classes = {'phi': Angle,
+                    'theta': Angle,
+                    'r': u.Quantity}
 
     def __init__(self, phi, theta=None, r=None, differentials=None, copy=True):
         super().__init__(phi, theta, r, copy=copy, differentials=differentials)
@@ -2042,21 +2041,21 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
-        return OrderedDict(
-            (('phi', CartesianRepresentation(-sinphi, cosphi, 0., copy=False)),
-             ('theta', CartesianRepresentation(costheta*cosphi,
-                                               costheta*sinphi,
-                                               -sintheta, copy=False)),
-             ('r', CartesianRepresentation(sintheta*cosphi, sintheta*sinphi,
-                                           costheta, copy=False))))
+        return {
+            'phi': CartesianRepresentation(-sinphi, cosphi, 0., copy=False),
+            'theta': CartesianRepresentation(costheta*cosphi,
+                                             costheta*sinphi,
+                                             -sintheta, copy=False),
+            'r': CartesianRepresentation(sintheta*cosphi, sintheta*sinphi,
+                                         costheta, copy=False)}
 
     def scale_factors(self):
         r = self.r / u.radian
         sintheta = np.sin(self.theta)
         l = np.broadcast_to(1.*u.one, self.shape, subok=True)
-        return OrderedDict((('phi', r * sintheta),
-                            ('theta', r),
-                            ('r', l)))
+        return {'phi': r * sintheta,
+                'theta': r,
+                'r': l}
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
@@ -2152,9 +2151,9 @@ class CylindricalRepresentation(BaseRepresentation):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    attr_classes = OrderedDict([('rho', u.Quantity),
-                                ('phi', Angle),
-                                ('z', u.Quantity)])
+    attr_classes = {'rho': u.Quantity,
+                    'phi': Angle,
+                    'z': u.Quantity}
 
     def __init__(self, rho, phi=None, z=None, differentials=None, copy=True):
         super().__init__(rho, phi, z, copy=copy, differentials=differentials)
@@ -2186,17 +2185,17 @@ class CylindricalRepresentation(BaseRepresentation):
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1., self.shape)
-        return OrderedDict(
-            (('rho', CartesianRepresentation(cosphi, sinphi, 0, copy=False)),
-             ('phi', CartesianRepresentation(-sinphi, cosphi, 0, copy=False)),
-             ('z', CartesianRepresentation(0, 0, l, unit=u.one, copy=False))))
+        return {
+            'rho': CartesianRepresentation(cosphi, sinphi, 0, copy=False),
+            'phi': CartesianRepresentation(-sinphi, cosphi, 0, copy=False),
+            'z': CartesianRepresentation(0, 0, l, unit=u.one, copy=False)}
 
     def scale_factors(self):
         rho = self.rho / u.radian
         l = np.broadcast_to(1.*u.one, self.shape, subok=True)
-        return OrderedDict((('rho', l),
-                            ('phi', rho),
-                            ('z', l)))
+        return {'rho': l,
+                'phi': rho,
+                'z': l}
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -2244,8 +2243,8 @@ class MetaBaseDifferential(abc.ABCMeta):
         # If not defined explicitly, create attr_classes.
         if not hasattr(cls, 'attr_classes'):
             base_attr_classes = cls.base_representation.attr_classes
-            cls.attr_classes = OrderedDict([('d_' + c, u.Quantity)
-                                            for c in base_attr_classes])
+            cls.attr_classes = {'d_' + c: u.Quantity
+                                for c in base_attr_classes}
 
         repr_name = cls.get_name()
         if repr_name in DIFFERENTIAL_CLASSES:
@@ -2888,8 +2887,8 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         be references, though possibly broadcast to ensure matching shapes.
     """
     base_representation = UnitSphericalRepresentation
-    attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
-                                ('d_lat', u.Quantity)])
+    attr_classes = {'d_lon_coslat': u.Quantity,
+                    'd_lat': u.Quantity}
 
     @classproperty
     def _dimensional_differential(cls):
@@ -2951,9 +2950,9 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     """
     base_representation = SphericalRepresentation
     _unit_differential = UnitSphericalCosLatDifferential
-    attr_classes = OrderedDict([('d_lon_coslat', u.Quantity),
-                                ('d_lat', u.Quantity),
-                                ('d_distance', u.Quantity)])
+    attr_classes = {'d_lon_coslat': u.Quantity,
+                    'd_lat': u.Quantity,
+                    'd_distance': u.Quantity}
 
     def __init__(self, d_lon_coslat, d_lat=None, d_distance=None, copy=True):
         super().__init__(d_lon_coslat, d_lat, d_distance, copy=copy)

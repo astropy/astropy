@@ -5,7 +5,6 @@ ephemerides from jplephem.
 """
 
 from urllib.parse import urlparse
-from collections import OrderedDict
 import os.path
 
 import numpy as np
@@ -30,31 +29,32 @@ __all__ = ["get_body", "get_moon", "get_body_barycentric",
 DEFAULT_JPL_EPHEMERIS = 'de430'
 
 """List of kernel pairs needed to calculate positions of a given object."""
-BODY_NAME_TO_KERNEL_SPEC = OrderedDict([
-    ('sun', [(0, 10)]),
-    ('mercury', [(0, 1), (1, 199)]),
-    ('venus', [(0, 2), (2, 299)]),
-    ('earth-moon-barycenter', [(0, 3)]),
-    ('earth', [(0, 3), (3, 399)]),
-    ('moon', [(0, 3), (3, 301)]),
-    ('mars', [(0, 4)]),
-    ('jupiter', [(0, 5)]),
-    ('saturn', [(0, 6)]),
-    ('uranus', [(0, 7)]),
-    ('neptune', [(0, 8)]),
-    ('pluto', [(0, 9)])
-])
+BODY_NAME_TO_KERNEL_SPEC = {
+    'sun': [(0, 10)],
+    'mercury': [(0, 1), (1, 199)],
+    'venus': [(0, 2), (2, 299)],
+    'earth-moon-barycenter': [(0, 3)],
+    'earth': [(0, 3), (3, 399)],
+    'moon': [(0, 3), (3, 301)],
+    'mars': [(0, 4)],
+    'jupiter': [(0, 5)],
+    'saturn': [(0, 6)],
+    'uranus': [(0, 7)],
+    'neptune': [(0, 8)],
+    'pluto': [(0, 9)],
+}
 
 """Indices to the plan94 routine for the given object."""
-PLAN94_BODY_NAME_TO_PLANET_INDEX = OrderedDict(
-    (('mercury', 1),
-     ('venus', 2),
-     ('earth-moon-barycenter', 3),
-     ('mars', 4),
-     ('jupiter', 5),
-     ('saturn', 6),
-     ('uranus', 7),
-     ('neptune', 8)))
+PLAN94_BODY_NAME_TO_PLANET_INDEX = {
+    'mercury': 1,
+    'venus': 2,
+    'earth-moon-barycenter': 3,
+    'mars': 4,
+    'jupiter': 5,
+    'saturn': 6,
+    'uranus': 7,
+    'neptune': 8,
+}
 
 _EPHEMERIS_NOTE = """
 You can either give an explicit ephemeris or use a default, which is normally

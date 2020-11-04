@@ -10,7 +10,7 @@ classes.
 import abc
 import copy
 import inspect
-from collections import namedtuple, OrderedDict, defaultdict
+from collections import namedtuple, defaultdict
 import warnings
 
 # Dependencies
@@ -409,7 +409,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     _inherit_descriptors_ = (Attribute,)
 
-    frame_attributes = OrderedDict()
+    frame_attributes = {}
     # Default empty frame_attributes dict
 
     def __init__(self, *args, copy=True, representation_type=None,
@@ -711,8 +711,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     @classmethod
     def get_frame_attr_names(cls):
-        return OrderedDict((name, getattr(cls, name))
-                           for name in cls.frame_attributes)
+        return {name: getattr(cls, name)
+                for name in cls.frame_attributes}
 
     def get_representation_cls(self, which='base'):
         """The class used for part of this frame's data.
@@ -846,7 +846,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return self._get_representation_info()
 
     def get_representation_component_names(self, which='base'):
-        out = OrderedDict()
+        out = {}
         repr_or_diff_cls = self.get_representation_cls(which)
         if repr_or_diff_cls is None:
             return out
@@ -857,7 +857,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         return out
 
     def get_representation_component_units(self, which='base'):
-        out = OrderedDict()
+        out = {}
         repr_or_diff_cls = self.get_representation_cls(which)
         if repr_or_diff_cls is None:
             return out
@@ -1893,7 +1893,7 @@ class GenericFrame(BaseCoordinateFrame):
     name = None  # it's not a "real" frame so it doesn't have a name
 
     def __init__(self, frame_attrs):
-        self.frame_attributes = OrderedDict()
+        self.frame_attributes = {}
         for name, default in frame_attrs.items():
             self.frame_attributes[name] = Attribute(default)
             setattr(self, '_' + name, default)
