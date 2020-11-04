@@ -389,7 +389,7 @@ def get_offset_sun_from_barycenter(time, include_velocity=False, reverse=False):
     include_velocity : `bool`
         If ``True``, attach the velocity as a differential.  Defaults to ``False``.
     reverse : `bool`
-        If ``True``, return the offset of the barycenter from the SSB.  Defaults to ``False``.
+        If ``True``, return the offset of the barycenter from the Sun.  Defaults to ``False``.
 
     Returns
     -------
