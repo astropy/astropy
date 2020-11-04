@@ -2291,6 +2291,13 @@ def test_qtable_quantity_int_conversion():
         if os.path.isfile(filename):
             os.remove(filename)
 
+    # Ensure warnings only happen in column update, but not column add
+    # - case adding a column
+    tab = QTable(dict(time=[1, 2, 3]))
+    tab['length'] = Column([9, 8, 7], unit=u.m)
+    # - case initial creation
+    tab = QTable([[1, 2, 3]], names=['time'], units=[u.m])
+
 
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""

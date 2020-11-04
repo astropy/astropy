@@ -3665,6 +3665,17 @@ class QTable(Table):
                           "".format(col.info.name))
             self._dtype_before_conversion = None
 
+    def _set_column_attribute(self, attr, values):
+        # some internal codes use ``_set_column_attribute()`` to assign units to a column,
+        # which might trigger the warnings. Suppress them as ,they are internal codes that
+        # should know what they are doing.
+        if attr != 'unit':
+            super()._set_column_attribute(attr, values)
+        else:
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message=".*dtype is converted to float.*")
+                super()._set_column_attribute(attr, values)
+
 
 class NdarrayMixin(np.ndarray):
     """
