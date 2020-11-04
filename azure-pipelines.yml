@@ -10,14 +10,15 @@ resources:
     name: OpenAstronomy/azure-pipelines-templates
     ref: master
 
-# NOTE: for now we only use Azure Pipelines on v* branches and tags
-# for building the source and wheel distributions. If you want to
-# make changes to this configuration via a pull request, you can
-# *temporarily* change the branches include trigger to just '*'
+# NOTE: for now we only use Azure Pipelines on v* branches, tags, and master
+# only on a cron for building the source and wheel distributions. If you want to
+# make changes to this configuration via a pull request, you can *temporarily*
+# change the pr branches include trigger to just '*'
 trigger:
   branches:
     include:
     - 'v*'
+    - master
   tags:
     include:
     - 'v*'
@@ -26,6 +27,14 @@ pr:
     include:
     - 'v*'
 
+schedules:
+  - cron: "0 0 * * *"
+    displayName: Daily Build for Nightly Wheels
+    branches:
+      include:
+        - master
+    always: true
+
 # Build Linux wheels using manylinux1 for compatibility with old versions
 # of pip and old platforms.
 variables:
@@ -33,6 +42,8 @@ variables:
   CIBW_MANYLINUX_I686_IMAGE: manylinux1
 
 jobs:
+# Run this job on non-master branches (when triggered) or if we are on master and on the cron, or if manually triggered through the web ui.
+- ${{ if or(ne(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'Manual')) }}:
   - template: publish.yml@OpenAstronomy
     parameters:
 
@@ -46,6 +57,12 @@ jobs:
       # for information on how to configure things on the Azure Pipelines side
       ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/v') }}:
         pypi_connection_name : 'pypi_endpoint'
+
+      # If the build has run on master then upload the artifacts to the nightly feed
+      ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+        artifact_project : 'astropy'
+        artifact_feed : 'nightly'
+        remove_local_scheme: true
 
       targets:
       - sdist
@@ -63,3 +80,8 @@ jobs:
       - wheels_cp38*win_amd64
       - wheels_cp39*win32
       - wheels_cp39*win_amd64
+
+# We always need to specify a job, so always run a do nothing.
+- job: skipping
+  steps:
+    - checkout: none
