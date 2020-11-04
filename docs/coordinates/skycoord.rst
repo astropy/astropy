@@ -532,10 +532,10 @@ coordinates. How does the object know what to call its values? The answer
 lies in some less obvious attributes::
 
   >>> sc_gal.representation_component_names
-  OrderedDict([('l', 'lon'), ('b', 'lat'), ('distance', 'distance')])
+  {'l': 'lon', 'b': 'lat', 'distance': 'distance'}
 
   >>> sc_gal.representation_component_units
-  OrderedDict([('l', Unit("deg")), ('b', Unit("deg"))])
+  {'l': Unit("deg"), 'b': Unit("deg")}
 
   >>> sc_gal.representation_type
   <class 'astropy.coordinates.representation.SphericalRepresentation'>
@@ -551,7 +551,7 @@ additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
   >>> sc_fk4.get_frame_attr_names()
-  OrderedDict([('equinox', <Time object: scale='tt' format='byear_str' value=B1950.000>), ('obstime', None)])
+  {'equinox': <Time object: scale='tt' format='byear_str' value=B1950.000>, 'obstime': None}
 
 The key values correspond to the defaults if no explicit value is provided by
 the user. This example shows that the `~astropy.coordinates.FK4` frame has two
@@ -837,7 +837,7 @@ names for that frame to the component name on the representation class::
     >>> icrs.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
-    OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
+    {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
 Changing Representation
 -----------------------
