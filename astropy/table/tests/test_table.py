@@ -3,6 +3,7 @@
 
 from astropy.utils.tests.test_metadata import MetaBaseTest
 import gc
+import os
 import sys
 import copy
 from io import StringIO
@@ -14,7 +15,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
-from astropy.table import (Table, QTable, MaskedColumn, TableReplaceWarning,
+from astropy.table import (Table, QTable, Column, MaskedColumn, TableReplaceWarning,
                            TableAttribute)
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.coordinates import SkyCoord
@@ -2256,6 +2257,37 @@ def test_table_meta_copy_with_meta_arg():
     assert t.meta is not meta
     assert t.meta == meta
     assert t.meta[1] is not meta[1]
+
+
+def test_qtable_quantity_int_conversion():
+    """Ensure the behavior when converting ``int`` ``Column`` to ``Quantity``, the dtype will be ``float``.
+
+    See https://github.com/astropy/astropy/issues/10964 for the rationale
+    """
+
+    tab = QTable(dict(time=[1, 2, 3]))
+    tab['length'] = [9, 8, 7]
+    tab['length'].unit = u.m
+    assert np.issubdtype(tab['length'].dtype, np.float)
+
+    # same for dimensionless unit
+    tab['col2'] = [6, 5, 4]
+    tab['col2'].unit = u.dimensionless_unscaled
+    assert np.issubdtype(tab['col2'].dtype, np.float)
+
+    # An implied behavior is that when QTable reads a file with a Column of int data with units,
+    # it gets converted to float as well.
+    # See: https://github.com/astropy/astropy/pull/10950#issuecomment-718117133
+
+    # can't use in-memory IO, e.g., io.BytesIO - fits IO can't handle it.
+    filename = 'test_qtable_quantity_int_conversion.fits'
+    try:
+        Table([Column(np.arange(3), unit=u.m, name='length')]).write(filename, overwrite=True)
+        tab = table.QTable.read(filename)
+        assert np.issubdtype(tab['length'].dtype, np.float)
+    finally:
+        if os.path.isfile(filename):
+            os.remove(filename)
 
 
 def test_replace_column_qtable():
