@@ -3593,9 +3593,8 @@ class QTable(Table):
     except that columns with an associated ``unit`` attribute are converted to
     `~astropy.units.Quantity` objects.
 
-    Note: when a column of ``int`` ``dtype`` is converted to ``Quantity``, its
-    ``dtype`` is converted to ``float``.
-
+    .. note:: When a column of ``int`` ``dtype`` is converted to ``Quantity``, its
+              ``dtype`` is converted to ``float``.
     See also:
 
     - https://docs.astropy.org/en/stable/table/
@@ -3667,7 +3666,7 @@ class QTable(Table):
 
     def _set_column_attribute(self, attr, values):
         # some internal codes use ``_set_column_attribute()`` to assign units to a column,
-        # which might trigger the warnings. Suppress them as ,they are internal codes that
+        # which might trigger the warnings. Suppress them as they are internal codes that
         # should know what they are doing.
         if attr != 'unit':
             super()._set_column_attribute(attr, values)
