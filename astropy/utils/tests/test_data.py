@@ -385,8 +385,10 @@ def test_download_with_sources_and_bogus_original(
         assert is_url_in_cache(u)
 
 
-@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
-                    reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
+                    (sys.platform.startswith('win') and TRAVIS),
+                    reason="mystery segfault that is possibly bug #10008 "
+                           "for python < 3.8, flaky cache error on Windows CI")
 def test_download_file_threaded_many(temp_cache, valid_urls):
     """Hammer download_file with multiple threaded requests.
 
@@ -404,8 +406,10 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
         assert get_file_contents(r) == c
 
 
-@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
-                    reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
+                    (sys.platform.startswith('win') and TRAVIS),
+                    reason="mystery segfault that is possibly bug #10008 "
+                           "for python < 3.8, flaky cache error on Windows CI")
 def test_threaded_segfault(valid_urls):
     """Demonstrate urllib's segfault."""
     def slurp_url(u):
@@ -420,8 +424,10 @@ def test_threaded_segfault(valid_urls):
                    [u for (u, c) in urls]))
 
 
-@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8),
-                    reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
+                    (sys.platform.startswith('win') and TRAVIS),
+                    reason="mystery segfault that is possibly bug #10008 "
+                           "for python < 3.8, flaky cache error on Windows CI")
 def test_download_file_threaded_many_partial_success(
         temp_cache, valid_urls, invalid_urls):
     """Hammer download_file with multiple threaded requests.
@@ -821,8 +827,10 @@ def test_download_parallel_update(temp_cache, tmpdir):
         assert get_file_contents(r_3) == c_plus
 
 
-@pytest.mark.skipif(sys.version_info < (3, 8),
-                    reason="causes mystery segfault! possibly bug #10008")
+@pytest.mark.skipif(sys.version_info < (3, 8) or
+                    (sys.platform.startswith('win') and TRAVIS),
+                    reason="mystery segfault that is possibly bug #10008 "
+                           "for python < 3.8, flaky cache error on Windows CI")
 def test_update_parallel(temp_cache, valid_urls):
     u, c = next(valid_urls)
     u2, c2 = next(valid_urls)
