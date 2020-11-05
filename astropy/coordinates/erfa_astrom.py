@@ -207,6 +207,16 @@ class ErfaAstromInterpolator(ErfaAstrom):
         return earth_pv, earth_heliocentric
 
     @staticmethod
+    def _get_c2i(support, obstime):
+        jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
+        c2i_support = erfa.c2i06a(jd1_tt_support, jd2_tt_support)
+        c2i = np.empty(obstime.shape + (3, 3))
+        for dim1 in range(3):
+            for dim2 in range(3):
+                c2i[..., dim1, dim2] = np.interp(obstime.mjd, support.mjd, c2i_support[..., dim1, dim2])
+        return c2i
+
+    @staticmethod
     def _get_cip(support, obstime):
         jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
         cip_support = get_cip(jd1_tt_support, jd2_tt_support)
@@ -244,7 +254,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
         jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
         astrom = erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
-        astrom['bpn'] = erfa.c2i06a(jd1_tt, jd2_tt)
+        astrom['bpn'] = self._get_c2i(support, obstime)
         return astrom
 
     def apcs(self, frame_or_coord):
