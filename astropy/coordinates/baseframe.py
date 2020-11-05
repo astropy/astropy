@@ -431,14 +431,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             self._representation = {'base': self.default_representation,
                                     's': self.default_differential}
 
-        representation_data, differential_data = self._infer_representation_differential_data(
-            args, copy, kwargs)
-
-        if differential_data:
-            self._data = representation_data.with_differentials(
-                {'s': differential_data})
-        else:
-            self._data = representation_data  # possibly None.
+        representation_data = self._infer_representation_differential_data(args, copy, kwargs)
+        self._data = representation_data  # possibly None.
 
         # Set frame attributes, if any
 
@@ -489,7 +483,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             else:
                 self._no_data_shape = ()
 
-        # else:
         # The logic of this block is not related to the previous one
         if self._data is not None:
             # This makes the cache keys backwards-compatible, but also adds
@@ -665,7 +658,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
                             "Differential data units are not compatible with"
                             "time-derivative of representation data units")
 
-        return representation_data, differential_data
+            representation_data = representation_data.with_differentials({'s': differential_data})
+
+        return representation_data
 
     @lazyproperty
     def cache(self):
