@@ -127,6 +127,9 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- ``QTable``: Issue a warning when assigning a unit to a ``Column`` of ``int`` ``dtype``,
+  because it is converted to ``float`` during the conversion to ``Quantity``.  [#10992]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
