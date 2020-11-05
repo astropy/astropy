@@ -1186,6 +1186,13 @@ astropy.io.ascii
   reading, so we now ignore the parallel option and fall back to serial reading.
   [#10880]
 
+- Fixed a bug where "" (blank string) as input data for a boolean type column
+  was causing an exception instead of indicating a masked value. As a
+  consequence of the fix, the values "0" and "1" are now also allowed as valid
+  inputs for boolean type columns. These new allowed values apply for both ECSV
+  and for basic character-delimited data files ('basic' format with appropriate
+  ``converters`` specified). [#10995]
+
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
