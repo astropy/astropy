@@ -384,17 +384,23 @@ def test_regression_simple_5133():
 
     https://github.com/astropy/astropy/issues/10983
 
-    This is worse for small height above the Earth, which is why this test
-    uses large distances.
+    This is why we construct a topocentric GCRS SkyCoord before calculating AltAz
     """
     t = Time('J2010')
-    obj = EarthLocation(-1*u.deg, 52*u.deg, height=[100000., 0.]*u.km)
-    home = EarthLocation(-1*u.deg, 52*u.deg, height=50000.*u.km)
-    aa = obj.get_itrs(t).transform_to(AltAz(obstime=t, location=home))
+    obj = EarthLocation(-1*u.deg, 52*u.deg, height=[10., 0.]*u.km)
+    home = EarthLocation(-1*u.deg, 52*u.deg, height=5.*u.km)
+
+    obsloc_gcrs, obsvel_gcrs = home.get_gcrs_posvel(t)
+    gcrs_geo = obj.get_itrs(t).transform_to(GCRS(obstime=t))
+    obsrepr = home.get_itrs(t).transform_to(GCRS(obstime=t)).cartesian
+    topo_gcrs_repr = gcrs_geo.cartesian - obsrepr
+    topocentric_gcrs_frame = GCRS(obstime=t, obsgeoloc=obsloc_gcrs, obsgeovel=obsvel_gcrs)
+    gcrs_topo = topocentric_gcrs_frame.realize_frame(topo_gcrs_repr)
+    aa = gcrs_topo.transform_to(AltAz(obstime=t, location=home))
 
     # az is more-or-less undefined for straight up or down
-    assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-4)
-    assert_quantity_allclose(aa.distance, 50000*u.km)
+    assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-7)
+    assert_quantity_allclose(aa.distance, 5*u.km)
 
 
 def test_regression_5743():
