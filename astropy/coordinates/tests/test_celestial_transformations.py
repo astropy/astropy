@@ -341,5 +341,3 @@ def test_cirs_icrs():
     # now check ICRS transform gives a decent distance from Barycentre
     moon_icrs = moon_geo.transform_to(ICRS())
     assert moon_icrs.distance - 1*u.au < 1*u.R_sun
-
-
