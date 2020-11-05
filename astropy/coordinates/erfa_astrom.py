@@ -93,7 +93,7 @@ class ErfaAstrom:
         jd1_utc, jd2_utc = get_jd12(frame_or_coord.obstime, 'utc')
         dut1utc = get_dut1utc(frame_or_coord.obstime)
 
-        return erfa.apio13(
+        astrom = erfa.apio13(
             jd1_utc, jd2_utc, dut1utc,
             lon.to_value(u.radian),
             lat.to_value(u.radian),
@@ -105,6 +105,12 @@ class ErfaAstrom:
             frame_or_coord.relative_humidity.value,
             frame_or_coord.obswl.value,
         )
+        # Note: this is inefficient. Really we should write our own apio13 version and
+        # strip out pvobs calls. However, we don't need a diurnal aberration/parallax
+        # term because we have already accounted for that in transforming to topocentric
+        # CIRS.
+        astrom['diurab'] = 0
+        return astrom
 
 
 class ErfaAstromInterpolator(ErfaAstrom):

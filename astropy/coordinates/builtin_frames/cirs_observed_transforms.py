@@ -30,9 +30,6 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
                                               obsgeoloc=obsgeoloc,
                                               obsgeovel=obsgeovel))
 
-    # we use the same obstime everywhere now that we know they're the same
-    obstime = cirs_coo.obstime
-
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(cirs_coo.data, UnitSphericalRepresentation) or
                         cirs_coo.cartesian.x.unit == u.one)
@@ -45,11 +42,6 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
     # first set up the astrometry context for CIRS<->AltAz
     astrom = erfa_astrom.get().apio13(altaz_frame)
-    # Note: this is inefficient. Really we should write our own apio13 version and
-    # strip out pvobs calls. However, we don't need a diurnal aberration/parallax
-    # term because we have already accounted for that in transforming to topocentric
-    # CIRS.
-    astrom['diurab'] = 0
     az, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
     if is_unitspherical:
@@ -73,7 +65,6 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
 
     # first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
     astrom = erfa_astrom.get().apio13(altaz_coo)
-    astrom['diurab'] = 0
 
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian
