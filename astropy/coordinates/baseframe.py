@@ -423,16 +423,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         _normalize_representation_type(kwargs)
         representation_type = kwargs.pop('representation_type', representation_type)
 
-        if representation_type is not None or differential_type is not None:
-            representation_type, differential_type = self._infer_representation_differential_type(
-                representation_type, differential_type)
-            self.set_representation_cls(representation_type, **differential_type)
-        else:
-            self._representation = {'base': self.default_representation,
-                                    's': self.default_differential}
-
-        representation_data = self._infer_representation_differential_data(args, copy, kwargs)
-        self._data = representation_data  # possibly None.
+        self._representation = self._infer_representation_differential_type(representation_type, differential_type)
+        self._data = self._infer_representation_differential_data(args, copy, kwargs)  # possibly None.
 
         # Set frame attributes, if any
 
@@ -500,6 +492,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             self.cache['representation'][key] = self._data
 
     def _infer_representation_differential_type(self, representation_type, differential_type):
+        if representation_type is None and differential_type is None:
+            return {'base': self.default_representation, 's': self.default_differential}
+
         if representation_type is None:
             representation_type = self.default_representation
 
@@ -521,7 +516,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             else:
                 differential_type = {'s': 'base'}  # see set_representation_cls()
 
-        return representation_type, differential_type
+        return _get_repr_classes(representation_type, **differential_type)
 
     def _infer_representation_differential_data(self, args, copy, kwargs):
         # if not set below, this is a frame with no data
