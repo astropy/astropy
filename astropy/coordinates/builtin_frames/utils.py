@@ -36,7 +36,7 @@ _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
 def get_polar_motion(time):
     """
-    gets the two polar motion components in radians for use with apio13
+    gets the two polar motion components in radians for use with apio
     """
     # Get the polar motion from the IERS table
     iers_table = iers.earth_orientation_table.get()

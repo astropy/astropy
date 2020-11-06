@@ -87,7 +87,7 @@ def test_interpolation_nd():
         gcrs = GCRS(obstime=obstime)
         cirs = CIRS(obstime=obstime)
 
-        for frame, tcode in zip([altaz, cirs, gcrs], ['apio13', 'apci', 'apcs']):
+        for frame, tcode in zip([altaz, cirs, gcrs], ['apio', 'apci', 'apcs']):
             without_interp = getattr(provider, tcode)(frame)
             assert without_interp.shape == shape
 
