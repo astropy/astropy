@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
+from astropy.io.ascii.core import convert_numpy
 import re
 from io import BytesIO, open
 from collections import OrderedDict
@@ -14,7 +14,7 @@ import pytest
 import numpy as np
 
 from astropy.io import ascii
-from astropy.table import Table
+from astropy.table import Table, MaskedColumn
 from astropy import table
 from astropy.units import Unit
 from astropy.table.table_helpers import simple_table
@@ -1455,3 +1455,29 @@ def test_kwargs_dict_guess(enable):
     for k in get_read_trace():
         if not k.get('status', 'Disabled').startswith('Disabled'):
             assert k.get('kwargs').get('fast_reader').get('enable') is enable
+
+
+def test_read_masked_bool():
+    txt = """\
+col0 col1
+1       1
+0       2
+True    3
+""      4
+False   5
+"""
+    # Reading without converters returns col0 as a string
+    dat = ascii.read(txt, format='basic')
+    col = dat['col0']
+    assert isinstance(col, MaskedColumn)
+    assert col.dtype.kind == 'U'
+    assert col[0] == "1"
+
+    # Force col0 to be read as bool
+    converters = {'col0': [convert_numpy(np.bool)]}
+    dat = ascii.read(txt, format='basic', converters=converters)
+    col = dat['col0']
+    assert isinstance(col, MaskedColumn)
+    assert col.dtype.kind == 'b'
+    assert np.all(col.mask == [False, False, False, True, False])
+    assert np.all(col == [True, False, True, False, False])

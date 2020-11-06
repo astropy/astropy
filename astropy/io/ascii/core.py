@@ -903,13 +903,18 @@ def convert_numpy(numpy_type):
         # Try a smaller subset first for a long array
         if len(vals) > 10000:
             svals = numpy.asarray(vals[:1000])
-            if not numpy.all((svals == 'False') | (svals == 'True')):
-                raise ValueError('bool input strings must be only False or True')
+            if not numpy.all((svals == 'False')
+                             | (svals == 'True')
+                             | (svals == '0')
+                             | (svals == '1')):
+                raise ValueError('bool input strings must be False, True, 0, 1, or ""')
         vals = numpy.asarray(vals)
-        trues = vals == 'True'
-        falses = vals == 'False'
+
+        trues = (vals == 'True') | (vals == '1')
+        falses = (vals == 'False') | (vals == '0')
         if not numpy.all(trues | falses):
-            raise ValueError('bool input strings must be only False or True')
+            raise ValueError('bool input strings must be only False, True, 0, 1, or ""')
+
         return trues
 
     def generic_converter(vals):
