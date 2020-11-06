@@ -77,9 +77,12 @@ class ErfaAstrom:
         return erfa.apcs(jd1_tt, jd2_tt, obs_pv, earth_pv, earth_heliocentric)
 
     @staticmethod
-    def apio13(frame_or_coord):
+    def apio(frame_or_coord):
         '''
-        Wrapper for ``erfa.apio13``, used in conversions AltAz <-> CIRS
+        Slightly modified equivalent of ``erfa.apio``, used in conversions AltAz <-> CIRS.
+
+        Since we use a topocentric CIRS frame, we have dropped the steps needed to calculate
+        diurnal aberration.
 
         Arguments
         ---------
@@ -89,27 +92,37 @@ class ErfaAstrom:
             For this function, an AltAz frame is expected.
         '''
         lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
+        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
 
-        jd1_utc, jd2_utc = get_jd12(frame_or_coord.obstime, 'utc')
-        dut1utc = get_dut1utc(frame_or_coord.obstime)
+        astrom = np.zeros(frame_or_coord.obstime.shape, dtype=erfa.dt_eraASTROM)
 
-        astrom = erfa.apio13(
-            jd1_utc, jd2_utc, dut1utc,
-            lon.to_value(u.radian),
-            lat.to_value(u.radian),
-            height.to_value(u.m),
-            *get_polar_motion(frame_or_coord.obstime),
-            # all below are already in correct units because they are QuantityFrameAttribues
-            frame_or_coord.pressure.value,
-            frame_or_coord.temperature.value,
-            frame_or_coord.relative_humidity.value,
-            frame_or_coord.obswl.value,
+        # longitude with adjustment for TIO locator s'
+        astrom['along'] = lon.to_value(u.radian) + erfa.sp00(jd1_tt, jd2_tt)
+
+        # Polar motion, rotated onto local meridian
+        xp, yp = get_polar_motion(frame_or_coord.obstime)
+        sl = np.sin(astrom['along'])
+        cl = np.cos(astrom['along'])
+        astrom['xpl'] = xp*cl - yp*sl
+        astrom['ypl'] = xp*sl + yp*cl
+
+        # Functions of latitude
+        astrom['sphi'] = np.sin(lat)
+        astrom['cphi'] = np.cos(lat)
+
+        # refraction constants
+        refa, refb = erfa.refco(
+            frame_or_coord.pressure.to_value(u.hPa),
+            frame_or_coord.temperature.to_value(u.deg_C),
+            # Relative humidity can be a quantity or a number.
+            u.Quantity(frame_or_coord.relative_humidity).value,
+            frame_or_coord.obswl.to_value(u.micron)
         )
-        # Note: this is inefficient. Really we should write our own apio13 version and
-        # strip out pvobs calls. However, we don't need a diurnal aberration/parallax
-        # term because we have already accounted for that in transforming to topocentric
-        # CIRS.
-        astrom['diurab'] = 0
+        astrom['refa'] = refa
+        astrom['refb'] = refb
+
+        # update local earth rotation angle
+        astrom['eral'] = erfa.era00(*get_jd12(frame_or_coord.obstime, 'ut1')) + astrom['along']
         return astrom
 
 
