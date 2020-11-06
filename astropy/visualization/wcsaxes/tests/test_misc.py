@@ -15,6 +15,8 @@ from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
+from astropy.utils.data import get_pkg_data_filename
+
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
     EllipticalFrame, RectangularFrame, RectangularFrame1D)
@@ -24,8 +26,6 @@ from astropy.visualization.wcsaxes.transforms import CurvedTransform
 mpl_version = Version(matplotlib.__version__)
 MATPLOTLIB_LT_31 = mpl_version < Version('3.1')
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
-
-DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
 
 def teardown_function(function):
@@ -113,7 +113,7 @@ def test_invalid_frame_overlay(ignore_matplotlibrc):
 
 def test_plot_coord_transform(ignore_matplotlibrc):
 
-    twoMASS_k_header = os.path.join(DATA, '2MASS_k_header')
+    twoMASS_k_header = get_pkg_data_filename('data/2MASS_k_header')
     twoMASS_k_header = fits.Header.fromtextfile(twoMASS_k_header)
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],

@@ -6,10 +6,10 @@ import pytest
 from astropy.table import Table, Column
 
 from astropy.table.table_helpers import simple_table
+from astropy.utils.data import get_pkg_data_filename
 
 import numpy as np
 
-ROOT = os.path.abspath(os.path.dirname(__file__))
 
 files = ['data/cds.dat', 'data/ipac.dat', 'data/daophot.dat', 'data/latex1.tex',
          'data/simple_csv.csv']
@@ -34,7 +34,7 @@ if HAS_BEAUTIFUL_SOUP:
 
 @pytest.mark.parametrize('filename', files)
 def test_read_generic(filename):
-    Table.read(os.path.join(ROOT, filename), format='ascii')
+    Table.read(get_pkg_data_filename(filename), format='ascii')
 
 
 def test_write_generic(tmpdir):
@@ -45,23 +45,23 @@ def test_write_generic(tmpdir):
 
 
 def test_read_ipac():
-    Table.read(os.path.join(ROOT, 'data/ipac.dat'), format='ipac')
+    Table.read(get_pkg_data_filename('data/ipac.dat'), format='ipac')
 
 
 def test_read_cds():
-    Table.read(os.path.join(ROOT, 'data/cds.dat'), format='cds')
+    Table.read(get_pkg_data_filename('data/cds.dat'), format='cds')
 
 
 def test_read_dapphot():
-    Table.read(os.path.join(ROOT, 'data/daophot.dat'), format='daophot')
+    Table.read(get_pkg_data_filename('data/daophot.dat'), format='daophot')
 
 
 def test_read_latex():
-    Table.read(os.path.join(ROOT, 'data/latex1.tex'), format='latex')
+    Table.read(get_pkg_data_filename('data/latex1.tex'), format='latex')
 
 
 def test_read_latex_noformat():
-    Table.read(os.path.join(ROOT, 'data/latex1.tex'))
+    Table.read(get_pkg_data_filename('data/latex1.tex'))
 
 
 def test_write_latex(tmpdir):
@@ -82,12 +82,12 @@ def test_write_latex_noformat(tmpdir):
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_read_html():
-    Table.read(os.path.join(ROOT, 'data/html.html'), format='html')
+    Table.read(get_pkg_data_filename('data/html.html'), format='html')
 
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_read_html_noformat():
-    Table.read(os.path.join(ROOT, 'data/html.html'))
+    Table.read(get_pkg_data_filename('data/html.html'))
 
 
 def test_write_html(tmpdir):
@@ -107,11 +107,11 @@ def test_write_html_noformat(tmpdir):
 
 
 def test_read_rdb():
-    Table.read(os.path.join(ROOT, 'data/short.rdb'), format='rdb')
+    Table.read(get_pkg_data_filename('data/short.rdb'), format='rdb')
 
 
 def test_read_rdb_noformat():
-    Table.read(os.path.join(ROOT, 'data/short.rdb'))
+    Table.read(get_pkg_data_filename('data/short.rdb'))
 
 
 def test_write_rdb(tmpdir):
@@ -135,7 +135,7 @@ def test_read_csv():
 
     #3189
     '''
-    Table.read(os.path.join(ROOT, 'data/simple_csv.csv'))
+    Table.read(get_pkg_data_filename('data/simple_csv.csv'))
 
 
 def test_write_csv(tmpdir):
