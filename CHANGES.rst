@@ -1,14 +1,8 @@
-4.2 (unreleased)
-================
+4.2RC1 (2020-11-06)
+===================
 
 New Features
 ------------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
 
 astropy.convolution
 ^^^^^^^^^^^^^^^^^^^
@@ -58,21 +52,6 @@ astropy.cosmology
   parameters are identical to those of the ``Planck18_arXiv_v2`` object,
   which is now deprecated and will be removed in a future release. [#10915]
 
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
@@ -95,12 +74,6 @@ astropy.modeling
 
 - N-dimensional least-squares statistic and specific 1,2,3-D methods [#10670]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -112,9 +85,6 @@ astropy.table
 - Allow initializing a ``Table`` using a list of ``names`` in conjunction with
   a ``dtype`` from a numpy structured array. The list of ``names`` overrides the
   names specified in the ``dtype``. [#10419]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -140,9 +110,6 @@ astropy.timeseries
 - Improve memory and speed performance when iterating over the entire time
   column of a ``TimeSeries`` object. Previously this involved O(N^2) operations
   and memory. [#10889]
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -194,6 +161,7 @@ astropy.wcs
 - New ``WCS.proj_plane_pixel_scales()`` and ``WCS.proj_plane_pixel_area()``
   methods to return pixel scales and area, respectively, as Quantity. [#10872]
 
+
 API Changes
 -----------
 
@@ -208,12 +176,6 @@ astropy.config
   before falling back to older logic. In addition, ``HOMESHARE`` is no longer
   used in Windows. [#10705]
 
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
@@ -222,33 +184,6 @@ astropy.coordinates
   deprecated.  Frame classes can still be passed to the ``transform_to()``
   method of the high-level ``SkyCoord`` class, and using ``SkyCoord`` is
   recommended for all typical use cases of transforming coordinates. [#10475]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -292,9 +227,6 @@ astropy.table
   to set the column order. To alphabetize the columns to match the previous
   behavior, use ``t = t[sorted(t.colnames)]``. [#10900]
 
-astropy.tests
-^^^^^^^^^^^^^
-
 astropy.time
 ^^^^^^^^^^^^
 
@@ -302,12 +234,6 @@ astropy.time
   ``TimeBase`` class. The ``TimeDelta`` class no longer inherits from ``Time``.
   A number of methods that only apply to ``Time`` (e.g. ``light_travel_time``)
   are no longer available in the ``TimeDelta`` class. [#10656]
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -330,24 +256,9 @@ astropy.utils
 - ``hexdigest`` keyword in ``import_file_to_cache`` is deprecated and will
   be removed in a future release. [#10628]
 
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -358,65 +269,12 @@ astropy.coordinates
   ``CoordinateAttribute`` now always performs a ``SkyCoord``-style internal
   transformation, including the by-default merging of frame attributes. [#10475]
 
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
   float64. [#10542]
 
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
 
 Other Changes and Additions
 ---------------------------
@@ -446,6 +304,7 @@ Other Changes and Additions
 
 - When importing astropy without first building the extension modules first,
   raise an error directly instead of trying to auto-build. [#10883]
+
 
 4.1.1 (unreleased)
 ==================
@@ -705,10 +564,6 @@ astropy.time
   ``1970-01-01 00:00:08 TAI`` and corresponds to the ``CLOCK_TAI`` clock
   available on some linux platforms. [#10081]
 
-- Improve initialization time by a factor of four when creating a scalar ``Time``
-  object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
-  epoch time). [#10406]
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -855,12 +710,6 @@ astropy.io.votable
 - For FIELDs with datatype="char", store the values as strings instead
   of bytes. [#9505]
 
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- Fixed an issue of ``Model.render`` when the input ``out`` datatype is not
-  float64. [#10542]
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -911,9 +760,7 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
-- Added ``optimize=True`` flag to calls of ``yacc.yacc`` (as already done for
-  ``lex.lex``) to allow running in ``python -OO`` session without raising an
-  exception in ``astropy.units.format``. [#10379]
+
 
 4.0.4 (unreleased)
 ==================
