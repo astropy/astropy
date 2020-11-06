@@ -1,16 +1,3 @@
-4.3 (unreleased)
-================
-
-New Features
-------------
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-- N-dimensional least-squares statistic and specific 1,2,3-D methods [#10670]
-
-
-
 4.2 (unreleased)
 ================
 
@@ -105,6 +92,8 @@ astropy.modeling
   ``model.cov_matrix``, standard deviations by ``model.stds`` or individually
   for each parameter by ``parameter.std``. Currently implemented for
   ``LinearLSQFitter`` and ``LevMarLSQFitter``. [#10552]
+
+- N-dimensional least-squares statistic and specific 1,2,3-D methods [#10670]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
