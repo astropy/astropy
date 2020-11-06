@@ -64,19 +64,19 @@ def altaz_to_icrs(altaz_coo, icrs_frame):
     # Topocentric CIRS
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian
     if is_unitspherical:
-        srepr = SphericalRepresentation(cirs_ra*u.deg, cirs_dec*u.deg, 1)
+        srepr = SphericalRepresentation(cirs_ra, cirs_dec, 1)
     else:
         srepr = SphericalRepresentation(lon=cirs_ra, lat=cirs_dec,
                                         distance=altaz_coo.distance)
 
     # BCRS (Astrometric) direction to source
-    bcrs_ra, bcrs_dec = aticq(srepr, astrom)
+    bcrs_ra, bcrs_dec = aticq(srepr, astrom)*u.radian
 
     # Correct for parallax to get ICRS representation
     if is_unitspherical:
-        icrs_srepr = SphericalRepresentation(cirs_ra*u.deg, cirs_dec*u.deg, 1)
+        icrs_srepr = SphericalRepresentation(bcrs_ra, bcrs_dec, 1)
     else:
-        icrs_srepr = SphericalRepresentation(lon=bcrs_ra*u.rad, lat=bcrs_dec*u.rad,
+        icrs_srepr = SphericalRepresentation(lon=bcrs_ra, lat=bcrs_dec,
                                              distance=altaz_coo.distance)
         observer_icrs = CartesianRepresentation(astrom['eb'] * u.au, xyz_axis=-1)
         newrepr = icrs_srepr.to_cartesian() + observer_icrs
