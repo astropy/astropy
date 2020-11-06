@@ -12,6 +12,7 @@ from numpy.testing import assert_equal
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.data import get_pkg_data_filename
 from .test_table import comparerecords
 
 from . import FitsTestCase
@@ -1855,8 +1856,7 @@ def test_bzero_implicit_casting_compressed():
     # case BZERO should be 32768. But if the keyword is stored as 32768.0, then
     # it was possible to trigger the implicit casting error.
 
-    filename = os.path.join(os.path.dirname(__file__),
-                            'data', 'compressed_float_bzero.fits')
+    filename = get_pkg_data_filename('data/compressed_float_bzero.fits')
 
     with fits.open(filename) as hdul:
         hdu = hdul[1]

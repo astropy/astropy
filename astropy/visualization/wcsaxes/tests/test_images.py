@@ -25,21 +25,19 @@ class BaseImageTests:
     @classmethod
     def setup_class(cls):
 
-        cls._data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
-
-        msx_header = os.path.join(cls._data_dir, 'msx_header')
+        msx_header = get_pkg_data_filename('data/msx_header')
         cls.msx_header = fits.Header.fromtextfile(msx_header)
 
-        rosat_header = os.path.join(cls._data_dir, 'rosat_header')
+        rosat_header = get_pkg_data_filename('data/rosat_header')
         cls.rosat_header = fits.Header.fromtextfile(rosat_header)
 
-        twoMASS_k_header = os.path.join(cls._data_dir, '2MASS_k_header')
+        twoMASS_k_header = get_pkg_data_filename('data/2MASS_k_header')
         cls.twoMASS_k_header = fits.Header.fromtextfile(twoMASS_k_header)
 
-        cube_header = os.path.join(cls._data_dir, 'cube_header')
+        cube_header = get_pkg_data_filename('data/cube_header')
         cls.cube_header = fits.Header.fromtextfile(cube_header)
 
-        slice_header = os.path.join(cls._data_dir, 'slice_header')
+        slice_header = get_pkg_data_filename('data/slice_header')
         cls.slice_header = fits.Header.fromtextfile(slice_header)
 
     def teardown_method(self, method):

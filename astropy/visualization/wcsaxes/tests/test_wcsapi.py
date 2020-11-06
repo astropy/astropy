@@ -17,6 +17,7 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.tests.image_tests import IMAGE_REFERENCE_DIR
+from astropy.utils.data import get_pkg_data_filename
 from astropy.wcs import WCS
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (WCSWorld2PixelTransform,
@@ -77,8 +78,7 @@ def wcs_4d():
 
 @pytest.fixture
 def cube_wcs():
-    data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
-    cube_header = os.path.join(data_dir, 'cube_header')
+    cube_header = get_pkg_data_filename('data/cube_header')
     header = fits.Header.fromtextfile(cube_header)
     return WCS(header=header)
 

@@ -13,6 +13,7 @@ import numpy as np
 from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.data import get_pkg_data_filenames
 
 from . import FitsTestCase
 
@@ -725,8 +726,8 @@ class TestHDUListFunctions(FitsTestCase):
                         np.testing.assert_array_equal(hdul[idx].data,
                                                       hdul2[idx].data)
 
-        for filename in glob.glob(os.path.join(self.data_dir, '*.fits')):
-            if sys.platform == 'win32' and filename == 'zerowidth.fits':
+        for filename in get_pkg_data_filenames('data', pattern='*.fits'):
+            if sys.platform == 'win32' and filename.endswith('zerowidth.fits'):
                 # Running this test on this file causes a crash in some
                 # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
