@@ -423,8 +423,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
         _normalize_representation_type(kwargs)
         representation_type = kwargs.pop('representation_type', representation_type)
 
-        self._representation = self._infer_representation_differential_type(representation_type, differential_type)
-        self._data = self._infer_representation_differential_data(args, copy, kwargs)  # possibly None.
+        self._representation = self._infer_representation(representation_type, differential_type)
+        self._data = self._infer_data(args, copy, kwargs)  # possibly None.
 
         # Set frame attributes, if any
 
@@ -491,7 +491,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             # Set up representation cache.
             self.cache['representation'][key] = self._data
 
-    def _infer_representation_differential_type(self, representation_type, differential_type):
+    def _infer_representation(self, representation_type, differential_type):
         if representation_type is None and differential_type is None:
             return {'base': self.default_representation, 's': self.default_differential}
 
@@ -518,7 +518,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
         return _get_repr_classes(representation_type, **differential_type)
 
-    def _infer_representation_differential_data(self, args, copy, kwargs):
+    def _infer_data(self, args, copy, kwargs):
         # if not set below, this is a frame with no data
         representation_data = None
         differential_data = None
