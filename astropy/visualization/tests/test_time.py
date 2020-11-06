@@ -5,6 +5,7 @@ import pytest
 
 pytest.importorskip('matplotlib')  # noqa
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 from astropy.time import Time
