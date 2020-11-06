@@ -6,6 +6,7 @@ reader/writer.
 
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+from astropy.table.column import MaskedColumn
 import os
 import copy
 import sys
@@ -581,3 +582,25 @@ def test_round_trip_user_defined_unit(table_cls, tmpdir):
         t4 = table_cls.read(filename)
         assert t4['l'].unit is unit
         assert np.all(t4['l'] == t['l'])
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_read_masked_bool():
+    txt = """\
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: col0, datatype: bool}
+# schema: astropy-2.0
+col0
+1
+0
+True
+""
+False
+"""
+    dat = ascii.read(txt, format='ecsv')
+    col = dat['col0']
+    assert isinstance(col, MaskedColumn)
+    assert np.all(col.mask == [False, False, False, True, False])
+    assert np.all(col == [True, False, True, False, False])
