@@ -161,7 +161,7 @@ jobs:
           stage: Final tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='test --readonly'
                CONDA_DEPENDENCIES=""
-               PIP_DEPENDENCIES="Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
+               PIP_DEPENDENCIES="wheel Cython scipy h5py beautifulsoup4 html5lib jinja2 pyyaml matplotlib scikit-image pytz pandas objgraph asdf"
 
         # Do a PEP8/pyflakes test with flake8
         - name: Code style checks
@@ -247,7 +247,12 @@ before_install:
 install:
     - if [[ $USE_CI_HELPERS == True ]]; then
         git clone git://github.com/astropy/ci-helpers.git;
-        source ci-helpers/travis/setup_conda.sh;
+        if [[ $TRAVIS_OS_NAME == osx || $TRAVIS_OS_NAME == windows ]]; then
+          source ci-helpers/travis/setup_python.sh;
+          pip install $PIP_DEPENDENCIES;
+        else
+          source ci-helpers/travis/setup_conda.sh;
+        fi
       fi
     - if [[ $INSTALL_WITH_PIP == True ]]; then
         if [ -z $EXTRAS_INSTALL ]; then
