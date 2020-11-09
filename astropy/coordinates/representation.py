@@ -1048,8 +1048,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Any arguments required for the operator (typically, what is to
             be multiplied with, divided by).
         """
-
-        self._raise_if_has_differentials(op.__name__)
+        if op.__name__ != 'neg':
+            self._raise_if_has_differentials(op.__name__)
 
         results = []
         for component, cls in self.attr_classes.items():
@@ -1063,9 +1063,15 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # as operations that returned NotImplemented or a representation
         # instead of a quantity (as would happen for, e.g., rep * rep).
         try:
-            return self.__class__(*results)
+            result = self.__class__(*results)
         except Exception:
             return NotImplemented
+
+        if self.differentials:
+            for key, differential in self.differentials.items():
+                result.differentials[key] = differential._scale_operation(op, *args)
+
+        return result
 
     def _combine_operation(self, op, other, reverse=False):
         """Combine two representation.
@@ -1666,8 +1672,17 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                                 distance=1. / other)
 
     def __neg__(self):
-        self._raise_if_has_differentials('negation')
-        return self.__class__(self.lon + 180. * u.deg, -self.lat, copy=False)
+        if any(differential.base_representation is not self.__class__
+               for differential in self.differentials.values()):
+            return super().__neg__()
+
+        result = self.__class__(self.lon + 180. * u.deg, -self.lat, copy=False)
+        for key, differential in self.differentials.items():
+            new_comps = (op(getattr(differential, comp))
+                         for op, comp in zip((operator.pos, operator.neg),
+                                             differential.components))
+            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+        return result
 
     def norm(self):
         """Vector norm.
@@ -2022,9 +2037,18 @@ class SphericalRepresentation(BaseRepresentation):
         return np.abs(self.distance)
 
     def __neg__(self):
-        self._raise_if_has_differentials('negation')
-        return self.__class__(self.lon + 180. * u.deg, -self.lat, self.distance,
-                              copy=False)
+        if any(differential.base_representation is not self.__class__
+               for differential in self.differentials.values()):
+            return super().__neg__()
+
+        result = self.__class__(self.lon + 180. * u.deg, -self.lat,
+                                self.distance.copy(), copy=False)
+        for key, differential in self.differentials.items():
+            new_comps = (op(getattr(differential, comp)) for op, comp in zip(
+                (operator.pos, operator.neg, operator.pos),
+                differential.components))
+            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+        return result
 
 
 class PhysicsSphericalRepresentation(BaseRepresentation):
@@ -2214,6 +2238,20 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         """
         return np.abs(self.r)
 
+    def __neg__(self):
+        if any(differential.base_representation is not self.__class__
+               for differential in self.differentials.values()):
+            return super().__neg__()
+
+        result = self.__class__(self.phi + 180.*u.deg, -self.theta + 180*u.deg,
+                                self.r.copy(), copy=False)
+        for key, differential in self.differentials.items():
+            new_comps = (op(getattr(differential, comp)) for op, comp in zip(
+                (operator.pos, operator.neg, operator.pos),
+                differential.components))
+            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+        return result
+
 
 class CylindricalRepresentation(BaseRepresentation):
     """
@@ -2316,6 +2354,20 @@ class CylindricalRepresentation(BaseRepresentation):
         z = self.z
 
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
+
+    def __neg__(self):
+        if any(differential.base_representation is not self.__class__
+               for differential in self.differentials.values()):
+            return super().__neg__()
+
+        result = self.__class__(self.rho.copy(), self.phi + 180. * u.deg, -self.z,
+                                copy=False)
+        for key, differential in self.differentials.items():
+            new_comps = (op(getattr(differential, comp)) for op, comp in zip(
+                (operator.pos, operator.pos, operator.neg),
+                differential.components))
+            result.differentials[key] = differential.__class__(*new_comps, copy=False)
+        return result
 
 
 class BaseDifferential(BaseRepresentationOrDifferential):

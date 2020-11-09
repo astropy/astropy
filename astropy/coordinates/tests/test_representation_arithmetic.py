@@ -151,7 +151,8 @@ class TestArithmetic():
         assert_quantity_allclose(r2.norm(),
                                  self.distance * np.array([[1.], [2.]]))
         r3 = -in_rep
-        assert np.all(representation_equal(r3, in_rep * -1.))
+        assert_representation_allclose(r3.to_cartesian(),
+                                       (in_rep * -1.).to_cartesian(), atol=1e-5*u.pc)
         with pytest.raises(TypeError):
             in_rep * in_rep
         with pytest.raises(TypeError):
@@ -1191,6 +1192,38 @@ class TestDifferentialConversion():
         assert_representation_allclose(self.s + (uo+ro), self.s+so1)
 
 
+class TestArithmeticWithDifferentials:
+    def setup_class(self):
+        self.cr = CartesianRepresentation([1, 2, 3]*u.kpc)
+        self.cd = CartesianDifferential([.1, -.2, .3]*u.km/u.s)
+        self.c = self.cr.with_differentials(self.cd)
+
+    def test_negation_cartesian(self):
+        ncr = -self.c
+        expected = (-self.cr).with_differentials(-self.cd)
+        assert np.all(ncr == expected)
+
+    @pytest.mark.parametrize('diff_cls', [
+        SphericalDifferential,
+        SphericalCosLatDifferential,
+        UnitSphericalDifferential,
+        UnitSphericalCosLatDifferential,
+        PhysicsSphericalDifferential,
+        CylindricalDifferential])
+    def test_negation_other(self, diff_cls):
+        rep_cls = diff_cls.base_representation
+        rep = self.c.represent_as(rep_cls, {'s': diff_cls})
+        nrep = -rep
+        nrep_c = nrep.represent_as(CartesianRepresentation,
+                                   {'s': CartesianDifferential})
+        rep_c = rep.represent_as(CartesianRepresentation,
+                                 {'s': CartesianDifferential})
+        expected = -rep_c
+        assert_representation_allclose(nrep_c, expected)
+        assert_differential_allclose(nrep_c.differentials['s'],
+                                     expected.differentials['s'])
+
+
 @pytest.mark.parametrize('rep,dif', [
     [CartesianRepresentation([1, 2, 3]*u.kpc),
      CartesianDifferential([.1, .2, .3]*u.km/u.s)],
@@ -1218,6 +1251,3 @@ def test_arithmetic_with_differentials_fail(rep, dif):
 
     with pytest.raises(TypeError):
         rep / 10.
-
-    with pytest.raises(TypeError):
-        -rep
