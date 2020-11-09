@@ -860,7 +860,7 @@ class Spinner:
 
         with Spinner("Reticulating splines", "green") as s:
             for item in enumerate(items):
-                s.next()
+                s.update()
     """
     _default_unicode_chars = "◓◑◒◐"
     _default_ascii_chars = "-/|\\"
@@ -887,7 +887,7 @@ class Spinner:
             completely silent.
 
         step : int, optional
-            Only update the spinner every *step* steps
+            Only update the spinner every *step* steps. Must be >= 0.
 
         chars : str, optional
             The character sequence to use for the spinner
@@ -899,52 +899,27 @@ class Spinner:
         self._msg = msg
         self._color = color
         self._file = file
+        if step < 0:
+            raise ValueError("step must be >= 0")
+
         self._step = step
+        self._cur_step = 0
         if chars is None:
             if conf.unicode_output:
                 chars = self._default_unicode_chars
             else:
                 chars = self._default_ascii_chars
         self._chars = chars
-
+        self._cur_char = 0
         self._silent = not isatty(file)
 
-    def _iterator(self):
-        chars = self._chars
-        index = 0
-        file = self._file
-        write = file.write
-        flush = file.flush
-        try_fallback = True
-
-        while True:
-            write('\r')
-            color_print(self._msg, self._color, file=file, end='')
-            write(' ')
-            try:
-                if try_fallback:
-                    write = _write_with_fallback(chars[index], write, file)
-                else:
-                    write(chars[index])
-            except UnicodeError:
-                # If even _write_with_fallback failed for any reason just give
-                # up on trying to use the unicode characters
-                chars = self._default_ascii_chars
-                write(chars[index])
-                try_fallback = False  # No good will come of using this again
-            flush()
-            yield
-
-            for i in range(self._step):
-                yield
-
-            index = (index + 1) % len(chars)
+        if self._silent:
+            self._iter = self._silent_iterator
+        else:
+            self._iter = self._iterator
 
     def __enter__(self):
-        if self._silent:
-            return self._silent_iterator()
-        else:
-            return self._iterator()
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         file = self._file
@@ -960,12 +935,58 @@ class Spinner:
             color_print(' [Failed]', 'red', file=file)
         flush()
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self._iter()
+
+    def _iterator(self):
+        """
+        Iterate over the spin wheel, write the current char
+        """
+        file = self._file
+        write = file.write
+        try_fallback = True
+
+        if self._cur_step % (self._step + 1) == 0:
+            write('\r')
+            color_print(self._msg, self._color, file=file, end='')
+            write(' ')
+            try:
+                if try_fallback:
+                    write = _write_with_fallback(self._chars[self._cur_char], write, file)
+                else:
+                    write(self._chars[self._cur_char])
+            except UnicodeError:
+                # If even _write_with_fallback failed for any reason just give
+                # up on trying to use the unicode characters
+                self._chars = self._default_ascii_chars
+                write(self._chars[self._cur_char])
+                try_fallback = False  # No good will come of using this again
+            file.flush()
+
+            self._cur_char = (self._cur_char + 1) % len(self._chars)
+        self._cur_step = self._cur_step + 1
+
     def _silent_iterator(self):
         color_print(self._msg, self._color, file=self._file, end='')
         self._file.flush()
 
-        while True:
-            yield
+    def update(self, value=None):
+        """
+        Update the spin wheel in the terminal
+
+        Parameters
+        ----------
+        value : int (optional)
+            The number of iterations for the spin graphic (defaults to one)
+        """
+        if value is None:
+            value = 1
+
+        for _ in range(value):
+            next(self)
 
 
 class ProgressBarOrSpinner:
@@ -1037,10 +1058,7 @@ class ProgressBarOrSpinner:
         Update the progress bar to the given value (out of the total
         given to the constructor.
         """
-        if self._is_spinner:
-            next(self._iter)
-        else:
-            self._obj.update(value)
+        self._obj.update(value)
 
 
 def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
