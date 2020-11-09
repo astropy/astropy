@@ -145,6 +145,8 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Removed deprecated ``utils.misc.InheritDocstrings`` and ``utils.timer``. [#10281]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
