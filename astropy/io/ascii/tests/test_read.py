@@ -1474,7 +1474,7 @@ False   5
     assert col[0] == "1"
 
     # Force col0 to be read as bool
-    converters = {'col0': [convert_numpy(np.bool)]}
+    converters = {'col0': [convert_numpy(bool)]}
     dat = ascii.read(txt, format='basic', converters=converters)
     col = dat['col0']
     assert isinstance(col, MaskedColumn)
