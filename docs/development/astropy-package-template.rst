@@ -59,7 +59,7 @@ by ``CHANGES.md`` in the instructions.
 
    All following instructions will assume you have ``pyproject.toml``.
    If you do not use ``pyproject.toml`` yet, please see
-   https://docs.astropy.org/en/v4.0.1/development/astropy-package-template.html
+   https://docs.astropy.org/en/v4.0.x/development/astropy-package-template.html
    instead.
 
    In both cases, make sure that generated file is good to go by going inside
