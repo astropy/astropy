@@ -6,13 +6,14 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import (PhysicsSphericalRepresentation, CartesianRepresentation,
-                CylindricalRepresentation, SphericalRepresentation,
-                UnitSphericalRepresentation, SphericalDifferential,
-                CartesianDifferential, UnitSphericalDifferential,
-                SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
-                PhysicsSphericalDifferential, CylindricalDifferential,
-                RadialRepresentation, RadialDifferential, Longitude, Latitude)
+from astropy.coordinates import (
+    PhysicsSphericalRepresentation, CartesianRepresentation,
+    CylindricalRepresentation, SphericalRepresentation,
+    UnitSphericalRepresentation, SphericalDifferential,
+    CartesianDifferential, UnitSphericalDifferential,
+    SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
+    PhysicsSphericalDifferential, CylindricalDifferential,
+    RadialRepresentation, RadialDifferential, Longitude, Latitude)
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
 from astropy.coordinates.angle_utilities import angular_separation
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
@@ -669,16 +670,16 @@ class TestSphericalDifferential():
             self.SD_cls(1.*u.arcsec, 0., 0.)
         with pytest.raises(TypeError):
             self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                                  False, False)
+                        False, False)
         with pytest.raises(TypeError):
             self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                            copy=False, d_lat=0.*u.arcsec)
+                        copy=False, d_lat=0.*u.arcsec)
         with pytest.raises(TypeError):
             self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                            copy=False, flying='circus')
+                        copy=False, flying='circus')
         with pytest.raises(ValueError):
             self.SD_cls(np.ones(2)*u.arcsec,
-                            np.zeros(3)*u.arcsec, np.zeros(2)*u.kpc)
+                        np.zeros(3)*u.arcsec, np.zeros(2)*u.kpc)
         with pytest.raises(u.UnitsError):
             self.SD_cls(1.*u.arcsec, 1.*u.s, 0.*u.kpc)
         with pytest.raises(u.UnitsError):
