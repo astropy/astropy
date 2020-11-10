@@ -21,7 +21,7 @@ import subprocess
 from warnings import warn
 
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from contextlib import suppress, contextmanager
 from inspect import signature
 
@@ -1427,7 +1427,7 @@ class CompositeTransform(CoordinateTransform):
 
 
 # map class names to colorblind-safe colors
-trans_to_color = OrderedDict()
+trans_to_color = {}
 trans_to_color[AffineTransform] = '#555555'  # gray
 trans_to_color[FunctionTransform] = '#783001'  # dark red-ish/brown
 trans_to_color[FunctionTransformWithFiniteDifference] = '#d95f02'  # red-ish

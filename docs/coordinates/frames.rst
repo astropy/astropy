@@ -49,7 +49,7 @@ their default values) are available as the class method
 ``get_frame_attr_names``::
 
     >>> FK5.get_frame_attr_names()
-    OrderedDict([('equinox', <Time object: scale='tt' format='jyear_str' value=J2000.000>)])
+    {'equinox': <Time object: scale='tt' format='jyear_str' value=J2000.000>}
 
 You can access any of the attributes on a frame by using standard Python
 attribute access. Note that for cases like ``equinox``, which are time
@@ -109,7 +109,7 @@ frame to the attribute name on the representation class::
     >>> icrs.representation_type
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
     >>> icrs.representation_component_names
-    OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
+    {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
 You can get the data in a different representation if needed::
 
