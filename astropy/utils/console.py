@@ -137,7 +137,8 @@ def isatty(file):
         return True
 
     if hasattr(file, 'stream'):
-        # FIXME: pyreadline has no had new release since 2015, drop it?
+        # FIXME: pyreadline has no had new release since 2015, drop it when
+        #        IPython minversion is 5.x.
         # On Windows, in IPython 2 the standard I/O streams will wrap
         # pyreadline.Console objects if pyreadline is available; this should
         # be considered a TTY.
