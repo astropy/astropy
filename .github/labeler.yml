@@ -1,0 +1,140 @@
+Docs:
+  - docs/*
+  - docs/_static/*
+  - docs/_templates/*
+  - docs/development/**/*
+  - docs/whatsnew/*
+  - examples/**/*
+  - licenses/*
+  - CITATION
+  - .mailmap
+  - readthedocs.yml
+  - '*.md'
+  - any: ['*.rst', '!CHANGES.rst']
+
+testing:
+  - astropy/tests/**/*
+  - codecov.yml
+  - conftest.py
+  - '**/conftest.py'
+  - azure-pipelines.yml
+  - tox.ini
+  - .circleci/*
+  - .github/**/*.yml
+  - .pep8speaks.yml
+  - .pyinstaller/**/*
+  - .travis.yml
+
+external:
+  - astropy/extern/**/*
+  - cextern/**/*
+
+installation:
+  - docs/install.rst
+  - MANIFEST.in
+  - pip-requirements
+  - pyproject.toml
+  - setup.*
+
+Release:
+  - docs/development/releasing.rst
+
+config:
+  - '**/config/**/*'
+  - astropy/extern/configobj/**/*
+
+constants:
+  - '**/constants/**/*'
+
+convolution:
+  - '**/convolution/**/*'
+
+coordinates:
+  - '**/coordinates/**/*'
+
+cosmology:
+  - '**/cosmology/**/*'
+
+io.ascii:
+  - '**/io/ascii/**/*'
+
+io.fits:
+  - '**/io/fits/**/*'
+  - cextern/cfitsio/**/*
+
+io.misc:
+  - astropy/io/misc/*
+  - astropy/io/misc/pandas/**/*
+  - astropy/io/misc/tests/**/*
+  - docs/io/misc.rst
+
+io.misc.asdf:
+  - astropy/io/misc/asdf/**/*
+  - docs/io/asdf-schemas.rst
+
+io.registry:
+  - astropy/io/*
+  - astropy/io/tests/*
+  - docs/io/registry.rst
+
+io.votable:
+  - '**/io/votable/**/*'
+
+logging:
+  - astropy/logger.py
+  - astropy/tests/test_logger.py
+  - docs/logging.rst
+
+modeling:
+  - '**/modeling/**/*'
+
+nddata:
+  - '**/nddata/**/*'
+
+samp:
+  - '**/samp/**/*'
+
+stats:
+  - '**/stats/**/*'
+
+table:
+  - '**/table/**/*'
+  - astropy/extern/jquery/**/*
+
+time:
+  - '**/time/**/*'
+
+timeseries:
+  - '**/timeseries/**/*'
+
+uncertainty:
+  - '**/uncertainty/**/*'
+
+unified-io:
+  - docs/io/unified.rst
+
+units:
+  - '**/units/**/*'
+  - astropy/extern/ply/**/*
+
+utils:
+  - cextern/expat/**/*
+  - any: ['**/utils/**/*', '!astropy/utils/iers/**/*', '!docs/utils/iers.rst']
+
+utils.iers:
+  - astropy/utils/iers/**/*
+  - docs/utils/iers.rst
+
+visualization:
+  - any: ['**/visualization/**/*', '!**/visualization/wcsaxes/**/*']
+
+visualization.wcsaxes:
+  - '**/visualization/wcsaxes/**/*'
+
+wcs:
+  - cextern/wcslib/**/*
+  - any: ['**/wcs/**/*', '!astropy/wcs/wcsapi/**/*', '!docs/wcs/wcsapi.rst']
+
+wcs.wcsapi:
+  - astropy/wcs/wcsapi/**/*
+  - docs/wcs/wcsapi.rst

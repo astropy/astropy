@@ -7,3 +7,8 @@ requires = ["setuptools",
             "oldest-supported-numpy",
             "extension-helpers"]
 build-backend = 'setuptools.build_meta'
+
+[tool.astropy-bot.autolabel]
+
+# Comment this out to re-enable but then labeler Action needs to be disabled.
+enabled = false
