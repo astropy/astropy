@@ -2,6 +2,7 @@
 """Accuracy tests for GCRS coordinate transformations, primarily to/from AltAz.
 
 """
+import os
 
 import pytest
 import numpy as np
@@ -23,6 +24,8 @@ from .utils import randomly_sample_sphere
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
+
+TRAVIS = os.environ.get('TRAVIS', False) == "true"
 
 try:
     import jplephem  # pylint: disable=W0611  # noqa
@@ -532,7 +535,18 @@ def test_earth_orientation_table(monkeypatch):
     # Default: uses IERS_Auto, which will give a prediction.
     # Note: tests run with warnings turned into errors, so it is
     # meaningful if this passes.
-    altaz_auto = sc.transform_to(altaz)
+    with pytest.warns(None) as warning_lines:
+        altaz_auto = sc.transform_to(altaz)
+
+    # Server occasionally blocks IERS download in CI.
+    n_warnings = len(warning_lines)
+    if TRAVIS:
+        assert n_warnings <= 1, f'Expected at most one warning but got {n_warnings}'
+        if n_warnings == 1:
+            w_msg = str(warning_lines[0].message)
+            assert 'using local IERS-B' in w_msg, f'Got unexpected warning: {w_msg}'
+    else:
+        assert n_warnings == 0, f'Expected no warning but got {n_warnings}'
 
     with iers.earth_orientation_table.set(iers.IERS_B.open()):
         with pytest.warns(AstropyWarning, match='after IERS data'):
