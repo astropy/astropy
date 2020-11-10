@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
 import sys
 
 from packaging.version import Version
@@ -75,8 +74,8 @@ COORDSYS= 'icrs    '
 """, sep='\n')
 
 
-@pytest.mark.skipif(MATPLOTLIB_LT_31 and sys.version_info >= (3, 9),
-                    reason='PY_SSIZE_T_CLEAN warning with Python 3.9 and '
+@pytest.mark.skipif(MATPLOTLIB_LT_31 and sys.version_info >= (3, 8),
+                    reason='PY_SSIZE_T_CLEAN warning with Python 3.8+ and '
                     'Matplotlib 3.0, GH issue 10954')
 @pytest.mark.parametrize('grid_type', ['lines', 'contours'])
 def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
