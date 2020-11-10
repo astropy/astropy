@@ -544,7 +544,8 @@ def test_earth_orientation_table(monkeypatch):
         assert n_warnings <= 1, f'Expected at most one warning but got {n_warnings}'
         if n_warnings == 1:
             w_msg = str(warning_lines[0].message)
-            assert 'using local IERS-B' in w_msg, f'Got unexpected warning: {w_msg}'
+            # This also captures unclosed socket warning that is ignored in setup.cfg
+            assert 'using local IERS-B' in w_msg or 'unclosed' in w_msg, f'Got unexpected warning: {w_msg}'
     else:
         assert n_warnings == 0, f'Expected no warning but got {n_warnings}'
 
