@@ -2,7 +2,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from copy import deepcopy
-from collections import OrderedDict
 
 import pytest
 import numpy as np
@@ -1093,9 +1092,9 @@ def test_subclass_representation():
             return self
 
     class SphericalWrap180Representation(SphericalRepresentation):
-        attr_classes = OrderedDict([('lon', Longitude180),
-                                    ('lat', Latitude),
-                                    ('distance', u.Quantity)])
+        attr_classes = {'lon': Longitude180,
+                        'lat': Latitude,
+                        'distance': u.Quantity}
 
     class ICRSWrap180(ICRS):
         frame_specific_representation_info = ICRS._frame_specific_representation_info.copy()
@@ -1114,9 +1113,9 @@ def test_minimal_subclass():
     # Basically to check what we document works;
     # see doc/coordinates/representations.rst
     class LogDRepresentation(BaseRepresentation):
-        attr_classes = OrderedDict([('lon', Longitude),
-                                    ('lat', Latitude),
-                                    ('logd', u.Dex)])
+        attr_classes = {'lon': Longitude,
+                        'lat': Latitude,
+                        'logd': u.Dex}
 
         def to_cartesian(self):
             d = self.logd.physical
@@ -1162,9 +1161,9 @@ def test_minimal_subclass():
     # so we raise
     with pytest.raises(ValueError):
         class LogDRepresentation(BaseRepresentation):
-            attr_classes = OrderedDict([('lon', Longitude),
-                                        ('lat', Latitude),
-                                        ('logr', u.Dex)])
+            attr_classes = {'lon': Longitude,
+                            'lat': Latitude,
+                            'logr': u.Dex}
 
 
 def test_duplicate_warning():
@@ -1173,8 +1172,8 @@ def test_duplicate_warning():
 
     with pytest.warns(DuplicateRepresentationWarning):
         class UnitSphericalRepresentation(BaseRepresentation):
-            attr_classes = OrderedDict([('lon', Longitude),
-                                        ('lat', Latitude)])
+            attr_classes = {'lon': Longitude,
+                            'lat': Latitude}
 
     assert 'unitspherical' in DUPLICATE_REPRESENTATIONS
     assert 'unitspherical' not in REPRESENTATION_CLASSES
@@ -1528,8 +1527,8 @@ def unitphysics():
         had_unit = True
 
     class UnitPhysicsSphericalRepresentation(BaseRepresentation):
-        attr_classes = OrderedDict([('phi', Angle),
-                                    ('theta', Angle)])
+        attr_classes = {'phi': Angle,
+                        'theta': Angle}
 
         def __init__(self, *args, copy=True, **kwargs):
             super().__init__(*args, copy=copy, **kwargs)
@@ -1557,17 +1556,17 @@ def unitphysics():
         def unit_vectors(self):
             sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
             sintheta, costheta = np.sin(self.theta), np.cos(self.theta)
-            return OrderedDict(
-                (('phi', CartesianRepresentation(-sinphi, cosphi, 0., copy=False)),
-                 ('theta', CartesianRepresentation(costheta*cosphi,
-                                                   costheta*sinphi,
-                                                   -sintheta, copy=False))))
+            return {
+                'phi': CartesianRepresentation(-sinphi, cosphi, 0., copy=False),
+                'theta': CartesianRepresentation(costheta*cosphi,
+                                                 costheta*sinphi,
+                                                 -sintheta, copy=False)}
 
         def scale_factors(self):
             sintheta = np.sin(self.theta)
             l = np.broadcast_to(1.*u.one, self.shape, subok=True)
-            return OrderedDict((('phi', sintheta),
-                                ('theta', l)))
+            return {'phi', sintheta,
+                    'theta', l}
 
         def to_cartesian(self):
             x = np.sin(self.theta) * np.cos(self.phi)

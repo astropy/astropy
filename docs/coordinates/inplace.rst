@@ -31,7 +31,7 @@ mapping between frame attributes (e.g., ``.ra``) and representation attributes
 (e.g., ``.lon``) you can look at the following dictionary::
 
     >>> sc.representation_component_names
-    OrderedDict([('ra', 'lon'), ('dec', 'lat'), ('distance', 'distance')])
+    {'ra': 'lon', 'dec': 'lat', 'distance': 'distance'}
 
 .. warning::
 
