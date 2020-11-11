@@ -61,6 +61,9 @@ needs_sphinx = '1.7'
 # major.minor, call `check_sphinx_version("X.Y.Z")` here.
 check_sphinx_version("1.2.1")
 
+# Add extensions
+extensions += ["sphinx.ext.duration"]
+
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
 # the benefit of other packages who want to refer to objects in the
 # astropy core.  However, we don't want to cyclically reference astropy in its
