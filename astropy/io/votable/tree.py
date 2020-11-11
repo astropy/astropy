@@ -166,9 +166,12 @@ def _get_default_unit_format(config):
     """
     Get the default unit format as specified in the VOTable spec.
     """
-    # In the future, this should take into account the VOTable
-    # version.
-    return 'cds'
+    # The unit format changed between VOTable versions 1.3 and 1.4,
+    # see issue #10791.
+    if config['version_1_4_or_later']:
+        return 'vounit'
+    else:
+        return 'cds'
 
 
 def _get_unit_format(config):
