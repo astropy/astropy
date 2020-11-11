@@ -31,9 +31,13 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
+# FITS file signature as per RFC 4047
+FITS_SIGNATURE = b'SIMPLE  =                    T'
+
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
-             cache=True, lazy_load_hdus=None, **kwargs):
+             cache=True, lazy_load_hdus=None, ignore_missing_simple=False,
+             **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -91,8 +95,14 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         integer convention is assumed.
 
     ignore_missing_end : bool, optional
-        Do not issue an exception when opening a file that is missing an
+        Do not raise an exception when opening a file that is missing an
         ``END`` card in the last header. Default is `False`.
+
+    ignore_missing_simple : bool, optional
+        Do not raise an exception when the SIMPLE keyword is missing.
+        Default is `False`.
+
+        .. versionadded:: 4.2
 
     checksum : bool, str, optional
         If `True`, verifies that both ``DATASUM`` and ``CHECKSUM`` card values
@@ -162,7 +172,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         raise ValueError(f'Empty filename: {name!r}')
 
     return HDUList.fromfile(name, mode, memmap, save_backup, cache,
-                            lazy_load_hdus, **kwargs)
+                            lazy_load_hdus, ignore_missing_simple, **kwargs)
 
 
 class HDUList(list, _Verify):
@@ -387,7 +397,7 @@ class HDUList(list, _Verify):
     @classmethod
     def fromfile(cls, fileobj, mode=None, memmap=None,
                  save_backup=False, cache=True, lazy_load_hdus=True,
-                 **kwargs):
+                 ignore_missing_simple=False, **kwargs):
         """
         Creates an `HDUList` instance from a file-like object.
 
@@ -398,6 +408,7 @@ class HDUList(list, _Verify):
 
         return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
                              save_backup=save_backup, cache=cache,
+                             ignore_missing_simple=ignore_missing_simple,
                              lazy_load_hdus=lazy_load_hdus, **kwargs)
 
     @classmethod
@@ -1037,7 +1048,8 @@ class HDUList(list, _Verify):
 
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None, memmap=None,
-                  cache=True, lazy_load_hdus=True, **kwargs):
+                  cache=True, lazy_load_hdus=True, ignore_missing_simple=False,
+                  **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -1062,6 +1074,21 @@ class HDUList(list, _Verify):
             # HDUList.fromfile.  If fileobj is None then this must be the
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
+
+        if (hdulist._file and hdulist._file.mode != 'ostream' and
+                hdulist._file.size > 0):
+            pos = hdulist._file.tell()
+            simple = hdulist._file.read(30)
+            match_sig = (simple[:-1] == FITS_SIGNATURE[:-1] and
+                         simple[-1:] in (b'T', b'F'))
+
+            if not match_sig and not ignore_missing_simple:
+                if hdulist._file.close_on_error:
+                    hdulist._file.close()
+                raise OSError('No SIMPLE card found, this file does not '
+                              'appear to be a valid FITS file')
+
+            hdulist._file.seek(pos)
 
         # Store additional keyword args that were passed to fits.open
         hdulist._open_kwargs = kwargs
