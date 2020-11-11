@@ -30,3 +30,24 @@ def test_make_Fields():
 
     table.fields.extend([tree.Field(
         votable, name='Test', datatype="float", unit="mag")])
+
+
+def test_unit_format():
+    from astropy.io.votable.table import parse
+    from astropy.utils.data import get_pkg_data_filename
+
+    data = parse(get_pkg_data_filename('data/irsa-nph-error.xml'))
+    assert data._config['version'] == '1.0'
+    assert tree._get_default_unit_format(data._config) == 'cds'
+    data = parse(get_pkg_data_filename('data/names.xml'))
+    assert data._config['version'] == '1.1'
+    assert tree._get_default_unit_format(data._config) == 'cds'
+    data = parse(get_pkg_data_filename('data/gemini.xml'))
+    assert data._config['version'] == '1.2'
+    assert tree._get_default_unit_format(data._config) == 'cds'
+    data = parse(get_pkg_data_filename('data/binary2_masked_strings.xml'))
+    assert data._config['version'] == '1.3'
+    assert tree._get_default_unit_format(data._config) == 'cds'
+    data = parse(get_pkg_data_filename('data/timesys.xml'))
+    assert data._config['version'] == '1.4'
+    assert tree._get_default_unit_format(data._config) == 'vounit'
