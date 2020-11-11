@@ -23,9 +23,11 @@ from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
 mpl_version = Version(matplotlib.__version__)
+ft_version = Version(matplotlib.ft2font.__freetype_version__)
 MATPLOTLIB_LT_21 = mpl_version < Version("2.1")
 MATPLOTLIB_LT_22 = mpl_version < Version("2.2")
-MATPLOTLIB_EQ_33 = mpl_version.major == 3 and mpl_version.minor == 3
+MATPLOTLIB_LT_30 = mpl_version < Version("3.0")
+FREETYPE_261 = ft_version == Version("2.6.1")
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
@@ -507,17 +509,25 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
         assert ax.coords[i].get_axislabel() == labels[i]
 
 
-# The bounding box calculation is very dependent on Matplotlib versions.
-@pytest.mark.skipif('not MATPLOTLIB_EQ_33')
-def test_bbox_size():
-    # Test for the size of a WCSAxes bbox
+@pytest.mark.parametrize('atol', [0.2, 1.0e-8])
+def test_bbox_size(atol):
+    """Test for the size of a WCSAxes bbox with 'tight' layout.
+    """
+    extents = [11.38888888888889, 3.5]
+    # Upper bounding box limits changed between Matplotlib major versions.
+    if MATPLOTLIB_LT_30:
+        extents += [579.5, 435.5]
+    else:
+        extents += [576.0, 432.0]
+
     fig = plt.figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
     fig.canvas.draw()
     renderer = fig.canvas.renderer
     ax_bbox = ax.get_tightbbox(renderer)
-    assert np.allclose(ax_bbox.x0, 11.38888888888889)
-    assert np.allclose(ax_bbox.x1, 576)
-    assert np.allclose(ax_bbox.y0, 3.5)
-    assert np.allclose(ax_bbox.y1, 432)
+
+    # Enforce strict test only with reference Freetype version
+    if atol < 0.1 and not FREETYPE_261:
+        pytest.xfail("Exact BoundingBox dimensions are only ensured with FreeType 2.6.1")
+    assert np.allclose(ax_bbox.extents, extents, atol=atol)
