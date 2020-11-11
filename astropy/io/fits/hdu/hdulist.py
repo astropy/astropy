@@ -95,11 +95,11 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         integer convention is assumed.
 
     ignore_missing_end : bool, optional
-        Do not issue an exception when opening a file that is missing an
+        Do not raise an exception when opening a file that is missing an
         ``END`` card in the last header. Default is `False`.
 
     ignore_missing_simple : bool, optional
-        Do not issue an exception when the SIMPLE keyword is missing.
+        Do not raise an exception when the SIMPLE keyword is missing.
         Default is `False`.
 
         .. versionadded:: 4.2
