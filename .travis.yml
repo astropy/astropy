@@ -71,55 +71,6 @@ matrix:
 
     include:
 
-        # Try MacOS X.
-        - os: osx
-          name: Python 3.7 with all optional dependencies for OSX
-          stage: Cron tests
-          env: PYTHON_VERSION=3.7
-               TOXENV="py37-test-alldeps"
-               TOXPOSARGS="--remote-data=astropy"
-               CCOMPILER=clang
-
-        # Try all python versions and Numpy versions. Since we can assume that
-        # the Numpy developers have taken care of testing Numpy with different
-        # versions of Python, we can vary Python and Numpy versions at the same
-        # time.
-
-
-        # We check numpy-dev also in a job that only runs from cron, so that
-        # we can spot issues sooner. We do not use remote data here, since
-        # that gives too many false positives due to URL timeouts.
-        # We also install all dependencies via pip here so we pick up the latest
-        # releases.
-        - language: python
-          python: 3.7
-          name: Python 3.7 with dev version of key dependencies
-          stage: Cron tests
-          env: TOXENV="py37-test-devdeps"
-
-        # Run documentation link check in a cron job.
-        # Was originally in CircleCI doc build but links are too flaky, so
-        # we moved it here instead.
-        - language: python
-          python: 3.7
-          name: Documentation link check
-          stage: Cron tests
-          env: TOXENV='linkcheck'
-          addons:
-              apt:
-                  packages:
-                      - graphviz
-
-        # Test against Python dev in cron job.
-        - language: python
-          python: 3.9-dev
-          dist: bionic
-          name: Python dev with basic dependencies
-          stage: Cron tests
-          env: TOXENV="pydev-test"
-               TOXPOSARGS="--durations=50"
-          compiler: clang
-
         # Also regularly try the big-endian s390 architecture, in the
         # process checking that installing dependencies with apt works,
         # and that astropy can properly use the system libraries,
@@ -165,14 +116,6 @@ matrix:
                       - python3-ply
                       - python3-pytest-astropy
                       - python3-astropy
-
-        # Regularly make sure that astropy can be used in application bundles
-        - language: python
-          python: 3.8
-          dist: bionic
-          name: bundling with pyinstaller
-          stage: Cron tests
-          env: TOXENV="pyinstaller"
 
 before_install:
 
