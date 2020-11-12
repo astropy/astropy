@@ -32,6 +32,7 @@ jobs:
             os: ubuntu-latest
             python: 3.8
             toxenv: py38-test-alldeps
+            toxargs: -v --develop
             toxposargs: --durations=50
             # compiler: clang
           # NOTE: In the build below we also check that tests do not open and
