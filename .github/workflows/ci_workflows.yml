@@ -4,7 +4,6 @@ on:
   push:
   pull_request:
 
-
 jobs:
   tests:
     name: ${{ matrix.name }}
@@ -38,7 +37,6 @@ jobs:
             os: ubuntu-16.04
             python: 3.7
             toxenv: py37-test-oldestdeps
-            toxposargs: --open-files
 
           - name: Python 3.7 with numpy 1.17 and full coverage
             os: ubuntu-latest
