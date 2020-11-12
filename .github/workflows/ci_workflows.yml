@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # TODO: Change to true when we know how to handle remote data job correctly
+      fail-fast: false
+      matrix:
+        include:
+
+          - name: Code style checks
+            os: ubuntu-latest
+            python: 3.x
+            toxenv: codestyle
+
+          - name: Python 3.7 with minimal dependencies
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test
+
+          - name: Python 3.8 with all optional dependencies
+            os: ubuntu-latest
+            python: 3.8
+            toxenv: py38-test-alldeps
+            toxargs: -v --develop
+            toxposargs: --durations=50
+
+          # NOTE: In the build below we also check that tests do not open and
+          # leave open any files. This has a performance impact on running the
+          # tests, hence why it is not enabled by default.
+          - name: Python 3.7 with oldest supported version of all dependencies
+            os: ubuntu-16.04
+            python: 3.7
+            toxenv: py37-test-oldestdeps
+
+          - name: Python 3.7 with numpy 1.17 and full coverage
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-alldeps-numpy117-cov-clocale
+            toxposargs: --remote-data=astropy
+
+          - name: Python 3.8 with all optional dependencies (Windows)
+            os: windows-latest
+            python: 3.8
+            toxenv: py38-test-alldeps
+
+          - name: Python 3.7 with all optional dependencies (MacOS X)
+            os: macos-latest
+            python: 3.7
+            toxenv: py37-test-devdeps
+
+          - name: Python 3.7 with remote data and dev version of key dependencies
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-devdeps
+            toxposargs: --remote-data=any
+
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: startsWith(matrix.os, 'ubuntu')
+      run: sudo apt-get install language-pack-de tzdata
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox codecov
+    - name: Run tests
+      run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
+    # TODO: Do we need --gcov-glob "*cextern*" ?
+    - name: Upload coverage to codecov
+      if: ${{ matrix.toxenv == 'py37-test-alldeps-numpy117-cov-clocale' }}
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
