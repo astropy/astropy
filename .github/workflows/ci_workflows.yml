@@ -1,12 +1,9 @@
 name: Run tests
 
-# TODO: cron on a separate YAML?
 on:
   push:
   pull_request:
-  schedule:
-    # run every Monday at 6am UTC
-    - cron: '0 6 * * 1'
+
 
 jobs:
   tests:
@@ -16,8 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-
-          # Standard jobs
 
           - name: Code style checks
             os: ubuntu-latest
@@ -63,70 +58,26 @@ jobs:
             toxenv: py37-test-devdeps
             toxposargs: --remote-data=any
 
-          # Cron jobs
-
-          - name: Python 3.7 with all optional dependencies (MacOS X)
-            skip: ${{ github.event_name != 'schedule'}}
-            os: macos-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
-            toxposargs: --remote-data=astropy
-            # compiler: clang
-
-          # We check numpy-dev also in a job that only runs from cron, so that
-          # we can spot issues sooner. We do not use remote data here, since
-          # that gives too many false positives due to URL timeouts. We also
-          # install all dependencies via pip here so we pick up the latest
-          # releases.
-          - name: Python 3.7 with dev version of key dependencies
-            skip: ${{ github.event_name != 'schedule'}}
-            os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
-
-          - name: Documentation link check
-            skip: ${{ github.event_name != 'schedule'}}
-            os: ubuntu-latest
-            python: 3.7
-            toxenv: linkcheck
-
-          - name: Bundling with pyinstaller
-            skip: ${{ github.event_name != 'schedule'}}
-            os: ubuntu-latest
-            python: 3.8
-            toxenv: pyinstaller
-
-          # Test against Python dev in cron job.
-          - name: Python dev with basic dependencies
-            skip: ${{ github.event_name != 'schedule'}}
-            os: ubuntu-latest
-            python: 3.10-dev
-            toxenv: pydev-test
 
     steps:
     - name: Checkout code
-      if: ${{ !matrix.skip }}
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - name: Set up Python
-      if: ${{ !matrix.skip }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
-      if: ${{ !matrix.skip && matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: sudo apt-get install language-pack-de tzdata
     - name: Install graphviz
-      if: ${{ !matrix.skip && matrix.toxenv == 'linkcheck' }}
+      if: ${{ matrix.toxenv == 'linkcheck' }}
       run: sudo apt-get install graphviz
     - name: Install Python dependencies
-      if: ${{ !matrix.skip }}
       run: python -m pip install --upgrade tox codecov
     - name: Run tests
-      if: ${{ !matrix.skip }}
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
     # TODO: Do we need --gcov-glob "*cextern*" ?
     - name: Coverage report
-      if: ${{ !matrix.skip }}
       uses: codecov/codecov-action@v1
