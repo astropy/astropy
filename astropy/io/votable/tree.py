@@ -1152,7 +1152,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                  xtype=None,
                  config=None, pos=None, **extra):
         if config is None:
-            config = {}
+            if hasattr(votable, '_get_version_flags'):
+                config = votable._get_version_flags()
+            else:
+                config = {}
         self._config = config
         self._pos = pos
 
@@ -3508,6 +3511,18 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self.groups.append(group)
         group.parse(iterator, config)
 
+    def _get_version_flags(self):
+        config = {}
+        config['version_1_1_or_later'] = \
+            util.version_compare(self.version, '1.1') >= 0
+        config['version_1_2_or_later'] = \
+            util.version_compare(self.version, '1.2') >= 0
+        config['version_1_3_or_later'] = \
+            util.version_compare(self.version, '1.3') >= 0
+        config['version_1_4_or_later'] = \
+            util.version_compare(self.version, '1.4') >= 0
+        return config
+
     def parse(self, iterator, config):
         config['_current_table_number'] = 0
 
@@ -3551,14 +3566,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     break
                 else:
                     vo_raise(E19, (), config, pos)
-        config['version_1_1_or_later'] = \
-            util.version_compare(config['version'], '1.1') >= 0
-        config['version_1_2_or_later'] = \
-            util.version_compare(config['version'], '1.2') >= 0
-        config['version_1_3_or_later'] = \
-            util.version_compare(config['version'], '1.3') >= 0
-        config['version_1_4_or_later'] = \
-            util.version_compare(config['version'], '1.4') >= 0
+        config.update(self._get_version_flags())
 
         tag_mapping = {
             'PARAM': self._add_param,
@@ -3612,18 +3620,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         kwargs = {
             'version': self.version,
-            'version_1_1_or_later':
-                util.version_compare(self.version, '1.1') >= 0,
-            'version_1_2_or_later':
-                util.version_compare(self.version, '1.2') >= 0,
-            'version_1_3_or_later':
-                util.version_compare(self.version, '1.3') >= 0,
-            'version_1_4_or_later':
-                util.version_compare(self.version, '1.4') >= 0,
             'tabledata_format':
                 tabledata_format,
             '_debug_python_based_parser': _debug_python_based_parser,
             '_group_number': 1}
+        kwargs.update(self._get_version_flags())
 
         with util.convert_to_writable_filelike(
             fd, compressed=compressed) as fd:
