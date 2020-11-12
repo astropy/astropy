@@ -64,16 +64,7 @@ check_sphinx_version("1.2.1")
 #  sphinx-gallery
 #  matplotlib plot directive
 # Add extensions
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.viewcode',
-    'numpydoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.duration']
+extensions = ['sphinx.ext.duration']
 
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
 # the benefit of other packages who want to refer to objects in the
