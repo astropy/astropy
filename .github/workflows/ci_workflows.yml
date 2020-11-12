@@ -1,4 +1,4 @@
-name: Run tests
+name: CI
 
 on:
   push:
@@ -9,6 +9,7 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      # TODO: Change to true when we know how to handle remote data job correctly
       fail-fast: false
       matrix:
         include:

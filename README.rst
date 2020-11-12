@@ -49,6 +49,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
 `LICENSE.rst <LICENSE.rst>`_ file.
 
 .. |Actions Status| image:: https://github.com/astropy/astropy/workflows/CI/badge.svg
+    :target: https://github.com/astropy/astropy/actions
     :alt: Astropy's GitHub Actions CI Status
 
 .. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
