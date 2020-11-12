@@ -1,9 +1,9 @@
-name: cron_daily
+name: cron_weekly
 
 on:
   schedule:
-    # run every day at 3am UTC
-    - cron: '0 3 * * *'
+    # run every Monday at 6am UTC
+    - cron: '0 6 * * 1'
 
 jobs:
   tests:
@@ -14,20 +14,17 @@ jobs:
       matrix:
         include:
 
-          # We check numpy-dev also in a job that only runs from cron, so that
-          # we can spot issues sooner. We do not use remote data here, since
-          # that gives too many false positives due to URL timeouts. We also
-          # install all dependencies via pip here so we pick up the latest
-          # releases.
-          - name: Python 3.7 with dev version of key dependencies
+          - name: Documentation link check
             os: ubuntu-latest
             python: 3.7
-            toxenv: py37-test-devdeps
+            toxenv: linkcheck
 
-          - name: Bundling with pyinstaller
+          # TODO: Bump Python when 3.10a is out.
+          # Test against Python dev in cron job.
+          - name: Python dev with basic dependencies
             os: ubuntu-latest
-            python: 3.8
-            toxenv: pyinstaller
+            python: 3.9-dev
+            toxenv: pydev-test
 
     steps:
     - name: Checkout code
@@ -41,6 +38,9 @@ jobs:
     - name: Install language-pack-de and tzdata
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: sudo apt-get install language-pack-de tzdata
+    - name: Install graphviz
+      if: ${{ matrix.toxenv == 'linkcheck' }}
+      run: sudo apt-get install graphviz
     - name: Install Python dependencies
       run: python -m pip install --upgrade tox codecov
     - name: Run tests
