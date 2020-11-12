@@ -80,8 +80,8 @@ jobs:
     - name: Run tests
       run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
     # TODO: Do we need --gcov-glob "*cextern*" ?
-    - name: Coverage report
-      uses: codecov/codecov-action@v1
+    - name: Upload coverage to codecov
       if: ${{ matrix.toxenv == 'py37-test-alldeps-numpy117-cov-clocale' }}
+      uses: codecov/codecov-action@v1
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
