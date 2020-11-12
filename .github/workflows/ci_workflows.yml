@@ -1,4 +1,4 @@
-name: CI
+name: Run tests
 
 # TODO: cron on a separate YAML?
 on:
@@ -12,120 +12,71 @@ on:
     branches:
     - master
 
-# The following is needed to avoid issues if e.g. Matplotlib tries
-# to open a GUI window.
-env:
-  SETUP_XVFB: True
-
 jobs:
-  code_style:
-    runs-on: ubuntu-latest
-    env:
-      TOXENV: codestyle
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Code style checks
-      run: |
-        echo "TOXENV="$TOXENV
-        tox -v
-
-  initial_tests:
-    runs-on: ubuntu-latest
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python: ['3.7', '3.8']
-        # Customize the jobs a little based on Python version
         include:
-          # Minimal dependencies
-          - python: '3.7'
+          - name: Code style checks
+            os: ubuntu-latest
+            python: 3.x
+            toxenv: codestyle
+          - name: Python 3.7 with minimal dependencies
+            os: ubuntu-latest
+            python: 3.7
             toxenv: py37-test
-            toxargs: -v
-            cc: ''
-          # All optional dependencies
-          - python: '3.8'
+          - name: Python 3.8 with all optional dependencies
+            os: ubuntu-latest
+            python: 3.8
             toxenv: py38-test-alldeps
-            toxargs: --durations=50
-            cc: clang
-    env:
-      TOXENV: ${{ matrix.toxenv }}
-      TOXARGS: ${{ matrix.toxargs }}
-      CC: ${{ matrix.cc }}
+            toxposargs: --durations=50
+            # compiler: clang
+          # NOTE: In the build below we also check that tests do not open and
+          # leave open any files. This has a performance impact on running the
+          # tests, hence why it is not enabled by default.
+          - name: Python 3.7 with oldest supported version of all dependencies
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-oldestdeps
+            toxposargs: --open-files
+          - name: Python 3.7 with numpy 1.17 and full coverage
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-alldeps-numpy117-cov-clocale
+            toxposargs: --remote-data=astropy
+          - name: Python 3.8 with all optional dependencies (Windows)
+            os: windows-latest
+            python: 3.8
+            toxenv: py38-test-alldeps
+          - name: Python 3.7 with remote data and dev version of key dependencies
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-devdeps
+            toxposargs: --remote-data=any
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Fetch tags
-      run: git fetch --prune --unshallow --tags
+      with:
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    # Write configuration items to standard location to make sure they are
-    # ignored (the tests will fail if not)
-    - name: Before install
-      run: |
-        mkdir -p $HOME/.astropy/config/
-        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-      shell: bash
-    - name: Install
-      run: |
-        sudo apt-get install language-pack-de tzdata
-        python -m pip install --upgrade tox
-    - name: Run tests
-      run: |
-        echo "CC="$CC
-        echo "TOXENV="$TOXENV
-        echo "TOXARGS="$TOXARGS
-        tox ${TOXARGS}
-
-  # TODO: Maybe this can be part of a matrix too but I just want to show
-  #       stages without porting everything for now.
-  # Full tests with coverage checks.
-  coverage_test:
-    runs-on: ubuntu-latest
-    needs: [code_style, initial_tests]
-    env:
-      TOXENV: py37-test-alldeps-numpy117-cov
-      TOXPOSARGS: --remote-data=astropy
-      LC_CTYPE: C.ascii
-      LC_ALL: C
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Fetch tags
-      run: git fetch --prune --unshallow --tags
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.7'
-    # Write configuration items to standard location to make sure they are
-    # ignored (the tests will fail if not)
-    - name: Before install
-      run: |
-        mkdir -p $HOME/.astropy/config/
-        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-      shell: bash
-    - name: Install
-      run: |
-        sudo apt-get install language-pack-de tzdata
-        python -m pip install --upgrade tox
-        python -m pip install codecov
+    - name: Install library dependencies
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt-get install language-pack-de tzdata
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox codecov
     - name: Run tests
       run: |
         echo "CC="$CC
         echo "LC_CTYPE="$LC_CTYPE
         echo "LC_ALL="$LC_ALL
-        echo "TOXENV="$TOXENV
-        echo "TOXARGS="$TOXARGS
-        echo "TOXPOSARGS="$TOXPOSARGS
-        tox ${TOXARGS} -- ${TOXPOSARGS}
+        tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
     # TODO: Do we need --gcov-glob "*cextern*" ?
     - name: Coverage report
       uses: codecov/codecov-action@v1
-    # TODO: Do we need token?
-    #  with:
-    #    token: ${{ secrets.CODECOV_TOKEN }}
