@@ -61,8 +61,27 @@ needs_sphinx = '1.7'
 # major.minor, call `check_sphinx_version("X.Y.Z")` here.
 check_sphinx_version("1.2.1")
 
+# EXP: Removed
+#  sphinx-gallery
+#  matplotlib plot directive
 # Add extensions
-extensions += ["sphinx.ext.duration"]
+extensions = [
+    'sphinx_astropy.ext.intersphinx_toggle',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.viewcode',
+    'numpydoc',
+    'sphinx_automodapi.automodapi',
+    'sphinx_automodapi.smart_resolver',
+    'sphinx_astropy.ext.doctest',
+    'sphinx_astropy.ext.changelog_links',
+    'sphinx_astropy.ext.generate_config',
+    'sphinx_astropy.ext.missing_static',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.duration']
 
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
 # the benefit of other packages who want to refer to objects in the
