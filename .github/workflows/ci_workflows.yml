@@ -30,7 +30,6 @@ jobs:
             toxenv: py38-test-alldeps
             toxargs: -v --develop
             toxposargs: --durations=50
-            # compiler: clang
 
           # NOTE: In the build below we also check that tests do not open and
           # leave open any files. This has a performance impact on running the
@@ -51,6 +50,11 @@ jobs:
             os: windows-latest
             python: 3.8
             toxenv: py38-test-alldeps
+
+          - name: Python 3.7 with all optional dependencies (MacOS X)
+            os: macos-latest
+            python: 3.7
+            toxenv: py37-test-devdeps
 
           - name: Python 3.7 with remote data and dev version of key dependencies
             os: ubuntu-latest

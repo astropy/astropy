@@ -14,13 +14,6 @@ jobs:
       matrix:
         include:
 
-          - name: Python 3.7 with all optional dependencies (MacOS X)
-            os: macos-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
-            toxposargs: --remote-data=astropy
-            # compiler: clang
-
           # We check numpy-dev also in a job that only runs from cron, so that
           # we can spot issues sooner. We do not use remote data here, since
           # that gives too many false positives due to URL timeouts. We also
