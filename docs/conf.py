@@ -72,8 +72,6 @@ extensions = [
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.viewcode',
     'numpydoc',
-    'sphinx_automodapi.automodapi',
-    'sphinx_automodapi.smart_resolver',
     'sphinx.ext.mathjax',
     'sphinx.ext.duration']
 
