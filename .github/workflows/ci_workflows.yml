@@ -9,8 +9,7 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
-      # TODO: Change to true when we know how to handle remote data job correctly
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
 
@@ -53,14 +52,7 @@ jobs:
           - name: Python 3.7 with all optional dependencies (MacOS X)
             os: macos-latest
             python: 3.7
-            toxenv: py37-test-devdeps
-
-          - name: Python 3.7 with remote data and dev version of key dependencies
-            os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
-            toxposargs: --remote-data=any
-
+            toxenv: py37-test-alldeps
 
     steps:
     - name: Checkout code
@@ -84,3 +76,33 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         file: ./coverage.xml
+
+  allowed_failures:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: (Allowed Failure) Python 3.7 with remote data and dev version of key dependencies
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-devdeps
+            toxposargs: --remote-data=any
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: startsWith(matrix.os, 'ubuntu')
+      run: sudo apt-get install language-pack-de tzdata
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox codecov
+    - name: Run tests
+      run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}

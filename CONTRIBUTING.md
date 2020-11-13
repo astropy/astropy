@@ -98,7 +98,7 @@ Other Tips
 ----------
 
 - Behind the scenes, we conduct a number of tests or checks with new pull requests.
-  This is a technique that is called continuous integration, and we use Travis CI
+  This is a technique that is called continuous integration, and we use GitHub Actions
   and CircleCI. To prevent the automated tests from running, you can add ``[ci skip]``
   to your commit message. This is useful if your PR is a work in progress (WIP) and
   you are not yet ready for the tests to run. For example:
@@ -110,8 +110,9 @@ Other Tips
 
         $ git commit --amend
 
-- To skip only the tests running on Travis CI use ``[skip travis]``.
-  This will still execute CircleCI.
+- Unfortunately, GitHub Actions ignores ``[ci skip]`` for a PR, so we recommend
+  you only push your commits to GitHub when you are ready for the CI to run.
+  Please do not push a lot of commits for every small WIP changes.
 
 - If your commit makes substantial changes to the documentation but no code
   changes, then you can use ``[ci skip]``, which will skip all CI except RTD,
@@ -180,6 +181,6 @@ package.
   * Are there any conflicts with this code and existing codes?
 
 **Astropy requirements**
-  * Do all the Travis CI and CircleCI tests pass?
+  * Do all the GitHub Actions and CircleCI tests pass? If not, are they allowed to fail?
   * If applicable, has an entry been added into the changelog?
   * Can you check out the pull request and repeat the examples and tests?

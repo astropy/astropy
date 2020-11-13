@@ -14,7 +14,7 @@ from astropy import units as u
 from astropy.table import QTable
 from astropy.time import Time, TimeDelta
 
-TRAVIS = os.environ.get('TRAVIS', False)
+CI = os.environ.get('CI', False)
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, 'FileNotFoundError', OSError)
 
@@ -345,7 +345,7 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
 
 
 # Issue with FTP, rework test into previous one when it's fixed
-@pytest.mark.skipif("TRAVIS", reason="Flaky on Travis CI")
+@pytest.mark.skipif("CI", reason="Flaky on CI")
 @pytest.mark.remote_data
 def test_iers_a_dl():
     iersa_tab = iers.IERS_A.open(iers.IERS_A_URL, cache=False)

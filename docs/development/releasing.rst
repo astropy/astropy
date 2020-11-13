@@ -82,7 +82,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.x
 
-#. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
+#. Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. Also check that
    the `Azure core package pipeline`_ which builds wheels on the ``v*`` branches is passing.
    You may also want to locally run the tests (with remote data on to ensure all
