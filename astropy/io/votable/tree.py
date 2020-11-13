@@ -1152,8 +1152,8 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                  xtype=None,
                  config=None, pos=None, **extra):
         if config is None:
-            if hasattr(votable, '_get_version_flags'):
-                config = votable._get_version_flags()
+            if hasattr(votable, '_get_version_checks'):
+                config = votable._get_version_checks()
             else:
                 config = {}
         self._config = config
@@ -3511,7 +3511,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self.groups.append(group)
         group.parse(iterator, config)
 
-    def _get_version_flags(self):
+    def _get_version_checks(self):
         config = {}
         config['version_1_1_or_later'] = \
             util.version_compare(self.version, '1.1') >= 0
@@ -3566,7 +3566,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     break
                 else:
                     vo_raise(E19, (), config, pos)
-        config.update(self._get_version_flags())
+        config.update(self._get_version_checks())
 
         tag_mapping = {
             'PARAM': self._add_param,
@@ -3624,7 +3624,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 tabledata_format,
             '_debug_python_based_parser': _debug_python_based_parser,
             '_group_number': 1}
-        kwargs.update(self._get_version_flags())
+        kwargs.update(self._get_version_checks())
 
         with util.convert_to_writable_filelike(
             fd, compressed=compressed) as fd:
