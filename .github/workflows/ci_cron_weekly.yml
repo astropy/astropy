@@ -19,12 +19,12 @@ jobs:
             python: 3.7
             toxenv: linkcheck
 
-          # TODO: Bump Python when 3.10a is out.
+          # TODO: Uncomment when 3.10 is more mature. Should we use devdeps?
           # Test against Python dev in cron job.
-          - name: Python dev with basic dependencies
-            os: ubuntu-latest
-            python: 3.9-dev
-            toxenv: pydev-test
+          #- name: Python dev with basic dependencies
+          #  os: ubuntu-latest
+          #  python: 3.10-dev
+          #  toxenv: pydev-test
 
     steps:
     - name: Checkout code
