@@ -1063,10 +1063,10 @@ Astropy uses the following continuous integration (CI) services:
 
 * `GitHub Actions <https://github.com/astropy/astropy/actions>`_ for
   64-bit Linux, OS X, and Windows setups
-  * Note: GitHub Actions does not have "allowed failures" yet, so you might
-    see a fail job reported for your PR with "(Allowed Failure)" in its name.
-    Still, some failures might be real and related to your changes, so check
-    it anyway!
+  (Note: GitHub Actions does not have "allowed failures" yet, so you might
+  see a fail job reported for your PR with "(Allowed Failure)" in its name.
+  Still, some failures might be real and related to your changes, so check
+  it anyway!)
 * `CircleCI <https://circleci.com>`_ for 32-bit Linux,
   documentation build, and visualization tests
 
