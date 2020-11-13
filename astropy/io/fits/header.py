@@ -73,6 +73,11 @@ class Header:
         ...
 
     See the Astropy documentation for more details on working with headers.
+
+    Notes
+    -----
+    Although FITS keywords must be exclusively upper case, retrieving an item
+    in a `Header` object is case insensitive.
     """
 
     def __init__(self, cards=[], copy=False):

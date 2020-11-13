@@ -77,6 +77,18 @@ class TestHeaderFunctions(FitsTestCase):
         assert header['B'] == 'B'
         assert header.comments['B'] == 'C'
 
+    @pytest.mark.parametrize('key', ['A', 'a'])
+    def test_indexing_case(self, key):
+        """Check that indexing is case insensitive"""
+        header = fits.Header([('A', 'B', 'C'), ('D', 'E', 'F')])
+        assert key in header
+        assert header[key] == 'B'
+        assert header.get(key) == 'B'
+        assert header.index(key) == 0
+        assert header.comments[key] == 'C'
+        assert header.count(key) == 1
+        header.remove(key, ignore_missing=False)
+
     def test_card_constructor_default_args(self):
         """Test Card constructor with default argument values."""
 
