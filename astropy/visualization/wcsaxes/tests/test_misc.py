@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import sys
-
 from packaging.version import Version
 import pytest
 import numpy as np
@@ -23,9 +20,7 @@ from astropy.visualization.wcsaxes.frame import (
 from astropy.visualization.wcsaxes.utils import get_coord_meta
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 
-mpl_version = Version(matplotlib.__version__)
 ft_version = Version(matplotlib.ft2font.__freetype_version__)
-MATPLOTLIB_LT_31 = mpl_version < Version('3.1')
 FREETYPE_261 = ft_version == Version("2.6.1")
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
@@ -75,9 +70,6 @@ COORDSYS= 'icrs    '
 """, sep='\n')
 
 
-@pytest.mark.skipif(MATPLOTLIB_LT_31 and sys.version_info >= (3, 9),
-                    reason='PY_SSIZE_T_CLEAN warning with Python 3.9 and '
-                    'Matplotlib 3.0, GH issue 10954')
 @pytest.mark.parametrize('grid_type', ['lines', 'contours'])
 def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     ax = plt.subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
@@ -97,7 +89,8 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
         w_msg = str(w.message)
         assert ('converting a masked element to nan' in w_msg or
                 'No contour levels were found within the data range' in w_msg or
-                'np.asscalar(a) is deprecated since NumPy v1.16' in w_msg)
+                'np.asscalar(a) is deprecated since NumPy v1.16' in w_msg or
+                'PY_SSIZE_T_CLEAN will be required' in w_msg)
 
 
 def test_invalid_frame_overlay(ignore_matplotlibrc):
