@@ -141,7 +141,7 @@ formats:
     Données astronomiques de Strasbourg
     <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_: This is the
     standard used by `Vizier tables <http://vizier.u-strasbg.fr/>`__,
-    as well as what is used by VOTable versions 1.2 and earlier.
+    as well as what is used by VOTable versions 1.3 and earlier.
 
   - ``"ogip"``: A standard for storing units as recommended by the
     `Office of Guest Investigator Programs (OGIP)
