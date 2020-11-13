@@ -72,7 +72,7 @@ jobs:
       run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
     # TODO: Do we need --gcov-glob "*cextern*" ?
     - name: Upload coverage to codecov
-      if: ${{ matrix.toxenv == 'py37-test-alldeps-numpy117-cov-clocale' }}
+      if: ${{ contains(matrix.toxenv,'-cov') }}
       uses: codecov/codecov-action@v1
       with:
         file: ./coverage.xml
