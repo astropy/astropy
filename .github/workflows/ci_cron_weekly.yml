@@ -1,4 +1,4 @@
-name: cron_weekly
+name: Weekly cron
 
 on:
   schedule:
