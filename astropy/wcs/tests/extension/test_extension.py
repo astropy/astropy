@@ -50,14 +50,13 @@ def test_wcsapi_extension(tmpdir):
     # dependencies necessary to compile an extension may be missing.
     # If it passes, however, we want to continue and ensure that the
     # extension created is actually usable.  However, if we're on
-    # Travis-CI, or another generic continuous integration setup, we
+    # continuous integration setup, we
     # don't want to ever skip, because having it fail in that
     # environment probably indicates something more serious that we
     # want to know about.
     if (not ('CI' in os.environ or
-             'TRAVIS' in os.environ or
              'CONTINUOUS_INTEGRATION' in os.environ) and
-        p.returncode):
+            p.returncode):
         pytest.skip("system unable to compile extensions")
         return
 

@@ -1061,8 +1061,12 @@ Overview
 
 Astropy uses the following continuous integration (CI) services:
 
-* `Travis <https://travis-ci.org/astropy/astropy>`_ for
+* `GitHub Actions <https://github.com/astropy/astropy/actions>`_ for
   64-bit Linux, OS X, and Windows setups
+  * Note: GitHub Actions does not have "allowed failures" yet, so you might
+    see a fail job reported for your PR with "(Allowed Failure)" in its name.
+    Still, some failures might be real and related to your changes, so check
+    it anyway!
 * `CircleCI <https://circleci.com>`_ for 32-bit Linux,
   documentation build, and visualization tests
 
@@ -1071,12 +1075,10 @@ pushed to GitHub to notice when something breaks.
 
 Astropy and many affiliated packages use an external package called
 `ci-helpers <https://github.com/astropy/ci-helpers>`_ to provide
-support for the generic parts of the CI systems. ``ci-helpers`` consists of
-a set of scripts that are used by the ``.travis.yml`` and ``appveyor.yml``
-files to set up the conda environment, and install dependencies.
+support for the generic parts of the CI systems.
 
 Dependencies can be customized for different packages using the appropriate
-environment variables in ``.travis.yml`` and ``appveyor.yml``. For more
+environment variables in the relevant YAML files. For more
 details on how to set up this machinery, see the `package-template
 <https://github.com/astropy/package-template>`_ and `ci-helpers`_.
 

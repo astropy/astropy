@@ -58,7 +58,6 @@ from astropy.utils.data import (
     is_url
 )
 
-TRAVIS = os.environ.get('TRAVIS', False) == "true"
 CI = os.environ.get('CI', False) == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
@@ -390,7 +389,7 @@ def test_download_with_sources_and_bogus_original(
 
 
 @pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_download_file_threaded_many(temp_cache, valid_urls):
@@ -411,7 +410,7 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
 
 
 @pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_threaded_segfault(valid_urls):
@@ -429,7 +428,7 @@ def test_threaded_segfault(valid_urls):
 
 
 @pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_download_file_threaded_many_partial_success(
@@ -2128,7 +2127,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     assert not is_url_in_cache(u)
 
 
-@pytest.mark.skipif("TRAVIS", reason="Flaky on Travis CI")
+@pytest.mark.skipif("CI", reason="Flaky on CI")
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
     url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"  # noqa

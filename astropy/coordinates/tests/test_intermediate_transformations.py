@@ -25,7 +25,7 @@ from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
 
-TRAVIS = os.environ.get('TRAVIS', False) == "true"
+CI = os.environ.get('CI', False) == "true"
 
 try:
     import jplephem  # pylint: disable=W0611  # noqa
@@ -540,7 +540,7 @@ def test_earth_orientation_table(monkeypatch):
 
     # Server occasionally blocks IERS download in CI.
     n_warnings = len(warning_lines)
-    if TRAVIS:
+    if CI:
         assert n_warnings <= 1, f'Expected at most one warning but got {n_warnings}'
         if n_warnings == 1:
             w_msg = str(warning_lines[0].message)
