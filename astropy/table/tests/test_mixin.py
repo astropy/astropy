@@ -124,13 +124,13 @@ def test_votable_quantity_write(tmpdir):
     (io/fits/tests/test_connect.py and io/misc/tests/test_hdf5.py).
     """
     t = QTable()
-    t['a'] = u.Quantity([1, 2, 4], unit='m')
+    t['a'] = u.Quantity([1, 2, 4], unit='nm')
 
     filename = str(tmpdir.join('table-tmp'))
     t.write(filename, format='votable', overwrite=True)
     qt = QTable.read(filename, format='votable')
     assert isinstance(qt['a'], u.Quantity)
-    assert qt['a'].unit == 'm'
+    assert qt['a'].unit == 'nm'
 
 
 @pytest.mark.remote_data

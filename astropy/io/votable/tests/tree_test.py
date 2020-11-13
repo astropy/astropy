@@ -2,7 +2,9 @@
 
 from astropy.io.votable import exceptions
 from astropy.io.votable import tree
+from astropy.io.votable.table import parse
 from astropy.tests.helper import raises
+from astropy.utils.data import get_pkg_data_filename
 
 
 @raises(exceptions.W07)
@@ -33,9 +35,6 @@ def test_make_Fields():
 
 
 def test_unit_format():
-    from astropy.io.votable.table import parse
-    from astropy.utils.data import get_pkg_data_filename
-
     data = parse(get_pkg_data_filename('data/irsa-nph-error.xml'))
     assert data._config['version'] == '1.0'
     assert tree._get_default_unit_format(data._config) == 'cds'
