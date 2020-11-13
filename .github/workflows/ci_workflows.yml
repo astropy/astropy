@@ -28,7 +28,7 @@ jobs:
             python: 3.8
             toxenv: py38-test-alldeps
             toxargs: -v --develop
-            toxposargs: --durations=50
+            toxposargs: --open-files
 
           # NOTE: In the build below we also check that tests do not open and
           # leave open any files. This has a performance impact on running the
@@ -48,11 +48,13 @@ jobs:
             os: windows-latest
             python: 3.8
             toxenv: py38-test-alldeps
+            toxposargs: --durations=50
 
           - name: Python 3.7 with all optional dependencies (MacOS X)
             os: macos-latest
             python: 3.7
             toxenv: py37-test-alldeps
+            toxposargs: --durations=50
 
     steps:
     - name: Checkout code
