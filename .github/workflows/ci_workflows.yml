@@ -8,6 +8,7 @@ jobs:
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: (!contains(github.event.head_commit.message, '[ci skip]')) && (!contains(github.event.head_commit.message, '[skip ci]')) && (!contains(github.event.head_commit.message, '[skip actions]')) && (!contains(github.event.head_commit.message, '[actions skip]'))
     strategy:
       fail-fast: true
       matrix:
@@ -82,6 +83,7 @@ jobs:
   allowed_failures:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: (!contains(github.event.head_commit.message, '[ci skip]')) && (!contains(github.event.head_commit.message, '[skip ci]')) && (!contains(github.event.head_commit.message, '[skip actions]')) && (!contains(github.event.head_commit.message, '[actions skip]'))
     strategy:
       fail-fast: false
       matrix:
