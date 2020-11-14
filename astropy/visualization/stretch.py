@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
 another set of [0:1] values with a transformation
@@ -9,7 +8,6 @@ import numpy as np
 
 from .transform import BaseTransform
 from .transform import CompositeTransform
-
 
 __all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
            "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",
@@ -23,7 +21,8 @@ def _logn(n, x, out=None):
     if out is None:
         return np.log(x) / np.log(n)
     else:
-        np.log(x, out=out)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            np.log(x, out=out)
         np.true_divide(out, np.log(n), out=out)
         return out
 
@@ -413,7 +412,7 @@ class LogStretch(BaseStretch):
 
         values = _prepare(values, clip=clip, out=out)
         replace_invalid = not clip and invalid is not None
-        with np.errstate(invalid='ignore'):
+        with np.errstate(divide='ignore', invalid='ignore'):
             if replace_invalid:
                 idx = (values < 0)
             np.multiply(values, self.exp, out=values)
