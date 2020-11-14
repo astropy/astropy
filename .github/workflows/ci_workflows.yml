@@ -109,7 +109,7 @@ jobs:
     - name: Run tests
       run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
 
-  32bit_and_parallel:
+  parallel_and_32bit:
     name: 32-bit and parallel
     runs-on: ubuntu-latest
     container:
