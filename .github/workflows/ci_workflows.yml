@@ -6,9 +6,9 @@ on:
 
 jobs:
   tests:
-    if: "!contains(github.event.commits[0].message, '[skip ci]')"
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     strategy:
       fail-fast: true
       matrix:
@@ -81,9 +81,9 @@ jobs:
         file: ./coverage.xml
 
   allowed_failures:
-    if: "!contains(github.event.commits[0].message, '[skip ci]')"
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     strategy:
       fail-fast: false
       matrix:
