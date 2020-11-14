@@ -108,3 +108,34 @@ jobs:
       run: python -m pip install --upgrade tox codecov
     - name: Run tests
       run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
+
+  32bit_and_parallel:
+    name: 32-bit and parallel
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux1_i686
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Write configuration items to standard location to make sure they are ignored in parallel mode
+      run: |
+        mkdir -p $HOME/.astropy/config/
+        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
+    # In addition to testing 32-bit, we also use the 3.7 builds to
+    # test the ability to run the test suite in parallel.
+    - name: Install dependencies for Python 3.7
+      run: /opt/python/cp37-cp37m/bin/pip install tox
+    - name: Run tests for Python 3.7
+      run: /opt/python/cp37-cp37m/bin/python -m tox -e py37-test -- -n=4 --durations=50
+    # We use the 3.8 build to check that running tests twice in a row in the
+    # same Python session works without issues. This catches cases where
+    # running the tests changes the module state permanently. Note that we
+    # shouldn't also test the parallel build here since that enforces a degree
+    # of isolation of tests which will interfere with what we are trying to do
+    # here.
+    - name: Install dependencies for Python 3.8
+      run: /opt/python/cp38-cp38/bin/pip install tox
+    - name: Run tests for Python 3.8
+      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-test-double
