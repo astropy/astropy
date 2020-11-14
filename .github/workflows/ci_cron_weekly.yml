@@ -56,3 +56,40 @@ jobs:
       run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+
+
+  tests_more_architectures:
+
+    # The following architectures are emulated and are therefore slow, so
+    # we include them just in the weekly cron.
+
+    runs-on: ubuntu-18.04
+    name: Python 3.7 on ${{ matrix.arch }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+          - arch: ppc64le
+          - arch: s390x
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Run tests
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: buster
+
+          shell: /bin/sh
+
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y git python3 python3-pip libatlas3-base
+            python3 -m pip install tox
+
+          run: python3 -m tox -e py37-test
