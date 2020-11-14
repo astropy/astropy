@@ -6,6 +6,7 @@ on:
 
 jobs:
   gahhhh:
+    if: "!contains(toJSON(github.event.commits.*.message), '[skip ci]')"
     name: Gahhh
     runs-on: ubuntu-latest
     env:
