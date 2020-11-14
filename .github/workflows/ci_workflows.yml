@@ -9,7 +9,7 @@ jobs:
     name: Gahhh
     runs-on: ubuntu-latest
     env:
-      WHATISTHIS: ${{ toJson(github.event) }}
+      WHATISTHIS: ${{ toJson(github) }}
     steps:
     - name: Hmmm
       run: echo "$WHATISTHIS"
