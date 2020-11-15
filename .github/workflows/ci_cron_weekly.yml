@@ -86,7 +86,7 @@ jobs:
           arch: ${{ matrix.arch }}
           distro: buster
 
-          shell: /bin/sh
+          shell: /bin/bash
 
           install: |
             apt-get update -q -y
