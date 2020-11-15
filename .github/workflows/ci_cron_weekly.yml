@@ -61,7 +61,8 @@ jobs:
   tests_more_architectures:
 
     # The following architectures are emulated and are therefore slow, so
-    # we include them just in the weekly cron.
+    # we include them just in the weekly cron. These also serve as a test
+    # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-18.04
     name: Python 3.7 on ${{ matrix.arch }}
@@ -89,7 +90,19 @@ jobs:
 
           install: |
             apt-get update -q -y
-            apt-get install -q -y git python3 python3-pip libatlas3-base
-            python3 -m pip install tox
+            apt-get install -q -y git \
+                      python3 \
+                      python3-configobj \
+                      python3-numpy \
+                      python3-ply \
+                      python3-venv \
+                      cython3 \
+                      wcslib-dev \
+                      libcfitsio-dev \
+                      liberfa1
 
-          run: python3 -m tox -e py37-test
+          run: |
+            python3 -m venv --system-site-packages tests
+            source tests/bin/activate
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
+            python3 -m pytest
