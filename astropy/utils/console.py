@@ -88,13 +88,6 @@ class _IPython:
                 cls._ipyio = io
         return cls._ipyio
 
-    @classproperty
-    def IOStream(cls):
-        if cls.ipyio is None:
-            return None
-        else:
-            return cls.ipyio.IOStream
-
     @classmethod
     def get_stream(cls, stream):
         return getattr(cls.ipyio, stream)
@@ -116,19 +109,7 @@ def _get_stdout(stderr=False):
         stream = 'stdout'
 
     sys_stream = getattr(sys, stream)
-    if not isatty(sys_stream) or _IPython.OutStream is None:
-        return sys_stream
-
-    # Our system stream is an atty and we're in ipython.
-    ipyio_stream = _IPython.get_stream(stream)
-
-    if ipyio_stream is not None and isatty(ipyio_stream):
-        # Use the IPython console output stream
-        return ipyio_stream
-    else:
-        # sys.stdout was set to some other non-TTY stream (a file perhaps)
-        # so just use it directly
-        return sys_stream
+    return sys_stream
 
 
 def isatty(file):
@@ -140,25 +121,24 @@ def isatty(file):
     ttys.
     """
     if (multiprocessing.current_process().name != 'MainProcess' or
-        threading.current_thread().getName() != 'MainThread'):
+            threading.current_thread().getName() != 'MainThread'):
         return False
 
     if hasattr(file, 'isatty'):
         return file.isatty()
 
-    # Use two isinstance calls to only evaluate IOStream when necessary.
-    if (_IPython.OutStream is None or
-        (not isinstance(file, _IPython.OutStream) and
-         not isinstance(file, _IPython.IOStream))):
+    if _IPython.OutStream is None or (not isinstance(file, _IPython.OutStream)):
         return False
 
-    # File is an IPython OutStream or IOStream.  Check whether:
+    # File is an IPython OutStream. Check whether:
     # - File name is 'stdout'; or
     # - File wraps a Console
     if getattr(file, 'name', None) == 'stdout':
         return True
 
     if hasattr(file, 'stream'):
+        # FIXME: pyreadline has no had new release since 2015, drop it when
+        #        IPython minversion is 5.x.
         # On Windows, in IPython 2 the standard I/O streams will wrap
         # pyreadline.Console objects if pyreadline is available; this should
         # be considered a TTY.
@@ -284,15 +264,6 @@ def _write_with_fallback(s, write, fileobj):
     of a UnicodeEncodeError.  Failing that attempt to write with 'utf-8' or
     'latin-1'.
     """
-    if (_IPython.IOStream is not None and
-        isinstance(fileobj, _IPython.IOStream)):
-        # If the output stream is an IPython.utils.io.IOStream object that's
-        # not going to be very helpful to us since it doesn't raise any
-        # exceptions when an error occurs writing to its underlying stream.
-        # There's no advantage to us using IOStream.write directly though;
-        # instead just write directly to its underlying stream:
-        write = fileobj.stream.write
-
     try:
         write(s)
         return write

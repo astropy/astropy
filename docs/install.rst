@@ -89,8 +89,8 @@ The following packages can optionally be used when testing:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `IPython <https://ipython.org/>`__: Used for testing the notebook interface of
-  `~astropy.table.Table`.
+- `IPython <https://ipython.org/>`__ |minimum_ipython_version| or later:
+  Used for testing the notebook interface of `~astropy.table.Table`.
 
 - `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
   measurements.

@@ -25,6 +25,9 @@ __minimum_yaml_version__ = '3.13'
 # Matplotlib is an optional dependency, but this is the minimum version that is
 # advertised to be supported.
 __minimum_matplotlib_version__ = '3.0'
+# IPython is an optional dependency, but this is the minimum version that is
+# advertised to be supported.
+__minimum_ipython_version__ = '4.2'
 
 
 class UnsupportedPythonError(Exception):

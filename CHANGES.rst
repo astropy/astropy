@@ -151,6 +151,8 @@ astropy.utils
 
 - Removed deprecated ``utils.misc.InheritDocstrings`` and ``utils.timer``. [#10281]
 
+- Removed usage of deprecated ``ipython`` stream in ``utils.console``. [#10942]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -234,7 +236,7 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
-- Nothing changed yet.
+- Officially declared minversion of ``ipython`` to be 4.2. [#10942]
 
 
 
