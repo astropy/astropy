@@ -38,6 +38,8 @@ astropy.io.misc
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- Version 1.4 VOTables now use the VOUnit format specification. [#11032]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
