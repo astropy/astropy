@@ -405,6 +405,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self.view(np.ndarray)
 
     @property
+    def value(self):
+        return self.data
+
+    @property
     def parent_table(self):
         # Note: It seems there are some cases where _parent_table is not set,
         # such after restoring from a pickled Column.  Perhaps that should be
