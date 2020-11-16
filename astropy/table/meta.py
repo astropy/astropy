@@ -3,6 +3,45 @@ import textwrap
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
 
+def _construct_dict_from_omap(load, node):
+    """
+    Construct dict from !!omap in yaml safe load.
+
+    Source: https://gist.github.com/weaver/317164
+    License: Unspecified
+
+    This is the same as SafeConstructor.construct_yaml_omap(),
+    except the data type is changed to dict() and setitem is
+    used instead of append in the loop.
+    """
+    import yaml
+
+    omap = {}
+    yield omap
+    if not isinstance(node, yaml.SequenceNode):
+        raise yaml.constructor.ConstructorError(
+            "while constructing an ordered map", node.start_mark,
+            f"expected a sequence, but found {node.id}", node.start_mark)
+
+    for subnode in node.value:
+        if not isinstance(subnode, yaml.MappingNode):
+            raise yaml.constructor.ConstructorError(
+                "while constructing an ordered map", node.start_mark,
+                f"expected a mapping of length 1, but found {subnode.id}",
+                subnode.start_mark)
+
+        if len(subnode.value) != 1:
+            raise yaml.constructor.ConstructorError(
+                "while constructing an ordered map", node.start_mark,
+                f"expected a single mapping item, but found {len(subnode.value)} items",
+                subnode.start_mark)
+
+        key_node, value_node = subnode.value[0]
+        key = load.construct_object(key_node)
+        value = load.construct_object(value_node)
+        omap[key] = value
+
+
 def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
@@ -131,10 +170,19 @@ def get_header_from_yaml(lines):
 
     from astropy.io.misc.yaml import AstropyLoader
 
+    class TableLoader(AstropyLoader):
+        """
+        Custom Loader that constructs OrderedDict from an !!omap object.
+        This does nothing but provide a namespace for adding the
+        custom odict constructor.
+        """
+
+    TableLoader.add_constructor('tag:yaml.org,2002:omap', _construct_dict_from_omap)
+
     # Now actually load the YAML data structure into `meta`
     header_yaml = textwrap.dedent('\n'.join(lines))
     try:
-        header = yaml.load(header_yaml, Loader=AstropyLoader)
+        header = yaml.load(header_yaml, Loader=TableLoader)
     except Exception as err:
         raise YamlParseError(str(err))
 

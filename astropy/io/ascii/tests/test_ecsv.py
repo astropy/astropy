@@ -604,3 +604,26 @@ False
     assert isinstance(col, MaskedColumn)
     assert np.all(col.mask == [False, False, False, True, False])
     assert np.all(col == [True, False, True, False, False])
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_read_ecsv_with_omap():
+    """Regression test to ensure that ordered mapping !!omap in ECSV works.
+
+    Starting with astropy 4.3 this tag is not used on output."""
+    txt = """\
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: a, datatype: int64}
+# meta: !!omap
+# - {1: 2}
+# - {0: 1}
+# schema: astropy-2.0
+a
+1
+2
+"""
+    dat = ascii.read(txt, format='ecsv')
+    assert list(dat.meta.keys()) == [1, 0]
+    assert dat.meta == {1: 2, 0: 1}
