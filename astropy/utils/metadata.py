@@ -405,9 +405,6 @@ class MetaData:
             instance._meta = dict()
             return
 
-        if isinstance(value, (list, tuple)):
-            value = dict(value)
-
         if isinstance(value, Mapping):
             if self.copy:
                 instance._meta = deepcopy(value)
