@@ -14,16 +14,6 @@ jobs:
       matrix:
         include:
 
-          # We check numpy-dev also in a job that only runs from cron, so that
-          # we can spot issues sooner. We do not use remote data here, since
-          # that gives too many false positives due to URL timeouts. We also
-          # install all dependencies via pip here so we pick up the latest
-          # releases.
-          - name: Python 3.7 with dev version of key dependencies
-            os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
-
           - name: Bundling with pyinstaller
             os: ubuntu-latest
             python: 3.8
@@ -42,6 +32,6 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: sudo apt-get install language-pack-de tzdata
     - name: Install Python dependencies
-      run: python -m pip install --upgrade tox codecov
+      run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
