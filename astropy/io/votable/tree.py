@@ -166,9 +166,12 @@ def _get_default_unit_format(config):
     """
     Get the default unit format as specified in the VOTable spec.
     """
-    # In the future, this should take into account the VOTable
-    # version.
-    return 'cds'
+    # The unit format changed between VOTable versions 1.3 and 1.4,
+    # see issue #10791.
+    if config['version_1_4_or_later']:
+        return 'vounit'
+    else:
+        return 'cds'
 
 
 def _get_unit_format(config):
@@ -1149,7 +1152,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
                  xtype=None,
                  config=None, pos=None, **extra):
         if config is None:
-            config = {}
+            if hasattr(votable, '_get_version_checks'):
+                config = votable._get_version_checks()
+            else:
+                config = {}
         self._config = config
         self._pos = pos
 
@@ -3505,6 +3511,18 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self.groups.append(group)
         group.parse(iterator, config)
 
+    def _get_version_checks(self):
+        config = {}
+        config['version_1_1_or_later'] = \
+            util.version_compare(self.version, '1.1') >= 0
+        config['version_1_2_or_later'] = \
+            util.version_compare(self.version, '1.2') >= 0
+        config['version_1_3_or_later'] = \
+            util.version_compare(self.version, '1.3') >= 0
+        config['version_1_4_or_later'] = \
+            util.version_compare(self.version, '1.4') >= 0
+        return config
+
     def parse(self, iterator, config):
         config['_current_table_number'] = 0
 
@@ -3548,14 +3566,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     break
                 else:
                     vo_raise(E19, (), config, pos)
-        config['version_1_1_or_later'] = \
-            util.version_compare(config['version'], '1.1') >= 0
-        config['version_1_2_or_later'] = \
-            util.version_compare(config['version'], '1.2') >= 0
-        config['version_1_3_or_later'] = \
-            util.version_compare(config['version'], '1.3') >= 0
-        config['version_1_4_or_later'] = \
-            util.version_compare(config['version'], '1.4') >= 0
+        config.update(self._get_version_checks())
 
         tag_mapping = {
             'PARAM': self._add_param,
@@ -3609,18 +3620,11 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         kwargs = {
             'version': self.version,
-            'version_1_1_or_later':
-                util.version_compare(self.version, '1.1') >= 0,
-            'version_1_2_or_later':
-                util.version_compare(self.version, '1.2') >= 0,
-            'version_1_3_or_later':
-                util.version_compare(self.version, '1.3') >= 0,
-            'version_1_4_or_later':
-                util.version_compare(self.version, '1.4') >= 0,
             'tabledata_format':
                 tabledata_format,
             '_debug_python_based_parser': _debug_python_based_parser,
             '_group_number': 1}
+        kwargs.update(self._get_version_checks())
 
         with util.convert_to_writable_filelike(
             fd, compressed=compressed) as fd:

@@ -93,9 +93,8 @@ def parse(source, columns=None, invalid='exception', verify=None,
         ``vounit``.  A custom formatter may be provided by passing a
         `~astropy.units.UnitBase` instance.  If `None` (default),
         the unit format to use will be the one specified by the
-        VOTable specification (which is ``cds`` up to version 1.2 of
-        VOTable, and (probably) ``vounit`` in future versions of the
-        spec).
+        VOTable specification (which is ``cds`` up to version 1.3 of
+        VOTable, and ``vounit`` in more recent versions of the spec).
 
     datatype_mapping : dict of str to str, optional
         A mapping of datatype names to valid VOTable datatype names.
