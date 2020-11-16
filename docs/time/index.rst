@@ -1595,6 +1595,23 @@ object.
 
 .. EXAMPLE END
 
+
+Example
+^^^^^^^
+
+.. EXAMPLE START: Initializing From a Timezone-aware Date
+
+Using the `dateutil <https://dateutil.readthedocs.io/en/stable/index.html>`_ package,
+you can parse times in a wide variety of supported formats to generate a
+`datetime.datetime` object which can then be used to initialize a |Time| object::
+
+  >>> from dateutil.parser import parse  # doctest: +SKIP
+  >>> dtime = parse('2020-10-29T08:20:46.950+1100')  # doctest: +SKIP
+  >>> Time(dtime)  # doctest: +SKIP
+  <Time object: scale='utc' format='datetime' value=2020-10-28 21:20:46.950000>
+
+.. EXAMPLE END
+
 Custom String Formats with ``strftime`` and ``strptime``
 --------------------------------------------------------
 
