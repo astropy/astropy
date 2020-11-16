@@ -47,8 +47,9 @@ def _true_ecliptic_rotation_matrix(equinox):
     # so that we can keep the nutation for calculating the true obliquity
     # (which is a fairly expensive operation); see gh-11000.
     # pnm06a: Fukushima-Williams angles for frame bias and precession.
+    # (ERFA names short for F-W's gamma_bar, phi_bar, psi_bar and epsilon_A).
     gamb, phib, psib, epsa = erfa.pfw06(jd1, jd2)
-    # pnm06a: Nutation components.
+    # pnm06a: Nutation components (in longitude and obliquity).
     dpsi, deps = erfa.nut06a(jd1, jd2)
     # pnm06a: Equinox based nutation x precession x bias matrix.
     rnpb = erfa.fw2m(gamb, phib, psib+dpsi, epsa+deps)
