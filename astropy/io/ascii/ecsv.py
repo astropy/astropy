@@ -223,11 +223,7 @@ class EcsvData(basic.BasicData):
         # not even be any table meta, so punt in those cases.
 
         try:
-            if isinstance(self.header.table_meta, (list, tuple)):
-                tmeta = dict(self.header.table_meta)
-            else:
-                tmeta = self.header.table_meta
-            scs = tmeta['__serialized_columns__']
+            scs = self.header.table_meta['__serialized_columns__']
         except (AttributeError, KeyError):
             return
 
