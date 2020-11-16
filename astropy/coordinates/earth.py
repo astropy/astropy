@@ -652,6 +652,18 @@ class EarthLocation(u.Quantity):
                                      for the location of this object at the
                                      default ``obstime``.""")
 
+    def _in_alternate_frame(self, frame, obstime):
+        """
+        Return position in an alternate frame as an astropy frame instance
+        """
+        itrs = self.get_itrs(obstime)
+        # Assume the observatory itself is fixed on the ground.
+        # We do a direct assignment rather than an update to avoid validation
+        # and creation of a new object.
+        zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
+        itrs.data.differentials['s'] = CartesianDifferential(zeros)
+        return itrs.transform_to(frame(obstime=obstime))
+
     def get_gcrs(self, obstime):
         """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
 
@@ -667,14 +679,24 @@ class EarthLocation(u.Quantity):
         """
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import GCRS
+        return self._in_alternate_frame(GCRS, obstime)
 
-        itrs = self.get_itrs(obstime)
-        # Assume the observatory itself is fixed on the ground.
-        # We do a direct assignment rather than an update to avoid validation
-        # and creation of a new object.
-        zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
-        itrs.data.differentials['s'] = CartesianDifferential(zeros)
-        return itrs.transform_to(GCRS(obstime=obstime))
+    def get_cirs(self, obstime):
+        """CIRS position with velocity at ``obstime`` as a CIRS coordinate.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the GCRS position/velocity at.
+
+        Returns
+        --------
+        cirs : `~astropy.coordinates.CIRS` instance
+            With velocity included.
+        """
+        # do this here to prevent a series of complicated circular imports
+        from .builtin_frames import CIRS
+        return self._in_alternate_frame(CIRS, obstime)
 
     def get_gcrs_posvel(self, obstime):
         """
@@ -697,6 +719,29 @@ class EarthLocation(u.Quantity):
         gcrs_data = self.get_gcrs(obstime).data
         obsgeopos = gcrs_data.without_differentials()
         obsgeovel = gcrs_data.differentials['s'].to_cartesian()
+        return obsgeopos, obsgeovel
+
+    def get_cirs_posvel(self, obstime):
+        """
+        Calculate the CIRS position and velocity of this object at the
+        requested ``obstime``.
+
+        Parameters
+        ----------
+        obstime : `~astropy.time.Time`
+            The ``obstime`` to calculate the CIRS position/velocity at.
+
+        Returns
+        --------
+        obsgeoloc : `~astropy.coordinates.CartesianRepresentation`
+            The CIRS position of the object
+        obsgeovel : `~astropy.coordinates.CartesianRepresentation`
+            The CIRS velocity of the object
+        """
+        # CIRS position
+        cirs_data = self.get_cirs(obstime).data
+        obsgeopos = cirs_data.without_differentials()
+        obsgeovel = cirs_data.differentials['s'].to_cartesian()
         return obsgeopos, obsgeovel
 
     def gravitational_redshift(self, obstime,
