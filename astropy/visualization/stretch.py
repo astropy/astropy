@@ -416,10 +416,16 @@ class LogStretch(BaseStretch):
         with np.errstate(invalid='ignore'):
             if replace_invalid:
                 idx = (values < 0)
-            np.multiply(values, self.exp, out=values)
-            np.add(values, 1., out=values)
-            np.log(values, out=values)
-            np.true_divide(values, np.log(self.exp + 1.), out=values)
+            if out is None:
+                values = np.multiply(values, self.exp)
+                values = np.add(values, 1.)
+                values = np.log(values)
+                values = np.true_divide(values, np.log(self.exp + 1.))
+            else:
+                np.multiply(values, self.exp, out=values)
+                np.add(values, 1., out=values)
+                np.log(values, out=values)
+                np.true_divide(values, np.log(self.exp + 1.), out=values)
 
         if replace_invalid:
             # Assign new NaN (i.e., NaN not in the original input
