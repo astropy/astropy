@@ -37,15 +37,25 @@ def _mean_ecliptic_rotation_matrix(equinox):
 
 
 def _true_ecliptic_rotation_matrix(equinox):
-    # This code calls pnm06a from ERFA, which retrieves the precession
-    # matrix (including frame bias) according to the IAU 2006 model, and
-    # including the nutation. This family of systems is less popular
+    # This code calls the same routines as done in pnm06a from ERFA, which
+    # retrieves the precession matrix (including frame bias) according to
+    # the IAU 2006 model, and including the nutation.
+    # This family of systems is less popular
     # (see https://github.com/astropy/astropy/pull/6508).
     jd1, jd2 = get_jd12(equinox, 'tt')
-    rnpb = erfa.pnm06a(jd1, jd2)
-    _, nut_obl = erfa.nut06a(jd1, jd2)*u.radian
-    obl = erfa.obl06(jd1, jd2)*u.radian + nut_obl  # calculate the true obliquity of the ecliptic
-    return matrix_product(rotation_matrix(obl, 'x'), rnpb)
+    # Here, we call the three routines from erfa.pnm06a separately,
+    # so that we can keep the nutation for calculating the true obliquity
+    # (which is a fairly expensive operation); see gh-11000.
+    # pnm06a: Fukushima-Williams angles for frame bias and precession.
+    # (ERFA names short for F-W's gamma_bar, phi_bar, psi_bar and epsilon_A).
+    gamb, phib, psib, epsa = erfa.pfw06(jd1, jd2)
+    # pnm06a: Nutation components (in longitude and obliquity).
+    dpsi, deps = erfa.nut06a(jd1, jd2)
+    # pnm06a: Equinox based nutation x precession x bias matrix.
+    rnpb = erfa.fw2m(gamb, phib, psib+dpsi, epsa+deps)
+    # calculate the true obliquity of the ecliptic
+    obl = erfa.obl06(jd1, jd2)+deps
+    return matrix_product(rotation_matrix(obl << u.radian, 'x'), rnpb)
 
 
 def _obliquity_only_rotation_matrix(obl=erfa.obl80(EQUINOX_J2000.jd1, EQUINOX_J2000.jd2) * u.radian):
