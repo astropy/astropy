@@ -1030,10 +1030,7 @@ class ProgressBarOrSpinner:
         Update the progress bar to the given value (out of the total
         given to the constructor.
         """
-        if self._is_spinner:
-            next(self._iter)
-        else:
-            self._obj.update(value)
+        self._obj.update(value)
 
 
 def print_code_line(line, col=None, file=None, tabwidth=8, width=70):

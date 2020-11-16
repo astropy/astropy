@@ -152,6 +152,7 @@ astropy.utils
 - Removed deprecated ``utils.misc.InheritDocstrings`` and ``utils.timer``. [#10281]
 
 - Removed usage of deprecated ``ipython`` stream in ``utils.console``. [#10942]
+
 - Updated ``utils.console.Spinner`` to better resemble the API of ``utils.console.ProgressBar`` 
   including an ``update()`` method and iterator support. [#11046]
 
