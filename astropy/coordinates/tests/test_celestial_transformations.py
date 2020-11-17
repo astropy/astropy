@@ -324,9 +324,8 @@ def test_cirs_icrs():
     MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-0.5*MOONDIST)
 
     loc = EarthLocation(lat=0*u.deg, lon=0*u.deg)
-    pos, vel = loc.get_gcrs_posvel(t)
     cirs_geo_frame = CIRS(obstime=t)
-    cirs_topo_frame = CIRS(obstime=t, obsgeoloc=pos, obsgeovel=vel)
+    cirs_topo_frame = CIRS(obstime=t, location=loc)
 
     moon_geo = cirs_geo_frame.realize_frame(MOONDIST_CART)
     moon_topo = moon_geo.transform_to(cirs_topo_frame)

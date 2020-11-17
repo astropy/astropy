@@ -31,6 +31,50 @@ class ErfaAstrom:
     erfa functions and return the astrom object.
     '''
     @staticmethod
+    def apco(frame_or_coord):
+        '''
+        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
+
+        Arguments
+        ---------
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, an AltAz or CIRS frame is expected.
+        '''
+        lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
+        obstime = frame_or_coord.obstime
+
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
+        xp, yp = get_polar_motion(obstime)
+        sp = erfa.sp00(jd1_tt, jd2_tt)
+        x, y, s = get_cip(jd1_tt, jd2_tt)
+        era = erfa.era00(*get_jd12(obstime, 'ut1'))
+        earth_pv, earth_heliocentric = prepare_earth_position_vel(obstime)
+
+        # refraction constants
+        if hasattr(frame_or_coord, 'pressure'):
+            # this is an AltAz like frame. Calculate refraction
+            refa, refb = erfa.refco(
+                frame_or_coord.pressure.to_value(u.hPa),
+                frame_or_coord.temperature.to_value(u.deg_C),
+                # Relative humidity can be a quantity or a number.
+                u.Quantity(frame_or_coord.relative_humidity).value,
+                frame_or_coord.obswl.to_value(u.micron)
+            )
+        else:
+            # This is not an AltAz frame, so don't bother computing refraction
+            refa, refb = 0.0, 0.0
+
+        return erfa.apco(
+            jd1_tt, jd2_tt, earth_pv, earth_heliocentric, x, y, s, era,
+            lon.to_value(u.radian),
+            lat.to_value(u.radian),
+            height.to_value(u.m),
+            xp, yp, sp, refa, refb
+        )
+
+    @staticmethod
     def apci(frame_or_coord):
         '''
         Prepare astrometry context used in conversions CIRS <-> ICRS
@@ -47,9 +91,10 @@ class ErfaAstrom:
             For this function, a CIRS frame is expected.
         '''
         jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
+        obsgeoloc, obsgeovel = frame_or_coord.location.get_gcrs_posvel(frame_or_coord.obstime)
         obs_pv = pav2pv(
-            frame_or_coord.obsgeoloc.get_xyz(xyz_axis=-1).value,
-            frame_or_coord.obsgeovel.get_xyz(xyz_axis=-1).value
+            obsgeoloc.get_xyz(xyz_axis=-1).value,
+            obsgeovel.get_xyz(xyz_axis=-1).value
         )
         earth_pv, earth_heliocentric = prepare_earth_position_vel(frame_or_coord.obstime)
         astrom = erfa.apcs(jd1_tt, jd2_tt, obs_pv, earth_pv, earth_heliocentric)
@@ -238,6 +283,78 @@ class ErfaAstromInterpolator(ErfaAstrom):
             for cip_component in cip_support
         )
 
+    @staticmethod
+    def _get_era(support, obstime):
+        jd1_ut1_support, jd2_ut1_support = get_jd12(support, 'ut1')
+        era_support = erfa.era00(jd1_ut1_support, jd2_ut1_support)
+        return np.interp(obstime.mjd, support.mjd, era_support)
+
+    @staticmethod
+    def _get_polar_motion(support, obstime):
+        # TODO: do we need this? It's just a table lookup
+        polar_motion_support = get_polar_motion(support)
+        return tuple(
+            np.interp(obstime.mjd, support.mjd, polar_motion_component)
+            for polar_motion_component in polar_motion_support
+        )
+
+    @staticmethod
+    def _get_sp00(support, obstime):
+        # this is already done in _get_cip. Improve efficiency?
+        jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
+        sp00_support = erfa.sp00(jd1_tt_support, jd2_tt_support)
+        return np.interp(obstime.mjd, support.mjd, sp00_support)
+
+    def apco(self, frame_or_coord):
+        '''
+        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
+
+        Arguments
+        ---------
+        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+            Frame or coordinate instance in the corresponding frame
+            for which to calculate the calculate the astrom values.
+            For this function, an AltAz or CIRS frame is expected.
+        '''
+        lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
+        obstime = frame_or_coord.obstime
+
+        # no point in interpolating for a single value
+        support = self._get_support_points(obstime)
+
+        # get the position and velocity arrays for the observatory.  Need to
+        # have xyz in last dimension, and pos/vel in one-but-last.
+        earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
+
+        xp, yp = self._get_polar_motion(support, obstime)
+        sp = self._get_sp00(support, obstime)
+        x, y, s = self._get_cip(support, obstime)
+        era = self._get_era(support, obstime)
+
+        # refraction constants
+        if hasattr(frame_or_coord, 'pressure'):
+            # an AltAz like frame. Include refraction
+            refa, refb = erfa.refco(
+                frame_or_coord.pressure.to_value(u.hPa),
+                frame_or_coord.temperature.to_value(u.deg_C),
+                # Relative humidity can be a quantity or a number.
+                u.Quantity(frame_or_coord.relative_humidity).value,
+                frame_or_coord.obswl.to_value(u.micron)
+            )
+        else:
+            # a CIRS like frame - no refraction
+            refa, refb = 0.0, 0.0
+
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
+
+        return erfa.apco(
+            jd1_tt, jd2_tt, earth_pv, earth_heliocentric, x, y, s, era,
+            lon.to_value(u.radian),
+            lat.to_value(u.radian),
+            height.to_value(u.m),
+            xp, yp, sp, refa, refb
+        )
+
     def apci(self, frame_or_coord):
         '''
         Prepare astrometry context used in conversions CIRS <-> ICRS
@@ -260,9 +377,10 @@ class ErfaAstromInterpolator(ErfaAstrom):
         # get the position and velocity arrays for the observatory.  Need to
         # have xyz in last dimension, and pos/vel in one-but-last.
         earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
+        obsgeoloc, obsgeovel = frame_or_coord.location.get_gcrs_posvel(frame_or_coord.obstime)
         pv = pav2pv(
-            frame_or_coord.obsgeoloc.get_xyz(xyz_axis=-1).value,
-            frame_or_coord.obsgeovel.get_xyz(xyz_axis=-1).value
+            obsgeoloc.get_xyz(xyz_axis=-1).value,
+            obsgeovel.get_xyz(xyz_axis=-1).value
         )
 
         jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
