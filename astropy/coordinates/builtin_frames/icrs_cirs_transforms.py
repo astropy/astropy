@@ -108,8 +108,8 @@ def cirs_to_cirs(from_coo, to_frame):
         # distances anyway.
         return from_coo.transform_to(ICRS()).transform_to(to_frame)
 
-# Now the GCRS-related transforms to/from ICRS
 
+# Now the GCRS-related transforms to/from ICRS
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
 def icrs_to_gcrs(icrs_coo, gcrs_frame):
