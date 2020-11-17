@@ -50,6 +50,7 @@ from . import _wcs
 from astropy import units as u
 from astropy.utils.compat import possible_filename
 from astropy.utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.decorators import deprecated_renamed_argument
 
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
@@ -1878,6 +1879,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         return pix
 
+    @deprecated_renamed_argument('accuracy', 'tolerance', '4.3')
     def all_world2pix(self, *args, tolerance=1e-4, maxiter=20, adaptive=False,
                       detect_divergence=True, quiet=False, **kwargs):
         if self.wcs is None:
@@ -1893,7 +1895,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         )
 
     all_world2pix.__doc__ = """
-        all_world2pix(*arg, accuracy=1.0e-4, maxiter=20,
+        all_world2pix(*arg, tolerance=1.0e-4, maxiter=20,
         adaptive=False, detect_divergence=True, quiet=False)
 
         Transforms world coordinates to pixel coordinates, using
