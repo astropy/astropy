@@ -22,13 +22,10 @@ from ..erfa_astrom import erfa_astrom
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
 def cirs_to_altaz(cirs_coo, altaz_frame):
-
-    obsgeoloc, obsgeovel = altaz_frame.location.get_gcrs_posvel(altaz_frame.obstime)
-    if (np.any(cirs_coo.obstime != altaz_frame.obstime) or
-            np.any(cirs_coo.obsgeoloc != obsgeoloc)):
+    if (altaz_frame.location != cirs_coo.location or
+            np.any(cirs_coo.obstime != altaz_frame.obstime)):
         cirs_coo = cirs_coo.transform_to(CIRS(obstime=altaz_frame.obstime,
-                                              obsgeoloc=obsgeoloc,
-                                              obsgeovel=obsgeovel))
+                                              location=altaz_frame.location))
 
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(cirs_coo.data, UnitSphericalRepresentation) or
@@ -68,7 +65,6 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
 
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian
-    obsgeoloc, obsgeovel = altaz_coo.location.get_gcrs_posvel(altaz_coo.obstime)
     if isinstance(altaz_coo.data, UnitSphericalRepresentation) or altaz_coo.cartesian.x.unit == u.one:
         distance = None
     else:
@@ -76,8 +72,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
 
     cirs_at_aa_time = CIRS(ra=cirs_ra, dec=cirs_dec, distance=distance,
                            obstime=altaz_coo.obstime,
-                           obsgeoloc=obsgeoloc,
-                           obsgeovel=obsgeovel)
+                           location=altaz_coo.location)
 
     # this final transform may be a no-op if the obstimes and locations are the same
     return cirs_at_aa_time.transform_to(cirs_frame)

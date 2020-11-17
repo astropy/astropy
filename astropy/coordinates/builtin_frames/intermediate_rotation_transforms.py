@@ -13,6 +13,7 @@ import astropy.units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
+from astropy.coordinates.earth import EarthLocation
 
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
@@ -148,13 +149,18 @@ def itrs_to_tete(itrs_coo, tete_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, CIRS)
 def gcrs_to_cirs(gcrs_coo, cirs_frame):
-    # first get us to GCRS at the target obstime and pos/vel
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime,
-                                           obsgeoloc=cirs_frame.obsgeoloc,
-                                           obsgeovel=cirs_frame.obsgeovel))
-
-    # now get the pmatrix
+    # first get the pmatrix
     pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
+
+    # now get us to GCRS at the target obstime and pos/vel
+    # can't use location.get_gcrs_posvel as that would trigger infinite recursion
+    obscirsloc, obscirsvel = cirs_frame.location.get_cirs_posvel(cirs_frame.obstime)
+    obsgeoloc = obscirsloc.transform(matrix_transpose(pmat))
+    obsgeovel = obscirsvel.transform(matrix_transpose(pmat))
+    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime,
+                                           obsgeoloc=obsgeoloc,
+                                           obsgeovel=obsgeovel))
+
     crepr = gcrs_coo2.cartesian.transform(pmat)
     return cirs_frame.realize_frame(crepr)
 
@@ -164,10 +170,14 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
     newrepr = cirs_coo.cartesian.transform(matrix_transpose(pmat))
+    # can't use location.get_gcrs_posvel as that would trigger infinite recursion
+    obscirsloc, obscirsvel = cirs_coo.location.get_cirs_posvel(cirs_coo.obstime)
+    obsgeoloc = obscirsloc.transform(matrix_transpose(pmat))
+    obsgeovel = obscirsvel.transform(matrix_transpose(pmat))
     gcrs = GCRS(newrepr,
                 obstime=cirs_coo.obstime,
-                obsgeoloc=cirs_coo.obsgeoloc,
-                obsgeovel=cirs_coo.obsgeovel)
+                obsgeoloc=obsgeoloc,
+                obsgeovel=obsgeovel)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
@@ -177,8 +187,7 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
 def cirs_to_itrs(cirs_coo, itrs_frame):
     # first get us to geocentric CIRS at the target obstime
     cirs_coo2 = cirs_coo.transform_to(CIRS(obstime=itrs_frame.obstime,
-                                           obsgeoloc=[0, 0, 0] * u.km,
-                                           obsgeovel=[0, 0, 0] * u.km/u.s))
+                                           location=EarthLocation(0*u.km, 0*u.km, 0*u.km)))
 
     # now get the pmatrix
     pmat = cirs_to_itrs_mat(itrs_frame.obstime)

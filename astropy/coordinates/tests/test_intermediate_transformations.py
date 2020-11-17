@@ -20,7 +20,7 @@ from astropy.coordinates.solar_system import _apparent_position_in_true_coordina
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
-from .utils import randomly_sample_sphere
+from astropy.coordinates.tests.utils import randomly_sample_sphere
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
@@ -631,7 +631,10 @@ def test_tete_transforms():
     # test TETE-ITRS transform by comparing GCRS-CIRS-ITRS to GCRS-TETE-ITRS
     itrs1 = moon.transform_to(CIRS()).transform_to(ITRS())
     itrs2 = moon.transform_to(TETE()).transform_to(ITRS())
-    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=1*u.mm)
+    # this won't be as close since it will round trip through ICRS until
+    # we have some way of translating between the GCRS obsgeoloc/obsgeovel
+    # attributes and the CIRS location attributes
+    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=100*u.mm)
 
     # test round trip GCRS->TETE->GCRS
     new_moon = moon.transform_to(TETE()).transform_to(moon)
@@ -657,7 +660,6 @@ def test_straight_overhead():
     t = Time('J2010')
     obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
     home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
-    obsloc_gcrs, obsvel_gcrs = home.get_gcrs_posvel(t)
 
     # An object that appears straight overhead - FOR A GEOCENTRIC OBSERVER.
     # Note, this won't be overhead for a topocentric observer because of
@@ -671,7 +673,7 @@ def test_straight_overhead():
     cirs_repr = cirs_geo.cartesian - obsrepr
 
     # create a CIRS object that appears straight overhead for a TOPOCENTRIC OBSERVER
-    topocentric_cirs_frame = CIRS(obstime=t, obsgeoloc=obsloc_gcrs, obsgeovel=obsvel_gcrs)
+    topocentric_cirs_frame = CIRS(obstime=t, location=home)
     cirs_topo = topocentric_cirs_frame.realize_frame(cirs_repr)
 
     aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
