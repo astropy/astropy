@@ -179,7 +179,7 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
                 obsgeoloc=obsgeoloc,
                 obsgeovel=obsgeovel)
 
-    # now do any needed offsets (no-op if same obstime and 0 pos/vel)
+    # now do any needed offsets (no-op if same obstime and pos/vel)
     return gcrs.transform_to(gcrs_frame)
 
 

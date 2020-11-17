@@ -64,30 +64,27 @@ observer - one on the surface of the Earth.
 The correct way to construct a |SkyCoord| object for a source that is directly overhead a topocentric observer is
 as follows::
 
-    >>> from astropy.coordinates import EarthLocation, AltAz
+    >>> from astropy.coordinates import EarthLocation, AltAz, ITRS, CIRS
     >>> from astropy.time import Time
     >>> from astropy import units as u
 
     >>> t = Time('J2010')
     >>> obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
     >>> home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
-    >>> obsloc_gcrs, obsvel_gcrs = home.get_gcrs_posvel(t)
 
-    >>> # An object that appears straight overhead - FOR A GEOCENTRIC OBSERVER.
-    >>> gcrs_geo = obj.get_itrs(t).transform_to(GCRS(obstime=t))
+    >>> # Now we make a ITRS vector of a straight overhead object
+    >>> itrs_vec = obj.get_itrs(t).cartesian - home.get_itrs(t).cartesian
 
-    >>> # The geocentric GCRS position of observatory
-    >>> obsrepr = home.get_itrs(t).transform_to(GCRS(obstime=t)).cartesian
-
-    >>> # Now we make a GCRS vector of a straight overhead object
-    >>> gcrs_repr = gcrs_geo.cartesian - obsrepr
-
-    >>> # And create a topocentric GCRS coordinate with this data.
-    >>> # An object that appears straight overhead a topocentric observer
-    >>> topocentric_gcrs_frame = GCRS(obstime=t, obsgeoloc=obsloc_gcrs, obsgeovel=obsvel_gcrs)
-    >>> gcrs_topo = topocentric_gcrs_frame.realize_frame(gcrs_repr)
+    >>> # Now we create a topocentric coordinate with this data
+    >>> # Any topocentric frame will work, we use CIRS
+    >>> # Start by transforming the ITRS vector to CIRS
+    >>> cirs_vec = ITRS(obstime=t).realize_frame(itrs_vec).transform_to(CIRS(obstime=t))
+    >>> # Now create a topocentric CIRS frame
+    >>> topocentric_cirs_frame = CIRS(obstime=t, location=home)
+    >>> # Finally, make CIRS frame object with the correct data
+    >>> cirs_topo = topocentric_cirs_frame.realize_frame(cirs_vec.cartesian)
 
     >>> # convert to AltAz
-    >>> aa = gcrs_topo.transform_to(AltAz(obstime=t, location=home))
+    >>> aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
     >>> aa.alt # doctest: +FLOAT_CMP
     <Latitude 90. deg>

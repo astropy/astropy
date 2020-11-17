@@ -15,7 +15,7 @@ import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 
 from .builtin_frames.utils import (
-    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc,
+    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion,
     pav2pv
 )
 
@@ -58,8 +58,7 @@ class ErfaAstrom:
             refa, refb = erfa.refco(
                 frame_or_coord.pressure.to_value(u.hPa),
                 frame_or_coord.temperature.to_value(u.deg_C),
-                # Relative humidity can be a quantity or a number.
-                u.Quantity(frame_or_coord.relative_humidity).value,
+                frame_or_coord.relative_humidity.value,
                 frame_or_coord.obswl.to_value(u.micron)
             )
         else:
@@ -112,6 +111,7 @@ class ErfaAstrom:
         lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
         jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
 
+        # we need an empty astrom structure before we fill in the required sections
         astrom = np.zeros(frame_or_coord.obstime.shape, dtype=erfa.dt_eraASTROM)
 
         # longitude with adjustment for TIO locator s'
@@ -129,15 +129,12 @@ class ErfaAstrom:
         astrom['cphi'] = np.cos(lat)
 
         # refraction constants
-        refa, refb = erfa.refco(
+        astrom['refa'], astrom['refb'] = erfa.refco(
             frame_or_coord.pressure.to_value(u.hPa),
             frame_or_coord.temperature.to_value(u.deg_C),
-            # Relative humidity can be a quantity or a number.
-            u.Quantity(frame_or_coord.relative_humidity).value,
+            frame_or_coord.relative_humidity.value,
             frame_or_coord.obswl.to_value(u.micron)
         )
-        astrom['refa'] = refa
-        astrom['refb'] = refb
 
         # update local earth rotation angle
         astrom['eral'] = erfa.era00(*get_jd12(frame_or_coord.obstime, 'ut1')) + astrom['along']
@@ -291,8 +288,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
         '''
         lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
         obstime = frame_or_coord.obstime
-
-        # no point in interpolating for a single value
         support = self._get_support_points(obstime)
 
         # get the position and velocity arrays for the observatory.  Need to
@@ -310,8 +305,7 @@ class ErfaAstromInterpolator(ErfaAstrom):
             refa, refb = erfa.refco(
                 frame_or_coord.pressure.to_value(u.hPa),
                 frame_or_coord.temperature.to_value(u.deg_C),
-                # Relative humidity can be a quantity or a number.
-                u.Quantity(frame_or_coord.relative_humidity).value,
+                frame_or_coord.relative_humidity.value,
                 frame_or_coord.obswl.to_value(u.micron)
             )
         else:
@@ -340,7 +334,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
             For this function, a GCRS frame is expected.
         '''
         obstime = frame_or_coord.obstime
-        # no point in interpolating for a single value
         support = self._get_support_points(obstime)
 
         # get the position and velocity arrays for the observatory.  Need to
