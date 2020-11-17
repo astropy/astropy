@@ -80,9 +80,6 @@ astropy.wcs
 ^^^^^^^^^^^
 - Add IVOA UCD mappings for some FITS WCS keywords commonly used in solar physics. [#10965]
 
-- Deprecate ``accuracy`` argument in ``all_world2pix`` which was mistakenly
-  *documented*, in the case ``accuracy`` was ever used. [#11055]
-
 API Changes
 -----------
 
@@ -167,6 +164,9 @@ astropy.visualization
 
 astropy.wcs
 ^^^^^^^^^^^
+
+- Deprecate ``accuracy`` argument in ``all_world2pix`` which was mistakenly
+  *documented*, in the case ``accuracy`` was ever used. [#11055]
 
 
 Bug Fixes
