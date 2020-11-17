@@ -254,12 +254,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
         )
 
     @staticmethod
-    def _get_era(support, obstime):
-        jd1_ut1_support, jd2_ut1_support = get_jd12(support, 'ut1')
-        era_support = erfa.era00(jd1_ut1_support, jd2_ut1_support)
-        return np.interp(obstime.mjd, support.mjd, era_support)
-
-    @staticmethod
     def _get_polar_motion(support, obstime):
         # TODO: do we need this? It's just a table lookup
         polar_motion_support = get_polar_motion(support)
@@ -267,13 +261,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
             np.interp(obstime.mjd, support.mjd, polar_motion_component)
             for polar_motion_component in polar_motion_support
         )
-
-    @staticmethod
-    def _get_sp00(support, obstime):
-        # this is already done in _get_cip. Improve efficiency?
-        jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
-        sp00_support = erfa.sp00(jd1_tt_support, jd2_tt_support)
-        return np.interp(obstime.mjd, support.mjd, sp00_support)
 
     def apco(self, frame_or_coord):
         '''
@@ -289,15 +276,16 @@ class ErfaAstromInterpolator(ErfaAstrom):
         lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
         obstime = frame_or_coord.obstime
         support = self._get_support_points(obstime)
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
 
         # get the position and velocity arrays for the observatory.  Need to
         # have xyz in last dimension, and pos/vel in one-but-last.
         earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
 
         xp, yp = self._get_polar_motion(support, obstime)
-        sp = self._get_sp00(support, obstime)
+        sp = erfa.sp00(jd1_tt, jd2_tt)
         x, y, s = self._get_cip(support, obstime)
-        era = self._get_era(support, obstime)
+        era = erfa.era00(*get_jd12(obstime, 'ut1'))
 
         # refraction constants
         if hasattr(frame_or_coord, 'pressure'):
@@ -311,8 +299,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
         else:
             # a CIRS like frame - no refraction
             refa, refb = 0.0, 0.0
-
-        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
 
         return erfa.apco(
             jd1_tt, jd2_tt, earth_pv, earth_heliocentric, x, y, s, era,
