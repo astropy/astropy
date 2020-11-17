@@ -75,33 +75,6 @@ class ErfaAstrom:
         )
 
     @staticmethod
-    def apci(frame_or_coord):
-        '''
-        Prepare astrometry context used in conversions CIRS <-> ICRS
-
-        Despite the name this doesn't actually call erfa.apci, since that does not
-        allow for non-geocentric CIRS. Instead, we call apcs and change the
-        bias-precession-matrix from a no-op to the celestial-intermediate matrix.
-
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
-            Frame or coordinate instance in the corresponding frame
-            for which to calculate the calculate the astrom values.
-            For this function, a CIRS frame is expected.
-        '''
-        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
-        obsgeoloc, obsgeovel = frame_or_coord.location.get_gcrs_posvel(frame_or_coord.obstime)
-        obs_pv = pav2pv(
-            obsgeoloc.get_xyz(xyz_axis=-1).value,
-            obsgeovel.get_xyz(xyz_axis=-1).value
-        )
-        earth_pv, earth_heliocentric = prepare_earth_position_vel(frame_or_coord.obstime)
-        astrom = erfa.apcs(jd1_tt, jd2_tt, obs_pv, earth_pv, earth_heliocentric)
-        astrom['bpn'] = erfa.c2i06a(jd1_tt, jd2_tt)
-        return astrom
-
-    @staticmethod
     def apcs(frame_or_coord):
         '''
         Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS
@@ -354,39 +327,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
             height.to_value(u.m),
             xp, yp, sp, refa, refb
         )
-
-    def apci(self, frame_or_coord):
-        '''
-        Prepare astrometry context used in conversions CIRS <-> ICRS
-
-        Despite the name this doesn't actually call erfa.apci, since that does not
-        allow for non-geocentric CIRS. Instead, we call apcs and change the
-        bias-precession-matrix from a no-op to the celestial-intermediate matrix.
-
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
-            Frame or coordinate instance in the corresponding frame
-            for which to calculate the calculate the astrom values.
-            For this function, a CIRS frame is expected.
-        '''
-        obstime = frame_or_coord.obstime
-        # no point in interpolating for a single value
-        support = self._get_support_points(obstime)
-
-        # get the position and velocity arrays for the observatory.  Need to
-        # have xyz in last dimension, and pos/vel in one-but-last.
-        earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
-        obsgeoloc, obsgeovel = frame_or_coord.location.get_gcrs_posvel(frame_or_coord.obstime)
-        pv = pav2pv(
-            obsgeoloc.get_xyz(xyz_axis=-1).value,
-            obsgeovel.get_xyz(xyz_axis=-1).value
-        )
-
-        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
-        astrom = erfa.apcs(jd1_tt, jd2_tt, pv, earth_pv, earth_heliocentric)
-        astrom['bpn'] = self._get_c2i(support, obstime)
-        return astrom
 
     def apcs(self, frame_or_coord):
         '''
