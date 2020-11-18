@@ -147,20 +147,33 @@ def itrs_to_tete(itrs_coo, tete_frame):
     return tete.transform_to(tete_frame)
 
 
+def get_location_gcrs(location, obstime, gcrs_to_cirs_matrix):
+    """Create a GCRS frame at given location and obstime.
+
+    Helper function that avoids location.get_gcrs (which would
+    trigger infinite recursion), and uses the already calculated
+    GCRS to CIRS matrix to calculate obsgeoloc and obsgeovel
+    required for GCRS.
+    """
+    # TODO: ideally, GCRS would just use a location too;
+    # See gh-10996.
+    gcrs_cart = (location.get_itrs(obstime, include_velocity=True)
+                 .transform_to(CIRS(obstime=obstime))
+                 .cartesian
+                 .transform(matrix_transpose(gcrs_to_cirs_matrix)))
+    return GCRS(obstime=obstime,
+                obsgeoloc=gcrs_cart.without_differentials(),
+                obsgeovel=gcrs_cart.differentials['s'].to_cartesian())
+
+
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, CIRS)
 def gcrs_to_cirs(gcrs_coo, cirs_frame):
     # first get the pmatrix
     pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
-
-    # now get us to GCRS at the target obstime and pos/vel
-    # can't use location.get_gcrs_posvel as that would trigger infinite recursion
-    obscirsloc, obscirsvel = cirs_frame.location.get_posvel(cirs_frame.obstime, CIRS)
-    obsgeoloc = obscirsloc.transform(matrix_transpose(pmat))
-    obsgeovel = obscirsvel.transform(matrix_transpose(pmat))
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime,
-                                           obsgeoloc=obsgeoloc,
-                                           obsgeovel=obsgeovel))
-
+    # Get GCRS coordinates for the target observer location and time.
+    loc_gcrs = get_location_gcrs(cirs_frame.location, cirs_frame.obstime, pmat)
+    gcrs_coo2 = gcrs_coo.transform_to(loc_gcrs)
+    # Now we are relative to the correct observer, do the transform to CIRS.
     crepr = gcrs_coo2.cartesian.transform(pmat)
     return cirs_frame.realize_frame(crepr)
 
@@ -170,15 +183,9 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
     # compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
     newrepr = cirs_coo.cartesian.transform(matrix_transpose(pmat))
-    # can't use location.get_gcrs_posvel as that would trigger infinite recursion
-    obscirsloc, obscirsvel = cirs_coo.location.get_posvel(cirs_coo.obstime, CIRS)
-    obsgeoloc = obscirsloc.transform(matrix_transpose(pmat))
-    obsgeovel = obscirsvel.transform(matrix_transpose(pmat))
-    gcrs = GCRS(newrepr,
-                obstime=cirs_coo.obstime,
-                obsgeoloc=obsgeoloc,
-                obsgeovel=obsgeovel)
-
+    # Transform to GCRS but still at the CIRS location and obstime.
+    loc_gcrs = get_location_gcrs(cirs_coo.location, cirs_coo.obstime, pmat)
+    gcrs = loc_gcrs.realize_frame(newrepr)
     # now do any needed offsets (no-op if same obstime and pos/vel)
     return gcrs.transform_to(gcrs_frame)
 
