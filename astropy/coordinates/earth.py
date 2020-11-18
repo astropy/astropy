@@ -7,7 +7,6 @@ import json
 import urllib.request
 import urllib.error
 import urllib.parse
-import inspect
 
 import numpy as np
 import erfa
@@ -637,7 +636,7 @@ class EarthLocation(u.Quantity):
 
         include_velocity: bool
             If True, will return an `~astropy.coordinates.ITRS` coordinate
-            with zero velocity, i.e fixed to the Earth's surface
+            with zero velocity, i.e fixed to the Earth's surface.
 
         Returns
         -------
@@ -661,35 +660,6 @@ class EarthLocation(u.Quantity):
                                      for the location of this object at the
                                      default ``obstime``.""")
 
-    def get_posvel(self, obstime, frame):
-        """
-        Calculate the position and velocity of this object in a given
-        ``frame`` at the requested ``obstime``.
-
-        Parameters
-        ----------
-        obstime : `~astropy.time.Time`
-            The ``obstime`` to calculate the GCRS position/velocity at.
-        frame : class
-            The coordinate frame in which the position and velocity should
-            be measured.
-
-        Returns
-        --------
-        location : `~astropy.coordinates.CartesianRepresentation`
-            The position of the object in the specified ``frame``.
-        velocity : `~astropy.coordinates.CartesianRepresentation`
-            The velocity of the object in the specified ``frame``.
-        """
-        if not inspect.isclass(frame):
-            raise TypeError('frame must be a class')
-
-        frame_instance = frame(obstime=obstime)
-        data = self.get_itrs(obstime=obstime, include_velocity=True).transform_to(frame_instance).data
-        location = data.without_differentials()
-        velocity = data.differentials['s'].to_cartesian()
-        return location, velocity
-
     def get_gcrs(self, obstime):
         """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
 
@@ -705,9 +675,8 @@ class EarthLocation(u.Quantity):
         """
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import GCRS
-        return self.get_itrs(obstime, include_velocity=True).transform_to(
-            GCRS(obstime=obstime)
-        )
+        return (self.get_itrs(obstime, include_velocity=True)
+                .transform_to(GCRS(obstime=obstime)))
 
     def get_gcrs_posvel(self, obstime):
         """
