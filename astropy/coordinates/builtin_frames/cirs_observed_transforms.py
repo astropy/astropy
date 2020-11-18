@@ -22,7 +22,7 @@ from ..erfa_astrom import erfa_astrom
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
 def cirs_to_altaz(cirs_coo, altaz_frame):
-    if (altaz_frame.location != cirs_coo.location or
+    if (np.any(altaz_frame.location != cirs_coo.location) or
             np.any(cirs_coo.obstime != altaz_frame.obstime)):
         cirs_coo = cirs_coo.transform_to(CIRS(obstime=altaz_frame.obstime,
                                               location=altaz_frame.location))
@@ -64,7 +64,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     astrom = erfa_astrom.get().apio(altaz_coo)
 
     # the 'A' indicates zen/az inputs
-    cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)*u.radian
+    cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom) << u.radian
     if isinstance(altaz_coo.data, UnitSphericalRepresentation) or altaz_coo.cartesian.x.unit == u.one:
         distance = None
     else:

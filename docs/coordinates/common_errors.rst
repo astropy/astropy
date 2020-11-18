@@ -78,11 +78,9 @@ as follows::
     >>> # Now we create a topocentric coordinate with this data
     >>> # Any topocentric frame will work, we use CIRS
     >>> # Start by transforming the ITRS vector to CIRS
-    >>> cirs_vec = ITRS(obstime=t).realize_frame(itrs_vec).transform_to(CIRS(obstime=t))
-    >>> # Now create a topocentric CIRS frame
-    >>> topocentric_cirs_frame = CIRS(obstime=t, location=home)
+    >>> cirs_vec = ITRS(itrs_vec, obstime=t).transform_to(CIRS(obstime=t)).cartesian
     >>> # Finally, make CIRS frame object with the correct data
-    >>> cirs_topo = topocentric_cirs_frame.realize_frame(cirs_vec.cartesian)
+    >>> cirs_topo = CIRS(cirs_vec, obstime=t, location=home)
 
     >>> # convert to AltAz
     >>> aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
