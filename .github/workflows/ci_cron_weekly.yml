@@ -9,6 +9,7 @@ jobs:
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: github.repository == 'astropy/astropy'
     strategy:
       fail-fast: false
       matrix:
