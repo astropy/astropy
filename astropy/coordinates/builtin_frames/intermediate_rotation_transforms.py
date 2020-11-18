@@ -154,7 +154,7 @@ def gcrs_to_cirs(gcrs_coo, cirs_frame):
 
     # now get us to GCRS at the target obstime and pos/vel
     # can't use location.get_gcrs_posvel as that would trigger infinite recursion
-    obscirsloc, obscirsvel = cirs_frame.location.get_cirs_posvel(cirs_frame.obstime)
+    obscirsloc, obscirsvel = cirs_frame.location.get_posvel(cirs_frame.obstime, CIRS)
     obsgeoloc = obscirsloc.transform(matrix_transpose(pmat))
     obsgeovel = obscirsvel.transform(matrix_transpose(pmat))
     gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=cirs_frame.obstime,
@@ -171,7 +171,7 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
     pmat = gcrs_to_cirs_mat(cirs_coo.obstime)
     newrepr = cirs_coo.cartesian.transform(matrix_transpose(pmat))
     # can't use location.get_gcrs_posvel as that would trigger infinite recursion
-    obscirsloc, obscirsvel = cirs_coo.location.get_cirs_posvel(cirs_coo.obstime)
+    obscirsloc, obscirsvel = cirs_coo.location.get_posvel(cirs_coo.obstime, CIRS)
     obsgeoloc = obscirsloc.transform(matrix_transpose(pmat))
     obsgeovel = obscirsvel.transform(matrix_transpose(pmat))
     gcrs = GCRS(newrepr,

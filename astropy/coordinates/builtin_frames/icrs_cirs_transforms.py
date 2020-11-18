@@ -96,7 +96,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
-    if (from_coo.location == to_frame.location and
+    if (np.all(from_coo.location == to_frame.location) and
             np.all(from_coo.obstime == to_frame.obstime)):
         return to_frame.realize_frame(from_coo.data)
     else:

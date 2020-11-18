@@ -18,11 +18,12 @@ doc_footer = """
     ----------------
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
-        position of the Earth and its precession
+        position of the Earth and its precession.
     location : `~astropy.coordinates.EarthLocation`
         The location on the Earth.  This can be specified either as an
         `~astropy.coordinates.EarthLocation` object or as anything that can be
-        transformed to an `~astropy.coordinates.ITRS` frame.
+        transformed to an `~astropy.coordinates.ITRS` frame. The default is the
+        centre of the Earth.
 """
 
 
