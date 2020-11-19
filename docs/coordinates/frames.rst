@@ -218,7 +218,7 @@ Similar broadcasting happens if you transform to another frame. For example::
     >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +REMOTE_DATA +IGNORE_OUTPUT
     >>> lcoo  # doctest: +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
-        [( 94.71264944, 89.21424252), (307.69488825, 37.98077771)]>
+        [( 94.71264993, 89.21424259), (307.69488825, 37.98077772)]>
 
 Above, the shapes — ``()`` for ``coo`` and ``(2,)`` for ``lf`` — were
 broadcast against each other. If you wish to determine the positions for a
@@ -241,10 +241,10 @@ set of coordinates, you will need to make sure that the shapes allow this::
       '2012-03-21T00:00:00.000']
      ['2012-06-21T00:00:00.000' '2012-06-21T00:00:00.000'
       '2012-06-21T00:00:00.000']], location=(3980608.90246817, -102.47522911, 4966861.27310068) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg
-        [[( 93.09845185, 89.21613128), (126.85789663, 25.4660055 ),
+        [[( 93.09845183, 89.21613128), (126.85789664, 25.4660055 ),
           ( 51.37993234, 37.18532527)],
          [(307.71713698, 37.99437658), (231.3740787 , 26.36768329),
-          ( 85.4218724 , 89.69297998)]]>
+          ( 85.42187236, 89.69297998)]]>
 
 .. Note::
    Frames without data have a ``shape`` that is determined by their frame

@@ -15,7 +15,7 @@ import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 
 from .builtin_frames.utils import (
-    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion, get_dut1utc,
+    get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion,
     pav2pv
 )
 
@@ -30,23 +30,48 @@ class ErfaAstrom:
     erfa functions from frame attributes, call the corresponding
     erfa functions and return the astrom object.
     '''
-
     @staticmethod
-    def apci(frame_or_coord):
+    def apco(frame_or_coord):
         '''
-        Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
+        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
 
         Arguments
         ---------
         frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
-            For this function, a CIRS frame is expected.
+            For this function, an AltAz or CIRS frame is expected.
         '''
-        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
-        cip = get_cip(jd1_tt, jd2_tt)
-        earth_pv, earth_heliocentric = prepare_earth_position_vel(frame_or_coord.obstime)
-        return erfa.apci(jd1_tt, jd2_tt, earth_pv, earth_heliocentric, *cip)
+        lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
+        obstime = frame_or_coord.obstime
+
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
+        xp, yp = get_polar_motion(obstime)
+        sp = erfa.sp00(jd1_tt, jd2_tt)
+        x, y, s = get_cip(jd1_tt, jd2_tt)
+        era = erfa.era00(*get_jd12(obstime, 'ut1'))
+        earth_pv, earth_heliocentric = prepare_earth_position_vel(obstime)
+
+        # refraction constants
+        if hasattr(frame_or_coord, 'pressure'):
+            # this is an AltAz like frame. Calculate refraction
+            refa, refb = erfa.refco(
+                frame_or_coord.pressure.to_value(u.hPa),
+                frame_or_coord.temperature.to_value(u.deg_C),
+                frame_or_coord.relative_humidity.value,
+                frame_or_coord.obswl.to_value(u.micron)
+            )
+        else:
+            # This is not an AltAz frame, so don't bother computing refraction
+            refa, refb = 0.0, 0.0
+
+        return erfa.apco(
+            jd1_tt, jd2_tt, earth_pv, earth_heliocentric, x, y, s, era,
+            lon.to_value(u.radian),
+            lat.to_value(u.radian),
+            height.to_value(u.m),
+            xp, yp, sp, refa, refb
+        )
 
     @staticmethod
     def apcs(frame_or_coord):
@@ -69,9 +94,12 @@ class ErfaAstrom:
         return erfa.apcs(jd1_tt, jd2_tt, obs_pv, earth_pv, earth_heliocentric)
 
     @staticmethod
-    def apio13(frame_or_coord):
+    def apio(frame_or_coord):
         '''
-        Wrapper for ``erfa.apio13``, used in conversions AltAz <-> CIRS
+        Slightly modified equivalent of ``erfa.apio``, used in conversions AltAz <-> CIRS.
+
+        Since we use a topocentric CIRS frame, we have dropped the steps needed to calculate
+        diurnal aberration.
 
         Arguments
         ---------
@@ -81,22 +109,36 @@ class ErfaAstrom:
             For this function, an AltAz frame is expected.
         '''
         lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
+        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
 
-        jd1_utc, jd2_utc = get_jd12(frame_or_coord.obstime, 'utc')
-        dut1utc = get_dut1utc(frame_or_coord.obstime)
+        # we need an empty astrom structure before we fill in the required sections
+        astrom = np.zeros(frame_or_coord.obstime.shape, dtype=erfa.dt_eraASTROM)
 
-        return erfa.apio13(
-            jd1_utc, jd2_utc, dut1utc,
-            lon.to_value(u.radian),
-            lat.to_value(u.radian),
-            height.to_value(u.m),
-            *get_polar_motion(frame_or_coord.obstime),
-            # all below are already in correct units because they are QuantityFrameAttribues
-            frame_or_coord.pressure.value,
-            frame_or_coord.temperature.value,
+        # longitude with adjustment for TIO locator s'
+        astrom['along'] = lon.to_value(u.radian) + erfa.sp00(jd1_tt, jd2_tt)
+
+        # Polar motion, rotated onto local meridian
+        xp, yp = get_polar_motion(frame_or_coord.obstime)
+        sl = np.sin(astrom['along'])
+        cl = np.cos(astrom['along'])
+        astrom['xpl'] = xp*cl - yp*sl
+        astrom['ypl'] = xp*sl + yp*cl
+
+        # Functions of latitude
+        astrom['sphi'] = np.sin(lat)
+        astrom['cphi'] = np.cos(lat)
+
+        # refraction constants
+        astrom['refa'], astrom['refb'] = erfa.refco(
+            frame_or_coord.pressure.to_value(u.hPa),
+            frame_or_coord.temperature.to_value(u.deg_C),
             frame_or_coord.relative_humidity.value,
-            frame_or_coord.obswl.value,
+            frame_or_coord.obswl.to_value(u.micron)
         )
+
+        # update local earth rotation angle
+        astrom['eral'] = erfa.era00(*get_jd12(frame_or_coord.obstime, 'ut1')) + astrom['along']
+        return astrom
 
 
 class ErfaAstromInterpolator(ErfaAstrom):
@@ -174,6 +216,12 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     @staticmethod
     def _prepare_earth_position_vel(support, obstime):
+        """
+        Calculate Earth's position and velocity.
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
         pv_support, heliocentric_support = prepare_earth_position_vel(support)
 
         # do interpolation
@@ -193,7 +241,29 @@ class ErfaAstromInterpolator(ErfaAstrom):
         return earth_pv, earth_heliocentric
 
     @staticmethod
+    def _get_c2i(support, obstime):
+        """
+        Calculate the Celestial-to-Intermediate rotation matrix.
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
+        jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
+        c2i_support = erfa.c2i06a(jd1_tt_support, jd2_tt_support)
+        c2i = np.empty(obstime.shape + (3, 3))
+        for dim1 in range(3):
+            for dim2 in range(3):
+                c2i[..., dim1, dim2] = np.interp(obstime.mjd, support.mjd, c2i_support[..., dim1, dim2])
+        return c2i
+
+    @staticmethod
     def _get_cip(support, obstime):
+        """
+        Find the X, Y coordinates of the CIP and the CIO locator, s.
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
         jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
         cip_support = get_cip(jd1_tt_support, jd2_tt_support)
         return tuple(
@@ -201,26 +271,65 @@ class ErfaAstromInterpolator(ErfaAstrom):
             for cip_component in cip_support
         )
 
-    def apci(self, frame_or_coord):
+    @staticmethod
+    def _get_polar_motion(support, obstime):
+        """
+        Find the two polar motion components in radians
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
+        polar_motion_support = get_polar_motion(support)
+        return tuple(
+            np.interp(obstime.mjd, support.mjd, polar_motion_component)
+            for polar_motion_component in polar_motion_support
+        )
+
+    def apco(self, frame_or_coord):
         '''
-        Wrapper for ``erfa.apci``, used in conversions CIRS <-> ICRS
+        Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
 
         Arguments
         ---------
         frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
-            For this function, a CIRS frame is expected.
+            For this function, an AltAz or CIRS frame is expected.
         '''
+        lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
         obstime = frame_or_coord.obstime
         support = self._get_support_points(obstime)
+        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
 
-        cip = self._get_cip(support, obstime)
+        # get the position and velocity arrays for the observatory.  Need to
+        # have xyz in last dimension, and pos/vel in one-but-last.
         earth_pv, earth_heliocentric = self._prepare_earth_position_vel(support, obstime)
 
-        jd1_tt, jd2_tt = get_jd12(obstime, 'tt')
-        astrom = erfa.apci(jd1_tt, jd2_tt, earth_pv, earth_heliocentric, *cip)
-        return astrom
+        xp, yp = self._get_polar_motion(support, obstime)
+        sp = erfa.sp00(jd1_tt, jd2_tt)
+        x, y, s = self._get_cip(support, obstime)
+        era = erfa.era00(*get_jd12(obstime, 'ut1'))
+
+        # refraction constants
+        if hasattr(frame_or_coord, 'pressure'):
+            # an AltAz like frame. Include refraction
+            refa, refb = erfa.refco(
+                frame_or_coord.pressure.to_value(u.hPa),
+                frame_or_coord.temperature.to_value(u.deg_C),
+                frame_or_coord.relative_humidity.value,
+                frame_or_coord.obswl.to_value(u.micron)
+            )
+        else:
+            # a CIRS like frame - no refraction
+            refa, refb = 0.0, 0.0
+
+        return erfa.apco(
+            jd1_tt, jd2_tt, earth_pv, earth_heliocentric, x, y, s, era,
+            lon.to_value(u.radian),
+            lat.to_value(u.radian),
+            height.to_value(u.m),
+            xp, yp, sp, refa, refb
+        )
 
     def apcs(self, frame_or_coord):
         '''
@@ -234,7 +343,6 @@ class ErfaAstromInterpolator(ErfaAstrom):
             For this function, a GCRS frame is expected.
         '''
         obstime = frame_or_coord.obstime
-        # no point in interpolating for a single value
         support = self._get_support_points(obstime)
 
         # get the position and velocity arrays for the observatory.  Need to

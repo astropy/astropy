@@ -474,6 +474,7 @@ listed below.
    spectralcoord
    galactocentric
    remote_methods
+   common_errors
    definitions
    inplace
 

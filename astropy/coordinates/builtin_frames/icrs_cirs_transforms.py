@@ -34,7 +34,7 @@ from ..erfa_astrom import erfa_astrom
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, CIRS)
 def icrs_to_cirs(icrs_coo, cirs_frame):
     # first set up the astrometry context for ICRS<->CIRS
-    astrom = erfa_astrom.get().apci(cirs_frame)
+    astrom = erfa_astrom.get().apco(cirs_frame)
 
     if icrs_coo.data.get_name() == 'unitspherical' or icrs_coo.data.to_cartesian().x.unit == u.one:
         # if no distance, just do the infinite-distance/no parallax calculation
@@ -66,7 +66,7 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 def cirs_to_icrs(cirs_coo, icrs_frame):
     # set up the astrometry context for ICRS<->cirs and then convert to
     # astrometric coordinate direction
-    astrom = erfa_astrom.get().apci(cirs_coo)
+    astrom = erfa_astrom.get().apco(cirs_coo)
     srepr = cirs_coo.represent_as(SphericalRepresentation)
     i_ra, i_dec = aticq(srepr.without_differentials(), astrom)
 
@@ -96,7 +96,8 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
-    if np.all(from_coo.obstime == to_frame.obstime):
+    if (np.all(from_coo.location == to_frame.location) and
+            np.all(from_coo.obstime == to_frame.obstime)):
         return to_frame.realize_frame(from_coo.data)
     else:
         # the CIRS<-> CIRS transform actually goes through ICRS.  This has a
