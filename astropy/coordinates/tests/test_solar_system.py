@@ -76,8 +76,7 @@ def test_positions_skyfield(tmpdir):
     skyfield_moon = earth.at(skyfield_t).observe(moon).apparent()
 
     if location is not None:
-        obsgeoloc, obsgeovel = location.get_gcrs_posvel(t)
-        frame = TETE(obstime=t, obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
+        frame = TETE(obstime=t, location=location)
     else:
         frame = TETE(obstime=t)
 
@@ -202,9 +201,7 @@ class TestPositionKittPeak:
                                                 lat=31.963333333333342*u.deg,
                                                 height=2120*u.m)
         self.t = Time('2014-09-25T00:00', location=kitt_peak)
-        obsgeoloc, obsgeovel = kitt_peak.get_gcrs_posvel(self.t)
-        self.apparent_frame = TETE(obstime=self.t,
-                                   obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
+        self.apparent_frame = TETE(obstime=self.t, location=kitt_peak)
         # Results returned by JPL Horizons web interface
         self.horizons = {
             'mercury': SkyCoord(ra='13h38m58.50s', dec='-13d34m42.6s',
@@ -319,7 +316,7 @@ def test_horizons_consistency_with_precision():
         times = Time('2020-04-06 00:00') + np.arange(0, 24, 1)*u.hour
         astropy = get_body('moon', times, loc)
 
-        apparent_frame = TETE(obstime=times, obsgeoloc=astropy.obsgeoloc, obsgeovel=astropy.obsgeovel)
+        apparent_frame = TETE(obstime=times, location=loc)
         astropy = astropy.transform_to(apparent_frame)
         usrepr = UnitSphericalRepresentation(ra_apparent_horizons, dec_apparent_horizons)
         horizons = apparent_frame.realize_frame(usrepr)
