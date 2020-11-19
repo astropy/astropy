@@ -90,9 +90,10 @@ def gcrs_precession_mat(equinox):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, TETE)
 def gcrs_to_tete(gcrs_coo, tete_frame):
     # first apply GCRS self transform to correct time and observatory position/velocity
+    obsgeoloc, obsgeovel = tete_frame.location.get_gcrs_posvel(tete_frame.obstime)
     gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=tete_frame.obstime,
-                                           obsgeoloc=tete_frame.obsgeoloc,
-                                           obsgeovel=tete_frame.obsgeovel))
+                                           obsgeoloc=obsgeoloc,
+                                           obsgeovel=obsgeovel))
 
     jd1, jd2 = get_jd12(tete_frame.obstime, 'tt')
     # Classical NPB matrix, IAU 2006/2000A
@@ -116,8 +117,9 @@ def tete_to_gcrs(tete_coo, gcrs_frame):
     rbpn = erfa.pnm06a(jd1, jd2)
     newrepr = tete_coo.cartesian.transform(matrix_transpose(rbpn))
 
-    gcrs = GCRS(newrepr, obstime=tete_coo.obstime, obsgeoloc=tete_coo.obsgeoloc,
-                obsgeovel=tete_coo.obsgeovel)
+    obsgeoloc, obsgeovel = tete_coo.location.get_gcrs_posvel(tete_coo.obstime)
+    gcrs = GCRS(newrepr, obstime=tete_coo.obstime,
+                obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
 
     # now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
@@ -127,8 +129,7 @@ def tete_to_gcrs(tete_coo, gcrs_frame):
 def tete_to_itrs(tete_coo, itrs_frame):
     # first get us to TETE at the target obstime, and geocentric position
     tete_coo2 = tete_coo.transform_to(TETE(obstime=itrs_frame.obstime,
-                                           obsgeoloc=[0, 0, 0]*u.km,
-                                           obsgeovel=[0, 0, 0]*u.km/u.s))
+                                           location=EARTH_CENTER))
 
     # now get the pmatrix
     pmat = tete_to_itrs_mat(itrs_frame.obstime)
