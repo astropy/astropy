@@ -695,7 +695,7 @@ def test_repr_altaz():
                                 "-4641767.) m, pressure=0.0 hPa, "
                          "temperature=0.0 deg_C, relative_humidity=0.0, "
                          "obswl=1.0 micron): (az, alt, distance) in "
-                         "(deg, deg, m)\n")
+                         "(deg, deg, kpc)\n")
 
 
 def test_ops():

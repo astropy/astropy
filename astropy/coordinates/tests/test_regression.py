@@ -332,12 +332,25 @@ def test_regression_5133():
 
 
 def test_itrs_vals_5133():
+    """
+    Test to check if alt-az calculations respect height of observer
+
+    Because ITRS is geocentric and includes aberration, an object that
+    appears 'straight up' to a geocentric observer (ITRS) won't be
+    straight up to a topocentric observer - see
+
+    https://github.com/astropy/astropy/issues/10983
+
+    This is worse for small height above the Earth, which is why this test
+    uses large distances.
+    """
     time = Time('2010-1-1')
-    el = EarthLocation.from_geodetic(lon=20*u.deg, lat=45*u.deg, height=0*u.km)
+    height = 500000. * u.km
+    el = EarthLocation.from_geodetic(lon=20*u.deg, lat=45*u.deg, height=height)
 
     lons = [20, 30, 20]*u.deg
     lats = [44, 45, 45]*u.deg
-    alts = [0, 0, 10]*u.km
+    alts = u.Quantity([height, height, 10*height])
     coos = [EarthLocation.from_geodetic(lon, lat, height=alt).get_itrs(time)
             for lon, lat, alt in zip(lons, lats, alts)]
 
@@ -346,30 +359,48 @@ def test_itrs_vals_5133():
 
     assert all([coo.isscalar for coo in aacs])
 
-    # the ~1 arcsec tolerance is b/c aberration makes it not exact
-    assert_quantity_allclose(aacs[0].az, 180*u.deg, atol=1*u.arcsec)
+    # the ~1 degree tolerance is b/c aberration makes it not exact
+    assert_quantity_allclose(aacs[0].az, 180*u.deg, atol=1*u.deg)
     assert aacs[0].alt < 0*u.deg
-    assert aacs[0].distance > 50*u.km
+    assert aacs[0].distance > 5000*u.km
 
     # it should *not* actually be 90 degrees, b/c constant latitude is not
     # straight east anywhere except the equator... but should be close-ish
     assert_quantity_allclose(aacs[1].az, 90*u.deg, atol=5*u.deg)
     assert aacs[1].alt < 0*u.deg
-    assert aacs[1].distance > 50*u.km
+    assert aacs[1].distance > 5000*u.km
 
-    assert_quantity_allclose(aacs[2].alt, 90*u.deg, atol=1*u.arcsec)
-    assert_quantity_allclose(aacs[2].distance, 10*u.km)
+    assert_quantity_allclose(aacs[2].alt, 90*u.deg, atol=1*u.arcminute)
+    assert_quantity_allclose(aacs[2].distance, 9*height)
 
 
 def test_regression_simple_5133():
+    """
+    Simple test to check if alt-az calculations respect height of observer
+
+    Because ITRS is geocentric and includes aberration, an object that
+    appears 'straight up' to a geocentric observer (ITRS) won't be
+    straight up to a topocentric observer - see
+
+    https://github.com/astropy/astropy/issues/10983
+
+    This is why we construct a topocentric GCRS SkyCoord before calculating AltAz
+    """
     t = Time('J2010')
-    obj = EarthLocation(-1*u.deg, 52*u.deg, height=[100., 0.]*u.km)
-    home = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
-    aa = obj.get_itrs(t).transform_to(AltAz(obstime=t, location=home))
+    obj = EarthLocation(-1*u.deg, 52*u.deg, height=[10., 0.]*u.km)
+    home = EarthLocation(-1*u.deg, 52*u.deg, height=5.*u.km)
+
+    obsloc_gcrs, obsvel_gcrs = home.get_gcrs_posvel(t)
+    gcrs_geo = obj.get_itrs(t).transform_to(GCRS(obstime=t))
+    obsrepr = home.get_itrs(t).transform_to(GCRS(obstime=t)).cartesian
+    topo_gcrs_repr = gcrs_geo.cartesian - obsrepr
+    topocentric_gcrs_frame = GCRS(obstime=t, obsgeoloc=obsloc_gcrs, obsgeovel=obsvel_gcrs)
+    gcrs_topo = topocentric_gcrs_frame.realize_frame(topo_gcrs_repr)
+    aa = gcrs_topo.transform_to(AltAz(obstime=t, location=home))
 
     # az is more-or-less undefined for straight up or down
-    assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-5)
-    assert_quantity_allclose(aa.distance, [90, 10]*u.km)
+    assert_quantity_allclose(aa.alt, [90, -90]*u.deg, rtol=1e-7)
+    assert_quantity_allclose(aa.distance, 5*u.km)
 
 
 def test_regression_5743():

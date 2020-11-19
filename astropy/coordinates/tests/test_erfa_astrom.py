@@ -4,7 +4,7 @@ import pytest
 import astropy.units as u
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
-from astropy.coordinates import EarthLocation, AltAz, GCRS, SkyCoord
+from astropy.coordinates import EarthLocation, AltAz, GCRS, SkyCoord, CIRS
 
 from astropy.coordinates.erfa_astrom import (
     erfa_astrom, ErfaAstrom, ErfaAstromInterpolator
@@ -58,7 +58,7 @@ def test_erfa_astrom():
         interp_300s = coord.transform_to(altaz)
 
     # make sure they are actually different
-    assert np.any(ref.separation(interp_300s) > 0.01 * u.microarcsecond)
+    assert np.any(ref.separation(interp_300s) > 0.005 * u.microarcsecond)
 
     # make sure the resolution is as good as we expect
     assert np.all(ref.separation(interp_300s) < 1 * u.microarcsecond)
@@ -85,8 +85,9 @@ def test_interpolation_nd():
 
         altaz = AltAz(location=fact, obstime=obstime)
         gcrs = GCRS(obstime=obstime)
+        cirs = CIRS(obstime=obstime)
 
-        for frame, tcode in zip([altaz, altaz, gcrs], ['apio13', 'apci', 'apcs']):
+        for frame, tcode in zip([altaz, cirs, gcrs], ['apio', 'apco', 'apcs']):
             without_interp = getattr(provider, tcode)(frame)
             assert without_interp.shape == shape
 

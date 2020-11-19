@@ -104,8 +104,8 @@ Or, if you want to find the altitude and azimuth of the satellite from a particu
     >>> siding_spring = EarthLocation.of_site('aao')  # doctest: +SKIP
     >>> aa = teme.transform_to(AltAz(obstime=t, location=siding_spring))  # doctest: +IGNORE_WARNINGS
     >>> aa.alt  # doctest: +FLOAT_CMP
-    <Latitude 10.94798428 deg>
+    <Latitude 10.95229446 deg>
     >>> aa.az  # doctest: +FLOAT_CMP
-    <Longitude 59.28807348 deg>
+    <Longitude 59.30081255 deg>
 
 .. EXAMPLE END
