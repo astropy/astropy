@@ -8,7 +8,7 @@ from astropy import units as u
 from astropy.coordinates import galactocentric_frame_defaults
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.builtin_frames import (
-    ICRS, FK5, FK4, FK4NoETerms, Galactic,
+    ICRS, FK5, FK4, FK4NoETerms, Galactic, CIRS,
     Supergalactic, Galactocentric, HCRS, GCRS, LSR)
 from astropy.coordinates import SkyCoord
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
@@ -313,3 +313,30 @@ def test_hcrs_icrs_differentials():
     # The values should round trip
     assert allclose(hcrs.cartesian.xyz, hcrs2.cartesian.xyz, rtol=1e-12)
     assert allclose(hcrs.velocity.d_xyz, hcrs2.velocity.d_xyz, rtol=1e-12)
+
+
+def test_cirs_icrs():
+    """
+    Test CIRS<->ICRS transformations, including self transform
+    """
+    t = Time("J2010")
+    MOONDIST = 385000*u.km  # approximate moon semi-major orbit axis of moon
+    MOONDIST_CART = CartesianRepresentation(3**-0.5*MOONDIST, 3**-0.5*MOONDIST, 3**-0.5*MOONDIST)
+
+    loc = EarthLocation(lat=0*u.deg, lon=0*u.deg)
+    cirs_geo_frame = CIRS(obstime=t)
+    cirs_topo_frame = CIRS(obstime=t, location=loc)
+
+    moon_geo = cirs_geo_frame.realize_frame(MOONDIST_CART)
+    moon_topo = moon_geo.transform_to(cirs_topo_frame)
+
+    # now check that the distance change is similar to earth radius
+    assert 1000*u.km < np.abs(moon_topo.distance - moon_geo.distance).to(u.au) < 7000*u.km
+
+    # now check that it round-trips
+    moon2 = moon_topo.transform_to(moon_geo)
+    assert_allclose(moon_geo.cartesian.xyz, moon2.cartesian.xyz)
+
+    # now check ICRS transform gives a decent distance from Barycentre
+    moon_icrs = moon_geo.transform_to(ICRS())
+    assert_allclose(moon_icrs.distance - 1*u.au, 0.0*u.R_sun, atol=3*u.R_sun)

@@ -16,11 +16,11 @@ from astropy.coordinates import (
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
     HCRS, HeliocentricMeanEcliptic, TEME, TETE)
-from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates
+from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates, get_body
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
-from .utils import randomly_sample_sphere
+from astropy.coordinates.tests.utils import randomly_sample_sphere
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
@@ -631,7 +631,10 @@ def test_tete_transforms():
     # test TETE-ITRS transform by comparing GCRS-CIRS-ITRS to GCRS-TETE-ITRS
     itrs1 = moon.transform_to(CIRS()).transform_to(ITRS())
     itrs2 = moon.transform_to(TETE()).transform_to(ITRS())
-    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=1*u.mm)
+    # this won't be as close since it will round trip through ICRS until
+    # we have some way of translating between the GCRS obsgeoloc/obsgeovel
+    # attributes and the CIRS location attributes
+    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=100*u.mm)
 
     # test round trip GCRS->TETE->GCRS
     new_moon = moon.transform_to(TETE()).transform_to(moon)
@@ -646,3 +649,79 @@ def test_tete_transforms():
     with pytest.warns(AstropyDeprecationWarning, match='The use of'):
         tete_alt = _apparent_position_in_true_coordinates(moon)
     assert_allclose(tete_coo1.separation_3d(tete_alt), 0*u.mm, atol=100*u.mm)
+
+
+def test_straight_overhead():
+    """
+    With a precise CIRS<->AltAz transformation this should give Alt=90 exactly
+
+    If the CIRS self-transform breaks it won't, due to improper treatment of aberration
+    """
+    t = Time('J2010')
+    obj = EarthLocation(-1*u.deg, 52*u.deg, height=10.*u.km)
+    home = EarthLocation(-1*u.deg, 52*u.deg, height=0.*u.km)
+
+    # An object that appears straight overhead - FOR A GEOCENTRIC OBSERVER.
+    # Note, this won't be overhead for a topocentric observer because of
+    # aberration.
+    cirs_geo = obj.get_itrs(t).transform_to(CIRS(obstime=t))
+
+    # now get the Geocentric CIRS position of observatory
+    obsrepr = home.get_itrs(t).transform_to(CIRS(obstime=t)).cartesian
+
+    # topocentric CIRS position of a straight overhead object
+    cirs_repr = cirs_geo.cartesian - obsrepr
+
+    # create a CIRS object that appears straight overhead for a TOPOCENTRIC OBSERVER
+    topocentric_cirs_frame = CIRS(obstime=t, location=home)
+    cirs_topo = topocentric_cirs_frame.realize_frame(cirs_repr)
+
+    aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
+    assert_allclose(aa.alt, 90*u.deg)
+
+
+@pytest.mark.remote_data
+def test_aa_high_precision():
+    """
+    These tests are provided by @mkbrewer - see issue #10356.
+
+    The code that produces them agrees very well (<0.5 mas) with SkyField once Polar motion
+    is turned off, but SkyField does not include polar motion, so a comparison to Skyfield
+    or JPL Horizons will be ~1" off.
+
+    The absence of polar motion within Skyfield and the disagreement between Skyfield and Horizons
+    make high precision comparisons to those codes difficult.
+    """
+    lat = -22.959748*u.deg
+    lon = -67.787260*u.deg
+    elev = 5186*u.m
+    loc = EarthLocation.from_geodetic(lon, lat, elev)
+    t = Time('2017-04-06T00:00:00.0')
+    with solar_system_ephemeris.set('de430'):
+        moon = get_body('moon', t, loc)
+        moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
+        TARGET_AZ, TARGET_EL = 15.032673509*u.deg, 50.303110134*u.deg
+
+    assert_allclose(moon_aa.az - TARGET_AZ, 0*u.mas, atol=0.5*u.mas)
+    assert_allclose(moon_aa.alt - TARGET_EL, 0*u.mas, atol=0.5*u.mas)
+
+
+def test_aa_high_precision_nodata():
+    """
+    These tests are designed to ensure high precision alt-az transforms.
+
+    They are a slight fudge since the target values come from astropy itself. They are generated
+    with a version of the code that passes the tests above, but for the internal solar system
+    ephemerides to avoid the use of remote data.
+    """
+    TARGET_AZ, TARGET_EL = 15.0321908*u.deg, 50.30263625*u.deg
+    lat = -22.959748*u.deg
+    lon = -67.787260*u.deg
+    elev = 5186*u.m
+    loc = EarthLocation.from_geodetic(lon, lat, elev)
+    t = Time('2017-04-06T00:00:00.0')
+
+    moon = get_body('moon', t, loc)
+    moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
+    assert_allclose(moon_aa.az - TARGET_AZ, 0*u.mas, atol=0.5*u.mas)
+    assert_allclose(moon_aa.alt - TARGET_EL, 0*u.mas, atol=0.5*u.mas)

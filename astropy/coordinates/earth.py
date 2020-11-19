@@ -623,7 +623,7 @@ class EarthLocation(u.Quantity):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
 
-    def get_itrs(self, obstime=None):
+    def get_itrs(self, obstime=None, include_velocity=False):
         """
         Generates an `~astropy.coordinates.ITRS` object with the location of
         this object at the requested ``obstime``.
@@ -633,6 +633,10 @@ class EarthLocation(u.Quantity):
         obstime : `~astropy.time.Time` or None
             The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`, or
             if None, the default ``obstime`` will be used.
+
+        include_velocity: bool
+            If True, will return an `~astropy.coordinates.ITRS` coordinate
+            with zero velocity, i.e fixed to the Earth's surface.
 
         Returns
         -------
@@ -646,7 +650,11 @@ class EarthLocation(u.Quantity):
 
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
-        return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
+        itrs_coo = ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
+        if include_velocity:
+            zeros = np.broadcast_to(0. * (u.km / u.s), (3,) + itrs_coo.shape, subok=True)
+            itrs_coo.data.differentials['s'] = CartesianDifferential(zeros)
+        return itrs_coo
 
     itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
                                      for the location of this object at the
@@ -667,14 +675,8 @@ class EarthLocation(u.Quantity):
         """
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import GCRS
-
-        itrs = self.get_itrs(obstime)
-        # Assume the observatory itself is fixed on the ground.
-        # We do a direct assignment rather than an update to avoid validation
-        # and creation of a new object.
-        zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs.shape, subok=True)
-        itrs.data.differentials['s'] = CartesianDifferential(zeros)
-        return itrs.transform_to(GCRS(obstime=obstime))
+        return (self.get_itrs(obstime, include_velocity=True)
+                .transform_to(GCRS(obstime=obstime)))
 
     def get_gcrs_posvel(self, obstime):
         """

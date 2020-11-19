@@ -16,6 +16,10 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- Adds the ability to create topocentric ``CIRS`` frames. Using these,
+  ``AltAz`` calculations are now accurate down to the milli-arcsecond
+  level. [#10994]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 

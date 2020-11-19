@@ -12,9 +12,10 @@ import numpy as np
 
 from astropy import units as u
 from astropy.time import Time
+from astropy.coordinates.earth import EarthLocation
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
-from ..representation import CartesianRepresentation, CartesianDifferential
+from ..representation import CartesianDifferential
 
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
@@ -28,6 +29,10 @@ EQUINOX_B1950 = Time('B1950', scale='tt')
 # necessary.  Currently, we use J2000.
 DEFAULT_OBSTIME = Time('J2000', scale='tt')
 
+# This is an EarthLocation that is the default "location" when such an attribute is
+# necessary. It is the centre of the Earth.
+EARTH_CENTER = EarthLocation(0*u.km, 0*u.km, 0*u.km)
+
 PIOVER2 = np.pi / 2.
 
 # comes from the mean of the 1962-2014 IERS B data
@@ -36,7 +41,7 @@ _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
 def get_polar_motion(time):
     """
-    gets the two polar motion components in radians for use with apio13
+    gets the two polar motion components in radians for use with apio
     """
     # Get the polar motion from the IERS table
     iers_table = iers.earth_orientation_table.get()
