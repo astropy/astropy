@@ -169,6 +169,9 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Deprecate ``accuracy`` argument in ``all_world2pix`` which was mistakenly
+  *documented*, in the case ``accuracy`` was ever used. [#11055]
+
 
 Bug Fixes
 ---------
