@@ -216,6 +216,12 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     @staticmethod
     def _prepare_earth_position_vel(support, obstime):
+        """
+        Calculate Earth's position and velocity.
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
         pv_support, heliocentric_support = prepare_earth_position_vel(support)
 
         # do interpolation
@@ -236,6 +242,12 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     @staticmethod
     def _get_c2i(support, obstime):
+        """
+        Calculate the Celestial-to-Intermediate rotation matrix.
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
         jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
         c2i_support = erfa.c2i06a(jd1_tt_support, jd2_tt_support)
         c2i = np.empty(obstime.shape + (3, 3))
@@ -246,6 +258,12 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     @staticmethod
     def _get_cip(support, obstime):
+        """
+        Find the X, Y coordinates of the CIP and the CIO locator, s.
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
         jd1_tt_support, jd2_tt_support = get_jd12(support, 'tt')
         cip_support = get_cip(jd1_tt_support, jd2_tt_support)
         return tuple(
@@ -255,7 +273,12 @@ class ErfaAstromInterpolator(ErfaAstrom):
 
     @staticmethod
     def _get_polar_motion(support, obstime):
-        # TODO: do we need this? It's just a table lookup
+        """
+        Find the two polar motion components in radians
+
+        Uses the coarser grid ``support`` to do the calculation, and interpolates
+        onto the finer grid ``obstime``.
+        """
         polar_motion_support = get_polar_motion(support)
         return tuple(
             np.interp(obstime.mjd, support.mjd, polar_motion_component)

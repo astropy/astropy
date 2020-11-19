@@ -652,7 +652,7 @@ class EarthLocation(u.Quantity):
         from .builtin_frames import ITRS
         itrs_coo = ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
         if include_velocity:
-            zeros = np.broadcast_to(0. * u.km / u.s, (3,) + itrs_coo.shape, subok=True)
+            zeros = np.broadcast_to(0. * (u.km / u.s), (3,) + itrs_coo.shape, subok=True)
             itrs_coo.data.differentials['s'] = CartesianDifferential(zeros)
         return itrs_coo
 

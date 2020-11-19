@@ -12,9 +12,10 @@ import numpy as np
 
 from astropy import units as u
 from astropy.time import Time
+from astropy.coordinates.earth import EarthLocation
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
-from ..representation import CartesianRepresentation, CartesianDifferential
+from ..representation import CartesianDifferential
 
 
 # We use tt as the time scale for this equinoxes, primarily because it is the
@@ -27,6 +28,10 @@ EQUINOX_B1950 = Time('B1950', scale='tt')
 # This is a time object that is the default "obstime" when such an attribute is
 # necessary.  Currently, we use J2000.
 DEFAULT_OBSTIME = Time('J2000', scale='tt')
+
+# This is an EarthLocation that is the default "location" when such an attribute is
+# necessary. It is the centre of the Earth.
+EARTH_CENTER = EarthLocation(0*u.km, 0*u.km, 0*u.km)
 
 PIOVER2 = np.pi / 2.
 

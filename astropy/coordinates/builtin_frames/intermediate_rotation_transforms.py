@@ -13,13 +13,13 @@ import astropy.units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
-from astropy.coordinates.earth import EarthLocation
+
 
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
 from .equatorial import TEME, TETE
-from .utils import get_polar_motion, get_jd12
+from .utils import get_polar_motion, get_jd12, EARTH_CENTER
 
 # # first define helper functions
 
@@ -194,7 +194,7 @@ def cirs_to_gcrs(cirs_coo, gcrs_frame):
 def cirs_to_itrs(cirs_coo, itrs_frame):
     # first get us to geocentric CIRS at the target obstime
     cirs_coo2 = cirs_coo.transform_to(CIRS(obstime=itrs_frame.obstime,
-                                           location=EarthLocation(0*u.km, 0*u.km, 0*u.km)))
+                                           location=EARTH_CENTER))
 
     # now get the pmatrix
     pmat = cirs_to_itrs_mat(itrs_frame.obstime)
