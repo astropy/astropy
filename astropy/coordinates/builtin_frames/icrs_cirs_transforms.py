@@ -271,9 +271,8 @@ def hcrs_to_hcrs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, TETE)
 def tete_to_tete(from_coo, to_frame):
-    if (np.all(from_coo.obstime == to_frame.obstime) and
-            np.all(from_coo.obsgeoloc == to_frame.obsgeoloc) and
-            np.all(from_coo.obsgeovel == to_frame.obsgeovel)):
+    if (np.all(from_coo.location == to_frame.location)
+            and np.all(from_coo.obstime == to_frame.obstime)):
         return to_frame.realize_frame(from_coo.data)
     else:
         # We perform the self-transform through ICRS, since any change in obstime
