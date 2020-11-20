@@ -26,6 +26,25 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v4.1
 * xxx distinct people have contributed code
 
+.. _whatsnew-4.2-coordinates:
+
+Transformations to AltAz are now much more precise
+==================================================
+
+Following advice from M. K. Brewer and comparisons with accurate comparison
+samples, the implementations for the transformations to AltAz coordinates were
+made much more precise (down to the milli-arcsec level).  To help this, the
+``CIRS`` frame has gained an observer ``location`` attribute.
+
+A True Equator and True Equinox frame
+=====================================
+
+A new equatorial coordinate frame has been introduced, with RA and Dec
+measured with respect to the True Equator and Equinox (TETE). This frame is
+commonly known as "apparent place" and is the correct frame for coordinates
+returned from JPL Horizons.
+
+
 .. _whatsnew-4.2-cosmology:
 
 Planck 2018 is accepted and now the default cosmology
