@@ -1,3 +1,16 @@
+4.2RC2 (unreleased)
+===================
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Allow topocentric ``CIRS`` frames to avoid precision loss in ``AltAz``
+  calculations. With this, they are now accurate down to the milli-arcsecond
+  level. [#10994]
+
 4.2RC1 (2020-11-06)
 ===================
 
