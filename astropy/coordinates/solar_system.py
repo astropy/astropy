@@ -17,9 +17,9 @@ from astropy.utils.state import ScienceState
 from astropy.utils import indent
 from astropy import units as u
 from astropy.constants import c as speed_of_light
-from .representation import CartesianRepresentation
+from .representation import CartesianRepresentation, CartesianDifferential
 from .orbital_elements import calc_moon
-from .builtin_frames import GCRS, ICRS, TETE
+from .builtin_frames import GCRS, ICRS, ITRS, TETE
 from .builtin_frames.utils import get_jd12
 
 __all__ = ["get_body", "get_moon", "get_body_barycentric",
@@ -525,6 +525,12 @@ def _apparent_position_in_true_coordinates(skycoord):
     Convert Skycoord in GCRS frame into one in which RA and Dec
     are defined w.r.t to the true equinox and poles of the Earth
     """
-    tete_frame = TETE(obstime=skycoord.obstime, obsgeoloc=skycoord.obsgeoloc,
-                      obsgeovel=skycoord.obsgeovel)
+    location = getattr(skycoord, 'location', None)
+    if location is None:
+        gcrs_rep = skycoord.obsgeoloc.with_differentials(
+            {'s': CartesianDifferential.from_cartesian(skycoord.obsgeovel)})
+        location = (GCRS(gcrs_rep, obstime=skycoord.obstime)
+                    .transform_to(ITRS(obstime=skycoord.obstime))
+                    .earth_location)
+    tete_frame = TETE(obstime=skycoord.obstime, location=location)
     return skycoord.transform_to(tete_frame)
