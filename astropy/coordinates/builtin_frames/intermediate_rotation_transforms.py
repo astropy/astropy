@@ -13,12 +13,13 @@ import astropy.units as u
 from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
+from astropy.coordinates.representation import CartesianDifferential
 
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
 from .equatorial import TEME, TETE
-from .utils import get_polar_motion, get_jd12
+from .utils import get_polar_motion, get_jd12, EARTH_CENTER
 
 # # first define helper functions
 
@@ -84,20 +85,38 @@ def gcrs_precession_mat(equinox):
     return erfa.fw2m(gamb, phib, psib, epsa)
 
 
+def get_location_gcrs(reference, gcrs_to_reference_matrix):
+    """Create a GCRS frame at the location and obstime of a given reference.
+
+    Helper function that avoids location.get_gcrs (which would trigger
+    infinite recursion in some cases), and uses an already calculated
+    GCRS to Reference matrix to calculate obsgeoloc and obsgeovel
+    required for GCRS.
+    """
+    # TODO: ideally, GCRS and other frames would share how they describe
+    # the location.  See gh-10996.
+    obstime = reference.obstime
+    loc_itrs = reference.location.get_itrs(obstime)
+    zeros = np.broadcast_to(0. * u.km / u.s, (3,) + loc_itrs.shape, subok=True)
+    loc_itrs.data.differentials['s'] = CartesianDifferential(zeros)
+    gcrs_cart = (loc_itrs.transform_to(reference.__class__(obstime=obstime))
+                 .cartesian.transform(matrix_transpose(gcrs_to_reference_matrix)))
+    return GCRS(obstime=obstime,
+                obsgeoloc=gcrs_cart.without_differentials(),
+                obsgeovel=gcrs_cart.differentials['s'].to_cartesian())
+
+
 # now the actual transforms
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, TETE)
 def gcrs_to_tete(gcrs_coo, tete_frame):
-    # first apply GCRS self transform to correct time and observatory position/velocity
-    gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=tete_frame.obstime,
-                                           obsgeoloc=tete_frame.obsgeoloc,
-                                           obsgeovel=tete_frame.obsgeovel))
-
-    jd1, jd2 = get_jd12(tete_frame.obstime, 'tt')
     # Classical NPB matrix, IAU 2006/2000A
     # (same as in builtin_frames.utils.get_cip).
-    rbpn = erfa.pnm06a(jd1, jd2)
-
+    rbpn = erfa.pnm06a(*get_jd12(tete_frame.obstime, 'tt'))
+    # Get GCRS coordinates for the target observer location and time.
+    loc_gcrs = get_location_gcrs(tete_frame, rbpn)
+    gcrs_coo2 = gcrs_coo.transform_to(loc_gcrs)
+    # Now we are relative to the correct observer, do the transform to TETE.
     # These rotations are defined at the geocenter, but can be applied to
     # topocentric positions as well, assuming rigid Earth. See p57 of
     # https://www.usno.navy.mil/USNO/astronomical-applications/publications/Circular_179.pdf
@@ -107,18 +126,14 @@ def gcrs_to_tete(gcrs_coo, tete_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, GCRS)
 def tete_to_gcrs(tete_coo, gcrs_frame):
-    # compute the pn matrix, and then multiply by its transpose
-
-    jd1, jd2 = get_jd12(tete_coo.obstime, 'tt')
-    # Classical NPB matrix, IAU 2006/2000A
-    # (same as in builtin_frames.utils.get_cip).
-    rbpn = erfa.pnm06a(jd1, jd2)
+    # Compute the pn matrix, and then multiply by its transpose.
+    rbpn = erfa.pnm06a(*get_jd12(tete_coo.obstime, 'tt'))
     newrepr = tete_coo.cartesian.transform(matrix_transpose(rbpn))
-
-    gcrs = GCRS(newrepr, obstime=tete_coo.obstime, obsgeoloc=tete_coo.obsgeoloc,
-                obsgeovel=tete_coo.obsgeovel)
-
-    # now do any needed offsets (no-op if same obstime and 0 pos/vel)
+    # We now have a GCRS vector for the input location and obstime.
+    # Turn it into a GCRS frame instance.
+    loc_gcrs = get_location_gcrs(tete_coo, rbpn)
+    gcrs = loc_gcrs.realize_frame(newrepr)
+    # Finally, do any needed offsets (no-op if same obstime and location)
     return gcrs.transform_to(gcrs_frame)
 
 
@@ -126,8 +141,7 @@ def tete_to_gcrs(tete_coo, gcrs_frame):
 def tete_to_itrs(tete_coo, itrs_frame):
     # first get us to TETE at the target obstime, and geocentric position
     tete_coo2 = tete_coo.transform_to(TETE(obstime=itrs_frame.obstime,
-                                           obsgeoloc=[0, 0, 0]*u.km,
-                                           obsgeovel=[0, 0, 0]*u.km/u.s))
+                                           location=EARTH_CENTER))
 
     # now get the pmatrix
     pmat = tete_to_itrs_mat(itrs_frame.obstime)
