@@ -631,10 +631,7 @@ def test_tete_transforms():
     # test TETE-ITRS transform by comparing GCRS-CIRS-ITRS to GCRS-TETE-ITRS
     itrs1 = moon.transform_to(CIRS()).transform_to(ITRS())
     itrs2 = moon.transform_to(TETE()).transform_to(ITRS())
-    # this won't be as close since it will round trip through ICRS until
-    # we have some way of translating between the GCRS obsgeoloc/obsgeovel
-    # attributes and the CIRS location attributes
-    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=100*u.mm)
+    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=1*u.mm)
 
     # test round trip GCRS->TETE->GCRS
     new_moon = moon.transform_to(TETE()).transform_to(moon)
