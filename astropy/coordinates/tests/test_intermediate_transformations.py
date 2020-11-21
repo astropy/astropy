@@ -21,6 +21,8 @@ from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 from astropy.coordinates.tests.utils import randomly_sample_sphere
+from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
+    get_location_gcrs, tete_to_itrs_mat, gcrs_to_cirs_mat, cirs_to_itrs_mat)
 from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
@@ -722,3 +724,45 @@ def test_aa_high_precision_nodata():
     moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
     assert_allclose(moon_aa.az - TARGET_AZ, 0*u.mas, atol=0.5*u.mas)
     assert_allclose(moon_aa.alt - TARGET_EL, 0*u.mas, atol=0.5*u.mas)
+
+
+class TestGetLocationGCRS:
+    # TETE and CIRS use get_location_gcrs to get obsgeoloc and obsgeovel
+    # with knowledge of some of the matrices. Check that this is consistent
+    # with a direct transformation.
+    def setup_class(cls):
+        cls.loc = loc = EarthLocation.from_geodetic(
+            np.linspace(0, 360, 6)*u.deg, np.linspace(-90, 90, 6)*u.deg, 100*u.m)
+        cls.obstime = obstime = Time(np.linspace(2000, 2010, 6), format='jyear')
+        # Get comparison via a full transformation.  We do not use any methods
+        # since those may depend on the fast transform in the future.
+        loc_itrs = ITRS(loc.x, loc.y, loc.z, obstime=obstime)
+        zeros = np.broadcast_to(0. * (u.km / u.s), (3,) + loc_itrs.shape, subok=True)
+        loc_itrs.data.differentials['s'] = CartesianDifferential(zeros)
+        loc_gcrs_cart = loc_itrs.transform_to(GCRS(obstime=obstime)).cartesian
+        cls.obsgeoloc = loc_gcrs_cart.without_differentials()
+        cls.obsgeovel = loc_gcrs_cart.differentials['s'].to_cartesian()
+
+    def check_obsgeo(self, obsgeoloc, obsgeovel):
+        assert_allclose(obsgeoloc.xyz, self.obsgeoloc.xyz, atol=.1*u.um, rtol=0.)
+        assert_allclose(obsgeovel.xyz, self.obsgeovel.xyz, atol=.1*u.mm/u.s, rtol=0.)
+
+    def test_get_gcrs_posvel(self):
+        # Really just a sanity check
+        self.check_obsgeo(*self.loc.get_gcrs_posvel(self.obstime))
+
+    def test_tete_quick(self):
+        # Following copied from intermediate_rotation_transforms.gcrs_to_tete
+        rbpn = erfa.pnm06a(*get_jd12(self.obstime, 'tt'))
+        loc_gcrs_frame = get_location_gcrs(self.loc, self.obstime,
+                                           tete_to_itrs_mat(self.obstime, rbpn=rbpn),
+                                           rbpn)
+        self.check_obsgeo(loc_gcrs_frame.obsgeoloc, loc_gcrs_frame.obsgeovel)
+
+    def test_cirs_quick(self):
+        cirs_frame = CIRS(location=self.loc, obstime=self.obstime)
+        # Following copied from intermediate_rotation_transforms.gcrs_to_cirs
+        pmat = gcrs_to_cirs_mat(cirs_frame.obstime)
+        loc_gcrs_frame = get_location_gcrs(self.loc, self.obstime,
+                                           cirs_to_itrs_mat(cirs_frame.obstime), pmat)
+        self.check_obsgeo(loc_gcrs_frame.obsgeoloc, loc_gcrs_frame.obsgeovel)
