@@ -251,6 +251,8 @@ Other Changes and Additions
 
 - Officially declared minversion of ``ipython`` to be 4.2. [#10942]
 
+- Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
+  and substantially improved speed. [#10994]
 
 
 4.2 (unreleased)
