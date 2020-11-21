@@ -14,7 +14,7 @@ the 4.2.x series of releases.
 
 In particular, this release includes:
 
-*
+* :ref:`whatsnew-4.3-coordinates`
 *
 
 In addition to these major changes, Astropy v4.3 includes a large number of
@@ -25,6 +25,18 @@ smaller improvements and bug fixes, which are described in the
 * xxx pull requests have been merged since v4.2
 * xxx distinct people have contributed code
 
+.. _whatsnew-4.3-coordinates:
+
+Transformations to AltAz are now much more precise (and faster)
+===============================================================
+
+Following advice from M. K. Brewer and comparisons with accurate verification
+samples, the implementations for the transformations to AltAz coordinates were
+made much more precise (down to the milli-arcsec level).  To help this, the
+``CIRS`` frame has gained an observer ``location`` attribute.
+
+Furthermore, by ensuring expensive calculations of the precession-nutation
+matrix are only done once, the transformations have been sped up considerably.
 
 Full change log
 ===============

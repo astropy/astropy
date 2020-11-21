@@ -28,12 +28,17 @@ GeodeticLocation = collections.namedtuple('GeodeticLocation', ['lon', 'lat', 'he
 # Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
 ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
 
-OMEGA_EARTH = u.Quantity(7.292115855306589e-5, 1./u.s)
+OMEGA_EARTH = ((1.002_737_811_911_354_48 * u.cycle/u.day)
+               .to(1/u.s, u.dimensionless_angles()))
 """
-Rotational velocity of Earth. In UT1 seconds, this would be 2 pi / (24 * 3600),
-but we need the value in SI seconds.
-See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth Seidelmann (1992),
-University Science Books.
+Rotational velocity of Earth, following SOFA's pvtob.
+
+In UT1 seconds, this would be 2 pi / (24 * 3600), but we need the value
+in SI seconds, so multiply by the ratio of stellar to solar day.
+See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth
+Seidelmann (1992), University Science Books. The constant is the
+convential, exact one (IERS conventions 2003); see
+http://hpiers.obspm.fr/eop-pc/index.php?index=constants.
 """
 
 
