@@ -735,7 +735,7 @@ class TestGetLocationGCRS:
             np.linspace(0, 360, 6)*u.deg, np.linspace(-90, 90, 6)*u.deg, 100*u.m)
         cls.obstime = obstime = Time(np.linspace(2000, 2010, 6), format='jyear')
         # Get comparison via a full transformation.  We do not use any methods
-        # since those may depend on the fast transform in the future.
+        # of EarthLocation, since those depend on the fast transform.
         loc_itrs = ITRS(loc.x, loc.y, loc.z, obstime=obstime)
         zeros = np.broadcast_to(0. * (u.km / u.s), (3,) + loc_itrs.shape, subok=True)
         loc_itrs.data.differentials['s'] = CartesianDifferential(zeros)

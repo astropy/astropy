@@ -9,10 +9,7 @@ rotations without aberration corrections or offsets.
 import numpy as np
 import erfa
 
-import astropy.units as u
 from astropy.coordinates.baseframe import frame_transform_graph
-from astropy.coordinates.earth import OMEGA_EARTH
-from astropy.coordinates.representation import CartesianRepresentation
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
 
@@ -103,22 +100,14 @@ def get_location_gcrs(location, obstime, ref_to_itrs, gcrs_to_ref):
     (as is the case for CIRS and TETE).
 
     This function is here to avoid location.get_gcrs(obstime), which would
-    trigger infinite recursion in some cases, and uses pre-calculated
-    reference to ITRS and GCRS to Reference matrices to calculate obsgeoloc
-    and obsgeovel required for GCRS (as the latter is available where it
-    is used below).
+    recalculate matrices that are already available below (and return a GCRS
+    coordinate, rather than a frame with obsgeoloc and obsgeovel).  Instead,
+    it uses the private method that allows passing in the matrices.
 
     """
-    itrs_cart = location.get_itrs(obstime).cartesian
-    ref_cart = itrs_cart.transform(matrix_transpose(ref_to_itrs))
-    vel_x = -OMEGA_EARTH * ref_cart.y
-    vel_y = OMEGA_EARTH * ref_cart.x
-    vel_z = 0. * vel_x.unit
-    ref_vel = CartesianRepresentation(vel_x, vel_y, vel_z)
-    ref_to_gcrs = matrix_transpose(gcrs_to_ref)
-    return GCRS(obstime=obstime,
-                obsgeoloc=ref_cart.transform(ref_to_gcrs),
-                obsgeovel=ref_vel.transform(ref_to_gcrs))
+    obsgeoloc, obsgeovel = location._get_gcrs_posvel(obstime,
+                                                     ref_to_itrs, gcrs_to_ref)
+    return GCRS(obstime=obstime, obsgeoloc=obsgeoloc, obsgeovel=obsgeovel)
 
 
 # now the actual transforms

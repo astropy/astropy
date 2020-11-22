@@ -17,6 +17,7 @@ from astropy.units.quantity import QuantityInfoBase
 from astropy.utils.exceptions import AstropyUserWarning
 from .angles import Angle, Longitude, Latitude
 from .representation import CartesianRepresentation, CartesianDifferential
+from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
 from astropy.utils import data
 
@@ -680,8 +681,33 @@ class EarthLocation(u.Quantity):
         """
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import GCRS
-        return (self.get_itrs(obstime, include_velocity=True)
-                .transform_to(GCRS(obstime=obstime)))
+        loc, vel = self.get_gcrs_posvel(obstime)
+        loc.differentials['s'] = CartesianDifferential.from_cartesian(vel)
+        return GCRS(loc, obstime=obstime)
+
+    def _get_gcrs_posvel(self, obstime, ref_to_itrs, gcrs_to_ref):
+        """Calculate GCRS position and velocity given transformation matrices.
+
+        The reference frame z axis must point to the Celestial Intermediate Pole
+        (as is the case for CIRS and TETE).
+
+        This private method is used in intermediate_rotation_transforms,
+        where some of the matrices are already available for the coordinate
+        transformation.
+
+        The method is faster by an order of magnitude than just adding a zero
+        velocity to ITRS and transforming to GCRS, because it avoids calculating
+        the velocity via finite differencing of the results of the transformation
+        at three separate times.
+        """
+        itrs_cart = self.get_itrs(obstime).cartesian
+        ref_cart = itrs_cart.transform(matrix_transpose(ref_to_itrs))
+        vel_x = -OMEGA_EARTH * ref_cart.y
+        vel_y = OMEGA_EARTH * ref_cart.x
+        vel_z = 0. * vel_x.unit
+        ref_vel = CartesianRepresentation(vel_x, vel_y, vel_z)
+        ref_to_gcrs = matrix_transpose(gcrs_to_ref)
+        return ref_cart.transform(ref_to_gcrs), ref_vel.transform(ref_to_gcrs)
 
     def get_gcrs_posvel(self, obstime):
         """
@@ -700,11 +726,14 @@ class EarthLocation(u.Quantity):
         obsgeovel : `~astropy.coordinates.CartesianRepresentation`
             The GCRS velocity of the object
         """
-        # GCRS position
-        gcrs_data = self.get_gcrs(obstime).data
-        obsgeopos = gcrs_data.without_differentials()
-        obsgeovel = gcrs_data.differentials['s'].to_cartesian()
-        return obsgeopos, obsgeovel
+        # Local import to prevent circular imports.
+        from .builtin_frames.intermediate_rotation_transforms import (
+            cirs_to_itrs_mat, gcrs_to_cirs_mat)
+
+        # Get gcrs_posvel by transforming via CIRS (slightly faster than TETE).
+        return self._get_gcrs_posvel(obstime,
+                                     cirs_to_itrs_mat(obstime),
+                                     gcrs_to_cirs_mat(obstime))
 
     def gravitational_redshift(self, obstime,
                                bodies=['sun', 'jupiter', 'moon'],
