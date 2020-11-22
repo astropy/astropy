@@ -700,14 +700,24 @@ class EarthLocation(u.Quantity):
         the velocity via finite differencing of the results of the transformation
         at three separate times.
         """
-        itrs_cart = self.get_itrs(obstime).cartesian
-        ref_cart = itrs_cart.transform(matrix_transpose(ref_to_itrs))
-        vel_x = -OMEGA_EARTH * ref_cart.y
-        vel_y = OMEGA_EARTH * ref_cart.x
-        vel_z = 0. * vel_x.unit
-        ref_vel = CartesianRepresentation(vel_x, vel_y, vel_z)
+        # The simplest route is to transform to the reference frame where the
+        # z axis is properly aligned with the Earth's rotation axis (CIRS or
+        # TETE), then calculate the velocity, and then transform this
+        # reference position and velocity to GCRS.  For speed, though, we
+        # transform the coordinates to GCRS in one step, and calculate the
+        # velocities by rotating around the earth's axis transformed to GCRS.
         ref_to_gcrs = matrix_transpose(gcrs_to_ref)
-        return ref_cart.transform(ref_to_gcrs), ref_vel.transform(ref_to_gcrs)
+        itrs_to_gcrs = ref_to_gcrs @ matrix_transpose(ref_to_itrs)
+        # Earth's rotation vector in the ref frame is rot_vec_ref = (0,0,OMEGA_EARTH),
+        # so in GCRS it is rot_vec_gcrs[..., 2] @ OMEGA_EARTH.
+        rot_vec_gcrs = CartesianRepresentation(ref_to_gcrs[..., 2] * OMEGA_EARTH,
+                                               xyz_axis=-1, copy=False)
+        # Get the position in the GCRS frame.
+        # Since we just need the cartesian representation of ITRS, avoid get_itrs().
+        itrs_cart = CartesianRepresentation(self.x, self.y, self.z, copy=False)
+        pos = itrs_cart.transform(itrs_to_gcrs)
+        vel = rot_vec_gcrs.cross(pos)
+        return pos, vel
 
     def get_gcrs_posvel(self, obstime):
         """
