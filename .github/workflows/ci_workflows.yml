@@ -54,7 +54,7 @@ jobs:
             toxposargs: --durations=50
 
           - name: Python 3.7 with all optional dependencies (MacOS X)
-            os: macos-latest
+            os: macos-11.0
             python: 3.7
             toxenv: py37-test-alldeps
             toxposargs: --durations=50
