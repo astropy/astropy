@@ -629,7 +629,7 @@ class EarthLocation(u.Quantity):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
 
-    def get_itrs(self, obstime=None, include_velocity=False):
+    def get_itrs(self, obstime=None):
         """
         Generates an `~astropy.coordinates.ITRS` object with the location of
         this object at the requested ``obstime``.
@@ -639,10 +639,6 @@ class EarthLocation(u.Quantity):
         obstime : `~astropy.time.Time` or None
             The ``obstime`` to apply to the new `~astropy.coordinates.ITRS`, or
             if None, the default ``obstime`` will be used.
-
-        include_velocity: bool
-            If True, will return an `~astropy.coordinates.ITRS` coordinate
-            with zero velocity, i.e fixed to the Earth's surface.
 
         Returns
         -------
@@ -656,11 +652,7 @@ class EarthLocation(u.Quantity):
 
         # do this here to prevent a series of complicated circular imports
         from .builtin_frames import ITRS
-        itrs_coo = ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
-        if include_velocity:
-            zeros = np.broadcast_to(0. * (u.km / u.s), (3,) + itrs_coo.shape, subok=True)
-            itrs_coo.data.differentials['s'] = CartesianDifferential(zeros)
-        return itrs_coo
+        return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
     itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
                                      for the location of this object at the
