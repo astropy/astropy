@@ -87,7 +87,6 @@ def _expand_dims(data, axis):
     return data.reshape(shape)
 
 
-# TODO Note scipy dependency
 @deprecated_renamed_argument('conf', 'confidence_level', '4.0')
 def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
@@ -194,6 +193,8 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     this is not very helpful. Its use is not recommended, but it is
     provided here for comparison purposes due to its prevalence in
     everyday practical statistics.
+
+    This function requires `scipy` for all interval types.
 
     References
     ----------
@@ -313,7 +314,6 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     return conf_interval
 
 
-# TODO Note scipy dependency (needed in binom_conf_interval)
 @deprecated_renamed_argument('conf', 'confidence_level', '4.0')
 def binned_binom_proportion(x, success, bins=10, range=None,
                             confidence_level=0.68269, interval='wilson'):
@@ -369,6 +369,10 @@ def binned_binom_proportion(x, success, bins=10, range=None,
     perr : numpy.ndarray
         2-d array of shape (2, len(p)) representing the upper and lower
         uncertainty on p in each bin.
+
+    Notes
+    -----
+    This function requires `scipy` for all interval types.
 
     See Also
     --------
