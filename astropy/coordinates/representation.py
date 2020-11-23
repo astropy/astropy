@@ -571,65 +571,6 @@ def _make_getter(component):
     return get_component
 
 
-# Need to also subclass ABCMeta rather than type, so that this meta class can
-# be combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
-# "TypeError: metaclass conflict: the metaclass of a derived class must be a
-#  (non-strict) subclass of the metaclasses of all its bases"
-class MetaBaseRepresentation(abc.ABCMeta):
-    def __init__(cls, name, bases, dct):
-        super().__init__(name, bases, dct)
-
-        # Register representation name (except for BaseRepresentation)
-        if cls.__name__ == 'BaseRepresentation':
-            return
-
-        if 'attr_classes' not in dct:
-            raise NotImplementedError('Representations must have an '
-                                      '"attr_classes" class attribute.')
-
-        repr_name = cls.get_name()
-        # first time a duplicate is added
-        # remove first entry and add both using their qualnames
-        if repr_name in REPRESENTATION_CLASSES:
-            DUPLICATE_REPRESENTATIONS.add(repr_name)
-
-            fqn_cls = _fqn_class(cls)
-            existing = REPRESENTATION_CLASSES[repr_name]
-            fqn_existing = _fqn_class(existing)
-
-            if fqn_cls == fqn_existing:
-                raise ValueError(f'Representation "{fqn_cls}" already defined')
-
-            msg = (
-                'Representation "{}" already defined, removing it to avoid confusion.'
-                'Use qualnames "{}" and "{}" or class instaces directly'
-            ).format(repr_name, fqn_cls, fqn_existing)
-            warnings.warn(msg, DuplicateRepresentationWarning)
-
-            del REPRESENTATION_CLASSES[repr_name]
-            REPRESENTATION_CLASSES[fqn_existing] = existing
-            repr_name = fqn_cls
-        # further definitions with the same name, just add qualname
-        elif repr_name in DUPLICATE_REPRESENTATIONS:
-            warnings.warn('Representation "{}" already defined, using qualname "{}".')
-            repr_name = _fqn_class(cls)
-            if repr_name in REPRESENTATION_CLASSES:
-                raise ValueError(
-                    f'Representation "{repr_name}" already defined'
-                )
-
-        REPRESENTATION_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
-
-        # define getters for any component that does not yet have one.
-        for component in cls.attr_classes:
-            if not hasattr(cls, component):
-                setattr(cls, component,
-                        property(_make_getter(component),
-                                 doc=("The '{}' component of the points(s)."
-                                      .format(component))))
-
-
 class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
 
     @property
@@ -654,8 +595,7 @@ class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
         return super()._construct_from_dict(map)
 
 
-class BaseRepresentation(BaseRepresentationOrDifferential,
-                         metaclass=MetaBaseRepresentation):
+class BaseRepresentation(BaseRepresentationOrDifferential):
     """Base for representing a point in a 3D coordinate system.
 
     Parameters
@@ -689,6 +629,59 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     """
 
     info = RepresentationInfo()
+
+    def __init_subclass__(cls):
+        # Register representation name (except for BaseRepresentation)
+        if cls.__name__ == 'BaseRepresentation':
+            return
+
+        if not hasattr(cls, 'attr_classes'):
+            raise NotImplementedError('Representations must have an '
+                                      '"attr_classes" class attribute.')
+
+        repr_name = cls.get_name()
+        # first time a duplicate is added
+        # remove first entry and add both using their qualnames
+        if repr_name in REPRESENTATION_CLASSES:
+            DUPLICATE_REPRESENTATIONS.add(repr_name)
+
+            fqn_cls = _fqn_class(cls)
+            existing = REPRESENTATION_CLASSES[repr_name]
+            fqn_existing = _fqn_class(existing)
+
+            if fqn_cls == fqn_existing:
+                raise ValueError(f'Representation "{fqn_cls}" already defined')
+
+            msg = (
+                f'Representation "{repr_name}" already defined, removing it to avoid confusion.'
+                f'Use qualnames "{fqn_cls}" and "{fqn_existing}" or class instances directly'
+            )
+            warnings.warn(msg, DuplicateRepresentationWarning)
+
+            del REPRESENTATION_CLASSES[repr_name]
+            REPRESENTATION_CLASSES[fqn_existing] = existing
+            repr_name = fqn_cls
+
+        # further definitions with the same name, just add qualname
+        elif repr_name in DUPLICATE_REPRESENTATIONS:
+            fqn_cls = _fqn_class(cls)
+            warnings.warn(f'Representation "{repr_name}" already defined, using qualname '
+                          f'"{fqn_cls}".')
+            repr_name = fqn_cls
+            if repr_name in REPRESENTATION_CLASSES:
+                raise ValueError(
+                    f'Representation "{repr_name}" already defined'
+                )
+
+        REPRESENTATION_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
+
+        # define getters for any component that does not yet have one.
+        for component in cls.attr_classes:
+            if not hasattr(cls, component):
+                setattr(cls, component,
+                        property(_make_getter(component),
+                                 doc=f"The '{component}' component of the points(s)."))
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
