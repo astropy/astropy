@@ -74,26 +74,15 @@ def col_copy(col, copy_indices=True):
     if isinstance(col, BaseColumn):
         return col.copy()
 
-    # The new column should have None for the parent_table ref.  If the
-    # original parent_table weakref there at the point of copying then it
-    # generates an infinite recursion.  Instead temporarily remove the weakref
-    # on the original column and restore after the copy in an exception-safe
-    # manner.
-
-    parent_table = col.info.parent_table
-    indices = col.info.indices
-    col.info.parent_table = None
-    col.info.indices = []
-
-    try:
-        newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
-        newcol.info = col.info
-        newcol.info.indices = deepcopy(indices or []) if copy_indices else []
+    newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+    newcol.info = col.info
+    if copy_indices and col.info.indices:
+        newcol.info.indices = deepcopy(col.info.indices)
         for index in newcol.info.indices:
             index.replace_col(col, newcol)
-    finally:
-        col.info.parent_table = parent_table
-        col.info.indices = indices
+    else:
+        # TODO: bit strange that this is needed. Why not the default?
+        newcol.info.indices = []
 
     return newcol
 
