@@ -699,10 +699,13 @@ def test_aa_high_precision():
     with solar_system_ephemeris.set('de430'):
         moon = get_body('moon', t, loc)
         moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
-        TARGET_AZ, TARGET_EL = 15.032673509*u.deg, 50.303110134*u.deg
 
-    assert_allclose(moon_aa.az - TARGET_AZ, 0*u.mas, atol=0.5*u.mas)
-    assert_allclose(moon_aa.alt - TARGET_EL, 0*u.mas, atol=0.5*u.mas)
+    TARGET_AZ, TARGET_EL = 15.0326735105*u.deg, 50.3031101339*u.deg
+    TARGET_DISTANCE = 376252883.2473*u.m
+
+    assert_allclose(moon_aa.az, TARGET_AZ, atol=2*u.uas, rtol=0)
+    assert_allclose(moon_aa.alt, TARGET_EL, atol=2*u.uas, rtol=0)
+    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=2*u.mm, rtol=0)
 
 
 def test_aa_high_precision_nodata():
