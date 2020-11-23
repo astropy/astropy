@@ -4,8 +4,13 @@
 # plotting style. It is no longer documented/recommended as of Astropy v3.0
 # but is kept here for backward-compatibility.
 
-from astropy import __minimum_matplotlib_version__
+from pkg_resources import get_distribution
+
 from astropy.utils import minversion
+
+for cur_req in get_distribution('astropy').requires(extras=('all', )):
+    if cur_req.name == 'matplotlib':
+        __minimum_matplotlib_version__ = cur_req.specs[0][1]
 
 # This returns False if matplotlib cannot be imported
 MATPLOTLIB = minversion('matplotlib', __minimum_matplotlib_version__)

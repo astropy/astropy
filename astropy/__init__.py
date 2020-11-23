@@ -12,32 +12,6 @@ from warnings import warn
 
 from .version import version as __version__
 
-__minimum_python_version__ = '3.7'
-__minimum_numpy_version__ = '1.17.0'
-__minimum_erfa_version__ = '1.7'
-__minimum_scipy_version__ = '1.1'
-# ASDF is an optional dependency, but this is the minimum version that is
-# compatible with Astropy when it is installed.
-__minimum_asdf_version__ = '2.6.0'
-# PyYAML is an optional dependency, but this is the minimum version that is
-# advertised to be supported.
-__minimum_yaml_version__ = '3.13'
-# Matplotlib is an optional dependency, but this is the minimum version that is
-# advertised to be supported.
-__minimum_matplotlib_version__ = '3.0'
-# IPython is an optional dependency, but this is the minimum version that is
-# advertised to be supported.
-__minimum_ipython_version__ = '4.2'
-
-
-class UnsupportedPythonError(Exception):
-    pass
-
-
-# This is the same check as the one at the top of setup.py
-if sys.version_info < tuple(int(val) for val in __minimum_python_version__.split('.')):
-    raise UnsupportedPythonError(f"Astropy does not support Python < {__minimum_python_version__}")
-
 
 def _is_astropy_source(path=None):
     """
@@ -65,37 +39,7 @@ else:
     online_docs_root = f'https://docs.astropy.org/en/{__version__}/'
 
 
-def _check_requirement(name, minimum_version):
-    """
-    Check that ``name`` is installed and it is of the ``minimum_version`` we
-    require.
-    """
-    # Note: We could have used distutils.version for this comparison,
-    # but it seems like overkill to import distutils at runtime, and
-    # our own utils.introspection.minversion indirectly needs requirements.
-    requirement_met = False
-    import_fail = ''
-    try:
-        module = __import__(name)
-    except ImportError:
-        import_fail = f'{name} is not installed.'
-    else:
-        version = getattr(module, '__version__')
-        requirement_met = version.split('.') >= minimum_version.split('.')
-
-    if not requirement_met:
-        msg = (f"{name} version {minimum_version} or later must "
-               f"be installed to use Astropy. {import_fail}")
-        raise ImportError(msg)
-
-    return module
-
-
-_check_requirement('numpy', __minimum_numpy_version__)
-_check_requirement('erfa', __minimum_erfa_version__)
-
-
-from . import config as _config
+from . import config as _config  # noqa: E402
 
 
 class Conf(_config.ConfigNamespace):
@@ -132,7 +76,7 @@ conf = Conf()
 
 
 # Define a base ScienceState for configuring constants and units
-from .utils.state import ScienceState
+from .utils.state import ScienceState  # noqa: E402
 
 
 class base_constants_version(ScienceState):
@@ -188,7 +132,7 @@ class astronomical_constants(base_constants_version):
 
 
 # Create the test() function
-from .tests.runner import TestRunner
+from .tests.runner import TestRunner  # noqa: E402
 test = TestRunner.make_test_runner_in(__path__[0])
 
 
@@ -199,7 +143,7 @@ def _initialize_astropy():
     from . import config
 
     try:
-        from .utils import _compiler
+        from .utils import _compiler  # noqa: F401
     except ImportError:
         if _is_astropy_source():
             raise ImportError('You appear to be trying to import astropy from '
@@ -230,26 +174,26 @@ def _get_bibtex():
 
     with open(citation_file, 'r') as citation:
         refs = citation.read().split('@ARTICLE')[1:]
-        if len(refs) == 0: return ''
+        if len(refs) == 0:
+            return ''
         bibtexreference = f'@ARTICLE{refs[0]}'
     return bibtexreference
 
 
 __citation__ = __bibtex__ = _get_bibtex()
 
-import logging
+import logging  # noqa: E402
 
 # Use the root logger as a dummy log before initilizing Astropy's logger
 log = logging.getLogger()
 
-
-from .logger import _init_log, _teardown_log
+from .logger import _init_log, _teardown_log  # noqa: E402, F401
 
 log = _init_log()
 
 _initialize_astropy()
 
-from .utils.misc import find_api_page
+from .utils.misc import find_api_page  # noqa: E402, F401
 
 
 def online_help(query):
@@ -276,13 +220,13 @@ def online_help(query):
     webbrowser.open(url)
 
 
-__dir_inc__ = ['__version__', '__githash__', '__minimum_numpy_version__',
+__dir_inc__ = ['__version__', '__githash__',
                '__bibtex__', 'test', 'log', 'find_api_page', 'online_help',
                'online_docs_root', 'conf', 'physical_constants',
                'astronomical_constants']
 
 
-from types import ModuleType as __module_type__
+from types import ModuleType as __module_type__  # noqa: E402
 # Clean up top-level namespace--delete everything that isn't in __dir_inc__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():

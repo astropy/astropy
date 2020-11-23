@@ -3,7 +3,7 @@
 
 import pytest
 
-from astropy import __minimum_asdf_version__
+from astropy.io.misc.asdf.tags.helpers import __minimum_asdf_version__
 
 asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 
