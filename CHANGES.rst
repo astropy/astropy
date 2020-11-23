@@ -254,6 +254,10 @@ Other Changes and Additions
 - Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
   and substantially improved speed. [#10994]
 
+- Also refactor ``EarthLocation.get_gcrs`` for an increase in performance of
+  an order of magnitude, which enters as well in getting observed positions of
+  planets using ``get_body``. [#11073]
+
 
 4.2 (unreleased)
 ================

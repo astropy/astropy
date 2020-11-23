@@ -45,8 +45,8 @@ without the need to download a large ephemerides file)::
   >>> with solar_system_ephemeris.set('builtin'):
   ...     jup = get_body('jupiter', t, loc) # doctest: +REMOTE_DATA +IGNORE_OUTPUT
   >>> jup  # doctest: +FLOAT_CMP +REMOTE_DATA
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.68990863, -550931.91188162, 4961151.73733451) m, obsgeovel=(40.15954083, 287.47876693, -0.04597867) m / s): (ra, dec, distance) in (deg, deg, AU)
-      (136.91116209, 17.02935409, 5.94386022)>
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69182405, -550931.91022387, 4961151.73597633) m, obsgeovel=(40.159527, 287.47873161, -0.04597922) m / s): (ra, dec, distance) in (deg, deg, AU)
+      (136.91116253, 17.02935396, 5.94386022)>
 
 Above, we used ``solar_system_ephemeris`` as a context, which sets the default
 ephemeris while in the ``with`` clause, and resets it at the end.
@@ -63,11 +63,11 @@ ephemeris is set):
   >>> solar_system_ephemeris.set('de432s') # doctest: +REMOTE_DATA, +IGNORE_OUTPUT
   <ScienceState solar_system_ephemeris: 'de432s'>
   >>> get_body('jupiter', t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69230491, -550931.90674055, 4961151.73597586) m, obsgeovel=(40.15954083, 287.47863521, -0.0459789) m / s): (ra, dec, distance) in (deg, deg, km)
-      (136.90234802, 17.03160667, 8.89196021e+08)>
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69182405, -550931.91022387, 4961151.73597633) m, obsgeovel=(40.159527, 287.47873161, -0.04597922) m / s): (ra, dec, distance) in (deg, deg, km)
+      (136.90234846, 17.03160654, 8.89196021e+08)>
   >>> get_moon(t, loc) # doctest: +REMOTE_DATA, +FLOAT_CMP
-  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69230491, -550931.90674055, 4961151.73597586) m, obsgeovel=(40.15954083, 287.47863521, -0.0459789) m / s): (ra, dec, distance) in (deg, deg, km)
-      (165.51849203, 2.32863886, 407229.6503193)>
+  <SkyCoord (GCRS: obstime=2014-09-22 23:22:00.000, obsgeoloc=(3949481.69182405, -550931.91022387, 4961151.73597633) m, obsgeovel=(40.159527, 287.47873161, -0.04597922) m / s): (ra, dec, distance) in (deg, deg, km)
+      (165.51854528, 2.32861794, 407229.55638763)>
   >>> get_body_barycentric('moon', t) # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
       (  1.50107535e+08, -866789.11996916, -418963.55218495)>
