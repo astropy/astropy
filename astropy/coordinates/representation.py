@@ -33,8 +33,8 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "PhysicsSphericalDifferential"]
 
 # Module-level dict mapping representation string alias names to classes.
-# This is populated by the metaclass init so all representation and differential
-# classes get registered automatically.
+# This is populated by __init_subclass__ when called by Representation or
+# Differential classes so that they are all registered automatically.
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 # set for tracking duplicates
@@ -2215,47 +2215,7 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class MetaBaseDifferential(abc.ABCMeta):
-    """Set default ``attr_classes`` and component getters on a Differential.
-
-    For these, the components are those of the base representation prefixed
-    by 'd_', and the class is `~astropy.units.Quantity`.
-    """
-    def __init__(cls, name, bases, dct):
-        super().__init__(name, bases, dct)
-
-        # Don't do anything for base helper classes.
-        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential',
-                            'BaseSphericalCosLatDifferential'):
-            return
-
-        if 'base_representation' not in dct:
-            raise NotImplementedError('Differential representations must have a'
-                                      '"base_representation" class attribute.')
-
-        # If not defined explicitly, create attr_classes.
-        if not hasattr(cls, 'attr_classes'):
-            base_attr_classes = cls.base_representation.attr_classes
-            cls.attr_classes = {'d_' + c: u.Quantity
-                                for c in base_attr_classes}
-
-        repr_name = cls.get_name()
-        if repr_name in DIFFERENTIAL_CLASSES:
-            raise ValueError(f"Differential class {repr_name} already defined")
-
-        DIFFERENTIAL_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
-
-        # If not defined explicitly, create properties for the components.
-        for component in cls.attr_classes:
-            if not hasattr(cls, component):
-                setattr(cls, component,
-                        property(_make_getter(component),
-                                 doc=f"Component '{component}' of the Differential."))
-
-
-class BaseDifferential(BaseRepresentationOrDifferential,
-                       metaclass=MetaBaseDifferential):
+class BaseDifferential(BaseRepresentationOrDifferential):
     r"""A base class representing differentials of representations.
 
     These represent differences or derivatives along each component.
@@ -2282,12 +2242,48 @@ class BaseDifferential(BaseRepresentationOrDifferential,
     those, and a default ``__init__`` for initialization.
     """
 
+    def __init_subclass__(cls):
+        """Set default ``attr_classes`` and component getters on a Differential.
+        class BaseDifferential(BaseRepresentationOrDifferential):
+
+        For these, the components are those of the base representation prefixed
+        by 'd_', and the class is `~astropy.units.Quantity`.
+        """
+
+        # Don't do anything for base helper classes.
+        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential',
+                            'BaseSphericalCosLatDifferential'):
+            return
+
+        if not hasattr(cls, 'base_representation'):
+            raise NotImplementedError('Differential representations must have a'
+                                      '"base_representation" class attribute.')
+
+        # If not defined explicitly, create attr_classes.
+        if not hasattr(cls, 'attr_classes'):
+            base_attr_classes = cls.base_representation.attr_classes
+            cls.attr_classes = {'d_' + c: u.Quantity
+                                for c in base_attr_classes}
+
+        repr_name = cls.get_name()
+        if repr_name in DIFFERENTIAL_CLASSES:
+            raise ValueError(f"Differential class {repr_name} already defined")
+
+        DIFFERENTIAL_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
+
+        # If not defined explicitly, create properties for the components.
+        for component in cls.attr_classes:
+            if not hasattr(cls, component):
+                setattr(cls, component,
+                        property(_make_getter(component),
+                                 doc=f"Component '{component}' of the Differential."))
+
     @classmethod
     def _check_base(cls, base):
         if cls not in base._compatible_differentials:
-            raise TypeError("Differential class {} is not compatible with the "
-                            "base (representation) class {}"
-                            .format(cls, base.__class__))
+            raise TypeError(f"Differential class {cls} is not compatible with the "
+                            f"base (representation) class {base.__class__}")
 
     def _get_deriv_key(self, base):
         """Given a base (representation instance), determine the unit of the
