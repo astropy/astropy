@@ -29,9 +29,8 @@ from datetime import datetime
 import os
 import sys
 
+import configparser
 from pkg_resources import get_distribution
-
-import astropy
 
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
@@ -59,45 +58,68 @@ needs_sphinx = '1.7'
 
 # To perform a Sphinx version check that needs to be more specific than
 # major.minor, call `check_sphinx_version("X.Y.Z")` here.
-check_sphinx_version("1.2.1")
+check_sphinx_version("1.2.1")  # noqa: F405
 
 # The intersphinx_mapping in sphinx_astropy.sphinx refers to astropy for
 # the benefit of other packages who want to refer to objects in the
 # astropy core.  However, we don't want to cyclically reference astropy in its
 # own build so we remove it here.
-del intersphinx_mapping['astropy']
+del intersphinx_mapping['astropy']  # noqa: F405
 
 # add any custom intersphinx for astropy
-intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/stable/', None)
-intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', None)
-intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)
-intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)
-intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)
-intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)
-intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
+intersphinx_mapping['pyerfa'] = ('https://pyerfa.readthedocs.io/en/stable/', None)  # noqa: F405
+intersphinx_mapping['pytest'] = ('https://pytest.readthedocs.io/en/stable/', None)  # noqa: F405
+intersphinx_mapping['ipython'] = ('https://ipython.readthedocs.io/en/stable/', None)  # noqa: F405
+intersphinx_mapping['pandas'] = ('https://pandas.pydata.org/pandas-docs/stable/', None)  # noqa: F405, E501
+intersphinx_mapping['sphinx_automodapi'] = ('https://sphinx-automodapi.readthedocs.io/en/stable/', None)  # noqa: F405, E501
+intersphinx_mapping['packagetemplate'] = ('https://docs.astropy.org/projects/package-template/en/latest/', None)  # noqa: F405, E501
+intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)  # noqa: F405
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns.append('_templates')
-exclude_patterns.append('_pkgtemplate.rst')
-exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them
+exclude_patterns.append('_templates')  # noqa: F405
+exclude_patterns.append('_pkgtemplate.rst')  # noqa: F405
+exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them  # noqa: F405, E501
 
 # Add any paths that contain templates here, relative to this directory.
 if 'templates_path' not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append('_templates')
 
+# Grab minversion from setup.cfg
+setup_cfg = configparser.ConfigParser()
+setup_cfg.read(os.path.join(os.path.pardir, 'setup.cfg'))
+__minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=', '')
+project = u'Astropy'
+astropy_dist = get_distribution(project)
+astropy_req = astropy_dist.requires(extras=('all', ))
+for cur_req in astropy_req:
+    if cur_req.name == 'numpy':
+        __minimum_numpy_version__ = cur_req.specs[0][1]
+    elif cur_req.name == 'pyerfa':
+        __minimum_erfa_version__ = cur_req.specs[0][1]
+    elif cur_req.name == 'scipy':
+        __minimum_scipy_version__ = cur_req.specs[0][1]
+    elif cur_req.name == 'PyYAML':
+        __minimum_yaml_version__ = cur_req.specs[0][1]
+    elif cur_req.name == 'asdf':
+        __minimum_asdf_version__ = cur_req.specs[0][1]
+    elif cur_req.name == 'matplotlib':
+        __minimum_matplotlib_version__ = cur_req.specs[0][1]
+    elif cur_req.name == 'ipython':
+        __minimum_ipython_version__ = cur_req.specs[0][1]
+
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += f"""
-.. |minimum_python_version| replace:: {astropy.__minimum_python_version__}
-.. |minimum_numpy_version| replace:: {astropy.__minimum_numpy_version__}
-.. |minimum_erfa_version| replace:: {astropy.__minimum_erfa_version__}
-.. |minimum_scipy_version| replace:: {astropy.__minimum_scipy_version__}
-.. |minimum_yaml_version| replace:: {astropy.__minimum_yaml_version__}
-.. |minimum_asdf_version| replace:: {astropy.__minimum_asdf_version__}
-.. |minimum_matplotlib_version| replace:: {astropy.__minimum_matplotlib_version__}
-.. |minimum_ipython_version| replace:: {astropy.__minimum_ipython_version__}
+.. |minimum_python_version| replace:: {__minimum_python_version__}
+.. |minimum_numpy_version| replace:: {__minimum_numpy_version__}
+.. |minimum_erfa_version| replace:: {__minimum_erfa_version__}
+.. |minimum_scipy_version| replace:: {__minimum_scipy_version__}
+.. |minimum_yaml_version| replace:: {__minimum_yaml_version__}
+.. |minimum_asdf_version| replace:: {__minimum_asdf_version__}
+.. |minimum_matplotlib_version| replace:: {__minimum_matplotlib_version__}
+.. |minimum_ipython_version| replace:: {__minimum_ipython_version__}
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
@@ -106,7 +128,6 @@ rst_epilog += f"""
 
 # -- Project information ------------------------------------------------------
 
-project = u'Astropy'
 author = u'The Astropy Developers'
 copyright = f'2011–{datetime.utcnow().year}, ' + author
 
@@ -115,7 +136,7 @@ copyright = f'2011–{datetime.utcnow().year}, ' + author
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = get_distribution(project).version
+release = astropy_dist.version
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
@@ -135,7 +156,7 @@ modindex_common_prefix = ['astropy.']
 # override the theme defaults (The following options *are* the
 # defaults, so we do not actually need to set them here.)
 
-#html_theme_options = {
+# html_theme_options = {
 #    'logotext1': 'astro',  # white,  semi-bold
 #    'logotext2': 'py',     # orange, light
 #    'logotext3': ':docs'   # white,  light
@@ -148,24 +169,24 @@ modindex_common_prefix = ['astropy.']
 
 # Add any paths that contain custom themes here, relative to this directory.
 # To use a different custom theme, add the directory containing the theme.
-#html_theme_path = []
+# html_theme_path = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes. To override the custom theme, set this to the
 # name of a builtin theme or the name of a custom theme in html_theme_path.
-#html_theme = None
+# html_theme = None
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+# html_sidebars = {}
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = ''
+# html_favicon = ''
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = ''
+# html_last_updated_fmt = ''
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -217,14 +238,15 @@ for line in open('nitpick-exceptions'):
 # -- Options for the Sphinx gallery -------------------------------------------
 
 try:
-    import sphinx_gallery
-    extensions += ["sphinx_gallery.gen_gallery"]
+    import warnings
+    import sphinx_gallery  # noqa: F401
+    extensions += ["sphinx_gallery.gen_gallery"]  # noqa: F405
 
     sphinx_gallery_conf = {
-        'backreferences_dir': 'generated/modules', # path to store the module using example template
-        'filename_pattern': '^((?!skip_).)*$', # execute all examples except those that start with "skip_"
-        'examples_dirs': f'..{os.sep}examples', # path to the examples scripts
-        'gallery_dirs': 'generated/examples', # path to save gallery generated examples
+        'backreferences_dir': 'generated/modules',  # path to store the module using example template  # noqa: E501
+        'filename_pattern': '^((?!skip_).)*$',  # execute all examples except those that start with "skip_"  # noqa: E501
+        'examples_dirs': f'..{os.sep}examples',  # path to the examples scripts
+        'gallery_dirs': 'generated/examples',  # path to save gallery generated examples
         'reference_url': {
             'astropy': None,
             'matplotlib': 'https://matplotlib.org/',
