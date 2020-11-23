@@ -121,10 +121,10 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     Notes
     -----
     In situations where a probability of success is not known, it can
-    be estimated from a number of trials (N) and number of
+    be estimated from a number of trials (n) and number of
     observed successes (k). For example, this is done in Monte
     Carlo experiments designed to estimate a detection efficiency. It
-    is simple to take the sample proportion of successes (k/N)
+    is simple to take the sample proportion of successes (k/n)
     as a reasonable best estimate of the true probability
     :math:`\epsilon`. However, deriving an accurate confidence
     interval on :math:`\epsilon` is non-trivial. There are several
@@ -136,11 +136,11 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
 
     .. math::
 
-        CI_{\rm Wilson} = \frac{k + \kappa^2/2}{N + \kappa^2}
+        CI_{\rm Wilson} = \frac{k + \kappa^2/2}{n + \kappa^2}
         \pm \frac{\kappa n^{1/2}}{n + \kappa^2}
         ((\hat{\epsilon}(1 - \hat{\epsilon}) + \kappa^2/(4n))^{1/2}
 
-    where :math:`\hat{\epsilon} = k / N` and :math:`\kappa` is the
+    where :math:`\hat{\epsilon} = k / n` and :math:`\kappa` is the
     number of standard deviations corresponding to the desired
     confidence interval for a *normal* distribution (for example,
     1.0 for a confidence interval of 68.269%). For a
@@ -163,12 +163,12 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     The justification for this prior is that it is invariant under
     reparameterizations of the binomial proportion.
     The posterior density function is also a Beta distribution: Beta(k
-    + 1/2, N - k + 1/2). The interval is then chosen so that it is
+    + 1/2, n - k + 1/2). The interval is then chosen so that it is
     *equal-tailed*: Each tail (outside the interval) contains
     :math:`\alpha`/2 of the posterior probability, and the interval
     itself contains 1 - :math:`\alpha`. This interval must be
     calculated numerically. Additionally, when k = 0 the lower limit
-    is set to 0 and when k = N the upper limit is set to 1, so that in
+    is set to 0 and when k = n the upper limit is set to 1, so that in
     these cases, there is only one tail containing :math:`\alpha`/2
     and the interval itself contains 1 - :math:`\alpha`/2 rather than
     the nominal 1 - :math:`\alpha`.
@@ -177,7 +177,7 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     but uses a flat (uniform) prior on the binomial proportion
     over the range 0 to 1 rather than the reparametrization-invariant
     Jeffreys prior.  The posterior density function is a Beta distribution:
-    Beta(k + 1, N - k + 1).  The same comments about the nature of the
+    Beta(k + 1, n - k + 1).  The same comments about the nature of the
     interval (equal-tailed, etc.) also apply to this option.
 
     **4. The Wald Interval.** This interval is given by
@@ -185,10 +185,10 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     .. math::
 
        CI_{\rm Wald} = \hat{\epsilon} \pm
-       \kappa \sqrt{\frac{\hat{\epsilon}(1-\hat{\epsilon})}{N}}
+       \kappa \sqrt{\frac{\hat{\epsilon}(1-\hat{\epsilon})}{n}}
 
     The Wald interval gives acceptable results in some limiting
-    cases. Particularly, when N is very large, and the true proportion
+    cases. Particularly, when n is very large, and the true proportion
     :math:`\epsilon` is not "too close" to 0 or 1. However, as the
     later is not verifiable when trying to estimate :math:`\epsilon`,
     this is not very helpful. Its use is not recommended, but it is
@@ -220,7 +220,7 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     array([0.57921724, 0.92078259])
 
     Arrays of arbitrary dimension are supported. The Wilson and Jeffreys
-    intervals give similar results, even for small k, N:
+    intervals give similar results, even for small k, n:
 
     >>> binom_conf_interval([1, 2], 5, interval='wilson')  # doctest: +FLOAT_CMP
     array([[0.07921741, 0.21597328],
@@ -234,15 +234,15 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     array([[0.12139799, 0.24309021],
            [0.45401727, 0.61535699]])
 
-    In contrast, the Wald interval gives poor results for small k, N.
-    For k = 0 or k = N, the interval always has zero length.
+    In contrast, the Wald interval gives poor results for small k, n.
+    For k = 0 or k = n, the interval always has zero length.
 
     >>> binom_conf_interval([1, 2], 5, interval='wald')  # doctest: +FLOAT_CMP
     array([[0.02111437, 0.18091075],
            [0.37888563, 0.61908925]])
 
     For confidence intervals approaching 1, the Wald interval for
-    0 < k < N can give intervals that extend outside [0, 1]:
+    0 < k < n can give intervals that extend outside [0, 1]:
 
     >>> binom_conf_interval([1, 2], 5, interval='wald', confidence_level=0.99)  # doctest: +FLOAT_CMP
     array([[-0.26077835, -0.16433593],
