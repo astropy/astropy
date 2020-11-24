@@ -85,9 +85,6 @@ def col_copy(col, copy_indices=True):
             for index in newcol.info.indices:
                 index.replace_col(col, newcol)
 
-    # TODO: bit strange that this is needed. Why not the default?
-    newcol.info.indices = newcol.info.indices or []
-
     return newcol
 
 
