@@ -1591,6 +1591,38 @@ def test_z_at_value():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('method', ['Brent', 'Golden', 'Bounded'])
+def test_z_at_value_bracketed(method):
+    """
+    Test 2 solutions for angular diameter distance by not constraining zmin, zmax,
+    but setting `bracket` on the appropriate side of the turning point z.
+    Setting zmin / zmax should override `bracket`.
+    """
+    z_at_value = funcs.z_at_value
+    cosmo = core.Planck13
+
+    if method.lower() == 'bounded':
+        with pytest.warns(UserWarning, match=r"Option 'bracket' is ignored"):
+            assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
+                                       bracket=(1.6, 2.0)), 3.7914908028272083, rtol=1e-6)
+    else:
+        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+            assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
+                                       bracket=(0.9, 1.5)), 0.68127769625288614, rtol=1e-6)
+            assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
+                                       bracket=(1.6, 2.0)), 3.7914908028272083, rtol=1e-6)
+        assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
+                                   bracket=(1.6, 2.0), zmax=1.6), 0.68127769625288614, rtol=1e-6)
+        assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
+                                   bracket=(0.9, 1.5), zmin=1.5), 3.7914908028272083, rtol=1e-6)
+
+    with pytest.raises(core.CosmologyError):
+        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+            z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
+                       bracket=(3.9, 5.0), zmin=4.)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_z_at_value_roundtrip():
     """
     Calculate values from a known redshift, and then check that

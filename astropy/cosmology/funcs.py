@@ -14,7 +14,8 @@ __all__ = ['z_at_value']
 __doctest_requires__ = {'*': ['scipy']}
 
 
-def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
+def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
+               method='Brent', bracket=None, verbose=False):
     """ Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
@@ -35,7 +36,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     func : function or method
        A function that takes a redshift as input.
     fval : `~astropy.units.Quantity` instance
-       The value of ``func(z)``.
+       The (scalar) value of ``func(z)`` to recover.
     zmin : float, optional
        The lower search limit for ``z``.  Beware of divergences
        in some cosmological functions, such as distance moduli,
@@ -47,6 +48,20 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     maxfun : int, optional
        The maximum number of function evaluations allowed in the
        optimization routine (default 500).
+    method : str or callable, optional
+       Type of solver to pass to ``~scipy.optimize.minimize_scalar`` -
+       should be one of 'Brent' (default), 'Golden' or 'Bounded'.
+       Can in theory also be a callable object as custom solver,
+       but this is untested.
+    bracket : sequence, optional
+       For methods 'Brent' and 'Golden', ``bracket`` defines the bracketing
+       interval and can either have three items (z1, z2, z3) so that z1 < z2 < z3
+       and ``func(z2) < func(z1), func(z3)`` or two items z1 and z3 which are
+       assumed to be a starting interval for a downhill bracket search.
+       For bimodal functions such as angular diameter distance this can be
+       used to start the search on the desired side of the maximum.
+    verbose : bool, optional
+       Print diagnostic output from solver (default `False`).
 
     Returns
     -------
@@ -113,33 +128,49 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     other commonly inverted quantities) are monotonic in flat and open
     universes, but not in closed universes.
     """
-    from scipy.optimize import fminbound
+    from scipy.optimize import minimize_scalar
+
+    opt = {'maxiter': maxfun}
+    if method.lower() == 'bounded':
+        opt['xatol'] = ztol
+        if bracket is not None:
+            warnings.warn(f"Option 'bracket' is ignored by method {method}.")
+    else:
+        opt['xtol'] = ztol
 
     fval_zmin = func(zmin)
     fval_zmax = func(zmax)
     if np.sign(fval - fval_zmin) != np.sign(fval_zmax - fval):
-        warnings.warn("""\
-fval is not bracketed by func(zmin) and func(zmax). This means either
-there is no solution, or that there is more than one solution between
-zmin and zmax satisfying fval = func(z).""")
+        warnings.warn(f"fval is not bracketed by func(zmin)={fval_zmin} and func(zmax)="
+                      f"{fval_zmax}. This means either there is no solution, or that there is "
+                      "more than one solution between zmin and zmax satisfying fval = func(z).")
 
     if isinstance(fval_zmin, Quantity):
         val = fval.to_value(fval_zmin.unit)
-        f = lambda z: abs(func(z).value - val)
     else:
-        f = lambda z: abs(func(z) - fval)
+        val = fval
 
-    zbest, resval, ierr, ncall = fminbound(f, zmin, zmax, maxfun=maxfun,
-                                           full_output=1, xtol=ztol)
+    # 'Brent' and 'Golden' ignore `bounds`, force solution inside zlim
+    def f(z):
+        if zmin <= z <= zmax:
+            return abs(Quantity(func(z)).value - val)
+        else:
+            return 1.e300
 
-    if ierr != 0:
-        warnings.warn(f'Maximum number of function calls ({ncall}) reached')
+    res = minimize_scalar(f, method=method, bounds=(zmin, zmax), bracket=bracket, options=opt)
 
+    if not res['success']:
+        warnings.warn(f"Solver returned {res['status']}: {res['message']}\n"
+                      f"Precision {res['fun']} reached after {res['nfev']} function calls.")
+
+    if verbose:
+        print(res)
+
+    zbest = max(min(res['x'], zmax), zmin)
     if np.allclose(zbest, zmax):
-        raise CosmologyError("Best guess z is very close the upper z limit.\n"
+        raise CosmologyError(f"Best guess z={zbest} is very close to the upper z limit {zmax}.\n"
                              "Try re-running with a different zmax.")
     elif np.allclose(zbest, zmin):
-        raise CosmologyError("Best guess z is very close the lower z limit.\n"
+        raise CosmologyError(f"Best guess z={zbest} is very close to the lower z limit {zmin}.\n"
                              "Try re-running with a different zmin.")
-
     return zbest
