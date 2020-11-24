@@ -566,6 +566,18 @@ class BaseColumnInfo(DataInfo):
         for str_val in _pformat_col_iter(col, -1, False, False, {}):
             yield str_val
 
+    @property
+    def indices(self):
+        # Implementation note: the auto-generation as an InfoAttribute cannot
+        # be used here, since on access, one should not just return the
+        # default (empty list is this case), but set _attrs['indices'] so that
+        # if the list is appended to, it is registered here.
+        return self._attrs.setdefault('indices', [])
+
+    @indices.setter
+    def indices(self, indices):
+        self._attrs['indices'] = indices
+
     def adjust_indices(self, index, value, col_len):
         '''
         Adjust info indices after column modification.

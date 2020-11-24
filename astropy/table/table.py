@@ -1040,7 +1040,6 @@ class Table:
             try:
                 col = data[0].__class__(data)
                 col.info.name = name
-                col.info.indices = []
                 return col
             except Exception:
                 # If that didn't work for some reason, just turn it into np.array of object
@@ -1197,8 +1196,6 @@ class Table:
                 # still pass if this line is deleted.  (Each col.info attribute access
                 # is expensive).
                 col.info._copy_indices = True
-            else:
-                newcol.info.indices = []
 
             newcols.append(newcol)
 
