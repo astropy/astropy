@@ -74,26 +74,16 @@ def col_copy(col, copy_indices=True):
     if isinstance(col, BaseColumn):
         return col.copy()
 
-    # The new column should have None for the parent_table ref.  If the
-    # original parent_table weakref there at the point of copying then it
-    # generates an infinite recursion.  Instead temporarily remove the weakref
-    # on the original column and restore after the copy in an exception-safe
-    # manner.
-
-    parent_table = col.info.parent_table
-    indices = col.info.indices
-    col.info.parent_table = None
-    col.info.indices = []
-
-    try:
-        newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+    newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+    # If the column has info defined, we copy it and adjust any indices
+    # to point to the copied column.  By guarding with the if statement,
+    # we avoid side effects (of creating the default info instance).
+    if 'info' in col.__dict__:
         newcol.info = col.info
-        newcol.info.indices = deepcopy(indices or []) if copy_indices else []
-        for index in newcol.info.indices:
-            index.replace_col(col, newcol)
-    finally:
-        col.info.parent_table = parent_table
-        col.info.indices = indices
+        if copy_indices and col.info.indices:
+            newcol.info.indices = deepcopy(col.info.indices)
+            for index in newcol.info.indices:
+                index.replace_col(col, newcol)
 
     return newcol
 
@@ -374,13 +364,15 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 self_data = np.array(data, dtype=dtype, copy=copy)
                 unit = data.unit
             else:
-                self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
-            if description is None:
-                description = data.info.description
-            if format is None:
-                format = data.info.format
-            if meta is None:
-                meta = data.info.meta
+                self_data = Quantity(data, unit, dtype=dtype, copy=copy).value
+            # If 'info' has been defined, copy basic properties (if needed).
+            if 'info' in data.__dict__:
+                if description is None:
+                    description = data.info.description
+                if format is None:
+                    format = data.info.format
+                if meta is None:
+                    meta = data.info.meta
 
         else:
             if np.dtype(dtype).char == 'S':
