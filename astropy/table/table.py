@@ -172,7 +172,11 @@ def descr(col):
 
 
 def has_info_class(obj, cls):
-    return hasattr(obj, 'info') and isinstance(obj.info, cls)
+    """Check if the object's info is an instance of cls."""
+    # We check info on the class of the instance, since on the instance
+    # itself accessing 'info' has side effects in that it sets
+    # obj.__dict__['info'] if it does not exist already.
+    return isinstance(getattr(obj.__class__, 'info', None), cls)
 
 
 def _get_names_from_list_of_dict(rows):
@@ -1008,9 +1012,11 @@ class Table:
             data_is_mixin = True
 
         # Get the final column name using precedence.  Some objects may not
-        # have an info attribute.
+        # have an info attribute. Also avoid creating info as a side effect.
         if not name:
-            if hasattr(data, 'info'):
+            if isinstance(data, Column):
+                name = data.name or default_name
+            elif 'info' in getattr(data, '__dict__', ()):
                 name = data.info.name or default_name
             else:
                 name = default_name
@@ -1036,7 +1042,6 @@ class Table:
             try:
                 col = data[0].__class__(data)
                 col.info.name = name
-                col.info.indices = []
                 return col
             except Exception:
                 # If that didn't work for some reason, just turn it into np.array of object
@@ -1193,8 +1198,6 @@ class Table:
                 # still pass if this line is deleted.  (Each col.info attribute access
                 # is expensive).
                 col.info._copy_indices = True
-            else:
-                newcol.info.indices = []
 
             newcols.append(newcol)
 

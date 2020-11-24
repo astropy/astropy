@@ -346,7 +346,14 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
         if isinstance(value, DataInfo):
             info = instance.__dict__['info'] = self.__class__(bound=True)
-            for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
+            attr_names = info.attr_names
+            if value.__class__ is self.__class__:
+                # For same class, attributes are guaranteed to be stored in
+                # _attrs, so speed matters up by not accessing defaults.
+                # Doing this before difference in for loop helps speed.
+                attr_names = attr_names & set(value._attrs)  # NOT in-place!
+
+            for attr in attr_names - info.attrs_from_parent - info._attrs_no_copy:
                 info._attrs[attr] = deepcopy(getattr(value, attr))
 
         else:
@@ -558,6 +565,18 @@ class BaseColumnInfo(DataInfo):
         _pformat_col_iter = formatter._pformat_col_iter
         for str_val in _pformat_col_iter(col, -1, False, False, {}):
             yield str_val
+
+    @property
+    def indices(self):
+        # Implementation note: the auto-generation as an InfoAttribute cannot
+        # be used here, since on access, one should not just return the
+        # default (empty list is this case), but set _attrs['indices'] so that
+        # if the list is appended to, it is registered here.
+        return self._attrs.setdefault('indices', [])
+
+    @indices.setter
+    def indices(self, indices):
+        self._attrs['indices'] = indices
 
     def adjust_indices(self, index, value, col_len):
         '''

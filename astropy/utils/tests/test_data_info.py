@@ -80,10 +80,10 @@ def test_info_no_copy_mixin_with_index(col):
     t.add_index('col')
     val = t['col'][0]
     assert 'info' not in val.__dict__
-    assert val.info.indices is None
+    assert val.info.indices == []
     val = t['col'][:]
     assert 'info' in val.__dict__
-    assert val.info.indices is None
+    assert val.info.indices == []
     val = t[:]['col']
     assert 'info' in val.__dict__
     assert isinstance(val.info.indices[0], SlicedIndex)
@@ -97,8 +97,8 @@ def test_info_no_copy_skycoord():
     t = QTable([col], names=['col'])
     val = t['col'][0]
     assert 'info' not in val.__dict__
-    assert val.info.indices is None
+    assert val.info.indices == []
     val = t['col'][:]
-    assert val.info.indices is None
+    assert val.info.indices == []
     val = t[:]['col']
     assert val.info.indices == []

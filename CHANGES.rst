@@ -221,6 +221,11 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Ensure that adding a ``Quantity`` or other mixin column to a ``Table``
+  does not have side effects, such as creating an associated ``info``
+  instance (which would lead to slow-down of, e.g., slicing afterwards).
+  [#11077]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
