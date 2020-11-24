@@ -12,14 +12,6 @@ import functools
 
 import pytest
 
-try:
-    # Import pkg_resources to prevent it from issuing warnings upon being
-    # imported from within pytest.  See
-    # https://github.com/astropy/astropy/pull/537 for a detailed explanation.
-    import pkg_resources  # pylint: disable=W0611  # noqa
-except ImportError:
-    pass
-
 from astropy.units import allclose as quantity_allclose  # noqa
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                       AstropyPendingDeprecationWarning)
