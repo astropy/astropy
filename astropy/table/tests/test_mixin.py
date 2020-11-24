@@ -840,6 +840,10 @@ def test_ensure_input_info_is_unchanged(table_cls):
     """
     q = [1, 2] * u.m
     assert 'info' not in q.__dict__
+    t = table_cls([q], names=['q'])
+    assert 'info' not in q.__dict__
+    t = table_cls([q])
+    assert 'info' not in q.__dict__
     t = table_cls({'q': q})
     assert 'info' not in q.__dict__
     t['q2'] = q
