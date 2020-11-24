@@ -829,3 +829,21 @@ def test_skycoord_with_velocity():
     s.seek(0)
     t2 = Table.read(s.read(), format='ascii.ecsv')
     assert skycoord_equal(t2['col0'], sc)
+
+
+@pytest.mark.parametrize('table_cls', [Table, QTable])
+def test_ensure_input_info_is_unchanged(table_cls):
+    """If a mixin input to a table has no info, it should stay that way.
+
+    This since having 'info' slows down slicing, etc.
+    See gh-11066.
+    """
+    q = [1, 2] * u.m
+    assert 'info' not in q.__dict__
+    t = table_cls({'q': q})
+    assert 'info' not in q.__dict__
+    t['q2'] = q
+    assert 'info' not in q.__dict__
+    sc = SkyCoord([1, 2], [2, 3], unit='deg')
+    t['sc'] = sc
+    assert 'info' not in sc.__dict__

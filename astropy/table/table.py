@@ -172,7 +172,11 @@ def descr(col):
 
 
 def has_info_class(obj, cls):
-    return hasattr(obj, 'info') and isinstance(obj.info, cls)
+    """Check if the object's info is an instance of cls."""
+    # We check info on the class of the instance, since on the instance
+    # itself accessing 'info' has side effects in that it sets
+    # obj.__dict__['info'] if it does not exist already.
+    return isinstance(getattr(obj.__class__, 'info', None), cls)
 
 
 def _get_names_from_list_of_dict(rows):
