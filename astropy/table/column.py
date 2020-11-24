@@ -75,14 +75,18 @@ def col_copy(col, copy_indices=True):
         return col.copy()
 
     newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
-    newcol.info = col.info
-    if copy_indices and col.info.indices:
-        newcol.info.indices = deepcopy(col.info.indices)
-        for index in newcol.info.indices:
-            index.replace_col(col, newcol)
-    else:
-        # TODO: bit strange that this is needed. Why not the default?
-        newcol.info.indices = []
+    # If the column has info defined, we copy it and adjust any indices
+    # to point to the copied column.  By guarding with the if statement,
+    # we avoid side effects (of creating the default info instance).
+    if 'info' in col.__dict__:
+        newcol.info = col.info
+        if copy_indices and col.info.indices:
+            newcol.info.indices = deepcopy(col.info.indices)
+            for index in newcol.info.indices:
+                index.replace_col(col, newcol)
+
+    # TODO: bit strange that this is needed. Why not the default?
+    newcol.info.indices = newcol.info.indices or []
 
     return newcol
 
@@ -363,13 +367,15 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
                 self_data = np.array(data, dtype=dtype, copy=copy)
                 unit = data.unit
             else:
-                self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
-            if description is None:
-                description = data.info.description
-            if format is None:
-                format = data.info.format
-            if meta is None:
-                meta = data.info.meta
+                self_data = Quantity(data, unit, dtype=dtype, copy=copy).value
+            # If 'info' has been defined, copy basic properties (if needed).
+            if 'info' in data.__dict__:
+                if description is None:
+                    description = data.info.description
+                if format is None:
+                    format = data.info.format
+                if meta is None:
+                    meta = data.info.meta
 
         else:
             if np.dtype(dtype).char == 'S':
