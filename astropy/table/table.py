@@ -1012,9 +1012,11 @@ class Table:
             data_is_mixin = True
 
         # Get the final column name using precedence.  Some objects may not
-        # have an info attribute.
+        # have an info attribute. Also avoid creating info as a side effect.
         if not name:
-            if hasattr(data, 'info'):
+            if isinstance(data, Column):
+                name = data.name or default_name
+            elif 'info' in getattr(data, '__dict__', ()):
                 name = data.info.name or default_name
             else:
                 name = default_name
