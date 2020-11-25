@@ -20,6 +20,9 @@ astropy.coordinates
   ``AltAz`` calculations are now accurate down to the milli-arcsecond
   level. [#10994]
 
+- Adds a direct transformation from ``ICRS`` to ``AltAz`` frames. This
+  provides a modest speedup of approximately 10 percent. [#11079]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
