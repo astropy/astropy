@@ -1,18 +1,9 @@
-4.0.4 (unreleased)
+4.0.4 (2020-11-24)
 ==================
 
 
 Bug Fixes
 ---------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
@@ -25,12 +16,6 @@ astropy.coordinates
   frames (``HeliocentricMeanEcliptic``, ``HeliocentricTrueEcliptic``, and
   ``HeliocentricEclipticIAU76``) now correctly account for the small motion of
   the Sun when transforming a coordinate with velocity information. [#10970]
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -47,40 +32,16 @@ astropy.io.ascii
   and for basic character-delimited data files ('basic' format with appropriate
   ``converters`` specified). [#10995]
 
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Fixed use of weights with ``LinearLSQFitter``. [#10687]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
 
 astropy.stats
 ^^^^^^^^^^^^^
 
 - Fixed an issue in biweight stats when MAD=0 to give the same output
   with and without an input ``axis``. [#10912]
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -93,31 +54,12 @@ astropy.time
   object in a format like ``unix`` or ``cxcsec`` (time delta from a reference
   epoch time). [#10406]
 
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Fixed the caclulation of the tight bounding box of a ``WCSAxes``. This should
   also significantly improve the application of ``tight_layout()`` to figures
   containing ``WCSAxes``. [#10797]
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
 
 
 4.0.3 (2020-10-14)
@@ -136,6 +78,7 @@ Other Changes and Additions
 ---------------------------
 
 - Fixed installation of the source distribution with pip<19. [#10837, #10852]
+
 
 4.0.2 (2020-10-10)
 ==================
@@ -175,6 +118,7 @@ astropy.wcs
   the ``aux`` attribute of ``Wcsprm``. [#10333]
 
 - Updated bundled version of ``WCSLIB`` to v7.3. [#10433]
+
 
 Bug fixes
 ---------
@@ -336,7 +280,6 @@ astropy.stats
   and background count numbers led to ``ValueError`` due to the choice of
   starting value for numerical optimization. [#10618]
 
-
 astropy.table
 ^^^^^^^^^^^^^
 
@@ -360,9 +303,6 @@ astropy.table
 
 - Avoid crash when reading a FITS table that contains mixin info and PyYAML
   is missing. [#10485]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -403,6 +343,7 @@ astropy.wcs
 
 - Fixed a bug due to which ``naxis`` argument was ignored if ``header``
   was supplied during the initialization of a WCS object. [#10532]
+
 
 Other Changes and Additions
 ---------------------------
