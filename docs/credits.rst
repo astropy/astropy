@@ -283,7 +283,6 @@ Core Package Contributors
 * Nadia Dencheva
 * Nathanial Hendler
 * Nathaniel Starkman
-* Nathaniel Starkman
 * Neal McBurnett
 * Neil Crighton
 * Neil Parley
