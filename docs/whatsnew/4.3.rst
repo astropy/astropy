@@ -17,17 +17,14 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-coordinates`
 * :ref:`whatsnew-4.3-threadsafe`
 * :ref:`whatsnew-4.3-sigma-clipping`
-<<<<<<< HEAD
 * :ref:`whatsnew-4.3-iers-auto-download`
 * :ref:`whatsnew-4.3-ecsv-subtypes`
 * :ref:`whatsnew-4.3-ascii-qdp-format`
 * :ref:`whatsnew-4.3-fits-append-table`
 * :ref:`whatsnew-4.3-masked-class-quantity`
 * :ref:`whatsnew-4.3-configuration-file-optional`
-=======
 * :ref:`whatsnew-4.3-cosmology`
 *
->>>>>>> 901722ef8... Update bounds handling, tests, docs and changelog
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -178,9 +175,9 @@ value and range to the solver.
 
   >>> from astropy import units as u
   >>> from astropy.cosmology import Planck18, z_at_value
-  >>> z_at_value(Planck18.angular_diameter_distance, 1500*u.Mpc, bracket=(0.6, 1.0, 1.5))
+  >>> z_at_value(Planck18.angular_diameter_distance, 1500*u.Mpc, bracket=(0.6, 1.0, 1.5))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
   0.6804445252462878
-  >>> z_at_value(Planck18.angular_diameter_distance, 1500*u.Mpc, bracket=(2.0, 3.0, 3.5))
+  >>> z_at_value(Planck18.angular_diameter_distance, 1500*u.Mpc, bracket=(2.0, 3.0, 3.5))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
   3.7823268160744115
 
 Full change log
