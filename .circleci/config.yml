@@ -13,19 +13,19 @@ jobs:
       - image: quay.io/pypa/manylinux1_i686
     steps:
       - checkout
+      # The extra 'git checkout' is a bit of magic, without it not all of the git tree is checkout
+      # (e.g. files from astropy/_erfa are missing causing build errors)
       - run:
           name: Write configuration items to standard location to make sure they are ignored in parallel mode
           command: |
               mkdir -p $HOME/.astropy/config/
               printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
+              git checkout -qf
       # In addition to testing 32-bit, we also use the 3.6 and 3.7 builds to
       # test the ability to run the test suite in parallel.
       - run:
           name: Install dependencies for Python 3.6
           command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest-astropy pytest-xdist Cython jinja2
-      - run:
-          name: Fetch all of the astropy code (magical step, not clear why it works)
-          command: git checkout -qf
       - run:
           name: Run tests for Python 3.6
           command: /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50 --assert=plain"
@@ -54,6 +54,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: checkout all of the astropy source code (including astropy/_erfa)
+          command: git checkout -qf
+      - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar"
       - store_artifacts:
@@ -64,6 +67,9 @@ jobs:
       - image: astropy/image-tests-py36-mpl222:1.10
     steps:
       - checkout
+      - run:
+          name: checkout all of the astropy source code (including astropy/_erfa)
+          command: git checkout -qf
       - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar"
@@ -76,6 +82,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: checkout all of the astropy source code (including astropy/_erfa)
+          command: git checkout -qf
+      - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
@@ -87,6 +96,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: checkout all of the astropy source code (including astropy/_erfa)
+          command: git checkout -qf
+      - run:
           name: Run tests
           command: python3 setup.py test -P visualization --remote-data=astropy --open-files -a "--mpl --mpl-results-path=$PWD/results"
       - store_artifacts:
@@ -97,6 +109,9 @@ jobs:
       - image: astropy/image-tests-py37-base:1.4
     steps:
       - checkout
+      - run:
+          name: checkout all of the astropy source code (including astropy/_erfa)
+          command: git checkout -qf
       - run:
           name: Install C++ compiler
           command: |
