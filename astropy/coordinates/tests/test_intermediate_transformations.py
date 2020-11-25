@@ -604,9 +604,9 @@ def test_tete_transforms():
     gcrs_frame = GCRS(obstime=time, obsgeoloc=p, obsgeovel=v)
     moon = SkyCoord(169.24113968*u.deg, 10.86086666*u.deg, 358549.25381755*u.km, frame=gcrs_frame)
 
-    tete_frame = TETE(obstime=time, obsgeoloc=p, obsgeovel=v)
+    tete_frame = TETE(obstime=time, location=loc)
     # need to set obsgeoloc/vel explicity or skycoord behaviour over-writes
-    tete_geo = TETE(obstime=time, obsgeoloc=[0, 0, 0]*u.km, obsgeovel=[0, 0, 0]*u.km/u.s)
+    tete_geo = TETE(obstime=time, location=EarthLocation(*([0, 0, 0]*u.km)))
 
     # test self-transform by comparing to GCRS-TETE-ITRS-TETE route
     tete_coo1 = moon.transform_to(tete_frame)
@@ -616,7 +616,10 @@ def test_tete_transforms():
     # test TETE-ITRS transform by comparing GCRS-CIRS-ITRS to GCRS-TETE-ITRS
     itrs1 = moon.transform_to(CIRS()).transform_to(ITRS())
     itrs2 = moon.transform_to(TETE()).transform_to(ITRS())
-    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=1*u.mm)
+    # this won't be as close since it will round trip through ICRS until
+    # we have some way of translating between the GCRS obsgeoloc/obsgeovel
+    # attributes and the TETE location attributes.
+    assert_allclose(itrs1.separation_3d(itrs2), 0*u.mm, atol=100*u.mm)
 
     # test round trip GCRS->TETE->GCRS
     new_moon = moon.transform_to(TETE()).transform_to(moon)

@@ -16,8 +16,8 @@ from astropy.utils.decorators import format_doc
 from astropy.coordinates.representation import (CartesianRepresentation, CartesianDifferential)
 from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
 from astropy.coordinates.builtin_frames.baseradec import BaseRADecFrame, doc_components
-from astropy.coordinates.attributes import TimeAttribute, CartesianRepresentationAttribute
-from .utils import DEFAULT_OBSTIME
+from astropy.coordinates.attributes import TimeAttribute, EarthLocationAttribute
+from .utils import DEFAULT_OBSTIME, EARTH_CENTER
 
 __all__ = ['TEME', 'TETE']
 
@@ -35,18 +35,11 @@ doc_footer_tete = """
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
         position of the Earth.
-    obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
-        The position of the observer relative to the center-of-mass of the
-        Earth, oriented the same as GCRS. Either [0, 0, 0],
-        `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
-        i.e., a `~astropy.units.Quantity` with shape (3, ...) and length units.
-        Defaults to [0, 0, 0], meaning a geocentric observer.
-    obsgeovel : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity`
-        The velocity of the observer relative to the center-of-mass of the
-        Earth, oriented the same as GCRS. Either [0, 0, 0],
-        `~astropy.coordinates.CartesianRepresentation`, or proper input for one,
-        i.e., a `~astropy.units.Quantity` with shape (3, ...) and velocity
-        units.  Defaults to [0, 0, 0], meaning a geocentric observer.
+    location : `~astropy.coordinates.EarthLocation`
+        The location on the Earth.  This can be specified either as an
+        `~astropy.coordinates.EarthLocation` object or as anything that can be
+        transformed to an `~astropy.coordinates.ITRS` frame. The default is the
+        centre of the Earth.
 """
 
 
@@ -84,10 +77,7 @@ class TETE(BaseRADecFrame):
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = CartesianRepresentationAttribute(default=[0, 0, 0],
-                                                 unit=u.m)
-    obsgeovel = CartesianRepresentationAttribute(default=[0, 0, 0],
-                                                 unit=u.m/u.s)
+    location = EarthLocationAttribute(default=EARTH_CENTER)
 
 # Self transform goes through ICRS and is defined in icrs_cirs_transforms.py
 
