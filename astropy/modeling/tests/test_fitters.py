@@ -5,8 +5,12 @@ Module to test fitting routines
 # pylint: disable=invalid-name
 import os.path
 import warnings
-from importlib.metadata import EntryPoint
 from unittest import mock
+
+try:
+    from importlib.metadata import EntryPoint
+except ImportError:
+    from importlib_metadata import EntryPoint
 
 import pytest
 import numpy as np

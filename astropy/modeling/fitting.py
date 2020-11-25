@@ -27,7 +27,11 @@ import inspect
 import operator
 import warnings
 
-import importlib.metadata
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from functools import reduce, wraps
 
 import numpy as np
@@ -1757,5 +1761,4 @@ def populate_entry_points(entry_points):
                         'astropy.modeling.Fitter' .format(name)))
 
 
-entry_points = importlib.metadata.entry_points()
-populate_entry_points(entry_points.get('astropy.modeling', []))
+populate_entry_points(entry_points().get('astropy.modeling', []))
