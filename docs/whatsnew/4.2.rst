@@ -59,7 +59,7 @@ format like ``unix``, ``unix_tai``, or ``cxcsec`` was improved by a factor of 4.
 Removed ERFA module
 ===================
 
-The private ``_erfa`` module has been converted to its own package `PyeERFA
+The private ``_erfa`` module has been converted to its own package `PyERFA
 <https://pyerfa.readthedocs.io/en/latest/>`__. It is now a required
 dependency of astropy, and can be directly imported with ``import
 erfa``. Importing ``_erfa`` from ``astropy`` now issues a deprecation
