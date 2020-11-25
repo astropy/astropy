@@ -254,7 +254,7 @@ Other Changes and Additions
 - Officially declared minversion of ``ipython`` to be 4.2. [#10942]
 
 - Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
-  and substantially improved speed. [#10994]
+  and substantially improved speed. [#11069]
 
 - Also refactor ``EarthLocation.get_gcrs`` for an increase in performance of
   an order of magnitude, which enters as well in getting observed positions of
