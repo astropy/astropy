@@ -24,6 +24,9 @@ jobs:
           name: Install dependencies for Python 3.6
           command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest-astropy pytest-xdist Cython jinja2
       - run:
+          name: Fetch all of the astropy code (magical step, not clear why it works)
+          command: git checkout -qf
+      - run:
           name: Run tests for Python 3.6
           command: /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50 --assert=plain"
       - run:
