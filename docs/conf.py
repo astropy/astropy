@@ -29,10 +29,13 @@ import os
 import sys
 
 import configparser
-import importlib.metadata
 from datetime import datetime
 from packaging.requirements import Requirement
 
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    import importlib_metadata
 
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
@@ -99,7 +102,7 @@ __minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=
 project = u'Astropy'
 
 min_versions = {}
-for line in importlib.metadata.requires('astropy'):
+for line in importlib_metadata.requires('astropy'):
     req = Requirement(line.split(';')[0])
     min_versions[req.name] = str(req.specifier)
 
@@ -126,7 +129,7 @@ copyright = f'2011–{datetime.utcnow().year}, ' + author
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = importlib.metadata.version(project)
+release = importlib_metadata.version(project)
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 

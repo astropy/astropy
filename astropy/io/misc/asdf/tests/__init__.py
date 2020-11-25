@@ -4,7 +4,11 @@
 # Define a constant to know if the entry points are installed, since this impacts
 # whether we can run the tests.
 
-from importlib.metadata import entry_points
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 import pytest
 
 ep = [entry.name for entry in entry_points().get('asdf_extensions', [])]
