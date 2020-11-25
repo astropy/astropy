@@ -11,7 +11,7 @@ from collections import OrderedDict, defaultdict
 import numpy as np
 
 from astropy.utils.decorators import lazyproperty, classproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, ErfaWarning
 from astropy import units as u
 from astropy import _erfa as erfa
 
@@ -731,7 +731,6 @@ class TimePlotDate(TimeFromEpoch):
         else:
             # Get the matplotlib date epoch as an ISOT string in UTC
             epoch_utc = get_epoch()
-            from erfa import ErfaWarning
             with warnings.catch_warnings():
                 # Catch possible dubious year warnings from erfa
                 warnings.filterwarnings('ignore', category=ErfaWarning)
