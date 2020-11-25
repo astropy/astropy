@@ -9,22 +9,21 @@ What's New in Astropy 4.2?
 Overview
 ========
 
-Astropy 4.2 is a major release that ...  since
-the 4.1.x series of releases.
+Astropy 4.2 is a major release that adds new funcionality since the 4.1 release.
 
 In particular, this release includes:
 
 * :ref:`whatsnew-4.2-cosmology`
 * :ref:`whatsnew-4.2-time-perf-imp`
-*
+* :ref:`whatsnew-4.2-erfa`
 
-In addition to these major changes, Astropy v4.1 includes a large number of
-smaller improvements and bug fixes, which are described in the
+In addition to these major changes, Astropy v4.2 includes
+smaller improvements and bug fixes and significant cleanup, which are described in the
 :ref:`changelog`. By the numbers:
 
-* xxx issues have been closed since v4.1
-* xxx pull requests have been merged since v4.1
-* xxx distinct people have contributed code
+* 183 issues have been closed since v4.1
+* 105 pull requests have been merged since v4.1
+* 63 distinct people have contributed code
 
 .. _whatsnew-4.2-cosmology:
 
@@ -54,6 +53,19 @@ also be used for custom user-defined Time formats. For details see
 In addition the performance for creating a scalar ``Time`` object in a epoch
 format like ``unix``, ``unix_tai``, or ``cxcsec`` was improved by a factor of 4.
 
+
+.. _whatsnew-4.2-erfa:
+
+Removed ERFA module
+===================
+
+The private ``_erfa`` module has been converted to its own package `PyeERFA
+<https://pyerfa.readthedocs.io/en/latest/>`__. It is now a required
+dependency of astropy, and can be directly imported with ``import
+erfa``. Importing ``_erfa`` from ``astropy`` now issues a deprecation
+warning and will be removed in the future.
+
+
 Full change log
 ===============
 
@@ -61,5 +73,74 @@ To see a detailed list of all changes in version v4.2, including changes in
 API, please see the :ref:`changelog`.
 
 
-Renamed/removed functionality
-=============================
+Contributors to the v4.2 release
+================================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  *    Adrian Price-Whelan
+  *    Albert Y. Shih
+  *    Alex Conley
+  *    Aniket Sanghi  *
+  *    Anne Archibald
+  *    Bastian Beischer  *
+  *    Ben Greiner  *
+  *    Benjamin Winkel
+  *    Bojan Nikolic  *
+  *    Brian Soto  *
+  *    Brigitta Sipőcz
+  *    Bruce Merry  *
+  *    Chris Simpson
+  *    Chun Ly  *
+  *    Clara Brasseur
+  *    Clare Shanahan
+  *    David Stansby
+  *    Derek Homeier
+  *    Diego Alonso  *
+  *    Ed Slavich
+  *    E. Madison Bray
+  *    Erik Tollerud
+  *    Erin Allard
+  *    Even Rouault  *
+  *    Gabriel Perren
+  *    George Galvin  *
+  *    Gregory Simonian  *
+  *    Hannes Breytenbach
+  *    Hans Moritz Günther
+  *    Inada Naoki  *
+  *    James Turner
+  *    Jero Bado  *
+  *    Juan Luis Cano Rodríguez
+  *    Kris Stern
+  *    Larry Bradley
+  *    Lauren Glattly
+  *    Lee Spitler  *
+  *    Ludwig Schwardt  *
+  *    Marten van Kerkwijk
+  *    Matthew Craig
+  *    Maximilian Nöthe
+  *    Michele Costa
+  *    Miguel de Val-Borro
+  *    Mihai Cara
+  *    Nadia Dencheva
+  *    Nathaniel Starkman  *
+  *    Nicolas Tessore  *
+  *    Nikita Saxena  *
+  *    Ole Streicher
+  *    Paul Huwe  *
+  *    Peter Yoachim  *
+  *    Pey Lian Lim
+  *    Ricardo Fonseca  *
+  *    Rui Xue
+  *    Shreyas Bapat
+  *    Simon Conseil
+  *    Stuart Littlefair
+  *    Stuart Mumford
+  *    Thomas Robitaille
+  *    Tom Aldcroft
+  *    Tom Donaldson
+  *    Victoria Dye  *
+  *    Zac Hatfield-Dodds  *
