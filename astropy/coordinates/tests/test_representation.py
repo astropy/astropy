@@ -24,6 +24,7 @@ from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 CartesianRepresentation,
                                                 CylindricalRepresentation,
                                                 PhysicsSphericalRepresentation,
+                                                WGS84GeodeticRepresentation,
                                                 CartesianDifferential,
                                                 SphericalDifferential,
                                                 RadialDifferential,
@@ -1029,6 +1030,47 @@ def test_unit_spherical_roundtrip():
 
     assert_allclose_quantity(s1.lon, s4.lon)
     assert_allclose_quantity(s1.lat, s4.lat)
+
+
+def test_cartesian_wgs84geodetic_roundtrip():
+
+    s1 = CartesianRepresentation(x=[1, 2000.] * u.km,
+                                 y=[7000., 4.] * u.km,
+                                 z=[5., 6000.] * u.km)
+
+    s2 = WGS84GeodeticRepresentation.from_representation(s1)
+
+    s3 = CartesianRepresentation.from_representation(s2)
+
+    s4 = WGS84GeodeticRepresentation.from_representation(s3)
+
+    assert_allclose_quantity(s1.x, s3.x)
+    assert_allclose_quantity(s1.y, s3.y)
+    assert_allclose_quantity(s1.z, s3.z)
+
+    assert_allclose_quantity(s2.lon, s4.lon)
+    assert_allclose_quantity(s2.lat, s4.lat)
+    assert_allclose_quantity(s2.height, s4.height)
+
+
+def test_geocentric_to_geodetic():
+    """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
+    gc = CartesianRepresentation(2e6, 3e6, 5.244e6, u.m)
+    gd = WGS84GeodeticRepresentation.from_cartesian(gc)
+
+    assert_allclose_quantity(gd.lon, 0.98279372324732907 * u.rad, atol=1e-14 * u.rad)
+    assert_allclose_quantity(gd.lat, 0.97160184820607853 * u.rad, atol=1e-14 * u.rad)
+    assert_allclose_quantity(gd.height, 331.41731754844348 * u.m, rtol=1e-5, atol=1e-8 * u.m)
+
+
+def test_geodetic_to_geocentric():
+    """Test that we reproduce erfa/src/t_erfa_c.c t_gd2gc"""
+    gd = WGS84GeodeticRepresentation(3.1 * u.rad, -0.5 * u.rad, 2500.0 * u.m)
+    gc = gd.to_cartesian()
+
+    assert_allclose_quantity(gc.x, -5599000.5577049947 * u.m, atol=1e-7 * u.m)
+    assert_allclose_quantity(gc.y, 233011.67223479203 * u.m, atol=1e-7 * u.m)
+    assert_allclose_quantity(gc.z, -3040909.4706983363 * u.m, atol=1e-7 * u.m)
 
 
 def test_no_unnecessary_copies():
