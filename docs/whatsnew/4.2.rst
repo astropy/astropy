@@ -81,66 +81,66 @@ The people who have contributed to the code for this release are:
 .. hlist::
   :columns: 4
 
-   *    Adrian Price-Whelan
-   *    Albert Y. Shih
-   *    Alex Conley
-   *    Aniket Sanghi  *
-   *    Anne Archibald
-   *    Bastian Beischer  *
-   *    Ben Greiner  *
-   *    Benjamin Winkel
-   *    Bojan Nikolic  *
-   *    Brian Soto  *
-   *    Brigitta Sipőcz
-   *    Bruce Merry  *
-   *    Chris Simpson
-   *    Chun Ly  *
-   *    Clara Brasseur
-   *    Clare Shanahan
-   *    David Stansby
-   *    Derek Homeier
-   *    Diego Alonso  *
-   *    Ed Slavich
-   *    E. Madison Bray
-   *    Erik Tollerud
-   *    Erin Allard
-   *    Even Rouault  *
-   *    Gabriel Perren
-   *    George Galvin  *
-   *    Gregory Simonian  *
-   *    Hannes Breytenbach
-   *    Hans Moritz Günther
-   *    Inada Naoki  *
-   *    James Turner
-   *    Jero Bado  *
-   *    Juan Luis Cano Rodríguez
-   *    Kris Stern
-   *    Larry Bradley
-   *    Lauren Glattly
-   *    Lee Spitler  *
-   *    Ludwig Schwardt  *
-   *    Marten van Kerkwijk
-   *    Matthew Craig
-   *    Maximilian Nöthe
-   *    Michele Costa
-   *    Miguel de Val-Borro
-   *    Mihai Cara
-   *    Nadia Dencheva
-   *    Nathaniel Starkman  *
-   *    Nicolas Tessore  *
-   *    Nikita Saxena  *
-   *    Ole Streicher
-   *    Paul Huwe  *
-   *    Peter Yoachim  *
-   *    Pey Lian Lim
-   *    Ricardo Fonseca  *
-   *    Rui Xue
-   *    Shreyas Bapat
-   *    Simon Conseil
-   *    Stuart Littlefair
-   *    Stuart Mumford
-   *    Thomas Robitaille
-   *    Tom Aldcroft
-   *    Tom Donaldson
-   *    Victoria Dye  *
-   *    Zac Hatfield-Dodds  *
+  *    Adrian Price-Whelan
+  *    Albert Y. Shih
+  *    Alex Conley
+  *    Aniket Sanghi  *
+  *    Anne Archibald
+  *    Bastian Beischer  *
+  *    Ben Greiner  *
+  *    Benjamin Winkel
+  *    Bojan Nikolic  *
+  *    Brian Soto  *
+  *    Brigitta Sipőcz
+  *    Bruce Merry  *
+  *    Chris Simpson
+  *    Chun Ly  *
+  *    Clara Brasseur
+  *    Clare Shanahan
+  *    David Stansby
+  *    Derek Homeier
+  *    Diego Alonso  *
+  *    Ed Slavich
+  *    E. Madison Bray
+  *    Erik Tollerud
+  *    Erin Allard
+  *    Even Rouault  *
+  *    Gabriel Perren
+  *    George Galvin  *
+  *    Gregory Simonian  *
+  *    Hannes Breytenbach
+  *    Hans Moritz Günther
+  *    Inada Naoki  *
+  *    James Turner
+  *    Jero Bado  *
+  *    Juan Luis Cano Rodríguez
+  *    Kris Stern
+  *    Larry Bradley
+  *    Lauren Glattly
+  *    Lee Spitler  *
+  *    Ludwig Schwardt  *
+  *    Marten van Kerkwijk
+  *    Matthew Craig
+  *    Maximilian Nöthe
+  *    Michele Costa
+  *    Miguel de Val-Borro
+  *    Mihai Cara
+  *    Nadia Dencheva
+  *    Nathaniel Starkman  *
+  *    Nicolas Tessore  *
+  *    Nikita Saxena  *
+  *    Ole Streicher
+  *    Paul Huwe  *
+  *    Peter Yoachim  *
+  *    Pey Lian Lim
+  *    Ricardo Fonseca  *
+  *    Rui Xue
+  *    Shreyas Bapat
+  *    Simon Conseil
+  *    Stuart Littlefair
+  *    Stuart Mumford
+  *    Thomas Robitaille
+  *    Tom Aldcroft
+  *    Tom Donaldson
+  *    Victoria Dye  *
+  *    Zac Hatfield-Dodds  *
