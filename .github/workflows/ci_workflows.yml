@@ -68,9 +68,9 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - name: Install language-pack-de and tzdata
+    - name: Install language-pack-fr and tzdata
       if: startsWith(matrix.os, 'ubuntu')
-      run: sudo apt-get install language-pack-de tzdata
+      run: sudo apt-get install language-pack-fr tzdata
     - name: Install Python dependencies
       run: python -m pip install --upgrade tox codecov
     - name: Run tests
