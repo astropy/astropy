@@ -17,12 +17,17 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-coordinates`
 * :ref:`whatsnew-4.3-threadsafe`
 * :ref:`whatsnew-4.3-sigma-clipping`
+<<<<<<< HEAD
 * :ref:`whatsnew-4.3-iers-auto-download`
 * :ref:`whatsnew-4.3-ecsv-subtypes`
 * :ref:`whatsnew-4.3-ascii-qdp-format`
 * :ref:`whatsnew-4.3-fits-append-table`
 * :ref:`whatsnew-4.3-masked-class-quantity`
 * :ref:`whatsnew-4.3-configuration-file-optional`
+=======
+* :ref:`whatsnew-4.3-cosmology`
+*
+>>>>>>> 901722ef8... Update bounds handling, tests, docs and changelog
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -161,6 +166,22 @@ file can be written with a new function `~astropy.config.create_config_file`.
 Affiliated packages should update their ``__init__.py`` module to remove the
 block using ``update_default_config`` and
 ``ConfigurationDefaultMissingWarning``.
+
+.. _whatsnew-4.3-cosmology:
+
+Support for different solvers and ``bracket`` option in ``z_at_value``
+======================================================================
+
+The ``z_at_value`` convenience function now supports several solver methods,
+the default of which provides a new ``bracket`` parameter to pass a starting
+value and range to the solver.
+
+  >>> from astropy import units as u
+  >>> from astropy.cosmology import Planck18, z_at_value
+  >>> z_at_value(Planck18.angular_diameter_distance, 1500*u.Mpc, bracket=(0.6, 1.0, 1.5))
+  0.6804445252462878
+  >>> z_at_value(Planck18.angular_diameter_distance, 1500*u.Mpc, bracket=(2.0, 3.0, 3.5))
+  3.7823268160744115
 
 Full change log
 ===============

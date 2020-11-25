@@ -1601,10 +1601,18 @@ def test_z_at_value_bracketed(method):
     z_at_value = funcs.z_at_value
     cosmo = core.Planck13
 
-    if method.lower() == 'bounded':
+    if method == 'Bounded':
+        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+            z = z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method)
+        if z > 1.6:
+            z = 3.7914908
+            bracket = (0.9, 1.5)
+        else:
+            z = 0.6812777
+            bracket = (1.6, 2.0)
         with pytest.warns(UserWarning, match=r"Option 'bracket' is ignored"):
             assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                       bracket=(1.6, 2.0)), 3.7914908028272083, rtol=1e-6)
+                                       bracket=bracket), z, rtol=1e-6)
     else:
         with pytest.warns(UserWarning, match=r'fval is not bracketed'):
             assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
