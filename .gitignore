@@ -43,6 +43,7 @@ develop-eggs
 distribute-*.tar.gz
 .venv
 venv
+pip-wheel-metadata
 
 # Other
 .cache
