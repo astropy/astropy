@@ -93,33 +93,25 @@ __minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=
 project = u'Astropy'
 astropy_dist = get_distribution(project)
 astropy_req = astropy_dist.requires(extras=('all', ))
-for cur_req in astropy_req:
-    if cur_req.name == 'numpy':
-        __minimum_numpy_version__ = cur_req.specs[0][1]
-    elif cur_req.name == 'pyerfa':
-        __minimum_erfa_version__ = cur_req.specs[0][1]
-    elif cur_req.name == 'scipy':
-        __minimum_scipy_version__ = cur_req.specs[0][1]
-    elif cur_req.name == 'PyYAML':
-        __minimum_yaml_version__ = cur_req.specs[0][1]
-    elif cur_req.name == 'asdf':
-        __minimum_asdf_version__ = cur_req.specs[0][1]
-    elif cur_req.name == 'matplotlib':
-        __minimum_matplotlib_version__ = cur_req.specs[0][1]
-    elif cur_req.name == 'ipython':
-        __minimum_ipython_version__ = cur_req.specs[0][1]
+
+
+def minvers(name):
+    if name == 'yaml':
+        name = 'PyYAML'
+    elif name == 'erfa':
+        name = 'pyerfa'
+    for cur_req in astropy_req:
+        if cur_req.name == name:
+            return cur_req.specs[0][1]
+    raise ValueError(f"{name} not among requirements!")
+
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-rst_epilog += f"""
+rst_epilog += "\n".join(
+    f".. |minimum_{name}_version| replace:: {minvers(name)}"
+    for name in ('numpy', 'erfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + """
 .. |minimum_python_version| replace:: {__minimum_python_version__}
-.. |minimum_numpy_version| replace:: {__minimum_numpy_version__}
-.. |minimum_erfa_version| replace:: {__minimum_erfa_version__}
-.. |minimum_scipy_version| replace:: {__minimum_scipy_version__}
-.. |minimum_yaml_version| replace:: {__minimum_yaml_version__}
-.. |minimum_asdf_version| replace:: {__minimum_asdf_version__}
-.. |minimum_matplotlib_version| replace:: {__minimum_matplotlib_version__}
-.. |minimum_ipython_version| replace:: {__minimum_ipython_version__}
 
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
