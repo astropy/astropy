@@ -451,13 +451,13 @@ def test_biweight_midcovariance_constant():
     cov = biweight_midcovariance(data)
     assert_allclose(cov, np.zeros((3, 3)))
 
-    rng = np.random.default_rng(123)
-    data = rng.random((5, 5))
-    val3 = 5.0
-    data[1] = [val3, 0.8, val3, -0.8, val3]
-    cov = biweight_midcovariance(data)
-    assert_allclose(cov[1, :], 0.)
-    assert_allclose(cov[:, 1], 0.)
+    with NumpyRNGContext(123):
+        data = np.random.random((5, 5))
+        val3 = 5.0
+        data[1] = [val3, 0.8, val3, -0.8, val3]
+        cov = biweight_midcovariance(data)
+        assert_allclose(cov[1, :], 0.)
+        assert_allclose(cov[:, 1], 0.)
 
 
 def test_biweight_midcovariance_midvariance():
