@@ -2165,7 +2165,16 @@ def test_download_ftp_file_properly_handles_socket_error():
     with pytest.raises(urllib.error.URLError) as excinfo:
         download_file(faulty_url)
     errmsg = excinfo.exconly()
-    assert "Name or service not known" in errmsg or 'getaddrinfo failed' in errmsg or 'Temporary failure in name resolution' in errmsg  # noqa
+    found_msg = False
+    possible_msgs = ['Name or service not known',
+                     'nodename nor servname provided, or not known',
+                     'getaddrinfo failed',
+                     'Temporary failure in name resolution']
+    for cur_msg in possible_msgs:
+        if cur_msg in errmsg:
+            found_msg = True
+            break
+    assert found_msg, f'Got {errmsg}, expected one of these: {",".join(possible_msgs)}'
 
 
 @pytest.mark.parametrize(
