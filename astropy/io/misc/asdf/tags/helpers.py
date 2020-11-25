@@ -1,15 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-from pkg_resources import get_distribution
-
 import numpy as np
 
-__all__ = []
 
-for cur_req in get_distribution('astropy').requires(extras=('all', )):
-    if cur_req.name == 'asdf':
-        __minimum_asdf_version__ = cur_req.specs[0][1]
+__all__ = []
 
 
 def skycoord_equal(sc1, sc2):
