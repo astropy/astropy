@@ -266,7 +266,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
     frame_attributes = {}
     # Default empty frame_attributes dict
 
-    def __init_subclass__(cls, name=None):
+    def __init_subclass__(cls):
 
         # We first check for explicitly set values for these:
         default_repr = getattr(cls, 'default_representation', None)
@@ -369,10 +369,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         _readonly_prop_factory(cls, 'frame_specific_representation_info',
                                copy.deepcopy(repr_info))
 
-        # now set the frame name as lower-case class name, if it isn't explicit
-        if name is None:
-            name = cls.__name__.lower()
-        cls.name = name
+        # Deal with setting the name of the frame:
+        if not hasattr(cls, 'name'):
+            cls.name = cls.__name__.lower()
+        elif (BaseCoordinateFrame not in cls.__bases__ and
+                cls.name in [base.name for base in cls.__bases__]):
+            # This may be a subclass of a subclass of BaseCoordinateFrame,
+            # like ICRS(BaseRADecFrame). In this case, cls.name will have been
+            # set by init_subclass
+            cls.name = cls.__name__.lower()
 
         # A cache that *must be unique to each frame class* - it is
         # insufficient to share them with superclasses, hence the need to put
