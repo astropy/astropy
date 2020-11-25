@@ -40,6 +40,7 @@ Core Package Contributors
 * Andreas Baumbach
 * Andrew Hearin
 * Aniket Kulkarni
+* Aniket Sanghi
 * Anirudh Katipally
 * Anne Archibald
 * Antetokounpo
@@ -54,6 +55,8 @@ Core Package Contributors
 * Austen Groener
 * Axel Donath
 * Azalee Bostroem
+* Bastian Beischer
+* Ben Greiner
 * Benjamin Alan Weaver
 * Benjamin Roulston
 * Benjamin Winkel
@@ -61,8 +64,11 @@ Core Package Contributors
 * Bernie Simon
 * Bili Dong
 * Bogdan Nicula
+* Bojan Nikolic
 * Brett Morris
+* Brian Soto
 * Brigitta Sipőcz
+* Bruce Merry
 * Bruno Oliveira
 * Bryce Kalmbach
 * Bryce Nordgren
@@ -77,6 +83,7 @@ Core Package Contributors
 * Christoph Deil
 * Christoph Gohlke
 * Christopher Bonnett
+* Chun Ly
 * Clara Brasseur
 * Clare Shanahan
 * Clément Robert
@@ -101,6 +108,7 @@ Core Package Contributors
 * Demitri Muna
 * Derek Homeier
 * Devin Crichton
+* Diego Alonso
 * Dominik Klaes
 * Doug Burke
 * Drew Leonard
@@ -116,10 +124,11 @@ Core Package Contributors
 * Eric Depagne
 * Eric Jeschke
 * Eric Koch
-* Erik M. Bray
+* E. Madison Bray
 * Erik Tollerud
 * Erin Allard
 * Esteban Pardo Sánchez
+* Even Rouault
 * Evert Rol
 * Felix Yan
 * Francesco Biscani
@@ -130,6 +139,7 @@ Core Package Contributors
 * Gabriel Brammer
 * Gabriel Perren
 * Geert Barentsen
+* George Galvin
 * Georgiana Ogrean
 * Gerrit Schellenberger
 * Giang Nguyen
@@ -137,6 +147,7 @@ Core Package Contributors
 * Graham Kanarek
 * Grant Jenks
 * Gregory Dubois-Felsmann
+* Gregory Simonian
 * Griffin Hosseinzadeh
 * Gustavo Bragança
 * Hannes Breytenbach
@@ -146,6 +157,7 @@ Core Package Contributors
 * Himanshu Pathak
 * Hugo Buddelmeijer
 * Humna Awan
+* Inada Naoki
 * J. Goutin
 * J. Xavier Prochaska
 * JC Hsu
@@ -162,6 +174,7 @@ Core Package Contributors
 * Jean Connelly
 * Jeff Taylor
 * Jeffrey McBeth
+* Jero Bado
 * Jerry Ma
 * Joanna Power
 * Joe Hunkeler
@@ -204,6 +217,7 @@ Core Package Contributors
 * Laura Watkins
 * Lauren Glattly
 * Leah Fulmer
+* Lee Spitler
 * Lehman Garrison
 * Lennard Kiehl
 * Leo Singer
@@ -212,6 +226,7 @@ Core Package Contributors
 * Lingyi Hu
 * Lisa Martin
 * Lisa Walter
+* Ludwig Schwardt
 * Luigi Paioro
 * Luke G. Bouma
 * Luke Kelley
@@ -276,6 +291,8 @@ Core Package Contributors
 * Nicholas Saunders
 * Nick Lloyd
 * Nick Murphy
+* Nicolas Tessore
+* Nikita Saxena
 * Nimit Bhardwaj
 * Noah Zuckman
 * Nora Luetzgendorf
@@ -286,12 +303,14 @@ Core Package Contributors
 * Patti Carroll
 * Paul Barrett
 * Paul Hirst
+* Paul Huwe
 * Paul Price
 * Paul Sladen
 * Pauline Barmby
 * Perry Greenfield
 * Peter Cock
 * Peter Teuben
+* Peter Yoachim
 * Pey Lian Lim
 * Prasanth Nair
 * Pratik Patel
@@ -301,6 +320,7 @@ Core Package Contributors
 * Rasmus Handberg
 * Ray Plante
 * Régis Terrier
+* Ricardo Fonseca
 * Ricardo Ogando
 * Ricky O'Steen
 * Ritiek Malhotra
@@ -371,6 +391,7 @@ Core Package Contributors
 * Tyler Finethy
 * VSN Reddy Janga
 * Vatsala Swaroop
+* Victoria Dye
 * Vinayak Mehta
 * Vishnunarayan K I
 * Vital Fernández
@@ -382,6 +403,7 @@ Core Package Contributors
 * Yash Kumar
 * Yash Sharma
 * Yingqi Ying
+* Zac Hatfield-Dodds
 * Zach Edwards
 * Zachary Kurtz
 * Zeljko Ivezic
