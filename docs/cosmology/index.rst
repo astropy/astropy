@@ -275,8 +275,9 @@ To find the redshift using ``z_at_value``:
 
 For some quantities, there can be more than one redshift that satisfies
 a value. In this case you can use the ``zmin`` and ``zmax`` keywords
-to restrict the search range. See the ``z_at_value`` docstring for more
-detailed usage examples.
+to restrict the search range or set ``bracket`` to initialise it in the
+desired domain. See the ``z_at_value`` docstring for more detailed
+usage examples.
 
 
 Built-in Cosmologies

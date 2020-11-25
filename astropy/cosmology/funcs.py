@@ -35,24 +35,33 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     ----------
     func : function or method
        A function that takes a redshift as input.
+
     fval : `~astropy.units.Quantity` instance
        The (scalar) value of ``func(z)`` to recover.
+
     zmin : float, optional
        The lower search limit for ``z``.  Beware of divergences
        in some cosmological functions, such as distance moduli,
        at z=0 (default 1e-8).
+
     zmax : float, optional
        The upper search limit for ``z`` (default 1000).
+
     ztol : float, optional
        The relative error in ``z`` acceptable for convergence.
+
     maxfun : int, optional
        The maximum number of function evaluations allowed in the
        optimization routine (default 500).
+
     method : str or callable, optional
        Type of solver to pass to ``~scipy.optimize.minimize_scalar`` -
        should be one of 'Brent' (default), 'Golden' or 'Bounded'.
        Can in theory also be a callable object as custom solver,
        but this is untested.
+
+       .. versionadded:: 4.3
+
     bracket : sequence, optional
        For methods 'Brent' and 'Golden', ``bracket`` defines the bracketing
        interval and can either have three items (z1, z2, z3) so that z1 < z2 < z3
@@ -60,8 +69,14 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
        assumed to be a starting interval for a downhill bracket search.
        For bimodal functions such as angular diameter distance this can be
        used to start the search on the desired side of the maximum.
+
+       .. versionadded:: 4.3
+
     verbose : bool, optional
        Print diagnostic output from solver (default `False`).
+
+       .. versionadded:: 4.3
+
 
     Returns
     -------
@@ -83,7 +98,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     >>> import astropy.units as u
     >>> from astropy.cosmology import Planck13, z_at_value
 
-    Generate 10^6 distance moduli between 24 and 43 for which we
+    Generate 10^6 distance moduli between 24 and 44 for which we
     want to find the corresponding redshifts:
 
     >>> Dvals = (24 + np.random.rand(1000000) * 20) * u.mag
@@ -114,14 +129,27 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     3.19812268
 
     The angular diameter is not monotonic however, and there are two
-    redshifts that give a value of 1500 Mpc. Use the zmin and zmax keywords
-    to find the one you're interested in:
+    redshifts that give a value of 1500 Mpc. You can Use the zmin and
+    zmax keywords to find the one you're interested in:
 
     >>> z_at_value(Planck13.angular_diameter_distance,
     ...            1500 * u.Mpc, zmax=1.5)  # doctest: +FLOAT_CMP
     0.6812769577
     >>> z_at_value(Planck13.angular_diameter_distance,
     ...            1500 * u.Mpc, zmin=2.5)  # doctest: +FLOAT_CMP
+    3.7914913242
+
+    Alternatively the ``bracket`` option can be used to initialise the
+    function solver on a desired region. For the example of angular
+    diameter distance, which has a maximum near a redshift of 1.6 in this
+    cosmology, defining a bracket on either side of this maximum will
+    generally return a solution on the same side.
+
+    >>> z_at_value(Planck13.angular_diameter_distance,
+    ...            1500 * u.Mpc, bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP
+    0.6812769577
+    >>> z_at_value(Planck13.angular_diameter_distance,
+    ...            1500 * u.Mpc, bracket=(2.0, 2.5))  # doctest: +FLOAT_CMP
     3.7914913242
 
     Also note that the luminosity distance and distance modulus (two
@@ -131,7 +159,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     from scipy.optimize import minimize_scalar
 
     opt = {'maxiter': maxfun}
-    if method.lower() == 'bounded':
+    # Assume custom methods support the same options as default; otherwise user will see warnings.
+    if isinstance(method, str) and method.lower() == 'bounded':
         opt['xatol'] = ztol
         if bracket is not None:
             warnings.warn(f"Option 'bracket' is ignored by method {method}.")
@@ -152,25 +181,26 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     # 'Brent' and 'Golden' ignore `bounds`, force solution inside zlim
     def f(z):
-        if zmin <= z <= zmax:
-            return abs(Quantity(func(z)).value - val)
+        if z > zmax:
+            return 1.e300 * (1.0 + z - zmax)
+        elif z < zmin:
+            return 1.e300 * (1.0 + zmin - z)
         else:
-            return 1.e300
+            return abs(Quantity(func(z)).value - val)
 
     res = minimize_scalar(f, method=method, bounds=(zmin, zmax), bracket=bracket, options=opt)
 
-    if not res['success']:
-        warnings.warn(f"Solver returned {res['status']}: {res['message']}\n"
-                      f"Precision {res['fun']} reached after {res['nfev']} function calls.")
+    if not res.success:
+        warnings.warn(f"Solver returned {res.status}: {res.message}\n"
+                      f"Precision {res.fun} reached after {res.nfev} function calls.")
 
     if verbose:
         print(res)
 
-    zbest = max(min(res['x'], zmax), zmin)
-    if np.allclose(zbest, zmax):
-        raise CosmologyError(f"Best guess z={zbest} is very close to the upper z limit {zmax}.\n"
+    if np.allclose(res.x, zmax):
+        raise CosmologyError(f"Best guess z={res.x} is very close to the upper z limit {zmax}.\n"
                              "Try re-running with a different zmax.")
-    elif np.allclose(zbest, zmin):
-        raise CosmologyError(f"Best guess z={zbest} is very close to the lower z limit {zmin}.\n"
+    elif np.allclose(res.x, zmin):
+        raise CosmologyError(f"Best guess z={res.x} is very close to the lower z limit {zmin}.\n"
                              "Try re-running with a different zmin.")
-    return zbest
+    return res.x
