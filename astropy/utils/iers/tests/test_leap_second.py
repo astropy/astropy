@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import urllib.request
 import os
+import locale
+import platform
 
 import pytest
 import numpy as np
@@ -47,6 +49,24 @@ class TestReading:
         assert ls['mjd'][-1] >= 57754
         assert ls['tai_utc'][-1] >= 37
         self.verify_day_month_year(ls)
+
+    def test_read_leap_second_dat_locale(self):
+        current = locale.setlocale(locale.LC_ALL)
+        try:
+            if platform.system() == 'Darwin':
+                locale.setlocale(locale.LC_ALL, 'fr_FR')
+            else:
+                locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
+
+            ls = iers.LeapSeconds.from_iers_leap_seconds(
+                iers.IERS_LEAP_SECOND_FILE)
+        except locale.Error as e:
+            pytest.skip(f'Locale error: {e}')
+        finally:
+            locale.setlocale(locale.LC_ALL, current)
+
+        # Below, >= to take into account we might ship and updated file.
+        assert ls.expires >= Time('2020-06-28', scale='tai')
 
     def test_open_leap_second_dat(self):
         ls = iers.LeapSeconds.from_iers_leap_seconds(
