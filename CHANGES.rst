@@ -263,6 +263,9 @@ Other Changes and Additions
   an order of magnitude, which enters as well in getting observed positions of
   planets using ``get_body``. [#11073]
 
+- Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
+  ``__init_subclass__`` where possible. [#11090]
+
 
 4.2.1 (unreleased)
 ==================
