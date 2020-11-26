@@ -275,80 +275,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         if repr_info is None or isinstance(repr_info, property):
             repr_info = getattr(cls, '_frame_specific_representation_info', None)
 
-        # Unless overridden via `frame_specific_representation_info`, velocity
-        # name defaults are (see also docstring for BaseCoordinateFrame):
-        #   * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for
-        #     `SphericalCosLatDifferential` proper motion components
-        #   * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper
-        #     motion components
-        #   * ``radial_velocity`` for any `d_distance` component
-        #   * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
-        # where `{lon}` and `{lat}` are the frame names of the angular
-        # components.
-        if repr_info is None:
-            repr_info = {}
-
-        # the tuple() call below is necessary because if it is not there,
-        # the iteration proceeds in a difficult-to-predict manner in the
-        # case that one of the class objects hash is such that it gets
-        # revisited by the iteration.  The tuple() call prevents this by
-        # making the items iterated over fixed regardless of how the dict
-        # changes
-        for cls_or_name in tuple(repr_info.keys()):
-            if isinstance(cls_or_name, str):
-                # TODO: this provides a layer of backwards compatibility in
-                # case the key is a string, but now we want explicit classes.
-                _cls = _get_repr_cls(cls_or_name)
-                repr_info[_cls] = repr_info.pop(cls_or_name)
-
-        # The default spherical names are 'lon' and 'lat'
-        repr_info.setdefault(r.SphericalRepresentation,
-                             [RepresentationMapping('lon', 'lon'),
-                              RepresentationMapping('lat', 'lat')])
-
-        sph_component_map = {m.reprname: m.framename
-                             for m in repr_info[r.SphericalRepresentation]}
-
-        repr_info.setdefault(r.SphericalCosLatDifferential, [
-            RepresentationMapping(
-                'd_lon_coslat',
-                'pm_{lon}_cos{lat}'.format(**sph_component_map),
-                u.mas/u.yr),
-            RepresentationMapping('d_lat',
-                                  'pm_{lat}'.format(**sph_component_map),
-                                  u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity',
-                                  u.km/u.s)
-        ])
-
-        repr_info.setdefault(r.SphericalDifferential, [
-            RepresentationMapping('d_lon',
-                                  'pm_{lon}'.format(**sph_component_map),
-                                  u.mas/u.yr),
-            RepresentationMapping('d_lat',
-                                  'pm_{lat}'.format(**sph_component_map),
-                                  u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity',
-                                  u.km/u.s)
-        ])
-
-        repr_info.setdefault(r.CartesianDifferential, [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s)])
-
-        # Unit* classes should follow the same naming conventions
-        # TODO: this adds some unnecessary mappings for the Unit classes, so
-        # this could be cleaned up, but in practice doesn't seem to have any
-        # negative side effects
-        repr_info.setdefault(r.UnitSphericalRepresentation,
-                             repr_info[r.SphericalRepresentation])
-
-        repr_info.setdefault(r.UnitSphericalCosLatDifferential,
-                             repr_info[r.SphericalCosLatDifferential])
-
-        repr_info.setdefault(r.UnitSphericalDifferential,
-                             repr_info[r.SphericalDifferential])
+        repr_info = cls._infer_repr_info(repr_info)
 
         # Make read-only properties for the frame class attributes that should
         # be read-only to make them immutable after creation.
@@ -620,6 +547,95 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
             representation_data = representation_data.with_differentials({'s': differential_data})
 
         return representation_data
+
+    @classmethod
+    def _infer_repr_info(cls, repr_info):
+        # Unless overridden via `frame_specific_representation_info`, velocity
+        # name defaults are (see also docstring for BaseCoordinateFrame):
+        #   * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for
+        #     `SphericalCosLatDifferential` proper motion components
+        #   * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper
+        #     motion components
+        #   * ``radial_velocity`` for any `d_distance` component
+        #   * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
+        # where `{lon}` and `{lat}` are the frame names of the angular
+        # components.
+        if repr_info is None:
+            repr_info = {}
+
+        # the tuple() call below is necessary because if it is not there,
+        # the iteration proceeds in a difficult-to-predict manner in the
+        # case that one of the class objects hash is such that it gets
+        # revisited by the iteration.  The tuple() call prevents this by
+        # making the items iterated over fixed regardless of how the dict
+        # changes
+        for cls_or_name in tuple(repr_info.keys()):
+            if isinstance(cls_or_name, str):
+                # TODO: this provides a layer of backwards compatibility in
+                # case the key is a string, but now we want explicit classes.
+                _cls = _get_repr_cls(cls_or_name)
+                repr_info[_cls] = repr_info.pop(cls_or_name)
+
+        # The default spherical names are 'lon' and 'lat'
+        repr_info.setdefault(r.SphericalRepresentation,
+                             [RepresentationMapping('lon', 'lon'),
+                              RepresentationMapping('lat', 'lat')])
+
+        sph_component_map = {m.reprname: m.framename
+                             for m in repr_info[r.SphericalRepresentation]}
+
+        repr_info.setdefault(r.SphericalCosLatDifferential, [
+            RepresentationMapping(
+                'd_lon_coslat',
+                'pm_{lon}_cos{lat}'.format(**sph_component_map),
+                u.mas/u.yr),
+            RepresentationMapping('d_lat',
+                                  'pm_{lat}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity',
+                                  u.km/u.s)
+        ])
+
+        repr_info.setdefault(r.SphericalDifferential, [
+            RepresentationMapping('d_lon',
+                                  'pm_{lon}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_lat',
+                                  'pm_{lat}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity',
+                                  u.km/u.s)
+        ])
+
+        repr_info.setdefault(r.CartesianDifferential, [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)])
+
+        # Unit* classes should follow the same naming conventions
+        # TODO: this adds some unnecessary mappings for the Unit classes, so
+        # this could be cleaned up, but in practice doesn't seem to have any
+        # negative side effects
+        repr_info.setdefault(r.UnitSphericalRepresentation,
+                             repr_info[r.SphericalRepresentation])
+
+        repr_info.setdefault(r.UnitSphericalCosLatDifferential,
+                             repr_info[r.SphericalCosLatDifferential])
+
+        repr_info.setdefault(r.UnitSphericalDifferential,
+                             repr_info[r.SphericalDifferential])
+
+        return repr_info
+
+    @classmethod
+    def _create_readonly_property(cls, attr_name, value):
+        private_attr = '_' + attr_name
+
+        def getter(self):
+            return getattr(self, private_attr)
+
+        setattr(cls, private_attr, value)
+        setattr(cls, attr_name, property(getter))
 
     @lazyproperty
     def cache(self):
