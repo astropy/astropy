@@ -1233,9 +1233,9 @@ def test_non_C_locale_with_fast_reader():
 
     try:
         if platform.system() == 'Darwin':
-            locale.setlocale(locale.LC_ALL, 'de_DE')
+            locale.setlocale(locale.LC_ALL, 'fr_FR')
         else:
-            locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+            locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
         for fast_reader in (True,
                             False,

@@ -110,8 +110,8 @@ def test_set_locale():
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
     try:
-        locale.setlocale(locale.LC_ALL, 'en_US')
-        locale.setlocale(locale.LC_ALL, 'de_DE')
+        locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+        locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
     except locale.Error as e:
         pytest.skip(f'Locale error: {e}')
     finally:
@@ -120,11 +120,11 @@ def test_set_locale():
     date = datetime(2000, 10, 1, 0, 0, 0)
     day_mon = date.strftime('%a, %b')
 
-    with misc._set_locale('en_US'):
+    with misc._set_locale('en_US.utf8'):
         assert date.strftime('%a, %b') == 'Sun, Oct'
 
-    with misc._set_locale('de_DE'):
-        assert date.strftime('%a, %b') == 'So, Okt'
+    with misc._set_locale('fr_FR.utf8'):
+        assert date.strftime('%a, %b') == 'dim., oct.'
 
     # Back to original
     assert date.strftime('%a, %b') == day_mon

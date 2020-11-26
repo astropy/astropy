@@ -58,6 +58,8 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Fix leap second update when using a non english locale. [#11062]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
