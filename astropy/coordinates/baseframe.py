@@ -266,7 +266,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
     frame_attributes = {}
     # Default empty frame_attributes dict
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls, **kwargs):
 
         # We first check for explicitly set values for these:
         default_repr = getattr(cls, 'default_representation', None)
@@ -384,7 +384,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         # them in the meta
         cls._frame_class_cache = {}
 
-        super().__init_subclass__()
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, *args, copy=True, representation_type=None,
                  differential_type=None, **kwargs):

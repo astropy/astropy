@@ -630,7 +630,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     info = RepresentationInfo()
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls, **kwargs):
         # Register representation name (except for BaseRepresentation)
         if cls.__name__ == 'BaseRepresentation':
             return
@@ -682,6 +682,8 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 setattr(cls, component,
                         property(_make_getter(component),
                                  doc=f"The '{component}' component of the points(s)."))
+
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -2242,7 +2244,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
     those, and a default ``__init__`` for initialization.
     """
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls, **kwargs):
         """Set default ``attr_classes`` and component getters on a Differential.
         class BaseDifferential(BaseRepresentationOrDifferential):
 
@@ -2278,6 +2280,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                 setattr(cls, component,
                         property(_make_getter(component),
                                  doc=f"Component '{component}' of the Differential."))
+
+        super().__init_subclass__(**kwargs)
 
     @classmethod
     def _check_base(cls, base):
