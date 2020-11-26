@@ -137,16 +137,6 @@ def _normalize_representation_type(kwargs):
         kwargs['representation_type'] = kwargs.pop('representation')
 
 
-def _readonly_prop_factory(cls, attr_name, value):
-    private_attr = '_' + attr_name
-
-    def getter(self):
-        return getattr(self, private_attr)
-
-    setattr(cls, private_attr, value)
-    setattr(cls, attr_name, property(getter))
-
-
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',
                ('reprname', 'framename', 'defaultunit'))
@@ -364,10 +354,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         # be read-only to make them immutable after creation.
         # We copy attributes instead of linking to make sure there's no
         # accidental cross-talk between classes
-        _readonly_prop_factory(cls, 'default_representation', default_repr)
-        _readonly_prop_factory(cls, 'default_differential', default_diff)
-        _readonly_prop_factory(cls, 'frame_specific_representation_info',
-                               copy.deepcopy(repr_info))
+        cls._create_readonly_property('default_representation', default_repr)
+        cls._create_readonly_property('default_differential', default_diff)
+        cls._create_readonly_property('frame_specific_representation_info',
+                                      copy.deepcopy(repr_info))
 
         # Deal with setting the name of the frame:
         if not hasattr(cls, 'name'):
