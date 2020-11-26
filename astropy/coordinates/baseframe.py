@@ -137,170 +137,6 @@ def _normalize_representation_type(kwargs):
         kwargs['representation_type'] = kwargs.pop('representation')
 
 
-# Need to subclass ABCMeta as well, so that this meta class can be combined
-# with ShapedLikeNDArray below (which is an ABC); without it, one gets
-# "TypeError: metaclass conflict: the metaclass of a derived class must be a
-#  (non-strict) subclass of the metaclasses of all its bases"
-class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
-    def __new__(mcls, name, bases, members):
-        if 'default_representation' in members:
-            default_repr = members.pop('default_representation')
-            found_default_repr = True
-        else:
-            default_repr = None
-            found_default_repr = False
-
-        if 'default_differential' in members:
-            default_diff = members.pop('default_differential')
-            found_default_diff = True
-        else:
-            default_diff = None
-            found_default_diff = False
-
-        if 'frame_specific_representation_info' in members:
-            repr_info = members.pop('frame_specific_representation_info')
-            found_repr_info = True
-        else:
-            repr_info = None
-            found_repr_info = False
-
-        # somewhat hacky, but this is the best way to get the MRO according to
-        # https://mail.python.org/pipermail/python-list/2002-December/167861.html
-        tmp_cls = super().__new__(mcls, name, bases, members)
-
-        # now look through the whole MRO for the class attributes, raw for
-        # frame_attr_names, and leading underscore for others
-        for m in (c.__dict__ for c in tmp_cls.__mro__):
-            if not found_default_repr and '_default_representation' in m:
-                default_repr = m['_default_representation']
-                found_default_repr = True
-
-            if not found_default_diff and '_default_differential' in m:
-                default_diff = m['_default_differential']
-                found_default_diff = True
-
-            if (not found_repr_info
-                    and '_frame_specific_representation_info' in m):
-                # create a copy of the dict so we don't mess with the contents
-                repr_info = m['_frame_specific_representation_info'].copy()
-                found_repr_info = True
-
-            if found_default_repr and found_default_diff and found_repr_info:
-                break
-        else:
-            raise ValueError(
-                'Could not find all expected BaseCoordinateFrame class '
-                'attributes.  Are you mis-using FrameMeta?')
-
-        # Unless overridden via `frame_specific_representation_info`, velocity
-        # name defaults are (see also docstring for BaseCoordinateFrame):
-        #   * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for
-        #     `SphericalCosLatDifferential` proper motion components
-        #   * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper
-        #     motion components
-        #   * ``radial_velocity`` for any `d_distance` component
-        #   * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
-        # where `{lon}` and `{lat}` are the frame names of the angular
-        # components.
-        if repr_info is None:
-            repr_info = {}
-
-        # the tuple() call below is necessary because if it is not there,
-        # the iteration proceeds in a difficult-to-predict manner in the
-        # case that one of the class objects hash is such that it gets
-        # revisited by the iteration.  The tuple() call prevents this by
-        # making the items iterated over fixed regardless of how the dict
-        # changes
-        for cls_or_name in tuple(repr_info.keys()):
-            if isinstance(cls_or_name, str):
-                # TODO: this provides a layer of backwards compatibility in
-                # case the key is a string, but now we want explicit classes.
-                cls = _get_repr_cls(cls_or_name)
-                repr_info[cls] = repr_info.pop(cls_or_name)
-
-        # The default spherical names are 'lon' and 'lat'
-        repr_info.setdefault(r.SphericalRepresentation,
-                             [RepresentationMapping('lon', 'lon'),
-                              RepresentationMapping('lat', 'lat')])
-
-        sph_component_map = {m.reprname: m.framename
-                             for m in repr_info[r.SphericalRepresentation]}
-
-        repr_info.setdefault(r.SphericalCosLatDifferential, [
-            RepresentationMapping(
-                'd_lon_coslat',
-                'pm_{lon}_cos{lat}'.format(**sph_component_map),
-                u.mas/u.yr),
-            RepresentationMapping('d_lat',
-                                  'pm_{lat}'.format(**sph_component_map),
-                                  u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity',
-                                  u.km/u.s)
-        ])
-
-        repr_info.setdefault(r.SphericalDifferential, [
-            RepresentationMapping('d_lon',
-                                  'pm_{lon}'.format(**sph_component_map),
-                                  u.mas/u.yr),
-            RepresentationMapping('d_lat',
-                                  'pm_{lat}'.format(**sph_component_map),
-                                  u.mas/u.yr),
-            RepresentationMapping('d_distance', 'radial_velocity',
-                                  u.km/u.s)
-        ])
-
-        repr_info.setdefault(r.CartesianDifferential, [
-            RepresentationMapping('d_x', 'v_x', u.km/u.s),
-            RepresentationMapping('d_y', 'v_y', u.km/u.s),
-            RepresentationMapping('d_z', 'v_z', u.km/u.s)])
-
-        # Unit* classes should follow the same naming conventions
-        # TODO: this adds some unnecessary mappings for the Unit classes, so
-        # this could be cleaned up, but in practice doesn't seem to have any
-        # negative side effects
-        repr_info.setdefault(r.UnitSphericalRepresentation,
-                             repr_info[r.SphericalRepresentation])
-
-        repr_info.setdefault(r.UnitSphericalCosLatDifferential,
-                             repr_info[r.SphericalCosLatDifferential])
-
-        repr_info.setdefault(r.UnitSphericalDifferential,
-                             repr_info[r.SphericalDifferential])
-
-        # Make read-only properties for the frame class attributes that should
-        # be read-only to make them immutable after creation.
-        # We copy attributes instead of linking to make sure there's no
-        # accidental cross-talk between classes
-        mcls.readonly_prop_factory(members, 'default_representation',
-                                   default_repr)
-        mcls.readonly_prop_factory(members, 'default_differential',
-                                   default_diff)
-        mcls.readonly_prop_factory(members,
-                                   'frame_specific_representation_info',
-                                   copy.deepcopy(repr_info))
-
-        # now set the frame name as lower-case class name, if it isn't explicit
-        if 'name' not in members:
-            members['name'] = name.lower()
-
-        # A cache that *must be unique to each frame class* - it is
-        # insufficient to share them with superclasses, hence the need to put
-        # them in the meta
-        members['_frame_class_cache'] = {}
-
-        return super().__new__(mcls, name, bases, members)
-
-    @staticmethod
-    def readonly_prop_factory(members, attr, value):
-        private_attr = '_' + attr
-
-        def getter(self):
-            return getattr(self, private_attr)
-
-        members[private_attr] = value
-        members[attr] = property(getter)
-
-
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',
                ('reprname', 'framename', 'defaultunit'))
@@ -358,8 +194,16 @@ _components = """
 """
 
 
+# TODO: This is only needed so that BaseCoordinateFrame can have
+# OrderedDescriptorContainer as a metaclass. Trying to use
+# metaclass=OrderedDescriptorContainer directly causes a metaclass conflict.
+class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
+    pass
+
+
 @format_doc(base_doc, components=_components, footer="")
-class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
+class BaseCoordinateFrame(ShapedLikeNDArray,
+                          metaclass=FrameMeta):
     """
     The base class for coordinate frames.
 
@@ -411,6 +255,53 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
 
     frame_attributes = {}
     # Default empty frame_attributes dict
+
+    def __init_subclass__(cls, **kwargs):
+
+        # We first check for explicitly set values for these:
+        default_repr = getattr(cls, 'default_representation', None)
+        default_diff = getattr(cls, 'default_differential', None)
+        repr_info = getattr(cls, 'frame_specific_representation_info', None)
+
+        # Then, to make sure this works for subclasses-of-subclasses, we also
+        # have to check for cases where the attribute names have already been
+        # replaced by underscore-prefaced equivalents by the logic below:
+        if default_repr is None or isinstance(default_repr, property):
+            default_repr = getattr(cls, '_default_representation', None)
+
+        if default_diff is None or isinstance(default_diff, property):
+            default_diff = getattr(cls, '_default_differential', None)
+
+        if repr_info is None or isinstance(repr_info, property):
+            repr_info = getattr(cls, '_frame_specific_representation_info', None)
+
+        repr_info = cls._infer_repr_info(repr_info)
+
+        # Make read-only properties for the frame class attributes that should
+        # be read-only to make them immutable after creation.
+        # We copy attributes instead of linking to make sure there's no
+        # accidental cross-talk between classes
+        cls._create_readonly_property('default_representation', default_repr)
+        cls._create_readonly_property('default_differential', default_diff)
+        cls._create_readonly_property('frame_specific_representation_info',
+                                      copy.deepcopy(repr_info))
+
+        # Deal with setting the name of the frame:
+        if not hasattr(cls, 'name'):
+            cls.name = cls.__name__.lower()
+        elif (BaseCoordinateFrame not in cls.__bases__ and
+                cls.name in [base.name for base in cls.__bases__]):
+            # This may be a subclass of a subclass of BaseCoordinateFrame,
+            # like ICRS(BaseRADecFrame). In this case, cls.name will have been
+            # set by init_subclass
+            cls.name = cls.__name__.lower()
+
+        # A cache that *must be unique to each frame class* - it is
+        # insufficient to share them with superclasses, hence the need to put
+        # them in the meta
+        cls._frame_class_cache = {}
+
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, *args, copy=True, representation_type=None,
                  differential_type=None, **kwargs):
@@ -656,6 +547,95 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
             representation_data = representation_data.with_differentials({'s': differential_data})
 
         return representation_data
+
+    @classmethod
+    def _infer_repr_info(cls, repr_info):
+        # Unless overridden via `frame_specific_representation_info`, velocity
+        # name defaults are (see also docstring for BaseCoordinateFrame):
+        #   * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for
+        #     `SphericalCosLatDifferential` proper motion components
+        #   * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper
+        #     motion components
+        #   * ``radial_velocity`` for any `d_distance` component
+        #   * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
+        # where `{lon}` and `{lat}` are the frame names of the angular
+        # components.
+        if repr_info is None:
+            repr_info = {}
+
+        # the tuple() call below is necessary because if it is not there,
+        # the iteration proceeds in a difficult-to-predict manner in the
+        # case that one of the class objects hash is such that it gets
+        # revisited by the iteration.  The tuple() call prevents this by
+        # making the items iterated over fixed regardless of how the dict
+        # changes
+        for cls_or_name in tuple(repr_info.keys()):
+            if isinstance(cls_or_name, str):
+                # TODO: this provides a layer of backwards compatibility in
+                # case the key is a string, but now we want explicit classes.
+                _cls = _get_repr_cls(cls_or_name)
+                repr_info[_cls] = repr_info.pop(cls_or_name)
+
+        # The default spherical names are 'lon' and 'lat'
+        repr_info.setdefault(r.SphericalRepresentation,
+                             [RepresentationMapping('lon', 'lon'),
+                              RepresentationMapping('lat', 'lat')])
+
+        sph_component_map = {m.reprname: m.framename
+                             for m in repr_info[r.SphericalRepresentation]}
+
+        repr_info.setdefault(r.SphericalCosLatDifferential, [
+            RepresentationMapping(
+                'd_lon_coslat',
+                'pm_{lon}_cos{lat}'.format(**sph_component_map),
+                u.mas/u.yr),
+            RepresentationMapping('d_lat',
+                                  'pm_{lat}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity',
+                                  u.km/u.s)
+        ])
+
+        repr_info.setdefault(r.SphericalDifferential, [
+            RepresentationMapping('d_lon',
+                                  'pm_{lon}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_lat',
+                                  'pm_{lat}'.format(**sph_component_map),
+                                  u.mas/u.yr),
+            RepresentationMapping('d_distance', 'radial_velocity',
+                                  u.km/u.s)
+        ])
+
+        repr_info.setdefault(r.CartesianDifferential, [
+            RepresentationMapping('d_x', 'v_x', u.km/u.s),
+            RepresentationMapping('d_y', 'v_y', u.km/u.s),
+            RepresentationMapping('d_z', 'v_z', u.km/u.s)])
+
+        # Unit* classes should follow the same naming conventions
+        # TODO: this adds some unnecessary mappings for the Unit classes, so
+        # this could be cleaned up, but in practice doesn't seem to have any
+        # negative side effects
+        repr_info.setdefault(r.UnitSphericalRepresentation,
+                             repr_info[r.SphericalRepresentation])
+
+        repr_info.setdefault(r.UnitSphericalCosLatDifferential,
+                             repr_info[r.SphericalCosLatDifferential])
+
+        repr_info.setdefault(r.UnitSphericalDifferential,
+                             repr_info[r.SphericalDifferential])
+
+        return repr_info
+
+    @classmethod
+    def _create_readonly_property(cls, attr_name, value):
+        private_attr = '_' + attr_name
+
+        def getter(self):
+            return getattr(self, private_attr)
+
+        setattr(cls, private_attr, value)
+        setattr(cls, attr_name, property(getter))
 
     @lazyproperty
     def cache(self):
@@ -1298,7 +1278,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray, metaclass=FrameMeta):
     def _frameattr_equiv(left_fattr, right_fattr):
         """
         Determine if two frame attributes are equivalent.  Implemented as a
-        staticmethod mainly as a convenient location, althought conceivable it
+        staticmethod mainly as a convenient location, although conceivable it
         might be desirable for subclasses to override this behavior.
 
         Primary purpose is to check for equality of representations.  This

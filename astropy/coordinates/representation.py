@@ -33,8 +33,8 @@ __all__ = ["BaseRepresentationOrDifferential", "BaseRepresentation",
            "PhysicsSphericalDifferential"]
 
 # Module-level dict mapping representation string alias names to classes.
-# This is populated by the metaclass init so all representation and differential
-# classes get registered automatically.
+# This is populated by __init_subclass__ when called by Representation or
+# Differential classes so that they are all registered automatically.
 REPRESENTATION_CLASSES = {}
 DIFFERENTIAL_CLASSES = {}
 # set for tracking duplicates
@@ -571,65 +571,6 @@ def _make_getter(component):
     return get_component
 
 
-# Need to also subclass ABCMeta rather than type, so that this meta class can
-# be combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
-# "TypeError: metaclass conflict: the metaclass of a derived class must be a
-#  (non-strict) subclass of the metaclasses of all its bases"
-class MetaBaseRepresentation(abc.ABCMeta):
-    def __init__(cls, name, bases, dct):
-        super().__init__(name, bases, dct)
-
-        # Register representation name (except for BaseRepresentation)
-        if cls.__name__ == 'BaseRepresentation':
-            return
-
-        if 'attr_classes' not in dct:
-            raise NotImplementedError('Representations must have an '
-                                      '"attr_classes" class attribute.')
-
-        repr_name = cls.get_name()
-        # first time a duplicate is added
-        # remove first entry and add both using their qualnames
-        if repr_name in REPRESENTATION_CLASSES:
-            DUPLICATE_REPRESENTATIONS.add(repr_name)
-
-            fqn_cls = _fqn_class(cls)
-            existing = REPRESENTATION_CLASSES[repr_name]
-            fqn_existing = _fqn_class(existing)
-
-            if fqn_cls == fqn_existing:
-                raise ValueError(f'Representation "{fqn_cls}" already defined')
-
-            msg = (
-                'Representation "{}" already defined, removing it to avoid confusion.'
-                'Use qualnames "{}" and "{}" or class instaces directly'
-            ).format(repr_name, fqn_cls, fqn_existing)
-            warnings.warn(msg, DuplicateRepresentationWarning)
-
-            del REPRESENTATION_CLASSES[repr_name]
-            REPRESENTATION_CLASSES[fqn_existing] = existing
-            repr_name = fqn_cls
-        # further definitions with the same name, just add qualname
-        elif repr_name in DUPLICATE_REPRESENTATIONS:
-            warnings.warn('Representation "{}" already defined, using qualname "{}".')
-            repr_name = _fqn_class(cls)
-            if repr_name in REPRESENTATION_CLASSES:
-                raise ValueError(
-                    f'Representation "{repr_name}" already defined'
-                )
-
-        REPRESENTATION_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
-
-        # define getters for any component that does not yet have one.
-        for component in cls.attr_classes:
-            if not hasattr(cls, component):
-                setattr(cls, component,
-                        property(_make_getter(component),
-                                 doc=("The '{}' component of the points(s)."
-                                      .format(component))))
-
-
 class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
 
     @property
@@ -654,8 +595,7 @@ class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
         return super()._construct_from_dict(map)
 
 
-class BaseRepresentation(BaseRepresentationOrDifferential,
-                         metaclass=MetaBaseRepresentation):
+class BaseRepresentation(BaseRepresentationOrDifferential):
     """Base for representing a point in a 3D coordinate system.
 
     Parameters
@@ -689,6 +629,61 @@ class BaseRepresentation(BaseRepresentationOrDifferential,
     """
 
     info = RepresentationInfo()
+
+    def __init_subclass__(cls, **kwargs):
+        # Register representation name (except for BaseRepresentation)
+        if cls.__name__ == 'BaseRepresentation':
+            return
+
+        if not hasattr(cls, 'attr_classes'):
+            raise NotImplementedError('Representations must have an '
+                                      '"attr_classes" class attribute.')
+
+        repr_name = cls.get_name()
+        # first time a duplicate is added
+        # remove first entry and add both using their qualnames
+        if repr_name in REPRESENTATION_CLASSES:
+            DUPLICATE_REPRESENTATIONS.add(repr_name)
+
+            fqn_cls = _fqn_class(cls)
+            existing = REPRESENTATION_CLASSES[repr_name]
+            fqn_existing = _fqn_class(existing)
+
+            if fqn_cls == fqn_existing:
+                raise ValueError(f'Representation "{fqn_cls}" already defined')
+
+            msg = (
+                f'Representation "{repr_name}" already defined, removing it to avoid confusion.'
+                f'Use qualnames "{fqn_cls}" and "{fqn_existing}" or class instances directly'
+            )
+            warnings.warn(msg, DuplicateRepresentationWarning)
+
+            del REPRESENTATION_CLASSES[repr_name]
+            REPRESENTATION_CLASSES[fqn_existing] = existing
+            repr_name = fqn_cls
+
+        # further definitions with the same name, just add qualname
+        elif repr_name in DUPLICATE_REPRESENTATIONS:
+            fqn_cls = _fqn_class(cls)
+            warnings.warn(f'Representation "{repr_name}" already defined, using qualname '
+                          f'"{fqn_cls}".')
+            repr_name = fqn_cls
+            if repr_name in REPRESENTATION_CLASSES:
+                raise ValueError(
+                    f'Representation "{repr_name}" already defined'
+                )
+
+        REPRESENTATION_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
+
+        # define getters for any component that does not yet have one.
+        for component in cls.attr_classes:
+            if not hasattr(cls, component):
+                setattr(cls, component,
+                        property(_make_getter(component),
+                                 doc=f"The '{component}' component of the points(s)."))
+
+        super().__init_subclass__(**kwargs)
 
     def __init__(self, *args, differentials=None, **kwargs):
         # Handle any differentials passed in.
@@ -2222,47 +2217,7 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class MetaBaseDifferential(abc.ABCMeta):
-    """Set default ``attr_classes`` and component getters on a Differential.
-
-    For these, the components are those of the base representation prefixed
-    by 'd_', and the class is `~astropy.units.Quantity`.
-    """
-    def __init__(cls, name, bases, dct):
-        super().__init__(name, bases, dct)
-
-        # Don't do anything for base helper classes.
-        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential',
-                            'BaseSphericalCosLatDifferential'):
-            return
-
-        if 'base_representation' not in dct:
-            raise NotImplementedError('Differential representations must have a'
-                                      '"base_representation" class attribute.')
-
-        # If not defined explicitly, create attr_classes.
-        if not hasattr(cls, 'attr_classes'):
-            base_attr_classes = cls.base_representation.attr_classes
-            cls.attr_classes = {'d_' + c: u.Quantity
-                                for c in base_attr_classes}
-
-        repr_name = cls.get_name()
-        if repr_name in DIFFERENTIAL_CLASSES:
-            raise ValueError(f"Differential class {repr_name} already defined")
-
-        DIFFERENTIAL_CLASSES[repr_name] = cls
-        _invalidate_reprdiff_cls_hash()
-
-        # If not defined explicitly, create properties for the components.
-        for component in cls.attr_classes:
-            if not hasattr(cls, component):
-                setattr(cls, component,
-                        property(_make_getter(component),
-                                 doc=f"Component '{component}' of the Differential."))
-
-
-class BaseDifferential(BaseRepresentationOrDifferential,
-                       metaclass=MetaBaseDifferential):
+class BaseDifferential(BaseRepresentationOrDifferential):
     r"""A base class representing differentials of representations.
 
     These represent differences or derivatives along each component.
@@ -2289,12 +2244,50 @@ class BaseDifferential(BaseRepresentationOrDifferential,
     those, and a default ``__init__`` for initialization.
     """
 
+    def __init_subclass__(cls, **kwargs):
+        """Set default ``attr_classes`` and component getters on a Differential.
+        class BaseDifferential(BaseRepresentationOrDifferential):
+
+        For these, the components are those of the base representation prefixed
+        by 'd_', and the class is `~astropy.units.Quantity`.
+        """
+
+        # Don't do anything for base helper classes.
+        if cls.__name__ in ('BaseDifferential', 'BaseSphericalDifferential',
+                            'BaseSphericalCosLatDifferential'):
+            return
+
+        if not hasattr(cls, 'base_representation'):
+            raise NotImplementedError('Differential representations must have a'
+                                      '"base_representation" class attribute.')
+
+        # If not defined explicitly, create attr_classes.
+        if not hasattr(cls, 'attr_classes'):
+            base_attr_classes = cls.base_representation.attr_classes
+            cls.attr_classes = {'d_' + c: u.Quantity
+                                for c in base_attr_classes}
+
+        repr_name = cls.get_name()
+        if repr_name in DIFFERENTIAL_CLASSES:
+            raise ValueError(f"Differential class {repr_name} already defined")
+
+        DIFFERENTIAL_CLASSES[repr_name] = cls
+        _invalidate_reprdiff_cls_hash()
+
+        # If not defined explicitly, create properties for the components.
+        for component in cls.attr_classes:
+            if not hasattr(cls, component):
+                setattr(cls, component,
+                        property(_make_getter(component),
+                                 doc=f"Component '{component}' of the Differential."))
+
+        super().__init_subclass__(**kwargs)
+
     @classmethod
     def _check_base(cls, base):
         if cls not in base._compatible_differentials:
-            raise TypeError("Differential class {} is not compatible with the "
-                            "base (representation) class {}"
-                            .format(cls, base.__class__))
+            raise TypeError(f"Differential class {cls} is not compatible with the "
+                            f"base (representation) class {base.__class__}")
 
     def _get_deriv_key(self, base):
         """Given a base (representation instance), determine the unit of the
