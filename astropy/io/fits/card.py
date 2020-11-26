@@ -246,7 +246,7 @@ class Card(_Verify):
                 # created if the user-supplied keyword explicitly started with
                 # 'HIERARCH '.  Now we will create them automatically for long
                 # keywords, but we still want to support the old behavior too;
-                # the old behavior makes it possible to create HEIRARCH cards
+                # the old behavior makes it possible to create HIERARCH cards
                 # that would otherwise be recognized as RVKCs
                 # (*) This has never affected Astropy, because it was changed
                 # before PyFITS was merged into Astropy!
@@ -331,27 +331,6 @@ class Card(_Verify):
                     'FITS header values must contain standard printable ASCII '
                     'characters; {!r} contains characters not representable in '
                     'ASCII or non-printable characters.'.format(value))
-        elif isinstance(value, bytes):
-            # Allow str, but only if they can be decoded to ASCII text; note
-            # this is not even allowed on Python 3 since the `bytes` type is
-            # not included in `str`.  Presently we simply don't
-            # allow bytes to be assigned to headers, as doing so would too
-            # easily mask potential user error
-            valid = True
-            try:
-                text_value = value.decode('ascii')
-            except UnicodeDecodeError:
-                valid = False
-            else:
-                # Check against the printable characters regexp as well
-                m = self._ascii_text_re.match(text_value)
-                valid = m is not None
-
-            if not valid:
-                raise ValueError(
-                    'FITS header values must contain standard printable ASCII '
-                    'characters; {!r} contains characters/bytes that do not '
-                    'represent printable characters in ASCII.'.format(value))
         elif isinstance(value, np.bool_):
             value = bool(value)
 
