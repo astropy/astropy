@@ -89,6 +89,7 @@ jobs:
           shell: /bin/bash
 
           install: |
+            echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
@@ -99,7 +100,7 @@ jobs:
                                   python3-ply \
                                   python3-venv \
                                   cython3 \
-                                  wcslib-dev \
+                                  wcslib-dev/buster-backports \
                                   libcfitsio-dev \
                                   liberfa1
 
