@@ -31,6 +31,10 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'OrderedDescriptor', 'OrderedDescriptorContainer']
 
 
+# Because they are deprecated.
+__doctest_skip__ = ['OrderedDescriptor', 'OrderedDescriptorContainer']
+
+
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
 
