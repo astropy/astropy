@@ -7,7 +7,6 @@ classes.
 
 
 # Standard library
-import abc
 import copy
 import inspect
 from collections import namedtuple, defaultdict
@@ -191,13 +190,6 @@ _components = """
     *args, **kwargs
         Coordinate components, with names that depend on the subclass.
 """
-
-
-# TODO: This is only needed so that BaseCoordinateFrame can have
-# OrderedDescriptorContainer as a metaclass. Trying to use
-# metaclass=OrderedDescriptorContainer directly causes a metaclass conflict.
-class FrameMeta(abc.ABCMeta):
-    pass
 
 
 @format_doc(base_doc, components=_components, footer="")
