@@ -494,6 +494,17 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     return ''
 
 
+_ordered_descriptor_deprecation_message = """\
+The {func} {obj_type} is deprecated and may be removed in a future version.
+
+    You can replace its functionality with a combination of the
+    __init_subclass__ and __set_name__ magic methods introduced in Python 3.6.
+    See https://github.com/astropy/astropy/issues/11094 for recipes on how to
+    replicate their functionality.
+"""
+
+
+@deprecated('4.3', _ordered_descriptor_deprecation_message)
 class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
@@ -578,6 +589,7 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
             return NotImplemented
 
 
+@deprecated('4.3', _ordered_descriptor_deprecation_message)
 class OrderedDescriptorContainer(type):
     """
     Classes should use this metaclass if they wish to use `OrderedDescriptor`
