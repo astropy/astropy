@@ -9,7 +9,6 @@ import re
 from astropy import units as u
 from astropy.units import allclose
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.utils import OrderedDescriptorContainer
 from astropy.utils.exceptions import AstropyWarning
 from astropy.time import Time
 
@@ -63,7 +62,7 @@ def teardown_function(func):
 
 def test_frame_attribute_descriptor():
     """Unit tests of the Attribute descriptor."""
-    class TestAttributes(metaclass=OrderedDescriptorContainer):
+    class TestAttributes:
         attr_none = Attribute()
         attr_2 = Attribute(default=2)
         attr_3_attr2 = Attribute(default=3, secondary_attribute='attr_2')
