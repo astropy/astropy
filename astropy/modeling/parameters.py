@@ -16,7 +16,7 @@ import operator
 import numpy as np
 
 from astropy.units import Quantity
-from astropy.utils import isiterable, OrderedDescriptor
+from astropy.utils import isiterable
 from .utils import array_repr_oneline
 from .utils import get_inputs_and_params
 
@@ -111,14 +111,13 @@ def _unary_arithmetic_operation(op):
     return wrapper
 
 
-class Parameter(OrderedDescriptor):
+class Parameter:
     """
     Wraps individual parameters.
 
-    Since 4.0 Parameters are no longer descriptors (despite the fact that
-    it inherits from OrderedDescriptor) and are based on a new implementation
-    of the Parameter class. Parameters now  (as of 4.0) store values locally
-    (as instead previously in the associated model)
+    Since 4.0 Parameters are no longer descriptors and are based on a new
+    implementation of the Parameter class. Parameters now  (as of 4.0) store
+    values locally (as instead previously in the associated model)
 
     This class represents a model's parameter (in a somewhat broad sense). It
     serves a number of purposes:
@@ -191,10 +190,6 @@ class Parameter(OrderedDescriptor):
     fitters as of this writing.
     """
 
-    # Settings for OrderedDescriptor
-    _class_attribute_ = '_parameters_'
-    _name_attribute_ = '_name'
-
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
                  max=None, bounds=None):
@@ -250,6 +245,9 @@ class Parameter(OrderedDescriptor):
         self._posterior = None
 
         self._std = None
+
+    def __set_name__(self, owner, name):
+        self._name = name
 
     def __len__(self):
         val = self.value
