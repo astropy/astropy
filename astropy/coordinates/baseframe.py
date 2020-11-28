@@ -290,7 +290,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         if not hasattr(cls, 'name'):
             cls.name = cls.__name__.lower()
         elif (BaseCoordinateFrame not in cls.__bases__ and
-                cls.name in [base.name for base in cls.__bases__]):
+                cls.name in [getattr(base, 'name', None)
+                             for base in cls.__bases__]):
             # This may be a subclass of a subclass of BaseCoordinateFrame,
             # like ICRS(BaseRADecFrame). In this case, cls.name will have been
             # set by init_subclass
