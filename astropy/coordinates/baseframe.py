@@ -338,7 +338,8 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
 
         if kwargs:
             raise TypeError(
-                f'Coordinate frame got unexpected keywords: {list(kwargs)}')
+                f'Coordinate frame {self.__class__.__name__} got unexpected '
+                f'keywords: {list(kwargs)}')
 
         # We do ``is None`` because self._data might evaluate to false for
         # empty arrays or data == 0
