@@ -1510,3 +1510,15 @@ def test_realize_frame_accepts_kwargs():
 
     assert c2.representation_type == r.CartesianRepresentation
     assert c3.representation_type == r.CylindricalRepresentation
+
+
+def test_nameless_frame_subclass():
+    """Note: this is a regression test for #11096"""
+
+    class Test:
+        pass
+
+    # Subclass from a frame class and a non-frame class.
+    # This subclassing is the test!
+    class NewFrame(ICRS, Test):
+        pass
