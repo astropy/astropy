@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name, no-member
-from collections import OrderedDict
 
 import pytest
 import numpy as np
@@ -217,9 +216,9 @@ def test_models_evaluate_without_units(model):
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
         if len(args) == 2:
-            kwargs = OrderedDict(zip(('x', 'y'), args))
+            kwargs = dict(zip(('x', 'y'), args))
         else:
-            kwargs = OrderedDict(zip(('x', 'y', 'z'), args))
+            kwargs = dict(zip(('x', 'y', 'z'), args))
             if kwargs['x'].unit.is_equivalent(kwargs['y'].unit):
                 kwargs['x'] = kwargs['x'].to(kwargs['y'].unit)
         mnu = m.without_units_for_data(**kwargs)
