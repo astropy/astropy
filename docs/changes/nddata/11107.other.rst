@@ -1,0 +1,2 @@
+Prevent unnecessary copies of the data during ``NDData`` arithmetic when units
+need to be added.
