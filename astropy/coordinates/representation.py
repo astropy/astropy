@@ -2237,10 +2237,10 @@ class WGS84GeodeticRepresentation(BaseRepresentation):
         """
         lon, lat, height = erfa.gc2gd(1, cart.get_xyz(xyz_axis=-1).to_value(u.m))
         return cls(
-            Longitude(lon * u.radian, u.degree,
-                      wrap_angle=180. * u.degree, copy=False),
-            Latitude(lat * u.radian, u.degree, copy=False),
-            u.Quantity(height * u.meter, copy=False))
+            Longitude(lon << u.radian, u.degree,
+                      wrap_angle=180. << u.degree, copy=False),
+            Latitude(lat << u.radian, u.degree, copy=False),
+            u.Quantity(height << u.meter, copy=False))
 
 
 class BaseDifferential(BaseRepresentationOrDifferential):
