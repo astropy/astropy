@@ -2189,9 +2189,9 @@ class CylindricalRepresentation(BaseRepresentation):
         return CartesianRepresentation(x=x, y=y, z=z, copy=False)
 
 
-class WGS84GeodeticRepresentation(BaseRepresentation):
+class BaseGeodeticRepresentation(BaseRepresentation):
     """
-    Representation of points in 3D geodetic (WGS84) coordinates.
+    Representation of points in 3D geodetic coordinates.
 
     Parameters
     ----------
@@ -2223,7 +2223,7 @@ class WGS84GeodeticRepresentation(BaseRepresentation):
         Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
         cartesian coordiantes.
         """
-        xyz = erfa.gd2gc(1,
+        xyz = erfa.gd2gc(getattr(erfa, self._ellipsoid),
                          self.lon.to_value(u.radian),
                          self.lat.to_value(u.radian),
                          self.height.to_value(u.m))
@@ -2235,12 +2235,37 @@ class WGS84GeodeticRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates (assumed geocentric) to
         WGS84 geodetic coordinates.
         """
-        lon, lat, height = erfa.gc2gd(1, cart.get_xyz(xyz_axis=-1).to_value(u.m))
+        lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid), cart.get_xyz(xyz_axis=-1).to_value(u.m))
         return cls(
             Longitude(lon << u.radian, u.degree,
                       wrap_angle=180. << u.degree, copy=False),
             Latitude(lat << u.radian, u.degree, copy=False),
             u.Quantity(height << u.meter, copy=False))
+
+
+class WGS84GeodeticRepresentation(BaseGeodeticRepresentation):
+    """
+    Representation of points in WGS84 3D geodetic coordinates.
+    """
+
+    _ellipsoid = 'WGS84'
+
+
+class WGS72GeodeticRepresentation(BaseGeodeticRepresentation):
+    """
+    Representation of points in WGS72 3D geodetic coordinates.
+    """
+
+    _ellipsoid = 'WGS72'
+
+
+class GRS80GeodeticRepresentation(BaseGeodeticRepresentation):
+    """
+    Representation of points in GRS80 3D geodetic coordinates.
+    """
+
+    _ellipsoid = 'GRS80'
+
 
 
 class BaseDifferential(BaseRepresentationOrDifferential):
