@@ -896,7 +896,8 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates (assumed geocentric) to
         WGS84 geodetic coordinates.
         """
-        lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid), cart.get_xyz(xyz_axis=-1).to_value(u.m))
+        lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid),
+                                      cart.get_xyz(xyz_axis=-1).to_value(u.m))
         return cls(
             Longitude(lon << u.radian, u.degree,
                       wrap_angle=180. << u.degree, copy=False),
