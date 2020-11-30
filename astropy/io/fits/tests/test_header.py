@@ -2398,6 +2398,38 @@ class TestHeaderFunctions(FitsTestCase):
         hdr = hdr.copy(strip=True)
         assert set(hdr) == {'HISTORY', 'FOO'}
 
+    def test_update_invalid_card(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/5408
+
+        Tests updating the value of a card that is malformatted (with an
+        invalid value literal).
+
+        This tests two ways of reproducing the problem, one working with a
+        Card object directly, and one when reading/writing a header containing
+        such an invalid card.
+        """
+
+        card = fits.Card.fromstring('KW      = INF  / Comment')
+        card.value = 'FIXED'
+        assert tuple(card) == ('KW', 'FIXED', 'Comment')
+        card.verify('fix')
+        assert tuple(card) == ('KW', 'FIXED', 'Comment')
+
+        card = fits.Card.fromstring('KW      = INF')
+        hdu = fits.PrimaryHDU()
+        # This is a loophole to write a header containing a malformatted card
+        card._verified = True
+        hdu.header.append(card)
+        hdu.header.tofile(self.temp('bogus.fits'))
+
+        with fits.open(self.temp('bogus.fits')) as hdul:
+            hdul[0].header['KW'] = -1
+            hdul.writeto(self.temp('bogus_fixed.fits'))
+
+        with fits.open(self.temp('bogus_fixed.fits')) as hdul:
+            assert hdul[0].header['KW'] == -1
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
