@@ -441,7 +441,7 @@ def test_info():
 
 def test_cartesian_wgs84geodetic_roundtrip():
 
-    s1 = CartesianRepresentation(x=[1, 2000.] * u.km,
+    s1 = CartesianRepresentation(x=[1, 3000.] * u.km,
                                  y=[7000., 4.] * u.km,
                                  z=[5., 6000.] * u.km)
 

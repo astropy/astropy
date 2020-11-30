@@ -882,6 +882,17 @@ class BaseGeodeticRepresentation(BaseRepresentation):
             height = Distance(0, 'm')
         super().__init__(lon, lat, height, copy=copy)
 
+        try:
+            self._height = Distance(self._height, copy=False)
+        except ValueError as e:
+            if e.args[0].startswith('Height must be >= 0'):
+                raise ValueError("Height must be >= 0. To allow negative "
+                                 "height values, you must explicitly pass"
+                                 " in a `Distance` object with the the "
+                                 "argument 'allow_negative=True'.")
+            else:
+                raise
+
     def to_cartesian(self):
         """
         Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
