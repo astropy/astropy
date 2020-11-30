@@ -1068,22 +1068,19 @@ class Card(_Verify):
         return ''.join(output)
 
     def _verify(self, option='warn'):
-        self._verified = True
-
-        errs = _ErrList([])
+        errs = []
         fix_text = f'Fixed {self.keyword!r} card to meet the FITS standard.'
 
         # Don't try to verify cards that already don't meet any recognizable
         # standard
         if self._invalid:
-            return errs
+            return _ErrList(errs)
 
         # verify the equal sign position
         if (self.keyword not in self._commentary_keywords and
             (self._image and self._image[:9].upper() != 'HIERARCH ' and
              self._image.find('=') != 8)):
-            errs.append(self.run_option(
-                option,
+            errs.append(dict(
                 err_text='Card {!r} is not FITS standard (equal sign not '
                          'at column 8).'.format(self.keyword),
                 fix_text=fix_text,
@@ -1102,8 +1099,7 @@ class Card(_Verify):
                 keyword = self._split()[0]
                 if keyword != keyword.upper():
                     # Keyword should be uppercase unless it's a HIERARCH card
-                    errs.append(self.run_option(
-                        option,
+                    errs.append(dict(
                         err_text=f'Card keyword {keyword!r} is not upper case.',
                         fix_text=fix_text,
                         fix=self._fix_keyword))
@@ -1113,8 +1109,7 @@ class Card(_Verify):
                 keyword = keyword.split('.', 1)[0]
 
             if not self._keywd_FSC_RE.match(keyword):
-                errs.append(self.run_option(
-                    option,
+                errs.append(dict(
                     err_text=f'Illegal keyword name {keyword!r}',
                     fixable=False))
 
@@ -1124,21 +1119,24 @@ class Card(_Verify):
             # For commentary keywords all that needs to be ensured is that it
             # contains only printable ASCII characters
             if not self._ascii_text_re.match(valuecomment):
-                errs.append(self.run_option(
-                    option,
+                errs.append(dict(
                     err_text='Unprintable string {!r}; commentary cards may '
                              'only contain printable ASCII characters'.format(
                              valuecomment),
                     fixable=False))
         else:
-            m = self._value_FSC_RE.match(valuecomment)
-            if not m:
-                errs.append(self.run_option(
-                    option,
-                    err_text='Card {!r} is not FITS standard (invalid value '
-                             'string: {!r}).'.format(self.keyword, valuecomment),
-                    fix_text=fix_text,
-                    fix=self._fix_value))
+            if not self._valuemodified:
+                m = self._value_FSC_RE.match(valuecomment)
+                # If the value of a card was replaced before the card was ever
+                # even verified, the new value can be considered valid, so we
+                # don't bother verifying the old value.  See
+                # https://github.com/astropy/astropy/issues/5408
+                if m is None:
+                    errs.append(dict(
+                        err_text=f'Card {self.keyword!r} is not FITS standard '
+                                 f'(invalid value string: {valuecomment!r}).',
+                        fix_text=fix_text,
+                        fix=self._fix_value))
 
         # verify the comment (string), it is never fixable
         m = self._value_NFSC_RE.match(valuecomment)
@@ -1146,13 +1144,14 @@ class Card(_Verify):
             comment = m.group('comm')
             if comment is not None:
                 if not self._ascii_text_re.match(comment):
-                    errs.append(self.run_option(
-                        option,
-                        err_text=('Unprintable string {!r}; header comments '
-                                  'may only contain printable ASCII '
-                                  'characters'.format(comment)),
+                    errs.append(dict(
+                        err_text=f'Unprintable string {comment!r}; header '
+                                  'comments may only contain printable '
+                                  'ASCII characters',
                         fixable=False))
 
+        errs = _ErrList([self.run_option(option, **err) for err in errs])
+        self._verified = True
         return errs
 
     def _itersubcards(self):
