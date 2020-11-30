@@ -12,6 +12,7 @@ import warnings
 
 import numpy as np
 import astropy.units as u
+import erfa
 from erfa import ufunc as erfa_ufunc
 
 from .angles import Angle, Longitude, Latitude
@@ -2222,8 +2223,7 @@ class WGS84GeodeticRepresentation(BaseRepresentation):
         Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
         cartesian coordiantes.
         """
-        # TODO: Check ret?
-        xyz, ret = erfa_ufunc.gd2gc(1,
+        xyz = erfa.gd2gc(1,
                          self.lon.to_value(u.radian),
                          self.lat.to_value(u.radian),
                          self.height.to_value(u.m))
@@ -2235,8 +2235,7 @@ class WGS84GeodeticRepresentation(BaseRepresentation):
         Converts 3D rectangular cartesian coordinates (assumed geocentric) to
         WGS84 geodetic coordinates.
         """
-        # TODO: Check ret?
-        lon, lat, height, ret = erfa_ufunc.gc2gd(1, cart.get_xyz(xyz_axis=-1).to_value(u.m))
+        lon, lat, height = erfa.gc2gd(1, cart.get_xyz(xyz_axis=-1).to_value(u.m))
         return cls(
             Longitude(lon * u.radian, u.degree,
                       wrap_angle=180. * u.degree, copy=False),
