@@ -681,8 +681,7 @@ def test_straight_overhead():
 
 @pytest.mark.remote_data
 def test_aa_high_precision():
-    """
-    These tests are provided by @mkbrewer - see issue #10356.
+    """These tests are provided by @mkbrewer - see issue #10356.
 
     The code that produces them agrees very well (<0.5 mas) with SkyField once Polar motion
     is turned off, but SkyField does not include polar motion, so a comparison to Skyfield
@@ -690,22 +689,35 @@ def test_aa_high_precision():
 
     The absence of polar motion within Skyfield and the disagreement between Skyfield and Horizons
     make high precision comparisons to those codes difficult.
+
+    Updated 2020-11-29, after the comparison between codes became even better,
+    down to 100 nas.
+
+    NOTE: the agreement reflects consistency in approach between two codes,
+    not necessarily absolute precision.  If this test starts failing, the
+    tolerance can and shouls be weakened *if* it is clear that the change is
+    due to an improvement (e.g., a new IAU precession model).
+
     """
     lat = -22.959748*u.deg
     lon = -67.787260*u.deg
     elev = 5186*u.m
     loc = EarthLocation.from_geodetic(lon, lat, elev)
-    t = Time('2017-04-06T00:00:00.0')
+    # Note: at this level of precision for the comparison, we have to include
+    # the location in the time, as it influences the transformation to TDB.
+    t = Time('2017-04-06T00:00:00.0', location=loc)
     with solar_system_ephemeris.set('de430'):
         moon = get_body('moon', t, loc)
         moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
 
-    TARGET_AZ, TARGET_EL = 15.0326735105*u.deg, 50.3031101339*u.deg
-    TARGET_DISTANCE = 376252883.2473*u.m
+    # Numbers from
+    # https://github.com/astropy/astropy/pull/11073#issuecomment-735486271
+    TARGET_AZ, TARGET_EL = 15.032673509886*u.deg, 50.303110133928*u.deg
+    TARGET_DISTANCE = 376252883.247239*u.m
 
-    assert_allclose(moon_aa.az, TARGET_AZ, atol=2*u.uas, rtol=0)
-    assert_allclose(moon_aa.alt, TARGET_EL, atol=2*u.uas, rtol=0)
-    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=2*u.mm, rtol=0)
+    assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1*u.mm, rtol=0)
 
 
 def test_aa_high_precision_nodata():
