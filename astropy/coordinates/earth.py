@@ -16,7 +16,7 @@ from astropy import constants as consts
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils.exceptions import AstropyUserWarning
 from .angles import Angle, Longitude, Latitude
-from .representation import CartesianRepresentation, CartesianDifferential
+from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
 from astropy.utils import data
@@ -848,3 +848,81 @@ class EarthLocation(u.Quantity):
             equivalencies = self._equivalencies
         new_array = self.unit.to(unit, array_view, equivalencies=equivalencies)
         return new_array.view(self.dtype).reshape(self.shape)
+
+
+class BaseGeodeticRepresentation(BaseRepresentation):
+    """
+    Representation of points in 3D geodetic coordinates.
+
+    Parameters
+    ----------
+    lon, lat : `~astropy.units.Quantity`
+        The longitude and latitude of the point(s), in angular units. The
+        latitude should be between -90 and 90 degrees, and the longitude will
+        be wrapped to an angle between 0 and 360 degrees. These can also be
+        instances of `~astropy.coordinates.Angle`,
+        `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
+
+    height : `~astropy.units.Quantity`
+        The height to the point(s).
+
+    copy : bool, optional
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
+
+    """
+
+    attr_classes = {'lon': Longitude,
+                    'lat': Latitude,
+                    'height': u.Quantity}
+
+    def __init__(self, lon, lat=None, height=None, copy=True):
+        super().__init__(lon, lat, height, copy=copy)
+
+    def to_cartesian(self):
+        """
+        Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
+        cartesian coordiantes.
+        """
+        xyz = erfa.gd2gc(getattr(erfa, self._ellipsoid),
+                         self.lon.to_value(u.radian),
+                         self.lat.to_value(u.radian),
+                         self.height.to_value(u.m))
+        return CartesianRepresentation(xyz, unit=u.m, xyz_axis=-1, copy=False)
+
+    @classmethod
+    def from_cartesian(cls, cart):
+        """
+        Converts 3D rectangular cartesian coordinates (assumed geocentric) to
+        WGS84 geodetic coordinates.
+        """
+        lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid), cart.get_xyz(xyz_axis=-1).to_value(u.m))
+        return cls(
+            Longitude(lon << u.radian, u.degree,
+                      wrap_angle=180. << u.degree, copy=False),
+            Latitude(lat << u.radian, u.degree, copy=False),
+            u.Quantity(height << u.meter, copy=False))
+
+
+class WGS84GeodeticRepresentation(BaseGeodeticRepresentation):
+    """
+    Representation of points in WGS84 3D geodetic coordinates.
+    """
+
+    _ellipsoid = 'WGS84'
+
+
+class WGS72GeodeticRepresentation(BaseGeodeticRepresentation):
+    """
+    Representation of points in WGS72 3D geodetic coordinates.
+    """
+
+    _ellipsoid = 'WGS72'
+
+
+class GRS80GeodeticRepresentation(BaseGeodeticRepresentation):
+    """
+    Representation of points in GRS80 3D geodetic coordinates.
+    """
+
+    _ellipsoid = 'GRS80'
