@@ -22,7 +22,7 @@ import operator
 import types
 import warnings
 
-from collections import defaultdict, OrderedDict, deque
+from collections import defaultdict, deque
 from inspect import signature
 from itertools import chain
 
@@ -69,9 +69,6 @@ class _ModelMeta(abc.ABCMeta):
     Currently just handles auto-generating the param_names list based on
     Parameter descriptors declared at the class-level of Model subclasses.
     """
-    @classmethod
-    def __prepare__(mcls, name, bases):
-        return OrderedDict()
 
     _is_dynamic = False
     """
@@ -134,7 +131,7 @@ class _ModelMeta(abc.ABCMeta):
         super(_ModelMeta, cls).__init__(name, bases, members)
         cls._create_inverse_property(members)
         cls._create_bounding_box_property(members)
-        pdict = OrderedDict()
+        pdict = {}
         for base in bases:
             for tbase in base.__mro__:
                 if issubclass(tbase, Model):
@@ -3121,7 +3118,7 @@ class CompoundModel(Model):
             return
         if self._leaflist is None:
             self._make_leaflist()
-        self._parameters_ = OrderedDict()
+        self._parameters_ = {}
         param_map = {}
         self._param_names = []
         for lindex, leaf in enumerate(self._leaflist):
@@ -3709,8 +3706,8 @@ def _custom_model_wrapper(func, fit_deriv=None):
     else:
         output_names = ('x',)
 
-    params = OrderedDict((param.name, Parameter(param.name,
-                                                default=param.default)) for param in params)
+    params = {param.name: Parameter(param.name, default=param.default)
+              for param in params}
 
     mod = find_current_module(2)
     if mod:
@@ -3718,13 +3715,14 @@ def _custom_model_wrapper(func, fit_deriv=None):
     else:
         modname = '__main__'
 
-    members = OrderedDict([
-        ('__module__', str(modname)),
-        ('__doc__', func.__doc__),
-        ('n_inputs', len(inputs)),
+    members = {
+        '__module__': str(modname),
+        '__doc__': func.__doc__,
+        'n_inputs': len(inputs),
         # tuple(x.name for x in inputs)),
-        ('n_outputs', len(output_names)),
-        ('evaluate', staticmethod(func))])
+        'n_outputs': len(output_names),
+        'evaluate': staticmethod(func)
+    }
 
     if fit_deriv is not None:
         members['fit_deriv'] = staticmethod(fit_deriv)
