@@ -16,6 +16,7 @@ from astropy import constants as consts
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils.exceptions import AstropyUserWarning
 from .angles import Angle, Longitude, Latitude
+from .distances import Distance
 from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
@@ -877,6 +878,8 @@ class BaseGeodeticRepresentation(BaseRepresentation):
                     'height': u.Quantity}
 
     def __init__(self, lon, lat=None, height=None, copy=True):
+        if height is None and not isinstance(lon, self.__class__):
+            height = Distance(0, 'm')
         super().__init__(lon, lat, height, copy=copy)
 
     def to_cartesian(self):
