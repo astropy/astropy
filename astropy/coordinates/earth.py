@@ -17,7 +17,7 @@ from astropy.units.quantity import QuantityInfoBase
 from astropy.utils.exceptions import AstropyUserWarning
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential
+from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential, REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
 from astropy.utils import data
@@ -288,22 +288,18 @@ class EarthLocation(u.Quantity):
         ``gd2gc`` is used.  See https://github.com/liberfa/erfa
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls._ellipsoid)
-        # We use Angle here since there is no need to wrap the longitude -
-        # gd2gc will just take cos/sin anyway.  And wrapping might fail
-        # on readonly input.
-        lon = Angle(lon, u.degree, copy=False)
+        # As wrapping fails on readonly input, we do so manually
+        lon = Angle(lon, u.degree, copy=False).wrap_at(180 * u.degree)
         lat = Latitude(lat, u.degree, copy=False)
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
             height = u.Quantity(height, u.m, copy=False)
         # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = erfa.gd2gc(getattr(erfa, ellipsoid),
-                         lon.to_value(u.radian),
-                         lat.to_value(u.radian),
-                         height.to_value(u.m))
+        xyz = REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"](
+            lon, lat, Distance(height, allow_negative=True), copy=False,
+        ).represent_as(CartesianRepresentation).get_xyz(xyz_axis=-1)
         self = xyz.ravel().view(cls._location_dtype,
                                 cls).reshape(xyz.shape[:-1])
-        self._unit = u.meter
         self._ellipsoid = ellipsoid
         return self.to(height.unit)
 
@@ -597,13 +593,13 @@ class EarthLocation(u.Quantity):
         ``gc2gd`` is used.  See https://github.com/liberfa/erfa
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
-        self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
-        lon, lat, height = erfa.gc2gd(getattr(erfa, ellipsoid), self_array)
+        llh = CartesianRepresentation(self.x, self.y, self.z).represent_as(
+            REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"])
         return GeodeticLocation(
-            Longitude(lon * u.radian, u.degree,
-                      wrap_angle=180.*u.degree, copy=False),
-            Latitude(lat * u.radian, u.degree, copy=False),
-            u.Quantity(height * u.meter, self.unit, copy=False))
+            llh.lon,
+            llh.lat,
+            u.Quantity(llh.height, self.unit, copy=False))
+
 
     @property
     def lon(self):
