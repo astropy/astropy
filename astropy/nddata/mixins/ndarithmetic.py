@@ -311,14 +311,14 @@ class NDArithmeticMixin:
         if self.unit is None and operand.unit is None:
             result = operation(self.data, operand.data)
         elif self.unit is None:
-            result = operation(self.data * dimensionless_unscaled,
-                               operand.data * operand.unit)
+            result = operation(self.data << dimensionless_unscaled,
+                               operand.data << operand.unit)
         elif operand.unit is None:
-            result = operation(self.data * self.unit,
-                               operand.data * dimensionless_unscaled)
+            result = operation(self.data << self.unit,
+                               operand.data << dimensionless_unscaled)
         else:
-            result = operation(self.data * self.unit,
-                               operand.data * operand.unit)
+            result = operation(self.data << self.unit,
+                               operand.data << operand.unit)
 
         return result
 
