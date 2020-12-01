@@ -19,29 +19,7 @@ from astropy.time import Time
 from astropy import constants
 from astropy.coordinates.name_resolve import NameResolveError
 
-
-def components_equal(rep1, rep2):
-    result = True
-    if type(rep1) is not type(rep2):
-        return False
-    for component in rep1.components:
-        result &= getattr(rep1, component) == getattr(rep2, component)
-    return result
-
-
-def representation_equal(rep1, rep2):
-    result = True
-    if type(rep1) is not type(rep2):
-        return False
-    if getattr(rep1, '_differentials', False):
-        if rep1._differentials.keys() != rep2._differentials.keys():
-            return False
-        for key, diff1 in rep1._differentials.items():
-            result &= components_equal(diff1, rep2._differentials[key])
-    elif getattr(rep2, '_differentials', False):
-        return False
-
-    return result & components_equal(rep1, rep2)
+from .test_representation import representation_equal
 
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):
