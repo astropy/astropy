@@ -1,15 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+import pytest
+
+asdf = pytest.importorskip('asdf')
+
 import warnings
 
 from packaging.version import Version
-import pytest
 import numpy as np
 
-from astropy import __minimum_asdf_version__
-
-asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf import util
 from asdf.tests import helpers
 from asdf import AsdfFile
