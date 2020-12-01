@@ -2096,9 +2096,8 @@ class TestHeaderFunctions(FitsTestCase):
         """
 
         h = fits.Header()
-
-        pytest.raises(ValueError, h.set, 'TEST',
-                      bytes('Hello', encoding='ascii'))
+        with pytest.raises(ValueError, match="Illegal value: b'Hello'."):
+            h.set('TEST', b'Hello')
 
     def test_header_strip_whitespace(self):
         """
