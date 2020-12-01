@@ -114,6 +114,17 @@ class TestSphericalRepresentation:
         assert s3.lon == -90. * u.degree
         assert s3.lon.wrap_angle == 180 * u.degree
 
+    def test_init_subclass(self):
+        class Longitude180(Longitude):
+            _default_wrap_angle = 180*u.degree
+
+        s = SphericalRepresentation(Longitude180(-90, u.degree),
+                                    Latitude(-45, u.degree),
+                                    Distance(1., u.Rsun))
+        assert isinstance(s.lon, Longitude180)
+        assert s.lon == -90. * u.degree
+        assert s.lon.wrap_angle == 180 * u.degree
+
     def test_init_array(self):
 
         s1 = SphericalRepresentation(lon=[8, 9] * u.hourangle,
@@ -237,6 +248,16 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(s.lon, [10, 10, 2, 3, 4] * u.deg)
         assert_allclose_quantity(s.lat, [2, 2, -2, -3, -4] * u.deg)
         assert_allclose_quantity(s.distance, [5, 5, 1, 1, 1] * u.kpc)
+
+    def test_negative_distance(self):
+        """Only allowed if explicitly passed on."""
+        with pytest.raises(ValueError, match='allow_negative'):
+            SphericalRepresentation(10*u.deg, 20*u.deg, -10*u.m)
+
+        s1 = SphericalRepresentation(10*u.deg, 20*u.deg,
+                                     Distance(-10*u.m, allow_negative=True))
+
+        assert s1.distance == -10.*u.m
 
     def test_nan_distance(self):
         """ This is a regression test: calling represent_as() and passing in the

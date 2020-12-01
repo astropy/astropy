@@ -226,7 +226,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
-        attrs = [self.attr_classes[component](attr, copy=False)
+        attrs = [self.attr_classes[component](attr, copy=False, subok=True)
                  for component, attr in zip(components, attrs)]
         try:
             attrs = np.broadcast_arrays(*attrs, subok=True)
@@ -1805,7 +1805,8 @@ class SphericalRepresentation(BaseRepresentation):
                  copy=True):
         super().__init__(lon, lat, distance, copy=copy,
                          differentials=differentials)
-        if self._distance.unit.physical_type == 'length':
+        if (not isinstance(self._distance, Distance)
+                and self._distance.unit.physical_type == 'length'):
             try:
                 self._distance = Distance(self._distance, copy=False)
             except ValueError as e:
