@@ -25,7 +25,7 @@ from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
 
 
-__all__ = ['EarthLocation']
+__all__ = ['EarthLocation', 'WGS84GeodeticRepresentation', 'WGS72GeodeticRepresentation', 'GRS80GeodeticRepresentation']
 
 GeodeticLocation = collections.namedtuple('GeodeticLocation', ['lon', 'lat', 'height'])
 
