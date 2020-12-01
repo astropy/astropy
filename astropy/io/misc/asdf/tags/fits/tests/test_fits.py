@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
+import pytest
+
+asdf = pytest.importorskip('asdf')
+
 import os
 
-import pytest
 import numpy as np
 
 from astropy.io import fits
-from astropy import __minimum_asdf_version__
 
-asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests import helpers
 
 from astropy.io.misc.asdf.tags.tests.helpers import run_schema_example_test

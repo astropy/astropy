@@ -3,9 +3,7 @@
 
 import pytest
 
-from astropy import __minimum_asdf_version__
-
-asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
+asdf = pytest.importorskip('asdf')
 
 import astropy.units as u
 

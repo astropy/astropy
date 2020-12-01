@@ -1,9 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import pytest
 
-from astropy import __minimum_asdf_version__
+asdf = pytest.importorskip("asdf")
 
-asdf = pytest.importorskip("asdf", minversion=__minimum_asdf_version__)
 from asdf.tests.helpers import assert_roundtrip_tree
 
 from astropy.modeling.models import UnitsMapping

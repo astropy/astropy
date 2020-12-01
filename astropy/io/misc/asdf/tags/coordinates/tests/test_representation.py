@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import pytest
 
+asdf = pytest.importorskip('asdf')
+
 from numpy.random import random, randint
 
 import astropy.units as u
@@ -9,9 +11,6 @@ import astropy.units as u
 from astropy.coordinates import Angle
 import astropy.coordinates.representation as r
 
-from astropy import __minimum_asdf_version__
-
-asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
 from asdf.tests.helpers import assert_roundtrip_tree
 
 

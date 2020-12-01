@@ -1,13 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
 
-import io
 import pytest
 
-from astropy import units as u
-from astropy import __minimum_asdf_version__
+asdf = pytest.importorskip('asdf')
 
-asdf = pytest.importorskip('asdf', minversion=__minimum_asdf_version__)
+import io
+
+from astropy import units as u
+
 from asdf.tests import helpers
 
 
