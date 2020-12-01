@@ -30,8 +30,7 @@ from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 CylindricalDifferential,
                                                 PhysicsSphericalDifferential,
                                                 UnitSphericalDifferential,
-                                                UnitSphericalCosLatDifferential,
-                                                _combine_xyz)
+                                                UnitSphericalCosLatDifferential)
 
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
@@ -1179,35 +1178,6 @@ def test_duplicate_warning():
     assert 'unitspherical' not in REPRESENTATION_CLASSES
     assert 'astropy.coordinates.representation.UnitSphericalRepresentation' in REPRESENTATION_CLASSES
     assert __name__ + '.test_duplicate_warning.<locals>.UnitSphericalRepresentation' in REPRESENTATION_CLASSES
-
-
-def test_combine_xyz():
-
-    x, y, z = np.arange(27).reshape(3, 9) * u.kpc
-    xyz = _combine_xyz(x, y, z, xyz_axis=0)
-    assert xyz.shape == (3, 9)
-    assert np.all(xyz[0] == x)
-    assert np.all(xyz[1] == y)
-    assert np.all(xyz[2] == z)
-
-    x, y, z = np.arange(27).reshape(3, 3, 3) * u.kpc
-    xyz = _combine_xyz(x, y, z, xyz_axis=0)
-    assert xyz.ndim == 3
-    assert np.all(xyz[0] == x)
-    assert np.all(xyz[1] == y)
-    assert np.all(xyz[2] == z)
-
-    xyz = _combine_xyz(x, y, z, xyz_axis=1)
-    assert xyz.ndim == 3
-    assert np.all(xyz[:, 0] == x)
-    assert np.all(xyz[:, 1] == y)
-    assert np.all(xyz[:, 2] == z)
-
-    xyz = _combine_xyz(x, y, z, xyz_axis=-1)
-    assert xyz.ndim == 3
-    assert np.all(xyz[..., 0] == x)
-    assert np.all(xyz[..., 1] == y)
-    assert np.all(xyz[..., 2] == z)
 
 
 class TestCartesianRepresentationWithDifferential:
