@@ -290,8 +290,8 @@ name and format. Here is a summary of all allowed formats for a binary table:
     J                        32-bit integer                  4
     K                        64-bit integer                  8
     A                        character                       1
-    E                        single precision floating point 4
-    D                        double precision floating point 8
+    E                        single precision float (32-bit) 4
+    D                        double precision float (64-bit) 8
     C                        single precision complex        8
     M                        double precision complex        16
     P                        array descriptor                8
