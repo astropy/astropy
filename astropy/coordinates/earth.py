@@ -14,13 +14,15 @@ import erfa
 from astropy import units as u
 from astropy import constants as consts
 from astropy.units.quantity import QuantityInfoBase
+from astropy.utils import data
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
+
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential, REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
-from astropy.utils import data
 
 
 __all__ = ['EarthLocation']
@@ -847,27 +849,28 @@ class EarthLocation(u.Quantity):
         return new_array.view(self.dtype).reshape(self.shape)
 
 
-class BaseGeodeticRepresentation(BaseRepresentation):
-    """
-    Representation of points in 3D geodetic coordinates.
+geodetic_base_doc = """{__doc__}
 
     Parameters
     ----------
-    lon, lat : `~astropy.units.Quantity`
+    lon, lat : `.Longitude`, `.Latitude` or equivalent
         The longitude and latitude of the point(s), in angular units. The
         latitude should be between -90 and 90 degrees, and the longitude will
         be wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.coordinates.Angle`,
+        instances of `~astropy.units.Quantity`, `~astropy.coordinates.Angle`,
         `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
-
     height : `~astropy.units.Quantity`
         The height to the point(s).
-
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will
         be references, though possibly broadcast to ensure matching shapes.
 
-    """
+"""
+
+
+@format_doc(geodetic_base_doc)
+class BaseGeodeticRepresentation(BaseRepresentation):
+    """Base geodetic representation."""
 
     attr_classes = {'lon': Longitude,
                     'lat': Latitude,
@@ -904,25 +907,22 @@ class BaseGeodeticRepresentation(BaseRepresentation):
             u.Quantity(height << u.meter, copy=False))
 
 
+@format_doc(geodetic_base_doc)
 class WGS84GeodeticRepresentation(BaseGeodeticRepresentation):
-    """
-    Representation of points in WGS84 3D geodetic coordinates.
-    """
+    """Representation of points in WGS84 3D geodetic coordinates."""
 
     _ellipsoid = 'WGS84'
 
 
+@format_doc(geodetic_base_doc)
 class WGS72GeodeticRepresentation(BaseGeodeticRepresentation):
-    """
-    Representation of points in WGS72 3D geodetic coordinates.
-    """
+    """Representation of points in WGS72 3D geodetic coordinates."""
 
     _ellipsoid = 'WGS72'
 
 
+@format_doc(geodetic_base_doc)
 class GRS80GeodeticRepresentation(BaseGeodeticRepresentation):
-    """
-    Representation of points in GRS80 3D geodetic coordinates.
-    """
+    """Representation of points in GRS80 3D geodetic coordinates."""
 
     _ellipsoid = 'GRS80'
