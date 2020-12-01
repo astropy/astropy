@@ -108,11 +108,9 @@ Other Tips
 
 - To skip only the tests running on Travis CI use ``[skip travis]``.
 
-- If your commit makes substantial changes to the documentation but no code
-  changes, then you can use ``[skip travis]``, which will skip Travis CI
-  because documentation build is done on CircleCI. The exception to this rule
-  is when your changes to documentation include code snippets that need to
-  be tested using ``doctest``.
+- If your commit makes substantial changes to the documentation but none of
+  those changes include code snippets, then you can use ``[ci skip]``,
+  which will skip all CI except RTD, where the documentation is built.
 
 - When contributing trivial documentation fixes (i.e., fixes to typos, spelling,
   grammar) that don't contain any special markup and are not associated with
