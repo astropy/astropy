@@ -102,6 +102,9 @@ astropy.convolution
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
+- For input to representations, subclasses of the class required for a
+  given attribute will now be allowed in. [#11113]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -187,6 +190,11 @@ astropy.convolution
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
+
+- Allow ``Distance`` instances with negative distance values as input for
+  ``SphericalRepresentation``.  This was always noted as allowed in an
+  exception message when a negative ``Quantity`` with length units was
+  passed in, but was not actually possible to do. [#11113]
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
