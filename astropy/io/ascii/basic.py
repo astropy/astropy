@@ -371,7 +371,7 @@ class Rdb(Tab):
     """Tab-separated file with an extra line after the column definition line that
     specifies either numeric (N) or string (S) data.
 
-    See: https://compbio.soe.ucsc.edu/rdb/
+    See: https://www.drdobbs.com/rdb-a-unix-command-line-database/199101326
 
     Example::
 
