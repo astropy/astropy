@@ -1,0 +1,44 @@
+name: Daily cron
+
+# This is daily cron on astropy dev but not here because
+# release branch is low traffic. But we keep the file as close
+# to dev version as possible for ease of backport.
+on:
+  push:
+    branches:
+      - v4.2.x
+  pull_request:
+    branches:
+      - v4.2.x
+
+jobs:
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    if: github.repository == 'astropy/astropy'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+
+          - name: Bundling with pyinstaller
+            os: ubuntu-latest
+            python: 3.8
+            toxenv: pyinstaller
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt-get install language-pack-de tzdata
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox
+    - name: Run tests
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}

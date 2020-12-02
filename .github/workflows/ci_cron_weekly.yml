@@ -1,0 +1,118 @@
+name: Weekly cron
+
+# This is weekly cron on astropy dev but not here because
+# release branch is low traffic. But we keep the file as close
+# to dev version as possible for ease of backport.
+on:
+  push:
+    branches:
+      - v4.2.x
+  pull_request:
+    branches:
+      - v4.2.x
+
+jobs:
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    if: github.repository == 'astropy/astropy'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+
+          # DISABLED FOR RELEASE BRANCH (is a duplicate when not cron)
+          # We check numpy-dev also in a job that only runs from cron, so that
+          # we can spot issues sooner. We do not use remote data here, since
+          # that gives too many false positives due to URL timeouts. We also
+          # install all dependencies via pip here so we pick up the latest
+          # releases.
+          #- name: Python 3.7 with dev version of key dependencies
+          #  os: ubuntu-latest
+          #  python: 3.7
+          #  toxenv: py37-test-devdeps
+
+          - name: Documentation link check
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: linkcheck
+
+          # TODO: Uncomment when 3.10 is more mature. Should we use devdeps?
+          # Test against Python dev in cron job.
+          #- name: Python dev with basic dependencies
+          #  os: ubuntu-latest
+          #  python: 3.10-dev
+          #  toxenv: pydev-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: sudo apt-get install language-pack-de tzdata
+    - name: Install graphviz
+      if: ${{ matrix.toxenv == 'linkcheck' }}
+      run: sudo apt-get install graphviz
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox
+    - name: Run tests
+      run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+
+
+  tests_more_architectures:
+
+    # The following architectures are emulated and are therefore slow, so
+    # we include them just in the weekly cron. These also serve as a test
+    # of using system libraries and using pytest directly.
+
+    runs-on: ubuntu-18.04
+    name: Python 3.7 on ${{ matrix.arch }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+          - arch: ppc64le
+          - arch: s390x
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Run tests
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: buster
+
+          shell: /bin/bash
+
+          install: |
+            echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
+            apt-get update -q -y
+            apt-get install -q -y git \
+                                  g++ \
+                                  pkg-config \
+                                  python3 \
+                                  python3-configobj \
+                                  python3-numpy \
+                                  python3-ply \
+                                  python3-venv \
+                                  cython3 \
+                                  wcslib-dev/buster-backports \
+                                  libcfitsio-dev \
+                                  liberfa1
+
+          run: |
+            python3 -m venv --system-site-packages tests
+            source tests/bin/activate
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
+            python3 -m pytest
