@@ -107,7 +107,7 @@ packages that use the full bugfix/maintenance branch approach.)
 
       $ git checkout v1.2.x
 
-#. Make sure that the continuous integration services (e.g., Travis or CircleCI) are passing
+#. Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. You may
    also want to locally run the tests (with remote data on to ensure all of the
    tests actually run), and make sure the description in ``setup.cfg`` is
@@ -732,7 +732,7 @@ applies both for regular release *and* release candidates are the same
       $ git add astropy_helpers ah_bootstrap.py
       $ git commit -m "updated helpers to v<version>"
 
-#. Wait for the continuous integration services (e.g., Travis) to run on the PR
+#. Wait for the continuous integration services (e.g., GitHub Actions) to run on the PR
    to ensure the release commit of the helpers works with the to-be-released
    version of Astropy.
 

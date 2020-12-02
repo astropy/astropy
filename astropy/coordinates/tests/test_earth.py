@@ -287,7 +287,7 @@ def test_repr_latex():
 
 @pytest.mark.remote_data
 # TODO: this parametrize should include a second option with a valid Google API
-# key. For example, we should make an API key for Astropy, and add it to Travis
+# key. For example, we should make an API key for Astropy, and add it to CI
 # as an environment variable (for security).
 @pytest.mark.parametrize('google_api_key', [None])
 def test_of_address(google_api_key):
@@ -303,7 +303,7 @@ def test_of_address(google_api_key):
     try:
         loc = EarthLocation.of_address("New York, NY")
     except NameResolveError as e:
-        # API limit might surface even here in Travis CI.
+        # API limit might surface even here in CI.
         if 'unknown failure with' not in str(e):
             pytest.xfail(str(e))
     else:

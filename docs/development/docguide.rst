@@ -17,13 +17,13 @@ Adding a Git Commit
 
 When your changes only affect documentation (i.e., docstring or RST files)
 and do not include any code snippets that require doctest to run, you may
-add a ``[skip travis]`` in your commit message. For example::
+add a ``[ci skip]`` in your commit message. For example::
 
-    git commit -m "Update documentation about this and that [skip travis]"
+    git commit -m "Update documentation about this and that [ci skip]"
 
 When this commit is pushed out to your branch associated with a pull request,
-Travis CI will be skipped because it is not required. This is because the
-CI job to build the documentation resides in CircleCI.
+Circle CI will be skipped because it is not required. This is because the
+CI job to build the documentation resides in RTD.
 
 
 Building the Documentation from source

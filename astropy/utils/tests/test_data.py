@@ -56,7 +56,7 @@ from astropy.utils.data import (
     download_files_in_parallel,
 )
 
-TRAVIS = os.environ.get('TRAVIS', False) == "true"
+CI = os.environ.get('CI', False) == "true"
 TESTURL = "http://www.astropy.org"
 TESTURL2 = "http://www.astropy.org/about.html"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
@@ -386,7 +386,7 @@ def test_download_with_sources_and_bogus_original(
 
 
 @pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_download_file_threaded_many(temp_cache, valid_urls):
@@ -407,7 +407,7 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
 
 
 @pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_threaded_segfault(valid_urls):
@@ -425,7 +425,7 @@ def test_threaded_segfault(valid_urls):
 
 
 @pytest.mark.skipif((3, 7) <= sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_download_file_threaded_many_partial_success(
@@ -828,7 +828,7 @@ def test_download_parallel_update(temp_cache, tmpdir):
 
 
 @pytest.mark.skipif(sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_update_parallel(temp_cache, valid_urls):
@@ -850,7 +850,7 @@ def test_update_parallel(temp_cache, valid_urls):
 
 
 @pytest.mark.skipif(sys.version_info < (3, 8) or
-                    (sys.platform.startswith('win') and TRAVIS),
+                    (sys.platform.startswith('win') and CI),
                     reason="mystery segfault that is possibly bug #10008 "
                            "for python < 3.8, flaky cache error on Windows CI")
 def test_update_parallel_multi(temp_cache, valid_urls):
@@ -2100,7 +2100,7 @@ def test_clear_download_cache_variants(temp_cache, valid_urls):
     assert not is_url_in_cache(u)
 
 
-@pytest.mark.xfail('TRAVIS')
+@pytest.mark.xfail('CI')
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):
     url = "ftp://anonymous:mail%40astropy.org@gdc.cddis.eosdis.nasa.gov/pub/products/iers/finals2000A.all"

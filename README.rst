@@ -2,7 +2,7 @@
 Astropy
 =======
 
-|Travis Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
 
 The Astropy Project (http://astropy.org/) is a community effort to develop a
 single core package for Astronomy in Python and foster interoperability between
@@ -58,9 +58,9 @@ For system packagers: Please install `astropy` with the command::
 This will prevent the astropy_helpers bootstrap script from attempting to
 reach out to PyPI.
 
-.. |Travis Status| image:: https://img.shields.io/travis/astropy/astropy/master?logo=travis%20ci&logoColor=white&label=Travis%20CI
-    :target: https://travis-ci.org/astropy/astropy
-    :alt: Astropy's Travis CI Status
+.. |Actions Status| image:: https://github.com/astropy/astropy/workflows/CI/badge.svg
+    :target: https://github.com/astropy/astropy/actions
+    :alt: Astropy's GitHub Actions CI Status
 
 .. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
     :target: https://circleci.com/gh/astropy/astropy
