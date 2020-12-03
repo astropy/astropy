@@ -136,3 +136,9 @@ def pytest_terminal_summary(terminalreporter):
         'https://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
         'tests-when-running-the-tests-in-ipython for more information.',
         yellow=True, bold=True)
+
+
+def pytest_report_header(config):
+    # This gets added after the pytest-astropy-header output.
+    return (f'ARCH_ON_CI: {os.environ.get("ARCH_ON_CI", "undefined")}\n'
+            f'IS_CRON: {os.environ.get("IS_CRON", "undefined")}\n')

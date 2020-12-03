@@ -7,6 +7,10 @@ on:
     tags:
   pull_request:
 
+env:
+  ARCH_ON_CI: "normal"
+  IS_CRON: "false"
+
 jobs:
   tests:
     name: ${{ matrix.name }}

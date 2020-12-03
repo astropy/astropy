@@ -4,12 +4,16 @@ on:
   schedule:
     # run every Monday at 6am UTC
     - cron: '0 6 * * 1'
+env:
+  IS_CRON: "true"
 
 jobs:
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     if: github.repository == 'astropy/astropy'
+    env:
+      ARCH_ON_CI: "normal"
     strategy:
       fail-fast: false
       matrix:
@@ -66,6 +70,8 @@ jobs:
 
     runs-on: ubuntu-18.04
     name: Python 3.7 on ${{ matrix.arch }}
+    env:
+      ARCH_ON_CI: ${{ matrix.arch }}
 
     strategy:
       fail-fast: false
