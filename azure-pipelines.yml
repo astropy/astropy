@@ -66,3 +66,8 @@ jobs:
       - wheels_cp38*win_amd64
       - wheels_cp39*win32
       - wheels_cp39*win_amd64
+
+# We always need to specify a job, so always run a do nothing.
+- job: skipping
+  steps:
+    - checkout: none
