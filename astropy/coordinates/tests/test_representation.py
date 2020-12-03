@@ -30,8 +30,7 @@ from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
                                                 CylindricalDifferential,
                                                 PhysicsSphericalDifferential,
                                                 UnitSphericalDifferential,
-                                                UnitSphericalCosLatDifferential,
-                                                _combine_xyz)
+                                                UnitSphericalCosLatDifferential)
 
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
@@ -114,6 +113,17 @@ class TestSphericalRepresentation:
                                      Distance(1., u.Rsun))
         assert s3.lon == -90. * u.degree
         assert s3.lon.wrap_angle == 180 * u.degree
+
+    def test_init_subclass(self):
+        class Longitude180(Longitude):
+            _default_wrap_angle = 180*u.degree
+
+        s = SphericalRepresentation(Longitude180(-90, u.degree),
+                                    Latitude(-45, u.degree),
+                                    Distance(1., u.Rsun))
+        assert isinstance(s.lon, Longitude180)
+        assert s.lon == -90. * u.degree
+        assert s.lon.wrap_angle == 180 * u.degree
 
     def test_init_array(self):
 
@@ -238,6 +248,16 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(s.lon, [10, 10, 2, 3, 4] * u.deg)
         assert_allclose_quantity(s.lat, [2, 2, -2, -3, -4] * u.deg)
         assert_allclose_quantity(s.distance, [5, 5, 1, 1, 1] * u.kpc)
+
+    def test_negative_distance(self):
+        """Only allowed if explicitly passed on."""
+        with pytest.raises(ValueError, match='allow_negative'):
+            SphericalRepresentation(10*u.deg, 20*u.deg, -10*u.m)
+
+        s1 = SphericalRepresentation(10*u.deg, 20*u.deg,
+                                     Distance(-10*u.m, allow_negative=True))
+
+        assert s1.distance == -10.*u.m
 
     def test_nan_distance(self):
         """ This is a regression test: calling represent_as() and passing in the
@@ -1179,35 +1199,6 @@ def test_duplicate_warning():
     assert 'unitspherical' not in REPRESENTATION_CLASSES
     assert 'astropy.coordinates.representation.UnitSphericalRepresentation' in REPRESENTATION_CLASSES
     assert __name__ + '.test_duplicate_warning.<locals>.UnitSphericalRepresentation' in REPRESENTATION_CLASSES
-
-
-def test_combine_xyz():
-
-    x, y, z = np.arange(27).reshape(3, 9) * u.kpc
-    xyz = _combine_xyz(x, y, z, xyz_axis=0)
-    assert xyz.shape == (3, 9)
-    assert np.all(xyz[0] == x)
-    assert np.all(xyz[1] == y)
-    assert np.all(xyz[2] == z)
-
-    x, y, z = np.arange(27).reshape(3, 3, 3) * u.kpc
-    xyz = _combine_xyz(x, y, z, xyz_axis=0)
-    assert xyz.ndim == 3
-    assert np.all(xyz[0] == x)
-    assert np.all(xyz[1] == y)
-    assert np.all(xyz[2] == z)
-
-    xyz = _combine_xyz(x, y, z, xyz_axis=1)
-    assert xyz.ndim == 3
-    assert np.all(xyz[:, 0] == x)
-    assert np.all(xyz[:, 1] == y)
-    assert np.all(xyz[:, 2] == z)
-
-    xyz = _combine_xyz(x, y, z, xyz_axis=-1)
-    assert xyz.ndim == 3
-    assert np.all(xyz[..., 0] == x)
-    assert np.all(xyz[..., 1] == y)
-    assert np.all(xyz[..., 2] == z)
 
 
 class TestCartesianRepresentationWithDifferential:
