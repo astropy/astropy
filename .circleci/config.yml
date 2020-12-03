@@ -2,37 +2,6 @@ version: 2
 
 jobs:
 
-  32bit-and-parallel:
-    docker:
-      - image: quay.io/pypa/manylinux1_i686
-    steps:
-      - checkout
-      - run:
-          name: Write configuration items to standard location to make sure they are ignored in parallel mode
-          command: |
-              mkdir -p $HOME/.astropy/config/
-              printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-      # In addition to testing 32-bit, we also use the 3.7 builds to
-      # test the ability to run the test suite in parallel.
-      - run:
-          name: Install dependencies for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/pip install tox
-      - run:
-          name: Run tests for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/python -m tox -e py37-test -- -n=4 --durations=50
-      # We use the 3.8 build to check that running tests twice in a row in the
-      # same Python session works without issues. This catches cases where
-      # running the tests changes the module state permanently. Note that we
-      # shouldn't also test the parallel build here since that enforces a degree
-      # of isolation of tests which will interfere with what we are trying to do
-      # here.
-      - run:
-          name: Install dependencies for Python 3.8
-          command: /opt/python/cp38-cp38/bin/pip install tox
-      - run:
-          name: Run tests for Python 3.8
-          command: /opt/python/cp38-cp38/bin/python -m tox -e py38-test-double
-
   image-tests-mpl302:
     docker:
       - image: astropy/image-tests-py37-mpl302:1.10
@@ -82,7 +51,6 @@ workflows:
   version: 2
   tests:
     jobs:
-      - 32bit-and-parallel
       - image-tests-mpl302
       - image-tests-mpl310
       - image-tests-mpldev
