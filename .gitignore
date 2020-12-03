@@ -45,6 +45,11 @@ distribute-*.tar.gz
 venv
 pip-wheel-metadata
 
+# pyinstaller files
+.pyinstaller/astropy_tests/
+.pyinstaller/run_astropy_tests
+.pyinstaller/run_astropy_tests.spec
+
 # Other
 .cache
 .tox
