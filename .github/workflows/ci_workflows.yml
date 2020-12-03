@@ -14,7 +14,7 @@ jobs:
     if: (github.event_name == 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')) || (github.event_name != 'pull_request')
     env:
       DEBUG_EVENT_NAME: ${{ github.event_name }}
-      DEBUG_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      DEBUG_GITHUB: ${{ toJson(github) }}
     strategy:
       fail-fast: true
       matrix:
