@@ -75,36 +75,6 @@ def _array2string(values, prefix=''):
     return np.array2string(values, **kwargs)
 
 
-def _combine_xyz(x, y, z, xyz_axis=0):
-    """
-    Combine components ``x``, ``y``, ``z`` into a single Quantity array.
-
-    Parameters
-    ----------
-    x, y, z : `~astropy.units.Quantity`
-        The individual x, y, and z components.
-    xyz_axis : int, optional
-        The axis in the final array along which the x, y, z components
-        should be stored (default: 0).
-
-    Returns
-    -------
-    xyz : `~astropy.units.Quantity`
-        With dimension 3 along ``xyz_axis``, i.e., using the default of ``0``,
-        the shape will be ``(3,) + x.shape``.
-    """
-    # Get x, y, z to the same units (this is very fast for identical units)
-    # since np.stack cannot deal with quantity.
-    cls = x.__class__
-    unit = x.unit
-    x = x.value
-    y = y.to_value(unit)
-    z = z.to_value(unit)
-
-    xyz = np.stack([x, y, z], axis=xyz_axis)
-    return cls(xyz, unit=unit, copy=False)
-
-
 class BaseRepresentationOrDifferentialInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
@@ -256,7 +226,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
-        attrs = [self.attr_classes[component](attr, copy=False)
+        attrs = [self.attr_classes[component](attr, copy=False, subok=True)
                  for component, attr in zip(components, attrs)]
         try:
             attrs = np.broadcast_arrays(*attrs, subok=True)
@@ -1340,7 +1310,7 @@ class CartesianRepresentation(BaseRepresentation):
         # Create combined array.  TO DO: keep it in _xyz for repeated use?
         # But then in-place changes have to cancel it. Likely best to
         # also update components.
-        return _combine_xyz(self._x, self._y, self._z, xyz_axis=xyz_axis)
+        return np.stack([self._x, self._y, self._z], axis=xyz_axis)
 
     xyz = property(get_xyz)
 
@@ -1835,7 +1805,8 @@ class SphericalRepresentation(BaseRepresentation):
                  copy=True):
         super().__init__(lon, lat, distance, copy=copy,
                          differentials=differentials)
-        if self._distance.unit.physical_type == 'length':
+        if (not isinstance(self._distance, Distance)
+                and self._distance.unit.physical_type == 'length'):
             try:
                 self._distance = Distance(self._distance, copy=False)
             except ValueError as e:
@@ -2604,7 +2575,7 @@ class CartesianDifferential(BaseDifferential):
         # Create combined array.  TO DO: keep it in _d_xyz for repeated use?
         # But then in-place changes have to cancel it. Likely best to
         # also update components.
-        return _combine_xyz(self._d_x, self._d_y, self._d_z, xyz_axis=xyz_axis)
+        return np.stack([self._d_x, self._d_y, self._d_z], axis=xyz_axis)
 
     d_xyz = property(get_d_xyz)
 
