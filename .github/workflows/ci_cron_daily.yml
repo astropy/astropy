@@ -5,6 +5,10 @@ on:
     # run every day at 3am UTC
     - cron: '0 3 * * *'
 
+env:
+  ARCH_ON_CI: "normal"
+  IS_CRON: "true"
+
 jobs:
   tests:
     name: ${{ matrix.name }}
