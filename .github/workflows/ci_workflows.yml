@@ -211,6 +211,8 @@ jobs:
                                   python3-numpy \
                                   python3-ply \
                                   python3-venv \
+                                  zlib1g-dev \
+                                  libjpeg-dev \
                                   python3-pil \
                                   cython3 \
                                   wcslib-dev/buster-backports \
