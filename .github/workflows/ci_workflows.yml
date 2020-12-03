@@ -11,6 +11,7 @@ jobs:
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: (github.event_name == 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')) || (github.event_name != 'pull_request')
     strategy:
       fail-fast: true
       matrix:
@@ -85,6 +86,7 @@ jobs:
   allowed_failures:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: (github.event_name == 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')) || (github.event_name != 'pull_request')
     strategy:
       fail-fast: false
       matrix:
@@ -115,6 +117,7 @@ jobs:
   parallel_and_32bit:
     name: 32-bit and parallel
     runs-on: ubuntu-latest
+    if: (github.event_name == 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')) || (github.event_name != 'pull_request')
     container:
       image: quay.io/pypa/manylinux1_i686
     steps:
