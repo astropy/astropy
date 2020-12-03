@@ -211,11 +211,11 @@ jobs:
                                   python3-numpy \
                                   python3-ply \
                                   python3-venv \
+                                  python3-pil \
                                   cython3 \
                                   wcslib-dev/buster-backports \
                                   libcfitsio-dev \
-                                  liberfa1 \
-                                  zlib1g-dev
+                                  liberfa1
           run: |
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
