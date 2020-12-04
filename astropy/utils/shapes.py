@@ -241,9 +241,15 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
             # since classes could override the method.
             name = {np.amax: 'max',
                     np.amin: 'min'}.get(function, function.__name__)
+
             method = getattr(self, name, None)
             if method is not None:
-                return method(*args[1:], **kwargs)
+                if callable(method):
+                    return method(*args[1:], **kwargs)
+                elif (len(args) == 1 and hasattr(
+                        getattr(self.__class__, name, None), '__get__')):
+                    # Descriptor/property; assume it holds the result.
+                    return method
 
         # Fall-back, just pass the arguments on since perhaps the function
         # works already (see above).
