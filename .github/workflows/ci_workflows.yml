@@ -213,6 +213,7 @@ jobs:
                                   python3-venv \
                                   zlib1g-dev \
                                   libjpeg-dev \
+                                  libfreetype6-dev \
                                   python3-pil \
                                   cython3 \
                                   wcslib-dev/buster-backports \
