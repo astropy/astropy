@@ -359,6 +359,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Fix a bug so that ``np.shape``, ``np.ndim`` and ``np.size`` again work on
+  classes that use ``ShapedLikeNDArray``, like representations, frames,
+  sky coordinates, and times. [#11133]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
