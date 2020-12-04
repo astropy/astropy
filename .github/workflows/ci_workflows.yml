@@ -211,10 +211,7 @@ jobs:
                                   python3-numpy \
                                   python3-ply \
                                   python3-venv \
-                                  zlib1g-dev \
-                                  libjpeg-dev \
-                                  libfreetype6-dev \
-                                  python3-pil \
+                                  python3-wheel \
                                   cython3 \
                                   wcslib-dev/buster-backports \
                                   libcfitsio-dev \
