@@ -23,7 +23,6 @@ testing:
   - .github/**/*.yml
   - .pep8speaks.yml
   - .pyinstaller/**/*
-  - .travis.yml
 
 external:
   - astropy/extern/**/*
