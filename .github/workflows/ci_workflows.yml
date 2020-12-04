@@ -202,6 +202,8 @@ jobs:
 
           install: |
             echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
+            echo "deb-src http://deb.debian.org/debian/ buster main" >> /etc/apt/sources.list
+            apt build-dep astropy
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
@@ -211,7 +213,6 @@ jobs:
                                   python3-numpy \
                                   python3-ply \
                                   python3-venv \
-                                  python3-wheel \
                                   cython3 \
                                   wcslib-dev/buster-backports \
                                   libcfitsio-dev \
@@ -219,6 +220,5 @@ jobs:
           run: |
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            pip3 install wheel
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
             python3 -m pytest
