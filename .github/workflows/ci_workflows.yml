@@ -21,11 +21,14 @@ jobs:
             python: 3.x
             toxenv: codestyle
 
-          - name: Python 3.7 with minimal dependencies
+          - name: Python 3.9 with minimal dependencies
             os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test
+            python: 3.9
+            toxenv: py39-test
 
+          # NOTE: In the build below we also check that tests do not open and
+          # leave open any files. This has a performance impact on running the
+          # tests, hence why it is not enabled by default.
           - name: Python 3.8 with all optional dependencies
             os: ubuntu-latest
             python: 3.8
@@ -33,9 +36,6 @@ jobs:
             toxargs: -v --develop
             toxposargs: --open-files
 
-          # NOTE: In the build below we also check that tests do not open and
-          # leave open any files. This has a performance impact on running the
-          # tests, hence why it is not enabled by default.
           - name: Python 3.7 with oldest supported version of all dependencies
             os: ubuntu-16.04
             python: 3.7
