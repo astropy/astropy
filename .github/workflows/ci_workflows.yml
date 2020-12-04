@@ -219,5 +219,6 @@ jobs:
           run: |
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
+            pip3 install wheel
             ASTROPY_USE_SYSTEM_ALL=1 pip3 install -e .[test]
             python3 -m pytest
