@@ -83,7 +83,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         coord_meta = {}
         coord_meta['type'] = ('longitude', 'latitude')
-        coord_meta['wrap'] = (360., None)
+        coord_meta['wrap'] = (360 * u.deg, None)
         coord_meta['unit'] = (u.deg, u.deg)
         coord_meta['name'] = 'lon', 'lat'
 
@@ -140,7 +140,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         coord_meta = {}
         coord_meta['type'] = ('longitude', 'latitude')
-        coord_meta['wrap'] = (360., None)
+        coord_meta['wrap'] = (360 * u.deg, None)
         coord_meta['unit'] = (u.deg, u.deg)
         coord_meta['name'] = 'lon', 'lat'
         fig = plt.figure(figsize=(4, 4))

@@ -73,8 +73,8 @@ class CoordinateHelper:
         The unit that this coordinate is in given the output of transform.
     format_unit : `~astropy.units.Unit`, optional
         The unit to use to display the coordinates.
-    coord_wrap : float
-        The angle at which the longitude wraps (defaults to 360)
+    coord_wrap : Quantity
+        The angle at which the longitude wraps (defaults to 360 degrees).
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
     """
@@ -182,9 +182,9 @@ class CoordinateHelper:
         Parameters
         ----------
         coord_type : str
-            One of 'longitude', 'latitude' or 'scalar'
-        coord_wrap : float, optional
-            The value to wrap at for angular coordinates
+            One of 'longitude', 'latitude' or 'scalar'.
+        coord_wrap : Quantity, optional
+            The value to wrap at for angular coordinates.
         """
 
         self.coord_type = coord_type
@@ -195,6 +195,13 @@ class CoordinateHelper:
             raise NotImplementedError('coord_wrap is not yet supported '
                                       'for non-longitude coordinates')
         else:
+            if isinstance(coord_wrap, u.Quantity):
+                coord_wrap = coord_wrap.to_value(u.deg)
+            elif coord_wrap is not None:
+                warnings.warn('Passing coord_wrap as a scalar is deprecated, '
+                              'pass a Quantity instead.',
+                              AstropyDeprecationWarning)
+
             self.coord_wrap = coord_wrap
 
         # Initialize tick formatter/locator
