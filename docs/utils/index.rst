@@ -26,6 +26,7 @@ The exceptions are below:
 
    iers
    data
+   masked
 
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
@@ -67,6 +68,9 @@ Reference/API
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.utils.introspection
+    :no-inheritance-diagram:
+
+.. automodapi:: astropy.utils.masked
     :no-inheritance-diagram:
 
 .. automodapi:: astropy.utils.metadata
