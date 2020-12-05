@@ -169,21 +169,23 @@ following keywords:
 If any of the mandatory keywords are missing or in the wrong order, the fix
 option will fix them:
 
-.. doctest-skip::
-
-    >>> hdu.header               # has a 'bad' header
-    SIMPLE =                     T /
-    NAXIS  =                     0
-    BITPIX =                     8 /
-    >>> hdu.verify('fix')        # fix it
-    Output verification result:
-    'BITPIX' card at the wrong place (card 2). Fixed by moving it to the right
-    place (card 1).
-    >>> hdu.header                 # voila!
-    SIMPLE =                     T / conforms to FITS standard
-    BITPIX =                     8 / array data type
-    NAXIS  =                     0
-
+    >>> from astropy.io import fits
+    >>> fits_tobeverified_filename = \
+    ...     fits.util.get_testdata_filepath('verify.fits')
+    >>> hdus = fits.open(fits_tobeverified_filename)
+    >>> hdus[0].header
+    SIMPLE  =                    T / conforms to FITS standard
+    NAXIS   =                    0 / NUMBER OF AXES
+    BITPIX  =                    8 / BITS PER PIXEL
+    >>> hdus[0].verify('fix')    # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyWarning: 'BITPIX' card at the wrong place (card 2).
+        Fixed by moving it to the right place (card 1).
+    >>> hdus[0].header           # voila!
+    SIMPLE  =                    T / conforms to FITS standard
+    BITPIX  =                    8 / BITS PER PIXEL
+    NAXIS   =                    0 / NUMBER OF AXES                                     
 
 Verification at Each Card
 -------------------------
@@ -236,8 +238,13 @@ Fixable Cards:
 6. Unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
-    >>> c.verify('fix+warn')  # doctest: +SKIP
-    >>> print(c)  # doctest: +SKIP
+    >>> c.verify('fix+warn')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyWarning: Card 'FIX6' is not FITS standard
+        (invalid value string: '2 10').
+        Fixed 'FIX6' card to meet the FITS standard.
+    >>> print(c)
     FIX6    = '2 10    '
 
 Unfixable Cards:
@@ -246,13 +253,14 @@ Unfixable Cards:
 
 We will summarize the verification with a "life-cycle" example:
 
-.. doctest-skip::
-
     >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
     >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
     >>> # '.' in the keyword), if using the update() method - doesn't work!
-    >>> h['P.I.'] = 'Hubble'
-    ValueError: Illegal keyword name 'P.I.'
+    >>> h.header['P.I.'] = 'Hubble' # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyWarning: Keyword name 'P.I.' contains characters not allowed
+        by the FITS standard; a HIERARCH card will be created.
     >>> # Have to do it the hard way (so a user will not do this by accident)
     >>> # First, create a card image and give verbatim card content (including
     >>> # the proper spacing, but no need to add the trailing blanks)
@@ -260,25 +268,29 @@ We will summarize the verification with a "life-cycle" example:
     >>> h.header.append(c)  # then append it to the header
     >>> # Now if we try to write to a FITS file, the default output
     >>> # verification will not take it.
-    >>> h.writeto('pi.fits')
-    Output verification result:
+    >>> h.writeto('pi.fits') # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyError: 
     HDU 0:
-      Card 4:
-        Unfixable error: Illegal keyword name 'P.I.'
-    ......
-      raise VerifyError
-    VerifyError
+      Card 5:
+        Card 'P.I. ' is not FITS standard (equal sign not at column 8).
+        Illegal keyword name 'P.I. '
     >>> # Must set the output_verify argument to 'ignore', to force writing a
     >>> # non-standard FITS file
     >>> h.writeto('pi.fits', output_verify='ignore')
     >>> # Now reading a non-standard FITS file
     >>> # astropy.io.fits is magnanimous in reading non-standard FITS files
     >>> hdus = fits.open('pi.fits')
-    >>> hdus[0].header
+    >>> hdus[0].header # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyWarning: Unfixable error: Illegal keyword name 'P.I. '
     SIMPLE =            T / conforms to FITS standard
     BITPIX =            8 / array data type
     NAXIS  =            0 / number of array dimensions
     EXTEND =            T
+    HIERARCH P.I. = 'Hubble  '                                                      
     P.I.   = 'Hubble'
     >>> # even when you try to access the offending keyword, it does NOT
     >>> # complain
@@ -286,11 +298,12 @@ We will summarize the verification with a "life-cycle" example:
     'Hubble'
     >>> # But if you want to make sure if there is anything wrong/non-standard,
     >>> # use the verify() method
-    >>> hdus.verify()
-    Output verification result:
-    HDU 0:
-      Card 4:
-        Unfixable error: Illegal keyword name 'P.I.'
+    >>> hdus.verify() # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyWarning: HDU 0:
+      Card 5:
+        Illegal keyword name 'P.I. '
 
 ..
   EXAMPLE END
