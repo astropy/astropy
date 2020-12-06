@@ -483,7 +483,9 @@ class Masked(NDArrayShapeMethods):
         if a.shape == ():
             string = str(a.unmasked)
             if a.mask:
-                # Strikethrough would be neat, but it doesn't show in konsole.
+                # Strikethrough would be neat, but terminal needs a different
+                # formatting than, say, jupyter notebook.
+                # return "\x1B[9m"+string+"\x1B[29m"
                 # return ''.join(s+'\u0336' for s in string)
                 return ' ' * (len(string)-3) + '\u2014' * 3
             else:
