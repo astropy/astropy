@@ -350,42 +350,40 @@ Examples
 
 To verify the checksum values for HDUs when opening a file:
 
-.. doctest-skip::
+    >>> # Open the file checksum.fits verifying the checksum values for all HDUs
+    >>> fits_tobeverified_filename = \
+    ...     fits.util.get_testdata_filepath('checksum.fits')
+    >>> hdul = fits.open(fits_tobeverified_filename, checksum=True)
 
-     >>> # Open the file pix.fits verifying the checksum values for all HDUs
-     >>> hdul = fits.open('pix.fits', checksum=True)
+    >>> # Open the file in.fits where checksum verification fails
+    >>> fits_tobeverified_filename = \
+    ...     fits.util.get_testdata_filepath('checksum_false.fits')
+    >>> hdul = fits.open(fits_tobeverified_filename,
+    ...                  checksum=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    astropy.utils.exceptions.AstropyUserWarning:
+        Checksum verification failed for HDU ('PRIMARY', 1).
 
-.. doctest-skip::
+    >>> # Create file out.fits containing an HDU constructed from data 
+    >>> # containing both CHECKSUM and DATASUM cards.
+    >>> data = hdul[0].data
+    >>> fits.writeto('out.fits', data=data, checksum=True)
+    >>> hdun = fits.open('out.fits', checksum=True)
 
-     >>> # Open the file in.fits where checksum verification fails for the
-     >>> # primary HDU
-     >>> hdul = fits.open('in.fits', checksum=True)
-     Warning:  Checksum verification failed for HDU #0.
+    >>> # Create file out.fits containing all the HDUs in the HDULIST
+    >>> # hdul with each HDU header containing only the DATASUM card
+    >>> hdul.writeto('out2.fits', checksum='datasum')
 
-.. doctest-skip::
+    >>> # Create file out.fits containing the HDU hdu with both CHECKSUM
+    >>> # and DATASUM cards in the header
+    >>> hdu = hdul[1]
+    >>> hdu.writeto('out3.fits', checksum=True)
 
-     >>> # Create file out.fits containing an HDU constructed from data and
-     >>> # header containing both CHECKSUM and DATASUM cards.
-     >>> fits.writeto('out.fits', data, header, checksum=True)
-
-.. doctest-skip::
-
-     >>> # Create file out.fits containing all the HDUs in the HDULIST
-     >>> # hdul with each HDU header containing only the DATASUM card
-     >>> hdul.writeto('out.fits', checksum='datasum')
-
-.. doctest-skip::
-
-     >>> # Create file out.fits containing the HDU hdu with both CHECKSUM
-     >>> # and DATASUM cards in the header
-     >>> hdu.writeto('out.fits', checksum=True)
-
-.. doctest-skip::
-
-     >>> # Append a new HDU constructed from array data to the end of
-     >>> # the file existingfile.fits with only the appended HDU
-     >>> # containing both CHECKSUM and DATASUM cards.
-     >>> fits.append('existingfile.fits', data, checksum=True)
+    >>> # Append a new HDU constructed from array data to the end of
+    >>> # the file existingfile.fits with only the appended HDU
+    >>> # containing both CHECKSUM and DATASUM cards.
+    >>> fits.append('out3.fits', data, checksum=True)
 
 ..
   EXAMPLE END
