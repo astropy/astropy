@@ -2,6 +2,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Built-in mask mixin class.
+
+The design uses `Masked` as a factory class which automatically
+generates new subclasses for any data class that is itself a
+subclass of a predefined masked class, with `MaskedNDArray`
+providing such a predefined class for `~numpy.ndarray`.
+
+Generally, any new predefined class has to provide a
+``from_unmasked(data, mask, copy=False)`` method as well
+as an ``unmasked`` property or attribute that returns just
+the data.  The `Masked` class itself provides a base ``mask``
+property, which can be overridden if needed.
 """
 import builtins
 import functools
@@ -18,7 +29,7 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 __all__ = ['Masked', 'MaskedNDArray']
 
 
-class Masked:
+class Masked(NDArrayShapeMethods):
     """A scalar value or array of values with associated mask.
 
     The resulting instance will take its exact type from whatever the
@@ -33,8 +44,15 @@ class Masked:
         The initial mask to assign.  If not given, taken from the data.
 
     """
-    _base_data_classes = ()
-    _generated_subclasses = {}
+
+    _base_classes = {}
+    """Explicitly defined masked classes keyed by their unmasked counterparts.
+
+    For subclasses of these unmasked classes, masked counterparts can be generated.
+    """
+
+    _masked_classes = {}
+    """Masked classes keyed by their unmasked data counterparts."""
 
     def __new__(cls, data, mask=None, copy=False):
         data, data_mask = cls._data_mask(data)
@@ -43,54 +61,86 @@ class Masked:
         if mask is None:
             mask = False if data_mask is None else data_mask
 
-        if data.dtype.names:
-            raise NotImplementedError("cannot deal with structured dtype.")
-
-        subclass = cls._get_subclass(data.__class__)
-        return subclass.from_unmasked(data, mask, copy)
+        masked_cls = cls._get_masked_cls(data.__class__)
+        return masked_cls.from_unmasked(data, mask, copy)
 
     def __init_subclass__(cls, data_cls=None, **kwargs):
-        # If not explicitly given in the class definition, then assume
-        # it is a class automatically created, so that the data class
-        # is the first superclass.
+        """Register a Masked subclass.
+
+        Also sets the ``_data_cls`` private attribute.
+
+        Parameters
+        ----------
+        data_cls : type, optional
+            If given, it is taken to mean that ``cls`` can be used as
+            a base for masked versions of all subclasses of ``data_cls``,
+            so it is registered as such in ``_base_classes``.
+            If not given, then assume ``cls`` is an automatically generated
+            class and thus that its data class is the first superclass.
+        **kwargs
+            Passed on for possible further initialization by superclasses.
+
+        """
         if data_cls is not None:
-            # If given, assume it is the basis of a possible slew of
-            # subclasses.
-            cls._base_data_classes += (data_cls,)
+            Masked._base_classes[data_cls] = cls
         else:
             data_cls = cls.__mro__[1]
+        cls._masked_classes[data_cls] = cls
         cls._data_cls = data_cls
-        cls._generated_subclasses[data_cls] = cls
         super().__init_subclass__(**kwargs)
 
     @classmethod
-    def _get_subclass(cls, data_cls):
+    def _get_masked_cls(cls, data_cls):
+        """Get the masked wrapper for a given data class.
+
+        If the data class does not exist yet but is a subclass of any of the
+        registered base data classes, it is automatically generated.
+        """
         if issubclass(data_cls, Masked):
             return data_cls
 
-        masked_cls = cls._generated_subclasses.get(data_cls)
+        masked_cls = cls._masked_classes.get(data_cls)
         if masked_cls is None:
-            if not issubclass(data_cls, cls._base_data_classes):
-                # Just hope that MaskedNDArray can handle it.
-                return MaskedNDArray
-
-            # Create (and therefore register) new Measurement subclass.
-            new_name = 'Masked' + data_cls.__name__
-            # Walk through MRO and find closest generated class
-            # (e.g., MaskedQuantity for Angle).
+            # Walk through MRO and find closest base data class.
+            # Note: right now, will basically always be ndarray, but
+            # one could imagine needing some special care for one subclass,
+            # which would then get its own entry.  E.g., if MaskedAngle
+            # defined something special, then MaskedLongitude should depend
+            # on it.
             for mro_item in data_cls.__mro__:
-                base_cls = cls._generated_subclasses.get(mro_item)
+                base_cls = cls._base_classes.get(mro_item)
                 if base_cls is not None:
                     break
             else:
-                base_cls = MaskedNDArray
+                # Just hope that MaskedNDArray can handle it.
+                # TODO: this covers the case where a user puts in a list or so,
+                # but for those one could just explicitly do something like
+                # _masked_classes[list] = MaskedNDArray.
+                return MaskedNDArray
 
-            masked_cls = type(new_name, (data_cls, base_cls), {})
+            # Create (and therefore register) new Measurement subclass.
+            masked_cls = type('Masked' + data_cls.__name__,
+                              (data_cls, base_cls), {})
 
         return masked_cls
 
-    @staticmethod
-    def _data_mask(data):
+    @classmethod
+    def _data_mask(cls, data):
+        """Split data into unmasked and mask, if present.
+
+        Parameters
+        ----------
+        data : array-like
+            Possibly masked item, judged by whether it has a ``mask`` attribute.
+            If so, checks for being an instance of `~astropy.utils.masked.Masked`
+            or `~numpy.ma.MaskedArray`, and gets unmasked data appropriately.
+
+        Returns
+        -------
+        unmasked, mask : array-like
+            Unmasked will be `None` for `~numpy.ma.masked`.
+
+        """
         mask = getattr(data, 'mask', None)
         if mask is not None:
             if isinstance(data, Masked):
@@ -102,8 +152,66 @@ class Masked:
 
         return data, mask
 
+    def _get_mask(self):
+        """The mask.
+
+        If set, replace the original mask, with whatever it is set with,
+        using a view if no broadcasting or type conversion is required.
+        """
+        return self._mask
+
+    def _set_mask(self, mask, copy=False):
+        ma = np.asanyarray(mask, dtype='?')
+        if ma.shape != self.shape:
+            # This will fail (correctly) if not broadcastable.
+            self._mask = np.empty(self.shape, dtype='?')
+            self._mask[...] = ma
+        elif ma is mask:
+            # Even if not copying use a view so that shape setting
+            # does not propagate.
+            self._mask = mask.copy() if copy else mask.view()
+        else:
+            self._mask = ma
+
+    mask = property(_get_mask, _set_mask)
+
+    # Note: any subclass needs to define an unmasked attribute or property.
+    def unmask(self, fill_value=None):
+        """Get the underlying data, possibly filling masked values."""
+        unmasked = self.unmasked
+        if fill_value is None:
+            return unmasked
+        else:
+            unmasked = unmasked.copy()
+            unmasked[self.mask] = fill_value
+            return unmasked
+
+    def _apply(self, method, *args, **kwargs):
+        # Required method for NDArrayShapeMethods, to help provide __getitem__
+        # and shape-changing methods.
+        if callable(method):
+            data = method(self.unmasked, *args, **kwargs)
+            mask = method(self.mask, *args, **kwargs)
+        else:
+            data = getattr(self.unmasked, method)(*args, **kwargs)
+            mask = getattr(self.mask, method)(*args, **kwargs)
+
+        return self.from_unmasked(data, mask, copy=False)
+
+    def __setitem__(self, item, value):
+        value, mask = self._data_mask(value)
+        if value is not None:
+            self.unmasked[item] = value
+        self.mask[item] = mask
+
 
 def _comparison_method(op):
+    """
+    Create a comparison operator for MaskedNDArray.
+
+    Needed since for string dtypes the base operators bypass __array_ufunc__
+    and hence return unmasked results.
+    """
     def _compare(self, other):
         other_data, other_mask = self._data_mask(other)
         result = getattr(super(Masked, self), op)(other_data)
@@ -171,12 +279,13 @@ class MaskedIterator:
     next = __next__
 
 
-class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
-                    data_cls=np.ndarray):
+class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
     _mask = None
 
+    # The two required pieces.
     @classmethod
     def from_unmasked(cls, data, mask=None, copy=False):
+        """Create an instance from unmasked data and a mask."""
         data = np.array(data, subok=True, copy=copy)
         if data.dtype.names:
             raise NotImplementedError("cannot deal with structured dtype.")
@@ -185,18 +294,23 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
         self._set_mask(mask, copy=copy)
         return self
 
+    @property
+    def unmasked(self):
+        """The unmasked values."""
+        return super().view(self._data_cls)
+
     @classmethod
-    def _get_subclass(cls, subclass):
+    def _get_masked_cls(cls, data_cls):
         # Short-cuts
-        if subclass is np.ndarray:
+        if data_cls is np.ndarray:
             return MaskedNDArray
-        elif subclass is None:
+        elif data_cls is None:  # for .view()
             return cls
 
-        if not issubclass(subclass, np.ndarray):
+        if not issubclass(data_cls, np.ndarray):
             raise ValueError('can only pass in an ndarray subtype.')
 
-        return super()._get_subclass(subclass)
+        return super()._get_masked_cls(data_cls)
 
     @property
     def flat(self):
@@ -210,81 +324,33 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
         return MaskedIterator(self)
 
     def view(self, dtype=None, type=None):
+        """New view of the masked array.
+
+        Like `numpy.ndarray.view`, but always returning a masked array subclass.
+        """
         if type is None and (isinstance(dtype, builtins.type) and
                              issubclass(dtype, np.ndarray)):
             type = dtype
             dtype = None
         elif dtype is not None:
-            raise ValueError('{} cannot be viewed with new dtype.'
-                             .format(self.__class__))
-        return super().view(self._get_subclass(type))
+            raise NotImplementedError('{} cannot be viewed with new dtype.'
+                                      .format(self.__class__))
+        return super().view(self._get_masked_cls(type))
 
     def __array_finalize__(self, obj):
         if obj is None:
             return None
 
+        # Logically, this should come from ndarray and hence be None, but
+        # just in case someone creates a new mixin, we check.
         super_array_finalize = super().__array_finalize__
         if super_array_finalize:
             super_array_finalize(obj)
 
         if self._mask is None:
-            mask = getattr(obj, '_mask', None)
-            if mask is None:
-                mask = np.zeros(self.shape, dtype=bool)
-            self._mask = mask
-
-    def _get_mask(self):
-        """The mask.
-
-        If set, replace the original mask, with whatever it is set with,
-        using a view if no broadcasting or type conversion is required.
-        """
-        return self._mask
-
-    def _set_mask(self, mask, copy=False):
-        ma = np.asanyarray(mask, dtype='?')
-        if ma.shape != self.shape:
-            # This will fail (correctly) if not broadcastable.
-            self._mask = np.empty(self.shape, dtype='?')
-            self._mask[...] = ma
-        elif ma is mask:
-            # Even if not copying use a view so that shape setting
-            # does not propagate.
-            self._mask = mask.copy() if copy else mask.view()
-        else:
-            self._mask = ma
-
-    mask = property(_get_mask, _set_mask)
-
-    def unmask(self, fill_value=None):
-        result = super().view(self._data_cls)
-        if fill_value is None:
-            return result
-        else:
-            result = result.copy()
-            result[self.mask] = fill_value
-            return result
-
-    unmasked = property(unmask)
-
-    def _apply(self, method, *args, **kwargs):
-        # For use with NDArrayShapeMethods.
-        if callable(method):
-            data = method(self.unmasked, *args, **kwargs)
-            mask = method(self._mask, *args, **kwargs)
-        else:
-            data = getattr(self.unmasked, method)(*args, **kwargs)
-            mask = getattr(self._mask, method)(*args, **kwargs)
-
-        if not isinstance(data, np.ndarray):
-            data = np.array(data)
-        return self.from_unmasked(data, mask, copy=False)
-
-    def __setitem__(self, item, value):
-        value, mask = self._data_mask(value)
-        if value is not None:
-            super().__setitem__(item, value)
-        self._mask[item] = mask
+            # Got here after, e.g., a view of another masked class.
+            # Get its mask, or initialize ours.
+            self._set_mask(getattr(obj, '_mask', False))
 
     __lt__ = _comparison_method('__lt__')
     __le__ = _comparison_method('__le__')
@@ -296,16 +362,22 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
         if out is not None:
-            if any(out_ is not None and not isinstance(out_, Masked)
-                   for out_ in out):
-                return NotImplemented
-            kwargs['out'] = tuple((None if out_ is None else out_.unmasked)
-                                  for out_ in out)
+            converted_out = []
+            for out_ in out:
+                if out_ is None:
+                    converted_out.append(None)
+                elif isinstance(out_, Masked):
+                    converted_out.append(out_.unmasked)
+                else:
+                    return NotImplemented
+            kwargs['out'] = tuple(converted_out)
             if ufunc.nout == 1:
                 out = out[0]
 
         if ufunc.signature:
-            # Ignore axes for now...  More generally, the mask can be
+            # We're dealing with a gufunc. For now, only deal with
+            # np.matmul and gufunc with a single input.  Also
+            # ignore axes for now...  TODO: generally, the mask can be
             # generated purely based on the signature.
             assert 'axes' not in kwargs
             converted = []
@@ -339,6 +411,7 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
                 return NotImplemented
 
         elif method == '__call__':
+            # Regular ufunc call.
             converted = []
             masks = []
             for input_ in inputs:
@@ -355,18 +428,20 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
                 mask = False
 
         elif method == 'reduce':
+            # Reductions like np.add.reduce (sum).
             if isinstance(inputs[0], Masked):
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
                 # Individual methods need to override as needed.
-                # TODO take care of 'out' too?
+                # TODO: take care of 'out' too?
                 axis = kwargs.get('axis', None)
                 keepdims = kwargs.get('keepdims', False)
                 where = kwargs.get('where', True)
                 mask = np.logical_or.reduce(inputs[0].mask, where=where,
                                             axis=axis, keepdims=keepdims)
                 if where is not True:
-                    # Mask also whole rows that were not selected by where.
+                    # Mask also whole rows that were not selected by where,
+                    # so would have been left as unmasked above.
                     mask |= np.logical_and.reduce(inputs[0].mask, where=where,
                                                   axis=axis, keepdims=keepdims)
                 converted = inputs[0].unmasked
@@ -380,6 +455,7 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
             result = getattr(ufunc, method)(converted, **kwargs)
 
         elif method in {'accumulate', 'reduceat', 'at'}:
+            # TODO: implement things like np.add.accumulate (used for cumsum).
             return NotImplemented
 
         if mask is False or result is None or result is NotImplemented:
@@ -388,6 +464,8 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
         return self._masked_result(result, mask, out)
 
     def __array_function__(self, function, types, args, kwargs):
+        # TODO: go through functions systematically to see which ones
+        # work and/or can be supported.
         if function in MASKED_SAFE_FUNCTIONS:
             return super().__array_function__(function, types, args, kwargs)
 
@@ -411,6 +489,7 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
             result, mask, out = dispatched_function(*args, **kwargs)
 
         else:
+            # By default, just pass it through for now.
             if function is np.array2string:
                 # Complete hack.
                 if self.shape == ():
@@ -433,13 +512,29 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
                          for (result_, out_) in zip(result, out))
 
         if out is None:
+            # Note that we cannot count on result being the same class as
+            # 'self' (e.g., comparison of quantity results in an ndarray, most
+            # operations on Longitude and Latitude result in Angle or
+            # Quantity), so use Masked to determine the appropriate class.
             return Masked(result, mask)
 
+        # TODO: remove this sanity check once test cases are more complete.
         assert isinstance(out, Masked)
+        # If we have an output, the result was writtin in-place, so we should
+        # also write the mask in-place.
         out._mask[...] = mask
         return out
 
+    # Below are ndarray methods that need to be overridden as masked elements
+    # need to be skipped and/or an initial value needs to be set.
     def _reduce_defaults(self, kwargs, initial_func=None):
+        """Get default where and initial for masked reductions.
+
+        Generally, the default should be to skip all masked elements.  For
+        reductions such as np.minimum.reduce, we also need an initial value,
+        which can be determined using ``initial_func``.
+
+        """
         if 'where' not in kwargs:
             kwargs['where'] = ~self.mask
         if initial_func is not None and 'initial' not in kwargs:
@@ -489,7 +584,6 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
         Returns
         -------
         index_array : ndarray, int
-
             Array of indices that sorts along the specified ``axis``.  Use
             ``np.take_along_axis(self, index_array, axis=axis)`` to obtain
             the sorted array.
@@ -506,10 +600,12 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
         return np.lexsort((data, mask), axis=axis)
 
     def sort(self, axis=-1, kind=None, order=None):
+        # TODO: probably possible to do this faster than going through argsort!
         indices = self.argsort(axis, kind=kind, order=order)
         self[:] = np.take_along_axis(self, indices, axis=axis)
 
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
+        # Implementation based on that in numpy/core/_methods.py
         # Cast bool, unsigned int, and int to float64 by default,
         # and do float16 at higher precision.
         is_float16_result = False
@@ -529,6 +625,7 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
         return result
 
     def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
+        # Simplified implementation based on that in numpy/core/_methods.py
         n = np.add.reduce(~self.mask, axis=axis, keepdims=keepdims)[...]
 
         # Cast bool, unsigned int, and int to float64 by default.
@@ -567,21 +664,26 @@ class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
                                      keepdims=keepdims, where=~self.mask)
 
     def _to_string(self, a):
-        # This exists only to work around a numpy annoyance that array scalars
-        # always get turned into plain ndarray items and thus loose the mask.
-        if a.shape == () and self.shape == () and a == self.unmasked:
+        """Turn given scalar into a numerical string but mark it if masked.
+
+        For use as a formatter for `~numpy.printoptions`.
+
+        """
+        assert a.shape == ()
+        # Need to work around a numpy annoyance that array scalars always get
+        # turned into plain ndarray items and thus loose the mask.
+        if self.shape == () and a == self.unmasked:
             a = self
 
-        if a.shape == ():
-            string = str(a.unmasked)
-            if a.mask:
-                # Strikethrough would be neat, but terminal needs a different
-                # formatting than, say, jupyter notebook.
-                # return "\x1B[9m"+string+"\x1B[29m"
-                # return ''.join(s+'\u0336' for s in string)
-                return ' ' * (len(string)-3) + '\u2014' * 3
-            else:
-                return string
+        string = str(a.unmasked)
+        if a.mask:
+            # Strikethrough would be neat, but terminal needs a different
+            # formatting than, say, jupyter notebook.
+            # return "\x1B[9m"+string+"\x1B[29m"
+            # return ''.join(s+'\u0336' for s in string)
+            return ' ' * (len(string)-3) + '\u2014' * 3
+        else:
+            return string
 
     # TODO: improve (greatly) str and repr!!
     def __str__(self):
