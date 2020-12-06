@@ -18,6 +18,91 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 __all__ = ['Masked', 'MaskedNDArray']
 
 
+class Masked:
+    """A scalar value or array of values with associated mask.
+
+    The resulting instance will take its exact type from whatever the
+    contents are, with the type generated on the fly as needed.
+
+    Parameters
+    ----------
+    data : array-like
+        The data for which a mask is to be added.  The result will be a
+        a subclass of the type of ``data``.
+    mask : array-like of bool, optional
+        The initial mask to assign.  If not given, taken from the data.
+
+    """
+    _base_data_classes = ()
+    _generated_subclasses = {}
+
+    def __new__(cls, data, mask=None, copy=False):
+        data, data_mask = cls._data_mask(data)
+        if data is None:
+            raise NotImplementedError("cannot initialize with np.ma.masked.")
+        if mask is None:
+            mask = False if data_mask is None else data_mask
+
+        if data.dtype.names:
+            raise NotImplementedError("cannot deal with structured dtype.")
+
+        subclass = cls._get_subclass(data.__class__)
+        return subclass.from_unmasked(data, mask, copy)
+
+    def __init_subclass__(cls, data_cls=None, **kwargs):
+        # If not explicitly given in the class definition, then assume
+        # it is a class automatically created, so that the data class
+        # is the first superclass.
+        if data_cls is not None:
+            # If given, assume it is the basis of a possible slew of
+            # subclasses.
+            cls._base_data_classes += (data_cls,)
+        else:
+            data_cls = cls.__mro__[1]
+        cls._data_cls = data_cls
+        cls._generated_subclasses[data_cls] = cls
+        super().__init_subclass__(**kwargs)
+
+    @classmethod
+    def _get_subclass(cls, data_cls):
+        if issubclass(data_cls, Masked):
+            return data_cls
+
+        masked_cls = cls._generated_subclasses.get(data_cls)
+        if masked_cls is None:
+            if not issubclass(data_cls, cls._base_data_classes):
+                # Just hope that MaskedNDArray can handle it.
+                return MaskedNDArray
+
+            # Create (and therefore register) new Measurement subclass.
+            new_name = 'Masked' + data_cls.__name__
+            # Walk through MRO and find closest generated class
+            # (e.g., MaskedQuantity for Angle).
+            for mro_item in data_cls.__mro__:
+                base_cls = cls._generated_subclasses.get(mro_item)
+                if base_cls is not None:
+                    break
+            else:
+                base_cls = MaskedNDArray
+
+            masked_cls = type(new_name, (data_cls, base_cls), {})
+
+        return masked_cls
+
+    @staticmethod
+    def _data_mask(data):
+        mask = getattr(data, 'mask', None)
+        if mask is not None:
+            if isinstance(data, Masked):
+                data = data.unmasked
+            elif data is np.ma.masked:
+                data = None
+            elif isinstance(data, np.ma.MaskedArray):
+                data = data.data
+
+        return data, mask
+
+
 def _comparison_method(op):
     def _compare(self, other):
         other_data, other_mask = self._data_mask(other)
@@ -30,77 +115,99 @@ def _comparison_method(op):
     return _compare
 
 
-class Masked(NDArrayShapeMethods):
-    """A scalar value or array of values with associated mask.
-
-    This object will take its exact type from whatever the contents are.
-
-    Parameters
-    ----------
-    data : array-like
-        The data for which a mask is to be added.  The result will be a
-        a subclass of the type of ``data``.
-    mask : array-like of bool, optional
-        The initial mask to assign.  If not given, taken from the data.
-
+class MaskedIterator:
     """
-    _generated_subclasses = {}
-    _data_cls = np.ndarray
+    Flat iterator object to iterate over Masked Arrays.
+
+    A `~astropy.utils.masked.MaskedIterator` iterator is returned by ``m.flat``
+    for any masked array ``m``.  It allows iterating over the array as if it
+    were a 1-D array, either in a for-loop or by calling its `next` method.
+
+    Iteration is done in C-contiguous style, with the last index varying the
+    fastest. The iterator can also be indexed using basic slicing or
+    advanced indexing.
+
+    Notes
+    -----
+    The design of `~astropy.utils.masked.MaskedIterator` follows that of
+    `~numpy.ma.core.MaskedIterator`.  It is not exported by the
+    `~astropy.utils.masked` module.  Instead of instantiating directly,
+    use the ``flat`` method in the masked array instance.
+    """
+
+    def __init__(self, m):
+        self._masked = m
+        self._dataiter = m.unmasked.flat
+        self._maskiter = m.mask.flat
+
+    def __iter__(self):
+        return self
+
+    def __getitem__(self, indx):
+        out = self._dataiter.__getitem__(indx)
+        mask = self._maskiter.__getitem__(indx)
+        # For single elements, ndarray.flat.__getitem__ returns scalars; these
+        # need a new view as a Masked array.
+        if not isinstance(out, np.ndarray):
+            out = out[...]
+            mask = mask[...]
+
+        return self._masked.from_unmasked(out, mask, copy=False)
+
+    def __setitem__(self, index, value):
+        data, mask = self._masked._data_mask(value)
+        if data is not None:
+            self._dataiter[index] = data
+        self._maskiter[index] = mask
+
+    def __next__(self):
+        """
+        Return the next value, or raise StopIteration.
+        """
+        out = next(self._dataiter)[...]
+        mask = next(self._maskiter)[...]
+        return self._masked.from_unmasked(out, mask, copy=False)
+
+    next = __next__
+
+
+class MaskedNDArray(Masked, NDArrayShapeMethods, np.ndarray,
+                    data_cls=np.ndarray):
     _mask = None
 
-    def __new__(cls, data, mask=None, copy=False):
+    @classmethod
+    def from_unmasked(cls, data, mask=None, copy=False):
         data = np.array(data, subok=True, copy=copy)
-        data, data_mask = cls._data_mask(data)
-        if data is None:
-            raise NotImplementedError("cannot initialize with np.ma.masked.")
-        if mask is None:
-            mask = False if data_mask is None else data_mask
-
         if data.dtype.names:
             raise NotImplementedError("cannot deal with structured dtype.")
 
-        subclass = cls._get_subclass(data.__class__)
-        self = data.view(subclass)
+        self = data.view(cls)
         self._set_mask(mask, copy=copy)
         return self
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        subclass = cls.__mro__[1]
-        # If not explicitly defined for this class, use defaults.
-        # (TODO: metaclass better in this case?)
-        if '_data_cls' not in cls.__dict__:
-            cls._data_cls = subclass
-        cls._generated_subclasses[subclass] = cls
-
     @classmethod
     def _get_subclass(cls, subclass):
+        # Short-cuts
         if subclass is np.ndarray:
             return MaskedNDArray
         elif subclass is None:
             return cls
-        elif issubclass(subclass, Masked):
-            return subclass
 
         if not issubclass(subclass, np.ndarray):
             raise ValueError('can only pass in an ndarray subtype.')
 
-        masked_subclass = cls._generated_subclasses.get(subclass)
-        if masked_subclass is None:
-            # Create (and therefore register) new Measurement subclass.
-            new_name = 'Masked' + subclass.__name__
-            # Walk through MRO and find closest generated class
-            # (e.g., MaskedQuantity for Angle).
-            for mro_item in subclass.__mro__:
-                base_cls = cls._generated_subclasses.get(mro_item)
-                if base_cls is not None:
-                    break
-            else:
-                base_cls = MaskedNDArray
+        return super()._get_subclass(subclass)
 
-            masked_subclass = type(new_name, (subclass, base_cls), {})
+    @property
+    def flat(self):
+        """A 1-D iterator over the Masked array.
 
-        return masked_subclass
+        This returns a ``MaskedIterator`` instance, which behaves the same
+        as the `~numpy.flatiter` instance returned by `~numpy.ndarray.flat`,
+        and is similar to Python's built-in iterator, except that it also
+        allows assignment.
+        """
+        return MaskedIterator(self)
 
     def view(self, dtype=None, type=None):
         if type is None and (isinstance(dtype, builtins.type) and
@@ -125,19 +232,6 @@ class Masked(NDArrayShapeMethods):
             if mask is None:
                 mask = np.zeros(self.shape, dtype=bool)
             self._mask = mask
-
-    @staticmethod
-    def _data_mask(data):
-        mask = getattr(data, 'mask', None)
-        if mask is not None:
-            if isinstance(data, MaskedNDArray):
-                data = data.unmasked
-            elif data is np.ma.masked:
-                data = None
-            elif isinstance(data, np.ma.MaskedArray):
-                data = data.data
-
-        return data, mask
 
     def _get_mask(self):
         """The mask.
@@ -184,9 +278,7 @@ class Masked(NDArrayShapeMethods):
 
         if not isinstance(data, np.ndarray):
             data = np.array(data)
-        result = data.view(self.__class__)
-        result._mask = mask
-        return result
+        return self.from_unmasked(data, mask, copy=False)
 
     def __setitem__(self, item, value):
         value, mask = self._data_mask(value)
@@ -499,78 +591,3 @@ class Masked(NDArrayShapeMethods):
     def __repr__(self):
         with np.printoptions(formatter={'all': self._to_string}):
             return super().__repr__()
-
-
-class MaskedIterator:
-    """
-    Flat iterator object to iterate over Masked Arrays.
-
-    A `~astropy.utils.masked.MaskedIterator` iterator is returned by ``m.flat``
-    for any masked array ``m``.  It allows iterating over the array as if it
-    were a 1-D array, either in a for-loop or by calling its `next` method.
-
-    Iteration is done in C-contiguous style, with the last index varying the
-    fastest. The iterator can also be indexed using basic slicing or
-    advanced indexing.
-
-    Notes
-    -----
-    The design of `~astropy.utils.masked.MaskedIterator` follows that of
-    `~numpy.ma.core.MaskedIterator`.  It is not exported by the
-    `~astropy.utils.masked` module.  Instead of instantiating directly,
-    use the ``flat`` method in the masked array instance.
-    """
-
-    def __init__(self, m):
-        self._masked = m
-        self._dataiter = m.unmasked.flat
-        self._maskiter = m.mask.flat
-
-    def __iter__(self):
-        return self
-
-    def __getitem__(self, indx):
-        out = self._dataiter.__getitem__(indx)
-        mask = self._maskiter.__getitem__(indx)
-        # For single elements, ndarray.flat.__getitem__ returns scalars; these
-        # need a new view as a Masked array.
-        if not isinstance(out, np.ndarray):
-            out = out[...]
-            mask = mask[...]
-
-        out = out.view(self._masked.__class__)
-        out._mask = mask
-        return out
-
-    def __setitem__(self, index, value):
-        data, mask = self._masked._data_mask(value)
-        if data is not None:
-            self._dataiter[index] = data
-        self._maskiter[index] = mask
-
-    def __next__(self):
-        """
-        Return the next value, or raise StopIteration.
-        """
-        out = next(self._dataiter)[...]
-        mask = next(self._maskiter)[...]
-        out = out.view(self._masked.__class__)
-        out._mask = mask
-        return out
-
-    next = __next__
-
-
-class MaskedNDArray(Masked, np.ndarray):
-    _data_cls = np.ndarray
-
-    @property
-    def flat(self):
-        """A 1-D iterator over the Masked array.
-
-        This returns a ``MaskedIterator`` instance, which behaves the same
-        as the `~numpy.flatiter` instance returned by `~numpy.ndarray.flat`,
-        and is similar to, but not a subclass of, Python's built-in iterator
-        object.
-        """
-        return MaskedIterator(self)
