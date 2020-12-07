@@ -46,15 +46,19 @@ import argparse
 import warnings
 
 from astropy.io import fits
+from astropy import version
 
 log = logging.getLogger('fitscheck')
 
-_DESCRIPTION = """
+_DESCRIPTION = f"""
 e.g. fitscheck example.fits
 
 Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
 for a .fits file.
 Optionally detects and fixes FITS standard compliance problems.
+
+This script is part of the Astropy package, version {version.major}.{version.minor}.{version.bugfix}. See
+https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitscheck for further documentation.
 """
 
 

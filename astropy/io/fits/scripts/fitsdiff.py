@@ -7,12 +7,16 @@ import sys
 
 from astropy.io import fits
 from astropy.io.fits.util import fill
+from astropy import version
 
 
 log = logging.getLogger('fitsdiff')
 
 
-USAGE = """
+USAGE = f"""
+This script is part of the Astropy package, version {version.major}.{version.minor}.{version.bugfix}. See
+https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#fitsdiff for further documentation.
+
 Compare two FITS image files and report the differences in header keywords and
 data.
 
