@@ -1043,9 +1043,7 @@ def test_pixel_to_pixel_1d():
     assert unbroadcast(x).shape == (10,)
 
 
-@pytest.mark.skipif('not HAS_SCIPY')
-def test_fit_wcs_from_points():
-    header_str_linear = """
+header_str_linear = """
 XTENSION= 'IMAGE   '           / Image extension
 BITPIX  =                  -32 / array data type
 NAXIS   =                    2 / number of array dimensions
@@ -1067,8 +1065,7 @@ CD1_2   =   -0.001042099258152
 CD2_1   =     0.00118144146585
 CD2_2   =   -0.005590816683583
 """
-
-    header_str_sip = """
+header_str_sip = """
 XTENSION= 'IMAGE   '           / Image extension
 BITPIX  =                  -32 / array data type
 NAXIS   =                    2 / number of array dimensions
@@ -1112,8 +1109,7 @@ BP_1_1  =  -1.711876336719E-05
 A_DMAX  =    44.72893589844534
 B_DMAX  =    44.62692873032506
 """
-    # A known header that failed before
-    header_str_prob = """
+header_str_prob = """
 NAXIS   =                    2 / number of array dimensions
 WCSAXES =                    2 / Number of coordinate axes
 CRPIX1  =               1024.5 / Pixel coordinate of reference point
@@ -1128,13 +1124,34 @@ CRVAL1  =      5.8689341666667 / [deg] Coordinate value at reference point
 CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
 """
 
-    header_linear = fits.Header.fromstring(header_str_linear, sep='\n')
-    header_sip = fits.Header.fromstring(header_str_sip, sep='\n')
-    header_prob = fits.Header.fromstring(header_str_prob, sep='\n')
 
-    true_wcs_linear = WCS(header_linear, relax=True)
-    true_wcs_sip = WCS(header_sip, relax=True)
-    true_wcs_prob = WCS(header_prob, relax=True)
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize(
+    'header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist',
+    [
+        # simple testset no distortions
+        (header_str_linear, 250.3497414839765, None, False, 7e-5*u.deg, 2.5e-5*u.deg),
+        # simple testset with distortions
+        (header_str_sip,    250.3497414839765, 2,    False, 7e-6*u.deg, 2.5e-6*u.deg),
+        # testset with problematic WCS header that failed before
+        (header_str_prob,   5.8689341666667,   None, False, 7e-6*u.deg, 2.5e-6*u.deg),
+        # simple testset no distortions, user defined center
+        (header_str_linear, 250.3497414839765, None, True,  7e-5*u.deg, 2.5e-5*u.deg),
+        # 360->0 degree crossover, simple testset no distortions
+        (header_str_linear, 352.3497414839765, None, False, 7e-5*u.deg, 2.5e-5*u.deg),
+        # 360->0 degree crossover, simple testset with distortions
+        (header_str_sip,    352.3497414839765, 2,    False, 7e-6*u.deg, 2.5e-6*u.deg),
+        # 360->0 degree crossover, testset with problematic WCS header that failed before
+        (header_str_prob,   352.3497414839765, None, False, 7e-6*u.deg, 2.5e-6*u.deg),
+        # 360->0 degree crossover, simple testset no distortions, user defined center
+        (header_str_linear, 352.3497414839765, None, True,  7e-5*u.deg, 2.5e-5*u.deg),
+    ])
+def test_fit_wcs_from_points(header_str, crval, sip_degree, user_proj_point,
+                             exp_max_dist, exp_std_dist):
+    header = fits.Header.fromstring(header_str, sep='\n')
+    header["CRVAL1"] = crval
+
+    true_wcs = WCS(header, relax=True)
 
     # Getting the pixel coordinates
     x, y = np.meshgrid(list(range(10)), list(range(10)))
@@ -1142,101 +1159,36 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
     y = y.flatten()
 
     # Calculating the true sky positions
-    world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
-    world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
-    world_pix_prob = true_wcs_prob.pixel_to_world(x, y)
+    world_pix = true_wcs.pixel_to_world(x, y)
 
-    # Fitting the wcs, no distortion.
-    fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
-                                         proj_point='center', sip_degree=None)
+    # which projection point to use
+    if user_proj_point:
+        proj_point = world_pix[0]
+        projlon = proj_point.data.lon.deg
+        projlat = proj_point.data.lat.deg
+    else:
+        proj_point = 'center'
 
-    # Fitting the wcs, with distortion.
-    fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
-                                      proj_point='center', sip_degree=2)
+    # Fitting the wcs
+    fit_wcs = fit_wcs_from_points((x, y), world_pix,
+                                  proj_point=proj_point,
+                                  sip_degree=sip_degree)
 
-    # Fitting the problematic WCS
-    fit_wcs_prob = fit_wcs_from_points((x, y), world_pix_prob,
-                                       proj_point='center', sip_degree=None)
+    # Validate that the true sky coordinates
+    # match sky coordinates calculated from the wcs fit
+    world_pix_new = fit_wcs.pixel_to_world(x, y)
 
-    # Validate that the true sky coordinates calculated with `true_wcs_linear`
-    # match sky coordinates calculated from the wcs fit with only linear terms
+    dists = world_pix.separation(world_pix_new)
 
-    world_pix_linear_new = fit_wcs_linear.pixel_to_world(x, y)
+    assert dists.max() < exp_max_dist
+    assert np.std(dists) < exp_std_dist
 
-    dists = world_pix_linear.separation(world_pix_linear_new)
+    if user_proj_point:
+        assert (fit_wcs.wcs.crval == [projlon, projlat]).all()
 
-    assert dists.max() < 7e-5*u.deg
-    assert np.std(dists) < 2.5e-5*u.deg
 
-    # Validate that the true sky coordinates calculated with `true_wcs_sip`
-    # match the sky coordinates calculated from the wcs fit with SIP of same
-    # degree (2)
-
-    world_pix_sip_new = fit_wcs_sip.pixel_to_world(x, y)
-    dists = world_pix_sip.separation(world_pix_sip_new)
-
-    assert dists.max() < 7e-6*u.deg
-    assert np.std(dists) < 2.5e-6*u.deg
-
-    # Validate that the true sky coordinates calculated from the problematic
-    # WCS match
-
-    world_pix_prob_new = fit_wcs_prob.pixel_to_world(x, y)
-    dists = world_pix_prob.separation(world_pix_prob_new)
-
-    assert dists.max() < 7e-6*u.deg
-    assert np.std(dists) < 2.5e-6*u.deg
-
-    # Test 360->0 degree crossover
-    header_linear["CRVAL1"] = 352.3497414839765
-    header_sip["CRVAL1"] = 352.3497414839765
-    header_prob["CRVAL1"] = 352.3497414839765
-
-    true_wcs_linear = WCS(header_linear, relax=True)
-    true_wcs_sip = WCS(header_sip, relax=True)
-    true_wcs_prob = WCS(header_prob)
-
-    # Calculating the true sky positions
-    world_pix_linear = true_wcs_linear.pixel_to_world(x, y)
-    world_pix_sip = true_wcs_sip.pixel_to_world(x, y)
-    world_pix_prob = true_wcs_prob.pixel_to_world(x, y)
-
-    # Fitting the wcs, no distortion.
-    fit_wcs_linear = fit_wcs_from_points((x, y), world_pix_linear,
-                                         proj_point='center', sip_degree=None)
-
-    # Fitting the wcs, with distortion.
-    fit_wcs_sip = fit_wcs_from_points((x, y), world_pix_sip,
-                                      proj_point='center', sip_degree=2)
-
-    # Fitting the problem WCS
-    fit_wcs_prob = fit_wcs_from_points((x, y), world_pix_prob,
-                                       proj_point='center', sip_degree=None)
-
-    # Validate that the true sky coordinates calculated with `true_wcs_linear`
-    # match sky coordinates calculated from the wcs fit with only linear terms
-
-    world_pix_linear_new = fit_wcs_linear.pixel_to_world(x, y)
-
-    dists = world_pix_linear.separation(world_pix_linear_new)
-
-    assert dists.max() < 7e-5*u.deg
-    assert np.std(dists) < 2.5e-5*u.deg
-
-    # Validate fit with SIP
-    world_pix_sip_new = fit_wcs_sip.pixel_to_world(x, y)
-    dists = world_pix_sip.separation(world_pix_sip_new)
-
-    assert dists.max() < 7e-6*u.deg
-    assert np.std(dists) < 2.5e-6*u.deg
-
-    # Validate the problematic WCS
-    world_pix_prob_new = fit_wcs_prob.pixel_to_world(x, y)
-    dists = world_pix_prob.separation(world_pix_prob_new)
-
-    assert dists.max() < 7e-6*u.deg
-    assert np.std(dists) < 2.5e-6*u.deg
-
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_fit_wcs_from_points_CRPIX_bounds():
     # Test CRPIX bounds requirement
     wcs_str = """
 WCSAXES =                    2 / Number of coordinate axes
@@ -1287,6 +1239,28 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (200, 10)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_issue10991():
+    # test issue #10991 (it just needs to run and set the user defined crval)
+    xy = np.array([[1766.88276168,  662.96432257,  171.50212526,  120.70924648],
+               [1706.69832901, 1788.85480559, 1216.98949653, 1307.41843381]])
+    world_coords = SkyCoord([(66.3542367 , 22.20000162), (67.15416174, 19.18042906),
+                             (65.73375432, 17.54251555), (66.02400512, 17.44413253)],
+                            frame="icrs", unit="deg")
+    proj_point = SkyCoord(64.67514918, 19.63389538,
+                          frame="icrs", unit="deg")
+
+    fit_wcs = fit_wcs_from_points(
+        xy=xy,
+        world_coords=world_coords,
+        proj_point=proj_point,
+        projection='TAN'
+    )
+    projlon = proj_point.data.lon.deg
+    projlat = proj_point.data.lat.deg
+    assert (fit_wcs.wcs.crval == [projlon, projlat]).all()
 
 
 @pytest.mark.remote_data
