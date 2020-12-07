@@ -81,6 +81,7 @@ jobs:
 
     runs-on: ubuntu-18.04
     name: Python 3.7 on ${{ matrix.arch }}
+    if: github.repository == 'astropy/astropy'
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
 
