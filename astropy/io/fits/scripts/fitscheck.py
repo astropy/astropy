@@ -46,7 +46,7 @@ import argparse
 import warnings
 
 from astropy.io import fits
-from astropy import version
+from astropy import __version__
 
 log = logging.getLogger('fitscheck')
 
@@ -57,7 +57,7 @@ Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
 for a .fits file.
 Optionally detects and fixes FITS standard compliance problems.
 
-This script is part of the Astropy package, version {version.major}.{version.minor}.{version.bugfix}. See
+This script is part of the Astropy package, version {__version__}. See
 https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitscheck for further documentation.
 """
 
