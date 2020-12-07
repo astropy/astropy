@@ -63,7 +63,7 @@ import argparse
 import numpy as np
 
 from astropy.io import fits
-from astropy import log
+from astropy import log, version
 
 
 class ExtensionNotFoundException(Exception):
@@ -401,7 +401,10 @@ def main(args=None):
                      'Optional arguments allow the desired extension(s), '
                      'keyword(s), and output format to be specified. '
                      'Note that in the case of a compressed image, '
-                     'the decompressed header is shown by default.'))
+                     'the decompressed header is shown by default. \n\n'
+                     f'This script is part of the Astropy package, version {version.major}.{version.minor}.{version.bugfix}. '
+                     'See https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitsheader for further documentation.'),
+                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-e', '--extension', metavar='HDU',
                         action='append', dest='extensions',
                         help='specify the extension by name or number; '
