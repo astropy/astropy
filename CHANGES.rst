@@ -1175,6 +1175,9 @@ astropy.units
 - Ensure ``keepdims`` works for taking ``mean``, ``std``, and ``var`` of
   ``Quantity``. [#11198]
 
+- For ``Quantity.to_string()``, ensure that the precision argument is also
+  used when the format is not latex. [#11145]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
