@@ -603,7 +603,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
     # it to 0 and carry upwards.  If the field is hidden (by the
     # fields kwarg) we round up around the middle, 30.0.
     if precision is None:
-        rounding_thresh = 60.0 - (10.0 ** -4)
+        rounding_thresh = 60.0 - (10.0 ** -8)
     else:
         rounding_thresh = 60.0 - (10.0 ** -precision)
 
@@ -626,7 +626,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
         literal.append('{1:02d}{sep[1]}')
     if fields == 3:
         if precision is None:
-            last_value = f'{abs(values[2]):.4f}'
+            last_value = f'{abs(values[2]):.8f}'
             last_value = last_value.rstrip('0').rstrip('.')
         else:
             last_value = '{0:.{precision}f}'.format(
