@@ -120,9 +120,6 @@ def_unit((['ct', 'count'], ['count']),
 
 def_unit(['chan'], namespace=_ns, prefixes=True)
 def_unit(['bin'], namespace=_ns, prefixes=True)
-def_unit((['vox', 'voxel'], ['voxel']),
-         format={'fits': 'voxel', 'ogip': 'voxel', 'vounit': 'voxel'},
-         namespace=_ns, prefixes=True)
 def_unit(['adu'], namespace=_ns, prefixes=True)
 def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,

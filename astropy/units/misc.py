@@ -78,6 +78,9 @@ def_unit((['byte', 'B'], ['byte']), 8 * bit, namespace=_ns,
 def_unit((['pix', 'pixel'], ['pixel']),
          format={'ogip': 'pixel', 'vounit': 'pixel'},
          namespace=_ns, prefixes=True)
+def_unit((['vox', 'voxel'], ['voxel']),
+         format={'fits': 'voxel', 'ogip': 'voxel', 'vounit': 'voxel'},
+         namespace=_ns, prefixes=True)
 
 
 ###########################################################################
