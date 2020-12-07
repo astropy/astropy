@@ -14,6 +14,7 @@ from astropy.utils.misc import isiterable
 from . import si
 from . import cgs
 from . import astrophys
+from . import misc
 from .function import units as function_units
 from . import dimensionless_unscaled
 from .core import UnitsError, Unit
@@ -512,7 +513,7 @@ def molar_mass_amu():
     Returns the equivalence between amu and molar mass.
     """
     return Equivalency([
-        (si.g/si.mol, astrophys.u)
+        (si.g/si.mol, misc.u)
     ], "molar_mass_amu")
 
 
@@ -755,18 +756,18 @@ def pixel_scale(pixscale):
 
     decomposed = pixscale.unit.decompose()
     dimensions = dict(zip(decomposed.bases, decomposed.powers))
-    pix_power = dimensions.get(astrophys.pix, 0)
+    pix_power = dimensions.get(misc.pix, 0)
 
     if pix_power == -1:
-        physical_unit = Unit(pixscale * astrophys.pix)
+        physical_unit = Unit(pixscale * misc.pix)
     elif pix_power == 1:
-        physical_unit = Unit(astrophys.pix / pixscale)
+        physical_unit = Unit(misc.pix / pixscale)
     else:
         raise UnitsError(
                 "The pixel scale unit must have"
                 " pixel dimensionality of 1 or -1.")
 
-    return Equivalency([(astrophys.pix, physical_unit)],
+    return Equivalency([(misc.pix, physical_unit)],
                        "pixel_scale", {'pixscale': pixscale})
 
 
