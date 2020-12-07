@@ -2,7 +2,7 @@
 Astropy
 =======
 
-|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
+|Actions Status| |CircleCI Status| |Azure Status| |Coverage Status| |PyPI Status| |Documentation Status|
 
 The Astropy Project (http://astropy.org/) is a community effort to develop a
 single core package for Astronomy in Python and foster interoperability between
@@ -55,6 +55,10 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
     :target: https://circleci.com/gh/astropy/astropy
     :alt: Astropy's CircleCI Status
+
+.. |Azure Status| image:: https://dev.azure.com/astropy-project/astropy/_apis/build/status/astropy.astropy?repoName=astropy%2Fastropy&branchName=master
+    :target: https://dev.azure.com/astropy-project/astropy
+    :alt: Astropy's Azure Pipelines Status
 
 .. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/astropy/astropy
