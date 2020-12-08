@@ -67,9 +67,9 @@ doc_footer = """
     but becomes inaccurate for altitudes below about 5 degrees.  Near and below
     altitudes of 0, it can even give meaningless answers, and in this case
     transforming to AltAz and back to another frame can give highly discrepant
-    results.  For much better numerical stability, leaving the ``pressure`` at
-    ``0`` (the default), disabling the refraction correction (yielding
-    "topocentric" horizontal coordinates).
+    results.  For much better numerical stability, leave the ``pressure`` at
+    ``0`` (the default), thereby disabling the refraction correction and
+    yielding "topocentric" horizontal coordinates.
     """
 
 
@@ -77,7 +77,9 @@ doc_footer = """
 class AltAz(BaseCoordinateFrame):
     """
     A coordinate or frame in the Altitude-Azimuth system (Horizontal
-    coordinates).  Azimuth is oriented East of North (i.e., N=0, E=90 degrees).
+    coordinates) with respect to the WGS84 ellipsoid.  Azimuth is oriented
+    East of North (i.e., N=0, E=90 degrees).  Altitude is also known as
+    elevation angle, so this frame is also in the Azimuth-Elevation system.
 
     This frame is assumed to *include* refraction effects if the ``pressure``
     frame attribute is non-zero.
@@ -109,15 +111,15 @@ class AltAz(BaseCoordinateFrame):
     @property
     def secz(self):
         """
-        Secant if the zenith angle for this coordinate, a common estimate of the
-        airmass.
+        Secant of the zenith angle for this coordinate, a common estimate of
+        the airmass.
         """
         return 1/np.sin(self.alt)
 
     @property
     def zen(self):
         """
-        The zenith angle for this coordinate
+        The zenith angle (or zenith distance / co-altitude) for this coordinate.
         """
         return _90DEG.to(self.alt.unit) - self.alt
 
