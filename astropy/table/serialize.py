@@ -37,6 +37,7 @@ __construct_mixin_classes = (
     'astropy.coordinates.earth.EarthLocation',
     'astropy.coordinates.sky_coordinate.SkyCoord',
     'astropy.table.table.NdarrayMixin',
+    'astropy.table.column.Column',
     'astropy.table.column.MaskedColumn',
     'astropy.coordinates.representation.CartesianRepresentation',
     'astropy.coordinates.representation.UnitSphericalRepresentation',
@@ -133,6 +134,9 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')
                                        and np.any(data.mask)) else Column
+            # TODO: I think the **info here is not really needed and tests pass
+            # without it. This just puts extra stuff into the header as far as I
+            # can tell. Remove?? Will this be an API change?
             new_cols.append(col_cls(data, name=new_name, **info))
             obj_attrs[data_attr] = SerializedColumn({'name': new_name})
         else:
@@ -140,10 +144,17 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
             obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name))
 
-        # Strip out from info any attributes defined by the parent
-        for attr in col.info.attrs_from_parent:
-            if attr in info:
-                del info[attr]
+        # TODO: the next two blocks don't seem to belong in this loop, so move
+        # out one level.
+
+        # Strip out from info any attributes defined by the parent unless this is
+        # an N-d Column. In this latter case the info needs to remain so that it
+        # gets serialized with the object definition within __serialized_columns__.
+        # Normally all Column info attributes are defined by the parent.
+        if not (isinstance(col, Column) and col.ndim > 1):
+            for attr in col.info.attrs_from_parent:
+                if attr in info:
+                    del info[attr]
 
         if info:
             obj_attrs['__info__'] = info

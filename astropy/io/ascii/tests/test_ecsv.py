@@ -187,16 +187,23 @@ def test_multidim_input():
     """
     Multi-dimensional column in input
     """
-    t = Table([np.arange(4).reshape(2, 2), [1, 2]], names=['a', 'b'])
-    out = StringIO()
-    with pytest.raises(ValueError,
-                       match="ECSV format does not support multidimensional column 'a'"):
-        t.write(out, format='ascii.ecsv')
+    t = Table()
+    t['a'] = np.arange(24).reshape(2, 3, 4)
+    t['a'].info.description = 'description'
+    t['a'].info.meta = {1: 2}
+    t['b'] = [1, 2]
 
-    # Now check that the hint works
-    names = [name for name in t.colnames if len(t[name].shape) <= 1]
-    assert names == ['b']
-    ascii.write(t[names], out, format='ecsv')
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+
+    assert np.all(t2['a'] == t['a'])
+    assert t2['a'].shape == t['a'].shape
+    assert t2['a'].dtype == t['a'].dtype
+    assert t2['a'].info.description == t['a'].info.description
+    assert t2['a'].info.meta == t['a'].info.meta
+
+    assert np.all(t2['b'] == t['b'])
 
 
 @pytest.mark.skipif('not HAS_YAML')
