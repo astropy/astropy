@@ -18,6 +18,13 @@ class TestFITSDiff_script(FitsTestCase):
             fitsdiff.main(['-h'])
         assert e.value.code == 0
 
+    def test_version(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            fitsdiff.main(['--version'])
+            out = capsys.readouterr()[0]
+            assert out == f'fitsdiff {version}'
+        assert e.value.code == 0
+
     def test_noargs(self):
         with pytest.raises(SystemExit) as e:
             fitsdiff.main([""])
