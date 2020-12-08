@@ -90,13 +90,15 @@ def test_to_string_padding():
 
 
 def test_sexagesimal_rounding_up():
-    a = Angle(359.9999999999, unit=u.deg)
+    a = Angle(359.999999999999, unit=u.deg)
 
     assert a.to_string(precision=None) == '360d00m00s'
     assert a.to_string(precision=4) == '360d00m00.0000s'
     assert a.to_string(precision=5) == '360d00m00.00000s'
     assert a.to_string(precision=6) == '360d00m00.000000s'
-    assert a.to_string(precision=7) == '359d59m59.9999996s'
+    assert a.to_string(precision=7) == '360d00m00.0000000s'
+    assert a.to_string(precision=8) == '360d00m00.00000000s'
+    assert a.to_string(precision=9) == '359d59m59.999999996s'
 
     a = Angle(3.999999, unit=u.deg)
     assert a.to_string(fields=2, precision=None) == '4d00m'
