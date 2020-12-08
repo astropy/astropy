@@ -12,11 +12,12 @@ from numpy import ma
 from astropy.units import Unit, Quantity
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
-from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.data_info import BaseColumnInfo, dtype_info_name, FLATTEN_MULTIDIM
 from astropy.utils.misc import dtype_bytes_or_chars
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
+from .ndarray_mixin import NdarrayMixin
 
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
@@ -297,6 +298,7 @@ class ColumnInfo(BaseColumnInfo):
     """
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
+    _represent_as_dict_primary_data = 'data'
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
@@ -340,6 +342,27 @@ class ColumnInfo(BaseColumnInfo):
         arrays : list of ndarray
         """
         return [self._parent]
+
+    def _represent_as_dict(self):
+        """Represent Column as a dict that can be serialized.
+
+        This handles the special case of serializing in ECSV an N-dimensional
+        column (for N > 1) by turning it into the required number of 1-d arrays.
+
+        For instance a Column with shape (20, 2, 2) will turn into four columns
+        (each length 20) with "data attribute" names 0_0, 0_1, 1_0, and 1_1.
+        These then get constructed back into the same (20, 2, 2) Column.
+        """
+        col = self._parent
+
+        if len(col.shape) > 1 and self._serialize_context in FLATTEN_MULTIDIM:
+            # Represent N-d column as an NdarrayMixin which then will get
+            # flattened into a list of 1-d columns.
+            out = {'data': col.view(NdarrayMixin)}
+        else:
+            out = super()._represent_as_dict()
+
+        return out
 
 
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
