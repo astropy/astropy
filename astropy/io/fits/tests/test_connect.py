@@ -267,6 +267,24 @@ class TestSingleTable:
         assert read['x'].shape == (2, 1)
         assert len(read['x'][0]) == 1
 
+    def test_write_append(self, tmpdir):
+        filename = str(tmpdir.join('test_write_append.fits'))
+        t = Table(self.data)
+        t.write(filename, append=True)
+        t.write(filename, append=True)
+        with fits.open(filename) as hdu_list:
+            assert len(hdu_list) == 3
+
+        t.write(filename, append=True, overwrite=True)
+        t.write(filename, append=True)
+        with fits.open(filename) as hdu_list:
+            assert len(hdu_list) == 3
+
+        t.write(filename, overwrite=True)
+        t.write(filename, overwrite=True)
+        with fits.open(filename) as hdu_list:
+            assert len(hdu_list) == 2
+
 
 class TestMultipleHDU:
 
