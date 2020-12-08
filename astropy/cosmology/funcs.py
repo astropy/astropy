@@ -86,12 +86,12 @@ def z_at_value(func, fval, zmin=0, zmax=1000, ztol=1e-5, maxfun=500):
 
     >>> zmin = z_at_value(Planck13.distmod, Dvals.min())
     >>> zmax = z_at_value(Planck13.distmod, Dvals.max())
-    >>> zgrid = np.logspace(zmin, zmax)
+    >>> zgrid = np.logspace(np.log10(zmin), np.log10(zmax))
     >>> Dgrid = Planck13.distmod(zgrid)
 
     Finally interpolate to find the redshift at each distance modulus:
 
-    >>> zvals = np.interp(Dvals.value, zgrid, Dgrid.value)
+    >>> zvals = np.interp(Dvals.value, Dgrid.value, zgrid)
 
     Examples
     --------
