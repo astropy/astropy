@@ -20,6 +20,7 @@ from . import fixedwidth
 
 from astropy.units import Unit
 
+__all__ = ['Cds']
 
 __doctest_skip__ = ['*']
 

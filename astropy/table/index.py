@@ -36,6 +36,11 @@ import numpy as np
 from .bst import MinValue, MaxValue
 from .sorted_array import SortedArray
 
+__all__ = ['QueryError', 'Index', 'SlicedIndex',
+            'get_index', 'get_index_by_names',
+            'TableIndices', 'TableLoc', 'TableLocIndices', 'TableILoc'
+            ]
+
 
 class QueryError(ValueError):
     '''

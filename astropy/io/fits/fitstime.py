@@ -47,6 +47,8 @@ COLUMN_TIME_KEYWORDS = ('TCTYP', 'TCUNI', 'TRPOS')
 # Column-specific keywords regex
 COLUMN_TIME_KEYWORD_REGEXP = f"({'|'.join(COLUMN_TIME_KEYWORDS)})[0-9]+"
 
+__all__ = ['is_time_column_keyword', 'fits_to_time', 'time_to_fits']
+
 
 def is_time_column_keyword(keyword):
     """

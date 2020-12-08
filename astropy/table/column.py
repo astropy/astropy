@@ -21,6 +21,8 @@ from .np_utils import fix_column_name
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
 
+__all__ = ['Column', 'MaskedColumn', 'StringTruncateWarning', 'ColumnInfo']
+
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.
 FORMATTER = pprint.TableFormatter()

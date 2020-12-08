@@ -28,6 +28,8 @@ REMOVE_KEYWORDS = ['XTENSION', 'BITPIX', 'NAXIS', 'NAXIS1', 'NAXIS2',
 # Column-specific keywords regex
 COLUMN_KEYWORD_REGEXP = '(' + '|'.join(KEYWORD_NAMES) + ')[0-9]+'
 
+__all__ = ['is_column_keyword', 'is_fits', 'read_table_fits', 'write_table_fits']
+
 
 def is_column_keyword(keyword):
     return re.match(COLUMN_KEYWORD_REGEXP, keyword) is not None

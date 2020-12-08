@@ -33,6 +33,13 @@ cmp = lambda a, b: (a > b) - (a < b)
 
 all_integer_types = (int, np.integer)
 
+__all__ = ['first', 'itersubclasses', 'ignore_sigint', 'pairwise',
+            'encode_ascii', 'decode_ascii',
+            'isreadable', 'iswritable', 'isfile',
+            'fileobj_open', 'fileobj_name', 'fileobj_closed',
+            'fileobj_is_binary', 'fileobj_mode',
+            'translate', 'fill', 'get_testdata_filepath']
+
 
 class NotifierMixin:
     """

@@ -33,6 +33,9 @@ from .index import Index, _IndexModeContext, get_index
 from .connect import TableRead, TableWrite
 from . import conf
 
+__all__ = ['TableReplaceWarning', 'descr', 'has_info_class',
+            'TableColumns', 'TableReadWrite', 'Table', 'QTable',
+            'NdarrayMixin', 'TableAttribute']
 
 _implementation_notes = """
 This string has informal notes concerning Table implementation for developers.

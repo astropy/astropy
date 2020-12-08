@@ -19,6 +19,8 @@ from astropy.utils.xml import writer
 
 from copy import deepcopy
 
+__all__ = ['HTML']
+
 
 class SoupString(str):
     """

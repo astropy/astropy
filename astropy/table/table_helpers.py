@@ -13,6 +13,8 @@ import numpy as np
 from .table import Table, Column
 from astropy.utils.data_info import ParentDtypeInfo
 
+__all__ = ['TimingTables', 'simple_table', 'complex_table', 'ArrayWrapper']
+
 
 class TimingTables:
     """

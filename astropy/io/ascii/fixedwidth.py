@@ -13,6 +13,11 @@ from . import core
 from .core import InconsistentTableError, DefaultSplitter
 from . import basic
 
+__all__ = ['FixedWidth', 'FixedWidthNoHeader',
+                         'FixedWidthTwoLine', 'FixedWidthSplitter',
+                         'FixedWidthHeader', 'FixedWidthData',
+                         'FixedWidthTwoLineDataSplitter']
+
 
 class FixedWidthSplitter(core.BaseSplitter):
     """

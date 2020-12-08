@@ -21,6 +21,8 @@ from . import basic
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.table.pprint import get_auto_format_func
 
+__all__ = ['Ipac']
+
 
 class IpacFormatErrorDBMS(Exception):
     def __str__(self):

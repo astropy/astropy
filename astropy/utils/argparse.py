@@ -5,6 +5,8 @@ import os
 
 import argparse
 
+__all__ = ['directory', 'readable_directory', 'writeable_directory']
+
 
 def directory(arg):
     """

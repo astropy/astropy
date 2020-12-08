@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 
+__all__ = ['SortedArray']
+
 
 def _searchsorted(array, val, side='left'):
     '''

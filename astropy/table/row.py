@@ -6,6 +6,8 @@ from operator import index as operator_index
 
 import numpy as np
 
+__all__ = ['Row']
+
 
 class Row:
     """A class to represent one row of a Table object.

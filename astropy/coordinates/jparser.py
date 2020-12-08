@@ -15,6 +15,8 @@ DEC_REGEX = r'([+-])(\d{1,2})([0-5]\d)([0-5]\d)\.?(\d{0,3})'
 JCOORD_REGEX = '(.*?J)' + RA_REGEX + DEC_REGEX
 JPARSER = re.compile(JCOORD_REGEX)
 
+__all__ = ['search', 'to_ra_dec_angles', 'to_skycoord', 'shorten']
+
 
 def _sexagesimal(g):
     # convert matched regex groups to sexigesimal array

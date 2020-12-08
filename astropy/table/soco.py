@@ -14,6 +14,8 @@ try:
 except ImportError:
     HAS_SOCO = False
 
+__all__ = ['Node', 'SCEngine']
+
 
 class Node(object):
     __slots__ = ('key', 'value')

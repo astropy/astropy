@@ -8,6 +8,7 @@ from .column import Column
 from .table import Table, QTable, has_info_class
 from astropy.units.quantity import QuantityInfo
 
+__all__ = ['SerializedColumn']
 
 # TODO: some of this might be better done programmatically, through
 # code like

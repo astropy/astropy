@@ -6,6 +6,8 @@ import warnings
 from astropy.utils import indent
 from astropy.utils.exceptions import AstropyUserWarning
 
+__all__ = ['VerifyError', 'VerifyWarning']
+
 
 class VerifyError(Exception):
     """

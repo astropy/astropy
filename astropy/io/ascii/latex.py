@@ -13,6 +13,8 @@ import re
 
 from . import core
 
+__all__ = ['Latex', 'AASTex', 'latexdicts']
+
 latexdicts = {'AA': {'tabletype': 'table',
                      'header_start': r'\hline \hline', 'header_end': r'\hline',
                      'data_end': r'\hline'},

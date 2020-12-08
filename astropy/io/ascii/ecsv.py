@@ -18,6 +18,8 @@ __doctest_requires__ = {'Ecsv': ['yaml']}
 ECSV_VERSION = '0.9'
 DELIMITERS = (' ', ',')
 
+__all__ = ['Ecsv']
+
 
 class EcsvHeader(basic.BasicHeader):
     """Header class for which the column definition line starts with the

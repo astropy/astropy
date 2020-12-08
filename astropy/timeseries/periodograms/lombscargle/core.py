@@ -10,6 +10,8 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.timeseries.periodograms.base import BasePeriodogram
 
+__all__ = ['LombScargle']
+
 
 def has_units(obj):
     return hasattr(obj, 'unit')

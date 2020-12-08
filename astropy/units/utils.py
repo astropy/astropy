@@ -20,6 +20,11 @@ _float_finfo = finfo(float)
 _JUST_BELOW_UNITY = float(1.-4.*_float_finfo.epsneg)
 _JUST_ABOVE_UNITY = float(1.+4.*_float_finfo.eps)
 
+__all__ = ['generate_unit_summary', 'generate_prefixonly_unit_summary',
+            'is_effectively_unity', 'sanitize_scale',
+            'maybe_simple_fraction', 'validate_power',
+            'resolve_fractions', 'quantity_asanyarray']
+
 
 def _get_first_sentence(s):
     """

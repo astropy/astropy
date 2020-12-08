@@ -12,6 +12,8 @@ import re
 
 from . import core
 
+__all__ = ['SExtractor']
+
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""

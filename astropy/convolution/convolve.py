@@ -52,6 +52,8 @@ __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
+__all__ = ['convolve', 'convolve_fft', 'interpolate_replace_nans', 'convolve_models']
+
 
 def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
                           mask=None, fill_value=None):

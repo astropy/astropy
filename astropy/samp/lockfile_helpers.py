@@ -22,6 +22,10 @@ from astropy.utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning
 
+__all__ = ['read_lockfile', 'write_lockfile', 'create_lock_file',
+            'get_main_running_hub', 'get_running_hubs',
+            'check_running_hub', 'remove_garbage_lock_files']
+
 
 def read_lockfile(lockfilename):
     """

@@ -40,6 +40,8 @@ from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
+__all__ = ['set_guess', 'get_reader', 'read', 'get_writer', 'write', 'get_read_trace']
+
 _read_trace = []
 
 try:

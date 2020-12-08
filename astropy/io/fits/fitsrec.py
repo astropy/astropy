@@ -18,6 +18,8 @@ from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
 from .util import decode_ascii, encode_ascii, _rstrip_inplace
 from astropy.utils import lazyproperty
 
+__all__ = ['FITS_record', 'FITS_rec']
+
 
 class FITS_record:
     """

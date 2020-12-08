@@ -38,6 +38,8 @@ END_CARD = 'END' + ' ' * 77
 __doctest_skip__ = ['Header', 'Header.comments', 'Header.fromtextfile',
                     'Header.totextfile', 'Header.set', 'Header.update']
 
+__all__ = ['Header']
+
 
 class Header:
     """

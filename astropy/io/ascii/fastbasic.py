@@ -9,6 +9,9 @@ from astropy.table import Table
 from . import cparser
 from astropy.utils.misc import _set_locale
 
+__all__ = ['FastBasic', 'FastCsv', 'FastTab',
+            'FastNoHeader', 'FastCommentedHeader', 'FastRdb']
+
 
 class FastBasic(metaclass=core.MetaBaseReader):
     """

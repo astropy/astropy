@@ -3,6 +3,8 @@
 A module containing specialized collection classes.
 """
 
+__all__ = ['HomogeneousList']
+
 
 class HomogeneousList(list):
     """

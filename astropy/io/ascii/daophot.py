@@ -18,6 +18,8 @@ from . import core
 from . import fixedwidth
 from .misc import first_true_index, first_false_index, groupmore
 
+__all__ = ['Daophot']
+
 
 class DaophotHeader(core.BaseHeader):
     """
