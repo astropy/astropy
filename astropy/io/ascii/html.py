@@ -344,6 +344,9 @@ class HTML(core.BaseReader):
         """
         Return data in ``table`` converted to HTML as a list of strings.
         """
+        # Check that table has only 1-d or 2-d columns. Above that fails.
+        self._check_multidim_table(table, max_ndim=2)
+
         cols = list(table.columns.values())
 
         self.data.header.cols = cols

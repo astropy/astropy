@@ -169,6 +169,8 @@ class FastBasic(metaclass=core.MetaBaseReader):
     def _write(self, table, output, default_kwargs,
                header_output=True, output_types=False):
 
+        core._check_multidim_table(table)
+
         write_kwargs = {'delimiter': self.delimiter,
                         'quotechar': self.quotechar,
                         'strip_whitespace': self.strip_whitespace_fields,

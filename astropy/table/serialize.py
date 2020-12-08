@@ -6,9 +6,9 @@ from collections import OrderedDict
 
 import numpy as np
 
-from astropy.utils.data_info import MixinInfo
 from .column import Column, MaskedColumn
-from .table import Table, QTable, has_info_class
+from astropy.utils.data_info import MixinInfo, FLATTEN_MULTIDIM
+from .table import Table, QTable, has_info_class, NdarrayMixin
 from astropy.units.quantity import QuantityInfo
 
 
@@ -37,6 +37,7 @@ __construct_mixin_classes = (
     'astropy.coordinates.earth.EarthLocation',
     'astropy.coordinates.sky_coordinate.SkyCoord',
     'astropy.table.table.NdarrayMixin',
+    'astropy.table.column.Column',
     'astropy.table.column.MaskedColumn',
     'astropy.coordinates.representation.CartesianRepresentation',
     'astropy.coordinates.representation.UnitSphericalRepresentation',
@@ -116,6 +117,11 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if nontrivial(col_attr):
             info[attr] = col_attr
 
+    # Find column attributes that have the same length as the column itself.
+    # These will be stored in the table as new columns (aka "data attributes").
+    # Examples include SkyCoord.ra (what is typically considered the data and is
+    # always an array) and Skycoord.obs_time (which can be a scalar or an
+    # array).
     data_attrs = [key for key, value in obj_attrs.items() if
                   getattr(value, 'shape', ())[:1] == col.shape[:1]]
 
@@ -134,6 +140,15 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         else:
             new_name = name + '.' + data_attr
             new_info = {}
+
+        # If the data attribute is not a Mixin (aka a Column or ndarray) and
+        # multidimensional. For instance saving an N-d Time object can send a
+        # data attribute that is an N-d np.ndarray, so we need to recast that
+        # as NdarrayMixin so it gets flattened (in the right context i.e. ECSV).
+        if (not has_info_class(data, MixinInfo)
+                and col.info._serialize_context in FLATTEN_MULTIDIM
+                and len(data.shape) > 1):
+            data = NdarrayMixin(data)
 
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')

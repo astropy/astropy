@@ -32,7 +32,7 @@ from . import metadata
 
 
 __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
-           'DataInfo', 'MixinInfo', 'ParentDtypeInfo']
+           'DataInfo', 'MixinInfo', 'ParentDtypeInfo', 'FLATTEN_MULTIDIM']
 
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
@@ -43,6 +43,10 @@ STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
                      (True, 'S'): 'bytes',  # PY3
                      (True, 'U'): 'str'}
+
+# Context types for which multidimensional data will be flattened to
+# a list of 1-d arrays.
+FLATTEN_MULTIDIM = ['ecsv']
 
 
 @contextmanager
@@ -260,7 +264,8 @@ class DataInfo(metaclass=DataInfoMeta):
     called ``info`` so that the DataInfo() object can be stored in the
     ``instance`` using the ``info`` key.  Because owner_cls.x is a descriptor,
     Python doesn't use __dict__['x'] normally, and the descriptor can safely
-    store stuff there.  Thanks to https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
+    store stuff there.  Thanks to
+    https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     for this trick that works for non-hashable classes.
 
     Parameters
