@@ -690,15 +690,16 @@ class TimeFromEpoch(TimeNumeric):
 
 class TimeUnix(TimeFromEpoch):
     """
-    Unix time: seconds from 1970-01-01 00:00:00 UTC, ignoring leap seconds.
+    Unix time: seconds from 1970-01-01 00:00:00 UTC, subject to leap seconds.
 
     For example, 946684800.0 in Unix time is midnight on January 1, 2000.
 
     NOTE: this quantity is not exactly unix time and differs from the strict
     POSIX definition by up to 1 second on days with a leap second.  POSIX
-    unix time actually jumps backward by 1 second at midnight on leap second
-    days while this class value is monotonically increasing at 86400 seconds
-    per UTC day.
+    unix time actually jumps backward or forward by 1 second at midnight
+    when a leap second is introduced while this class value
+    is monotonically increasing at 86400 seconds per UTC day, resulting
+    in longer or shorter seconds on days when a leap second is introduced.
     """
     name = 'unix'
     unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
@@ -710,11 +711,12 @@ class TimeUnix(TimeFromEpoch):
 
 class TimeUnixTai(TimeUnix):
     """
-    Seconds from 1970-01-01 00:00:08 TAI (see notes), including leap seconds.
+    Unix time (TAI): SI seconds from 1970-01-01 00:00:08 TAI, increases monotonically.
 
     This will generally differ from Unix time by the cumulative integral number
-    of leap seconds since 1970-01-01 UTC.  This convention matches the definition
-    for linux CLOCK_TAI (https://www.cl.cam.ac.uk/~mgk25/posix-clocks.html).
+    of leap seconds introduced into UTC since 1970-01-01 UTC.
+    This convention matches the definition for
+    linux CLOCK_TAI (https://www.cl.cam.ac.uk/~mgk25/posix-clocks.html).
 
     Caveats:
 
@@ -724,8 +726,10 @@ class TimeUnixTai(TimeUnix):
       is the number of seconds since ``1970-01-01 00:00:08 TAI`` or equivalently
       ``1969-12-31 23:59:59.999918 UTC``.  The difference between TAI and UTC
       at that epoch was 8.000082 sec.
-    - On the day of a leap second the difference between ``unix`` and ``unix_tai``
-      times increases linearly through the day by 1.0.  See also the
+    - On a day where a leap second is introduced into UTC,
+      the difference between ``unix`` and ``unix_tai`` times increases or decreases
+      linearly through the day by 1.0, depending on whether a positive or negative
+      leap second has been introduced.
       documentation for the `~astropy.time.TimeUnix` class.
 
     Examples
