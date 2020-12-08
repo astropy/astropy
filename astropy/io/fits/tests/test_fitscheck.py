@@ -6,12 +6,20 @@ from . import FitsTestCase
 from astropy.io.fits.scripts import fitscheck
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy import __version__ as version
 
 
 class TestFitscheck(FitsTestCase):
-    def test_noargs(self):
+    def test_help(self):
         with pytest.raises(SystemExit) as e:
             fitscheck.main(['-h'])
+        assert e.value.code == 0
+
+    def test_version(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            fitscheck.main(['--version'])
+            out = capsys.readouterr()[0]
+            assert out == f'fitscheck {version}'
         assert e.value.code == 0
 
     def test_missing_file(self, capsys):
