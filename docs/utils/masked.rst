@@ -43,14 +43,14 @@ should be substituted for any masked values, with
 
   >>> mq.unmasked
   <Quantity [1., 2., 3.] m>
-  >>> mq.unmask(-75*u.cm)
+  >>> mq.unmask(fill_value=-75*u.cm)
   <Quantity [ 1.  ,  2.  , -0.75] m>
 
 For reductions such as sums, the mask propagates as if the sum was
 done directly::
 
   >>> ma = Masked([[0., 1.], [2., 3.]], mask=[[False, True], [False, False]])
-  >>> ma.sum(-1)
+  >>> ma.sum(axis=-1)
   MaskedNDArray([———, 5.0])
   >>> ma.sum()
   MaskedNDArray(———)
@@ -100,21 +100,38 @@ have if the operations were done on the individual elements::
   MaskedNDArray(———)
 
 The rationale for this becomes clear again by thinking about subclasses like a
-masked |Quantity|.  For instance, if you had an array of lengths that
-represented width, height, and depth as their last axis, the dimension of the
-product over the last axis would depend on how many items were masked, which
-|Quantity| could not represent (and would be rather surprising!).  As noted
-above, however, masked elements are skipped for operations for which this is
-well defined, such as for getting the mean and other sample properties such as
-the variance and standard deviation.
+masked |Quantity|.  For instance, consider an array ``s`` of lengths with
+shape ``(N, 3)``, in which the last axis represents width, height, and depth.
+With this, you could compute corresponding volumes by taking the product of
+the values in the last axis, ``s.prod(axis=-1)``. But if masked elements were
+skipped, the physical dimension of entries in the result would depend how many
+elements were masked, which is something |Quantity| could not represent (and
+would be rather surprising!).  As noted above, however, masked elements are
+skipped for operations for which this is well defined, such as for getting the
+mean and other sample properties such as the variance and standard deviation.
 
 A third difference is more conceptual.  For `~numpy.ma.MaskedArray`, the
 instance that is created is a masked version of the unmasked instance, i.e.,
 `~numpy.ma.MaskedArray` remembers that is has wrapped a subclass like
-|Quantity|, but does not share any of its methods.  In contrast, |Masked| is
-always wrapped around the data properly, i.e., a ``MaskedQuantity`` is a
-quantity which has masked values, but with a unit that is never masked.
-Indeed, one can see this from the class hierarchy::
+|Quantity|, but does not share any of its methods.  Hence, even though the
+resulting class looks reasonable at first glance, it does not work as expected::
+
+  >>> q = [1., 2.] * u.m
+  >>> np_mq = np.ma.MaskedArray(q, mask=[False, True])
+  >>> np_mq
+  masked_Quantity(data=[1.0, --],
+                  mask=[False,  True],
+            fill_value=1e+20)
+  >>> np_mq.unit
+  Traceback (most recent call last):
+  ...
+  AttributeError: 'MaskedArray' object has no attribute 'unit'
+  >>> np_mq / u.s
+  <Quantity [1., 2.] 1 / s>
+
+In contrast, |Masked| is always wrapped around the data properly, i.e., a
+``MaskedQuantity`` is a quantity which has masked values, but with a unit that
+is never masked.  Indeed, one can see this from the class hierarchy::
 
   >>> mq.__class__.__mro__
   (<class 'astropy.utils.masked.core.MaskedQuantity'>,
@@ -127,7 +144,12 @@ Indeed, one can see this from the class hierarchy::
 
 This choice has made the implementation much simpler: |Masked| only has to
 worry about how to deal with masked values, while |Quantity| can worry just
-about unit propagation, etc.
+about unit propagation, etc.  Indeed, an experiment showed that applying
+|Masked| to `~astropy.table.Column` (which is a subclass of `~numpy.ndarray`),
+the result is a new ``MaskedColumn`` that "just works", with no need for the
+overrides and special-casing that were needed to make `~numpy.ma.MaskedArray`
+work with `~astropy.table.Column`.  (Because the behaviour does change
+somewhat, however, we chose not to replace the existing implementation.)
 
 In some respects, rather than think of |Masked| as similar to
 `~numpy.ma.MaskedArray`, it may be more useful to think of |Masked| as similar
