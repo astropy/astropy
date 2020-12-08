@@ -28,6 +28,15 @@ import astropy.io.fits as fits
 from astropy import log, __version__
 
 
+DESCRIPTION = """
+Print a summary of the HDUs in a FITS file(s).
+
+This script is part of the Astropy package. See
+https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitsinfo
+for further documentation.
+""".strip()
+
+
 def fitsinfo(filename):
     """
     Print a summary of the HDUs in a FITS file.
@@ -48,10 +57,11 @@ def fitsinfo(filename):
 def main(args=None):
     """The main function called by the `fitsinfo` script."""
     parser = argparse.ArgumentParser(
-        description=('Print a summary of the HDUs in a FITS file(s). \n\n'
-                     f'This script is part of the Astropy package, version {__version__}. '
-                     'See https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitsinfo for further documentation.'),
-                     formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        '--version', action='version',
+        version=f'%(prog)s {__version__}')
     parser.add_argument('filename', nargs='+',
                         help='Path to one or more FITS files. '
                              'Wildcards are supported.')
