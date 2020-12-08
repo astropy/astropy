@@ -86,6 +86,42 @@ def test_masked_ndarray_init():
     assert_array_equal(ma.mask, m_in)
 
 
+class TestMaskedSubclassCreation:
+    """Test that masked subclasses can be created directly and indirectly."""
+    def setup_class(self):
+        class MyArray(np.ndarray):
+            def __new__(cls, *args, **kwargs):
+                return np.array(*args, **kwargs).view(cls)
+
+        self.MyArray = MyArray
+        self.a = np.array([1., 2.]).view(self.MyArray)
+        self.m = np.array([True, False], dtype=bool)
+
+    def teardown_method(self, method):
+        Masked._masked_classes.pop(self.MyArray, None)
+
+    def test_direct_creation(self):
+        assert self.MyArray not in Masked._masked_classes
+        mcls = Masked(self.MyArray)
+        assert issubclass(mcls, Masked)
+        assert issubclass(mcls, self.MyArray)
+        assert mcls.__name__ == 'MaskedMyArray'
+        mms = mcls(self.a, mask=self.m)
+        assert isinstance(mms, mcls)
+        assert_array_equal(mms.unmasked, self.a)
+        assert_array_equal(mms.mask, self.m)
+
+    def test_indirect_creation(self):
+        assert self.MyArray not in Masked._masked_classes
+        mms = Masked(self.a, mask=self.m)
+        assert isinstance(mms, Masked)
+        assert isinstance(mms, self.MyArray)
+        assert_array_equal(mms.unmasked, self.a)
+        assert_array_equal(mms.mask, self.m)
+        assert self.MyArray in Masked._masked_classes
+        assert Masked(self.MyArray) is type(mms)
+
+
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization):
     def setup_arrays(self):
         super().setup_arrays()
@@ -99,6 +135,11 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization):
         assert ma.unit == u.s
         assert np.all(ma.value == [1., 2.])
         assert np.all(ma.mask == [True, False])
+
+    def test_masked_quantity_getting(self):
+        mcls = Masked._masked_classes[self.a.__class__]
+        MQ = Masked(Quantity)
+        assert MQ is mcls
 
 
 class TestMaskSetting(ArraySetup):

@@ -77,7 +77,11 @@ class Masked(NDArrayShapeMethods):
     def __new__(cls, *args, **kwargs):
         if cls is Masked:
             # Initializing with Masked itself means we're in "factory mode".
-            return cls._get_masked_instance(*args, **kwargs)
+            if not kwargs and len(args) == 1 and isinstance(args[0], type):
+                # Create a new masked class.
+                return cls._get_masked_cls(args[0])
+            else:
+                return cls._get_masked_instance(*args, **kwargs)
         else:
             # Otherwise we're a subclass and should just pass information on.
             return super().__new__(cls, *args, **kwargs)
