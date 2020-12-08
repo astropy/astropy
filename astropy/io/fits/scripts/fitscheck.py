@@ -50,16 +50,17 @@ from astropy import __version__
 
 log = logging.getLogger('fitscheck')
 
-_DESCRIPTION = f"""
+DESCRIPTION = """
 e.g. fitscheck example.fits
 
 Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
 for a .fits file.
 Optionally detects and fixes FITS standard compliance problems.
 
-This script is part of the Astropy package, version {__version__}. See
-https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitscheck for further documentation.
-"""
+This script is part of the Astropy package. See
+https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitscheck
+for further documentation.
+""".strip()
 
 
 def handle_options(args):
@@ -67,8 +68,12 @@ def handle_options(args):
         args = ['-h']
 
     parser = argparse.ArgumentParser(
-        description=_DESCRIPTION,
+        description=DESCRIPTION,
         formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        '--version', action='version',
+        version=f'%(prog)s {__version__}')
 
     parser.add_argument(
         'fits_files', metavar='file', nargs='+',
