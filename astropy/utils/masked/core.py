@@ -29,6 +29,24 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 __all__ = ['Masked', 'MaskedNDArray']
 
 
+def get__new__(masked_cls):
+    def __new__(cls, *args, mask=False, **kwargs):
+        """Get data class instance from arguments and then set mask."""
+        # Need to explicitly mention classes outside of class definition context.
+        self = super(masked_cls, cls).__new__(cls, *args, **kwargs)
+        self.mask = mask
+        return self
+    return __new__
+
+
+get__doc__ = functools.partial(format, """
+Masked version of {0.__name__}.
+
+Except for the ability to pass in a ``mask``, parameters are
+as for `{0.__module__}.{0.__name__}`.
+""")
+
+
 class Masked(NDArrayShapeMethods):
     """A scalar value or array of values with associated mask.
 
@@ -42,6 +60,8 @@ class Masked(NDArrayShapeMethods):
         a subclass of the type of ``data``.
     mask : array-like of bool, optional
         The initial mask to assign.  If not given, taken from the data.
+    copy : bool
+        Whether the data and mask should be copied. Default: `False`.
 
     """
 
@@ -54,15 +74,13 @@ class Masked(NDArrayShapeMethods):
     _masked_classes = {}
     """Masked classes keyed by their unmasked data counterparts."""
 
-    def __new__(cls, data, mask=None, copy=False):
-        data, data_mask = cls._data_mask(data)
-        if data is None:
-            raise NotImplementedError("cannot initialize with np.ma.masked.")
-        if mask is None:
-            mask = False if data_mask is None else data_mask
-
-        masked_cls = cls._get_masked_cls(data.__class__)
-        return masked_cls.from_unmasked(data, mask, copy)
+    def __new__(cls, *args, **kwargs):
+        if cls is Masked:
+            # Initializing with Masked itself means we're in "factory mode".
+            return cls._get_masked_instance(*args, **kwargs)
+        else:
+            # Otherwise we're a subclass and should just pass information on.
+            return super().__new__(cls, *args, **kwargs)
 
     def __init_subclass__(cls, data_cls=None, **kwargs):
         """Register a Masked subclass.
@@ -87,7 +105,22 @@ class Masked(NDArrayShapeMethods):
             data_cls = cls.__mro__[1]
         cls._masked_classes[data_cls] = cls
         cls._data_cls = data_cls
+        if '__new__' not in cls.__dict__:
+            cls.__new__ = get__new__(cls)
+        if '__doc__' not in cls.__dict__:
+            cls.__doc__ = get__doc__(data_cls)
         super().__init_subclass__(**kwargs)
+
+    @classmethod
+    def _get_masked_instance(cls, data, mask=None, copy=False):
+        data, data_mask = cls._data_mask(data)
+        if data is None:
+            raise NotImplementedError("cannot initialize with np.ma.masked.")
+        if mask is None:
+            mask = False if data_mask is None else data_mask
+
+        masked_cls = cls._get_masked_cls(data.__class__)
+        return masked_cls.from_unmasked(data, mask, copy)
 
     @classmethod
     def _get_masked_cls(cls, data_cls):

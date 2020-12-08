@@ -7,7 +7,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.coordinates import Longitude
-from ..core import Masked
+from ..core import Masked, MaskedNDArray
 from ....tests.helper import pytest
 
 
@@ -72,10 +72,33 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert np.may_share_memory(ma.mask, self.mask_a)
 
 
+def test_masked_ndarray_init():
+    # Note: as a straight ndarray subclass, MaskedNDArray passes on
+    # the arguments relevant for np.ndarray, not np.array.
+    a_in = np.arange(3, dtype=int)
+    m_in = np.array([True, False, False])
+    buff = a_in.tobytes()
+    # Check we're doing things correctly using regular ndarray.
+    a = np.ndarray(shape=(3,), dtype=int, buffer=buff)
+    assert_array_equal(a, a_in)
+    ma = MaskedNDArray((3,), dtype=int, mask=m_in, buffer=buff)
+    assert_array_equal(ma.unmasked, a_in)
+    assert_array_equal(ma.mask, m_in)
+
+
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization):
     def setup_arrays(self):
         super().setup_arrays()
         self.a = Quantity(self.a, u.m)
+
+    def test_masked_quantity_class_init(self):
+        # TODO: class definitions should be more easily accessible.
+        mcls = Masked._masked_classes[self.a.__class__]
+        # This is not a very careful test, as it doesn
+        ma = mcls([1., 2.], mask=[True, False], unit=u.s)
+        assert ma.unit == u.s
+        assert np.all(ma.value == [1., 2.])
+        assert np.all(ma.mask == [True, False])
 
 
 class TestMaskSetting(ArraySetup):
