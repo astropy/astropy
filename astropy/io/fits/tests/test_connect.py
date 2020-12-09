@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 from astropy.io.fits.column import (_parse_tdisp_format, _fortran_to_python_format,
                                     python_to_tdisp)
 
-from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU, ImageHDU
+from astropy.io.fits import HDUList, PrimaryHDU, BinTableHDU, ImageHDU, table_to_hdu
 
 from astropy.io import fits
 
@@ -268,22 +268,38 @@ class TestSingleTable:
         assert len(read['x'][0]) == 1
 
     def test_write_append(self, tmpdir):
-        filename = str(tmpdir.join('test_write_append.fits'))
-        t = Table(self.data)
-        t.write(filename, append=True)
-        t.write(filename, append=True)
-        with fits.open(filename) as hdu_list:
-            assert len(hdu_list) == 3
 
+        t = Table(self.data)
+        hdu = table_to_hdu(t)
+
+        def check_equal(filename, expected, start_from=1):
+            with fits.open(filename) as hdu_list:
+                assert len(hdu_list) == expected
+                for hdu_table in hdu_list[start_from:]:
+                    assert hdu_table.header == hdu.header
+                    assert np.all(hdu_table.data == hdu.data)
+
+        filename = str(tmpdir.join('test_write_append.fits'))
+        t.write(filename, append=True)
+        t.write(filename, append=True)
+        check_equal(filename, 3)
+
+        # Check the overwrite works correctly.
         t.write(filename, append=True, overwrite=True)
         t.write(filename, append=True)
-        with fits.open(filename) as hdu_list:
-            assert len(hdu_list) == 3
+        check_equal(filename, 3)
 
+        # Normal write, check it's not appending.
         t.write(filename, overwrite=True)
         t.write(filename, overwrite=True)
-        with fits.open(filename) as hdu_list:
-            assert len(hdu_list) == 2
+        check_equal(filename, 2)
+
+        # Now write followed by append, with different shaped tables.
+        t2 = Table(np.array([1, 2]))
+        t2.write(filename, overwrite=True)
+        t.write(filename, append=True)
+        check_equal(filename, 3, start_from=2)
+        assert equal_data(t2, Table.read(filename, hdu=1))
 
 
 class TestMultipleHDU:
