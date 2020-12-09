@@ -1460,6 +1460,8 @@ class Time(TimeBase):
         length for geocentric coordinates, or contain a longitude, latitude,
         and an optional height for geodetic coordinates.
         Can be a single location, or one for each input time.
+        If not given, assumed to be the center of the Earth for time scale
+        transformations to and from the solar-system barycenter.
     copy : bool, optional
         Make a copy of the input values
     """
@@ -1971,17 +1973,17 @@ class Time(TimeBase):
             ut = day_frac(njd1 - 0.5, njd2)[1]
 
             if self.location is None:
-                from astropy.coordinates import EarthLocation
-                location = EarthLocation.from_geodetic(0., 0., 0.)
+                # Assume geocentric.
+                self._delta_tdb_tt = erfa.dtdb(jd1, jd2, ut, 0., 0., 0.)
             else:
                 location = self.location
-            # Geodetic params needed for d_tdb_tt()
-            lon = location.lon
-            rxy = np.hypot(location.x, location.y)
-            z = location.z
-            self._delta_tdb_tt = erfa.dtdb(
-                jd1, jd2, ut, lon.to_value(u.radian),
-                rxy.to_value(u.km), z.to_value(u.km))
+                # Geodetic params needed for d_tdb_tt()
+                lon = location.lon
+                rxy = np.hypot(location.x, location.y)
+                z = location.z
+                self._delta_tdb_tt = erfa.dtdb(
+                    jd1, jd2, ut, lon.to_value(u.radian),
+                    rxy.to_value(u.km), z.to_value(u.km))
 
         return self._delta_tdb_tt
 
