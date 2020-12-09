@@ -177,7 +177,7 @@ option will fix them:
     SIMPLE  =                    T / conforms to FITS standard
     NAXIS   =                    0 / NUMBER OF AXES
     BITPIX  =                    8 / BITS PER PIXEL
-    >>> # warnings are catched
+    >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
     ...    warnings.simplefilter("default")
     ...    hdus[0].verify('fix')
@@ -244,7 +244,7 @@ Fixable Cards:
 6. Unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
-    >>> # warnings are catched
+    >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
     ...    warnings.simplefilter("default")
     ...    c.verify('fix+warn')
@@ -268,7 +268,7 @@ We will summarize the verification with a "life-cycle" example:
     >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
     >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
     >>> # '.' in the keyword), if using the update() method - doesn't work!
-    >>> # warnings are catched
+    >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
     ...    warnings.simplefilter("default")
     ...    h.header['P.I.'] = 'Hubble'
@@ -298,7 +298,7 @@ We will summarize the verification with a "life-cycle" example:
     >>> # Now reading a non-standard FITS file
     >>> # astropy.io.fits is magnanimous in reading non-standard FITS files
     >>> hdus = fits.open('pi.fits')
-    >>> # warnings are catched
+    >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
     ...    warnings.simplefilter("default")
     ...    hdus[0].header
@@ -323,7 +323,7 @@ We will summarize the verification with a "life-cycle" example:
     'Hubble'
     >>> # But if you want to make sure if there is anything wrong/non-standard,
     >>> # use the verify() method
-    >>> # warnings are catched
+    >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
     ...    warnings.simplefilter("default")
     ...    hdus.verify()
@@ -387,7 +387,7 @@ To verify the checksum values for HDUs when opening a file:
     >>> hdul.close()
     >>> # Open the file in.fits where checksum verification fails
     >>> filename = fits.util.get_testdata_filepath('checksum_false.fits')
-    >>> # warnings are catched
+    >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
     ...    warnings.simplefilter("default")
     ...    hdul = fits.open(filename, checksum=True)
