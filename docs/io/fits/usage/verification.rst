@@ -170,9 +170,8 @@ If any of the mandatory keywords are missing or in the wrong order, the fix
 option will fix them:
 
     >>> from astropy.io import fits
-    >>> fits_tobeverified_filename = \
-    ...     fits.util.get_testdata_filepath('verify.fits')
-    >>> hdus = fits.open(fits_tobeverified_filename)
+    >>> filename = fits.util.get_testdata_filepath('verify.fits')
+    >>> hdus = fits.open(filename)
     >>> hdus[0].header
     SIMPLE  =                    T / conforms to FITS standard
     NAXIS   =                    0 / NUMBER OF AXES
@@ -351,14 +350,12 @@ Examples
 To verify the checksum values for HDUs when opening a file:
 
     >>> # Open the file checksum.fits verifying the checksum values for all HDUs
-    >>> fits_tobeverified_filename = \
-    ...     fits.util.get_testdata_filepath('checksum.fits')
-    >>> hdul = fits.open(fits_tobeverified_filename, checksum=True)
+    >>> filename = fits.util.get_testdata_filepath('checksum.fits')
+    >>> hdul = fits.open(filename, checksum=True)
 
     >>> # Open the file in.fits where checksum verification fails
-    >>> fits_tobeverified_filename = \
-    ...     fits.util.get_testdata_filepath('checksum_false.fits')
-    >>> hdul = fits.open(fits_tobeverified_filename,
+    >>> filename = fits.util.get_testdata_filepath('checksum_false.fits')
+    >>> hdul = fits.open(filename,
     ...                  checksum=True) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
      ...
