@@ -38,10 +38,20 @@ class TestRepresentations:
         assert_array_equal(norm.mask, self.mask)
 
     def test_transformation(self):
-        msh = self.mc.represent_as(r.SphericalRepresentation)
-        sh = self.c.represent_as(r.SphericalRepresentation)
-        for comp in msh.components:
-            mc = getattr(msh, comp)
-            c = getattr(sh, comp)
+        msr = self.mc.represent_as(r.SphericalRepresentation)
+        sr = self.c.represent_as(r.SphericalRepresentation)
+        for comp in msr.components:
+            mc = getattr(msr, comp)
+            c = getattr(sr, comp)
+            assert_array_equal(mc.unmasked, c)
+            assert_array_equal(mc.mask, self.mask)
+
+        # Transformation back.  This also tests erfa.ufunc.s2p, which
+        # is special in having a core dimension only in the output.
+        cr2 = sr.represent_as(r.CartesianRepresentation)
+        mcr2 = msr.represent_as(r.CartesianRepresentation)
+        for comp in mcr2.components:
+            mc = getattr(mcr2, comp)
+            c = getattr(cr2, comp)
             assert_array_equal(mc.unmasked, c)
             assert_array_equal(mc.mask, self.mask)
