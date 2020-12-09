@@ -846,6 +846,9 @@ astropy.time
 
 - Fix leap second update when using a non english locale. [#11062]
 
+- Fix default assumed location to be the geocenter when transforming times
+  to and from solar-system barycenter scales. [#11134]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
