@@ -171,6 +171,7 @@ option will fix them:
 
     >>> import warnings
     >>> from astropy.io import fits
+    >>> warnings.simplefilter("default")
     >>> filename = fits.util.get_testdata_filepath('verify.fits')
     >>> hdus = fits.open(filename)
     >>> hdus[0].header
@@ -179,7 +180,6 @@ option will fix them:
     BITPIX  =                    8 / BITS PER PIXEL
     >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
-    ...    warnings.simplefilter("default")
     ...    hdus[0].verify('fix')
     >>> # warnings are displayed
     >>> for warn in warns:
@@ -191,7 +191,8 @@ option will fix them:
     >>> hdus[0].header           # voila!
     SIMPLE  =                    T / conforms to FITS standard
     BITPIX  =                    8 / BITS PER PIXEL
-    NAXIS   =                    0 / NUMBER OF AXES                                     
+    NAXIS   =                    0 / NUMBER OF AXES
+    >>> hdus.close()                                     
 
 Verification at Each Card
 -------------------------
@@ -246,7 +247,6 @@ Fixable Cards:
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
     >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
-    ...    warnings.simplefilter("default")
     ...    c.verify('fix+warn')
     >>> # warnings are displayed
     >>> for warn in warns:
@@ -270,7 +270,6 @@ We will summarize the verification with a "life-cycle" example:
     >>> # '.' in the keyword), if using the update() method - doesn't work!
     >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
-    ...    warnings.simplefilter("default")
     ...    h.header['P.I.'] = 'Hubble'
     >>> # warnings are displayed
     >>> for warn in warns:
@@ -300,7 +299,6 @@ We will summarize the verification with a "life-cycle" example:
     >>> hdus = fits.open('pi.fits')
     >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
-    ...    warnings.simplefilter("default")
     ...    hdus[0].header
     SIMPLE  =            T / conforms to FITS standard
     BITPIX  =            8 / array data type
@@ -325,7 +323,6 @@ We will summarize the verification with a "life-cycle" example:
     >>> # use the verify() method
     >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
-    ...    warnings.simplefilter("default")
     ...    hdus.verify()
     >>> # warnings are displayed
     >>> for warn in warns:
@@ -335,6 +332,7 @@ We will summarize the verification with a "life-cycle" example:
     VerifyWarning     Card 5:
     VerifyWarning         Illegal keyword name 'P.I. '
     VerifyWarning Note: astropy.io.fits uses zero-based indexing.
+    >>> hdus.close()
 
 ..
   EXAMPLE END
@@ -389,7 +387,6 @@ To verify the checksum values for HDUs when opening a file:
     >>> filename = fits.util.get_testdata_filepath('checksum_false.fits')
     >>> # warnings are caught
     >>> with warnings.catch_warnings(record=True) as warns:
-    ...    warnings.simplefilter("default")
     ...    hdul = fits.open(filename, checksum=True)
     >>> # warnings are displayed
     >>> for warn in warns:
@@ -403,6 +400,7 @@ To verify the checksum values for HDUs when opening a file:
     >>> data = hdul[0].data
     >>> fits.writeto('out.fits', data=data, checksum=True)
     >>> hdun = fits.open('out.fits', checksum=True)
+    >>> hdun.close()
 
     >>> # Create file out.fits containing all the HDUs in the HDULIST
     >>> # hdul with each HDU header containing only the DATASUM card
@@ -417,6 +415,7 @@ To verify the checksum values for HDUs when opening a file:
     >>> # the file existingfile.fits with only the appended HDU
     >>> # containing both CHECKSUM and DATASUM cards.
     >>> fits.append('out3.fits', data, checksum=True)
+    >>> hdul.close()
 
 ..
   EXAMPLE END
