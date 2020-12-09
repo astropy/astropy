@@ -7,12 +7,13 @@ import sys
 
 from astropy.io import fits
 from astropy.io.fits.util import fill
+from astropy import __version__
 
 
 log = logging.getLogger('fitsdiff')
 
 
-USAGE = """
+DESCRIPTION = """
 Compare two FITS image files and report the differences in header keywords and
 data.
 
@@ -29,6 +30,10 @@ argument.  for example::
 
 will compare all FITS files in the current directory to the corresponding files
 in the directory /machine/data1.
+
+This script is part of the Astropy package. See
+https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#fitsdiff
+for further documentation.
 """.strip()
 
 
@@ -86,8 +91,12 @@ class StoreListAction(argparse.Action):
 
 def handle_options(argv=None):
     parser = argparse.ArgumentParser(
-        description=USAGE, epilog=EPILOG,
+        description=DESCRIPTION, epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        '--version', action='version',
+        version=f'%(prog)s {__version__}')
 
     parser.add_argument(
         'fits_files', metavar='file', nargs='+',

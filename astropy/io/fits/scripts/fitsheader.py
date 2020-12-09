@@ -63,7 +63,19 @@ import argparse
 import numpy as np
 
 from astropy.io import fits
-from astropy import log
+from astropy import log, __version__
+
+
+DESCRIPTION = """
+Print the header(s) of a FITS file. Optional arguments allow the desired
+extension(s), keyword(s), and output format to be specified.
+Note that in the case of a compressed image, the decompressed header is
+shown by default.
+
+This script is part of the Astropy package. See
+https://docs.astropy.org/en/latest/io/fits/usage/scripts.html#module-astropy.io.fits.scripts.fitsheader
+for further documentation.
+""".strip()
 
 
 class ExtensionNotFoundException(Exception):
@@ -397,11 +409,13 @@ def main(args=None):
     """This is the main function called by the `fitsheader` script."""
 
     parser = argparse.ArgumentParser(
-        description=('Print the header(s) of a FITS file. '
-                     'Optional arguments allow the desired extension(s), '
-                     'keyword(s), and output format to be specified. '
-                     'Note that in the case of a compressed image, '
-                     'the decompressed header is shown by default.'))
+        description=DESCRIPTION,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        '--version', action='version',
+        version=f'%(prog)s {__version__}')
+
     parser.add_argument('-e', '--extension', metavar='HDU',
                         action='append', dest='extensions',
                         help='specify the extension by name or number; '

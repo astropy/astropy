@@ -1,10 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
+
 from . import FitsTestCase
 from astropy.io.fits.scripts import fitsinfo
+from astropy import __version__ as version
 
 
 class TestFitsinfo(FitsTestCase):
+
+    def test_help(self):
+        with pytest.raises(SystemExit) as e:
+            fitsinfo.main(['-h'])
+        assert e.value.code == 0
+
+    def test_version(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            fitsinfo.main(['--version'])
+            out = capsys.readouterr()[0]
+            assert out == f'fitsinfo {version}'
+        assert e.value.code == 0
 
     def test_onefile(self, capsys):
         fitsinfo.main([self.data('arange.fits')])
