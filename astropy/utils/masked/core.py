@@ -413,9 +413,9 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
-            # np.matmul and gufunc with a single input.  Also
-            # ignore axes for now...  TODO: generally, the mask can be
-            # generated purely based on the signature.
+            # np.matmul and gufunc with a single axis.  Also ignore
+            # axes keyword for now...  TODO: generally, the mask can
+            # be generated purely based on the signature.
             assert 'axes' not in kwargs
             converted = []
             masks = []
@@ -428,12 +428,9 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
                     converted.append(input_)
 
             result = ufunc(*converted, **kwargs)
-            if ufunc.nin == 1:
-                mask = np.logical_or.reduce(
-                    masks[0], axis=kwargs.get('axis', -1),
-                    keepdims=kwargs.get('keepdims', False))
-
-            elif ufunc is np.matmul:
+            if ufunc is np.matmul:
+                # np.matmul is tricky and its signature cannot be parsed by
+                # _parse_gufunc_signature.
                 mask0, mask1 = masks
                 if mask1.ndim > 1:
                     mask0 = np.logical_or.reduce(mask0, axis=-1, keepdims=True)
@@ -445,7 +442,27 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
                 mask = np.logical_or(mask0, mask1)
 
             else:
-                return NotImplemented
+                axis = kwargs.get('axis', -1)
+                keepdims = kwargs.get('keepdims', False)
+                parsed_sig = np.lib.function_base._parse_gufunc_signature(
+                    ufunc.signature)
+                ncore_dim_in = max(len(core_dims) for core_dims in parsed_sig[0])
+                ncore_dim_out = max(len(core_dims) for core_dims in parsed_sig[1])
+                if ncore_dim_in > 1 or ncore_dim_out > 1:
+                    return NotImplemented
+
+                masks = [(np.logical_or.reduce(mask, axis=axis, keepdims=keepdims)
+                          if len(core_dims) > 0 else mask)
+                         for mask, core_dims in zip(masks, parsed_sig[0])]
+                mask = functools.reduce(np.logical_or, masks)
+                if ncore_dim_out > 0:
+                    assert not keepdims
+                    if len(parsed_sig[1]) == 1:
+                        mask = np.expand_dims(mask, axis)
+                    else:
+                        mask = tuple((np.expand_dims(mask, axis)
+                                      if len(core_dims) > 0 else mask)
+                                     for core_dims in parsed_sig[1])
 
         elif method == '__call__':
             # Regular ufunc call.
