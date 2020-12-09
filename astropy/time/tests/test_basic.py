@@ -270,15 +270,33 @@ class TestBasic:
         lat = 19.48125
         lon = -155.933222
         t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
-                 precision=6, location=(lon, lat))
+                 precision=7, location=(lon, lat))
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
-        assert t.utc.iso == '2006-01-15 21:24:37.500000'
-        assert t.ut1.iso == '2006-01-15 21:24:37.834100'
-        assert t.tai.iso == '2006-01-15 21:25:10.500000'
-        assert t.tt.iso == '2006-01-15 21:25:42.684000'
-        assert t.tcg.iso == '2006-01-15 21:25:43.322690'
-        assert t.tdb.iso == '2006-01-15 21:25:42.684373'
-        assert t.tcb.iso == '2006-01-15 21:25:56.893952'
+        assert t.utc.iso == '2006-01-15 21:24:37.5000000'
+        assert t.ut1.iso == '2006-01-15 21:24:37.8341000'
+        assert t.tai.iso == '2006-01-15 21:25:10.5000000'
+        assert t.tt.iso == '2006-01-15 21:25:42.6840000'
+        assert t.tcg.iso == '2006-01-15 21:25:43.3226905'
+        assert t.tdb.iso == '2006-01-15 21:25:42.6843728'
+        assert t.tcb.iso == '2006-01-15 21:25:56.8939523'
+
+    def test_transforms_no_location(self):
+        """Location should default to geocenter (relevant for TDB, TCB)."""
+        t = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
+                 precision=7)
+        t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
+        assert t.utc.iso == '2006-01-15 21:24:37.5000000'
+        assert t.ut1.iso == '2006-01-15 21:24:37.8341000'
+        assert t.tai.iso == '2006-01-15 21:25:10.5000000'
+        assert t.tt.iso == '2006-01-15 21:25:42.6840000'
+        assert t.tcg.iso == '2006-01-15 21:25:43.3226905'
+        assert t.tdb.iso == '2006-01-15 21:25:42.6843725'
+        assert t.tcb.iso == '2006-01-15 21:25:56.8939519'
+        # Check we get the same result
+        t2 = Time('2006-01-15 21:24:37.5', format='iso', scale='utc',
+                  location=(0*u.m, 0*u.m, 0*u.m))
+        assert t == t2
+        assert t.tdb == t2.tdb
 
     def test_location(self):
         """Check that location creates an EarthLocation object, and that
