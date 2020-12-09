@@ -1562,11 +1562,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Converts spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
-        # NUMPY_LT_1_16 cannot create a vector automatically
-        p = u.Quantity(np.empty(self.shape + (3,)), u.dimensionless_unscaled,
-                       copy=False)
         # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
-        p = erfa_ufunc.s2c(self.lon, self.lat, p)
+        p = erfa_ufunc.s2c(self.lon, self.lat)
         return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
     @classmethod
@@ -1890,10 +1887,8 @@ class SphericalRepresentation(BaseRepresentation):
         else:
             d = self.distance
 
-        # NUMPY_LT_1_16 cannot create a vector automatically
-        p = u.Quantity(np.empty(self.shape + (3,)), d.unit, copy=False)
         # erfa s2p: Convert spherical polar coordinates to p-vector.
-        p = erfa_ufunc.s2p(self.lon, self.lat, d, p)
+        p = erfa_ufunc.s2p(self.lon, self.lat, d)
 
         return CartesianRepresentation(p, xyz_axis=-1, copy=False)
 
