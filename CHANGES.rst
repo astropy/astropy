@@ -296,7 +296,7 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
-- Fixed an issue where specilaisations of the comoving distance calculation
+- Fixed an issue where specializations of the comoving distance calculation
   for certain cosmologies could not handle redshift arrays. [#10980]
 
 astropy.extern

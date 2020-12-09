@@ -1675,9 +1675,9 @@ def test_comoving_distance_broadcast(cosmo):
     Test that specialized comoving distance methods broadcast array arguments.
     """
 
-    z1 = np.random.uniform(size=(2, 1, 5))
-    z2 = np.random.uniform(size=(3, 5))
-    z3 = np.random.uniform(size=(7, 5))
+    z1 = np.zeros((2, 5))
+    z2 = np.ones((3, 1, 5))
+    z3 = np.ones((7, 5))
     output_shape = np.broadcast(z1, z2).shape
 
     # Check compatible array arguments return an array with the correct shape
@@ -1685,4 +1685,4 @@ def test_comoving_distance_broadcast(cosmo):
 
     # Check incompatible array arguments raise an error
     with pytest.raises(ValueError, match='z1 and z2 have different shapes'):
-        cosmo._comoving_distance_z1z2(z2, z3)
+        cosmo._comoving_distance_z1z2(z1, z3)
