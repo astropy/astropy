@@ -147,14 +147,10 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         # TODO: the next two blocks don't seem to belong in this loop, so move
         # out one level.
 
-        # Strip out from info any attributes defined by the parent unless this is
-        # an N-d Column. In this latter case the info needs to remain so that it
-        # gets serialized with the object definition within __serialized_columns__.
-        # Normally all Column info attributes are defined by the parent.
-        if not (isinstance(col, Column) and col.ndim > 1):
-            for attr in col.info.attrs_from_parent:
-                if attr in info:
-                    del info[attr]
+        # Strip out from info any attributes defined by the parent.
+        for attr in col.info.attrs_from_parent:
+            if attr in info:
+                del info[attr]
 
         if info:
             obj_attrs['__info__'] = info
