@@ -39,6 +39,20 @@ FORMAT_CLASSES = {}
 FAST_CLASSES = {}
 
 
+def _check_multidim_table(table, max_ndim=1):
+    """Check that ``table`` has only columns with ndim <= ``max_ndim``
+
+    Currently ECSV is the only built-in format that supports output of arbitrary
+    N-d columns, but HTML supports 2-d.
+    """
+    # Check for N-d columns
+    nd_names = [col.info.name for col in table.itercols() if len(col.shape) > max_ndim]
+    if nd_names:
+        raise ValueError(f'column(s) {",".join(nd_names)} with dimension > {max_ndim} '
+                         "cannot be be written with this format, try using 'ecsv' "
+                         "(Enhanced CSV) format")
+
+
 class CsvWriter:
     """
     Internal class to replace the csv writer ``writerow`` and ``writerows``
@@ -1219,6 +1233,20 @@ class BaseReader(metaclass=MetaBaseReader):
         self.meta = OrderedDict(table=OrderedDict(),
                                 cols=OrderedDict())
 
+    def _check_multidim_table(self, table, max_ndim=1):
+        """Check that ``table`` has only 1-d columns.
+
+        If a reader class supports N-d columns then override this method.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+            Input table.
+        max_ndim : int
+            Max allowed number of dimensions (default=1)
+        """
+        _check_multidim_table(table, max_ndim)
+
     def read(self, table):
         """Read the ``table`` and return the results in a format determined by
         the ``outputter`` attribute.
@@ -1406,6 +1434,10 @@ class BaseReader(metaclass=MetaBaseReader):
         # filtering but before setting up to write the data.  This is currently
         # only used by ECSV and is otherwise just a pass-through.
         table = self.update_table_data(table)
+
+        # Check that table has only 1-d columns. Classes that support output of
+        # N-d columns can override this method.
+        self._check_multidim_table(table)
 
         # Now use altered columns
         new_cols = list(table.columns.values())
