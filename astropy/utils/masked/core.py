@@ -466,8 +466,7 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
                     if os:
                         # Output has core dimensions.
                         if axis is None:
-                            out_mask = np.expand_dims(
-                                mask, tuple(range(-len(os), 0)))
+                            out_mask = mask[(Ellipsis,)+(np.newaxis,)*len(os)]
                         else:
                             out_mask = np.expand_dims(mask, axis)
                     else:
