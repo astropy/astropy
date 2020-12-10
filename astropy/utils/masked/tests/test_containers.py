@@ -7,6 +7,7 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord, representation as r
+from astropy.time import Time
 
 from .. import Masked
 
@@ -80,3 +81,42 @@ class TestSkyCoord:
         assert_array_equal(mgcrs.data.lon.mask, self.msc.data.lon.mask)
         assert_array_equal(mgcrs.data.lon.unmasked, gcrs.data.lon)
         assert_array_equal(mgcrs.data.lat.unmasked, gcrs.data.lat)
+
+
+class TestTime:
+    def setup_class(self):
+        self.s = np.array(['2010-11-12T13:14:15.160',
+                           '2010-11-12T13:14:15.161',
+                           '2011-12-13T14:15:16.170'])
+        self.t = Time(self.s)
+        # Time formats will currently strip any ndarray subtypes, so we cannot
+        # initialize a Time with a Masked version of self.s yet. Instead, we
+        # work around it, for now only testing that masked are preserved by
+        # transformations.
+        self.mask = np.array([False, False, True])
+        self.mt = self.t._apply(Masked, self.mask)
+
+    def test_initialization(self):
+        assert_array_equal(self.mt.jd1.mask, self.mask)
+        assert_array_equal(self.mt.jd2.mask, self.mask)
+        assert_array_equal(self.mt.jd1.unmasked, self.t.jd1)
+        assert_array_equal(self.mt.jd2.unmasked, self.t.jd2)
+
+    @pytest.mark.parametrize('format_', ['jd', 'cxcsec', 'jyear'])
+    def test_different_formats(self, format_):
+        # Formats do not yet work with everything; e.g., isot is not supported
+        # since the Masked class does not yet support structured arrays.
+        tfmt = getattr(self.t, format_)
+        mtfmt = getattr(self.mt, format_)
+        check = mtfmt == tfmt
+        assert_array_equal(check.unmasked, np.ones(3, bool))
+        assert_array_equal(check.mask, self.mask)
+
+    @pytest.mark.parametrize('scale', ['tai', 'tcb', 'ut1'])
+    def test_transformation(self, scale):
+        tscl = getattr(self.t, scale)
+        mtscl = getattr(self.mt, scale)
+        assert_array_equal(mtscl.jd1.mask, self.mask)
+        assert_array_equal(mtscl.jd2.mask, self.mask)
+        assert_array_equal(mtscl.jd1.unmasked, tscl.jd1)
+        assert_array_equal(mtscl.jd2.unmasked, tscl.jd2)
