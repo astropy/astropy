@@ -73,6 +73,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
+    - uses: actions/cache@v2
+      with:
+        path: .tmp/${{ matrix.toxenv }}/.hypothesis
+        key: hypothesis-${{ matrix.toxenv }}
+        restore-keys: hypothesis-
     - name: Install language-pack-fr and tzdata
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install language-pack-fr tzdata
@@ -109,6 +114,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
+    - uses: actions/cache@v2
+      with:
+        path: .tmp/${{ matrix.toxenv }}/.hypothesis
+        key: hypothesis-${{ matrix.toxenv }}
+        restore-keys: hypothesis-
     - name: Install language-pack-de and tzdata
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install language-pack-de tzdata
