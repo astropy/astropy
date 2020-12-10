@@ -424,7 +424,7 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
                     masks.append(input_.mask)
                     converted.append(input_.unmasked)
                 else:
-                    masks.append(np.zeros(input_.shape, bool))
+                    masks.append(np.zeros(getattr(input_, 'shape', ()), bool))
                     converted.append(input_)
 
             result = ufunc(*converted, **kwargs)
@@ -442,27 +442,39 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
                 mask = np.logical_or(mask0, mask1)
 
             else:
-                axis = kwargs.get('axis', -1)
+                # Parse signature with private numpy function. Note it
+                # cannot handle spaces in tuples, so remove those.
+                in_sig, out_sig = np.lib.function_base._parse_gufunc_signature(
+                    ufunc.signature.replace(' ', ''))
+                axis = kwargs.get('axis', None)
                 keepdims = kwargs.get('keepdims', False)
-                parsed_sig = np.lib.function_base._parse_gufunc_signature(
-                    ufunc.signature)
-                ncore_dim_in = max(len(core_dims) for core_dims in parsed_sig[0])
-                ncore_dim_out = max(len(core_dims) for core_dims in parsed_sig[1])
-                if ncore_dim_in > 1 or ncore_dim_out > 1:
-                    return NotImplemented
+                in_masks = []
+                for sig, mask in zip(in_sig, masks):
+                    if sig:
+                        # Input has core dimensions.
+                        if axis is None:
+                            mask = np.logical_or.reduce(
+                                mask, axis=tuple(range(-len(sig), 0)))
+                        else:
+                            mask = np.logical_or.reduce(
+                                mask, axis=axis, keepdims=keepdims)
+                    in_masks.append(mask)
 
-                masks = [(np.logical_or.reduce(mask, axis=axis, keepdims=keepdims)
-                          if len(core_dims) > 0 else mask)
-                         for mask, core_dims in zip(masks, parsed_sig[0])]
-                mask = functools.reduce(np.logical_or, masks)
-                if ncore_dim_out > 0:
-                    assert not keepdims
-                    if len(parsed_sig[1]) == 1:
-                        mask = np.expand_dims(mask, axis)
+                mask = functools.reduce(np.logical_or, in_masks)
+                out_masks = []
+                for os in out_sig:
+                    if os:
+                        # Output has core dimensions.
+                        if axis is None:
+                            out_mask = np.expand_dims(
+                                mask, tuple(range(-len(os), 0)))
+                        else:
+                            out_mask = np.expand_dims(mask, axis)
                     else:
-                        mask = tuple((np.expand_dims(mask, axis)
-                                      if len(core_dims) > 0 else mask)
-                                     for core_dims in parsed_sig[1])
+                        out_mask = mask
+                    out_masks.append(out_mask)
+
+                mask = out_masks if len(out_masks) > 1 else out_masks[0]
 
         elif method == '__call__':
             # Regular ufunc call.
@@ -562,8 +574,10 @@ class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
         if isinstance(result, tuple):
             if out is None:
                 out = (None,) * len(result)
-            return tuple(self._masked_result(result_, mask, out_)
-                         for (result_, out_) in zip(result, out))
+            if not isinstance(mask, (list, tuple)):
+                mask = [mask] * len(result)
+            return tuple(self._masked_result(result_, mask_, out_)
+                         for (result_, mask_, out_) in zip(result, mask, out))
 
         if out is None:
             # Note that we cannot count on result being the same class as
