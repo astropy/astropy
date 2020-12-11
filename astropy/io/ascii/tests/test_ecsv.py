@@ -251,6 +251,8 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
+    assert obj1.shape == obj2.shape
+
     info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
     for attr in attrs + info_attrs:
         a1 = obj1
@@ -311,7 +313,7 @@ mixin_cols = {
     'cr': cr,
     'sd': sd,
     'srd': srd,
-    # 'nd': NdarrayMixin(el)  # not supported yet
+    'nd': NdarrayMixin([1, 2])
 }
 
 time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
@@ -334,7 +336,7 @@ compare_attrs = {
     'lat': ['value', 'unit'],
     'ang': ['value', 'unit'],
     'el': ['x', 'y', 'z', 'ellipsoid'],
-    'nd': ['x', 'y', 'z'],
+    'nd': ['data'],
     'sr': ['lon', 'lat', 'distance'],
     'cr': ['x', 'y', 'z'],
     'sd': ['d_lon_coslat', 'd_lat', 'd_distance'],
@@ -408,6 +410,7 @@ def test_ecsv_mixins_as_one(table_cls):
                         'el.x', 'el.y', 'el.z',
                         'lat',
                         'lon',
+                        'nd',
                         'qdb',
                         'qdex',
                         'qmag',
@@ -440,30 +443,48 @@ def test_ecsv_mixins_as_one(table_cls):
     assert t3.colnames == serialized_names
 
 
+def make_multidim(col, ndim):
+    """Take a col with length=2 and make it N-d by repeating elements.
+
+    For the special case of ndim==1 just return the orignal.
+
+    The output has shape [3] * ndim. By using 3 we can be sure that repeating
+    the two input elements gives an output that is sufficiently unique for
+    the multidim tests.
+    """
+    if ndim > 1:
+        import itertools
+        idxs = [idx for idx, _ in zip(itertools.cycle([0, 1]), range(3 ** ndim))]
+        col = col[idxs].reshape([3] * ndim)
+    return col
+
+
 @pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_ecsv_mixins_per_column(table_cls, name_col):
+@pytest.mark.parametrize('ndim', (1, 2, 3))
+def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
     """Test write/read one col at a time and do detailed validation"""
     name, col = name_col
 
-    c = [1.0, 2.0]
+    c = make_multidim(np.array([1.0, 2.0]), ndim)
+    col = make_multidim(col, ndim)
     t = table_cls([c, col, c], names=['c1', name, 'c2'])
     t[name].info.description = 'description'
 
     if not t.has_mixin_columns:
         pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
 
-    if isinstance(t[name], NdarrayMixin):
-        pytest.xfail('NdarrayMixin not supported')
-
     out = StringIO()
     t.write(out, format="ascii.ecsv")
+    t_raw = Table.read(out.getvalue(), format='ascii.basic', delimiter=' ', guess=False)
+    assert len(t_raw.colnames) >= 3 * 3**(ndim - 1)  # 3 columns, each with 3**(ndim-1) subcols
     t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
 
     assert t.colnames == t2.colnames
 
     for colname in t.colnames:
+        assert len(t2[colname].shape) == ndim
         assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
 
     # Special case to make sure Column type doesn't leak into Time class data
