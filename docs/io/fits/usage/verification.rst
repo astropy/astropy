@@ -166,24 +166,32 @@ following keywords:
     BITPIX =                     8 /
     NAXIS  =                     0
 
-If any of the mandatory keywords are missing or in the wrong order, the fix
-option will fix them:
 
-    >>> import warnings
+.. testsetup::
+
+   >>> import warnings
+   >>> from contextlib import contextmanager
+   >>> @contextmanager
+   ... def showwarnings():
+   ...     with warnings.catch_warnings(record=True) as warns:
+   ...         warnings.simplefilter("default")
+   ...         yield
+   ...     for warn in warns:
+   ...         print(warn._category_name, warn.message)
+
+
+If any of the mandatory keywords are missing or in the wrong order, the fix
+option will fix them::
+
     >>> from astropy.io import fits
-    >>> warnings.simplefilter("default")
     >>> filename = fits.util.get_testdata_filepath('verify.fits')
     >>> hdus = fits.open(filename)
     >>> hdus[0].header
     SIMPLE  =                    T / conforms to FITS standard
     NAXIS   =                    0 / NUMBER OF AXES
     BITPIX  =                    8 / BITS PER PIXEL
-    >>> # warnings are caught
-    >>> with warnings.catch_warnings(record=True) as warns:
+    >>> with showwarnings():
     ...    hdus[0].verify('fix')
-    >>> # warnings are displayed
-    >>> for warn in warns:
-    ...    print(warn._category_name, warn.message)
     VerifyWarning Verification reported errors:
     VerifyWarning 'BITPIX' card at the wrong place (card 2).
         Fixed by moving it to the right place (card 1).
@@ -192,7 +200,7 @@ option will fix them:
     SIMPLE  =                    T / conforms to FITS standard
     BITPIX  =                    8 / BITS PER PIXEL
     NAXIS   =                    0 / NUMBER OF AXES
-    >>> hdus.close()                                     
+    >>> hdus.close()
 
 Verification at Each Card
 -------------------------
@@ -245,12 +253,8 @@ Fixable Cards:
 6. Unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
-    >>> # warnings are caught
-    >>> with warnings.catch_warnings(record=True) as warns:
+    >>> with showwarnings():
     ...    c.verify('fix+warn')
-    >>> # warnings are displayed
-    >>> for warn in warns:
-    ...    print(warn._category_name, warn.message)
     VerifyWarning Verification reported errors:
     VerifyWarning Card 'FIX6' is not FITS standard
         (invalid value string: '2 10').
@@ -263,17 +267,13 @@ Unfixable Cards:
 
 1. Illegal characters in keyword name.
 
-We will summarize the verification with a "life-cycle" example:
+We will summarize the verification with a "life-cycle" example::
 
     >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
     >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
     >>> # '.' in the keyword), if using the update() method - doesn't work!
-    >>> # warnings are caught
-    >>> with warnings.catch_warnings(record=True) as warns:
+    >>> with showwarnings():
     ...    h.header['P.I.'] = 'Hubble'
-    >>> # warnings are displayed
-    >>> for warn in warns:
-    ...    print(warn._category_name, warn.message)
     VerifyWarning Keyword name 'P.I.' is greater than 8 characters
         or contains characters not allowed by the FITS standard;
         a HIERARCH card will be created.
@@ -297,18 +297,14 @@ We will summarize the verification with a "life-cycle" example:
     >>> # Now reading a non-standard FITS file
     >>> # astropy.io.fits is magnanimous in reading non-standard FITS files
     >>> hdus = fits.open('pi.fits')
-    >>> # warnings are caught
-    >>> with warnings.catch_warnings(record=True) as warns:
+    >>> with showwarnings():
     ...    hdus[0].header
     SIMPLE  =            T / conforms to FITS standard
     BITPIX  =            8 / array data type
     NAXIS   =            0 / number of array dimensions
     EXTEND  =            T
-    HIERARCH P.I. = 'Hubble  '                                                      
+    HIERARCH P.I. = 'Hubble  '
     P.I.    = 'Hubble  '
-    >>> # warnings are displayed
-    >>> for warn in warns:
-    ...    print(warn._category_name, warn.message)
     VerifyWarning Verification reported errors:
     VerifyWarning Card 'P.I. ' is not FITS standard
         (equal sign not at column 8).
@@ -321,12 +317,8 @@ We will summarize the verification with a "life-cycle" example:
     'Hubble'
     >>> # But if you want to make sure if there is anything wrong/non-standard,
     >>> # use the verify() method
-    >>> # warnings are caught
-    >>> with warnings.catch_warnings(record=True) as warns:
+    >>> with showwarnings():
     ...    hdus.verify()
-    >>> # warnings are displayed
-    >>> for warn in warns:
-    ...    print(warn._category_name, warn.message)
     VerifyWarning Verification reported errors:
     VerifyWarning HDU 0:
     VerifyWarning     Card 5:
@@ -377,7 +369,7 @@ Examples
   EXAMPLE START
   Verification Using the FITS Checksum Keyword Convention
 
-To verify the checksum values for HDUs when opening a file:
+To verify the checksum values for HDUs when opening a file::
 
     >>> # Open the file checksum.fits verifying the checksum values for all HDUs
     >>> filename = fits.util.get_testdata_filepath('checksum.fits')
@@ -385,17 +377,13 @@ To verify the checksum values for HDUs when opening a file:
     >>> hdul.close()
     >>> # Open the file in.fits where checksum verification fails
     >>> filename = fits.util.get_testdata_filepath('checksum_false.fits')
-    >>> # warnings are caught
-    >>> with warnings.catch_warnings(record=True) as warns:
+    >>> with showwarnings():
     ...    hdul = fits.open(filename, checksum=True)
-    >>> # warnings are displayed
-    >>> for warn in warns:
-    ...    print(warn._category_name, warn.message)
     AstropyUserWarning Checksum verification failed for HDU ('PRIMARY', 1).
     AstropyUserWarning Datasum verification failed for HDU ('PRIMARY', 1).
     AstropyUserWarning Checksum verification failed for HDU ('RATE', 1).
     AstropyUserWarning Datasum verification failed for HDU ('RATE', 1).
-    >>> # Create file out.fits containing an HDU constructed from data 
+    >>> # Create file out.fits containing an HDU constructed from data
     >>> # containing both CHECKSUM and DATASUM cards.
     >>> data = hdul[0].data
     >>> fits.writeto('out.fits', data=data, checksum=True)
