@@ -29,16 +29,6 @@ from .function_helpers import (MASKED_SAFE_FUNCTIONS,
 __all__ = ['Masked', 'MaskedNDArray']
 
 
-def get__new__(masked_cls):
-    def __new__(cls, *args, mask=False, **kwargs):
-        """Get data class instance from arguments and then set mask."""
-        # Need to explicitly mention classes outside of class definition context.
-        self = super(masked_cls, cls).__new__(cls, *args, **kwargs)
-        self.mask = mask
-        return self
-    return __new__
-
-
 get__doc__ = functools.partial(format, """
 Masked version of {0.__name__}.
 
@@ -86,33 +76,32 @@ class Masked(NDArrayShapeMethods):
             # Otherwise we're a subclass and should just pass information on.
             return super().__new__(cls, *args, **kwargs)
 
-    def __init_subclass__(cls, data_cls=None, **kwargs):
+    def __init_subclass__(cls, base_cls=None, data_cls=None, **kwargs):
         """Register a Masked subclass.
-
-        Also sets the ``_data_cls`` private attribute.
 
         Parameters
         ----------
-        data_cls : type, optional
+        base_cls : type, optional
             If given, it is taken to mean that ``cls`` can be used as
-            a base for masked versions of all subclasses of ``data_cls``,
+            a base for masked versions of all subclasses of ``base_cls``,
             so it is registered as such in ``_base_classes``.
-            If not given, then assume ``cls`` is an automatically generated
-            class and thus that its data class is the first superclass.
+        data_cls : type, optional
+            If given, ``cls`` should will be registered as the masked version of
+            ``data_cls``.  Will set the private ``cls._data_cls`` attribute,
+            and auto-generate a docstring if not present already.
         **kwargs
             Passed on for possible further initialization by superclasses.
 
         """
+        if base_cls is not None:
+            Masked._base_classes[base_cls] = cls
+
         if data_cls is not None:
-            Masked._base_classes[data_cls] = cls
-        else:
-            data_cls = cls.__mro__[1]
-        cls._masked_classes[data_cls] = cls
-        cls._data_cls = data_cls
-        if '__new__' not in cls.__dict__:
-            cls.__new__ = get__new__(cls)
-        if '__doc__' not in cls.__dict__:
-            cls.__doc__ = get__doc__(data_cls)
+            cls._data_cls = data_cls
+            cls._masked_classes[data_cls] = cls
+            if '__doc__' not in cls.__dict__:
+                cls.__doc__ = get__doc__(data_cls)
+
         super().__init_subclass__(**kwargs)
 
     @classmethod
@@ -155,9 +144,10 @@ class Masked(NDArrayShapeMethods):
                 # _masked_classes[list] = MaskedNDArray.
                 return MaskedNDArray
 
-            # Create (and therefore register) new Measurement subclass.
+            # Create (and therefore register) new Masked subclass for the
+            # given data_cls.
             masked_cls = type('Masked' + data_cls.__name__,
-                              (data_cls, base_cls), {})
+                              (data_cls, base_cls), {}, data_cls=data_cls)
 
         return masked_cls
 
@@ -316,8 +306,28 @@ class MaskedIterator:
     next = __next__
 
 
-class MaskedNDArray(Masked, np.ndarray, data_cls=np.ndarray):
+class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray):
     _mask = None
+
+    def __new__(cls, *args, mask=False, **kwargs):
+        """Get data class instance from arguments and then set mask."""
+        self = super().__new__(cls, *args, **kwargs)
+        self.mask = mask
+        return self
+
+    def __init_subclass__(cls, **kwargs):
+        # For all subclasses we should set a default __new__ that passes on
+        # arguments other than mask to the data class, and then sets the mask.
+        if '__new__' not in cls.__dict__:
+            def __new__(newcls, *args, mask=False, **kwargs):
+                """Get data class instance from arguments and then set mask."""
+                # Need to explicitly mention classes outside of class definition.
+                self = super(cls, newcls).__new__(newcls, *args, **kwargs)
+                self.mask = mask
+                return self
+            cls.__new__ = __new__
+
+        super().__init_subclass__(cls, **kwargs)
 
     # The two required pieces.
     @classmethod
