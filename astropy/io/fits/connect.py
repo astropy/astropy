@@ -14,7 +14,7 @@ from astropy.time import Time
 from astropy.utils.data_info import MixinInfo, serialize_context_as
 from astropy.utils.exceptions import (AstropyUserWarning,
                                       AstropyDeprecationWarning)
-from . import HDUList, TableHDU, BinTableHDU, GroupsHDU
+from . import HDUList, TableHDU, BinTableHDU, GroupsHDU, append as fits_append
 from .column import KEYWORD_NAMES, _fortran_to_python_format
 from .convenience import table_to_hdu
 from .hdu.hdulist import fitsopen as fits_open, FITS_SIGNATURE
@@ -401,7 +401,7 @@ def _encode_mixins(tbl):
     return encode_tbl
 
 
-def write_table_fits(input, output, overwrite=False):
+def write_table_fits(input, output, overwrite=False, append=False):
     """
     Write a Table object to a FITS file
 
@@ -413,6 +413,8 @@ def write_table_fits(input, output, overwrite=False):
         The filename to write the table to.
     overwrite : bool
         Whether to overwrite any existing file without warning.
+    append : bool
+        Whether to append the table to an existing file
     """
 
     # Encode any mixin columns into standard Columns.
@@ -424,10 +426,14 @@ def write_table_fits(input, output, overwrite=False):
     if isinstance(output, str) and os.path.exists(output):
         if overwrite:
             os.remove(output)
-        else:
+        elif not append:
             raise OSError(f"File exists: {output}")
 
-    table_hdu.writeto(output)
+    if append:
+        # verify=False stops it reading and checking the existing file.
+        fits_append(output, table_hdu.data, table_hdu.header, verify=False)
+    else:
+        table_hdu.writeto(output)
 
 
 io_registry.register_reader('fits', Table, read_table_fits)
