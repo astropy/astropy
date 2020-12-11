@@ -5,7 +5,7 @@ import itertools
 
 import numpy as np
 
-from astropy.utils.data_info import ParentDtypeInfo
+from astropy.utils.data_info import ParentDtypeInfo, FLATTEN_MULTIDIM
 
 
 class NdarrayMixinInfo(ParentDtypeInfo):
@@ -14,8 +14,9 @@ class NdarrayMixinInfo(ParentDtypeInfo):
     def _represent_as_dict(self):
         """Represent Column as a dict that can be serialized.
 
-        This handles the special case of serializing in ECSV an N-dimensional
-        column (for N > 1) by turning it into the required number of 1-d arrays.
+        This handles the special case of serializing an N-dimensional column
+        (for N > 1) by optionally turning it into the required number of 1-d
+        arrays (e.g. for ECSV or None context).
 
         For instance a Column with shape (2, 2, 20) will turn into four columns
         (each length 20) with "data attribute" names 0_0, 0_1, 1_0, and 1_1.
@@ -23,7 +24,7 @@ class NdarrayMixinInfo(ParentDtypeInfo):
         """
         col = self._parent
 
-        if col.ndim > 1 and self._serialize_context == 'ecsv':
+        if col.ndim > 1 and self._serialize_context in FLATTEN_MULTIDIM:
             # N-d column case for output to ECSV
             out = {}
             # Make cartesian product of all dimensions except length (first axis)

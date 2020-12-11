@@ -9,6 +9,9 @@ import numpy as np
 from astropy.utils.data_info import MixinInfo
 from .column import Column, MaskedColumn
 from .table import Table, QTable, has_info_class
+from astropy.utils.data_info import MixinInfo, FLATTEN_MULTIDIM
+from .column import Column
+from .table import Table, QTable, has_info_class, NdarrayMixin
 from astropy.units.quantity import QuantityInfo
 
 
@@ -116,6 +119,11 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if nontrivial(col_attr):
             info[attr] = col_attr
 
+    # Find column attributes that have the same length as the column itself.
+    # These will be stored in the table as new columns (aka "data attributes").
+    # Examples include SkyCoord.ra (what is typically considered the data and is
+    # always an array) and Skycoord.obs_time (which can be a scalar or an
+    # array).
     data_attrs = [key for key, value in obj_attrs.items() if
                   getattr(value, 'shape', ())[:1] == col.shape[:1]]
 
@@ -130,6 +138,13 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             new_name = name
         else:
             new_name = name + '.' + data_attr
+
+        # If the data attribute is not a Mixin (aka a Column or ndarray) and
+        # multidimensional
+        if (not has_info_class(data, MixinInfo)
+                and col.info._serialize_context in FLATTEN_MULTIDIM
+                and len(data.shape) > 1):
+            data = NdarrayMixin(data)
 
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')

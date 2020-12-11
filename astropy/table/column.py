@@ -3,7 +3,6 @@
 import itertools
 import warnings
 import weakref
-import re
 
 from copy import deepcopy
 
@@ -13,7 +12,7 @@ from numpy import ma
 from astropy.units import Unit, Quantity
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
-from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.data_info import BaseColumnInfo, dtype_info_name, FLATTEN_MULTIDIM
 from astropy.utils.misc import dtype_bytes_or_chars
 from . import groups
 from . import pprint
@@ -352,8 +351,9 @@ class ColumnInfo(BaseColumnInfo):
         """
         col = self._parent
 
-        if col.ndim > 1 and self._serialize_context == 'ecsv':
-            # N-d column case for output to ECSV
+        if len(col.shape) > 1 and self._serialize_context in FLATTEN_MULTIDIM:
+            # Represent N-d column as an NdarrayMixin which then will get
+            # flattened into a list of 1-d columns.
             out = {'data': col.view(NdarrayMixin)}
         else:
             out = super()._represent_as_dict()
