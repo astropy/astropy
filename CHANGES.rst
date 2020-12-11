@@ -39,6 +39,8 @@ astropy.io.fits
   file is a valid FITS file and raise a better error when opening a non FITS
   one. ``ignore_missing_simple`` can be used to skip this verification. [#10895]
 
+- Added ``append`` keyword to append table objects to an existing FITS file [#2632, #11149]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
