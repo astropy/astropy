@@ -185,22 +185,22 @@ option will fix them::
 
     >>> from astropy.io import fits
     >>> filename = fits.util.get_testdata_filepath('verify.fits')
-    >>> hdus = fits.open(filename)
-    >>> hdus[0].header
+    >>> hdul = fits.open(filename)
+    >>> hdul[0].header
     SIMPLE  =                    T / conforms to FITS standard
     NAXIS   =                    0 / NUMBER OF AXES
     BITPIX  =                    8 / BITS PER PIXEL
     >>> with showwarnings():
-    ...    hdus[0].verify('fix')
+    ...    hdul[0].verify('fix')
     VerifyWarning Verification reported errors:
     VerifyWarning 'BITPIX' card at the wrong place (card 2).
         Fixed by moving it to the right place (card 1).
     VerifyWarning Note: astropy.io.fits uses zero-based indexing.
-    >>> hdus[0].header           # voila!
+    >>> hdul[0].header           # voila!
     SIMPLE  =                    T / conforms to FITS standard
     BITPIX  =                    8 / BITS PER PIXEL
     NAXIS   =                    0 / NUMBER OF AXES
-    >>> hdus.close()
+    >>> hdul.close()
 
 Verification at Each Card
 -------------------------
@@ -296,9 +296,9 @@ We will summarize the verification with a "life-cycle" example::
     >>> h.writeto('pi.fits', output_verify='ignore')
     >>> # Now reading a non-standard FITS file
     >>> # astropy.io.fits is magnanimous in reading non-standard FITS files
-    >>> hdus = fits.open('pi.fits')
+    >>> hdul = fits.open('pi.fits')
     >>> with showwarnings():
-    ...    hdus[0].header
+    ...    hdul[0].header
     SIMPLE  =            T / conforms to FITS standard
     BITPIX  =            8 / array data type
     NAXIS   =            0 / number of array dimensions
@@ -313,18 +313,18 @@ We will summarize the verification with a "life-cycle" example::
     VerifyWarning Note: astropy.io.fits uses zero-based indexing.
     >>> # even when you try to access the offending keyword, it does NOT
     >>> # complain
-    >>> hdus[0].header['p.i.']
+    >>> hdul[0].header['p.i.']
     'Hubble'
     >>> # But if you want to make sure if there is anything wrong/non-standard,
     >>> # use the verify() method
     >>> with showwarnings():
-    ...    hdus.verify()
+    ...    hdul.verify()
     VerifyWarning Verification reported errors:
     VerifyWarning HDU 0:
     VerifyWarning     Card 5:
     VerifyWarning         Illegal keyword name 'P.I. '
     VerifyWarning Note: astropy.io.fits uses zero-based indexing.
-    >>> hdus.close()
+    >>> hdul.close()
 
 ..
   EXAMPLE END
