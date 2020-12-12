@@ -126,7 +126,7 @@ useful for :ref:`table_operations` such as joining and stacking::
 
   >>> t2[0] = np.ma.masked  # Declare that first time is missing or invalid
   >>> print(t2)
-  [-- '2014-12-25T00:00:00.000']
+  [                      ——— '2014-12-25T00:00:00.000']
 
 Finally, some further examples of what is possible. For details, see
 the API documentation below.
@@ -861,7 +861,7 @@ To set one or more items as missing, assign the special value
   ...          out_subfmt='date')
   >>> t[2] = np.ma.masked
   >>> print(t)
-  ['2001:020' '2001:040' -- '2001:080']
+  ['2001:020' '2001:040'        ——— '2001:080']
 
 .. note:: The operation of setting an array element to `numpy.ma.masked`
    (missing) *overwrites* the actual time data and therefore there is no way to

@@ -2490,9 +2490,8 @@ def test_ymdhms_exceptions():
 def test_ymdhms_masked():
     tm = Time({"year": [2000, 2001]}, format="ymdhms")
     tm[0] = np.ma.masked
-    assert isinstance(tm.value[0], np.ma.core.mvoid)
     for name in ymdhms_names:
-        assert tm.value[0][name] is np.ma.masked
+        assert tm.value[0][name].mask
 
 
 # Converted from doctest in astropy/test/formats.py for debugging

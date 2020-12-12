@@ -25,6 +25,7 @@ from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.masked import Masked
 
 # Import TimeFromEpoch to avoid breaking code that followed the old example of
 # making a custom timescale in the documentation.
@@ -548,8 +549,8 @@ class TimeBase(ShapedLikeNDArray):
         # with shape broadcastable to jd2.
         if mask is not False:
             mask = np.broadcast_to(mask, self._time.jd2.shape)
-            self._time.jd1[mask] = 2451544.5  # Set to JD for 2000-01-01
-            self._time.jd2[mask] = np.nan
+            self._time.jd1 = Masked(self._time.jd1, mask=mask, copy=False)
+            self._time.jd2 = Masked(self._time.jd2, mask=mask, copy=False)
 
     def _get_time_fmt(self, val, val2, format, scale, precision, in_subfmt, out_subfmt):
         """
@@ -751,7 +752,7 @@ class TimeBase(ShapedLikeNDArray):
             xforms = tuple(reversed(xforms))
 
         # Transform the jd1,2 pairs through the chain of scale xforms.
-        jd1, jd2 = self._time.jd1, self._time.jd2_filled
+        jd1, jd2 = self._time.jd1, self._time.jd2
         for sys1, sys2 in zip(xforms[:-1], xforms[1:]):
             # Some xforms require an additional delta_ argument that is
             # provided through Time methods.  These values may be supplied by
@@ -773,8 +774,6 @@ class TimeBase(ShapedLikeNDArray):
             jd1, jd2 = conv_func(*args)
 
         jd1, jd2 = day_frac(jd1, jd2)
-        if self.masked:
-            jd2[self.mask] = np.nan
 
         self._time = self.FORMATS[self.format](
             jd1,
@@ -912,16 +911,14 @@ class TimeBase(ShapedLikeNDArray):
         """
         First of the two doubles that internally store time value(s) in JD.
         """
-        jd1 = self._time.mask_if_needed(self._time.jd1)
-        return self._shaped_like_input(jd1)
+        return self._shaped_like_input(self._time.jd1)
 
     @property
     def jd2(self):
         """
         Second of the two doubles that internally store time value(s) in JD.
         """
-        jd2 = self._time.mask_if_needed(self._time.jd2)
-        return self._shaped_like_input(jd2)
+        return self._shaped_like_input(self._time.jd2)
 
     def to_value(self, format, subfmt="*"):
         """Get time values expressed in specified output format.
@@ -1116,7 +1113,12 @@ class TimeBase(ShapedLikeNDArray):
                 delattr(self, attr)
 
         if value is np.ma.masked or value is np.nan:
-            self._time.jd2[item] = np.nan
+            if not isinstance(self._time.jd2, Masked):
+                self._time.jd1 = Masked(self._time.jd1, copy=False)
+                self._time.jd2 = Masked(
+                    self._time.jd2, mask=self._time.jd1.mask, copy=False
+                )
+            self._time.jd2[item] = np.ma.masked
             return
 
         value = self._make_value_equivalent(item, value)
@@ -1411,7 +1413,7 @@ class TimeBase(ShapedLikeNDArray):
         is used.  See :func:`~numpy.argmin` for detailed documentation.
         """
         # First get the minimum at normal precision.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         approx = np.min(jd1 + jd2, axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
@@ -1434,7 +1436,7 @@ class TimeBase(ShapedLikeNDArray):
         is used.  See :func:`~numpy.argmax` for detailed documentation.
         """
         # For procedure, see comment on argmin.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         approx = np.max(jd1 + jd2, axis, keepdims=True)
 
         dt = (jd1 - approx) + jd2
@@ -1465,7 +1467,7 @@ class TimeBase(ShapedLikeNDArray):
             An array of indices that sort the time array.
         """
         # For procedure, see comment on argmin.
-        jd1, jd2 = self.jd1, self.jd2
+        jd1, jd2 = self._time.jd1, self._time.jd2
         approx = jd1 + jd2
         remainder = (jd1 - approx) + jd2
 
@@ -2352,7 +2354,7 @@ class Time(TimeBase):
         erfa_parameters = [
             getattr(getattr(self, scale)._time, jd_part)
             for scale in scales
-            for jd_part in ("jd1", "jd2_filled")
+            for jd_part in ("jd1", "jd2")
         ]
 
         result = function(*erfa_parameters)
@@ -2429,7 +2431,7 @@ class Time(TimeBase):
             # is access directly; ensure we behave as expected for that case
             if jd1 is None:
                 self_utc = self.utc
-                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2_filled
+                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2
                 scale = "utc"
             else:
                 scale = self.scale
@@ -2474,7 +2476,7 @@ class Time(TimeBase):
                     )
                 else:
                     jd1 = self._time.jd1
-                    jd2 = self._time.jd2_filled
+                    jd2 = self._time.jd2
 
             # First go from the current input time (which is either
             # TDB or TT) to an approximate UT1.  Since TT and TDB are
@@ -3285,6 +3287,7 @@ def _check_for_masked_and_fill(val, val2):
         """
         fill_value = None
 
+        filled = np.array(val, copy=True, subok=False)
         if np.any(val.mask):
             # Final mask is the logical-or of inputs
             mask = mask | val.mask
@@ -3293,20 +3296,22 @@ def _check_for_masked_and_fill(val, val2):
             # use fill_value=None from above which will use val.fill_value.
             # As long as the user has set this appropriately then all will
             # be fine.
-            val_unmasked = val.compressed()  # 1-d ndarray of unmasked values
+            val_unmasked = val[~val.mask]  # 1-d ndarray of unmasked values
             if len(val_unmasked) > 0:
                 fill_value = val_unmasked[0]
 
-        # Fill the input ``val``.  If fill_value is None then this just returns
-        # an ndarray view of val (no copy).
-        val = val.filled(fill_value)
+            # Fill the input ``val``.  If fill_value is None then this just returns
+            # an ndarray view of val (no copy).
+            filled[mask] = fill_value or getattr(
+                val, "fill_value", np.zeros_like(filled, shape=())
+            )
 
-        return mask, val
+        return mask, filled
 
     mask = False
-    if isinstance(val, np.ma.MaskedArray):
+    if hasattr(val, "mask"):
         mask, val = get_as_filled_ndarray(mask, val)
-    if isinstance(val2, np.ma.MaskedArray):
+    if hasattr(val2, "mask"):
         mask, val2 = get_as_filled_ndarray(mask, val2)
 
     return mask, val, val2

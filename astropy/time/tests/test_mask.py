@@ -11,6 +11,7 @@ from astropy.time import Time
 from astropy.utils import iers
 from astropy.utils.compat import PYTHON_LT_3_11
 from astropy.utils.compat.optional_deps import HAS_H5PY
+from astropy.utils.masked import Masked
 
 allclose_sec = functools.partial(
     np.allclose, rtol=2.0**-52, atol=2.0**-52 * 24 * 3600
@@ -31,10 +32,10 @@ def test_simple():
     assert t.masked is False
     assert np.all(t.mask == [False, False, False])
 
-    # Before masking, format output is not a masked array (it is an ndarray
-    # like always)
-    assert not isinstance(t.value, np.ma.MaskedArray)
-    assert not isinstance(t.unix, np.ma.MaskedArray)
+    # Before masking, format output does not have a mask
+    # (it is an ndarray like always)
+    assert not hasattr(t.value, "mask")
+    assert not hasattr(t.unix, "mask")
 
     t[2] = np.ma.masked
     assert t.masked is True
@@ -43,9 +44,9 @@ def test_simple():
     assert is_masked(t.value[2])
     assert is_masked(t[2].value)
 
-    # After masking format output is a masked array
-    assert isinstance(t.value, np.ma.MaskedArray)
-    assert isinstance(t.unix, np.ma.MaskedArray)
+    # After masking format output has a mask.
+    assert hasattr(t.value, "mask")
+    assert hasattr(t.unix, "mask")
     # TODO : test all formats
 
 
@@ -71,17 +72,15 @@ def test_mask_not_writeable():
 def test_str():
     t = Time(["2000:001", "2000:002"])
     t[1] = np.ma.masked
-    assert str(t) == "['2000:001:00:00:00.000' --]"
+    assert str(t) == "['2000:001:00:00:00.000'                     ———]"
     assert (
         repr(t)
-        == "<Time object: scale='utc' format='yday' value=['2000:001:00:00:00.000' --]>"
+        == "<Time object: scale='utc' format='yday' value=['2000:001:00:00:00.000'                     ———]>"
     )
 
     expected = [
-        "masked_array(data=['2000-01-01 00:00:00.000', --],",
-        "             mask=[False,  True],",
-        "       fill_value='N/A',",
-        "            dtype='<U23')",
+        "MaskedNDArray(['2000-01-01 00:00:00.000',                       ———],",
+        "              dtype='<U23')",
     ]
 
     # Note that we need to take care to allow for big-endian platforms,
@@ -153,13 +152,18 @@ def test_masked_input():
     assert t2.masked is True
 
 
-def test_all_masked_input():
+@pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
+@pytest.mark.parametrize("val", [0, np.nan, [0], [np.nan]])
+def test_all_masked_input(masked_cls, val):
     """Fix for #9612"""
     # Test with jd=0 and jd=np.nan. Both triggered an exception prior to #9624
     # due to astropy.utils.exceptions.ErfaError.
-    for val in (0, np.nan):
-        t = Time(np.ma.masked_array([val], mask=[True]), format="jd")
-        assert str(t.iso) == "[--]"
+    val = masked_cls(val, mask=True)
+    t = Time(val, format="jd")
+    if val.ndim:
+        assert str(t.iso).endswith("———]")
+    else:
+        assert str(t.iso).endswith("———")
 
 
 def test_serialize_fits_masked(tmp_path):
