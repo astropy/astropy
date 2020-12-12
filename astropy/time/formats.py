@@ -13,6 +13,7 @@ import numpy as np
 import astropy.units as u
 from astropy.utils.decorators import classproperty, lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.masked import Masked
 
 from . import _parse_times, conf, utils
 from .utils import day_frac, quantity_day_frac, two_product, two_sum
@@ -254,26 +255,26 @@ class TimeFormat:
 
     def mask_if_needed(self, value):
         if self.masked:
-            value = np.ma.array(value, mask=self.mask, copy=False)
+            value = Masked(np.asarray(value), mask=self.mask.copy(), copy=False)
         return value
 
     @property
     def mask(self):
         if "mask" not in self.cache:
-            self.cache["mask"] = np.isnan(self.jd2)
-            if self.cache["mask"].shape:
-                self.cache["mask"].flags.writeable = False
+            mask = getattr(self.jd2, "mask", None)
+            if mask is None:
+                mask = np.zeros(self.jd2.shape, bool)
+                mask.flags.writeable = False
+            self.cache["mask"] = mask
         return self.cache["mask"]
 
     @property
     def masked(self):
-        if "masked" not in self.cache:
-            self.cache["masked"] = bool(np.any(self.mask))
-        return self.cache["masked"]
+        return bool((getattr(self.jd2, "mask", np.False_)).any())
 
     @property
     def jd2_filled(self):
-        return np.nan_to_num(self.jd2) if self.masked else self.jd2
+        return self.jd2.unmask() if self.masked else self.jd2
 
     @property
     def precision(self):
@@ -368,7 +369,7 @@ class TimeFormat:
             Remove ndarray subclasses since for jd1/jd2 we want a pure ndarray
             or a Python or numpy scalar.
             """
-            return np.asarray(val) if isinstance(val, np.ndarray) else val
+            return val.view(np.ndarray) if isinstance(val, np.ndarray) else val
 
         return asarray_or_scalar(val1), asarray_or_scalar(val2)
 
@@ -658,7 +659,7 @@ class TimeDecimalYear(TimeNumeric):
     def to_value(self, **kwargs):
         scale = self.scale.upper().encode("ascii")
         iy_start, ims, ids, ihmsfs = erfa.d2dtf(
-            scale, 0, self.jd1, self.jd2_filled  # precision=0
+            scale, 0, self.jd1, self.jd2  # precision=0
         )
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
@@ -1145,7 +1146,7 @@ class TimeDatetime(TimeUnique):
         # since we want to be able to pass in timezone information.
         scale = self.scale.upper().encode("ascii")
         iys, ims, ids, ihmsfs = erfa.d2dtf(
-            scale, 6, self.jd1, self.jd2_filled  # 6 for microsec
+            scale, 6, self.jd1, self.jd2  # 6 for microsec
         )
         ihrs = ihmsfs["h"]
         imins = ihmsfs["m"]
@@ -1322,7 +1323,7 @@ class TimeYMDHMS(TimeUnique):
     @property
     def value(self):
         scale = self.scale.upper().encode("ascii")
-        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9, self.jd1, self.jd2_filled)
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, 9, self.jd1, self.jd2)
 
         out = np.empty(
             self.jd1.shape,
@@ -1573,6 +1574,9 @@ class TimeString(TimeUnique):
         jd1, jd2 = erfa.dtf2d(
             self.scale.upper().encode("ascii"), *iterator.operands[1:]
         )
+        # The iterator above eats the mask...
+        if isinstance(val1, Masked):
+            jd1 = Masked(jd1, mask=val1.mask.copy())
         jd1, jd2 = day_frac(jd1, jd2)
 
         return jd1, jd2
@@ -1616,9 +1620,7 @@ class TimeString(TimeUnique):
         calendar date and time for the internal JD values.
         """
         scale = (self.scale.upper().encode("ascii"),)
-        iys, ims, ids, ihmsfs = erfa.d2dtf(
-            scale, self.precision, self.jd1, self.jd2_filled
-        )
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision, self.jd1, self.jd2)
 
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
@@ -1858,7 +1860,7 @@ class TimeDatetime64(TimeISOT):
 
         # Finally apply mask if necessary
         if masked:
-            self.jd2[mask] = np.nan
+            self.jd2 = Masked(self.jd2, mask=mask)
 
     @property
     def value(self):
