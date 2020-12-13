@@ -27,6 +27,13 @@ class ArraySetup:
         self.mask_b = np.array([False, True, False])
         self.c = np.array([[0.25], [0.5]])
         self.mask_c = np.array([[False], [True]])
+        self.sdt = np.dtype([('a', 'f8'), ('b', 'f8')])
+        self.mask_sdt = np.dtype([('a', '?'), ('b', '?')])
+        self.sa = np.array([[(1., 2.), (3., 4.)],
+                            [(11., 12.), (13., 14.)]], dtype=self.sdt)
+        self.mask_sa = np.array([[(True, True), (False, False)],
+                                 [(False, True), (True, False)]],
+                                dtype=self.mask_sdt)
 
     def setup(self):
         self.setup_arrays()
@@ -40,6 +47,7 @@ class QuantitySetup(ArraySetup):
         self.a = Quantity(self.a, u.m)
         self.b = Quantity(self.b, u.cm)
         self.c = Quantity(self.c, u.km)
+        self.sa = Quantity(self.sa, u.m, dtype=self.sdt)
 
 
 class LongitudeSetup(ArraySetup):
@@ -50,17 +58,11 @@ class LongitudeSetup(ArraySetup):
         self.a = Longitude(self.a, u.deg)
         self.b = Longitude(self.b, u.deg)
         self.c = Longitude(self.c, u.deg)
+        # Note: Longitude does not work on structured arrays, so
+        # leaving it as regular array (which just reruns some tests).
 
 
 class TestMaskedArrayInitialization(ArraySetup):
-    def setup_arrays(self):
-        self.a = np.arange(6.).reshape(2, 3)
-        self.mask_a = np.array([[True, False, False],
-                                [False, True, False]])
-
-    def setup(self):
-        self.setup_arrays()
-
     def test_simple(self):
         ma = Masked(self.a, mask=self.mask_a)
         assert isinstance(ma, np.ndarray)
@@ -70,6 +72,16 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert_array_equal(ma.mask, self.mask_a)
         assert ma.mask is not self.mask_a
         assert np.may_share_memory(ma.mask, self.mask_a)
+
+    def test_structured(self):
+        ma = Masked(self.sa, mask=self.mask_sa)
+        assert isinstance(ma, np.ndarray)
+        assert isinstance(ma, type(self.sa))
+        assert isinstance(ma, Masked)
+        assert_array_equal(ma.unmasked, self.sa)
+        assert_array_equal(ma.mask, self.mask_sa)
+        assert ma.mask is not self.mask_sa
+        assert np.may_share_memory(ma.mask, self.mask_sa)
 
 
 def test_masked_ndarray_init():
@@ -122,11 +134,7 @@ class TestMaskedSubclassCreation:
         assert Masked(self.MyArray) is type(mms)
 
 
-class TestMaskedQuantityInitialization(TestMaskedArrayInitialization):
-    def setup_arrays(self):
-        super().setup_arrays()
-        self.a = Quantity(self.a, u.m)
-
+class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     def test_masked_quantity_class_init(self):
         # TODO: class definitions should be more easily accessible.
         mcls = Masked._masked_classes[self.a.__class__]
@@ -143,7 +151,7 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization):
 
 
 class TestMaskSetting(ArraySetup):
-    def test_whole_mask_setting(self):
+    def test_whole_mask_setting_simple(self):
         ma = Masked(self.a)
         assert ma.mask.shape == ma.shape
         assert not ma.mask.any()
@@ -159,10 +167,28 @@ class TestMaskSetting(ArraySetup):
         assert ma.mask is not self.mask_a
         assert np.may_share_memory(ma.mask, self.mask_a)
 
-    @pytest.mark.parametrize('item', ((1, 1),
-                                      slice(None, 1),
-                                      (),
-                                      1))
+    def test_whole_mask_setting_structured(self):
+        ma = Masked(self.sa)
+        assert ma.mask.shape == ma.shape
+        assert not ma.mask['a'].any() and not ma.mask['b'].any()
+        ma.mask = True
+        assert ma.mask.shape == ma.shape
+        assert ma.mask['a'].all() and ma.mask['b'].all()
+        ma.mask = [[True], [False]]
+        assert ma.mask.shape == ma.shape
+        assert_array_equal(ma.mask, np.array(
+            [[(True, True)] * 2, [(False, False)] * 2], dtype=self.mask_sdt))
+        ma.mask = self.mask_sa
+        assert ma.mask.shape == ma.shape
+        assert_array_equal(ma.mask, self.mask_sa)
+        assert ma.mask is not self.mask_sa
+        assert np.may_share_memory(ma.mask, self.mask_sa)
+
+    @pytest.mark.parametrize('item', [
+        (1, 1),
+        slice(None, 1),
+        (),
+        1])
     def test_part_mask_setting(self, item):
         ma = Masked(self.a)
         ma.mask[item] = True
@@ -174,6 +200,27 @@ class TestMaskSetting(ArraySetup):
         # Mask propagation
         mask = np.zeros(self.a.shape, bool)
         ma = Masked(self.a, mask)
+        ma.mask[item] = True
+        assert np.may_share_memory(ma.mask, mask)
+        assert_array_equal(ma.mask, mask)
+
+    @pytest.mark.parametrize('item', [
+        'a',
+        (1, 1),
+        slice(None, 1),
+        (),
+        1])
+    def test_part_mask_setting_structured(self, item):
+        ma = Masked(self.sa)
+        ma.mask[item] = True
+        expected = np.zeros(ma.shape, self.mask_sdt)
+        expected[item] = True
+        assert_array_equal(ma.mask, expected)
+        ma.mask[item] = False
+        assert_array_equal(ma.mask, np.zeros(ma.shape, self.mask_sdt))
+        # Mask propagation
+        mask = np.zeros(self.sa.shape, self.mask_sdt)
+        ma = Masked(self.sa, mask)
         ma.mask[item] = True
         assert np.may_share_memory(ma.mask, mask)
         assert_array_equal(ma.mask, mask)
@@ -193,6 +240,7 @@ class MaskedArraySetup(ArraySetup):
         self.ma = Masked(self.a, mask=self.mask_a)
         self.mb = Masked(self.b, mask=self.mask_b)
         self.mc = Masked(self.c, mask=self.mask_c)
+        self.msa = Masked(self.sa, mask=self.mask_sa)
 
 
 class TestMaskedArrayCopyFilled(MaskedArraySetup):
@@ -210,6 +258,17 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
         expected = self.a.copy()
         expected[self.ma.mask] = fill_value
         result = self.ma.unmask(fill_value)
+        assert_array_equal(expected, result)
+
+    @pytest.mark.parametrize('fill_value', [(0, 1), (-1, -1)])
+    def test_filled_structured(self, fill_value):
+        fill_value = np.array(fill_value, dtype=self.sdt)
+        if hasattr(self.sa, 'unit'):
+            fill_value = fill_value << self.sa.unit
+        expected = self.sa.copy()
+        expected['a'][self.msa.mask['a']] = fill_value['a']
+        expected['b'][self.msa.mask['b']] = fill_value['b']
+        result = self.msa.unmask(fill_value)
         assert_array_equal(expected, result)
 
     def test_flat(self):
@@ -269,14 +328,28 @@ class TestMaskedArrayShaping(MaskedArraySetup):
 
 
 class MaskedItemTests(MaskedArraySetup):
-    @pytest.mark.parametrize('item', ((1, 1),
-                                      slice(None, 1),
-                                      (),
-                                      1))
+    @pytest.mark.parametrize('item', [
+        (1, 1),
+        slice(None, 1),
+        (),
+        1])
     def test_getitem(self, item):
         ma_part = self.ma[item]
         expected_data = self.a[item]
         expected_mask = self.mask_a[item]
+        assert_array_equal(ma_part.unmasked, expected_data)
+        assert_array_equal(ma_part.mask, expected_mask)
+
+    @pytest.mark.parametrize('item', [
+        'a',
+        (1, 1),
+        slice(None, 1),
+        (),
+        1])
+    def test_getitem_structured(self, item):
+        ma_part = self.msa[item]
+        expected_data = self.sa[item]
+        expected_mask = self.mask_sa[item]
         assert_array_equal(ma_part.unmasked, expected_data)
         assert_array_equal(ma_part.mask, expected_mask)
 
@@ -291,16 +364,40 @@ class MaskedItemTests(MaskedArraySetup):
         ma_take2 = np.take(self.ma, indices, axis=axis)
         assert_masked_equal(ma_take2, ma_take)
 
-    @pytest.mark.parametrize('item', ((1, 1),
-                                      slice(None, 1),
-                                      (),
-                                      1))
+    @pytest.mark.parametrize('item', [
+        (1, 1),
+        slice(None, 1),
+        (),
+        1])
     def test_setitem(self, item):
         base = self.ma.copy()
         expected_data = self.a.copy()
         expected_mask = self.mask_a.copy()
         for mask in True, False:
             value = Masked(self.a[0, 0], mask)
+            base[item] = value
+            expected_data[item] = value.unmasked
+            expected_mask[item] = value.mask
+            assert_array_equal(base.unmasked, expected_data)
+            assert_array_equal(base.mask, expected_mask)
+
+    @pytest.mark.parametrize('item', [
+        'a',
+        (1, 1),
+        slice(None, 1),
+        (),
+        1])
+    def test_setitem_structured(self, item):
+        if item == 'a':
+            pytest.xfail()
+        base = self.msa.copy()
+        expected_data = self.sa.copy()
+        expected_mask = self.mask_sa.copy()
+        for mask in True, False:
+            if item == 'a':
+                value = Masked(self.sa['b'], mask)
+            else:
+                value = Masked(self.sa[0, 0], mask)
             base[item] = value
             expected_data[item] = value.unmasked
             expected_mask[item] = value.mask
