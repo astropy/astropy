@@ -188,10 +188,12 @@ class Masked(NDArrayShapeMethods):
         return self._mask
 
     def _set_mask(self, mask, copy=False):
-        ma = np.asanyarray(mask, dtype='?')
+        mask_dtype = (np.ma.make_mask_descr(self.dtype)
+                      if self.dtype.names else np.dtype('?'))
+        ma = np.asanyarray(mask, dtype=mask_dtype)
         if ma.shape != self.shape:
             # This will fail (correctly) if not broadcastable.
-            self._mask = np.empty(self.shape, dtype='?')
+            self._mask = np.empty(self.shape, dtype=mask_dtype)
             self._mask[...] = ma
         elif ma is mask:
             # Even if not copying use a view so that shape setting
@@ -210,7 +212,10 @@ class Masked(NDArrayShapeMethods):
             return unmasked
         else:
             unmasked = unmasked.copy()
-            unmasked[self.mask] = fill_value
+            if self.dtype.names:
+                np.ma.core._recursive_filled(unmasked, self.mask, fill_value)
+            else:
+                unmasked[self.mask] = fill_value
             return unmasked
 
     def _apply(self, method, *args, **kwargs):
@@ -334,9 +339,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     def from_unmasked(cls, data, mask=None, copy=False):
         """Create an instance from unmasked data and a mask."""
         data = np.array(data, subok=True, copy=copy)
-        if data.dtype.names:
-            raise NotImplementedError("cannot deal with structured dtype.")
-
         self = data.view(cls)
         self._set_mask(mask, copy=copy)
         return self
@@ -747,11 +749,13 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         """
         assert a.shape == ()
+
+        if a.dtype.names:
+            breakpoint()
         # Need to work around a numpy annoyance that array scalars always get
         # turned into plain ndarray items and thus loose the mask.
         if self.shape == () and a == self.unmasked:
             a = self
-
         string = str(a.unmasked)
         if a.mask:
             # Strikethrough would be neat, but terminal needs a different
