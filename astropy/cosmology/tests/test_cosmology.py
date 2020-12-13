@@ -1637,3 +1637,52 @@ def test_elliptic_comoving_distance_z1z2():
                     cosmo._integral_comoving_distance_z1z2(0., z))
     assert allclose(cosmo._elliptic_comoving_distance_z1z2(0., z),
                     cosmo._integral_comoving_distance_z1z2(0., z))
+
+
+SPECIALIZED_COMOVING_DISTANCE_COSMOLOGIES = [
+    core.FlatLambdaCDM(H0=70, Om0=0.0, Tcmb0=0.0),  # de Sitter
+    core.FlatLambdaCDM(H0=70, Om0=1.0, Tcmb0=0.0),  # Einstein - de Sitter
+    core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=0.0),  # Hypergeometric
+    core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.6, Tcmb0=0.0),  # Elliptic
+]
+
+
+ITERABLE_REDSHIFTS = [
+    (0, 1, 2, 3, 4),  # tuple
+    [0, 1, 2, 3, 4],  # list
+    np.array([0, 1, 2, 3, 4]),  # array
+]
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('cosmo', SPECIALIZED_COMOVING_DISTANCE_COSMOLOGIES)
+@pytest.mark.parametrize('z', ITERABLE_REDSHIFTS)
+def test_comoving_distance_iterable_argument(cosmo, z):
+    """
+    Regression test for #10980
+    Test that specialized comoving distance methods handle iterable arguments.
+    """
+
+    assert allclose(cosmo.comoving_distance(z),
+                    cosmo._integral_comoving_distance_z1z2(0., z))
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('cosmo', SPECIALIZED_COMOVING_DISTANCE_COSMOLOGIES)
+def test_comoving_distance_broadcast(cosmo):
+    """
+    Regression test for #10980
+    Test that specialized comoving distance methods broadcast array arguments.
+    """
+
+    z1 = np.zeros((2, 5))
+    z2 = np.ones((3, 1, 5))
+    z3 = np.ones((7, 5))
+    output_shape = np.broadcast(z1, z2).shape
+
+    # Check compatible array arguments return an array with the correct shape
+    assert cosmo._comoving_distance_z1z2(z1, z2).shape == output_shape
+
+    # Check incompatible array arguments raise an error
+    with pytest.raises(ValueError, match='z1 and z2 have different shapes'):
+        cosmo._comoving_distance_z1z2(z1, z3)
