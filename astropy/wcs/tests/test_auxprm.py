@@ -139,3 +139,36 @@ def test_set_aux_on_empty():
     assert_allclose(header['CRLN_OBS'], 10.)
     assert_allclose(header['HGLN_OBS'], 30.)
     assert_allclose(header['HGLT_OBS'], 40.)
+
+
+def test_unset_aux():
+    w = WCS(HEADER_SOLAR)
+
+    assert w.wcs.aux.rsun_ref is not None
+    w.wcs.aux.rsun_ref = None
+    assert w.wcs.aux.rsun_ref is None
+
+    assert w.wcs.aux.dsun_obs is not None
+    w.wcs.aux.dsun_obs = None
+    assert w.wcs.aux.dsun_obs is None
+
+    assert w.wcs.aux.crln_obs is not None
+    w.wcs.aux.crln_obs = None
+    assert w.wcs.aux.crln_obs is None
+
+    assert w.wcs.aux.hgln_obs is not None
+    w.wcs.aux.hgln_obs = None
+    assert w.wcs.aux.hgln_obs is None
+
+    assert w.wcs.aux.hglt_obs is not None
+    w.wcs.aux.hglt_obs = None
+    assert w.wcs.aux.hglt_obs is None
+
+    assert str(w.wcs.aux) == 'rsun_ref:\ndsun_obs:\ncrln_obs:\nhgln_obs:\nhglt_obs:'
+
+    header = w.to_header()
+    assert 'RSUN_REF' not in header
+    assert 'DSUN_OBS' not in header
+    assert 'CRLN_OBS' not in header
+    assert 'HGLN_OBS' not in header
+    assert 'HGLT_OBS' not in header
