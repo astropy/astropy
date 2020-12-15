@@ -388,8 +388,6 @@ class MaskedItemTests(MaskedArraySetup):
         (),
         1])
     def test_setitem_structured(self, item):
-        if item == 'a':
-            pytest.xfail()
         base = self.msa.copy()
         expected_data = self.sa.copy()
         expected_mask = self.mask_sa.copy()
