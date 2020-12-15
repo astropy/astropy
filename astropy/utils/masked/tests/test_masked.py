@@ -369,17 +369,17 @@ class MaskedItemTests(MaskedArraySetup):
         slice(None, 1),
         (),
         1])
-    def test_setitem(self, item):
+    @pytest.mark.parametrize('mask', [None, True, False])
+    def test_setitem(self, item, mask):
         base = self.ma.copy()
         expected_data = self.a.copy()
         expected_mask = self.mask_a.copy()
-        for mask in True, False:
-            value = Masked(self.a[0, 0], mask)
-            base[item] = value
-            expected_data[item] = value.unmasked
-            expected_mask[item] = value.mask
-            assert_array_equal(base.unmasked, expected_data)
-            assert_array_equal(base.mask, expected_mask)
+        value = self.a[0, 0] if mask is None else Masked(self.a[0, 0], mask)
+        base[item] = value
+        expected_data[item] = value if mask is None else value.unmasked
+        expected_mask[item] = False if mask is None else value.mask
+        assert_array_equal(base.unmasked, expected_data)
+        assert_array_equal(base.mask, expected_mask)
 
     @pytest.mark.parametrize('item', [
         'a',
@@ -387,33 +387,17 @@ class MaskedItemTests(MaskedArraySetup):
         slice(None, 1),
         (),
         1])
-    def test_setitem_structured(self, item):
+    @pytest.mark.parametrize('mask', [None, True, False])
+    def test_setitem_structured(self, item, mask):
         base = self.msa.copy()
         expected_data = self.sa.copy()
         expected_mask = self.mask_sa.copy()
-        for mask in True, False:
-            if item == 'a':
-                value = Masked(self.sa['b'], mask)
-            else:
-                value = Masked(self.sa[0, 0], mask)
-            base[item] = value
-            expected_data[item] = value.unmasked
-            expected_mask[item] = value.mask
-            assert_array_equal(base.unmasked, expected_data)
-            assert_array_equal(base.mask, expected_mask)
-
-    @pytest.mark.parametrize('item', ((1, 1),
-                                      slice(None, 1),
-                                      (),
-                                      1))
-    def test_setitem_without_mask(self, item):
-        base = self.ma.copy()
-        expected_data = self.a.copy()
-        expected_mask = self.mask_a.copy()
-        value = self.a[0, 0]
+        value = self.sa['b'] if item == 'a' else self.sa[0, 0]
+        if mask is not None:
+            value = Masked(value, mask)
         base[item] = value
-        expected_data[item] = value
-        expected_mask[item] = False
+        expected_data[item] = value if mask is None else value.unmasked
+        expected_mask[item] = False if mask is None else value.mask
         assert_array_equal(base.unmasked, expected_data)
         assert_array_equal(base.mask, expected_mask)
 
