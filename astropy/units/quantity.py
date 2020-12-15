@@ -1374,8 +1374,8 @@ class Quantity(np.ndarray):
                 else:
                     raise
 
-        if check_precision:
-            # If, e.g., we are casting double to float, we want to fail if
+        if self.dtype.kind == 'i' and check_precision:
+            # If, e.g., we are casting float to int, we want to fail if
             # precision is lost, but let things pass if it works.
             _value = np.array(_value, copy=False, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
