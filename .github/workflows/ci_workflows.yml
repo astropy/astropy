@@ -76,8 +76,10 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .tmp/${{ matrix.toxenv }}/.hypothesis
-        key: hypothesis-${{ matrix.toxenv }}
-        restore-keys: hypothesis-
+        key: hypothesis-${{ matrix.toxenv }}-${{ github.run_id }}
+        restore-keys: |
+          hypothesis-${{ matrix.toxenv }}-
+          hypothesis-
     - name: Install language-pack-fr and tzdata
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install language-pack-fr tzdata
@@ -117,8 +119,10 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .tmp/${{ matrix.toxenv }}/.hypothesis
-        key: hypothesis-${{ matrix.toxenv }}
-        restore-keys: hypothesis-
+        key: hypothesis-${{ matrix.toxenv }}-${{ github.run_id }}
+        restore-keys: |
+          hypothesis-${{ matrix.toxenv }}-
+          hypothesis-
     - name: Install language-pack-de and tzdata
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt-get install language-pack-de tzdata
