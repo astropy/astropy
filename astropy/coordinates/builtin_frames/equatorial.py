@@ -61,7 +61,7 @@ class TETE(BaseRADecFrame):
     TETE coordinates are often referred to as "apparent" coordinates, or
     "apparent place". TETE is the apparent coordinate system used by JPL Horizons
     and is the correct coordinate system to use when combining the right ascension
-    with local apparent sidereal time to calculate the apparent hour angle.
+    with local apparent sidereal time to calculate the apparent (TIRS) hour angle.
 
     For more background on TETE, see the references provided in the
     :ref:`astropy-coordinates-seealso` section of the documentation.
