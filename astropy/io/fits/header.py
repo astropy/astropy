@@ -1915,37 +1915,21 @@ class Header:
         # a way for HDU classes to specify some headers that are specific only
         # to that type, and should be removed otherwise.
 
-        if 'NAXIS' in self:
-            naxis = self['NAXIS']
-        else:
-            naxis = 0
-
-        if 'TFIELDS' in self:
-            tfields = self['TFIELDS']
-        else:
-            tfields = 0
+        naxis = self.get('NAXIS', 0)
+        tfields = self.get('TFIELDS', 0)
 
         for idx in range(naxis):
-            try:
-                del self['NAXIS' + str(idx + 1)]
-            except KeyError:
-                pass
+            self.remove('NAXIS' + str(idx + 1), ignore_missing=True)
 
         for name in ('TFORM', 'TSCAL', 'TZERO', 'TNULL', 'TTYPE',
                      'TUNIT', 'TDISP', 'TDIM', 'THEAP', 'TBCOL'):
             for idx in range(tfields):
-                try:
-                    del self[name + str(idx + 1)]
-                except KeyError:
-                    pass
+                self.remove(name + str(idx + 1), ignore_missing=True)
 
         for name in ('SIMPLE', 'XTENSION', 'BITPIX', 'NAXIS', 'EXTEND',
                      'PCOUNT', 'GCOUNT', 'GROUPS', 'BSCALE', 'BZERO',
                      'TFIELDS'):
-            try:
-                del self[name]
-            except KeyError:
-                pass
+            self.remove(name, ignore_missing=True)
 
     def _add_commentary(self, key, value, before=None, after=None):
         """
