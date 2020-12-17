@@ -246,7 +246,7 @@ def _comparison_method(op):
     """
     def _compare(self, other):
         other_data, other_mask = self._data_mask(other)
-        result = getattr(super(Masked, self), op)(other_data)
+        result = getattr(self.unmasked, op)(other_data)
         if result is NotImplemented:
             return NotImplemented
         mask = self.mask | (other_mask if other_mask is not None else False)
