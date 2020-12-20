@@ -933,21 +933,6 @@ def get_pkg_data_path(*path, package=None):
     return full_path
 
 
-def _find_pkg_data_path(data_name, package=None):
-    """
-    Look for data in the source-included data directories and return the
-    path.
-
-    .. note::
-
-        There is a very similar public function: ``get_pkg_data_path``,
-        the only difference being ``package`` is keyword-only.
-
-    """
-
-    return get_pkg_data_path(data_name, package=package)
-
-
 def _find_hash_fn(hexdigest, pkgname='astropy'):
     """
     Looks for a local file by hash - returns file name if found and a valid
