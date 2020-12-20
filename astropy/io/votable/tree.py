@@ -1796,10 +1796,11 @@ class TimeSys(SimpleElement):
         The timeorigin attribute MUST be given unless the
         time’s representation contains a year of a calendar
         era, in which case it MUST NOT be present. In VOTables,
-        these representations currently are Gregorian calendar
-        years with xtype="timestamp", or years in the Julian
-        or Besselian calendar when a column has yr, a, or Ba as
-        its unit and no time origin is given.
+        these representations are currently Gregorian calendar
+        years with xtype="timestamp", but when a column has
+        yr, a, or Ba as its unit and no time origin is given,
+        years in the Julian or Besselian calendar are
+        represented.
         """
         return self._timeorigin
 
