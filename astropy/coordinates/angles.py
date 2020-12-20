@@ -696,3 +696,11 @@ class Longitude(Angle):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
 
+    def separation(self,lon):
+        separation=Angle(abs(self-lon))
+        if(separation > Angle(180 * u.deg)):
+            separation=Angle(360 * u.deg) - separation
+        return separation
+
+    
+
