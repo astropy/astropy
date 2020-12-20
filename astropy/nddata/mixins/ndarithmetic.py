@@ -536,6 +536,33 @@ class NDArithmeticMixin:
         return self._prepare_then_do_arithmetic(np.true_divide, operand,
                                                 operand2, **kwargs)
 
+    def pow(self, exponent, **kwargs):
+        """Raises ``self`` to the power of an exponent.
+
+        Non-integer and non-positive exponents are not supported.
+        All kwargs are passed to ``self.multiply``.
+
+        Parameters
+        ----------
+        exponent: `numbers.Integral`
+            The exponent to which ``self`` is raised.  Must be > 0
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`-like
+            The resulting dataset
+        """
+        if not (isinstance(exponent, numbers.Integral) and exponent > 0):
+            raise TypeError("Non-positive and non-integer exponents not supported.")
+        if exponent == 1:
+            return self
+        result = deepcopy(self)
+        i = 1
+        while i < exponent:
+            result = result.multiply(self, **kwargs)
+            i += 1
+        return result
+
     @sharedmethod
     def _prepare_then_do_arithmetic(self_or_cls, operation, operand, operand2,
                                     **kwargs):
