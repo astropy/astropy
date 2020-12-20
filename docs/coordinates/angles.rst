@@ -206,6 +206,13 @@ re-wrapping the angle values in-place. For example::
     >>> a.degree  # doctest: +FLOAT_CMP
     array([-20., 150., -10.,   0.])
 
+|Longitude| objects have the following functions:
+
+-separation: Calculates the angular separation between Longitude object and the other Longitude object provided as an argument.
+
+-is_within_bounds: Checks whether the Longitude object lies in the minor sector described by the 'lower' and 'upper' Longitude objects provided as arguments
+
+
 Latitude
 --------
 
@@ -216,3 +223,7 @@ of being bounded so that::
 
 Any attempt to set a value outside of that range will result in a
 `ValueError`.
+
+|Latitude| objects have the following functions:
+
+-separation: Calculates the angular separation between Latitude object and the other Latitude object provided as an argument.
