@@ -569,7 +569,12 @@ class Latitude(Angle):
         return _no_angle_subclass(results)
 
     def separation(self, lat):
-        """Calculates the separation between two Latitude objects as an Angle."""
+        """
+        Calculates the separation between two Latitude objects as an Angle.
+        Raises `TypeError` if `lat` is not of instance :class:`~astropy.coordinates.Latitude`
+        """
+        if not isinstance(lat,Latitude):
+            raise TypeError("Inappropriate argument type.")
         return Angle(abs(self - lat));
                 
 
@@ -697,10 +702,22 @@ class Longitude(Angle):
         return _no_angle_subclass(results)
 
     def separation(self,lon):
+        """
+        Calculates the angular separation of two Longitude objects i.e the measure of the smaller angle subtended by the longitudes
+        Raises `TypeError` if `lat` is not of instance :class:`~astropy.coordinates.Longitude`
+        """
         separation=Angle(abs(self-lon))
         if(separation > Angle(180 * u.deg)):
             separation=Angle(360 * u.deg) - separation
         return separation
+
+    def is_within_bounds(self, lower=None, upper=None):
+        """
+        Check if the Longitude lies in the minor segment described by the 'lower' and 'upper' longitudes 
+        """
+        if(self.separation(lower) + self.separation(upper) > lower.separation(upper)):
+            return True
+        return False
 
     
 
