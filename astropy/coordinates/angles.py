@@ -576,7 +576,6 @@ class Latitude(Angle):
         if not isinstance(lat,Latitude):
             raise TypeError("Inappropriate argument type.")
         return Angle(abs(self - lat));
-                
 
 
 class LongitudeInfo(u.QuantityInfo):
@@ -723,5 +722,3 @@ class Longitude(Angle):
         if(self.separation(lower) + self.separation(upper) > lower.separation(upper)):
             return False
         return True
-    
-

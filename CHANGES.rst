@@ -23,6 +23,10 @@ astropy.coordinates
 - Adds a direct transformation from ``ICRS`` to ``AltAz`` frames. This
   provides a modest speedup of approximately 10 percent. [#11079]
 
+- Added functions which calculate separation between Latitude or Longitude objects
+
+- Added function to check if the Longitude lies in a given sector
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
