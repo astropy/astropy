@@ -568,6 +568,11 @@ class Latitude(Angle):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
 
+    def separation(self, lat):
+        """Calculates the separation between two Latitude objects as an Angle."""
+        return Angle(abs(self - lat));
+                
+
 
 class LongitudeInfo(u.QuantityInfo):
     _represent_as_dict_attrs = u.QuantityInfo._represent_as_dict_attrs + ('wrap_angle',)
@@ -690,3 +695,4 @@ class Longitude(Angle):
     def __array_ufunc__(self, *args, **kwargs):
         results = super().__array_ufunc__(*args, **kwargs)
         return _no_angle_subclass(results)
+
