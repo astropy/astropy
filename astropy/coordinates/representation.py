@@ -836,7 +836,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         By default, conversion is done via Cartesian coordinates.
         Also note that orientation information at the origin is *not* preserved by
         conversions through Cartesian coordinates. See the docstring for
-        `~astropy.coordinates.BaseRepresentation.represent_as()` for an example.
+        `astropy.coordinates.BaseRepresentationOrDifferential.to_cartesian()` for an example.
 
         Parameters
         ----------
