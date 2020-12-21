@@ -55,7 +55,8 @@ from astropy.utils.data import (
     check_free_space_in_dir,
     _get_download_cache_loc,
     download_files_in_parallel,
-    is_url
+    is_url,
+    get_pkg_data_path
 )
 
 CI = os.environ.get('CI', False) == "true"
@@ -901,6 +902,14 @@ def test_find_invalid():
         get_pkg_data_filename(
             "kjfrhgjklahgiulrhgiuraehgiurhgiuhreglhurieghruelighiuerahiulruli"
         )
+
+
+@pytest.mark.parametrize("package", [None, "astropy", "numpy"])
+def test_get_invalid(package):
+    """Test can create a file path to an invalid file."""
+    path = get_pkg_data_path("kjfrhgjkla", "hgiulrhgiu", package=package)
+    assert not os.path.isfile(path)
+    assert not os.path.isdir(path)
 
 
 # Package data functions

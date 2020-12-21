@@ -36,7 +36,7 @@ __all__ = [
     'get_readable_fileobj',
     'get_pkg_data_fileobj', 'get_pkg_data_filename',
     'get_pkg_data_contents', 'get_pkg_data_fileobjs',
-    'get_pkg_data_filenames',
+    'get_pkg_data_filenames', 'get_pkg_data_path',
     'is_url', 'is_url_in_cache', 'get_cached_urls',
     'cache_total_size', 'cache_contents',
     'export_download_cache', 'import_download_cache', 'import_file_to_cache',
@@ -502,7 +502,7 @@ def get_pkg_data_fileobj(data_name, package=None, encoding=None, cache=True):
     get_pkg_data_filename : returns a local name for a file containing the data
     """  # noqa
 
-    datafn = _find_pkg_data_path(data_name, package=package)
+    datafn = get_pkg_data_path(data_name, package=package)
     if os.path.isdir(datafn):
         raise OSError("Tried to access a data file that's actually "
                       "a package data directory")
@@ -625,7 +625,7 @@ def get_pkg_data_filename(data_name, package=None, show_progress=True,
             return hashfn
     else:
         fs_path = os.path.normpath(data_name)
-        datafn = _find_pkg_data_path(fs_path, package=package)
+        datafn = get_pkg_data_path(fs_path, package=package)
         if os.path.isdir(datafn):
             raise OSError("Tried to access a data file that's actually "
                           "a package data directory")
@@ -759,7 +759,7 @@ def get_pkg_data_filenames(datadir, package=None, pattern='*'):
         ...
     """
 
-    path = _find_pkg_data_path(datadir, package=package)
+    path = get_pkg_data_path(datadir, package=package)
     if os.path.isfile(path):
         raise OSError(
             "Tried to access a data directory that's actually "
@@ -871,18 +871,38 @@ def compute_hash(localfn):
     return h.hexdigest()
 
 
-def _find_pkg_data_path(data_name, package=None):
-    """
-    Look for data in the source-included data directories and return the
-    path.
-    """
+def get_pkg_data_path(*path, package=None):
+    """Get path from source-included data directories.
 
+    Parameters
+    ----------
+    *path : str
+        Name/location of the desired data file/directory.
+        May be a tuple of strings for ``os.path`` joining.
+
+    package : str or `None`, optional, keyword only
+        If specified, look for a file relative to the given package, rather
+        than the calling module's package.
+
+    Returns
+    -------
+    path : str
+        Name/location of the desired data file/directory.
+
+    Raises
+    ------
+    ImportError
+        Given package or module is not importable.
+    RuntimeError
+        If the local data file is outside of the package's tree.
+
+    """
     if package is None:
         module = find_current_module(1, finddiff=['astropy.utils.data', 'contextlib'])
         if module is None:
             # not called from inside an astropy package.  So just pass name
             # through
-            return data_name
+            return os.path.join(*path)
 
         if not hasattr(module, '__package__') or not module.__package__:
             # The __package__ attribute may be missing or set to None; see
@@ -894,21 +914,23 @@ def _find_pkg_data_path(data_name, package=None):
         else:
             package = module.__package__
     else:
+        # package errors if it isn't a str
+        # so there is no need for checks in the containing if/else
         module = resolve_name(package)
 
-    rootpkgname = package.partition('.')[0]
-
-    rootpkg = resolve_name(rootpkgname)
-
+    # module path within package
     module_path = os.path.dirname(module.__file__)
-    path = os.path.join(module_path, data_name)
+    full_path = os.path.join(module_path, *path)
 
+    # Check that file is inside tree.
+    rootpkgname = package.partition('.')[0]
+    rootpkg = resolve_name(rootpkgname)
     root_dir = os.path.dirname(rootpkg.__file__)
-    if not _is_inside(path, root_dir):
+    if not _is_inside(full_path, root_dir):
         raise RuntimeError(f"attempted to get a local data file outside "
                            f"of the {rootpkgname} tree.")
 
-    return path
+    return full_path
 
 
 def _find_hash_fn(hexdigest, pkgname='astropy'):

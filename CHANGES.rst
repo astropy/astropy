@@ -85,6 +85,10 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- ``astropy.utils.data.get_pkg_data_path`` is publicly scoped (previously the private
+  function ``_find_pkg_data_path``) for obtaining file paths without checking if the
+  file/directory exists, as long as the package and module do. [#11006]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
