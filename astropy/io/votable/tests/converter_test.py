@@ -147,19 +147,17 @@ def test_float_mask_permissive():
 
 
 def test_double_array():
-    config = {'verify': 'exception'}
+    config = {'verify': 'exception', 'version_1_3_or_later': True}
     field = tree.Field(None, name='c', datatype='double', arraysize='3',
                        config=config)
     data = (1.0, 2.0, 3.0)
     c = converters.get_converter(field, config=config)
     assert c.output(1.0, False) == '1'
-    assert c.output(1.0, [False, False]) == '1 1'
+    assert c.output(1.0, [False, False]) == '1'
     assert c.output(data, False) == '1 2 3'
     assert c.output(data, [False, False, False]) == '1 2 3'
     assert c.output(data, [False, False, True]) == '1 2 NaN'
-
-    with pytest.raises(ValueError, match='shape mismatch'):
-        c.output(data, [False, False])
+    assert c.output(data, [False, False]) == '1 2'
 
     a = c.parse("1 2 3", config=config)
     assert_array_equal(a[0], data)
@@ -168,7 +166,7 @@ def test_double_array():
     with pytest.raises(exceptions.E02):
         c.parse("1", config=config)
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(AttributeError), pytest.warns(exceptions.E02):
         c.parse("1")
 
     with pytest.raises(exceptions.E02):

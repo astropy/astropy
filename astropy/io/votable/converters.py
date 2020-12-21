@@ -598,7 +598,7 @@ class NumericArray(Array):
     def parse(self, value, config=None, pos=None):
         if config is None:
             config = {}
-        elif 'version_1_3_or_later' in config and value == '':
+        elif config['version_1_3_or_later'] and value == '':
             return np.zeros(self._arraysize, dtype=self._base.format), True
         parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
@@ -633,8 +633,12 @@ class NumericArray(Array):
         base_output = self._base.output
         value = np.asarray(value)
         mask = np.asarray(mask)
+        if mask.size <= 1:
+            func = np.broadcast
+        else:  # When mask is already array but value is scalar, this prevents broadcast
+            func = zip
         return ' '.join(base_output(x, m) for x, m in
-                        np.broadcast(value.flat, mask.flat))
+                        func(value.flat, mask.flat))
 
     def binparse(self, read):
         result = np.frombuffer(read(self._memsize),
