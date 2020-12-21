@@ -46,7 +46,7 @@ def test_api_lookup():
 
 
 def test_skip_hidden():
-    path = data._find_pkg_data_path('data')
+    path = data.get_pkg_data_path('data')
     for root, dirs, files in os.walk(path):
         assert '.hidden_file.txt' in files
         assert 'local.dat' in files
