@@ -274,6 +274,8 @@ Testing is an important part of making sure astropy produces reliable,
 reproducible results. Before you try out a new feature or think you have found
 a bug make sure the tests run properly on your system.
 
+Before running your tests, please see :ref:`testing-dependencies`.
+
 If the test *don't* complete successfully, that is itself a bug--please
 `report it <https://github.com/astropy/astropy/issues>`_.
 
