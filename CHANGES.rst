@@ -64,6 +64,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Add table attributes to include or exclude columns from the output when
+  printing a table. This functionality includes a context manager to
+  include/exclude columns temporarily. [#11190]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

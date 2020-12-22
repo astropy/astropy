@@ -452,6 +452,14 @@ class MetaAttribute:
         if instance is None:
             return self
 
+        # If default is None and value has not been set already then return None
+        # without doing touching meta['__attributes__'] at all. This helps e.g.
+        # with the Table._hidden_columns attribute so it doesn't auto-create
+        # meta['__attributes__'] always.
+        if (self.default is None
+                and self.name not in instance.meta.get('__attributes__', {})):
+            return None
+
         # Get the __attributes__ dict and create if not there already.
         attributes = instance.meta.setdefault('__attributes__', {})
         try:
@@ -467,6 +475,16 @@ class MetaAttribute:
         # Get the __attributes__ dict and create if not there already.
         attributes = instance.meta.setdefault('__attributes__', {})
         attributes[self.name] = value
+
+    def __delete__(self, instance):
+        # Remove this attribute from meta['__attributes__'] if it exists.
+        if '__attributes__' in instance.meta:
+            attrs = instance.meta['__attributes__']
+            if self.name in attrs:
+                del attrs[self.name]
+            # If this was the last attribute then remove the meta key as well
+            if not attrs:
+                del instance.meta['__attributes__']
 
     def __set_name__(self, owner, name):
         import inspect

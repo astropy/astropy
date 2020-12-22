@@ -10,7 +10,7 @@ __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
            'TableGroups', 'TableMergeError', 'TableReplaceWarning', 'conf',
            'connect', 'hstack', 'join', 'registry', 'represent_mixins_as_columns',
            'setdiff', 'unique', 'vstack', 'dstack', 'conf', 'join_skycoord',
-           'join_distance']
+           'join_distance', 'PprintIncludeExclude']
 
 
 class Conf(_config.ConfigNamespace):  # noqa
@@ -47,8 +47,9 @@ conf = Conf()  # noqa
 
 from . import connect  # noqa: E402
 from .groups import TableGroups, ColumnGroups  # noqa: E402
-from .table import (Table, QTable, TableColumns, Row, TableFormatter,  # noqa: E402
-                    NdarrayMixin, TableReplaceWarning, TableAttribute)  # noqa: E402
+from .table import (Table, QTable, TableColumns, Row, TableFormatter,
+                    NdarrayMixin, TableReplaceWarning, TableAttribute,
+                    PprintIncludeExclude)  # noqa: E402
 from .operations import (join, setdiff, hstack, dstack, vstack, unique,  # noqa: E402
                          TableMergeError, join_skycoord, join_distance)  # noqa: E402
 from .bst import BST  # noqa: E402
