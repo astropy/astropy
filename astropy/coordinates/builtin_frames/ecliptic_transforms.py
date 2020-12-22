@@ -25,15 +25,10 @@ from astropy.coordinates.errors import UnitsError
 
 
 def _mean_ecliptic_rotation_matrix(equinox):
-    # This code calls pmat06 from ERFA, which retrieves the precession
-    # matrix (including frame bias) according to the IAU 2006 model, but
-    # leaves out the nutation. This matches what ERFA does in the ecm06
-    # function and also brings the results closer to what other libraries
-    # give (see https://github.com/astropy/astropy/pull/6508).
-    jd1, jd2 = get_jd12(equinox, 'tt')
-    rbp = erfa.pmat06(jd1, jd2)
-    obl = erfa.obl06(jd1, jd2)*u.radian
-    return matrix_product(rotation_matrix(obl, 'x'), rbp)
+    # This code just calls ecm06, which uses the precession matrix according to the
+    # IAU 2006 model, but leaves out nutation. This brings the results closer to what
+    # other libraries give (see https://github.com/astropy/astropy/pull/6508).
+    return erfa.ecm06(*get_jd12(equinox, 'tt'))
 
 
 def _true_ecliptic_rotation_matrix(equinox):
