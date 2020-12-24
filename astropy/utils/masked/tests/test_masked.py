@@ -41,6 +41,9 @@ class ArraySetup:
         self.mask_sa = np.array([[(True, True), (False, False)],
                                  [(False, True), (True, False)]],
                                 dtype=self.mask_sdt)
+        self.sb = np.array([(1., 2.), (-3., 4.)], dtype=self.sdt)
+        self.mask_sb = np.array([(True, False), (False, False)],
+                                dtype=self.mask_sdt)
 
     def setup(self):
         self.setup_arrays()
@@ -55,6 +58,7 @@ class QuantitySetup(ArraySetup):
         self.b = Quantity(self.b, u.cm)
         self.c = Quantity(self.c, u.km)
         self.sa = Quantity(self.sa, u.m, dtype=self.sdt)
+        self.sb = Quantity(self.sb, u.cm, dtype=self.sdt)
 
 
 class LongitudeSetup(ArraySetup):
@@ -239,6 +243,7 @@ class MaskedArraySetup(ArraySetup):
         self.mb = Masked(self.b, mask=self.mask_b)
         self.mc = Masked(self.c, mask=self.mask_c)
         self.msa = Masked(self.sa, mask=self.mask_sa)
+        self.msb = Masked(self.sb, mask=self.mask_sb)
 
 
 class TestMaskedArrayCopyFilled(MaskedArraySetup):
@@ -438,6 +443,33 @@ class MaskedOperatorTests(MaskedArraySetup):
         mapmb = op(self.ma, self.mb)
         expected_data = op(self.a, self.b)
         expected_mask = (self.ma.mask | self.mb.mask)
+        # Note: assert_array_equal also checks type, i.e., that boolean
+        # output is represented as plain Masked ndarray.
+        assert_array_equal(mapmb.unmasked, expected_data)
+        assert_array_equal(mapmb.mask, expected_mask)
+
+    @pytest.mark.parametrize('different_names', [False, True])
+    @pytest.mark.parametrize('op', (operator.eq, operator.ne))
+    def test_structured_equality(self, op, different_names):
+        msb = self.msb
+        if different_names:
+            msb = msb.astype([(f'different_{name}', dt)
+                              for name, dt in msb.dtype.fields.items()])
+        mapmb = op(self.msa, self.msb)
+        # Expected is a bit tricky here: only unmasked fields count
+        expected_data = np.ones(mapmb.shape, bool)
+        expected_mask = np.ones(mapmb.shape, bool)
+        for field in self.sdt.names:
+            fa, mfa = self.sa[field], self.mask_sa[field]
+            fb, mfb = self.sb[field], self.mask_sb[field]
+            mfequal = mfa | mfb
+            fequal = (fa == fb) | mfequal
+            expected_data &= fequal
+            expected_mask &= mfequal
+
+        if op is operator.ne:
+            expected_data = ~expected_data
+
         # Note: assert_array_equal also checks type, i.e., that boolean
         # output is represented as plain Masked ndarray.
         assert_array_equal(mapmb.unmasked, expected_data)

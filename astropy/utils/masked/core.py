@@ -401,12 +401,34 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # Get its mask, or initialize ours.
             self._set_mask(getattr(obj, '_mask', False))
 
+    _eq_simple = _comparison_method('__eq__')
+    _ne_simple = _comparison_method('__ne__')
     __lt__ = _comparison_method('__lt__')
     __le__ = _comparison_method('__le__')
-    __eq__ = _comparison_method('__eq__')
-    __ne__ = _comparison_method('__ne__')
     __gt__ = _comparison_method('__gt__')
     __ge__ = _comparison_method('__ge__')
+
+    def __eq__(self, other):
+        if not self.dtype.names:
+            return self._eq_simple(other)
+
+        # For structured arrays, we treat this as a reduction over the fields,
+        # where masked fields are skipped and thus do not influence the result.
+        other = np.asanyarray(other, dtype=self.dtype)
+        result = np.stack([self[field] == other[field]
+                           for field in self.dtype.names], axis=-1)
+        return result.all(axis=-1)
+
+    def __ne__(self, other):
+        if not self.dtype.names:
+            return self._ne_simple(other)
+
+        # For structured arrays, we treat this as a reduction over the fields,
+        # where masked fields are skipped and thus do not influence the result.
+        other = np.asanyarray(other, dtype=self.dtype)
+        result = np.stack([self[field] != other[field]
+                           for field in self.dtype.names], axis=-1)
+        return result.any(axis=-1)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
