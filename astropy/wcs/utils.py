@@ -1023,11 +1023,14 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         lon, lat = unit_sph.lon.deg, unit_sph.lat.deg
 
     # verify input
-    if (proj_point != 'center') and (type(proj_point) != type(world_coords)):
+    if (type(proj_point) != type(world_coords)) and (proj_point != 'center'):
         raise ValueError("proj_point must be set to 'center', or an" +
                          "`~astropy.coordinates.SkyCoord` object with " +
                          "a pair of points.")
-    if proj_point != 'center':
+
+    use_center_as_proj_point = (str(proj_point) == 'center')
+
+    if not use_center_as_proj_point:
         assert proj_point.size == 1
 
     proj_codes = [
@@ -1060,7 +1063,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
     # determine CRVAL from input
     close = lambda l, p: p[np.argmin(np.abs(l))]
-    if str(proj_point) == 'center':  # use center of input points
+    if use_center_as_proj_point:  # use center of input points
         sc1 = SkyCoord(lon.min()*u.deg, lat.max()*u.deg)
         sc2 = SkyCoord(lon.max()*u.deg, lat.min()*u.deg)
         pa = sc1.position_angle(sc2)
@@ -1068,7 +1071,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         midpoint_sc = sc1.directional_offset_by(pa, sep/2)
         wcs.wcs.crval = ((midpoint_sc.data.lon.deg, midpoint_sc.data.lat.deg))
         wcs.wcs.crpix = ((xp.max()+xp.min())/2., (yp.max()+yp.min())/2.)
-    elif proj_point is not None:  # convert units, initial guess for crpix
+    else:  # convert units, initial guess for crpix
         proj_point.transform_to(world_coords)
         wcs.wcs.crval = (proj_point.data.lon.deg, proj_point.data.lat.deg)
         wcs.wcs.crpix = (close(lon-wcs.wcs.crval[0], xp),

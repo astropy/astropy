@@ -361,6 +361,8 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Fix error when a user defined ``proj_point`` parameter is passed to ``fit_wcs_from_points``. [#11139]
+
 
 Other Changes and Additions
 ---------------------------
