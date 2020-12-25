@@ -764,35 +764,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return np.logical_and.reduce(self, axis=axis, out=out,
                                      keepdims=keepdims, where=~self.mask)
 
-    def _to_string(self, a):
-        """Turn given scalar into a numerical string but mark it if masked.
-
-        For use as a formatter for `~numpy.printoptions`.
-
-        """
-        assert a.shape == ()
-
-        if a.dtype.names:
-            breakpoint()
-        # Need to work around a numpy annoyance that array scalars always get
-        # turned into plain ndarray items and thus loose the mask.
-        if self.shape == () and a == self.unmasked:
-            a = self
-        string = str(a.unmasked)
-        if a.mask:
-            # Strikethrough would be neat, but terminal needs a different
-            # formatting than, say, jupyter notebook.
-            # return "\x1B[9m"+string+"\x1B[29m"
-            # return ''.join(s+'\u0336' for s in string)
-            return ' ' * (len(string)-3) + '\u2014' * 3
-        else:
-            return string
-
-    # TODO: improve (greatly) str and repr!!
+    # Following overrides needed since somehow the ndarray implementation
+    # does not actually call these.
     def __str__(self):
-        with np.printoptions(formatter={'all': self._to_string}):
-            return super().__str__()
+        return np.array_str(self)
 
     def __repr__(self):
-        with np.printoptions(formatter={'all': self._to_string}):
-            return super().__repr__()
+        return np.array_repr(self)
