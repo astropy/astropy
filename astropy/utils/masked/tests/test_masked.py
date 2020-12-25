@@ -308,6 +308,41 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         assert_array_equal(ma_reshape.unmasked, expected_data)
         assert_array_equal(ma_reshape.mask, expected_mask)
 
+    def test_shape_setting(self):
+        ma_reshape = self.ma.copy()
+        ma_reshape.shape = 6,
+        expected_data = self.a.reshape((6,))
+        expected_mask = self.mask_a.reshape((6,))
+        assert ma_reshape.shape == expected_data.shape
+        assert_array_equal(ma_reshape.unmasked, expected_data)
+        assert_array_equal(ma_reshape.mask, expected_mask)
+
+    def test_shape_setting_failure(self):
+        ma = self.ma.copy()
+        with pytest.raises(ValueError, match='cannot reshape'):
+            ma.shape = 5,
+
+        assert ma.shape == self.ma.shape
+        assert ma.mask.shape == self.ma.shape
+
+        # Here, mask can be reshaped but array cannot.
+        ma2 = Masked(np.broadcast_to([[1.], [2.]], self.a.shape),
+                     mask=self.mask_a)
+        with pytest.raises(AttributeError, match='Incompatible shape'):
+            ma2.shape = 6,
+
+        assert ma2.shape == self.ma.shape
+        assert ma2.mask.shape == self.ma.shape
+
+        # Here, array can be reshaped but mask cannot.
+        ma3 = Masked(self.a.copy(), mask=np.broadcast_to([[True], [False]],
+                                                         self.mask_a.shape))
+        with pytest.raises(AttributeError, match='Incompatible shape'):
+            ma3.shape = 6,
+
+        assert ma3.shape == self.ma.shape
+        assert ma3.mask.shape == self.ma.shape
+
     def test_ravel(self):
         ma_ravel = self.ma.ravel()
         expected_data = self.a.ravel()
