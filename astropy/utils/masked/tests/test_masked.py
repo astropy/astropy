@@ -837,24 +837,52 @@ class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
     pass
 
 
+def test_masked_str_explicit():
+    sa = np.array([(1., 2.), (3., 4.)], dtype='f8,f8')
+    msa = Masked(sa, [(False, True), (False, False)])
+    assert str(msa) == "[(1., ——) (3., 4.)]"
+    assert str(msa[0]) == "(1., ——)"
+    assert str(msa[1]) == "(3., 4.)"
+    with np.printoptions(precision=3, floatmode='fixed'):
+        assert str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
+
+
+def test_masked_repr_explicit():
+    sa = np.array([(1., 2.), (3., 4.)], dtype='f8,f8')
+    msa = Masked(sa, [(False, True), (False, False)])
+    assert repr(msa) == ("MaskedNDArray([(1., ——), (3., 4.)], "
+                         "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+    assert repr(msa[0]) == ("MaskedNDArray((1., ——), "
+                            "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+    assert repr(msa[1]) == ("MaskedNDArray((3., 4.), "
+                            "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+
+
 class TestMaskedArrayRepr(MaskedArraySetup):
     def test_array_str(self):
         # very blunt check they work at all.
         str(self.ma)
         str(self.mb)
-        str(self.mb)
+        str(self.mc)
+        str(self.msa)
+        str(self.msb)
 
     def test_scalar_str(self):
         assert self.mb[0].shape == ()
         str(self.mb[0])
+        assert self.msb[0].shape == ()
+        str(self.msb[0])
 
     def test_array_repr(self):
         repr(self.ma)
         repr(self.mb)
         repr(self.mc)
+        repr(self.msa)
+        repr(self.msb)
 
     def test_scalar_repr(self):
         repr(self.mb[0])
+        repr(self.msb[0])
 
 
 class TestMaskedQuantityRepr(TestMaskedArrayRepr, QuantitySetup):
