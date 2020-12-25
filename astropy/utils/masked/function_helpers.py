@@ -85,3 +85,89 @@ def insert(arr, obj, values, axis=None):
 def append(arr, values, *args, **kwargs):
     data, masks = _data_masks(arr, values)
     return data + args, masks + args, kwargs, None
+
+
+class MaskedFormat:
+    def __init__(self, format_function):
+        self.format_function = format_function
+        # Special case for structured void: we need to make all the
+        # format functions for the items masked as well.
+        # TODO: maybe is a separate class is more logical?
+        ffs = getattr(format_function, 'format_functions', None)
+        if ffs:
+            self.format_function.format_functions = [MaskedFormat(ff) for ff in ffs]
+
+    def __call__(self, x):
+        if x.dtype.names:
+            # The replacement of x with a list is needed because the function
+            # inside StructuredVoidFormat iterates over x, which works for an
+            # np.void but not an array scalar.
+            return self.format_function([x[field] for field in x.dtype.names])
+
+        string = self.format_function(x.unmasked[()])
+        if x.mask:
+            # Strikethrough would be neat, but terminal needs a different
+            # formatting than, say, jupyter notebook.
+            # return "\x1B[9m"+string+"\x1B[29m"
+            # return ''.join(s+'\u0336' for s in string)
+            n = min(3, max(1, len(string)))
+            return ' ' * (len(string)-n) + '\u2014' * n
+        else:
+            return string
+
+
+def _array2string(a, options, separator=' ', prefix=""):
+    # Mostly copied from numpy.core.arrayprint, except:
+    # - The format function is wrapped in a mask-aware class;
+    # - Arrays scalars are not cast as arrays.
+    from numpy.core.arrayprint import (_leading_trailing, _get_format_function,
+                                       _formatArray)
+    data = np.asarray(a)
+
+    if a.size > options['threshold']:
+        summary_insert = "..."
+        data = _leading_trailing(data, options['edgeitems'])
+    else:
+        summary_insert = ""
+
+    # find the right formatting function for the array
+    format_function = MaskedFormat(_get_format_function(data, **options))
+
+    # skip over "["
+    next_line_prefix = " "
+    # skip over array(
+    next_line_prefix += " "*len(prefix)
+
+    lst = _formatArray(a, format_function, options['linewidth'],
+                       next_line_prefix, separator, options['edgeitems'],
+                       summary_insert, options['legacy'])
+    return lst
+
+
+@dispatched_function
+def array2string(a, max_line_width=None, precision=None,
+                 suppress_small=None, separator=' ', prefix="",
+                 style=np._NoValue, formatter=None, threshold=None,
+                 edgeitems=None, sign=None, floatmode=None, suffix=""):
+    # Copied from numpy.core.arrayprint, but using _array2string above.
+    from numpy.core.arrayprint import _make_options_dict, _format_options
+
+    overrides = _make_options_dict(precision, threshold, edgeitems,
+                                   max_line_width, suppress_small, None, None,
+                                   sign, formatter, floatmode)
+    options = _format_options.copy()
+    options.update(overrides)
+
+    options['linewidth'] -= len(suffix)
+
+    # treat as a null array if any of shape elements == 0
+    if a.size == 0:
+        return "[]"
+
+    return _array2string(a, options, separator, prefix), None, None
+
+
+@dispatched_function
+def array_str(a, max_line_width=None, precision=None, suppress_small=None):
+    # Override to avoid special treatment of array scalars.
+    return array2string(a, max_line_width, precision, suppress_small, ' ', "")
