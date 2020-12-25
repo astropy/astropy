@@ -401,6 +401,31 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # Get its mask, or initialize ours.
             self._set_mask(getattr(obj, '_mask', False))
 
+    @property
+    def shape(self):
+        # Redefinition to allow defining a setter.
+        return super().shape
+
+    @shape.setter
+    def shape(self, shape):
+        old_shape = self.shape
+        self._mask.shape = shape
+        # Reshape array proper in try/except just in case some broadcasting
+        # or so causes it to fail.
+        try:
+            super(MaskedNDArray, type(self)).shape.__set__(self, shape)
+        except Exception as exc:
+            self._mask.shape = old_shape
+            # If a broadcast error in __array_finalize__, give a more useful
+            # error message.
+            if 'could not broadcast' in exc.args[0]:
+                raise AttributeError(
+                    'Incompatible shape for in-place modification. '
+                    'Use `.reshape()` to make a copy with the desired '
+                    'shape.') from None
+            else:
+                raise
+
     _eq_simple = _comparison_method('__eq__')
     _ne_simple = _comparison_method('__ne__')
     __lt__ = _comparison_method('__lt__')
