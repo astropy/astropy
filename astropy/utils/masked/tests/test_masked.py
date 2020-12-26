@@ -783,6 +783,15 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected_data = filled.argsort(axis)
         assert_array_equal(ma_argsort, expected_data)
 
+    @pytest.mark.parametrize('order', [None, 'a', ('a', 'b'), ('b', 'a')])
+    @pytest.mark.parametrize('axis', [0, 1])
+    def test_structured_argsort(self, axis, order):
+        ma_argsort = self.msa.argsort(axis, order=order)
+        filled = self.msa.unmask(fill_value=np.array((np.inf, np.inf),
+                                                     dtype=self.sdt))
+        expected_data = filled.argsort(axis, order=order)
+        assert_array_equal(ma_argsort, expected_data)
+
     @pytest.mark.parametrize('axis', (0, 1))
     def test_sort(self, axis):
         ma_sort = self.ma.copy()
