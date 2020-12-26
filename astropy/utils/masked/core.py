@@ -704,8 +704,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             If None, the flattened array is used.
         kind : str or None, ignored.
             The kind of sort.  Present only to allow subclasses to work.
-        order : str or list of str, not yet implemented
-            Way to sort structured arrays.
+        order : str or list of str.
+            For an array with fields defined, the fields to compare first,
+            second, etc.  A single field can be specified as a string, and not
+            all fields need be specified, but unspecified fields will still be
+            used, in dtype order, to break ties.
 
         Returns
         -------
@@ -715,15 +718,28 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             the sorted array.
 
         """
-        if order is not None:
-            raise NotImplementedError("structured arrays cannot yet "
-                                      "be sorted.")
         if axis is None:
             data = self.ravel()
             axis = -1
         else:
             data = self
-        return np.lexsort((data,), axis=axis)
+
+        if self.dtype.names:
+            # As done inside the argsort implementation in multiarray/methods.c.
+            if order is None:
+                order = self.dtype.names
+            else:
+                order = np.core._internal._newnames(self.dtype, order)
+
+            keys = tuple(data[name] for name in order[::-1])
+
+        elif order is not None:
+            raise ValueError('Cannot specify order when the array has no fields.')
+
+        else:
+            keys = (data,)
+
+        return np.lexsort(keys, axis=axis)
 
     def sort(self, axis=-1, kind=None, order=None):
         # TODO: probably possible to do this faster than going through argsort!
