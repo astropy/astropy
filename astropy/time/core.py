@@ -11,6 +11,7 @@ import enum
 import operator
 import os
 import threading
+from collections import defaultdict
 from datetime import date, datetime, timezone
 from time import strftime
 from warnings import warn
@@ -24,6 +25,7 @@ from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo, data_info_factory
+from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -649,6 +651,13 @@ class TimeBase(ShapedLikeNDArray):
             raise ValueError(f"format must be one of {list(self.FORMATS)}")
         format_cls = self.FORMATS[format]
 
+        if "format" in self.cache:
+            # Delete any previous possible "default" format, which may have
+            # dependended on a different out_subfmt than we have now.
+            # TODO: in to_value, we probably should never set an entry with
+            # just format, despite that having been the case in astropy < 4.0.
+            self.cache["format"].pop(format, None)
+
         # Get the new TimeFormat object to contain time in new format.  Possibly
         # coerce in/out_subfmt to '*' (default) if existing subfmt values are
         # not valid in the new format.
@@ -880,6 +889,11 @@ class TimeBase(ShapedLikeNDArray):
                     reshaped.append(val)
 
     def _shaped_like_input(self, value):
+        if self.masked:
+            # Create new instance even when Masked already, to guarantee
+            # the mask is copied.
+            return Masked(value, mask=self.mask.copy())
+
         if self._time.jd1.shape:
             if isinstance(value, np.ndarray):
                 return value
@@ -1007,12 +1021,18 @@ class TimeBase(ShapedLikeNDArray):
         return self.to_value(self.format, None)
 
     @property
-    def masked(self):
-        return self._time.masked
+    def mask(self):
+        if "mask" not in self.cache:
+            mask = getattr(self._time.jd2, "mask", None)
+            if mask is None:
+                mask = np.zeros(self._time.jd2.shape, bool)
+                mask.flags.writeable = False
+            self.cache["mask"] = mask
+        return self.cache["mask"]
 
     @property
-    def mask(self):
-        return self._time.mask
+    def masked(self):
+        return bool((getattr(self._time.jd2, "mask", np.False_)).any())
 
     def insert(self, obj, values, axis=0):
         """
@@ -1624,16 +1644,12 @@ class TimeBase(ShapedLikeNDArray):
         result.format = self.format
         return result
 
-    @property
+    @lazyproperty
     def cache(self):
         """
         Return the cache associated with this instance.
         """
-        return self._time.cache
-
-    @cache.deleter
-    def cache(self):
-        del self._time.cache
+        return defaultdict(dict)
 
     def __getattr__(self, attr):
         """
