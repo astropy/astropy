@@ -4,7 +4,7 @@ import fnmatch
 import re
 import time
 import warnings
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from decimal import Decimal
 
 import erfa
@@ -253,29 +253,6 @@ class TimeFormat:
     def scale(self, val):
         self._scale = val
 
-    def mask_if_needed(self, value):
-        if self.masked:
-            value = Masked(np.asarray(value), mask=self.mask.copy(), copy=False)
-        return value
-
-    @property
-    def mask(self):
-        if "mask" not in self.cache:
-            mask = getattr(self.jd2, "mask", None)
-            if mask is None:
-                mask = np.zeros(self.jd2.shape, bool)
-                mask.flags.writeable = False
-            self.cache["mask"] = mask
-        return self.cache["mask"]
-
-    @property
-    def masked(self):
-        return bool((getattr(self.jd2, "mask", np.False_)).any())
-
-    @property
-    def jd2_filled(self):
-        return self.jd2.unmask() if self.masked else self.jd2
-
     @property
     def precision(self):
         return self._precision
@@ -293,13 +270,6 @@ class TimeFormat:
                 f"{self._min_precision} and {self._max_precision}"
             )
         self._precision = val
-
-    @lazyproperty
-    def cache(self):
-        """
-        Return the cache associated with this instance.
-        """
-        return defaultdict(dict)
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes."""
@@ -439,7 +409,7 @@ class TimeFormat:
         else:
             value = self.value
 
-        return self.mask_if_needed(value)
+        return value
 
     @property
     def value(self):
@@ -551,8 +521,7 @@ class TimeNumeric(TimeFormat):
             digits = int(np.ceil(np.log10(unit / np.finfo(float).eps)))
             # TODO: allow a way to override the format.
             kwargs["fmt"] = f".{digits}f"
-        value = subfmt[3](jd1, jd2, **kwargs)
-        return self.mask_if_needed(value)
+        return subfmt[3](jd1, jd2, **kwargs)
 
     value = property(to_value)
 
@@ -1192,7 +1161,7 @@ class TimeDatetime(TimeUnique):
 
             out[...] = dt
 
-        return self.mask_if_needed(iterator.operands[-1])
+        return iterator.operands[-1]
 
     value = property(to_value)
 
@@ -1342,9 +1311,7 @@ class TimeYMDHMS(TimeUnique):
         out["hour"] = ihmsfs["h"]
         out["minute"] = ihmsfs["m"]
         out["second"] = ihmsfs["s"] + ihmsfs["f"] * 10 ** (-9)
-        out = out.view(np.recarray)
-
-        return self.mask_if_needed(out)
+        return out.view(np.recarray)
 
 
 class TimezoneInfo(datetime.tzinfo):
@@ -2190,7 +2157,7 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
             jd1_, jd2_ = day_frac(jd1, jd2)
             out[...] = datetime.timedelta(days=jd1_, microseconds=jd2_ * 86400 * 1e6)
 
-        return self.mask_if_needed(iterator.operands[-1])
+        return iterator.operands[-1]
 
 
 class TimeDeltaQuantityString(TimeDeltaFormat, TimeUnique):
