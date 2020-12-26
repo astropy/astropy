@@ -87,6 +87,27 @@ def append(arr, values, *args, **kwargs):
     return data + args, masks + args, kwargs, None
 
 
+@dispatched_function
+def lexsort(keys, axis=-1):
+    # Sort masks to the end.
+    from .core import Masked
+
+    new_keys = []
+    for key in keys:
+        if isinstance(key, Masked):
+            # If there are other keys below, want to be sure that
+            # for masked values, those other keys set the order.
+            new_key = key.unmasked
+            if new_keys and key.mask.any():
+                new_key = new_key.copy()
+                new_key[key.mask] = np.zeros_like(new_key, shape=())
+            new_keys.extend([new_key, key.mask])
+        else:
+            new_keys.append(key)
+
+    return np.lexsort(new_keys, axis=axis), None, None
+
+
 class MaskedFormat:
     def __init__(self, format_function):
         self.format_function = format_function

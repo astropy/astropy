@@ -718,12 +718,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         if order is not None:
             raise NotImplementedError("structured arrays cannot yet "
                                       "be sorted.")
-        data, mask = self.unmasked, self.mask
         if axis is None:
-            data = data.ravel()
-            mask = mask.ravel()
+            data = self.ravel()
             axis = -1
-        return np.lexsort((data, mask), axis=axis)
+        else:
+            data = self
+        return np.lexsort((data,), axis=axis)
 
     def sort(self, axis=-1, kind=None, order=None):
         # TODO: probably possible to do this faster than going through argsort!

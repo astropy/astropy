@@ -108,3 +108,27 @@ class TestMaskedQuantityCalculation(TestMaskedArrayCalculation, QuantitySetup):
 class TestMaskedLongitudeCalculation(TestMaskedArrayCalculation,
                                      LongitudeSetup):
     pass
+
+
+class TestMaskedArraySorting(MaskedArraySetup):
+    @pytest.mark.parametrize('axis', [-1, 0])
+    def test_lexsort1(self, axis):
+        ma_lexsort = np.lexsort((self.ma,), axis=axis)
+        filled = self.a.copy()
+        filled[self.mask_a] = 9e9
+        expected_data = filled.argsort(axis)
+        assert_array_equal(ma_lexsort, expected_data)
+
+    @pytest.mark.parametrize('axis', [-1, 0])
+    def test_lexsort2(self, axis):
+        mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
+        mamb_lexsort = np.lexsort((self.ma, mb), axis=axis)
+        filled_a = self.ma.unmask(9e9)
+        filled_b = mb.unmask(9e9)
+        expected_ab = np.lexsort((filled_a, filled_b), axis=axis)
+        assert_array_equal(mamb_lexsort, expected_ab)
+        mbma_lexsort = np.lexsort((mb, self.ma), axis=axis)
+        expected_ba = np.lexsort((filled_b, filled_a), axis=axis)
+        assert_array_equal(mbma_lexsort, expected_ba)
+        mbma_lexsort2 = np.lexsort(np.stack([mb, self.ma], axis=0), axis=axis)
+        assert_array_equal(mbma_lexsort2, expected_ba)
