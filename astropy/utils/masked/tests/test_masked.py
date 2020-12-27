@@ -114,7 +114,7 @@ class TestMaskedSubclassCreation:
     def setup_class(self):
         class MyArray(np.ndarray):
             def __new__(cls, *args, **kwargs):
-                return np.array(*args, **kwargs).view(cls)
+                return np.asanyarray(*args, **kwargs).view(cls)
 
         self.MyArray = MyArray
         self.a = np.array([1., 2.]).view(self.MyArray)
@@ -134,6 +134,24 @@ class TestMaskedSubclassCreation:
         assert_array_equal(mms.unmasked, self.a)
         assert_array_equal(mms.mask, self.m)
 
+    def test_initialization_without_mask(self):
+        # Default for not giving a mask should be False.
+        mcls = Masked(self.MyArray)
+        mms = mcls(self.a)
+        assert isinstance(mms, mcls)
+        assert_array_equal(mms.unmasked, self.a)
+        assert_array_equal(mms.mask, np.zeros(mms.shape, bool))
+
+    @pytest.mark.parametrize('masked_array', [Masked, np.ma.MaskedArray])
+    def test_initialization_with_masked_values(self, masked_array):
+        mcls = Masked(self.MyArray)
+        ma = masked_array(np.asarray(self.a), mask=self.m)
+        mms = mcls(ma)
+        assert isinstance(mms, Masked)
+        assert isinstance(mms, self.MyArray)
+        assert_array_equal(mms.unmasked, self.a)
+        assert_array_equal(mms.mask, self.m)
+
     def test_indirect_creation(self):
         assert self.MyArray not in Masked._masked_classes
         mms = Masked(self.a, mask=self.m)
@@ -149,16 +167,37 @@ class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySe
     def test_masked_quantity_class_init(self):
         # TODO: class definitions should be more easily accessible.
         mcls = Masked._masked_classes[self.a.__class__]
-        # This is not a very careful test, as it doesn
-        ma = mcls([1., 2.], mask=[True, False], unit=u.s)
-        assert ma.unit == u.s
-        assert np.all(ma.value == [1., 2.])
-        assert np.all(ma.mask == [True, False])
+        # This is not a very careful test.
+        mq = mcls([1., 2.], mask=[True, False], unit=u.s)
+        assert mq.unit == u.s
+        assert np.all(mq.value.unmasked == [1., 2.])
+        assert np.all(mq.value.mask == [True, False])
+        assert np.all(mq.mask == [True, False])
 
     def test_masked_quantity_getting(self):
         mcls = Masked._masked_classes[self.a.__class__]
         MQ = Masked(Quantity)
         assert MQ is mcls
+
+    def test_initialization_without_mask(self):
+        # Default for not giving a mask should be False.
+        MQ = Masked(Quantity)
+        mq = MQ([1., 2.], u.s)
+        assert mq.unit == u.s
+        assert np.all(mq.value.unmasked == [1., 2.])
+        assert np.all(mq.mask == [False, False])
+
+    @pytest.mark.parametrize('masked_array', [Masked, np.ma.MaskedArray])
+    def test_initialization_with_masked_values(self, masked_array):
+        MQ = Masked(Quantity)
+        a = np.array([1., 2.])
+        m = np.array([True, False])
+        ma = masked_array(a, m)
+        mq = MQ(ma)
+        assert isinstance(mq, Masked)
+        assert isinstance(mq, Quantity)
+        assert_array_equal(mq.value.unmasked, a)
+        assert_array_equal(mq.mask, m)
 
 
 class TestMaskSetting(ArraySetup):
