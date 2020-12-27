@@ -100,7 +100,7 @@ def lexsort(keys, axis=-1):
             new_key = key.unmasked
             if new_keys and key.mask.any():
                 new_key = new_key.copy()
-                new_key[key.mask] = np.zeros_like(new_key, shape=())
+                new_key[key.mask] = new_key.flat[0]
             new_keys.extend([new_key, key.mask])
         else:
             new_keys.append(key)
