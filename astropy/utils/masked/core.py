@@ -377,14 +377,21 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         Like `numpy.ndarray.view`, but always returning a masked array subclass.
         """
-        if type is None and (isinstance(dtype, builtins.type) and
-                             issubclass(dtype, np.ndarray)):
-            type = dtype
-            dtype = None
-        elif dtype is not None:
-            raise NotImplementedError('{} cannot be viewed with new dtype.'
-                                      .format(self.__class__))
-        return super().view(self._get_masked_cls(type))
+        if type is None and (isinstance(dtype, builtins.type)
+                             and issubclass(dtype, np.ndarray)):
+            return super().view(self._get_masked_cls(dtype))
+
+        if dtype is None:
+            return super().view(self._get_masked_cls(type))
+
+        dtype = np.dtype(dtype)
+        if not (len(dtype.names) == len(self.dtype.names)
+                and dtype.itemsize == self.dtype.itemsize):
+            raise NotImplementedError(
+                f"{self.__class__} cannot be viewed with a dtype with a "
+                f"with a different number of fields or size.")
+
+        return super().view(dtype, self._get_masked_cls(type))
 
     def __array_finalize__(self, obj):
         if obj is None:
@@ -812,3 +819,32 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     def __repr__(self):
         return np.array_repr(self)
+
+
+class Maskedrecord(np.recarray, MaskedNDArray, data_cls=np.recarray):
+    # Explicit definition since we need to override some methods.
+
+    def __array_finalize__(self, obj):
+        # recarray.__array_finalize__ does not do super, so we do it
+        # explicitly.
+        super().__array_finalize__(obj)
+        super(np.recarray, self).__array_finalize__(obj)
+
+    # __getattribute__, __setattr__, and field use these somewhat
+    # obscrure ndarray methods.  TODO: override in MaskedNDArray?
+    def getfield(self, dtype, offset=0):
+        for field, info in self.dtype.fields.items():
+            if offset == info[1] and dtype == info[0]:
+                return self[field]
+
+        raise NotImplementedError('can only get existing field from '
+                                  'structured dtype.')
+
+    def setfield(self, val, dtype, offset=0):
+        for field, info in self.dtype.fields.items():
+            if offset == info[1] and dtype == info[0]:
+                self[field] = val
+                return
+
+        raise NotImplementedError('can only set existing field from '
+                                  'structured dtype.')
