@@ -375,7 +375,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         # Here, mask can be reshaped but array cannot.
         ma2 = Masked(np.broadcast_to([[1.], [2.]], self.a.shape),
                      mask=self.mask_a)
-        with pytest.raises(AttributeError, match='Incompatible shape'):
+        with pytest.raises(AttributeError, match='ncompatible shape'):
             ma2.shape = 6,
 
         assert ma2.shape == self.ma.shape
@@ -384,7 +384,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         # Here, array can be reshaped but mask cannot.
         ma3 = Masked(self.a.copy(), mask=np.broadcast_to([[True], [False]],
                                                          self.mask_a.shape))
-        with pytest.raises(AttributeError, match='Incompatible shape'):
+        with pytest.raises(AttributeError, match='ncompatible shape'):
             ma3.shape = 6,
 
         assert ma3.shape == self.ma.shape
