@@ -162,6 +162,14 @@ class TestMaskedSubclassCreation:
         assert self.MyArray in Masked._masked_classes
         assert Masked(self.MyArray) is type(mms)
 
+    def test_can_initialize_with_masked_values(self):
+        mcls = Masked(self.MyArray)
+        mms = mcls(Masked(np.asarray(self.a), mask=self.m))
+        assert isinstance(mms, Masked)
+        assert isinstance(mms, self.MyArray)
+        assert_array_equal(mms.unmasked, self.a)
+        assert_array_equal(mms.mask, self.m)
+
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     def test_masked_quantity_class_init(self):

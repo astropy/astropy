@@ -20,6 +20,7 @@ import functools
 import numpy as np
 
 from astropy.utils.shapes import NDArrayShapeMethods
+from astropy.utils.data_info import ParentDtypeInfo
 
 from .function_helpers import (MASKED_SAFE_FUNCTIONS,
                                APPLY_TO_BOTH_FUNCTIONS,
@@ -237,6 +238,82 @@ class Masked(NDArrayShapeMethods):
         self.mask[item] = mask
 
 
+class MaskedNDArrayInfo(ParentDtypeInfo):
+    """
+    Container for meta information like name, description, format.
+    """
+
+    # Add `serialize_method` attribute to the attrs that MaskedNDArrayInfo knows
+    # about.  This allows customization of the way that MaskedColumn objects
+    # get written to file depending on format.  The default is to use whatever
+    # the writer would normally do, which in the case of FITS or ECSV is to use
+    # a NULL value within the data itself.  If serialize_method is 'data_mask'
+    # then the mask is explicitly written out as a separate column if there
+    # are any masked values.  This is the same as for MaskedColumn.
+    attr_names = ParentDtypeInfo.attr_names | {'serialize_method'}
+
+    # When `serialize_method` is 'data_mask', and data and mask are being written
+    # as separate columns, use column names <name> and <name>.mask (instead
+    # of default encoding as <name>.data and <name>.mask).
+    _represent_as_dict_primary_data = 'data'
+
+    mask_val = np.ma.masked
+
+    def __init__(self, bound=False):
+        super().__init__(bound)
+
+        # If bound to a data object instance then create the dict of attributes
+        # which stores the info attribute values.
+        if bound:
+            # Specify how to serialize this object depending on context.
+            self.serialize_method = {'fits': 'null_value',
+                                     'ecsv': 'null_value',
+                                     'hdf5': 'data_mask',
+                                     None: 'null_value'}
+
+    def _represent_as_dict(self):
+        out = super()._represent_as_dict()
+
+        masked_array = self._parent
+
+        # If the serialize method for this context (e.g. 'fits' or 'ecsv') is
+        # 'data_mask', that means to serialize using an explicit mask column.
+        method = self.serialize_method[self._serialize_context]
+
+        if method == 'data_mask':
+            out['data'] = masked_array.unmasked
+
+            if np.any(masked_array.mask):
+                # Only if there are actually masked elements do we add the ``mask`` column
+                out['mask'] = masked_array.mask
+
+        elif method == 'null_value':
+            out['data'] = np.ma.MaskedArray(masked_array.unmasked,
+                                            mask=masked_array.mask)
+
+        else:
+            raise ValueError('serialize method must be either "data_mask" or "null_value"')
+
+        return out
+
+    def _construct_from_dict(self, map):
+        # 'data' may be a Column or a MaskedColumn.  In the former case,
+        # there will also be a 'mask'.
+        return Masked(map.pop('data').data, mask=map.pop('mask', None))
+
+
+class MaskedArraySubclassInfo:
+    def _represent_as_dict(self):
+        # Use the data_cls as the class name for serialization,
+        # so that we do not have to store all possible masked classes
+        # in astropy.table.serialize.__construct_mixin_classes.
+        out = super()._represent_as_dict()
+        data_cls = self._parent._data_cls
+        out.setdefault('__class__',
+                       data_cls.__module__ + '.' + data_cls.__name__)
+        return out
+
+
 def _comparison_method(op):
     """
     Create a comparison operator for MaskedNDArray.
@@ -314,6 +391,8 @@ class MaskedIterator:
 class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray):
     _mask = None
 
+    info = MaskedNDArrayInfo()
+
     def __new__(cls, *args, mask=None, **kwargs):
         """Get data class instance from arguments and then set mask."""
         self = super().__new__(cls, *args, **kwargs)
@@ -324,6 +403,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return self
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(cls, **kwargs)
         # For all subclasses we should set a default __new__ that passes on
         # arguments other than mask to the data class, and then sets the mask.
         if '__new__' not in cls.__dict__:
@@ -338,7 +418,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 return self
             cls.__new__ = __new__
 
-        super().__init_subclass__(cls, **kwargs)
+        if 'info' not in cls.__dict__ and hasattr(cls._data_cls, 'info'):
+            new_info = type(cls.__name__+'Info',
+                            (MaskedArraySubclassInfo,
+                             cls._data_cls.info.__class__), {})
+            cls.info = new_info()
 
     # The two required pieces.
     @classmethod
@@ -825,6 +909,14 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     def __repr__(self):
         return np.array_repr(self)
+
+    def __format__(self, format_spec):
+        string = super().__format__(format_spec)
+        if self.shape == () and self.mask:
+            n = min(3, max(1, len(string)))
+            return ' ' * (len(string)-n) + '\u2014' * n
+        else:
+            return string
 
 
 class Maskedrecord(np.recarray, MaskedNDArray, data_cls=np.recarray):
