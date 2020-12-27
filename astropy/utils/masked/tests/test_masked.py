@@ -931,3 +931,40 @@ class TestMaskedArrayRepr(MaskedArraySetup):
 
 class TestMaskedQuantityRepr(TestMaskedArrayRepr, QuantitySetup):
     pass
+
+
+class TestMaskedRecarray(MaskedArraySetup):
+    def setup(self):
+        super().setup()
+        self.ra = self.sa.view(np.recarray)
+        self.mra = Masked(self.ra, mask=self.mask_sa)
+
+    def test_recarray_setup(self):
+        assert isinstance(self.mra, Masked)
+        assert isinstance(self.mra, np.recarray)
+        assert np.all(self.mra.unmasked == self.ra)
+        assert np.all(self.mra.mask == self.mask_sa)
+        assert_array_equal(self.mra.view(np.ndarray), self.sa)
+        assert isinstance(self.mra.a, Masked)
+        assert_array_equal(self.mra.a.unmasked, self.sa['a'])
+        assert_array_equal(self.mra.a.mask, self.mask_sa['a'])
+
+    def test_recarray_setting(self):
+        mra = self.mra.copy()
+        mra.a = self.msa['b']
+        assert_array_equal(mra.a.unmasked, self.msa['b'].unmasked)
+        assert_array_equal(mra.a.mask, self.msa['b'].mask)
+
+    @pytest.mark.parametrize('attr', [0, 'a'])
+    def test_recarray_field_getting(self, attr):
+        mra_a = self.mra.field(attr)
+        assert isinstance(mra_a, Masked)
+        assert_array_equal(mra_a.unmasked, self.sa['a'])
+        assert_array_equal(mra_a.mask, self.mask_sa['a'])
+
+    @pytest.mark.parametrize('attr', [0, 'a'])
+    def test_recarray_field_setting(self, attr):
+        mra = self.mra.copy()
+        mra.field(attr, self.msa['b'])
+        assert_array_equal(mra.a.unmasked, self.msa['b'].unmasked)
+        assert_array_equal(mra.a.mask, self.msa['b'].mask)
