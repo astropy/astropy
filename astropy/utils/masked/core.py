@@ -314,21 +314,27 @@ class MaskedIterator:
 class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray):
     _mask = None
 
-    def __new__(cls, *args, mask=False, **kwargs):
+    def __new__(cls, *args, mask=None, **kwargs):
         """Get data class instance from arguments and then set mask."""
         self = super().__new__(cls, *args, **kwargs)
-        self.mask = mask
+        if mask is not None:
+            self.mask = mask
+        elif self._mask is None:
+            self.mask = False
         return self
 
     def __init_subclass__(cls, **kwargs):
         # For all subclasses we should set a default __new__ that passes on
         # arguments other than mask to the data class, and then sets the mask.
         if '__new__' not in cls.__dict__:
-            def __new__(newcls, *args, mask=False, **kwargs):
+            def __new__(newcls, *args, mask=None, **kwargs):
                 """Get data class instance from arguments and then set mask."""
                 # Need to explicitly mention classes outside of class definition.
                 self = super(cls, newcls).__new__(newcls, *args, **kwargs)
-                self.mask = mask
+                if mask is not None:
+                    self.mask = mask
+                elif self._mask is None:
+                    self.mask = False
                 return self
             cls.__new__ = __new__
 
