@@ -52,6 +52,7 @@ __construct_mixin_classes = (
     'astropy.coordinates.representation.RadialDifferential',
     'astropy.coordinates.representation.PhysicsSphericalDifferential',
     'astropy.coordinates.representation.CylindricalDifferential',
+    'astropy.utils.masked.core.MaskedNDArray',
 )
 
 
@@ -149,7 +150,8 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             obj_attrs['__info__'] = info
 
     # Store the fully qualified class name
-    obj_attrs['__class__'] = col.__module__ + '.' + col.__class__.__name__
+    obj_attrs.setdefault('__class__',
+                         col.__module__ + '.' + col.__class__.__name__)
 
     mixin_cols[name] = obj_attrs
 
