@@ -8,11 +8,13 @@ generates new subclasses for any data class that is itself a
 subclass of a predefined masked class, with `MaskedNDArray`
 providing such a predefined class for `~numpy.ndarray`.
 
-Generally, any new predefined class has to provide a
-``from_unmasked(data, mask, copy=False)`` method as well
-as an ``unmasked`` property or attribute that returns just
-the data.  The `Masked` class itself provides a base ``mask``
-property, which can be overridden if needed.
+Generally, any new predefined class should override the
+``from_unmasked(data, mask, copy=False)`` class method that
+creates an instance from unmasked data and a mask, as well as
+the ``unmasked`` property that returns just the data.
+The `Masked` class itself provides a base ``mask`` property,
+which can also be overridden if needed.
+
 """
 import builtins
 import functools
@@ -104,6 +106,14 @@ class Masked(NDArrayShapeMethods):
                 cls.__doc__ = get__doc__(data_cls)
 
         super().__init_subclass__(**kwargs)
+
+    # This base implementation just uses the class initializer.
+    # Subclasses can override this in case the class does not work
+    # with this signature, or to provide a faster implementation.
+    @classmethod
+    def from_unmasked(cls, data, mask=None, copy=False):
+        """Create an instance from unmasked data and a mask."""
+        return cls(data, mask=mask, copy=copy)
 
     @classmethod
     def _get_masked_instance(cls, data, mask=None, copy=False):
@@ -205,7 +215,13 @@ class Masked(NDArrayShapeMethods):
 
     mask = property(_get_mask, _set_mask)
 
-    # Note: any subclass needs to define an unmasked attribute or property.
+    # Note: subclass should generally override the unmasked property.
+    # This one assumes the unmasked data is stored in a private attribute.
+    @property
+    def unmasked(self):
+        """The unmasked values."""
+        return self._unmasked
+
     def unmask(self, fill_value=None):
         """Get the underlying data, possibly filling masked values."""
         unmasked = self.unmasked
@@ -424,10 +440,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                              cls._data_cls.info.__class__), {})
             cls.info = new_info()
 
-    # The two required pieces.
+    # The two pieces typically overridden.
     @classmethod
     def from_unmasked(cls, data, mask=None, copy=False):
-        """Create an instance from unmasked data and a mask."""
+        # Note: have to override since __new__ would use ndarray.__new__
+        # which expects the shape as its first argument, not an array.
         data = np.array(data, subok=True, copy=copy)
         self = data.view(cls)
         self._set_mask(mask, copy=copy)
@@ -435,7 +452,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     @property
     def unmasked(self):
-        """The unmasked values."""
         return super().view(self._data_cls)
 
     @classmethod
@@ -839,6 +855,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return np.lexsort(keys, axis=axis)
 
     def sort(self, axis=-1, kind=None, order=None):
+        """Sort an array in-place. Refer to `numpy.sort` for full documentation."""
         # TODO: probably possible to do this faster than going through argsort!
         indices = self.argsort(axis, kind=kind, order=order)
         self[:] = np.take_along_axis(self, indices, axis=axis)
