@@ -1240,7 +1240,7 @@ class MaskedColumnInfo(ColumnInfo):
         # which stores the info attribute values.
         if bound:
             # Specify how to serialize this object depending on context.
-            self.serialize_method = {'fits': 'null_value',
+            self.serialize_method = {'fits': 'fill_value',
                                      'ecsv': 'null_value',
                                      'hdf5': 'data_mask',
                                      None: 'null_value'}
@@ -1269,10 +1269,22 @@ class MaskedColumnInfo(ColumnInfo):
         elif method == 'null_value':
             pass
 
+        elif method == 'fill_value':
+            fill_value = np.full((), col.fill_value, col.dtype)
+            if (col == fill_value).any():
+                raise ValueError('Some unmasked items are set to fill_value')
+            out['data'] = col.filled(fill_value).data
+            out['fill_value'] = fill_value.item()
+
         else:
             raise ValueError('serialize method must be either "data_mask" or "null_value"')
 
         return out
+
+    def _construct_from_dict(self, map):
+        if 'fill_value' in map:
+            map['mask'] = map['data'] == map['fill_value']
+        return super()._construct_from_dict(map)
 
 
 class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):

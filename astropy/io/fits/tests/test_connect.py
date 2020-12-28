@@ -168,14 +168,10 @@ class TestSingleTable:
         t1.mask['c'] = [0, 1, 1, 0]
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
-        assert t2.masked
         assert equal_data(t1, t2)
         assert np.all(t1['a'].mask == t2['a'].mask)
-        # Disabled for now, as there is no obvious way to handle masking of
-        # non-integer columns in FITS
-        # TODO: Re-enable these tests if some workaround for this can be found
-        # assert np.all(t1['b'].mask == t2['b'].mask)
-        # assert np.all(t1['c'].mask == t2['c'].mask)
+        assert np.all(t1['b'].mask == t2['b'].mask)
+        assert np.all(t1['c'].mask == t2['c'].mask)
 
     def test_masked_nan(self, tmpdir):
         filename = str(tmpdir.join('test_masked_nan.fits'))
