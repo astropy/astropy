@@ -19,7 +19,6 @@ from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Longitude, Latitude
-from .distances import Distance
 from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential, REPRESENTATION_CLASSES
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
@@ -297,14 +296,13 @@ class EarthLocation(u.Quantity):
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
             height = u.Quantity(height, u.m, copy=False)
-        # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"](
-            lon, lat, Distance(height, allow_negative=True), copy=False,
-        ).represent_as(CartesianRepresentation).get_xyz(xyz_axis=-1)
-        self = xyz.ravel().view(cls._location_dtype,
-                                cls).reshape(xyz.shape[:-1])
+        # get geocentric coordinates.
+        geodetic = REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"](
+            lon, lat, height, copy=False)
+        xyz = geodetic.to_cartesian().get_xyz(xyz_axis=-1) << height.unit
+        self = xyz.view(cls._location_dtype, cls).reshape(geodetic.shape)
         self._ellipsoid = ellipsoid
-        return self.to(height.unit)
+        return self
 
     @classmethod
     def of_site(cls, site_name):
@@ -596,12 +594,12 @@ class EarthLocation(u.Quantity):
         ``gc2gd`` is used.  See https://github.com/liberfa/erfa
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
-        llh = CartesianRepresentation(self.x, self.y, self.z).represent_as(
-            REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"])
+        xyz = self.view(self._array_dtype, u.Quantity)
+        llh = CartesianRepresentation(xyz, xyz_axis=-1, copy=False).represent_as(
+                REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"])
         return GeodeticLocation(
-            llh.lon,
-            llh.lat,
-            u.Quantity(llh.height, self.unit, copy=False))
+            Longitude(llh.lon, u.deg, wrap_angle=180*u.deg, copy=False),
+            llh.lat << u.deg, llh.height << self.unit)
 
 
     @property
@@ -879,8 +877,12 @@ class BaseGeodeticRepresentation(BaseRepresentation):
 
     def __init__(self, lon, lat=None, height=None, copy=True):
         if height is None and not isinstance(lon, self.__class__):
-            height = Distance(0, 'm')
+            height = 0 << u.m
+
         super().__init__(lon, lat, height, copy=copy)
+        if not self.height.unit.is_equivalent(u.m):
+            raise u.UnitTypeError(f"{self.__class__.__name__} requires "
+                                  f"height with units of length.")
 
     def to_cartesian(self):
         """
