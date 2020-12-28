@@ -888,10 +888,8 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         cartesian coordiantes.
         """
         xyz = erfa.gd2gc(getattr(erfa, self._ellipsoid),
-                         self.lon.to_value(u.radian),
-                         self.lat.to_value(u.radian),
-                         self.height.to_value(u.m))
-        return CartesianRepresentation(xyz, unit=u.m, xyz_axis=-1, copy=False)
+                         self.lon, self.lat, self.height)
+        return CartesianRepresentation(xyz, xyz_axis=-1, copy=False)
 
     @classmethod
     def from_cartesian(cls, cart):
@@ -900,12 +898,8 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         WGS84 geodetic coordinates.
         """
         lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid),
-                                      cart.get_xyz(xyz_axis=-1).to_value(u.m))
-        return cls(
-            Longitude(lon << u.radian, u.degree,
-                      wrap_angle=180. << u.degree, copy=False),
-            Latitude(lat << u.radian, u.degree, copy=False),
-            u.Quantity(height << u.meter, copy=False))
+                                      cart.get_xyz(xyz_axis=-1))
+        return cls(lon, lat, height, copy=False)
 
 
 @format_doc(geodetic_base_doc)
