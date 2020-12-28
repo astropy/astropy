@@ -14,7 +14,7 @@
 .. _GitHub Help: https://help.github.com/
 .. _msysgit: http://code.google.com/p/msysgit/downloads/list
 .. _git-osx-installer: http://code.google.com/p/git-osx-installer/downloads/list
-.. _git cheat sheet: http://cheat.errtheblog.com/s/git
+.. _git cheat sheet: https://www.atlassian.com/git/tutorials/atlassian-git-cheatsheet
 .. _pro git book: https://git-scm.com/book
 .. _git svn crash course: https://git.wiki.kernel.org/index.php/GitSvnCrashCourse
 .. _learn.github: https://services.github.com/
