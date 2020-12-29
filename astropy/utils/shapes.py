@@ -211,6 +211,18 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
         np.roll, np.delete,
         }
 
+    # Functions that themselves defer to a method. Those are all
+    # defined in np.core.fromnumeric, but exclude alen as well as
+    # sort and partition, which make copies before calling the method.
+    _METHOD_FUNCTIONS = {getattr(np, name):
+                         {'amax': 'max', 'amin': 'min', 'around': 'round',
+                          'round_': 'round', 'alltrue': 'all',
+                          'sometrue': 'any'}.get(name, name)
+                         for name in np.core.fromnumeric.__all__
+                         if name not in ['alen', 'sort', 'partition']}
+    # Add np.copy, which we may as well let defer to our method.
+    _METHOD_FUNCTIONS[np.copy] = 'copy'
+
     # Could be made to work with a bit of effort:
     # np.where, np.compress, np.extract,
     # np.diag_indices_from, np.triu_indices_from, np.tril_indices_from
@@ -237,14 +249,16 @@ class ShapedLikeNDArray(metaclass=abc.ABCMeta):
 
             return self._apply(function, *args[1:], **kwargs)
 
-        if self is args[0]:
-            # Call the method rather than _apply(function.__name__),
-            # since classes could override the method.
-            name = {np.amax: 'max',
-                    np.amin: 'min'}.get(function, function.__name__)
-            method = getattr(self, name, None)
+        # For functions that defer to methods, use the corresponding
+        # method/attribute if we have it.  Otherwise, fall through.
+        if self is args[0] and function in self._METHOD_FUNCTIONS:
+            method = getattr(self, self._METHOD_FUNCTIONS[function], None)
             if method is not None:
-                return method(*args[1:], **kwargs)
+                if callable(method):
+                    return method(*args[1:], **kwargs)
+                else:
+                    # For np.shape, etc., just return the attribute.
+                    return method
 
         # Fall-back, just pass the arguments on since perhaps the function
         # works already (see above).
