@@ -396,3 +396,9 @@ class TestShapeFunctions(ShapeSetup):
         s0d = np.delete(self.s0, [2, 3], axis=0)
         assert np.all(representation_equal(s0d[:2], self.s0[:2]))
         assert np.all(representation_equal(s0d[2:], self.s0[4:]))
+
+    @pytest.mark.parametrize('attribute', ['shape', 'ndim', 'size'])
+    def test_shape_attribute_functions(self, attribute):
+        function = getattr(np, attribute)
+        result = function(self.s0)
+        assert result == getattr(self.s0, attribute)

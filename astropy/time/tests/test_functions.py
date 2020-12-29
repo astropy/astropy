@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 
 from astropy.time import Time, TimeDelta
+from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 
 class TestFunctionsTime:
@@ -43,3 +44,18 @@ class TestFunctionsTimeDelta(TestFunctionsTime):
     @pytest.mark.parametrize('func', (np.sum, np.mean, np.median))
     def test_sum_like(self, func, axis):
         self.check(func, axis=axis)
+
+
+@pytest.mark.xfail(not ARRAY_FUNCTION_ENABLED,
+                   reason="Needs __array_function__ support")
+@pytest.mark.parametrize('attribute', ['shape', 'ndim', 'size'])
+@pytest.mark.parametrize('t', [
+    Time('2001-02-03T04:05:06'),
+    Time(50000, np.arange(8).reshape(4, 2), format='mjd', scale='tai'),
+    TimeDelta(100, format='jd')])
+def test_shape_attribute_functions(t, attribute):
+    # Regression test for
+    # https://github.com/astropy/astropy/issues/8610#issuecomment-736855217
+    function = getattr(np, attribute)
+    result = function(t)
+    assert result == getattr(t, attribute)
