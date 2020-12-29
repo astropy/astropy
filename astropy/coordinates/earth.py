@@ -19,18 +19,21 @@ from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Longitude, Latitude
-from .representation import BaseRepresentation, CartesianRepresentation, CartesianDifferential, REPRESENTATION_CLASSES
+from .representation import (BaseRepresentation, CartesianRepresentation,
+                             CartesianDifferential)
 from .matrix_utilities import matrix_transpose
 from .errors import UnknownSiteException
 
 
 __all__ = ['EarthLocation', 'BaseGeodeticRepresentation',
-           'WGS84GeodeticRepresentation', 'WGS72GeodeticRepresentation', 'GRS80GeodeticRepresentation']
+           'WGS84GeodeticRepresentation', 'WGS72GeodeticRepresentation',
+           'GRS80GeodeticRepresentation']
 
 GeodeticLocation = collections.namedtuple('GeodeticLocation', ['lon', 'lat', 'height'])
 
-# Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
-ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
+ELLIPSOIDS = {}
+"""Available ellipsoids (defined in erfam.h, with numbers exposed in erfa)."""
+# Note: they get filled by the creation of the geodetic classes.
 
 OMEGA_EARTH = ((1.002_737_811_911_354_48 * u.cycle/u.day)
                .to(1/u.s, u.dimensionless_angles()))
@@ -297,8 +300,7 @@ class EarthLocation(u.Quantity):
         if not isinstance(height, u.Quantity):
             height = u.Quantity(height, u.m, copy=False)
         # get geocentric coordinates.
-        geodetic = REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"](
-            lon, lat, height, copy=False)
+        geodetic = ELLIPSOIDS[ellipsoid](lon, lat, height, copy=False)
         xyz = geodetic.to_cartesian().get_xyz(xyz_axis=-1) << height.unit
         self = xyz.view(cls._location_dtype, cls).reshape(geodetic.shape)
         self._ellipsoid = ellipsoid
@@ -596,11 +598,10 @@ class EarthLocation(u.Quantity):
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         xyz = self.view(self._array_dtype, u.Quantity)
         llh = CartesianRepresentation(xyz, xyz_axis=-1, copy=False).represent_as(
-                REPRESENTATION_CLASSES[ellipsoid.lower() + "geodetic"])
+                ELLIPSOIDS[ellipsoid])
         return GeodeticLocation(
             Longitude(llh.lon, u.deg, wrap_angle=180*u.deg, copy=False),
             llh.lat << u.deg, llh.height << self.unit)
-
 
     @property
     def lon(self):
@@ -874,6 +875,11 @@ class BaseGeodeticRepresentation(BaseRepresentation):
     attr_classes = {'lon': Longitude,
                     'lat': Latitude,
                     'height': u.Quantity}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if '_ellipsoid' in cls.__dict__:
+            ELLIPSOIDS[cls._ellipsoid] = cls
 
     def __init__(self, lon, lat=None, height=None, copy=True):
         if height is None and not isinstance(lon, self.__class__):
