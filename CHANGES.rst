@@ -23,6 +23,11 @@ astropy.coordinates
 - Adds a direct transformation from ``ICRS`` to ``AltAz`` frames. This
   provides a modest speedup of approximately 10 percent. [#11079]
 
+- Adds new ``WGS84GeodeticRepresentation``, ``WGS72GeodeticRepresentation``,
+  and ``GRS80GeodeticRepresentation``. These are mostly for use inside
+  ``EarthLocation`` but can also be used to convert between geocentric
+  (cartesian) and different geodetic representations directly. [#11086]
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
