@@ -623,6 +623,110 @@ for all lines in the Table.
 
   >>> lines = t['col3'].pformat(max_lines=8)
 
+Hiding columns
+^^^^^^^^^^^^^^
+
+The |Table| class has functionality to selectively show or hide certain columns
+within the table when using any of the print methods. This can be useful for
+columns that are very wide or else "uninteresting" for various reasons. The
+specification of which columns are outputted is associated with the table itself
+so that it persists through slicing, copying, and serialization (e.g. saving to
+ECSV). One use case is for specialized table subclasses that contain auxilliary
+columns that are not typically useful to the user.
+
+The specification of which columns to include when printing is handled through
+two complementary |Table| attributes:
+
+- `~astropy.table.Table.pprint_include_names`: column names to include, where
+  the default value of `None` implies including all columns.
+- `~astropy.table.Table.pprint_exclude_names`: column names to exclude, where
+  the default value of `None` implies excluding no columns.
+
+Typically you should use just one of the two attributes at a time. However,
+both can be set at once and the set of columns that actually gets printed
+is conceptually expressed in this pseudo-code::
+
+  include_names = (set(table.pprint_include_names() or table.colnames)
+                   - set(table.pprint_exclude_names() or ())
+
+Examples
+""""""""
+Let's start with defining a simple table with one row and six columns::
+
+  >>> from astropy.table.table_helpers import simple_table
+  >>> t = simple_table(size=1, cols=6)
+  >>> print(t)
+  a   b   c   d   e   f
+  --- --- --- --- --- ---
+  1 1.0   c   4 4.0   f
+
+Now you can get the value of the ``pprint_include_names`` attribute by calling
+it as a function, and then include some names for printing::
+
+  >>> print(t.pprint_include_names())
+  None
+  >>> t.pprint_include_names = ('a', 'c', 'e')
+  >>> print(t.pprint_include_names())
+  ('a', 'c', 'e')
+  >>> print(t)
+   a   c   e
+  --- --- ---
+    1   c 4.0
+
+Now you can instead exclude some columns from printing. Note that for both
+include and exclude, you can add column names that do not exist in the table.
+This allows pre-defining the attributes before the table has been fully
+constructed.
+::
+
+  >>> t.pprint_include_names = None  # Revert to printing all columns
+  >>> t.pprint_exclude_names = ('a', 'c', 'e', 'does-not-exist')
+  >>> print(t)
+   b   d   f
+  --- --- ---
+  1.0   4   f
+
+Next you can ``add`` or ``remove`` names from the attribute::
+
+  >>> t = simple_table(size=1, cols=6)  # Start with a fresh table
+  >>> t.pprint_exclude_names.add('b')  # Single name
+  >>> t.pprint_exclude_names.add(['d', 'f'])  # List or tuple of names
+  >>> t.pprint_exclude_names.remove('f')  # Single name or list/tuple of names
+  >>> t.pprint_exclude_names()
+  ('b', 'd')
+
+Finally, you can temporarily set the attributes within a context manager. For
+example::
+
+  >>> t = simple_table(size=1, cols=6)
+  >>> t.pprint_include_names = ('a', 'b')
+  >>> print(t)
+   a   b
+  --- ---
+    1 1.0
+
+  >>> # Show all (for pprint_include_names the value of None => all columns)
+  >>> with t.pprint_include_names.set(None):
+  ...     print(t)
+   a   b   c   d   e   f
+  --- --- --- --- --- ---
+    1 1.0   c   4 4.0   f
+
+The specification of names for these attributes can include Unix-style globs
+like ``*`` and ``?``. See `fnmatch` for details (and in particular how to
+escape those characters if needed). For example::
+
+  >>> t = Table()
+  >>> t.pprint_exclude_names = ['boring*']
+  >>> t['a'] = [1]
+  >>> t['b'] = ['b']
+  >>> t['boring_ra'] = [122.0]
+  >>> t['boring_dec'] = [89.9]
+  >>> print(t)
+   a   b
+  --- ---
+    1   b
+
 Multidimensional columns
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

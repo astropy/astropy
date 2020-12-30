@@ -9,6 +9,7 @@ import warnings
 from copy import deepcopy
 import types
 import itertools
+import weakref
 
 import numpy as np
 from numpy import ma
@@ -280,11 +281,27 @@ class TableColumns(OrderedDict):
         if new_name in self:
             raise KeyError(f"Column {new_name} already exists")
 
+        # Rename column names in pprint include/exclude attributes as needed
+        parent_table = self[name].info.parent_table
+        if parent_table is not None:
+            parent_table.pprint_exclude_names._rename(name, new_name)
+            parent_table.pprint_include_names._rename(name, new_name)
+
         mapper = {name: new_name}
         new_names = [mapper.get(name, name) for name in self]
         cols = list(self.values())
         self.clear()
         self.update(list(zip(new_names, cols)))
+
+    def __delitem__(self, name):
+        # Remove column names from pprint include/exclude attributes as needed.
+        # __delitem__ also gets called for pop() and popitem().
+        parent_table = self[name].info.parent_table
+        if parent_table is not None:
+            # _remove() method does not require that `name` is in the attribute
+            parent_table.pprint_exclude_names._remove(name)
+            parent_table.pprint_include_names._remove(name)
+        return super().__delitem__(name)
 
     def isinstance(self, cls):
         """
@@ -333,6 +350,205 @@ class TableReadWrite:
                 info = instance.__dict__['info'] = self.__class__(bound=True)
             info._parent = instance
         return info
+
+
+class TableAttribute(MetaAttribute):
+    """
+    Descriptor to define a custom attribute for a Table subclass.
+
+    The value of the ``TableAttribute`` will be stored in a dict named
+    ``__attributes__`` that is stored in the table ``meta``.  The attribute
+    can be accessed and set in the usual way, and it can be provided when
+    creating the object.
+
+    Defining an attribute by this mechanism ensures that it will persist if
+    the table is sliced or serialized, for example as a pickle or ECSV file.
+
+    See the `~astropy.utils.metadata.MetaAttribute` documentation for additional
+    details.
+
+    Parameters
+    ----------
+    default : object
+        Default value for attribute
+
+    Examples
+    --------
+      >>> from astropy.table import Table, TableAttribute
+      >>> class MyTable(Table):
+      ...     identifier = TableAttribute(default=1)
+      >>> t = MyTable(identifier=10)
+      >>> t.identifier
+      10
+      >>> t.meta
+      OrderedDict([('__attributes__', {'identifier': 10})])
+    """
+
+
+class PprintIncludeExclude(TableAttribute):
+    """Maintain tuple that controls table column visibility for print output.
+
+    This is a descriptor that inherits from MetaAttribute so that the attribute
+    value is stored in the table meta['__attributes__'].
+
+    This gets used for the ``pprint_include_names`` and ``pprint_exclude_names`` Table
+    attributes.
+    """
+    def __get__(self, instance, owner_cls):
+        """Get the attribute.
+
+        This normally returns an instance of this class which is stored on the
+        owner object.
+        """
+        # For getting from class not an instance
+        if instance is None:
+            return self
+
+        # If not already stored on `instance`, make a copy of the class
+        # descriptor object and put it onto the instance.
+        value = instance.__dict__.get(self.name)
+        if value is None:
+            value = deepcopy(self)
+            instance.__dict__[self.name] = value
+
+        # We set _instance_ref on every call, since if one makes copies of
+        # instances, this attribute will be copied as well, which will lose the
+        # reference.
+        value._instance_ref = weakref.ref(instance)
+        return value
+
+    def __set__(self, instance, names):
+        """Set value of ``instance`` attribute to ``names``.
+
+        Parameters
+        ----------
+        instance : object
+            Instance that owns the attribute
+        names : None, str, list, tuple
+            Column name(s) to store, or None to clear
+        """
+        if isinstance(names, str):
+            names = [names]
+        if names is None:
+            # Remove attribute value from the meta['__attributes__'] dict.
+            # Subsequent access will just return None.
+            delattr(instance, self.name)
+        else:
+            # This stores names into instance.meta['__attributes__'] as tuple
+            return super().__set__(instance, tuple(names))
+
+    def __call__(self):
+        """Get the value of the attribute.
+
+        Returns
+        -------
+        names : None, tuple
+            Include/exclude names
+        """
+        # Get the value from instance.meta['__attributes__']
+        instance = self._instance_ref()
+        return super().__get__(instance, instance.__class__)
+
+    def __repr__(self):
+        if hasattr(self, '_instance_ref'):
+            out = f'<{self.__class__.__name__} name={self.name} value={self()}>'
+        else:
+            out = super().__repr__()
+        return out
+
+    def _add_remove_setup(self, names):
+        """Common setup for add and remove.
+
+        - Coerce attribute value to a list
+        - Coerce names into a list
+        - Get the parent table instance
+        """
+        names = [names] if isinstance(names, str) else list(names)
+        # Get the value. This is the same as self() but we need `instance` here.
+        instance = self._instance_ref()
+        value = super().__get__(instance, instance.__class__)
+        value = [] if value is None else list(value)
+        return instance, names, value
+
+    def add(self, names):
+        """Add ``names`` to the include/exclude attribute.
+
+        Parameters
+        ----------
+        names : str, list, tuple
+            Column name(s) to add
+        """
+        instance, names, value = self._add_remove_setup(names)
+        value.extend(name for name in names if name not in value)
+        super().__set__(instance, tuple(value))
+
+    def remove(self, names):
+        """Remove ``names`` from the include/exclude attribute.
+
+        Parameters
+        ----------
+        names : str, list, tuple
+            Column name(s) to remove
+        """
+        self._remove(names, raise_exc=True)
+
+    def _remove(self, names, raise_exc=False):
+        """Remove ``names`` with optional checking if they exist"""
+        instance, names, value = self._add_remove_setup(names)
+
+        # Return now if there are no attributes and thus no action to be taken.
+        if not raise_exc and '__attributes__' not in instance.meta:
+            return
+
+        # Remove one by one, optionally raising an exception if name is missing.
+        for name in names:
+            if name in value:
+                value.remove(name)  # Using the list.remove method
+            elif raise_exc:
+                raise ValueError(f'{name} not in {self.name}')
+
+        # Change to either None or a tuple for storing back to attribute
+        value = None if value == [] else tuple(value)
+        self.__set__(instance, value)
+
+    def _rename(self, name, new_name):
+        """Rename ``name`` to ``new_name`` if ``name`` is in the list"""
+        names = self() or ()
+        if name in names:
+            new_names = list(names)
+            new_names[new_names.index(name)] = new_name
+            self.set(new_names)
+
+    def set(self, names):
+        """Set value of include/exclude attribute to ``names``.
+
+        Parameters
+        ----------
+        names : None, str, list, tuple
+            Column name(s) to store, or None to clear
+        """
+        class _Context:
+            def __init__(self, descriptor_self):
+                self.descriptor_self = descriptor_self
+                self.names_orig = descriptor_self()
+
+            def __enter__(self):
+                pass
+
+            def __exit__(self, type, value, tb):
+                descriptor_self = self.descriptor_self
+                instance = descriptor_self._instance_ref()
+                descriptor_self.__set__(instance, self.names_orig)
+
+            def __repr__(self):
+                return repr(self.descriptor_self)
+
+        ctx = _Context(descriptor_self=self)
+
+        instance = self._instance_ref()
+        self.__set__(instance, names)
+
+        return ctx
 
 
 class Table:
@@ -392,6 +608,9 @@ class Table:
     # Unified I/O read and write methods from .connect
     read = UnifiedReadWriteMethod(TableRead)
     write = UnifiedReadWriteMethod(TableWrite)
+
+    pprint_exclude_names = PprintIncludeExclude()
+    pprint_include_names = PprintIncludeExclude()
 
     def as_array(self, keep_byteorder=False, names=None):
         """
@@ -876,8 +1095,7 @@ class Table:
 
         if len(names) != n_cols or len(dtype) != n_cols:
             raise ValueError(
-                'Arguments "names" and "dtype" must match number of columns'
-                .format(inp_str))
+                'Arguments "names" and "dtype" must match number of columns')
 
     def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of dictionaries representing rows."""
@@ -3696,36 +3914,3 @@ class NdarrayMixin(np.ndarray):
         nd_state, own_state = state
         super().__setstate__(nd_state)
         self.__dict__.update(own_state)
-
-
-class TableAttribute(MetaAttribute):
-    """
-    Descriptor to define a custom attribute for a Table subclass.
-
-    The value of the ``TableAttribute`` will be stored in a dict named
-    ``__attributes__`` that is stored in the table ``meta``.  The attribute
-    can be accessed and set in the usual way, and it can be provided when
-    creating the object.
-
-    Defining an attribute by this mechanism ensures that it will persist if
-    the table is sliced or serialized, for example as a pickle or ECSV file.
-
-    See the `~astropy.utils.metadata.MetaAttribute` documentation for additional
-    details.
-
-    Parameters
-    ----------
-    default : object
-        Default value for attribute
-
-    Examples
-    --------
-      >>> from astropy.table import Table, TableAttribute
-      >>> class MyTable(Table):
-      ...     identifier = TableAttribute(default=1)
-      >>> t = MyTable(identifier=10)
-      >>> t.identifier
-      10
-      >>> t.meta
-      OrderedDict([('__attributes__', {'identifier': 10})])
-    """

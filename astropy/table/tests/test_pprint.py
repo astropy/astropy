@@ -4,8 +4,10 @@
 
 import pytest
 import numpy as np
+from io import StringIO
 
 from astropy import table
+from astropy.io import ascii
 from astropy.table import Table, QTable
 from astropy.table.table_helpers import simple_table
 from astropy import units as u
@@ -13,6 +15,12 @@ from astropy.utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
+
+try:
+    import yaml  # noqa
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 
 @pytest.mark.usefixtures('table_type')
@@ -709,3 +717,203 @@ def test_decode_replace():
     """
     t = Table([[b'Z\xf0']])
     assert t.pformat() == ['col0', '----', '  Z\ufffd']
+
+
+class TestColumnsShowHide:
+    """Tests of show and hide table columns"""
+    def setup_method(self):
+        self.t = simple_table(size=1, cols=4, kinds='i')
+
+    @pytest.mark.parametrize('attr', ('pprint_exclude_names', 'pprint_include_names'))
+    def test_basic(self, attr):
+        t = self.t
+        assert repr(getattr(Table, attr)) == f'<PprintIncludeExclude name={attr} default=None>'
+
+        t_show_hide = getattr(t, attr)
+        assert repr(t_show_hide) == f'<PprintIncludeExclude name={attr} value=None>'
+
+        # Default value is None
+        assert t_show_hide() is None
+
+    def test_slice(self):
+        t = self.t
+        t.pprint_include_names = 'a'
+        t.pprint_exclude_names = 'b'
+        t2 = t[0:1]
+        assert t2.pprint_include_names() == ('a',)
+        assert t2.pprint_exclude_names() == ('b',)
+
+    def test_copy(self):
+        t = self.t
+        t.pprint_include_names = 'a'
+        t.pprint_exclude_names = 'b'
+
+        t2 = t.copy()
+        assert t2.pprint_include_names() == ('a',)
+        assert t2.pprint_exclude_names() == ('b',)
+
+        t2.pprint_include_names = 'c'
+        t2.pprint_exclude_names = 'd'
+        assert t.pprint_include_names() == ('a',)
+        assert t.pprint_exclude_names() == ('b',)
+        assert t2.pprint_include_names() == ('c',)
+        assert t2.pprint_exclude_names() == ('d',)
+
+    @pytest.mark.parametrize('attr', ('pprint_exclude_names', 'pprint_include_names'))
+    @pytest.mark.parametrize('value', ('z', ['a', 'z']))
+    def test_setting(self, attr, value):
+        t = self.t
+        t_show_hide = getattr(t, attr)
+
+        # Expected attribute value ('z',) or ('a', 'z')
+        exp = (value,) if isinstance(value, str) else tuple(value)
+
+        # Context manager, can include column names that do not exist
+        with t_show_hide.set(value):
+            assert t_show_hide() == exp
+            assert t.meta['__attributes__'] == {attr: exp}
+        assert t_show_hide() is None
+
+        # Setting back to None clears out meta
+        assert t.meta == {}
+
+        # Do `t.pprint_include_names/hide = value`
+        setattr(t, attr, value)
+        assert t_show_hide() == exp
+
+        # Clear attribute
+        t_show_hide.set(None)
+        assert t_show_hide() is None
+
+        # Now use set() method
+        t_show_hide.set(value)
+        assert t_show_hide() == exp
+
+        with t_show_hide.set(None):
+            assert t_show_hide() is None
+            assert t.meta == {}
+        assert t_show_hide() == exp
+
+    @pytest.mark.parametrize('attr', ('pprint_exclude_names', 'pprint_include_names'))
+    @pytest.mark.parametrize('value', ('z', ['a', 'z'], ('a', 'z')))
+    def test_add_remove(self, attr, value):
+        t = self.t
+        t_show_hide = getattr(t, attr)
+
+        # Expected attribute value ('z') or ('a', 'z')
+        exp = (value,) if isinstance(value, str) else tuple(value)
+
+        # add() method for str or list of str
+        t_show_hide.add(value)
+        assert t_show_hide() == exp
+
+        # Adding twice has no effect
+        t_show_hide.add(value)
+        assert t_show_hide() == exp
+
+        # Remove values (str or list of str). Reverts to None if all names are
+        # removed.
+        t_show_hide.remove(value)
+        assert t_show_hide() is None
+
+        # Remove just one name, possibly leaving a name.
+        t_show_hide.add(value)
+        t_show_hide.remove('z')
+        assert t_show_hide() == (None if value == 'z' else ('a',))
+
+        # Cannot remove name not in the list
+        t_show_hide.set(['a', 'z'])
+        with pytest.raises(ValueError, match=f'x not in {attr}'):
+            t_show_hide.remove(('x', 'z'))
+
+    @pytest.mark.parametrize('attr', ('pprint_exclude_names', 'pprint_include_names'))
+    def test_rename(self, attr):
+        t = self.t
+        t_hide_show = getattr(t, attr)
+        t_hide_show.set(['a', 'b'])
+        t.rename_column('a', 'aa')
+        assert t_hide_show() == ('aa', 'b')
+
+    @pytest.mark.parametrize('attr', ('pprint_exclude_names', 'pprint_include_names'))
+    def test_remove(self, attr):
+        t = self.t
+        t_hide_show = getattr(t, attr)
+        t_hide_show.set(['a', 'b'])
+        del t['a']
+        assert t_hide_show() == ('b',)
+
+    @pytest.mark.skipif('not HAS_YAML')
+    def test_serialization(self):
+        # Serialization works for ECSV. Currently fails for FITS, works with
+        # HDF5.
+        t = self.t
+        t.pprint_exclude_names = ['a', 'y']
+        t.pprint_include_names = ['b', 'z']
+
+        out = StringIO()
+        ascii.write(t, out, format='ecsv')
+        t2 = ascii.read(out.getvalue(), format='ecsv')
+
+        assert t2.pprint_exclude_names() == ('a', 'y')
+        assert t2.pprint_include_names() == ('b', 'z')
+
+    def test_output(self):
+        """Test that pprint_include/exclude_names actually changes the print output"""
+        t = self.t
+        exp = [' b   d ',
+               '--- ---',
+               '  2   4']
+
+        with t.pprint_exclude_names.set(['a', 'c']):
+            out = t.pformat_all()
+        assert out == exp
+
+        with t.pprint_include_names.set(['b', 'd']):
+            out = t.pformat_all()
+        assert out == exp
+
+        with t.pprint_exclude_names.set(['a', 'c']):
+            out = t.pformat_all()
+        assert out == exp
+
+        with t.pprint_include_names.set(['b', 'd']):
+            out = t.pformat_all()
+        assert out == exp
+
+        # Mixture (not common in practice but possible). Note, the trailing
+        # backslash instead of parens is needed for Python < 3.9. See:
+        # https://bugs.python.org/issue12782.
+        with t.pprint_include_names.set(['b', 'c', 'd']), \
+             t.pprint_exclude_names.set(['c']):
+            out = t.pformat_all()
+        assert out == exp
+
+    def test_output_globs(self):
+        """Test that pprint_include/exclude_names works with globs (fnmatch)"""
+        t = self.t
+        t['a2'] = 1
+        t['a23'] = 2
+
+        # Show only the a* columns
+        exp = [' a   a2 a23',
+               '--- --- ---',
+               '  1   1   2']
+        with t.pprint_include_names.set('a*'):
+            out = t.pformat_all()
+        assert out == exp
+
+        # Show a* but exclude a??
+        exp = [' a   a2',
+               '--- ---',
+               '  1   1']
+        with t.pprint_include_names.set('a*'), t.pprint_exclude_names.set('a??'):
+            out = t.pformat_all()
+        assert out == exp
+
+        # Exclude a??
+        exp = [' a   b   c   d   a2',
+               '--- --- --- --- ---',
+               '  1   2   3   4   1']
+        with t.pprint_exclude_names.set('a??'):
+            out = t.pformat_all()
+        assert out == exp
