@@ -1605,15 +1605,18 @@ class Quantity(np.ndarray):
         return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
                                    out=out)
 
-    def var(self, axis=None, dtype=None, out=None, ddof=0):
+    def var(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
         return self._wrap_function(np.var, axis, dtype,
-                                   out=out, ddof=ddof, unit=self.unit**2)
+                                   out=out, ddof=ddof, keepdims=keepdims,
+                                   unit=self.unit**2)
 
-    def std(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof)
+    def std(self, axis=None, dtype=None, out=None, ddof=0, keepdims=False):
+        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof,
+                                   keepdims=keepdims)
 
-    def mean(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.mean, axis, dtype, out=out)
+    def mean(self, axis=None, dtype=None, out=None, keepdims=False):
+        return self._wrap_function(np.mean, axis, dtype, out=out,
+                                   keepdims=keepdims)
 
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
