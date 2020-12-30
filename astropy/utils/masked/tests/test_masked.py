@@ -109,7 +109,73 @@ def test_masked_ndarray_init():
     assert_array_equal(ma.mask, m_in)
 
 
-class TestMaskedSubclassCreation:
+def test_cannot_initialize_with_masked():
+    with pytest.raises(NotImplementedError):
+        Masked(np.ma.masked)
+
+
+class TestMaskedClassCreation:
+    """Try creating a MaskedList and subclasses.
+
+    By no means meant to be realistic, just to check that the basic
+    machinery allows it.
+    """
+    def setup_class(self):
+        self._base_classes_orig = Masked._base_classes.copy()
+        self._masked_classes_orig = Masked._masked_classes.copy()
+
+        class MaskedList(Masked, list, base_cls=list, data_cls=list):
+            def __new__(cls, *args, mask=None, copy=False, **kwargs):
+                self = super().__new__(cls)
+                self._unmasked = self._data_cls(*args, **kwargs)
+                self.mask = mask
+                return self
+
+            # Need to have shape for basics to work.
+            @property
+            def shape(self):
+                return (len(self._unmasked),)
+
+        self.MaskedList = MaskedList
+
+    def teardown_class(self):
+        Masked._base_classes = self._base_classes_orig
+        Masked._masked_classes = self._masked_classes_orig
+
+    def test_setup(self):
+        assert issubclass(self.MaskedList, Masked)
+        assert issubclass(self.MaskedList, list)
+        assert Masked(list) is self.MaskedList
+
+    def test_masked_list(self):
+        ml = self.MaskedList(range(3), mask=[True, False, False])
+        assert ml.unmasked == [0, 1, 2]
+        assert_array_equal(ml.mask, np.array([True, False, False]))
+        ml01 = ml[:2]
+        assert ml01.unmasked == [0, 1]
+        assert_array_equal(ml01.mask, np.array([True, False]))
+
+    def test_from_list(self):
+        ml = Masked([1, 2, 3], mask=[True, False, False])
+        assert ml.unmasked == [1, 2, 3]
+        assert_array_equal(ml.mask, np.array([True, False, False]))
+
+    def test_masked_list_subclass(self):
+        class MyList(list):
+            pass
+
+        ml = MyList(range(3))
+        mml = Masked(ml, mask=[False, True, False])
+        assert isinstance(mml, Masked)
+        assert isinstance(mml, MyList)
+        assert isinstance(mml.unmasked, MyList)
+        assert mml.unmasked == [0, 1, 2]
+        assert_array_equal(mml.mask, np.array([False, True, False]))
+
+        assert Masked(MyList) is type(mml)
+
+
+class TestMaskedNDArraySubclassCreation:
     """Test that masked subclasses can be created directly and indirectly."""
     def setup_class(self):
         class MyArray(np.ndarray):
@@ -129,6 +195,7 @@ class TestMaskedSubclassCreation:
         assert issubclass(mcls, Masked)
         assert issubclass(mcls, self.MyArray)
         assert mcls.__name__ == 'MaskedMyArray'
+        assert mcls.__doc__.startswith('Masked version of MyArray')
         mms = mcls(self.a, mask=self.m)
         assert isinstance(mms, mcls)
         assert_array_equal(mms.unmasked, self.a)
@@ -947,6 +1014,17 @@ def test_masked_repr_explicit():
                             "dtype=[('f0', '<f8'), ('f1', '<f8')])")
     assert repr(msa[1]) == ("MaskedNDArray((3., 4.), "
                             "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+
+
+def test_masked_repr_summary():
+    ma = Masked(np.arange(15.), mask=[True]+[False]*14)
+    with np.printoptions(threshold=2):
+        assert repr(ma) == (
+            "MaskedNDArray([———,  1.,  2., ..., 12., 13., 14.])")
+
+
+def test_masked_repr_nodata():
+    assert repr(Masked([])) == "MaskedNDArray([], dtype=float64)"
 
 
 class TestMaskedArrayRepr(MaskedArraySetup):
