@@ -1149,6 +1149,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Ensure ``keepdims`` works for taking ``mean``, ``std``, and ``var`` of
+  ``Quantity``. [#11198]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
