@@ -2504,8 +2504,11 @@ def test_table_attribute():
 
     t = MyTable([[1, 2]])
     # __attributes__ created on the fly on the first access of an attribute
+    # that has a non-None default.
     assert '__attributes__' not in t.meta
     assert t.foo is None
+    assert '__attributes__' not in t.meta
+    assert t.baz == 1
     assert '__attributes__' in t.meta
     t.bar.append(2.0)
     assert t.bar == [2.0]
@@ -2525,6 +2528,12 @@ def test_table_attribute():
     assert t2.foo == 3
     assert t2.bar == 'bar'
     assert t2.baz == 'baz'
+
+    # Deleting attributes removes it from attributes
+    del t.baz
+    assert 'baz' not in t.meta['__attributes__']
+    del t.bar
+    assert '__attributes__' not in t.meta
 
 
 @pytest.mark.skipif('not HAS_YAML')

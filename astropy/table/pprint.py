@@ -3,6 +3,7 @@
 import os
 import sys
 import re
+import fnmatch
 
 import numpy as np
 
@@ -133,6 +134,30 @@ def get_auto_format_func(
         return out
 
     return _auto_format_func
+
+
+def _get_pprint_include_names(table):
+    """Get the set of names to show in pprint from the table pprint_include_names
+    and pprint_exclude_names attributes.
+
+    These may be fnmatch unix-style globs.
+    """
+    def get_matches(name_globs, default):
+        match_names = set()
+        if name_globs:  # For None or () use the default
+            for name in table.colnames:
+                for name_glob in name_globs:
+                    if fnmatch.fnmatch(name, name_glob):
+                        match_names.add(name)
+                        break
+        else:
+            match_names.update(default)
+        return match_names
+
+    include_names = get_matches(table.pprint_include_names(), table.colnames)
+    exclude_names = get_matches(table.pprint_exclude_names(), [])
+
+    return include_names - exclude_names
 
 
 class TableFormatter:
@@ -533,7 +558,14 @@ class TableFormatter:
             raise TypeError('align keyword must be str or list or tuple (got {})'
                             .format(type(align)))
 
+        # Process column visibility from table pprint_include_names and
+        # pprint_exclude_names attributes and get the set of columns to show.
+        pprint_include_names = _get_pprint_include_names(table)
+
         for align_, col in zip(align, table.columns.values()):
+            if col.info.name not in pprint_include_names:
+                continue
+
             lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
                                             show_unit=show_unit, show_dtype=show_dtype,
                                             align=align_)
