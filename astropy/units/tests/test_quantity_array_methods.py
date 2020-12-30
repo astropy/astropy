@@ -3,6 +3,7 @@
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 
@@ -129,7 +130,8 @@ class TestQuantityStatsFuncs:
 
     def test_mean(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
-        assert np.mean(q1) == 3.6 * u.m
+        assert_array_equal(np.mean(q1), 3.6 * u.m)
+        assert_array_equal(np.mean(q1, keepdims=True), [3.6] * u.m)
 
     def test_mean_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
@@ -140,7 +142,8 @@ class TestQuantityStatsFuncs:
 
     def test_std(self):
         q1 = np.array([1., 2.]) * u.m
-        assert np.std(q1) == 0.5 * u.m
+        assert_array_equal(np.std(q1), 0.5 * u.m)
+        assert_array_equal(q1.std(axis=-1, keepdims=True), [0.5] * u.m)
 
     def test_std_inplace(self):
         q1 = np.array([1., 2.]) * u.m
@@ -150,7 +153,8 @@ class TestQuantityStatsFuncs:
 
     def test_var(self):
         q1 = np.array([1., 2.]) * u.m
-        assert np.var(q1) == 0.25 * u.m ** 2
+        assert_array_equal(np.var(q1), 0.25 * u.m ** 2)
+        assert_array_equal(q1.var(axis=0, keepdims=True), [0.25] * u.m ** 2)
 
     def test_var_inplace(self):
         q1 = np.array([1., 2.]) * u.m
