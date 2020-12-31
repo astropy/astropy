@@ -88,6 +88,7 @@ for unit, name in [
     (si.W, 'power'),
     (si.kg / si.m ** 3, 'mass density'),
     (si.m ** 3 / si.kg, 'specific volume'),
+    (si.m ** -3 * si.s ** -1, 'volumetric rate'),
     (si.mol / si.m ** 3, 'molar volume'),
     (si.kg * si.m / si.s, 'momentum/impulse'),
     (si.kg * si.m ** 2 / si.s, 'angular momentum'),
