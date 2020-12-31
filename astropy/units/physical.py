@@ -93,7 +93,7 @@ for unit, name in [
     (si.rad / si.s, 'angular speed'),
     (si.rad / si.s ** 2, 'angular acceleration'),
     (si.g / (si.m * si.s), 'dynamic viscosity'),
-    (si.m ** 2 / si.s, 'kinematic viscosity'),
+    (si.m ** 2 / si.s, 'diffusivity'),
     (si.m ** -1, 'wavenumber'),
     (si.A, 'electrical current'),
     (si.C, 'electrical charge'),
