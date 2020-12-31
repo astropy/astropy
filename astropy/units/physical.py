@@ -83,6 +83,7 @@ for unit, name in [
     (imperial.deg_F, 'temperature'),
     (si.N, 'force'),
     (si.J, 'energy'),
+    (si.J * si.m ** -2 * si.s ** -1, 'energy flux'),
     (si.Pa, 'pressure'),
     (si.W, 'power'),
     (si.kg / si.m ** 3, 'mass density'),
