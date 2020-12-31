@@ -4,6 +4,7 @@
 Regression tests for the physical_type support in the units package
 """
 
+import pytest
 
 from astropy import units as u
 from astropy.units import physical
