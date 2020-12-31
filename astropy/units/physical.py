@@ -86,6 +86,7 @@ for unit, name in [
     (si.J * si.m ** -2 * si.s ** -1, 'energy flux'),
     (si.Pa, 'pressure'),
     (si.W, 'power'),
+    (si.W / si.m ** 3, 'power density'),
     (si.kg / si.m ** 3, 'mass density'),
     (si.m ** 3 / si.kg, 'specific volume'),
     (si.m ** -3 * si.s ** -1, 'volumetric rate'),
