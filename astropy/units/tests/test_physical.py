@@ -58,3 +58,23 @@ def test_redundant_physical_type():
 def test_data_quantity():
     assert u.byte.physical_type == 'data quantity'
     assert u.bit.physical_type == 'data quantity'
+
+
+unit_physical_type_pairs = [
+    (u.J * u.m ** -2 * u.s ** -1, "energy flux"),
+    (u.cm ** -3 * u.hr ** -1, "volumetric rate"),
+]
+
+
+@pytest.mark.parametrize("unit, physical_type", unit_physical_type_pairs)
+def test_physical_types(unit, physical_type):
+    """
+    Test that the `physical_type` attribute of `Unit` objects provides
+    the expected physical type for various units.
+    """
+    if unit.physical_type != physical_type:
+        pytest.fail(
+            f"{repr(unit)}.physical_type was expected to return "
+            f"{repr(physical_type)}, but instead returned "
+            f"{unit.physical_type}."
+        )
