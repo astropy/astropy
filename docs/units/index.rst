@@ -238,6 +238,8 @@ Reference/API
 
 .. automodapi:: astropy.units.astrophys
 
+.. automodapi:: astropy.units.misc
+
 .. automodapi:: astropy.units.function.units
 
 .. automodapi:: astropy.units.photometric

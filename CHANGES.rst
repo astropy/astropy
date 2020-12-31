@@ -270,6 +270,8 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Move non-astronomy units from astrophys.py to a new misc.py file. [#11142]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
