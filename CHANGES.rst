@@ -46,6 +46,9 @@ astropy.io.fits
 
 - Added ``append`` keyword to append table objects to an existing FITS file [#2632, #11149]
 
+- Expose ``Header.strip`` as a public method, to remove the most common
+  structural keywords. [#11174]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

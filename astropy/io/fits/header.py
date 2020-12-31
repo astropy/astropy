@@ -830,7 +830,7 @@ class Header:
 
         tmp = self.__class__((copy.copy(card) for card in self._cards))
         if strip:
-            tmp._strip()
+            tmp.strip()
         return tmp
 
     def __copy__(self):
@@ -1299,7 +1299,7 @@ class Header:
 
         temp = self.__class__(cards)
         if strip:
-            temp._strip()
+            temp.strip()
 
         if len(self):
             first = self._cards[0].keyword
@@ -1624,6 +1624,38 @@ class Header:
 
         self._add_commentary('', value, before=before, after=after)
 
+    def strip(self):
+        """
+        Strip cards specific to a certain kind of header.
+
+        Strip cards like ``SIMPLE``, ``BITPIX``, etc. so the rest of
+        the header can be used to reconstruct another kind of header.
+        """
+
+        # TODO: Previously this only deleted some cards specific to an HDU if
+        # _hdutype matched that type.  But it seemed simple enough to just
+        # delete all desired cards anyways, and just ignore the KeyErrors if
+        # they don't exist.
+        # However, it might be desirable to make this extendable somehow--have
+        # a way for HDU classes to specify some headers that are specific only
+        # to that type, and should be removed otherwise.
+
+        naxis = self.get('NAXIS', 0)
+        tfields = self.get('TFIELDS', 0)
+
+        for idx in range(naxis):
+            self.remove('NAXIS' + str(idx + 1), ignore_missing=True)
+
+        for name in ('TFORM', 'TSCAL', 'TZERO', 'TNULL', 'TTYPE',
+                     'TUNIT', 'TDISP', 'TDIM', 'THEAP', 'TBCOL'):
+            for idx in range(tfields):
+                self.remove(name + str(idx + 1), ignore_missing=True)
+
+        for name in ('SIMPLE', 'XTENSION', 'BITPIX', 'NAXIS', 'EXTEND',
+                     'PCOUNT', 'GCOUNT', 'GROUPS', 'BSCALE', 'BZERO',
+                     'TFIELDS'):
+            self.remove(name, ignore_missing=True)
+
     def _update(self, card):
         """
         The real update code.  If keyword already exists, its value and/or
@@ -1898,54 +1930,6 @@ class Header:
                 cards.append(Card(keyword, valuestr[idx:idx + maxlen]))
                 idx += maxlen
         return cards
-
-    def _strip(self):
-        """
-        Strip cards specific to a certain kind of header.
-
-        Strip cards like ``SIMPLE``, ``BITPIX``, etc. so the rest of
-        the header can be used to reconstruct another kind of header.
-        """
-
-        # TODO: Previously this only deleted some cards specific to an HDU if
-        # _hdutype matched that type.  But it seemed simple enough to just
-        # delete all desired cards anyways, and just ignore the KeyErrors if
-        # they don't exist.
-        # However, it might be desirable to make this extendable somehow--have
-        # a way for HDU classes to specify some headers that are specific only
-        # to that type, and should be removed otherwise.
-
-        if 'NAXIS' in self:
-            naxis = self['NAXIS']
-        else:
-            naxis = 0
-
-        if 'TFIELDS' in self:
-            tfields = self['TFIELDS']
-        else:
-            tfields = 0
-
-        for idx in range(naxis):
-            try:
-                del self['NAXIS' + str(idx + 1)]
-            except KeyError:
-                pass
-
-        for name in ('TFORM', 'TSCAL', 'TZERO', 'TNULL', 'TTYPE',
-                     'TUNIT', 'TDISP', 'TDIM', 'THEAP', 'TBCOL'):
-            for idx in range(tfields):
-                try:
-                    del self[name + str(idx + 1)]
-                except KeyError:
-                    pass
-
-        for name in ('SIMPLE', 'XTENSION', 'BITPIX', 'NAXIS', 'EXTEND',
-                     'PCOUNT', 'GCOUNT', 'GROUPS', 'BSCALE', 'BZERO',
-                     'TFIELDS'):
-            try:
-                del self[name]
-            except KeyError:
-                pass
 
     def _add_commentary(self, key, value, before=None, after=None):
         """
