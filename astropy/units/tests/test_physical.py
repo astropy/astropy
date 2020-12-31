@@ -16,6 +16,7 @@ unit_physical_type_pairs = [
     (u.m, "length"),
     (u.cm ** -3, "volume"),
     (u.km / u.h, "speed"),
+    (u.barn * u.Mpc, "volume"),
     (u.m * u.s, "unknown"),
     (u.m / u.m, "dimensionless"),
     (hbar.unit, "angular momentum"),
@@ -26,6 +27,13 @@ unit_physical_type_pairs = [
     (u.bit, "data quantity"),
     (u.J * u.m ** -2 * u.s ** -1, "energy flux"),
     (u.cm ** -3 * u.hr ** -1, "volumetric rate"),
+    (u.imperial.mi / u.week, "speed"),
+    (u.erg / u.s, "power"),
+    (u.C / u.s, "electrical current"),
+    (u.C / u.s / u.cm ** 2, "current density"),
+    (u.T * u.m, "magnetic flux"),
+    (u.N * u.m, "energy"),
+    (u.rad / u.ms, "angular speed"),
 ]
 
 
