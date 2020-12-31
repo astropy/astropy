@@ -100,6 +100,10 @@ astropy.utils
 
 - Add new ``utils.parsing`` module to with helper wrappers around ``ply``. [#11227]
 
+- Deprecated ``astropy.utils.OrderedDescriptor`` and
+  ``astropy.utils.OrderedDescriptorContainer``, as new features in Python 3
+  make their use less compelling. [#11094, #11099]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
