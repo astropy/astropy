@@ -15,6 +15,7 @@ from . import si
 from . import astrophys
 from . import cgs
 from . import imperial
+from . import misc
 
 
 __all__ = ['def_physical_type', 'get_physical_type']
@@ -122,8 +123,8 @@ for unit, name in [
     (astrophys.photon / si.Hz / si.cm ** 2 / si.s, 'photon flux density'),
     (astrophys.photon / si.AA / si.cm ** 2 / si.s, 'photon flux density wav'),
     (astrophys.R, 'photon flux'),
-    (astrophys.bit, 'data quantity'),
-    (astrophys.bit / si.s, 'bandwidth'),
+    (misc.bit, 'data quantity'),
+    (misc.bit / si.s, 'bandwidth'),
     (cgs.Franklin, 'electrical charge (ESU)'),
     (cgs.statampere, 'electrical current (ESU)'),
     (cgs.Biot, 'electrical current (EMU)'),
