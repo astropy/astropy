@@ -441,6 +441,7 @@ class TestNonLinearFitters:
 
         assert_allclose(model.parameters, withw.parameters, rtol=10 ** (-4))
 
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
     @pytest.mark.parametrize('fitter_class', fitters)
     def test_fitter_against_LevMar(self, fitter_class):
         """Tests results from non-linear fitters against `LevMarLSQFitter`."""
@@ -453,6 +454,7 @@ class TestNonLinearFitters:
         assert_allclose(model.parameters, new_model.parameters,
                         rtol=10 ** (-4))
 
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
     def test_LSQ_SLSQP_with_constraints(self):
         """
         Runs `LevMarLSQFitter` and `SLSQPLSQFitter` on a model with
@@ -624,6 +626,7 @@ class Test1DFittingWithOutlierRemoval:
         self.y = func(self.model_params, self.x)
 
     @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
     def test_with_fitters_and_sigma_clip(self):
         import scipy.stats as stats
 
@@ -685,6 +688,7 @@ class Test2DFittingWithOutlierRemoval:
         return amplitude, x_mean, y_mean
 
     @pytest.mark.filterwarnings('ignore:The fit may be unsuccessful')
+    @pytest.mark.filterwarnings(r'ignore:Values in x were outside bounds during a minimize step, clipping to bounds')
     def test_with_fitters_and_sigma_clip(self):
         import scipy.stats as stats
 
