@@ -1099,6 +1099,9 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix bug where manual fixes to invalid header cards were not preserved when
+  saving a FITS file. [#11108]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
