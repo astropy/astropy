@@ -284,8 +284,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         else:
             frame_attrs = frame_attrs.copy()
 
-        frame_attrs.update({k: v for k, v in cls.__dict__.items()
-                            if isinstance(v, Attribute)})
+        for basecls in (cls,) + cls.__bases__:
+            if not issubclass(basecls, BaseCoordinateFrame):
+                continue
+
+            for k, v in basecls.__dict__.items():
+                if isinstance(v, Attribute):
+                    frame_attrs.setdefault(k, v)
+
         cls.frame_attributes = frame_attrs
 
         # Deal with setting the name of the frame:

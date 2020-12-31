@@ -121,6 +121,39 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.newattr == 'world'
 
 
+def test_frame_multiple_inheritance_attribute_descriptor():
+    """
+    Ensure that all attributes are accumulated in case of inheritance from
+    multiple BaseCoordinateFrames.  See
+    https://github.com/astropy/astropy/pull/11099#issuecomment-735829157
+    """
+
+    class Frame1(BaseCoordinateFrame):
+        attr1 = Attribute()
+
+    class Frame2(BaseCoordinateFrame):
+        attr2 = Attribute()
+
+    class Frame3(Frame1, Frame2):
+        pass
+
+    assert len(Frame3.frame_attributes) == 2
+    assert 'attr1' in Frame3.frame_attributes
+    assert 'attr2' in Frame3.frame_attributes
+
+    # In case the same attribute exists in both frames, the one from the
+    # left-most class in the MRO should take precedence
+    class Frame4(BaseCoordinateFrame):
+        attr1 = Attribute()
+        attr2 = Attribute()
+
+    class Frame5(Frame1, Frame4):
+        pass
+
+    assert Frame5.frame_attributes['attr1'] is Frame1.frame_attributes['attr1']
+    assert Frame5.frame_attributes['attr2'] is Frame4.frame_attributes['attr2']
+
+
 def test_differentialattribute():
 
     # Test logic of passing input through to allowed class
