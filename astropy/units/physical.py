@@ -84,7 +84,7 @@ for unit, name in [
     (si.N, 'force'),
     (si.J, 'energy'),
     (si.J * si.m ** -2 * si.s ** -1, 'energy flux'),
-    (si.Pa, 'pressure'),
+    (si.Pa, 'pressure or energy density'),
     (si.W, 'power'),
     (si.W / si.m ** 3, 'power density'),
     (si.kg / si.m ** 3, 'mass density'),
