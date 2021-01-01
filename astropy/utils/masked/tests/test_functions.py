@@ -914,6 +914,142 @@ class TestInterpolationFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         assert_array_equal(out2.mask, expected_mask)
 
 
+class TestBincountDigitize(metaclass=CoverageMeta):
+    def test_bincount(self):
+        i = np.array([1, 1, 2, 3, 2, 4])
+        mask_i = np.array([True, False, False, True, False, False])
+        mi = Masked(i, mask=mask_i)
+        out = np.bincount(mi)
+        expected = np.bincount(i[~mask_i])
+        assert_array_equal(out, expected)
+        w = np.arange(len(i))
+        mask_w = np.array([True]+[False]*5)
+        mw = Masked(w, mask=mask_w)
+        out2 = np.bincount(i, mw)
+        expected = np.bincount(i, w)
+        expected_mask = np.array([False, True, False, False, False])
+        assert_array_equal(out2.unmasked, expected)
+        assert_array_equal(out2.mask, expected_mask)
+
+        out3 = np.bincount(mi, mw)
+        expected = np.bincount(i[~mask_i], w[~mask_i])
+        expected_mask = np.array([False, False, False, False, False])
+        assert_array_equal(out3.unmasked, expected)
+        assert_array_equal(out3.mask, expected_mask)
+
+    @pytest.mark.xfail(reason='not implemented yet')
+    def test_digitize(self):
+        x = np.array([1500., 2500., 4500.])
+        bins = np.arange(10.)
+        out = np.digitize(x, bins)
+        expected = np.digitize(x.to_value(bins.unit), bins.value)
+        assert_array_equal(out, expected)
+
+
+class TestStringFunctions(metaclass=CoverageMeta):
+    # More elaborate tests done in test_masked.py
+    def setup(self):
+        self.ma = Masked(np.arange(3), mask=[True, False, False])
+
+    def test_array2string(self):
+        out0 = np.array2string(self.ma)
+        assert out0 == '[— 1 2]'
+        # Arguments are interpreted as usual.
+        out1 = np.array2string(self.ma, separator=', ')
+        assert out1 == '[—, 1, 2]'
+        # If we do pass in a formatter, though, it should be used.
+        out2 = np.array2string(self.ma, separator=', ', formatter={'all': hex})
+        assert out2 == '[———, 0x1, 0x2]'
+        # Also as positional argument (no, nobody will do this!)
+        out3 = np.array2string(self.ma, None, None, None, ', ', '',
+                               np._NoValue, {'int': hex})
+        assert out3 == out2
+        # But not if the formatter is not relevant for us.
+        out4 = np.array2string(self.ma, separator=', ', formatter={'float': hex})
+        assert out4 == out1
+
+    def test_array_repr(self):
+        out = np.array_repr(self.ma)
+        assert out == 'MaskedNDArray([—, 1, 2])'
+        ma2 = self.ma.astype('f4')
+        out2 = np.array_repr(ma2)
+        assert out2 == 'MaskedNDArray([——, 1., 2.], dtype=float32)'
+
+    def test_array_str(self):
+        out = np.array_str(self.ma)
+        assert out == '[— 1 2]'
+
+
+class TestBitAndIndexFunctions(metaclass=CoverageMeta):
+    # Index/bit functions generally fail for floats, so the usual
+    # float quantity are safe, but the integer ones are not.
+    def setup(self):
+        self.a = np.array([15, 255, 0], dtype='u1')
+        self.mask_a = np.array([False, True, False])
+        self.ma = Masked(self.a, mask=self.mask_a)
+        self.b = np.unpackbits(self.a).reshape(6, 4)
+        self.mask_b = np.array([False]*15 + [True, True] + [False]*7).reshape(6, 4)
+        self.mb = Masked(self.b, mask=self.mask_b)
+
+    @pytest.mark.parametrize('axis', [None, 1, 0])
+    def test_packbits(self, axis):
+        out = np.packbits(self.mb, axis=axis)
+        if axis is None:
+            expected = self.a
+        else:
+            expected = np.packbits(self.b, axis=axis)
+        expected_mask = np.packbits(self.mask_b, axis=axis) > 0
+        assert_array_equal(out.unmasked, expected)
+        assert_array_equal(out.mask, expected_mask)
+
+    def test_unpackbits(self):
+        out = np.unpackbits(self.ma)
+        mask = np.where(self.mask_a, np.uint8(255), np.uint8(0))
+        expected_mask = np.unpackbits(mask) > 0
+        assert_array_equal(out.unmasked, self.b.ravel())
+        assert_array_equal(out.mask, expected_mask)
+
+    def test_unravel_index(self):
+        with pytest.raises(TypeError):
+            np.unravel_index(self.ma, 3)
+
+    def test_ravel_multi_index(self):
+        with pytest.raises(TypeError):
+            np.ravel_multi_index((self.ma,), 3)
+
+    def test_ix_(self):
+        with pytest.raises(TypeError):
+            np.ix_(self.ma)
+
+
+class TestDtypeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+    def check(self, function, *args, **kwargs):
+        out = function(self.ma, *args, **kwargs)
+        expected = function(self.a, *args, **kwargs)
+        assert out == expected
+
+    def test_common_type(self):
+        self.check(np.common_type)
+
+    def test_result_type(self):
+        self.check(np.result_type)
+
+    def test_can_cast(self):
+        self.check(np.can_cast, self.a.dtype)
+        self.check(np.can_cast, 'f4')
+
+    def test_min_scalar_type(self):
+        out = np.min_scalar_type(self.ma[0, 0])
+        expected = np.min_scalar_type(self.a[0, 0])
+        assert out == expected
+
+    def test_iscomplexobj(self):
+        self.check(np.iscomplexobj)
+
+    def test_isrealobj(self):
+        self.check(np.isrealobj)
+
+
 class TestMeshGrid(metaclass=CoverageMeta):
     def test_meshgrid(self):
         a = np.arange(1., 4.)
@@ -938,6 +1074,35 @@ class TestMemoryFunctions(MaskedArraySetup, metaclass=CoverageMeta):
     def test_may_share_memory(self):
         assert np.may_share_memory(self.ma, self.ma.unmasked)
         assert not np.may_share_memory(self.ma, self.ma.mask)
+
+
+class TestDatetimeFunctions(metaclass=CoverageMeta):
+    # Could in principle support np.is_busday, np.busday_count, np.busday_offset.
+    def setup_class(self):
+        self.a = np.array(['2020-12-31', '2021-01-01', '2021-01-02'], dtype='M')
+        self.mask_a = np.array([False, True, False])
+        self.ma = Masked(self.a, mask=self.mask_a)
+        self.b = np.array([['2021-01-07'], ['2021-01-31']], dtype='M')
+        self.mask_b = np.array([[False], [True]])
+        self.mb = Masked(self.b, mask=self.mask_b)
+
+    def test_datetime_as_string(self):
+        out = np.datetime_as_string(self.ma)
+        expected = np.datetime_as_string(self.a)
+        assert_array_equal(out.unmasked, expected)
+        assert_array_equal(out.mask, self.mask_a)
+
+    def test_is_busday(self):
+        with pytest.raises(TypeError):
+            np.is_busday(self.ma)
+
+    def test_busday_offset(self):
+        with pytest.raises(TypeError):
+            np.busday_offset(self.ma, 1)
+
+    def test_busday_count(self):
+        with pytest.raises(TypeError):
+            np.busday_count(self.ma, self.ma)
 
 
 untested_functions = set()
