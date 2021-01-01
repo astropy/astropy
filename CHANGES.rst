@@ -269,6 +269,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Corrected the physical type of moles per unit volume from ``"molar volume"``
+  to ``"molar concentration"``.
+
 astropy.utils
 ^^^^^^^^^^^^^
 

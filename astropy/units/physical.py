@@ -92,9 +92,8 @@ for unit, name in [
     (si.kg / si.m ** 3, 'mass density'),
     (si.m ** 3 / si.kg, 'specific volume'),
     (si.m ** -3 * si.s ** -1, 'volumetric rate'),
-    (si.mol / si.m ** 3, 'molar volume'),  # incorrect
-#   (si.mol / si.m ** 3, 'molar concentration'),  # correct
-    (si.m ** 3 / si.mol, 'molar volume'),  #
+    (si.mol / si.m ** 3, 'molar concentration'),
+    (si.m ** 3 / si.mol, 'molar volume'),
     (si.kg * si.m / si.s, 'momentum/impulse'),
     (si.kg * si.m ** 2 / si.s, 'angular momentum'),
     (si.rad / si.s, 'angular speed'),

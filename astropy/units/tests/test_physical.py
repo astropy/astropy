@@ -38,6 +38,8 @@ unit_physical_type_pairs = [
     (1 / (u.Ohm * u.m), "electrical conductivity"),
     (u.N / u.cm ** 3, "force density"),
     (u.erg / u.s / u.K, "thermal conductivity"),
+    (u.mol * u.m ** -3, "molar concentration"),
+    (u.m ** 3 / u.mol, "molar volume"),
 ]
 
 
