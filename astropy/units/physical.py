@@ -148,7 +148,6 @@ for unit, name in [
     (si.mol / si.s, 'catalytic activity'),
     (si.J * si.K ** -1 * si.mol ** -1, 'molar heat capacity'),
     (si.mol / si.kg, 'molality'),
-    (si.J / si.K, 'heat capacity or entropy'),
     (si.m * si.s, 'absement'),
     (si.m ** 3 / si.s, 'volumetric flow rate'),
     (si.s ** -2, 'frequency drift'),
