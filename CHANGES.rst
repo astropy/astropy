@@ -1140,6 +1140,8 @@ astropy.time
 - Fix default assumed location to be the geocenter when transforming times
   to and from solar-system barycenter scales. [#11134]
 
+- Fix inability to write masked times with ``formatted_value``. [#11195]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
