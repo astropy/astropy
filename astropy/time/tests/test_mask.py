@@ -3,6 +3,7 @@
 import functools
 import numpy as np
 
+from astropy import units as u
 from astropy.utils import iers
 from astropy.tests.helper import pytest
 from astropy.time import Time
@@ -195,14 +196,12 @@ def test_serialize_hdf5_masked(tmpdir):
 # Ignore warning in MIPS https://github.com/astropy/astropy/issues/9750
 @pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.filterwarnings('ignore:invalid value encountered')
-def test_serialize_ecsv_masked(tmpdir):
+@pytest.mark.parametrize('serialize_method', ['jd1_jd2', 'formatted_value'])
+def test_serialize_ecsv_masked(serialize_method, tmpdir):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked
 
-    # Serializing in the default way for ECSV fails to round-trip
-    # because it writes out a "nan" instead of "".  But for jd1/jd2
-    # this works OK.
-    tm.info.serialize_method['ecsv'] = 'jd1_jd2'
+    tm.info.serialize_method['ecsv'] = serialize_method
 
     fn = str(tmpdir.join('tempfile.ecsv'))
     t = Table([tm])
@@ -211,6 +210,6 @@ def test_serialize_ecsv_masked(tmpdir):
 
     assert t2['col0'].masked
     assert np.all(t2['col0'].mask == [False, True, False])
-    # Serializing floats to ASCII loses some precision so use allclose
-    # and 1e-7 seconds tolerance.
-    assert np.allclose(t2['col0'].value, t['col0'].value, rtol=0, atol=1e-7)
+    # Serializing formatted_value loses some precision.
+    atol = 0.1*u.us if serialize_method == 'formatted_value' else 1*u.ps
+    assert np.all(abs(t2['col0'] - t['col0']) <= atol)

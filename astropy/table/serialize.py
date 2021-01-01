@@ -1,10 +1,13 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from importlib import import_module
 import re
 from copy import deepcopy
 from collections import OrderedDict
 
+import numpy as np
+
 from astropy.utils.data_info import MixinInfo
-from .column import Column
+from .column import Column, MaskedColumn
 from .table import Table, QTable, has_info_class
 from astropy.units.quantity import QuantityInfo
 
@@ -101,7 +104,9 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             new_name = name + '.' + data_attr
 
         if not has_info_class(data, MixinInfo):
-            new_cols.append(Column(data, name=new_name, **info))
+            col_cls = MaskedColumn if (hasattr(data, 'mask')
+                                       and np.any(data.mask)) else Column
+            new_cols.append(col_cls(data, name=new_name, **info))
             obj_attrs[data_attr] = SerializedColumn({'name': new_name})
         else:
             # recurse. This will define obj_attrs[new_name].
