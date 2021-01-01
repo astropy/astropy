@@ -664,7 +664,7 @@ class TestSplit(metaclass=CoverageMeta):
 
 
 class TestMethodLikes(MaskedArraySetup, metaclass=CoverageMeta):
-    def check(self, function, method=None, *args, **kwargs):
+    def check(self, function, *args, method=None, **kwargs):
         if method is None:
             method = function.__name__
 
@@ -719,7 +719,6 @@ class TestMethodLikes(MaskedArraySetup, metaclass=CoverageMeta):
     def test_around(self):
         self.check(np.around, method='round')
 
-    @pytest.mark.xfail(reason='need to implement clip properly')
     def test_clip(self):
         self.check(np.clip, 2., 4.)
         self.check(np.clip, self.mb, self.mc)
