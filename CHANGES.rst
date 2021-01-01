@@ -91,7 +91,7 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
-- Add `"energy flux"` (J m⁻² s⁻¹) and `"volumetric rate"` (m⁻³ s⁻¹) as new
+- Add ``"energy flux"`` (J m⁻² s⁻¹) and ``"volumetric rate"`` (m⁻³ s⁻¹) as new
   physical types for units. [#11200]
 
 astropy.utils
