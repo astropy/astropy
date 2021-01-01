@@ -725,9 +725,9 @@ class MaskedUfuncTests(MaskedArraySetup):
             np.add(self.ma, self.mb, out=out)
 
     def test_3op_ufunc(self):
-        ma_mb = np.clip(self.ma, self.mb, self.mc)
+        ma_mb = np.clip(self.ma, self.b, self.c)
         expected_data = np.clip(self.a, self.b, self.c)
-        expected_mask = (self.ma.mask | self.mb.mask | self.mc.mask)
+        expected_mask = self.mask_a
         assert_array_equal(ma_mb.unmasked, expected_data)
         assert_array_equal(ma_mb.mask, expected_mask)
 
@@ -996,6 +996,21 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected = Masked(self.a.trace(offset=offset),
                           self.mask_a.trace(offset=offset, dtype=bool))
         assert_masked_equal(mta, expected)
+
+    def test_clip(self):
+        maclip = self.ma.clip(self.b, self.c)
+        expected = Masked(self.a.clip(self.b, self.c), self.mask_a)
+        assert_masked_equal(maclip, expected)
+
+    def test_clip_masked_min_max(self):
+        maclip = self.ma.clip(self.mb, self.mc)
+        # Need to be careful with min, max because of Longitude, which wraps.
+        dmax = np.maximum(np.maximum(self.a, self.b), self.c).max()
+        dmin = np.minimum(np.minimum(self.a, self.b), self.c).min()
+        expected = Masked(self.a.clip(self.mb.unmask(dmin),
+                                      self.mc.unmask(dmax)),
+                          mask=self.mask_a)
+        assert_masked_equal(maclip, expected)
 
 
 class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):

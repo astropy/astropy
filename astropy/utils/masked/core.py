@@ -897,6 +897,27 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             axis = 0
         return np.multiply.accumulate(self, axis=axis, dtype=dtype, out=out)
 
+    def clip(self, min=None, max=None, out=None, **kwargs):
+        """Return an array whose values are limited to ``[min, max]``.
+
+        Like `~numpy.clip`, but any masked values in ``min`` and ``max``
+        are ignored for clipping.  The mask of the input array is propagated.
+        """
+        # TODO: implement this at the ufunc level.
+        dmin, mmin = self._data_mask(min)
+        dmax, mmax = self._data_mask(max)
+        if mmin is None and mmax is None:
+            # Fast path for unmasked max, min.
+            return super().clip(min, max, out=out, **kwargs)
+
+        masked_out = np.positive(self, out=out)
+        out = masked_out.unmasked
+        if dmin is not None:
+            np.maximum(out, dmin, out=out, where=True if mmin is None else ~mmin)
+        if dmax is not None:
+            np.minimum(out, dmax, out=out, where=True if mmax is None else ~mmax)
+        return masked_out
+
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
         # Implementation based on that in numpy/core/_methods.py
         # Cast bool, unsigned int, and int to float64 by default,
