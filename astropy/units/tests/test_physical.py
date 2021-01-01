@@ -17,7 +17,7 @@ unit_physical_type_pairs = [
     (u.cm ** 3, "volume"),
     (u.km / u.h, "speed"),
     (u.barn * u.Mpc, "volume"),
-    (u.m * u.s, "unknown"),
+    (u.m * u.s ** 8, "unknown"),
     (u.m / u.m, "dimensionless"),
     (hbar.unit, "angular momentum"),
     (u.erg / (u.cm**2 * u.s * u.AA), "spectral flux density wav"),  # flam
