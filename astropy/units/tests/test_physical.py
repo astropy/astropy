@@ -34,6 +34,10 @@ unit_physical_type_pairs = [
     (u.T * u.m ** 2, "magnetic flux"),
     (u.N * u.m, "energy"),
     (u.rad / u.ms, "angular speed"),
+    (u.Ohm * u.m, "electrical resistivity"),
+    (1 / (u.Ohm * u.m), "electrical conductivity"),
+    (u.N / u.cm ** 3, "force density"),
+    (u.erg / u.s / u.K, "thermal conductivity"),
 ]
 
 
