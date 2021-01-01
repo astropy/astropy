@@ -9,7 +9,7 @@ MASKED_SAFE_FUNCTIONS = set()
 UFUNC_LIKE_FUNCTIONS = set()
 APPLY_TO_BOTH_FUNCTIONS = {}
 DISPATCHED_FUNCTIONS = {}
-UNSUPPORTED_FUNCTIONS = {np.pad}
+UNSUPPORTED_FUNCTIONS = set()
 
 MASKED_SAFE_FUNCTIONS |= {
     # np.core.numeric
@@ -35,6 +35,10 @@ MASKED_SAFE_FUNCTIONS |= {
 # (io, polynomial, etc.).
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
+# TODO: the following could in principle be supported.
+UNSUPPORTED_FUNCTIONS |= {
+    np.pad, np.is_busday, np.busday_count, np.busday_offset,
+    np.unravel_index, np.ravel_multi_index, np.ix_}
 
 apply_to_both = FunctionAssigner(APPLY_TO_BOTH_FUNCTIONS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
@@ -58,6 +62,12 @@ def _data_masks(*args):
             masks.append(np.zeros(np.shape(arg), bool))
 
     return tuple(data), tuple(masks)
+
+
+@dispatched_function
+def datetime_as_string(arr, *args, **kwargs):
+    return (np.datetime_as_string(arr.unmasked, *args, **kwargs),
+            arr.mask.copy(), None)
 
 
 @dispatched_function
@@ -196,6 +206,48 @@ def copyto(dst, src,  casting='same_kind', where=True):
     if src_mask is not None:
         np.copyto(dst.mask, src_mask, where=where)
     return None, None, None
+
+
+@dispatched_function
+def packbits(a, *args, **kwargs):
+    result = np.packbits(a.unmasked, *args, **kwargs)
+    mask = np.packbits(a.mask, *args, **kwargs).astype(bool)
+    return result, mask, None
+
+
+@dispatched_function
+def unpackbits(a, *args, **kwargs):
+    result = np.unpackbits(a.unmasked, *args, **kwargs)
+    mask = np.zeros(a.shape, dtype='u1')
+    mask[a.mask] = 255
+    mask = np.unpackbits(mask, *args, **kwargs).astype(bool)
+    return result, mask, None
+
+
+@dispatched_function
+def bincount(x, weights=None, minlength=0):
+    """Count number of occurrences of each value in array of non-negative ints.
+
+    Like `~numpy.bincount`, but masked entries in ``x`` will be skipped.
+    Any masked entries in ``weights`` will lead the corresponding bin to
+    be masked.
+    """
+    from astropy.utils.masked import Masked
+    if weights is not None:
+        weights = np.asanyarray(weights)
+    if isinstance(x, Masked) and x.ndim <= 1:
+        # let other dimensions lead to errors.
+        if weights is not None and weights.ndim == x.ndim:
+            weights = weights[~x.mask]
+        x = x.unmasked[~x.mask]
+    mask = None
+    if weights is not None:
+        weights, w_mask = Masked._data_mask(weights)
+        if w_mask is not None:
+            mask = np.bincount(x, w_mask.astype(int),
+                               minlength=minlength).astype(bool)
+    result = np.bincount(x, weights, minlength=0)
+    return result, mask, None
 
 
 @apply_to_both
