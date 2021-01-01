@@ -682,7 +682,6 @@ class TestMethodLikes(MaskedArraySetup, metaclass=CoverageMeta):
     def test_sum(self):
         self.check(np.sum)
 
-    @pytest.mark.xfail(reason='need to implement accumulate')
     def test_cumsum(self):
         self.check(np.cumsum)
 
@@ -704,11 +703,9 @@ class TestMethodLikes(MaskedArraySetup, metaclass=CoverageMeta):
     def test_product(self):
         self.check(np.product, method='prod')
 
-    @pytest.mark.xfail(reason='need to implement accumulate')
     def test_cumprod(self):
         self.check(np.cumprod)
 
-    @pytest.mark.xfail(reason='need to implement accumulate')
     def test_cumproduct(self):
         self.check(np.cumproduct, method='cumprod')
 
@@ -916,6 +913,22 @@ class TestInterpolationFunctions(MaskedArraySetup, metaclass=CoverageMeta):
                                      [True, False, lambda x: ~x])
         assert_array_equal(out2.unmasked, expected)
         assert_array_equal(out2.mask, expected_mask)
+
+
+class TestMeshGrid(metaclass=CoverageMeta):
+    def test_meshgrid(self):
+        a = np.arange(1., 4.)
+        mask_a = np.array([True, False, False])
+        ma = Masked(a, mask=mask_a)
+        b = np.array([2.5, 10., 3., 4.])
+        mask_b = np.array([False, True, False, True])
+        mb = Masked(b, mask=mask_b)
+        oa, ob = np.meshgrid(ma, mb)
+        xa, xb = np.broadcast_arrays(a, b[:, np.newaxis])
+        ma, mb = np.broadcast_arrays(mask_a, mask_b[:, np.newaxis])
+        for o, x, m in ((oa, xa, ma), (ob, xb, mb)):
+            assert_array_equal(o.unmasked, x)
+            assert_array_equal(o.mask, m)
 
 
 class TestMemoryFunctions(MaskedArraySetup, metaclass=CoverageMeta):

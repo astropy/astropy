@@ -799,6 +799,17 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_sum.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_cumsum(self, axis):
+        ma_sum = self.ma.cumsum(axis)
+        expected_data = self.a.cumsum(axis)
+        mask = self.mask_a
+        if axis is None:
+            mask = mask.ravel()
+        expected_mask = np.logical_or.accumulate(mask, axis=axis)
+        assert_array_equal(ma_sum.unmasked, expected_data)
+        assert_array_equal(ma_sum.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
     def test_mean(self, axis):
         ma_mean = self.ma.mean(axis)
         filled = self.a.copy()
@@ -993,6 +1004,28 @@ class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
 
 class TestMaskedLongitudeMethods(TestMaskedArrayMethods, LongitudeSetup):
     pass
+
+
+class TestMaskedArrayProductMethods(MaskedArraySetup):
+    # These cannot work on Quantity, so done separately
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_prod(self, axis):
+        ma_sum = self.ma.prod(axis)
+        expected_data = self.a.prod(axis)
+        expected_mask = self.ma.mask.any(axis)
+        assert_array_equal(ma_sum.unmasked, expected_data)
+        assert_array_equal(ma_sum.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_cumprod(self, axis):
+        ma_sum = self.ma.cumprod(axis)
+        expected_data = self.a.cumprod(axis)
+        mask = self.mask_a
+        if axis is None:
+            mask = mask.ravel()
+        expected_mask = np.logical_or.accumulate(mask, axis=axis)
+        assert_array_equal(ma_sum.unmasked, expected_data)
+        assert_array_equal(ma_sum.mask, expected_mask)
 
 
 def test_masked_str_explicit():
