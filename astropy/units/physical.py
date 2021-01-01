@@ -118,7 +118,7 @@ for unit, name in [
     (si.Wb, 'magnetic flux'),
     (si.T, 'magnetic flux density'),
     (si.A / si.m, 'magnetic field strength'),
-    (u.m ** 2 * u.A, 'magnetic dipole moment'),
+    (si.m ** 2 * si.A, 'magnetic dipole moment'),
     (si.H / si.m, 'electromagnetic field strength'),
     (si.H, 'inductance'),
     (si.cd, 'luminous intensity'),
@@ -150,8 +150,8 @@ for unit, name in [
     (si.mol / si.kg, 'molality'),
     (si.J / si.K, 'heat capacity or entropy'),
     (si.m * si.s, 'absement'),
-    (u.m ** 3 / u.s, 'volumetric flow rate'),
-    (u.s ** -2, 'frequency drift'),
-    (u.Pa ** -1, 'compressibility'),
+    (si.m ** 3 / si.s, 'volumetric flow rate'),
+    (si.s ** -2, 'frequency drift'),
+    (si.Pa ** -1, 'compressibility'),
 ]:
     def_physical_type(unit, name)
