@@ -665,23 +665,30 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             else:
                 mask = False
 
-        elif method == 'reduce':
+        elif method in {'reduce', 'accumulate'}:
             # Reductions like np.add.reduce (sum).
             if isinstance(inputs[0], Masked):
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
                 # Individual methods need to override as needed.
                 # TODO: take care of 'out' too?
-                axis = kwargs.get('axis', None)
-                keepdims = kwargs.get('keepdims', False)
-                where = kwargs.get('where', True)
-                mask = np.logical_or.reduce(inputs[0].mask, where=where,
-                                            axis=axis, keepdims=keepdims)
-                if where is not True:
-                    # Mask also whole rows that were not selected by where,
-                    # so would have been left as unmasked above.
-                    mask |= np.logical_and.reduce(inputs[0].mask, where=where,
-                                                  axis=axis, keepdims=keepdims)
+                if method == 'reduce':
+                    axis = kwargs.get('axis', None)
+                    keepdims = kwargs.get('keepdims', False)
+                    where = kwargs.get('where', True)
+                    mask = np.logical_or.reduce(inputs[0].mask, where=where,
+                                                axis=axis, keepdims=keepdims)
+                    if where is not True:
+                        # Mask also whole rows that were not selected by where,
+                        # so would have been left as unmasked above.
+                        mask |= np.logical_and.reduce(inputs[0].mask, where=where,
+                                                      axis=axis, keepdims=keepdims)
+
+                else:
+                    # Accumulate
+                    axis = kwargs.get('axis', 0)
+                    mask = np.logical_or.accumulate(inputs[0].mask, axis=axis)
+
                 converted = inputs[0].unmasked
 
             elif 'out' in kwargs and isinstance(kwargs['out'][0], Masked):
@@ -692,7 +699,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
             result = getattr(ufunc, method)(converted, **kwargs)
 
-        elif method in {'accumulate', 'reduceat', 'at'}:
+        elif method in {'reduceat', 'at'}:
             # TODO: implement things like np.add.accumulate (used for cumsum).
             return NotImplemented
 
@@ -877,6 +884,18 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     def partition(self, kth, axis=-1, kind='introselect', order=None):
         return NotImplementedError
+
+    def cumsum(self, axis=None, dtype=None, out=None):
+        if axis is None:
+            self = self.ravel()
+            axis = 0
+        return np.add.accumulate(self, axis=axis, dtype=dtype, out=out)
+
+    def cumprod(self, axis=None, dtype=None, out=None):
+        if axis is None:
+            self = self.ravel()
+            axis = 0
+        return np.multiply.accumulate(self, axis=axis, dtype=dtype, out=out)
 
     def mean(self, axis=None, dtype=None, out=None, keepdims=False):
         # Implementation based on that in numpy/core/_methods.py
