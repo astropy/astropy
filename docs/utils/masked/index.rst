@@ -156,3 +156,10 @@ In some respects, rather than think of |Masked| as similar to
 to marking bad elements in arrays with NaN (not-a-number).  Like those NaN,
 the mask just propagates, except that for some operations like taking the mean
 the equivalence of `~numpy.nanmean` is used.
+
+Reference/API
+=============
+
+.. automodapi:: astropy.utils.masked
+
+.. automodapi:: astropy.utils.masked.function_helpers
