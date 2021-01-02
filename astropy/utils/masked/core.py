@@ -887,10 +887,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         self[:] = np.take_along_axis(self, indices, axis=axis)
 
     def argpartition(self, kth, axis=-1, kind='introselect', order=None):
-        return NotImplementedError
+        # TODO: should be possible to do this faster than with a full argsort!
+        return self.argsort(axis=axis, order=order)
 
     def partition(self, kth, axis=-1, kind='introselect', order=None):
-        return NotImplementedError
+        # TODO: should be possible to do this faster than with a full argsort!
+        return self.sort(axis=axis, order=None)
 
     def cumsum(self, axis=None, dtype=None, out=None):
         if axis is None:

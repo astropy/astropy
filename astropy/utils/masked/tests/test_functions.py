@@ -317,7 +317,6 @@ class TestArgFunctions(MaskedArraySetup, metaclass=CoverageMeta):
     def test_argwhere(self):
         self.check(np.argwhere, fill_value=0.)
 
-    @pytest.mark.xfail(reason='not implemented yet')
     def test_argpartition(self):
         self.check(np.argpartition, 2, fill_value=np.inf)
 
@@ -905,19 +904,34 @@ class TestReductionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         assert_array_equal(o, expected)
 
 
-@pytest.mark.xfail(reason='needs partition')
-class TestPartitionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+@pytest.mark.filterwarnings('ignore:all-nan')
+class TestPartitionLikeFunctions(metaclass=CoverageMeta):
+    def setup_class(self):
+        self.a = np.arange(36.).reshape(6, 6)
+        self.mask_a = np.zeros_like(self.a, bool)
+        # On purpose fill diagonal, so we get all masked elements.
+        self.mask_a[np.tril_indices_from(self.a)] = True
+        self.ma = Masked(self.a, mask=self.mask_a)
+
+    def check(self, function, *args, **kwargs):
+        o = function(self.ma, *args, **kwargs)
+        nanfunc = getattr(np, 'nan'+function.__name__)
+        nanfilled = self.ma.unmask(np.nan)
+        expected = nanfunc(nanfilled, *args, **kwargs)
+        assert_array_equal(o.unmask(np.nan), expected)
+        assert_array_equal(o.mask, np.isnan(expected))
+
     @pytest.mark.parametrize('axis', [None, 0, 1])
     def test_median(self, axis):
         self.check(np.median, axis=axis)
 
-    @pytest.mark.xfail(reason='needs partition')
-    def test_quantile(self):
-        self.check(np.quantile, 0.5)
+    @pytest.mark.parametrize('axis', [None, 0, 1])
+    def test_quantile(self, axis):
+        self.check(np.quantile, q=0.5, axis=axis)
 
-    @pytest.mark.xfail(reason='needs partition')
-    def test_percentile(self):
-        self.check(np.percentile, 50)
+    @pytest.mark.parametrize('axis', [None, 0, 1])
+    def test_percentile(self, axis):
+        self.check(np.percentile, q=50, axis=axis)
 
 
 class TestSpaceFunctions(metaclass=CoverageMeta):
