@@ -440,8 +440,11 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
     @pytest.mark.parametrize('value', [0.5, Masked(0.5, mask=True), np.ma.masked])
     def test_full_like(self, value):
         o = np.full_like(self.ma, value)
-        expected = Masked(np.zeros_like(self.a))
-        expected[...] = value
+        if value is np.ma.masked:
+            expected = Masked(o.unmasked, True)
+        else:
+            expected = Masked(np.empty_like(self.a))
+            expected[...] = value
         assert_array_equal(o.unmasked, expected.unmasked)
         assert_array_equal(o.mask, expected.mask)
 
@@ -723,6 +726,15 @@ class TestMethodLikes(MaskedArraySetup, metaclass=CoverageMeta):
         self.check(np.clip, 2., 4.)
         self.check(np.clip, self.mb, self.mc)
 
+    def test_mean(self):
+        self.check(np.mean)
+
+    def test_std(self):
+        self.check(np.std)
+
+    def test_var(self):
+        self.check(np.var)
+
 
 class TestUfuncLike(InvariantMaskTestSetup):
     def test_fix(self):
@@ -759,12 +771,15 @@ class TestUfuncLike(InvariantMaskTestSetup):
         assert_array_equal(out.mask, expected_mask)
 
     def test_choose_masked(self):
-        ma = Masked(np.array([0, 1]), mask=[True, False]).reshape((2, 1))
+        ma = Masked(np.array([-1, 1]), mask=[True, False]).reshape((2, 1))
         out = ma.choose((self.ma, self.mb))
-        expected = np.choose(ma.unmasked, (self.a, self.b))
-        expected_mask = np.choose(ma.unmasked, (self.mask_a, self.mask_b)) | ma.mask
+        expected = np.choose(ma.unmask(0), (self.a, self.b))
+        expected_mask = np.choose(ma.unmask(0), (self.mask_a, self.mask_b)) | ma.mask
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
+
+        with pytest.raises(ValueError):
+            ma.unmasked.choose((self.ma, self.mb))
 
     @pytest.mark.parametrize('default', [-1., np.ma.masked, Masked(-1, mask=True)])
     def test_select(self, default):
@@ -849,6 +864,60 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         expected = np.isclose(self.ma, self.mb,
                               atol=0.01)[self.mask_a | self.mask_b].all()
         assert_array_equal(out, expected)
+
+    def test_array_equal(self):
+        assert not np.array_equal(self.ma, self.ma)
+        assert not np.array_equal(self.ma, self.a)
+        assert np.array_equal(self.ma, self.ma, equal_nan=True)
+        assert np.array_equal(self.ma, self.a, equal_nan=True)
+        assert not np.array_equal(self.ma, self.mb)
+        ma2 = self.ma.copy()
+        ma2.mask |= np.isnan(self.a)
+        assert np.array_equal(ma2, self.ma)
+
+    def test_array_equiv(self):
+        assert np.array_equiv(self.mb, self.mb)
+        assert np.array_equiv(self.mb, self.b)
+        assert not np.array_equiv(self.ma, self.mb)
+        assert np.array_equiv(self.mb, np.stack([self.mb, self.mb]))
+
+
+class TestReductionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+    def test_average(self):
+        o = np.average(self.ma)
+        assert_masked_equal(o, self.ma.mean())
+
+        o = np.average(self.ma, weights=self.mb, axis=-1)
+        expected = np.average(self.a, weights=self.b, axis=-1)
+        expected_mask = (self.mask_a | self.mask_b).any(-1)
+        assert_array_equal(o.unmasked, expected)
+        assert_array_equal(o.mask, expected_mask)
+
+    def test_trace(self):
+        o = np.trace(self.ma)
+        expected = Masked(np.trace(self.a), np.trace(self.mask_a).astype(bool))
+        assert_masked_equal(o, expected)
+
+    @pytest.mark.parametrize('axis', [0, 1, None])
+    def test_count_nonzero(self, axis):
+        o = np.count_nonzero(self.ma, axis=axis)
+        expected = np.count_nonzero(self.ma.unmask(0), axis=axis)
+        assert_array_equal(o, expected)
+
+
+@pytest.mark.xfail(reason='needs partition')
+class TestPartitionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+    @pytest.mark.parametrize('axis', [None, 0, 1])
+    def test_median(self, axis):
+        self.check(np.median, axis=axis)
+
+    @pytest.mark.xfail(reason='needs partition')
+    def test_quantile(self):
+        self.check(np.quantile, 0.5)
+
+    @pytest.mark.xfail(reason='needs partition')
+    def test_percentile(self):
+        self.check(np.percentile, 50)
 
 
 class TestSpaceFunctions(metaclass=CoverageMeta):
