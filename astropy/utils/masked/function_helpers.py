@@ -444,6 +444,96 @@ def count_nonzero(a, axis=None, *, keepdims=False):
     return np.count_nonzero(filled, axis, keepdims=keepdims)
 
 
+def _masked_median_1d(a, overwrite_input):
+    # TODO: need an in-place mask-sorting option.
+    unmasked = a.unmasked[~a.mask]
+    if unmasked.size:
+        return a.from_unmasked(
+            np.median(unmasked, overwrite_input=overwrite_input))
+    else:
+        return a.from_unmasked(np.zeros_like(a.unmasked, shape=()), mask=True)
+
+
+def _masked_median(a, axis=None, out=None, overwrite_input=False):
+    # As for np.nanmedian, but without a fast option as yet.
+    if axis is None or a.ndim == 1:
+        part = a.ravel()
+        result = _masked_median_1d(part, overwrite_input)
+    else:
+        result = np.apply_along_axis(_masked_median_1d, axis, a, overwrite_input)
+    if out is not None:
+        out[...] = result
+    return result
+
+
+@dispatched_function
+def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
+    from astropy.utils.masked import Masked
+    if out is not None and not isinstance(out, Masked):
+        return NotImplemented
+
+    a = Masked(a)
+    r, k = np.lib.function_base._ureduce(
+        a, func=_masked_median, axis=axis, out=out,
+        overwrite_input=overwrite_input)
+    return r.reshape(k) if keepdims else r
+
+
+def _masked_quantile_1d(a, q, **kwargs):
+    """
+    Private function for rank 1 arrays. Compute quantile ignoring NaNs.
+    See nanpercentile for parameter usage
+    """
+    unmasked = a.unmasked[~a.mask]
+    if unmasked.size:
+        result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
+        return a.from_unmasked(result)
+    else:
+        return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
+
+
+def _masked_quantile(a, q, axis=None, out=None, **kwargs):
+    # As for np.nanmedian, but without a fast option as yet.
+    if axis is None or a.ndim == 1:
+        part = a.ravel()
+        result = _masked_quantile_1d(part, q, **kwargs)
+    else:
+        result = np.apply_along_axis(_masked_quantile_1d, axis, a, q, **kwargs)
+        # apply_along_axis fills in collapsed axis with results.
+        # Move that axis to the beginning to match percentile's
+        # convention.
+        if q.ndim != 0:
+            result = np.moveaxis(result, axis, 0)
+
+    if out is not None:
+        out[...] = result
+    return result
+
+
+@dispatched_function
+def quantile(a, q, axis=None, out=None, overwrite_input=False,
+             interpolation='linear', keepdims=False):
+    from astropy.utils.masked import Masked
+    if isinstance(q, Masked) or out is not None and not isinstance(out, Masked):
+        return NotImplemented
+
+    a = Masked(a)
+    q = np.asanyarray(q)
+    if not np.lib.function_base._quantile_is_valid(q):
+        raise ValueError("Quantiles must be in the range [0, 1]")
+
+    r, k = np.lib.function_base._ureduce(
+        a, func=_masked_quantile, q=q, axis=axis, out=out,
+        interpolation=interpolation, overwrite_input=overwrite_input)
+    return r.reshape(k) if keepdims else r
+
+
+@dispatched_function
+def percentile(a, q, *args, **kwargs):
+    q = np.true_divide(q, 100)
+    return quantile(a, q, *args, **kwargs)
+
+
 @dispatched_function
 def array_equal(a1, a2, equal_nan=False):
     (a1d, a2d), (a1m, a2m) = _data_masks(a1, a2)

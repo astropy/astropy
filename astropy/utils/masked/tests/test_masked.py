@@ -927,6 +927,29 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_sort.unmasked, expected_data)
         assert_array_equal(ma_sort.mask, expected_mask)
 
+    @pytest.mark.parametrize('kth', [1, 3])
+    def test_argpartition(self, kth):
+        ma = self.ma.ravel()
+        ma_argpartition = ma.argpartition(kth)
+        partitioned = ma[ma_argpartition]
+        assert (partitioned[:kth] < partitioned[kth]).all()
+        assert (partitioned[kth:] >= partitioned[kth]).all()
+        if partitioned[kth].mask:
+            assert all(partitioned.mask[kth:])
+        else:
+            assert not any(partitioned.mask[:kth])
+
+    @pytest.mark.parametrize('kth', [1, 3])
+    def test_partition(self, kth):
+        partitioned = self.ma.flatten()
+        partitioned.partition(kth)
+        assert (partitioned[:kth] < partitioned[kth]).all()
+        assert (partitioned[kth:] >= partitioned[kth]).all()
+        if partitioned[kth].mask:
+            assert all(partitioned.mask[kth:])
+        else:
+            assert not any(partitioned.mask[:kth])
+
     def test_all_explicit(self):
         a1 = np.array([[1., 2.],
                        [3., 4.]])
