@@ -716,7 +716,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         elif function in APPLY_TO_BOTH_FUNCTIONS:
             helper = APPLY_TO_BOTH_FUNCTIONS[function]
-            data_args, mask_args, kwargs, out = helper(*args, **kwargs)
+            helper_result = helper(*args, **kwargs)
+            if not isinstance(helper_result, tuple):
+                return helper_result
+            data_args, mask_args, kwargs, out = helper_result
             if out is not None:
                 if not isinstance(out, Masked):
                     return NotImplemented
@@ -729,7 +732,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         elif function in DISPATCHED_FUNCTIONS:
             dispatched_function = DISPATCHED_FUNCTIONS[function]
-            result, mask, out = dispatched_function(*args, **kwargs)
+            dispatched_result = dispatched_function(*args, **kwargs)
+            if not isinstance(dispatched_result, tuple):
+                return dispatched_result
+
+            result, mask, out = dispatched_result
 
         elif function in UNSUPPORTED_FUNCTIONS:
             return NotImplemented

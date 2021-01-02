@@ -46,6 +46,10 @@ kwargs : dict
     Keyword arguments to pass on for both unmasked data and mask.
 out : `~astropy.utils.masked.Masked` instance or None
     Optional instance in which to store the output.
+
+Notes
+-----
+A helper can also return the result directly (e.g., if `NotImplemented`).
 """
 
 DISPATCHED_FUNCTIONS = {}
@@ -117,6 +121,7 @@ def _data_masks(*args):
     return tuple(data), tuple(masks)
 
 
+# Following are simple ufunc-like functions which should just copy the mask.
 @dispatched_function
 def datetime_as_string(arr, *args, **kwargs):
     return (np.datetime_as_string(arr.unmasked, *args, **kwargs),
@@ -138,6 +143,9 @@ def unwrap(p, *args, **kwargs):
     return np.unwrap(p.unmasked, *args, **kwargs), p.mask.copy(), None
 
 
+# Following are simple functions related to shapes, where the same function
+# should be applied to the data and the mask.  They cannot all share the
+# same helper, because the first arguments have different names.
 @apply_to_both(helps={
     np.copy, np.asfarray, np.real_if_close, np.sort_complex, np.resize,
     np.moveaxis, np.rollaxis, np.expand_dims, np.squeeze, np.roll, np.take,
@@ -186,6 +194,10 @@ def broadcast_to(array,  shape, subok=False):
 
 @dispatched_function
 def empty_like(prototype, dtype=None, order='K', subok=True, shape=None):
+    """Return a new array with the same shape and type as a given array.
+
+    Like `numpy.empty_like`, but will add an empty mask.
+    """
     unmasked = np.empty_like(prototype.unmasked, dtype=dtype, order=order,
                              subok=subok, shape=shape)
     if dtype is not None:
@@ -199,6 +211,10 @@ def empty_like(prototype, dtype=None, order='K', subok=True, shape=None):
 
 @dispatched_function
 def zeros_like(a, dtype=None, order='K', subok=True, shape=None):
+    """Return an array of zeros with the same shape and type as a given array.
+
+    Like `numpy.zeros_like`, but will add an all-false mask.
+    """
     unmasked = np.zeros_like(a.unmasked, dtype=dtype, order=order,
                              subok=subok, shape=shape)
     return unmasked, False, None
@@ -206,6 +222,10 @@ def zeros_like(a, dtype=None, order='K', subok=True, shape=None):
 
 @dispatched_function
 def ones_like(a, dtype=None, order='K', subok=True, shape=None):
+    """Return an array of ones with the same shape and type as a given array.
+
+    Like `numpy.ones_like`, but will add an all-false mask.
+    """
     unmasked = np.ones_like(a.unmasked, dtype=dtype, order=order,
                             subok=subok, shape=shape)
     return unmasked, False, None
@@ -213,59 +233,86 @@ def ones_like(a, dtype=None, order='K', subok=True, shape=None):
 
 @dispatched_function
 def full_like(a, fill_value, dtype=None, order='K', subok=True, shape=None):
-    result = np.zeros_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
+    """Return a full array with the same shape and type as a given array.
+
+    Like `numpy.full_like`, but with a mask that is also set.
+    If ``fill_value`` is `numpy.ma.masked`, the data will be left unset
+    (i.e., as created by `numpy.empty_like`).
+    """
+    result = np.empty_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
     result[...] = fill_value
-    return result, None, None
+    return result
 
 
 @dispatched_function
 def put(a, ind, v, mode='raise'):
+    """Replaces specified elements of an array with given values.
+
+    Like `numpy.put`, but for masked array ``a`` and possibly masked
+    value ``v``.  Masked indices ``ind`` are not supported.
+    """
     from astropy.utils.masked import Masked
     if isinstance(ind, Masked) or not isinstance(a, Masked):
-        return NotImplemented, None, None
+        return NotImplemented
     v_data, v_mask = a._data_mask(v)
     if v_data is not None:
         np.put(a.unmasked, ind, v_data, mode=mode)
+    # v_mask of None will be correctly interpreted as False.
     np.put(a.mask, ind, v_mask, mode=mode)
-    return None, None, None
+    return None
 
 
 @dispatched_function
 def putmask(a, mask, values):
+    """Changes elements of an array based on conditional and input values.
+
+    Like `numpy.putmask`, but for masked array ``a`` and possibly masked
+    ``values``.  Masked ``mask`` is not supported.
+    """
     from astropy.utils.masked import Masked
     if isinstance(mask, Masked) or not isinstance(a, Masked):
-        return NotImplemented, None, None
+        return NotImplemented
     values_data, values_mask = a._data_mask(values)
     if values_data is not None:
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
-    return None, None, None
+    return None
 
 
 @dispatched_function
 def place(arr, mask, vals):
+    """Change elements of an array based on conditional and input values.
+
+    Like `numpy.place`, but for masked array ``a`` and possibly masked
+    ``values``.  Masked ``mask`` is not supported.
+    """
     from astropy.utils.masked import Masked
     if isinstance(mask, Masked) or not isinstance(arr, Masked):
-        return NotImplemented, None, None
+        return NotImplemented
     vals_data, vals_mask = arr._data_mask(vals)
     if vals_data is not None:
         np.place(arr.unmasked, mask, vals_data)
     np.place(arr.mask, mask, vals_mask)
-    return None, None, None
+    return None
 
 
 @dispatched_function
 def copyto(dst, src,  casting='same_kind', where=True):
+    """Copies values from one array to another, broadcasting as necessary.
+
+    Like `numpy.copyto`, but for masked destination ``dst`` and possibly
+    masked source ``src``.
+    """
     from astropy.utils.masked import Masked
     if not isinstance(dst, Masked):
-        return NotImplemented, None, None
+        return NotImplemented
     src_data, src_mask = dst._data_mask(src)
 
     if src_data is not None:
         np.copyto(dst.unmasked, src_data, casting=casting, where=where)
     if src_mask is not None:
         np.copyto(dst.mask, src_mask, where=where)
-    return None, None, None
+    return None
 
 
 @dispatched_function
@@ -343,7 +390,7 @@ def block(arrays):
     result = Masked(np.empty(shape=shape, dtype=dtype, order=order))
     for the_slice, arr in zip(slices, arrays):
         result[(Ellipsis,) + the_slice] = arr
-    return result, None, None
+    return result
 
 
 @dispatched_function
@@ -368,57 +415,117 @@ def broadcast_arrays(*args, subok=True):
              for arg, is_masked in zip(args, are_masked)]
     results = [(Masked(result, mask) if mask is not None else result)
                for (result, mask) in zip(results, masks)]
-    return (results if len(results) > 1 else results[0]), None, None
+    return results if len(results) > 1 else results[0]
 
 
 @apply_to_both
 def insert(arr, obj, values, axis=None):
-    data, masks = _data_masks(arr, values)
-    return ((data[0], obj, data[1], axis),
-            (masks[0], obj, masks[1], axis), {}, None)
+    """Insert values along the given axis before the given indices.
 
-
-@apply_to_both
-def where(condition, x=None, y=None):
-    """Return elements chosen from ``x`` or ``y`` depending on ``condition``.
-
-    Like `numpy.where`, with any mask on ``condition`` ignored, while
-    masks on ``x`` and ``y`` are propagated.
-
+    Like `numpy.insert` but for possibly masked ``arr`` and ``values``.
+    Masked ``obj`` is not supported.
     """
     from astropy.utils.masked import Masked
-    if isinstance(condition, Masked):
-        condition = condition.unmasked  # simply ignore mask
+    if isinstance(obj, Masked):
+        return NotImplemented
 
-    if x is None and y is None:
-        return condition.nonzero(), None, None
-
-    if x is None or y is None:
-        return NotImplemented, None, None
-
-    data, masks = _data_masks(x, y)
-    return (condition,) + data, (condition,) + masks, {}, None
+    (arr_data, val_data), (arr_mask, val_mask) = _data_masks(arr, values)
+    return ((arr_data, obj, val_data, axis),
+            (arr_mask, obj, val_mask, axis), {}, None)
 
 
 @dispatched_function
-def choose(a, choices, out=None, **kwargs):
-    (a, *data), (mask, *masks) = _data_masks(a, *choices)
-    if out is None:
-        data_chosen = np.choose(a, data, **kwargs)
-        mask_chosen = np.choose(mask, masks, **kwargs) | mask
-        return data_chosen, mask_chosen, None
-    else:
-        from astropy.utils.masked import Masked
+def count_nonzero(a, axis=None, *, keepdims=False):
+    """Counts the number of non-zero values in the array ``a``.
+
+    Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
+    """
+    filled = a.unmask(np.zeros((), a.dtype))
+    return np.count_nonzero(filled, axis, keepdims=keepdims)
+
+
+@dispatched_function
+def array_equal(a1, a2, equal_nan=False):
+    (a1d, a2d), (a1m, a2m) = _data_masks(a1, a2)
+    if a1d.shape != a2d.shape:
+        return False
+
+    equal = (a1d == a2d)
+    if equal_nan:
+        equal |= np.isnan(a1d) & np.isnan(a2d)
+    return bool((equal | a1m | a2m).all())
+
+
+@dispatched_function
+def array_equiv(a1, a2):
+    return bool((a1 == a2).all())
+
+
+@dispatched_function
+def where(condition, *args):
+    from astropy.utils.masked import Masked
+    if not args:
+        return condition.nonzero()
+    elif len(args) != 2:
+        return NotImplemented
+
+    condition, c_mask = Masked._data_mask(condition)
+
+    data, masks = _data_masks(*args)
+    unmasked = np.where(condition, *data)
+    mask = np.where(condition, *masks)
+    if c_mask is not None:
+        mask |= c_mask
+    return Masked(unmasked, mask=mask)
+
+
+@dispatched_function
+def choose(a, choices, out=None, mode='raise'):
+    """Construct an array from an index array and a set of arrays to choose from.
+
+    Like `numpy.choose`.  Masked indices in ``a`` will lead to masked output
+    values and underlying data values are ignored if out of bounds (for
+    ``mode='raise'``).  Any values masked in ``choices`` will be propagated
+    if chosen.
+
+    """
+    from astropy.utils.masked import Masked
+
+    a_data, a_mask = Masked._data_mask(a)
+    if a_mask is not None and mode == 'raise':
+        # Avoid raising on masked indices.
+        a_data = a.unmask(fill_value=0)
+
+    kwargs = {'mode': mode}
+    if out is not None:
         if not isinstance(out, Masked):
-            return NotImplemented, None, None
-        np.choose(a, data, out=out.unmasked, **kwargs)
-        np.choose(mask, masks, out=out.mask, **kwargs)
-        return out, None, None
+            return NotImplemented
+        kwargs['out'] = out.unmasked
+
+    data, masks = _data_masks(*choices)
+    data_chosen = np.choose(a_data, data, **kwargs)
+    if out is not None:
+        kwargs['out'] = out.mask
+
+    mask_chosen = np.choose(a_data, masks, **kwargs)
+    if a_mask is not None:
+        mask_chosen |= a_mask
+
+    return Masked(data_chosen, mask_chosen) if out is None else out
 
 
 @apply_to_both
 def select(condlist, choicelist, default=0):
+    """Return an array drawn from elements in choicelist, depending on conditions.
+
+    Like `numpy.select`, with masks in ``choicelist`` are propagated.
+    Any masks in ``condlist`` are ignored.
+
+    """
     from astropy.utils.masked import Masked
+
+    condlist = [c.unmasked if isinstance(c, Masked) else c
+                for c in condlist]
 
     data_list, mask_list = _data_masks(*choicelist)
     default = Masked(default) if default is not np.ma.masked else Masked(0, mask=True)
@@ -428,6 +535,12 @@ def select(condlist, choicelist, default=0):
 
 @dispatched_function
 def piecewise(x, condlist, funclist, *args, **kw):
+    """Evaluate a piecewise-defined function.
+
+    Like `numpy.piecewise` but for masked input array ``x``.
+    Any masks in ``condlist`` are ignored.
+
+    """
     # Copied implementation from numpy.lib.function_base.piecewise,
     # just to ensure output is Masked.
     n2 = len(funclist)
@@ -466,7 +579,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
     for item, value in zip(where, what):
         y[item] = value
 
-    return y, None, None
+    return y
 
 
 @dispatched_function
@@ -488,11 +601,16 @@ def interp(x, xp, fp, *args, **kwargs):
             fp = fp[m]
 
     result = np.interp(xd, xp, fp, *args, **kwargs)
-    return result, None if xm is None else xm.copy(), None
+    return result if xm is None else Masked(result, xm.copy())
 
 
 @dispatched_function
 def lexsort(keys, axis=-1):
+    """Perform an indirect stable sort using a sequence of keys.
+
+    Like `numpy.lexsort` but for possibly masked ``keys``.  Masked
+    values are sorted towards the end for each key.
+    """
     # Sort masks to the end.
     from .core import Masked
 
@@ -509,7 +627,7 @@ def lexsort(keys, axis=-1):
         else:
             new_keys.append(key)
 
-    return np.lexsort(new_keys, axis=axis), None, None
+    return np.lexsort(new_keys, axis=axis)
 
 
 @dispatched_function
@@ -538,8 +656,17 @@ def apply_over_axes(func, a, axes):
                                  "an array of the correct shape")
     # Returning mask is None to signal nothing should happen to
     # the output.
-    return val, None, None
+    return val
+
+
 class MaskedFormat:
+    """Formatter for masked array scalars.
+
+    For use in `numpy.array2string`, wrapping the regular formatters such
+    that if a value is masked, its formatted string is replaced.
+
+    Typically initialized using the ``from_data`` class method.
+    """
     def __init__(self, format_function):
         self.format_function = format_function
         # Special case for structured void: we need to make all the
@@ -567,13 +694,18 @@ class MaskedFormat:
         else:
             return string
 
+    @classmethod
+    def from_data(cls, data, **options):
+        from numpy.core.arrayprint import _get_format_function
+        return cls(_get_format_function(data, **options))
+
 
 def _array2string(a, options, separator=' ', prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
-    from numpy.core.arrayprint import (_leading_trailing, _get_format_function,
-                                       _formatArray)
+    from numpy.core.arrayprint import _leading_trailing, _formatArray
+
     data = np.asarray(a)
 
     if a.size > options['threshold']:
@@ -583,7 +715,7 @@ def _array2string(a, options, separator=' ', prefix=""):
         summary_insert = ""
 
     # find the right formatting function for the array
-    format_function = MaskedFormat(_get_format_function(data, **options))
+    format_function = MaskedFormat.from_data(data, **options)
 
     # skip over "["
     next_line_prefix = " "
@@ -614,9 +746,9 @@ def array2string(a, max_line_width=None, precision=None,
 
     # treat as a null array if any of shape elements == 0
     if a.size == 0:
-        return "[]", None, None
+        return "[]"
 
-    return _array2string(a, options, separator, prefix), None, None
+    return _array2string(a, options, separator, prefix)
 
 
 @dispatched_function
