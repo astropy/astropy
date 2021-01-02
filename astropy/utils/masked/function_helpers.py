@@ -1,15 +1,68 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Helpers for letting numpy functions interact with Masked arrays.
+
+The module supplies helper routines for numpy functions that propagate
+masks appropriately., for use in the ``__array_function__``
+implementation of `~astropy.utils.masked.MaskedNDArray`.  They are not
+very useful on their own, but the ones with docstrings are included in
+the documentation so that there is a place to find out how the mask is
+interpreted.
+
+"""
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import (
     FunctionAssigner, IGNORED_FUNCTIONS)
 
 
+# This module should not really be imported, but we define __all__
+# such that sphinx can typeset the functions with docstrings.
+# The latter are added to __all__ at the end.
+__all__ = ['MASKED_SAFE_FUNCTIONS', 'APPLY_TO_BOTH_FUNCTIONS',
+           'DISPATCHED_FUNCTIONS', 'UNSUPPORTED_FUNCTIONS']
+
+
 MASKED_SAFE_FUNCTIONS = set()
-UFUNC_LIKE_FUNCTIONS = set()
+"""Set of functions that work fine on Masked classes already.
+
+Most of these internally use `numpy.ufunc` or other functions that
+are already covered.
+"""
+
 APPLY_TO_BOTH_FUNCTIONS = {}
+"""Dict of functions that should apply to both data and mask.
+
+The `dict` is keyed by the numpy function and the values are functions
+that take the input arguments of the numpy function and organize these
+for passing the data and mask to the numpy function.
+
+Returns
+-------
+data_args : tuple
+    Arguments to pass on to the numpy function for the unmasked data.
+mask_args : tuple
+    Arguments to pass on to the numpy function for the masked data.
+kwargs : dict
+    Keyword arguments to pass on for both unmasked data and mask.
+out : `~astropy.utils.masked.Masked` instance or None
+    Optional instance in which to store the output.
+"""
+
 DISPATCHED_FUNCTIONS = {}
+"""Dict of functions that provide the numpy function's functionality.
+
+These are for more complicated versions where the numpy function itself
+cannot easily be used.  It should return either the result of the
+function, or a tuple consisting of the unmasked result, the mask for the
+result and a possible output instance.
+"""
+
 UNSUPPORTED_FUNCTIONS = set()
+"""Set of numpy functions that are not supported for masked arrays.
+
+For most, masked input simply makes no sense.  If a function is included
+for which this does not seem to hold, please raise an issue.
+"""
 
 MASKED_SAFE_FUNCTIONS |= {
     # np.core.numeric
@@ -118,10 +171,17 @@ def masked_arr_helper(array, *args, **kwargs):
     return data + args, mask + args, kwargs, None
 
 
-@apply_to_both(helps={np.broadcast_to})
-def masked_array_helper(array, *args, **kwargs):
+@apply_to_both
+def broadcast_to(array,  shape, subok=False):
+    """Broadcast array to the given shape.
+
+    Like `numpy.broadcast_to`, and applied to both unmasked data and mask.
+    Note that ``subok`` is taken to mean whether or not subclasses of
+    the unmasked data and mask are allowed, i.e., for ``subok=False``,
+    a `~astropy.utils.masked.MaskedNDArray` will be returned.
+    """
     data, mask = _data_masks(array)
-    return data + args, mask + args, kwargs, None
+    return data, mask, dict(shape=shape, subok=subok), None
 
 
 @dispatched_function
@@ -228,7 +288,7 @@ def unpackbits(a, *args, **kwargs):
 def bincount(x, weights=None, minlength=0):
     """Count number of occurrences of each value in array of non-negative ints.
 
-    Like `~numpy.bincount`, but masked entries in ``x`` will be skipped.
+    Like `numpy.bincount`, but masked entries in ``x`` will be skipped.
     Any masked entries in ``weights`` will lead the corresponding bin to
     be masked.
     """
@@ -288,6 +348,13 @@ def block(arrays):
 
 @dispatched_function
 def broadcast_arrays(*args, subok=True):
+    """Broadcast arrays to a common shape.
+
+    Like `numpy.broadcast_arrays`, applied to both unmasked data and masks.
+    Note that ``subok`` is taken to mean whether or not subclasses of
+    the unmasked data and masks are allowed, i.e., for ``subok=False``,
+    `~astropy.utils.masked.MaskedNDArray` instances will be returned.
+    """
     from .core import Masked
 
     are_masked = [isinstance(arg, Masked) for arg in args]
@@ -312,18 +379,24 @@ def insert(arr, obj, values, axis=None):
 
 
 @apply_to_both
-def where(condition, *args):
+def where(condition, x=None, y=None):
+    """Return elements chosen from ``x`` or ``y`` depending on ``condition``.
+
+    Like `numpy.where`, with any mask on ``condition`` ignored, while
+    masks on ``x`` and ``y`` are propagated.
+
+    """
     from astropy.utils.masked import Masked
     if isinstance(condition, Masked):
         condition = condition.unmasked  # simply ignore mask
 
-    if not args:
+    if x is None and y is None:
         return condition.nonzero(), None, None
 
-    if len(args) != 2:
+    if x is None or y is None:
         return NotImplemented, None, None
 
-    data, masks = _data_masks(*args)
+    data, masks = _data_masks(x, y)
     return (condition,) + data, (condition,) + masks, {}, None
 
 
@@ -400,7 +473,7 @@ def piecewise(x, condlist, funclist, *args, **kw):
 def interp(x, xp, fp, *args, **kwargs):
     """One-dimensional linear interpolation.
 
-    Like `~numpy.interp`, but any masked points in ``xp`` and ``fp``
+    Like `numpy.interp`, but any masked points in ``xp`` and ``fp``
     are ignored.  Any masked values in ``x`` will still be evaluated,
     but masked on output.
     """
@@ -550,3 +623,11 @@ def array2string(a, max_line_width=None, precision=None,
 def array_str(a, max_line_width=None, precision=None, suppress_small=None):
     # Override to avoid special treatment of array scalars.
     return array2string(a, max_line_width, precision, suppress_small, ' ', "")
+
+
+# Add any dispatched or helper function that has a docstring to
+# __all__, so they will be typeset by sphinx. The logic is that for
+# those presumably the use of the mask is not entirely obvious.
+__all__ += sorted(helper.__name__ for helper in (
+    set(APPLY_TO_BOTH_FUNCTIONS.values())
+    | set(DISPATCHED_FUNCTIONS.values())) if helper.__doc__)
