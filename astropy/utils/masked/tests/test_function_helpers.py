@@ -1,4 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Test all functions covered by __array_function__.
+
+Here, run through all functions, with simple tests just to check the helpers.
+More complicated tests of functionality, including with subclasses, are done
+in test_functions.
+
+TODO: finish full coverage.
+"""
 import itertools
 
 import pytest
@@ -9,17 +17,18 @@ from astropy.utils.compat import NUMPY_LT_1_18, NUMPY_LT_1_20
 from astropy.units.tests.test_quantity_non_ufuncs import (
     get_wrapped_functions, CoverageMeta)
 
-from ..core import Masked, MaskedNDArray
-from ..function_helpers import (MASKED_SAFE_FUNCTIONS,
-                                APPLY_TO_BOTH_FUNCTIONS,
-                                DISPATCHED_FUNCTIONS,
-                                IGNORED_FUNCTIONS,
-                                UNSUPPORTED_FUNCTIONS)
+from astropy.utils.masked import Masked, MaskedNDArray
+from astropy.utils.masked.function_helpers import (
+    MASKED_SAFE_FUNCTIONS,
+    APPLY_TO_BOTH_FUNCTIONS,
+    DISPATCHED_FUNCTIONS,
+    IGNORED_FUNCTIONS,
+    UNSUPPORTED_FUNCTIONS)
 
-from .test_masked import (MaskedArraySetup, QuantitySetup, LongitudeSetup,
-                          assert_masked_equal)
+from .test_masked import assert_masked_equal
 
 
+# TODO: add np.linalg, np.fft
 all_wrapped_functions = get_wrapped_functions(np)
 all_wrapped = set(all_wrapped_functions.values())
 
@@ -27,170 +36,21 @@ all_wrapped = set(all_wrapped_functions.values())
 CoverageMeta.covered = set()
 
 
-# We first do some explicit, more difficult comparisons, and then
-# try to run through all numpy functions using just simple tests.
-
-class TestMaskedArrayConcatenation(MaskedArraySetup, metaclass=CoverageMeta):
-    def test_concatenate(self):
-        mb = self.mb[np.newaxis]
-        concat_a_b = np.concatenate((self.ma, mb), axis=0)
-        expected_data = np.concatenate((self.a, self.b[np.newaxis]), axis=0)
-        expected_mask = np.concatenate((self.mask_a, self.mask_b[np.newaxis]),
-                                       axis=0)
-        assert_array_equal(concat_a_b.unmasked, expected_data)
-        assert_array_equal(concat_a_b.mask, expected_mask)
-
-    def test_concatenate_not_all_masked(self):
-        mb = self.mb[np.newaxis]
-        concat_a_b = np.concatenate((self.a, mb), axis=0)
-        expected_data = np.concatenate((self.a, self.b[np.newaxis]), axis=0)
-        expected_mask = np.concatenate((np.zeros(self.a.shape, bool),
-                                        self.mask_b[np.newaxis]), axis=0)
-        assert_array_equal(concat_a_b.unmasked, expected_data)
-        assert_array_equal(concat_a_b.mask, expected_mask)
-
-    @pytest.mark.parametrize('obj', (1, slice(2, 3)))
-    def test_insert(self, obj):
-        mc_in_a = np.insert(self.ma, obj, self.mc, axis=-1)
-        expected = Masked(np.insert(self.a, obj, self.c, axis=-1),
-                          np.insert(self.mask_a, obj, self.mask_c, axis=-1))
-        assert_masked_equal(mc_in_a, expected)
-
-    def test_append(self):
-        mc_to_a = np.append(self.ma, self.mc, axis=-1)
-        expected = Masked(np.append(self.a, self.c, axis=-1),
-                          np.append(self.mask_a, self.mask_c, axis=-1))
-        assert_masked_equal(mc_to_a, expected)
+class CoverageSetup(metaclass=CoverageMeta):
+    def setup_class(self):
+        self.a = np.arange(6.).reshape(2, 3)
+        self.mask_a = np.array([[True, False, False],
+                                [False, True, False]])
+        self.b = np.array([-3., -2., -1.])
+        self.mask_b = np.array([False, True, False])
+        self.c = np.array([[0.25], [0.5]])
+        self.mask_c = np.array([[False], [True]])
+        self.ma = Masked(self.a, mask=self.mask_a)
+        self.mb = Masked(self.b, mask=self.mask_b)
+        self.mc = Masked(self.c, mask=self.mask_c)
 
 
-class TestMaskedQuantityConcatenation(TestMaskedArrayConcatenation,
-                                      QuantitySetup):
-    pass
-
-
-class TestMaskedLongitudeConcatenation(TestMaskedArrayConcatenation,
-                                       LongitudeSetup):
-    pass
-
-
-class TestMaskedArrayBroadcast(MaskedArraySetup):
-    def test_broadcast_to(self):
-        shape = self.ma.shape
-        ba = np.broadcast_to(self.mb, shape, subok=True)
-        assert ba.shape == shape
-        assert ba.mask.shape == shape
-        expected = Masked(np.broadcast_to(self.mb.unmasked, shape, subok=True),
-                          np.broadcast_to(self.mb.mask, shape, subok=True))
-        assert_masked_equal(ba, expected)
-
-    def test_broadcast_arrays(self):
-        mb = np.broadcast_arrays(self.ma, self.mb, self.mc, subok=True)
-        b = np.broadcast_arrays(self.a, self.b, self.c, subok=True)
-        bm = np.broadcast_arrays(self.mask_a, self.mask_b, self.mask_c)
-        for mb_, b_, bm_ in zip(mb, b, bm):
-            assert_array_equal(mb_.unmasked, b_)
-            assert_array_equal(mb_.mask, bm_)
-
-    def test_broadcast_arrays_not_all_masked(self):
-        mb = np.broadcast_arrays(self.a, self.mb, self.c, subok=True)
-        assert_array_equal(mb[0], self.a)
-        expected1 = np.broadcast_to(self.mb, self.a.shape, subok=True)
-        assert_masked_equal(mb[1], expected1)
-        expected2 = np.broadcast_to(self.c, self.a.shape, subok=True)
-        assert_array_equal(mb[2], expected2)
-
-    def test_broadcast_arrays_subok_false(self):
-        # subok affects ndarray subclasses but not masking itself.
-        mb = np.broadcast_arrays(self.ma, self.mb, self.mc, subok=False)
-        assert all(type(mb_.unmasked) is np.ndarray for mb_ in mb)
-        b = np.broadcast_arrays(self.a, self.b, self.c, subok=False)
-        mask_b = np.broadcast_arrays(self.mask_a, self.mask_b,
-                                     self.mask_c, subok=False)
-        for mb_, b_, mask_ in zip(mb, b, mask_b):
-            assert_array_equal(mb_.unmasked, b_)
-            assert_array_equal(mb_.mask, mask_)
-
-
-class TestMaskedQuantityBroadcast(TestMaskedArrayBroadcast, QuantitySetup):
-    pass
-
-
-class TestMaskedLongitudeBroadcast(TestMaskedArrayBroadcast, LongitudeSetup):
-    pass
-
-
-class TestMaskedArrayCalculation(MaskedArraySetup):
-    @pytest.mark.parametrize('n,axis', [(1, -1), (2, -1), (1, 0)])
-    def test_diff(self, n, axis):
-        mda = np.diff(self.ma, n=n, axis=axis)
-        expected_data = np.diff(self.a, n, axis)
-        nan_mask = np.zeros_like(self.a)
-        nan_mask[self.ma.mask] = np.nan
-        expected_mask = np.isnan(np.diff(nan_mask, n=n, axis=axis))
-        assert_array_equal(mda.unmasked, expected_data)
-        assert_array_equal(mda.mask, expected_mask)
-
-    def test_diff_explicit(self):
-        ma = Masked(np.arange(8.),
-                    [True, False, False, False, False, True, False, False])
-        mda = np.diff(ma)
-        assert np.all(mda.unmasked == 1.)
-        assert np.all(mda.mask ==
-                      [True, False, False, False, True, True, False])
-        mda = np.diff(ma, n=2)
-        assert np.all(mda.unmasked == 0.)
-        assert np.all(mda.mask == [True, False, False, True, True, True])
-
-
-class TestMaskedQuantityCalculation(TestMaskedArrayCalculation, QuantitySetup):
-    pass
-
-
-class TestMaskedLongitudeCalculation(TestMaskedArrayCalculation,
-                                     LongitudeSetup):
-    pass
-
-
-class TestMaskedArraySorting(MaskedArraySetup):
-    @pytest.mark.parametrize('axis', [-1, 0])
-    def test_lexsort1(self, axis):
-        ma_lexsort = np.lexsort((self.ma,), axis=axis)
-        filled = self.a.copy()
-        filled[self.mask_a] = 9e9
-        expected_data = filled.argsort(axis)
-        assert_array_equal(ma_lexsort, expected_data)
-
-    @pytest.mark.parametrize('axis', [-1, 0])
-    def test_lexsort2(self, axis):
-        mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
-        mamb_lexsort = np.lexsort((self.ma, mb), axis=axis)
-        filled_a = self.ma.unmask(9e9)
-        filled_b = mb.unmask(9e9)
-        expected_ab = np.lexsort((filled_a, filled_b), axis=axis)
-        assert_array_equal(mamb_lexsort, expected_ab)
-        mbma_lexsort = np.lexsort((mb, self.ma), axis=axis)
-        expected_ba = np.lexsort((filled_b, filled_a), axis=axis)
-        assert_array_equal(mbma_lexsort, expected_ba)
-        mbma_lexsort2 = np.lexsort(np.stack([mb, self.ma], axis=0), axis=axis)
-        assert_array_equal(mbma_lexsort2, expected_ba)
-
-    @pytest.mark.parametrize('axis', [-1, 0])
-    def test_lexsort_mix(self, axis):
-        mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
-        mamb_lexsort = np.lexsort((self.a, mb), axis=axis)
-        filled_b = mb.unmask(9e9)
-        expected_ab = np.lexsort((self.a, filled_b), axis=axis)
-        assert_array_equal(mamb_lexsort, expected_ab)
-        mbma_lexsort = np.lexsort((mb, self.a), axis=axis)
-        expected_ba = np.lexsort((filled_b, self.a), axis=axis)
-        assert_array_equal(mbma_lexsort, expected_ba)
-        mbma_lexsort2 = np.lexsort(np.stack([mb, self.a], axis=0), axis=axis)
-        assert_array_equal(mbma_lexsort2, expected_ba)
-
-
-# Now run through all functions, with simple tests.
-
-class BasicTestSetup(MaskedArraySetup, metaclass=CoverageMeta):
+class BasicTestSetup(CoverageSetup):
     def check(self, func, *args, **kwargs):
         out = func(self.ma, *args, **kwargs)
         expected = Masked(func(self.a, *args, **kwargs),
@@ -208,14 +68,14 @@ class BasicTestSetup(MaskedArraySetup, metaclass=CoverageMeta):
             assert_masked_equal(out, expected)
 
 
-class NoMaskTestSetup(MaskedArraySetup, metaclass=CoverageMeta):
+class NoMaskTestSetup(CoverageSetup):
     def check(self, func, *args, **kwargs):
         o = func(self.ma, *args, **kwargs)
         expected = func(self.a, *args, **kwargs)
         assert_array_equal(o, expected)
 
 
-class InvariantMaskTestSetup(MaskedArraySetup, metaclass=CoverageMeta):
+class InvariantMaskTestSetup(CoverageSetup):
     def check(self, func, *args, **kwargs):
         o = func(self.ma, *args, **kwargs)
         expected = func(self.a, *args, **kwargs)
@@ -302,6 +162,7 @@ class TestShapeManipulation(BasicTestSetup):
 
     def test_broadcast_arrays(self):
         self.check2(np.broadcast_arrays)
+        self.check2(np.broadcast_arrays, subok=False)
 
     def test_outer(self):
         self.check2(np.outer)
@@ -310,7 +171,7 @@ class TestShapeManipulation(BasicTestSetup):
         self.check2(np.kron)
 
 
-class TestArgFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestArgFunctions(CoverageSetup):
     def check(self, function, *args, fill_value=np.nan, **kwargs):
         o = function(self.ma, *args, **kwargs)
         a_filled = self.ma.unmask(fill_value=fill_value)
@@ -342,7 +203,7 @@ class TestArgFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         self.check(np.flatnonzero, fill_value=0.)
 
 
-class TestAlongAxis(BasicTestSetup):
+class TestAlongAxis(CoverageSetup):
     def test_take_along_axis(self):
         indices = np.expand_dims(np.argmax(self.ma, axis=0), axis=0)
         out = np.take_along_axis(self.ma, indices, axis=0)
@@ -386,7 +247,7 @@ class TestAlongAxis(BasicTestSetup):
 
 
 class TestIndicesFrom(NoMaskTestSetup):
-    def setup(self):
+    def setup_class(self):
         self.a = np.arange(9).reshape(3, 3)
         self.mask_a = np.eye(3, dtype=bool)
         self.ma = Masked(self.a, self.mask_a)
@@ -401,8 +262,8 @@ class TestIndicesFrom(NoMaskTestSetup):
         self.check(np.tril_indices_from)
 
 
-class TestRealImag(InvariantMaskTestSetup, metaclass=CoverageMeta):
-    def setup(self):
+class TestRealImag(InvariantMaskTestSetup):
+    def setup_class(self):
         self.a = np.array([1+2j, 3+4j])
         self.mask_a = np.array([True, False])
         self.ma = Masked(self.a, mask=self.mask_a)
@@ -426,6 +287,8 @@ class TestCopyAndCreation(InvariantMaskTestSetup):
         farray = np.asfarray(a=self.ma)
         assert_array_equal(farray, self.ma)
 
+
+class TestArrayCreation(CoverageSetup):
     def test_empty_like(self):
         o = np.empty_like(self.ma)
         assert o.shape == (2, 3)
@@ -509,7 +372,7 @@ class TestAccessingParts(BasicTestSetup):
         self.check(np.take, 1)
 
 
-class TestSettingParts(MaskedArraySetup, metaclass=CoverageMeta):
+class TestSettingParts(CoverageSetup):
     def test_put(self):
         ma = self.ma.copy()
         np.put(ma, [0, 2], Masked([50, 150], [False, True]))
@@ -579,8 +442,8 @@ class TestRepeat(BasicTestSetup):
         self.check(np.resize, (4, 4))
 
 
-class TestConcatenate(MaskedArraySetup, metaclass=CoverageMeta):
-    # More tests at TestMaskedArrayConcatenation above.
+class TestConcatenate(CoverageSetup):
+    # More tests at TestMaskedArrayConcatenation in test_functions.
     def check(self, func, *args, **kwargs):
         ma_list = kwargs.pop('ma_list', [self.ma, self.ma])
         a_list = [Masked(ma).unmasked for ma in ma_list]
@@ -645,17 +508,19 @@ class TestConcatenate(MaskedArraySetup, metaclass=CoverageMeta):
         assert_array_equal(out.mask, expected_mask)
 
 
-class TestSplit(metaclass=CoverageMeta):
-    def setup(self):
-        self.ma = Masked(np.arange(54.).reshape(3, 3, 6))
-        self.ma.mask[1, 1, 1] = True
-        self.ma.mask[0, 1, 4] = True
-        self.ma.mask[1, 2, 5] = True
+class TestSplit(CoverageSetup):
+    def setup_class(self):
+        self.a = np.arange(54.).reshape(3, 3, 6)
+        self.mask_a = np.zeros(self.a.shape, dtype=bool)
+        self.mask_a[1, 1, 1] = True
+        self.mask_a[0, 1, 4] = True
+        self.mask_a[1, 2, 5] = True
+        self.ma = Masked(self.a, mask=self.mask_a)
 
     def check(self, func, *args, **kwargs):
         out = func(self.ma, *args, **kwargs)
-        expected = func(self.ma.unmasked, *args, **kwargs)
-        expected_mask = func(self.ma.mask, *args, **kwargs)
+        expected = func(self.a, *args, **kwargs)
+        expected_mask = func(self.mask_a, *args, **kwargs)
         assert len(out) == len(expected)
         for o, x, xm in zip(out, expected, expected_mask):
             assert_array_equal(o.unmasked, x)
@@ -677,15 +542,14 @@ class TestSplit(metaclass=CoverageMeta):
         self.check(np.dsplit, [1])
 
 
-class TestMethodLikes(MaskedArraySetup, metaclass=CoverageMeta):
+class TestMethodLikes(CoverageSetup):
     def check(self, function, *args, method=None, **kwargs):
         if method is None:
             method = function.__name__
 
         o = function(self.ma, *args, **kwargs)
         x = getattr(self.ma, method)(*args, **kwargs)
-        assert_array_equal(o.unmasked, x.unmasked)
-        assert_array_equal(o.mask, x.mask)
+        assert_masked_equal(o, x)
 
     def test_amax(self):
         self.check(np.amax, method='max')
@@ -829,8 +693,8 @@ class TestUfuncLike(InvariantMaskTestSetup):
         assert ma is o
 
 
-class TestUfuncLikeTests(metaclass=CoverageMeta):
-    def setup(self):
+class TestUfuncLikeTests(CoverageSetup):
+    def setup_class(self):
         self.a = np.array([[-np.inf, +np.inf, np.nan, 3., 4.]]*2)
         self.mask_a = np.array([[False]*5, [True]*4+[False]])
         self.ma = Masked(self.a, mask=self.mask_a)
@@ -897,7 +761,7 @@ class TestUfuncLikeTests(metaclass=CoverageMeta):
         assert np.array_equiv(self.mb, np.stack([self.mb, self.mb]))
 
 
-class TestReductionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestReductionLikeFunctions(CoverageSetup):
     def test_average(self):
         o = np.average(self.ma)
         assert_masked_equal(o, self.ma.mean())
@@ -910,8 +774,10 @@ class TestReductionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
 
     def test_trace(self):
         o = np.trace(self.ma)
-        expected = Masked(np.trace(self.a), np.trace(self.mask_a).astype(bool))
-        assert_masked_equal(o, expected)
+        expected = np.trace(self.a)
+        expected_mask = np.trace(self.mask_a).astype(bool)
+        assert_array_equal(o.unmasked, expected)
+        assert_array_equal(o.mask, expected_mask)
 
     @pytest.mark.parametrize('axis', [0, 1, None])
     def test_count_nonzero(self, axis):
@@ -921,7 +787,7 @@ class TestReductionLikeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
 
 
 @pytest.mark.filterwarnings('ignore:all-nan')
-class TestPartitionLikeFunctions(metaclass=CoverageMeta):
+class TestPartitionLikeFunctions(CoverageSetup):
     def setup_class(self):
         self.a = np.arange(36.).reshape(6, 6)
         self.mask_a = np.zeros_like(self.a, bool)
@@ -950,7 +816,7 @@ class TestPartitionLikeFunctions(metaclass=CoverageMeta):
         self.check(np.percentile, q=50, axis=axis)
 
 
-class TestIntDiffFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestIntDiffFunctions(CoverageSetup):
     def test_diff(self):
         out = np.diff(self.ma)
         expected = np.diff(self.a)
@@ -989,7 +855,7 @@ class TestIntDiffFunctions(MaskedArraySetup, metaclass=CoverageMeta):
             assert_array_equal(o.mask, m)
 
 
-class TestSpaceFunctions(metaclass=CoverageMeta):
+class TestSpaceFunctions(CoverageSetup):
     def setup_class(self):
         self.a = np.arange(1., 7.).reshape(2, 3)
         self.mask_a = np.array([[True, False, False],
@@ -1020,7 +886,7 @@ class TestSpaceFunctions(metaclass=CoverageMeta):
         self.check(np.geomspace, 5)
 
 
-class TestInterpolationFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestInterpolationFunctions(CoverageSetup):
     def test_interp(self):
         xp = np.arange(5.)
         fp = np.array([1., 5., 6., 19., 20.])
@@ -1052,7 +918,7 @@ class TestInterpolationFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         assert_array_equal(out2.mask, expected_mask)
 
 
-class TestBincount(metaclass=CoverageMeta):
+class TestBincount(CoverageSetup):
     def test_bincount(self):
         i = np.array([1, 1, 2, 3, 2, 4])
         mask_i = np.array([True, False, False, True, False, False])
@@ -1076,7 +942,7 @@ class TestBincount(metaclass=CoverageMeta):
         assert_array_equal(out3.mask, expected_mask)
 
 
-class TestSortFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestSortFunctions(CoverageSetup):
     def test_sort(self):
         o = np.sort(self.ma)
         expected = self.ma.copy()
@@ -1103,9 +969,9 @@ class TestSortFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         assert_masked_equal(o, expected)
 
 
-class TestStringFunctions(metaclass=CoverageMeta):
+class TestStringFunctions(CoverageSetup):
     # More elaborate tests done in test_masked.py
-    def setup(self):
+    def setup_class(self):
         self.ma = Masked(np.arange(3), mask=[True, False, False])
 
     def test_array2string(self):
@@ -1137,10 +1003,8 @@ class TestStringFunctions(metaclass=CoverageMeta):
         assert out == '[— 1 2]'
 
 
-class TestBitAndIndexFunctions(metaclass=CoverageMeta):
-    # Index/bit functions generally fail for floats, so the usual
-    # float quantity are safe, but the integer ones are not.
-    def setup(self):
+class TestBitFunctions(CoverageSetup):
+    def setup_class(self):
         self.a = np.array([15, 255, 0], dtype='u1')
         self.mask_a = np.array([False, True, False])
         self.ma = Masked(self.a, mask=self.mask_a)
@@ -1166,6 +1030,9 @@ class TestBitAndIndexFunctions(metaclass=CoverageMeta):
         assert_array_equal(out.unmasked, self.b.ravel())
         assert_array_equal(out.mask, expected_mask)
 
+
+class TestIndexFunctions(CoverageSetup):
+    """Does not seem much sense to support these..."""
     def test_unravel_index(self):
         with pytest.raises(TypeError):
             np.unravel_index(self.ma, 3)
@@ -1179,7 +1046,7 @@ class TestBitAndIndexFunctions(metaclass=CoverageMeta):
             np.ix_(self.ma)
 
 
-class TestDtypeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestDtypeFunctions(CoverageSetup):
     def check(self, function, *args, **kwargs):
         out = function(self.ma, *args, **kwargs)
         expected = function(self.a, *args, **kwargs)
@@ -1207,7 +1074,7 @@ class TestDtypeFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         self.check(np.isrealobj)
 
 
-class TestMeshGrid(metaclass=CoverageMeta):
+class TestMeshGrid(CoverageSetup):
     def test_meshgrid(self):
         a = np.arange(1., 4.)
         mask_a = np.array([True, False, False])
@@ -1223,7 +1090,7 @@ class TestMeshGrid(metaclass=CoverageMeta):
             assert_array_equal(o.mask, m)
 
 
-class TestMemoryFunctions(MaskedArraySetup, metaclass=CoverageMeta):
+class TestMemoryFunctions(CoverageSetup):
     def test_shares_memory(self):
         assert np.shares_memory(self.ma, self.ma.unmasked)
         assert not np.shares_memory(self.ma, self.ma.mask)
@@ -1233,7 +1100,7 @@ class TestMemoryFunctions(MaskedArraySetup, metaclass=CoverageMeta):
         assert not np.may_share_memory(self.ma, self.ma.mask)
 
 
-class TestDatetimeFunctions(metaclass=CoverageMeta):
+class TestDatetimeFunctions(CoverageSetup):
     # Could in principle support np.is_busday, np.busday_count, np.busday_offset.
     def setup_class(self):
         self.a = np.array(['2020-12-31', '2021-01-01', '2021-01-02'], dtype='M')
@@ -1249,18 +1116,6 @@ class TestDatetimeFunctions(metaclass=CoverageMeta):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, self.mask_a)
 
-    def test_is_busday(self):
-        with pytest.raises(TypeError):
-            np.is_busday(self.ma)
-
-    def test_busday_offset(self):
-        with pytest.raises(TypeError):
-            np.busday_offset(self.ma, 1)
-
-    def test_busday_count(self):
-        with pytest.raises(TypeError):
-            np.busday_count(self.ma, self.ma)
-
 
 untested_functions = set()
 if NUMPY_LT_1_20:
@@ -1270,10 +1125,11 @@ if NUMPY_LT_1_20:
 
 deprecated_functions = {
     np.asscalar,
-    np.alen,
     }
 if NUMPY_LT_1_18:
     deprecated_functions |= {np.rank}
+else:
+    deprecated_functions |= {np.alen}
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
