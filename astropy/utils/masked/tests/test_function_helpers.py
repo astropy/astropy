@@ -1225,6 +1225,108 @@ class TestDatetimeFunctions:
         assert_array_equal(out.mask, self.mask_a)
 
 
+@pytest.mark.filterwarnings('ignore:all-nan')
+class TestNaNFunctions:
+    def setup_class(self):
+        self.a = np.array([[np.nan, np.nan, 3.],
+                           [4., 5., 6.]])
+        self.mask_a = np.array([[True, False, False],
+                                [False, True, False]])
+        self.b = np.arange(1, 7).reshape(2, 3)
+        self.mask_b = self.mask_a
+        self.ma = Masked(self.a, mask=self.mask_a)
+        self.mb = Masked(self.b, mask=self.mask_b)
+
+    def check(self, function, exact_fill_value=None, masked_result=True,
+              **kwargs):
+        result = function(self.ma, **kwargs)
+        expected_data = function(self.ma.filled(np.nan), **kwargs)
+        expected_mask = np.isnan(expected_data)
+        if masked_result:
+            assert isinstance(result, Masked)
+            assert_array_equal(result.mask, expected_mask)
+            assert np.all(result == expected_data)
+        else:
+            assert not isinstance(result, Masked)
+            assert_array_equal(result, expected_data)
+            assert not np.any(expected_mask)
+        out = np.zeros_like(result)
+        result2 = function(self.ma, out=out, **kwargs)
+        assert result2 is out
+        assert_array_equal(result2, result)
+
+    def check_arg(self, function, **kwargs):
+        # arg functions do not have an 'out' argument, so just test directly.
+        result = function(self.ma, **kwargs)
+        assert not isinstance(result, Masked)
+        expected = function(self.ma.filled(np.nan), **kwargs)
+        assert_array_equal(result, expected)
+
+    def test_nanmin(self):
+        self.check(np.nanmin)
+        self.check(np.nanmin, axis=0)
+        self.check(np.nanmin, axis=1)
+        resi = np.nanmin(self.mb, axis=1)
+        assert_array_equal(resi.unmasked, np.array([2, 4]))
+        assert_array_equal(resi.mask, np.array([False, False]))
+
+    def test_nanmax(self):
+        self.check(np.nanmax)
+
+    def test_nanargmin(self):
+        self.check_arg(np.nanargmin)
+        self.check_arg(np.nanargmin, axis=1)
+
+    def test_nanargmax(self):
+        self.check_arg(np.nanargmax)
+
+    def test_nansum(self):
+        self.check(np.nansum, masked_result=False)
+        resi = np.nansum(self.mb, axis=1)
+        assert not isinstance(resi, Masked)
+        assert_array_equal(resi, np.array([5, 10]))
+
+    def test_nanprod(self):
+        self.check(np.nanprod, masked_result=False)
+        resi = np.nanprod(self.mb, axis=1)
+        assert not isinstance(resi, Masked)
+        assert_array_equal(resi, np.array([6, 24]))
+
+    def test_nancumsum(self):
+        self.check(np.nancumsum, masked_result=False)
+        resi = np.nancumsum(self.mb, axis=1)
+        assert not isinstance(resi, Masked)
+        assert_array_equal(resi, np.array([[0, 2, 5], [4, 4, 10]]))
+
+    def test_nancumprod(self):
+        self.check(np.nancumprod, masked_result=False)
+        resi = np.nancumprod(self.mb, axis=1)
+        assert not isinstance(resi, Masked)
+        assert_array_equal(resi, np.array([[1, 2, 6], [4, 4, 24]]))
+
+    def test_nanmean(self):
+        self.check(np.nanmean)
+        resi = np.nanmean(self.mb, axis=1)
+        assert_array_equal(resi.unmasked, np.mean(self.mb, axis=1).unmasked)
+        assert_array_equal(resi.mask, np.array([False, False]))
+
+    def test_nanvar(self):
+        self.check(np.nanvar)
+        self.check(np.nanvar, ddof=1)
+
+    def test_nanstd(self):
+        self.check(np.nanstd)
+
+    def test_nanmedian(self):
+        self.check(np.nanmedian)
+
+    def test_nanquantile(self):
+        self.check(np.nanquantile, q=0.5)
+
+    def test_nanpercentile(self):
+        self.check(np.nanpercentile, q=50)
+
+
 untested_functions = set()
 if NUMPY_LT_1_20:
     financial_functions = {f for f in all_wrapped_functions.values()
