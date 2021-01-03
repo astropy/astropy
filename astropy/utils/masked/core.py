@@ -17,7 +17,6 @@ which can also be overridden if needed.
 
 """
 import builtins
-import functools
 
 import numpy as np
 
@@ -569,50 +568,80 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                            for field in self.dtype.names], axis=-1)
         return result.any(axis=-1)
 
+    @classmethod
+    def _data_masks(cls, *args):
+        data = []
+        masks = []
+        for arg in args:
+            if arg is None:
+                data.append(None)
+                masks.append(None)
+            elif isinstance(arg, Masked):
+                data.append(arg.unmasked)
+                masks.append(arg.mask)
+            else:
+                data.append(arg)
+                masks.append(False)
+        return tuple(data), tuple(masks)
+
+    def _combine_masks(self, masks, out=None):
+        masks = [m for m in masks if m is not False]
+        if not masks:
+            return False
+        if len(masks) == 1:
+            if out is None:
+                return masks[0].copy()
+            else:
+                np.copyto(out, masks[0])
+                return out
+
+        out = np.logical_or(masks[0], masks[1], out=out)
+        for mask in masks[2:]:
+            np.logical_or(out, mask, out=out)
+        return out
+
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         out = kwargs.pop('out', None)
+        out_unmasked = None
+        out_mask = None
         if out is not None:
-            converted_out = []
-            for out_ in out:
-                if out_ is None:
-                    converted_out.append(None)
-                elif isinstance(out_, Masked):
-                    converted_out.append(out_.unmasked)
-                else:
-                    return NotImplemented
-            kwargs['out'] = tuple(converted_out)
-            if ufunc.nout == 1:
-                out = out[0]
+            out_unmasked, out_masks = self._data_masks(*out)
+            for d, m in zip(out_unmasked, out_masks):
+                if m is None:
+                    # TODO: allow writing to unmasked output if nothing is masked?
+                    if d is not None:
+                        raise TypeError('cannot write to unmasked output')
+                elif out_mask is None:
+                    out_mask = m
+
+        unmasked, masks = self._data_masks(*inputs)
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
-            # np.matmul and gufunc with a single axis.  Also ignore
-            # axes keyword for now...  TODO: generally, the mask can
-            # be generated purely based on the signature.
+            # np.matmul and gufuncs for which the mask of any output always
+            # depends on all core dimension values of all inputs.
+            # Also ignore axes keyword for now...
+            # TODO: in principle, it should be possible to generate the mask
+            # purely based on the signature.
             assert 'axes' not in kwargs
-            converted = []
-            masks = []
-            for input_ in inputs:
-                if isinstance(input_, Masked):
-                    masks.append(input_.mask)
-                    converted.append(input_.unmasked)
-                else:
-                    masks.append(np.zeros(getattr(input_, 'shape', ()), bool))
-                    converted.append(input_)
-
-            result = ufunc(*converted, **kwargs)
             if ufunc is np.matmul:
                 # np.matmul is tricky and its signature cannot be parsed by
                 # _parse_gufunc_signature.
+                unmasked = np.atleast_1d(*unmasked)
                 mask0, mask1 = masks
-                if mask1.ndim > 1:
-                    mask0 = np.logical_or.reduce(mask0, axis=-1, keepdims=True)
-                    mask1 = np.logical_or.reduce(mask1, axis=-2, keepdims=True)
-                else:
-                    mask0 = np.logical_or.reduce(mask0, axis=-1)
-                    mask1 = np.logical_or.reduce(mask1)
+                masks = []
+                is_mat1 = unmasked[1].ndim >= 2
+                if mask0 is not False:
+                    masks.append(
+                        np.logical_or.reduce(mask0, axis=-1, keepdims=is_mat1))
 
-                mask = np.logical_or(mask0, mask1)
+                if mask1 is not False:
+                    masks.append(
+                        np.logical_or.reduce(mask1, axis=-2, keepdims=True)
+                        if is_mat1 else
+                        np.logical_or.reduce(mask1))
+
+                mask = self._combine_masks(masks, out=out_mask)
 
             else:
                 # Parse signature with private numpy function. Note it
@@ -623,51 +652,43 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 keepdims = kwargs.get('keepdims', False)
                 in_masks = []
                 for sig, mask in zip(in_sig, masks):
-                    if sig:
-                        # Input has core dimensions.
-                        if axis is None:
-                            mask = np.logical_or.reduce(
-                                mask, axis=tuple(range(-len(sig), 0)))
-                        else:
-                            mask = np.logical_or.reduce(
-                                mask, axis=axis, keepdims=keepdims)
-                    in_masks.append(mask)
+                    if mask is not False:
+                        if sig:
+                            # Input has core dimensions.  Assume that if any
+                            # value in those is masked, the output will be
+                            # masked too (valid for a single core dimension
+                            # but possibly too strong for multiple).
+                            if axis is None:
+                                mask = np.logical_or.reduce(
+                                    mask, axis=tuple(range(-len(sig), 0)))
+                            else:
+                                mask = np.logical_or.reduce(
+                                    mask, axis=axis, keepdims=keepdims)
+                        in_masks.append(mask)
 
-                mask = functools.reduce(np.logical_or, in_masks)
-                out_masks = []
+                mask = self._combine_masks(in_masks)
+                result_masks = []
                 for os in out_sig:
                     if os:
-                        # Output has core dimensions.
+                        # Output has core dimensions.  Assume all those
+                        # get the same mask.
                         if axis is None:
-                            out_mask = mask[(Ellipsis,)+(np.newaxis,)*len(os)]
+                            result_mask = mask[(Ellipsis,)+(np.newaxis,)*len(os)]
                         else:
-                            out_mask = np.expand_dims(mask, axis)
+                            result_mask = np.expand_dims(mask, axis)
                     else:
-                        out_mask = mask
-                    out_masks.append(out_mask)
+                        result_mask = mask
+                    result_masks.append(result_mask)
 
-                mask = out_masks if len(out_masks) > 1 else out_masks[0]
+                mask = result_masks if len(result_masks) > 1 else result_masks[0]
 
         elif method == '__call__':
             # Regular ufunc call.
-            converted = []
-            masks = []
-            for input_ in inputs:
-                if isinstance(input_, Masked):
-                    masks.append(input_.mask)
-                    converted.append(input_.unmasked)
-                else:
-                    converted.append(input_)
-
-            result = ufunc(*converted, **kwargs)
-            if masks:
-                mask = functools.reduce(np.logical_or, masks)
-            else:
-                mask = False
+            mask = self._combine_masks(masks, out=out_mask)
 
         elif method in {'reduce', 'accumulate'}:
             # Reductions like np.add.reduce (sum).
-            if isinstance(inputs[0], Masked):
+            if masks[0] is not False:
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
                 # Individual methods need to override as needed.
@@ -676,36 +697,40 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     axis = kwargs.get('axis', None)
                     keepdims = kwargs.get('keepdims', False)
                     where = kwargs.get('where', True)
-                    mask = np.logical_or.reduce(inputs[0].mask, where=where,
-                                                axis=axis, keepdims=keepdims)
+                    mask = np.logical_or.reduce(masks[0], where=where,
+                                                axis=axis, keepdims=keepdims,
+                                                out=out_mask)
                     if where is not True:
                         # Mask also whole rows that were not selected by where,
                         # so would have been left as unmasked above.
-                        mask |= np.logical_and.reduce(inputs[0].mask, where=where,
+                        mask |= np.logical_and.reduce(masks[0], where=where,
                                                       axis=axis, keepdims=keepdims)
 
                 else:
                     # Accumulate
                     axis = kwargs.get('axis', 0)
-                    mask = np.logical_or.accumulate(inputs[0].mask, axis=axis)
+                    mask = np.logical_or.accumulate(masks[0], axis=axis,
+                                                    out=out_mask)
 
-                converted = inputs[0].unmasked
-
-            elif 'out' in kwargs and isinstance(kwargs['out'][0], Masked):
+            elif out is not None:
                 mask = False
-                converted = inputs[0]
+
             else:
                 return NotImplemented
-
-            result = getattr(ufunc, method)(converted, **kwargs)
 
         elif method in {'reduceat', 'at'}:
             # TODO: implement things like np.add.accumulate (used for cumsum).
             return NotImplemented
 
-        if mask is False or result is None or result is NotImplemented:
+        if out_unmasked is not None:
+            kwargs['out'] = out_unmasked
+        result = getattr(ufunc, method)(*unmasked, **kwargs)
+
+        if result is None or result is NotImplemented:
             return result
 
+        if out is not None and len(out) == 1:
+            out = out[0]
         return self._masked_result(result, mask, out)
 
     def __array_function__(self, function, types, args, kwargs):
@@ -755,7 +780,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             if out is None:
                 out = (None,) * len(result)
             if not isinstance(mask, (list, tuple)):
-                mask = [mask] * len(result)
+                mask = (mask,) * len(result)
             return tuple(self._masked_result(result_, mask_, out_)
                          for (result_, mask_, out_) in zip(result, mask, out))
 
@@ -769,8 +794,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # TODO: remove this sanity check once test cases are more complete.
         assert isinstance(out, Masked)
         # If we have an output, the result was writtin in-place, so we should
-        # also write the mask in-place.
-        out._mask[...] = mask
+        # also write the mask in-place (if not done already in the code).
+        if out._mask is not mask:
+            out._mask[...] = mask
         return out
 
     # Below are ndarray methods that need to be overridden as masked elements
