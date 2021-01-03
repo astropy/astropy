@@ -12,7 +12,8 @@ interpreted.
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import (
-    FunctionAssigner, IGNORED_FUNCTIONS)
+    FunctionAssigner)
+from astropy.utils.compat import NUMPY_LT_1_20
 
 
 # This module should not really be imported, but we define __all__
@@ -64,38 +65,100 @@ result and a possible output instance.
 UNSUPPORTED_FUNCTIONS = set()
 """Set of numpy functions that are not supported for masked arrays.
 
-For most, masked input simply makes no sense.  If a function is included
-for which this does not seem to hold, please raise an issue.
+For most, masked input simply makes no sense, but for others it may
+have been lack of time.  For instance, for the ``nanfunctions``, one
+could imagine replacing masked entries with ``np.nan``, but this works
+only for real and complex.
+
+Issues or PRs for support for functions are very welcome.
 """
 
+# Almost all from np.core.fromnumeric defer to methods so are OK.
+MASKED_SAFE_FUNCTIONS |= set(
+    getattr(np, name) for name in np.core.fromnumeric.__all__
+    if name not in {'alen', 'resize', 'searchsorted', 'where'})
+
+# TODO!! no need to remove!!
+MASKED_SAFE_FUNCTIONS -= {np.put, np.repeat, np.choose}
+
 MASKED_SAFE_FUNCTIONS |= {
+    # built-in from multiarray
+    np.may_share_memory, np.can_cast, np.min_scalar_type, np.result_type,
+    np.shares_memory,
+    # np.core.arrayprint
+    np.array_repr,
+    # np.core.function_base
+    np.linspace, np.logspace, np.geomspace,
     # np.core.numeric
-    np.isclose, np.allclose,
-    # np.lib.fromnumeric (covered by methods)
-    np.amax, np.amin, np.sum, np.cumsum, np.any, np.all,
-    np.sometrue, np.alltrue, np.prod, np.product, np.cumprod, np.cumproduct,
+    np.isclose, np.allclose, np.flatnonzero, np.argwhere,
+    # np.core.shape_base
+    np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
     # np.lib.function_base
-    np.diff, np.extract,
-    # np.lib.shape_base
-    np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
-    np.put_along_axis, np.apply_along_axis,
+    np.average, np.diff, np.extract, np.meshgrid, np.trapz, np.gradient,
     # np.lib.index_tricks
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.fill_diagonal,
+    # np.lib.shape_base
+    np.column_stack, np.row_stack, np.dstack,
+    np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
+    np.expand_dims, np.apply_along_axis, np.kron, np.tile,
+    np.take_along_axis, np.put_along_axis,
+    # np.lib.type_check (all but asfarray)
+    np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.nan_to_num,
+    np.real, np.real_if_close, np.common_type,
     # np.lib.ufunclike
     np.fix, np.isneginf, np.isposinf,
     # np.lib.function_base
     np.angle, np.i0,
 }
 
+IGNORED_FUNCTIONS = {
+    # Deprecated
+    np.asscalar, np.alen,
+    # I/O - useless for Quantity, since no way to store the unit.
+    np.save, np.savez, np.savetxt, np.savez_compressed,
+    # Polynomials
+    np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
+    np.polymul, np.polysub, np.polyval, np.roots, np.vander}
+if NUMPY_LT_1_20:
+    # financial
+    IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
+                          np.npv, np.pmt, np.ppmt, np.pv, np.rate}
+
+# TODO: some of the following could in principle be supported.
+IGNORED_FUNCTIONS |= {
+    np.pad,
+    np.searchsorted, np.digitize,
+    np.is_busday, np.busday_count, np.busday_offset,
+    # numpy.lib.function_base
+    np.cov, np.corrcoef, np.trim_zeros,
+    # numpy.core.numeric
+    np.correlate, np.convolve,
+    # numpy.lib.histograms
+    np.histogram, np.histogram2d, np.histogramdd, np.histogram_bin_edges,
+    # TODO!!
+    np.dot, np.vdot, np.inner, np.tensordot, np.cross,
+    np.einsum, np.einsum_path,
+}
+
+# In principle, could just fill with np.nan, but then, so can the user.
+IGNORED_FUNCTIONS |= set(getattr(np, nanfuncname)
+                         for nanfuncname in np.lib.nanfunctions.__all__)
+
+# Really should do these...
+IGNORED_FUNCTIONS |= set(getattr(np, setopsname)
+                         for setopsname in np.lib.arraysetops.__all__)
+
+
+# Explicitly unsupported functions
+UNSUPPORTED_FUNCTIONS |= {
+    np.unravel_index, np.ravel_multi_index, np.ix_,
+}
+
 # No support for the functions also not supported by Quantity
 # (io, polynomial, etc.).
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
-# TODO: the following could in principle be supported.
-UNSUPPORTED_FUNCTIONS |= {
-    np.pad, np.is_busday, np.busday_count, np.busday_offset,
-    np.unravel_index, np.ravel_multi_index, np.ix_}
 
 apply_to_both = FunctionAssigner(APPLY_TO_BOTH_FUNCTIONS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
@@ -147,9 +210,8 @@ def unwrap(p, *args, **kwargs):
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
 @apply_to_both(helps={
-    np.copy, np.asfarray, np.real_if_close, np.sort_complex, np.resize,
-    np.moveaxis, np.rollaxis, np.expand_dims, np.squeeze, np.roll, np.take,
-    np.repeat})
+    np.copy, np.asfarray, np.resize,
+    np.moveaxis, np.rollaxis, np.roll, np.repeat})
 def masked_a_helper(a, *args, **kwargs):
     data, mask = _data_masks(a)
     return data + args, mask + args, kwargs, None
@@ -164,12 +226,6 @@ def masked_m_helper(m, *args, **kwargs):
 @apply_to_both(helps={np.diag, np.diagflat})
 def masked_v_helper(v, *args, **kwargs):
     data, mask = _data_masks(v)
-    return data + args, mask + args, kwargs, None
-
-
-@apply_to_both(helps={np.tile})
-def masked_A_helper(A, *args, **kwargs):
-    data, mask = _data_masks(A)
     return data + args, mask + args, kwargs, None
 
 
@@ -190,6 +246,12 @@ def broadcast_to(array,  shape, subok=False):
     """
     data, mask = _data_masks(array)
     return data, mask, dict(shape=shape, subok=subok), None
+
+
+@apply_to_both
+def outer(a, b, out=None):
+    data, masks = _data_masks(a, b)
+    return data, masks, {}, out
 
 
 @dispatched_function
@@ -355,6 +417,29 @@ def bincount(x, weights=None, minlength=0):
                                minlength=minlength).astype(bool)
     result = np.bincount(x, weights, minlength=0)
     return result, mask, None
+
+
+@dispatched_function
+def msort(a):
+    result = a.copy()
+    result.sort(axis=0)
+    return result
+
+
+@dispatched_function
+def sort_complex(a):
+    # Just a copy of function_base.sort_complex, to avoid the asarray.
+    b = a.copy()
+    b.sort()
+    if not issubclass(b.dtype.type, np.complexfloating):
+        if b.dtype.char in 'bhBH':
+            return b.astype('F')
+        elif b.dtype.char == 'g':
+            return b.astype('G')
+        else:
+            return b.astype('D')
+    else:
+        return b
 
 
 @apply_to_both
