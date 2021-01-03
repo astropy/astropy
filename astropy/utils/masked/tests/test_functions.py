@@ -1,14 +1,105 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import itertools
+"""Test numpy functions and ufuncs on Masked arrays and quantities.
 
+The tests here are fairly detailed but do not aim for complete
+coverage.  Complete coverage of all numpy functions is done
+with less detailed tests in test_function_helpers.
+"""
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from astropy.utils.masked.core import Masked, MaskedNDArray
+from astropy import units as u
+from astropy.units import Quantity
+from astropy.utils.masked.core import Masked
 
 from .test_masked import (MaskedArraySetup, QuantitySetup, LongitudeSetup,
                           assert_masked_equal)
+
+
+class MaskedUfuncTests(MaskedArraySetup):
+    @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
+                                       np.arctan2, np.minimum))
+    def test_2op_ufunc(self, ufunc):
+        ma_mb = ufunc(self.ma, self.mb)
+        expected_data = ufunc(self.a, self.b)
+        expected_mask = (self.ma.mask | self.mb.mask)
+        # Note: assert_array_equal also checks type, i.e., that, e.g.,
+        # Longitude decays into an Angle.
+        assert_array_equal(ma_mb.unmasked, expected_data)
+        assert_array_equal(ma_mb.mask, expected_mask)
+
+    @pytest.mark.parametrize('ufunc', (np.add, np.subtract, np.divide,
+                                       np.arctan2, np.minimum))
+    def test_ufunc_inplace(self, ufunc):
+        ma_mb = ufunc(self.ma, self.mb)
+        out = Masked(np.zeros_like(ma_mb.unmasked))
+        result = ufunc(self.ma, self.mb, out=out)
+        assert result is out
+        assert_masked_equal(result, ma_mb)
+
+    def test_ufunc_inplace_error(self):
+        out = np.zeros(self.ma.shape)
+        with pytest.raises(TypeError):
+            np.add(self.ma, self.mb, out=out)
+
+    def test_3op_ufunc(self):
+        ma_mb = np.clip(self.ma, self.b, self.c)
+        expected_data = np.clip(self.a, self.b, self.c)
+        expected_mask = self.mask_a
+        assert_array_equal(ma_mb.unmasked, expected_data)
+        assert_array_equal(ma_mb.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_add_reduce(self, axis):
+        ma_reduce = np.add.reduce(self.ma, axis=axis)
+        expected_data = np.add.reduce(self.a, axis=axis)
+        expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
+        assert_array_equal(ma_reduce.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_minimum_reduce(self, axis):
+        ma_reduce = np.minimum.reduce(self.ma, axis=axis)
+        expected_data = np.minimum.reduce(self.a, axis=axis)
+        expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
+        assert_array_equal(ma_reduce.mask, expected_mask)
+
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_maximum_reduce(self, axis):
+        ma_reduce = np.maximum.reduce(self.ma, axis=axis)
+        expected_data = np.maximum.reduce(self.a, axis=axis)
+        expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
+        assert_array_equal(ma_reduce.mask, expected_mask)
+
+
+class TestMaskedArrayUfuncs(MaskedUfuncTests):
+    # multiply.reduce does not work with units, so test only for plain array.
+    @pytest.mark.parametrize('axis', (0, 1, None))
+    def test_multiply_reduce(self, axis):
+        ma_reduce = np.multiply.reduce(self.ma, axis=axis)
+        expected_data = np.multiply.reduce(self.a, axis=axis)
+        expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
+        assert_array_equal(ma_reduce.unmasked, expected_data)
+        assert_array_equal(ma_reduce.mask, expected_mask)
+
+
+class TestMaskedQuantityUfuncs(MaskedUfuncTests, QuantitySetup):
+    def test_ufunc_inplace_error2(self):
+        out = Masked(np.zeros(self.ma.shape))
+        with pytest.raises(TypeError):
+            np.add(self.ma, self.mb, out=out)
+
+
+class TestMaskedLongitudeUfuncs(MaskedUfuncTests, LongitudeSetup):
+    def test_ufunc_inplace_quantity_initial(self):
+        out = Masked(np.zeros(self.ma.shape) << u.m)
+        result = np.add(self.ma, self.mb, out=out)
+        assert result is out
+        expected = np.add(self.ma, self.mb).view(Quantity)
+        assert_masked_equal(result, expected)
 
 
 class TestMaskedArrayConcatenation(MaskedArraySetup):
