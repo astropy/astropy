@@ -816,6 +816,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             raise NotImplementedError('cannot yet give output')
         return self._apply('compress', condition, axis=axis)
 
+    def repeat(self, repeats, axis=None):
+        return self._apply('repeat', repeats, axis=axis)
+
     def choose(self, choices, out=None, mode='raise'):
         # Let __array_function__ take care since choises can be masked too.
         return np.choose(self, choices, out=out, mode=mode)
