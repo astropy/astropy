@@ -13,7 +13,7 @@ import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import (
     FunctionAssigner)
-from astropy.utils.compat import NUMPY_LT_1_20
+from astropy.utils.compat import NUMPY_LT_1_18, NUMPY_LT_1_19, NUMPY_LT_1_20
 
 
 # This module should not really be imported, but we define __all__
@@ -76,10 +76,9 @@ Issues or PRs for support for functions are very welcome.
 # Almost all from np.core.fromnumeric defer to methods so are OK.
 MASKED_SAFE_FUNCTIONS |= set(
     getattr(np, name) for name in np.core.fromnumeric.__all__
-    if name not in {'alen', 'resize', 'searchsorted', 'where'})
+    if name not in ({'choose', 'put', 'resize', 'searchsorted', 'where'}
+                    | {'rank' if NUMPY_LT_1_18 else 'alen'}))
 
-# TODO!! no need to remove!!
-MASKED_SAFE_FUNCTIONS -= {np.put, np.repeat, np.choose}
 
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -114,8 +113,8 @@ MASKED_SAFE_FUNCTIONS |= {
 
 IGNORED_FUNCTIONS = {
     # Deprecated
-    np.asscalar, np.alen,
-    # I/O - useless for Quantity, since no way to store the unit.
+    np.asscalar,
+    # I/O - useless for Masked, since no way to store the mask.
     np.save, np.savez, np.savetxt, np.savez_compressed,
     # Polynomials
     np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
@@ -124,6 +123,10 @@ if NUMPY_LT_1_20:
     # financial
     IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
                           np.npv, np.pmt, np.ppmt, np.pv, np.rate}
+if NUMPY_LT_1_18:
+    IGNORED_FUNCTIONS |= {np.rank}
+else:
+    IGNORED_FUNCTIONS |= {np.alen}
 
 # TODO: some of the following could in principle be supported.
 IGNORED_FUNCTIONS |= {
@@ -203,8 +206,7 @@ def unwrap(p, *args, **kwargs):
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
 @apply_to_both(helps={
-    np.copy, np.asfarray, np.resize,
-    np.moveaxis, np.rollaxis, np.roll, np.repeat})
+    np.copy, np.asfarray, np.resize, np.moveaxis, np.rollaxis, np.roll})
 def masked_a_helper(a, *args, **kwargs):
     data, mask = _data_masks(a)
     return data + args, mask + args, kwargs, None
@@ -512,14 +514,35 @@ def insert(arr, obj, values, axis=None):
             (arr_mask, obj, val_mask, axis), {}, None)
 
 
-@dispatched_function
-def count_nonzero(a, axis=None, *, keepdims=False):
-    """Counts the number of non-zero values in the array ``a``.
+if NUMPY_LT_1_19:
+    @dispatched_function
+    def count_nonzero(a, axis=None):
+        """Counts the number of non-zero values in the array ``a``.
 
-    Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
-    """
-    filled = a.unmask(np.zeros((), a.dtype))
-    return np.count_nonzero(filled, axis, keepdims=keepdims)
+        Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
+        """
+        filled = a.unmask(np.zeros((), a.dtype))
+        return np.count_nonzero(filled, axis)
+else:
+    @dispatched_function
+    def count_nonzero(a, axis=None, *, keepdims=False):
+        """Counts the number of non-zero values in the array ``a``.
+
+        Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
+        """
+        filled = a.unmask(np.zeros((), a.dtype))
+        return np.count_nonzero(filled, axis, keepdims=keepdims)
+
+
+if NUMPY_LT_1_19:
+    def _zeros_like(a, dtype=None, order='K', subok=True, shape=None):
+        if shape != ():
+            return np.zeros_like(a, dtype=dtype, order=order, subok=subok, shape=shape)
+        else:
+            return np.zeros_like(a, dtype=dtype, order=order, subok=subok,
+                                 shape=(1,))[0]
+else:
+    _zeros_like = np.zeros_like
 
 
 def _masked_median_1d(a, overwrite_input):
@@ -529,7 +552,7 @@ def _masked_median_1d(a, overwrite_input):
         return a.from_unmasked(
             np.median(unmasked, overwrite_input=overwrite_input))
     else:
-        return a.from_unmasked(np.zeros_like(a.unmasked, shape=()), mask=True)
+        return a.from_unmasked(_zeros_like(a.unmasked, shape=(1,))[0], mask=True)
 
 
 def _masked_median(a, axis=None, out=None, overwrite_input=False):
@@ -567,7 +590,7 @@ def _masked_quantile_1d(a, q, **kwargs):
         result = np.lib.function_base._quantile_unchecked(unmasked, q, **kwargs)
         return a.from_unmasked(result)
     else:
-        return a.from_unmasked(np.zeros_like(a.unmasked, shape=q.shape), True)
+        return a.from_unmasked(_zeros_like(a.unmasked, shape=q.shape), True)
 
 
 def _masked_quantile(a, q, axis=None, out=None, **kwargs):
