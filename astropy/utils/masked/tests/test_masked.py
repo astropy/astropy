@@ -30,7 +30,8 @@ VARIOUS_ITEMS = [
 class ArraySetup:
     _data_cls = np.ndarray
 
-    def setup_arrays(self):
+    @classmethod
+    def setup_class(self):
         self.a = np.arange(6.).reshape(2, 3)
         self.mask_a = np.array([[True, False, False],
                                 [False, True, False]])
@@ -49,15 +50,13 @@ class ArraySetup:
         self.mask_sb = np.array([(True, False), (False, False)],
                                 dtype=self.mask_sdt)
 
-    def setup(self):
-        self.setup_arrays()
-
 
 class QuantitySetup(ArraySetup):
     _data_cls = Quantity
 
-    def setup_arrays(self):
-        super().setup_arrays()
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
         self.a = Quantity(self.a, u.m)
         self.b = Quantity(self.b, u.cm)
         self.c = Quantity(self.c, u.km)
@@ -68,8 +67,9 @@ class QuantitySetup(ArraySetup):
 class LongitudeSetup(ArraySetup):
     _data_cls = Longitude
 
-    def setup_arrays(self):
-        super().setup_arrays()
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
         self.a = Longitude(self.a, u.deg)
         self.b = Longitude(self.b, u.deg)
         self.c = Longitude(self.c, u.deg)
@@ -124,6 +124,7 @@ class TestMaskedClassCreation:
     By no means meant to be realistic, just to check that the basic
     machinery allows it.
     """
+    @classmethod
     def setup_class(self):
         self._base_classes_orig = Masked._base_classes.copy()
         self._masked_classes_orig = Masked._masked_classes.copy()
@@ -181,6 +182,7 @@ class TestMaskedClassCreation:
 
 class TestMaskedNDArraySubclassCreation:
     """Test that masked subclasses can be created directly and indirectly."""
+    @classmethod
     def setup_class(self):
         class MyArray(np.ndarray):
             def __new__(cls, *args, **kwargs):
@@ -355,8 +357,9 @@ class TestMaskSetting(ArraySetup):
 
 
 class MaskedArraySetup(ArraySetup):
-    def setup(self):
-        self.setup_arrays()
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
         self.ma = Masked(self.a, mask=self.mask_a)
         self.mb = Masked(self.b, mask=self.mask_b)
         self.mc = Masked(self.c, mask=self.mask_c)
@@ -550,8 +553,9 @@ class MaskedItemTests(MaskedArraySetup):
 
 
 class TestMaskedArrayItems(MaskedItemTests):
-    def setup(self):
-        super().setup()
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
         self.d = np.array(['aa', 'bb'])
         self.mask_d = np.array([True, False])
         self.md = Masked(self.d, self.mask_d)
@@ -1049,8 +1053,9 @@ class TestMaskedQuantityRepr(TestMaskedArrayRepr, QuantitySetup):
 
 
 class TestMaskedRecarray(MaskedArraySetup):
-    def setup(self):
-        super().setup()
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
         self.ra = self.sa.view(np.recarray)
         self.mra = Masked(self.ra, mask=self.mask_sa)
 
