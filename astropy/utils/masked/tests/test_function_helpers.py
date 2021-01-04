@@ -861,9 +861,12 @@ class TestSpaceFunctions:
         expected = function(self.a, self.b, 5)
         expected_mask = np.broadcast_to(self.mask_a | self.mask_b,
                                         expected.shape).copy()
-        # TODO: make implementation that also ensures start point mask
-        # is determined just by start point?
+        # TODO: make implementation that also ensures start point mask is
+        # determined just by start point? (as for geomspace in numpy 1.20)?
         expected_mask[-1] = self.mask_b
+        if not NUMPY_LT_1_20 and function is np.geomspace:
+            expected_mask[0] = self.mask_a
+
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
