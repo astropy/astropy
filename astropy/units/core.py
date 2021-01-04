@@ -1328,13 +1328,22 @@ class UnitBase:
     @property
     def physical_type(self):
         """
-        Return the physical type on the unit.
+        Return the physical type(s) that correspond to a unit.
+
+        Returns
+        -------
+        ~astropy.units.physical.PhysicalType
+            A representation of the physical types of a unit.
 
         Examples
         --------
         >>> from astropy import units as u
-        >>> print(u.m.physical_type)
-        length
+        >>> u.m.physical_type
+        'length'
+        >>> u.m.physical_type ** 3
+        'volume'
+        >>> u.Pa.physical_type
+        {'energy density', 'pressure', 'stress'}
 
         """
         from . import physical
