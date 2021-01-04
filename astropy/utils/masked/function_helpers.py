@@ -171,17 +171,10 @@ def _data_masks(*args):
     """
     from .core import Masked
 
-    data = []
-    masks = []
-    for arg in args:
-        if isinstance(arg, Masked):
-            data.append(arg.unmasked)
-            masks.append(arg.mask)
-        else:
-            data.append(arg)
-            masks.append(np.zeros(np.shape(arg), bool))
-
-    return tuple(data), tuple(masks)
+    data, masks = Masked._data_masks(*args)
+    masks = tuple(m if m is not None else np.zeros(np.shape(d), bool)
+                  for d, m in zip(data, masks))
+    return data, masks
 
 
 # Following are simple ufunc-like functions which should just copy the mask.
