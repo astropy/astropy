@@ -191,7 +191,7 @@ To determine if a unit is dimensionless (but regardless of the scale),
 use the `~astropy.units.core.UnitBase.physical_type` property::
 
    >>> (u.km / u.m).physical_type
-   u'dimensionless'
+   'dimensionless'
    >>> # This also has a scale, so it is not the same as u.dimensionless_unscaled
    >>> (u.km / u.m) == u.dimensionless_unscaled
    False
