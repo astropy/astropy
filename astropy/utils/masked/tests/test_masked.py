@@ -114,7 +114,7 @@ def test_masked_ndarray_init():
 
 
 def test_cannot_initialize_with_masked():
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(ValueError, match='cannot handle np.ma.masked'):
         Masked(np.ma.masked)
 
 

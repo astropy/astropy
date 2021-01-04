@@ -117,8 +117,6 @@ class Masked(NDArrayShapeMethods):
     @classmethod
     def _get_masked_instance(cls, data, mask=None, copy=False):
         data, data_mask = cls._data_mask(data)
-        if data is None:
-            raise NotImplementedError("cannot initialize with np.ma.masked.")
         if mask is None:
             mask = False if data_mask is None else data_mask
 
@@ -162,7 +160,7 @@ class Masked(NDArrayShapeMethods):
         return masked_cls
 
     @classmethod
-    def _data_mask(cls, data):
+    def _data_mask(cls, data, allow_ma_masked=False):
         """Split data into unmasked and mask, if present.
 
         Parameters
@@ -180,14 +178,26 @@ class Masked(NDArrayShapeMethods):
         """
         mask = getattr(data, 'mask', None)
         if mask is not None:
-            if isinstance(data, Masked):
+            try:
                 data = data.unmasked
-            elif data is np.ma.masked:
-                data = None
-            elif isinstance(data, np.ma.MaskedArray):
-                data = data.data
+            except AttributeError:
+                if not isinstance(data, np.ma.MaskedArray):
+                    raise
+                if data is np.ma.masked:
+                    if allow_ma_masked:
+                        data = None
+                    else:
+                        raise ValueError('cannot handle np.ma.masked here.') from None
+                else:
+                    data = data.data
 
         return data, mask
+
+    @classmethod
+    def _data_masks(cls, *args):
+        data_masks = [cls._data_mask(arg) for arg in args]
+        return (tuple(data for data, _ in data_masks),
+                tuple(mask for _, mask in data_masks))
 
     def _get_mask(self):
         """The mask.
@@ -248,7 +258,7 @@ class Masked(NDArrayShapeMethods):
         return self.from_unmasked(data, mask, copy=False)
 
     def __setitem__(self, item, value):
-        value, mask = self._data_mask(value)
+        value, mask = self._data_mask(value, allow_ma_masked=True)
         if value is not None:
             self.unmasked[item] = value
         self.mask[item] = mask
@@ -388,7 +398,7 @@ class MaskedIterator:
         return self._masked.from_unmasked(out, mask, copy=False)
 
     def __setitem__(self, index, value):
-        data, mask = self._masked._data_mask(value)
+        data, mask = self._masked._data_mask(value, allow_ma_masked=True)
         if data is not None:
             self._dataiter[index] = data
         self._maskiter[index] = mask
@@ -568,24 +578,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                            for field in self.dtype.names], axis=-1)
         return result.any(axis=-1)
 
-    @classmethod
-    def _data_masks(cls, *args):
-        data = []
-        masks = []
-        for arg in args:
-            if arg is None:
-                data.append(None)
-                masks.append(None)
-            elif isinstance(arg, Masked):
-                data.append(arg.unmasked)
-                masks.append(arg.mask)
-            else:
-                data.append(arg)
-                masks.append(False)
-        return tuple(data), tuple(masks)
-
     def _combine_masks(self, masks, out=None):
-        masks = [m for m in masks if m is not False]
+        masks = [m for m in masks if m is not None and m is not False]
         if not masks:
             return False
         if len(masks) == 1:
@@ -631,11 +625,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 mask0, mask1 = masks
                 masks = []
                 is_mat1 = unmasked[1].ndim >= 2
-                if mask0 is not False:
+                if mask0 is not None:
                     masks.append(
                         np.logical_or.reduce(mask0, axis=-1, keepdims=is_mat1))
 
-                if mask1 is not False:
+                if mask1 is not None:
                     masks.append(
                         np.logical_or.reduce(mask1, axis=-2, keepdims=True)
                         if is_mat1 else
@@ -652,7 +646,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 keepdims = kwargs.get('keepdims', False)
                 in_masks = []
                 for sig, mask in zip(in_sig, masks):
-                    if mask is not False:
+                    if mask is not None:
                         if sig:
                             # Input has core dimensions.  Assume that if any
                             # value in those is masked, the output will be
@@ -688,7 +682,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         elif method in {'reduce', 'accumulate'}:
             # Reductions like np.add.reduce (sum).
-            if masks[0] is not False:
+            if masks[0] is not None:
                 # By default, we simply propagate masks, since for
                 # things like np.sum, it makes no sense to do otherwise.
                 # Individual methods need to override as needed.
