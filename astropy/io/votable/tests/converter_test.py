@@ -5,6 +5,7 @@ import io
 # THIRD-PARTY
 import numpy as np
 from numpy.testing import assert_array_equal
+from pytest import warns
 
 # LOCAL
 from astropy.io.votable import converters
@@ -96,6 +97,39 @@ def test_float_mask_permissive():
     # https://github.com/astropy/astropy/issues/8775
     c = converters.get_converter(field, config=config)
     assert c.parse('null', config=config) == (c.null, True)
+
+
+def test_double_array():
+    config = {'verify': 'exception', 'version_1_3_or_later': True}
+    field = tree.Field(None, name='c', datatype='double', arraysize='3',
+                       config=config)
+    data = (1.0, 2.0, 3.0)
+    c = converters.get_converter(field, config=config)
+    assert c.output(1.0, False) == '1'
+    assert c.output(1.0, [False, False]) == '1'
+    assert c.output(data, False) == '1 2 3'
+    assert c.output(data, [False, False, False]) == '1 2 3'
+    assert c.output(data, [False, False, True]) == '1 2 NaN'
+    assert c.output(data, [False, False]) == '1 2'
+
+    a = c.parse("1 2 3", config=config)
+    assert_array_equal(a[0], data)
+    assert_array_equal(a[1], False)
+
+    with raises(exceptions.E02):
+        c.parse("1", config=config)
+
+    with raises(AttributeError), warns(exceptions.E02):
+        c.parse("1")
+
+    with raises(exceptions.E02):
+        c.parse("2 3 4 5 6", config=config)
+
+    with warns(exceptions.E02):
+        a = c.parse("2 3 4 5 6")
+
+    assert_array_equal(a[0], [2, 3, 4])
+    assert_array_equal(a[1], False)
 
 
 @raises(exceptions.E02)
