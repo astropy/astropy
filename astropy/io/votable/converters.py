@@ -633,8 +633,12 @@ class NumericArray(Array):
         base_output = self._base.output
         value = np.asarray(value)
         mask = np.asarray(mask)
+        if mask.size <= 1:
+            func = np.broadcast
+        else:  # When mask is already array but value is scalar, this prevents broadcast
+            func = zip
         return ' '.join(base_output(x, m) for x, m in
-                        zip(value.flat, mask.flat))
+                        func(value.flat, mask.flat))
 
     def binparse(self, read):
         result = np.frombuffer(read(self._memsize),

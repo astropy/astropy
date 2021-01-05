@@ -219,6 +219,9 @@ astropy.io.misc
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
+- ``NumericArray`` converter now properly broadcasts scalar mask to array.
+  [#11157]
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
