@@ -599,11 +599,46 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                               "The available formats are:\n"
                               "{}".format(format_table_str))
     elif len(valid_formats) > 1:
-        raise IORegistryError(
-            "Format is ambiguous - options are: {}".format(
-                ', '.join(sorted(valid_formats, key=itemgetter(0)))))
+        return _get_highest_priority_format(mode, cls, valid_formats)
 
     return valid_formats[0]
+
+
+def _get_highest_priority_format(mode, cls, valid_formats):
+    """
+    Returns the reader or writer with the highest priority. If it is a tie, or
+    no priorities set, error.
+    """
+    if mode == "read":
+        funcs = {format: get_reader(format, cls) for format in valid_formats}
+    elif mode == "write":
+        funcs = {format: get_writer(format, cls) for format in valid_formats}
+
+    has_priority = False
+    best_formats = []
+    current_priority = 0
+    for format, func, in funcs:
+        priority = getattr(func, "priority", None)
+        if priority is not None:
+            has_priority = True
+        else:
+            priority = 0
+        if priority == current_priority:
+            best_formats.append(format)
+        elif priority > current_priority:
+            best_formats = [format]
+            current_priority = priority
+
+    if has_priority:
+        if len(best_formats) == 1:
+            return funcs[best_formats[0]]
+        raise IORegistryError(
+            "Format priorities are tied - best formats are: {}".format(
+                ', '.join(sorted(valid_formats, key=itemgetter(0)))))
+
+    raise IORegistryError(
+        "Format is ambiguous - options are: {}".format(
+            ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
 
 class UnifiedReadWrite:
