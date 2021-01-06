@@ -340,6 +340,10 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+- Fix bug when initializing a ``Table`` subclass that uses ``TableAttribute``'s.
+  If the data were an instance of the table then attributes provided in the
+  table initialization call could be ignored. [#11217]
+
 astropy.tests
 ^^^^^^^^^^^^^
 

@@ -2520,11 +2520,23 @@ def test_table_attribute():
     assert tp.baz == 'baz'
     assert tp.bar == [2.0]
 
-    # Allow initialization of attributes in table creation
-    t2 = MyTable([[1, 2]], foo=3, bar='bar', baz='baz')
-    assert t2.foo == 3
-    assert t2.bar == 'bar'
-    assert t2.baz == 'baz'
+    # Allow initialization of attributes in table creation, with / without data
+    for data in None, [[1, 2]]:
+        t2 = MyTable(data, foo=3, bar='bar', baz='baz')
+        assert t2.foo == 3
+        assert t2.bar == 'bar'
+        assert t2.baz == 'baz'
+
+    # Initializing from an existing MyTable works, with and without kwarg attrs
+    t3 = MyTable(t2)
+    assert t3.foo == 3
+    assert t3.bar == 'bar'
+    assert t3.baz == 'baz'
+
+    t3 = MyTable(t2, foo=5, bar='fubar')
+    assert t3.foo == 5
+    assert t3.bar == 'fubar'
+    assert t3.baz == 'baz'
 
 
 @pytest.mark.skipif('not HAS_YAML')

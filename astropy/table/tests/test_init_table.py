@@ -557,3 +557,16 @@ def test_init_from_rows_as_generator():
     t = Table(rows=rows)
     assert np.all(t['col0'] == [1, 2])
     assert np.all(t['col1'] == [2, 3])
+
+
+@pytest.mark.parametrize('dtype', ['fail', 'i4'])
+def test_init_bad_dtype_in_empty_table(dtype):
+    with pytest.raises(ValueError,
+                       match='type was specified but could not be parsed for column names'):
+        Table(dtype=dtype)
+
+
+def test_init_data_type_not_allowed_to_init_table():
+    with pytest.raises(ValueError,
+                       match="Data type <class 'str'> not allowed to init Table"):
+        Table('hello')
