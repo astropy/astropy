@@ -7,7 +7,9 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.stats._sigma_clipping import sigma_clip_fast_mean
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
+
 if HAS_BOTTLENECK:
     import bottleneck
 
@@ -428,7 +430,7 @@ class SigmaClip:
             return filtered_data
 
     def __call__(self, data, axis=None, masked=True, return_bounds=False,
-                 copy=True):
+                 copy=True, method='auto'):
         """
         Perform sigma clipping on the provided data.
 
@@ -498,6 +500,20 @@ class SigmaClip:
             else:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
+        # Shortcut for common cases where a fast Cython implementation can
+        # be used.
+        # FIXME: for now, while experimenting, assume that input data is 2d and
+        # that axis is 0, but obviously this will need to be generalized 
+        if method is None or method == 'cython':
+            if self.cenfunc is _nanmean and self.stdfunc == _nanstd and not self.grow and data.ndim == 2 and axis == 0:
+                mask = sigma_clip_fast_mean(data, -1 if np.isinf(self.maxiters) else self.maxiters, self.sigma_lower, self.sigma_upper)
+                if masked:
+                    return np.ma.masked(array, mask)
+                else:
+                    result = data.copy()
+                    result[mask] = np.nan
+                    return result
+
         # These two cases are treated separately because when ``axis=None``
         # we can simply remove clipped values from the array.  This is not
         # possible when ``axis`` or ``grow`` is specified, so instead we
@@ -514,7 +530,7 @@ class SigmaClip:
 
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                cenfunc='median', stdfunc='std', axis=None, masked=True,
-               return_bounds=False, copy=True, grow=False):
+               return_bounds=False, copy=True, grow=False, method=None):
     """
     Perform sigma-clipping on the provided data.
 
@@ -696,7 +712,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                         cenfunc=cenfunc, stdfunc=stdfunc, grow=grow)
 
     return sigclip(data, axis=axis, masked=masked,
-                   return_bounds=return_bounds, copy=copy)
+                   return_bounds=return_bounds, copy=copy, method=method)
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
