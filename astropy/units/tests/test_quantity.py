@@ -927,6 +927,10 @@ class TestQuantityDisplay:
         res = 'Quantity as KMS: 150000000000.0 km / s'
         assert "Quantity as KMS: {}".format(qscalar.to_string(unit=u.km / u.s)) == res
 
+        # With precision set
+        res = 'Quantity as KMS: 1.500e+11 km / s'
+        assert f"Quantity as KMS: {qscalar.to_string(precision=3, unit=u.km / u.s)}" == res
+
         res = r'$1.5 \times 10^{14} \; \mathrm{\frac{m}{s}}$'
         assert qscalar.to_string(format="latex") == res
 

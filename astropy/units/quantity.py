@@ -1161,14 +1161,20 @@ class Quantity(np.ndarray):
         if format not in formats:
             raise ValueError(f"Unknown format '{format}'")
         elif format is None:
-            return f'{self.value}{self._unitstr:s}'
+            if precision is None:
+                # Use default formatting settings
+                return f'{self.value}{self._unitstr:s}'
+            else:
+                # np.array2string properly formats arrays as well as scalars
+                return np.array2string(self.value, precision=precision, floatmode="fixed") + self._unitstr
 
         # else, for the moment we assume format="latex"
 
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
-        pops = np.get_printoptions()
 
+        # Set the precision if set, otherwise use numpy default
+        pops = np.get_printoptions()
         format_spec = '.{}g'.format(
             precision if precision is not None else pops['precision'])
 
