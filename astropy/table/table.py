@@ -717,13 +717,17 @@ class Table:
         default_names = None
 
         # Handle custom (subclass) table attributes that are stored in meta.
-        # These are defined as class attributes using the MetaAttribute
-        # descriptor.  Any such attributes get removed from kwargs here.
+        # These are defined as class attributes using the TableAttribute
+        # descriptor.  Any such attributes get removed from kwargs here and
+        # stored for use after the table is otherwise initialized. Any values
+        # provided via kwargs will have precedence over existing values from
+        # meta (e.g. from data as a Table or meta via kwargs).
+        meta_table_attrs = {}
         if kwargs:
             for attr in list(kwargs):
                 descr = getattr(self.__class__, attr, None)
                 if isinstance(descr, TableAttribute):
-                    setattr(self, attr, kwargs.pop(attr))
+                    meta_table_attrs[attr] = kwargs.pop(attr)
 
         if hasattr(data, '__astropy_table__'):
             # Data object implements the __astropy_table__ interface method.
@@ -799,18 +803,21 @@ class Table:
         elif data is None:
             if names is None:
                 if dtype is None:
-                    if meta is not None:
-                        self.meta = deepcopy(meta) if copy else meta
-                    return
-                try:
-                    # No data nor names but dtype is available.  This must be
-                    # valid to initialize a structured array.
-                    dtype = np.dtype(dtype)
-                    names = dtype.names
-                    dtype = [dtype[name] for name in names]
-                except Exception:
-                    raise ValueError('dtype was specified but could not be '
-                                     'parsed for column names')
+                    # Table was initialized as `t = Table()`. Set up for empty
+                    # table with names=[], data=[], and n_cols=0.
+                    # self._init_from_list() will simply return, giving the
+                    # expected empty table.
+                    names = []
+                else:
+                    try:
+                        # No data nor names but dtype is available.  This must be
+                        # valid to initialize a structured array.
+                        dtype = np.dtype(dtype)
+                        names = dtype.names
+                        dtype = [dtype[name] for name in names]
+                    except Exception:
+                        raise ValueError('dtype was specified but could not be '
+                                         'parsed for column names')
             # names is guaranteed to be set at this point
             init_func = self._init_from_list
             n_cols = len(names)
@@ -848,6 +855,12 @@ class Table:
         # user-supplied meta directly.
         if meta is not None:
             self.meta = deepcopy(meta) if copy else meta
+
+        # Update meta with TableAttributes supplied as kwargs in Table init.
+        # This takes precedence over previously-defined meta.
+        if meta_table_attrs:
+            for attr, value in meta_table_attrs.items():
+                setattr(self, attr, value)
 
         # Whatever happens above, the masked property should be set to a boolean
         if self.masked not in (None, True, False):
@@ -1163,6 +1176,11 @@ class Table:
         """Initialize table from a list of column data.  A column can be a
         Column object, np.ndarray, mixin, or any other iterable object.
         """
+        # Special case of initializing an empty table like `t = Table()`. No
+        # action required at this point.
+        if n_cols == 0:
+            return
+
         cols = []
         default_names = _auto_names(n_cols)
 
