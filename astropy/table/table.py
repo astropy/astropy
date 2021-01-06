@@ -817,7 +817,7 @@ class Table:
                         dtype = [dtype[name] for name in names]
                     except Exception:
                         raise ValueError('dtype was specified but could not be '
-                                        'parsed for column names')
+                                         'parsed for column names')
             # names is guaranteed to be set at this point
             init_func = self._init_from_list
             n_cols = len(names)
