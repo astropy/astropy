@@ -6,6 +6,8 @@ import re
 import warnings
 from copy import deepcopy
 
+import numpy as np
+
 from astropy.io import registry as io_registry
 from astropy import units as u
 from astropy.table import Table, serialize, meta, Column, MaskedColumn
@@ -227,25 +229,30 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         finally:
             hdulist.close()
 
-    # Check if table is masked
-    masked = any(col.null is not None for col in table.columns)
-
-    # TODO: in future, it may make more sense to do this column-by-column,
-    # rather than via the structured array.
-
     # In the loop below we access the data using data[col.name] rather than
     # col.array to make sure that the data is scaled correctly if needed.
     data = table.data
 
     columns = []
     for col in data.columns:
+        # Check if column is masked. Here, we make a guess based on the
+        # presence of FITS mask values. For integer columns, this is simply
+        # the null header, for float and complex, the presence of NaN, and for
+        # string, empty strings.
+        masked = mask = False
+        if col.null is not None:
+            mask = col.array == col.null
+            # Return a MaskedColumn even if no elements are masked so
+            # we roundtrip better.
+            masked = True
+        elif issubclass(col.dtype.type, np.inexact):
+            mask = np.isnan(col.array)
+        elif issubclass(col.dtype.type, np.character):
+            mask = col.array == b''
 
-        # Set column data
-        if masked:
-            column = MaskedColumn(data=data[col.name], name=col.name, copy=False)
-            if col.null is not None:
-                column.set_fill_value(col.null)
-                column.mask[column.data == col.null] = True
+        if masked or np.any(mask):
+            column = MaskedColumn(data=data[col.name], name=col.name,
+                                  mask=mask, copy=False)
         else:
             column = Column(data=data[col.name], name=col.name, copy=False)
 
@@ -260,7 +267,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         columns.append(column)
 
     # Create Table object
-    t = Table(columns, masked=masked, copy=False)
+    t = Table(columns, copy=False)
 
     # TODO: deal properly with unsigned integers
 
