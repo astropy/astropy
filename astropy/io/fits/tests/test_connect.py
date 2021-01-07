@@ -172,18 +172,28 @@ class TestSingleTable:
         assert np.all(t1['b'].mask == t2['b'].mask)
         assert np.all(t1['c'].mask == t2['c'].mask)
 
-    def test_masked_nan(self, tmpdir):
+    @pytest.mark.parametrize('masked', [True, False])
+    def test_masked_nan(self, masked, tmpdir):
         filename = str(tmpdir.join('test_masked_nan.fits'))
-        data = np.array(list(zip([5.25, 8.5, 3.75, 6.25],
-                                 [2.5, 4.5, 6.75, 8.875])),
-                        dtype=[('a', np.float64), ('b', np.float32)])
-        t1 = Table(data, masked=True)
-        t1.mask['a'] = [1, 0, 1, 0]
-        t1.mask['b'] = [1, 0, 0, 1]
+        a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])
+        b = np.ma.MaskedArray([2.5, 4.5, 6.75, 8.875], mask=[1, 0, 0, 1], dtype='f4')
+        t1 = Table([a, b], names=['a', 'b'], masked=masked)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
-        assert_array_equal(t2['a'], [np.nan, 8.5, np.nan, 6.25])
-        assert_array_equal(t2['b'], [np.nan, 4.5, 6.75, np.nan])
+        assert_array_equal(t2['a'].data, [np.nan, 8.5, np.nan, 6.25])
+        assert_array_equal(t2['b'].data, [np.nan, 4.5, 6.75, np.nan])
+        assert np.all(t1['a'].mask == t2['a'].mask)
+        assert np.all(t1['b'].mask == t2['b'].mask)
+
+    def test_masked_serialize_data_mask(self, tmpdir):
+        filename = str(tmpdir.join('test_masked_nan.fits'))
+        a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])
+        b = np.ma.MaskedArray([2.5, 4.5, 6.75, 8.875], mask=[1, 0, 0, 1])
+        t1 = Table([a, b], names=['a', 'b'])
+        t1.write(filename, overwrite=True, serialize_method='data_mask')
+        t2 = Table.read(filename)
+        assert_array_equal(t2['a'].data, [5.25, 8.5, 3.75, 6.25])
+        assert_array_equal(t2['b'].data, [2.5, 4.5, 6.75, 8.875])
         assert np.all(t1['a'].mask == t2['a'].mask)
         assert np.all(t1['b'].mask == t2['b'].mask)
 
