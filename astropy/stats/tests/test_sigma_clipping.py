@@ -266,16 +266,14 @@ def test_sigma_clip_axis_tuple_3D():
 def test_sigmaclip_repr():
 
     sigclip = SigmaClip()
-    median_str = str(sigclip._parse_cenfunc('median'))
-    std_str = str(sigclip._parse_stdfunc('std'))
 
     sigclip_repr = ('SigmaClip(sigma=3.0, sigma_lower=3.0, sigma_upper=3.0,'
-                    ' maxiters=5, cenfunc={}, stdfunc={}, '
-                    'grow=False)'.format(median_str, std_str))
+                    ' maxiters=5, cenfunc=median, stdfunc=std, '
+                    'grow=False)')
     sigclip_str = ('<SigmaClip>\n    sigma: 3.0\n    sigma_lower: 3.0\n'
                    '    sigma_upper: 3.0\n    maxiters: 5\n'
-                   '    cenfunc: {}\n    stdfunc: {}\n'
-                   '    grow: False'.format(median_str, std_str))
+                   '    cenfunc: median\n    stdfunc: std\n'
+                   '    grow: False')
 
     assert repr(sigclip) == sigclip_repr
     assert str(sigclip) == sigclip_str
