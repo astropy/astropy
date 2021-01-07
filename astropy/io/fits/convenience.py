@@ -473,33 +473,42 @@ def table_to_hdu(table, character_as_bytes=False):
             table, hdr = time_to_fits(table)
 
     # Create a new HDU object
-    if table.masked:
-        # float column's default mask value needs to be Nan
-        for column in table.columns.values():
-            fill_value = column.get_fill_value()
-            if column.dtype.kind == 'f' and np.allclose(fill_value, 1e20):
-                column.set_fill_value(np.nan)
+    tarray = table.as_array()
+    if isinstance(tarray, np.ma.MaskedArray):
+        # Fill masked values carefully:
+        # float column's default mask value needs to be Nan and
+        # string column's default mask should be an empty string.
+        # Note: getting the fill value for the structured array is
+        # more reliable than for individual columns for string entries.
+        # (no 'N/A' for a single-element string, where it should be 'N').
+        default_fill_value = np.ma.default_fill_value(tarray.dtype)
+        for colname, (coldtype, _) in tarray.dtype.fields.items():
+            if np.all(tarray.fill_value[colname] == default_fill_value[colname]):
+                if issubclass(coldtype.type, np.complexfloating):
+                    tarray.fill_value[colname] = complex(np.nan, np.nan)
+                elif issubclass(coldtype.type, np.inexact):
+                    tarray.fill_value[colname] = np.nan
+                elif issubclass(coldtype.type, np.character):
+                    tarray.fill_value[colname] = ''
 
         # TODO: it might be better to construct the FITS table directly from
         # the Table columns, rather than go via a structured array.
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=True)
+        table_hdu = BinTableHDU.from_columns(tarray.filled(), header=hdr,
+                                             character_as_bytes=character_as_bytes)
         for col in table_hdu.columns:
             # Binary FITS tables support TNULL *only* for integer data columns
             # TODO: Determine a schema for handling non-integer masked columns
-            # in FITS (if at all possible)
+            # with non-default fill values in FITS (if at all possible).
             int_formats = ('B', 'I', 'J', 'K')
             if not (col.format in int_formats or
                     col.format.p_format in int_formats):
                 continue
 
-            # The astype is necessary because if the string column is less
-            # than one character, the fill value will be N/A by default which
-            # is too long, and so no values will get masked.
-            fill_value = table[col.name].get_fill_value()
-
-            col.null = fill_value.astype(table[col.name].dtype)
+            fill_value = tarray[col.name].fill_value
+            col.null = fill_value.astype(int)
     else:
-        table_hdu = BinTableHDU.from_columns(np.array(table.filled()), header=hdr, character_as_bytes=character_as_bytes)
+        table_hdu = BinTableHDU.from_columns(tarray, header=hdr,
+                                             character_as_bytes=character_as_bytes)
 
     # Set units and format display for output HDU
     for col in table_hdu.columns:
