@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 
 from astropy.io import registry, fits
-from astropy.table import Table
+from astropy.table import Table, MaskedColumn
 from astropy.time import Time, TimeDelta
 
 from astropy.timeseries.sampled import TimeSeries
@@ -62,10 +62,15 @@ def kepler_fits_reader(filename):
         tab.rename_column("T", "TIME")
 
     for colname in tab.colnames:
+        unit = tab[colname].unit
+        # Make masks nan for any column which will turn into a Quantity
+        # later. TODO: remove once we support Masked Quantities properly?
+        if unit and isinstance(tab[colname], MaskedColumn):
+            tab[colname] = tab[colname].filled(np.nan)
         # Fix units
-        if tab[colname].unit == 'e-/s':
+        if unit == 'e-/s':
             tab[colname].unit = 'electron/s'
-        if tab[colname].unit == 'pixels':
+        if unit == 'pixels':
             tab[colname].unit = 'pixel'
 
         # Rename columns to lowercase
