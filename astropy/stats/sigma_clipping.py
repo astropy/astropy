@@ -218,8 +218,10 @@ class SigmaClip:
         self.sigma_lower = sigma_lower or sigma
         self.sigma_upper = sigma_upper or sigma
         self.maxiters = maxiters or np.inf
-        self.cenfunc = self._parse_cenfunc(cenfunc)
-        self.stdfunc = self._parse_stdfunc(stdfunc)
+        self.cenfunc = cenfunc
+        self.stdfunc = stdfunc
+        self._cenfunc_parsed = self._parse_cenfunc(cenfunc)
+        self._stdfunc_parsed = self._parse_stdfunc(stdfunc)
         self.grow = grow
 
         # This just checks that SciPy is available, to avoid failing later
@@ -277,10 +279,49 @@ class SigmaClip:
         # NaNs
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            self._max_value = self.cenfunc(data, axis=axis)
-            std = self.stdfunc(data, axis=axis)
+            self._max_value = self._cenfunc_parsed(data, axis=axis)
+            std = self._stdfunc_parsed(data, axis=axis)
             self._min_value = self._max_value - (std * self.sigma_lower)
             self._max_value += std * self.sigma_upper
+
+    def _sigmaclip_fast(self, data, axis=None,
+                        masked=True, return_bounds=False,
+                        copy=True):
+        """
+        Fast Cython implementation for simple use cases
+        """
+
+        # The Cython implementation takes 2-d arrays and assumes axis=0, so we need
+        # to normalize the input array so that we can treat it in this way. The Cython
+        # routine produces a mask with the same 2-d shape, so we pre-allocate the
+        # mask here and return a 2-d view
+
+        if not isinstance(axis, tuple):
+            axis = (axis,)
+
+        data_reordered = _move_tuple_axes_first(data, axis)
+        data_2d = data_reordered.reshape((data_reordered.shape[0], -1))
+
+        mask = np.isnan(data)
+        mask_reordered = _move_tuple_axes_first(mask, axis)
+        mask_2d = mask_reordered.reshape(data_2d.shape)
+
+        min_value, max_value = sigma_clip_fast_mean(data_2d, mask_2d,
+                                                    -1 if np.isinf(self.maxiters) else self.maxiters,
+                                                    self.sigma_lower, self.sigma_upper)
+
+        if masked:
+            result = np.ma.masked(data, mask, copy=copy)
+        else:
+            result = data.copy()
+            result[mask] = np.nan
+
+        # FIXME: min_value and max_value should be arrays 
+
+        if return_bounds:
+            return result, min_value, max_value
+        else:
+            return result
 
     def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False,
                           copy=True):
@@ -505,14 +546,10 @@ class SigmaClip:
         # FIXME: for now, while experimenting, assume that input data is 2d and
         # that axis is 0, but obviously this will need to be generalized 
         if method is None or method == 'cython':
-            if self.cenfunc is _nanmean and self.stdfunc == _nanstd and not self.grow and data.ndim == 2 and axis == 0:
-                mask = sigma_clip_fast_mean(data, -1 if np.isinf(self.maxiters) else self.maxiters, self.sigma_lower, self.sigma_upper)
-                if masked:
-                    return np.ma.masked(array, mask)
-                else:
-                    result = data.copy()
-                    result[mask] = np.nan
-                    return result
+            if self.cenfunc == 'mean' and self.stdfunc == 'std' and not self.grow:
+                return self._sigmaclip_fast(data, axis=axis, masked=masked,
+                                            return_bounds=return_bounds,
+                                            copy=copy)
 
         # These two cases are treated separately because when ``axis=None``
         # we can simply remove clipped values from the array.  This is not

@@ -13,26 +13,26 @@ cimport cython
 
 
 @cython.boundscheck(False)
+@cython.cdivision(True)
 def sigma_clip_fast_mean(np.ndarray[DTYPE_FLOAT, ndim=2] array,
+                         np.ndarray[DTYPE_BOOL, ndim=2] mask,
                         int maxiters, double sigma_lower, double sigma_upper):
 
-    # Given a 2-d array, iterate over the first dimension and compute sigma clipping
-    # for each. Returns a mask indicating which values should be removed
+    # Given a 2-d array, iterate over the second dimension and compute sigma clipping
+    # for each resulting 1-d array. Returns a mask indicating which values should be removed
     # by the sigma clipping.
 
-    cdef int m = array.shape[0]
-    cdef int n = array.shape[1]
-    cdef np.ndarray[DTYPE_BOOL, ndim=2] mask = np.zeros((m, n), dtype=np.bool)
+    cdef int m = array.shape[1]
+    cdef int n = array.shape[0]
 
     cdef int iter, i, j
     cdef double count, count_prev, std, mean, lower, upper
+    cdef double inf = np.inf
 
-    np.isnan(array, out=mask)
+    for j in range(m):
 
-    for i in range(m):
-
-        lower = -np.inf
-        upper = +np.inf
+        lower = -inf
+        upper = +inf
         iter = 0
 
         while True:
@@ -40,7 +40,7 @@ def sigma_clip_fast_mean(np.ndarray[DTYPE_FLOAT, ndim=2] array,
             mean = 0
             count = 0
 
-            for j in range(n):
+            for i in range(n):
                 if not mask[i, j]:
                     mean += array[i, j]
                     count += 1
@@ -50,7 +50,7 @@ def sigma_clip_fast_mean(np.ndarray[DTYPE_FLOAT, ndim=2] array,
 
             std = 0
 
-            for j in range(n):
+            for i in range(n):
                 if not mask[i, j]:
                     std += (mean - array[i, j]) ** 2
 
@@ -62,7 +62,7 @@ def sigma_clip_fast_mean(np.ndarray[DTYPE_FLOAT, ndim=2] array,
 
             mask_changed = False
 
-            for j in range(n):
+            for i in range(n):
                 if not mask[i, j] and (array[i, j] < lower or array[i, j] > upper):
                     mask[i, j] = True
                     if not mask_changed:
@@ -76,4 +76,4 @@ def sigma_clip_fast_mean(np.ndarray[DTYPE_FLOAT, ndim=2] array,
             if maxiters != -1 and iter >= maxiters:
                 break
 
-    return mask
+    return lower, upper
