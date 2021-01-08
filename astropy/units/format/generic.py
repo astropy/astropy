@@ -25,6 +25,7 @@ from . import core, utils
 from .base import Base
 from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
+import astropy.utils.parsing as parsing
 
 
 def _is_ascii(s):
@@ -118,8 +119,6 @@ class Generic(Base):
 
     @classmethod
     def _make_lexer(cls):
-        from astropy.extern.ply import lex
-
         tokens = cls._tokens
 
         t_STAR = r'\*'
@@ -172,17 +171,8 @@ class Generic(Base):
             raise ValueError(
                 f"Invalid character at col {t.lexpos}")
 
-        lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                      'generic_lextab.py'))
-
-        lexer = lex.lex(optimize=True, lextab='generic_lextab',
-                        outputdir=os.path.dirname(__file__),
-                        reflags=int(re.UNICODE))
-
-        if not lexer_exists:
-            cls._add_tab_header('generic_lextab')
-
-        return lexer
+        return parsing.lex(lextab='generic_lextab', package='astropy/units',
+                           reflags=int(re.UNICODE))
 
     @classmethod
     def _make_parser(cls):
@@ -198,8 +188,6 @@ class Generic(Base):
         formats, the only difference being the set of available unit
         strings.
         """
-        from astropy.extern.ply import yacc
-
         tokens = cls._tokens
 
         def p_main(p):
@@ -442,16 +430,7 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                       'generic_parsetab.py'))
-
-        parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
-                           optimize=True, outputdir=os.path.dirname(__file__))
-
-        if not parser_exists:
-            cls._add_tab_header('generic_parsetab')
-
-        return parser
+        return parsing.yacc(tabmodule='generic_parsetab', package='astropy/units')
 
     @classmethod
     def _get_unit(cls, t):
