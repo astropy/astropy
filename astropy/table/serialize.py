@@ -124,30 +124,34 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
 
         # New column name combines the old name and attribute
         # (e.g. skycoord.ra, skycoord.dec).unless it is the primary data
-        # attribute for the column (e.g. value for Quantity or data
-        # for MaskedColumn)
+        # attribute for the column (e.g. value for Quantity or data for
+        # MaskedColumn).  For primary data, we attempt to store any info on
+        # the format, etc., on the column, but not for ancilliary data (e.g.,
+        # no sense to use a float format for a mask).
         if data_attr == col.info._represent_as_dict_primary_data:
             new_name = name
+            new_info = info
         else:
             new_name = name + '.' + data_attr
+            new_info = {}
 
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')
                                        and np.any(data.mask)) else Column
-            new_cols.append(col_cls(data, name=new_name, **info))
+            new_cols.append(col_cls(data, name=new_name, **new_info))
             obj_attrs[data_attr] = SerializedColumn({'name': new_name})
         else:
             # recurse. This will define obj_attrs[new_name].
             _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
             obj_attrs[data_attr] = SerializedColumn(obj_attrs.pop(new_name))
 
-        # Strip out from info any attributes defined by the parent
-        for attr in col.info.attrs_from_parent:
-            if attr in info:
-                del info[attr]
-
-        if info:
-            obj_attrs['__info__'] = info
+    # Strip out from info any attributes defined by the parent,
+    # and store whatever remains.
+    for attr in col.info.attrs_from_parent:
+        if attr in info:
+            del info[attr]
+    if info:
+        obj_attrs['__info__'] = info
 
     # Store the fully qualified class name
     obj_attrs.setdefault('__class__',
