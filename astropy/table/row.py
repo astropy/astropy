@@ -167,6 +167,14 @@ class Row:
     def dtype(self):
         return self._table.dtype
 
+    def get(self, key, default=None):
+        """
+        Extract a value from the row if the key is present otherwise return the value of ``default``
+        """
+        if key in self.colnames:
+            return self[key]
+        return default
+
     def _base_repr_(self, html=False):
         """
         Display row as a single-line table but with appropriate header line.

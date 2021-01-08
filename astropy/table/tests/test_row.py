@@ -247,6 +247,15 @@ class TestRow():
         for key, value in zip(keys, row_splatted):
             assert row[key] == value
 
+    def test_row_get(self, table_types):
+        self._setup(table_types)
+        row = self.t[0]
+        present_key = self.t.colnames[0]
+        absent_key = "spam"
+        assert row.get(present_key) == row[present_key]
+        assert row.get(absent_key) is None
+        assert row.get(absent_key, "eggs") == "eggs"
+
 
 def test_row_tuple_column_slice():
     """
