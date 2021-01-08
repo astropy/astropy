@@ -101,6 +101,9 @@ astropy.utils
   function ``_find_pkg_data_path``) for obtaining file paths without checking if the
   file/directory exists, as long as the package and module do. [#11006]
 
+- Make ``lazyproperty`` and ``classdecorator`` thread-safe. This should fix a
+  number of thread safety issues. [#11221]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
