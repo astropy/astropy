@@ -282,6 +282,8 @@ astropy.units
 
 - Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe. [#11227]
 
+- Make ufunc helper lookup thread-safe. [#11226]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
