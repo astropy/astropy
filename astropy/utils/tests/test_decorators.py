@@ -8,7 +8,7 @@ import sys
 import pytest
 
 from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
-                                      sharedmethod, classproperty,
+                                      sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -567,6 +567,33 @@ def test_classproperty_lazy_threadsafe(fast_thread_switching):
             assert calls == 1
             assert values[0] is not None
             assert values == [values[0]] * workers
+
+
+def test_lazyproperty_threadsafe(fast_thread_switching):
+    """
+    Test thread safety of lazyproperty.
+    """
+    # This test is generally similar to test_classproperty_lazy_threadsafe
+    # above. See there for comments.
+
+    class A:
+        def __init__(self):
+            self.calls = 0
+
+        @lazyproperty
+        def foo(self):
+            self.calls += 1
+            return object()
+
+    workers = 8
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        for p in range(10000):
+            a = A()
+            futures = [executor.submit(lambda: a.foo) for i in range(workers)]
+            values = [future.result() for future in futures]
+            assert a.calls == 1
+            assert a.foo is not None
+            assert values == [a.foo] * workers
 
 
 def test_format_doc_stringInput_simple():
