@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import concurrent.futures
 import inspect
 import pickle
+import sys
 
 import pytest
 
@@ -526,6 +528,45 @@ def test_classproperty_docstring():
         foo = classproperty(_get_foo, doc="The foo.")
 
     assert B.__dict__['foo'].__doc__ == "The foo."
+
+
+@pytest.fixture
+def fast_thread_switching():
+    """Fixture that reduces thread switching interval.
+
+    This makes it easier to provoke race conditions.
+    """
+    old = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    yield
+    sys.setswitchinterval(old)
+
+
+def test_classproperty_lazy_threadsafe(fast_thread_switching):
+    """
+    Test that a class property with lazy=True is thread-safe.
+    """
+    workers = 8
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        # This is testing for race conditions, so try many times in the
+        # hope that we'll get the timing right.
+        for p in range(10000):
+
+            class A:
+                @classproperty(lazy=True)
+                def foo(cls):
+                    nonlocal calls
+                    calls += 1
+                    return object()
+
+            # Have all worker threads query in parallel
+            calls = 0
+            futures = [executor.submit(lambda: A.foo) for i in range(workers)]
+            # Check that only one call happened and they all received it
+            values = [future.result() for future in futures]
+            assert calls == 1
+            assert values[0] is not None
+            assert values == [values[0]] * workers
 
 
 def test_format_doc_stringInput_simple():
