@@ -6,6 +6,7 @@
 import functools
 import inspect
 import textwrap
+import threading
 import types
 import warnings
 from inspect import signature
@@ -653,6 +654,7 @@ class classproperty(property):
     def __init__(self, fget, doc=None, lazy=False):
         self._lazy = lazy
         if lazy:
+            self._lock = threading.RLock()   # Protects _cache
             self._cache = {}
         fget = self._wrap_fget(fget)
 
@@ -667,17 +669,20 @@ class classproperty(property):
             self.__doc__ = doc
 
     def __get__(self, obj, objtype):
-        if self._lazy and objtype in self._cache:
-            return self._cache[objtype]
-
-        # The base property.__get__ will just return self here;
-        # instead we pass objtype through to the original wrapped
-        # function (which takes the class as its sole argument)
-        val = self.fget.__wrapped__(objtype)
-
         if self._lazy:
-            self._cache[objtype] = val
-
+            val = self._cache.get(objtype, _NotFound)
+            if val is _NotFound:
+                with self._lock:
+                    # Check if another thread initialised before we locked.
+                    val = self._cache.get(objtype, _NotFound)
+                    if val is _NotFound:
+                        val = self.fget.__wrapped__(objtype)
+                        self._cache[objtype] = val
+        else:
+            # The base property.__get__ will just return self here;
+            # instead we pass objtype through to the original wrapped
+            # function (which takes the class as its sole argument)
+            val = self.fget.__wrapped__(objtype)
         return val
 
     def getter(self, fget):
@@ -748,16 +753,20 @@ class lazyproperty(property):
     def __init__(self, fget, fset=None, fdel=None, doc=None):
         super().__init__(fget, fset, fdel, doc)
         self._key = self.fget.__name__
+        self._lock = threading.RLock()
 
     def __get__(self, obj, owner=None):
         try:
-            val = obj.__dict__.get(self._key, _NotFound)
-            if val is not _NotFound:
-                return val
-            else:
-                val = self.fget(obj)
-                obj.__dict__[self._key] = val
-                return val
+            obj_dict = obj.__dict__
+            val = obj_dict.get(self._key, _NotFound)
+            if val is _NotFound:
+                with self._lock:
+                    # Check if another thread beat us to it.
+                    val = obj_dict.get(self._key, _NotFound)
+                    if val is _NotFound:
+                        val = self.fget(obj)
+                        obj_dict[self._key] = val
+            return val
         except AttributeError:
             if obj is None:
                 return self
@@ -765,20 +774,22 @@ class lazyproperty(property):
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        if self.fset:
-            ret = self.fset(obj, val)
-            if ret is not None and obj_dict.get(self._key) is ret:
-                # By returning the value set the setter signals that it took
-                # over setting the value in obj.__dict__; this mechanism allows
-                # it to override the input value
-                return
-        obj_dict[self._key] = val
+        with self._lock:
+            if self.fset:
+                ret = self.fset(obj, val)
+                if ret is not None and obj_dict.get(self._key) is ret:
+                    # By returning the value set the setter signals that it
+                    # took over setting the value in obj.__dict__; this
+                    # mechanism allows it to override the input value
+                    return
+            obj_dict[self._key] = val
 
     def __delete__(self, obj):
-        if self.fdel:
-            self.fdel(obj)
-        if self._key in obj.__dict__:
-            del obj.__dict__[self._key]
+        with self._lock:
+            if self.fdel:
+                self.fdel(obj)
+            if self._key in obj.__dict__:
+                del obj.__dict__[self._key]
 
 
 class sharedmethod(classmethod):
