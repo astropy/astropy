@@ -329,6 +329,10 @@ class MaskedNDArrayInfo(ParentDtypeInfo):
 
 
 class MaskedArraySubclassInfo:
+    """Mixin class to create a subclasses such as MaskedQuantityInfo."""
+    # This is used below in __init_subclass__.
+    # TODO: Find some way to ensure that 'serialize_method' of MaskedNDArray
+    # is also accessible.
     def _represent_as_dict(self):
         # Use the data_cls as the class name for serialization,
         # so that we do not have to store all possible masked classes
