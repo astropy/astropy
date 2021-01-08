@@ -8,20 +8,22 @@ import pytest
 from astropy import units as u
 from astropy.table import QTable
 
-from .. import Masked
+from astropy.utils.masked import Masked
 
 try:
     import yaml  # noqa
 except ImportError:
-    FILE_FORMATS = []
+    HAS_YAML = False
 else:
-    # FITS cannot yet deal with float masked columns generally.
-    FILE_FORMATS = ['ecsv']
-    try:
-        import h5py  # noqa
-        FILE_FORMATS.append('h5')
-    except ImportError:
-        pass
+    HAS_YAML = True
+
+
+FILE_FORMATS = ['ecsv', 'fits']
+try:
+    import h5py  # noqa
+    FILE_FORMATS.append('h5')
+except ImportError:
+    pass
 
 
 class TestMaskedArrayTable:
@@ -30,6 +32,7 @@ class TestMaskedArrayTable:
         self.a = np.array([3., 5., 0.])
         self.mask_a = np.array([True, False, False])
 
+    @classmethod
     def setup_class(self):
         self.setup_arrays()
         self.ma = Masked(self.a, mask=self.mask_a)
@@ -44,9 +47,10 @@ class TestMaskedArrayTable:
             '    5.0',
             '    0.0']
 
+    @pytest.mark.skipif(not HAS_YAML, reason='serialization needs yaml')
     @pytest.mark.parametrize('file_format', FILE_FORMATS)
     def test_table_write(self, file_format, tmpdir):
-        name = str(tmpdir / f"a.{file_format}")
+        name = str(tmpdir.join(f"a.{file_format}"))
         if file_format == 'h5':
             self.t.write(name, path='trial', serialize_meta=True)
         else:
