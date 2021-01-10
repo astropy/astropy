@@ -51,7 +51,7 @@ class StructuredUnit(np.void):
         if names is not None:
             if isinstance(names, np.dtype):
                 if not names.names:
-                    raise ValueError('dtype should structured, with names.')
+                    raise ValueError('dtype should be structured, with names.')
                 names = _names_from_dtype(names)
                 allow_default_names = False
             else:
@@ -132,8 +132,7 @@ class StructuredUnit(np.void):
         return zip(self.dtype.names, self.item())
 
     def __iter__(self):
-        for name in self.dtype.names:
-            yield name
+        yield from self.dtype.names
 
     # Helpers for methods below.
     def _recursively_apply(self, func, cls=None):
@@ -339,7 +338,7 @@ class StructuredUnit(np.void):
         if isinstance(other, StructuredUnit):
             return NotImplemented
 
-        # Anything not like a unit, try initialising as a function quantity.
+        # Anything not like a unit, try initialising as a structured quantity.
         try:
             return self._quantity_class(other, unit=self)
         except Exception:

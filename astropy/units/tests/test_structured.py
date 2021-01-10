@@ -6,13 +6,14 @@ Test Structured units and quantities.
 import pytest
 import numpy as np
 
-from ... import units as u
-from ...units import (StructuredUnit, StructuredQuantity,
-                      Unit, UnitBase, Quantity)
+from astropy import units as u
+from astropy.units import (StructuredUnit, StructuredQuantity,
+                           Unit, UnitBase, Quantity)
 
 
 class StructuredTestBase:
-    def setup(self):
+    @classmethod
+    def setup_class(self):
         self.pv_dtype = np.dtype([('p', 'f8'), ('v', 'f8')])
         self.pv_t_dtype = np.dtype([('pv', self.pv_dtype), ('t', 'f8')])
         self.p_unit = u.km
@@ -28,8 +29,9 @@ class StructuredTestBase:
 
 
 class StructuredTestBaseWithUnits(StructuredTestBase):
-    def setup(self):
-        super().setup()
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
         self.pv_unit = StructuredUnit((self.p_unit, self.v_unit),
                                       ('p', 'v'))
         self.pv_t_unit = StructuredUnit((self.pv_unit, self.t_unit),
@@ -150,6 +152,41 @@ class TestStructuredUnitBasics(StructuredTestBase):
         su = StructuredUnit(((u.km, u.km/u.s), u.yr))
         assert repr(su) == 'Unit("((km, km / s), yr)")'
         assert eval(repr(su)) == su
+
+
+class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
+
+    def test_len(self):
+        assert len(self.pv_unit) == 2
+        assert len(self.pv_t_unit) == 2
+
+    def test_keys(self):
+        slv = list(self.pv_t_unit.keys())
+        assert slv == ['pv', 't']
+
+    def test_values(self):
+        values = self.pv_t_unit.values()
+        assert values == (self.pv_unit, self.t_unit)
+
+    def test_names(self):
+        names = self.pv_t_unit.names
+        assert isinstance(names, tuple)
+        assert names == (['pv', ('p', 'v')], 't')
+
+    @pytest.mark.parametrize('iterable', [list, set])
+    def test_as_iterable(self, iterable):
+        sl = iterable(self.pv_unit)
+        assert isinstance(sl, iterable)
+        assert sl == iterable(['p', 'v'])
+
+    def test_as_dict(self):
+        sd = dict(self.pv_t_unit)
+        assert sd == {'pv': self.pv_unit, 't': self.t_unit}
+
+    def test_contains(self):
+        assert 'p' in self.pv_unit
+        assert 'v' in self.pv_unit
+        assert 't' not in self.pv_unit
 
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
@@ -307,7 +344,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         q_pv_t1 = q_pv_t[1]
         assert isinstance(q_pv_t1, StructuredQuantity)
         assert q_pv_t1.unit == q_pv_t.unit
-        assert q_pv_t1.shape is ()
+        assert q_pv_t1.shape == ()
         assert q_pv_t1['t'] == q_pv_t['t'][1]
 
     def test_value(self):
