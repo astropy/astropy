@@ -364,6 +364,12 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert q1['v'].unit == u.AU / u.day
         assert np.all(q1['p'] == q_pv['p'].to(u.AU))
         assert np.all(q1['v'] == q_pv['v'].to(u.AU/u.day))
+        q2 = q_pv.to(self.pv_unit)
+        assert q2['p'].unit == self.p_unit
+        assert q2['v'].unit == self.v_unit
+        assert np.all(q2['p'].value == self.pv['p'])
+        assert np.all(q2['v'].value == self.pv['v'])
+        assert not np.may_share_memory(q2, q_pv)
         pv1 = q_pv.to_value(('AU', 'AU/day'))
         assert type(pv1) is np.ndarray
         assert np.all(pv1['p'] == q_pv['p'].to_value(u.AU))
