@@ -120,6 +120,8 @@ astropy.wcs
 ^^^^^^^^^^^
 - Add IVOA UCD mappings for some FITS WCS keywords commonly used in solar physics. [#10965]
 
+- Add ``STOKES`` FITS WCS keyword to the IVOA UCD mapping. [#11236]
+
 API Changes
 -----------
 
