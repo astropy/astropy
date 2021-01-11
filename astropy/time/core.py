@@ -11,6 +11,7 @@ import os
 import copy
 import operator
 from datetime import datetime, date, timedelta
+import threading
 from time import strftime
 from warnings import warn
 
@@ -97,6 +98,8 @@ SIDEREAL_TIME_MODELS = {
 
 
 _LEAP_SECONDS_CHECKED = False
+_LEAP_SECONDS_CHECK_STARTED = False         # See comments where it is used
+_LEAP_SECONDS_LOCK = threading.RLock()
 
 
 class TimeInfo(MixinInfo):
@@ -1476,15 +1479,26 @@ class Time(TimeBase):
                 location=None, copy=False):
 
         # Because of import problems, this can only be done on
-        # first call of Time.
-        global _LEAP_SECONDS_CHECKED
+        # first call of Time. The initialization is complicated because
+        # update_leap_seconds uses Time.
+        # In principle, this may cause wrong leap seconds in
+        # update_leap_seconds itself, but since expiration is in
+        # units of days, that is fine.
+        global _LEAP_SECONDS_CHECKED, _LEAP_SECONDS_CHECK_STARTED
         if not _LEAP_SECONDS_CHECKED:
-            # *Must* set to True first as update_leap_seconds uses Time.
-            # In principle, this may cause wrong leap seconds in
-            # update_leap_seconds itself, but since expiration is in
-            # units of days, that is fine.
-            _LEAP_SECONDS_CHECKED = True
-            update_leap_seconds()
+            with _LEAP_SECONDS_LOCK:
+                # There are three ways we can get here:
+                # 1. First call.
+                # 2. Re-entrant call. Then _LEAP_SECONDS_CHECK_STARTED will
+                #    already be true, and we skip the initialisation and
+                #    don't worry about leap second errors.
+                # 3. Another thread which raced with the first call. The
+                #    first thread has relinquished the lock to us, so
+                #    initialization is complete.
+                if not _LEAP_SECONDS_CHECK_STARTED:
+                    _LEAP_SECONDS_CHECK_STARTED = True
+                    update_leap_seconds()
+                    _LEAP_SECONDS_CHECKED = True
 
         if isinstance(val, Time):
             self = val.replicate(format=format, copy=copy, cls=cls)
