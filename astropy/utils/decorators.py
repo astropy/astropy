@@ -774,22 +774,21 @@ class lazyproperty(property):
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        with self._lock:
-            if self.fset:
-                ret = self.fset(obj, val)
-                if ret is not None and obj_dict.get(self._key) is ret:
-                    # By returning the value set the setter signals that it
-                    # took over setting the value in obj.__dict__; this
-                    # mechanism allows it to override the input value
-                    return
-            obj_dict[self._key] = val
+        if self.fset:
+            ret = self.fset(obj, val)
+            if ret is not None and obj_dict.get(self._key) is ret:
+                # By returning the value set the setter signals that it
+                # took over setting the value in obj.__dict__; this
+                # mechanism allows it to override the input value
+                return
+        obj_dict[self._key] = val
 
     def __delete__(self, obj):
-        with self._lock:
-            if self.fdel:
-                self.fdel(obj)
-            if self._key in obj.__dict__:
-                del obj.__dict__[self._key]
+        if self.fdel:
+            self.fdel(obj)
+        obj.__dict__.pop(self._key, None)    # Delete if present
+        if self._key in obj.__dict__:
+            del obj.__dict__[self._key]
 
 
 class sharedmethod(classmethod):
