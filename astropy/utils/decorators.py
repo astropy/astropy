@@ -787,8 +787,6 @@ class lazyproperty(property):
         if self.fdel:
             self.fdel(obj)
         obj.__dict__.pop(self._key, None)    # Delete if present
-        if self._key in obj.__dict__:
-            del obj.__dict__[self._key]
 
 
 class sharedmethod(classmethod):
