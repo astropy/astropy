@@ -187,6 +187,8 @@ astropy.utils
 
 - Removed usage of deprecated ``ipython`` stream in ``utils.console``. [#10942]
 
+- Add new ``utils.parsing`` module to with helper wrappers around ``ply``. [#11227]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 

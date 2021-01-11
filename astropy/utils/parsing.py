@@ -4,7 +4,14 @@
 Wrappers for PLY to provide thread safety.
 """
 
-_TAB_HEADER = """# -*- coding: utf-8 -*-
+import contextlib
+import functools
+import re
+import os
+import threading
+
+
+TAB_HEADER = """# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # This file was automatically generated from ply. To re-generate this file,
@@ -16,14 +23,6 @@ _TAB_HEADER = """# -*- coding: utf-8 -*-
 # You can then commit the changes to this file.
 
 """
-
-import contextlib
-import functools
-import re
-import os
-import threading
-
-
 _LOCK = threading.RLock()
 
 
@@ -32,7 +31,7 @@ def _add_tab_header(filename, package):
         contents = f.read()
 
     with open(filename, 'w') as f:
-        f.write(_TAB_HEADER.format(package=package))
+        f.write(TAB_HEADER.format(package=package))
         f.write(contents)
 
 
@@ -40,9 +39,10 @@ def _add_tab_header(filename, package):
 def _patch_get_caller_module_dict(module):
     """Temporarily replace the module's get_caller_module_dict.
 
-    It's wrapped to offset the lookup depth by one level, so that we get the
-    function which defines the symbols instead of the lex/yacc wrapper in
-    this module.
+    This is a function inside ``ply.lex`` and ``ply.yacc`` (each has a copy)
+    that is used to retrieve the caller's local symbols. Here, we patch the
+    function to instead retrieve the grandparent's local symbols to account
+    for a wrapper layer.
     """
     original = module.get_caller_module_dict
 
@@ -60,17 +60,17 @@ def lex(lextab, package, reflags=int(re.VERBOSE)):
     """Create a lexer from local variables.
 
     It automatically compiles the lexer in optimized mode, writing to
-    `lextab` in the same directory as the calling file.
+    ``lextab`` in the same directory as the calling file.
 
     This function is thread-safe. The returned lexer is *not* thread-safe, but
     if it is used exclusively with a single parser returned by :func:`yacc`
     then it will be safe.
 
-    The `package` is inserted into the instructions in the generated file that
+    The ``package`` is inserted into the instructions in the generated file that
     explain which package to test to rebuild it.
 
-    It is only intended to work with callbacks defined in a closure, not a class
-    or module.
+    It is only intended to work with lexers defined within the calling
+    function, rather than at class or module scope.
     """
     from astropy.extern.ply import lex
 
@@ -87,7 +87,12 @@ def lex(lextab, package, reflags=int(re.VERBOSE)):
         return lexer
 
 
-class _ThreadSafeParser:
+class ThreadSafeParser:
+    """Wrap a parser produced by ``ply.yacc.yacc``.
+
+    It provides a :meth:`parse` method that is thread-safe.
+    """
+
     def __init__(self, parser):
         self.parser = parser
         self._lock = threading.RLock()
@@ -101,16 +106,16 @@ def yacc(tabmodule, package):
     """Create a parser from local variables.
 
     It automatically compiles the parser in optimized mode, writing to
-    `tabmodule` in the same directory as the calling file.
+    ``tabmodule`` in the same directory as the calling file.
 
     This function is thread-safe, and the returned parser is also thread-safe,
     provided that it does not share a lexer with any other parser.
 
-    The `package` is inserted into the instructions in the generated file that
+    The ``package`` is inserted into the instructions in the generated file that
     explain which package to test to rebuild it.
 
-    It is only intended to work with callbacks defined in a closure, not a class
-    or module.
+    It is only intended to work with parsers defined within the calling
+    function, rather than at class or module scope.
     """
     from astropy.extern.ply import yacc
 
@@ -125,4 +130,4 @@ def yacc(tabmodule, package):
         if not tab_exists:
             _add_tab_header(tab_filename, package)
 
-    return _ThreadSafeParser(parser)
+    return ThreadSafeParser(parser)
