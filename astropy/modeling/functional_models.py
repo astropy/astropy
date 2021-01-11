@@ -115,12 +115,12 @@ class Gaussian1D(Fittable1DModel):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
-    amplitude = Parameter(default=1)
-    mean = Parameter(default=0)
+    amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
+    mean = Parameter(default=0, description="Mean of the Gaussian")
 
     # Ensure stddev makes sense if its bounds are not explicitly set.
     # stddev must be non-zero and positive.
-    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
+    stddev = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Standard deviation of the Gaussian")
 
     def bounding_box(self, factor=5.5):
         """
