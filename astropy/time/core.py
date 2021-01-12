@@ -10,8 +10,8 @@ astronomy.
 import os
 import copy
 import operator
-from datetime import datetime, date, timedelta
 import threading
+from datetime import datetime, date, timedelta
 from time import strftime
 from warnings import warn
 
