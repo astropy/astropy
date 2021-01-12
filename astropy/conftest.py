@@ -54,6 +54,18 @@ def ignore_matplotlibrc():
         yield
 
 
+@pytest.fixture
+def fast_thread_switching():
+    """Fixture that reduces thread switching interval.
+
+    This makes it easier to provoke race conditions.
+    """
+    old = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    yield
+    sys.setswitchinterval(old)
+
+
 def pytest_configure(config):
     from astropy.utils.iers import conf as iers_conf
 
