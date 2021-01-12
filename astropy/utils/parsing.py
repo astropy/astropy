@@ -69,11 +69,20 @@ def lex(lextab, package, reflags=int(re.VERBOSE)):
     if it is used exclusively with a single parser returned by :func:`yacc`
     then it will be safe.
 
-    The ``package`` is inserted into the instructions in the generated file that
-    explain which package to test to rebuild it.
-
     It is only intended to work with lexers defined within the calling
     function, rather than at class or module scope.
+
+    Parameters
+    ----------
+    lextab : str
+        Name for the file to write with the generated tables, if it does not
+        already exist (without ``.py`` suffix).
+    package : str
+        Name of a test package which should be run with pytest to regenerate
+        the output file. This is inserted into a comment in the generated
+        file.
+    reflags : int
+        Passed to ``ply.lex``.
     """
     from astropy.extern.ply import lex
 
@@ -115,11 +124,18 @@ def yacc(tabmodule, package):
     This function is thread-safe, and the returned parser is also thread-safe,
     provided that it does not share a lexer with any other parser.
 
-    The ``package`` is inserted into the instructions in the generated file that
-    explain which package to test to rebuild it.
-
     It is only intended to work with parsers defined within the calling
     function, rather than at class or module scope.
+
+    Parameters
+    ----------
+    tabmodule : str
+        Name for the file to write with the generated tables, if it does not
+        already exist (without ``.py`` suffix).
+    package : str
+        Name of a test package which should be run with pytest to regenerate
+        the output file. This is inserted into a comment in the generated
+        file.
     """
     from astropy.extern.ply import yacc
 
