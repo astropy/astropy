@@ -205,7 +205,9 @@ def _update__doc__(data_class, readwrite):
             class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-def register_reader(data_format, data_class, function, force=False):
+def register_reader(
+    data_format, data_class, function, force=False, priority=None
+):
     """
     Register a reader function.
 
@@ -222,9 +224,13 @@ def register_reader(data_format, data_class, function, force=False):
         Whether to override any existing function if already present.
         Default is ``False``.
     """
+    if priority is None:
+        priority = getattr(func, "priority", None)
+        if priority is None:
+            priority = 0
 
     if not (data_format, data_class) in _readers or force:
-        _readers[(data_format, data_class)] = function
+        _readers[(data_format, data_class)] = function, priority
     else:
         raise IORegistryError("Reader for format '{}' and class '{}' is "
                               'already defined'
@@ -256,7 +262,9 @@ def unregister_reader(data_format, data_class):
         _update__doc__(data_class, 'read')
 
 
-def register_writer(data_format, data_class, function, force=False):
+def register_writer(
+    data_format, data_class, function, force=False, priority=None
+):
     """
     Register a table writer function.
 
@@ -273,9 +281,13 @@ def register_writer(data_format, data_class, function, force=False):
         Whether to override any existing function if already present.
         Default is ``False``.
     """
+    if priority is None:
+        priority = getattr(func, "priority", None)
+        if priority is None:
+            priority = 0
 
     if not (data_format, data_class) in _writers or force:
-        _writers[(data_format, data_class)] = function
+        _writers[(data_format, data_class)] = function, priority
     else:
         raise IORegistryError("Writer for format '{}' and class '{}' is "
                               'already defined'
@@ -443,7 +455,7 @@ def get_reader(data_format, data_class):
     readers = [(fmt, cls) for fmt, cls in _readers if fmt == data_format]
     for reader_format, reader_class in readers:
         if _is_best_match(data_class, reader_class, readers):
-            return _readers[(reader_format, reader_class)]
+            return _readers[(reader_format, reader_class)][0]
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
         raise IORegistryError(
@@ -471,7 +483,7 @@ def get_writer(data_format, data_class):
     writers = [(fmt, cls) for fmt, cls in _writers if fmt == data_format]
     for writer_format, writer_class in writers:
         if _is_best_match(data_class, writer_class, writers):
-            return _writers[(writer_format, writer_class)]
+            return _writers[(writer_format, writer_class)][0]
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
         raise IORegistryError(
@@ -610,34 +622,26 @@ def _get_highest_priority_format(mode, cls, valid_formats):
     no priorities set, error.
     """
     if mode == "read":
-        funcs = {format: get_reader(format, cls) for format in valid_formats}
+        format_dict = _readers
     elif mode == "write":
-        funcs = {format: get_writer(format, cls) for format in valid_formats}
+        format_dict = _writers
 
-    has_priority = False
     best_formats = []
     current_priority = 0
-    for format, func, in funcs:
-        priority = getattr(func, "priority", None)
-        if priority is not None:
-            has_priority = True
-        else:
-            priority = 0
+    func = None
+    for format in valid_formats:
+        priority = format_dict[(format, cls)][1]
+
         if priority == current_priority:
             best_formats.append(format)
         elif priority > current_priority:
             best_formats = [format]
             current_priority = priority
 
-    if has_priority:
-        if len(best_formats) == 1:
-            return funcs[best_formats[0]]
-        raise IORegistryError(
-            "Format priorities are tied - best formats are: {}".format(
-                ', '.join(sorted(valid_formats, key=itemgetter(0)))))
-
+    if len(best_formats) == 1:
+        return func
     raise IORegistryError(
-        "Format is ambiguous - options are: {}".format(
+        "Format ambiguous, priorities are tied - best formats are: {}".format(
             ', '.join(sorted(valid_formats, key=itemgetter(0)))))
 
 
