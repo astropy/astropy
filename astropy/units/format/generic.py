@@ -23,9 +23,8 @@ import unicodedata
 
 from . import core, utils
 from .base import Base
-from astropy.utils import classproperty
+from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
-import astropy.utils.parsing as parsing
 
 
 def _is_ascii(s):

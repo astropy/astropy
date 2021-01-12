@@ -26,7 +26,7 @@ from fractions import Fraction
 
 from . import core, generic, utils
 
-import astropy.utils.parsing as parsing
+from astropy.utils import parsing
 
 
 class OGIP(generic.Generic):

@@ -26,9 +26,8 @@ import numpy as np
 from .errors import (IllegalHourWarning, IllegalHourError,
                      IllegalMinuteWarning, IllegalMinuteError,
                      IllegalSecondWarning, IllegalSecondError)
-from astropy.utils import format_exception
+from astropy.utils import format_exception, parsing
 from astropy import units as u
-import astropy.utils.parsing as parsing
 
 
 class _AngleParser:
