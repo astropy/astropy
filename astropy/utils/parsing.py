@@ -101,6 +101,7 @@ class ThreadSafeParser:
         self._lock = threading.RLock()
 
     def parse(self, *args, **kwargs):
+        """Run the wrapped parser, with a lock to ensure serialization."""
         with self._lock:
             return self.parser.parse(*args, **kwargs)
 
