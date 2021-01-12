@@ -84,15 +84,13 @@ class TestUpdateLeapSeconds:
         with pytest.warns(iers.IERSStaleWarning):
             update_leap_seconds(['erfa', expired_file])
 
-    def test_init_thread_safety(self):
+    def test_init_thread_safety(self, monkeypatch):
         # Set up expired ERFA leap seconds.
         expired = self.erfa_ls[self.erfa_ls['year'] < 2017]
         expired.update_erfa_leap_seconds(initialize_erfa='empty')
         # Force re-initialization, even if another test already did it
-        # (assert isinstance just to check that it hasn't moved)
-        assert isinstance(astropy.time.core._LEAP_SECONDS_CHECK,
-                          astropy.time.core._LeapSecondsCheck)
-        astropy.time.core._LEAP_SECONDS_CHECK = astropy.time.core._LeapSecondsCheck.NOT_STARTED
+        monkeypatch.setattr(astropy.time.core, '_LEAP_SECONDS_CHECK',
+                            astropy.time.core._LeapSecondsCheck.NOT_STARTED)
         workers = 4
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = [executor.submit(lambda: str(Time('2019-01-01 00:00:00.000').tai))
