@@ -101,6 +101,8 @@ astropy.utils
   function ``_find_pkg_data_path``) for obtaining file paths without checking if the
   file/directory exists, as long as the package and module do. [#11006]
 
+- Add new ``utils.parsing`` module to with helper wrappers around ``ply``. [#11227]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -186,8 +188,6 @@ astropy.utils
 - Removed deprecated ``utils.misc.InheritDocstrings`` and ``utils.timer``. [#10281]
 
 - Removed usage of deprecated ``ipython`` stream in ``utils.console``. [#10942]
-
-- Add new ``utils.parsing`` module to with helper wrappers around ``ply``. [#11227]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
