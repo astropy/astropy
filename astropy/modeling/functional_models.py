@@ -116,7 +116,7 @@ class Gaussian1D(Fittable1DModel):
     """
 
     amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
-    mean = Parameter(default=0, description="Mean of the Gaussian")
+    mean = Parameter(default=0, description="Average value of random variable having this distribution(Gaussian)")
 
     # Ensure stddev makes sense if its bounds are not explicitly set.
     # stddev must be non-zero and positive.
@@ -271,12 +271,12 @@ class Gaussian2D(Fittable2DModel):
     .. [1] https://en.wikipedia.org/wiki/Gaussian_function
     """
 
-    amplitude = Parameter(default=1)
-    x_mean = Parameter(default=0)
-    y_mean = Parameter(default=0)
-    x_stddev = Parameter(default=1)
-    y_stddev = Parameter(default=1)
-    theta = Parameter(default=0.0)
+    amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
+    x_mean = Parameter(default=0, description="Average value of random variable(along x axis) having this distribution(Gaussian)")
+    y_mean = Parameter(default=0, description="Average value of random variable(along y axis) having this distribution(Gaussian)")
+    x_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along x axis)")
+    y_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along y axis)")
+    theta = Parameter(default=0.0, description="Rotation angle in radians (Optional parameter)")
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -458,7 +458,7 @@ class Shift(Fittable1DModel):
         Offset to add to a coordinate.
     """
 
-    offset = Parameter(default=0)
+    offset = Parameter(default=0, description="Offset to add to a coordinate")
     linear = True
 
     _has_inverse_bounding_box = True
@@ -523,7 +523,7 @@ class Scale(Fittable1DModel):
 
     """
 
-    factor = Parameter(default=1)
+    factor = Parameter(default=1, description="Factor by which to scale a coordinate")
     linear = True
     fittable = True
 
@@ -582,7 +582,7 @@ class Multiply(Fittable1DModel):
         Factor by which to multiply a coordinate.
     """
 
-    factor = Parameter(default=1)
+    factor = Parameter(default=1, description="Factor by which to multiply a coordinate")
     linear = True
     fittable = True
 
@@ -635,7 +635,7 @@ class RedshiftScaleFactor(Fittable1DModel):
         .. math:: f(x) = x (1 + z)
     """
 
-    z = Parameter(description='redshift', default=0)
+    z = Parameter(description='Redshift value', default=0)
 
     _has_inverse_bounding_box = True
 
@@ -733,9 +733,9 @@ class Sersic1D(Fittable1DModel):
     .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
     """
 
-    amplitude = Parameter(default=1)
-    r_eff = Parameter(default=1)
-    n = Parameter(default=4)
+    amplitude = Parameter(default=1, description="Surface brightness at r_eff")
+    r_eff = Parameter(default=1, description="Effective (half-light) radius")
+    n = Parameter(default=4, description="Sersic Index")
     _gammaincinv = None
 
     @classmethod
@@ -809,9 +809,9 @@ class Sine1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    frequency = Parameter(default=1)
-    phase = Parameter(default=0)
+    amplitude = Parameter(default=1, description="Oscillation amplitude")
+    frequency = Parameter(default=1, description="Oscillation frequency")
+    phase = Parameter(default=0, description="Oscillation phase")
 
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
@@ -870,8 +870,8 @@ class Linear1D(Fittable1DModel):
 
         .. math:: f(x) = a x + b
     """
-    slope = Parameter(default=1)
-    intercept = Parameter(default=0)
+    slope = Parameter(default=1, description="Slope of the straight line")
+    intercept = Parameter(default=0, description="Intercept of the straight line")
     linear = True
 
     @staticmethod
@@ -927,9 +927,9 @@ class Planar2D(Fittable2DModel):
         .. math:: f(x, y) = a x + b y + c
     """
 
-    slope_x = Parameter(default=1)
-    slope_y = Parameter(default=1)
-    intercept = Parameter(default=0)
+    slope_x = Parameter(default=1, description="Slope of the straight line in X")
+    slope_y = Parameter(default=1, description="Slope of the straight line in Y")
+    intercept = Parameter(default=0, description="Z-intercept of the straight line")
     linear = True
 
     @staticmethod
@@ -1006,9 +1006,9 @@ class Lorentz1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    fwhm = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Peak value")
+    x_0 = Parameter(default=0, description="Position of the peak")
+    fwhm = Parameter(default=1, description="Full width at half maximum")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
@@ -1108,10 +1108,14 @@ class Voigt1D(Fittable1DModel):
         plt.show()
     """
 
-    x_0 = Parameter(default=0)
-    amplitude_L = Parameter(default=1)     # noqa: N815
-    fwhm_L = Parameter(default=2/np.pi)    # noqa: N815
-    fwhm_G = Parameter(default=np.log(2))  # noqa: N815
+    x_0 = Parameter(default=0,
+    description="Position of the peak")
+    amplitude_L = Parameter(default=1,
+    description="The Lorentzian amplitude") # noqa: N815
+    fwhm_L = Parameter(default=2/np.pi,
+    description="The Lorentzian full width at half maximum") # noqa: N815
+    fwhm_G = Parameter(default=np.log(2),
+    description="The Gaussian full width at half maximum") # noqa: N815
 
     sqrt_pi = np.sqrt(np.pi)
     sqrt_ln2 = np.sqrt(np.log(2))
@@ -1280,7 +1284,7 @@ class Const1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Value of the constant function")
     linear = True
 
     @staticmethod
@@ -1335,7 +1339,7 @@ class Const2D(Fittable2DModel):
         .. math:: f(x, y) = A
     """
 
-    amplitude = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Value of the constant function")
     linear = True
 
     @staticmethod
@@ -1433,12 +1437,12 @@ class Ellipse2D(Fittable2DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    a = Parameter(default=1)
-    b = Parameter(default=1)
-    theta = Parameter(default=0)
+    amplitude = Parameter(default=1, description="Value of the ellipse")
+    x_0 = Parameter(default=0, description="X position of the center of the disk.")
+    y_0 = Parameter(default=0, description="Y position of the center of the disk.")
+    a = Parameter(default=1, description="The length of the semimajor axis")
+    b = Parameter(default=1, description="The length of the semiminor axis")
+    theta = Parameter(default=0, description="The rotation angle in radians of the semimajor axis (Positive - counterclockwise)")
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1527,10 +1531,10 @@ class Disk2D(Fittable2DModel):
                    \\right.
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    R_0 = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Value of disk function")
+    x_0 = Parameter(default=0, description="X position of center of the disk")
+    y_0 = Parameter(default=0, description="Y position of center of the disk")
+    R_0 = Parameter(default=1, description="Radius of the disk")
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0):
@@ -1612,11 +1616,11 @@ class Ring2D(Fittable2DModel):
     Where :math:`r_{out} = r_{in} + r_{width}`.
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    r_in = Parameter(default=1)
-    width = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Value of the disk function")
+    x_0 = Parameter(default=0, description="X position of center of disc")
+    y_0 = Parameter(default=0, description="Y position of center of disc")
+    r_in = Parameter(default=1, description="Inner radius of the ring")
+    width = Parameter(default=1, description="Width of the ring")
 
     def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
                  y_0=y_0.default, r_in=r_in.default, width=width.default,
@@ -1732,9 +1736,9 @@ class Box1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    width = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude A")
+    x_0 = Parameter(default=0, description="Position of center of box function")
+    width = Parameter(default=1, description="Width of the box")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width):
@@ -1810,11 +1814,11 @@ class Box2D(Fittable2DModel):
 
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    x_width = Parameter(default=1)
-    y_width = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude A")
+    x_0 = Parameter(default=0, description="X position of the center of the box function")
+    y_0 = Parameter(default=0, description="Y position of the center of the box function")
+    x_width = Parameter(default=1, description="Width in x direction of the box")
+    y_width = Parameter(default=1, description="Width in y direction of the box")
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
@@ -1902,10 +1906,10 @@ class Trapezoid1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    width = Parameter(default=1)
-    slope = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude of the trapezoid")
+    x_0 = Parameter(default=0, description="Center position of the trapezoid")
+    width = Parameter(default=1, description="Width of constant part of the trapezoid")
+    slope = Parameter(default=1, description="Slope of the tails of trapezoid")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width, slope):
@@ -1978,11 +1982,11 @@ class TrapezoidDisk2D(Fittable2DModel):
     Disk2D, Box2D
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    R_0 = Parameter(default=1)
-    slope = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude of the trapezoid")
+    x_0 = Parameter(default=0, description="X position of the center of the trapezoid")
+    y_0 = Parameter(default=0, description="Y position of the center of the trapezoid")
+    R_0 = Parameter(default=1, description="Radius of constant part of trapezoid")
+    slope = Parameter(default=1, description="Slope of tails of trapezoid in x direction")
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
@@ -2087,9 +2091,9 @@ class RickerWavelet1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    sigma = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude(peak) value")
+    x_0 = Parameter(default=0, description="Position of the peak")
+    sigma = Parameter(default=1, description="Width of the Ricker wavelet")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, sigma):
@@ -2162,10 +2166,10 @@ class RickerWavelet2D(Fittable2DModel):
         - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    sigma = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude(peak) value")
+    x_0 = Parameter(default=0, description="X position of the peak")
+    y_0 = Parameter(default=0, description="Y position of the peak")
+    sigma = Parameter(default=1, description="Width of the Ricker wavelet")
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
@@ -2236,10 +2240,10 @@ class AiryDisk2D(Fittable2DModel):
     .. [1] https://en.wikipedia.org/wiki/Airy_disk
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    radius = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude(peak value) of the Airy function")
+    x_0 = Parameter(default=0, description="X position of the peak")
+    y_0 = Parameter(default=0, description="Y position of the peak")
+    radius = Parameter(default=1, description="The radius of the Airy disk (radius of first zero)")
     _rz = None
     _j1 = None
 
@@ -2343,10 +2347,10 @@ class Moffat1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    gamma = Parameter(default=1)
-    alpha = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude of the model")
+    x_0 = Parameter(default=0, description="X position of maximum of Moffat model")
+    gamma = Parameter(default=1, description="Core width of Moffat model")
+    alpha = Parameter(default=1, description="Power index of the Moffat model")
 
     @property
     def fwhm(self):
@@ -2418,11 +2422,11 @@ class Moffat2D(Fittable2DModel):
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    gamma = Parameter(default=1)
-    alpha = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Amplitude(peak value) of the model")
+    x_0 = Parameter(default=0, description="X position of the maximum of the Moffat model")
+    y_0 = Parameter(default=0, description="Y position of the maximum of the Moffat model")
+    gamma = Parameter(default=1, description="Core width of the Moffat model")
+    alpha = Parameter(default=1, description="Power index of the Moffat model")
 
     @property
     def fwhm(self):
@@ -2548,13 +2552,13 @@ class Sersic2D(Fittable2DModel):
     .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
     """
 
-    amplitude = Parameter(default=1)
-    r_eff = Parameter(default=1)
-    n = Parameter(default=4)
-    x_0 = Parameter(default=0)
-    y_0 = Parameter(default=0)
-    ellip = Parameter(default=0)
-    theta = Parameter(default=0)
+    amplitude = Parameter(default=1, description="Surface brightness at r_eff")
+    r_eff = Parameter(default=1, description="Effective (half-light) radius")
+    n = Parameter(default=4, description="Sersic Index")
+    x_0 = Parameter(default=0, description="X position of the center")
+    y_0 = Parameter(default=0, description="Y position of the center")
+    ellip = Parameter(default=0, description="Ellipticity")
+    theta = Parameter(default=0, description="Rotation angle in radians (counterclockwise-positive)")
     _gammaincinv = None
 
     @classmethod
@@ -2657,9 +2661,9 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     .. [1] http://articles.adsabs.harvard.edu/pdf/1962AJ.....67..471K
     """
 
-    amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
-    r_core = Parameter(default=1, bounds=(FLOAT_EPSILON, None))
-    r_tide = Parameter(default=2, bounds=(FLOAT_EPSILON, None))
+    amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Amplitude or scaling factor")
+    r_core = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Core Radius")
+    r_tide = Parameter(default=2, bounds=(FLOAT_EPSILON, None), description="Tidal Radius")
 
     @property
     def concentration(self):
