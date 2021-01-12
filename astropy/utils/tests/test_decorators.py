@@ -3,7 +3,6 @@
 import concurrent.futures
 import inspect
 import pickle
-import sys
 
 import pytest
 
@@ -528,18 +527,6 @@ def test_classproperty_docstring():
         foo = classproperty(_get_foo, doc="The foo.")
 
     assert B.__dict__['foo'].__doc__ == "The foo."
-
-
-@pytest.fixture
-def fast_thread_switching():
-    """Fixture that reduces thread switching interval.
-
-    This makes it easier to provoke race conditions.
-    """
-    old = sys.getswitchinterval()
-    sys.setswitchinterval(1e-6)
-    yield
-    sys.setswitchinterval(old)
 
 
 def test_classproperty_lazy_threadsafe(fast_thread_switching):
