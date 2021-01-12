@@ -1,12 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import concurrent.futures
 import inspect
 import pickle
 
 import pytest
 
 from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
-                                      sharedmethod, classproperty,
+                                      sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -526,6 +527,60 @@ def test_classproperty_docstring():
         foo = classproperty(_get_foo, doc="The foo.")
 
     assert B.__dict__['foo'].__doc__ == "The foo."
+
+
+def test_classproperty_lazy_threadsafe(fast_thread_switching):
+    """
+    Test that a class property with lazy=True is thread-safe.
+    """
+    workers = 8
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        # This is testing for race conditions, so try many times in the
+        # hope that we'll get the timing right.
+        for p in range(10000):
+
+            class A:
+                @classproperty(lazy=True)
+                def foo(cls):
+                    nonlocal calls
+                    calls += 1
+                    return object()
+
+            # Have all worker threads query in parallel
+            calls = 0
+            futures = [executor.submit(lambda: A.foo) for i in range(workers)]
+            # Check that only one call happened and they all received it
+            values = [future.result() for future in futures]
+            assert calls == 1
+            assert values[0] is not None
+            assert values == [values[0]] * workers
+
+
+def test_lazyproperty_threadsafe(fast_thread_switching):
+    """
+    Test thread safety of lazyproperty.
+    """
+    # This test is generally similar to test_classproperty_lazy_threadsafe
+    # above. See there for comments.
+
+    class A:
+        def __init__(self):
+            self.calls = 0
+
+        @lazyproperty
+        def foo(self):
+            self.calls += 1
+            return object()
+
+    workers = 8
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        for p in range(10000):
+            a = A()
+            futures = [executor.submit(lambda: a.foo) for i in range(workers)]
+            values = [future.result() for future in futures]
+            assert a.calls == 1
+            assert a.foo is not None
+            assert values == [a.foo] * workers
 
 
 def test_format_doc_stringInput_simple():

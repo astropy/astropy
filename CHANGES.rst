@@ -278,6 +278,9 @@ astropy.units
 astropy.utils
 ^^^^^^^^^^^^^
 
+- Make ``lazyproperty`` and ``classdecorator`` thread-safe. This should fix a
+  number of thread safety issues. [#11224]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
