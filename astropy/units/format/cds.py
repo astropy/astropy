@@ -24,9 +24,8 @@ import re
 from .base import Base
 from . import core, utils
 from astropy.units.utils import is_effectively_unity
-from astropy.utils import classproperty
+from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
-import astropy.utils.parsing as parsing
 
 
 # TODO: Support logarithmic units using bracketed syntax
