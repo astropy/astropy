@@ -89,11 +89,10 @@ class TestUpdateLeapSeconds:
         expired = self.erfa_ls[self.erfa_ls['year'] < 2017]
         expired.update_erfa_leap_seconds(initialize_erfa='empty')
         # Force re-initialization, even if another test already did it
-        # (assert isinstance just to check that they haven't moved)
-        assert isinstance(astropy.time.core._LEAP_SECONDS_CHECKED, bool)
-        assert isinstance(astropy.time.core._LEAP_SECONDS_CHECK_STARTED, bool)
-        astropy.time.core._LEAP_SECONDS_CHECKED = False
-        astropy.time.core._LEAP_SECONDS_CHECK_STARTED = False
+        # (assert isinstance just to check that it hasn't moved)
+        assert isinstance(astropy.time.core._LEAP_SECONDS_CHECK,
+                          astropy.time.core._LeapSecondsCheck)
+        astropy.time.core._LEAP_SECONDS_CHECK = astropy.time.core._LeapSecondsCheck.NOT_STARTED
         workers = 4
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = [executor.submit(lambda: str(Time('2019-01-01 00:00:00.000').tai))
