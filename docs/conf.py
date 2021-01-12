@@ -110,7 +110,7 @@ def minvers(name):
 # be used globally.
 rst_epilog += "\n".join(
     f".. |minimum_{name}_version| replace:: {minvers(name)}"
-    for name in ('numpy', 'erfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + """
+    for name in ('numpy', 'erfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + f"""
 .. |minimum_python_version| replace:: {__minimum_python_version__}
 
 .. Astropy
