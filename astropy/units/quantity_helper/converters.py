@@ -84,7 +84,7 @@ class UfuncHelpers(dict):
                     # module or get the TypeError there.
                     try:
                         self.import_module(module)
-                    except ImportError:
+                    except ImportError:  # pragma: no cover
                         pass
                     else:
                         return self[ufunc]
