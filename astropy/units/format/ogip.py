@@ -26,6 +26,8 @@ from fractions import Fraction
 
 from . import core, generic, utils
 
+from astropy.utils import parsing
+
 
 class OGIP(generic.Generic):
     """
@@ -111,8 +113,6 @@ class OGIP(generic.Generic):
 
     @classmethod
     def _make_lexer(cls):
-        from astropy.extern.ply import lex
-
         tokens = cls._tokens
 
         t_DIVISION = r'/'
@@ -164,16 +164,7 @@ class OGIP(generic.Generic):
             raise ValueError(
                 f"Invalid character at col {t.lexpos}")
 
-        lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                                   'ogip_lextab.py'))
-
-        lexer = lex.lex(optimize=True, lextab='ogip_lextab',
-                        outputdir=os.path.dirname(__file__))
-
-        if not lexer_exists:
-            cls._add_tab_header('ogip_lextab')
-
-        return lexer
+        return parsing.lex(lextab='ogip_lextab', package='astropy/units')
 
     @classmethod
     def _make_parser(cls):
@@ -185,8 +176,6 @@ class OGIP(generic.Generic):
         based on the YACC grammar in the `unity library
         <https://bitbucket.org/nxg/unity/>`_.
         """
-
-        from astropy.extern.ply import yacc
 
         tokens = cls._tokens
 
@@ -360,17 +349,7 @@ class OGIP(generic.Generic):
         def p_error(p):
             raise ValueError()
 
-        parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                       'ogip_parsetab.py'))
-
-        parser = yacc.yacc(debug=False, tabmodule='ogip_parsetab',
-                           outputdir=os.path.dirname(__file__),
-                           optimize=True, write_tables=True)
-
-        if not parser_exists:
-            cls._add_tab_header('ogip_parsetab')
-
-        return parser
+        return parsing.yacc(tabmodule='ogip_parsetab', package='astropy/units')
 
     @classmethod
     def _get_unit(cls, t):
