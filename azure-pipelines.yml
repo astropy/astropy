@@ -40,6 +40,7 @@ schedules:
 variables:
   CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
   CIBW_MANYLINUX_I686_IMAGE: manylinux1
+  CI: true
 
 jobs:
 # Run this job on non-master branches (when triggered) or if we are on master and on the cron, or if manually triggered through the web ui.
