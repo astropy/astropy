@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import pytest
 
-from astropy.utils.parsing import lex, yacc, TAB_HEADER
+from astropy.utils.parsing import lex, yacc, _TAB_HEADER
 
 
 def _docstring_canary():
@@ -60,6 +60,6 @@ def test_generate_parser(tmp_path, monkeypatch):
     assert result == 6
 
     lextab = (tmp_path / 'test_parsing_lextab.py').read_text()
-    assert lextab.startswith(TAB_HEADER.format(package='test_parsing_lexer'))
+    assert lextab.startswith(_TAB_HEADER.format(package='test_parsing_lexer'))
     parsetab = (tmp_path / 'test_parsing_parsetab.py').read_text()
-    assert parsetab.startswith(TAB_HEADER.format(package='test_parsing_parser'))
+    assert parsetab.startswith(_TAB_HEADER.format(package='test_parsing_parser'))

@@ -11,10 +11,10 @@ import os
 import threading
 
 
-__all__ = ['lex', 'TAB_HEADER', 'ThreadSafeParser', 'yacc']
+__all__ = ['lex', 'ThreadSafeParser', 'yacc']
 
 
-TAB_HEADER = """# -*- coding: utf-8 -*-
+_TAB_HEADER = """# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # This file was automatically generated from ply. To re-generate this file,
@@ -34,7 +34,7 @@ def _add_tab_header(filename, package):
         contents = f.read()
 
     with open(filename, 'w') as f:
-        f.write(TAB_HEADER.format(package=package))
+        f.write(_TAB_HEADER.format(package=package))
         f.write(contents)
 
 
