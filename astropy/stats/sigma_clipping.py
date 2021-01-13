@@ -7,7 +7,7 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.stats._sigma_clipping import sigma_clip_fast_mean
+from astropy.stats._sigma_clipping import sigma_clip_fast
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 
 if HAS_BOTTLENECK:
@@ -306,7 +306,7 @@ class SigmaClip:
         mask_reordered = _move_tuple_axes_first(mask, axis)
         mask_2d = mask_reordered.reshape(data_2d.shape)
 
-        min_value, max_value = sigma_clip_fast_mean(data_2d, mask_2d,
+        min_value, max_value = sigma_clip_fast(data_2d, mask_2d, 0 self.cenfunc == 'mean' else 1,
                                                     -1 if np.isinf(self.maxiters) else self.maxiters,
                                                     self.sigma_lower, self.sigma_upper)
 
@@ -546,7 +546,7 @@ class SigmaClip:
         # FIXME: for now, while experimenting, assume that input data is 2d and
         # that axis is 0, but obviously this will need to be generalized 
         if method is None or method == 'cython':
-            if self.cenfunc == 'mean' and self.stdfunc == 'std' and not self.grow:
+            if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and not self.grow:
                 return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                             return_bounds=return_bounds,
                                             copy=copy)
