@@ -101,6 +101,8 @@ astropy.utils
   function ``_find_pkg_data_path``) for obtaining file paths without checking if the
   file/directory exists, as long as the package and module do. [#11006]
 
+- Add new ``utils.parsing`` module to with helper wrappers around ``ply``. [#11227]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -274,6 +276,8 @@ astropy.units
 ^^^^^^^^^^^^^
 
 - Move non-astronomy units from astrophys.py to a new misc.py file. [#11142]
+
+- Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe. [#11227]
 
 astropy.utils
 ^^^^^^^^^^^^^

@@ -24,7 +24,7 @@ import re
 from .base import Base
 from . import core, utils
 from astropy.units.utils import is_effectively_unity
-from astropy.utils import classproperty
+from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
 
 
@@ -81,9 +81,6 @@ class CDS(Base):
 
     @classmethod
     def _make_lexer(cls):
-
-        from astropy.extern.ply import lex
-
         tokens = cls._tokens
 
         t_PRODUCT = r'\.'
@@ -131,17 +128,8 @@ class CDS(Base):
             raise ValueError(
                 f"Invalid character at col {t.lexpos}")
 
-        lexer_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                      'cds_lextab.py'))
-
-        lexer = lex.lex(optimize=True, lextab='cds_lextab',
-                        outputdir=os.path.dirname(__file__),
-                        reflags=int(re.UNICODE))
-
-        if not lexer_exists:
-            cls._add_tab_header('cds_lextab')
-
-        return lexer
+        return parsing.lex(lextab='cds_lextab', package='astropy/units',
+                           reflags=int(re.UNICODE))
 
     @classmethod
     def _make_parser(cls):
@@ -153,8 +141,6 @@ class CDS(Base):
         YACC grammar in the `unity library
         <https://bitbucket.org/nxg/unity/>`_.
         """
-
-        from astropy.extern.ply import yacc
 
         tokens = cls._tokens
 
@@ -274,17 +260,7 @@ class CDS(Base):
         def p_error(p):
             raise ValueError()
 
-        parser_exists = os.path.exists(os.path.join(os.path.dirname(__file__),
-                                       'cds_parsetab.py'))
-
-        parser = yacc.yacc(debug=False, tabmodule='cds_parsetab',
-                           outputdir=os.path.dirname(__file__),
-                           optimize=True, write_tables=True)
-
-        if not parser_exists:
-            cls._add_tab_header('cds_parsetab')
-
-        return parser
+        return parsing.yacc(tabmodule='cds_parsetab', package='astropy/units')
 
     @classmethod
     def _get_unit(cls, t):
