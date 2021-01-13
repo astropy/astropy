@@ -31,6 +31,7 @@ pr:
 variables:
   CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
   CIBW_MANYLINUX_I686_IMAGE: manylinux1
+  CI: true
 
 jobs:
   - template: publish.yml@OpenAstronomy
