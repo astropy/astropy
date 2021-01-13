@@ -9,7 +9,9 @@ astronomy.
 
 import os
 import copy
+import enum
 import operator
+import threading
 from datetime import datetime, date, timedelta
 from time import strftime
 from warnings import warn
@@ -96,7 +98,14 @@ SIDEREAL_TIME_MODELS = {
         'IAU1994': {'function': erfa.gst94, 'scales': ('ut1',)}}}
 
 
-_LEAP_SECONDS_CHECKED = False
+class _LeapSecondsCheck(enum.Enum):
+    NOT_STARTED = 0     # No thread has reached the check
+    RUNNING = 1         # A thread is running update_leap_seconds (_LEAP_SECONDS_LOCK is held)
+    DONE = 2            # update_leap_seconds has completed
+
+
+_LEAP_SECONDS_CHECK = _LeapSecondsCheck.NOT_STARTED
+_LEAP_SECONDS_LOCK = threading.RLock()
 
 
 class TimeInfo(MixinInfo):
@@ -1476,15 +1485,25 @@ class Time(TimeBase):
                 location=None, copy=False):
 
         # Because of import problems, this can only be done on
-        # first call of Time.
-        global _LEAP_SECONDS_CHECKED
-        if not _LEAP_SECONDS_CHECKED:
-            # *Must* set to True first as update_leap_seconds uses Time.
-            # In principle, this may cause wrong leap seconds in
-            # update_leap_seconds itself, but since expiration is in
-            # units of days, that is fine.
-            _LEAP_SECONDS_CHECKED = True
-            update_leap_seconds()
+        # first call of Time. The initialization is complicated because
+        # update_leap_seconds uses Time.
+        # In principle, this may cause wrong leap seconds in
+        # update_leap_seconds itself, but since expiration is in
+        # units of days, that is fine.
+        global _LEAP_SECONDS_CHECK
+        if _LEAP_SECONDS_CHECK != _LeapSecondsCheck.DONE:
+            with _LEAP_SECONDS_LOCK:
+                # There are three ways we can get here:
+                # 1. First call (NOT_STARTED).
+                # 2. Re-entrant call (RUNNING). We skip the initialisation
+                #    and don't worry about leap second errors.
+                # 3. Another thread which raced with the first call
+                #    (RUNNING). The first thread has relinquished the
+                #    lock to us, so initialization is complete.
+                if _LEAP_SECONDS_CHECK == _LeapSecondsCheck.NOT_STARTED:
+                    _LEAP_SECONDS_CHECK = _LeapSecondsCheck.RUNNING
+                    update_leap_seconds()
+                    _LEAP_SECONDS_CHECK = _LeapSecondsCheck.DONE
 
         if isinstance(val, Time):
             self = val.replicate(format=format, copy=copy, cls=cls)
