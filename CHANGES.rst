@@ -266,6 +266,9 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Fix a thread-safety issue with initialization of the leap-second table
+  (which is only an issue when ERFA's built-in table is out of date). [#11234]
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
