@@ -146,7 +146,7 @@ def _initialize_module():
                   doc="microsecond of arc", namespace=_ns)
     core.def_unit(['mas'], u.milliarcsecond,
                   doc="millisecond of arc", namespace=_ns)
-    core.def_unit(['---'], u.dimensionless_unscaled,
+    core.def_unit(['-', '---'], u.dimensionless_unscaled,
                   doc="dimensionless and unscaled", namespace=_ns)
     core.def_unit(['%'], u.percent,
                   doc="percent", namespace=_ns)
