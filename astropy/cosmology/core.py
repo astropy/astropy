@@ -1382,7 +1382,7 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         ----------
         z1, z2 : array_like, shape (N,)
           Input redshifts. For most practical applications such as gravitational lensing,
-          z2 should be larger than z1.  The method will work for z2<z1; however, it may
+          z2 should be larger than z1.  The method will work for z2<z1; however, this will
           return negative distances.
 
         Returns
