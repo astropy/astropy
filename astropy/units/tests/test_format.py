@@ -120,6 +120,16 @@ def test_cds_grammar_fail(string):
         u_format.CDS.parse(string)
 
 
+def test_cds_dimensionless():
+    assert u.Unit('---', format='cds') == u.dimensionless_unscaled
+    assert u.dimensionless_unscaled.to_string(format='cds') == "---"
+
+
+def test_cds_log10_dimensionless():
+    assert u.Unit('[-]', format='cds') == u.dex(u.dimensionless_unscaled)
+    assert u.dex(u.dimensionless_unscaled).to_string(format='cds') == "[-]"
+
+
 # These examples are taken from the EXAMPLES section of
 # https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize('strings, unit', [

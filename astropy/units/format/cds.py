@@ -334,8 +334,9 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if(unit.physical_type == 'dimensionless' and
-               is_effectively_unity(unit.scale*100.)):
+            if unit == core.dimensionless_unscaled:
+                return '---'
+            elif is_effectively_unity(unit.scale*100.):
                 return '%'
 
             if unit.scale == 1:
