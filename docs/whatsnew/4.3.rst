@@ -15,7 +15,7 @@ the 4.2.x series of releases.
 In particular, this release includes:
 
 * :ref:`whatsnew-4.3-coordinates`
-*
+* :ref:`whatsnew-4.3-threadsafe`
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -37,6 +37,19 @@ made much more precise (down to the milli-arcsec level).  To help this, the
 
 Furthermore, by ensuring expensive calculations of the precession-nutation
 matrix are only done once, the transformations have been sped up considerably.
+
+.. _whatsnew-4.3-threadsafe:
+
+Improvements in making Astropy thread-safe
+==========================================
+
+To help use of Astropy in multi-threaded environments (e.g., with Dask), an
+effort has been started to make the basic infrastructure of ``astropy``
+thread-safe for operations that do not explicitly change state. In particular,
+parsing of units and angles, and initializing leap-second tables should now be
+safe even when done simultaneously in multiple threads, as should any use of
+the `~astropy.utils.decorators.lazyproperty` decorator (and the ``lazy=True``
+version of `~astropy.utils.decorators.classproperty`).
 
 Full change log
 ===============
