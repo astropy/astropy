@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
@@ -1328,23 +1327,37 @@ class UnitBase:
     @property
     def physical_type(self):
         """
-        Return the physical type(s) that correspond to a unit.
+        Physical type(s) that are dimensionally compatible with the unit.
 
         Returns
         -------
         ~astropy.units.physical.PhysicalType
-            A representation of the physical types of a unit.
+            A representation of the physical type(s) of a unit.
 
         Examples
         --------
         >>> from astropy import units as u
         >>> u.m.physical_type
-        'length'
-        >>> u.m.physical_type ** 3
-        'volume'
-        >>> u.Pa.physical_type
-        {'energy density', 'pressure', 'stress'}
+        PhysicalType('length')
+        >>> (u.m ** 2 / u.s).physical_type
+        PhysicalType({'diffusivity', 'kinematic viscosity'})
 
+        Physical types can be compared to other physical types
+        (recommended in packages) or to strings.
+
+        >>> area = (u.m ** 2).physical_type
+        >>> area == u.m.physical_type ** 2
+        True
+        >>> area == "area"
+        True
+
+        `~astropy.units.physical.PhysicalType` objects can be used for
+        dimensional analysis.
+
+        >>> number_density = u.m.physical_type ** -3
+        >>> velocity = (u.m / u.s).physical_type
+        >>> number_density * velocity
+        PhysicalType('particle flux')
         """
         from . import physical
         return physical.get_physical_type(self)

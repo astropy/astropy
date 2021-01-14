@@ -314,10 +314,7 @@ def test_compound_input_units_equivalencies():
 
     with pytest.raises(UnitsError) as exc:
         out = cs(20 * u.pix, 10 * u.pix)
-    assert exc.value.args[0] == (
-        "Shift: Units of input 'x', pix (number of elements on 2D regular "
-        "grid), could not be converted to required input units of deg (angle)"
-    )
+    assert exc.value.args[0] == "Shift: Units of input 'x', pix (unknown), could not be converted to required input units of deg (angle)"
 
 
 def test_compound_input_units_strict():

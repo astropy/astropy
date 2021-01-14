@@ -105,7 +105,14 @@ astropy.units
   associated with a unit.  The ``physical_type`` attribute of each unit is
   now an instance of the ``PhysicalType`` class instead of a string.  The
   operations multiplication, division, and exponentiation are able to be
-  performed on ``PhysicalType`` instances. [#11204]
+  performed on ``PhysicalType`` instances to facilitate dimensional
+  analysis. [#11204]
+
+- Several additional physical types have been defined.  [#11204]
+
+- The function ``astropy.units.physical.def_physical_type`` can now be used
+  to either define entirely new physical types, or to add more physical type
+  names to an existing physical type.  [#11204]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -225,10 +232,8 @@ astropy.units
 - The ``physical_type`` attribute of units now returns an instance of
   ``astropy.units.physical.PhysicalType`` instead of a string.  Because
   ``PhysicalType`` instances can be compared to strings, no code changes
-  should be necessary in most situations.  Because the number of defined
-  physical types has been expanded, some changes may be necessary if
-  custom physical types had been defined using
-  ``astropy.units.physical.def_physical_type``.  [#11204]
+  should be necessary when making comparisons.  The string representations
+  of different physical types will differ from previous releases.  [#11204]
 
 astropy.utils
 ^^^^^^^^^^^^^
@@ -338,6 +343,9 @@ astropy.units
 - The physical type of ``astropy.units.mol / astropy.units.m ** 3`` is now
   defined as molar concentration.  It was previously incorrectly defined
   as molar volume.  [#11204]
+- Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe.
+
+- Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe. [#11227]
 
 astropy.utils
 ^^^^^^^^^^^^^
