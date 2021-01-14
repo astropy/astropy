@@ -103,10 +103,6 @@ class TestUfuncHelpers:
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             for p in range(10000):
                 helpers = UfuncHelpers()
-                # UNSUPPORTED is (for some reason) a class attribute rather than an
-                # instance attribute. Make it an instance attribute so that the test
-                # doesn't affect the class attribute.
-                helpers.UNSUPPORTED = set(helpers.UNSUPPORTED)
                 helpers.register_module(
                     'astropy.units.tests.test_quantity_ufuncs',
                     ['dummy_ufunc'],

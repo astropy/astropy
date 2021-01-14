@@ -21,10 +21,10 @@ class UfuncHelpers(dict):
 
     Such modules should be registered using ``register_module``.
     """
-    UNSUPPORTED = set()
 
     def __init__(self, *args, **kwargs):
         self.modules = {}
+        self.UNSUPPORTED = set()   # Upper-case for backwards compatibility
         self._lock = threading.RLock()
         super().__init__(*args, **kwargs)
 
