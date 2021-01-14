@@ -1,6 +1,8 @@
 # The purpose of these tests are to ensure that calling ufuncs with quantities
 # returns quantities with the right units, or raises exceptions.
 
+import concurrent.futures
+import sys
 import warnings
 from collections import namedtuple
 
@@ -11,6 +13,8 @@ from erfa import ufunc as erfa_ufunc
 
 from astropy import units as u
 from astropy.units import quantity_helper as qh
+from astropy.units.quantity_helper.converters import UfuncHelpers
+from astropy.units.quantity_helper.helpers import helper_sqrt
 
 
 try:
@@ -87,6 +91,26 @@ class TestUfuncHelpers:
         qh.UFUNC_HELPERS[np.add] = qh.UFUNC_HELPERS[np.subtract]
         assert np.add in qh.UFUNC_HELPERS
         assert np.add not in qh.UNSUPPORTED_UFUNCS
+
+    def test_thread_safety(self, fast_thread_switching):
+        def dummy_ufunc(*args, **kwargs):
+            return np.sqrt(*args, **kwargs)
+
+        def register():
+            return {dummy_ufunc: helper_sqrt}
+
+        workers = 8
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            for p in range(10000):
+                helpers = UfuncHelpers()
+                helpers.register_module(
+                    'astropy.units.tests.test_quantity_ufuncs',
+                    ['dummy_ufunc'],
+                    register
+                )
+                futures = [executor.submit(lambda: helpers[dummy_ufunc]) for i in range(workers)]
+                values = [future.result() for future in futures]
+                assert values == [helper_sqrt] * workers
 
 
 class TestQuantityTrigonometricFuncs:
