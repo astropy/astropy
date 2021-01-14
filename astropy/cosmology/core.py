@@ -1393,8 +1393,9 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         """
         z1 = np.asanyarray(z1)
         z2 = np.asanyarray(z2)
-        if np.any(np.less(z2, z1)) :
-            warnings.warn(f"Second redshift(s) z2 ({z2}) is less than first redshift(s) z1 ({z1}).", AstropyUserWarning)
+        if np.any(np.less(z2, z1)):
+            warnings.warn(f"Second redshift(s) z2 ({z2}) is less than first "
+                          f"redshift(s) z1 ({z1}).", AstropyUserWarning)
         return self._comoving_transverse_distance_z1z2(z1, z2) / (1. + z2)
 
     def absorption_distance(self, z):
