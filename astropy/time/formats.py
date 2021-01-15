@@ -745,52 +745,6 @@ class TimeUnixTai(TimeUnix):
     epoch_scale = 'tai'
 
 
-class TimeUnixPTP(TimeUnix):
-    """
-    Precision Time Protocol: SI seconds elapsed from 1970-01-01 00:00:00 TAI.
-
-    This convention matches the definition of the Precision Time Protocol,
-    https://en.wikipedia.org/wiki/Precision_Time_Protocol and
-    is also used by the White Rabbit protocol in High Energy Physics:
-    https://white-rabbit.web.cern.ch/
-
-    For more information on this time format definition, see:
-    https://www-acc.gsi.de/wiki/Timing/TimingSystemButisInterface#Time
-
-    This format is basically the same as the ``unix_tai`` with an offset of
-    8 seconds due to the different epoch (1970-01-01 00:00:00 UTC vs. TAI).
-
-    This will generally differ from Unix time by the cumulative integral number
-    of leap seconds since 1970-01-01 UTC plus the initial offset of 8 seconds.
-
-    Caveats:
-    - Before 1972, fractional adjustments to UTC were made, so the difference
-      between ``unix`` and ``unix_ptp`` time is no longer an integer.
-    - Because of the fractional adjustments, to be very precise, ``unix_ptp``
-      is the number of seconds since ``1970-01-01 00:00:00 TAI`` or equivalently
-      ``1969-12-31 23:59:51.999918 UTC``.  The difference between TAI and UTC
-      at that epoch was 8.000082 sec.
-    - On the day of a leap second the difference between ``unix`` and ``unix_ptp``
-      times increases linearly through the day by 1.0.  See also the
-      documentation for the `~astropy.time.TimeUnix` class.
-
-    Examples
-    --------
-
-      >>> from astropy.time import Time
-      >>> t = Time('2020-01-01', scale='utc')
-      >>> t.unix_ptp - t.unix
-      37.0
-
-      >>> t = Time('1970-01-01', scale='utc')
-      >>> t.unix_ptp - t.unix  # doctest: +FLOAT_CMP
-      8.000082
-    """
-    name = 'unix_ptp'
-    epoch_val = '1970-01-01 00:00:00'
-    epoch_scale = 'tai'
-
-
 class TimeCxcSec(TimeFromEpoch):
     """
     Chandra X-ray Center seconds from 1998-01-01 00:00:00 TT.
