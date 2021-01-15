@@ -167,23 +167,25 @@ following keywords:
     NAXIS  =                     0
 
 If any of the mandatory keywords are missing or in the wrong order, the fix
-option will fix them:
+option will fix them::
 
-.. doctest-skip::
-
-    >>> hdu.header               # has a 'bad' header
-    SIMPLE =                     T /
-    NAXIS  =                     0
-    BITPIX =                     8 /
-    >>> hdu.verify('fix')        # fix it
-    Output verification result:
-    'BITPIX' card at the wrong place (card 2). Fixed by moving it to the right
-    place (card 1).
-    >>> hdu.header                 # voila!
-    SIMPLE =                     T / conforms to FITS standard
-    BITPIX =                     8 / array data type
-    NAXIS  =                     0
-
+    >>> from astropy.io import fits
+    >>> filename = fits.util.get_testdata_filepath('verify.fits')
+    >>> hdul = fits.open(filename)
+    >>> hdul[0].header
+    SIMPLE  =                    T / conforms to FITS standard
+    NAXIS   =                    0 / NUMBER OF AXES
+    BITPIX  =                    8 / BITS PER PIXEL
+    >>> hdul[0].verify('fix') # doctest: +SHOW_WARNINGS
+    VerifyWarning: Verification reported errors:
+    VerifyWarning: 'BITPIX' card at the wrong place (card 2).
+      Fixed by moving it to the right place (card 1).
+    VerifyWarning: Note: astropy.io.fits uses zero-based indexing.
+    >>> hdul[0].header           # voila!
+    SIMPLE  =                    T / conforms to FITS standard
+    BITPIX  =                    8 / BITS PER PIXEL
+    NAXIS   =                    0 / NUMBER OF AXES
+    >>> hdul.close()
 
 Verification at Each Card
 -------------------------
@@ -236,23 +238,28 @@ Fixable Cards:
 6. Unparsable values will be "fixed" as a string::
 
     >>> c = fits.Card.fromstring('FIX6    = 2 10 ')
-    >>> c.verify('fix+warn')  # doctest: +SKIP
-    >>> print(c)  # doctest: +SKIP
+    >>> c.verify('fix+warn') # doctest: +SHOW_WARNINGS
+    VerifyWarning: Verification reported errors:
+    VerifyWarning: Card 'FIX6' is not FITS standard
+     (invalid value string: '2 10').
+       Fixed 'FIX6' card to meet the FITS standard.
+    VerifyWarning: Note: astropy.io.fits uses zero-based indexing.
+    >>> print(c)
     FIX6    = '2 10    '
 
 Unfixable Cards:
 
 1. Illegal characters in keyword name.
 
-We will summarize the verification with a "life-cycle" example:
-
-.. doctest-skip::
+We will summarize the verification with a "life-cycle" example::
 
     >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
     >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
     >>> # '.' in the keyword), if using the update() method - doesn't work!
-    >>> h['P.I.'] = 'Hubble'
-    ValueError: Illegal keyword name 'P.I.'
+    >>> h.header['P.I.'] = 'Hubble' # doctest: +SHOW_WARNINGS
+    VerifyWarning: Keyword name 'P.I.' is greater than 8 characters or
+     contains characters not allowed by the FITS standard;
+      a HIERARCH card will be created.
     >>> # Have to do it the hard way (so a user will not do this by accident)
     >>> # First, create a card image and give verbatim card content (including
     >>> # the proper spacing, but no need to add the trailing blanks)
@@ -260,37 +267,44 @@ We will summarize the verification with a "life-cycle" example:
     >>> h.header.append(c)  # then append it to the header
     >>> # Now if we try to write to a FITS file, the default output
     >>> # verification will not take it.
-    >>> h.writeto('pi.fits')
-    Output verification result:
-    HDU 0:
-      Card 4:
-        Unfixable error: Illegal keyword name 'P.I.'
-    ......
-      raise VerifyError
-    VerifyError
+    >>> h.writeto('pi.fits')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+     ...
+    VerifyError: HDU 0:
+        Card 5:
+            Card 'P.I. ' is not FITS standard (equal sign not at column 8).
+            Illegal keyword name 'P.I. '
     >>> # Must set the output_verify argument to 'ignore', to force writing a
     >>> # non-standard FITS file
     >>> h.writeto('pi.fits', output_verify='ignore')
     >>> # Now reading a non-standard FITS file
     >>> # astropy.io.fits is magnanimous in reading non-standard FITS files
-    >>> hdus = fits.open('pi.fits')
-    >>> hdus[0].header
-    SIMPLE =            T / conforms to FITS standard
-    BITPIX =            8 / array data type
-    NAXIS  =            0 / number of array dimensions
-    EXTEND =            T
-    P.I.   = 'Hubble'
+    >>> hdul = fits.open('pi.fits')
+    >>> hdul[0].header # doctest: +SHOW_WARNINGS
+    SIMPLE  =            T / conforms to FITS standard
+    BITPIX  =            8 / array data type
+    NAXIS   =            0 / number of array dimensions
+    EXTEND  =            T
+    HIERARCH P.I. = 'Hubble  '
+    P.I.    = 'Hubble  '
+    VerifyWarning: Verification reported errors:
+    VerifyWarning: Card 'P.I. ' is not FITS standard (equal sign
+     not at column 8).  Fixed 'P.I. ' card to meet the FITS standard.
+    VerifyWarning: Unfixable error: Illegal keyword name 'P.I. '
+    VerifyWarning: Note: astropy.io.fits uses zero-based indexing.
     >>> # even when you try to access the offending keyword, it does NOT
     >>> # complain
-    >>> hdus[0].header['p.i.']
+    >>> hdul[0].header['p.i.']
     'Hubble'
     >>> # But if you want to make sure if there is anything wrong/non-standard,
     >>> # use the verify() method
-    >>> hdus.verify()
-    Output verification result:
-    HDU 0:
-      Card 4:
-        Unfixable error: Illegal keyword name 'P.I.'
+    >>> hdul.verify() # doctest: +SHOW_WARNINGS
+    VerifyWarning: Verification reported errors:
+    VerifyWarning: HDU 0:
+    VerifyWarning:     Card 5:
+    VerifyWarning:         Illegal keyword name 'P.I. '
+    VerifyWarning: Note: astropy.io.fits uses zero-based indexing.
+    >>> hdul.close()
 
 ..
   EXAMPLE END
@@ -335,44 +349,40 @@ Examples
   EXAMPLE START
   Verification Using the FITS Checksum Keyword Convention
 
-To verify the checksum values for HDUs when opening a file:
+To verify the checksum values for HDUs when opening a file::
 
-.. doctest-skip::
+    >>> # Open the file checksum.fits verifying the checksum values for all HDUs
+    >>> filename = fits.util.get_testdata_filepath('checksum.fits')
+    >>> hdul = fits.open(filename, checksum=True)
+    >>> hdul.close()
+    >>> # Open the file in.fits where checksum verification fails
+    >>> filename = fits.util.get_testdata_filepath('checksum_false.fits')
+    >>> hdul = fits.open(filename, checksum=True) # doctest: +SHOW_WARNINGS
+    AstropyUserWarning: Checksum verification failed for HDU ('PRIMARY', 1).
+    AstropyUserWarning: Datasum verification failed for HDU ('PRIMARY', 1).
+    AstropyUserWarning: Checksum verification failed for HDU ('RATE', 1).
+    AstropyUserWarning: Datasum verification failed for HDU ('RATE', 1).
+    >>> # Create file out.fits containing an HDU constructed from data
+    >>> # containing both CHECKSUM and DATASUM cards.
+    >>> data = hdul[0].data
+    >>> fits.writeto('out.fits', data=data, checksum=True)
+    >>> hdun = fits.open('out.fits', checksum=True)
+    >>> hdun.close()
 
-     >>> # Open the file pix.fits verifying the checksum values for all HDUs
-     >>> hdul = fits.open('pix.fits', checksum=True)
+    >>> # Create file out.fits containing all the HDUs in the HDULIST
+    >>> # hdul with each HDU header containing only the DATASUM card
+    >>> hdul.writeto('out2.fits', checksum='datasum')
 
-.. doctest-skip::
+    >>> # Create file out.fits containing the HDU hdu with both CHECKSUM
+    >>> # and DATASUM cards in the header
+    >>> hdu = hdul[1]
+    >>> hdu.writeto('out3.fits', checksum=True)
 
-     >>> # Open the file in.fits where checksum verification fails for the
-     >>> # primary HDU
-     >>> hdul = fits.open('in.fits', checksum=True)
-     Warning:  Checksum verification failed for HDU #0.
-
-.. doctest-skip::
-
-     >>> # Create file out.fits containing an HDU constructed from data and
-     >>> # header containing both CHECKSUM and DATASUM cards.
-     >>> fits.writeto('out.fits', data, header, checksum=True)
-
-.. doctest-skip::
-
-     >>> # Create file out.fits containing all the HDUs in the HDULIST
-     >>> # hdul with each HDU header containing only the DATASUM card
-     >>> hdul.writeto('out.fits', checksum='datasum')
-
-.. doctest-skip::
-
-     >>> # Create file out.fits containing the HDU hdu with both CHECKSUM
-     >>> # and DATASUM cards in the header
-     >>> hdu.writeto('out.fits', checksum=True)
-
-.. doctest-skip::
-
-     >>> # Append a new HDU constructed from array data to the end of
-     >>> # the file existingfile.fits with only the appended HDU
-     >>> # containing both CHECKSUM and DATASUM cards.
-     >>> fits.append('existingfile.fits', data, checksum=True)
+    >>> # Append a new HDU constructed from array data to the end of
+    >>> # the file existingfile.fits with only the appended HDU
+    >>> # containing both CHECKSUM and DATASUM cards.
+    >>> fits.append('out3.fits', data, checksum=True)
+    >>> hdul.close()
 
 ..
   EXAMPLE END
