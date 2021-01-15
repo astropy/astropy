@@ -131,6 +131,10 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
+- Clarified definition of inputs to ``angular_diameter_distance_z1z2``.
+  The function now emits ``AstropyUserWarning`` when ``z2`` is less than ``z1``.
+  [#11197]
+
 astropy.extern
 ^^^^^^^^^^^^^^
 

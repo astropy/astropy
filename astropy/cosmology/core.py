@@ -14,7 +14,8 @@ from astropy import constants as const
 from astropy import units as u
 from astropy.utils import isiterable
 from astropy.utils.state import ScienceState
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+
 
 from . import parameters
 
@@ -1374,23 +1375,27 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
     def angular_diameter_distance_z1z2(self, z1, z2):
         """ Angular diameter distance between objects at 2 redshifts.
-        Useful for gravitational lensing.
+        Useful for gravitational lensing, for example computing the angular diameter
+        distance between a lensed galaxy and the foreground lens.
 
         Parameters
         ----------
         z1, z2 : array_like, shape (N,)
-          Input redshifts. z2 must be large than z1.
+          Input redshifts. For most practical applications such as gravitational lensing,
+          z2 should be larger than z1.  The method will work for z2<z1; however, this will
+          return negative distances.
 
         Returns
         -------
         d : `~astropy.units.Quantity`, shape (N,) or single if input scalar
-          The angular diameter distance between each input redshift
-          pair.
+          The angular diameter distance between each input redshift pair.
 
         """
-
         z1 = np.asanyarray(z1)
         z2 = np.asanyarray(z2)
+        if np.any(np.less(z2, z1)):
+            warnings.warn(f"Second redshift(s) z2 ({z2}) is less than first "
+                          f"redshift(s) z1 ({z1}).", AstropyUserWarning)
         return self._comoving_transverse_distance_z1z2(z1, z2) / (1. + z2)
 
     def absorption_distance(self, z):
