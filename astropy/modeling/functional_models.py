@@ -116,7 +116,7 @@ class Gaussian1D(Fittable1DModel):
     """
 
     amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
-    mean = Parameter(default=0, description="Average value of random variable having this distribution(Gaussian)")
+    mean = Parameter(default=0, description="Position of peak (Gaussian)")
 
     # Ensure stddev makes sense if its bounds are not explicitly set.
     # stddev must be non-zero and positive.
@@ -272,8 +272,8 @@ class Gaussian2D(Fittable2DModel):
     """
 
     amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
-    x_mean = Parameter(default=0, description="Average value of random variable(along x axis) having this distribution(Gaussian)")
-    y_mean = Parameter(default=0, description="Average value of random variable(along y axis) having this distribution(Gaussian)")
+    x_mean = Parameter(default=0, description="Peak position (along x axis) of Gaussian")
+    y_mean = Parameter(default=0, description="Peak position (along y axis) of Gaussian")
     x_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along x axis)")
     y_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along y axis)")
     theta = Parameter(default=0.0, description="Rotation angle in radians (Optional parameter)")
@@ -458,7 +458,7 @@ class Shift(Fittable1DModel):
         Offset to add to a coordinate.
     """
 
-    offset = Parameter(default=0, description="Offset to add to a coordinate")
+    offset = Parameter(default=0, description="Offset to add to an model")
     linear = True
 
     _has_inverse_bounding_box = True
@@ -523,7 +523,7 @@ class Scale(Fittable1DModel):
 
     """
 
-    factor = Parameter(default=1, description="Factor by which to scale a coordinate")
+    factor = Parameter(default=1, description="Factor by which to scale a model")
     linear = True
     fittable = True
 
@@ -582,7 +582,7 @@ class Multiply(Fittable1DModel):
         Factor by which to multiply a coordinate.
     """
 
-    factor = Parameter(default=1, description="Factor by which to multiply a coordinate")
+    factor = Parameter(default=1, description="Factor by which to multiply a model")
     linear = True
     fittable = True
 
@@ -635,7 +635,7 @@ class RedshiftScaleFactor(Fittable1DModel):
         .. math:: f(x) = x (1 + z)
     """
 
-    z = Parameter(description='Redshift value', default=0)
+    z = Parameter(description='Redshift', default=0)
 
     _has_inverse_bounding_box = True
 
@@ -912,13 +912,13 @@ class Planar2D(Fittable2DModel):
     Parameters
     ----------
     slope_x : float
-        Slope of the straight line in X
+        Slope of the plane in X
 
     slope_y : float
-        Slope of the straight line in Y
+        Slope of the plane in Y
 
     intercept : float
-        Z-intercept of the straight line
+        Z-intercept of the plane
 
     Notes
     -----
@@ -927,9 +927,9 @@ class Planar2D(Fittable2DModel):
         .. math:: f(x, y) = a x + b y + c
     """
 
-    slope_x = Parameter(default=1, description="Slope of the straight line in X")
-    slope_y = Parameter(default=1, description="Slope of the straight line in Y")
-    intercept = Parameter(default=0, description="Z-intercept of the straight line")
+    slope_x = Parameter(default=1, description="Slope of the plane in X")
+    slope_y = Parameter(default=1, description="Slope of the plane in Y")
+    intercept = Parameter(default=0, description="Z-intercept of the plane")
     linear = True
 
     @staticmethod
@@ -1784,7 +1784,7 @@ class Box2D(Fittable2DModel):
     Parameters
     ----------
     amplitude : float
-        Amplitude A
+        Amplitude
     x_0 : float
         x position of the center of the box function
     x_width : float
@@ -1814,7 +1814,7 @@ class Box2D(Fittable2DModel):
 
     """
 
-    amplitude = Parameter(default=1, description="Amplitude A")
+    amplitude = Parameter(default=1, description="Amplitude")
     x_0 = Parameter(default=0, description="X position of the center of the box function")
     y_0 = Parameter(default=0, description="Y position of the center of the box function")
     x_width = Parameter(default=1, description="Width in x direction of the box")
@@ -2091,7 +2091,7 @@ class RickerWavelet1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Amplitude(peak) value")
+    amplitude = Parameter(default=1, description="Amplitude (peak) value")
     x_0 = Parameter(default=0, description="Position of the peak")
     sigma = Parameter(default=1, description="Width of the Ricker wavelet")
 
@@ -2166,7 +2166,7 @@ class RickerWavelet2D(Fittable2DModel):
         - \\left(y - y_{0}\\right)^{2}}{2 \\sigma^{2}}}
     """
 
-    amplitude = Parameter(default=1, description="Amplitude(peak) value")
+    amplitude = Parameter(default=1, description="Amplitude (peak) value")
     x_0 = Parameter(default=0, description="X position of the peak")
     y_0 = Parameter(default=0, description="Y position of the peak")
     sigma = Parameter(default=1, description="Width of the Ricker wavelet")
@@ -2240,10 +2240,11 @@ class AiryDisk2D(Fittable2DModel):
     .. [1] https://en.wikipedia.org/wiki/Airy_disk
     """
 
-    amplitude = Parameter(default=1, description="Amplitude(peak value) of the Airy function")
+    amplitude = Parameter(default=1, description="Amplitude (peak value) of the Airy function")
     x_0 = Parameter(default=0, description="X position of the peak")
     y_0 = Parameter(default=0, description="Y position of the peak")
-    radius = Parameter(default=1, description="The radius of the Airy disk (radius of first zero)")
+    radius = Parameter(default=1, description="The radius of the Airy disk (radius of first zero"
+                                                                                    "  crossing)")
     _rz = None
     _j1 = None
 
@@ -2422,7 +2423,7 @@ class Moffat2D(Fittable2DModel):
         \\left(y - y_{0}\\right)^{2}}{\\gamma^{2}}\\right)^{- \\alpha}
     """
 
-    amplitude = Parameter(default=1, description="Amplitude(peak value) of the model")
+    amplitude = Parameter(default=1, description="Amplitude (peak value) of the model")
     x_0 = Parameter(default=0, description="X position of the maximum of the Moffat model")
     y_0 = Parameter(default=0, description="Y position of the maximum of the Moffat model")
     gamma = Parameter(default=1, description="Core width of the Moffat model")
