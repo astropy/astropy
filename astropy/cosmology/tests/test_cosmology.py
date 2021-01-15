@@ -9,6 +9,7 @@ from astropy.cosmology import core, funcs
 from astropy.units import allclose
 from astropy import constants as const
 from astropy import units as u
+from astropy.utils.exceptions import AstropyUserWarning
 
 try:
     import scipy  # pylint: disable=W0611  # noqa
@@ -1233,11 +1234,16 @@ def test_angular_diameter_distance_z1z2():
     assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
                     646.22968662822018 * u.Mpc)
 
-    z1 = 0, 0, 2, 0.5, 1
-    z2 = 2, 1, 1, 2.5, 1.1
+    z1 = 2  # Separate test for z2<z1, returns negative value with warning
+    z2 = 1
+    results = -969.34452994 * u.Mpc
+    with pytest.warns(AstropyUserWarning, match='less than first redshift'):
+        assert allclose(tcos.angular_diameter_distance_z1z2(z1, z2), results)
+
+    z1 = 0, 0, 0.5, 1
+    z2 = 2, 1, 2.5, 1.1
     results = (1760.0628637762106,
                1670.7497657219858,
-               -969.34452994,
                1159.0970895962193,
                115.72768186186921) * u.Mpc
 
