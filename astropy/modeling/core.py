@@ -36,7 +36,6 @@ from astropy.utils import (sharedmethod, find_current_module,
                            check_broadcast, IncompatibleShapeError, isiterable)
 from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils.misc import get_parameters
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
@@ -90,7 +89,6 @@ class _ModelMeta(abc.ABCMeta):
         # See the docstring for _is_dynamic above
         if '_is_dynamic' not in members:
             members['_is_dynamic'] = mcls._is_dynamic
-        get_parameters(members)
         opermethods = [
             ('__add__', _model_oper('+')),
             ('__sub__', _model_oper('-')),
@@ -101,6 +99,9 @@ class _ModelMeta(abc.ABCMeta):
             ('__and__', _model_oper('&')),
             ('_fix_inputs', _model_oper('fix_inputs'))
         ]
+
+        members['_parameters_'] = {k: v for k, v in members.items()
+                                   if isinstance(v, Parameter)}
 
         for opermethod, opercall in opermethods:
             members[opermethod] = opercall

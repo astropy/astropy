@@ -7,7 +7,6 @@ classes.
 
 
 # Standard library
-import abc
 import copy
 import inspect
 from collections import namedtuple, defaultdict
@@ -21,8 +20,7 @@ from astropy.utils.compat.misc import override__dir__
 from astropy.utils.decorators import lazyproperty, format_doc
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy import units as u
-from astropy.utils import (OrderedDescriptorContainer, ShapedLikeNDArray,
-                           check_broadcast)
+from astropy.utils import ShapedLikeNDArray, check_broadcast
 from .transformations import TransformGraph
 from . import representation as r
 from .angles import Angle
@@ -194,16 +192,8 @@ _components = """
 """
 
 
-# TODO: This is only needed so that BaseCoordinateFrame can have
-# OrderedDescriptorContainer as a metaclass. Trying to use
-# metaclass=OrderedDescriptorContainer directly causes a metaclass conflict.
-class FrameMeta(OrderedDescriptorContainer, abc.ABCMeta):
-    pass
-
-
 @format_doc(base_doc, components=_components, footer="")
-class BaseCoordinateFrame(ShapedLikeNDArray,
-                          metaclass=FrameMeta):
+class BaseCoordinateFrame(ShapedLikeNDArray):
     """
     The base class for coordinate frames.
 
@@ -251,8 +241,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
     # attributes.
     frame_specific_representation_info = {}
 
-    _inherit_descriptors_ = (Attribute,)
-
     frame_attributes = {}
     # Default empty frame_attributes dict
 
@@ -262,6 +250,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         default_repr = getattr(cls, 'default_representation', None)
         default_diff = getattr(cls, 'default_differential', None)
         repr_info = getattr(cls, 'frame_specific_representation_info', None)
+        frame_attrs = getattr(cls, 'frame_attributes', None)
 
         # Then, to make sure this works for subclasses-of-subclasses, we also
         # have to check for cases where the attribute names have already been
@@ -285,6 +274,25 @@ class BaseCoordinateFrame(ShapedLikeNDArray,
         cls._create_readonly_property('default_differential', default_diff)
         cls._create_readonly_property('frame_specific_representation_info',
                                       copy.deepcopy(repr_info))
+
+        # Set the frame attributes
+        # TODO: Should this be made to use readonly_prop_factory as well or
+        # would it be inconvenient for getting the frame_attributes from
+        # classes?
+        if frame_attrs is None:
+            frame_attrs = {}
+        else:
+            frame_attrs = frame_attrs.copy()
+
+        for basecls in (cls,) + cls.__bases__:
+            if not issubclass(basecls, BaseCoordinateFrame):
+                continue
+
+            for k, v in basecls.__dict__.items():
+                if isinstance(v, Attribute):
+                    frame_attrs.setdefault(k, v)
+
+        cls.frame_attributes = frame_attrs
 
         # Deal with setting the name of the frame:
         if not hasattr(cls, 'name'):
