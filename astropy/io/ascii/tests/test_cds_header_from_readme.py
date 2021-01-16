@@ -159,7 +159,6 @@ def test_cds_units():
 
 
 def test_cds_function_units():
-    from astropy.units import dex
     data_and_readme = 'data/cdsFunctional.dat'
     reader = ascii.get_reader(ascii.Cds)
     table = reader.read(data_and_readme)
@@ -169,6 +168,20 @@ def test_cds_function_units():
     assert table['e_Mass'].unit == u.Msun
     assert table['Age'].unit == u.Myr
     assert table['e_Age'].unit == u.Myr
+
+
+def test_cds_function_units2():
+    # This one includes some dimensionless dex.
+    data_and_readme = 'data/cdsFunctional2.dat'
+    reader = ascii.get_reader(ascii.Cds)
+    table = reader.read(data_and_readme)
+    assert table['Teff'].unit == u.K
+    assert table['logg'].unit == u.dex(u.cm/u.s**2)
+    assert table['vturb'].unit == u.km/u.s
+    assert table['[Fe/H]'].unit == u.dex(u.one)
+    assert table['e_[Fe/H]'].unit == u.dex(u.one)
+    assert_almost_equal(table['[Fe/H]'].to(u.one),
+                        10.**(np.array([-2.07, -1.50, -2.11, -1.64])))
 
 
 if __name__ == "__main__":  # run from main directory; not from test/

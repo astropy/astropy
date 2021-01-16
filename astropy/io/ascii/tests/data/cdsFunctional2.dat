@@ -1,0 +1,49 @@
+J/A+A/642/A176    Chemical evolution of dSph galaxy Sextans      (Theler+, 2020)
+================================================================================
+The chemical evolution of the dwarf spheroidal galaxy Sextans.
+    Theler R., Jablonka P., Lucchesi R., Lardo C., North P., Irwin M.,
+    Battaglia G., Hill V., Tolstoy E., Venn K., Helmi A., Kaufer A., Primas F.,
+    Shetrone M.
+    <Astron. Astrophys. 642, A176 (2020)>
+    =2020A&A...642A.176T        (SIMBAD/NED BibCode)
+================================================================================
+ADC_Keywords: Galaxies, nearby ; Abundances ; Equivalent widths ;
+              Radial velocities ; Effective temperatures
+Keywords: stars: abundances - galaxies: dwarf - galaxies: evolution
+
+Abstract:
+    [--- snip ---]
+
+Description:
+    [--- snip ---]
+
+File Summary:
+--------------------------------------------------------------------------------
+ FileName    Lrecl  Records   Explanations
+--------------------------------------------------------------------------------
+ReadMe          80        .   This file
+table6.dat      33       89   Four stellar parameters for the probables members
+--------------------------------------------------------------------------------
+
+See also:
+   [--- snip ---]
+
+Byte-by-byte Description of file: table6.dat
+--------------------------------------------------------------------------------
+   Bytes Format Units   Label     Explanations
+--------------------------------------------------------------------------------
+   1-  7  A7    ---     ID        Star ID
+   9- 12  I4    K       Teff      Effective temperature
+  14- 17  F4.2  [cm/s2] logg      Surface gravity
+  19- 22  F4.2  km/s    vturb     Micro-turbulence velocity
+  24- 28  F5.2  [-]     [Fe/H]    Metallicity
+  30- 33  F4.2  [-]   e_[Fe/H]    ? rms uncertainty on [Fe/H]
+--------------------------------------------------------------------------------
+
+================================================================================
+(End)                                        Patricia Vannier [CDS]  09-Jun-2020
+--------------------------------------------------------------------------------
+S05-5   4337 0.77 1.8  -2.07
+S08-229 4625 1.23 1.23 -1.50
+S05-10  4342 0.91 1.82 -2.11 0.14
+S05-47  4654 1.28 1.74 -1.64 0.16
