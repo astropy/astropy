@@ -31,6 +31,10 @@ __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'OrderedDescriptor', 'OrderedDescriptorContainer']
 
 
+# Because they are deprecated.
+__doctest_skip__ = ['OrderedDescriptor', 'OrderedDescriptorContainer']
+
+
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
 
@@ -494,6 +498,17 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     return ''
 
 
+_ordered_descriptor_deprecation_message = """\
+The {func} {obj_type} is deprecated and may be removed in a future version.
+
+    You can replace its functionality with a combination of the
+    __init_subclass__ and __set_name__ magic methods introduced in Python 3.6.
+    See https://github.com/astropy/astropy/issues/11094 for recipes on how to
+    replicate their functionality.
+"""
+
+
+@deprecated('4.3', _ordered_descriptor_deprecation_message)
 class OrderedDescriptor(metaclass=abc.ABCMeta):
     """
     Base class for descriptors whose order in the class body should be
@@ -578,6 +593,7 @@ class OrderedDescriptor(metaclass=abc.ABCMeta):
             return NotImplemented
 
 
+@deprecated('4.3', _ordered_descriptor_deprecation_message)
 class OrderedDescriptorContainer(type):
     """
     Classes should use this metaclass if they wish to use `OrderedDescriptor`
@@ -776,26 +792,6 @@ class OrderedDescriptorContainer(type):
 
         super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,
                                                         members)
-
-
-def get_parameters(members):
-    """
-    Looks for ordered descriptors in a class definition and
-    copies such definitions in two new class attributes,
-    one being a dictionary of these objects keyed by their
-    attribute names, and the other a simple list of those names.
-
-    """
-    pdict = OrderedDict()
-    for name, obj in members.items():
-        if (not isinstance(obj, OrderedDescriptor)):
-            continue
-        if obj._name_attribute_ is not None:
-            setattr(obj, '_name', name)
-        pdict[name] = obj
-
-    # members['_parameter_vals_'] = pdict
-    members['_parameters_'] = pdict
 
 
 LOCALE_LOCK = threading.Lock()

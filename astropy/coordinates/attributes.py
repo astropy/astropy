@@ -7,7 +7,7 @@ import numpy as np
 
 # Project
 from astropy import units as u
-from astropy.utils import OrderedDescriptor, ShapedLikeNDArray
+from astropy.utils import ShapedLikeNDArray
 
 __all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
            'EarthLocationAttribute', 'CoordinateAttribute',
@@ -15,7 +15,7 @@ __all__ = ['Attribute', 'TimeAttribute', 'QuantityAttribute',
            'DifferentialAttribute']
 
 
-class Attribute(OrderedDescriptor):
+class Attribute:
     """A non-mutable data descriptor to hold a frame attribute.
 
     This class must be used to define frame attributes (e.g. ``equinox`` or
@@ -50,14 +50,15 @@ class Attribute(OrderedDescriptor):
         ``default is None`` and no value was supplied during initialization.
     """
 
-    _class_attribute_ = 'frame_attributes'
-    _name_attribute_ = 'name'
     name = '<unbound>'
 
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
         super().__init__()
+
+    def __set_name__(self, owner, name):
+        self.name = name
 
     def convert_input(self, value):
         """
