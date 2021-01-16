@@ -51,7 +51,8 @@ class CDS(Base):
         'SIGN',
         'UINT',
         'UFLOAT',
-        'UNIT'
+        'UNIT',
+        'DIMENSIONLESS'
     )
 
     @classproperty(lazy=True)
@@ -121,6 +122,12 @@ class CDS(Base):
             t.value = cls._get_unit(t)
             return t
 
+        def t_DIMENSIONLESS(t):
+            r'---|-'
+            # These are separate from t_UNIT since they cannot have a prefactor.
+            t.value = cls._get_unit(t)
+            return t
+
         t_ignore = ''
 
         # Error handling rule
@@ -148,7 +155,9 @@ class CDS(Base):
             '''
             main : factor combined_units
                  | combined_units
+                 | DIMENSIONLESS
                  | OPEN_BRACKET combined_units CLOSE_BRACKET
+                 | OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET
                  | factor
             '''
             from astropy.units.core import Unit
@@ -325,8 +334,9 @@ class CDS(Base):
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
-            if(unit.physical_type == 'dimensionless' and
-               is_effectively_unity(unit.scale*100.)):
+            if unit == core.dimensionless_unscaled:
+                return '---'
+            elif is_effectively_unity(unit.scale*100.):
                 return '%'
 
             if unit.scale == 1:

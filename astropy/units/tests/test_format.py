@@ -84,7 +84,8 @@ def test_unit_grammar_fail(string):
     (["Å/s"], u.AA / u.s),
     (["\\h"], si.h),
     (["[cm/s2]"], dex(u.cm / u.s ** 2)),
-    (["[K]"], dex(u.K))])
+    (["[K]"], dex(u.K)),
+    (["[-]"], dex(u.dimensionless_unscaled))])
 def test_cds_grammar(strings, unit):
     for s in strings:
         print(s)
@@ -105,13 +106,28 @@ def test_cds_grammar(strings, unit):
     '0.1---',
     '---m',
     'm---',
+    '--',
+    '0.1-',
+    '-m',
+    'm-',
     'mag(s-1)',
     'dB(mW)',
-    'dex(cm s-2)'])
+    'dex(cm s-2)',
+    '[--]'])
 def test_cds_grammar_fail(string):
     with pytest.raises(ValueError):
         print(string)
         u_format.CDS.parse(string)
+
+
+def test_cds_dimensionless():
+    assert u.Unit('---', format='cds') == u.dimensionless_unscaled
+    assert u.dimensionless_unscaled.to_string(format='cds') == "---"
+
+
+def test_cds_log10_dimensionless():
+    assert u.Unit('[-]', format='cds') == u.dex(u.dimensionless_unscaled)
+    assert u.dex(u.dimensionless_unscaled).to_string(format='cds') == "[-]"
 
 
 # These examples are taken from the EXAMPLES section of
