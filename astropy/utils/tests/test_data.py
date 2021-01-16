@@ -650,18 +650,16 @@ def test_download_certificate_verification_failed():
     # certificate verification error; we simulate this by passing a bogus
     # CA directory to the ssl_context argument
     ssl_context = {'cafile': None, 'capath': '/does/not/exist'}
-    with pytest.raises(urllib.error.URLError) as exc:
+    msg = f'verification of TLS/SSL certificate at {TESTURL_SSL} failed'
+    with pytest.raises(urllib.error.URLError, match=msg):
         download_file(TESTURL_SSL, cache=False, ssl_context=ssl_context)
 
-    msg = f'verification of TLS/SSL certificate at {TESTURL_SSL} failed'
-    assert msg in str(exc.value)
-
-    with pytest.warns(AstropyWarning) as warning_lines:
+    with pytest.warns(AstropyWarning, match=msg) as warning_lines:
         fnout = download_file(TESTURL_SSL, cache=False,
                 ssl_context=ssl_context, allow_insecure=True)
 
+    assert len(warning_lines) == 1
     assert os.path.isfile(fnout)
-    assert len(warning_lines) == 1 and msg in str(warning_lines[0])
 
 
 def test_download_cache_after_clear(tmpdir, temp_cache, valid_urls):
