@@ -231,9 +231,9 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     # Custom request headers; see
     # https://github.com/astropy/astropy/issues/8990
     url = baseurl + 'objects.inv'
-    headers={'User-Agent': f'Astropy/{version}'}
+    headers = {'User-Agent': f'Astropy/{version}'}
     with get_readable_fileobj(url, encoding='binary', remote_timeout=timeout,
-            http_headers=headers) as uf:
+                              http_headers=headers) as uf:
         oiread = uf.read()
 
         # need to first read/remove the first four lines, which have info before

@@ -195,8 +195,9 @@ Requirements
 
 - `certifi <https://pypi.org/project/certifi/>`_: Useful when downloading
   files from HTTPS or FTP+TLS sites in case Python is not able to locate
-  up-to-date root CA certificates on your system; this package is already
-  included in many Python installations.
+  up-to-date root CA certificates on your system; this package is usually
+  already included in many Python installations (e.g. as a dependency of
+  the ``requests`` package).
 
 However, note that these packages require installation only if those particular
 features are needed. ``astropy`` will import even if these dependencies are not
