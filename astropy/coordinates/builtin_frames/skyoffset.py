@@ -43,36 +43,20 @@ def make_skyoffset_cls(framecls):
     if framecls in _skyoffset_cache:
         return _skyoffset_cache[framecls]
 
-    # the class of a class object is the metaclass
-    framemeta = framecls.__class__
-
-    class SkyOffsetMeta(framemeta):
-        """
-        This metaclass renames the class to be "SkyOffset<framecls>" and also
-        adjusts the frame specific representation info so that spherical names
-        are always "lon" and "lat" (instead of e.g. "ra" and "dec").
-        """
-
-        def __new__(cls, name, bases, members):
-            # Only 'origin' is needed here, to set the origin frame properly.
-            members['origin'] = CoordinateAttribute(frame=framecls, default=None)
-
-            # This has to be done because FrameMeta will set these attributes
-            # to the defaults from BaseCoordinateFrame when it creates the base
-            # SkyOffsetFrame class initially.
-            members['_default_representation'] = framecls._default_representation
-            members['_default_differential'] = framecls._default_differential
-
-            newname = name[:-5] if name.endswith('Frame') else name
-            newname += framecls.__name__
-
-            return super().__new__(cls, newname, bases, members)
-
-    # We need this to handle the intermediate metaclass correctly, otherwise we could
-    # just subclass SkyOffsetFrame.
-    _SkyOffsetFramecls = SkyOffsetMeta('SkyOffsetFrame',
-                                       (SkyOffsetFrame, framecls),
-                                       {'__doc__': SkyOffsetFrame.__doc__})
+    # Create a new SkyOffsetFrame subclass for this frame class.
+    name = 'SkyOffset' + framecls.__name__
+    _SkyOffsetFramecls = type(
+        name, (SkyOffsetFrame, framecls),
+        {'origin': CoordinateAttribute(frame=framecls, default=None),
+         # The following two have to be done because otherwise we use the
+         # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
+         '_default_representation': framecls._default_representation,
+         '_default_differential': framecls._default_differential,
+         # Similarly, we need to ensure the frame attributes are recalculated,
+         # otherwise the default from SkyOffsetFrame will be used.
+         'frame_attributes': None,
+         '__doc__': SkyOffsetFrame.__doc__,
+         })
 
     @frame_transform_graph.transform(FunctionTransform, _SkyOffsetFramecls, _SkyOffsetFramecls)
     def skyoffset_to_skyoffset(from_skyoffset_coord, to_skyoffset_frame):
