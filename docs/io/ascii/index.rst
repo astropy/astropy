@@ -256,6 +256,7 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``ipac``                    Yes      :class:`~astropy.io.ascii.Ipac`: IPAC format table
 ``latex``                   Yes      :class:`~astropy.io.ascii.Latex`: LaTeX table
 ``no_header``               Yes  Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+``qdp``                     Yes      :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
 ``rdb``                     Yes  Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
 ``rst``                     Yes      :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
 ``sextractor``                       :class:`~astropy.io.ascii.SExtractor`: SExtractor format table

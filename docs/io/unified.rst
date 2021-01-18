@@ -202,6 +202,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                  ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
                 ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
             ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+                  ascii.qdp    Yes    .qdp   :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
                   ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
                   ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
            ascii.sextractor     No          :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
