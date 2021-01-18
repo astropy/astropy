@@ -29,6 +29,9 @@ def test_skyoffset(inradec, expectedlatlon, tolsep, originradec=(45, 45)*u.deg):
     expected = SkyCoord(*expectedlatlon, frame=skyoffset_frame)
 
     assert skycoord_inaf.separation(expected) < tolsep
+    # Check we can also transform back (regression test for gh-11254).
+    roundtrip = skycoord_inaf.transform_to(ICRS())
+    assert roundtrip.separation(skycoord) < 1*u.uas
 
 
 def test_skyoffset_functional_ra():
