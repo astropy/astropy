@@ -67,8 +67,8 @@ class BlackBody(Fittable1DModel):
     """
 
     # We parametrize this model with a temperature and a scale.
-    temperature = Parameter(default=5000.0, min=0, unit=u.K)
-    scale = Parameter(default=1.0, min=0)
+    temperature = Parameter(default=5000.0, min=0, unit=u.K, description="Blackbody temperature")
+    scale = Parameter(default=1.0, min=0, description="Scale factor")
 
     # We allow values without units to be passed when evaluating the model, and
     # in this case the input x values are assumed to be frequencies in Hz.
@@ -241,9 +241,9 @@ class Drude1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1.0)
-    x_0 = Parameter(default=1.0)
-    fwhm = Parameter(default=1.0)
+    amplitude = Parameter(default=1.0, description="Peak Value")
+    x_0 = Parameter(default=1.0, description="Position of the peak")
+    fwhm = Parameter(default=1.0, description="Full width at half maximum")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
@@ -342,8 +342,8 @@ class Plummer1D(Fittable1DModel):
     .. [1] https://ui.adsabs.harvard.edu/abs/1911MNRAS..71..460P
     """
 
-    mass = Parameter(default=1.0)
-    r_plum = Parameter(default=1.0)
+    mass = Parameter(default=1.0, description="Total mass of cluster")
+    r_plum = Parameter(default=1.0, description="Scale parameter which sets the size of the cluster core")
 
     @staticmethod
     def evaluate(x, mass, r_plum):
@@ -421,13 +421,13 @@ class NFW(Fittable1DModel):
     # Model Parameters
 
     # NFW Profile mass
-    mass = Parameter(default=1.0, min=1.0, unit=u.M_sun)
+    mass = Parameter(default=1.0, min=1.0, unit=u.M_sun, description="Peak mass within specified overdensity radius")
 
     # NFW profile concentration
-    concentration = Parameter(default=1.0, min=1.0)
+    concentration = Parameter(default=1.0, min=1.0, description="Concentration")
 
     # NFW Profile redshift
-    redshift = Parameter(default=0.0, min=0.0)
+    redshift = Parameter(default=0.0, min=0.0, description="Redshift")
 
     # We allow values without units to be passed when evaluating the model, and
     # in this case the input r values are assumed to be lengths / positions in kpc.
