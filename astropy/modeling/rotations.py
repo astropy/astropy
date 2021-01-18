@@ -84,7 +84,7 @@ class RotationSequence3D(Model):
     n_inputs = 3
     n_outputs = 3
 
-    angles = Parameter(default=[], getter=_to_orig_unit, setter=_to_radian)
+    angles = Parameter(default=[], getter=_to_orig_unit, setter=_to_radian, description="Angles of rotation in deg in the order of axes_order")
 
     def __init__(self, angles, axes_order, name=None):
         self.axes = ['x', 'y', 'z']
@@ -220,9 +220,9 @@ class EulerAngleRotation(_EulerRotation, Model):
     n_inputs = 2
     n_outputs = 2
 
-    phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
-    theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
-    psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
+    phi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Euler angles in deg")
+    theta = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="A 3 character string, a combination of 'x', 'y' and 'z'")
+    psi = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Euler angles in deg")
 
     def __init__(self, phi, theta, psi, axes_order, **kwargs):
         self.axes = ['x', 'y', 'z']
@@ -260,9 +260,9 @@ class _SkyRotation(_EulerRotation, Model):
     Base class for RotateNative2Celestial and RotateCelestial2Native.
     """
 
-    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
-    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
-    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian)
+    lon = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Latitude")
+    lat = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="Langtitude")
+    lon_pole = Parameter(default=0, getter=_to_orig_unit, setter=_to_radian, description="")
 
     def __init__(self, lon, lat, lon_pole, **kwargs):
         qs = [isinstance(par, u.Quantity) for par in [lon, lat, lon_pole]]
@@ -450,7 +450,7 @@ class Rotation2D(Model):
 
     _separable = False
 
-    angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian)
+    angle = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian, description="Angle of rotation (if float it should be in deg)")
 
     def __init__(self, angle=angle, **kwargs):
         super().__init__(angle=angle, **kwargs)
