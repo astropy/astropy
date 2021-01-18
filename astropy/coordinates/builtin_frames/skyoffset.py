@@ -52,9 +52,6 @@ def make_skyoffset_cls(framecls):
          # defaults of SkyOffsetFrame set by BaseCoordinateFrame.
          '_default_representation': framecls._default_representation,
          '_default_differential': framecls._default_differential,
-         # Similarly, we need to ensure the frame attributes are recalculated,
-         # otherwise the default from SkyOffsetFrame will be used.
-         'frame_attributes': None,
          '__doc__': SkyOffsetFrame.__doc__,
          })
 
