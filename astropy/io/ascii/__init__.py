@@ -35,6 +35,7 @@ from .latex import Latex, AASTex, latexdicts
 from .html import HTML
 from .ipac import Ipac
 from .daophot import Daophot
+from .qdp import QDP
 from .sextractor import SExtractor
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,
