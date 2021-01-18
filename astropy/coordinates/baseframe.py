@@ -250,8 +250,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         default_repr = getattr(cls, 'default_representation', None)
         default_diff = getattr(cls, 'default_differential', None)
         repr_info = getattr(cls, 'frame_specific_representation_info', None)
-        frame_attrs = getattr(cls, 'frame_attributes', None)
-
         # Then, to make sure this works for subclasses-of-subclasses, we also
         # have to check for cases where the attribute names have already been
         # replaced by underscore-prefaced equivalents by the logic below:
@@ -275,22 +273,20 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         cls._create_readonly_property('frame_specific_representation_info',
                                       copy.deepcopy(repr_info))
 
-        # Set the frame attributes
+        # Set the frame attributes. We follow frames in reverse order to keep
+        # insertion order and also allow subclasses to override attributes
+        # already set by their parent while keeping order.
         # TODO: Should this be made to use readonly_prop_factory as well or
         # would it be inconvenient for getting the frame_attributes from
         # classes?
-        if frame_attrs is None:
-            frame_attrs = {}
-        else:
-            frame_attrs = frame_attrs.copy()
-
-        for basecls in (cls,) + cls.__bases__:
+        frame_attrs = {}
+        for basecls in ((cls,) + cls.__bases__)[::-1]:
             if not issubclass(basecls, BaseCoordinateFrame):
                 continue
 
             for k, v in basecls.__dict__.items():
                 if isinstance(v, Attribute):
-                    frame_attrs.setdefault(k, v)
+                    frame_attrs[k] = v
 
         cls.frame_attributes = frame_attrs
 
