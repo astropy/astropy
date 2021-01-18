@@ -1448,9 +1448,9 @@ def test_set_format_basic():
 
 def test_unix_tai_format():
     t = Time('2020-01-01', scale='utc')
-    assert allclose_sec(t.unix_tai - t.unix, 29.0)
+    assert allclose_sec(t.unix_tai - t.unix, 37.0)
     t = Time('1970-01-01', scale='utc')
-    assert allclose_sec(t.unix_tai - t.unix, 8.2e-05)
+    assert allclose_sec(t.unix_tai - t.unix, 8 + 8.2e-05)
 
 
 def test_set_format_shares_subfmt():
