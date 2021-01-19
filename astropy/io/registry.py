@@ -221,6 +221,11 @@ def register_reader(data_format, data_class, function, force=False, priority=0):
     force : bool, optional
         Whether to override any existing function if already present.
         Default is ``False``.
+    priority : int, optional
+        The priority of the reader, used to compare possible formats when trying
+        to determine the best reader to use. Higher priorities are preferred
+        over lower priorities, with the default priority being 0 (negative
+        numbers are allowed though).
     """
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function, priority
@@ -271,6 +276,11 @@ def register_writer(data_format, data_class, function, force=False, priority=0):
     force : bool, optional
         Whether to override any existing function if already present.
         Default is ``False``.
+    priority : int, optional
+        The priority of the writer, used to compare possible formats when trying
+        to determine the best writer to use. Higher priorities are preferred
+        over lower priorities, with the default priority being 0 (negative
+        numbers are allowed though).
     """
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function, priority
