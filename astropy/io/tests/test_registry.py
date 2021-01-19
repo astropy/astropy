@@ -275,9 +275,11 @@ def test_write_toomanyformats():
 
 def test_read_uses_priority():
     counter = Counter()
+
     def counting_reader1(*args, **kwargs):
         counter["test1"] += 1
         return TestData()
+
     def counting_reader2(*args, **kwargs):
         counter["test2"] += 1
         return TestData()
@@ -294,8 +296,10 @@ def test_read_uses_priority():
 
 def test_write_uses_priority():
     counter = Counter()
+
     def counting_writer1(*args, **kwargs):
         counter["test1"] += 1
+
     def counting_writer2(*args, **kwargs):
         counter["test2"] += 1
 
