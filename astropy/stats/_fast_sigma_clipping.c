@@ -37,26 +37,58 @@ MOD_INIT(_fast_sigma_clipping) {
   return MOD_SUCCESS_VAL(m);
 }
 
-static int sort_cmp(const void *a, const void *b) {
-  if (*(double *)a > *(double *)b)
-    return 1;
-  else if (*(double *)a < *(double *)b)
-    return -1;
-  else
-    return 0;
+/*---------------------------------------------------------------------------
+
+   Algorithm from N. Wirth's book, implementation by N. Devillard.
+   This code in public domain.
+
+   Function :   kth_smallest()
+   In       :   array of elements, # of elements in the array, rank k
+   Out      :   one element
+   Job      :   find the kth smallest element in the array
+   Notice   :   use the median() macro defined below to get the median. 
+
+                Reference:
+
+                  Author: Wirth, Niklaus 
+                   Title: Algorithms + data structures = programs 
+               Publisher: Englewood Cliffs: Prentice-Hall, 1976 
+    Physical description: 366 p. 
+                  Series: Prentice-Hall Series in Automatic Computation 
+
+ ---------------------------------------------------------------------------*/
+
+#define ELEM_SWAP(a,b) { register double t=(a);(a)=(b);(b)=t; }
+
+double kth_smallest(double a[], int n, int k)
+{
+    register int i,j,l,m ;
+    register double x ;
+
+    l=0 ; m=n-1 ;
+    while (l<m) {
+        x=a[k] ;
+        i=l ;
+        j=m ;
+        do {
+            while (a[i]<x) i++ ;
+            while (x<a[j]) j-- ;
+            if (i<=j) {
+                ELEM_SWAP(a[i],a[j]) ;
+                i++ ; j-- ;
+            }
+        } while (i<=j) ;
+        if (j<k) l=i ;
+        if (k<i) m=j ;
+    }
+    return a[k] ;
 }
 
-size_t locate(double *array, double target, size_t start, size_t end) {
-  size_t mid;
-  while (1) {
-    if (end == start + 1)
-      return start;
-    mid = (start + end) / 2;
-    if (array[mid] < target) {
-      start = mid;
-    } else {
-      end = mid;
-    }
+double wirth_median(double a[], int n) {
+  if (n % 2 == 0) {
+    return 0.5 * (kth_smallest(a,n,n/2) + kth_smallest(a,n,n/2 - 1));
+  } else {
+    return kth_smallest(a,n,(n-1)/2);
   }
 }
 
@@ -71,8 +103,9 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   uint8_t *mask;
   int use_median, maxiters;
   double sigma_lower, sigma_upper, mean, median, std;
-  int iteration, start, end, count, median_index, start_prev, end_prev;
+  int iteration, count;
   double lower, upper;
+  int new_count;
 
   // Parse the input tuple
   if (!PyArg_ParseTuple(args, "OOiidd", &data_obj, &mask_obj, &use_median,
@@ -101,7 +134,7 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   n = (long)PyArray_DIM(data_array, 0);
   m = (long)PyArray_DIM(data_array, 1);
 
-  // Build the temporary array
+  // Build the temporary array and mask
   buffer = (double *)malloc(n * sizeof(double));
   if (buffer == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "Couldn't build buffer array");
@@ -125,62 +158,41 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
 
     iteration = 0;
 
-    // We copy all finite values from array into the buffer buffer,
-    // sort it, then keep track of the range of values that are
-    // not rejected by the sigma clipping. Having the values in a
-    // sorted array means that the sigma clipping is removing values
-    // from either or both ends of the array - [start:end] gives the
-    // range of values that have not been rejected. This has the
-    // advantage that we don't then need to update a data or mask
-    // array in each iteration - just the start and end indices.
+    // We copy all finite values from array into the buffer
 
-    start = 0;
-    end = 0;
-
+    count = 0;
     for (i = 0; i < n; i++) {
       if (data[i * m + j] == data[i * m + j]) {
-        buffer[end] = data[i * m + j];
-        end += 1;
+        buffer[count] = data[i * m + j];
+        count += 1;
       }
     }
 
     // If end == 0, no values have been copied over (this can happen
     // for example if all the values are NaN). In this case, we just
     // proceed to the next array.
-    if (end == 0)
+    if (count == 0)
       continue;
 
-    // We now sort the values in the array up to the end index.
-    qsort(&buffer[0], end, 8, &sort_cmp);
-
     while (1) {
-
-      count = end - start;
 
       // Calculate the mean and standard deviation of values so far.
 
       mean = 0;
-      for (i = start; i < end; i++) {
+      for (i = 0; i < count; i++) {
         mean += buffer[i];
       }
       mean /= count;
 
       std = 0;
-      for (i = start; i < end; i++) {
+      for (i = 0; i < count; i++) {
         std += pow(mean - buffer[i], 2);
       }
       std = sqrt(std / count);
 
-      // If needed, we compute the median
       if (use_median) {
 
-        if (count % 2 == 0) {
-          median_index = start + count / 2 - 1;
-          median = 0.5 * (buffer[median_index] + buffer[median_index + 1]);
-        } else {
-          median_index = start + (count - 1) / 2;
-          median = buffer[median_index];
-        }
+        median = wirth_median(buffer, count);
 
         lower = median - sigma_lower * std;
         upper = median + sigma_upper * std;
@@ -191,24 +203,23 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
         upper = mean + sigma_upper * std;
       }
 
-      // If all array values in the [start:end] range are still inside
-      // (lower, upper) then the process has converged and we can exit
-      // the loop over iterations.
-      if (buffer[start] > lower && buffer[end - 1] < upper)
+      // We now exclude values from the buffer using these
+      // limits and shift values so that we end up with a
+      // packed array of 'valid' values
+      new_count = 0;
+      for (i = 0; i < count; i++) {
+        if (buffer[i] >= lower && buffer[i] <= upper) {
+          buffer[new_count] = buffer[i];
+          new_count += 1;
+        }
+      }
+
+      if (new_count == count)
         break;
 
-      // We need to keep track of the previous start/end values as
-      // we need the original values for both locate calls.
-      start_prev = start;
-      end_prev = end;
-
-      // Update the start/end values based on the new lower/upper values
-      if (buffer[start] < lower)
-        start = locate(buffer, lower, start_prev, end_prev) + 1;
-      if (buffer[end - 1] > upper)
-        end = locate(buffer, upper, start_prev, end_prev) + 1;
-
       iteration += 1;
+
+      count = new_count;
 
       if (maxiters != -1 && iteration >= maxiters)
         break;
