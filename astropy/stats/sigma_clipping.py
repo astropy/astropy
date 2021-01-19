@@ -7,7 +7,7 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.stats._sigma_clipping import sigma_clip_fast
+from astropy.stats._fast_sigma_clipping import sigma_clip_fast
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 
 if HAS_BOTTLENECK:
@@ -288,13 +288,19 @@ class SigmaClip:
                         masked=True, return_bounds=False,
                         copy=True):
         """
-        Fast Cython implementation for simple use cases
+        Fast C implementation for simple use cases
         """
+
+        # TODO: for now this just works with 2-d 64-bit C-contiguous arrays,
+        # remove the following check once the C extension uses the proper Numpy
+        # iteration.
+        if not data.flags.c_contiguous or data.dtype.kind != 'f' or data.dtype.itemsize != 8 or data.ndim != 2:
+            raise NotImplementedError()
 
         # The Cython implementation takes 2-d arrays and assumes axis=0, so we need
         # to normalize the input array so that we can treat it in this way. The Cython
         # routine produces a mask with the same 2-d shape, so we pre-allocate the
-        # mask here and return a 2-d view
+        # mask here and return a 2-d view.
 
         if not isinstance(axis, tuple):
             axis = (axis,)
@@ -306,20 +312,22 @@ class SigmaClip:
         mask_reordered = _move_tuple_axes_first(mask, axis)
         mask_2d = mask_reordered.reshape(data_2d.shape)
 
-        min_value, max_value = sigma_clip_fast(data_2d, mask_2d, 0 self.cenfunc == 'mean' else 1,
-                                                    -1 if np.isinf(self.maxiters) else self.maxiters,
-                                                    self.sigma_lower, self.sigma_upper)
+        _sigma_clip_fast(data_2d, mask_2d, 0 if self.cenfunc == 'mean' else 1,
+                         -1 if np.isinf(self.maxiters) else self.maxiters,
+                         self.sigma_lower, self.sigma_upper)
 
         if masked:
-            result = np.ma.masked(data, mask, copy=copy)
+            result = np.ma.array(data, mask=mask, copy=copy)
         else:
-            result = data.copy()
+            if copy:
+                result = data.copy()
+            else:
+                result = data
             result[mask] = np.nan
 
-        # FIXME: min_value and max_value should be arrays 
-
         if return_bounds:
-            return result, min_value, max_value
+            # TODO: this needs to be implemented
+            raise NotImplementedError()
         else:
             return result
 
@@ -471,7 +479,7 @@ class SigmaClip:
             return filtered_data
 
     def __call__(self, data, axis=None, masked=True, return_bounds=False,
-                 copy=True, method='auto'):
+                 copy=True, method='python'):
         """
         Perform sigma clipping on the provided data.
 
@@ -543,9 +551,7 @@ class SigmaClip:
 
         # Shortcut for common cases where a fast Cython implementation can
         # be used.
-        # FIXME: for now, while experimenting, assume that input data is 2d and
-        # that axis is 0, but obviously this will need to be generalized 
-        if method is None or method == 'cython':
+        if method is None or method == 'c':
             if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and not self.grow:
                 return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                             return_bounds=return_bounds,
