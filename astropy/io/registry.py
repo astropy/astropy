@@ -205,9 +205,7 @@ def _update__doc__(data_class, readwrite):
             class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-def register_reader(
-    data_format, data_class, function, force=False, priority=None
-):
+def register_reader(data_format, data_class, function, force=False, priority=0):
     """
     Register a reader function.
 
@@ -224,11 +222,6 @@ def register_reader(
         Whether to override any existing function if already present.
         Default is ``False``.
     """
-    if priority is None:
-        priority = getattr(func, "priority", None)
-        if priority is None:
-            priority = 0
-
     if not (data_format, data_class) in _readers or force:
         _readers[(data_format, data_class)] = function, priority
     else:
@@ -262,9 +255,7 @@ def unregister_reader(data_format, data_class):
         _update__doc__(data_class, 'read')
 
 
-def register_writer(
-    data_format, data_class, function, force=False, priority=None
-):
+def register_writer(data_format, data_class, function, force=False, priority=0):
     """
     Register a table writer function.
 
@@ -281,11 +272,6 @@ def register_writer(
         Whether to override any existing function if already present.
         Default is ``False``.
     """
-    if priority is None:
-        priority = getattr(func, "priority", None)
-        if priority is None:
-            priority = 0
-
     if not (data_format, data_class) in _writers or force:
         _writers[(data_format, data_class)] = function, priority
     else:
@@ -618,19 +604,25 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
 
 def _get_highest_priority_format(mode, cls, valid_formats):
     """
-    Returns the reader or writer with the highest priority. If it is a tie, or
-    no priorities set, error.
+    Returns the reader or writer with the highest priority. If it is a tie,
+    error.
     """
     if mode == "read":
         format_dict = _readers
+        mode_loader = "reader"
     elif mode == "write":
         format_dict = _writers
+        mode_loader = "writer"
 
     best_formats = []
-    current_priority = 0
-    func = None
+    current_priority = - np.inf
     for format in valid_formats:
-        priority = format_dict[(format, cls)][1]
+        try:
+            _, priority = format_dict[(format, cls)]
+        except KeyError:
+            # We could throw an exception here, but get_reader/get_writer handle
+            # this case better, instead maximally deprioritise the format.
+            priority = - np.inf
 
         if priority == current_priority:
             best_formats.append(format)
@@ -639,7 +631,7 @@ def _get_highest_priority_format(mode, cls, valid_formats):
             current_priority = priority
 
     if len(best_formats) == 1:
-        return func
+        return best_formats[0]
     raise IORegistryError(
         "Format ambiguous, priorities are tied - best formats are: {}".format(
             ', '.join(sorted(valid_formats, key=itemgetter(0)))))

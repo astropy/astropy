@@ -3,6 +3,7 @@
 import os
 from copy import copy
 from io import StringIO
+from collections import Counter
 
 import pytest
 import numpy as np
@@ -257,7 +258,9 @@ def test_read_toomanyformats():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read()
-    assert str(exc.value) == "Format is ambiguous - options are: test1, test2"
+    assert str(exc.value) == (
+        "Format ambiguous, priorities are tied - best formats are: test1, test2"
+    )
 
 
 def test_write_toomanyformats():
@@ -265,7 +268,45 @@ def test_write_toomanyformats():
     io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write()
-    assert str(exc.value) == "Format is ambiguous - options are: test1, test2"
+    assert str(exc.value) == (
+        "Format ambiguous, priorities are tied - best formats are: test1, test2"
+    )
+
+
+def test_read_uses_priority():
+    counter = Counter()
+    def counting_reader1(*args, **kwargs):
+        counter["test1"] += 1
+        return TestData()
+    def counting_reader2(*args, **kwargs):
+        counter["test2"] += 1
+        return TestData()
+
+    io_registry.register_reader('test1', TestData, counting_reader1, priority=1)
+    io_registry.register_reader('test2', TestData, counting_reader2, priority=2)
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: True)
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
+
+    TestData.read()
+    assert counter["test2"] == 1
+    assert counter["test1"] == 0
+
+
+def test_write_uses_priority():
+    counter = Counter()
+    def counting_writer1(*args, **kwargs):
+        counter["test1"] += 1
+    def counting_writer2(*args, **kwargs):
+        counter["test2"] += 1
+
+    io_registry.register_writer('test1', TestData, counting_writer1, priority=1)
+    io_registry.register_writer('test2', TestData, counting_writer2, priority=2)
+    io_registry.register_identifier('test1', TestData, lambda o, *x, **y: True)
+    io_registry.register_identifier('test2', TestData, lambda o, *x, **y: True)
+
+    TestData().write()
+    assert counter["test2"] == 1
+    assert counter["test1"] == 0
 
 
 def test_read_format_noreader():
