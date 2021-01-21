@@ -1,4 +1,3 @@
-import os
 import gc
 import sys
 import pathlib
@@ -6,7 +5,7 @@ import warnings
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io.fits.column import (_parse_tdisp_format, _fortran_to_python_format,
                                     python_to_tdisp)
@@ -168,31 +167,35 @@ class TestSingleTable:
         t1.mask['c'] = [0, 1, 1, 0]
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
-        assert t2.masked
         assert equal_data(t1, t2)
         assert np.all(t1['a'].mask == t2['a'].mask)
-        # Disabled for now, as there is no obvious way to handle masking of
-        # non-integer columns in FITS
-        # TODO: Re-enable these tests if some workaround for this can be found
-        # assert np.all(t1['b'].mask == t2['b'].mask)
-        # assert np.all(t1['c'].mask == t2['c'].mask)
+        assert np.all(t1['b'].mask == t2['b'].mask)
+        assert np.all(t1['c'].mask == t2['c'].mask)
 
-    def test_masked_nan(self, tmpdir):
+    @pytest.mark.parametrize('masked', [True, False])
+    def test_masked_nan(self, masked, tmpdir):
         filename = str(tmpdir.join('test_masked_nan.fits'))
-        data = np.array(list(zip([5.2, 8.4, 3.9, 6.3],
-                                 [2.3, 4.5, 6.7, 8.9])),
-                        dtype=[('a', np.float64), ('b', np.float32)])
-        t1 = Table(data, masked=True)
-        t1.mask['a'] = [1, 0, 1, 0]
-        t1.mask['b'] = [1, 0, 0, 1]
+        a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])
+        b = np.ma.MaskedArray([2.5, 4.5, 6.75, 8.875], mask=[1, 0, 0, 1], dtype='f4')
+        t1 = Table([a, b], names=['a', 'b'], masked=masked)
         t1.write(filename, overwrite=True)
         t2 = Table.read(filename)
-        np.testing.assert_array_almost_equal(t2['a'], [np.nan, 8.4, np.nan, 6.3])
-        np.testing.assert_array_almost_equal(t2['b'], [np.nan, 4.5, 6.7, np.nan])
-        # assert t2.masked
-        # t2.masked = false currently, as the only way to determine whether a table is masked
-        # while reading is to check whether col.null is present. For float columns, col.null
-        # is not initialized
+        assert_array_equal(t2['a'].data, [np.nan, 8.5, np.nan, 6.25])
+        assert_array_equal(t2['b'].data, [np.nan, 4.5, 6.75, np.nan])
+        assert np.all(t1['a'].mask == t2['a'].mask)
+        assert np.all(t1['b'].mask == t2['b'].mask)
+
+    def test_masked_serialize_data_mask(self, tmpdir):
+        filename = str(tmpdir.join('test_masked_nan.fits'))
+        a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])
+        b = np.ma.MaskedArray([2.5, 4.5, 6.75, 8.875], mask=[1, 0, 0, 1])
+        t1 = Table([a, b], names=['a', 'b'])
+        t1.write(filename, overwrite=True, serialize_method='data_mask')
+        t2 = Table.read(filename)
+        assert_array_equal(t2['a'].data, [5.25, 8.5, 3.75, 6.25])
+        assert_array_equal(t2['b'].data, [2.5, 4.5, 6.75, 8.875])
+        assert np.all(t1['a'].mask == t2['a'].mask)
+        assert np.all(t1['b'].mask == t2['b'].mask)
 
     def test_read_from_fileobj(self, tmpdir):
         filename = str(tmpdir.join('test_read_from_fileobj.fits'))
@@ -493,9 +496,9 @@ def test_masking_regression_1795():
     """
     t = Table.read(get_pkg_data_filename('data/tb.fits'))
     assert np.all(t['c1'].mask == np.array([False, False]))
-    assert np.all(t['c2'].mask == np.array([False, False]))
-    assert np.all(t['c3'].mask == np.array([False, False]))
-    assert np.all(t['c4'].mask == np.array([False, False]))
+    assert not hasattr(t['c2'], 'mask')
+    assert not hasattr(t['c3'], 'mask')
+    assert not hasattr(t['c4'], 'mask')
     assert np.all(t['c1'].data == np.array([1, 2]))
     assert np.all(t['c2'].data == np.array([b'abc', b'xy ']))
     assert_allclose(t['c3'].data, np.array([3.70000007153, 6.6999997139]))

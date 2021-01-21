@@ -145,6 +145,15 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- For conversion between FITS tables and astropy ``Table``, the standard mask
+  values of ``NaN`` for float and null string for string are now properly
+  recognized, leading to a ``MaskedColumn`` with appropriately set mask
+  instead of a ``Column`` with those values exposed. Conversely, when writing
+  an astropy ``Table`` to a FITS tables, masked values are now consistently
+  converted to the standard FITS mask values of ``NaN`` for float and null
+  string for string (i.e., not just for tables with ``masked=True``, which no
+  longer is guaranteed to signal the presence of ``MaskedColumn``). [#11222]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
@@ -171,6 +180,10 @@ astropy.table
 - Added ``Column.value`` as an alias for the existing ``Column.data`` attribute.
   This makes accessing a column's underlying data array consistent with the
   ``.value`` attribute available for ``Time`` and ``Quantity`` objects. [#10962]
+
+- In reading from a FITS tables, the standard mask values of ``NaN`` for float
+  and null string for string are properly recognized, leading to a
+  ``MaskedColumn`` with appropriately set mask. [#11222]
 
 astropy.tests
 ^^^^^^^^^^^^^
@@ -264,6 +277,10 @@ astropy.table
   does not have side effects, such as creating an associated ``info``
   instance (which would lead to slow-down of, e.g., slicing afterwards).
   [#11077]
+
+- When writing to a FITS tables, masked values are again always converted to
+  the standard FITS mask values of ``NaN`` for float and null string
+  for string, not just for table with ``masked=True``. [#11222]
 
 astropy.tests
 ^^^^^^^^^^^^^

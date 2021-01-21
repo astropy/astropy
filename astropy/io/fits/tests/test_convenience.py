@@ -6,6 +6,7 @@ import warnings
 
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from astropy.io import fits
 from astropy import units as u
@@ -58,6 +59,26 @@ class TestConvenience(FitsTestCase):
         assert hdu.header.index('TUNIT1') < hdu.header.index('TTYPE2')
 
         assert isinstance(hdu, fits.BinTableHDU)
+        filename = self.temp('test_table_to_hdu.fits')
+        hdu.writeto(filename, overwrite=True)
+
+    def test_masked_table_to_hdu(self):
+        i = np.ma.MaskedArray([1, 2, 3], mask=[True, False, False])
+        s = np.ma.MaskedArray(['a', 'b', 'c'], mask=[False, True, True])
+        c = np.ma.MaskedArray([2.3+1j, 4.5+0j, 6.7-1j], mask=[True, False, True])
+        f = np.ma.MaskedArray([2.3, 4.5, 6.7], mask=[True, False, True])
+        table = Table([i, s, c, f], names=['i', 's', 'c', 'f'])
+        # Check that FITS standard is used in replacing masked values.
+        hdu = fits.table_to_hdu(table)
+        assert isinstance(hdu, fits.BinTableHDU)
+        assert hdu.header['TNULL1'] == i.fill_value
+        assert_array_equal(hdu.data['i'], i.filled())
+        assert_array_equal(hdu.data['s'], s.filled(''))
+        assert_array_equal(hdu.data['c'], c.filled(np.nan))
+        assert_array_equal(hdu.data['c'].real, c.real.filled(np.nan))
+        assert_array_equal(hdu.data['c'].imag, c.imag.filled(np.nan))
+        assert_array_equal(hdu.data['c'], c.filled(complex(np.nan, np.nan)))
+        assert_array_equal(hdu.data['f'], f.filled(np.nan))
         filename = self.temp('test_table_to_hdu.fits')
         hdu.writeto(filename, overwrite=True)
 
