@@ -294,7 +294,7 @@ class SigmaClip:
         # TODO: for now this just works with 2-d 64-bit C-contiguous arrays,
         # remove the following check once the C extension uses the proper Numpy
         # iteration.
-        if not data.flags.c_contiguous or data.dtype.kind != 'f' or data.dtype.itemsize != 8 or data.ndim != 2:
+        if data.dtype.kind != 'f' or data.dtype.itemsize != 8:
             raise NotImplementedError()
 
         # The Cython implementation takes 2-d arrays and assumes axis=0, so we need

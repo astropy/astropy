@@ -41,7 +41,7 @@ MOD_INIT(_fast_sigma_clip) {
 static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
 
   long n, m;
-  int i, j;
+  int i, j, istride, jstride, index;
   double *buffer;
   PyObject *data_obj, *mask_obj;
   PyArrayObject *data_array, *mask_array;
@@ -95,6 +95,9 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   data = (double *)PyArray_DATA(data_array);
   mask = (uint8_t *)PyArray_DATA(mask_array);
 
+  istride = PyArray_STRIDE(data_array, 0) / 8;
+  jstride = PyArray_STRIDE(data_array, 1) / 8;
+
   // This function is constructed to take a 2-d array of values and assumes
   // that each 1-d array when looping over the last dimension should be
   // treated separately.
@@ -106,11 +109,13 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
     // We copy all finite values from array into the buffer
 
     count = 0;
+    index = j * jstride;
     for (i = 0; i < n; i++) {
-      if (mask[i * m + j] == 0) {
-        buffer[count] = data[i * m + j];
+      if (mask[index] == 0) {
+        buffer[count] = data[index];
         count += 1;
       }
+      index += istride;
     }
 
     // If end == 0, no values have been copied over (this can happen
@@ -123,13 +128,15 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
                                  sigma_lower, sigma_upper, &lower, &upper);
 
     // Populate the final (unsorted) mask
+    index = j * jstride;
     for (i = 0; i < n; i++) {
-      if (data[i * m + j] < lower || data[i * m + j] > upper) {
-        mask[i * m + j] = 1;
+      if (data[index] < lower || data[index] > upper) {
+        mask[index] = 1;
       } else {
-        mask[i * m + j] = 0;
+        mask[index] = 0;
       }
-    }
+      index += istride;
+   }
   }
 
   return mask_obj;
