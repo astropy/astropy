@@ -10,10 +10,13 @@ import tempfile
 
 import hypothesis
 
+from astropy import __version__
+
 try:
-    from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+    from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 except ImportError:
     PYTEST_HEADER_MODULES = {}
+    TESTED_VERSIONS = {}
 
 import astropy
 
@@ -26,6 +29,10 @@ if find_spec('asdf') is not None:
         if "asdf_schema_tester" not in entry_points:
             pytest_plugins += ['asdf.tests.schema_tester']
         PYTEST_HEADER_MODULES['Asdf'] = 'asdf'
+
+# This has to be in the root dir or it will not display in CI.
+def pytest_configure(config):
+    TESTED_VERSIONS['Astropy'] = __version__
 
 # Tell Hypothesis that we might be running slow tests, to print the seed blob
 # so we can easily reproduce failures from CI, and derive a fuzzing profile

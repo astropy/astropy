@@ -10,12 +10,14 @@ import tempfile
 import warnings
 
 try:
-    from pytest_astropy_header.display import PYTEST_HEADER_MODULES
+    from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
 except ImportError:
     PYTEST_HEADER_MODULES = {}
+    TESTED_VERSIONS = {}
 
 import pytest
 
+from astropy import __version__
 from astropy.tests.helper import enable_deprecations_as_exceptions
 
 try:
@@ -73,6 +75,7 @@ def pytest_configure(config):
     PYTEST_HEADER_MODULES['Cython'] = 'cython'
     PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
     PYTEST_HEADER_MODULES['asdf'] = 'asdf'
+    TESTED_VERSIONS['Astropy'] = __version__
 
 
 def pytest_unconfigure(config):
