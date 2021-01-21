@@ -29,9 +29,9 @@ static PyMethodDef module_methods[] = {{"_sigma_clip_fast", _sigma_clip_fast,
   };                                                                           \
   ob = PyModule_Create(&moduledef);
 
-MOD_INIT(_fast_sigma_clipping) {
+MOD_INIT(_fast_sigma_clip) {
   PyObject *m;
-  MOD_DEF(m, "_fast_sigma_clipping", module_docstring, module_methods);
+  MOD_DEF(m, "_fast_sigma_clip", module_docstring, module_methods);
   if (m == NULL)
     return MOD_ERROR_VAL;
   import_array();

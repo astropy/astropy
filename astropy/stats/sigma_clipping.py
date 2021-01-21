@@ -7,7 +7,7 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.stats._fast_sigma_clipping import sigma_clip_fast
+from astropy.stats._fast_sigma_clip import _sigma_clip_fast
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 
 if HAS_BOTTLENECK:
