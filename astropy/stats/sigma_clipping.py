@@ -308,7 +308,7 @@ class SigmaClip:
         data_reordered = _move_tuple_axes_first(data, axis)
         data_2d = data_reordered.reshape((data_reordered.shape[0], -1))
 
-        mask = np.isnan(data)
+        mask = ~np.isfinite(data)
         mask_reordered = _move_tuple_axes_first(mask, axis)
         mask_2d = mask_reordered.reshape(data_2d.shape)
 
