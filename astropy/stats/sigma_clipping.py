@@ -392,8 +392,6 @@ class SigmaClip:
         iteration = 0
         while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
-            n_nan = np.count_nonzero(np.isnan(filtered_data))
-
             self._compute_bounds(filtered_data, axis=axis)
             if not np.isscalar(self._min_value):
                 self._min_value = self._min_value.reshape(mshape)
@@ -408,9 +406,8 @@ class SigmaClip:
             if self.grow:
                 new_mask = binary_dilation(new_mask, kernel)
             filtered_data[new_mask] = np.nan
+            nchanged = np.count_nonzero(new_mask)
             del new_mask
-
-            nchanged = n_nan - np.count_nonzero(np.isnan(filtered_data))
 
         self._niterations = iteration
 
