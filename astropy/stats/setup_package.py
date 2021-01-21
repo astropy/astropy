@@ -6,13 +6,14 @@ from setuptools import Extension
 
 import numpy
 
-C_STATS_PKGDIR = os.path.relpath(os.path.dirname(__file__))
+SRCDIR = os.path.join(os.path.relpath(os.path.dirname(__file__)), 'src')
 
-SRC_FILES = [os.path.join(C_STATS_PKGDIR, '_fast_sigma_clipping.c')]
+SRCFILES = ['wirth_select.c', 'compute_bounds.c', 'fast_sigma_clip.c']
 
+SRCFILES = [os.path.join(SRCDIR, srcfile) for srcfile in SRCFILES]
 
 def get_extensions():
-    _sigma_clip_ext = Extension(name='astropy.stats._fast_sigma_clipping', sources=SRC_FILES,
+    _sigma_clip_ext = Extension(name='astropy.stats.fast_sigma_clip', sources=SRCFILES,
                                 include_dirs=[numpy.get_include()],
                                 language='c')
 
