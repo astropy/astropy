@@ -107,7 +107,7 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
 
     count = 0;
     for (i = 0; i < n; i++) {
-      if (data[i * m + j] == data[i * m + j]) {
+      if (mask[i * m + j] == 0) {
         buffer[count] = data[i * m + j];
         count += 1;
       }
