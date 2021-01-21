@@ -13,7 +13,7 @@ SRCFILES = ['wirth_select.c', 'compute_bounds.c', 'fast_sigma_clip.c']
 SRCFILES = [os.path.join(SRCDIR, srcfile) for srcfile in SRCFILES]
 
 def get_extensions():
-    _sigma_clip_ext = Extension(name='astropy.stats.fast_sigma_clip', sources=SRCFILES,
+    _sigma_clip_ext = Extension(name='astropy.stats._fast_sigma_clip', sources=SRCFILES,
                                 include_dirs=[numpy.get_include()],
                                 language='c')
 
