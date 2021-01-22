@@ -39,12 +39,18 @@ __all__ = ['TimeBase', 'Time', 'TimeDelta', 'TimeInfo', 'update_leap_seconds',
            'ScaleValueError', 'OperandTypeError']
 
 
-STANDARD_TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
+STANDARD_TIME_SCALES = ('gps_scale', 'tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 LOCAL_SCALES = ('local',)
 TIME_TYPES = dict((scale, scales) for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES)
                   for scale in scales)
 TIME_SCALES = STANDARD_TIME_SCALES + LOCAL_SCALES
-MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
+MULTI_HOPS = {('gps_scale', 'tcb'): ('tai', 'tt', 'tdb'),
+              ('gps_scale', 'tcg'): ('tai', 'tt'),
+              ('gps_scale', 'tdb'): ('tai', 'tt'),
+              ('gps_scale', 'tt'): ('tai',),
+              ('gps_scale', 'ut1'): ('tai', 'utc'),
+              ('gps_scale', 'utc'): ('tai',),
+              ('tai', 'tcb'): ('tt', 'tdb'),
               ('tai', 'tcg'): ('tt',),
               ('tai', 'ut1'): ('utc',),
               ('tai', 'tdb'): ('tt',),
@@ -60,7 +66,7 @@ MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
               ('tt', 'ut1'): ('tai', 'utc'),
               ('tt', 'utc'): ('tai',),
               }
-GEOCENTRIC_SCALES = ('tai', 'tt', 'tcg')
+GEOCENTRIC_SCALES = ('gps_scale', 'tai', 'tt', 'tcg')
 BARYCENTRIC_SCALES = ('tcb', 'tdb')
 ROTATIONAL_SCALES = ('ut1',)
 TIME_DELTA_TYPES = dict((scale, scales)
@@ -76,14 +82,14 @@ TIME_DELTA_SCALES = GEOCENTRIC_SCALES + BARYCENTRIC_SCALES + ROTATIONAL_SCALES +
 # Implied: d(TT)/d(TCG) = 1-L_G
 # and      d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
 # scale offsets as second = first + first * scale_offset[(first,second)]
-SCALE_OFFSETS = {('tt', 'tai'): None,
-                 ('tai', 'tt'): None,
-                 ('tcg', 'tt'): -erfa.ELG,
+SCALE_OFFSETS = {('tcg', 'tt'): -erfa.ELG,
                  ('tt', 'tcg'): erfa.ELG / (1. - erfa.ELG),
                  ('tcg', 'tai'): -erfa.ELG,
                  ('tai', 'tcg'): erfa.ELG / (1. - erfa.ELG),
                  ('tcb', 'tdb'): -erfa.ELB,
-                 ('tdb', 'tcb'): erfa.ELB / (1. - erfa.ELB)}
+                 ('tdb', 'tcb'): erfa.ELB / (1. - erfa.ELB),
+                 ('tcg', 'gps_scale'): -erfa.ELG,
+                 ('gps_scale', 'tcg'): erfa.ELG / (1. - erfa.ELG)}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -106,6 +112,14 @@ class _LeapSecondsCheck(enum.Enum):
 
 _LEAP_SECONDS_CHECK = _LeapSecondsCheck.NOT_STARTED
 _LEAP_SECONDS_LOCK = threading.RLock()
+
+
+def convert_scale_gps_scale_tai(jd1, jd2):
+    return (jd1, jd2 + 19 / 86400)
+
+
+def convert_scale_tai_gps_scale(jd1, jd2):
+    return (jd1, jd2 - 19 / 86400)
 
 
 class TimeInfo(MixinInfo):
@@ -576,7 +590,10 @@ class TimeBase(ShapedLikeNDArray):
                     args.append(get_dt(jd1, jd2))
                     break
 
-            conv_func = getattr(erfa, sys1 + sys2)
+            try:
+                conv_func = getattr(erfa, sys1 + sys2)
+            except AttributeError:
+                conv_func = globals()[f'convert_scale_{sys1}_{sys2}']
             jd1, jd2 = conv_func(*args)
 
         jd1, jd2 = day_frac(jd1, jd2)
@@ -2239,7 +2256,7 @@ class TimeDelta(TimeBase):
 
         # For TimeDelta, there can only be a change in scale factor,
         # which is written as time2 - time1 = scale_offset * time1
-        scale_offset = SCALE_OFFSETS[(self.scale, scale)]
+        scale_offset = SCALE_OFFSETS.get((self.scale, scale))
         if scale_offset is None:
             self._time.scale = scale
         else:
