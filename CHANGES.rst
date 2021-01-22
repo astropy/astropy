@@ -350,6 +350,12 @@ astropy.tests
 astropy.time
 ^^^^^^^^^^^^
 
+- Change epoch of ``TimeUnixTAI`` (``"unix_tai"``) from ``1970-01-01T00:00:00 UTC``
+  to ``1970-01-01T00:00:00 TAI`` to match the intended and documented behaviour.
+  This essentially changes the resulting times by 8.000082 seconds, the initial
+  offset between TAI and UTC. [#11249]
+
+
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
@@ -378,6 +384,11 @@ astropy.wcs
 Other Changes and Additions
 ---------------------------
 
+
+- Change epoch of ``TimeUnixTAI`` (``"unix_tai"``) from ``1970-01-01T00:00:00 UTC``
+  to ``1970-01-01T00:00:00 TAI`` to match the intended and documented behaviour.
+  This essentially changes the resulting times by 8.000082 seconds, the initial
+  offset between TAI and UTC. [#11249]
 
 
 4.2 (2020-11-24)
