@@ -5,7 +5,6 @@ Core units classes and functions
 """
 
 
-from contextlib import contextmanager
 import inspect
 import operator
 import textwrap
@@ -27,7 +26,7 @@ __all__ = [
     'PrefixUnit', 'UnrecognizedUnit', 'def_unit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
-    'dimensionless_unscaled', 'one', 'unit_aliases',
+    'dimensionless_unscaled', 'one', 'add_unit_aliases',
 ]
 
 UNITY = 1.0
@@ -263,8 +262,7 @@ class _UnitRegistry:
         equivalencies = _normalize_equivalencies(equivalencies)
         self._equivalencies |= set(equivalencies)
 
-    @contextmanager
-    def unit_aliases(self, aliases):
+    def add_unit_aliases(self, aliases):
         """
         Context manager for temporarily adding aliases for units (e.g. to handle
         alternate spellings).
@@ -282,18 +280,18 @@ class _UnitRegistry:
         """
         # Loop through all of the names first, to ensure all of them
         # are new, then add them all as a single "transaction" below.
-        for name in aliases:
+        for name, unit in aliases.items():
             if name in self._registry:
-                raise ValueError(
-                    "{} is already used, cannot add as alias".format(name))
+                if self._registry[name] == unit:
+                        warnings.warn(
+                            "{} is already an alias of {}".format(name, unit),
+                            UnitsWarning,
+                        )
+                else:
+                    raise ValueError(
+                        "{} is already used, cannot add as alias".format(name))
 
         self._registry.update(aliases)
-
-        try:
-            yield self
-        finally:
-            for name in aliases:
-                self._registry.pop(name)
 
 
 class _UnitContext:
@@ -480,7 +478,7 @@ def add_enabled_equivalencies(equivalencies):
     return context
 
 
-def unit_aliases(aliases):
+def add_unit_aliases(aliases):
     """
     Context manager for temporarily adding aliases for units (e.g. to handle
     alternate spellings).
@@ -496,8 +494,11 @@ def unit_aliases(aliases):
         ValueError is raised otherwise). The values must be the astropy unit
         that the alias will be mapped to.
     """
-    registry = get_current_unit_registry()
-    return registry.unit_aliases(aliases)
+    # get a context with a new registry, which is a copy of the current one
+    context = _UnitContext(get_current_unit_registry())
+    # in this new current registry, enable the further equivalencies requested
+    get_current_unit_registry().add_unit_aliases(aliases)
+    return context
 
 
 class UnitsError(Exception):
