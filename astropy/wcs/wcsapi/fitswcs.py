@@ -501,7 +501,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                       'frame change', AstropyUserWarning)
                         return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.
                     else:
-                        return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m) / self.wcs.restwav - 1.
+                        return spectralcoord.with_observer_stationary_relative_to(observer).to_value(u.m) / self.wcs.restwav - 1.
 
                 classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_redshift)
                 components[self.wcs.spec] = ('spectral', 0, redshift_from_spectralcoord)
@@ -524,7 +524,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                       'frame change', AstropyUserWarning)
                         return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
                     else:
-                        return spectralcoord.in_observer_velocity_frame(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
+                        return spectralcoord.with_observer_stationary_relative_to(observer).to_value(u.m / u.s, doppler_equiv) / C_SI
 
                 classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_beta)
                 components[self.wcs.spec] = ('spectral', 0, beta_from_spectralcoord)
@@ -555,7 +555,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                                       'frame change', AstropyUserWarning)
                         return spectralcoord.to_value(**kwargs)
                     else:
-                        return spectralcoord.in_observer_velocity_frame(observer).to_value(**kwargs)
+                        return spectralcoord.with_observer_stationary_relative_to(observer).to_value(**kwargs)
 
                 classes['spectral'] = (u.Quantity, (), {}, spectralcoord_from_value)
                 components[self.wcs.spec] = ('spectral', 0, value_from_spectralcoord)
