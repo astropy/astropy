@@ -139,5 +139,7 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
    }
   }
 
+  Py_DECREF(data_array);
+
   return mask_obj;
 }
