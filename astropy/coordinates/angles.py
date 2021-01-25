@@ -35,7 +35,7 @@ class Angle(u.SpecificTypeQuantity):
     The examples below illustrate common ways of initializing an `Angle`
     object. First some imports::
 
-      >>> from . import angle_utilities as util
+      >>> from astropy.coordinates import Angle
       >>> from astropy import units as u
 
     The angle values can now be provided::
