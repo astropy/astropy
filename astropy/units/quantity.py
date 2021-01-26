@@ -272,6 +272,8 @@ class Quantity(np.ndarray):
     Quantities can also be created by multiplying a number or array with a
     :class:`~astropy.units.Unit`. See https://docs.astropy.org/en/latest/units/
 
+    Unless the ``dtype`` argument is explicitly specified, integer
+    or (non-Quantity) object inputs are converted to `float` by default.
     """
     # Need to set a class-level default for _equivalencies, or
     # Constants can not initialize properly
