@@ -1,0 +1,2 @@
+Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
+``__init_subclass__`` where possible.

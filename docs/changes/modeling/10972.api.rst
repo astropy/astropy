@@ -1,0 +1,1 @@
+Removed deprecated ``astropy.modeling.blackbody`` module.

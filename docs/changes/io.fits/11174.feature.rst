@@ -1,0 +1,2 @@
+Expose ``Header.strip`` as a public method, to remove the most common
+structural keywords.

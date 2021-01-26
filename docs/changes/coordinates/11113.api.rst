@@ -1,0 +1,2 @@
+For input to representations, subclasses of the class required for a
+given attribute will now be allowed in.
