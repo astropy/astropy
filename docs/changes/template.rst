@@ -21,7 +21,7 @@
 {% if sections[section] and category in sections[section] %}
 {% if definitions[category]['showcontent'] %}
 {% for text, values in sections[section][category].items() %}
-- {{ text }} ({{ values|join(', ') }})
+- {{ text }} [{{ values|join(', ') }}]
 {% endfor %}
 
 {% else %}
@@ -29,7 +29,7 @@
 
 {% endif %}
 {% if sections[section][category]|length == 0 %}
-No significant changes plop.
+No significant changes.
 
 {% else %}
 {% endif %}

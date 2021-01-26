@@ -24,13 +24,18 @@ template = "docs/changes/template.rst"
         showcontent = true
 
     [[tool.towncrier.type]]
+        directory = "api"
+        name = "API Changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
         directory = "bugfix"
         name = "Bug Fixes"
         showcontent = true
 
     [[tool.towncrier.type]]
-        directory = "api"
-        name = "API Changes"
+        directory = "other"
+        name = "Other Changes and Additions"
         showcontent = true
 
     [[tool.towncrier.section]]
@@ -38,5 +43,89 @@ template = "docs/changes/template.rst"
         path = "config"
 
     [[tool.towncrier.section]]
+        name = "astropy.constants"
+        path = "constants"
+
+    [[tool.towncrier.section]]
+        name = "astropy.convolution"
+        path = "convolution"
+
+    [[tool.towncrier.section]]
+        name = "astropy.coordinates"
+        path = "coordinates"
+
+    [[tool.towncrier.section]]
+        name = "astropy.cosmology"
+        path = "cosmology"
+
+    [[tool.towncrier.section]]
+        name = "astropy.extern"
+        path = "extern"
+
+    [[tool.towncrier.section]]
+        name = "astropy.io.ascii"
+        path = "io.ascii"
+
+    [[tool.towncrier.section]]
         name = "astropy.io.fits"
         path = "io.fits"
+
+    [[tool.towncrier.section]]
+        name = "astropy.io.misc"
+        path = "io.misc"
+
+    [[tool.towncrier.section]]
+        name = "astropy.io.votable"
+        path = "io.votable"
+
+    [[tool.towncrier.section]]
+        name = "astropy.modeling"
+        path = "modeling"
+
+    [[tool.towncrier.section]]
+        name = "astropy.nddata"
+        path = "nddata"
+
+    [[tool.towncrier.section]]
+        name = "astropy.samp"
+        path = "samp"
+
+    [[tool.towncrier.section]]
+        name = "astropy.stats"
+        path = "stats"
+
+    [[tool.towncrier.section]]
+        name = "astropy.table"
+        path = "table"
+
+    [[tool.towncrier.section]]
+        name = "astropy.tests"
+        path = "tests"
+
+    [[tool.towncrier.section]]
+        name = "astropy.time"
+        path = "time"
+
+    [[tool.towncrier.section]]
+        name = "astropy.timeseries"
+        path = "timeseries"
+
+    [[tool.towncrier.section]]
+        name = "astropy.uncertainty"
+        path = "uncertainty"
+
+    [[tool.towncrier.section]]
+        name = "astropy.units"
+        path = "units"
+
+    [[tool.towncrier.section]]
+        name = "astropy.utils"
+        path = "utils"
+
+    [[tool.towncrier.section]]
+        name = "astropy.visualization"
+        path = "visualization"
+
+    [[tool.towncrier.section]]
+        name = "astropy.wcs"
+        path = "wcs"
