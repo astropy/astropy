@@ -1,0 +1,4 @@
+Adds new ``WGS84GeodeticRepresentation``, ``WGS72GeodeticRepresentation``,
+and ``GRS80GeodeticRepresentation``. These are mostly for use inside
+``EarthLocation`` but can also be used to convert between geocentric
+(cartesian) and different geodetic representations directly.

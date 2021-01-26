@@ -1,0 +1,3 @@
+Also refactor ``EarthLocation.get_gcrs`` for an increase in performance of
+an order of magnitude, which enters as well in getting observed positions of
+planets using ``get_body``.
