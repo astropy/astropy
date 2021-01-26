@@ -12,3 +12,31 @@ build-backend = 'setuptools.build_meta'
 
 # Comment this out to re-enable but then labeler Action needs to be disabled.
 enabled = false
+
+[tool.towncrier]
+directory = "docs/changes"
+underlines = "=-^"
+template = "docs/changes/template.rst"
+
+    [[tool.towncrier.type]]
+        directory = "feature"
+        name = "New Features"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "bugfix"
+        name = "Bug Fixes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "api"
+        name = "API Changes"
+        showcontent = true
+
+    [[tool.towncrier.section]]
+        name = "astropy.config"
+        path = "config"
+
+    [[tool.towncrier.section]]
+        name = "astropy.io.fits"
+        path = "io.fits"
