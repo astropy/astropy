@@ -22,8 +22,8 @@
 {% if definitions[category]['showcontent'] %}
 {% for text, values in sections[section][category].items() %}
 - {{ text }} [{{ values|join(', ') }}]
-{% endfor %}
 
+{% endfor %}
 {% else %}
 - {{ sections[section][category]['']|join(', ') }}
 
