@@ -20,7 +20,7 @@ jobs:
       run_next: ${{ steps.skip_ci_step.outputs.run_next }}
     steps:
     - name: Check skip CI
-      uses: pllim/action-skip-ci@main
+      uses: OpenAstronomy/action-skip-ci@main
       id: skip_ci_step
       with:
         NO_FAIL: true
