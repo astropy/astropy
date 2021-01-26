@@ -39,6 +39,10 @@ template = "docs/changes/template.rst"
         showcontent = true
 
     [[tool.towncrier.section]]
+        name = ""
+        path = ""
+
+    [[tool.towncrier.section]]
         name = "astropy.config"
         path = "config"
 
