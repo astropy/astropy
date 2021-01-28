@@ -1178,6 +1178,10 @@ astropy.units
 - For CDS units and tables, recognize ``-`` as indicating dimensionless and
   ``[-]`` as indicating base 10 logarithm of dimensionless. [#11250]
 
+- For CDS units and tables, recognize ``---`` and ``-`` as indicating
+  dimensionless and ``[-]`` as indicating base 10 logarithm of dimensionless.
+  [#11250]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
