@@ -582,7 +582,7 @@ class Header:
         is_header = True
 
         if SIMPLE_KEY not in block:
-            is_header = False 
+            is_header = False
         # continue reading header blocks until END card or EOF is reached
         while True:
             # find the END card
@@ -606,9 +606,9 @@ class Header:
                 block = encode_ascii(block)
 
         if not end_found and is_eof and endcard and is_header:
-                # TODO: Pass this error to validation framework as an ERROR,
-                # rather than raising an exception
-                raise OSError('Header missing END card.')
+            # TODO: Pass this error to validation framework as an ERROR,
+            # rather than raising an exception
+            raise OSError('Header missing END card.')
 
         header_str = ''.join(read_blocks)
         _check_padding(header_str, actual_block_size, is_eof,

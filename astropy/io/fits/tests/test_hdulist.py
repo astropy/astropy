@@ -560,12 +560,12 @@ class TestHDUListFunctions(FitsTestCase):
         with pytest.warns(
             AstropyUserWarning,
             match='Unexpected extra padding at the end of the file.'
-            ) as w:
-                fits.open(
-                    'https://dataverse.harvard.edu/api/access/datafile/2439198',
-                    cache=False
-                )
-                assert len(w) == 1
+        ) as w:
+            fits.open(
+                'https://dataverse.harvard.edu/api/access/datafile/2439198',
+                cache=False
+            )
+        assert len(w) == 1
 
     @pytest.mark.filterwarnings('ignore:Unexpected extra padding')
     def test_open_file_with_end_padding(self):
