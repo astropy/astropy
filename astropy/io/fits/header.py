@@ -34,6 +34,10 @@ HEADER_END_RE = re.compile(encode_ascii(
 VALID_HEADER_CHARS = set(map(chr, range(0x20, 0x7F)))
 END_CARD = 'END' + ' ' * 77
 
+# According to the FITS standard the header should
+# start with the keyword SIMPLE
+SIMPLE_KEY = encode_ascii('SIMPLE  =')
+
 
 __doctest_skip__ = ['Header', 'Header.comments', 'Header.fromtextfile',
                     'Header.totextfile', 'Header.set', 'Header.update']
@@ -575,12 +579,14 @@ class Header:
         read_blocks = []
         is_eof = False
         end_found = False
+        is_header = True
 
+        if SIMPLE_KEY not in block:
+            is_header = False 
         # continue reading header blocks until END card or EOF is reached
         while True:
             # find the END card
             end_found, block = cls._find_end_card(block, clen)
-
             read_blocks.append(decode_ascii(block))
 
             if end_found:
@@ -599,10 +605,10 @@ class Header:
             if not is_binary:
                 block = encode_ascii(block)
 
-        if not end_found and is_eof and endcard:
-            # TODO: Pass this error to validation framework as an ERROR,
-            # rather than raising an exception
-            raise OSError('Header missing END card.')
+        if not end_found and is_eof and endcard and is_header:
+                # TODO: Pass this error to validation framework as an ERROR,
+                # rather than raising an exception
+                raise OSError('Header missing END card.')
 
         header_str = ''.join(read_blocks)
         _check_padding(header_str, actual_block_size, is_eof,
