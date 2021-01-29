@@ -550,6 +550,23 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp('temp.fits'), memmap=True) as hdul:
             assert ((old_data + 1) == hdul[1].data).all()
 
+    @pytest.mark.remote_data
+    def test_open_file_with_bad_file_padding(self):
+        """
+        Test warning when opening files with extra padding at the end.
+        See https://github.com/astropy/astropy/issues/4351
+        """
+
+        with pytest.warns(
+            AstropyUserWarning,
+            match='Unexpected extra padding at the end of the file.'
+            ) as w:
+                fits.open(
+                    'https://dataverse.harvard.edu/api/access/datafile/2439198',
+                    cache=False
+                )
+                assert len(w) == 1
+
     @pytest.mark.filterwarnings('ignore:Unexpected extra padding')
     def test_open_file_with_end_padding(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/106
