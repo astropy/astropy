@@ -784,7 +784,7 @@ class OrderedDescriptorContainer(type):
 
         for descriptor_cls, instances in descriptors.items():
             instances.sort()
-            instances = dict((key, value) for value, key in instances)
+            instances = {key: value for value, key in instances}
             setattr(cls, descriptor_cls._class_attribute_, instances)
 
         super(OrderedDescriptorContainer, cls).__init__(cls_name, bases,

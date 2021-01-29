@@ -221,7 +221,6 @@ class EcsvData(basic.BasicData):
 
         # Get the serialized columns spec.  It might not exist and there might
         # not even be any table meta, so punt in those cases.
-
         try:
             scs = self.header.table_meta['__serialized_columns__']
         except (AttributeError, KeyError):
