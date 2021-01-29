@@ -324,6 +324,8 @@ Other Changes and Additions
 
 - Officially declared minversion of ``ipython`` to be 4.2. [#10942]
 
+- Minimum version of required PyYAML is now 5.1. [#10932]
+
 - Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
   and substantially improved speed. [#11069]
 
