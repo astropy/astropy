@@ -971,6 +971,7 @@ class BaseOutputter:
     table data are stored as plain python lists within the column objects.
     """
     converters = {}
+    dtype = None
     # Derived classes must define default_converters and __call__
 
     @staticmethod
@@ -993,6 +994,13 @@ class BaseOutputter:
         return converters_out
 
     def _convert_vals(self, cols):
+        if self.dtype is not None:
+            if len(self.dtype) != len(cols):
+                raise ValueError('mismatch')
+            self.converters = {col.name: [convert_numpy(dt)]
+                               for dt, col in zip(self.dtype, cols)
+                               if dt is not None}
+
         for col in cols:
             # If a specific dtype was specified for a column, then use that
             # to set the defaults, otherwise use the generic defaults.
@@ -1478,7 +1486,7 @@ class WhitespaceSplitter(DefaultSplitter):
 
 extra_reader_pars = ('Reader', 'Inputter', 'Outputter',
                      'delimiter', 'comment', 'quotechar', 'header_start',
-                     'data_start', 'data_end', 'converters', 'encoding',
+                     'data_start', 'data_end', 'converters', 'dtype', 'encoding',
                      'data_Splitter', 'header_Splitter',
                      'names', 'include_names', 'exclude_names', 'strict_names',
                      'fill_values', 'fill_include_names', 'fill_exclude_names')
@@ -1552,8 +1560,12 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
         elif kwargs['header_start'] is not None:
             # User trying to set a None header start to some value other than None
             raise ValueError('header_start cannot be modified for this Reader')
+    if 'converters' in kwargs and 'dtype' in kwargs:
+        raise ValueError('cannot supply both converters and dtype')
     if 'converters' in kwargs:
         reader.outputter.converters = kwargs['converters']
+    if 'dtype' in kwargs:
+        reader.outputter.dtype = kwargs['dtype']
     if 'data_Splitter' in kwargs:
         reader.data.splitter = kwargs['data_Splitter']()
     if 'header_Splitter' in kwargs:
