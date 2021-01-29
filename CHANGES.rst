@@ -417,6 +417,10 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Fixed a bug with the ``quantity_input`` decorator where allowing
+  dimensionless inputs for an argument inadvertently disabled any checking of
+  compatible units for that argument. [#11283]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
