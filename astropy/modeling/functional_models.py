@@ -36,15 +36,18 @@ class Gaussian1D(Fittable1DModel):
 
     Parameters
     ----------
-    amplitude : float
-        Amplitude of the Gaussian.
-    mean : float
+    amplitude : float or `~astropy.units.Quantity`.
+        Amplitude (peak value) of the Gaussian - for a normalized profile
+        (integrating to 1), set amplitude = 1 / (stddev * np.sqrt(2 * np.pi))
+    mean : float or `~astropy.units.Quantity`.
         Mean of the Gaussian.
-    stddev : float
-        Standard deviation of the Gaussian.
+    stddev : float or `~astropy.units.Quantity`.
+        Standard deviation of the Gaussian with FWHM = 2 * stddev * np.sqrt(2 * np.log(2)).
 
     Notes
     -----
+    Either all or none of input ``x``, ``mean`` and ``stddev`` must be provided
+    consistently with compatible units or as unitless numbers.
 
     Model formula:
 
@@ -192,22 +195,22 @@ class Gaussian2D(Fittable2DModel):
 
     Parameters
     ----------
-    amplitude : float
-        Amplitude of the Gaussian.
-    x_mean : float
+    amplitude : float or `~astropy.units.Quantity`.
+        Amplitude (peak value) of the Gaussian.
+    x_mean : float or `~astropy.units.Quantity`.
         Mean of the Gaussian in x.
-    y_mean : float
+    y_mean : float or `~astropy.units.Quantity`.
         Mean of the Gaussian in y.
-    x_stddev : float or None
+    x_stddev : float or `~astropy.units.Quantity` or None.
         Standard deviation of the Gaussian in x before rotating by theta. Must
         be None if a covariance matrix (``cov_matrix``) is provided. If no
         ``cov_matrix`` is given, ``None`` means the default value (1).
-    y_stddev : float or None
+    y_stddev : float or `~astropy.units.Quantity` or None.
         Standard deviation of the Gaussian in y before rotating by theta. Must
         be None if a covariance matrix (``cov_matrix``) is provided. If no
         ``cov_matrix`` is given, ``None`` means the default value (1).
-    theta : float, optional
-        Rotation angle in radians. The rotation angle increases
+    theta : float or `~astropy.units.Quantity`, optional.
+        Rotation angle (value in radians). The rotation angle increases
         counterclockwise.  Must be None if a covariance matrix (``cov_matrix``)
         is provided. If no ``cov_matrix`` is given, ``None`` means the default
         value (0).
@@ -217,6 +220,9 @@ class Gaussian2D(Fittable2DModel):
 
     Notes
     -----
+    Either all or none of input ``x, y``, ``[x,y]_mean`` and ``[x,y]_stddev``
+    must be provided consistently with compatible units or as unitless numbers.
+
     Model formula:
 
         .. math::
@@ -913,8 +919,8 @@ class Lorentz1D(Fittable1DModel):
     Parameters
     ----------
     amplitude : float or `~astropy.units.Quantity`.
-        Peak value - for a normalised profile (integrating to 1),
-        set amplitude = 2.0 / (np.pi * fwhm)
+        Peak value - for a normalized profile (integrating to 1),
+        set amplitude = 2 / (np.pi * fwhm)
     x_0 : float or `~astropy.units.Quantity`.
         Position of the peak
     fwhm : float or `~astropy.units.Quantity`.
@@ -926,6 +932,9 @@ class Lorentz1D(Fittable1DModel):
 
     Notes
     -----
+    Either all or none of input ``x``, position ``x_0`` and ``fwhm`` must be provided
+    consistently with compatible units or as unitless numbers.
+
     Model formula:
 
     .. math::
@@ -1017,8 +1026,8 @@ class Voigt1D(Fittable1DModel):
         Position of the peak
     amplitude_L : float or `~astropy.units.Quantity`.
         The Lorentzian amplitude (peak of the associated Lorentz function)
-        - for a normalised profile (integrating to 1), set
-        amplitude_L = 2.0 / (np.pi * fwhm_L)
+        - for a normalized profile (integrating to 1), set
+        amplitude_L = 2 / (np.pi * fwhm_L)
     fwhm_L : float or `~astropy.units.Quantity`
         The Lorentzian full width at half maximum
     fwhm_G : float or `~astropy.units.Quantity`.
@@ -1026,7 +1035,7 @@ class Voigt1D(Fittable1DModel):
     method : str, optional
         Algorithm for computing the complex error function; one of
         'Humlicek2' (default, fast and generally more accurate than ``rtol=3.e-5``) or
-        'Scipy' (requires `scipy`, almost as fast and reference in accuracy).
+        'Scipy' (requires `scipy.special.wofz`, almost as fast and reference in accuracy).
 
     See Also
     --------
@@ -1058,9 +1067,9 @@ class Voigt1D(Fittable1DModel):
     """
 
     x_0 = Parameter(default=0)
-    amplitude_L = Parameter(default=1)
-    fwhm_L = Parameter(default=2/np.pi)
-    fwhm_G = Parameter(default=np.log(2))
+    amplitude_L = Parameter(default=1)     # noqa: N815
+    fwhm_L = Parameter(default=2/np.pi)    # noqa: N815
+    fwhm_G = Parameter(default=np.log(2))  # noqa: N815
 
     sqrt_pi = np.sqrt(np.pi)
     sqrt_ln2 = np.sqrt(np.log(2))
@@ -1068,70 +1077,50 @@ class Voigt1D(Fittable1DModel):
     _last_z = np.zeros(1, dtype=complex)
     _last_w = np.zeros(1, dtype=float)
     _wofz = None
-    _last_wofz = None
 
-    def __new__(cls, x_0=x_0.default, amplitude_L=amplitude_L.default, fwhm_L=fwhm_L.default,
-                fwhm_G=fwhm_G.default, method='hum2zpf16c', n_models=None, **kwargs):
+    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default, fwhm_L=fwhm_L.default,
+                 fwhm_G=fwhm_G.default, method='hum2zpf16c', **kwargs):
         if str(method).lower() in ('wofz', 'faddeeva', 'scipy'):
             try:
                 from scipy.special import wofz
             except (ValueError, ImportError) as err:
                 raise ImportError(f'Voigt1D method {method} requires scipy: {err}.') from err
-            cls._wofz = wofz
-        elif str(method).lower() in ('humlicek2', 'hum2zpf16c'):
-            cls._wofz = cls.hum2zpf16c
+            self._wofz = wofz
+        elif str(method).lower().startswith('hum'):
+            self._wofz = self.hum2zpf16c
         else:
             raise ValueError(f'Not a valid method for Voigt1D Faddeeva function: {method}.')
+        self.method = self._wofz.__name__
 
-        return super().__new__(cls, **kwargs)
-
-    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default, fwhm_L=fwhm_L.default,
-                 fwhm_G=fwhm_G.default, method='hum2zpf16c', n_models=None, **kwargs):
         super().__init__(x_0=x_0, amplitude_L=amplitude_L, fwhm_L=fwhm_L, fwhm_G=fwhm_G, **kwargs)
 
-    @classmethod
-    def faddeeva(cls, z, method=None):
-        """Call complex error (Faddeeva) function w(z) implemented by algorithm 'method';
+    def faddeeva(self, z):
+        """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
         cache results for consecutive calls from `evaluate`, `fit_deriv`."""
 
-        if method is not None:
-            if str(method).lower() in ('wofz', 'faddeeva', 'scipy'):
-                try:
-                    from scipy.special import wofz
-                except (ValueError, ImportError) as err:
-                    raise ImportError(f'Voigt1D method {method} requires scipy: {err}.') from err
-                cls._wofz = wofz
-            elif str(method).lower() in ('humlicek2', 'hum2zpf16c'):
-                cls._wofz = cls.hum2zpf16c
-            else:
-                raise ValueError(f'Not a valid method for Voigt1D Faddeeva function: {method}.')
+        if (z.shape == self._last_z.shape and
+            np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
+            return self._last_w
 
-        if (cls._wofz == cls._last_wofz and z.shape == cls._last_z.shape and
-            np.allclose(z, cls._last_z, rtol=1.e-14, atol=1.e-15)):
-            return cls._last_w
+        self._last_w = self._wofz(z)
+        self._last_z = z
+        return self._last_w
 
-        cls._last_w = cls._wofz(z)
-        cls._last_z = z
-        cls._last_wofz = cls._wofz
-        return cls._last_w
-
-    @classmethod
-    def evaluate(cls, x, x_0, amplitude_L, fwhm_L, fwhm_G, method=None):
+    def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N815
         """One dimensional Voigt function scaled to Lorentz peak amplitude."""
 
-        z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * cls.sqrt_ln2 / fwhm_G
-        # The normalised Voigt profile is w.real * cls.sqrt_ln2 / (cls.sqrt_pi * fwhm_G) * 2 ;
+        z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
+        # The normalised Voigt profile is w.real * self.sqrt_ln2 / (self.sqrt_pi * fwhm_G) * 2 ;
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
-        return cls.faddeeva(z, method=method).real * cls.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
+        return self.faddeeva(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
 
-    @classmethod
-    def fit_deriv(cls, x, x_0, amplitude_L, fwhm_L, fwhm_G, method=None):
+    def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N815
         """Derivative of the one dimensional Voigt function with respect to parameters."""
 
-        s = cls.sqrt_ln2 / fwhm_G
+        s = self.sqrt_ln2 / fwhm_G
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
         # V * constant from McLean implementation (== their Voigt function)
-        w = cls.faddeeva(z, method=method) * s * fwhm_L * amplitude_L * cls.sqrt_pi
+        w = self.faddeeva(z) * s * fwhm_L * amplitude_L * self.sqrt_pi
 
         # Schreier (2018) Eq. 6 == (dvdx + 1j * dvdy) / (sqrt(pi) * fwhm_L * amplitude_L)
         dwdz = -2 * z * w + 2j * s * fwhm_L * amplitude_L

@@ -260,7 +260,7 @@ def test_Voigt1D():
 @pytest.mark.skipif("not HAS_SCIPY")
 @pytest.mark.parametrize('algorithm', ('humlicek2', 'wofz'))
 def test_Voigt1D_norm(algorithm):
-    """Test integral of normalised Voigt profile."""
+    """Test integral of normalized Voigt profile."""
     voi = models.Voigt1D(amplitude_L=1.0/np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm)
     if algorithm == 'wofz':
         atol = 1e-14
