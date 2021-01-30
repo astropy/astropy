@@ -1,10 +1,19 @@
-name: "Greeting message to new contributors"
-on: ["issues", "pull_request_target"]
+name: "When Opened"
+
+on:
+  issues:
+    types:
+    - opened
+  pull_request_target:
+    types:
+    - opened
+
 jobs:
-  greetings:
+  triage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/first-interaction@v1
+    - name: Greet new contributors
+      uses: actions/first-interaction@v1
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         issue-message: >
@@ -18,7 +27,7 @@ jobs:
             manner, please leave a comment mentioning our software support
             engineer @embray, or send a message directly to the [development
             mailing list](http://groups.google.com/group/astropy-dev).  If
-            the issue is urgent or sensitive in nature (e.g. a security
+            the issue is urgent or sensitive in nature (e.g., a security
             vulnerability) please send an e-mail directly to the private e-mail
             feedback@astropy.org.
         pr-message: >
@@ -35,6 +44,6 @@ jobs:
             support engineer @embray, or send a message directly to the
             [development mailing
             list](http://groups.google.com/group/astropy-dev).  If the issue is
-            urgent or sensitive in nature (e.g. a security vulnerability)
+            urgent or sensitive in nature (e.g., a security vulnerability)
             please send an e-mail directly to the private e-mail
             feedback@astropy.org.
