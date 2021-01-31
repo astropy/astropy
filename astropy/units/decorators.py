@@ -55,9 +55,10 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
 
     allowed_units = _get_allowed_units(targets)
 
-    # If dimensionless is an allowed unit, allow numbers or numpy arrays with
-    #  numeric dtypes:
-    if dimensionless_unscaled in allowed_units and not strict_dimensionless:
+    # If dimensionless is an allowed unit and the argument is unit-less,
+    #   allow numbers or numpy arrays with numeric dtypes
+    if (dimensionless_unscaled in allowed_units and not strict_dimensionless
+            and not hasattr(arg, "unit")):
         if isinstance(arg, Number):
             return
 

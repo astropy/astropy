@@ -407,3 +407,18 @@ def test_allow_dimensionless_numeric_strict(val):
 
     with pytest.raises(TypeError):
         assert myfunc(val)
+
+
+@pytest.mark.parametrize('val', [1*u.deg, [1, 2, 3]*u.m])
+def test_dimensionless_with_nondimensionless_input(val):
+    """
+    When dimensionless_unscaled is the only allowed unit, don't let input with
+    non-dimensionless units through
+    """
+
+    @u.quantity_input(x=u.dimensionless_unscaled)
+    def myfunc(x):
+        return x
+
+    with pytest.raises(u.UnitsError):
+        myfunc(val)
