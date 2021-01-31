@@ -16,7 +16,7 @@ import numpy
 from extension_helpers import import_file, write_if_different, get_compiler, pkg_config
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "7.3.0"
+WCSVERSION = "7.4"
 
 
 def b(s):

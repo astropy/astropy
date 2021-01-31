@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: getwcstab.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: getwcstab.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -68,50 +65,50 @@
 *             int       CFITSIO status value.
 *
 * Notes:
-*   In order to maintain WCSLIB and CFITSIO as independent libraries it is not
-*   permissible for any CFITSIO library code to include WCSLIB header files,
-*   or vice versa.  However, the CFITSIO function fits_read_wcstab() accepts
-*   an array of wtbarr structs defined in wcs.h within WCSLIB.
+*   1: In order to maintain WCSLIB and CFITSIO as independent libraries it is
+*      not permissible for any CFITSIO library code to include WCSLIB header
+*      files, or vice versa.  However, the CFITSIO function fits_read_wcstab()
+*      accepts an array of wtbarr structs defined in wcs.h within WCSLIB.
 *
-*   The problem therefore is to define the wtbarr struct within fitsio.h
-*   without including wcs.h, especially noting that wcs.h will often (but not
-*   always) be included together with fitsio.h in an applications program that
-*   uses fits_read_wcstab().
+*      The problem therefore is to define the wtbarr struct within fitsio.h
+*      without including wcs.h, especially noting that wcs.h will often (but
+*      not always) be included together with fitsio.h in an applications
+*      program that uses fits_read_wcstab().
 *
-*   The solution adopted is for WCSLIB to define "struct wtbarr" while
-*   fitsio.h defines "typedef wtbarr" as an untagged struct with identical
-*   members.  This allows both wcs.h and fitsio.h to define a wtbarr data type
-*   without conflict by virtue of the fact that structure tags and typedef
-*   names share different name spaces in C; Appendix A, Sect. A11.1 (p227) of
-*   the K&R ANSI edition states that:
+*      The solution adopted is for WCSLIB to define "struct wtbarr" while
+*      fitsio.h defines "typedef wtbarr" as an untagged struct with identical
+*      members.  This allows both wcs.h and fitsio.h to define a wtbarr data
+*      type without conflict by virtue of the fact that structure tags and
+*      typedef names share different name spaces in C; Appendix A, Sect. A11.1
+*      (p227) of the K&R ANSI edition states that:
 *
-*     Identifiers fall into several name spaces that do not interfere with one
-*     another; the same identifier may be used for different purposes, even in
-*     the same scope, if the uses are in different name spaces.  These classes
-*     are: objects, functions, typedef names, and enum constants; labels; tags
-*     of structures, unions, and enumerations; and members of each structure
-*     or union individually.
+=        Identifiers fall into several name spaces that do not interfere with
+=        one another; the same identifier may be used for different purposes,
+=        even in the same scope, if the uses are in different name spaces.
+=        These classes are: objects, functions, typedef names, and enum
+=        constants; labels; tags of structures, unions, and enumerations; and
+=        members of each structure or union individually.
 *
-*   Therefore, declarations within WCSLIB look like
+*      Therefore, declarations within WCSLIB look like
 *
-=     struct wtbarr *w;
+=        struct wtbarr *w;
 *
-*   while within CFITSIO they are simply
+*      while within CFITSIO they are simply
 *
-=     wtbarr *w;
+=        wtbarr *w;
 *
-*   As suggested by the commonality of the names, these are really the same
-*   aggregate data type.  However, in passing a (struct wtbarr *) to
-*   fits_read_wcstab() a cast to (wtbarr *) is formally required.
+*      As suggested by the commonality of the names, these are really the same
+*      aggregate data type.  However, in passing a (struct wtbarr *) to
+*      fits_read_wcstab() a cast to (wtbarr *) is formally required.
 *
-*   When using WCSLIB and CFITSIO together in C++ the situation is complicated
-*   by the fact that typedefs and structs share the same namespace; C++
-*   Annotated Reference Manual, Sect. 7.1.3 (p105).  In that case the wtbarr
-*   struct in wcs.h is renamed by preprocessor macro substitution to wtbarr_s
-*   to distinguish it from the typedef defined in fitsio.h.  However, the
-*   scope of this macro substitution is limited to wcs.h itself and CFITSIO
-*   programmer code, whether in C++ or C, should always use the wtbarr
-*   typedef.
+*      When using WCSLIB and CFITSIO together in C++ the situation is
+*      complicated by the fact that typedefs and structs share the same
+*      namespace; C++ Annotated Reference Manual, Sect. 7.1.3 (p105).  In that
+*      case the wtbarr struct in wcs.h is renamed by preprocessor macro
+*      substitution to wtbarr_s to distinguish it from the typedef defined in
+*      fitsio.h.  However, the scope of this macro substitution is limited to
+*      wcs.h itself and CFITSIO programmer code, whether in C++ or C, should
+*      always use the wtbarr typedef.
 *
 *
 * wtbarr typedef
@@ -168,18 +165,18 @@ extern "C" {
 #include <fitsio.h>
 
 typedef struct {
-  int  i;			/* Image axis number.                       */
-  int  m;			/* Array axis number for index vectors.     */
-  int  kind;			/* Array type, 'c' (coord) or 'i' (index).  */
-  char extnam[72];		/* EXTNAME of binary table extension.       */
-  int  extver;			/* EXTVER  of binary table extension.       */
-  int  extlev;			/* EXTLEV  of binary table extension.       */
-  char ttype[72];		/* TTYPEn of column containing the array.   */
-  long row;			/* Table row number.                        */
-  int  ndim;			/* Expected array dimensionality.           */
-  int  *dimlen;			/* Where to write the array axis lengths.   */
-  double **arrayp;		/* Where to write the address of the array  */
-				/* allocated to store the array.            */
+  int  i;			// Image axis number.
+  int  m;			// Array axis number for index vectors.
+  int  kind;			// Array type, 'c' (coord) or 'i' (index).
+  char extnam[72];		// EXTNAME of binary table extension.
+  int  extver;			// EXTVER  of binary table extension.
+  int  extlev;			// EXTLEV  of binary table extension.
+  char ttype[72];		// TTYPEn of column containing the array.
+  long row;			// Table row number.
+  int  ndim;			// Expected array dimensionality.
+  int  *dimlen;			// Where to write the array axis lengths.
+  double **arrayp;		// Where to write the address of the array
+				// allocated to store the array.
 } wtbarr;
 
 
@@ -190,4 +187,4 @@ int fits_read_wcstab(fitsfile *fptr, int nwtb, wtbarr *wtb, int *status);
 }
 #endif
 
-#endif /* WCSLIB_GETWCSTAB */
+#endif // WCSLIB_GETWCSTAB
