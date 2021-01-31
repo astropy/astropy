@@ -621,7 +621,7 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
                           width=78)
 
     if filename is None:
-        filename = get_config_filename(package)
+        filename = get_config_filename(pkgname)
 
     with contextlib.ExitStack() as stack:
         if isinstance(filename, (str, pathlib.Path)):
@@ -844,11 +844,7 @@ def create_config_file(pkg, rootname='astropy', overwrite=False):
         with open(cfgfn, 'rt', encoding='latin-1') as fd:
             content = fd.read()
 
-        identical = (content == template_content)
-
-        if not identical:
-            doupdate = is_unedited_config_file(
-                content, template_content)
+        doupdate = is_unedited_config_file(content, template_content)
 
     if doupdate or overwrite:
         with open(cfgfn, 'wt', encoding='latin-1') as fw:
