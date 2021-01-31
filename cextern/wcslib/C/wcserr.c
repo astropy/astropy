@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,12 +17,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcserr.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -36,7 +33,7 @@
 
 static int wcserr_enabled = 0;
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcserr_enable(int enable)
 
@@ -44,7 +41,7 @@ int wcserr_enable(int enable)
   return wcserr_enabled = (enable ? 1 : 0);
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcserr_prt(const struct wcserr *err, const char *prefix)
 
@@ -66,7 +63,7 @@ int wcserr_prt(const struct wcserr *err, const char *prefix)
         prefix, err->status, err->function, err->line_no, err->file, prefix,
         err->msg);
     } else {
-      /* An informative message only. */
+      // An informative message only.
       wcsprintf("%sINFORMATIVE message from %s() at line %d of file "
         "%s:\n%s%s.\n", prefix, err->function, err->line_no, err->file,
         prefix, err->msg);
@@ -76,7 +73,7 @@ int wcserr_prt(const struct wcserr *err, const char *prefix)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcserr_clear(struct wcserr **errp)
 
@@ -92,7 +89,7 @@ int wcserr_clear(struct wcserr **errp)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcserr_set(
   struct wcserr **errp,
@@ -130,7 +127,7 @@ int wcserr_set(
     err->line_no  = line_no;
     err->msg      = 0x0;
 
-    /* Determine the required message buffer size. */
+    // Determine the required message buffer size.
     va_start(argp, format);
     msglen = vsnprintf(0x0, 0, format, argp) + 1;
     va_end(argp);
@@ -140,7 +137,7 @@ int wcserr_set(
       return status;
     }
 
-    /* Write the message. */
+    // Write the message.
     va_start(argp, format);
     msglen = vsnprintf(err->msg, msglen, format, argp);
     va_end(argp);
@@ -153,7 +150,7 @@ int wcserr_set(
   return status;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
 

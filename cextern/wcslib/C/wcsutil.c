@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcsutil.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -35,7 +32,7 @@
 #include "wcsutil.h"
 #include "wcsmath.h"
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsdealloc(void *ptr)
 
@@ -45,7 +42,7 @@ void wcsdealloc(void *ptr)
   return;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsutil_strcvt(int n, char c, const char src[], char dst[])
 
@@ -64,7 +61,7 @@ void wcsutil_strcvt(int n, char c, const char src[], char dst[])
     return;
   }
 
-  /* Copy to the first NULL character. */
+  // Copy to the first NULL character.
   for (j = 0; j < n; j++) {
     if ((dst[j] = src[j]) == '\0') {
       break;
@@ -72,18 +69,18 @@ void wcsutil_strcvt(int n, char c, const char src[], char dst[])
   }
 
   if (j < n) {
-    /* The given string is null-terminated. */
+    // The given string is null-terminated.
     memset(dst+j, c, n-j);
 
   } else {
-    /* The given string is not null-terminated. */
+    // The given string is not null-terminated.
     if (c == '\0') {
       j = n - 1;
       dst[j] = '\0';
 
       j--;
 
-      /* Work backwards, looking for the first non-blank. */
+      // Work backwards, looking for the first non-blank.
       for (; j >= 0; j--) {
         if (dst[j] != ' ') {
           break;
@@ -98,7 +95,7 @@ void wcsutil_strcvt(int n, char c, const char src[], char dst[])
   return;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsutil_blank_fill(int n, char c[])
 
@@ -111,7 +108,7 @@ void wcsutil_blank_fill(int n, char c[])
     return;
   }
 
-  /* Replace the terminating null and all successive characters. */
+  // Replace the terminating null and all successive characters.
   for (j = 0; j < n; j++) {
     if (c[j] == '\0') {
       memset(c+j, ' ', n-j);
@@ -122,7 +119,7 @@ void wcsutil_blank_fill(int n, char c[])
   return;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsutil_null_fill(int n, char c[])
 
@@ -135,20 +132,20 @@ void wcsutil_null_fill(int n, char c[])
     return;
   }
 
-  /* Find the first NULL character. */
+  // Find the first NULL character.
   for (j = 0; j < n; j++) {
     if (c[j] == '\0') {
       break;
     }
   }
 
-  /* Ensure null-termination. */
+  // Ensure null-termination.
   if (j == n) {
     j = n - 1;
     c[j] = '\0';
   }
 
-  /* Work backwards, looking for the first non-blank. */
+  // Work backwards, looking for the first non-blank.
   j--;
   for (; j > 0; j--) {
     if (c[j] != ' ') {
@@ -163,7 +160,7 @@ void wcsutil_null_fill(int n, char c[])
   return;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcsutil_allEq(int nvec, int nelem, const double *first)
 
@@ -181,7 +178,7 @@ int wcsutil_allEq(int nvec, int nelem, const double *first)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcsutil_Eq(int nelem, double tol, const double *arr1, const double *arr2)
 
@@ -195,18 +192,18 @@ int wcsutil_Eq(int nelem, double tol, const double *arr1, const double *arr2)
   if (arr1 == 0x0 || arr2 == 0x0) return 0;
 
   if (tol == 0.0) {
-    /* Handled separately for speed of execution. */
+    // Handled separately for speed of execution.
     for (i = 0; i < nelem; i++, arr1++, arr2++) {
       if (*arr1 != *arr2) return 0;
     }
 
   } else {
     for (i = 0; i < nelem; i++, arr1++, arr2++) {
-      /* Undefined values must match exactly. */
+      // Undefined values must match exactly.
       if (*arr1 == UNDEFINED && *arr2 != UNDEFINED) return 0;
       if (*arr1 != UNDEFINED && *arr2 == UNDEFINED) return 0;
 
-      /* Otherwise, compare within the specified tolerance. */
+      // Otherwise, compare within the specified tolerance.
       if (fabs(*arr1 - *arr2) > 0.5*tol) return 0;
     }
   }
@@ -214,7 +211,7 @@ int wcsutil_Eq(int nelem, double tol, const double *arr1, const double *arr2)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcsutil_intEq(int nelem, const int *arr1, const int *arr2)
 
@@ -234,7 +231,7 @@ int wcsutil_intEq(int nelem, const int *arr1, const int *arr2)
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72])
 
@@ -254,7 +251,7 @@ int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72])
   return 1;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsutil_setAll(int nvec, int nelem, double *first)
 
@@ -269,7 +266,7 @@ void wcsutil_setAll(int nvec, int nelem, double *first)
   }
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsutil_setAli(int nvec, int nelem, int *first)
 
@@ -284,7 +281,7 @@ void wcsutil_setAli(int nvec, int nelem, int *first)
   }
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 
@@ -294,20 +291,20 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
   if (bits == 0 || nelem <= 0) return;
 
   if (sel == 0x0) {
-    /* All elements selected. */
+    // All elements selected.
     for (arrp = array; arrp < array + nelem; arrp++) {
       *arrp |= bits;
     }
 
   } else {
-    /* Some elements selected. */
+    // Some elements selected.
     for (arrp = array; arrp < array + nelem; arrp++) {
       if (*(sel++)) *arrp |= bits;
     }
   }
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
 
@@ -317,11 +314,11 @@ char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
   unsigned int i;
   int *(ip[2]), j[2], le = 1, gotone = 0;
 
-  /* Test for little-endian addresses. */
+  // Test for little-endian addresses.
   ip[0] = j;
   ip[1] = j + 1;
   if ((unsigned char *)ip[0] < (unsigned char *)ip[1]) {
-    /* Little-endian, reverse it. */
+    // Little-endian, reverse it.
     p += sizeof(fptr) - 1;
     le = -1;
   }
@@ -330,7 +327,7 @@ char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
   t += 2;
 
   for (i = 0; i < sizeof(fptr); i++) {
-    /* Skip leading zeroes. */
+    // Skip leading zeroes.
     if (*p) gotone = 1;
 
     if (gotone) {
@@ -344,7 +341,7 @@ char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
   return hext;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 static void wcsutil_locale_to_dot(char *buf)
 
@@ -379,7 +376,7 @@ void wcsutil_double2str(char *buf, const char *format, double value)
   sprintf(buf, format, value);
   wcsutil_locale_to_dot(buf);
 
-  /* Look for a decimal point or exponent. */
+  // Look for a decimal point or exponent.
   bp = buf;
   while (*bp) {
     if (*bp != ' ') {
@@ -390,7 +387,7 @@ void wcsutil_double2str(char *buf, const char *format, double value)
     bp++;
   }
 
-  /* Not found, add a fractional part. */
+  // Not found, add a fractional part.
   bp = buf;
   if (*bp == ' ') {
     cp = buf + 1;
@@ -408,7 +405,7 @@ void wcsutil_double2str(char *buf, const char *format, double value)
   }
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 static const char *wcsutil_dot_to_locale(const char *inbuf, char *outbuf)
 
@@ -455,7 +452,7 @@ int wcsutil_str2double2(const char *buf, double *value)
   value[0] = 0.0;
   value[1] = 0.0;
 
-  /* Get the integer part. */
+  // Get the integer part.
   if (sscanf(wcsutil_dot_to_locale(buf, ltmp), "%lf", value) < 1) {
     return 1;
   }
@@ -463,10 +460,10 @@ int wcsutil_str2double2(const char *buf, double *value)
 
   strcpy(ctmp, buf);
 
-  /* Look for a decimal point. */
+  // Look for a decimal point.
   dptr = strchr(ctmp, '.');
 
-  /* Look for an exponent. */
+  // Look for an exponent.
   if ((eptr = strchr(ctmp, 'E')) == NULL) {
     if ((eptr = strchr(ctmp, 'D')) == NULL) {
       if ((eptr = strchr(ctmp, 'e')) == NULL) {
@@ -476,7 +473,7 @@ int wcsutil_str2double2(const char *buf, double *value)
   }
 
   if (eptr) {
-    /* Get the exponent. */
+    // Get the exponent.
     if (sscanf(eptr+1, "%d", &exp) < 1) {
       return 1;
     }
@@ -487,15 +484,15 @@ int wcsutil_str2double2(const char *buf, double *value)
     }
 
     if (dptr+exp <= ctmp) {
-      /* There is only a fractional part. */
+      // There is only a fractional part.
       return sscanf(wcsutil_dot_to_locale(buf, ctmp), "%lf", value+1) < 1;
     } else if (eptr <= dptr+exp+1) {
-      /* There is no fractional part. */
+      // There is no fractional part.
       return 0;
     }
   }
 
-  /* Get the fractional part. */
+  // Get the fractional part.
   if (dptr) {
     cptr = ctmp;
     while (cptr <= dptr+exp) {

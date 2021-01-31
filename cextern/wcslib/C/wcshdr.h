@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcshdr.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -227,7 +224,7 @@
 *                         4: Fatal error returned by Flex parser.
 *
 * Notes:
-*   Refer to wcsbth() notes 1, 2, 3, 5, 7, and 8.
+*   1: Refer to wcsbth() notes 1, 2, 3, 5, 7, and 8.
 *
 *
 * wcsbth() - FITS WCS parser routine for binary table and image headers
@@ -1177,91 +1174,96 @@
 *                       wcsprm::err if enabled, see wcserr_enable().
 *
 * Notes:
-*   wcshdo() interprets the "relax" argument as a vector of flag bits to
-*   provide fine-grained control over what non-standard WCS keywords to write.
-*   The flag bits are subject to change in future and should be set by using
-*   the preprocessor macros (see below) for the purpose.
+*   1: wcshdo() interprets the "relax" argument as a vector of flag bits to
+*      provide fine-grained control over what non-standard WCS keywords to
+*      write.  The flag bits are subject to change in future and should be set
+*      by using the preprocessor macros (see below) for the purpose.
 *
-*   - WCSHDO_none: Don't use any extensions.
+*      - WCSHDO_none: Don't use any extensions.
 *
-*   - WCSHDO_all: Write all recognized extensions, equivalent to setting each
-*           flag bit.
+*      - WCSHDO_all: Write all recognized extensions, equivalent to setting
+*              each flag bit.
 *
-*   - WCSHDO_safe: Write all extensions that are considered to be safe and
-*           recommended.
+*      - WCSHDO_safe: Write all extensions that are considered to be safe and
+*              recommended.
 *
-*   - WCSHDO_DOBSn: Write DOBSn, the column-specific analogue of DATE-OBS for
-*           use in binary tables and pixel lists.  WCS Paper III introduced
-*           DATE-AVG and DAVGn but by an oversight DOBSn (the obvious analogy)
-*           was never formally defined by the standard.  The alternative to
-*           using DOBSn is to write DATE-OBS which applies to the whole table.
-*           This usage is considered to be safe and is recommended.
+*      - WCSHDO_DOBSn: Write DOBSn, the column-specific analogue of DATE-OBS
+*              for use in binary tables and pixel lists.  WCS Paper III
+*              introduced DATE-AVG and DAVGn but by an oversight DOBSn (the
+*              obvious analogy) was never formally defined by the standard.
+*              The alternative to using DOBSn is to write DATE-OBS which
+*              applies to the whole table.  This usage is considered to be
+*              safe and is recommended.
 *
-*   - WCSHDO_TPCn_ka: WCS Paper I defined
+*      - WCSHDO_TPCn_ka: WCS Paper I defined
 *
-*           - TPn_ka and TCn_ka for pixel lists
+*              - TPn_ka and TCn_ka for pixel lists
 *
-*           but WCS Paper II uses TPCn_ka in one example and subsequently the
-*           errata for the WCS papers legitimized the use of
+*              but WCS Paper II uses TPCn_ka in one example and subsequently
+*              the errata for the WCS papers legitimized the use of
 *
-*           - TPCn_ka and TCDn_ka for pixel lists
+*              - TPCn_ka and TCDn_ka for pixel lists
 *
-*           provided that the keyword does not exceed eight characters.  This
-*           usage is considered to be safe and is recommended because of the
-*           non-mnemonic terseness of the shorter forms.
+*              provided that the keyword does not exceed eight characters.
+*              This usage is considered to be safe and is recommended because
+*              of the non-mnemonic terseness of the shorter forms.
 *
-*   - WCSHDO_PVn_ma: WCS Paper I defined
+*      - WCSHDO_PVn_ma: WCS Paper I defined
 *
-*           - iVn_ma and iSn_ma for bintables and
-*           - TVn_ma and TSn_ma for pixel lists
+*              - iVn_ma and iSn_ma for bintables and
+*              - TVn_ma and TSn_ma for pixel lists
 *
-*           but WCS Paper II uses iPVn_ma and TPVn_ma in the examples and
-*           subsequently the errata for the WCS papers legitimized the use of
+*              but WCS Paper II uses iPVn_ma and TPVn_ma in the examples and
+*              subsequently the errata for the WCS papers legitimized the use
+*              of
 *
-*           - iPVn_ma and iPSn_ma for bintables and
-*           - TPVn_ma and TPSn_ma for pixel lists
+*              - iPVn_ma and iPSn_ma for bintables and
+*              - TPVn_ma and TPSn_ma for pixel lists
 *
-*           provided that the keyword does not exceed eight characters.  This
-*           usage is considered to be safe and is recommended because of the
-*           non-mnemonic terseness of the shorter forms.
+*              provided that the keyword does not exceed eight characters.
+*              This usage is considered to be safe and is recommended because
+*              of the non-mnemonic terseness of the shorter forms.
 *
-*   - WCSHDO_CRPXna: For historical reasons WCS Paper I defined
+*      - WCSHDO_CRPXna: For historical reasons WCS Paper I defined
 *
-*           - jCRPXn, iCDLTn, iCUNIn, iCTYPn, and iCRVLn for bintables and
-*           - TCRPXn, TCDLTn, TCUNIn, TCTYPn, and TCRVLn for pixel lists
+*              - jCRPXn, iCDLTn, iCUNIn, iCTYPn, and iCRVLn for bintables and
+*              - TCRPXn, TCDLTn, TCUNIn, TCTYPn, and TCRVLn for pixel lists
 *
-*           for use without an alternate version specifier.  However, because
-*           of the eight-character keyword constraint, in order to accommodate
-*           column numbers greater than 99 WCS Paper I also defined
+*              for use without an alternate version specifier.  However,
+*              because of the eight-character keyword constraint, in order to
+*              accommodate column numbers greater than 99 WCS Paper I also
+*              defined
 *
-*           - jCRPna, iCDEna, iCUNna, iCTYna and iCRVna for bintables and
-*           - TCRPna, TCDEna, TCUNna, TCTYna and TCRVna for pixel lists
+*              - jCRPna, iCDEna, iCUNna, iCTYna and iCRVna for bintables and
+*              - TCRPna, TCDEna, TCUNna, TCTYna and TCRVna for pixel lists
 *
-*           for use with an alternate version specifier (the "a").  Like the
-*           PC, CD, PV, and PS keywords there is an obvious tendency to
-*           confuse these two forms for column numbers up to 99.  It is very
-*           unlikely that any parser would reject keywords in the first set
-*           with a non-blank alternate version specifier so this usage is
-*           considered to be safe and is recommended.
+*              for use with an alternate version specifier (the "a").  Like
+*              the PC, CD, PV, and PS keywords there is an obvious tendency to
+*              confuse these two forms for column numbers up to 99.  It is
+*              very unlikely that any parser would reject keywords in the
+*              first set with a non-blank alternate version specifier so this
+*              usage is considered to be safe and is recommended.
 *
-*   - WCSHDO_CNAMna: WCS Papers I and III defined
+*      - WCSHDO_CNAMna: WCS Papers I and III defined
 *
-*           - iCNAna,  iCRDna,  and iCSYna  for bintables and
-*           - TCNAna,  TCRDna,  and TCSYna  for pixel lists
+*              - iCNAna,  iCRDna,  and iCSYna  for bintables and
+*              - TCNAna,  TCRDna,  and TCSYna  for pixel lists
 *
-*           By analogy with the above, the long forms would be
+*              By analogy with the above, the long forms would be
 *
-*           - iCNAMna, iCRDEna, and iCSYEna for bintables and
-*           - TCNAMna, TCRDEna, and TCSYEna for pixel lists
+*              - iCNAMna, iCRDEna, and iCSYEna for bintables and
+*              - TCNAMna, TCRDEna, and TCSYEna for pixel lists
 *
-*           Note that these keywords provide auxiliary information only, none
-*           of them are needed to compute world coordinates.  This usage is
-*           potentially unsafe and is not recommended at this time.
+*              Note that these keywords provide auxiliary information only,
+*              none of them are needed to compute world coordinates.  This
+*              usage is potentially unsafe and is not recommended at this
+*              time.
 *
-*   - WCSHDO_WCSNna: In light of wcsbth() note 4, write WCSNna instead of
-*           TWCSna for pixel lists.  While wcsbth() treats WCSNna and TWCSna
-*           as equivalent, other parsers may not.  Consequently, this usage
-*           is potentially unsafe and is not recommended at this time.
+*      - WCSHDO_WCSNna: In light of wcsbth() note 4, write WCSNna instead of
+*              TWCSna for pixel lists.  While wcsbth() treats WCSNna and
+*              TWCSna as equivalent, other parsers may not.  Consequently,
+*              this usage is potentially unsafe and is not recommended at this
+*              time.
 *
 *
 * Global variable: const char *wcshdr_errmsg[] - Status return messages
@@ -1330,13 +1332,13 @@ extern "C" {
 extern const char *wcshdr_errmsg[];
 
 enum wcshdr_errmsg_enum {
-  WCSHDRERR_SUCCESS            = 0,	/* Success. */
-  WCSHDRERR_NULL_POINTER       = 1,	/* Null wcsprm pointer passed. */
-  WCSHDRERR_MEMORY             = 2,	/* Memory allocation failed. */
-  WCSHDRERR_BAD_COLUMN         = 3,	/* Invalid column selection. */
-  WCSHDRERR_PARSER             = 4,	/* Fatal error returned by Flex
-					   parser. */
-  WCSHDRERR_BAD_TABULAR_PARAMS = 5 	/* Invalid tabular parameters. */
+  WCSHDRERR_SUCCESS            = 0,	// Success.
+  WCSHDRERR_NULL_POINTER       = 1,	// Null wcsprm pointer passed.
+  WCSHDRERR_MEMORY             = 2,	// Memory allocation failed.
+  WCSHDRERR_BAD_COLUMN         = 3,	// Invalid column selection.
+  WCSHDRERR_PARSER             = 4,	// Fatal error returned by Flex
+					// parser.
+  WCSHDRERR_BAD_TABULAR_PARAMS = 5 	// Invalid tabular parameters.
 };
 
 int wcspih(char *header, int nkeyrec, int relax, int ctrl, int *nreject,
@@ -1360,4 +1362,4 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header);
 }
 #endif
 
-#endif /* WCSLIB_WCSHDR */
+#endif // WCSLIB_WCSHDR

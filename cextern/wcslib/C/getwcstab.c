@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: getwcstab.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: getwcstab.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdlib.h>
@@ -32,7 +29,7 @@
 
 #include "getwcstab.h"
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int fits_read_wcstab(
   fitsfile   *fptr,
@@ -54,30 +51,30 @@ int fits_read_wcstab(
 
   if (nwtb == 0) return 0;
 
-  /* Zero the array pointers. */
+  // Zero the array pointers.
   wtbp = wtb;
   for (iwtb = 0; iwtb < nwtb; iwtb++, wtbp++) {
     *wtbp->arrayp = 0x0;
   }
 
-  /* Save HDU number so that we can move back to it later. */
+  // Save HDU number so that we can move back to it later.
   fits_get_hdu_num(fptr, &hdunum);
 
   wtbp = wtb;
   for (iwtb = 0; iwtb < nwtb; iwtb++, wtbp++) {
-    /* Move to the required binary table extension. */
+    // Move to the required binary table extension.
     if (fits_movnam_hdu(fptr, BINARY_TBL, (char *)(wtbp->extnam),
         wtbp->extver, status)) {
       goto cleanup;
     }
 
-    /* Locate the table column. */
+    // Locate the table column.
     if (fits_get_colnum(fptr, CASEINSEN, (char *)(wtbp->ttype), &colnum,
         status)) {
       goto cleanup;
     }
 
-    /* Get the array dimensions and check for consistency. */
+    // Get the array dimensions and check for consistency.
     if (wtbp->ndim < 1) {
       *status = NEG_AXIS;
       goto cleanup;
@@ -94,7 +91,7 @@ int fits_read_wcstab(
 
     if (naxis != wtbp->ndim) {
       if (wtbp->kind == 'c' && wtbp->ndim == 2) {
-        /* Allow TDIMn to be omitted for degenerate coordinate arrays. */
+        // Allow TDIMn to be omitted for degenerate coordinate arrays.
         naxis = 2;
         naxes[1] = naxes[0];
         naxes[0] = 1;
@@ -105,16 +102,16 @@ int fits_read_wcstab(
     }
 
     if (wtbp->kind == 'c') {
-      /* Coordinate array; calculate the array size. */
+      // Coordinate array; calculate the array size.
       nelem = naxes[0];
       for (m = 0; m < naxis-1; m++) {
         *(wtbp->dimlen + m) = naxes[m+1];
         nelem *= naxes[m+1];
       }
     } else {
-      /* Index vector; check length. */
+      // Index vector; check length.
       if ((nelem = naxes[0]) != *(wtbp->dimlen)) {
-        /* N.B. coordinate array precedes the index vectors. */
+        // N.B. coordinate array precedes the index vectors.
         *status = BAD_TDIM;
         goto cleanup;
       }
@@ -123,13 +120,13 @@ int fits_read_wcstab(
     free(naxes);
     naxes = 0;
 
-    /* Allocate memory for the array. */
+    // Allocate memory for the array.
     if (!(*wtbp->arrayp = calloc((size_t)nelem, sizeof(double)))) {
       *status = MEMORY_ALLOCATION;
       goto cleanup;
     }
 
-    /* Read the array from the table. */
+    // Read the array from the table.
     if (fits_read_col_dbl(fptr, colnum, wtbp->row, 1L, nelem, 0.0,
         *wtbp->arrayp, &anynul, status)) {
       goto cleanup;
@@ -137,11 +134,11 @@ int fits_read_wcstab(
   }
 
 cleanup:
-  /* Move back to the starting HDU. */
+  // Move back to the starting HDU.
   nostat = 0;
   fits_movabs_hdu(fptr, hdunum, 0, &nostat);
 
-  /* Release allocated memory. */
+  // Release allocated memory.
   if (naxes) free(naxes);
   if (*status) {
     wtbp = wtb;

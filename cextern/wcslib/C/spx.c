@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: spx.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -34,7 +31,7 @@
 #include "spx.h"
 
 
-/* Map status return value to message. */
+// Map status return value to message.
 const char *spx_errmsg[] = {
   "Success",
   "Null spxprm pointer passed",
@@ -42,7 +39,7 @@ const char *spx_errmsg[] = {
   "Invalid spectral variable",
   "One or more of the inspec coordinates were invalid"};
 
-/* Convenience macro for invoking wcserr_set(). */
+// Convenience macro for invoking wcserr_set().
 #define SPX_ERRMSG(status) WCSERR_SET(status), spx_errmsg[status]
 
 #define C 2.99792458e8
@@ -75,10 +72,10 @@ int specx(
   haverest = 1;
   if (restfrq == 0.0) {
     if (restwav == 0.0) {
-      /* No line rest frequency supplied. */
+      // No line rest frequency supplied.
       haverest = 0;
 
-      /* Temporarily set a dummy value for conversions. */
+      // Temporarily set a dummy value for conversions.
       spx->restwav = 1.0;
     } else {
       spx->restwav = restwav;
@@ -92,7 +89,7 @@ int specx(
 
   spx->err = 0x0;
 
-  /* Convert to frequency. */
+  // Convert to frequency.
   spx->wavetype = 0;
   spx->velotype = 0;
   if (strcmp(type, "FREQ") == 0) {
@@ -188,13 +185,13 @@ int specx(
     spx->velotype = 1;
 
   } else {
-    /* Unrecognized type. */
+    // Unrecognized type.
     return wcserr_set(WCSERR_SET(SPXERR_BAD_SPEC_PARAMS),
       "Unrecognized spectral type '%s'", type);
   }
 
 
-  /* Convert frequency to the other spectral types. */
+  // Convert frequency to the other spectral types.
   n = 1.0;
   for (k = 0; k < 4; k++) {
     s = n*spx->freq/C;
@@ -219,7 +216,7 @@ int specx(
   spx->velo = C*(1.0 - s*s)/(1.0 + s*s);
   spx->beta = spx->velo/C;
 
-  /* Compute the required derivatives. */
+  // Compute the required derivatives.
   gamma = 1.0/sqrt(1.0 - spx->beta*spx->beta);
 
   spx->dfreqafrq = 1.0/(2.0*PI);
@@ -262,7 +259,7 @@ int specx(
   spx->dbetavelo = 1.0/spx->dvelobeta;
 
 
-  /* Reset values if no line rest frequency was supplied. */
+  // Reset values if no line rest frequency was supplied.
   if (haverest) {
     spx->wavetype = 1;
     spx->velotype = 1;
@@ -272,7 +269,7 @@ int specx(
     spx->restwav = 0.0;
 
     if (!spx->wavetype) {
-      /* Don't have wave characteristic types. */
+      // Don't have wave characteristic types.
       spx->freq = 0.0;
       spx->afrq = 0.0;
       spx->ener = 0.0;
@@ -290,7 +287,7 @@ int specx(
       spx->dawavwave = 0.0;
 
     } else {
-      /* Don't have velocity types. */
+      // Don't have velocity types.
       spx->vrad = 0.0;
       spx->vopt = 0.0;
       spx->zopt = 0.0;
@@ -320,7 +317,7 @@ int specx(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int spxperr(const struct spxprm *spx, const char *prefix)
 
@@ -354,7 +351,7 @@ int freqwave(
   register const double *freqp;
   register double *wavep;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   freqp = freq;
@@ -376,7 +373,7 @@ int freqwave(
   return status;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wavefreq(
   double dummy,
@@ -393,7 +390,7 @@ int wavefreq(
   register const double *wavep;
   register double *freqp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   wavep = wave;
@@ -438,7 +435,7 @@ int freqawav(
   return waveawav(dummy, nfreq, sawav, sawav, awav, awav, stat);
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int awavfreq(
   double dummy,
@@ -495,7 +492,7 @@ int freqvelo(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int velofreq(
   double restfrq,
@@ -553,7 +550,7 @@ int waveawav(
   register const double *wavep;
   register double *awavp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   wavep = wave;
@@ -584,7 +581,7 @@ int waveawav(
   return status;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int awavwave(
   double dummy,
@@ -602,7 +599,7 @@ int awavwave(
   register const double *awavp;
   register double *wavep;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   awavp = awav;
@@ -665,7 +662,7 @@ int wavevelo(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int velowave(
   double restwav,
@@ -726,7 +723,7 @@ int awavvelo(
   return wavevelo(dummy, nawav, svelo, svelo, velo, velo, stat);
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int veloawav(
   double dummy,
@@ -765,7 +762,7 @@ int freqafrq(
   register const double *freqp;
   register double *afrqp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   freqp = freq;
@@ -782,7 +779,7 @@ int freqafrq(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int afrqfreq(
   double dummy,
@@ -798,7 +795,7 @@ int afrqfreq(
   register const double *afrqp;
   register double *freqp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   afrqp = afrq;
@@ -833,7 +830,7 @@ int freqener(
   register const double *freqp;
   register double *enerp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   freqp = freq;
@@ -850,7 +847,7 @@ int freqener(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int enerfreq(
   double dummy,
@@ -866,7 +863,7 @@ int enerfreq(
   register const double *enerp;
   register double *freqp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   enerp = ener;
@@ -901,7 +898,7 @@ int freqwavn(
   register const double *freqp;
   register double *wavnp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   freqp = freq;
@@ -918,7 +915,7 @@ int freqwavn(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wavnfreq(
   double dummy,
@@ -934,7 +931,7 @@ int wavnfreq(
   register const double *wavnp;
   register double *freqp;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   wavnp = wavn;
@@ -989,7 +986,7 @@ int freqvrad(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int vradfreq(
   double restfrq,
@@ -1058,7 +1055,7 @@ int wavevopt(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int voptwave(
   double restwav,
@@ -1127,7 +1124,7 @@ int wavezopt(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int zoptwave(
   double restwav,
@@ -1174,7 +1171,7 @@ int velobeta(
   register const double *velop;
   register double *betap;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   velop = velo;
@@ -1191,7 +1188,7 @@ int velobeta(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int betavelo(
   double dummy,
@@ -1207,7 +1204,7 @@ int betavelo(
   register const double *betap;
   register double *velop;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   betap = beta;

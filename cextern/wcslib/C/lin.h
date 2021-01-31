@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: lin.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -619,44 +616,44 @@ extern "C" {
 extern const char *lin_errmsg[];
 
 enum lin_errmsg_enum {
-  LINERR_SUCCESS      = 0,	/* Success. */
-  LINERR_NULL_POINTER = 1,	/* Null linprm pointer passed. */
-  LINERR_MEMORY       = 2,	/* Memory allocation failed. */
-  LINERR_SINGULAR_MTX = 3,	/* PCi_ja matrix is singular. */
-  LINERR_DISTORT_INIT = 4,	/* Failed to initialise distortions. */
-  LINERR_DISTORT      = 5,	/* Distort error. */
-  LINERR_DEDISTORT    = 6	/* De-distort error. */
+  LINERR_SUCCESS      = 0,	// Success.
+  LINERR_NULL_POINTER = 1,	// Null linprm pointer passed.
+  LINERR_MEMORY       = 2,	// Memory allocation failed.
+  LINERR_SINGULAR_MTX = 3,	// PCi_ja matrix is singular.
+  LINERR_DISTORT_INIT = 4,	// Failed to initialise distortions.
+  LINERR_DISTORT      = 5,	// Distort error.
+  LINERR_DEDISTORT    = 6	// De-distort error.
 };
 
 struct linprm {
-  /* Initialization flag (see the prologue above).                          */
-  /*------------------------------------------------------------------------*/
-  int flag;			/* Set to zero to force initialization.     */
+  // Initialization flag (see the prologue above).
+  //--------------------------------------------------------------------------
+  int flag;			// Set to zero to force initialization.
 
-  /* Parameters to be provided (see the prologue above).                    */
-  /*------------------------------------------------------------------------*/
-  int naxis;			/* The number of axes, given by NAXIS.      */
-  double *crpix;		/* CRPIXja keywords for each pixel axis.    */
-  double *pc;			/* PCi_ja  linear transformation matrix.    */
-  double *cdelt;		/* CDELTia keywords for each coord axis.    */
-  struct disprm *dispre;	/* Prior   distortion parameters, if any.   */
-  struct disprm *disseq;	/* Sequent distortion parameters, if any.   */
+  // Parameters to be provided (see the prologue above).
+  //--------------------------------------------------------------------------
+  int naxis;			// The number of axes, given by NAXIS.
+  double *crpix;		// CRPIXja keywords for each pixel axis.
+  double *pc;			// PCi_ja  linear transformation matrix.
+  double *cdelt;		// CDELTia keywords for each coord axis.
+  struct disprm *dispre;	// Prior   distortion parameters, if any.
+  struct disprm *disseq;	// Sequent distortion parameters, if any.
 
-  /* Information derived from the parameters supplied.                      */
-  /*------------------------------------------------------------------------*/
-  double *piximg;		/* Product of CDELTia and PCi_ja matrices.  */
-  double *imgpix;		/* Inverse of the piximg matrix.            */
-  int    i_naxis;		/* Dimension of piximg and imgpix.          */
-  int    unity;			/* True if the PCi_ja matrix is unity.      */
-  int    affine;		/* True if there are no distortions.        */
-  int    simple;		/* True if unity and no distortions.        */
+  // Information derived from the parameters supplied.
+  //--------------------------------------------------------------------------
+  double *piximg;		// Product of CDELTia and PCi_ja matrices.
+  double *imgpix;		// Inverse of the piximg matrix.
+  int    i_naxis;		// Dimension of piximg and imgpix.
+  int    unity;			// True if the PCi_ja matrix is unity.
+  int    affine;		// True if there are no distortions.
+  int    simple;		// True if unity and no distortions.
 
-  /* Error handling, if enabled.                                            */
-  /*------------------------------------------------------------------------*/
+  // Error handling, if enabled.
+  //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  /* Private - the remainder are for internal use.                          */
-  /*------------------------------------------------------------------------*/
+  // Private - the remainder are for internal use.
+  //--------------------------------------------------------------------------
   double *tmpcrd;
 
   int    m_flag, m_naxis;
@@ -664,7 +661,7 @@ struct linprm {
   struct disprm *m_dispre, *m_disseq;
 };
 
-/* Size of the linprm struct in int units, used by the Fortran wrappers. */
+// Size of the linprm struct in int units, used by the Fortran wrappers.
 #define LINLEN (sizeof(struct linprm)/sizeof(int))
 
 
@@ -701,7 +698,7 @@ int linwarp(struct linprm *lin, const double pixblc[], const double pixtrc[],
 int matinv(int n, const double mat[], double inv[]);
 
 
-/* Deprecated. */
+// Deprecated.
 #define linini_errmsg lin_errmsg
 #define lincpy_errmsg lin_errmsg
 #define linfree_errmsg lin_errmsg
@@ -714,4 +711,4 @@ int matinv(int n, const double mat[], double inv[]);
 }
 #endif
 
-#endif /* WCSLIB_LIN */
+#endif // WCSLIB_LIN
