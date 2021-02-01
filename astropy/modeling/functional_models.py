@@ -1035,7 +1035,7 @@ class Voigt1D(Fittable1DModel):
     method : str, optional
         Algorithm for computing the complex error function; one of
         'Humlicek2' (default, fast and generally more accurate than ``rtol=3.e-5``) or
-        'Scipy' (requires `scipy.special.wofz`, almost as fast and reference in accuracy).
+        'Scipy', alternatively 'wofz' (requires `scipy`, almost as fast and reference in accuracy).
 
     See Also
     --------
@@ -1047,7 +1047,7 @@ class Voigt1D(Fittable1DModel):
     consistently with compatible units or as unitless numbers.
     Voigt function is calculated as real part of the complex error function computed from either
     Humlicek's rational approximations (JQSRT 21:309, 1979; 27:437, 1982) following
-    Schreier 2018 (MNRAS 479, 3068; and his cpfX.py module); or
+    Schreier 2018 (MNRAS 479, 3068; and `hum2zpf16m` from his cpfX.py module); or
     `~scipy.special.wofz` (implementing 'Faddeeva.cc').
 
     Examples
@@ -1076,25 +1076,25 @@ class Voigt1D(Fittable1DModel):
     sqrt_ln2pi = np.sqrt(np.log(2) * np.pi)
     _last_z = np.zeros(1, dtype=complex)
     _last_w = np.zeros(1, dtype=float)
-    _wofz = None
+    _faddeeva = None
 
     def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default, fwhm_L=fwhm_L.default,
-                 fwhm_G=fwhm_G.default, method='hum2zpf16c', **kwargs):
-        if str(method).lower() in ('wofz', 'faddeeva', 'scipy'):
+                 fwhm_G=fwhm_G.default, method='humlicek2', **kwargs):
+        if str(method).lower() in ('wofz', 'scipy'):
             try:
                 from scipy.special import wofz
             except (ValueError, ImportError) as err:
                 raise ImportError(f'Voigt1D method {method} requires scipy: {err}.') from err
-            self._wofz = wofz
-        elif str(method).lower().startswith('hum'):
-            self._wofz = self.hum2zpf16c
+            self._faddeeva = wofz
+        elif str(method).lower() == 'humlicek2':
+            self._faddeeva = self._hum2zpf16c
         else:
             raise ValueError(f'Not a valid method for Voigt1D Faddeeva function: {method}.')
-        self.method = self._wofz.__name__
+        self.method = self._faddeeva.__name__
 
         super().__init__(x_0=x_0, amplitude_L=amplitude_L, fwhm_L=fwhm_L, fwhm_G=fwhm_G, **kwargs)
 
-    def faddeeva(self, z):
+    def _wrap_wofz(self, z):
         """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
         cache results for consecutive calls from `evaluate`, `fit_deriv`."""
 
@@ -1102,7 +1102,7 @@ class Voigt1D(Fittable1DModel):
             np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
             return self._last_w
 
-        self._last_w = self._wofz(z)
+        self._last_w = self._faddeeva(z)
         self._last_z = z
         return self._last_w
 
@@ -1112,7 +1112,7 @@ class Voigt1D(Fittable1DModel):
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
         # The normalised Voigt profile is w.real * self.sqrt_ln2 / (self.sqrt_pi * fwhm_G) * 2 ;
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
-        return self.faddeeva(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
+        return self._wrap_wofz(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
 
     def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N815
         """Derivative of the one dimensional Voigt function with respect to parameters."""
@@ -1120,7 +1120,7 @@ class Voigt1D(Fittable1DModel):
         s = self.sqrt_ln2 / fwhm_G
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
         # V * constant from McLean implementation (== their Voigt function)
-        w = self.faddeeva(z) * s * fwhm_L * amplitude_L * self.sqrt_pi
+        w = self._wrap_wofz(z) * s * fwhm_L * amplitude_L * self.sqrt_pi
 
         # Schreier (2018) Eq. 6 == (dvdx + 1j * dvdy) / (sqrt(pi) * fwhm_L * amplitude_L)
         dwdz = -2 * z * w + 2j * s * fwhm_L * amplitude_L
@@ -1143,7 +1143,7 @@ class Voigt1D(Fittable1DModel):
                 'amplitude_L': outputs_unit[self.outputs[0]]}
 
     @staticmethod
-    def hum2zpf16c(z, s=10.0):
+    def _hum2zpf16c(z, s=10.0):
         """ Complex error function w(z) = w(x+iy) combining Humlicek's rational approximations:
 
         |x| + y > 10:  Humlicek (JQSRT, 1982) rational approximation for region II;
