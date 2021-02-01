@@ -134,7 +134,11 @@ Unit(dimensionless)
 
 We see that the output is dimensionless, which is always the case for the
 standard normalized periodogram (for more on normalizations,
-see :ref:`lomb-scargle-normalization` below).
+see :ref:`lomb-scargle-normalization` below). If you include arguments to
+autopower such as `minimum_frequency` or `maximum_frequency`, make sure to
+specify units as well:
+
+>>> frequency, power = LombScargle(t_days, y_mags, dy_mags).autopower(minimum_frequency=1e-5*u.Hz)
 
 .. EXAMPLE END
 
