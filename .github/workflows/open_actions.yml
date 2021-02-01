@@ -1,0 +1,55 @@
+name: "When Opened"
+
+on:
+  issues:
+    types:
+    - opened
+  pull_request_target:
+    types:
+    - opened
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Greet new contributors
+      uses: actions/first-interaction@v1
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        issue-message: >
+            Welcome to Astropy 👋 and thank you for your first issue!
+
+
+            A project member will respond to you as soon as possible; in
+            the meantime, please double-check the [guidelines for submitting
+            issues](https://github.com/astropy/astropy/blob/master/CONTRIBUTING.md#reporting-issues)
+            and make sure you've provided the requested details.
+
+
+            If you feel that this issue has not been responded to in a timely
+            manner, please leave a comment mentioning our software support
+            engineer @embray, or send a message directly to the [development
+            mailing list](http://groups.google.com/group/astropy-dev).  If
+            the issue is urgent or sensitive in nature (e.g., a security
+            vulnerability) please send an e-mail directly to the private e-mail
+            feedback@astropy.org.
+        pr-message: >
+            Welcome to Astropy 👋 and congratulations on your first pull
+            request! 🎉 
+
+
+            A project member will respond to you as soon as possible; in the
+            meantime, please have a look over the [Checklist for Contributed
+            Code](https://github.com/astropy/astropy/blob/master/CONTRIBUTING.md#checklist-for-contributed-code)
+            and make sure you've addressed as many of the questions there as
+            possible.
+
+
+            If you feel that this pull request has not been responded to in a
+            timely manner, please leave a comment mentioning our software
+            support engineer @embray, or send a message directly to the
+            [development mailing
+            list](http://groups.google.com/group/astropy-dev).  If the issue is
+            urgent or sensitive in nature (e.g., a security vulnerability)
+            please send an e-mail directly to the private e-mail
+            feedback@astropy.org.
