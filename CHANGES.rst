@@ -318,6 +318,10 @@ astropy.visualization
 astropy.wcs
 ^^^^^^^^^^^
 
+- Updated bundled version of ``WCSLIB`` to v7.4, fixing a bug that caused
+  the coefficients of the TPD distortion function to not be written to the
+  header. [#11260]
+
 
 Other Changes and Additions
 ---------------------------
