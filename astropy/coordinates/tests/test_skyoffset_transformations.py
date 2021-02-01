@@ -5,11 +5,16 @@ import pytest
 import numpy as np
 
 from astropy import units as u
+from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.builtin_frames import ICRS, FK5, Galactic, AltAz, SkyOffsetFrame
 from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
+
+# Clear cache to avoid transformation error in "double run" job; see
+# https://github.com/astropy/astropy/issues/11277
+frame_transform_graph.invalidate_cache()
 
 
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
