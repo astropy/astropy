@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import nullcontext
-
 from packaging.version import Version
 import pytest
 import numpy as np
@@ -336,6 +334,7 @@ def test_iterate_coords(ignore_matplotlibrc, tmpdir):
     x, y, z = ax.coords
 
 
+@pytest.mark.xfail(MATPLOTLIB_DEV, reason="https://github.com/matplotlib/matplotlib/issues/19432")
 def test_invalid_slices_errors(ignore_matplotlibrc):
 
     # Make sure that users get a clear message when specifying a WCS with
@@ -347,22 +346,15 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
 
     plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
 
-    if MATPLOTLIB_DEV:
-        ctx = nullcontext()
-    else:
-        ctx = pytest.raises(ValueError)
-
-    with ctx as exc:
+    with pytest.raises(ValueError) as exc:
         plt.subplot(1, 1, 1, projection=wcs3d)
-    if exc:
-        assert exc.value.args[0] == ("WCS has more than 2 pixel dimensions, so "
-                                     "'slices' should be set")
+    assert exc.value.args[0] == ("WCS has more than 2 pixel dimensions, so "
+                                 "'slices' should be set")
 
-    with ctx as exc:
+    with pytest.raises(ValueError) as exc:
         plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1, 2))
-    if exc:
-        assert exc.value.args[0] == ("'slices' should have as many elements as "
-                                     "WCS has pixel dimensions (should be 3)")
+    assert exc.value.args[0] == ("'slices' should have as many elements as "
+                                 "WCS has pixel dimensions (should be 3)")
 
     wcs2d = WCS(naxis=2)
     wcs2d.wcs.ctype = ['x', 'y']
@@ -376,21 +368,15 @@ def test_invalid_slices_errors(ignore_matplotlibrc):
     ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=['x', 'y'])
     assert ax.frame_class is RectangularFrame
     ax = plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'x'))
-    if MATPLOTLIB_DEV:
-        assert ax.frame_class is RectangularFrame
-    else:
-        assert ax.frame_class is RectangularFrame1D
+    assert ax.frame_class is RectangularFrame1D
 
     wcs1d = WCS(naxis=1)
     wcs1d.wcs.ctype = ['x']
 
     ax = plt.subplot(1, 1, 1, projection=wcs1d)
-    if MATPLOTLIB_DEV:
-        assert ax.frame_class is RectangularFrame
-    else:
-        assert ax.frame_class is RectangularFrame1D
+    assert ax.frame_class is RectangularFrame1D
 
-    with ctx:
+    with pytest.raises(ValueError):
         plt.subplot(1, 1, 1, projection=wcs2d, slices=(1, 'y'))
 
 
@@ -418,19 +404,8 @@ EXPECTED_REPR_2 = """
 >
  """.strip()
 
-EXPECTED_REPR_2_MPLDEV = """
-<CoordinatesMap with 3 world coordinates:
 
-  index            aliases                type   unit wrap format_unit visible
-  ----- ------------------------------ --------- ---- ---- ----------- -------
-      0                   distmod dist    scalar      None                  no
-      1 pos.galactic.lon glon-car glon longitude  deg  360         deg     yes
-      2 pos.galactic.lat glat-car glat  latitude  deg None         deg     yes
-
->
- """.strip()
-
-
+@pytest.mark.xfail(MATPLOTLIB_DEV, reason="https://github.com/matplotlib/matplotlib/issues/19432")
 def test_repr(ignore_matplotlibrc):
 
     # Unit test to make sure __repr__ looks as expected
@@ -446,10 +421,7 @@ def test_repr(ignore_matplotlibrc):
     # Now slice in a way that all world coordinates are still present:
 
     ax = plt.subplot(1, 1, 1, projection=wcs3d, slices=('x', 'y', 1))
-    if MATPLOTLIB_DEV:
-        assert repr(ax.coords) == EXPECTED_REPR_2_MPLDEV
-    else:
-        assert repr(ax.coords) == EXPECTED_REPR_2
+    assert repr(ax.coords) == EXPECTED_REPR_2
 
 
 @pytest.fixture
