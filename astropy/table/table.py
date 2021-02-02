@@ -415,9 +415,6 @@ class Table:
         if len(self.columns) == 0:
             return empty_init(0, dtype=None)
 
-        sys_byteorder = ('>', '<')[sys.byteorder == 'little']
-        native_order = ('=', sys_byteorder)
-
         dtype = []
 
         cols = self.columns.values()
@@ -427,9 +424,8 @@ class Table:
 
         for col in cols:
             col_descr = descr(col)
-            byteorder = col.info.dtype.byteorder
 
-            if not keep_byteorder and byteorder not in native_order:
+            if not (col.info.dtype.isnative or keep_byteorder):
                 new_dt = np.dtype(col_descr[1]).newbyteorder('=')
                 col_descr = (col_descr[0], new_dt, col_descr[2])
 
@@ -3460,9 +3456,8 @@ class Table:
             else:
                 out[name] = column
 
-            if (hasattr(out[name].dtype, 'byteorder')
-                    and out[name].dtype.byteorder not in ('=', '|')):
-                out[name] = out[name].byteswap().newbyteorder()
+            if not getattr(out[name].dtype, 'isnative', True):
+                out[name] = out[name].byteswap().newbyteorder('=')
 
         kwargs = {'index': out.pop(index)} if index else {}
 
