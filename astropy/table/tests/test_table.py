@@ -1752,12 +1752,12 @@ class TestPandas:
 
         t = table.Table()
 
-        for endian in ['<', '>']:
+        for endian in ['<', '>', '=']:
             for kind in ['f', 'i']:
                 for byte in ['2', '4', '8']:
                     dtype = np.dtype(endian + kind + byte)
                     x = np.array([1, 2, 3], dtype=dtype)
-                    t[endian + kind + byte] = x
+                    t[endian + kind + byte] = x.newbyteorder(endian)
 
         t['u'] = ['a', 'b', 'c']
         t['s'] = ['a', 'b', 'c']
@@ -1774,7 +1774,7 @@ class TestPandas:
             else:
                 # We should be able to compare exact values here
                 assert np.all(t[column] == d[column])
-                if t[column].dtype.byteorder in ('=', '|'):
+                if t[column].dtype.isnative:
                     assert d[column].dtype == t[column].dtype
                 else:
                     assert d[column].dtype == t[column].byteswap().newbyteorder().dtype
@@ -1783,6 +1783,8 @@ class TestPandas:
         # ValueError: Big-endian buffer not supported on little-endian
         # compiler. We now automatically swap the endian-ness to native order
         # upon adding the arrays to the data frame.
+        # Explicitly testing little/big/native endian separately -
+        # regression for a case in astropy/astropy#11286 not caught by #3729.
         d[['<i4', '>i4']]
         d[['<f4', '>f4']]
 
@@ -1793,7 +1795,7 @@ class TestPandas:
                 assert np.all(t[column] == t2[column])
             else:
                 assert_allclose(t[column], t2[column])
-            if t[column].dtype.byteorder in ('=', '|'):
+            if t[column].dtype.isnative:
                 assert t[column].dtype == t2[column].dtype
             else:
                 assert t[column].byteswap().newbyteorder().dtype == t2[column].dtype
