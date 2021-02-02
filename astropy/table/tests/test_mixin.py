@@ -442,8 +442,11 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
             for attr in attrs:
                 if (attr != 'dtype' or getattr(m.info.dtype, 'isnative', True) or
                         func in (copy.copy, copy.deepcopy)):
-                    # !pytest.xfail(f"{func} does not preserve byteorder")
-                    assert getattr(m2.info, attr) == getattr(m.info, attr)
+                    original = getattr(m.info, attr)
+                else:
+                    # func does not preserve byteorder, check against (native) base type.
+                    original = m.info.dtype.name
+                assert getattr(m2.info, attr) == original
 
 
 def test_add_column(mixin_cols):
