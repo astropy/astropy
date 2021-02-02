@@ -280,12 +280,14 @@ class LombScargle(BasePeriodogram):
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
-        minimum_frequency : float, optional
+        minimum_frequency : float or `~astropy.units.Quantity`, optional
             If specified, then use this minimum frequency rather than one
-            chosen based on the size of the baseline.
-        maximum_frequency : float, optional
+            chosen based on the size of the baseline. Should be `~astropy.units.Quantity`
+            if inputs to LombScargle are `~astropy.units.Quantity`.
+        maximum_frequency : float or `~astropy.units.Quantity`, optional
             If specified, then use this maximum frequency rather than one
-            chosen based on the average nyquist frequency.
+            chosen based on the average nyquist frequency. Should be `~astropy.units.Quantity`
+            if inputs to LombScargle are `~astropy.units.Quantity`.
 
         Returns
         -------
