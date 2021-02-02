@@ -17,7 +17,8 @@ import pytest
 import numpy as np
 
 from astropy import table
-from astropy.table import table_helpers, Table, QTable
+from astropy.table import Table, QTable
+from astropy.table.table_helpers import ArrayWrapper
 from astropy import time
 from astropy import units as u
 from astropy import coordinates
@@ -143,7 +144,8 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'sphericaldiff': coordinates.SphericalCosLatDifferential(
                   [0, 1, 2, 3]*u.mas/u.yr, [0, 1, 2, 3]*u.mas/u.yr,
                   10*u.km/u.s),
-              'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
+              'arraywrap': ArrayWrapper([0, 1, 2, 3]),
+              'arrayswap': ArrayWrapper(np.arange(4, dtype='i').byteswap().newbyteorder()),
               'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
                                   dtype='<i4,|S1').view(table.NdarrayMixin),
               }
