@@ -3662,7 +3662,7 @@ class Table:
                     pd_dtype = column.dtype.name
                     if use_nullable_int:
                         # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
-                        pd_dtype = pd_dtype.capitalize().replace('i', 'I')
+                        pd_dtype = pd_dtype.replace('i', 'I').replace('u', 'U')
                     out[name] = Series(out[name], dtype=pd_dtype)
 
                     # If pandas is older than 0.24 the type may have turned to float
