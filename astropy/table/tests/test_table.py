@@ -1890,6 +1890,7 @@ class TestPandas:
         assert np.allclose(t2['skycoord.ra'], [0, 1, 2, 3])
         assert np.allclose(t2['skycoord.dec'], [0, 1, 2, 3])
         assert np.allclose(t2['arraywrap'], [0, 1, 2, 3])
+        assert np.allclose(t2['arrayswap'], [0, 1, 2, 3])
         assert np.allclose(t2['earthlocation.y'], [0, 110708, 547501, 654527], rtol=0, atol=1)
 
         # For pandas, Time, TimeDelta are the mixins that round-trip the class
