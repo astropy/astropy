@@ -1794,7 +1794,7 @@ class _UnitMetaClass(type):
     can return an existing one.
     """
 
-    def __call__(self, s, represents=None, format=None, namespace=None,
+    def __call__(self, s="", represents=None, format=None, namespace=None,
                  doc=None, parse_strict='raise'):
 
         # Short-circuit if we're already a unit
@@ -1926,11 +1926,11 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
 
       Returns the given unit unchanged.
 
-    - From `None`::
+    - From no arguments::
 
         Unit()
 
-      Returns the null unit.
+      Returns the dimensionless unit.
 
     - The last form, which creates a new `Unit` is described in detail
       below.
