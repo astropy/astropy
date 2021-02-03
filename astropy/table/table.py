@@ -3652,28 +3652,26 @@ class Table:
         out = OrderedDict()
 
         for name, column in tbl.columns.items():
+            if getattr(column.dtype, 'isnative', True):
+                out[name] = column
+            else:
+                out[name] = column.data.byteswap().newbyteorder('=')
+
             if isinstance(column, MaskedColumn) and np.any(column.mask):
                 if column.dtype.kind in ['i', 'u']:
-                    pd_dtype = str(column.dtype)
+                    pd_dtype = column.dtype.name
                     if use_nullable_int:
                         # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
                         pd_dtype = pd_dtype.replace('i', 'I').replace('u', 'U')
-                    out[name] = Series(column, dtype=pd_dtype)
+                    out[name] = Series(out[name], dtype=pd_dtype)
 
                     # If pandas is older than 0.24 the type may have turned to float
                     if column.dtype.kind != out[name].dtype.kind:
                         warnings.warn(
                             f"converted column '{name}' from {column.dtype} to {out[name].dtype}",
                             TableReplaceWarning, stacklevel=3)
-                elif column.dtype.kind in ['f', 'c']:
-                    out[name] = column
-                else:
+                elif column.dtype.kind not in ['f', 'c']:
                     out[name] = column.astype(object).filled(np.nan)
-            else:
-                out[name] = column
-
-            if not getattr(out[name].dtype, 'isnative', True):
-                out[name] = out[name].byteswap().newbyteorder('=')
 
         kwargs = {'index': out.pop(index)} if index else {}
 

@@ -440,7 +440,14 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
         for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
             m2 = func(m)
             for attr in attrs:
-                assert getattr(m2.info, attr) == getattr(m.info, attr)
+                if (attr != 'dtype'
+                        or getattr(m.info.dtype, 'isnative', True)
+                        or func in (copy.copy, copy.deepcopy)):
+                    original = getattr(m.info, attr)
+                else:
+                    # func does not preserve byteorder, check against (native) base type.
+                    original = m.info.dtype.name
+                assert getattr(m2.info, attr) == original
 
 
 def test_add_column(mixin_cols):
