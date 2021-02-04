@@ -51,6 +51,17 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   double sigma_lower, sigma_upper;
   int iteration, count;
   double lower, upper;
+  npy_intp dims[2];
+
+  PyObject *bounds_obj;
+  PyArrayObject *bounds_array;
+  double *bounds;
+
+  NpyIter *iter;
+  NpyIter_IterNextFunc *iternext;
+  char **dataptr;
+  npy_intp *strideptr, *innersizeptr, stride, innersize;
+  PyArray_Descr *dtype;
 
   // Parse the input tuple
   if (!PyArg_ParseTuple(args, "OOiidd", &data_obj, &mask_obj, &use_median,
@@ -79,28 +90,71 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   n = (long)PyArray_DIM(data_array, 0);
   m = (long)PyArray_DIM(data_array, 1);
 
-  // Build the temporary array and mask
+  // Numpy iterator set-up - we use this rather that iterate manually over the
+  // array so that values are automatically cast to double.
+
+  // TODO: see if we can also iterate over mask
+
+  dtype = PyArray_DescrFromType(NPY_DOUBLE);
+  iter = NpyIter_New(data_array,
+                     NPY_ITER_READONLY | NPY_ITER_EXTERNAL_LOOP | NPY_ITER_BUFFERED,
+                     NPY_FORTRANORDER, NPY_SAFE_CASTING, dtype);
+  if (iter == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Couldn't set up iterator");
+    Py_DECREF(data_array);
+    return NULL;
+  }
+
+  // The iternext function gets stored in a local variable
+  // so it can be called repeatedly in an efficient manner.
+  iternext = NpyIter_GetIterNext(iter, NULL);
+  if (iternext == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Couldn't set up iterator");
+    NpyIter_Deallocate(iter);
+    Py_DECREF(data_array);
+    return NULL;
+  }
+
+  // The location of the data pointer which the iterator may update
+  dataptr = NpyIter_GetDataPtrArray(iter);
+
+  // The location of the stride which the iterator may update
+  strideptr = NpyIter_GetInnerStrideArray(iter);
+
+  // The location of the inner loop size which the iterator may update
+  innersizeptr = NpyIter_GetInnerLoopSizePtr(iter);
+
+  // Build the temporary buffer array
   buffer = (double *)malloc(n * sizeof(double));
   if (buffer == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "Couldn't build buffer array");
     Py_DECREF(data_array);
-    Py_DECREF(mask_array);
     return NULL;
   }
 
-  // At this point we should ideally use the iterator API in Numpy,
-  // but for simplicity for now we assume the data is contiguous in
-  // memory and will deal with the correct iteration later
+  // Build output bounds arrays
+  dims[0] = 2;
+  dims[1] = m;
+  bounds_obj = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+  if (bounds_obj == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Couldn't build bounds array");
+    Py_DECREF(data_array);
+    Py_XDECREF(bounds_obj);
+    return NULL;
+  }
 
-  data = (double *)PyArray_DATA(data_array);
-  mask = (uint8_t *)PyArray_DATA(mask_array);
-
-  istride = PyArray_STRIDE(data_array, 0) / 8;
-  jstride = PyArray_STRIDE(data_array, 1) / 8;
+  bounds_array = (PyArrayObject *)bounds_obj;
+  bounds = (double *)PyArray_DATA(bounds_array);
 
   // This function is constructed to take a 2-d array of values and assumes
   // that each 1-d array when looping over the last dimension should be
-  // treated separately.
+  // treated separately. We use the Numpy iterator set up above which iterates
+  // in C order, so we should get each 1-d array after one another. However
+  // the inner loop of the iterator may not match the size of these 1-d arrays
+  // so when we update the iterator may not be in sync with the m loop.
+
+  stride = *strideptr;
+  innersize = *innersizeptr;
 
   for (j = 0; j < m; j++) {
 
@@ -111,10 +165,17 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
     count = 0;
     index = j * jstride;
     for (i = 0; i < n; i++) {
+      innersize--;
+      if(innersize == 0) {
+        iternext(iter);
+        stride = *strideptr;
+        innersize = *innersizeptr;
+      }
       if (mask[index] == 0) {
-        buffer[count] = data[index];
+        buffer[count] = *(double *)dataptr[0];
         count += 1;
       }
+      dataptr[0] += stride;
       index += istride;
     }
 
@@ -127,19 +188,12 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
     compute_sigma_clipped_bounds(buffer, count, use_median, maxiters,
                                  sigma_lower, sigma_upper, &lower, &upper);
 
-    // Populate the final (unsorted) mask
-    index = j * jstride;
-    for (i = 0; i < n; i++) {
-      if (data[index] < lower || data[index] > upper) {
-        mask[index] = 1;
-      } else {
-        mask[index] = 0;
-      }
-      index += istride;
-   }
+    bounds[j] = lower;
+    bounds[j + m] = upper;
+
   }
 
   Py_DECREF(data_array);
 
-  return mask_obj;
+  return bounds_obj;
 }
