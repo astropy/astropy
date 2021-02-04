@@ -296,6 +296,12 @@ class SigmaClip:
         # routine produces a mask with the same 2-d shape, so we pre-allocate the
         # mask here and return a 2-d view.
 
+        reshape_1d = axis is None
+
+        if reshape_1d:
+            data = data.reshape((-1, 1))
+            axis = (0,)
+
         if not isinstance(axis, tuple):
             axis = (axis,)
 
@@ -306,6 +312,14 @@ class SigmaClip:
         mask_reordered = _move_tuple_axes_first(mask, axis)
         mask_2d = mask_reordered.reshape(data_2d.shape)
 
+        if np.any(mask):
+            warnings.warn('Input data contains invalid values (NaNs or '
+                          'infs), which were automatically clipped.',
+                          AstropyUserWarning)
+
+        print(data.shape)
+        print(data_2d.shape)
+
         bounds = _sigma_clip_fast(data_2d, mask_2d, 0 if self.cenfunc == 'mean' else 1,
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
                                   self.sigma_lower, self.sigma_upper)
@@ -313,7 +327,13 @@ class SigmaClip:
         mask_2d |= data_2d < bounds[0]
         mask_2d |= data_2d > bounds[1]
 
+        print(bounds)
+
         # TODO: reshape bounds for 3d+ cases
+
+        if reshape_1d:
+            data = data[0]
+            mask = mask[0]
 
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
@@ -554,6 +574,8 @@ class SigmaClip:
                 return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                             return_bounds=return_bounds,
                                             copy=copy)
+            elif method == 'c':
+                raise Exception("method='c' is only supported for cenfunc='mean' or 'median', stdfunc='std' and grow=False")
 
         # These two cases are treated separately because when ``axis=None``
         # we can simply remove clipped values from the array.  This is not
