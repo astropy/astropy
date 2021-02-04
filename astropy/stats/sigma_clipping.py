@@ -291,12 +291,6 @@ class SigmaClip:
         Fast C implementation for simple use cases
         """
 
-        # TODO: for now this just works with 2-d 64-bit C-contiguous arrays,
-        # remove the following check once the C extension uses the proper Numpy
-        # iteration.
-        if data.dtype.kind != 'f' or data.dtype.itemsize != 8:
-            raise NotImplementedError()
-
         # The Cython implementation takes 2-d arrays and assumes axis=0, so we need
         # to normalize the input array so that we can treat it in this way. The Cython
         # routine produces a mask with the same 2-d shape, so we pre-allocate the
@@ -312,9 +306,14 @@ class SigmaClip:
         mask_reordered = _move_tuple_axes_first(mask, axis)
         mask_2d = mask_reordered.reshape(data_2d.shape)
 
-        _sigma_clip_fast(data_2d, mask_2d, 0 if self.cenfunc == 'mean' else 1,
-                         -1 if np.isinf(self.maxiters) else self.maxiters,
-                         self.sigma_lower, self.sigma_upper)
+        bounds = _sigma_clip_fast(data_2d, mask_2d, 0 if self.cenfunc == 'mean' else 1,
+                                  -1 if np.isinf(self.maxiters) else self.maxiters,
+                                  self.sigma_lower, self.sigma_upper)
+
+        mask_2d |= data_2d < bounds[0]
+        mask_2d |= data_2d > bounds[1]
+
+        # TODO: reshape bounds for 3d+ cases
 
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
