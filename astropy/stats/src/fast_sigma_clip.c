@@ -41,7 +41,7 @@ MOD_INIT(_fast_sigma_clip) {
 static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
 
   long n, m;
-  int i, j, istride, jstride, index;
+  int i, j;
   double *buffer;
   PyObject *data_obj, *mask_obj;
   PyArrayObject *data_array, *mask_array;
@@ -52,6 +52,8 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   int iteration, count;
   double lower, upper;
   npy_intp dims[2];
+  PyArrayObject *arrays[2];
+  npy_uint32 op_flags[2];
 
   PyObject *bounds_obj;
   PyArrayObject *bounds_array;
@@ -61,7 +63,7 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   NpyIter_IterNextFunc *iternext;
   char **dataptr;
   npy_intp *strideptr, *innersizeptr, stride, innersize;
-  PyArray_Descr *dtype;
+  PyArray_Descr *dtypes[2];
 
   // Parse the input tuple
   if (!PyArg_ParseTuple(args, "OOiidd", &data_obj, &mask_obj, &use_median,
@@ -91,14 +93,24 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
   m = (long)PyArray_DIM(data_array, 1);
 
   // Numpy iterator set-up - we use this rather that iterate manually over the
-  // array so that values are automatically cast to double.
+  // array so that data values are automatically cast to double.
 
-  // TODO: see if we can also iterate over mask
+  arrays[0] = data_array;
+  arrays[1] = mask_array;
 
-  dtype = PyArray_DescrFromType(NPY_DOUBLE);
-  iter = NpyIter_New(data_array,
-                     NPY_ITER_READONLY | NPY_ITER_EXTERNAL_LOOP | NPY_ITER_BUFFERED,
-                     NPY_FORTRANORDER, NPY_SAFE_CASTING, dtype);
+  op_flags[0] = NPY_ITER_READONLY;
+  op_flags[1] = NPY_ITER_READONLY;
+
+  dtypes[0] = PyArray_DescrFromType(NPY_DOUBLE);
+  dtypes[1] = PyArray_DescrFromType(NPY_UINT8);
+
+  iter = NpyIter_MultiNew(2, arrays,
+                          NPY_ITER_EXTERNAL_LOOP | NPY_ITER_BUFFERED,
+                          NPY_FORTRANORDER,
+                          NPY_SAFE_CASTING,
+                          op_flags,
+                          dtypes);
+
   if (iter == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "Couldn't set up iterator");
     Py_DECREF(data_array);
@@ -163,20 +175,18 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
     // We copy all finite values from array into the buffer
 
     count = 0;
-    index = j * jstride;
     for (i = 0; i < n; i++) {
       innersize--;
       if(innersize == 0) {
         iternext(iter);
-        stride = *strideptr;
         innersize = *innersizeptr;
       }
-      if (mask[index] == 0) {
+      if (*(uint8_t *)dataptr[1] == 0) {
         buffer[count] = *(double *)dataptr[0];
         count += 1;
       }
-      dataptr[0] += stride;
-      index += istride;
+      dataptr[0] += strideptr[0];
+      dataptr[1] += strideptr[1];
     }
 
     // If end == 0, no values have been copied over (this can happen

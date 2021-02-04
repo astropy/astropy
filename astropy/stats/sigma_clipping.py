@@ -325,8 +325,7 @@ class SigmaClip:
             result[mask] = np.nan
 
         if return_bounds:
-            # TODO: this needs to be implemented
-            raise NotImplementedError()
+            return result, bounds[0], bounds[1]
         else:
             return result
 
