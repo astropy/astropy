@@ -1466,8 +1466,6 @@ def test_no_pixel_area():
     assert_quantity_allclose(w.proj_plane_pixel_scales(), 1)
 
 
-@pytest.mark.skipif('_WCSLIB_VER < Version("7.4")',
-                    reason="TPD coefficients incomplete prior to wcslib 7.4")
 def test_distortion_header(tmpdir):
     """
     Test that plate distortion model is correctly described by `wcs.to_header()`
@@ -1487,11 +1485,20 @@ def test_distortion_header(tmpdir):
     # Template Polynomial Distortion model (TPD.FWD.n coefficients);
     # not testing explicitly for the header keywords here.
 
-    w0 = wcs.WCS(w.wcs.to_header())
+    if _WCSLIB_VER < Version("7.4"):
+        with pytest.warns(AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"):
+            w0 = wcs.WCS(w.to_header_string())
+        with pytest.warns(AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"):
+            w1 = wcs.WCS(cut.wcs.to_header_string())
+        if _WCSLIB_VER >= Version("7.1"):
+            pytest.xfail("TPD coefficients incomplete with WCSLIB >= 7.1 < 7.4")
+    else:
+        w0 = wcs.WCS(w.to_header_string())
+        w1 = wcs.WCS(cut.wcs.to_header_string())
+
     assert w.pixel_to_world(0, 0).separation(w0.pixel_to_world(0, 0)) < 1.e-3 * u.mas
     assert w.pixel_to_world(*cen).separation(w0.pixel_to_world(*cen)) < 1.e-3 * u.mas
 
-    w1 = wcs.WCS(cut.wcs.to_header())
     assert w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(siz / 2))) < 1.e-3 * u.mas
 
     cutfile = str(tmpdir.join('cutout.fits'))
