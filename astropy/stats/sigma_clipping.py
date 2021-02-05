@@ -299,11 +299,12 @@ class SigmaClip:
         reshape_1d = axis is None
 
         if reshape_1d:
-            data = data.reshape((-1, 1))
-            axis = (0,)
-
-        if not isinstance(axis, tuple):
-            axis = (axis,)
+            axis = tuple(range(data.ndim))
+            data = data.reshape(data.shape + (1,))
+        else:
+            if not isiterable(axis):
+                axis = (axis,)
+            axis = tuple(data.ndim + n if n < 0 else n for n in axis)
 
         data_reordered = _move_tuple_axes_first(data, axis)
         data_2d = data_reordered.reshape((data_reordered.shape[0], -1))
@@ -317,9 +318,6 @@ class SigmaClip:
                           'infs), which were automatically clipped.',
                           AstropyUserWarning)
 
-        print(data.shape)
-        print(data_2d.shape)
-
         bounds = _sigma_clip_fast(data_2d, mask_2d, 0 if self.cenfunc == 'mean' else 1,
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
                                   self.sigma_lower, self.sigma_upper)
@@ -327,13 +325,11 @@ class SigmaClip:
         mask_2d |= data_2d < bounds[0]
         mask_2d |= data_2d > bounds[1]
 
-        print(bounds)
-
         # TODO: reshape bounds for 3d+ cases
 
         if reshape_1d:
-            data = data[0]
-            mask = mask[0]
+            data = data[..., 0]
+            mask = mask[..., 0]
 
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
