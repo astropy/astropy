@@ -192,9 +192,12 @@ static PyObject *_sigma_clip_fast(PyObject *self, PyObject *args) {
     // If end == 0, no values have been copied over (this can happen
     // for example if all the values are NaN). In this case, we just
     // proceed to the next array.
-    if (count == 0)
+    if (count == 0) {
+      bounds[j] = NPY_NAN;
+      bounds[j + m] = NPY_NAN;
       continue;
-
+    }
+    
     compute_sigma_clipped_bounds(buffer, count, use_median, maxiters,
                                  sigma_lower, sigma_upper, &lower, &upper);
 
