@@ -12,6 +12,32 @@ from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
 
+def test_altaz_attribute_transforms():
+    """Test transforms between AltAz frames with different attributes."""
+    el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+    origin1 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T12:00:00"),
+                    location=el1)
+    frame1 = SkyOffsetFrame(origin=origin1)
+    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
+
+    el2 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+    origin2 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T11:00:00"),
+                    location=el2)
+    frame2 = SkyOffsetFrame(origin=origin2)
+    coo2 = coo1.transform_to(frame2)
+    coo2_expected = [1.22522446, 0.70624298] * u.deg
+    assert_allclose([coo2.lon.wrap_at(180*u.deg), coo2.lat],
+                    coo2_expected, atol=convert_precision)
+
+    el3 = EarthLocation(0*u.deg, 90*u.deg, 0*u.m)
+    origin3 = AltAz(0 * u.deg, 90*u.deg, obstime=Time("2000-01-01T12:00:00"),
+                    location=el3)
+    frame3 = SkyOffsetFrame(origin=origin3)
+    coo3 = coo2.transform_to(frame3)
+    assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],
+                    [1*u.deg, 1*u.deg], atol=convert_precision)
+
+
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
     ((45, 45)*u.deg, (0, 0)*u.deg, .001*u.arcsec),
     ((45, 0)*u.deg, (0, -45)*u.deg, .001*u.arcsec),
@@ -215,32 +241,6 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     roundtrip_pos = target_pos.transform_to(from_pos)
     assert_allclose([roundtrip_pos.lon.wrap_at(180*u.deg), roundtrip_pos.lat],
                     [1.0*u.deg, 1.0*u.deg], atol=convert_precision)
-
-
-def test_altaz_attribute_transforms():
-    """Test transforms between AltAz frames with different attributes."""
-    el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
-    origin1 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T12:00:00"),
-                    location=el1)
-    frame1 = SkyOffsetFrame(origin=origin1)
-    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
-
-    el2 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
-    origin2 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T11:00:00"),
-                    location=el2)
-    frame2 = SkyOffsetFrame(origin=origin2)
-    coo2 = coo1.transform_to(frame2)
-    coo2_expected = [1.22522446, 0.70624298] * u.deg
-    assert_allclose([coo2.lon.wrap_at(180*u.deg), coo2.lat],
-                    coo2_expected, atol=convert_precision)
-
-    el3 = EarthLocation(0*u.deg, 90*u.deg, 0*u.m)
-    origin3 = AltAz(0 * u.deg, 90*u.deg, obstime=Time("2000-01-01T12:00:00"),
-                    location=el3)
-    frame3 = SkyOffsetFrame(origin=origin3)
-    coo3 = coo2.transform_to(frame3)
-    assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],
-                    [1*u.deg, 1*u.deg], atol=convert_precision)
 
 
 @pytest.mark.parametrize("rotation, expectedlatlon", [
