@@ -4,6 +4,142 @@
 Bug Fixes
 ---------
 
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Allow ``Distance`` instances with negative distance values as input for
+  ``SphericalRepresentation``.  This was always noted as allowed in an
+  exception message when a negative ``Quantity`` with length units was
+  passed in, but was not actually possible to do. [#11113]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+astropy.extern
+^^^^^^^^^^^^^^
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- ``NumericArray`` converter now properly broadcasts scalar mask to array.
+  [#11157]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Ensure that adding a ``Quantity`` or other mixin column to a ``Table``
+  does not have side effects, such as creating an associated ``info``
+  instance (which would lead to slow-down of, e.g., slicing afterwards).
+  [#11077]
+
+- When writing to a FITS tables, masked values are again always converted to
+  the standard FITS mask values of ``NaN`` for float and null string
+  for string, not just for table with ``masked=True``. [#11222]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fix a thread-safety issue with initialization of the leap-second table
+  (which is only an issue when ERFA's built-in table is out of date). [#11234]
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Move non-astronomy units from astrophys.py to a new misc.py file. [#11142]
+
+- Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe. [#11227]
+
+- Make ufunc helper lookup thread-safe. [#11226]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Make ``lazyproperty`` and ``classdecorator`` thread-safe. This should fix a
+  number of thread safety issues. [#11224]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+- Officially declared minversion of ``ipython`` to be 4.2. [#10942]
+
+- Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
+  and substantially improved speed. [#11069]
+
+- Also refactor ``EarthLocation.get_gcrs`` for an increase in performance of
+  an order of magnitude, which enters as well in getting observed positions of
+  planets using ``get_body``. [#11073]
+
+- Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
+  ``__init_subclass__`` where possible. [#11090]
+
+- The configuration file is no more created by default when importing astropy
+  and its existence is no more required. [#10877]
+
+
+4.2.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
