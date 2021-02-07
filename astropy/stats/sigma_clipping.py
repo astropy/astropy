@@ -3,6 +3,7 @@
 import warnings
 
 import numpy as np
+from numpy.core.multiarray import normalize_axis_index
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
@@ -291,45 +292,40 @@ class SigmaClip:
         Fast C implementation for simple use cases
         """
 
-        # The Cython implementation takes 2-d arrays and assumes axis=0, so we need
-        # to normalize the input array so that we can treat it in this way. The Cython
-        # routine produces a mask with the same 2-d shape, so we pre-allocate the
-        # mask here and return a 2-d view.
+        # The gufunc implementation assumes axis=-1, so we need to normalize
+        # the input array so that we can treat it in this way.
+        # TODO: for single axis, can just pass that on to gufunc!
 
-        reshape_1d = axis is None
-
-        if reshape_1d:
+        if axis is None:
             axis = tuple(range(data.ndim))
-            data = data.reshape(data.shape + (1,))
+        elif not isiterable(axis):
+            axis = (normalize_axis_index(axis, data.ndim),)
         else:
-            if not isiterable(axis):
-                axis = (axis,)
-            axis = tuple(data.ndim + n if n < 0 else n for n in axis)
+            axis = tuple(normalize_axis_index(ax, data.ndim) for ax in axis)
+        transposed_axes = tuple(ax for ax in range(data.ndim)
+                                if ax not in axis) + axis
+        data_transposed = data.transpose(transposed_axes)
+        transposed_shape = data_transposed.shape
+        data_reshaped = data_transposed.reshape(
+            transposed_shape[:data.ndim-len(axis)]+(-1,)).astype(float, copy=False)
 
-        data_reordered = _move_tuple_axes_first(data, axis)
-        data_2d = data_reordered.reshape((data_reordered.shape[0], -1))
-
-        mask = ~np.isfinite(data)
-        mask_reordered = _move_tuple_axes_first(mask, axis)
-        mask_2d = mask_reordered.reshape(data_2d.shape)
+        mask = ~np.isfinite(data_reshaped)
 
         if np.any(mask):
             warnings.warn('Input data contains invalid values (NaNs or '
                           'infs), which were automatically clipped.',
                           AstropyUserWarning)
-
-        bounds = _sigma_clip_fast(data_2d, mask_2d, 0 if self.cenfunc == 'mean' else 1,
+        bounds = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
                                   self.sigma_lower, self.sigma_upper)
 
-        mask_2d |= data_2d < bounds[0]
-        mask_2d |= data_2d > bounds[1]
+        mask |= data_reshaped < bounds[0][..., np.newaxis]
+        mask |= data_reshaped > bounds[1][..., np.newaxis]
 
-        # TODO: reshape bounds for 3d+ cases
-
-        if reshape_1d:
-            data = data[..., 0]
-            mask = mask[..., 0]
+        # Get mask in shape of data.
+        mask = mask.reshape(transposed_shape)
+        mask = mask.transpose(tuple(transposed_axes.index(ax)
+                                    for ax in range(data.ndim)))
 
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
