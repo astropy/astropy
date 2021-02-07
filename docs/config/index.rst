@@ -16,7 +16,7 @@ source code to make those changes.
 .. note::
     * Before version 4.3 the configuration file was created by default
       when importing ``astropy``. Its existence was required, which is
-      no more the case.
+      no longer the case.
     * The configuration system got a major overhaul in ``astropy`` 0.4 as
       part of APE3. See :ref:`config-0-4-transition` for information
       about updating code to use the new API.
