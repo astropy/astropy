@@ -28,8 +28,8 @@ from astropy.utils.introspection import resolve_name
 
 from .paths import get_config_dir
 
-__all__ = ('InvalidConfigurationItemWarning', 'get_config',
-           'reload_config', 'ConfigNamespace', 'ConfigItem',
+__all__ = ('InvalidConfigurationItemWarning', 'ConfigurationMissingWarning',
+           'get_config', 'reload_config', 'ConfigNamespace', 'ConfigItem',
            'generate_config', 'create_config_file')
 
 
@@ -37,6 +37,16 @@ class InvalidConfigurationItemWarning(AstropyWarning):
     """ A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
+    """
+
+
+# This was raised with Astropy < 4.3 when the configuration file was not found.
+# It is kept for compatibility and should be removed at some point.
+class ConfigurationMissingWarning(AstropyWarning):
+    """ A Warning that is issued when the configuration directory cannot be
+    accessed (usually due to a permissions problem). If this warning appears,
+    configuration items will be set to their defaults rather than read from the
+    configuration file, and no configuration will persist across sessions.
     """
 
 

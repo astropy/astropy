@@ -118,8 +118,10 @@ Other Changes and Additions
 - Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
   ``__init_subclass__`` where possible. [#11090]
 
-- The configuration file is no more created by default when importing astropy
-  and its existence is no more required. [#10877]
+- The configuration file is no longer created by default when importing astropy
+  and its existence is no longer required. Affiliated packages should update
+  their ``__init__.py`` module to remove the block using
+  ``update_default_config`` and ``ConfigurationDefaultMissingWarning``. [#10877]
 
 
 4.2.1 (unreleased)
