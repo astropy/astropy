@@ -2396,6 +2396,8 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     These tests are derived primarily from the release notes for PyFITS 1.4 (in
     which this feature was first introduced.
+    Note that extra leading spaces in the `value` fields should be parsed on input,
+    but will be stripped in the cards.
     """
 
     def setup(self):
@@ -2404,11 +2406,11 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         self._test_header.set('DP1', 'NAXIS: 2')
         self._test_header.set('DP1', 'AXIS.1: 1')
         self._test_header.set('DP1', 'AXIS.2: 2')
-        self._test_header.set('DP1', 'NAUX: 2')
+        self._test_header.set('DP1', 'NAUX:   2')
         self._test_header.set('DP1', 'AUX.1.COEFF.0: 0')
         self._test_header.set('DP1', 'AUX.1.POWER.0: 1')
         self._test_header.set('DP1', 'AUX.1.COEFF.1: 0.00048828125')
-        self._test_header.set('DP1', 'AUX.1.POWER.1: 1')
+        self._test_header.set('DP1', 'AUX.1.POWER.1:  1')
 
     def test_initialize_rvkc(self):
         """
@@ -2422,7 +2424,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert c.field_specifier == 'NAXIS'
         assert c.comment == 'A comment'
 
-        c = fits.Card.fromstring("DP1     = 'NAXIS: 2.1'")
+        c = fits.Card.fromstring("DP1     = 'NAXIS:  2.1'")
         assert c.keyword == 'DP1.NAXIS'
         assert c.value == 2.1
         assert c.field_specifier == 'NAXIS'
@@ -2437,7 +2439,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert c.value == 2.0
         assert c.field_specifier == 'NAXIS'
 
-        c = fits.Card('DP1', 'NAXIS: 2.0')
+        c = fits.Card('DP1', 'NAXIS:  2.0')
         assert c.keyword == 'DP1.NAXIS'
         assert c.value == 2.0
         assert c.field_specifier == 'NAXIS'

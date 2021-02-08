@@ -1127,6 +1127,13 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+- Fix bug where manual fixes to invalid header cards were not preserved when
+  saving a FITS file. [#11108]
+
+- Fix parsing of RVKC header card patterns that were not recognised
+  where multiple spaces were separating field-specifier and value like
+  "DP1.AXIS.1:   1". [#11301]
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 

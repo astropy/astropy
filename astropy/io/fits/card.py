@@ -126,7 +126,7 @@ class Card(_Verify):
     _rvkc_identifier = r'[a-zA-Z_]\w*'
     _rvkc_field = _rvkc_identifier + r'(\.\d+)?'
     _rvkc_field_specifier_s = fr'{_rvkc_field}(\.{_rvkc_field})*'
-    _rvkc_field_specifier_val = (r'(?P<keyword>{}): (?P<val>{})'.format(
+    _rvkc_field_specifier_val = (r'(?P<keyword>{}): +(?P<val>{})'.format(
             _rvkc_field_specifier_s, _numr_FSC))
     _rvkc_keyword_val = fr'\'(?P<rawval>{_rvkc_field_specifier_val})\''
     _rvkc_keyword_val_comm = (r' *{} *(/ *(?P<comm>[ -~]*))?$'.format(
