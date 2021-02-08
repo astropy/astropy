@@ -297,17 +297,20 @@ class SigmaClip:
         # TODO: for single axis, can just pass that on to gufunc!
 
         if axis is None:
-            axis = tuple(range(data.ndim))
-        elif not isiterable(axis):
-            axis = (normalize_axis_index(axis, data.ndim),)
+            axis = -1 if data.ndim == 1 else tuple(range(data.ndim))
+
+        if not isiterable(axis):
+            axis = normalize_axis_index(axis, data.ndim)
+            data_reshaped = data.astype(float, copy=False)
         else:
             axis = tuple(normalize_axis_index(ax, data.ndim) for ax in axis)
-        transposed_axes = tuple(ax for ax in range(data.ndim)
-                                if ax not in axis) + axis
-        data_transposed = data.transpose(transposed_axes)
-        transposed_shape = data_transposed.shape
-        data_reshaped = data_transposed.reshape(
-            transposed_shape[:data.ndim-len(axis)]+(-1,)).astype(float, copy=False)
+            transposed_axes = tuple(ax for ax in range(data.ndim)
+                                    if ax not in axis) + axis
+            data_transposed = data.transpose(transposed_axes)
+            transposed_shape = data_transposed.shape
+            data_reshaped = data_transposed.astype(float, copy=False).reshape(
+                transposed_shape[:data.ndim-len(axis)]+(-1,))
+            axis = -1
 
         mask = ~np.isfinite(data_reshaped)
 
@@ -317,15 +320,16 @@ class SigmaClip:
                           AstropyUserWarning)
         bounds = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
-                                  self.sigma_lower, self.sigma_upper)
+                                  self.sigma_lower, self.sigma_upper, axis=axis)
 
-        mask |= data_reshaped < bounds[0][..., np.newaxis]
-        mask |= data_reshaped > bounds[1][..., np.newaxis]
+        mask |= data_reshaped < np.expand_dims(bounds[0], axis)
+        mask |= data_reshaped > np.expand_dims(bounds[1], axis)
 
-        # Get mask in shape of data.
-        mask = mask.reshape(transposed_shape)
-        mask = mask.transpose(tuple(transposed_axes.index(ax)
-                                    for ax in range(data.ndim)))
+        if mask.shape != data.shape:
+            # Get mask in shape of data.
+            mask = mask.reshape(transposed_shape)
+            mask = mask.transpose(tuple(transposed_axes.index(ax)
+                                        for ax in range(data.ndim)))
 
         if masked:
             result = np.ma.array(data, mask=mask, copy=copy)
