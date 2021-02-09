@@ -334,7 +334,6 @@ def test_iterate_coords(ignore_matplotlibrc, tmpdir):
     x, y, z = ax.coords
 
 
-@pytest.mark.xfail(MATPLOTLIB_DEV, reason="https://github.com/matplotlib/matplotlib/issues/19432")
 def test_invalid_slices_errors(ignore_matplotlibrc):
 
     # Make sure that users get a clear message when specifying a WCS with
@@ -405,7 +404,6 @@ EXPECTED_REPR_2 = """
  """.strip()
 
 
-@pytest.mark.xfail(MATPLOTLIB_DEV, reason="https://github.com/matplotlib/matplotlib/issues/19432")
 def test_repr(ignore_matplotlibrc):
 
     # Unit test to make sure __repr__ looks as expected
