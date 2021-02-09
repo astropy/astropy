@@ -1,4 +1,4 @@
-Copyright (c) 2011-2020, Astropy Developers
+Copyright (c) 2011-2021, Astropy Developers
 
 All rights reserved.
 
