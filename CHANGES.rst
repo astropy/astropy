@@ -200,6 +200,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Calling ``Unit()`` with no argument now returns a dimensionless unit, 
+  as was documented but not implemented. [#11295]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
