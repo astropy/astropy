@@ -16,19 +16,10 @@ jobs:
   initial_checks:
     name: Mandatory checks before CI
     runs-on: ubuntu-latest
-    outputs:
-      run_next: ${{ steps.skip_ci_step.outputs.run_next }}
     steps:
-    - name: Check skip CI
-      uses: OpenAstronomy/action-skip-ci@main
-      id: skip_ci_step
-      with:
-        NO_FAIL: true
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # This should only run if we did not skip CI
+    # TODO: Make this work for PRs
     - name: Cancel previous runs
       uses: styfle/cancel-workflow-action@ce177499ccf9fd2aded3b0426c97e5434c2e8a73
-      if: steps.skip_ci_step.outputs.run_next == 'true'
       with:
         access_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,7 +29,6 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     needs: initial_checks
-    if: needs.initial_checks.outputs.run_next == 'true'
     strategy:
       fail-fast: true
       matrix:
@@ -114,7 +104,6 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     needs: initial_checks
-    if: needs.initial_checks.outputs.run_next == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -146,7 +135,6 @@ jobs:
     name: 32-bit and parallel
     runs-on: ubuntu-latest
     needs: initial_checks
-    if: needs.initial_checks.outputs.run_next == 'true'
     container:
       image: quay.io/pypa/manylinux1_i686
     steps:
