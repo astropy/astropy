@@ -45,6 +45,8 @@ def test_initialisation():
     assert u.Unit('10 m') == ten_meter
     assert u.Unit(10.) == u.CompositeUnit(10., [], [])
 
+    assert u.Unit() == u.dimensionless_unscaled
+
 
 def test_invalid_power():
     x = u.m ** Fraction(1, 3)
@@ -230,11 +232,6 @@ def test_null_unit():
 def test_unrecognized_equivalency():
     assert u.m.is_equivalent('foo') is False
     assert u.m.is_equivalent('pc') is True
-
-
-def test_unit_noarg():
-    with pytest.raises(TypeError):
-        u.Unit()
 
 
 def test_convertible_exception():
