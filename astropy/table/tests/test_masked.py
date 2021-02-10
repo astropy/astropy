@@ -4,11 +4,14 @@
 import pytest
 import numpy as np
 import numpy.ma as ma
+from packaging.version import Version
 
 from astropy.table import Column, MaskedColumn, Table, QTable
 from astropy.table.column import BaseColumn
 from astropy.time import Time
 import astropy.units as u
+
+NUMPY_DEV = Version(np.__version__).is_devrelease
 
 
 class SetupData:
@@ -238,8 +241,10 @@ class TestTableInit(SetupData):
         t = Table([np_data_list])
         col = t['col0']
 
-        # Confirm dtype is same as for untype list input w/ no mask
-        assert col.dtype == dtype_expected
+        # Confirm dtype is same as for untype list input w/ no mask.
+        # dtype maybe 'O' for numpy-dev and S/U combo, see Issue 11291
+        if not NUMPY_DEV or type_str not in ('S', 'U') or col.dtype != 'O':
+            assert col.dtype == dtype_expected
         assert np.all(col == np_data)
         assert col.mask[last_idx]
         assert type(col) is MaskedColumn

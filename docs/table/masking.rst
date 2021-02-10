@@ -76,14 +76,14 @@ Notice that masked entries in the table output are shown as ``--``.
 You can use the `numpy.ma.masked` constant to indicate masked or invalid data::
 
   >>> a = [1.0, np.ma.masked]
-  >>> b = [np.ma.masked, 'val']
-  >>> Table([a, b], names=('a', 'b'))
+  >>> b = [np.ma.masked, 'value1']
+  >>> Table([a, b], names=('a', 'b'))  # doctest: +ELLIPSIS
   <Table length=2>
     a     b
-  float64 str3
-  ------- ----
-      1.0   --
-      --  val
+  float64 ...
+  ------- ------
+      1.0     --
+      --  value1
 
 Initializing from lists with embedded `numpy.ma.masked` elements is considerably
 slower than using `numpy.ma.array` or |MaskedColumn| directly, so if performance

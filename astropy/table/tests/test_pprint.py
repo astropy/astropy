@@ -10,6 +10,7 @@ from astropy import table
 from astropy.io import ascii
 from astropy.table import Table, QTable
 from astropy.table.table_helpers import simple_table
+from astropy.table.tests.test_masked import NUMPY_DEV
 from astropy import units as u
 from astropy.utils import console
 
@@ -108,6 +109,8 @@ class TestMultiD():
                          '     5 .. 50']
 
 
+# Remove xfail when this is no longer an issue
+@pytest.mark.xfail(NUMPY_DEV, reason="Issue 11291")
 def test_html_escaping():
     t = table.Table([('<script>alert("gotcha");</script>', 2, 3)])
     nbclass = table.conf.default_notebook_table_class
