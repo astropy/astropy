@@ -52,6 +52,12 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- ``astropy.io.misc.yaml.AstropyLoader`` inherits from ``yaml.CSafeLoader``
+  if available and SafeLoader if not. [#]
+
+- ``astropy.io.misc.yaml.AstropyDumper`` inherits from ``yaml.CSafeDumper``
+  if available and SafeDumper if not. [#]
+
 astropy.io.votable
 ^^^^^^^^^^^^^^^^^^
 
