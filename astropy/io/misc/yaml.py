@@ -194,7 +194,16 @@ def _complex_constructor(loader, node):
     return complex(map)
 
 
-class AstropyLoader(yaml.SafeLoader):
+try:
+    SafeLoader = yaml.CSafeLoader
+except AttributeError:
+    import warnings
+    from astropy.utils.exceptions import AstropyWarning
+    warnings.warn('yaml.CSafeLoader unavailable. Falling back to significantly slower yaml.SafeLoader.', AstropyWarning)
+    SafeLoader = yaml.SafeLoader
+
+
+class AstropyLoader(SafeLoader):
     """
     Custom SafeLoader that constructs astropy core objects as well
     as Python tuple and unicode objects.
@@ -211,6 +220,15 @@ class AstropyLoader(yaml.SafeLoader):
 
     def _construct_python_unicode(self, node):
         return self.construct_scalar(node)
+
+
+try:
+    SafeDumper = yaml.CSafeDumper
+except AttributeError:
+    import warnings
+    from astropy.utils.exceptions import AstropyWarning
+    warnings.warn('yaml.CSafeDumper unavailable. Falling back to significantly slower yaml.SafeDumper.', AstropyWarning)
+    SafeLoader = yaml.SafeLoader
 
 
 class AstropyDumper(yaml.SafeDumper):
