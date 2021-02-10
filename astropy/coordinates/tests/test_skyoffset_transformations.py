@@ -30,8 +30,15 @@ def test_skyoffset(inradec, expectedlatlon, tolsep, originradec=(45, 45)*u.deg):
 
     assert skycoord_inaf.separation(expected) < tolsep
     # Check we can also transform back (regression test for gh-11254).
-    roundtrip = skycoord_inaf.transform_to(ICRS())
-    assert roundtrip.separation(skycoord) < 1*u.uas
+    try:
+        roundtrip = skycoord_inaf.transform_to(ICRS())
+    except AttributeError as err:
+        if 'to_geodetic' in str(err):
+            pytest.xfail('See Issue 11277')
+        else:
+            raise
+    else:
+        assert roundtrip.separation(skycoord) < 1*u.uas
 
 
 def test_skyoffset_functional_ra():
