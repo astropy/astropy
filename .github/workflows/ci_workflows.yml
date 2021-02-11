@@ -13,9 +13,32 @@ env:
   IS_CRON: "false"
 
 jobs:
+  initial_checks:
+    name: Mandatory checks before CI
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check base branch
+      uses: actions/github-script@v3
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const skip_label = 'skip-basebranch-check';
+          const { default_branch: allowed_basebranch } = context.payload.repository;
+          const pr = context.payload.pull_request;
+          if (pr.labels.find(lbl => lbl.name === skip_label)) {
+            core.info(`Base branch check is skipped due to the presence of ${skip_label} label`);
+            return;
+          }
+          if (pr.base.ref !== allowed_basebranch) {
+            core.setFailed(`PR opened against ${pr.base.ref}, not ${allowed_basebranch}`);
+          } else {
+            core.info(`PR opened correctly against ${allowed_basebranch}`);
+          }
+
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    needs: initial_checks
     strategy:
       fail-fast: true
       matrix:
@@ -90,6 +113,7 @@ jobs:
   allowed_failures:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    needs: initial_checks
     strategy:
       fail-fast: false
       matrix:
@@ -120,6 +144,7 @@ jobs:
   parallel_and_32bit:
     name: 32-bit and parallel
     runs-on: ubuntu-latest
+    needs: initial_checks
     container:
       image: quay.io/pypa/manylinux1_i686
     steps:
