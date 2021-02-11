@@ -12,6 +12,11 @@ jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
+    - name: Label PR
+      uses: actions/labeler@main
+      if: github.event_name == 'pull_request_target'
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
     - name: Greet new contributors
       uses: actions/first-interaction@v1
       with:
@@ -35,7 +40,7 @@ jobs:
             feedback@astropy.org.
         pr-message: >
             Welcome to Astropy 👋 and congratulations on your first pull
-            request! 🎉 
+            request! 🎉
 
 
             A project member will respond to you as soon as possible; in the
@@ -53,3 +58,15 @@ jobs:
             urgent or sensitive in nature (e.g., a security vulnerability)
             please send an e-mail directly to the private e-mail
             feedback@astropy.org.
+    - name: 'Comment Draft PR'
+      uses: actions/github-script@v3
+      if: github.event.pull_request.draft == true
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '👋 Thank you for your draft pull request! Do you know that you can use `[ci skip]` or `[skip ci]` in your commit messages to skip running continuous integration tests until you are ready?'
+          })
