@@ -51,13 +51,13 @@ class TestMultiD():
         nbclass = table.conf.default_notebook_table_class
         masked = 'masked=True ' if t.masked else ''
         assert t._repr_html_().splitlines() == [
-            f'<i>{table_type.__name__} {masked}length=2</i>',
+            f'<div><i>{table_type.__name__} {masked}length=2</i>',
             f'<table id="table{id(t)}" class="{nbclass}">',
             '<thead><tr><th>col0 [2]</th><th>col1 [2]</th><th>col2 [2]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1 .. 2</td><td>3 .. 4</td><td>5 .. 6</td></tr>',
             '<tr><td>10 .. 20</td><td>30 .. 40</td><td>50 .. 60</td></tr>',
-            '</table>']
+            '</table></div>']
 
         t = table_type([arr])
         lines = t.pformat()
@@ -92,12 +92,12 @@ class TestMultiD():
         nbclass = table.conf.default_notebook_table_class
         masked = 'masked=True ' if t.masked else ''
         assert t._repr_html_().splitlines() == [
-            f'<i>{table_type.__name__} {masked}length=2</i>',
+            f'<div><i>{table_type.__name__} {masked}length=2</i>',
             f'<table id="table{id(t)}" class="{nbclass}">',
             '<thead><tr><th>col0 [1,1]</th><th>col1 [1,1]</th><th>col2 [1,1]</th></tr></thead>',
             '<thead><tr><th>int64</th><th>int64</th><th>int64</th></tr></thead>',
             '<tr><td>1</td><td>3</td><td>5</td></tr>', '<tr><td>10</td><td>30</td><td>50</td></tr>',
-            '</table>']
+            '</table></div>']
 
         t = table_type([arr])
         lines = t.pformat()
@@ -112,14 +112,14 @@ def test_html_escaping():
     t = table.Table([('<script>alert("gotcha");</script>', 2, 3)])
     nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
-        '<i>Table length=3</i>',
+        '<div><i>Table length=3</i>',
         f'<table id="table{id(t)}" class="{nbclass}">',
         '<thead><tr><th>col0</th></tr></thead>',
         '<thead><tr><th>str33</th></tr></thead>',
         '<tr><td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td></tr>',
         '<tr><td>2</td></tr>',
         '<tr><td>3</td></tr>',
-        '</table>']
+        '</table></div>']
 
 
 @pytest.mark.usefixtures('table_type')

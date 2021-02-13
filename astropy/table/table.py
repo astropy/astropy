@@ -1515,8 +1515,12 @@ class Table:
         return out
 
     def _repr_html_(self):
-        return self._base_repr_(html=True, max_width=-1,
-                                tableclass=conf.default_notebook_table_class)
+        out = self._base_repr_(html=True, max_width=-1,
+                               tableclass=conf.default_notebook_table_class)
+        # Wrap <table> in <div>. This follows the pattern in pandas and allows
+        # table to be scrollable horizontally in VS Code notebook display.
+        out = f'<div>{out}</div>'
+        return out
 
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
