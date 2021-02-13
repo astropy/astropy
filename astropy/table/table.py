@@ -338,20 +338,6 @@ class TableColumns(OrderedDict):
         return cols
 
 
-class TableReadWrite:
-    def __get__(self, instance, owner_cls):
-        if instance is None:
-            # This is an unbound descriptor on the class
-            info = self
-            info._parent_cls = owner_cls
-        else:
-            info = instance.__dict__.get('info')
-            if info is None:
-                info = instance.__dict__['info'] = self.__class__(bound=True)
-            info._parent = instance
-        return info
-
-
 class TableAttribute(MetaAttribute):
     """
     Descriptor to define a custom attribute for a Table subclass.
