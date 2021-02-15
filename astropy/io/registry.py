@@ -640,11 +640,11 @@ def _get_highest_priority_format(mode, cls, valid_formats):
             best_formats = [format]
             current_priority = priority
 
-    if len(best_formats) == 1:
-        return best_formats[0]
-    raise IORegistryError(
-        "Format ambiguous, priorities are tied - best formats are: {}".format(
-            ', '.join(sorted(valid_formats, key=itemgetter(0)))))
+    if len(best_formats) > 1:
+        raise IORegistryError("Format is ambiguous - options are: {}".format(
+            ', '.join(sorted(valid_formats, key=itemgetter(0)))
+        ))
+    return best_formats[0]
 
 
 class UnifiedReadWrite:
