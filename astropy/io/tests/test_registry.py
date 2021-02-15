@@ -259,7 +259,7 @@ def test_read_toomanyformats():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData.read()
     assert str(exc.value) == (
-        "Format ambiguous, priorities are tied - best formats are: test1, test2"
+        "Format is ambiguous - options are: test1, test2"
     )
 
 
@@ -269,7 +269,7 @@ def test_write_toomanyformats():
     with pytest.raises(io_registry.IORegistryError) as exc:
         TestData().write()
     assert str(exc.value) == (
-        "Format ambiguous, priorities are tied - best formats are: test1, test2"
+        "Format is ambiguous - options are: test1, test2"
     )
 
 
