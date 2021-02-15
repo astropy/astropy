@@ -4,6 +4,13 @@ on:
   schedule:
     # run every day at 3am UTC
     - cron: '0 3 * * *'
+  pull_request:
+    # We also want this workflow triggered if the 'Extra CI' label is added
+    # The first two are subset of the defaults
+    types:
+      - synchronize
+      - reopened
+      - labeled
 
 env:
   ARCH_ON_CI: "normal"
@@ -11,9 +18,8 @@ env:
 
 jobs:
   tests:
-    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'astropy/astropy'
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     strategy:
       fail-fast: false
       matrix:
