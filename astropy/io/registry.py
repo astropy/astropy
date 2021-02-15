@@ -205,7 +205,7 @@ def _update__doc__(data_class, readwrite):
             class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-def register_reader(data_format, data_class, function, force=False):
+def register_reader(data_format, data_class, function, force=False, priority=0):
     """
     Register a reader function.
 
@@ -221,10 +221,14 @@ def register_reader(data_format, data_class, function, force=False):
     force : bool, optional
         Whether to override any existing function if already present.
         Default is ``False``.
+    priority : int, optional
+        The priority of the reader, used to compare possible formats when trying
+        to determine the best reader to use. Higher priorities are preferred
+        over lower priorities, with the default priority being 0 (negative
+        numbers are allowed though).
     """
-
     if not (data_format, data_class) in _readers or force:
-        _readers[(data_format, data_class)] = function
+        _readers[(data_format, data_class)] = function, priority
     else:
         raise IORegistryError("Reader for format '{}' and class '{}' is "
                               'already defined'
@@ -256,7 +260,7 @@ def unregister_reader(data_format, data_class):
         _update__doc__(data_class, 'read')
 
 
-def register_writer(data_format, data_class, function, force=False):
+def register_writer(data_format, data_class, function, force=False, priority=0):
     """
     Register a table writer function.
 
@@ -272,10 +276,14 @@ def register_writer(data_format, data_class, function, force=False):
     force : bool, optional
         Whether to override any existing function if already present.
         Default is ``False``.
+    priority : int, optional
+        The priority of the writer, used to compare possible formats when trying
+        to determine the best writer to use. Higher priorities are preferred
+        over lower priorities, with the default priority being 0 (negative
+        numbers are allowed though).
     """
-
     if not (data_format, data_class) in _writers or force:
-        _writers[(data_format, data_class)] = function
+        _writers[(data_format, data_class)] = function, priority
     else:
         raise IORegistryError("Writer for format '{}' and class '{}' is "
                               'already defined'
@@ -443,7 +451,7 @@ def get_reader(data_format, data_class):
     readers = [(fmt, cls) for fmt, cls in _readers if fmt == data_format]
     for reader_format, reader_class in readers:
         if _is_best_match(data_class, reader_class, readers):
-            return _readers[(reader_format, reader_class)]
+            return _readers[(reader_format, reader_class)][0]
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
         raise IORegistryError(
@@ -471,7 +479,7 @@ def get_writer(data_format, data_class):
     writers = [(fmt, cls) for fmt, cls in _writers if fmt == data_format]
     for writer_format, writer_class in writers:
         if _is_best_match(data_class, writer_class, writers):
-            return _writers[(writer_format, writer_class)]
+            return _writers[(writer_format, writer_class)][0]
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
         raise IORegistryError(
@@ -599,11 +607,44 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                               "The available formats are:\n"
                               "{}".format(format_table_str))
     elif len(valid_formats) > 1:
-        raise IORegistryError(
-            "Format is ambiguous - options are: {}".format(
-                ', '.join(sorted(valid_formats, key=itemgetter(0)))))
+        return _get_highest_priority_format(mode, cls, valid_formats)
 
     return valid_formats[0]
+
+
+def _get_highest_priority_format(mode, cls, valid_formats):
+    """
+    Returns the reader or writer with the highest priority. If it is a tie,
+    error.
+    """
+    if mode == "read":
+        format_dict = _readers
+        mode_loader = "reader"
+    elif mode == "write":
+        format_dict = _writers
+        mode_loader = "writer"
+
+    best_formats = []
+    current_priority = - np.inf
+    for format in valid_formats:
+        try:
+            _, priority = format_dict[(format, cls)]
+        except KeyError:
+            # We could throw an exception here, but get_reader/get_writer handle
+            # this case better, instead maximally deprioritise the format.
+            priority = - np.inf
+
+        if priority == current_priority:
+            best_formats.append(format)
+        elif priority > current_priority:
+            best_formats = [format]
+            current_priority = priority
+
+    if len(best_formats) > 1:
+        raise IORegistryError("Format is ambiguous - options are: {}".format(
+            ', '.join(sorted(valid_formats, key=itemgetter(0)))
+        ))
+    return best_formats[0]
 
 
 class UnifiedReadWrite:
