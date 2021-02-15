@@ -4,14 +4,20 @@ on:
   schedule:
     # run every Monday at 6am UTC
     - cron: '0 6 * * 1'
+  pull_request:
+    # We also want this workflow triggered if the 'Extra CI' label is added
+    # The first two are subset of the defaults
+    types:
+      - synchronize
+      - reopened
+      - labeled
 env:
-  IS_CRON: "true"
+  IS_CRON: 'true'
 
 jobs:
   tests:
-    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    if: github.repository == 'astropy/astropy'
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: "normal"
     strategy:
@@ -69,8 +75,8 @@ jobs:
     # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-18.04
-    name: Python 3.7 on ${{ matrix.arch }}
-    if: github.repository == 'astropy/astropy'
+    name: Python 3.7
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
 
