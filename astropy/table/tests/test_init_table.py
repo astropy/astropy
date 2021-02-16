@@ -7,6 +7,7 @@ import pytest
 import numpy as np
 
 from astropy.table import Column, TableColumns, Table, MaskedColumn
+import astropy.units as u
 
 
 class TestTableColumnsInit():
@@ -570,3 +571,17 @@ def test_init_data_type_not_allowed_to_init_table():
     with pytest.raises(ValueError,
                        match="Data type <class 'str'> not allowed to init Table"):
         Table('hello')
+
+
+def test_init_Table_from_list_of_quantity():
+    """Test fix for #11327"""
+    # Variation on original example in #11327 at the Table level
+    data = [{'x': 5 * u.m, 'y': 1 * u.m}, {'x': 10 * u.m, 'y': 3}]
+    t = Table(data)
+    assert t['x'].unit is u.m
+    assert t['y'].unit is None
+    assert t['x'].dtype.kind == 'f'
+    assert t['y'].dtype.kind == 'O'
+    assert np.all(t['x'] == [5, 10])
+    assert t['y'][0] == 1 * u.m
+    assert t['y'][1] == 3
