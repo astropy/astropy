@@ -214,9 +214,14 @@ def _convert_sequence_data_to_array(data, dtype=None):
             # convert to float
             np_data = np.array(data)
         except Exception:
-            # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity
-            dtype = object
-            np_data = np.array(data, dtype=dtype)
+            # Conversion failed for some reason, e.g. [2, 1*u.m] gives TypeError in Quantity.
+            # First try to interpret the data as Quantity. If that still fails then fall
+            # through to object
+            try:
+                np_data = Quantity(data, dtype)
+            except Exception:
+                dtype = object
+                np_data = np.array(data, dtype=dtype)
 
     if np_data.ndim == 0 or (np_data.ndim > 0 and len(np_data) == 0):
         # Implies input was a scalar or an empty list (e.g. initializing an
