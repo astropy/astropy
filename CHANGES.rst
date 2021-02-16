@@ -164,6 +164,9 @@ astropy.uncertainty
 astropy.units
 ^^^^^^^^^^^^^
 
+- Calling ``Unit()`` with no argument now returns a dimensionless unit,
+  as was documented but not implemented. [#11295]
+
 astropy.utils
 ^^^^^^^^^^^^^
 
@@ -1157,6 +1160,11 @@ astropy.stats
 
 astropy.table
 ^^^^^^^^^^^^^
+
+- Fixed bug when initializing a ``Table`` with a column as list of ``Quantity``,
+  for example ``Table({'x': [1*u.m, 2*u.m]})``. Previously this resulted in an
+  ``object`` dtype with no column ``unit`` set, but now gives a float array with
+  the correct unit. [#11329]
 
 - Fixed byteorder conversion in ``to_pandas()``, which had incorrectly
   triggered swapping when native endianness was stored with explicit
