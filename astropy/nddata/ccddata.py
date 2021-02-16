@@ -524,8 +524,7 @@ def _generate_wcs_and_update_header(hdr):
     return (new_hdr, wcs)
 
 
-def fits_ccddata_reader(filename, hdu=0, unit=None, fallback_unit=None,
-                        hdu_uncertainty='UNCERT',
+def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         hdu_mask='MASK', hdu_flags=None,
                         key_uncertainty_type='UTYPE', **kwd):
     """
@@ -546,12 +545,9 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, fallback_unit=None,
         Units of the image data. If this argument is provided and there is a
         unit for the image in the FITS header (the keyword ``BUNIT`` is used
         as the unit, if present), this argument is used in for the
-        unit.  See also `fallback_unit.`
-        Default is ``None``.
-
-    fallback_unit : `~astropy.units.Unit`, optional
-        Units to be used for the image data if `unit` is not provided
-        and no unit is found in the FITS header.
+        unit.  If ``None`` and no unit is found in the FITS header,
+        the value of the ``astropy.nddata.conf.default_ccddata_unit``
+        configuration item is used.
         Default is ``None``.
 
     hdu_uncertainty : str or None, optional
