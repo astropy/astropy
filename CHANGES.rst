@@ -63,6 +63,17 @@ astropy.modeling
 astropy.nddata
 ^^^^^^^^^^^^^^
 
+- Improved unit handling of ``astropy.nddata.fits_ccddata_reader``
+  with (1) new ``astropy.nddata.conf.default_ccddata_unit``
+  configuration item that enables errorless reading of FITS files that
+  have no BUNIT value.  Default unit is ``adu``.  (2) When BUNIT is
+  found in the FITS header, compare it to the ``unit`` keyword
+  argument of ``astropy.nddata.fits_ccddata_reader`` (if provided) and
+  only generate an informational message if the the units are
+  different [#11325]
+
+
+
 astropy.samp
 ^^^^^^^^^^^^
 

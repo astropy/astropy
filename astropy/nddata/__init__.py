@@ -48,5 +48,10 @@ class Conf(_config.ConfigNamespace):
         'that data values/uncertainties are not scaled with the unit change.'
     )
 
+    default_ccddata_unit = _config.ConfigItem(
+        'adu',
+        'Default CCDData unit when no BUNIT is specified in the FITS header'
+    )
+
 
 conf = Conf()

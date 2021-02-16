@@ -658,12 +658,16 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, fallback_unit=None,
                         'argument explicitly or change the header of the FITS '
                         'file before reading it.'
                         .format(fits_unit_string))
-            else:
+
+            elif u.Unit(unit) != u.Unit(fits_unit_string):
                 log.info("using the unit {} passed to the FITS reader instead "
                          "of the unit {} in the FITS file."
                          .format(unit, fits_unit_string))
 
-        use_unit = unit or fits_unit_string or fallback_unit
+        from . import conf
+        use_unit = (unit
+                    or fits_unit_string
+                    or conf.default_ccddata_unit)
         hdr, wcs = _generate_wcs_and_update_header(hdr)
         ccd_data = CCDData(hdus[hdu].data, meta=hdr, unit=use_unit,
                            mask=mask, uncertainty=uncertainty, wcs=wcs)
