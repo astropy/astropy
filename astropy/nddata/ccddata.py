@@ -638,13 +638,15 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
             fits_unit_string = None
 
         if fits_unit_string:
+            # Convert the BUNIT header keyword to a valid unit string
+            # if it is close to one
+            kifus = CCDData.known_invalid_fits_unit_strings
+            if fits_unit_string in kifus:
+                fits_unit_string = kifus[fits_unit_string]
             if unit is None:
-                # Convert the BUNIT header keyword to a unit and if that's not
-                # possible raise a meaningful error message.
+                # User has not specified a unit.  Use BUNIT, raising a
+                # meaningful error message on failure
                 try:
-                    kifus = CCDData.known_invalid_fits_unit_strings
-                    if fits_unit_string in kifus:
-                        fits_unit_string = kifus[fits_unit_string]
                     fits_unit_string = u.Unit(fits_unit_string)
                 except ValueError:
                     raise ValueError(
@@ -654,11 +656,20 @@ def fits_ccddata_reader(filename, hdu=0, unit=None, hdu_uncertainty='UNCERT',
                         'argument explicitly or change the header of the FITS '
                         'file before reading it.'
                         .format(fits_unit_string))
-
-            elif u.Unit(unit) != u.Unit(fits_unit_string):
-                log.info("using the unit {} passed to the FITS reader instead "
-                         "of the unit {} in the FITS file."
-                         .format(unit, fits_unit_string))
+            else:
+                # The user and header both specify units.  Compare
+                # their Unit values, if possible to provide a
+                # meaningful informational message when they differ
+                if unit in kifus:
+                    unit = kifus[unit]
+                try:
+                    fits_unit_string = u.Unit(fits_unit_string)
+                except ValueError:
+                    pass
+                if u.Unit(unit) != fits_unit_string:
+                    log.info("using the unit {} passed to the FITS reader instead "
+                             "of the unit {} in the FITS file."
+                             .format(unit, fits_unit_string))
 
         from . import conf
         use_unit = (unit
