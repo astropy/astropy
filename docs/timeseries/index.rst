@@ -48,12 +48,10 @@ source::
 
 .. note::
     The light curve provided here is handpicked for example purposes. For
-    more information about the Kepler FITS format, see the `Kepler Data
-    Validation Document
-    <https://exoplanetarchive.ipac.caltech.edu/docs/KeplerDV.html>`_ and the
-    Kepler Science Center `Light Curve Files
-    <https://keplerscience.arc.nasa.gov/PyKEprimerLCs.shtml>`_ documentation. To
-    get other Kepler light curves for science purposes using Python, see the
+    more information about the Kepler FITS format, see
+    `Section 2.3.1 of the Kepler Archive Manual
+    <https://archive.stsci.edu/kepler/manuals/archive_manual.pdf#page=16>`_.
+    To get other light curves for science purposes using Python, see the
     `astroquery <https://astroquery.readthedocs.io>`_ affiliated package.
 
 We can then use the |TimeSeries| class to read in this file::
