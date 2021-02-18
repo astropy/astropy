@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from .index import TableIndices, TableLoc, TableILoc, TableLocIndices
+from .index import SlicedIndex, TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
 from collections import OrderedDict, defaultdict
@@ -1011,11 +1011,13 @@ class Table:
                 raise ValueError('Cannot create an index on column "{}", of '
                                  'type "{}"'.format(col.info.name, type(col)))
 
+        is_primary = not self.indices
         index = Index(columns, engine=engine, unique=unique)
-        if not self.indices:
+        sliced_index = SlicedIndex(index, slice(0, 0, None), original=True)
+        if is_primary:
             self.primary_key = colnames
         for col in columns:
-            col.info.indices.append(index)
+            col.info.indices.append(sliced_index)
 
     def remove_indices(self, colname):
         '''

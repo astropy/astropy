@@ -63,19 +63,6 @@ class Index:
     unique : bool (defaults to False)
         Whether the values of the index must be unique
     '''
-    def __new__(cls, *args, **kwargs):
-        self = super().__new__(cls)
-
-        # If (and only if) unpickling for protocol >= 2, then args and kwargs
-        # are both empty.  The class __init__ requires at least the `columns`
-        # arg.  In this case return a bare `Index` object which is then morphed
-        # by the unpickling magic into the correct SlicedIndex object.
-        if not args and not kwargs:
-            return self
-
-        self.__init__(*args, **kwargs)
-        return SlicedIndex(self, slice(0, 0, None), original=True)
-
     def __init__(self, columns, engine=None, unique=False):
         # Local imports to avoid import problems.
         from .table import Table, Column
@@ -594,11 +581,14 @@ class SlicedIndex:
         '''
         from .table import Table
         if len(self.columns) == 1:
-            return Index([col_slice], engine=self.data.__class__)
+            index = Index([col_slice], engine=self.data.__class__)
+            return SlicedIndex(index, slice(0, 0, None), original=True)
+
         t = Table(self.columns, copy_indices=False)
         with t.index_mode('discard_on_copy'):
             new_cols = t[item].columns.values()
-        return Index(new_cols, engine=self.data.__class__)
+        index = Index(new_cols, engine=self.data.__class__)
+        return SlicedIndex(index, slice(0, 0, None), original=True)
 
     @property
     def columns(self):
