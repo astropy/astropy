@@ -24,10 +24,6 @@ ft_version = Version(matplotlib.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
-# TODO: Improve check when this issue is resolved:
-# https://github.com/matplotlib/matplotlib/issues/19419
-MATPLOTLIB_DEV = '+' in matplotlib.__version__
-
 
 def teardown_function(function):
     plt.close('all')
@@ -334,7 +330,6 @@ def test_iterate_coords(ignore_matplotlibrc, tmpdir):
     x, y, z = ax.coords
 
 
-@pytest.mark.xfail(MATPLOTLIB_DEV, reason="https://github.com/matplotlib/matplotlib/issues/19432")
 def test_invalid_slices_errors(ignore_matplotlibrc):
 
     # Make sure that users get a clear message when specifying a WCS with
@@ -405,7 +400,6 @@ EXPECTED_REPR_2 = """
  """.strip()
 
 
-@pytest.mark.xfail(MATPLOTLIB_DEV, reason="https://github.com/matplotlib/matplotlib/issues/19432")
 def test_repr(ignore_matplotlibrc):
 
     # Unit test to make sure __repr__ looks as expected
