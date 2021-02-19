@@ -24,10 +24,6 @@ ft_version = Version(matplotlib.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
-# TODO: Improve check when this issue is resolved:
-# https://github.com/matplotlib/matplotlib/issues/19419
-MATPLOTLIB_DEV = '+' in matplotlib.__version__
-
 
 def teardown_function(function):
     plt.close('all')
