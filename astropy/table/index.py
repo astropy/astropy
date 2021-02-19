@@ -524,7 +524,7 @@ class SlicedIndex:
         if not self._frozen:
             self.index.replace(self.orig_coords(row), col, val)
 
-    def copy(self):
+    def get_index_or_copy(self):
         if not self.original:
             # replace self.index with a new object reference
             self.index = deepcopy(self.index)
@@ -532,8 +532,7 @@ class SlicedIndex:
 
     def insert_row(self, pos, vals, columns):
         if not self._frozen:
-            self.copy().insert_row(self.orig_coords(pos), vals,
-                                   columns)
+            self.get_index_or_copy().insert_row(self.orig_coords(pos), vals, columns)
 
     def get_row_specifier(self, row_specifier):
         return [self.orig_coords(x) for x in
@@ -541,7 +540,7 @@ class SlicedIndex:
 
     def remove_rows(self, row_specifier):
         if not self._frozen:
-            self.copy().remove_rows(row_specifier)
+            self.get_index_or_copy().remove_rows(row_specifier)
 
     def replace_rows(self, col_slice):
         if not self._frozen:
@@ -549,7 +548,7 @@ class SlicedIndex:
 
     def sort(self):
         if not self._frozen:
-            self.copy().sort()
+            self.get_index_or_copy().sort()
 
     def __repr__(self):
         col_names = tuple(col.info.name for col in self.index.columns)
