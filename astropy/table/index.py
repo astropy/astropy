@@ -371,10 +371,10 @@ class Index:
         return SlicedIndex(self, item)
 
     def __str__(self):
-        return str(self.data)
+        return repr(self)
 
     def __repr__(self):
-        return str(self)
+        return f'<{self.__class__.__name__} data={self.data}>'
 
     def __deepcopy__(self, memo):
         '''
@@ -552,9 +552,14 @@ class SlicedIndex:
             self.copy().sort()
 
     def __repr__(self):
-        if self.original:
-            return repr(self.index)
-        return f'Index slice {self.start, self.stop, self.step} of\n{self.index}'
+        col_names = tuple(col.info.name for col in self.index.columns)
+        if len(col_names) == 1:
+            name_str = f'column={col_names[0]!r}'
+        else:
+            name_str = f'columns={col_names}'
+        slice_str = '' if self.original else f' slice={self.start}:{self.stop}:{self.step}'
+        return (f'<{self.__class__.__name__} {name_str} original={self.original}{slice_str}'
+                f' index={self.index}>')
 
     def __str__(self):
         return repr(self)
