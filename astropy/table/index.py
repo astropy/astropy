@@ -410,7 +410,7 @@ class SlicedIndex:
     ----------
     index : Index
         The original Index reference
-    index_slice : slice
+    index_slice : tuple, slice
         The slice to which this SlicedIndex corresponds
     original : bool
         Whether this SlicedIndex represents the original index itself.
@@ -426,9 +426,11 @@ class SlicedIndex:
 
         if isinstance(index_slice, tuple):
             self.start, self._stop, self.step = index_slice
-        else:  # index_slice is an actual slice
+        elif isinstance(index_slice, slice):  # index_slice is an actual slice
             num_rows = len(index.columns[0])
             self.start, self._stop, self.step = index_slice.indices(num_rows)
+        else:
+            raise TypeError('index_slice must be tuple or slice')
 
     @property
     def length(self):
