@@ -443,12 +443,10 @@ class BST:
         return lst
 
     def __str__(self):
-        if self.root is None:
-            return 'Empty'
-        return self._print(self.root, 0)
+        return repr(self)
 
     def __repr__(self):
-        return str(self)
+        return f'<{self.__class__.__name__}>'
 
     def _print(self, node, level):
         line = '\t' * level + str(node) + '\n'
