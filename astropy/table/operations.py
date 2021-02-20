@@ -498,7 +498,7 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table objects
+    tables : Table or list of Table or Row objects
         Table(s) to stack along depth-wise with the current table
         Table columns should have same shape and name for depth-wise stacking
     join_type : str
@@ -537,6 +537,8 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
       1 .. 5 3 .. 7
       2 .. 6 4 .. 8
     """
+    _check_join_type(join_type, 'dstack')
+
     tables = _get_list_of_tables(tables)
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
@@ -589,8 +591,8 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table objects
-        Table(s) to stack along rows (vertically) with the current table
+    tables : Table or list of Table or Row objects
+        Table(s) to stack along rows (vertically)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     metadata_conflicts : str
@@ -629,6 +631,8 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         5   7
         6   8
     """
+    _check_join_type(join_type, 'vstack')
+
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
@@ -656,8 +660,8 @@ def hstack(tables, join_type='outer',
 
     Parameters
     ----------
-    tables : List of Table objects
-        Tables to stack along columns (horizontally) with the current table
+    tables : Table or list of Table or Row objects
+        Tables to stack along columns (horizontally)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     uniq_col_name : str or None
@@ -700,6 +704,8 @@ def hstack(tables, join_type='outer',
         1   3   5   7
         2   4   6   8
     """
+    _check_join_type(join_type, 'hstack')
+
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
         return tables[0]  # no point in stacking a single table
@@ -1074,8 +1080,6 @@ def _join(left, right, keys=None, join_type='inner',
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
-    from astropy.time import Time
-
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
@@ -1212,6 +1216,25 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
+def _check_join_type(join_type, func_name):
+    """Check join_type arg in hstack and vstack.
+
+    This specifically checks for the common mistake of call vstack(t1, t2)
+    instead of vstack([t1, t2]). The subsequent check of
+    ``join_type in ('inner', ..)`` does not raise in this case.
+    """
+    if not isinstance(join_type, str):
+        msg = '`join_type` arg must be a string'
+        if isinstance(join_type, Table):
+            msg += ('. Did you accidentally '
+                    f'call {func_name}(t1, t2, ..) instead of '
+                    f'{func_name}([t1, t2], ..)?')
+        raise TypeError(msg)
+
+    if join_type not in ('inner', 'exact', 'outer'):
+        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
+
+
 def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='warn'):
     """
     Stack Tables vertically (by rows)
@@ -1240,10 +1263,6 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
     """
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
-
-    # Input validation
-    if join_type not in ('inner', 'exact', 'outer'):
-        raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
 
     # Trivial case of one input array
     if len(arrays) == 1:
@@ -1351,10 +1370,6 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
 
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
-
-    # Input validation
-    if join_type not in ('inner', 'exact', 'outer'):
-        raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
 
     if table_names is None:
         table_names = [f'{ii + 1}' for ii in range(len(arrays))]

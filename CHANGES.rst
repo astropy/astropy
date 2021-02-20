@@ -1231,6 +1231,11 @@ astropy.table
   triggered swapping when native endianness was stored with explicit
   ``dtype`` code ``'<'`` (or ``'>'``) instead of ``'='``. [#11288, #11294]
 
+- Fixed bug when validating the inputs to ``table.hstack``, ``table.vstack``,
+  and ``table.dstack``. Previously, mistakenly calling ``table.hstack(t1, t2)``
+  (instead of ``table.hstack([t1, t2]))`` would return ``t1`` instead of raising
+  an exception. [#11336]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
