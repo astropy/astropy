@@ -212,12 +212,12 @@ class _TableLikeHDU(_ValidHDU):
         interface.
         """
 
-        # TODO: It's not clear that this actually works--it probably does not.
-        # This is what the code used to do before introduction of the
-        # notifier interface, but I don't believe it actually worked (there are
-        # several bug reports related to this...)
         if self._data_loaded:
-            del self.data
+            # recreate data from the columns
+            self.data = FITS_rec.from_columns(
+                self.columns, nrows=self._nrows, fill=False,
+                character_as_bytes=self._character_as_bytes
+            )
 
     def _update_column_removed(self, columns, col_idx):
         """
@@ -225,12 +225,12 @@ class _TableLikeHDU(_ValidHDU):
         interface.
         """
 
-        # For now this doesn't do anything fancy--it just deletes the data
-        # attribute so that it is forced to be recreated again.  It doesn't
-        # change anything on the existing data recarray (this is also how this
-        # worked before introducing the notifier interface)
         if self._data_loaded:
-            del self.data
+            # recreate data from the columns
+            self.data = FITS_rec.from_columns(
+                self.columns, nrows=self._nrows, fill=False,
+                character_as_bytes=self._character_as_bytes
+            )
 
 
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
