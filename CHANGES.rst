@@ -1188,6 +1188,7 @@ astropy.io.fits
 - Fix parsing of RVKC header card patterns that were not recognised
   where multiple spaces were separating field-specifier and value like
   "DP1.AXIS.1:   1". [#11301]
+
 - Fix misleading missing END card error when extra data are found at the end
   of the file. [#11285] 
 
