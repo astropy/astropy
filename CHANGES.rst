@@ -1137,6 +1137,9 @@ astropy.io.fits
   where multiple spaces were separating field-specifier and value like
   "DP1.AXIS.1:   1". [#11301]
 
+- Fix misleading missing END card error when extra data are found at the end
+  of the file. [#11285] 
+
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
