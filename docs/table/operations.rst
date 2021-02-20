@@ -1125,12 +1125,12 @@ Now we show the whole process:
 
 ..  doctest-requires:: scipy
 
-  >>> t1 = Table([sc1, [0, 1, 2, 3]], names=['sc', 'idx_1'])
-  >>> t2 = Table([sc2, [0, 1, 2]], names=['sc', 'idx_2'])
+  >>> t1 = Table([sc1, [0, 1, 2, 3]], names=['sc', 'idx'])
+  >>> t2 = Table([sc2, [0, 1, 2]], names=['sc', 'idx'])
 
 ..  doctest-requires:: scipy
 
-  >>> t12 = join(t1, t2, join_funcs={'sc': join_skycoord(0.2 * u.deg)})
+  >>> t12 = join(t1, t2, keys='sc', join_funcs={'sc': join_skycoord(0.2 * u.deg)})
   >>> print(t12)
   sc_id   sc_1  idx_1   sc_2   idx_2
         deg,deg       deg,deg
