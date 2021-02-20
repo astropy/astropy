@@ -675,6 +675,11 @@ class TestVStack():
                                        ('a', 1),
                                        ('e', 1)])
 
+    def test_validate_join_type(self):
+        self._setup()
+        with pytest.raises(TypeError, match='Did you accidentally call vstack'):
+            table.vstack(self.t1, self.t2)
+
     def test_stack_rows(self, operation_table_type):
         self._setup(operation_table_type)
         t2 = self.t1.copy()
@@ -1038,6 +1043,11 @@ class TestDStack():
                               ' 4.  sez  6',
                               ' 6.  foo  3'], format='ascii')
 
+    def test_validate_join_type(self):
+        self._setup()
+        with pytest.raises(TypeError, match='Did you accidentally call dstack'):
+            table.dstack(self.t1, self.t2)
+
     @staticmethod
     def compare_dstack(tables, out):
         for ii, tbl in enumerate(tables):
@@ -1160,6 +1170,11 @@ class TestHStack():
                                        ('d', 1),
                                        ('a', 1),
                                        ('e', 1)])
+
+    def test_validate_join_type(self):
+        self._setup()
+        with pytest.raises(TypeError, match='Did you accidentally call hstack'):
+            table.hstack(self.t1, self.t2)
 
     def test_stack_same_table(self, operation_table_type):
         """
