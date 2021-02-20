@@ -331,9 +331,6 @@ class FITS_rec(np.recarray):
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
         data._character_as_bytes = character_as_bytes
 
-        # Make sure the data is a listener for changes to the columns
-        columns._add_listener(data)
-
         # Previously this assignment was made from hdu.columns, but that's a
         # bug since if a _TableBaseHDU has a FITS_rec in its .data attribute
         # the _TableBaseHDU.columns property is actually returned from
