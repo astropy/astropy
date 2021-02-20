@@ -308,6 +308,3 @@ class SortedArray:
         t = self.data.copy()
         t['rows'] = self.row_index
         return f'<{self.__class__.__name__} length={len(t)}>\n{t}'
-
-    def __str__(self):
-        return repr(self)
