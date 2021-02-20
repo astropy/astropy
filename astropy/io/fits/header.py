@@ -599,14 +599,14 @@ class Header:
             if not is_binary:
                 block = encode_ascii(block)
 
+        header_str = ''.join(read_blocks)
+        _check_padding(header_str, actual_block_size, is_eof,
+                       check_block_size=padding)
+
         if not end_found and is_eof and endcard:
             # TODO: Pass this error to validation framework as an ERROR,
             # rather than raising an exception
             raise OSError('Header missing END card.')
-
-        header_str = ''.join(read_blocks)
-        _check_padding(header_str, actual_block_size, is_eof,
-                       check_block_size=padding)
 
         return header_str, cls.fromstring(header_str, sep=sep)
 
