@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+import pickle
 
 import pytest
 import numpy as np
@@ -20,6 +21,12 @@ available_engines = [BST, SortedArray]
 
 if HAS_SORTEDCONTAINERS:
     available_engines.append(SCEngine)
+
+try:
+    import yaml  # noqa
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 
 @pytest.fixture(params=available_engines)
@@ -549,6 +556,22 @@ def test_table_index_time_warning(engine):
     with warnings.catch_warnings(record=True) as wlist:
         tab.add_index(('a', 'b'), engine=engine)
     assert len(wlist) == 0
+
+
+@pytest.mark.skipif(not HAS_YAML, reason='YAML required')
+def test_index_pickle(engine):
+    """Test that indices and primary_key round-trip through pickle"""
+    t = Table([[1, 2], [3, 4]], names=['a', 'b'])
+    t.add_index('a', engine=engine)
+    t.add_index(['a', 'b'], engine=engine)
+    t2 = pickle.loads(pickle.dumps(t))
+    assert t2.primary_key == ('a',)
+    assert t2.loc[1]['b'] == 3
+    assert len(t2.indices) == 2
+    colnames = [col.info.name for col in t2.indices['a'].index.columns]
+    assert colnames == ['a']
+    colnames = [col.info.name for col in t2.indices['a', 'b'].index.columns]
+    assert colnames == ['a', 'b']
 
 
 @pytest.mark.parametrize('col', [

@@ -1,0 +1,4 @@
+Allow table indices and the primary key to be pickled. Also allow any
+``TableAttribute`` to be serialized to FITS and HDF5, including ``primary_key``
+and ``pprint_include/exclude_names``.
+
