@@ -370,11 +370,9 @@ class Index:
         '''
         return SlicedIndex(self, item)
 
-    def __str__(self):
-        return repr(self)
-
     def __repr__(self):
-        return f'<{self.__class__.__name__} data={self.data}>'
+        col_names = tuple(col.info.name for col in self.columns)
+        return f'<{self.__class__.__name__} columns={col_names} data={self.data}>'
 
     def __deepcopy__(self, memo):
         '''
@@ -553,17 +551,9 @@ class SlicedIndex:
             self.get_index_or_copy().sort()
 
     def __repr__(self):
-        col_names = tuple(col.info.name for col in self.index.columns)
-        if len(col_names) == 1:
-            name_str = f'column={col_names[0]!r}'
-        else:
-            name_str = f'columns={col_names}'
         slice_str = '' if self.original else f' slice={self.start}:{self.stop}:{self.step}'
-        return (f'<{self.__class__.__name__} {name_str} original={self.original}{slice_str}'
+        return (f'<{self.__class__.__name__} original={self.original}{slice_str}'
                 f' index={self.index}>')
-
-    def __str__(self):
-        return repr(self)
 
     def replace_col(self, prev_col, new_col):
         self.index.replace_col(prev_col, new_col)
@@ -588,13 +578,13 @@ class SlicedIndex:
         from .table import Table
         if len(self.columns) == 1:
             index = Index([col_slice], engine=self.data.__class__)
-            return SlicedIndex(index, slice(0, 0, None), original=True)
+            return self.__class__(index, slice(0, 0, None), original=True)
 
         t = Table(self.columns, copy_indices=False)
         with t.index_mode('discard_on_copy'):
             new_cols = t[item].columns.values()
         index = Index(new_cols, engine=self.data.__class__)
-        return SlicedIndex(index, slice(0, 0, None), original=True)
+        return self.__class__(index, slice(0, 0, None), original=True)
 
     @property
     def columns(self):

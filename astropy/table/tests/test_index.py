@@ -579,3 +579,8 @@ def test_hstack_qtable_table():
     qstack = hstack([qtab, tab])
     assert qstack['t'].info.indices == []
     assert qstack.indices == []
+
+
+def test_index_slice_exception():
+    with pytest.raises(TypeError, match='index_slice must be tuple or slice'):
+        SlicedIndex(None, None)
