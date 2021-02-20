@@ -350,6 +350,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self._header['TFIELDS'] = len(self.data._coldefs)
 
                 self.columns = self.data._coldefs
+                self.columns._add_listener(self.data)
                 self.update()
 
                 with suppress(TypeError, AttributeError):
@@ -435,9 +436,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 new_columns = self._columns_type(data.columns)
                 data = FITS_rec.from_columns(new_columns)
 
+            if 'data' in self.__dict__:
+                self.columns._remove_listener(self.__dict__['data'])
             self.__dict__['data'] = data
 
             self.columns = self.data.columns
+            self.columns._add_listener(self.data)
             self.update()
 
             with suppress(TypeError, AttributeError):
