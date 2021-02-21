@@ -168,4 +168,9 @@ class SCEngine:
         self._nodes.update(nodes)
 
     def __repr__(self):
-        return f'{list(self._nodes)!r}'
+        if len(self._nodes) > 6:
+            nodes = list(self._nodes[:3]) + ['...'] + list(self._nodes[-3:])
+        else:
+            nodes = self._nodes
+        nodes_str = ', '.join(str(node) for node in nodes)
+        return f'<{self.__class__.__name__} nodes={nodes_str}>'

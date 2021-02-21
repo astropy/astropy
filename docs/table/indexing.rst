@@ -37,19 +37,21 @@ retrieve an index from a table, use the `~astropy.table.Table.indices`
 property::
 
    >>> t.indices['a']
+   <SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=4>
     a  rows
    --- ----
      1    3
      2    0
      2    2
-     3    1
+     3    1>>
    >>> t.indices['a', 'b']
+   <SlicedIndex original=True index=<Index columns=('a', 'b') data=<SortedArray length=4>
     a   b  rows
    --- --- ----
      1   5    3
      2   6    2
      2   8    0
-     3   7    1
+     3   7    1>>
 
 .. EXAMPLE END
 
@@ -168,19 +170,21 @@ index is modified, and all indices refresh themselves after the context ends::
   >>> with t.index_mode('freeze'):
   ...    t['a'][0] = 0
   ...    print(t.indices['a']) # unmodified
+  <SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=4>
    a  rows
   --- ----
     1    0
     2    1
     3    2
-    4    3
+    4    3>>
   >>> print(t.indices['a']) # modified
+  <SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=4>
    a  rows
   --- ----
     0    0
     2    1
     3    2
-    4    3
+    4    3>>
 
 .. EXAMPLE END
 
@@ -196,11 +200,12 @@ indices while column slices will not::
   >>> with t.index_mode('copy_on_getitem'):
   ...     ca = t['a'][[1, 3]]
   ...     print(ca.info.indices)
-  [ a  rows
+  [<SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=2>
+   a  rows
   --- ----
     2    0
-    4    1]
-
+    4    1>>]
+    
 .. EXAMPLE END
 
 .. EXAMPLE START: Table Indexing with the "discard_on_copy" Index Mode
@@ -210,19 +215,13 @@ column or table is copied::
 
   >>> t2 = Table(t)
   >>> t2.indices['a']
+  <SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=4>
    a  rows
   --- ----
     0    0
     2    1
     3    2
-    4    3
-  >>> t2.indices['b']
-   b  rows
-  --- ----
-    1    1
-    9    2
-    9    3
-   10    0
+    4    3>>
   >>> with t.index_mode('discard_on_copy'):
   ...    t2 = Table(t)
   ...    print(t2.indices)
@@ -303,9 +302,13 @@ specified to use a particular indexing engine. The available engines are:
   sorted ``Table``.
 * `~astropy.table.SCEngine`, a sorted list engine using the `Sorted Containers
   <https://pypi.org/project/sortedcontainers/>`_ package.
-* `~astropy.table.BST`, a Python-based binary search tree engine.
+* `~astropy.table.BST`, a Python-based binary search tree engine (not recommended).
 
 The SCEngine depends on the ``sortedcontainers`` dependency. The most important takeaway is that
 `~astropy.table.SortedArray` (the default engine) is usually best, although
 `~astropy.table.SCEngine` may be more appropriate for an index created on an
 empty column since adding new values is quicker.
+
+The `~astropy.table.BST` engine demonstrates a simple pure Python implementation
+of a search tree engine, but the performance is poor for larger tables. This
+is available in the code largely as an implementation reference.
