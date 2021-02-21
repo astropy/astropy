@@ -206,31 +206,32 @@ class _TableLikeHDU(_ValidHDU):
         # new data placed in the column object above
         del columns._arrays
 
+    def _update_load_data(self):
+        """Load the data if asked to."""
+        if not self._data_loaded:
+            self.data
+
     def _update_column_added(self, columns, column):
         """
         Update the data upon addition of a new column through the `ColDefs`
         interface.
         """
-
-        if self._data_loaded:
-            # recreate data from the columns
-            self.data = FITS_rec.from_columns(
-                self.columns, nrows=self._nrows, fill=False,
-                character_as_bytes=self._character_as_bytes
-            )
+        # recreate data from the columns
+        self.data = FITS_rec.from_columns(
+            self.columns, nrows=self._nrows, fill=False,
+            character_as_bytes=self._character_as_bytes
+        )
 
     def _update_column_removed(self, columns, col_idx):
         """
         Update the data upon removal of a column through the `ColDefs`
         interface.
         """
-
-        if self._data_loaded:
-            # recreate data from the columns
-            self.data = FITS_rec.from_columns(
-                self.columns, nrows=self._nrows, fill=False,
-                character_as_bytes=self._character_as_bytes
-            )
+        # recreate data from the columns
+        self.data = FITS_rec.from_columns(
+            self.columns, nrows=self._nrows, fill=False,
+            character_as_bytes=self._character_as_bytes
+        )
 
 
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):

@@ -716,6 +716,20 @@ class TestTableFunctions(FitsTestCase):
             formats='a10,u4,a10,5f4,l')
         assert comparerecords(tbhdu.data, array)
 
+    def test_adding_a_column_to_file(self):
+        hdul = fits.open(self.data('table.fits'))
+        tbhdu = hdul[1]
+        col = fits.Column(name='a', array=np.array([1, 2]), format='K')
+        tbhdu.columns.add_col(col)
+        assert tbhdu.columns.names == ['target', 'V_mag', 'a']
+        array = np.rec.array(
+            [('NGC1001', 11.1, 1),
+             ('NGC1002', 12.3, 2),
+             ('NGC1003', 15.2, 0)],
+            formats='a20,f4,i8')
+        assert comparerecords(tbhdu.data, array)
+        hdul.close()
+
     def test_removing_a_column_inplace(self):
         # Tests adding a column to a table.
         counts = np.array([312, 334, 308, 317])
@@ -754,6 +768,19 @@ class TestTableFunctions(FitsTestCase):
              ('NCG4', z)],
             formats='a10,5f4')
         assert comparerecords(tbhdu.data, array)
+
+    def test_removing_a_column_from_file(self):
+        hdul = fits.open(self.data('table.fits'))
+        tbhdu = hdul[1]
+        tbhdu.columns.del_col('V_mag')
+        assert tbhdu.columns.names == ['target']
+        array = np.rec.array(
+            [('NGC1001', ),
+             ('NGC1002', ),
+             ('NGC1003', )],
+            formats='a20')
+        assert comparerecords(tbhdu.data, array)
+        hdul.close()
 
     def test_merge_tables(self):
         counts = np.array([312, 334, 308, 317])
