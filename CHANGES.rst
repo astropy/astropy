@@ -82,6 +82,9 @@ astropy.table
   printing a table. This functionality includes a context manager to
   include/exclude columns temporarily. [#11190]
 
+- Improved the string representation of objects related to ``Table.indices`` so
+  they now indicate the object type and relevant attributes. [#11333]
+
 astropy.tests
 ^^^^^^^^^^^^^
 
@@ -190,6 +193,10 @@ astropy.table
 - In reading from a FITS tables, the standard mask values of ``NaN`` for float
   and null string for string are properly recognized, leading to a
   ``MaskedColumn`` with appropriately set mask. [#11222]
+
+- Changed the implementation of the ``table.index.Index`` class so instantiating
+  from this class now returns an ``Index`` object as expected instead of a
+  ``SlicedIndex`` object. [#11333]
 
 astropy.tests
 ^^^^^^^^^^^^^

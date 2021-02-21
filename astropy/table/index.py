@@ -63,19 +63,6 @@ class Index:
     unique : bool (defaults to False)
         Whether the values of the index must be unique
     '''
-    def __new__(cls, *args, **kwargs):
-        self = super().__new__(cls)
-
-        # If (and only if) unpickling for protocol >= 2, then args and kwargs
-        # are both empty.  The class __init__ requires at least the `columns`
-        # arg.  In this case return a bare `Index` object which is then morphed
-        # by the unpickling magic into the correct SlicedIndex object.
-        if not args and not kwargs:
-            return self
-
-        self.__init__(*args, **kwargs)
-        return SlicedIndex(self, slice(0, 0, None), original=True)
-
     def __init__(self, columns, engine=None, unique=False):
         # Local imports to avoid import problems.
         from .table import Table, Column
@@ -383,11 +370,9 @@ class Index:
         '''
         return SlicedIndex(self, item)
 
-    def __str__(self):
-        return str(self.data)
-
     def __repr__(self):
-        return str(self)
+        col_names = tuple(col.info.name for col in self.columns)
+        return f'<{self.__class__.__name__} columns={col_names} data={self.data}>'
 
     def __deepcopy__(self, memo):
         '''
@@ -423,7 +408,7 @@ class SlicedIndex:
     ----------
     index : Index
         The original Index reference
-    index_slice : slice
+    index_slice : tuple, slice
         The slice to which this SlicedIndex corresponds
     original : bool
         Whether this SlicedIndex represents the original index itself.
@@ -439,9 +424,11 @@ class SlicedIndex:
 
         if isinstance(index_slice, tuple):
             self.start, self._stop, self.step = index_slice
-        else:  # index_slice is an actual slice
+        elif isinstance(index_slice, slice):  # index_slice is an actual slice
             num_rows = len(index.columns[0])
             self.start, self._stop, self.step = index_slice.indices(num_rows)
+        else:
+            raise TypeError('index_slice must be tuple or slice')
 
     @property
     def length(self):
@@ -537,7 +524,7 @@ class SlicedIndex:
         if not self._frozen:
             self.index.replace(self.orig_coords(row), col, val)
 
-    def copy(self):
+    def get_index_or_copy(self):
         if not self.original:
             # replace self.index with a new object reference
             self.index = deepcopy(self.index)
@@ -545,8 +532,7 @@ class SlicedIndex:
 
     def insert_row(self, pos, vals, columns):
         if not self._frozen:
-            self.copy().insert_row(self.orig_coords(pos), vals,
-                                   columns)
+            self.get_index_or_copy().insert_row(self.orig_coords(pos), vals, columns)
 
     def get_row_specifier(self, row_specifier):
         return [self.orig_coords(x) for x in
@@ -554,7 +540,7 @@ class SlicedIndex:
 
     def remove_rows(self, row_specifier):
         if not self._frozen:
-            self.copy().remove_rows(row_specifier)
+            self.get_index_or_copy().remove_rows(row_specifier)
 
     def replace_rows(self, col_slice):
         if not self._frozen:
@@ -562,15 +548,12 @@ class SlicedIndex:
 
     def sort(self):
         if not self._frozen:
-            self.copy().sort()
+            self.get_index_or_copy().sort()
 
     def __repr__(self):
-        if self.original:
-            return repr(self.index)
-        return f'Index slice {self.start, self.stop, self.step} of\n{self.index}'
-
-    def __str__(self):
-        return repr(self)
+        slice_str = '' if self.original else f' slice={self.start}:{self.stop}:{self.step}'
+        return (f'<{self.__class__.__name__} original={self.original}{slice_str}'
+                f' index={self.index}>')
 
     def replace_col(self, prev_col, new_col):
         self.index.replace_col(prev_col, new_col)
@@ -594,11 +577,14 @@ class SlicedIndex:
         '''
         from .table import Table
         if len(self.columns) == 1:
-            return Index([col_slice], engine=self.data.__class__)
+            index = Index([col_slice], engine=self.data.__class__)
+            return self.__class__(index, slice(0, 0, None), original=True)
+
         t = Table(self.columns, copy_indices=False)
         with t.index_mode('discard_on_copy'):
             new_cols = t[item].columns.values()
-        return Index(new_cols, engine=self.data.__class__)
+        index = Index(new_cols, engine=self.data.__class__)
+        return self.__class__(index, slice(0, 0, None), original=True)
 
     @property
     def columns(self):
