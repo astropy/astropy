@@ -6,11 +6,8 @@ from collections import OrderedDict
 
 import numpy as np
 
-from astropy.utils.data_info import MixinInfo
 from .column import Column, MaskedColumn
-from .table import Table, QTable, has_info_class
 from astropy.utils.data_info import MixinInfo, FLATTEN_MULTIDIM
-from .column import Column
 from .table import Table, QTable, has_info_class, NdarrayMixin
 from astropy.units.quantity import QuantityInfo
 
