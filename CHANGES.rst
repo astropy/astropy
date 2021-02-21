@@ -340,12 +340,10 @@ astropy.units
 - Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe. [#11227]
 
 - Make ufunc helper lookup thread-safe. [#11226]
+
 - The physical type of ``astropy.units.mol / astropy.units.m ** 3`` is now
   defined as molar concentration.  It was previously incorrectly defined
   as molar volume.  [#11204]
-- Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe.
-
-- Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe. [#11227]
 
 astropy.utils
 ^^^^^^^^^^^^^
