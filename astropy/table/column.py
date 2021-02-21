@@ -345,9 +345,9 @@ class ColumnInfo(BaseColumnInfo):
         This handles the special case of serializing in ECSV an N-dimensional
         column (for N > 1) by turning it into the required number of 1-d arrays.
 
-        For instance a Column with shape (2, 2, 20) will turn into four columns
+        For instance a Column with shape (20, 2, 2) will turn into four columns
         (each length 20) with "data attribute" names 0_0, 0_1, 1_0, and 1_1.
-        These then get constructed back into the same (2, 2, 20) Column.
+        These then get constructed back into the same (20, 2, 2) Column.
         """
         col = self._parent
 

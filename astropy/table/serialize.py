@@ -137,7 +137,9 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             new_name = name + '.' + data_attr
 
         # If the data attribute is not a Mixin (aka a Column or ndarray) and
-        # multidimensional
+        # multidimensional. For instance saving an N-d Time object can send a
+        # data attribute that is an N-d np.ndarray, so we need to recast that
+        # as NdarrayMixin so it gets flattened (in the right context i.e. ECSV).
         if (not has_info_class(data, MixinInfo)
                 and col.info._serialize_context in FLATTEN_MULTIDIM
                 and len(data.shape) > 1):

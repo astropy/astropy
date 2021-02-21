@@ -247,7 +247,9 @@ def make_multidim(col, ndim):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 @pytest.mark.parametrize('ndim', (1, 2, 3))
 def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
-    """Test write/read one col at a time and do detailed validation"""
+    """Test write/read one col at a time and do detailed validation.
+    This tests every input column type as 1-d, 2-d and 3-d.
+    """
     name, col = name_col
 
     c = make_multidim(np.array([1.0, 2.0]), ndim)

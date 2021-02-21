@@ -45,8 +45,6 @@ class NdarrayMixinInfo(ParentDtypeInfo):
         However as a special case if there are any keys in ``map`` that begin
         with a digit, this must correspond to an N-d column that was serialized
         through ECSV. (No actual attribute names can begin with a digit).
-
-        In this case
         """
         idxs_map = {}
         # Look for keys like 0_0 or 2_1 corresponding to serializing an N-d

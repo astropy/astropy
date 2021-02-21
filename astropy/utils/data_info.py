@@ -46,7 +46,7 @@ STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
 
 # Context types for which multidimensional data will be flattened to
 # a list of 1-d arrays.
-FLATTEN_MULTIDIM = ['ecsv', None]
+FLATTEN_MULTIDIM = ['ecsv']
 
 
 @contextmanager
