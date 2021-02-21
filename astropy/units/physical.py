@@ -228,7 +228,7 @@ class PhysicalType:
     PhysicalType('length')
 
     Some units are dimensionally compatible with multiple physical types.
-    A pascal is intended to represent pressure or stress, but the unit
+    A pascal is intended to represent pressure and stress, but the unit
     decomposition is equivalent to that of energy density.
 
     >>> pressure = u.Pa.physical_type

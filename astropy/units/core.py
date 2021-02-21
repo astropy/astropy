@@ -1327,7 +1327,7 @@ class UnitBase:
     @property
     def physical_type(self):
         """
-        Physical type(s) that are dimensionally compatible with the unit.
+        Physical type(s) dimensionally compatible with the unit.
 
         Returns
         -------
