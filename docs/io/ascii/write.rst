@@ -325,7 +325,7 @@ compatibility with a wide variety of non-specialized CSV table readers.
 Mixin Columns
 -------------
 
-Starting with ``astropy`` 2.0 it is possible to store not only standard
+It is possible to store not only standard
 `~astropy.table.Column` objects to ECSV but also the following
 :ref:`mixin_columns`:
 
@@ -338,6 +338,8 @@ Starting with ``astropy`` 2.0 it is possible to store not only standard
 - `astropy.coordinates.Distance`
 - `astropy.coordinates.EarthLocation`
 - `astropy.coordinates.SkyCoord`
+- `astropy.table.NdarrayMixin`
+- Coordinate representation types such as `astropy.coordinates.SphericalRepresentation`
 
 In general, a mixin column may contain multiple data components as well as
 object attributes beyond the standard `~astropy.table.Column` attributes like
@@ -357,8 +359,10 @@ Example
   EXAMPLE START
   Writing a Table with a SkyCoord Column in ECSV Format
 
-Creating a table with a `~astropy.coordinates.SkyCoord` column can be accomplished with a mixin
-column, which is supported by `ECSV <https://docs.astropy.org/en/stable/api/astropy.io.ascii.Ecsv.html>`_. To store a mixin column::
+Creating a table with a `~astropy.coordinates.SkyCoord` column can be
+accomplished with a mixin column, which is supported by `ECSV
+<https://docs.astropy.org/en/stable/api/astropy.io.ascii.Ecsv.html>`_. To store
+a mixin column::
 
   >>> from astropy.io import ascii
   >>> from astropy.coordinates import SkyCoord
@@ -504,6 +508,76 @@ interface for tables with the ``serialize_method`` keyword argument::
 
 In this case, all data values (including those "under the mask" in the
 original table) will be restored exactly when you read the file back.
+
+..
+  EXAMPLE END
+
+Multidimensional Columns
+------------------------
+
+Using ECSV it is possible to write a table that contains multidimensional
+columns. This is done by encoding a single multidimensional (N-d) column into
+the corresponding 1-d columns for each axis. This functionality works for all
+column types that are supported by ECSV including mixins.
+
+Example
+=======
+
+..
+  EXAMPLE START
+  Using ECSV Format to Write Astropy Tables with Multidimensional Columns
+
+We start by defining a table with 2 rows where each element in the first column
+``'a'`` is itself a 3x2 array::
+
+  >>> t = Table()
+  >>> t['a'] = np.arange(12, dtype=np.float64).reshape(2, 3, 2)
+  >>> t['b'] = ['x', 'y']
+  >>> t
+  <Table length=2>
+    a [3,2]    b
+    float64   str1
+  ----------- ----
+   0.0 .. 5.0    x
+  6.0 .. 11.0    y
+  >>> t['a'][0]
+  array([[0., 1.],
+        [2., 3.],
+        [4., 5.]])
+
+Now we can write this to ECSV and observe how the N-d column ``'a'`` has been
+"flattened" into a sequence of 1-d columns that are named by their indices.
+
+  >>> ascii.write(t, format='ecsv')
+  # %ECSV 0.9
+  # ---
+  # datatype:
+  # - {name: a.0_0, datatype: float64}
+  # - {name: a.0_1, datatype: float64}
+  # - {name: a.1_0, datatype: float64}
+  # - {name: a.1_1, datatype: float64}
+  # - {name: a.2_0, datatype: float64}
+  # - {name: a.2_1, datatype: float64}
+  # - {name: b, datatype: string}
+  # meta: !!omap
+  # - __serialized_columns__:
+  #     a:
+  #       __class__: astropy.table.column.Column
+  #       data: !astropy.table.SerializedColumn
+  #         '0_0': !astropy.table.SerializedColumn {name: a.0_0}
+  #         '0_1': !astropy.table.SerializedColumn {name: a.0_1}
+  #         '1_0': !astropy.table.SerializedColumn {name: a.1_0}
+  #         '1_1': !astropy.table.SerializedColumn {name: a.1_1}
+  #         '2_0': !astropy.table.SerializedColumn {name: a.2_0}
+  #         '2_1': !astropy.table.SerializedColumn {name: a.2_1}
+  #         __class__: astropy.table.table.NdarrayMixin
+  # schema: astropy-2.0
+  a.0_0 a.0_1 a.1_0 a.1_1 a.2_0 a.2_1 b
+  0.0 1.0 2.0 3.0 4.0 5.0 x
+  6.0 7.0 8.0 9.0 10.0 11.0 y
+
+When you read this back in, the sequence of flattened 1-d columns are
+reassembled into the original N-d column.
 
 ..
   EXAMPLE END
