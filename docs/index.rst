@@ -117,14 +117,21 @@ Nuts and bolts
    logging
    warnings
    utils/index
+
+{% if is_development %}
+
    testhelpers
    development/workflow/get_devel_version
+
+{%endif%}
 
 .. _developer-docs:
 
 ***********************
 Developer Documentation
 ***********************
+
+{% if is_development %}
 
 The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
@@ -151,6 +158,21 @@ as a whole, see :doc:`development/vision`.
 There are some additional tools, mostly of use for maintainers, in the
 `astropy/astropy-procedures repository
 <https://github.com/astropy/astropy-procedures>`__.
+
+{%else%}
+
+The developer documentation contains instructions for how to contribute to
+Astropy or affiliated packages, as well as coding, documentation, and
+testing guidelines. To read the developer documentation, you will need to go
+to the
+`latest developer version of the documentation <https://docs.astropy.org/en/latest/#developer-documentation>`__.
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
+{%endif%}
 
 .. _project-details:
 
