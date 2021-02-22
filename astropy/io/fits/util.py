@@ -761,7 +761,7 @@ def _words_group(s, width):
     """
     Split a long string into parts where each part is no longer than ``strlen``
     and no word is cut into two pieces.  But if there are any single words
-    which are longer than ``strlen``, then then will be split in the middle of
+    which are longer than ``strlen``, then they will be split in the middle of
     the word.
     """
 
