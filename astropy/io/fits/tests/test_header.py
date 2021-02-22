@@ -410,6 +410,20 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  '&' / comment long comment long comment long comment long comment     "
             "CONTINUE  '' / long comment                                                     ")
 
+    def test_long_string_value_with_multiple_long_words(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/11298
+        """
+        c = fits.Card('WHATEVER',
+                      'SuperCalibrationParameters_XXXX_YYYY_ZZZZZ_KK_01_02_'
+                      '03)-AAABBBCCC.n.h5 SuperNavigationParameters_XXXX_YYYY'
+                      '_ZZZZZ_KK_01_02_03)-AAABBBCCC.n.xml')
+        assert (str(c) ==
+                "WHATEVER= 'SuperCalibrationParameters_XXXX_YYYY_ZZZZZ_KK_01_02_03)-AAABBBCCC.n&'"
+                "CONTINUE  '.h5 &'                                                               "
+                "CONTINUE  'SuperNavigationParameters_XXXX_YYYY_ZZZZZ_KK_01_02_03)-AAABBBCCC.n.&'"
+                "CONTINUE  'xml'                                                                 ")
+
     def test_long_unicode_string(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/1
