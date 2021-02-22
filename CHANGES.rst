@@ -1138,7 +1138,10 @@ astropy.io.fits
   "DP1.AXIS.1:   1". [#11301]
 
 - Fix misleading missing END card error when extra data are found at the end
-  of the file. [#11285] 
+  of the file. [#11285]
+
+- Fix incorrect wrapping of long card values as CONTINUE cards when some
+  words in the value are longer than a single card. [#11304]
 
 astropy.io.misc
 ^^^^^^^^^^^^^^^
