@@ -757,39 +757,44 @@ def _str_to_num(val):
     return num
 
 
-def _words_group(input, strlen):
+def _words_group(s, width):
     """
-    Split a long string into parts where each part is no longer
-    than ``strlen`` and no word is cut into two pieces.  But if
-    there is one single word which is longer than ``strlen``, then
-    it will be split in the middle of the word.
+    Split a long string into parts where each part is no longer than ``strlen``
+    and no word is cut into two pieces.  But if there are any single words
+    which are longer than ``strlen``, then they will be split in the middle of
+    the word.
     """
 
     words = []
-    nblanks = input.count(' ')
-    nmax = max(nblanks, len(input) // strlen + 1)
-    arr = np.frombuffer((input + ' ').encode('utf8'), dtype='S1')
+    slen = len(s)
+
+    # appending one blank at the end always ensures that the "last" blank
+    # is beyond the end of the string
+    arr = np.frombuffer(s.encode('utf8') + b' ', dtype='S1')
 
     # locations of the blanks
     blank_loc = np.nonzero(arr == b' ')[0]
     offset = 0
     xoffset = 0
-    for idx in range(nmax):
+
+    while True:
         try:
-            loc = np.nonzero(blank_loc >= strlen + offset)[0][0]
+            loc = np.nonzero(blank_loc >= width + offset)[0][0]
+        except IndexError:
+            loc = len(blank_loc)
+
+        if loc > 0:
             offset = blank_loc[loc - 1] + 1
-            if loc == 0:
-                offset = -1
-        except Exception:
-            offset = len(input)
+        else:
+            offset = -1
 
         # check for one word longer than strlen, break in the middle
         if offset <= xoffset:
-            offset = xoffset + strlen
+            offset = min(xoffset + width, slen)
 
         # collect the pieces in a list
-        words.append(input[xoffset:offset])
-        if len(input) == offset:
+        words.append(s[xoffset:offset])
+        if offset >= slen:
             break
         xoffset = offset
 
