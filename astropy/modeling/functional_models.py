@@ -1078,8 +1078,9 @@ class Voigt1D(Fittable1DModel):
     _last_w = np.zeros(1, dtype=float)
     _faddeeva = None
 
-    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default, fwhm_L=fwhm_L.default,
-                 fwhm_G=fwhm_G.default, method='humlicek2', **kwargs):
+    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default,            # noqa: N803
+                 fwhm_L=fwhm_L.default, fwhm_G=fwhm_G.default, method='humlicek2',  # noqa: N803
+                 **kwargs):
         if str(method).lower() in ('wofz', 'scipy'):
             try:
                 from scipy.special import wofz
@@ -1099,14 +1100,14 @@ class Voigt1D(Fittable1DModel):
         cache results for consecutive calls from `evaluate`, `fit_deriv`."""
 
         if (z.shape == self._last_z.shape and
-            np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
+                np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
             return self._last_w
 
         self._last_w = self._faddeeva(z)
         self._last_z = z
         return self._last_w
 
-    def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N815
+    def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
         """One dimensional Voigt function scaled to Lorentz peak amplitude."""
 
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
@@ -1114,7 +1115,7 @@ class Voigt1D(Fittable1DModel):
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
         return self._wrap_wofz(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
 
-    def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N815
+    def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
         """Derivative of the one dimensional Voigt function with respect to parameters."""
 
         s = self.sqrt_ln2 / fwhm_G
@@ -1144,7 +1145,7 @@ class Voigt1D(Fittable1DModel):
 
     @staticmethod
     def _hum2zpf16c(z, s=10.0):
-        """ Complex error function w(z) = w(x+iy) combining Humlicek's rational approximations:
+        """Complex error function w(z) for z = x + iy combining Humlicek's rational approximations:
 
         |x| + y > 10:  Humlicek (JQSRT, 1982) rational approximation for region II;
         else:          Humlicek (JQSRT, 1979) rational approximation with n=16 and delta=y0=1.35
@@ -1157,7 +1158,7 @@ class Voigt1D(Fittable1DModel):
 
         # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
 
-        AA = np.array([+46236.3358828121,   -147726.58393079657j,
+        AA = np.array([+46236.3358828121,   -147726.58393079657j,   # noqa: N806
                        -206562.80451354137,  281369.1590631087j,
                        +183092.74968253175, -184787.96830696272j,
                        -66155.39578477248,   57778.05827983565j,
@@ -1166,15 +1167,15 @@ class Voigt1D(Fittable1DModel):
                        +45.94499030751872,  -34.59751573708725j,
                        -0.7616559377907136,  0.5641895835476449j])  # 1j/sqrt(pi) to the 12. digit
 
-        bb  = np.array([+7918.06640624997, 0.0,
-                        -126689.0625,      0.0,
-                        +295607.8125,      0.0,
-                        -236486.25,        0.0,
-                        +84459.375,        0.0,
-                        -15015.0,          0.0,
-                        +1365.0,           0.0,
-                        -60.0,             0.0,
-                        +1.0])
+        bb = np.array([+7918.06640624997, 0.0,
+                       -126689.0625,      0.0,
+                       +295607.8125,      0.0,
+                       -236486.25,        0.0,
+                       +84459.375,        0.0,
+                       -15015.0,          0.0,
+                       +1365.0,           0.0,
+                       -60.0,             0.0,
+                       +1.0])
 
         sqrt_piinv = 1.0 / np.sqrt(np.pi)
 
