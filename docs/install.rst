@@ -148,9 +148,17 @@ this case you may consider using the ``--user`` option to install the package
 into your home directory. You can read more about how to do this in the `pip
 documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
+{% if is_development %}
+
 Alternatively, if you intend to do development on other software that uses
-``astropy``, such as an affiliated package, consider installing ``astropy`` into a
-:ref:`virtualenv<using-virtualenv>`.
+``astropy``, such as an affiliated package, consider installing ``astropy`` into a :ref:`virtualenv<using-virtualenv>`.
+
+{%else%}
+
+Alternatively, if you intend to do development on other software that uses
+``astropy``, such as an affiliated package, consider installing ``astropy`` into a `virtualenv <https://docs.astropy.org/en/latest/development/workflow/virtualenv_detail.html>`__.
+
+{%endif%}
 
 Do **not** install ``astropy`` or other third-party packages using ``sudo``
 unless you are fully aware of the risks.
@@ -195,6 +203,8 @@ releases which are compatible with the latest ``pytest`` and ``sphinx`` releases
 Testing an Installed ``astropy``
 --------------------------------
 
+{% if is_development %}
+
 The easiest way to test if your installed version of ``astropy`` is running
 correctly is to use the :ref:`astropy.test()` function::
 
@@ -207,6 +217,12 @@ the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
 This way of running the tests may not work if you do it in the ``astropy`` source
 distribution. See :ref:`sourcebuildtest` for how to run the tests from the
 source code directory, or :ref:`running-tests` for more details.
+
+{%else%}
+
+See the `latest documentation on how to test your installed version of astropy <https://docs.astropy.org/en/latest/install.html#testing-an-installed-astropy>`__.
+
+{%endif%}
 
 Building from Source
 ====================
@@ -505,6 +521,8 @@ can also open issues in the repositories for some of the dependencies:
 Testing a Source Code Build of ``astropy``
 ------------------------------------------
 
+{% if is_development %}
+
 The easiest way to run the tests in a source checkout of ``astropy``
 is to use `tox <https://tox.readthedocs.io/en/latest/>`_::
 
@@ -512,5 +530,11 @@ is to use `tox <https://tox.readthedocs.io/en/latest/>`_::
 
 There are also alternative methods of :ref:`running-tests` if you
 would like more control over the testing process.
+
+{%else%}
+
+See the `latest documentation on how to run the tests in a source checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`__.
+
+{%endif%}
 
 .. include:: development/workflow/known_projects.inc
