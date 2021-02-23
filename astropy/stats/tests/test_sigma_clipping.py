@@ -428,4 +428,3 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
     assert result2.shape == array.shape
     assert bound1.shape == bounds_shape
     assert bound2.shape == bounds_shape
-
