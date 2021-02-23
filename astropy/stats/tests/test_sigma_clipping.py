@@ -405,3 +405,27 @@ def test_sigma_clip_grow():
     )
 
     assert np.array_equal(np.where(filtered_data.mask), expected)
+
+
+@pytest.mark.parametrize(('axis', 'bounds_shape'), [(None, ()),
+                                                    (0, (3,)),
+                                                    (1, (4,)),
+                                                    (-1, (7,)),
+                                                    ((1, 3), (4, 6)),
+                                                    ((3, 1), (4, 6)),
+                                                    ((1, 2, 5), (4, 6, 7))])
+def test_sigma_clip_axis_shapes(axis, bounds_shape):
+
+    # Check the shapes of the output for different use cases
+
+    with NumpyRNGContext(12345):
+        array = np.random.random((3, 4, 5, 6, 7))
+
+    result1 = sigma_clip(array)
+    assert result1.shape == array.shape
+
+    result2, bound1, bound2 = sigma_clip(array, return_bounds=True)
+    assert result2.shape == array.shape
+    assert bound1.shape == bounds_shape
+    assert bound2.shape == bounds_shape
+

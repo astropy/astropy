@@ -302,6 +302,7 @@ class SigmaClip:
         if not isiterable(axis):
             axis = normalize_axis_index(axis, data.ndim)
             data_reshaped = data.astype(float, copy=False)
+            transposed_shape = None
         else:
             axis = tuple(normalize_axis_index(ax, data.ndim) for ax in axis)
             transposed_axes = tuple(ax for ax in range(data.ndim)
@@ -325,7 +326,7 @@ class SigmaClip:
         mask |= data_reshaped < np.expand_dims(bounds[0], axis)
         mask |= data_reshaped > np.expand_dims(bounds[1], axis)
 
-        if mask.shape != data.shape:
+        if transposed_shape is not None:
             # Get mask in shape of data.
             mask = mask.reshape(transposed_shape)
             mask = mask.transpose(tuple(transposed_axes.index(ax)
