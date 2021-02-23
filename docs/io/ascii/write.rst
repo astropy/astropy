@@ -548,7 +548,7 @@ We start by defining a table with 2 rows where each element in the first column
 Now we can write this to ECSV and observe how the N-d column ``'a'`` has been
 "flattened" into a sequence of 1-d columns that are named by their indices.
 
-  >>> ascii.write(t, format='ecsv')
+  >>> ascii.write(t, format='ecsv')  # doctest: +SKIP
   # %ECSV 0.9
   # ---
   # datatype:
