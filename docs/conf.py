@@ -133,7 +133,8 @@ release = astropy_dist.version
 version = '.'.join(release.split('.')[:2])
 
 # Only include dev docs in dev version.
-dev = 'dev' in release
+# dev = 'dev' in release
+dev = False  # Mimic stable
 if not dev:
     exclude_patterns.append('development/*')  # noqa: F405
     exclude_patterns.append('testhelpers.rst')  # noqa: F405
