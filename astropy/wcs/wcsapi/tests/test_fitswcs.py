@@ -929,6 +929,23 @@ def test_sub_wcsapi_attributes():
     assert wcs_sub4.world_axis_names == ['', '']
 
 
+HEADER_POLARIZED = """
+CTYPE1  = 'HPLT-TAN'
+CTYPE2  = 'HPLN-TAN'
+CTYPE3  = 'STOKES'
+"""
+
+
+@pytest.fixture
+def header_polarized():
+    return Header.fromstring(HEADER_POLARIZED, sep='\n')
+
+
+def test_phys_type_polarization(header_polarized):
+    w = WCS(header_polarized)
+    assert w.world_axis_physical_types[2] == 'phys.polarization.stokes'
+
+
 ###############################################################################
 # Spectral transformations
 ###############################################################################
