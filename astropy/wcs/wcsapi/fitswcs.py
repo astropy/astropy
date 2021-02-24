@@ -118,6 +118,7 @@ CTYPE_TO_UCD1 = {
     'AWAV': 'em.wl',  # Air wavelength
     'VELO': 'spect.dopplerVeloc',  # Apparent radial velocity
     'BETA': 'custom:spect.doplerVeloc.beta',  # Beta factor (v/c)
+    'STOKES': 'phys.polarization.stokes',  # STOKES parameters
 
     # Time coordinates (https://www.aanda.org/articles/aa/pdf/2015/02/aa24653-14.pdf)
     'TIME': 'time',
