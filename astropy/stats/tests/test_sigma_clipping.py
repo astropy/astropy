@@ -408,12 +408,12 @@ def test_sigma_clip_grow():
 
 
 @pytest.mark.parametrize(('axis', 'bounds_shape'), [(None, ()),
-                                                    (0, (3,)),
-                                                    (1, (4,)),
-                                                    (-1, (7,)),
-                                                    ((1, 3), (4, 6)),
-                                                    ((3, 1), (4, 6)),
-                                                    ((1, 2, 5), (4, 6, 7))])
+                                                    (0, (4, 5, 6, 7)),
+                                                    (1, (3, 5, 6, 7)),
+                                                    (-1, (3, 4, 5, 6)),
+                                                    ((1, 3), (3, 5, 7)),
+                                                    ((3, 1), (3, 5, 7)),
+                                                    ((1, 2, 4), (3, 6))])
 def test_sigma_clip_axis_shapes(axis, bounds_shape):
 
     # Check the shapes of the output for different use cases
