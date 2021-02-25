@@ -114,6 +114,12 @@ version = astropy.__version__.split('-', 1)[0]
 release = astropy.__version__
 
 
+# Only include dev docs in dev version.
+dev = 'dev' in release
+if not dev:
+    exclude_patterns.append('development/*')  # noqa: F405
+    exclude_patterns.append('testhelpers.rst')  # noqa: F405
+
 # -- Options for the module index ---------------------------------------------
 
 modindex_common_prefix = ['astropy.']
@@ -171,7 +177,8 @@ htmlhelp_basename = project + 'doc'
 
 # A dictionary of values to pass into the template engine’s context for all pages.
 html_context = {
-    'to_be_indexed': ['stable', 'latest']
+    'to_be_indexed': ['stable', 'latest'],
+    'is_development': dev
 }
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -235,18 +242,7 @@ try:
                                     ' non-GUI backend, so cannot show the figure.')
 
 except ImportError:
-    def setup(app):
-        msg = ('The sphinx_gallery extension is not installed, so the '
-               'gallery will not be built.  You will probably see '
-               'additional warnings about undefined references due '
-               'to this.')
-        try:
-            app.warn(msg)
-        except AttributeError:
-            # Sphinx 1.6+
-            from sphinx.util import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(msg)
+    sphinx_gallery = None
 
 
 # -- Options for linkcheck output -------------------------------------------
@@ -264,3 +260,34 @@ linkcheck_anchors = False
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
 html_extra_path = ['robots.txt']
+
+
+def rstjinja(app, docname, source):
+    """Render pages as a jinja template to hide/show dev docs. """
+    # Make sure we're outputting HTML
+    if app.builder.format != 'html':
+        return
+    files_to_render = ["index", "install"]
+    if docname in files_to_render:
+        print(f"Jinja rendering {docname}")
+        rendered = app.builder.templates.render_string(
+            source[0], app.config.html_context)
+        source[0] = rendered
+
+
+def setup(app):
+    if sphinx_gallery is None:
+        msg = ('The sphinx_gallery extension is not installed, so the '
+               'gallery will not be built.  You will probably see '
+               'additional warnings about undefined references due '
+               'to this.')
+        try:
+            app.warn(msg)
+        except AttributeError:
+            # Sphinx 1.6+
+            from sphinx.util import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(msg)
+
+    # Generate the page from Jinja template
+    app.connect("source-read", rstjinja)
