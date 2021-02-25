@@ -292,6 +292,11 @@ class SigmaClip:
         Fast C implementation for simple use cases
         """
 
+        if isinstance(data, Quantity):
+            data, unit = data.value, data.unit
+        else:
+            unit = None
+
         if copy is False and masked is False and data.dtype.kind != 'f':
             raise Exception("cannot mask non-floating-point array with NaN values, "
                              "set copy=True or masked=True to avoid this.")
@@ -320,19 +325,23 @@ class SigmaClip:
         if data_reshaped.dtype.kind != 'f' or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
-        mask = ~np.isfinite(data_reshaped)
+        if isinstance(data_reshaped, np.ma.MaskedArray):
+            mask = data_reshaped.mask
+            data_reshaped = data_reshaped.filled(np.nan)
+            mask = np.broadcast_to(mask, data_reshaped.shape).copy()
+        else:
+            mask = ~np.isfinite(data_reshaped)
+            if np.any(mask):
+                warnings.warn('Input data contains invalid values (NaNs or '
+                            'infs), which were automatically clipped.',
+                            AstropyUserWarning)
 
-        if np.any(mask):
-            warnings.warn('Input data contains invalid values (NaNs or '
-                          'infs), which were automatically clipped.',
-                          AstropyUserWarning)
-
-        bounds = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
+        bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
                                   self.sigma_lower, self.sigma_upper, axis=axis)
 
-        mask |= data_reshaped < np.expand_dims(bounds[0], axis)
-        mask |= data_reshaped > np.expand_dims(bounds[1], axis)
+        mask |= data_reshaped < np.expand_dims(bound_lo, axis)
+        mask |= data_reshaped > np.expand_dims(bound_hi, axis)
 
         if transposed_shape is not None:
             # Get mask in shape of data.
@@ -349,8 +358,13 @@ class SigmaClip:
                 result = data
             result[mask] = np.nan
 
+        if unit is not None:
+            result = result << unit
+            bound_lo = bound_lo << unit
+            bound_hi = bound_hi << unit
+
         if return_bounds:
-            return result, bounds[0], bounds[1]
+            return result, bound_lo, bound_hi
         else:
             return result
 
@@ -502,7 +516,7 @@ class SigmaClip:
             return filtered_data
 
     def __call__(self, data, axis=None, masked=True, return_bounds=False,
-                 copy=True, method='python'):
+                 copy=True):
         """
         Perform sigma clipping on the provided data.
 
@@ -572,15 +586,11 @@ class SigmaClip:
             else:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
-        # Shortcut for common cases where a fast Cython implementation can
-        # be used.
-        if method is None or method == 'c':
-            if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and not self.grow:
-                return self._sigmaclip_fast(data, axis=axis, masked=masked,
-                                            return_bounds=return_bounds,
-                                            copy=copy)
-            elif method == 'c':
-                raise Exception("method='c' is only supported for cenfunc='mean' or 'median', stdfunc='std' and grow=False")
+        # Shortcut for common cases where a fast C implementation can be used.
+        if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and not self.grow:
+            return self._sigmaclip_fast(data, axis=axis, masked=masked,
+                                        return_bounds=return_bounds,
+                                        copy=copy)
 
         # These two cases are treated separately because when ``axis=None``
         # we can simply remove clipped values from the array.  This is not
@@ -598,7 +608,7 @@ class SigmaClip:
 
 def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                cenfunc='median', stdfunc='std', axis=None, masked=True,
-               return_bounds=False, copy=True, grow=False, method=None):
+               return_bounds=False, copy=True, grow=False):
     """
     Perform sigma-clipping on the provided data.
 
@@ -780,7 +790,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
                         cenfunc=cenfunc, stdfunc=stdfunc, grow=grow)
 
     return sigclip(data, axis=axis, masked=masked,
-                   return_bounds=return_bounds, copy=copy, method=method)
+                   return_bounds=return_bounds, copy=copy)
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
@@ -891,7 +901,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_upper=sigma_upper, maxiters=maxiters,
                         cenfunc=cenfunc, stdfunc=stdfunc, grow=grow)
     data_clipped = sigclip(data, axis=axis, masked=False, return_bounds=False,
-                           copy=False)
+                           copy=True)
 
     if HAS_BOTTLENECK:
         mean = _nanmean(data_clipped, axis=axis)
