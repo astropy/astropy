@@ -340,8 +340,9 @@ class SigmaClip:
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
                                   self.sigma_lower, self.sigma_upper, axis=axis)
 
-        mask |= data_reshaped < np.expand_dims(bound_lo, axis)
-        mask |= data_reshaped > np.expand_dims(bound_hi, axis)
+        with np.errstate(invalid='ignore'):
+            mask |= data_reshaped < np.expand_dims(bound_lo, axis)
+            mask |= data_reshaped > np.expand_dims(bound_hi, axis)
 
         if transposed_shape is not None:
             # Get mask in shape of data.
