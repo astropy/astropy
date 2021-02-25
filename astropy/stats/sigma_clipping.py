@@ -326,7 +326,8 @@ class SigmaClip:
 
         if isinstance(data_reshaped, np.ma.MaskedArray):
             mask = data_reshaped.mask
-            data_reshaped = data_reshaped.filled(np.nan)
+            data = data.view(np.ndarray)
+            data_reshaped = data_reshaped.view(np.ndarray)
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
         else:
             mask = ~np.isfinite(data_reshaped)
