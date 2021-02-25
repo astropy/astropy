@@ -292,6 +292,10 @@ class SigmaClip:
         Fast C implementation for simple use cases
         """
 
+        if copy is False and masked is False and data.dtype.kind != 'f':
+            raise Exception("cannot mask non-floating-point array with NaN values, "
+                             "set copy=True or masked=True to avoid this.")
+
         # The gufunc implementation assumes axis=-1, so we need to normalize
         # the input array so that we can treat it in this way.
         # TODO: for single axis, can just pass that on to gufunc!
@@ -301,7 +305,7 @@ class SigmaClip:
 
         if not isiterable(axis):
             axis = normalize_axis_index(axis, data.ndim)
-            data_reshaped = data.astype(float, copy=False)
+            data_reshaped = data
             transposed_shape = None
         else:
             axis = tuple(normalize_axis_index(ax, data.ndim) for ax in axis)
@@ -309,9 +313,12 @@ class SigmaClip:
                                     if ax not in axis) + axis
             data_transposed = data.transpose(transposed_axes)
             transposed_shape = data_transposed.shape
-            data_reshaped = data_transposed.astype(float, copy=False).reshape(
+            data_reshaped = data_transposed.reshape(
                 transposed_shape[:data.ndim-len(axis)]+(-1,))
             axis = -1
+
+        if data_reshaped.dtype.kind != 'f' or data_reshaped.dtype.itemsize > 8:
+            data_reshaped = data_reshaped.astype(float)
 
         mask = ~np.isfinite(data_reshaped)
 
@@ -319,6 +326,7 @@ class SigmaClip:
             warnings.warn('Input data contains invalid values (NaNs or '
                           'infs), which were automatically clipped.',
                           AstropyUserWarning)
+
         bounds = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
                                   self.sigma_lower, self.sigma_upper, axis=axis)
@@ -336,7 +344,7 @@ class SigmaClip:
             result = np.ma.array(data, mask=mask, copy=copy)
         else:
             if copy:
-                result = data.copy()
+                result = data.astype(float, copy=True)
             else:
                 result = data
             result[mask] = np.nan
