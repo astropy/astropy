@@ -59,7 +59,7 @@ Performance improvements to sigma clipping
 ==========================================
 
 The performance of the sigma clipping functions in the :ref:`stats` module has
-now been signficantly improved when more than a couple of iterations are
+now been significantly improved when more than a couple of iterations are
 required and the built-in functions for determining the central values and
 standard deviations are used. The performance gains are especially noticeable
 when using the ``axis`` keyword and different parts of the array being sigma
