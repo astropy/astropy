@@ -421,10 +421,26 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
     with NumpyRNGContext(12345):
         array = np.random.random((3, 4, 5, 6, 7))
 
-    result1 = sigma_clip(array)
+    result1 = sigma_clip(array, axis=axis)
     assert result1.shape == array.shape
 
-    result2, bound1, bound2 = sigma_clip(array, return_bounds=True)
+    result2, bound1, bound2 = sigma_clip(array, axis=axis, return_bounds=True)
     assert result2.shape == array.shape
     assert bound1.shape == bounds_shape
     assert bound2.shape == bounds_shape
+
+
+@pytest.mark.parametrize('dtype', ['>f2', '<f2', '>f4', '<f4', '>f8', '<f8', '<f16', '<i4', '>i8'])
+def test_sigma_clip_dtypes(dtype):
+
+    # Check the shapes of the output for different use cases
+
+    with NumpyRNGContext(12345):
+        array = np.random.randint(-5, 5, 1000).astype(float)
+    array[30] = 1000
+
+    reference = sigma_clip(array, copy=True, masked=False)
+
+    actual = sigma_clip(array.astype(dtype), copy=True, masked=False)
+
+    assert_equal(reference, actual)
