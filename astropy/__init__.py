@@ -182,11 +182,6 @@ def _get_bibtex():
 
 __citation__ = __bibtex__ = _get_bibtex()
 
-import logging  # noqa: E402
-
-# Use the root logger as a dummy log before initilizing Astropy's logger
-log = logging.getLogger()
-
 from .logger import _init_log, _teardown_log  # noqa: E402, F401
 
 log = _init_log()
