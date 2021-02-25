@@ -301,10 +301,6 @@ class SigmaClip:
             raise Exception("cannot mask non-floating-point array with NaN values, "
                              "set copy=True or masked=True to avoid this.")
 
-        # The gufunc implementation assumes axis=-1, so we need to normalize
-        # the input array so that we can treat it in this way.
-        # TODO: for single axis, can just pass that on to gufunc!
-
         if axis is None:
             axis = -1 if data.ndim == 1 else tuple(range(data.ndim))
 
@@ -313,6 +309,9 @@ class SigmaClip:
             data_reshaped = data
             transposed_shape = None
         else:
+            # The gufunc implementation does not handle non-scalar axis
+            # so we combine the dimensions together as the last
+            # dimension and set axis=-1
             axis = tuple(normalize_axis_index(ax, data.ndim) for ax in axis)
             transposed_axes = tuple(ax for ax in range(data.ndim)
                                     if ax not in axis) + axis
