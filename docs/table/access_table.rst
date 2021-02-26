@@ -72,6 +72,7 @@ to update the original table data or properties. See also the section on
   print(t['a'])    # Formatted column values
   t['a'].pprint()  # Same as above, with same options as Table.pprint()
   t['a'].more()    # Interactively scroll through column
+  t['a', 'c'].pprint()  # Print columns 'a' and 'c' of table
 
   lines = t.pformat()  # Formatted table as a list of lines (same options as pprint)
   lines = t['a'].pformat()  # Formatted column values as a list
