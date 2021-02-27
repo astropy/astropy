@@ -169,16 +169,17 @@ followed by IPython:
 Updating and Maintaining the Changelog
 ======================================
 
-The Astropy "changelog" is kept in the file ``CHANGES.rst`` at the root of the
-repository.  As the filename extension suggests this is a reStructured Text
-file.  The purpose of this file is to give a technical, but still user (and
-developer) oriented overview of what changes were made to Astropy between each
-public release.  The idea is that it's a little more to the point and easier to
-follow than trying to read through full git log.  It lists all new features
-added between versions, so that a user can easily find out from reading the
-changelog when a feature was added.  Likewise it lists any features or APIs
-that were changed (and how they were changed) or removed.  It also lists all
-bug fixes.  Affiliated packages are encouraged to maintain a similar changelog.
+The Astropy "changelog" is managed with ``towncrier``, which is used to generate
+the ``CHANGES.rst`` file at the root of the repository. The changelog fragment
+files should be added with each PR as described in ``docs/changes/README.rst``.
+The purpose of this file is to give a technical, but still user (and developer)
+oriented overview of what changes were made to Astropy between each public
+release.  The idea is that it's a little more to the point and easier to follow
+than trying to read through full git log.  It lists all new features added
+between versions, so that a user can easily find out from reading the changelog
+when a feature was added.  Likewise it lists any features or APIs that were
+changed (and how they were changed) or removed.  It also lists all bug fixes.
+Affiliated packages are encouraged to maintain a similar changelog.
 
 Adding to the changelog
 -----------------------

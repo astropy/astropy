@@ -361,13 +361,22 @@ In more detail
 Add a changelog entry
 *********************
 
-Add an entry to the file ``CHANGES.rst`` briefly describing the change you
-made. Include the pull request number, too at the end of the entry. An
-example entry, for the changes in
-`PR 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
+Add a changelog fragment briefly describing the change you made by creating
+a new file in ``docs/changes/<sub-package>/``. The file should be named like
+``<PULL REQUEST>.<TYPE>.rst``, where ``<PULL REQUEST>`` is a pull request
+number, and ``<TYPE>`` is one of:
 
-  - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
-    being ignored when none was present in the FITS file. [#1845]
+* ``feature``: New feature.
+* ``api``: API change.
+* ``bugfix``: Bug fix.
+* ``other``: Other changes and additions.
+
+An example entry, for the changes in `PR 1845
+<https://github.com/astropy/astropy/pull/1845>`_, the file would be
+``docs/changes/wcs/1845.bugfix.rst`` and would contain::
+
+    ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
+    being ignored when none was present in the FITS file.
 
 If you are opening a new pull request, you may not know its number yet, but you
 can add it *after* you make the pull request. If you're not sure where to

@@ -92,15 +92,14 @@ packages that use the full bugfix/maintenance branch approach.)
       $ pip install tox --upgrade
       $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
 
-#. Edit the ``CHANGES.rst`` file by changing the date for the version you are
-   about to release from "unreleased" to today's date.  Also be sure to remove
-   any sections of the changelog for that version that have no entries.
-   For releases that come after release candidates (:ref:`release-procedure-beta-rc`),
-   the title of the changelog section should be replaced too, thus getting rid
-   of any mention of the release candidate.
-   Then add and commit those changes with::
+#. Render the changelog with towncrier, and confirm that the fragments can be
+   deleted. (Note: update this when doing the next release!)
+   ::
 
-      <use your favorite editor on CHANGES.rst>
+       towncrier build [--draft] --version 4.3
+
+#. Then add and commit those changes with::
+
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
@@ -159,15 +158,6 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. Go back to release branch (e.g., ``1.2.x``) and update the ``CHANGES.rst``
-   file with a new section for the next version.
-   Then add and commit::
-
-      $ git checkout v1.2.x
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add v<next_version> to the changelog"
-
 #. Push up these changes to the `astropy core repository`_::
 
       $ git push upstream v<version branch>.x
@@ -198,16 +188,12 @@ Post-Release procedures
    bugfix or a new major version.  You may also need to update the contributor
    list on the web site if you updated the ``docs/credits.rst`` at the outset.
 
-#. Open a PR to the astropy *master* branch to
-   update the ``CHANGES.rst`` to reflect the date of the release you just
-   performed and to include the new section of the changelog.  Often the easiest
-   way to do this is to use ``git cherry-pick`` the changelog commit just before
-   the release commit from above. If you are not sure how to do this, you might
-   be better off copying-and-pasting the relevant parts of the maintenance
-   branch's ``CHANGES.rst`` into master. In the same PR, you also have to
-   update ``docs/whatsnew/index.rst`` and ``docs/whatsnew/X.Y.rst`` to link to
-   "what's new" documentation in the released RTD branch, using the existing
-   text as example.
+#. Cherry-pick the commit rendering the changelog and deleting the fragments and
+   open a PR to the astropy *master* branch. Note: updating this when doing the
+   next release with towncrier.
+   In the same PR, you also have to update ``docs/whatsnew/index.rst`` and
+   ``docs/whatsnew/X.Y.rst`` to link to "what's new" documentation in the
+   released RTD branch, using the existing text as example.
 
 #. ``conda-forge`` has a bot that automatically opens
    a PR from a new PyPI (stable) release, which you need to follow up on and
@@ -298,12 +284,7 @@ The procedure for this is straightforward:
 
       $ git branch v<version>.x
 
-#. Update the ``CHANGES.rst`` file with a new section at the very top for the
-   next major version. Then add and commit those changes::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add <next_version> to changelog"
+#. Render the changelog with towncrier, as above.
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
    if you have just branched ``4.0``, create the ``v4.1.dev`` tag on the commit
