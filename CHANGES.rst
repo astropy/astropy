@@ -1213,6 +1213,11 @@ astropy.io.fits
 astropy.io.misc
 ^^^^^^^^^^^^^^^
 
+- Fixed problem when writing serialized metadata to HDF5 using h5py >= 3.0.
+  With the newer h5py this was writing the metadata table as a variable-length
+  string array instead of the previous fixed-length bytes array. Fixed astropy
+  to force using a fixed-length bytes array. [#11359]
+
 astropy.io.registry
 ^^^^^^^^^^^^^^^^^^^
 
