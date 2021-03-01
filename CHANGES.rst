@@ -352,6 +352,9 @@ Other Changes and Additions
 - Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
   ``__init_subclass__`` where possible. [#11090]
 
+- Improved performance of ``bayesian_blocks()`` by removing one ``np.log()``
+  call [#11356]
+
 
 4.2.1 (unreleased)
 ==================
