@@ -78,6 +78,7 @@ intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)  # noqa:
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')  # noqa: F405
+exclude_patterns.append('changes')  # noqa: F405
 exclude_patterns.append('_pkgtemplate.rst')  # noqa: F405
 exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them  # noqa: F405, E501
 
@@ -85,6 +86,9 @@ exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't 
 if 'templates_path' not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append('_templates')
+
+
+extensions += ["sphinx_changelog"]  # noqa: F405
 
 # Grab minversion from setup.cfg
 setup_cfg = configparser.ConfigParser()

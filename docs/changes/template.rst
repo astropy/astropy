@@ -1,11 +1,3 @@
-{% if versiondata.name %}
-{{ versiondata.name }} {{ versiondata.version }} ({{ versiondata.date }})
-{{ top_underline * ((versiondata.name + versiondata.version + versiondata.date)|length + 4)}}
-{% else %}
-{{ versiondata.version }} ({{ versiondata.date }})
-{{ top_underline * ((versiondata.version + versiondata.date)|length + 3)}}
-{% endif %}
-
 {% for category, val in definitions.items() %}
 {% set underline = underlines[0] %}
 {{ definitions[category]['name'] }}
