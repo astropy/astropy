@@ -8,9 +8,13 @@ requires = ["setuptools",
             "extension-helpers"]
 build-backend = 'setuptools.build_meta'
 
+[tool.astropy-bot]
 [tool.astropy-bot.autolabel]
 
 # Comment this out to re-enable but then labeler Action needs to be disabled.
+enabled = false
+
+[tool.astropy-bot.changelog_checker]
 enabled = false
 
 [tool.towncrier]
@@ -135,3 +139,23 @@ template = "docs/changes/template.rst"
     [[tool.towncrier.section]]
         name = "astropy.wcs"
         path = "wcs"
+
+
+[ tool.gilesbot ]
+  [ tool.gilesbot.circleci_artifacts ]
+    enabled = false
+
+  [ tool.gilesbot.pull_requests ]
+    enabled = true
+
+  [ tool.gilesbot.towncrier_changelog ]
+    enabled = true
+    verify_pr_number = true
+    changelog_skip_label = "no-changelog-entry-needed"
+    help_url = "https://github.com/astropy/astropy/blob/master/docs/changes/README.rst"
+
+    changelog_missing_long = "There isn't a changelog file in this pull request. Please add a changelog file to the `changelog/` directory following the instructions in the changelog [README](https://github.com/astropy/astropy/blob/master/docs/changes/README.rst)."
+
+    type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/master/docs/changes/README.rst)"
+
+    number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
