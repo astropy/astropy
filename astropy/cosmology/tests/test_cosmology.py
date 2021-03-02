@@ -1580,7 +1580,7 @@ def test_z_at_value():
     # Test array:
     assert allclose(z_at_value(cosmo.distmod, np.array([46]*4) * u.mag,
                                zmin=1.5, zmax=2.5, nbins=10000),
-                    [1.9913891680278133]*4, rtol=1e-3)
+                    1.9913891680278133, rtol=1e-3)
 
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
