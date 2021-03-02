@@ -31,7 +31,7 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=1000, logspace=True):
     fgrid = func(zgrid)
 
     fvals_val = fvals.value
-    fgrid_val = fgrid.value
+    fgrid_val = fgrid.to_value(fvals.unit)
 
     if HAS_SCIPY:
         interpolator = CubicSpline(fgrid_val, zgrid)
