@@ -15,7 +15,7 @@ __all__ = ['z_at_value']
 __doctest_requires__ = {'*': ['scipy']}
 
 
-def _z_at_array(func, fvals, fmin, fmax, nbins=1000, logspace=True):
+def _z_at_array(func, fvals, zmin, zmax, nbins=1000, logspace=True):
     """Helper function to interpolate (func, z) over a grid for array input"""
     if logspace:
         zgrid = np.logspace(np.log10(zmin), np.log10(zmax), nbins)
@@ -27,7 +27,6 @@ def _z_at_array(func, fvals, fmin, fmax, nbins=1000, logspace=True):
     fvals_val = fvals.value
     fgrid_val = fgrid.value
 
-    func_is_monotonic = np.all(np.diff(fgrid_val) > 0)
     interpolator = CubicSpline(fgrid_val, zgrid)
     zvals = interpolator(fvals_val)
     return zvals
@@ -119,7 +118,7 @@ zmin and zmax satisfying fval = func(z).""")
     if isinstance(fval, np.ndarray):
         fvals = fval
         return _z_at_array(func, fvals,
-                           fmin=fval_zmin, fmax=fval_zmax,
+                           zmin=zmin, zmax=zmax,
                            nbins=nbins, logspace=logspace)
 
     if isinstance(fval_zmin, Quantity):
