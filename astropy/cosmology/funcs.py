@@ -21,7 +21,8 @@ __all__ = ['z_at_value']
 __doctest_requires__ = {'*': ['scipy']}
 
 
-def _z_at_array(func, fvals, zmin, zmax, nbins=1000, logspace=True):
+def _z_at_array(func, fvals, zmin, zmax, nbins=1000,
+                logspace=True, interpolation=None):
     """Helper function to interpolate (func, z) over a grid for array input"""
     if logspace:
         zgrid = np.logspace(np.log10(zmin), np.log10(zmax), nbins)
@@ -33,20 +34,26 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=1000, logspace=True):
     fvals_val = fvals.value
     fgrid_val = fgrid.to_value(fvals.unit)
 
-    if HAS_SCIPY:
+    if interpolation is None:
+        interpolation = 'cubic' if HAS_SCIPY else 'linear'
+
+    if interpolation == 'cubic':
         interpolator = CubicSpline(fgrid_val, zgrid)
         zvals = interpolator(fvals_val)
-    else:
+    elif interpolation == 'linear':
         warnings.warn("""\
 SciPy not found, so falling back to linear numpy interpolation scheme
 for array z_at_value, instead of the normal cubic spline.""")
         zvals = np.interp(fvals_val, fgrid_val, zgrid)
+    else:
+        raise NotImplementedError(f"Interpolation method '{interpolation}'"
+                                   " is not implemented.")
 
     return zvals
 
 
 def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
-               nbins=1000, logspace=True):
+               nbins=1000, logspace=True, interpolation=None):
     """ Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
@@ -85,6 +92,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     logspace: bool, optional
         If passing an array of ``fval``, this specifies whether
         to create the gridpoints in logarithmic space
+    interpolation: None or string, optional
+        To force linear interpolation, use ``'linear'``. Otherwise,
+        the choice depends on whether scipy is installed (cubic) or not
+        (linear).
 
     Returns
     -------
@@ -126,7 +137,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         fvals = fval
         return _z_at_array(func, fvals,
                            zmin=zmin, zmax=zmax,
-                           nbins=nbins, logspace=logspace)
+                           nbins=nbins, logspace=logspace,
+                           interpolation=interpolation)
 
     from scipy.optimize import fminbound
 
