@@ -1581,6 +1581,16 @@ def test_z_at_value():
     assert allclose(z_at_value(cosmo.distmod, np.array([46]*4) * u.mag,
                                zmin=1.5, zmax=2.5, nbins=10000),
                     1.9913891680278133, rtol=1e-3)
+    assert allclose(z_at_value(cosmo.distmod, np.array([46]*4) * u.mag,
+                               zmin=1.5, zmax=2.5, nbins=10000,
+                               logspace=False),
+                    1.9913891680278133, rtol=1e-3)
+    c = core.WMAP9
+    assert allclose(z_at_value(c.distmod, np.linspace(46, 47, num=5)*u.mag,
+                               nbins=10000),
+                    np.array([z_at_value(c.distmod, m*u.mag)
+                              for m in np.linspace(46, 47, num=5)])
+                   )
 
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
