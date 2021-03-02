@@ -21,7 +21,7 @@ __all__ = ['z_at_value']
 __doctest_requires__ = {'*': ['scipy']}
 
 
-def _z_at_array(func, fvals, zmin, zmax, nbins=1000,
+def _z_at_array(func, fvals, zmin, zmax, nbins=10000,
                 logspace=True, interpolation=None):
     """Helper function to interpolate (func, z) over a grid for array input"""
     if logspace:
@@ -56,7 +56,7 @@ for array z_at_value, instead of the normal cubic spline.""")
 
 
 def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
-               nbins=1000, logspace=True, interpolation=None):
+               nbins=10000, logspace=True, interpolation=None):
     """ Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
