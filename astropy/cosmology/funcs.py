@@ -5,6 +5,7 @@ Convenience functions for `astropy.cosmology`.
 
 import warnings
 import numpy as np
+from scipy.interpolate import CubicSpline
 
 from .core import CosmologyError
 from astropy.units import Quantity
@@ -27,12 +28,8 @@ def _z_at_array(func, fvals, fmin, fmax, nbins=1000, logspace=True):
     fgrid_val = fgrid.value
 
     func_is_monotonic = np.all(np.diff(fgrid_val) > 0)
-    if func_is_monotonic:
-        zvals = np.interp(fvals_val, fgrid_val, zgrid)
-    else:
-        from scipy.interpolate import CubicSpline
-        interpolator = CubicSpline(fgrid_val, zgrid)
-        zvals = interpolator(fvals_val)
+    interpolator = CubicSpline(fgrid_val, zgrid)
+    zvals = interpolator(fvals_val)
     return zvals
 
 
