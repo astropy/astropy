@@ -5,7 +5,13 @@ Convenience functions for `astropy.cosmology`.
 
 import warnings
 import numpy as np
-from scipy.interpolate import CubicSpline
+
+try:
+    from scipy.interpolate import CubicSpline
+except ImportError:
+    HAS_SCIPY = False
+else:
+    HAS_SCIPY = True
 
 from .core import CosmologyError
 from astropy.units import Quantity
@@ -27,8 +33,15 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=1000, logspace=True):
     fvals_val = fvals.value
     fgrid_val = fgrid.value
 
-    interpolator = CubicSpline(fgrid_val, zgrid)
-    zvals = interpolator(fvals_val)
+    if HAS_SCIPY:
+        interpolator = CubicSpline(fgrid_val, zgrid)
+        zvals = interpolator(fvals_val)
+    else:
+        warnings.warn("""\
+SciPy not found, so falling back to linear numpy interpolation scheme
+for array z_at_value, instead of the normal cubic spline.""")
+        zvals = np.interp(fvals_val, fgrid_val, zgrid)
+
     return zvals
 
 
