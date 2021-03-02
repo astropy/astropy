@@ -13,6 +13,7 @@ __all__ = ['z_at_value']
 
 __doctest_requires__ = {'*': ['scipy']}
 
+
 def _z_at_array(func, fvals, fmin, fmax, nbins=1000, logspace=True):
     """Helper function to interpolate (func, z) over a grid for array input"""
     if logspace:
