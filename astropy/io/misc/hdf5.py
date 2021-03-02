@@ -360,8 +360,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     if serialize_meta:
         header_yaml = meta.get_yaml_from_table(table)
-
-        header_encoded = [h.encode('utf-8') for h in header_yaml]
+        header_encoded = np.array([h.encode('utf-8') for h in header_yaml])
         output_group.create_dataset(meta_path(name),
                                     data=header_encoded)
 
