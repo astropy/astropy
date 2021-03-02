@@ -105,6 +105,12 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     other commonly inverted quantities) are monotonic in flat and open
     universes, but not in closed universes.
     """
+    if isinstance(fval, np.ndarray):
+        fvals = fval
+        return _z_at_array(func, fvals,
+                           zmin=zmin, zmax=zmax,
+                           nbins=nbins, logspace=logspace)
+
     from scipy.optimize import fminbound
 
     fval_zmin = func(zmin)
@@ -114,12 +120,6 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 fval is not bracketed by func(zmin) and func(zmax). This means either
 there is no solution, or that there is more than one solution between
 zmin and zmax satisfying fval = func(z).""")
-
-    if isinstance(fval, np.ndarray):
-        fvals = fval
-        return _z_at_array(func, fvals,
-                           zmin=zmin, zmax=zmax,
-                           nbins=nbins, logspace=logspace)
 
     if isinstance(fval_zmin, Quantity):
         val = fval.to_value(fval_zmin.unit)
