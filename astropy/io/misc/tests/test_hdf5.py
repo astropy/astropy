@@ -15,6 +15,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
+from astropy.io.misc.hdf5 import meta_path
 
 try:
     import h5py
@@ -454,6 +455,11 @@ def test_preserve_serialized(tmpdir):
     assert t1['a'].description == t2['a'].description
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
+
+    # Check that the meta table is fixed-width bytes (see #11299)
+    h5 = h5py.File(test_file)
+    meta_lines = h5[meta_path('the_table')]
+    assert meta_lines.dtype.kind == 'S'
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
