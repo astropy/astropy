@@ -76,7 +76,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     Returns
     -------
-    z : float
+    z : float or array_like
       The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
       fval`` within ``ztol``.
 
