@@ -14,7 +14,9 @@ __all__ = ['z_at_value']
 __doctest_requires__ = {'*': ['scipy']}
 
 
-def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
+
+def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
+               nbins=10000):
     """ Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
@@ -34,7 +36,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     ----------
     func : function or method
        A function that takes a redshift as input.
-    fval : astropy.Quantity instance
+    fval : astropy.Quantity instance or array_like
        The value of ``func(z)``.
     zmin : float, optional
        The lower search limit for ``z``.  Beware of divergences
@@ -47,45 +49,15 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     maxfun : int, optional
        The maximum number of function evaluations allowed in the
        optimization routine (default 500).
+    nbins : float, optional
+        If passing an array of ``fval``, this specifies the number
+        of gridpoints to fit.
 
     Returns
     -------
     z : float
       The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
       fval`` within ``ztol``.
-
-    Notes
-    -----
-    This works for any arbitrary input cosmology, but is inefficient
-    if you want to invert a large number of values for the same
-    cosmology. In this case, it is faster to instead generate an array
-    of values at many closely-spaced redshifts that cover the relevant
-    redshift range, and then use interpolation to find the redshift at
-    each value you're interested in. For example, to efficiently find
-    the redshifts corresponding to 10^6 values of the distance modulus
-    in a Planck13 cosmology, you could do the following:
-
-    >>> import astropy.units as u
-    >>> from astropy.cosmology import Planck13, z_at_value
-
-    Generate 10^6 distance moduli between 24 and 43 for which we
-    want to find the corresponding redshifts:
-
-    >>> Dvals = (24 + np.random.rand(1000000) * 20) * u.mag
-
-    Make a grid of distance moduli covering the redshift range we
-    need using 50 equally log-spaced values between zmin and
-    zmax. We use log spacing to adequately sample the steep part of
-    the curve at low distance moduli:
-
-    >>> zmin = z_at_value(Planck13.distmod, Dvals.min())
-    >>> zmax = z_at_value(Planck13.distmod, Dvals.max())
-    >>> zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
-    >>> Dgrid = Planck13.distmod(zgrid)
-
-    Finally interpolate to find the redshift at each distance modulus:
-
-    >>> zvals = np.interp(Dvals.value, Dgrid.value, zgrid)
 
     Examples
     --------
