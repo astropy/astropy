@@ -13,10 +13,30 @@ __all__ = ['z_at_value']
 
 __doctest_requires__ = {'*': ['scipy']}
 
+def _z_at_array(func, fvals, fmin, fmax, nbins=1000, logspace=True):
+    """Helper function to interpolate (func, z) over a grid for array input"""
+    if logspace:
+        zgrid = np.logspace(np.log10(zmin), np.log10(zmax), nbins)
+    else:
+        zgrid = np.linspace(zmin, zmax, nbins)
+
+    fgrid = func(zgrid)
+
+    fvals_val = fvals.value
+    fgrid_val = fgrid.value
+
+    func_is_monotonic = np.all(np.diff(fgrid_val) > 0)
+    if func_is_monotonic:
+        zvals = np.interp(fvals_val, fgrid_val, zgrid)
+    else:
+        from scipy.interpolate import CubicSpline
+        interpolator = CubicSpline(fgrid_val, zgrid)
+        zvals = interpolator(fvals_val)
+    return zvals
 
 
 def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
-               nbins=10000):
+               nbins=1000, logspace=True):
     """ Find the redshift ``z`` at which ``func(z) = fval``.
 
     This finds the redshift at which one of the cosmology functions or
@@ -51,7 +71,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
        optimization routine (default 500).
     nbins : float, optional
         If passing an array of ``fval``, this specifies the number
-        of gridpoints to fit.
+        of gridpoints to use for interpolation.
+    logspace: bool, optional
+        If passing an array of ``fval``, this specifies whether
+        to create the gridpoints in logarithmic space
 
     Returns
     -------
@@ -94,6 +117,12 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 fval is not bracketed by func(zmin) and func(zmax). This means either
 there is no solution, or that there is more than one solution between
 zmin and zmax satisfying fval = func(z).""")
+
+    if isinstance(fval, np.ndarray):
+        fvals = fval
+        return _z_at_array(func, fvals,
+                           fmin=fval_zmin, fmax=fval_zmax,
+                           nbins=nbins, logspace=logspace)
 
     if isinstance(fval_zmin, Quantity):
         val = fval.to_value(fval_zmin.unit)
