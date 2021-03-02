@@ -31,6 +31,10 @@ astropy.coordinates
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
+- Adds the ability to pass an array of function values to ``z_at_value``,
+  rather than just a single value. This uses a cubic spline to interpolate
+  over a grid of ``(z, func(z))`` values.
+
 astropy.extern
 ^^^^^^^^^^^^^^
 
