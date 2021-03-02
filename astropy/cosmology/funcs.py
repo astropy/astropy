@@ -35,15 +35,18 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=1000,
     fgrid_val = fgrid.to_value(fvals.unit)
 
     if interpolation is None:
-        interpolation = 'cubic' if HAS_SCIPY else 'linear'
+        if HAS_SCIPY:
+            interpolation = 'cubic'
+        else:
+            warnings.warn("""\
+SciPy not found, so falling back to linear numpy interpolation scheme
+for array z_at_value, instead of the normal cubic spline.""")
+            interpolation = 'linear'
 
     if interpolation == 'cubic':
         interpolator = CubicSpline(fgrid_val, zgrid)
         zvals = interpolator(fvals_val)
     elif interpolation == 'linear':
-        warnings.warn("""\
-SciPy not found, so falling back to linear numpy interpolation scheme
-for array z_at_value, instead of the normal cubic spline.""")
         zvals = np.interp(fvals_val, fgrid_val, zgrid)
     else:
         raise NotImplementedError(f"Interpolation method '{interpolation}'"
