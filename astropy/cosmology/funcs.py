@@ -118,7 +118,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     other commonly inverted quantities) are monotonic in flat and open
     universes, but not in closed universes.
     """
-    if isinstance(fval, np.ndarray):
+    if not fval.isscalar:
         fvals = fval
         return _z_at_array(func, fvals,
                            zmin=zmin, zmax=zmax,
