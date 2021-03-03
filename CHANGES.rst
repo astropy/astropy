@@ -73,8 +73,8 @@ astropy.modeling
   for compound models every time the constraint is accessed, False, do not.
   Fitters that support constraints will set this to False on the model copy
   and then set back to True when the fit is complete before returning.
-  [#xxxx].
-  
+  [#11365].
+
 astropy.nddata
 ^^^^^^^^^^^^^^
 
