@@ -1057,13 +1057,13 @@ class Model(metaclass=_ModelMeta):
         '''
         This is a boolean property that indicates whether or not accessing constraints
         automatically check the constituent models current values. It defaults to True
-        on creation of a model, but for fitting purposes it should be set to False 
+        on creation of a model, but for fitting purposes it should be set to False
         for performance reasons.
         '''
         if not hasattr(self, '_sync_constraints'):
             self._sync_constraints = True
         return self._sync_constraints
-    
+
     @sync_constraints.setter
     def sync_constraints(self, value):
         if not isinstance(value, bool):
