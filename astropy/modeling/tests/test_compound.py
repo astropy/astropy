@@ -474,6 +474,13 @@ def test_inherit_constraints():
     assert model.mean_1.fixed is False
     assert model[1].mean.fixed is False
 
+    # Now turn off syncing of constraints
+    assert model.bounds['stddev_0']  == (0.1, 0.5)
+    model.sync_constraints = False
+    model[0].stddev.bounds = (0, 0.2)
+    assert model.bounds['stddev_0'] == (0.1, 0.5)
+    model.sync_constraints = True
+    assert model.bounds['stddev_0'] == (0, 0.2)
 
 def test_compound_custom_inverse():
     """

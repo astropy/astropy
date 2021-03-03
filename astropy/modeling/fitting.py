@@ -535,6 +535,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         _validate_constraints(self.supported_constraints, model)
 
         model_copy = model.copy()
+        model_copy.sync_constraints = False
         _, fitparam_indices = _model_to_fit_params(model_copy)
 
         if model_copy.n_inputs == 2 and z is None:
@@ -785,7 +786,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             if len(y) > len(lacoef):
                 self._add_fitting_uncertainties(model_copy, a*scl,
                                                len(lacoef), x, y, z, resids)
-
+        model_copy.sync_constraints = True
         return model_copy
 
 
@@ -1147,6 +1148,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         from scipy import optimize
 
         model_copy = _validate_model(model, self.supported_constraints)
+        model_copy.sync_constraints = False
         farg = (model_copy, weights, ) + _convert_input(x, y, z)
         if model_copy.fit_deriv is None or estimate_jacobian:
             dfunc = None
@@ -1180,6 +1182,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                 self._add_fitting_uncertainties(model_copy,
                                                self.fit_info['param_cov'])
 
+        model_copy.sync_constraints = True
         return model_copy
 
     @staticmethod
@@ -1302,6 +1305,7 @@ class SLSQPLSQFitter(Fitter):
         """
 
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
+        model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
         init_values, _ = _model_to_fit_params(model_copy)
@@ -1309,6 +1313,7 @@ class SLSQPLSQFitter(Fitter):
             self.objective_function, init_values, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
 
+        model_copy.sync_constraints = True
         return model_copy
 
 
@@ -1367,6 +1372,7 @@ class SimplexLSQFitter(Fitter):
 
         model_copy = _validate_model(model,
                                      self._opt_method.supported_constraints)
+        model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
 
@@ -1375,6 +1381,7 @@ class SimplexLSQFitter(Fitter):
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
+        model_copy.sync_constraints = True
         return model_copy
 
 

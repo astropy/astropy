@@ -66,6 +66,15 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
+- Added a state attribute to models to allow preventing the synching of 
+  constraint values from the constituent models. This synching can
+  greatly slow down fitting if there are large numbers of fit parameters.
+  model.sync_constraints = True means check constituent model constraints
+  for compound models every time the constraint is accessed, False, do not.
+  Fitters that support constraints will set this to False on the model copy
+  and then set back to True when the fit is complete before returning.
+  [#xxxx].
+  
 astropy.nddata
 ^^^^^^^^^^^^^^
 
