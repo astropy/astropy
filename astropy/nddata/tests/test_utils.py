@@ -10,7 +10,7 @@ from astropy.nddata import (extract_array, add_array, subpixel_indices,
                             overlap_slices, NoOverlapError,
                             PartialOverlapError, Cutout2D)
 from astropy.wcs import WCS, Sip
-from astropy.wcs.utils import proj_plane_pixel_area
+from astropy.wcs.utils import proj_plane_pixel_area, celestial_frame_to_wcs
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -546,3 +546,18 @@ class TestCutout2D:
                                                    c.center_cutout[0], c.wcs)
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
+
+
+def test_cutout_non_rectangular_pixel():
+    center = SkyCoord("0d", "0d", frame="icrs")
+    wcs = celestial_frame_to_wcs(center.frame, projection="CAR")
+
+    wcs.wcs.crval = (0, 0)
+    wcs.wcs.cdelt = (-10, 5)
+    wcs.wcs.crpix = (18.5, 18.5)
+
+    data = np.ones((36, 36))
+
+    size = [90, 180] * u.deg
+    c2d = Cutout2D(data=data, position=center, size=size, wcs=wcs)
+    assert c2d.data.shape == (18, 18)
