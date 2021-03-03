@@ -482,6 +482,7 @@ def test_inherit_constraints():
     model.sync_constraints = True
     assert model.bounds['stddev_0'] == (0, 0.2)
 
+
 def test_compound_custom_inverse():
     """
     Test that a compound model with a custom inverse has that inverse applied
