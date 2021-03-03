@@ -45,6 +45,10 @@ develop-eggs
 distribute-*.tar.gz
 .venv
 venv
+# we are not currently using pipenv directly, but people who
+# install astropy with pipenv will have these files generated
+Pipfile
+Pipfile.lock
 
 # pyinstaller files
 .pyinstaller/astropy_tests/
