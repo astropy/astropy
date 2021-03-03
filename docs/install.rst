@@ -50,12 +50,14 @@ documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 {% if is_development %}
 
 Alternatively, if you intend to do development on other software that uses
-``astropy``, such as an affiliated package, consider installing ``astropy`` into a :ref:`virtualenv<using-virtualenv>`.
+``astropy``, such as an affiliated package, consider installing ``astropy``
+into a :ref:`virtualenv <virtual_envs>`.
 
 {%else%}
 
 Alternatively, if you intend to do development on other software that uses
-``astropy``, such as an affiliated package, consider installing ``astropy`` into a `virtualenv <https://docs.astropy.org/en/latest/development/workflow/virtualenv_detail.html>`__.
+``astropy``, such as an affiliated package, consider installing ``astropy``
+into a :ref:`virtualenv <astropy-dev:virtual_envs>`.
 
 {%endif%}
 
@@ -119,7 +121,8 @@ source code directory, or :ref:`running-tests` for more details.
 
 {%else%}
 
-See the `latest documentation on how to test your installed version of astropy <https://docs.astropy.org/en/latest/install.html#testing-an-installed-astropy>`__.
+See the :ref:`latest documentation on how to test your installed version of
+astropy <astropy-dev:testing_installed_astropy>`.
 
 {%endif%}
 
@@ -292,7 +295,7 @@ using this command::
 
    git clone git://github.com/astropy/astropy.git
 
-If you wish to participate in the development of ``astropy``, see
+If you wish to participate in the development of ``astropy``, see the
 :ref:`developer-docs`. The present document covers only the basics necessary to
 installing ``astropy``.
 
@@ -550,6 +553,7 @@ would like more control over the testing process.
 
 {%else%}
 
-See the `latest documentation on how to run the tests in a source checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`__.
+See the :ref:`latest documentation on how to run the tests in a source
+checkout of astropy <astropy-dev:sourcebuildtest>`
 
 {%endif%}
