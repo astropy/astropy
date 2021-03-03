@@ -1251,6 +1251,10 @@ astropy.table
   triggered swapping when native endianness was stored with explicit
   ``dtype`` code ``'<'`` (or ``'>'``) instead of ``'='``. [#11288, #11294]
 
+- Fixed a compatibility issue with numpy 1.21. Initializing a Table with a
+  column like ``['str', np.ma.masked]`` was failing in tests due to a change in
+  numpy. [#11364]
+
 - Fixed bug when validating the inputs to ``table.hstack``, ``table.vstack``,
   and ``table.dstack``. Previously, mistakenly calling ``table.hstack(t1, t2)``
   (instead of ``table.hstack([t1, t2]))`` would return ``t1`` instead of raising
