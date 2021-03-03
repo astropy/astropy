@@ -207,6 +207,10 @@ def _convert_sequence_data_to_array(data, dtype=None):
         # converted to an error (which can happen during pytest).
         warnings.filterwarnings('always', category=UserWarning,
                                 message='.*converting a masked element.*')
+        # FutureWarning in numpy 1.21. See https://github.com/astropy/astropy/issues/11291
+        # and https://github.com/numpy/numpy/issues/18425.
+        warnings.filterwarnings('always', category=FutureWarning,
+                                message='.*Promotion of numbers and bools to strings.*')
         try:
             np_data = np.array(data, dtype=dtype)
         except np.ma.MaskError:
