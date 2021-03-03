@@ -564,7 +564,6 @@ class Cutout2D:
             raise ValueError('size must have at most two elements')
 
         shape = np.zeros(2).astype(int)
-        pixel_scales = None
         # ``size`` can have a mixture of int and Quantity (and even units),
         # so evaluate each axis separately
         for axis, side in enumerate(size):
@@ -577,11 +576,12 @@ class Cutout2D:
                     if wcs is None:
                         raise ValueError('wcs must be input if any element '
                                          'of size has angular units')
-                    if pixel_scales is None:
-                        pixel_scales = u.Quantity(
-                            proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis])
+                    # proj_plane_pixel_scale return pixel scales in (lon, lat) order
+                    pixel_scale = u.Quantity(
+                        proj_plane_pixel_scales(wcs)[-axis - 1], wcs.wcs.cunit[-axis - 1])
+
                     shape[axis] = int(np.round(
-                        (side / pixel_scales[axis]).decompose()))
+                        (side / pixel_scale).decompose()))
                 else:
                     raise ValueError('shape can contain Quantities with only '
                                      'pixel or angular units')
