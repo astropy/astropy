@@ -71,6 +71,16 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
       ``zmin`` and ``zmax`` keywords to limit the search range (see the
       example below).
 
+    .. warning::
+      The results of this function will likely differ depending on whether
+      you input a single value for ``fval``, or an array of values.
+      In the single value case, this function will attempt to find
+      something close to the exact value using ``fminbound`` (proximity
+      depending on ``ztol``), but in the array case, this function
+      will use a cubic spline interpolation scheme, which will give
+      approximate answers which increase in accuracy as ``nbins``
+      is increased.
+
     Parameters
     ----------
     func : function or method
