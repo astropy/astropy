@@ -866,7 +866,7 @@ class Polynomial1D(PolynomialModel):
 
 
 class Polynomial2D(PolynomialModel):
-    """
+    r"""
     2D Polynomial  model.
 
     Represents a general polynomial of degree n:
@@ -882,8 +882,10 @@ class Polynomial2D(PolynomialModel):
     Parameters
     ----------
     degree : int
-        highest power of the polynomial,
-        the number of terms is degree+1
+        Polynomial degree: largest sum of exponents (:math:`i + j`) of
+        variables in each monomial term of the form :math:`x^i y^j`. The
+        number of terms in a 2D polynomial of degree ``n`` is given by binomial
+        coefficient :math:`C(n + 2, 2) = (n + 2)! / (2!\,n!) = (n + 1)(n + 2) / 2`.
     x_domain : list or None, optional
         domain of the x independent variable
     y_domain : list or None, optional
