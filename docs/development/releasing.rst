@@ -96,7 +96,7 @@ packages that use the full bugfix/maintenance branch approach.)
    deleted. (Note: update this when doing the next release!)
    ::
 
-       towncrier build [--draft] --version 4.3
+       towncrier [--draft] --version 4.3
 
 #. Then add and commit those changes with::
 
