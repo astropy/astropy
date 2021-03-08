@@ -11,7 +11,7 @@ from astropy.modeling import fitting
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 try:
-    from scipy import optimize  # pylint: disable=W0611  # noqa
+    from scipy.integrate import quad  # pylint: disable=W0611  # noqa
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
@@ -255,6 +255,36 @@ def test_Voigt1D():
     fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
     assert_allclose(voi_fit.param_sets, voi.param_sets)
+
+
+@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.parametrize('algorithm', ('humlicek2', 'wofz'))
+def test_Voigt1D_norm(algorithm):
+    """Test integral of normalized Voigt profile."""
+    voi = models.Voigt1D(amplitude_L=1.0/np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm)
+    if algorithm == 'wofz':
+        atol = 1e-14
+    else:
+        atol = 1e-8
+    assert_allclose(quad(voi, -np.inf, np.inf)[0], 1.0, atol=atol)
+
+
+@pytest.mark.skipif("not HAS_SCIPY")
+@pytest.mark.parametrize('doppler', (1.e-3, 1.e-2, 0.1, 0.5, 1.0, 2.5, 5.0, 10))
+def test_Voigt1D_hum2(doppler):
+    """Verify accuracy of Voigt profile in Humlicek approximation to Faddeeva.cc (SciPy)."""
+    x = np.linspace(-20, 20, 400001)
+
+    voi_w = models.Voigt1D(amplitude_L=2.0/np.pi, fwhm_L=1.0, fwhm_G=doppler, method='wofz')
+    vf_w = voi_w(x)
+    dvda_w = voi_w.fit_deriv(x, x_0=0, amplitude_L=2.0/np.pi, fwhm_L=1.0, fwhm_G=doppler)
+
+    voi_h = models.Voigt1D(amplitude_L=2.0/np.pi, fwhm_L=1.0, fwhm_G=doppler, method='humlicek2')
+    vf_h = voi_h(x)
+    dvda_h = voi_h.fit_deriv(x, x_0=0, amplitude_L=2.0/np.pi, fwhm_L=1.0, fwhm_G=doppler)
+
+    assert_allclose(vf_h, vf_w, rtol=1e-7 * (2 + 1 / np.sqrt(doppler)))
+    assert_allclose(dvda_h, dvda_w, rtol=1e-9, atol=1e-7 * (1 + 30 / doppler))
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
