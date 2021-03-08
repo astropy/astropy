@@ -153,7 +153,7 @@ class Mapping:
 
         image_rgb = [image_r, image_g, image_b]
         for c in image_rgb:
-            c *= fac
+            c = c * fac
             with np.errstate(invalid='ignore'):
                 c[c < 0] = 0                # individual bands can still be < 0, even if fac isn't
 
