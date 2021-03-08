@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcsfix.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -92,18 +89,17 @@
 *   header parser supplied with WCSLIB, refer to wcshdr.h.
 *
 * wcsfix() and wcsfixi() apply all of the corrections handled by the following
-* specific functions which may also be invoked separately:
+* specific functions, which may also be invoked separately:
 *
 *   - cdfix(): Sets the diagonal element of the CDi_ja matrix to 1.0 if all
 *     CDi_ja keywords associated with a particular axis are omitted.
 *
 *   - datfix(): recast an older DATE-OBS date format in dateobs to year-2000
-*     standard form.
-*
-*     Derive dateref from mjdref if not already set.  Alternatively, if
-*     dateref is set and mjdref isn't, then derive mjdref from it.  If both
-*     are set, then check consistency.  Likewise for dateobs and mjdobs;
-*     datebeg and mjdbeg; dateavg and mjdavg; and dateend and mjdend.
+*     standard form.  Derive dateref from mjdref if not already set.
+*     Alternatively, if dateref is set and mjdref isn't, then derive mjdref
+*     from it.  If both are set, then check consistency.  Likewise for dateobs
+*     and mjdobs; datebeg and mjdbeg; dateavg and mjdavg; and dateend and
+*     mjdend.
 *
 *   - obsfix(): if only one half of obsgeo[] is set, then derive the other
 *     half from it.  If both halves are set, then check consistency.
@@ -173,7 +169,7 @@
 * cdfix() - Fix erroneously omitted CDi_ja keywords
 * -------------------------------------------------
 * cdfix() sets the diagonal element of the CDi_ja matrix to unity if all
-* CDi_ja keywords associated with a given axis were omitted.  According to
+* CDi_ja keywords associated with a given axis were omitted.  According to WCS
 * Paper I, if any CDi_ja keywords at all are given in a FITS header then those
 * not given default to zero.  This results in a singular matrix with an
 * intersecting row and column of zeros.
@@ -192,14 +188,13 @@
 * datfix() - Translate DATE-OBS and derive MJD-OBS or vice versa
 * --------------------------------------------------------------
 * datfix() translates the old DATE-OBS date format set in wcsprm::dateobs to
-* year-2000 standard form (yyyy-mm-ddThh:mm:ss).
-*
-* datfix() derives wcsprm::dateref from wcsprm::mjdref if not already set.
-* Alternatively, if dateref is set and mjdref isn't, then it derives mjdref
-* from it.  If both are set but disagree by more than 0.001 day (86.4 seconds)
-* then status 5 is returned.  Likewise for wcsprm::dateobs and wcsprm::mjdobs;
-* wcsprm::datebeg and wcsprm::mjdbeg; wcsprm::dateavg and wcsprm::mjdavg; and
-* wcsprm::dateend and wcsprm::mjdend.
+* year-2000 standard form (yyyy-mm-ddThh:mm:ss).  It derives wcsprm::dateref
+* from wcsprm::mjdref if not already set.  Alternatively, if dateref is set
+* and mjdref isn't, then it derives mjdref from it.  If both are set but
+* disagree by more than 0.001 day (86.4 seconds) then an error status is
+* returned.  Likewise for wcsprm::dateobs and wcsprm::mjdobs; wcsprm::datebeg
+* and wcsprm::mjdbeg; wcsprm::dateavg and wcsprm::mjdavg; and wcsprm::dateend
+* and wcsprm::mjdend.
 *
 * If neither dateobs nor mjdobs are set, but wcsprm::jepoch (primarily) or
 * wcsprm::bepoch is, then both are derived from it.  If jepoch and/or bepoch
@@ -222,13 +217,15 @@
 *                         1: Null wcsprm pointer passed.
 *                         5: Invalid parameter value.
 *
-*                       For returns > 1, a detailed error message is set in
-*                       wcsprm::err if enabled, see wcserr_enable().
+*                       For returns >= 0, a detailed message, whether
+*                       informative or an error message, may be set in
+*                       wcsprm::err if enabled, see wcserr_enable(), with
+*                       wcsprm::err.status set to FIXERR_DATE_FIX.
 *
 * Notes:
-*   The MJD algorithms used by datfix() are from D.A. Hatcher, 1984, QJRAS,
-*   25, 53-55, as modified by P.T. Wallace for use in SLALIB subroutines CLDJ
-*   and DJCL.
+*   1: The MJD algorithms used by datfix() are from D.A. Hatcher, 1984, QJRAS,
+*      25, 53-55, as modified by P.T. Wallace for use in SLALIB subroutines
+*      CLDJ and DJCL.
 *
 *
 * obsfix() - complete the OBSGEO-[XYZLBH] vector of observatory coordinates
@@ -261,8 +258,10 @@
 *                         1: Null wcsprm pointer passed.
 *                         5: Invalid parameter value.
 *
-*                       For returns > 1, a detailed error message is set in
-*                       wcsprm::err if enabled, see wcserr_enable().
+*                       For returns >= 0, a detailed message, whether
+*                       informative or an error message, may be set in
+*                       wcsprm::err if enabled, see wcserr_enable(), with
+*                       wcsprm::err.status set to FIXERR_OBS_FIX.
 *
 * Notes:
 *   1: While the International Terrestrial Reference System (ITRS) is based
@@ -332,9 +331,10 @@
 *                         0: Success (an alias was applied).
 *                         1: Null wcsprm pointer passed.
 *
-*                       When units are translated (i.e. status 0), status -2
-*                       is set in the wcserr struct to allow an informative
-*                       message to be returned.
+*                       When units are translated (i.e. 0 is returned), an
+*                       informative message is set in wcsprm::err if enabled,
+*                       see wcserr_enable(), with wcsprm::err.status set to
+*                       FIXERR_UNITS_ALIAS.
 *
 *
 * spcfix() - Translate AIPS-convention spectral types
@@ -364,8 +364,10 @@
 *                         7: Ill-conditioned coordinate transformation
 *                            parameters.
 *
-*                       For returns > 1, a detailed error message is set in
-*                       wcsprm::err if enabled, see wcserr_enable().
+*                       For returns >= 0, a detailed message, whether
+*                       informative or an error message, may be set in
+*                       wcsprm::err if enabled, see wcserr_enable(), with
+*                       wcsprm::err.status set to FIXERR_SPC_UPDTE.
 *
 *
 * celfix() - Translate AIPS-convention celestial projection types
@@ -465,29 +467,27 @@ extern const char *wcsfix_errmsg[];
 #define cylfix_errmsg wcsfix_errmsg
 
 enum wcsfix_errmsg_enum {
-  FIXERR_OBSGEO_FIX       = -5, /* Observatory coordinates amended. */
-  FIXERR_DATE_FIX         = -4, /* Date string reformatted. */
-  FIXERR_SPC_UPDATE       = -3, /* Spectral axis type modified. */
-  FIXERR_UNITS_ALIAS      = -2,	/* Units alias translation. */
-  FIXERR_NO_CHANGE        = -1,	/* No change. */
-  FIXERR_SUCCESS          =  0,	/* Success. */
-  FIXERR_NULL_POINTER     =  1,	/* Null wcsprm pointer passed. */
-  FIXERR_MEMORY           =  2,	/* Memory allocation failed. */
-  FIXERR_SINGULAR_MTX     =  3,	/* Linear transformation matrix is
-				   singular. */
-  FIXERR_BAD_CTYPE        =  4,	/* Inconsistent or unrecognized coordinate
-				   axis types. */
-  FIXERR_BAD_PARAM        =  5,	/* Invalid parameter value. */
-  FIXERR_BAD_COORD_TRANS  =  6,	/* Invalid coordinate transformation
-				   parameters. */
-  FIXERR_ILL_COORD_TRANS  =  7,	/* Ill-conditioned coordinate transformation
-				   parameters. */
-  FIXERR_BAD_CORNER_PIX   =  8,	/* All of the corner pixel coordinates are
-				   invalid. */
-  FIXERR_NO_REF_PIX_COORD =  9,	/* Could not determine reference pixel
-				   coordinate. */
-  FIXERR_NO_REF_PIX_VAL   = 10	/* Could not determine reference pixel
-				   value. */
+  FIXERR_OBSGEO_FIX       = -5, // Observatory coordinates amended.
+  FIXERR_DATE_FIX         = -4, // Date string reformatted.
+  FIXERR_SPC_UPDATE       = -3, // Spectral axis type modified.
+  FIXERR_UNITS_ALIAS      = -2,	// Units alias translation.
+  FIXERR_NO_CHANGE        = -1,	// No change.
+  FIXERR_SUCCESS          =  0,	// Success.
+  FIXERR_NULL_POINTER     =  1,	// Null wcsprm pointer passed.
+  FIXERR_MEMORY           =  2,	// Memory allocation failed.
+  FIXERR_SINGULAR_MTX     =  3,	// Linear transformation matrix is singular.
+  FIXERR_BAD_CTYPE        =  4,	// Inconsistent or unrecognized coordinate
+				// axis types.
+  FIXERR_BAD_PARAM        =  5,	// Invalid parameter value.
+  FIXERR_BAD_COORD_TRANS  =  6,	// Invalid coordinate transformation
+				// parameters.
+  FIXERR_ILL_COORD_TRANS  =  7,	// Ill-conditioned coordinate transformation
+				// parameters.
+  FIXERR_BAD_CORNER_PIX   =  8,	// All of the corner pixel coordinates are
+				// invalid.
+  FIXERR_NO_REF_PIX_COORD =  9,	// Could not determine reference pixel
+				// coordinate.
+  FIXERR_NO_REF_PIX_VAL   = 10	// Could not determine reference pixel value.
 };
 
 int wcsfix(int ctrl, const int naxis[], struct wcsprm *wcs, int stat[]);
@@ -514,4 +514,4 @@ int cylfix(const int naxis[], struct wcsprm *wcs);
 }
 #endif
 
-#endif /* WCSLIB_WCSFIX */
+#endif // WCSLIB_WCSFIX

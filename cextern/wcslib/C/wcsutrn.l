@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcsutrn.l,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -59,7 +56,7 @@
 static int wcsutrne_scanner(int ctrl, char unitstr[], struct wcserr **err,
                             yyscan_t yyscanner);
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int wcsutrne(
   int ctrl,
@@ -79,15 +76,15 @@ int wcsutrne(
   return status;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 #define YY_DECL int wcsutrne_scanner(int ctrl, char unitstr[], \
  struct wcserr **err, yyscan_t yyscanner)
 
-/* Dummy definition to circumvent compiler warnings. */
+// Dummy definition to circumvent compiler warnings.
 #define YY_INPUT(inbuff, count, bufsize) { count = YY_NULL; }
 
-/* Used in preempting the call to exit() by yy_fatal_error(). */
+// Used in preempting the call to exit() by yy_fatal_error().
 jmp_buf wcsutrn_abort_jmp_env;
 #define exit(status) longjmp(wcsutrn_abort_jmp_env, status)
 
@@ -110,7 +107,7 @@ jmp_buf wcsutrn_abort_jmp_env;
 	yy_scan_string(unitstr, yyscanner);
 	*unitstr = '\0';
 	
-	/* Return here via longjmp() invoked by yy_fatal_error(). */
+	// Return here via longjmp() invoked by yy_fatal_error().
 	if (setjmp(wcsutrn_abort_jmp_env)) {
 	  return wcserr_set(WCSERR_SET(UNITSERR_PARSER_ERROR),
 	    "Internal units translator error parsing '%s'", unitstr);
@@ -123,22 +120,22 @@ jmp_buf wcsutrn_abort_jmp_env;
 	#endif
 
 ^" "*"[" {
-	  /* Looks like a keycomment. */
+	  // Looks like a keycomment.
 	  strcat(unitstr, "[");
 	  bracket = 1;
 	}
 
-" "+	  /* Discard leading whitespace. */
+" "+	  // Discard leading whitespace.
 
 [^A-Za-z] {
-	  /* Non-alphabetic character. */
+	  // Non-alphabetic character.
 	  strcat(unitstr, yytext);
 	  if (bracket && *yytext == ']') {
 	    BEGIN(FLUSH);
 	  }
 	}
 
-angstrom {
+Angstroms|angstroms? {
 	  strcpy(orig, yytext);
 	  strcpy(subs, "Angstrom");
 	  BEGIN(NEXT);
@@ -304,25 +301,25 @@ years?|YR|YEARS? {
 	}
 
 [A-Za-z]+ {
-	  /* Not a recognized alias. */
+	  // Not a recognized alias.
 	  strcpy(orig, yytext);
 	  strcpy(subs, orig);
 	  BEGIN(NEXT);
 	}
 
 <NEXT>[A-Za-z]+ {
-	  /* Reject the alias match. */
+	  // Reject the alias match.
 	  strcat(orig, yytext);
 	  strcpy(subs, orig);
 	}
 
 <NEXT>" "+[^A-Za-z] {
-	  /* Discard separating whitespace. */
+	  // Discard separating whitespace.
 	  unput(yytext[yyleng-1]);
 	}
 
 <NEXT>" "+[A-Za-z] {
-	  /* Compress separating whitespace. */
+	  // Compress separating whitespace.
 	  strcat(unitstr, subs);
 	  strcat(unitstr, " ");
 	  if (strcmp(orig, subs)) status = 0;
@@ -332,7 +329,7 @@ years?|YR|YEARS? {
 	}
 
 <NEXT>.	{
-	  /* Copy anything else unchanged. */
+	  // Copy anything else unchanged.
 	  strcat(unitstr, subs);
 	  if (strcmp(orig, subs)) status = 0;
 	  unput(*yytext);
@@ -341,12 +338,12 @@ years?|YR|YEARS? {
 	}
 
 <FLUSH>.* {
-	  /* Copy out remaining input. */
+	  // Copy out remaining input.
 	  strcat(unitstr, yytext);
 	}
 
 <<EOF>>	{
-	  /* End-of-string. */
+	  // End-of-string.
 	  if (*subs) {
 	    strcat(unitstr, subs);
 	    if (strcmp(orig, subs)) status = 0;

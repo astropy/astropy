@@ -22,6 +22,7 @@ from astropy.utils.exceptions import (
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
+from astropy.nddata import Cutout2D
 
 
 _WCSLIB_VER = Version(_wcs.__version__)
@@ -117,11 +118,15 @@ def test_fixes():
     with pytest.raises(wcs.InvalidTransformError), pytest.warns(wcs.FITSFixedWarning) as w:
         wcs.WCS(header, translate_units='dhs')
 
-    assert len(w) == 2
+    if _WCSLIB_VER >= Version('7.4'):
+        assert len(w) == 3
+        assert "'datfix' made the change 'Success'." in str(w.pop().message)
+    else:
+        assert len(w) == 2
 
     first_wmsg = str(w[0].message)
     assert 'unitfix' in first_wmsg and 'Hz' in first_wmsg and 'M/S' in first_wmsg
-    assert 'm/s' in str(w[1].message)
+    assert 'plane angle' in str(w[1].message) and 'm/s' in str(w[1].message)
 
 
 # Ignore "PV2_2 = 0.209028857410973 invalid keyvalue" warning seen on Windows.
@@ -145,6 +150,7 @@ def test_pix2world():
     """
     # TODO: write this to test the expected output behavior of pix2world,
     # currently this just makes sure it doesn't error out in unexpected ways
+    # (and compares `wcs.pc` and `result` values?)
     filename = get_pkg_data_filename('data/sip2.fits')
     with pytest.warns(wcs.FITSFixedWarning) as caught_warnings:
         # this raises a warning unimportant for this testing the pix2world
@@ -153,7 +159,10 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    assert len(caught_warnings) == 1
+    if _WCSLIB_VER >= Version('7.4'):
+        assert len(caught_warnings) == 2
+    else:
+        assert len(caught_warnings) == 1
 
     n = 3
     pixels = (np.arange(n) * np.ones((2, n))).T
@@ -162,18 +171,17 @@ def test_pix2world():
     # Catch #2791
     ww.wcs_pix2world(pixels[..., 0], pixels[..., 1], 0, ra_dec_order=True)
 
-    close_enough = 1e-8
     # assuming that the data of sip2.fits doesn't change
     answer = np.array([[0.00024976, 0.00023018],
                        [0.00023043, -0.00024997]])
 
-    assert np.all(np.abs(ww.wcs.pc - answer) < close_enough)
+    assert np.allclose(ww.wcs.pc, answer, atol=1.e-8)
 
     answer = np.array([[202.39265216, 47.17756518],
                        [202.39335826, 47.17754619],
                        [202.39406436, 47.1775272]])
 
-    assert np.all(np.abs(result - answer) < close_enough)
+    assert np.allclose(result, answer, atol=1.e-8, rtol=1.e-10)
 
 
 def test_load_fits_path():
@@ -319,13 +327,19 @@ def test_invalid_shape():
 
 def test_warning_about_defunct_keywords():
     header = get_pkg_data_contents('data/defunct_keywords.hdr', encoding='binary')
+    if _WCSLIB_VER >= Version('7.4'):
+        n_warn = 5
+    else:
+        n_warn = 4
+
     # Make sure the warnings come out every time...
     for _ in range(2):
         with pytest.warns(wcs.FITSFixedWarning) as w:
             wcs.WCS(header)
 
-        assert len(w) == 4
-        for item in w:
+        assert len(w) == n_warn
+        # 7.4 adds a fifth warning "'datfix' made the change 'Success'."
+        for item in w[:4]:
             assert 'PCi_ja' in str(item.message)
 
 
@@ -431,14 +445,14 @@ def test_find_all_wcs_crash():
 def test_validate():
     results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
     results_txt = sorted(set([x.strip() for x in repr(results).splitlines()]))
-    version = wcs._wcs.__version__
-    if version[0] in ['6', '7']:
+    if _WCSLIB_VER >= Version('7.4'):
+        filename = 'data/validate.7.4.txt'
+    elif _WCSLIB_VER >= Version('6.0'):
         filename = 'data/validate.6.txt'
-    elif version[0] == '5':
-        if version >= '5.13':
-            filename = 'data/validate.5.13.txt'
-        else:
-            filename = 'data/validate.5.0.txt'
+    elif _WCSLIB_VER >= Version('5.13'):
+        filename = 'data/validate.5.13.txt'
+    elif _WCSLIB_VER >= Version('5.0'):
+        filename = 'data/validate.5.0.txt'
     else:
         filename = 'data/validate.txt'
     with open(get_pkg_data_filename(filename), "r") as fd:
@@ -1450,3 +1464,47 @@ def test_no_pixel_area():
 
     # Pixel scales still possible
     assert_quantity_allclose(w.proj_plane_pixel_scales(), 1)
+
+
+def test_distortion_header(tmpdir):
+    """
+    Test that plate distortion model is correctly described by `wcs.to_header()`
+    and preserved when creating a Cutout2D from the image, writing it to FITS,
+    and reading it back from the file.
+    """
+    path = get_pkg_data_filename("data/dss.14.29.56-62.41.05.fits.gz")
+    cen = np.array((50, 50))
+    siz = np.array((20, 20))
+
+    with fits.open(path) as hdulist:
+        with pytest.warns(wcs.FITSFixedWarning):
+            w = wcs.WCS(hdulist[0].header)
+        cut = Cutout2D(hdulist[0].data, position=cen, size=siz, wcs=w)
+
+    # This converts the DSS plate solution model with AMD[XY]n coefficients into a
+    # Template Polynomial Distortion model (TPD.FWD.n coefficients);
+    # not testing explicitly for the header keywords here.
+
+    if _WCSLIB_VER < Version("7.4"):
+        with pytest.warns(AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"):
+            w0 = wcs.WCS(w.to_header_string())
+        with pytest.warns(AstropyWarning, match="WCS contains a TPD distortion model in CQDIS"):
+            w1 = wcs.WCS(cut.wcs.to_header_string())
+        if _WCSLIB_VER >= Version("7.1"):
+            pytest.xfail("TPD coefficients incomplete with WCSLIB >= 7.1 < 7.4")
+    else:
+        w0 = wcs.WCS(w.to_header_string())
+        w1 = wcs.WCS(cut.wcs.to_header_string())
+
+    assert w.pixel_to_world(0, 0).separation(w0.pixel_to_world(0, 0)) < 1.e-3 * u.mas
+    assert w.pixel_to_world(*cen).separation(w0.pixel_to_world(*cen)) < 1.e-3 * u.mas
+
+    assert w.pixel_to_world(*cen).separation(w1.pixel_to_world(*(siz / 2))) < 1.e-3 * u.mas
+
+    cutfile = str(tmpdir.join('cutout.fits'))
+    fits.writeto(cutfile, cut.data, cut.wcs.to_header())
+
+    with fits.open(cutfile) as hdulist:
+        w2 = wcs.WCS(hdulist[0].header)
+
+    assert w.pixel_to_world(*cen).separation(w2.pixel_to_world(*(siz / 2))) < 1.e-3 * u.mas
