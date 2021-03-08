@@ -1946,8 +1946,7 @@ void wcshdo_format(
   int emax = -999;
   int emin = +999;
   int precision = 0;
-  int i;
-  for (i = 0; i < nval; i++) {
+  for (int i = 0; i < nval; i++) {
     // Double precision has at least 15 significant digits, and up to 17:
     // http://en.wikipedia.org/wiki/Double-precision_floating-point_format
     char cval[24];
