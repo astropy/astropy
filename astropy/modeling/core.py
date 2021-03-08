@@ -1053,12 +1053,31 @@ class Model(metaclass=_ModelMeta):
         self._array_to_parameters()
 
     @property
+    def sync_constraints(self):
+        '''
+        This is a boolean property that indicates whether or not accessing constraints
+        automatically check the constituent models current values. It defaults to True
+        on creation of a model, but for fitting purposes it should be set to False
+        for performance reasons.
+        '''
+        if not hasattr(self, '_sync_constraints'):
+            self._sync_constraints = True
+        return self._sync_constraints
+
+    @sync_constraints.setter
+    def sync_constraints(self, value):
+        if not isinstance(value, bool):
+            raise ValueError('sync_constraints only accepts True or False as values')
+        self._sync_constraints = value
+
+    @property
     def fixed(self):
         """
         A ``dict`` mapping parameter names to their fixed constraint.
         """
-
-        return _ConstraintsDict(self, 'fixed')
+        if not hasattr(self, '_fixed') or self.sync_constraints:
+            self._fixed = _ConstraintsDict(self, 'fixed')
+        return self._fixed
 
     @property
     def bounds(self):
@@ -1066,15 +1085,18 @@ class Model(metaclass=_ModelMeta):
         A ``dict`` mapping parameter names to their upper and lower bounds as
         ``(min, max)`` tuples or ``[min, max]`` lists.
         """
-        return _ConstraintsDict(self, 'bounds')
+        if not hasattr(self, '_bounds') or self.sync_constraints:
+            self._bounds = _ConstraintsDict(self, 'bounds')
+        return self._bounds
 
     @property
     def tied(self):
         """
         A ``dict`` mapping parameter names to their tied constraint.
         """
-
-        return _ConstraintsDict(self, 'tied')
+        if not hasattr(self, '_tied') or self.sync_constraints:
+            self._tied = _ConstraintsDict(self, 'tied')
+        return self._tied
 
     @property
     def eqcons(self):
