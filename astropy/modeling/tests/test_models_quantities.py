@@ -58,7 +58,7 @@ FUNC_MODELS_1D = [
 {'class': Voigt1D,
  'parameters': {'amplitude_L': 2 * u.Jy, 'x_0': 505 * u.nm,
                 'fwhm_L': 100 * u.AA, 'fwhm_G': 50 * u.AA},
- 'evaluation': [(0.51 * u.micron, 1.06264568 * u.Jy)],
+ 'evaluation': [(0.51 * u.micron, 1.0621795524 * u.Jy)],
  'bounding_box': False},
 {'class': Const1D,
  'parameters': {'amplitude': 3 * u.Jy},
