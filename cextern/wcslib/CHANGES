@@ -1,3 +1,66 @@
+WCSLIB version 7.4 (2021/01/31)
+-------------------------------
+
+* C library
+
+  - In wcshdo(), fixed a bug introduced in release 5.9 that potentially
+    caused loss of numerical precision in the sprintf() formatting of
+    floating point keyvalues.  This was triggered when a large range of
+    CRPIXja, PCi_ja, or CDELTia values (as three separate groups) were
+    formatted using an 'f' format descriptor, the range not being so
+    large that it would have forced wcshdo() to revert to 'E' format.
+    Reported by Mohammad Akhlaghi.
+
+    Also in wcshdo(), fixed a bug introduced in release 7.1 that caused
+    the coefficients of the TPD distortion function not to be written to
+    the header.  TPD and Polynomial distortion function headers will now
+    always include the DPja.DOCORR keyword.  Reported by Derek Homeier
+    with patch.
+
+  - In wcsset(), fixed a segv generated in attempting to report a non-
+    standard units string with wcserr message reporting disabled.
+    Reported by Mohammad Akhlaghi.
+
+    In wcsutrne(), allow 'Angstroms' and 'angstroms' as additional
+    synonyms for 'Angstrom'.
+
+  - In datfix(), ensure that 0 is returned if an informational message
+    is set in wcsprm::err.  Consequent on feedback independently from
+    Mihai Cara and Bruce Merry.
+
+    Clarified that informational messages may be set in wcsprm::err
+    for returns of 0 from datfix(), obsfix(), unitfix(), and spcfix().
+
+* User manual
+
+  - Added cautions about translating CDi_ja to PCi_ja plus CDELTia for
+    those historical distortion functions (TPV, TNX, ZPX) that expect to
+    operate on intermediate world coordinates, rather than intermediate
+    pixel coordinates.  Consequent on feedback from Mohammad Akhlaghi.
+
+  - Documentation generation moved to doxygen 1.9.1 (was 1.8.19).
+
+
+WCSLIB version 7.3.1 (2020/08/17)
+---------------------------------
+
+There are no functional changes in this release.
+
+* C library
+* Fortran wrappers
+* PGSBOX
+* Utilities
+
+  - Changed all C code, including within the flex sources, Fortran and
+    PGSBOX wrappers, and test suite, to use C99 style commenting (i.e.
+    using //), excluding the header prologues used to generate the user
+    manual.
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.8.19 (was 1.8.18).
+
+
 WCSLIB version 7.3 (2020/06/03)
 -------------------------------
 
@@ -3030,4 +3093,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.3 2020/06/03 03:37:03 mcalabre Exp $
+$Id: CHANGES,v 7.4 2021/01/31 02:24:52 mcalabre Exp $

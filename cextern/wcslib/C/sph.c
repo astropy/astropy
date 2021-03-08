@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: sph.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: sph.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -33,7 +30,7 @@
 
 #define tol 1.0e-5
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int sphx2s(
   const double eul[5],
@@ -64,10 +61,10 @@ int sphx2s(
   }
 
 
-  /* Check for special-case rotations. */
+  // Check for special-case rotations.
   if (eul[4] == 0.0) {
     if (eul[1] == 0.0) {
-      /* Simple change in origin of longitude. */
+      // Simple change in origin of longitude.
       dlng = fmod(eul[0] + 180.0 - eul[2], 360.0);
 
       jphi   = 0;
@@ -80,7 +77,7 @@ int sphx2s(
           *lngp = *phip + dlng;
           *latp = *thetap;
 
-          /* Normalize the celestial longitude. */
+          // Normalize the celestial longitude.
           if (eul[0] >= 0.0) {
             if (*lngp < 0.0) *lngp += 360.0;
           } else {
@@ -99,7 +96,7 @@ int sphx2s(
       }
 
     } else {
-      /* Pole-flip with change in origin of longitude. */
+      // Pole-flip with change in origin of longitude.
       dlng = fmod(eul[0] + eul[2], 360.0);
 
       jphi   = 0;
@@ -112,7 +109,7 @@ int sphx2s(
           *lngp = dlng - *phip;
           *latp = -(*thetap);
 
-          /* Normalize the celestial longitude. */
+          // Normalize the celestial longitude.
           if (eul[0] >= 0.0) {
             if (*lngp < 0.0) *lngp += 360.0;
           } else {
@@ -135,7 +132,7 @@ int sphx2s(
   }
 
 
-  /* Do phi dependency. */
+  // Do phi dependency.
   phip = phi;
   rowoff = 0;
   rowlen = nphi*sll;
@@ -150,7 +147,7 @@ int sphx2s(
   }
 
 
-  /* Do theta dependency. */
+  // Do theta dependency.
   thetap = theta;
   lngp = lng;
   latp = lat;
@@ -165,10 +162,10 @@ int sphx2s(
       dphi = *lngp;
       sincosd(dphi, &sinphi, &cosphi);
 
-      /* Compute the celestial longitude. */
+      // Compute the celestial longitude.
       x = sinthe4 - costhe3*cosphi;
       if (fabs(x) < tol) {
-        /* Rearrange formula to reduce roundoff errors. */
+        // Rearrange formula to reduce roundoff errors.
         x = -cosd(*thetap + eul[1]) + costhe3*(1.0 - cosphi);
       }
 
@@ -176,7 +173,7 @@ int sphx2s(
       if (x != 0.0 || y != 0.0) {
         dlng = atan2d(y, x);
       } else {
-        /* Change of origin of longitude. */
+        // Change of origin of longitude.
         if (eul[1] < 90.0) {
           dlng =  dphi + 180.0;
         } else {
@@ -185,7 +182,7 @@ int sphx2s(
       }
       *lngp = eul[0] + dlng;
 
-      /* Normalize the celestial longitude. */
+      // Normalize the celestial longitude.
       if (eul[0] >= 0.0) {
         if (*lngp < 0.0) *lngp += 360.0;
       } else {
@@ -198,7 +195,7 @@ int sphx2s(
         *lngp += 360.0;
       }
 
-      /* Compute the celestial latitude. */
+      // Compute the celestial latitude.
       if (fmod(dphi,180.0) == 0.0) {
         *latp = *thetap + cosphi*eul[1];
         if (*latp >  90.0) *latp =  180.0 - *latp;
@@ -206,7 +203,7 @@ int sphx2s(
       } else {
         z = sinthe3 + costhe4*cosphi;
         if (fabs(z) > 0.99) {
-          /* Use an alternative formula for greater accuracy. */
+          // Use an alternative formula for greater accuracy.
           *latp = copysign(acosd(sqrt(x*x+y*y)), z);
         } else {
           *latp = asind(z);
@@ -218,7 +215,7 @@ int sphx2s(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int sphs2x(
   const double eul[5],
@@ -249,10 +246,10 @@ int sphs2x(
   }
 
 
-  /* Check for special-case rotations. */
+  // Check for special-case rotations.
   if (eul[4] == 0.0) {
     if (eul[1] == 0.0) {
-      /* Simple change in origin of longitude. */
+      // Simple change in origin of longitude.
       dphi = fmod(eul[2] - 180.0 - eul[0], 360.0);
 
       jlng   = 0;
@@ -265,7 +262,7 @@ int sphs2x(
           *phip = fmod(*lngp + dphi, 360.0);
           *thetap = *latp;
 
-          /* Normalize the native longitude. */
+          // Normalize the native longitude.
           if (*phip > 180.0) {
             *phip -= 360.0;
           } else if (*phip < -180.0) {
@@ -278,7 +275,7 @@ int sphs2x(
       }
 
     } else {
-      /* Pole-flip with change in origin of longitude. */
+      // Pole-flip with change in origin of longitude.
       dphi = fmod(eul[2] + eul[0], 360.0);
 
       jlng   = 0;
@@ -291,7 +288,7 @@ int sphs2x(
           *phip = fmod(dphi - *lngp, 360.0);
           *thetap = -(*latp);
 
-          /* Normalize the native longitude. */
+          // Normalize the native longitude.
           if (*phip > 180.0) {
             *phip -= 360.0;
           } else if (*phip < -180.0) {
@@ -308,7 +305,7 @@ int sphs2x(
   }
 
 
-  /* Do lng dependency. */
+  // Do lng dependency.
   lngp = lng;
   rowoff = 0;
   rowlen = nlng*spt;
@@ -324,7 +321,7 @@ int sphs2x(
   }
 
 
-  /* Do lat dependency. */
+  // Do lat dependency.
   latp = lat;
   phip   = phi;
   thetap = theta;
@@ -339,10 +336,10 @@ int sphs2x(
       dlng = *phip;
       sincosd(dlng, &sinlng, &coslng);
 
-      /* Compute the native longitude. */
+      // Compute the native longitude.
       x = sinlat4 - coslat3*coslng;
       if (fabs(x) < tol) {
-        /* Rearrange formula to reduce roundoff errors. */
+        // Rearrange formula to reduce roundoff errors.
         x = -cosd(*latp+eul[1]) + coslat3*(1.0 - coslng);
       }
 
@@ -350,7 +347,7 @@ int sphs2x(
       if (x != 0.0 || y != 0.0) {
         dphi = atan2d(y, x);
       } else {
-        /* Change of origin of longitude. */
+        // Change of origin of longitude.
         if (eul[1] < 90.0) {
           dphi =  dlng - 180.0;
         } else {
@@ -359,14 +356,14 @@ int sphs2x(
       }
       *phip = fmod(eul[2] + dphi, 360.0);
 
-      /* Normalize the native longitude. */
+      // Normalize the native longitude.
       if (*phip > 180.0) {
         *phip -= 360.0;
       } else if (*phip < -180.0) {
         *phip += 360.0;
       }
 
-      /* Compute the native latitude. */
+      // Compute the native latitude.
       if (fmod(dlng,180.0) == 0.0) {
         *thetap = *latp + coslng*eul[1];
         if (*thetap >  90.0) *thetap =  180.0 - *thetap;
@@ -374,7 +371,7 @@ int sphs2x(
       } else {
         z = sinlat3 + coslat4*coslng;
         if (fabs(z) > 0.99) {
-          /* Use an alternative formula for greater accuracy. */
+          // Use an alternative formula for greater accuracy.
           *thetap = copysign(acosd(sqrt(x*x+y*y)), z);
         } else {
           *thetap = asind(z);
@@ -386,7 +383,7 @@ int sphs2x(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int sphdpa(
   int nfield,
@@ -401,21 +398,21 @@ int sphdpa(
   int i;
   double eul[5];
 
-  /* Set the Euler angles for the coordinate transformation. */
+  // Set the Euler angles for the coordinate transformation.
   eul[0] = lng0;
   eul[1] = 90.0 - lat0;
   eul[2] = 0.0;
   eul[3] = cosd(eul[1]);
   eul[4] = sind(eul[1]);
 
-  /* Transform field points to the new system. */
+  // Transform field points to the new system.
   sphs2x(eul, nfield, 0, 1, 1, lng, lat, pa, dist);
 
   for (i = 0; i < nfield; i++) {
-    /* Angular distance is obtained from latitude in the new frame. */
+    // Angular distance is obtained from latitude in the new frame.
     dist[i] = 90.0 - dist[i];
 
-    /* Position angle is obtained from longitude in the new frame. */
+    // Position angle is obtained from longitude in the new frame.
     pa[i] = -pa[i];
     if (pa[i] < -180.0) pa[i] += 360.0;
   }
@@ -423,7 +420,7 @@ int sphdpa(
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int sphpad(
   int nfield,
@@ -438,7 +435,7 @@ int sphpad(
   int i;
   double eul[5];
 
-  /* Set the Euler angles for the coordinate transformation. */
+  // Set the Euler angles for the coordinate transformation.
   eul[0] = lng0;
   eul[1] = 90.0 - lat0;
   eul[2] = 0.0;
@@ -446,14 +443,14 @@ int sphpad(
   eul[4] = sind(eul[1]);
 
   for (i = 0; i < nfield; i++) {
-    /* Latitude in the new frame is obtained from angular distance. */
+    // Latitude in the new frame is obtained from angular distance.
     lat[i] = 90.0 - dist[i];
 
-    /* Longitude in the new frame is obtained from position angle. */
+    // Longitude in the new frame is obtained from position angle.
     lng[i] = -pa[i];
   }
 
-  /* Transform field points to the old system. */
+  // Transform field points to the old system.
   sphx2s(eul, nfield, 0, 1, 1, lng, lat, lng, lat);
 
   return 0;

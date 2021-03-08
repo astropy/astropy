@@ -1,12 +1,12 @@
 /*============================================================================
 *
 * wcsconfig_test.h is generated from wcsconfig_test.h.in by 'configure'.  It
-* contains C preprocessor definitions for compiling the WCSLIB 7.3 test/demo
+* contains C preprocessor definitions for compiling the WCSLIB 7.4 test/demo
 * programs.
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/people/Mark.Calabretta
-* $Id: wcsconfig_tests.h.in,v 7.3 2020/06/03 03:37:03 mcalabre Exp $
+* $Id: wcsconfig_tests.h.in,v 7.4 2021/01/31 02:24:52 mcalabre Exp $
 *===========================================================================*/
 
 #include <wcsconfig.h>

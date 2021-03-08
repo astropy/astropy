@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: tab.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -533,65 +530,65 @@ extern "C" {
 extern const char *tab_errmsg[];
 
 enum tab_errmsg_enum {
-  TABERR_SUCCESS      = 0,	/* Success. */
-  TABERR_NULL_POINTER = 1,	/* Null tabprm pointer passed. */
-  TABERR_MEMORY       = 2,	/* Memory allocation failed. */
-  TABERR_BAD_PARAMS   = 3,	/* Invalid tabular parameters. */
-  TABERR_BAD_X        = 4,	/* One or more of the x coordinates were
-				   invalid. */
-  TABERR_BAD_WORLD    = 5	/* One or more of the world coordinates were
-				   invalid. */
+  TABERR_SUCCESS      = 0,	// Success.
+  TABERR_NULL_POINTER = 1,	// Null tabprm pointer passed.
+  TABERR_MEMORY       = 2,	// Memory allocation failed.
+  TABERR_BAD_PARAMS   = 3,	// Invalid tabular parameters.
+  TABERR_BAD_X        = 4,	// One or more of the x coordinates were
+				// invalid.
+  TABERR_BAD_WORLD    = 5	// One or more of the world coordinates were
+				// invalid.
 };
 
 struct tabprm {
-  /* Initialization flag (see the prologue above).                          */
-  /*------------------------------------------------------------------------*/
-  int    flag;			/* Set to zero to force initialization.     */
+  // Initialization flag (see the prologue above).
+  //--------------------------------------------------------------------------
+  int    flag;			// Set to zero to force initialization.
 
-  /* Parameters to be provided (see the prologue above).                    */
-  /*------------------------------------------------------------------------*/
-  int    M;			/* Number of tabular coordinate axes.       */
-  int    *K;			/* Vector of length M whose elements        */
-				/* (K_1, K_2,... K_M) record the lengths of */
-				/* the axes of the coordinate array and of  */
-				/* each indexing vector.                    */
-  int    *map;			/* Vector of length M usually such that     */
-				/* map[m-1] == i-1 for coordinate array     */
-				/* axis m and image axis i (see above).     */
-  double *crval;		/* Vector of length M containing the index  */
-				/* value for the reference pixel for each   */
-				/* of the tabular coordinate axes.          */
-  double **index;		/* Vector of pointers to M indexing vectors */
-				/* of lengths (K_1, K_2,... K_M).           */
-  double *coord;		/* (1+M)-dimensional tabular coordinate     */
-				/* array (see above).                       */
+  // Parameters to be provided (see the prologue above).
+  //--------------------------------------------------------------------------
+  int    M;			// Number of tabular coordinate axes.
+  int    *K;			// Vector of length M whose elements
+				// (K_1, K_2,... K_M) record the lengths of
+				// the axes of the coordinate array and of
+				// each indexing vector.
+  int    *map;			// Vector of length M usually such that
+				// map[m-1] == i-1 for coordinate array
+				// axis m and image axis i (see above).
+  double *crval;		// Vector of length M containing the index
+				// value for the reference pixel for each
+				// of the tabular coordinate axes.
+  double **index;		// Vector of pointers to M indexing vectors
+				// of lengths (K_1, K_2,... K_M).
+  double *coord;		// (1+M)-dimensional tabular coordinate
+				// array (see above).
 
-  /* Information derived from the parameters supplied.                      */
-  /*------------------------------------------------------------------------*/
-  int    nc;			/* Number of coordinate vectors (of length  */
-				/* M) in the coordinate array.              */
-  int    padding;		/* (Dummy inserted for alignment purposes.) */
-  int    *sense;		/* Vector of M flags that indicate whether  */
-				/* the Mth indexing vector is monotonic     */
-				/* increasing, or else decreasing.          */
-  int    *p0;			/* Vector of M indices.                     */
-  double *delta;		/* Vector of M increments.                  */
-  double *extrema;		/* (1+M)-dimensional array of coordinate    */
-				/* extrema.                                 */
+  // Information derived from the parameters supplied.
+  //--------------------------------------------------------------------------
+  int    nc;			// Number of coordinate vectors (of length
+				// M) in the coordinate array.
+  int    padding;		// (Dummy inserted for alignment purposes.)
+  int    *sense;		// Vector of M flags that indicate whether
+				// the Mth indexing vector is monotonic
+				// increasing, or else decreasing.
+  int    *p0;			// Vector of M indices.
+  double *delta;		// Vector of M increments.
+  double *extrema;		// (1+M)-dimensional array of coordinate
+				// extrema.
 
-  /* Error handling                                                         */
-  /*------------------------------------------------------------------------*/
+  // Error handling
+  //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  /* Private - the remainder are for memory management.                     */
-  /*------------------------------------------------------------------------*/
+  // Private - the remainder are for memory management.
+  //--------------------------------------------------------------------------
   int    m_flag, m_M, m_N;
   int    set_M;
   int    *m_K, *m_map;
   double *m_crval, **m_index, **m_indxs, *m_coord;
 };
 
-/* Size of the tabprm struct in int units, used by the Fortran wrappers. */
+// Size of the tabprm struct in int units, used by the Fortran wrappers.
 #define TABLEN (sizeof(struct tabprm)/sizeof(int))
 
 
@@ -619,7 +616,7 @@ int tabs2x(struct tabprm *tab, int ncoord, int nelem, const double world[],
            double x[], int stat[]);
 
 
-/* Deprecated. */
+// Deprecated.
 #define tabini_errmsg tab_errmsg
 #define tabcpy_errmsg tab_errmsg
 #define tabfree_errmsg tab_errmsg
@@ -632,4 +629,4 @@ int tabs2x(struct tabprm *tab, int ncoord, int nelem, const double world[],
 }
 #endif
 
-#endif /* WCSLIB_TAB */
+#endif // WCSLIB_TAB
