@@ -1047,7 +1047,7 @@ class Voigt1D(Fittable1DModel):
     consistently with compatible units or as unitless numbers.
     Voigt function is calculated as real part of the complex error function computed from either
     Humlicek's rational approximations (JQSRT 21:309, 1979; 27:437, 1982) following
-    Schreier 2018 (MNRAS 479, 3068; and `hum2zpf16m` from his cpfX.py module); or
+    Schreier 2018 (MNRAS 479, 3068; and ``hum2zpf16m`` from his cpfX.py module); or
     `~scipy.special.wofz` (implementing 'Faddeeva.cc').
 
     Examples
