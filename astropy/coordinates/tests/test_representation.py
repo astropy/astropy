@@ -1360,7 +1360,7 @@ class TestCartesianRepresentationWithDifferential:
         for name in REPRESENTATION_CLASSES:
             if name == 'radial':
                 # TODO: Converting a CartesianDifferential to a
-                #       RadialDifferential fails, even on `master`
+                #       RadialDifferential fails, even on `main`
                 continue
             elif name.endswith("geodetic"):
                 # TODO: Geodetic representations do not have differentials yet

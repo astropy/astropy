@@ -138,10 +138,10 @@ by ``CHANGES.md`` in the instructions.
    instructions. Check that the entry on PyPI is correct, and that
    the tarfile is present.
 
-#. Go back to the master branch and push your changes to github::
+#. Go back to the main branch and push your changes to github::
 
-        git checkout master
-        git push --tags origin master
+        git checkout main
+        git push --tags origin main
 
    Once you have done this, if you use Read the Docs, trigger a ``latest`` build
    then go to the project settings, and under **Versions** you should see the

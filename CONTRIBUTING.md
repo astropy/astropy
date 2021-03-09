@@ -56,7 +56,7 @@ and follow the Astropy guidelines for reuse, interoperability, and interfacing.
 Each affiliated package has its own developers/maintainers and its own specific
 guidelines for contributions, so be sure to read their docs.
 
-Once you open a pull request (which should be opened against the ``master``
+Once you open a pull request (which should be opened against the ``main``
 branch, not against any of the other branches), please make sure to
 include the following:
 
