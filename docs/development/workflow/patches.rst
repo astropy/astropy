@@ -38,7 +38,7 @@ Then, the workflow is the following::
    git commit -am 'BF - added fix for Funny bug'
 
    # Make the patch files
-   git format-patch -M -C master
+   git format-patch -M -C main
 
 Then, send the generated patch files to the `astropy-dev mailing list`_ |emdash|
 where we will thank you warmly.
@@ -93,9 +93,9 @@ In detail
       git status
 
 #. Finally, make your commits into patches. You want all the commits since you
-   branched from the ``master`` branch::
+   branched from the ``main`` branch::
 
-      git format-patch -M -C master
+      git format-patch -M -C main
 
    You will now have several files named for the commits::
 
@@ -105,8 +105,8 @@ In detail
    Send these files to the `astropy-dev mailing list`_.
 
 When you are done, to switch back to the main copy of the
-code, just return to the ``master`` branch::
+code, just return to the ``main`` branch::
 
-   git checkout master
+   git checkout main
 
 .. include:: links.inc

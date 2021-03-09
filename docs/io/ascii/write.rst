@@ -312,7 +312,7 @@ ECSV Format
 -----------
 
 The `Enhanced Character-Separated Values (ECSV) format
-<https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ can be used to
+<https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_ can be used to
 write ``astropy`` `~astropy.table.Table` or `~astropy.table.QTable` datasets to
 a text-only data file and then read the table back without loss of information.
 The format handles the key issue of serializing column specifications and table

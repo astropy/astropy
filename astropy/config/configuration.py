@@ -483,7 +483,7 @@ class ConfigItem:
         return self._validator.check(self.cfgtype, val)
 
 
-# this dictionary stores the master copy of the ConfigObj's for each
+# this dictionary stores the primary copy of the ConfigObj's for each
 # root package
 _cfgobjs = {}
 

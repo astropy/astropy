@@ -222,7 +222,7 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 
 # Setting this URL is requited by sphinx-astropy
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
-edit_on_github_branch = 'master'
+edit_on_github_branch = 'main'
 
 # Enable nitpicky mode - which ensures that all references in the docs
 # resolve.
