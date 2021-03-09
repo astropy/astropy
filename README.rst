@@ -52,15 +52,15 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :target: https://github.com/astropy/astropy/actions
     :alt: Astropy's GitHub Actions CI Status
 
-.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
+.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/main?logo=circleci&label=CircleCI
     :target: https://circleci.com/gh/astropy/astropy
     :alt: Astropy's CircleCI Status
 
-.. |Azure Status| image:: https://dev.azure.com/astropy-project/astropy/_apis/build/status/astropy.astropy?repoName=astropy%2Fastropy&branchName=master
+.. |Azure Status| image:: https://dev.azure.com/astropy-project/astropy/_apis/build/status/astropy.astropy?repoName=astropy%2Fastropy&branchName=main
     :target: https://dev.azure.com/astropy-project/astropy
     :alt: Astropy's Azure Pipelines Status
 
-.. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/master/graph/badge.svg
+.. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/astropy/astropy
     :alt: Astropy's Coverage Status
 

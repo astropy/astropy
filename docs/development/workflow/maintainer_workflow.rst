@@ -22,7 +22,7 @@ Make sure that pull requests do not contain a messy history with merges, etc. If
 Integrating changes manually
 ============================
 
-First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_master` add a remote that has read-only
+First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_main` add a remote that has read-only
 access to the upstream repo.  Being a maintainer, you've got read-write access.
 
 It's good to have your upstream remote have a scary name, to remind you that
@@ -32,7 +32,7 @@ it's a read-write remote::
     git fetch upstream-rw --tags
 
 Let's say you have some changes that need to go into trunk
-(``upstream-rw/master``).
+(``upstream-rw/main``).
 
 The changes are in some branch that you are currently on. For example, you are
 looking at someone's changes like this::
@@ -54,7 +54,7 @@ If there are only a few commits, consider rebasing to upstream::
     git fetch upstream-rw
 
     # Rebase
-    git rebase upstream-rw/master
+    git rebase upstream-rw/main
 
 Remember that, if you do a rebase, and push that, you'll have to close any
 github pull requests manually, because github will not be able to detect the
@@ -66,7 +66,7 @@ A long series of commits
 If there are a longer series of related commits, consider a merge instead::
 
     git fetch upstream-rw
-    git merge --no-ff upstream-rw/master
+    git merge --no-ff upstream-rw/main
 
 The merge will be detected by github, and should close any related pull
 requests automatically.
@@ -83,11 +83,11 @@ Now, in either case, you should check that the history is sensible and you
 have the right commits::
 
     git log --oneline --graph
-    git log -p upstream-rw/master..
+    git log -p upstream-rw/main..
 
 The first line above just shows the history in a compact way, with a text
 representation of the history graph. The second line shows the log of commits
-excluding those that can be reached from trunk (``upstream-rw/master``), and
+excluding those that can be reached from trunk (``upstream-rw/main``), and
 including those that can be reached from current HEAD (implied with the ``..``
 at the end). So, it shows the commits unique to this branch compared to trunk.
 The ``-p`` option shows the diff for these commits in patch form.
@@ -97,9 +97,9 @@ Push to trunk
 
 ::
 
-    git push upstream-rw my-new-feature:master
+    git push upstream-rw my-new-feature:main
 
-This pushes the ``my-new-feature`` branch in this repository to the ``master``
+This pushes the ``my-new-feature`` branch in this repository to the ``main``
 branch in the ``upstream-rw`` repository.
 
 
@@ -137,7 +137,7 @@ followed by IPython:
     0.2.x and 0.3.x are still supported there should be milestones for the next 0.2.x and 0.3.x releases.
 
   * The next X.Y release, i.e. the next minor release; this is generally the next release that all development in
-    master is aimed toward.
+    main is aimed toward.
 
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
     issues that are important, but that we know won't be resolved in the next release.
@@ -187,7 +187,7 @@ Adding to the changelog
 There are two approaches one may take to adding a new entry to the changelog,
 each with certain pros and cons.  Before describing the two specific approaches
 it should be said that *all* additions to the changelog should be made first
-in the 'master' branch.  This is because every release of Astropy includes a
+in the 'main' branch.  This is because every release of Astropy includes a
 copy of the changelog, and it should list all the changes in every prior
 version of Astropy.  For example, when Astropy v0.3.0 is released, in addition
 to the changes new to that version the changelog should have all the changes
@@ -202,14 +202,14 @@ are:
 
   Pro: An addition to the changelog is just like any other documentation
   update, and should be part of any atomic change to the software.  It can
-  be pulled into master along with the rest of the change.
+  be pulled into main along with the rest of the change.
 
   Con: If many pull requests also include changelog updates, they can quickly
   conflict with each other and require rebasing.  This is not difficult to
   resolve if the only conflict is in the changelog, but it can still be trouble
   especially for new contributors.
 
-* Add to the changelog after a change has been merged to master, whether by
+* Add to the changelog after a change has been merged to main, whether by
   pull request or otherwise.
 
   Pro: Largely escapes the merge conflict issue.

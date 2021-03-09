@@ -5,7 +5,7 @@ Unified File Read/Write Interface
 
 ``astropy`` provides a unified interface for reading and writing data in
 different formats. For many common cases this will streamline the process of
-file I/O and reduce the need to master the separate details of all of the I/O
+file I/O and reduce the need to learn the separate details of all of the I/O
 packages within ``astropy``. For details on the implementation see
 :ref:`io_registry`.
 
@@ -992,7 +992,7 @@ the call to ``write()``::
 
 The table metadata are stored as a dataset of strings by serializing the
 metadata in YAML following the `ECSV header format
-<https://github.com/astropy/astropy-APEs/blob/master/APE6.rst#header-details>`_
+<https://github.com/astropy/astropy-APEs/blob/main/APE6.rst#header-details>`_
 definition. Since there are YAML parsers for most common languages, one can
 easily access and use the table metadata if reading the HDF5 in a non-astropy
 application.
