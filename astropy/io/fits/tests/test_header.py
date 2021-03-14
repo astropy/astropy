@@ -2444,6 +2444,25 @@ class TestHeaderFunctions(FitsTestCase):
         with fits.open(self.temp('bogus_fixed.fits')) as hdul:
             assert hdul[0].header['KW'] == -1
 
+    def test_index_numpy_int(self):
+        header = fits.Header([('A', 'FOO'), ('B', 2), ('C', 'BAR')])
+        idx = np.int8(2)
+        assert header[idx] == 'BAR'
+
+        header[idx] = 'BAZ'
+        assert header[idx] == 'BAZ'
+
+        header.insert(idx, ('D', 42))
+        assert header[idx] == 42
+
+        header.add_comment('HELLO')
+        header.add_comment('WORLD')
+        assert header['COMMENT'][np.int64(1)] == 'WORLD'
+
+        header.append(('C', 'BAZBAZ'))
+        assert header[('C', np.int16(0))] == 'BAZ'
+        assert header[('C', np.uint32(1))] == 'BAZBAZ'
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
