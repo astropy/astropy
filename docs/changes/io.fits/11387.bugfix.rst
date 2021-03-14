@@ -1,0 +1,1 @@
+Fix indexing of ``fits.Header`` with Numpy integers.
