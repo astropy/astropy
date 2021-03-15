@@ -216,7 +216,7 @@ jobs:
                 pytest-astropy \
                 pytest-doctestplus
           run: |
-            source tests/bin/activate
+            source /tests/bin/activate
             # Don't allow it to use anything from pyproject.toml or else pip
             # will try to install Numpy even though the system Numpy is
             # sufficient.
