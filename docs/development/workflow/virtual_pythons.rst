@@ -10,15 +10,16 @@ Python virtual environments
 If you plan to do regular work on astropy you should do your development in
 a Python virtual environment. Conceptually a virtual environment is a
 duplicate of the Python environment you normally work in with as many (or as
-few) of the packages from your normal environment included in that virtual
-environment. It is sandboxed from your normal Python environment in the sense
-that packages installed in the virtual environment do not affect your normal
-environment in any way.
+few) of the packages from your default environment included in that virtual
+environment. It is sandboxed from your default Python environment in the
+sense that packages installed in the virtual environment do not affect your
+normal environment in any way.
 
 .. note::
 
-    "Normal Python environment" means whatever Python you are using when you
-    log in.
+    "Default Python environment" means whatever Python you are using when
+    you log in; i.e. the default Python installation on your system, which
+    is not in a Conda environment or virtualenv.
 
 There are a few options for using virtual environments; the choice of method
 is dictated by the Python distribution you use:
@@ -109,16 +110,16 @@ Create a new virtual environment
 
 This needs to be done once for each virtual environment you want. There is one
 important choice you need to make when you create a virtual environment:
-which, if any, of the packages installed in your normal Python environment do
+which, if any, of the packages installed in your default Python environment do
 you want in your virtual environment?
 
 Including them in your virtual environment doesn't take much extra space--they
 are linked into the virtual environment instead of being copied. Within the
 virtual environment you can install new versions of packages like Numpy or
-Astropy that override the versions installed in your normal Python environment.
+Astropy that override the versions installed in your default Python environment.
 
 The easiest way to get started is to include in your virtual environment the
-packages installed in your your normal Python environment; the instructions
+packages installed in your your default Python environment; the instructions
 below do that.
 
 In everything that follows, ``ENV`` represents the name you give your virtual
@@ -127,13 +128,13 @@ environment.
 **The name you choose cannot have spaces in it.**
 
 * `virtualenvwrapper`_:
-    + Make an environment called ``ENV`` with all of the packages in your normal
-      Python environment::
+    + Make an environment called ``ENV`` with all of the packages in your
+      default Python environment::
 
          mkvirtualenv --system-site-packages ENV
 
     + Omit the option ``--system-site-packages`` to create an environment
-      without the Python packages installed in your normal Python environment.
+      without the Python packages installed in your default Python environment.
     + Environments created with `virtualenvwrapper`_ always include `pip`_
       and `setuptools <https://setuptools.readthedocs.io>`_ so that you
       can install packages within the virtual environment.
@@ -147,7 +148,7 @@ environment.
         conda create -n ENV anaconda
 
     + More details, and examples that start with none of the packages from
-      your normal Python environment, are in the
+      your default Python environment, are in the
       `documentation for the conda command`_ and the
       `guide on how to manage environments`_.
 
@@ -226,7 +227,7 @@ addition to activating new ones.
 Deactivate a virtual environment
 ================================
 
-At some point you may want to go back to your normal Python environment. Do
+At some point you may want to go back to your default Python environment. Do
 that with:
 
 * `virtualenvwrapper`_: ``deactivate``
