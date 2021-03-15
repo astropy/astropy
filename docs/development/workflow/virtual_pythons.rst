@@ -256,7 +256,8 @@ Delete a virtual environment
 
 In both `virtualenvwrapper`_ and `conda`_ you can simply delete the
 directory in which the ``ENV`` is located; both also provide commands to
-make that a bit easier.
+make that a bit easier.  `pipenv`_ includes a command for deleting the
+virtual environment associated with the current directory:
 
 * `virtualenvwrapper`_: ``rmvirtualenv ENV``
 
