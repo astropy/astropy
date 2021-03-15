@@ -74,8 +74,8 @@ Set up for virtual environments
 * `conda`_: No setup is necessary beyond installing the Anaconda Python
   distribution.
 
-* `pipenv`_: Install the ``pipenv`` command using your main Python
-  environment::
+* `pipenv`_: Install the ``pipenv`` command using your default pip (the
+  pip in the default Python environment)::
 
       pip install --user pipenv
 
