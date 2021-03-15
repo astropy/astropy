@@ -83,7 +83,7 @@ class ServerProxyPool:
         return _ServerProxyPoolMethod(self._proxies, name)
 
     def shutdown(self):
-        """Shut down the proxy pool but closing all active conections."""
+        """Shut down the proxy pool by closing all active conections."""
 
         while True:
             try:
