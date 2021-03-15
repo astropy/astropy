@@ -82,6 +82,18 @@ class ServerProxyPool:
         # magic method dispatcher
         return _ServerProxyPoolMethod(self._proxies, name)
 
+    def shutdown(self):
+        """Shut down the proxy pool but closing all active conections."""
+
+        while True:
+            try:
+                proxy = self._proxies.get_nowait()
+            except queue.Empty:
+                break
+            # An undocumented but apparently supported way to call methods on
+            # an ServerProxy that are not dispatched to the remote server
+            proxy('close')
+
 
 class SAMPMsgReplierWrapper:
     """

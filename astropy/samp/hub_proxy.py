@@ -88,12 +88,11 @@ class SAMPHubProxy:
         """
         Disconnect from the current SAMP Hub.
         """
-        self.proxy = None
+        if self.proxy is not None:
+            self.proxy.shutdown()
+            self.proxy = None
         self._connected = False
         self.lockfile = {}
-
-    def server_close(self):
-        self.proxy.server_close()
 
     @property
     def _samp_hub(self):
