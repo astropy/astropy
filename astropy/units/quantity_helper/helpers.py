@@ -15,7 +15,8 @@ import numpy as np
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 from astropy.units.core import (
     UnitsError, UnitConversionError, UnitTypeError,
-    dimensionless_unscaled, get_current_unit_registry)
+    dimensionless_unscaled, get_current_unit_registry,
+    unit_scale_converter)
 
 
 def _d(unit):
@@ -28,17 +29,8 @@ def _d(unit):
 def get_converter(from_unit, to_unit):
     """Like Unit._get_converter, except returns None if no scaling is needed,
     i.e., if the inferred scale is unity."""
-    try:
-        scale = from_unit._to(to_unit)
-    except UnitsError:
-        return from_unit._apply_equivalencies(
-                from_unit, to_unit, get_current_unit_registry().equivalencies)
-    except AttributeError:
-        raise UnitTypeError(f"Unit '{from_unit}' cannot be converted to '{to_unit}'")
-    if scale == 1.:
-        return None
-    else:
-        return lambda val: scale * val
+    converter = from_unit._get_converter(to_unit)
+    return None if converter is unit_scale_converter else converter
 
 
 def get_converters_and_unit(f, unit1, unit2):
