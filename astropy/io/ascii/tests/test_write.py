@@ -738,7 +738,11 @@ def test_roundtrip_masked(fmt_name_class):
             or fmt_name == 'fixed_width'):
         return
 
-    t = simple_table(masked=True)
+    if 'qdp' in fmt_name:
+        # QDP tables are for numeric values only
+        t = simple_table(masked=True, kinds=['f', 'i'])
+    else:
+        t = simple_table(masked=True)
 
     out = StringIO()
     fast = fmt_name in ascii.core.FAST_CLASSES
@@ -749,10 +753,12 @@ def test_roundtrip_masked(fmt_name_class):
 
     # No-header formats need to be told the column names
     kwargs = {'names': t.colnames} if 'no_header' in fmt_name else {}
+    if 'qdp' in fmt_name:
+        kwargs.update({'table_id': 0, 'names': t.colnames})
 
     t2 = ascii.read(out.getvalue(), format=fmt_name, fast_reader=fast, guess=False, **kwargs)
-
     assert t.colnames == t2.colnames
+
     for col, col2 in zip(t.itercols(), t2.itercols()):
         assert col.dtype.kind == col2.dtype.kind
         assert np.all(col == col2)

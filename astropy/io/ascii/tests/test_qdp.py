@@ -112,12 +112,12 @@ def test_read_example(tmpdir):
         READ TERR 1
         READ SERR 3
         ! Table 0 comment
-        !MJD            Err (pos)       Err(neg)        Rate            Error   Value
+        !a a(pos) a(neg) b c ce d
         53000.5   0.25  -0.5   1  1.5  3.5 2
         54000.5   1.25  -1.5   2  2.5  4.5 3
         NO NO NO NO NO
         ! Table 1 comment
-        !MJD            Err (pos)       Err(neg)        Rate            Error   Value
+        !a a(pos) a(neg) b c ce d
         54000.5   2.25  -2.5   NO  3.5  5.5 5
         55000.5   3.25  -3.5   4  4.5  6.5 nan
         """
@@ -131,7 +131,8 @@ def test_read_example(tmpdir):
     assert np.ma.is_masked(t['b'][0])
     assert np.isnan(t['d'][1])
 
-    t.values_equal(dat)
+    for col1, col2 in zip(t.itercols(), dat.itercols()):
+        assert np.allclose(col1, col2, equal_nan=True)
 
 
 def test_roundtrip_example(tmpdir):
@@ -141,12 +142,12 @@ def test_roundtrip_example(tmpdir):
         READ TERR 1
         READ SERR 3
         ! Table 0 comment
-        !MJD            Err (pos)       Err(neg)        Rate            Error   Value
+        !a a(pos) a(neg) b c ce d
         53000.5   0.25  -0.5   1  1.5  3.5 2
         54000.5   1.25  -1.5   2  2.5  4.5 3
         NO NO NO NO NO
         ! Table 1 comment
-        !MJD            Err (pos)       Err(neg)        Rate            Error   Value
+        !a a(pos) a(neg) b c ce d
         54000.5   2.25  -2.5   NO  3.5  5.5 5
         55000.5   3.25  -3.5   4  4.5  6.5 nan
         """
@@ -157,8 +158,36 @@ def test_roundtrip_example(tmpdir):
     t.write(test_file, err_specs={'terr': [1], 'serr': [3]})
     t2 = Table.read(test_file, names=['a', 'b', 'c', 'd'], table_id=0)
 
-    t.values_equal(t2)
+    for col1, col2 in zip(t.itercols(), t2.itercols()):
+        assert np.allclose(col1, col2, equal_nan=True)
 
+
+def test_roundtrip_example_comma(tmpdir):
+    example_qdp = """
+        ! Initial comment line 1
+        ! Initial comment line 2
+        READ TERR 1
+        READ SERR 3
+        ! Table 0 comment
+        !a,a(pos),a(neg),b,c,ce,d
+        53000.5,0.25,-0.5,1,1.5,3.5,2
+        54000.5,1.25,-1.5,2,2.5,4.5,3
+        NO,NO,NO,NO,NO
+        ! Table 1 comment
+        !a,a(pos),a(neg),b,c,ce,d
+        54000.5,2.25,-2.5,NO,3.5,5.5,5
+        55000.5,3.25,-3.5,4,4.5,6.5,nan
+        """
+    test_file = str(tmpdir.join('test.qdp'))
+
+    t = Table.read(example_qdp, format='ascii.qdp', table_id=1,
+                   names=['a', 'b', 'c', 'd'], sep=',')
+    t.write(test_file, err_specs={'terr': [1], 'serr': [3]})
+    t2 = Table.read(test_file, names=['a', 'b', 'c', 'd'], table_id=0)
+
+    # t.values_equal(t2)
+    for col1, col2 in zip(t.itercols(), t2.itercols()):
+        assert np.allclose(col1, col2, equal_nan=True)
 
 def test_read_write_simple(tmpdir):
     test_file = str(tmpdir.join('test.qdp'))
