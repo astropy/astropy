@@ -665,7 +665,7 @@ Using pytest helper functions
 =============================
 
 If your tests need to use `pytest helper functions
-<https://docs.pytest.org/en/latest/reference.html#functions>`_, such as
+<https://docs.pytest.org/en/latest/reference/reference.html#functions>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
