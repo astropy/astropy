@@ -1197,7 +1197,8 @@ class Voigt1D(Fittable1DModel):
             # converted to dimensionless; this in turn breaks with some older
             # numpy version s where np.place() is not fully Quantity-aware
             # see https://github.com/astropy/astropy/pull/11123#issuecomment-802170935
-            w = w.to(u.dimensionless_unscaled)
+            if isinstance(w, Quantity):
+                w = w.to(u.dimensionless_unscaled)
             np.place(w, mask, numer / denom)
 
         return w
