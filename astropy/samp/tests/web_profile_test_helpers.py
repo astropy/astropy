@@ -172,7 +172,7 @@ class SAMPWebClient(SAMPClient):
                         self.receive_response(self._private_key,
                                               *result['samp.params'])
 
-        self.hub.server_close()
+        self.hub.disconnect()
 
     def register(self):
         """
