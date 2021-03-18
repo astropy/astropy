@@ -1192,6 +1192,12 @@ class Voigt1D(Fittable1DModel):
                           AA[5])*Z + AA[4])*Z+AA[3])*Z + AA[2])*Z + AA[1])*Z + AA[0])
             denom = (((((((ZZ + bb[14])*ZZ + bb[12])*ZZ + bb[10])*ZZ+bb[8])*ZZ + bb[6])*ZZ +
                       bb[4])*ZZ + bb[2])*ZZ + bb[0]
+
+            # w should be dimensionless, but is not getting automatically
+            # converted to dimensionless; this in turn breaks with some older
+            # numpy version s where np.place() is not fully Quantity-aware
+            # see https://github.com/astropy/astropy/pull/11123#issuecomment-802170935
+            w = w.to(u.dimensionless_unscaled)
             np.place(w, mask, numer / denom)
 
         return w
