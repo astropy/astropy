@@ -1726,6 +1726,43 @@ class TestCompressedImage(FitsTestCase):
         with pytest.raises(KeyError):
             comp_hdu.compressed_data
 
+    def test_compressed_header_double_extname(self):
+        """Test that a double EXTNAME with one default value does not
+        mask the non-default value."""
+        with fits.open(self.data('double_ext.fits')) as hdul:
+            hdu = hdul[1]
+
+            # Raw header has 2 EXTNAME entries
+            indices = hdu._header._keyword_indices['EXTNAME']
+            assert len(indices) == 2
+
+            # The non-default name should be returned.
+            assert hdu.name == 'ccd00'
+            assert 'EXTNAME' in hdu.header
+            assert hdu.name == hdu.header['EXTNAME']
+
+            # There should be 1 non-default EXTNAME entries.
+            indices = hdu.header._keyword_indices['EXTNAME']
+            assert len(indices) == 1
+
+            # Test header sync from property set.
+            new_name = 'NEW_NAME'
+            hdu.name = new_name
+            assert hdu.name == new_name
+            assert hdu.header['EXTNAME'] == new_name
+            assert hdu._header['EXTNAME'] == new_name
+            assert hdu._image_header['EXTNAME'] == new_name
+
+            # Check that setting the header will change the name property.
+            hdu.header['EXTNAME'] = 'NEW2'
+            assert hdu.name == 'NEW2'
+
+            hdul.writeto(self.temp('tmp.fits'), overwrite=True)
+            with fits.open(self.temp('tmp.fits')) as hdul1:
+                hdu1 = hdul1[1]
+                assert len(hdu1._header._keyword_indices['EXTNAME']) == 1
+                assert hdu1.name == 'NEW2'
+
     @pytest.mark.parametrize(
         ('keyword', 'dtype', 'expected'),
         [('BSCALE', np.uint8, np.float32), ('BSCALE', np.int16, np.float32),
