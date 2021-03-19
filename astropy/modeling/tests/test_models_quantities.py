@@ -51,7 +51,7 @@ FUNC_MODELS_1D = [
  'bounding_box': [255, 755] * u.nm},
 {'class': Voigt1D,
  'parameters': {'amplitude_L': 2 * u.Jy, 'x_0': 505 * u.nm,
-                'fwhm_L': 100 * u.AA, 'fwhm_G': 50 * u.AA},
+                'fwhm_L': 100 * u.AA, 'fwhm_G': 5000 * u.pm},
  'evaluation': [(0.51 * u.micron, 1.0621795524 * u.Jy)],
  'bounding_box': False},
 {'class': Const1D,
@@ -228,6 +228,7 @@ def test_models_evaluate_with_units(model):
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
         assert_quantity_allclose(m(*args[:-1]), args[-1])
+        assert m(*args[:-1]).unit.powers == args[-1].unit.powers
 
 
 @pytest.mark.parametrize('model', MODELS)

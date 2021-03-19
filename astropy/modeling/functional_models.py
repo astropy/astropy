@@ -1013,17 +1013,28 @@ class Lorentz1D(Fittable1DModel):
     def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
 
-        return (amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 +
-                                                  (fwhm / 2.) ** 2))
+        # Synchronise units to avoid excess unit dimensions like (nm / AA) in returned value
+        if isinstance(x, Quantity):
+            hwhm_sq = (fwhm.to(x.unit) / 2.) ** 2
+        else:
+            hwhm_sq = (fwhm / 2.) ** 2
+
+        return amplitude * hwhm_sq / ((x - x_0) ** 2 + hwhm_sq)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model derivative with respect to parameters"""
 
-        d_amplitude = fwhm ** 2 / (fwhm ** 2 + (x - x_0) ** 2)
-        d_x_0 = (amplitude * d_amplitude * (2 * x - 2 * x_0) /
-                 (fwhm ** 2 + (x - x_0) ** 2))
+        # Synchronise units to avoid excess unit dimensions like (nm / AA) in returned value
+        if isinstance(x, Quantity):
+            fwhm_sq = fwhm.to(x.unit) ** 2
+        else:
+            fwhm_sq = fwhm ** 2
+
+        d_amplitude = fwhm_sq / (fwhm_sq + (x - x_0) ** 2)
+        d_x_0 = amplitude * d_amplitude * (2 * x - 2 * x_0) / (fwhm_sq + (x - x_0) ** 2)
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
+
         return [d_amplitude, d_x_0, d_fwhm]
 
     def bounding_box(self, factor=25):
@@ -1148,6 +1159,13 @@ class Voigt1D(Fittable1DModel):
                 np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
             return self._last_w
 
+        # w takes a dimensionless complex input, but units in z like (u.AA / u.nm) may not
+        # be automatically converted to dimensionless; this in turn breaks with some older
+        # numpy versions (< 1.17) where np.place() is not fully Quantity-aware
+        # see https://github.com/astropy/astropy/pull/11123#issuecomment-802170935
+        if isinstance(z, Quantity):
+            z = z.to(u.dimensionless_unscaled)
+
         self._last_w = self._faddeeva(z)
         self._last_z = z
         return self._last_w
@@ -1155,15 +1173,26 @@ class Voigt1D(Fittable1DModel):
     def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
         """One dimensional Voigt function scaled to Lorentz peak amplitude."""
 
+        # Synchronise units to avoid excess unit dimensions like (nm / AA) in returned value
+        if isinstance(fwhm_L, Quantity):
+            sp = self.sqrt_ln2pi / fwhm_G.to(fwhm_L.unit)
+        else:
+            sp = self.sqrt_ln2pi / fwhm_G
+
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
         # The normalised Voigt profile is w.real * self.sqrt_ln2 / (self.sqrt_pi * fwhm_G) * 2 ;
         # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
-        return self._wrap_wofz(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
+        return self._wrap_wofz(z).real * sp * fwhm_L * amplitude_L
 
     def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
         """Derivative of the one dimensional Voigt function with respect to parameters."""
 
-        s = self.sqrt_ln2 / fwhm_G
+        # Synchronise units to avoid excess unit dimensions like (nm / AA) in returned value
+        if isinstance(fwhm_L, Quantity):
+            s = self.sqrt_ln2 / fwhm_G.to(fwhm_L.unit)
+        else:
+            s = self.sqrt_ln2 / fwhm_G
+
         z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
         # V * constant from McLean implementation (== their Voigt function)
         w = self._wrap_wofz(z) * s * fwhm_L * amplitude_L * self.sqrt_pi
@@ -1225,13 +1254,13 @@ class Voigt1D(Fittable1DModel):
         sqrt_piinv = 1.0 / np.sqrt(np.pi)
 
         zz = z * z
-        w  = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz*(zz - 3.0))
+        w  = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz*(zz - 3.0))     # noqa: E221
 
         if np.any(z.imag < s):
-            mask  = abs(z.real) + z.imag < s  # returns true for interior points
+            mask  = abs(z.real) + z.imag < s  # returns true for interior points  # noqa: E221
             # returns small complex array covering only the interior region
-            Z     = z[np.where(mask)] + 1.35j
-            ZZ    = Z * Z
+            Z     = z[np.where(mask)] + 1.35j  # noqa: E221 N806
+            ZZ    = Z * Z                      # noqa: E221 N806
             numer = (((((((((((((((AA[15]*Z + AA[14])*Z + AA[13])*Z + AA[12])*Z + AA[11])*Z +
                                AA[10])*Z + AA[9])*Z + AA[8])*Z + AA[7])*Z + AA[6])*Z +
                           AA[5])*Z + AA[4])*Z+AA[3])*Z + AA[2])*Z + AA[1])*Z + AA[0])
