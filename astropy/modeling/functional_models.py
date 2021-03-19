@@ -1164,7 +1164,7 @@ class Voigt1D(Fittable1DModel):
         # numpy versions (< 1.17) where np.place() is not fully Quantity-aware
         # see https://github.com/astropy/astropy/pull/11123#issuecomment-802170935
         if isinstance(z, Quantity):
-            z = z.to(u.dimensionless_unscaled)
+            z = z.to_value(u.dimensionless_unscaled)
 
         self._last_w = self._faddeeva(z)
         self._last_z = z
