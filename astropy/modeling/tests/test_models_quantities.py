@@ -36,7 +36,8 @@ FUNC_MODELS_1D = [
 {'class': Sersic1D,
  'parameters': {'amplitude': 3 * u.MJy / u.sr, 'r_eff': 2 * u.arcsec, 'n': 4},
  'evaluation': [(3 * u.arcsec, 1.3237148119468918 * u.MJy/u.sr)],
- 'bounding_box': False},
+ 'bounding_box': False,
+ 'needs_scipy': True},
 {'class': Sine1D,
  'parameters': {'amplitude': 3 * u.km / u.s, 'frequency': 0.25 * u.Hz, 'phase': 0.5},
  'evaluation': [(1 * u.s, -3 * u.km / u.s)],
@@ -50,10 +51,16 @@ FUNC_MODELS_1D = [
  'evaluation': [(0.51 * u.micron, 1 * u.Jy)],
  'bounding_box': [255, 755] * u.nm},
 {'class': Voigt1D,
- 'parameters': {'amplitude_L': 2 * u.Jy, 'x_0': 505 * u.nm,
-                'fwhm_L': 100 * u.AA, 'fwhm_G': 5000 * u.pm},
- 'evaluation': [(0.51 * u.micron, 1.0621795524 * u.Jy)],
+ 'parameters': {'amplitude_L': 200000 * u.mJy, 'x_0': 505 * u.nm,
+                'fwhm_L': 100 * u.pm, 'fwhm_G': 1000 * u.AA},
+ 'evaluation': [(0.38 * u.micron, 3.92980720 * u.mJy)],
  'bounding_box': False},
+{'class': Voigt1D,
+ 'parameters': {'amplitude_L': 200000 * u.mJy, 'x_0': 505 * u.nm,
+                'fwhm_L': 100 * u.pm, 'fwhm_G': 1000 * u.AA, 'method': 'scipy'},
+ 'evaluation': [(0.38 * u.micron, 3.92980887 * u.mJy)],
+ 'bounding_box': False,
+ 'needs_scipy': True},
 {'class': Const1D,
  'parameters': {'amplitude': 3 * u.Jy},
  'evaluation': [(0.6 * u.micron, 3 * u.Jy)],
@@ -131,7 +138,8 @@ FUNC_MODELS_2D = [
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
                 'radius': 1 * u.m},
  'evaluation': [(4 * u.m, 2.1 * u.m, 4.76998480e-05 * u.Jy)],
- 'bounding_box': False},
+ 'bounding_box': False,
+ 'needs_scipy': True},
 {'class': Moffat2D,
  'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'y_0': 3.5 * u.um,
                 'gamma': 1e-3 * u.mm, 'alpha': 1},
@@ -142,7 +150,8 @@ FUNC_MODELS_2D = [
                 'y_0': 2 * u.arcsec, 'r_eff': 2 * u.arcsec, 'n': 4,
                 'ellip': 0, 'theta': 0},
  'evaluation': [(3 * u.arcsec, 2.5 * u.arcsec, 2.829990489 * u.MJy/u.sr)],
- 'bounding_box': False},
+ 'bounding_box': False,
+ 'needs_scipy': True},
 ]
 
 POWERLAW_MODELS = [
@@ -201,12 +210,10 @@ POLY_MODELS = [
 
 MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS + PHYS_MODELS_1D
 
-SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
-
 
 @pytest.mark.parametrize('model', MODELS)
 def test_models_evaluate_without_units(model):
-    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+    if not HAS_SCIPY and model.get('needs_scipy'):
         pytest.skip()
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
@@ -223,7 +230,7 @@ def test_models_evaluate_without_units(model):
 
 @pytest.mark.parametrize('model', MODELS)
 def test_models_evaluate_with_units(model):
-    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+    if not HAS_SCIPY and model.get('needs_scipy'):
         pytest.skip()
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
@@ -234,7 +241,7 @@ def test_models_evaluate_with_units(model):
 @pytest.mark.parametrize('model', MODELS)
 def test_models_evaluate_with_units_x_array(model):
 
-    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+    if not HAS_SCIPY and model.get('needs_scipy'):
         pytest.skip()
 
     m = model['class'](**model['parameters'])
@@ -256,12 +263,12 @@ def test_models_evaluate_with_units_x_array(model):
 @pytest.mark.parametrize('model', MODELS)
 def test_models_evaluate_with_units_param_array(model):
 
-    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+    if not HAS_SCIPY and model.get('needs_scipy'):
         pytest.skip()
 
     params = {}
     for key, value in model['parameters'].items():
-        if value is None or key == 'degree':
+        if value is None or key in ('degree', 'method'):
             params[key] = value
         else:
             params[key] = np.repeat(value, 2)
@@ -290,7 +297,7 @@ def test_models_bounding_box(model):
     # In some cases, having units in parameters caused bounding_box to break,
     # so this is to ensure that it works correctly.
 
-    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+    if not HAS_SCIPY and model.get('needs_scipy'):
         pytest.skip()
 
     m = model['class'](**model['parameters'])
