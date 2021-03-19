@@ -865,7 +865,7 @@ class Linear1D(Fittable1DModel):
 
     Notes
     -----
-    Model formula:
+    Model formula for slope `a` and intercept `b`:
 
         .. math:: f(x) = a x + b
     """
@@ -921,7 +921,7 @@ class Planar2D(Fittable2DModel):
 
     Notes
     -----
-    Model formula:
+    Model formula for slope_x `a`, slope_y `b` and intercept `c`:
 
         .. math:: f(x, y) = a x + b y + c
     """

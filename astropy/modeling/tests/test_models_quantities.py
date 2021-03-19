@@ -43,7 +43,7 @@ FUNC_MODELS_1D = [
  'bounding_box': False},
 {'class': Linear1D,
  'parameters': {'slope': 3 * u.km / u.s, 'intercept': 5000 * u.m},
- 'evaluation': [(6000 * u.ms, 23 * u.km)],
+ 'evaluation': [(6000 * u.ms, 23000 * u.m)],
  'bounding_box': False},
 {'class': Lorentz1D,
  'parameters': {'amplitude': 2 * u.Jy, 'x_0': 505 * u.nm, 'fwhm': 100 * u.AA},
@@ -148,7 +148,7 @@ FUNC_MODELS_2D = [
 POWERLAW_MODELS = [
 {'class': PowerLaw1D,
  'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1},
- 'evaluation': [(1 * u.m, 500 * u.g)],
+ 'evaluation': [(1 * u.m, 0.5 * u.kg)],
  'bounding_box': False},
 {'class': BrokenPowerLaw1D,
  'parameters': {'amplitude': 5 * u.kg, 'x_break': 10 * u.cm, 'alpha_1': 1, 'alpha_2': -1},
@@ -160,7 +160,7 @@ POWERLAW_MODELS = [
  'bounding_box': False},
 {'class': ExponentialCutoffPowerLaw1D,
  'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1, 'x_cutoff': 1 * u.m},
- 'evaluation': [(1 * u.um, 499999.5 * u.kg), (10 * u.m, 50 * np.exp(-10) * u.g)],
+ 'evaluation': [(1 * u.um, 499999.5 * u.kg), (10 * u.m, 0.05 * np.exp(-10) * u.kg)],
  'bounding_box': False},
 {'class': LogParabola1D,
  'parameters': {'amplitude': 5 * u.kg, 'x_0': 10 * u.cm, 'alpha': 1, 'beta': 2},
@@ -228,7 +228,7 @@ def test_models_evaluate_with_units(model):
     m = model['class'](**model['parameters'])
     for args in model['evaluation']:
         assert_quantity_allclose(m(*args[:-1]), args[-1])
-        assert m(*args[:-1]).unit.powers == args[-1].unit.powers
+        assert m(*args[:-1]).unit == args[-1].unit
 
 
 @pytest.mark.parametrize('model', MODELS)
