@@ -1,0 +1,224 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - v4.0.x
+  pull_request:
+    branches:
+      - v4.0.x
+
+jobs:
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+
+          - name: Code style checks
+            os: ubuntu-latest
+            python: 3.x
+            toxenv: codestyle
+
+          - name: Python 3.9 with minimal dependencies
+            os: ubuntu-latest
+            python: 3.9
+            toxenv: py39-test
+
+          # NOTE: In the build below we also check that tests do not open and
+          # leave open any files. This has a performance impact on running the
+          # tests, hence why it is not enabled by default.
+          - name: Python 3.8 with all optional dependencies
+            os: ubuntu-latest
+            python: 3.8
+            toxenv: py38-test-alldeps
+            toxargs: -v --develop
+            toxposargs: --open-files
+
+          - name: Python 3.6 with oldest supported version of all dependencies
+            os: ubuntu-16.04
+            python: 3.6
+            toxenv: py36-test-oldestdeps
+            toxposargs: --doctest-rst
+
+          # Full tests with coverage checks.
+          - name: Python 3.7 with numpy 1.17 and full coverage
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-alldeps-numpy117-cov-clocale
+            toxposargs: --remote-data=astropy
+
+          - name: Python 3.8 with all optional dependencies (Windows)
+            os: windows-latest
+            python: 3.8
+            toxenv: py38-test-alldeps
+            toxposargs: --durations=50
+
+          - name: Python 3.7 with all optional dependencies (MacOS X)
+            os: macos-latest
+            python: 3.7
+            toxenv: py37-test-alldeps
+            toxposargs: --durations=50
+
+          - name: Bundling with pyinstaller
+            os: ubuntu-latest
+            python: 3.8
+            toxenv: pyinstaller
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-fr and tzdata
+      if: startsWith(matrix.os, 'ubuntu')
+      run: sudo apt-get install language-pack-fr tzdata
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox codecov
+    - name: Run tests
+      run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
+    # TODO: Do we need --gcov-glob "*cextern*" ?
+    - name: Upload coverage to codecov
+      if: ${{ contains(matrix.toxenv,'-cov') }}
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+
+  allowed_failures:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: (Allowed Failure) Python 3.7 with remote data and dev version of key dependencies
+            os: ubuntu-latest
+            python: 3.7
+            toxenv: py37-test-devdeps
+            toxposargs: --remote-data=any
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install language-pack-de and tzdata
+      if: startsWith(matrix.os, 'ubuntu')
+      run: sudo apt-get install language-pack-de tzdata
+    - name: Install Python dependencies
+      run: python -m pip install --upgrade tox codecov
+    - name: Run tests
+      run: tox ${{ matrix.toxargs }} -e ${{ matrix.toxenv }} -- ${{ matrix.toxposargs }}
+
+  egg_info:
+    name: egg_info with Python 3.7
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Run egg_info
+      run: python setup.py egg_info
+
+  parallel_and_32bit:
+    name: 32-bit and parallel
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux1_i686
+    steps:
+    # TODO: Use newer checkout actions when https://github.com/actions/checkout/issues/334 fixed
+    - name: Checkout code
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 0
+    - name: Write configuration items to standard location to make sure they are ignored in parallel mode
+      run: |
+        mkdir -p $HOME/.astropy/config/
+        printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
+    # In addition to testing 32-bit, we also use the 3.6 and 3.7 builds to
+    # test the ability to run the test suite in parallel.
+    - name: Install dependencies for Python 3.6
+      run: /opt/python/cp36-cp36m/bin/pip install tox
+    - name: Run tests for Python 3.6
+      run: /opt/python/cp36-cp36m/bin/python -m tox -e py36-test-numpy116 -- -n=4 --durations=50 --assert=plain
+    - name: Install dependencies for Python 3.7
+      run: /opt/python/cp37-cp37m/bin/pip install tox
+    - name: Run tests for Python 3.7
+      run: /opt/python/cp37-cp37m/bin/python -m tox -e py37-test-numpy116 -- -n=4 --durations=50 --assert=plain
+    # We use the 3.8 build to check that running tests twice in a row in the
+    # same Python session works without issues. This catches cases where
+    # running the tests changes the module state permanently. Note that we
+    # shouldn't also test the parallel build here since that enforces a degree
+    # of isolation of tests which will interfere with what we are trying to do
+    # here.
+    - name: Install dependencies for Python 3.8
+      run: /opt/python/cp38-cp38/bin/pip install tox
+    - name: Run tests for Python 3.8
+      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-test-double
+
+  tests_more_architectures:
+
+    # The following architectures are emulated and are therefore slow, so
+    # we include them just in the weekly cron. These also serve as a test
+    # of using system libraries and using pytest directly.
+
+    runs-on: ubuntu-18.04
+    name: Python 3.7 on ${{ matrix.arch }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+          - arch: s390x
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Run tests
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: buster
+
+          shell: /bin/bash
+
+          install: |
+            echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
+            echo "deb-src http://deb.debian.org/debian/ buster main" >> /etc/apt/sources.list
+            apt-get update -q -y
+            apt-get build-dep -q -y astropy
+            apt-get install -q -y git g++ python3 python3-venv python3-wheel
+            python3 -m venv --system-site-packages tests
+            source tests/bin/activate
+            # Upgrade a handful of packages, the system packages for which
+            # are too old:
+            pip3 install --upgrade \
+                'Cython>=0.29.14' \
+                astropy-helpers \
+                pytest-astropy \
+                pytest-doctestplus
+          run: |
+            source /tests/bin/activate
+            # Don't allow it to use anything from pyproject.toml or else pip
+            # will try to install Numpy even though the system Numpy is
+            # sufficient.
+            ASTROPY_USE_SYSTEM_ALL=1 pip3 install --no-build-isolation -e .[test]
+            python3 -m pytest

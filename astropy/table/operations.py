@@ -803,6 +803,7 @@ def _join(left, right, keys=None, join_type='inner',
     joined_table : `~astropy.table.Table` object
         New table containing the result of the join operation.
     """
+    from astropy.time import Time
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 

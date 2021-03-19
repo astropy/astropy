@@ -28,7 +28,7 @@ by ``CHANGES.md`` in the instructions.
           we recommend that you read over the more complete astropy
           :doc:`releasing` and adapt them for your package.
 
-#. Make sure that Travis and any other continuous integration is passing.
+#. Make sure that continuous integration is passing.
 
 #. Update the ``CHANGES.rst`` file to make sure that all the changes are listed,
    and update the release date, which should currently be set to

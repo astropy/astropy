@@ -22,7 +22,7 @@ from .common import assert_equal, assert_almost_equal, assert_true
 
 
 StringIO = lambda x: BytesIO(x.encode('ascii'))  # noqa
-TRAVIS = os.environ.get('TRAVIS', False)
+CI = os.environ.get('CI', False)
 
 
 def assert_table_equal(t1, t2, check_meta=False, rtol=1.e-15, atol=1.e-300):
@@ -72,8 +72,8 @@ def _read(tmpdir, table, Reader=None, format=None, parallel=False, check_meta=Fa
     assert_table_equal(t4, t5, check_meta=check_meta)
 
     if parallel:
-        if TRAVIS:
-            pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+        if CI:
+            pytest.xfail("Multiprocessing can sometimes fail on CI")
         t6 = ascii.read(table, format=format, guess=False, fast_reader={
             'parallel': True}, **kwargs)
         assert_table_equal(t1, t6, check_meta=check_meta)
@@ -1072,8 +1072,8 @@ def test_data_out_of_range(parallel, fast_reader, guess):
     if parallel:
         if not fast_reader:
             pytest.skip("Multiprocessing only available in fast reader")
-        elif TRAVIS:
-            pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+        elif CI:
+            pytest.xfail("Multiprocessing can sometimes fail on CI")
 
     fields = ['10.1E+199', '3.14e+313', '2048e+306', '0.6E-325', '-2.e345']
     values = np.array([1.01e200, np.inf, np.inf, 0.0, -np.inf])
@@ -1148,8 +1148,8 @@ def test_data_at_range_limit(parallel, fast_reader, guess):
     if parallel:
         if not fast_reader:
             pytest.skip("Multiprocessing only available in fast reader")
-        elif TRAVIS:
-            pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+        elif CI:
+            pytest.xfail("Multiprocessing can sometimes fail on CI")
 
     # Test very long fixed-format strings (to strtod range limit w/o Overflow)
     for D in 99, 202, 305:
@@ -1294,8 +1294,8 @@ def test_fortran_invalid_exp(parallel, guess):
     exponent-like patterns (no triple-digits) to make sure they are returned
     as strings instead, as with the standard C parser.
     """
-    if parallel and TRAVIS:
-        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+    if parallel and CI:
+        pytest.xfail("Multiprocessing can sometimes fail on CI")
 
     formats = {'basic': ' ', 'tab': '\t', 'csv': ','}
     header = ['S1', 'F2', 'S2', 'F3', 'S3', 'F4', 'F5', 'S4', 'I1', 'F6', 'F7']

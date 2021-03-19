@@ -40,7 +40,7 @@ jobs:
       # currently fails, see https://github.com/astropy/astropy/issues/10409
       # FIXME: we exclude the test_data_at_range_limit test since it
       # currently fails, see https://github.com/astropy/astropy/issues/10853
-      test_command: pytest -p no:warnings --astropy-header -k "not test_data_out_of_range and not test_data_at_range_limit" --pyargs astropy
+      test_command: pytest -p no:warnings --astropy-header -k "not test_data_out_of_range and not test_datetime_difference_agrees_with_timedelta" --pyargs astropy
       test_extras: test
 
       # NOTE: for v* tags, we auto-release to PyPI. See
@@ -66,3 +66,8 @@ jobs:
       - wheels_cp38*win_amd64
       - wheels_cp39*win32
       - wheels_cp39*win_amd64
+
+# We always need to specify a job, so always run a do nothing.
+- job: skipping
+  steps:
+    - checkout: none

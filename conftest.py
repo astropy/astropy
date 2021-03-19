@@ -42,7 +42,7 @@ def pytest_configure(config):
 hypothesis.settings.register_profile('normal', deadline=None)
 hypothesis.settings.register_profile('ci', deadline=None, print_blob=True)
 hypothesis.settings.register_profile(
-    'fuzzing', parent=hypothesis.settings.get_profile('ci'), max_examples=10**4
+    'fuzzing', parent=hypothesis.settings.get_profile('ci'), max_examples=1000
 )
 default = 'ci' if os.environ.get('CI') == 'true' else 'normal'
 hypothesis.settings.load_profile(os.environ.get('HYPOTHESIS_PROFILE', default))

@@ -220,7 +220,7 @@ class TestDefaultAutoOpen:
         assert ls.meta['data_url'] == iers.IERS_LEAP_SECOND_FILE
 
     # The test below is marked remote_data only to ensure it runs
-    # as an allowed-fail job on travis: i.e., we will notice it (eventually)
+    # as an allowed-fail job on CI: i.e., we will notice it (eventually)
     # but will not be misled in thinking that a PR is bad.
     @pytest.mark.remote_data
     def test_builtin_not_expired(self):

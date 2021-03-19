@@ -1,53 +1,6 @@
 version: 2
 
 jobs:
-  egg-info-37:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - run: python setup.py egg_info
-
-  32bit-and-parallel:
-    docker:
-      - image: quay.io/pypa/manylinux1_i686
-    steps:
-      - checkout
-      # The extra 'git checkout' is a bit of magic, without it not all of the git tree is checkout
-      # (e.g. files from astropy/_erfa are missing causing build errors)
-      - run:
-          name: Write configuration items to standard location to make sure they are ignored in parallel mode
-          command: |
-              mkdir -p $HOME/.astropy/config/
-              printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-              git checkout -qf
-      # In addition to testing 32-bit, we also use the 3.6 and 3.7 builds to
-      # test the ability to run the test suite in parallel.
-      - run:
-          name: Install dependencies for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/pip install "numpy<1.17" scipy pytest-astropy pytest-xdist Cython jinja2
-      - run:
-          name: Run tests for Python 3.6
-          command: /opt/python/cp36-cp36m/bin/python setup.py test --parallel=4 -a "--durations=50 --assert=plain"
-      - run:
-          name: Install dependencies for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/pip install "numpy<1.17" scipy pytest-astropy pytest-xdist Cython jinja2 pandas
-      - run:
-          name: Run tests for Python 3.7
-          command: /opt/python/cp37-cp37m/bin/python setup.py test --parallel=4 -a "--durations=50 --assert=plain"
-      # We use the 3.8 build to check that running tests twice in a row in the
-      # same Python session works without issues. This catches cases where
-      # running the tests changes the module state permanently. Note that we
-      # shouldn't also test the parallel build here since that enforces a degree
-      # of isolation of tests which will interfere with what we are trying to do
-      # here.
-      - run:
-          name: Install dependencies for Python 3.8
-          command: /opt/python/cp38-cp38/bin/pip install numpy pytest-astropy pytest-xdist Cython jinja2
-      - run:
-          name: Run tests for Python 3.8
-          command: /opt/python/cp38-cp38/bin/python -c 'import sys; from astropy import test; test(); sys.exit(test())'
-
   image-tests-mpl212:
     docker:
       - image: astropy/image-tests-py36-mpl212:1.10
@@ -126,66 +79,12 @@ jobs:
       - store_artifacts:
           path: results
 
-  html-docs:
-    docker:
-      - image: circleci/python:3.7
-    steps:
-      - checkout
-      - run:
-          name: Install apt packages
-          command: |
-            sudo apt update
-            sudo apt install -y graphviz
-      - run:
-          name: Install Python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install numpydoc matplotlib sphinx --progress-bar off
-            pip install .[docs,all] --progress-bar off
-      - run:
-          name: Make sure flake8 passes
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install flake8 --progress-bar off
-            # select options should be the same as in the travis config
-            flake8 astropy --count --select=E101,W191,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823
-      - run:
-          name: Build Docs
-          command: venv/bin/python setup.py build_docs -w --parallel=4
-          environment:
-            LC_CTYPE: C
-            LC_ALL: C
-            LANG: C
-
-      - run:
-          name: Prepare for upload
-          command: |
-            # If it's not a PR, don't upload
-            if [ -z "${CIRCLE_PULL_REQUEST}" ]; then
-              rm -r docs/_build/html
-            else
-              # If it is a PR, delete sources and doctrees, because it's a lot
-              # of files which we don't really need to upload
-              rm -r docs/_build/html/_sources
-              rm -r docs/_build/html/_modules
-              rm -r docs/_build/html/.doctrees
-            fi
-
 workflows:
   version: 2
-  tests_and_docs:
+  tests:
     jobs:
-      - egg-info-37
-      - html-docs
-      - 32bit-and-parallel
       - image-tests-mpl212
       - image-tests-mpl222
       - image-tests-mpl302
       - image-tests-mpl310
       - image-tests-mpldev
-
-notify:
-  webhooks:
-    - url: https://giles.cadair.dev/circleci
