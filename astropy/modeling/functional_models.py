@@ -865,7 +865,7 @@ class Linear1D(Fittable1DModel):
 
     Notes
     -----
-    Model formula for slope `a` and intercept `b`:
+    Model formula for slope ``a`` and intercept ``b``:
 
         .. math:: f(x) = a x + b
     """
@@ -921,7 +921,7 @@ class Planar2D(Fittable2DModel):
 
     Notes
     -----
-    Model formula for slope_x `a`, slope_y `b` and intercept `c`:
+    Model formula for slope_x ``a``, slope_y ``b`` and intercept ``c``:
 
         .. math:: f(x, y) = a x + b y + c
     """
@@ -1204,6 +1204,27 @@ class Voigt1D(Fittable1DModel):
                 w.real / amplitude_L,
                 w.real / fwhm_L - dwdz.imag * s,
                 (-w.real - s * (2 * (x - x_0) * dwdz.real - fwhm_L * dwdz.imag)) / fwhm_G]
+
+    def bounding_box(self, factor=3.3):
+        """Tuple defining the default ``bounding_box`` limits,
+        ``(x_low, x_high)``.
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of Gaussian FWHM used to define the limits.
+            5 times this factor will be applied to the Lorentz FWHM,
+            taking the larger of both limits.
+            Default is estimated to include most (98%) of the area
+            under the curve, while still showing the central feature
+            of interest; for large fwhm_G / fwhm_L these limits will
+            be significantly overestimated.
+
+        """
+        x0 = self.x_0
+        dx = factor * np.maximum(self.fwhm_G, self.fwhm_L * 5)
+
+        return (x0 - dx, x0 + dx)
 
     @property
     def input_units(self):
