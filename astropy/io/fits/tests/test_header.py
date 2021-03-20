@@ -589,6 +589,24 @@ class TestHeaderFunctions(FitsTestCase):
         assert c.value == 'calFileVersion'
         assert c.comment == ''
 
+    def test_hierarch_not_warn(self):
+        """Check that compressed image headers do not issue HIERARCH warnings.
+        """
+        filename = fits.util.get_testdata_filepath('compressed_image.fits')
+        with fits.open(filename) as hdul:
+            header = hdul[1].header
+        with pytest.warns(None) as warning_list:
+            header["HIERARCH LONG KEYWORD"] = 42
+        assert len(warning_list) == 0
+        assert header["LONG KEYWORD"] == 42
+        assert header["HIERARCH LONG KEYWORD"] == 42
+
+        # Check that it still warns if we do not use HIERARCH
+        with pytest.warns(fits.verify.VerifyWarning,
+                          match=r'greater than 8 characters'):
+            header["LONG KEYWORD2"] = 1
+        assert header["LONG KEYWORD2"] == 1
+
     def test_hierarch_keyword_whitespace(self):
         """
         Regression test for
