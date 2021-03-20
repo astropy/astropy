@@ -596,18 +596,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
 }
 
 
-// Lower-case a single C locale character
-static inline int ascii_tolower(int c)
-{
-    if (c >= 'A' || c <= 'Z')
-    {
-        return c + ('a' - 'A');
-    }
-
-    return c;
-}
-
-
 static int ascii_strncasecmp(const char *str1, const char *str2, size_t n)
 {
     int char1, char2;
