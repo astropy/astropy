@@ -421,7 +421,8 @@ class NFW(Fittable1DModel):
     # Model Parameters
 
     # NFW Profile mass
-    mass = Parameter(default=1.0, min=1.0, unit=u.M_sun, description="Peak mass within specified overdensity radius")
+    mass = Parameter(default=1.0, min=1.0, unit=u.M_sun,
+           description="Peak mass within specified overdensity radius")
 
     # NFW profile concentration
     concentration = Parameter(default=1.0, min=1.0, description="Concentration")
