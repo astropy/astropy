@@ -115,7 +115,7 @@ class Gaussian1D(Fittable1DModel):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
-    amplitude = Parameter(default=1, description="Amplitude of the Gaussian")
+    amplitude = Parameter(default=1, description="Amplitude (peak value) of the Gaussian")
     mean = Parameter(default=0, description="Position of peak (Gaussian)")
 
     # Ensure stddev makes sense if its bounds are not explicitly set.
@@ -276,7 +276,7 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter(default=0, description="Peak position (along y axis) of Gaussian")
     x_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along x axis)")
     y_stddev = Parameter(default=1, description="Standard deviation of the Gaussian (along y axis)")
-    theta = Parameter(default=0.0, description="Rotation angle in radians (Optional parameter)")
+    theta = Parameter(default=0.0, description="Rotation angle [in radians] (Optional parameter)")
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -2243,8 +2243,8 @@ class AiryDisk2D(Fittable2DModel):
     amplitude = Parameter(default=1, description="Amplitude (peak value) of the Airy function")
     x_0 = Parameter(default=0, description="X position of the peak")
     y_0 = Parameter(default=0, description="Y position of the peak")
-    radius = Parameter(default=1, description="The radius of the Airy disk (radius of first zero"
-                                                                                    "  crossing)")
+    radius = Parameter(default=1,
+             description="The radius of the Airy disk (radius of first zero crossing)")
     _rz = None
     _j1 = None
 
