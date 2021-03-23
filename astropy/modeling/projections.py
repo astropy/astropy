@@ -217,9 +217,9 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
     """
 
     mu = Parameter(default=0.0,
-            description="Distance from point of projection to center of sphere")
+                   description="Distance from point of projection to center of sphere")
     gamma = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-            description="Look angle γ in degrees (Default = 0°)")
+                      description="Look angle γ in degrees (Default = 0°)")
 
     def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
         # units : mu - in spherical radii, gamma - in deg
@@ -362,11 +362,11 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu,
-    description="Distance from point of projection to center of sphere")
+                   description="Distance from point of projection to center of sphere")
     phi0 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-    description="The longitude φ₀ of the reference point in degrees")
+                     description="The longitude φ₀ of the reference point in degrees")
     theta0 = Parameter(default=0.0, getter=_to_orig_unit, setter=_to_radian,
-    description="The latitude θ₀ of the reference point, in degrees")
+                       description="The latitude θ₀ of the reference point, in degrees")
 
     @property
     def inverse(self):
@@ -798,7 +798,7 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         Radius of the cylinder in spherical radii, λ.  Default is 0.
     """
 
-    mu = Parameter(default=1.0, description="Distance from center of sphere in the direction opposite the projected surface, in spherical radii")
+    mu = Parameter(default=1.0, description="Distance from center of sphere in spherical radii")
     lam = Parameter(default=1.0, description="Radius of the cylinder in spherical radii")
 
     @mu.validator
