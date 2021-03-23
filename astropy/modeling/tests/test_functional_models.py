@@ -141,6 +141,21 @@ def test_RedshiftScaleFactor():
                     [[1, 2], [1, 2], [1, 2]])
 
 
+def test_RedshiftScaleFactor_inverse():
+    m = models.RedshiftScaleFactor(1.2345)
+    assert_allclose(m.inverse(m(6.789)), 6.789)
+
+
+def test_RedshiftScaleFactor_inverse_bounding_box():
+    model = models.RedshiftScaleFactor(2)
+    model.bounding_box = (1, 5)
+    assert model.bounding_box == (1, 5)
+
+    inverse_model = model.inverse
+    assert inverse_model.bounding_box == (3, 15)
+    assert_allclose(inverse_model(model(4, with_bounding_box=True), with_bounding_box=True), 4)
+
+
 def test_Ellipse2D():
     """Test Ellipse2D model."""
     amplitude = 7.5
@@ -179,14 +194,44 @@ def test_Scale_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+def test_Scale_inverse_bounding_box():
+    model = models.Scale(2)
+    model.bounding_box = (1, 5)
+    assert model.bounding_box == (1, 5)
+
+    inverse_model = model.inverse
+    assert inverse_model.bounding_box == (2, 10)
+    assert inverse_model(model(4, with_bounding_box=True), with_bounding_box=True) == 4.0
+
+
 def test_Multiply_inverse():
     m = models.Multiply(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+def test_Multiply_inverse_bounding_box():
+    model = models.Multiply(2)
+    model.bounding_box = (1, 5)
+    assert model.bounding_box == (1, 5)
+
+    inverse_model = model.inverse
+    assert inverse_model.bounding_box == (2, 10)
+    assert inverse_model(model(4, with_bounding_box=True), with_bounding_box=True) == 4.0
+
+
 def test_Shift_inverse():
     m = models.Shift(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
+
+
+def test_Shift_inverse_bounding_box():
+    model = models.Shift(10)
+    model.bounding_box = (1, 5)
+    assert model.bounding_box == (1, 5)
+
+    inverse_model = model.inverse
+    assert inverse_model.bounding_box == (11, 15)
+    assert inverse_model(model(4, with_bounding_box=True), with_bounding_box=True) == 4.0
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
