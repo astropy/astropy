@@ -1109,13 +1109,13 @@ class Voigt1D(Fittable1DModel):
     """
 
     x_0 = Parameter(default=0,
-    description="Position of the peak")
+                    description="Position of the peak")
     amplitude_L = Parameter(default=1,
-    description="The Lorentzian amplitude") # noqa: N815
+                            description="The Lorentzian amplitude") # noqa: N815
     fwhm_L = Parameter(default=2/np.pi,
-    description="The Lorentzian full width at half maximum") # noqa: N815
+                       description="The Lorentzian full width at half maximum") # noqa: N815
     fwhm_G = Parameter(default=np.log(2),
-    description="The Gaussian full width at half maximum") # noqa: N815
+                       description="The Gaussian full width at half maximum") # noqa: N815
 
     sqrt_pi = np.sqrt(np.pi)
     sqrt_ln2 = np.sqrt(np.log(2))
@@ -2244,7 +2244,7 @@ class AiryDisk2D(Fittable2DModel):
     x_0 = Parameter(default=0, description="X position of the peak")
     y_0 = Parameter(default=0, description="Y position of the peak")
     radius = Parameter(default=1,
-             description="The radius of the Airy disk (radius of first zero crossing)")
+                       description="The radius of the Airy disk (radius of first zero crossing)")
     _rz = None
     _j1 = None
 
