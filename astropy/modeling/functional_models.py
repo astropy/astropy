@@ -461,6 +461,8 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
+    _has_inverse_bounding_box = True
+
     @property
     def input_units(self):
         if self.offset.unit is None:
@@ -470,8 +472,17 @@ class Shift(Fittable1DModel):
     @property
     def inverse(self):
         """One dimensional inverse Shift model function"""
+
         inv = self.copy()
         inv.offset *= -1
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.offset) for x in self.bounding_box)
+
         return inv
 
     @staticmethod
@@ -519,6 +530,8 @@ class Scale(Fittable1DModel):
     _input_units_strict = True
     _input_units_allow_dimensionless = True
 
+    _has_inverse_bounding_box = True
+
     @property
     def input_units(self):
         if self.factor.unit is None:
@@ -530,6 +543,14 @@ class Scale(Fittable1DModel):
         """One dimensional inverse Scale model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.factor) for x in self.bounding_box)
+
         return inv
 
     @staticmethod
@@ -565,11 +586,21 @@ class Multiply(Fittable1DModel):
     linear = True
     fittable = True
 
+    _has_inverse_bounding_box = True
+
     @property
     def inverse(self):
         """One dimensional inverse multiply model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.factor) for x in self.bounding_box)
+
         return inv
 
     @staticmethod
@@ -606,6 +637,8 @@ class RedshiftScaleFactor(Fittable1DModel):
 
     z = Parameter(description='redshift', default=0)
 
+    _has_inverse_bounding_box = True
+
     @staticmethod
     def evaluate(x, z):
         """One dimensional RedshiftScaleFactor model function"""
@@ -625,6 +658,14 @@ class RedshiftScaleFactor(Fittable1DModel):
 
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.z) for x in self.bounding_box)
+
         return inv
 
 
