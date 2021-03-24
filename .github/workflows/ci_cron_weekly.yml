@@ -11,6 +11,8 @@ on:
     branches:
       - v4.2.x
 
+env:
+  IS_CRON: "true"
 
 jobs:
 
@@ -19,6 +21,8 @@ jobs:
 #     name: ${{ matrix.name }}
 #     runs-on: ${{ matrix.os }}
 #     if: github.repository == 'astropy/astropy'
+#     env:
+#       ARCH_ON_CI: "normal"
 #     strategy:
 #       fail-fast: false
 #       matrix:
@@ -77,6 +81,8 @@ jobs:
 
     runs-on: ubuntu-18.04
     name: Python 3.7 on ${{ matrix.arch }}
+    env:
+      ARCH_ON_CI: ${{ matrix.arch }}
 
     strategy:
       fail-fast: false

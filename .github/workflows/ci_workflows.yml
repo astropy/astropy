@@ -8,6 +8,10 @@ on:
     branches:
       - v4.2.x
 
+env:
+  ARCH_ON_CI: "normal"
+  IS_CRON: "false"
+
 jobs:
   tests:
     name: ${{ matrix.name }}
