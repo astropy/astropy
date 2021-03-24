@@ -1152,9 +1152,6 @@ astropy.units
 - Ensure ``keepdims`` works for taking ``mean``, ``std``, and ``var`` of
   ``Quantity``. [#11198]
 
-- For ``Quantity.to_string()``, ensure that the precision argument is also
-  used when the format is not latex. [#11145]
-
 - For CDS units and tables, recognize ``-`` as indicating dimensionless and
   ``[-]`` as indicating base 10 logarithm of dimensionless. [#11250]
 
