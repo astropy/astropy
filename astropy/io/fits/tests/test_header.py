@@ -2401,17 +2401,6 @@ class TestHeaderFunctions(FitsTestCase):
         assert hdr['KEY2'] == 4
         assert hdr['KEY2 '] == 4
 
-    def test_strip(self):
-        hdr = fits.getheader(self.data('tb.fits'), ext=1)
-        hdr['FOO'] = 'bar'
-        hdr.strip()
-        assert set(hdr) == {'HISTORY', 'FOO'}
-
-        hdr = fits.getheader(self.data('tb.fits'), ext=1)
-        hdr['FOO'] = 'bar'
-        hdr = hdr.copy(strip=True)
-        assert set(hdr) == {'HISTORY', 'FOO'}
-
     def test_update_invalid_card(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5408
