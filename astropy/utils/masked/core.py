@@ -843,15 +843,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # Let __array_function__ take care since choises can be masked too.
         return np.choose(self, choices, out=out, mode=mode)
 
-    def argmin(self, axis=None, fill_value=None, out=None):
-        if fill_value is None:
-            fill_value = np.max(self.unmasked)
-        return self.unmask(fill_value=fill_value).argmin(axis=axis, out=out)
+    def argmin(self, axis=None, out=None):
+        # Todo: should this return a masked integer array, with masks
+        # if all elements were masked?
+        at_min = self == self.min(axis=axis, keepdims=True)
+        return at_min.unmask(False).argmax(axis=axis, out=out)
 
-    def argmax(self, axis=None, fill_value=None, out=None):
-        if fill_value is None:
-            fill_value = np.min(self.unmasked)
-        return self.unmask(fill_value=fill_value).argmax(axis=axis, out=out)
+    def argmax(self, axis=None, out=None):
+        at_max = self == self.max(axis=axis, keepdims=True)
+        return at_max.unmask(False).argmax(axis=axis, out=out)
 
     def argsort(self, axis=-1, kind=None, order=None):
         """Returns the indices that would sort an array.
