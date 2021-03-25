@@ -1,0 +1,1 @@
+Fixed a bug in assigning type when converting ``colsel`` to ``numpy.ndarray``.

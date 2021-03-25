@@ -1527,3 +1527,21 @@ def test_distortion_header(tmpdir):
         w2 = wcs.WCS(hdulist[0].header)
 
     assert w.pixel_to_world(*cen).separation(w2.pixel_to_world(*(siz / 2))) < 1.e-3 * u.mas
+
+
+def test_pixlist_wcs_colsel():
+    """
+    Regression test for https://github.com/astropy/astropy/issues/11412
+
+    Test selection of a specific pixel list WCS using ``colsel``.
+    """
+    hdr_file = get_pkg_data_filename('data/chandra-pixlist-wcs.hdr')
+    hdr = fits.Header.fromtextfile(hdr_file)
+    with pytest.warns(wcs.FITSFixedWarning):
+        w = wcs.WCS(hdr, keysel=['image', 'pixel'], colsel=[11, 12])
+    assert w.naxis == 2
+    assert list(w.wcs.ctype) == ['RA---TAN', 'DEC--TAN']
+    assert np.allclose(w.wcs.crval, [229.38051931869, -58.81108068885])
+    assert np.allclose(w.wcs.pc, [[1, 0], [0, 1]])
+    assert np.allclose(w.wcs.cdelt, [-0.00013666666666666, 0.00013666666666666])
+    assert np.allclose(w.wcs.lonpole, 180.)
