@@ -152,7 +152,10 @@ class DexUnit(LogUnit):
 
     def to_string(self, format='generic'):
         if format == 'cds':
-            return "[{}]".format(self.physical_unit.to_string(format=format))
+            if self.physical_unit == dimensionless_unscaled:
+                return "[-]"  # by default, would get "[---]".
+            else:
+                return f"[{self.physical_unit.to_string(format=format)}]"
         else:
             return super(DexUnit, self).to_string()
 
