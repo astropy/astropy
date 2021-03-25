@@ -815,6 +815,12 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected_data = filled.argmin(axis)
         assert_array_equal(ma_argmin, expected_data)
 
+    def test_argmin_only_one_unmasked_element(self):
+        # Regression test for example from @taldcroft at
+        # https://github.com/astropy/astropy/pull/11127#discussion_r600864559
+        ma = Masked(data=[1, 2], mask=[True, False])
+        assert ma.argmin() == 1
+
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_argmax(self, axis):
         ma_argmax = self.ma.argmax(axis)
