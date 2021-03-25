@@ -181,6 +181,7 @@ Project details
 
    stability
    whatsnew/index
+   lts_policy
    known_issues
    credits
    license
