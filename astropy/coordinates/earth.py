@@ -611,7 +611,7 @@ class EarthLocation(u.Quantity):
 
     @property
     def lat(self):
-        """Longitude of the location, for the default ellipsoid."""
+        """Latitude of the location, for the default ellipsoid."""
         return self.geodetic[1]
 
     @property
