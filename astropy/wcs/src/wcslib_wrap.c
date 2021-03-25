@@ -446,7 +446,7 @@ PyWcsprm_init(
 
     if (colsel != Py_None) {
       colsel_array = (PyArrayObject*) PyArray_ContiguousFromAny(
-        colsel, 1, 1, NPY_INT);
+        colsel, NPY_INT, 1, 1);
       if (colsel_array == NULL) {
         return -1;
       }
