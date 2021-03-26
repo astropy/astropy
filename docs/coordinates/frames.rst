@@ -244,7 +244,7 @@ set of coordinates, you will need to make sure that the shapes allow this::
         [[( 93.09845185, 89.21613128), (126.85789663, 25.4660055 ),
           ( 51.37993234, 37.18532527)],
          [(307.71713698, 37.99437658), (231.3740787 , 26.36768329),
-          ( 85.4218724 , 89.69297998)]]>
+          ( 85.42187241, 89.69297998)]]>
 
 .. Note::
    Frames without data have a ``shape`` that is determined by their frame
