@@ -7,7 +7,7 @@ will only cover:
 
 * Critical bug fixes.
 * Critical security fixes.
-* Special request from pipelines stuck to the LTS. For this use case,
+* Special request from users stuck to the LTS. For this use case,
   preferably the developers from affected pipelines would help with the
   backports.
 
