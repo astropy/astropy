@@ -16,7 +16,9 @@ from astropy.wcs import wcs
 
 
 @pytest.mark.parametrize(('inp'), [(0, 0), (4000, -20.56), (-2001.5, 45.9),
-                                   (0, 90), (0, -90), (np.mgrid[:4, :6])])
+                                   (0, 90), (0, -90), (np.mgrid[:4, :6]),
+                                   [np.random.random((3,4  )) for _ in range(2)],
+                                   [np.random.random((3,4,5)) for _ in range(2)]])
 def test_against_wcslib(inp):
     w = wcs.WCS()
     crval = [202.4823228, 47.17511893]
@@ -37,7 +39,9 @@ def test_against_wcslib(inp):
     assert_allclose(minv(*radec), xy, atol=1e-12)
 
 
-@pytest.mark.parametrize(('inp'), [(1e-5, 1e-4), (40, -20.56), (21.5, 45.9)])
+@pytest.mark.parametrize(('inp'), [(1e-5, 1e-4), (40, -20.56), (21.5, 45.9),
+                                   [np.random.random((3,4  )) for _ in range(2)],
+                                   [np.random.random((3,4,5)) for _ in range(2)]])
 def test_roundtrip_sky_rotation(inp):
     lon, lat, lon_pole = 42, 43, 44
     n2c = models.RotateNative2Celestial(lon, lat, lon_pole)
