@@ -3661,7 +3661,18 @@ class Table:
                 elif column.dtype.kind not in ['f', 'c']:
                     out[name] = column.astype(object).filled(np.nan)
 
-        kwargs = {'index': out.pop(index)} if index else {}
+        kwargs = {}
+
+        if index:
+            idx = out.pop(index)
+
+            kwargs['index'] = idx
+
+            # We add the table index to Series inputs (MaskedColumn with int values) to override
+            # its default RangeIndex, see #11432
+            for v in out.values():
+                if isinstance(v, Series):
+                    v.index = idx
 
         return DataFrame(out, **kwargs)
 

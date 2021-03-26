@@ -1,0 +1,2 @@
+Using ``Table.to_pandas()`` on an indexed ``Table`` with masked integer values
+now correctly construct the ``pandas.DataFrame``.
