@@ -710,7 +710,8 @@ def test_wcs_keyword_removal_for_wcs_test_files():
 
     for hdr in wcs_headers:
         # Skip the files that are expected to be bad...
-        if 'invalid' in hdr or 'nonstandard' in hdr or 'segfault' in hdr:
+        if ('invalid' in hdr or 'nonstandard' in hdr or 'segfault' in hdr or
+            'chandra-pixlist-wcs' in hdr):
             continue
         header_string = get_pkg_data_contents(hdr)
         header = fits.Header.fromstring(header_string)

@@ -1531,9 +1531,7 @@ def test_distortion_header(tmpdir):
 
 def test_pixlist_wcs_colsel():
     """
-    Regression test for https://github.com/astropy/astropy/issues/11412
-
-    Test selection of a specific pixel list WCS using ``colsel``.
+    Test selection of a specific pixel list WCS using ``colsel``. See #11412.
     """
     hdr_file = get_pkg_data_filename('data/chandra-pixlist-wcs.hdr')
     hdr = fits.Header.fromtextfile(hdr_file)
