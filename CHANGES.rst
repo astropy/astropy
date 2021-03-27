@@ -66,7 +66,7 @@ astropy.io.votable
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
-- Added a state attribute to models to allow preventing the synching of 
+- Added a state attribute to models to allow preventing the synching of
   constraint values from the constituent models. This synching can
   greatly slow down fitting if there are large numbers of fit parameters.
   model.sync_constraints = True means check constituent model constraints
@@ -1182,8 +1182,7 @@ Other Changes and Additions
 - Removed dependency on scikit-image. [#10214]
 
 
-
-4.0.5 (unreleased)
+4.0.6 (unreleased)
 ==================
 
 Bug Fixes
@@ -1213,6 +1212,69 @@ astropy.io.ascii
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+astropy.samp
+^^^^^^^^^^^^
+
+astropy.stats
+^^^^^^^^^^^^^
+
+astropy.table
+^^^^^^^^^^^^^
+
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+
+4.0.5 (2021-3-26)
+=================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
 - Fix bug where manual fixes to invalid header cards were not preserved when
   saving a FITS file. [#11108]
 
@@ -1234,27 +1296,12 @@ astropy.io.misc
   string array instead of the previous fixed-length bytes array. Fixed astropy
   to force using a fixed-length bytes array. [#11359]
 
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
 - Change ``Voigt1D`` function to use Humlicek's approximation to avoid serious
   inaccuracies + option to use (compiled) ``scipy.special.wofz`` error function
   for yet more accurate results. [#11177]
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -1277,8 +1324,9 @@ astropy.table
   (instead of ``table.hstack([t1, t2]))`` would return ``t1`` instead of raising
   an exception. [#11336]
 
-astropy.tests
-^^^^^^^^^^^^^
+- Fixed byteorder conversion in ``to_pandas()``, which had incorrectly
+  triggered swapping when native endianness was stored with explicit
+  ``dtype`` code ``'<'`` (or ``'>'``) instead of ``'='``. [#11288]
 
 astropy.time
 ^^^^^^^^^^^^
@@ -1290,12 +1338,6 @@ astropy.time
 
 - Fix inability to write masked times with ``formatted_value``. [#11195]
 
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -1305,16 +1347,6 @@ astropy.units
 - For ``Quantity.to_string()``, ensure that the precision argument is also
   used when the format is not latex. [#11145]
 
-- For CDS units and tables, recognize ``---`` and ``-`` as indicating
-  dimensionless and ``[-]`` as indicating base 10 logarithm of dimensionless.
-  [#11250]
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
 astropy.wcs
 ^^^^^^^^^^^
 
@@ -1322,8 +1354,6 @@ astropy.wcs
   ``Wcsprm``. [#11166]
 
 
-Other Changes and Additions
----------------------------
 
 
 
