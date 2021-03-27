@@ -3,6 +3,7 @@
 from copy import deepcopy
 
 import numpy as np
+import warnings
 
 from astropy.table import groups, Table, QTable
 from astropy.time import Time, TimeDelta
@@ -10,6 +11,7 @@ from astropy import units as u
 from astropy.units import Quantity
 
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
+
 
 __all__ = ['BinnedTimeSeries']
 
@@ -118,6 +120,11 @@ class BinnedTimeSeries(BaseTimeSeries):
 
         if isinstance(time_bin_size, TimeDelta):
             time_bin_size = time_bin_size.sec * u.s
+
+        # If any of the parameter 'time_bin_start' or 'time_bin_end' is not scalar, a warning is raised.
+        if n_bins:
+            if not (time_bin_start.isscalar and  time_bin_end.isscalar):
+                warnings.warn(" 'n_bins' is  not valid as ``time_bin_start`` or ``time_bin_size`` are not scalar. ")
 
         if time_bin_start.isscalar:
 
