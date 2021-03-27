@@ -995,7 +995,7 @@ class TestHDUListFunctions(FitsTestCase):
 
         # Make sure that files opened by the user are not closed
         with open(filename, mode='rb') as f:
-            with pytest.raises(OSError):
+            with pytest.raises(OSError), pytest.warns(VerifyWarning):
                 fits.open(f, ignore_missing_end=False)
 
             assert not f.closed
@@ -1006,7 +1006,7 @@ class TestHDUListFunctions(FitsTestCase):
 
             assert not f.closed
 
-        with pytest.raises(OSError):
+        with pytest.raises(OSError), pytest.warns(VerifyWarning):
             fits.open(filename, ignore_missing_end=False)
 
         with pytest.raises(OSError), pytest.warns(VerifyWarning):
