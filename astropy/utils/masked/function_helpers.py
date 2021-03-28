@@ -535,7 +535,7 @@ if NUMPY_LT_1_19:
 
         Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
         """
-        filled = a.unmask(np.zeros((), a.dtype))
+        filled = a.filled(np.zeros((), a.dtype))
         return np.count_nonzero(filled, axis)
 else:
     @dispatched_function
@@ -544,7 +544,7 @@ else:
 
         Like `numpy.count_nonzero`, with masked values counted as 0 or `False`.
         """
-        filled = a.unmask(np.zeros((), a.dtype))
+        filled = a.filled(np.zeros((), a.dtype))
         return np.count_nonzero(filled, axis, keepdims=keepdims)
 
 
@@ -697,7 +697,7 @@ def choose(a, choices, out=None, mode='raise'):
     a_data, a_mask = Masked._data_mask(a)
     if a_mask is not None and mode == 'raise':
         # Avoid raising on masked indices.
-        a_data = a.unmask(fill_value=0)
+        a_data = a.filled(fill_value=0)
 
     kwargs = {'mode': mode}
     if out is not None:

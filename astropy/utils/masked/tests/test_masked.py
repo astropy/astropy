@@ -426,12 +426,12 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
         fill_value = fill_value * getattr(self.a, 'unit', 1)
         expected = self.a.copy()
         expected[self.ma.mask] = fill_value
-        result = self.ma.unmask(fill_value)
+        result = self.ma.filled(fill_value)
         assert_array_equal(expected, result)
 
     def test_filled_no_fill_value(self):
-        result = self.ma.unmask()
-        assert_array_equal(result, self.a)
+        with pytest.raises(TypeError, match='missing 1 required'):
+            self.ma.filled()
 
     @pytest.mark.parametrize('fill_value', [(0, 1), (-1, -1)])
     def test_filled_structured(self, fill_value):
@@ -441,7 +441,7 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
         expected = self.sa.copy()
         expected['a'][self.msa.mask['a']] = fill_value['a']
         expected['b'][self.msa.mask['b']] = fill_value['b']
-        result = self.msa.unmask(fill_value)
+        result = self.msa.filled(fill_value)
         assert_array_equal(expected, result)
 
     def test_flat(self):
@@ -913,7 +913,7 @@ class TestMaskedArrayMethods(MaskedArraySetup):
     @pytest.mark.parametrize('axis', [0, 1])
     def test_structured_argsort(self, axis, order):
         ma_argsort = self.msa.argsort(axis, order=order)
-        filled = self.msa.unmask(fill_value=np.array((np.inf, np.inf),
+        filled = self.msa.filled(fill_value=np.array((np.inf, np.inf),
                                                      dtype=self.sdt))
         expected_data = filled.argsort(axis, order=order)
         assert_array_equal(ma_argsort, expected_data)
@@ -1035,8 +1035,8 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         # Need to be careful with min, max because of Longitude, which wraps.
         dmax = np.maximum(np.maximum(self.a, self.b), self.c).max()
         dmin = np.minimum(np.minimum(self.a, self.b), self.c).min()
-        expected = Masked(self.a.clip(self.mb.unmask(dmin),
-                                      self.mc.unmask(dmax)),
+        expected = Masked(self.a.clip(self.mb.filled(dmin),
+                                      self.mc.filled(dmax)),
                           mask=self.mask_a)
         assert_masked_equal(maclip, expected)
 
