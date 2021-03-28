@@ -800,9 +800,17 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         assert_array_equal(ma_mean.unmasked, expected_data)
         assert_array_equal(ma_mean.mask, expected_mask)
 
+    def test_mean_int16(self):
+        ma = self.ma.astype('i2')
+        ma_mean = ma.mean()
+        assert ma_mean.dtype == 'f8'
+        expected = ma.astype('f8').mean()
+        assert_masked_equal(ma_mean, expected)
+
     def test_mean_float16(self):
         ma = self.ma.astype('f2')
         ma_mean = ma.mean()
+        assert ma_mean.dtype == 'f2'
         expected = self.ma.mean().astype('f2')
         assert_masked_equal(ma_mean, expected)
 
@@ -832,6 +840,13 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         ma_var5 = self.ma.var(axis, ddof=5)
         assert np.all(~np.isfinite(ma_var5.unmasked))
         assert ma_var5.mask.all()
+
+    def test_var_int16(self):
+        ma = self.ma.astype('i2')
+        ma_var = ma.var()
+        assert ma_var.dtype == 'f8'
+        expected = ma.astype('f8').var()
+        assert_masked_equal(ma_var, expected)
 
     def test_std(self):
         ma_std = self.ma.std(1, ddof=1)
@@ -886,7 +901,7 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         expected_data = filled.argmax(axis)
         assert_array_equal(ma_argmax, expected_data)
 
-    @pytest.mark.parametrize('axis', (0, 1))
+    @pytest.mark.parametrize('axis', (0, 1, None))
     def test_argsort(self, axis):
         ma_argsort = self.ma.argsort(axis)
         filled = self.a.copy()
@@ -902,6 +917,10 @@ class TestMaskedArrayMethods(MaskedArraySetup):
                                                      dtype=self.sdt))
         expected_data = filled.argsort(axis, order=order)
         assert_array_equal(ma_argsort, expected_data)
+
+    def test_argsort_error(self):
+        with pytest.raises(ValueError, match='when the array has no fields'):
+            self.ma.argsort(axis=0, order='a')
 
     @pytest.mark.parametrize('axis', (0, 1))
     def test_sort(self, axis):

@@ -48,9 +48,10 @@ kwargs : dict
 out : `~astropy.utils.masked.Masked` instance or None
     Optional instance in which to store the output.
 
-Notes
------
-A helper can also return the result directly (e.g., if `NotImplemented`).
+Raises
+------
+NotImplementedError
+   When an arguments is masked when it should not be or vice versa.
 """
 
 DISPATCHED_FUNCTIONS = {}
@@ -60,6 +61,9 @@ These are for more complicated versions where the numpy function itself
 cannot easily be used.  It should return either the result of the
 function, or a tuple consisting of the unmasked result, the mask for the
 result and a possible output instance.
+
+It should raise `NotImplementedError` if one of the arguments is masked
+when it should not be or vice versa.
 """
 
 UNSUPPORTED_FUNCTIONS = set()
@@ -102,8 +106,8 @@ MASKED_SAFE_FUNCTIONS |= {
     np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
     np.expand_dims, np.apply_along_axis, np.kron, np.tile,
     np.take_along_axis, np.put_along_axis,
-    # np.lib.type_check (all but asfarray)
-    np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.nan_to_num,
+    # np.lib.type_check (all but asfarray, nan_to_num)
+    np.iscomplexobj, np.isrealobj, np.imag, np.isreal,
     np.real, np.real_if_close, np.common_type,
     # np.lib.ufunclike
     np.fix, np.isneginf, np.isposinf,
@@ -202,6 +206,13 @@ def unwrap(p, *args, **kwargs):
     return np.unwrap(p.unmasked, *args, **kwargs), p.mask.copy(), None
 
 
+@dispatched_function
+def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
+    data = np.nan_to_num(x.unmasked, copy=copy,
+                         nan=nan, posinf=posinf, neginf=neginf)
+    return (data, x.mask.copy(), None) if copy else x
+
+
 # Following are simple functions related to shapes, where the same function
 # should be applied to the data and the mask.  They cannot all share the
 # same helper, because the first arguments have different names.
@@ -243,10 +254,9 @@ def broadcast_to(array,  shape, subok=False):
     return data, mask, dict(shape=shape, subok=subok), None
 
 
-@apply_to_both
+@dispatched_function
 def outer(a, b, out=None):
-    data, masks = _data_masks(a, b)
-    return data, masks, {}, out
+    return np.multiply.outer(np.ravel(a), np.ravel(b), out=out)
 
 
 @dispatched_function
@@ -310,7 +320,8 @@ def put(a, ind, v, mode='raise'):
     """
     from astropy.utils.masked import Masked
     if isinstance(ind, Masked) or not isinstance(a, Masked):
-        return NotImplemented
+        raise NotImplementedError
+
     v_data, v_mask = a._data_mask(v)
     if v_data is not None:
         np.put(a.unmasked, ind, v_data, mode=mode)
@@ -328,7 +339,8 @@ def putmask(a, mask, values):
     """
     from astropy.utils.masked import Masked
     if isinstance(mask, Masked) or not isinstance(a, Masked):
-        return NotImplemented
+        raise NotImplementedError
+
     values_data, values_mask = a._data_mask(values)
     if values_data is not None:
         np.putmask(a.unmasked, mask, values_data)
@@ -345,7 +357,8 @@ def place(arr, mask, vals):
     """
     from astropy.utils.masked import Masked
     if isinstance(mask, Masked) or not isinstance(arr, Masked):
-        return NotImplemented
+        raise NotImplementedError
+
     vals_data, vals_mask = arr._data_mask(vals)
     if vals_data is not None:
         np.place(arr.unmasked, mask, vals_data)
@@ -361,8 +374,9 @@ def copyto(dst, src,  casting='same_kind', where=True):
     masked source ``src``.
     """
     from astropy.utils.masked import Masked
-    if not isinstance(dst, Masked):
-        return NotImplemented
+    if not isinstance(dst, Masked) or isinstance(where, Masked):
+        raise NotImplementedError
+
     src_data, src_mask = dst._data_mask(src)
 
     if src_data is not None:
@@ -426,7 +440,7 @@ def sort_complex(a):
     # Just a copy of function_base.sort_complex, to avoid the asarray.
     b = a.copy()
     b.sort()
-    if not issubclass(b.dtype.type, np.complexfloating):
+    if not issubclass(b.dtype.type, np.complexfloating):  # pragma: no cover
         if b.dtype.char in 'bhBH':
             return b.astype('F')
         elif b.dtype.char == 'g':
@@ -506,8 +520,8 @@ def insert(arr, obj, values, axis=None):
     Masked ``obj`` is not supported.
     """
     from astropy.utils.masked import Masked
-    if isinstance(obj, Masked):
-        return NotImplemented
+    if isinstance(obj, Masked) or not isinstance(arr, Masked):
+        raise NotImplementedError
 
     (arr_data, val_data), (arr_mask, val_mask) = _data_masks(arr, values)
     return ((arr_data, obj, val_data, axis),
@@ -571,13 +585,13 @@ def _masked_median(a, axis=None, out=None, overwrite_input=False):
 def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
     from astropy.utils.masked import Masked
     if out is not None and not isinstance(out, Masked):
-        return NotImplemented
+        raise NotImplementedError
 
     a = Masked(a)
     r, k = np.lib.function_base._ureduce(
         a, func=_masked_median, axis=axis, out=out,
         overwrite_input=overwrite_input)
-    return r.reshape(k) if keepdims else r
+    return (r.reshape(k) if keepdims else r) if out is None else out
 
 
 def _masked_quantile_1d(a, q, **kwargs):
@@ -616,7 +630,7 @@ def quantile(a, q, axis=None, out=None, overwrite_input=False,
              interpolation='linear', keepdims=False):
     from astropy.utils.masked import Masked
     if isinstance(q, Masked) or out is not None and not isinstance(out, Masked):
-        return NotImplemented
+        raise NotImplementedError
 
     a = Masked(a)
     q = np.asanyarray(q)
@@ -626,7 +640,7 @@ def quantile(a, q, axis=None, out=None, overwrite_input=False,
     r, k = np.lib.function_base._ureduce(
         a, func=_masked_quantile, q=q, axis=axis, out=out,
         interpolation=interpolation, overwrite_input=overwrite_input)
-    return r.reshape(k) if keepdims else r
+    return (r.reshape(k) if keepdims else r) if out is None else out
 
 
 @dispatched_function
@@ -656,9 +670,7 @@ def array_equiv(a1, a2):
 def where(condition, *args):
     from astropy.utils.masked import Masked
     if not args:
-        return condition.nonzero()
-    elif len(args) != 2:
-        return NotImplemented
+        return condition.nonzero(), None, None
 
     condition, c_mask = Masked._data_mask(condition)
 
@@ -690,7 +702,7 @@ def choose(a, choices, out=None, mode='raise'):
     kwargs = {'mode': mode}
     if out is not None:
         if not isinstance(out, Masked):
-            return NotImplemented
+            raise NotImplementedError
         kwargs['out'] = out.unmasked
 
     data, masks = _data_masks(*choices)
@@ -737,7 +749,8 @@ def piecewise(x, condlist, funclist, *args, **kw):
     n2 = len(funclist)
     # undocumented: single condition is promoted to a list of one condition
     if np.isscalar(condlist) or (
-            not isinstance(condlist[0], (list, np.ndarray)) and x.ndim != 0):
+            not isinstance(condlist[0], (list, np.ndarray))
+            and x.ndim != 0):  # pragma: no cover
         condlist = [condlist]
 
     condlist = np.array(condlist, dtype=bool)
@@ -845,8 +858,7 @@ def apply_over_axes(func, a, axes):
             else:
                 raise ValueError("function is not returning "
                                  "an array of the correct shape")
-    # Returning mask is None to signal nothing should happen to
-    # the output.
+
     return val
 
 

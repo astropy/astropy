@@ -618,7 +618,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # Also ignore axes keyword for now...
             # TODO: in principle, it should be possible to generate the mask
             # purely based on the signature.
-            assert 'axes' not in kwargs
+            if 'axes' in kwargs:
+                raise NotImplementedError("Masked does not yet support gufunc "
+                                          "calls with 'axes'.")
             if ufunc is np.matmul:
                 # np.matmul is tricky and its signature cannot be parsed by
                 # _parse_gufunc_signature.
@@ -643,7 +645,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 # cannot handle spaces in tuples, so remove those.
                 in_sig, out_sig = np.lib.function_base._parse_gufunc_signature(
                     ufunc.signature.replace(' ', ''))
-                axis = kwargs.get('axis', None)
+                axis = kwargs.get('axis', -1)
                 keepdims = kwargs.get('keepdims', False)
                 in_masks = []
                 for sig, mask in zip(in_sig, masks):
@@ -651,14 +653,10 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                         if sig:
                             # Input has core dimensions.  Assume that if any
                             # value in those is masked, the output will be
-                            # masked too (valid for a single core dimension
-                            # but possibly too strong for multiple).
-                            if axis is None:
-                                mask = np.logical_or.reduce(
-                                    mask, axis=tuple(range(-len(sig), 0)))
-                            else:
-                                mask = np.logical_or.reduce(
-                                    mask, axis=axis, keepdims=keepdims)
+                            # masked too (TODO: for multiple core dimensions
+                            # this may be too strong).
+                            mask = np.logical_or.reduce(
+                                mask, axis=axis, keepdims=keepdims)
                         in_masks.append(mask)
 
                 mask = self._combine_masks(in_masks)
@@ -667,10 +665,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     if os:
                         # Output has core dimensions.  Assume all those
                         # get the same mask.
-                        if axis is None:
-                            result_mask = mask[(Ellipsis,)+(np.newaxis,)*len(os)]
-                        else:
-                            result_mask = np.expand_dims(mask, axis)
+                        result_mask = np.expand_dims(mask, axis)
                     else:
                         result_mask = mask
                     result_masks.append(result_mask)
@@ -680,6 +675,12 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         elif method == '__call__':
             # Regular ufunc call.
             mask = self._combine_masks(masks, out=out_mask)
+
+        elif method == 'outer':
+            # Must have two arguments; adjust masks as will be done for data.
+            assert len(masks) == 2
+            masks = [(m if m is not None else False) for m in masks]
+            mask = np.logical_or.outer(masks[0], masks[1], out=out_mask)
 
         elif method in {'reduce', 'accumulate'}:
             # Reductions like np.add.reduce (sum).
@@ -710,18 +711,23 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             elif out is not None:
                 mask = False
 
-            else:
+            else:  # pragma: no cover
+                # Can only get here if neither input nor output was masked, but
+                # perhaps axis or where was masked (in numpy < 1.21 this is
+                # possible).  We don't support this.
                 return NotImplemented
 
-        elif method in {'reduceat', 'at'}:
+        elif method in {'reduceat', 'at'}:  # pragma: no cover
             # TODO: implement things like np.add.accumulate (used for cumsum).
-            return NotImplemented
+            raise NotImplementedError("masked instances cannot yet deal with "
+                                      "'reduceat' or 'at'.")
 
         if out_unmasked is not None:
             kwargs['out'] = out_unmasked
         result = getattr(ufunc, method)(*unmasked, **kwargs)
 
-        if result is None or result is NotImplemented:
+        if result is None:  # pragma: no cover
+            # This happens for the "at" method.
             return result
 
         if out is not None and len(out) == 1:
@@ -736,13 +742,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         elif function in APPLY_TO_BOTH_FUNCTIONS:
             helper = APPLY_TO_BOTH_FUNCTIONS[function]
-            helper_result = helper(*args, **kwargs)
-            if not isinstance(helper_result, tuple):
-                return helper_result
+            try:
+                helper_result = helper(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
             data_args, mask_args, kwargs, out = helper_result
             if out is not None:
                 if not isinstance(out, Masked):
-                    return NotImplemented
+                    return self._not_implemented_or_raise(function, types)
                 function(*mask_args, out=out.mask, **kwargs)
                 function(*data_args, out=out.unmasked, **kwargs)
                 return out
@@ -752,7 +760,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         elif function in DISPATCHED_FUNCTIONS:
             dispatched_function = DISPATCHED_FUNCTIONS[function]
-            dispatched_result = dispatched_function(*args, **kwargs)
+            try:
+                dispatched_result = dispatched_function(*args, **kwargs)
+            except NotImplementedError:
+                return self._not_implemented_or_raise(function, types)
+
             if not isinstance(dispatched_result, tuple):
                 return dispatched_result
 
@@ -761,7 +773,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         elif function in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
 
-        else:
+        else:  # pragma: no cover
             # By default, just pass it through for now.
             return super().__array_function__(function, types, args, kwargs)
 
@@ -769,6 +781,20 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             return result
         else:
             return self._masked_result(result, mask, out)
+
+    def _not_implemented_or_raise(self, function, types):
+        # Our function helper or dispatcher found that the function does not
+        # work with Masked.  In principle, there may be another class that
+        # knows what to do with us, for which we should return NotImplemented.
+        # But if there is ndarray (or a non-Masked subclass of it) around,
+        # it quite likely coerces, so we should just break.
+        if any(issubclass(t, np.ndarray) and not issubclass(t, Masked)
+               for t in types):
+            raise TypeError("the MaskedNDArray implementation cannot handle {} "
+                            "with the given arguments."
+                            .format(function)) from None
+        else:
+            return NotImplemented
 
     def _masked_result(self, result, mask, out):
         if isinstance(result, tuple):
@@ -825,8 +851,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                            **self._reduce_defaults(kwargs, np.min))
 
     def nonzero(self):
+        unmasked_nonzero = self.unmasked.nonzero()
         if self.ndim >= 1:
-            unmasked_nonzero = self.unmasked.nonzero()
             not_masked = ~self.mask[unmasked_nonzero]
             return tuple(u[not_masked] for u in unmasked_nonzero)
         else:
