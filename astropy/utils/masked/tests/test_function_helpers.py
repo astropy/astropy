@@ -148,12 +148,6 @@ class TestShapeManipulation(BasicTestSetup):
         self.check2(np.broadcast_arrays)
         self.check2(np.broadcast_arrays, subok=False)
 
-    def test_outer(self):
-        self.check2(np.outer)
-
-    def test_kron(self):
-        self.check2(np.kron)
-
 
 class TestArgFunctions(MaskedArraySetup):
     def check(self, function, *args, fill_value=np.nan, **kwargs):
@@ -176,6 +170,15 @@ class TestArgFunctions(MaskedArraySetup):
 
     def test_nonzero(self):
         self.check(np.nonzero, fill_value=0.)
+
+    @pytest.mark.filterwarnings('ignore:Calling nonzero on 0d arrays is deprecated')
+    def test_nonzero_0d(self):
+        res1 = Masked(1, mask=False).nonzero()
+        assert len(res1) == 1
+        assert_array_equal(res1[0], np.ones(()).nonzero()[0])
+        res2 = Masked(1, mask=True).nonzero()
+        assert len(res2) == 1
+        assert_array_equal(res2[0], np.zeros(()).nonzero()[0])
 
     def test_argwhere(self):
         self.check(np.argwhere, fill_value=0.)
@@ -217,17 +220,26 @@ class TestAlongAxis(MaskedArraySetup):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, self.mask_a)
 
-    @pytest.mark.parametrize('axes', ((1,), (0,), (0, 1)))
+    @pytest.mark.parametrize('axes', [(1,), 0, (0, -1)])
     def test_apply_over_axes(self, axes):
         def function(x, axis):
             return np.mean(np.square(x), axis)
 
         out = np.apply_over_axes(function, self.ma, axes)
         expected = self.ma
-        for axis in axes:
+        for axis in (axes if isinstance(axes, tuple) else (axes,)):
             expected = (expected**2).mean(axis, keepdims=True)
         assert_array_equal(out.unmasked, expected.unmasked)
         assert_array_equal(out.mask, expected.mask)
+
+    def test_apply_over_axes_no_reduction(self):
+        out = np.apply_over_axes(np.cumsum, self.ma, 0)
+        expected = self.ma.cumsum(axis=0)
+        assert_masked_equal(out, expected)
+
+    def test_apply_over_axes_wrong_size(self):
+        with pytest.raises(ValueError, match='not.*correct shape'):
+            np.apply_over_axes(lambda x, axis: x[..., np.newaxis], self.ma, 0)
 
 
 class TestIndicesFrom(NoMaskTestSetup):
@@ -361,13 +373,22 @@ class TestAccessingParts(BasicTestSetup):
 class TestSettingParts(MaskedArraySetup):
     def test_put(self):
         ma = self.ma.copy()
-        np.put(ma, [0, 2], Masked([50, 150], [False, True]))
+        v = Masked([50, 150], [False, True])
+        np.put(ma, [0, 2], v)
         expected = self.a.copy()
         np.put(expected, [0, 2], [50, 150])
         expected_mask = self.mask_a.copy()
         np.put(expected_mask, [0, 2], [False, True])
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
+
+        with pytest.raises(TypeError):
+            # Indices cannot be masked.
+            np.put(ma, Masked([0, 2]), v)
+
+        with pytest.raises(TypeError):
+            # Array to put masked values in must be masked.
+            np.put(self.a.copy(), [0, 2], v)
 
     def test_putmask(self):
         ma = self.ma.flatten()
@@ -382,6 +403,9 @@ class TestSettingParts(MaskedArraySetup):
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
 
+        with pytest.raises(TypeError):
+            np.putmask(self.a.flatten(), mask, values)
+
     def test_place(self):
         ma = self.ma.flatten()
         mask = [True, False, False, False, True, False]
@@ -393,6 +417,9 @@ class TestSettingParts(MaskedArraySetup):
         np.place(expected_mask, mask, values.mask)
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
+
+        with pytest.raises(TypeError):
+            np.place(self.a.flatten(), mask, values)
 
     def test_copyto(self):
         ma = self.ma.flatten()
@@ -406,6 +433,9 @@ class TestSettingParts(MaskedArraySetup):
         np.copyto(expected_mask, values.mask, where=mask)
         assert_array_equal(ma.unmasked, expected)
         assert_array_equal(ma.mask, expected_mask)
+
+        with pytest.raises(TypeError):
+            np.copyto(self.a.flatten(), values, where=mask)
 
     @pytest.mark.parametrize('value', [0.25, np.ma.masked])
     def test_fill_diagonal(self, value):
@@ -453,6 +483,9 @@ class TestConcatenate(MaskedArraySetup):
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
+        with pytest.raises(TypeError):
+            np.concatenate([self.ma, self.ma], out=np.empty((4, 3)))
+
     def test_stack(self):
         self.check(np.stack)
 
@@ -486,12 +519,19 @@ class TestConcatenate(MaskedArraySetup):
         assert_array_equal(out.mask, expected_mask)
 
     def test_insert(self):
-        out = np.insert(self.ma.flatten(), (1, 1),
-                        Masked([50., 25.], mask=[True, False]))
-        expected = np.insert(self.a.flatten(), (1, 1), [50., 25.])
-        expected_mask = np.insert(self.mask_a.flatten(), (1, 1), [True, False])
+        obj = (1, 1)
+        values = Masked([50., 25.], mask=[True, False])
+        out = np.insert(self.ma.flatten(), obj, values)
+        expected = np.insert(self.a.flatten(), obj, [50., 25.])
+        expected_mask = np.insert(self.mask_a.flatten(), obj, [True, False])
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
+
+        with pytest.raises(TypeError):
+            np.insert(self.a.flatten(), obj, values)
+
+        with pytest.raises(TypeError):
+            np.insert(self.ma.flatten(), Masked(obj), values)
 
 
 class TestSplit:
@@ -618,19 +658,46 @@ class TestUfuncLike(InvariantMaskTestSetup):
         self.check(np.sinc)
 
     def test_where(self):
-        out = np.where([True, False, True], self.ma, 1000.)
-        expected = np.where([True, False, True], self.a, 1000.)
-        expected_mask = np.where([True, False, True], self.mask_a, False)
+        mask = [True, False, True]
+        out = np.where(mask, self.ma, 1000.)
+        expected = np.where(mask, self.a, 1000.)
+        expected_mask = np.where(mask, self.mask_a, False)
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
+        mask2 = Masked(mask, [True, False, False])
+        out2 = np.where(mask2, self.ma, 1000.)
+        expected2 = np.where(mask, self.a, 1000.)
+        expected_mask2 = np.where(mask, self.mask_a, False) | mask2.mask
+        assert_array_equal(out2.unmasked, expected2)
+        assert_array_equal(out2.mask, expected_mask2)
+
+    def test_where_single_arg(self):
+        m = Masked(np.arange(3), mask=[True, False, False])
+        out = np.where(m)
+        expected = m.nonzero()
+        assert isinstance(out, tuple) and len(out) == 1
+        assert_array_equal(out[0], expected[0])
+
+    def test_where_wrong_number_of_arg(self):
+        with pytest.raises(ValueError, match='either both or neither'):
+            np.where([True, False, False], self.a)
+
     def test_choose(self):
         a = np.array([0, 1]).reshape((2, 1))
-        out = np.choose(a, (self.ma, self.mb))
+        result = np.choose(a, (self.ma, self.mb))
         expected = np.choose(a, (self.a, self.b))
         expected_mask = np.choose(a, (self.mask_a, self.mask_b))
-        assert_array_equal(out.unmasked, expected)
-        assert_array_equal(out.mask, expected_mask)
+        assert_array_equal(result.unmasked, expected)
+        assert_array_equal(result.mask, expected_mask)
+
+        out = np.zeros_like(result)
+        result2 = np.choose(a, (self.ma, self.mb), out=out)
+        assert result2 is out
+        assert_array_equal(result2, result)
+
+        with pytest.raises(TypeError):
+            np.choose(a, (self.ma, self.mb), out=np.zeros_like(expected))
 
     def test_choose_masked(self):
         ma = Masked(np.array([-1, 1]), mask=[True, False]).reshape((2, 1))
@@ -750,6 +817,34 @@ class TestUfuncLikeTests:
         assert np.array_equiv(self.mb, np.stack([self.mb, self.mb]))
 
 
+class TestOuterLikeFunctions(MaskedArraySetup):
+    def test_outer(self):
+        result = np.outer(self.ma, self.mb)
+        expected_data = np.outer(self.a.ravel(), self.b.ravel())
+        expected_mask = np.logical_or.outer(self.mask_a.ravel(),
+                                            self.mask_b.ravel())
+        assert_array_equal(result.unmasked, expected_data)
+        assert_array_equal(result.mask, expected_mask)
+
+        out = np.zeros_like(result)
+        result2 = np.outer(self.ma, self.mb, out=out)
+        assert result2 is out
+        assert result2 is not result
+        assert_masked_equal(result2, result)
+
+        out2 = np.zeros_like(result.unmasked)
+        with pytest.raises(TypeError):
+            np.outer(self.ma, self.mb, out=out2)
+
+    def test_kron(self):
+        result = np.kron(self.ma, self.mb)
+        expected_data = np.kron(self.a, self.b)
+        expected_mask = np.logical_or.outer(self.mask_a,
+                                            self.mask_b).reshape(result.shape)
+        assert_array_equal(result.unmasked, expected_data)
+        assert_array_equal(result.mask, expected_mask)
+
+
 class TestReductionLikeFunctions(MaskedArraySetup):
     def test_average(self):
         o = np.average(self.ma)
@@ -793,13 +888,28 @@ class TestPartitionLikeFunctions:
         assert_array_equal(o.unmask(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
 
+        if not kwargs.get('axis', 1):
+            # no need to test for all
+            return
+
+        out = np.zeros_like(o)
+        o2 = function(self.ma, *args, out=out, **kwargs)
+        assert o2 is out
+        assert_masked_equal(o2, o)
+        with pytest.raises(TypeError):
+            function(self.ma, *args, out=np.zeros_like(expected), **kwargs)
+
     @pytest.mark.parametrize('axis', [None, 0, 1])
     def test_median(self, axis):
         self.check(np.median, axis=axis)
 
     @pytest.mark.parametrize('axis', [None, 0, 1])
     def test_quantile(self, axis):
-        self.check(np.quantile, q=0.5, axis=axis)
+        self.check(np.quantile, q=[0.25, 0.5], axis=axis)
+
+    def test_quantile_out_of_range(self):
+        with pytest.raises(ValueError, match='must be in the range'):
+            np.quantile(self.ma, q=1.5)
 
     @pytest.mark.parametrize('axis', [None, 0, 1])
     def test_percentile(self, axis):
@@ -910,6 +1020,9 @@ class TestInterpolationFunctions(MaskedArraySetup):
                                      [True, False, lambda x: ~x])
         assert_array_equal(out2.unmasked, expected)
         assert_array_equal(out2.mask, expected_mask)
+
+        with pytest.raises(ValueError, match='with 2 condition'):
+            np.piecewise(self.ma, condlist2, [])
 
 
 class TestBincount(MaskedArraySetup):
