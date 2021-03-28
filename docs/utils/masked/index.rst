@@ -39,11 +39,11 @@ as addition, etc.::
 You can get the values without the mask using
 `~astropy.utils.masked.Masked.unmasked`, or, if you need to control what
 should be substituted for any masked values, with
-:meth:`~astropy.utils.masked.Masked.unmask`::
+:meth:`~astropy.utils.masked.Masked.filled`::
 
   >>> mq.unmasked
   <Quantity [1., 2., 3.] m>
-  >>> mq.unmask(fill_value=-75*u.cm)
+  >>> mq.filled(fill_value=-75*u.cm)
   <Quantity [ 1.  ,  2.  , -0.75] m>
 
 For reductions such as sums, the mask propagates as if the sum was

@@ -296,8 +296,8 @@ class TestMaskedArraySorting(MaskedArraySetup):
     def test_lexsort2(self, axis):
         mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
         mamb_lexsort = np.lexsort((self.ma, mb), axis=axis)
-        filled_a = self.ma.unmask(9e9)
-        filled_b = mb.unmask(9e9)
+        filled_a = self.ma.filled(9e9)
+        filled_b = mb.filled(9e9)
         expected_ab = np.lexsort((filled_a, filled_b), axis=axis)
         assert_array_equal(mamb_lexsort, expected_ab)
         mbma_lexsort = np.lexsort((mb, self.ma), axis=axis)
@@ -310,7 +310,7 @@ class TestMaskedArraySorting(MaskedArraySetup):
     def test_lexsort_mix(self, axis):
         mb = np.broadcast_to(-self.mb, self.ma.shape).copy()
         mamb_lexsort = np.lexsort((self.a, mb), axis=axis)
-        filled_b = mb.unmask(9e9)
+        filled_b = mb.filled(9e9)
         expected_ab = np.lexsort((self.a, filled_b), axis=axis)
         assert_array_equal(mamb_lexsort, expected_ab)
         mbma_lexsort = np.lexsort((mb, self.a), axis=axis)
