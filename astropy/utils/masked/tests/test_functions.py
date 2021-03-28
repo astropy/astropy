@@ -38,10 +38,28 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert result is out
         assert_masked_equal(result, ma_mb)
 
+    def test_ufunc_inplace_no_masked_input(self):
+        a_b = np.add(self.a, self.b)
+        out = Masked(np.zeros_like(a_b))
+        result = np.add(self.a, self.b, out=out)
+        assert result is out
+        assert_array_equal(result.unmasked, a_b)
+        assert_array_equal(result.mask, np.zeros(a_b.shape, bool))
+
     def test_ufunc_inplace_error(self):
         out = np.zeros(self.ma.shape)
         with pytest.raises(TypeError):
             np.add(self.ma, self.mb, out=out)
+
+    @pytest.mark.parametrize('ufunc', (np.add.outer, np.minimum.outer))
+    def test_2op_ufunc_outer(self, ufunc):
+        ma_mb = ufunc(self.ma, self.mb)
+        expected_data = ufunc(self.a, self.b)
+        expected_mask = np.logical_or.outer(self.mask_a, self.mask_b)
+        # Note: assert_array_equal also checks type, i.e., that, e.g.,
+        # Longitude decays into an Angle.
+        assert_array_equal(ma_mb.unmasked, expected_data)
+        assert_array_equal(ma_mb.mask, expected_mask)
 
     def test_3op_ufunc(self):
         ma_mb = np.clip(self.ma, self.b, self.c)
@@ -57,6 +75,20 @@ class MaskedUfuncTests(MaskedArraySetup):
         expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
         assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
+
+        out = Masked(np.zeros_like(ma_reduce.unmasked),
+                     np.ones_like(ma_reduce.mask))
+        ma_reduce2 = np.add.reduce(self.ma, axis=axis, out=out)
+        assert ma_reduce2 is out
+        assert_masked_equal(ma_reduce2, ma_reduce)
+
+    def test_add_reduce_no_masked_input(self):
+        a_reduce = np.add.reduce(self.a, axis=0)
+        out = Masked(np.zeros_like(a_reduce), np.ones(a_reduce.shape, bool))
+        result = np.add.reduce(self.a, axis=0, out=out)
+        assert result is out
+        assert_array_equal(out.unmasked, a_reduce)
+        assert_array_equal(out.mask, np.zeros(a_reduce.shape, bool))
 
     @pytest.mark.parametrize('axis', (0, 1, None))
     def test_minimum_reduce(self, axis):
@@ -84,6 +116,20 @@ class TestMaskedArrayUfuncs(MaskedUfuncTests):
         expected_mask = np.logical_or.reduce(self.ma.mask, axis=axis)
         assert_array_equal(ma_reduce.unmasked, expected_data)
         assert_array_equal(ma_reduce.mask, expected_mask)
+
+    def test_ufunc_not_implemented_for_other(self):
+        """
+        If the unmasked operation returns NotImplemented, this
+        should lead to a TypeError also for the masked version.
+        """
+        a = np.array([1, 2])
+        b = 3 * u.m
+        with pytest.raises(TypeError):
+            a & b
+
+        ma = Masked(a)
+        with pytest.raises(TypeError):
+            ma & b
 
 
 class TestMaskedQuantityUfuncs(MaskedUfuncTests, QuantitySetup):
@@ -127,6 +173,10 @@ class TestMaskedArrayConcatenation(MaskedArraySetup):
         expected = Masked(np.insert(self.a, obj, self.c, axis=-1),
                           np.insert(self.mask_a, obj, self.mask_c, axis=-1))
         assert_masked_equal(mc_in_a, expected)
+
+    def test_insert_masked_obj(self):
+        with pytest.raises(TypeError):
+            np.insert(self.ma, Masked(1, mask=False), self.mc, axis=-1)
 
     def test_append(self):
         mc_to_a = np.append(self.ma, self.mc, axis=-1)
