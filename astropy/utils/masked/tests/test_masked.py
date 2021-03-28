@@ -108,14 +108,27 @@ def test_masked_ndarray_init():
     # Check we're doing things correctly using regular ndarray.
     a = np.ndarray(shape=(3,), dtype=int, buffer=buff)
     assert_array_equal(a, a_in)
+    # Check with and without mask.
     ma = MaskedNDArray((3,), dtype=int, mask=m_in, buffer=buff)
     assert_array_equal(ma.unmasked, a_in)
     assert_array_equal(ma.mask, m_in)
+    ma = MaskedNDArray((3,), dtype=int, buffer=buff)
+    assert_array_equal(ma.unmasked, a_in)
+    assert_array_equal(ma.mask, np.zeros(3, bool))
 
 
 def test_cannot_initialize_with_masked():
     with pytest.raises(ValueError, match='cannot handle np.ma.masked'):
         Masked(np.ma.masked)
+
+
+def test_cannot_just_use_anything_with_a_mask_attribute():
+    class my_array(np.ndarray):
+        mask = True
+
+    a = np.array([1., 2.]).view(my_array)
+    with pytest.raises(AttributeError, match='unmasked'):
+        Masked(a)
 
 
 class TestMaskedClassCreation:
@@ -243,6 +256,17 @@ class TestMaskedNDArraySubclassCreation:
         assert_array_equal(mms.unmasked, self.a)
         assert_array_equal(mms.mask, self.m)
 
+    def test_viewing(self):
+        mms = Masked(self.a, mask=self.m)
+        mms2 = mms.view()
+        assert type(mms2) is mms.__class__
+        assert_masked_equal(mms2, mms)
+
+        ma = mms.view(np.ndarray)
+        assert type(ma) is MaskedNDArray
+        assert_array_equal(ma.unmasked, self.a.view(np.ndarray))
+        assert_array_equal(ma.mask, self.m)
+
 
 class TestMaskedQuantityInitialization(TestMaskedArrayInitialization, QuantitySetup):
     def test_masked_quantity_class_init(self):
@@ -347,11 +371,6 @@ class TestMaskSetting(ArraySetup):
         assert np.may_share_memory(ma.mask, mask)
         assert_array_equal(ma.mask, mask)
 
-    def test_viewing(self):
-        ma = Masked(self.a)
-        ma2 = self.a.view(type(ma))
-        assert_masked_equal(ma2, ma)
-
 
 # Following are tests where we trust the initializer works.
 
@@ -365,6 +384,32 @@ class MaskedArraySetup(ArraySetup):
         self.mc = Masked(self.c, mask=self.mask_c)
         self.msa = Masked(self.sa, mask=self.mask_sa)
         self.msb = Masked(self.sb, mask=self.mask_sb)
+
+
+class TestViewing(MaskedArraySetup):
+    def test_viewing_as_new_type(self):
+        ma2 = self.ma.view(type(self.ma))
+        assert_masked_equal(ma2, self.ma)
+
+        ma3 = self.ma.view()
+        assert_masked_equal(ma3, self.ma)
+
+        with pytest.raises(TypeError):
+            self.ma.view(Masked)
+
+    def test_viewing_as_new_dtype(self):
+        # Not very meaningful, but possible...
+        ma2 = self.ma.view('c8')
+        assert_array_equal(ma2.unmasked, self.a.view('c8'))
+        assert_array_equal(ma2.mask, self.mask_a)
+
+    @pytest.mark.parametrize('new_dtype', ['2f4', 'f8,f8,f8'])
+    def test_viewing_as_new_dtype_not_implemented(self, new_dtype):
+        # But cannot (yet) view in way that would need to create a new mask,
+        # even though that view is possible for a regular array.
+        check = self.a.view(new_dtype)
+        with pytest.raises(NotImplementedError, match='different.*size'):
+            self.ma.view(check.dtype)
 
 
 class TestMaskedArrayCopyFilled(MaskedArraySetup):
@@ -383,6 +428,10 @@ class TestMaskedArrayCopyFilled(MaskedArraySetup):
         expected[self.ma.mask] = fill_value
         result = self.ma.unmask(fill_value)
         assert_array_equal(expected, result)
+
+    def test_filled_no_fill_value(self):
+        result = self.ma.unmask()
+        assert_array_equal(result, self.a)
 
     @pytest.mark.parametrize('fill_value', [(0, 1), (-1, -1)])
     def test_filled_structured(self, fill_value):
@@ -605,6 +654,10 @@ class MaskedOperatorTests(MaskedArraySetup):
         assert_array_equal(mapmb.unmasked, expected_data)
         assert_array_equal(mapmb.mask, expected_mask)
 
+    def test_not_implemented(self):
+        with pytest.raises(TypeError):
+            self.ma > 'abc'
+
     @pytest.mark.parametrize('different_names', [False, True])
     @pytest.mark.parametrize('op', (operator.eq, operator.ne))
     def test_structured_equality(self, op, different_names):
@@ -696,6 +749,10 @@ class TestMaskedArrayOperators(MaskedOperatorTests):
 
         result2 = op(m1, m2.unmasked)
         assert_masked_equal(result2, result)
+
+    def test_not_implemented(self):
+        with pytest.raises(TypeError):
+            Masked(['a', 'b']) > object()
 
 
 class TestMaskedQuantityOperators(MaskedOperatorTests, QuantitySetup):
