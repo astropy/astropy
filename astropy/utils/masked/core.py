@@ -229,21 +229,33 @@ class Masked(NDArrayShapeMethods):
     # This one assumes the unmasked data is stored in a private attribute.
     @property
     def unmasked(self):
-        """The unmasked values."""
+        """The unmasked values.
+
+        See Also
+        --------
+        filled
+        """
         return self._unmasked
 
-    def unmask(self, fill_value=None):
-        """Get the underlying data, possibly filling masked values."""
-        unmasked = self.unmasked
-        if fill_value is None:
-            return unmasked
+    def filled(self, fill_value):
+        """Get a copy of the underlying data, with masked values filled in.
+
+        Parameters
+        ----------
+        fill_value : object
+            Value to replace masked values with.
+
+        See Also
+        --------
+        unmasked
+        """
+        unmasked = self.unmasked.copy()
+        if self.mask.dtype.names:
+            np.ma.core._recursive_filled(unmasked, self.mask, fill_value)
         else:
-            unmasked = unmasked.copy()
-            if self.mask.dtype.names:
-                np.ma.core._recursive_filled(unmasked, self.mask, fill_value)
-            else:
-                unmasked[self.mask] = fill_value
-            return unmasked
+            unmasked[self.mask] = fill_value
+
+        return unmasked
 
     def _apply(self, method, *args, **kwargs):
         # Required method for NDArrayShapeMethods, to help provide __getitem__
@@ -878,11 +890,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # Todo: should this return a masked integer array, with masks
         # if all elements were masked?
         at_min = self == self.min(axis=axis, keepdims=True)
-        return at_min.unmask(False).argmax(axis=axis, out=out)
+        return at_min.filled(False).argmax(axis=axis, out=out)
 
     def argmax(self, axis=None, out=None):
         at_max = self == self.max(axis=axis, keepdims=True)
-        return at_max.unmask(False).argmax(axis=axis, out=out)
+        return at_max.filled(False).argmax(axis=axis, out=out)
 
     def argsort(self, axis=-1, kind=None, order=None):
         """Returns the indices that would sort an array.

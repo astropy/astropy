@@ -152,7 +152,7 @@ class TestShapeManipulation(BasicTestSetup):
 class TestArgFunctions(MaskedArraySetup):
     def check(self, function, *args, fill_value=np.nan, **kwargs):
         o = function(self.ma, *args, **kwargs)
-        a_filled = self.ma.unmask(fill_value=fill_value)
+        a_filled = self.ma.filled(fill_value=fill_value)
         expected = function(a_filled, *args, **kwargs)
         assert_array_equal(o, expected)
 
@@ -702,8 +702,8 @@ class TestUfuncLike(InvariantMaskTestSetup):
     def test_choose_masked(self):
         ma = Masked(np.array([-1, 1]), mask=[True, False]).reshape((2, 1))
         out = ma.choose((self.ma, self.mb))
-        expected = np.choose(ma.unmask(0), (self.a, self.b))
-        expected_mask = np.choose(ma.unmask(0), (self.mask_a, self.mask_b)) | ma.mask
+        expected = np.choose(ma.filled(0), (self.a, self.b))
+        expected_mask = np.choose(ma.filled(0), (self.mask_a, self.mask_b)) | ma.mask
         assert_array_equal(out.unmasked, expected)
         assert_array_equal(out.mask, expected_mask)
 
@@ -866,7 +866,7 @@ class TestReductionLikeFunctions(MaskedArraySetup):
     @pytest.mark.parametrize('axis', [0, 1, None])
     def test_count_nonzero(self, axis):
         o = np.count_nonzero(self.ma, axis=axis)
-        expected = np.count_nonzero(self.ma.unmask(0), axis=axis)
+        expected = np.count_nonzero(self.ma.filled(0), axis=axis)
         assert_array_equal(o, expected)
 
 
@@ -883,9 +883,9 @@ class TestPartitionLikeFunctions:
     def check(self, function, *args, **kwargs):
         o = function(self.ma, *args, **kwargs)
         nanfunc = getattr(np, 'nan'+function.__name__)
-        nanfilled = self.ma.unmask(np.nan)
+        nanfilled = self.ma.filled(np.nan)
         expected = nanfunc(nanfilled, *args, **kwargs)
-        assert_array_equal(o.unmask(np.nan), expected)
+        assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
 
         if not kwargs.get('axis', 1):
