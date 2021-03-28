@@ -394,9 +394,6 @@ class TestViewing(MaskedArraySetup):
         ma3 = self.ma.view()
         assert_masked_equal(ma3, self.ma)
 
-        with pytest.raises(TypeError):
-            self.ma.view(Masked)
-
     def test_viewing_as_new_dtype(self):
         # Not very meaningful, but possible...
         ma2 = self.ma.view('c8')
@@ -410,6 +407,12 @@ class TestViewing(MaskedArraySetup):
         check = self.a.view(new_dtype)
         with pytest.raises(NotImplementedError, match='different.*size'):
             self.ma.view(check.dtype)
+
+    def test_viewing_as_something_impossible(self):
+        with pytest.raises(TypeError):
+            # Use intp to ensure have the same size as object,
+            # otherwise we get a different error message
+            Masked(np.array([1, 2], dtype=np.intp)).view(Masked)
 
 
 class TestMaskedArrayCopyFilled(MaskedArraySetup):
