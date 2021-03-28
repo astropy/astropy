@@ -472,9 +472,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         elif data_cls is None:  # for .view()
             return cls
 
-        if not issubclass(data_cls, np.ndarray):
-            raise ValueError('can only pass in an ndarray subtype.')
-
         return super()._get_masked_cls(data_cls)
 
     @property
@@ -501,8 +498,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             return super().view(self._get_masked_cls(type))
 
         dtype = np.dtype(dtype)
-        if not (len(dtype.names) == len(self.dtype.names)
-                and dtype.itemsize == self.dtype.itemsize):
+        if not (dtype.itemsize == self.dtype.itemsize
+                and (dtype.names is None
+                     or len(dtype.names) == len(self.dtype.names))):
             raise NotImplementedError(
                 f"{self.__class__} cannot be viewed with a dtype with a "
                 f"with a different number of fields or size.")
@@ -516,7 +514,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         # Logically, this should come from ndarray and hence be None, but
         # just in case someone creates a new mixin, we check.
         super_array_finalize = super().__array_finalize__
-        if super_array_finalize:
+        if super_array_finalize:  # pragma: no cover
             super_array_finalize(obj)
 
         if self._mask is None:
@@ -539,14 +537,17 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             super(MaskedNDArray, type(self)).shape.__set__(self, shape)
         except Exception as exc:
             self._mask.shape = old_shape
-            # If a broadcast error in __array_finalize__, give a more useful
-            # error message.
+            # Given that the mask reshaping succeeded, the only logical
+            # reason for an exception is something like a broadcast error in
+            # in __array_finalize__, or a different memory ordering between
+            # mask and data.  For those, give a more useful error message;
+            # otherwise just raise the error.
             if 'could not broadcast' in exc.args[0]:
                 raise AttributeError(
                     'Incompatible shape for in-place modification. '
                     'Use `.reshape()` to make a copy with the desired '
                     'shape.') from None
-            else:
+            else:  # pragma: no cover
                 raise
 
     _eq_simple = _comparison_method('__eq__')

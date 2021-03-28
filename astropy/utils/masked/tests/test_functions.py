@@ -155,6 +155,16 @@ class TestMaskedArrayBroadcast(MaskedArraySetup):
                           np.broadcast_to(self.mb.mask, shape, subok=True))
         assert_masked_equal(ba, expected)
 
+    def test_broadcast_to_using_apply(self):
+        # Partially just to ensure we cover the relevant part of _apply.
+        shape = self.ma.shape
+        ba = self.mb._apply(np.broadcast_to, shape=shape, subok=True)
+        assert ba.shape == shape
+        assert ba.mask.shape == shape
+        expected = Masked(np.broadcast_to(self.mb.unmasked, shape, subok=True),
+                          np.broadcast_to(self.mb.mask, shape, subok=True))
+        assert_masked_equal(ba, expected)
+
     def test_broadcast_arrays(self):
         mb = np.broadcast_arrays(self.ma, self.mb, self.mc, subok=True)
         b = np.broadcast_arrays(self.a, self.b, self.c, subok=True)
