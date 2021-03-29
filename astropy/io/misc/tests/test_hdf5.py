@@ -464,7 +464,7 @@ def test_preserve_serialized(tmpdir):
     assert t1.meta == t2.meta
 
     # Check that the meta table is fixed-width bytes (see #11299)
-    h5 = h5py.File(test_file)
+    h5 = h5py.File(test_file, 'r')
     meta_lines = h5[meta_path('the_table')]
     assert meta_lines.dtype.kind == 'S'
 
