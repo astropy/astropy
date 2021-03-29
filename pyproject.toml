@@ -84,6 +84,10 @@ build-backend = 'setuptools.build_meta'
         path = "io.misc"
 
     [[tool.towncrier.section]]
+        name = "astropy.io.registry"
+        path = "io.registry"
+
+    [[tool.towncrier.section]]
         name = "astropy.io.votable"
         path = "io.votable"
 
