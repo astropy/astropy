@@ -324,6 +324,12 @@ def test_fix_inputs_invalid():
         fix_inputs(g1, {3: 2})
 
     with pytest.raises(ValueError):
+        fix_inputs(g1, {np.int32(3): 2})
+
+    with pytest.raises(ValueError):
+        fix_inputs(g1, {np.int64(3): 2})
+
+    with pytest.raises(ValueError):
         fix_inputs(g1, {'w': 2})
 
     with pytest.raises(ModelDefinitionError):
@@ -331,6 +337,14 @@ def test_fix_inputs_invalid():
 
     with pytest.raises(ValueError):
         gg1 = fix_inputs(g1, {0: 1})
+        gg1(2, y=2)
+
+    with pytest.raises(ValueError):
+        gg1 = fix_inputs(g1, {np.int32(0): 1})
+        gg1(2, y=2)
+
+    with pytest.raises(ValueError):
+        gg1 = fix_inputs(g1, {np.int64(0): 1})
         gg1(2, y=2)
 
 

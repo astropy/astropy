@@ -86,6 +86,11 @@ def test_inputless_model():
     assert len(m) == 2
     assert np.all(m() == [[1, 2, 3], [4, 5, 6]])
 
+    # Test a model set
+    m = TestModel(a=[[1, 2, 3], [4, 5, 6]], model_set_axis=np.int64(0))
+    assert len(m) == 2
+    assert np.all(m() == [[1, 2, 3], [4, 5, 6]])
+
 
 def test_ParametericModel():
     with pytest.raises(TypeError):
@@ -473,6 +478,34 @@ def test_rename_1d(model_class):
 def test_rename_2d(model_class):
     new_model = model_class.rename(name='Test2D')
     assert new_model.name == 'Test2D'
+
+
+def test_fix_inputs_integer():
+    """
+    Tests that numpy integers can be passed as dictionary keys to fix_inputs
+    Issue #11358
+    """
+    m = models.Identity(2)
+
+    mf = models.fix_inputs(m, {1: 22})
+    assert mf(1) == (1, 22)
+
+    mf_int32 = models.fix_inputs(m, {np.int32(1): 33})
+    assert mf_int32(1) == (1, 33)
+
+    mf_int64 = models.fix_inputs(m, {np.int64(1): 44})
+    assert mf_int64(1) == (1, 44)
+
+
+def test_fix_inputs_empty_dict():
+    """
+    Tests that empty dictionary can be passed to fix_inputs
+    Issue #11355
+    """
+    m = models.Identity(2)
+
+    mf = models.fix_inputs(m, {})
+    assert mf(1, 2) == (1, 2)
 
 
 def test_rename_inputs_outputs():
