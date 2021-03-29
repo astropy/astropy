@@ -91,6 +91,7 @@ def test_against_hor2eq():
     assert distance_noatm < 0.4 * u.arcsec
 
 
+@pytest.mark.skipif(reason="See https://github.com/astropy/astropy/issues/11305")
 def test_against_pyephem():
     """Check that Astropy gives consistent results with one PyEphem example.
 
