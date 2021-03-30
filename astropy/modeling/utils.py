@@ -508,6 +508,29 @@ class _BoundingBox(tuple):
 
             return cls(tuple(bounds) for bounds in bounding_box)
 
+    @property
+    def dimension(self):
+        if isinstance(self[0], tuple):
+            return len(self)
+        else:
+            return 1
+
+    def domain(self, resolution):
+        """
+        Given a resolution find the meshgrid approximation of the bounding box
+
+        Parameters
+        ----------
+        resolution: the resolution of the grid
+        """
+
+        if self.dimension == 1:
+            return [np.arange(self[0], self[1] + resolution, resolution)]
+        elif self.dimension > 1:
+            return [np.arange(self[i][0], self[i][1] + resolution, resolution) for i in range(self.dimension)]
+        else:
+            raise ValueError('Bounding box must have positive dimension')
+
 
 def make_binary_operator_eval(oper, f, g):
     """
