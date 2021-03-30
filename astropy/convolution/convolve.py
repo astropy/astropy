@@ -16,6 +16,7 @@ from astropy import units as u
 from astropy.nddata import support_nddata
 from astropy.modeling.core import CompoundModel
 from astropy.modeling.core import SPECIAL_OPERATORS
+from astropy.modeling.convolution import Convolution
 from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 
 LIBRARY_PATH = os.path.dirname(__file__)
@@ -869,3 +870,28 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
         raise ValueError(f'Mode {mode} is not supported.')
 
     return CompoundModel(mode, model, kernel)
+
+
+def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **kwargs):
+    """
+    Convolve two models using `~astropy.convolution.convolve_fft`.
+
+    Parameters
+    ----------
+    model : `~astropy.modeling.core.Model`
+        Functional model
+    kernel : `~astropy.modeling.core.Model`
+        Convolution kernel
+    kwargs : dict
+        Keyword arguments to be passed either to `~astropy.convolution.convolve`
+        or `~astropy.convolution.convolve_fft` depending on ``mode``.
+
+    Returns
+    -------
+    default : `~astropy.modeling.core.CompoundModel`
+        Convolved model
+    """
+
+    SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
+
+    return Convolution(model, kernel, bounding_box, resolution, cache)
