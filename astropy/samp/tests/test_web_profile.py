@@ -10,8 +10,6 @@ import threading
 import tempfile
 from urllib.request import Request, urlopen
 
-import pytest
-
 from astropy.utils.data import get_readable_fileobj
 
 from astropy.samp import SAMPIntegratedClient, SAMPHubServer
@@ -23,14 +21,11 @@ from astropy.samp import conf
 
 from .test_standard_profile import TestStandardProfile as BaseTestStandardProfile
 
-CI = os.environ.get('CI', False) == "true"
-
 
 def setup_module(module):
     conf.use_internet = False
 
 
-@pytest.mark.skipif(CI, reason="Flaky on CI")
 class TestWebProfile(BaseTestStandardProfile):
 
     def setup_method(self, method):
