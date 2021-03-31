@@ -11,7 +11,9 @@ import numpy as np
 from astropy import units as u
 from .core import Distribution
 
-__all__ = ['normal', 'poisson', 'uniform']
+__all__ = ['normal', 'paranormal', 'poisson', 'uniform']
+
+COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.chan, u.bin, u.vox, u.bit, u.byte)
 
 
 def normal(center, *, std=None, var=None, ivar=None, n_samples,
@@ -69,7 +71,120 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     return cls(samples, **kwargs)
 
 
-COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.chan, u.bin, u.vox, u.bit, u.byte)
+def paranormal(center, *, std=None, var=None, ivar=None, n_samples, **kwargs):
+    """Create a paranormal distribution.
+
+    Not unsimilar to https://jech.bmj.com/content/60/1/6 .
+
+    Parameters
+    ----------
+    center : `~astropy.units.Quantity`
+        The center of this distribution
+    std : `~astropy.units.Quantity` or `None`
+        The standard deviation/σ of this distribution. Shape must match and unit
+        must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
+        are set).
+    var : `~astropy.units.Quantity` or `None`
+        The variance of this distribution. Shape must match and unit must be
+        compatible with ``center``, or be `None` (if ``std`` or ``ivar`` are set).
+    ivar : `~astropy.units.Quantity` or `None`
+        The inverse variance of this distribution. Shape must match and unit
+        must be compatible with ``center``, or be `None` (if ``std`` or ``var``
+        are set).
+    n_samples : int
+        The number of Monte Carlo samples to use with this distribution
+
+    Remaining keywords are passed into the constructor of the `Distribution`
+    subclass.
+
+    Returns
+    -------
+    distr : `Distribution`
+        The sampled paranormal distribution with a ``plot`` method.
+
+    Examples
+    --------
+    A simple paranormal plot.
+
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy import uncertainty as unc
+        np.random.seed(12345)  # ensures reproducible example numbers
+
+        a = unc.paranormal(1, std=30, n_samples=10000)
+        a.plot()
+
+    """
+    center = np.asanyarray(center)
+
+    # Only one allowed, as per original figure.
+    # Somehow Quantity creates a mysterious QuantityParanormalDistribution
+    # that I cannot control.
+    if center.size != 1:
+        raise ValueError('oooOOOooOOoooo')
+
+    if var is not None:
+        if std is None:
+            std = np.asanyarray(var)**0.5
+        else:
+            raise ValueError('normal cannot take both std and var')
+    if ivar is not None:
+        if std is None:
+            std = np.asanyarray(ivar)**-0.5
+        else:
+            raise ValueError('normal cannot take both ivar and '
+                             'and std or var')
+    if std is None:
+        raise ValueError('normal requires one of std, var, or ivar')
+    else:
+        std = np.asanyarray(std)
+
+    randshape = np.broadcast(std, center).shape + (n_samples,)
+    samples = center[..., np.newaxis] + np.random.randn(*randshape) * std[..., np.newaxis]
+
+    # The following is a bit convoluted to get around the __new__ magic.
+
+    obj = Distribution(samples, **kwargs)
+
+    def plot(self):
+        """Plot paranormal distribution."""
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import Ellipse
+        from astropy.uncertainty.distributions import normal
+        from astropy.visualization import quantity_support
+
+        n_bins = 50
+        x = self.pdf_mean()
+        dx = self.pdf_std()
+        dx2 = dx * 0.3
+        new_std = dx * 0.3
+        new_n = int(self.n_samples * 0.2)
+        left = normal(x - dx, std=new_std, n_samples=new_n)
+        right = normal(x + dx, std=new_std, n_samples=new_n)
+        hist_kwargs = {'bins': n_bins, 'histtype': 'step', 'fill': False,
+                       'ec': 'k'}
+
+        with quantity_support():
+            h = plt.hist(self.distribution, **hist_kwargs)
+            plt.hist(left.distribution, **hist_kwargs)
+            plt.hist(right.distribution, **hist_kwargs)
+
+            y_max = h[0].max()
+            y_eye = 0.7 * y_max
+            w_eye = 0.15 * dx
+            h_eye = 0.1 * y_max
+            ax = plt.gca()
+            ax.add_patch(Ellipse(xy=(x - dx2, y_eye), width=w_eye,
+                                 height=h_eye, edgecolor='k', fc='k'))
+            ax.add_patch(Ellipse(xy=(x + dx2, y_eye), width=w_eye,
+                                 height=h_eye, edgecolor='k', fc='k'))
+
+        plt.show()
+
+    setattr(obj.__class__, 'plot', plot)
+    return obj
 
 
 def poisson(center, n_samples, cls=Distribution, **kwargs):
