@@ -126,7 +126,7 @@ class CdsHeader(core.BaseHeader):
                 col.type = self.get_col_type(col)
 
                 match = re.match(
-                    r'(?:[\[\]] \S* [\[\]])? \? (?P<equal> =)? (?P<nullval> \S*) (\s+ (?P<descriptiontext> \S.*))?'
+                    r'(?:[\[\]] \S* [\[\]])? \? (?P<equal> =)? (?P<nullval> \S*) (\s+ (?P<descriptiontext> \S.*))?')
                 if match:
                     col.description = (match.group('descriptiontext') or '').strip()
                     if issubclass(col.type, core.FloatType):
