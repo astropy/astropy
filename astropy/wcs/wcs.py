@@ -499,15 +499,14 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             self.naxis = wcsprm.naxis
 
             if (wcsprm.naxis != 2 and
-                    (det2im[0] or det2im[1] or cpdis[0] or cpdis[1] or sip)):
+                    (det2im[0] or det2im[1] or cpdis[0] or cpdis[1])):
                 raise ValueError(
-                    """
-FITS WCS distortion paper lookup tables and SIP distortions only work
-in 2 dimensions.  However, WCSLIB has detected {} dimensions in the
-core WCS keywords.  To use core WCS in conjunction with FITS WCS
-distortion paper lookup tables or SIP distortion, you must select or
-reduce these to 2 dimensions using the naxis kwarg.
-""".format(wcsprm.naxis))
+                    f"""
+FITS WCS distortion paper lookup tables only work in 2 dimensions. However,
+WCSLIB has detected {wcsprm.naxis} dimensions in the core WCS keywords. To use core WCS
+in conjunction with FITS WCS distortion paper lookup tables or SIP distortion,
+you must select or reduce these to 2 dimensions using the naxis kwarg."""
+                )
 
             header_naxis = header.get('NAXIS', None)
             if header_naxis is not None and header_naxis < wcsprm.naxis:

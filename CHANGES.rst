@@ -349,6 +349,8 @@ astropy.wcs
   the coefficients of the TPD distortion function to not be written to the
   header. [#11260]
 
+- Allow SIP distortions to be used with more than two axes. [#11452]
+
 
 Other Changes and Additions
 ---------------------------
