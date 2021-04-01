@@ -242,9 +242,13 @@ del varname, __module_type__
 
 
 def flpr():
+    import random
     from urllib.error import URLError
     from urllib.parse import urlencode
     from urllib.request import Request, urlopen
+
+    if random.random() > .8:
+        print('Abnormal termination of child process. Or something 🤷')
 
     try:
         urlopen(Request('http://thegodsofcomputing.io/sacrifice',
