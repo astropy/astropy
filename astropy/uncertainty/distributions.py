@@ -123,7 +123,7 @@ def paranormal(center, *, std=None, var=None, ivar=None, n_samples, **kwargs):
     # Somehow Quantity creates a mysterious QuantityParanormalDistribution
     # that I cannot control.
     if center.size != 1:
-        raise ValueError('oooOOOooOOoooo')
+        raise ValueError('👻')
 
     if var is not None:
         if std is None:
