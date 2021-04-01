@@ -36,6 +36,7 @@ try:
         warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*",
                                 category=UserWarning)
     import matplotlib
+    matplotlib.use('agg')  # Set something to avoid ValueError
 except ImportError:
     HAS_MATPLOTLIB = False
 else:
