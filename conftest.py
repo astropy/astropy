@@ -7,9 +7,7 @@ This is the file usually picked up by pytest and tox.
 """
 import os
 import builtins
-import sys
 import tempfile
-import warnings
 
 import hypothesis
 
@@ -22,22 +20,6 @@ except ImportError:
     PYTEST_HEADER_MODULES = {}
     TESTED_VERSIONS = {}
 
-try:
-    # This is needed to silence a warning from matplotlib caused by
-    # PyInstaller's matplotlib runtime hook.  This can be removed once the
-    # issue is fixed upstream in PyInstaller, and only impacts us when running
-    # the tests from a PyInstaller bundle.
-    # See https://github.com/astropy/astropy/issues/10785
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        # The above checks whether we are running in a PyInstaller bundle.
-        warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*",
-                                category=UserWarning)
-    import matplotlib
-except ImportError:
-    HAS_MATPLOTLIB = False
-else:
-    HAS_MATPLOTLIB = True
-
 enable_deprecations_as_exceptions(
     include_astropy_deprecations=False,
     # This is a workaround for the OpenSSL deprecation warning that comes from
@@ -45,23 +27,12 @@ enable_deprecations_as_exceptions(
     # installed. This can be removed once pyopenssl 1.7.20+ is released.
     modules_to_ignore_on_import=['requests'])
 
-matplotlibrc_cache = {}
-
 
 def pytest_configure(config):
     from astropy.utils.iers import conf as iers_conf
 
     # Disable IERS auto download for testing
     iers_conf.auto_download = False
-
-    builtins._pytest_running = True
-    # do not assign to matplotlibrc_cache in function scope
-    if HAS_MATPLOTLIB:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            matplotlibrc_cache.update(matplotlib.rcParams)
-            matplotlib.rcdefaults()
-            matplotlib.use('Agg')
 
     # Make sure we use temporary directories for the config and cache
     # so that the tests are insensitive to local configuration. Note that this
@@ -90,14 +61,6 @@ def pytest_unconfigure(config):
 
     # Undo IERS auto download setting for testing
     iers_conf.reset('auto_download')
-
-    builtins._pytest_running = False
-    # do not assign to matplotlibrc_cache in function scope
-    if HAS_MATPLOTLIB:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            matplotlib.rcParams.update(matplotlibrc_cache)
-            matplotlibrc_cache.clear()
 
     if builtins._xdg_config_home_orig is None:
         os.environ.pop('XDG_CONFIG_HOME')

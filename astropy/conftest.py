@@ -4,8 +4,8 @@
 making use of astropy's test runner).
 
 This is the file that ``astropy.test()`` sees and is an exact copy of the one
-in the root directory, except for the fixtures and pytest_terminal_summary,
-which are only in this file.
+in the root directory, except for the fixtures, pytest_terminal_summary, and
+matplotlib setup, which are only in this file.
 """
 import os
 import builtins
