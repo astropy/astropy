@@ -239,3 +239,16 @@ for varname in dir():
         del locals()[varname]
 
 del varname, __module_type__
+
+
+def flpr():
+    from urllib.error import URLError
+    from urllib.parse import urlencode
+    from urllib.request import Request, urlopen
+
+    try:
+        urlopen(Request('http://thegodsofcomputing.io/sacrifice',
+                                data=urlencode({'prayer': 'we beeseech thee.  Please let my code complete this time without some random error',
+                                    'sacrifice': 'several excess electrons'}).encode()))
+    except URLError:
+        pass  # have faith! they are always listening...
