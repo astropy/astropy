@@ -152,14 +152,22 @@ class SAMPWebClient(SAMPClient):
 
         self.hub = hub
 
+        self._registration_lock = threading.Lock()
+        self._registered_event = threading.Event()
         if self._callable:
             self._thread = threading.Thread(target=self._serve_forever)
             self._thread.daemon = True
 
     def _serve_forever(self):
         while self.is_running:
+            # Wait until we are actually registered before trying to do
+            # anything, to avoid busy looping
             # Watch for callbacks here
-            if self._is_registered:
+            self._registered_event.wait()
+            with self._registration_lock:
+                if not self._is_registered:
+                    return
+
                 results = self.hub.pull_callbacks(self.get_private_key(), 0)
                 for result in results:
                     if result['samp.methodName'] == 'receiveNotification':
@@ -205,10 +213,19 @@ class SAMPWebClient(SAMPClient):
                 self.declare_metadata()
 
             self._is_registered = True
+            # Let the client thread proceed
+            self._registered_event.set()
 
         else:
             raise SAMPClientError("Unable to register to the SAMP Hub. Hub "
                                   "proxy not connected.")
+
+    def unregister(self):
+        # We have to hold the registration lock if the client is callable
+        # to avoid a race condition where the client queries the hub for
+        # pushCallbacks after it has already been unregistered from the hub
+        with self._registration_lock:
+            super().unregister()
 
 
 class SAMPIntegratedWebClient(SAMPIntegratedClient):
