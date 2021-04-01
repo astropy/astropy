@@ -17,8 +17,8 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - docs
         - all
+        - docs
 
 # Don't build any extra formats
 formats: []

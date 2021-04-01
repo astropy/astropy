@@ -35,8 +35,6 @@ try:
     import matplotlib
 except ImportError:
     HAS_MATPLOTLIB = False
-except ValueError:
-    HAS_MATPLOTLIB = True  # Backend is set later
 else:
     HAS_MATPLOTLIB = True
 
