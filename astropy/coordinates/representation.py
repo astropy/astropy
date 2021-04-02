@@ -2339,14 +2339,16 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         ----------
         other :
             The object to convert into this differential.
-        base : instance of ``self.base_representation``
+        base : `BaseRepresentation`
              The points for which the differentials are to be converted: each of
              the components is multiplied by its unit vectors and scale factors.
+             Will be converted to ``cls.base_representation`` if needed.
 
         Returns
         -------
         A new differential object that is this class' type.
         """
+        base = base.represent_as(cls.base_representation)
         base_e, base_sf = cls._get_base_vectors(base)
         return cls(*(other.dot(e / base_sf[component])
                      for component, e in base_e.items()), copy=False)
@@ -2372,7 +2374,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         # The default is to convert via cartesian coordinates.
         self_cartesian = self.to_cartesian(base)
         if issubclass(other_class, BaseDifferential):
-            base = base.represent_as(other_class.base_representation)
             return other_class.from_cartesian(self_cartesian, base)
         else:
             return other_class.from_cartesian(self_cartesian)
@@ -2659,6 +2660,13 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
         if not self._d_lon.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon and d_lat should have equivalent units.')
 
+    @classmethod
+    def from_cartesian(cls, other, base):
+        # Go via the dimensional equivalent, so that the longitude and latitude
+        # differentials correctly take into account the norm of the base.
+        dimensional = cls._dimensional_differential.from_cartesian(other, base)
+        return dimensional.represent_as(cls)
+
     def to_cartesian(self, base):
         if isinstance(base, SphericalRepresentation):
             scale = base.distance
@@ -2859,6 +2867,13 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         if not self._d_lon_coslat.unit.is_equivalent(self._d_lat.unit):
             raise u.UnitsError('d_lon_coslat and d_lat should have equivalent '
                                'units.')
+
+    @classmethod
+    def from_cartesian(cls, other, base):
+        # Go via the dimensional equivalent, so that the longitude and latitude
+        # differentials correctly take into account the norm of the base.
+        dimensional = cls._dimensional_differential.from_cartesian(other, base)
+        return dimensional.represent_as(cls)
 
     def to_cartesian(self, base):
         if isinstance(base, SphericalRepresentation):

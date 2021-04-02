@@ -701,8 +701,6 @@ class TestSphericalDifferential():
             self.SD_cls.from_cartesian(c)
         with pytest.raises(TypeError):
             self.SD_cls.from_cartesian(c, SphericalRepresentation)
-        with pytest.raises(TypeError):
-            self.SD_cls.from_cartesian(c, c)
 
 
 @pytest.mark.parametrize('omit_coslat', [False, True], scope='class')
