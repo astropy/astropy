@@ -218,3 +218,21 @@ def test_separation_3d_with_differentials():
 
     sep = c1.separation_3d(c2)
     assert_quantity_allclose(sep, 5*u.pc)
+
+
+@pytest.mark.parametrize('sph_type', ['spherical', 'unitspherical'])
+def test_cartesian_to_spherical(sph_type):
+    """Conversion to unitspherical should work, even if we lose distance."""
+    c = SkyCoord(x=1*u.kpc, y=0*u.kpc, z=0*u.kpc,
+                 v_x=10*u.km/u.s, v_y=0*u.km/u.s, v_z=4.74*u.km/u.s,
+                 representation_type='cartesian')
+    c.representation_type = sph_type
+    assert c.ra == 0
+    assert c.dec == 0
+    assert c.pm_ra == 0
+    assert u.allclose(c.pm_dec, 1*u.mas/u.yr, rtol=1e-3)
+    assert c.radial_velocity == 10*u.km/u.s
+    if sph_type == 'spherical':
+        assert c.distance == 1*u.kpc
+    else:
+        assert not hasattr(c, 'distance')
