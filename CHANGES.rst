@@ -368,8 +368,7 @@ Other Changes and Additions
 - Improved performance of ``bayesian_blocks()`` by removing one ``np.log()``
   call [#11356]
 
-
-4.2.1 (unreleased)
+4.2.2 (unreleased)
 ==================
 
 Bug Fixes
@@ -389,9 +388,6 @@ astropy.coordinates
 
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
-
-- Fixed an issue where specializations of the comoving distance calculation
-  for certain cosmologies could not handle redshift arrays. [#10980]
 
 astropy.extern
 ^^^^^^^^^^^^^^
@@ -426,12 +422,65 @@ astropy.stats
 astropy.table
 ^^^^^^^^^^^^^
 
+astropy.tests
+^^^^^^^^^^^^^
+
+astropy.time
+^^^^^^^^^^^^
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+astropy.uncertainty
+^^^^^^^^^^^^^^^^^^^
+
+astropy.units
+^^^^^^^^^^^^^
+
+astropy.utils
+^^^^^^^^^^^^^
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+astropy.wcs
+^^^^^^^^^^^
+
+
+Other Changes and Additions
+---------------------------
+
+
+4.2.1 (2021-4-1)
+================
+
+Bug Fixes
+---------
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Fixed an issue where specializations of the comoving distance calculation
+  for certain cosmologies could not handle redshift arrays. [#10980]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix bug where manual fixes to invalid header cards were not preserved when
+  saving a FITS file. [#11108]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- ``NumericArray`` converter now properly broadcasts scalar mask to array.
+  [#11157]
+
+astropy.table
+^^^^^^^^^^^^^
+
 - Fix bug when initializing a ``Table`` subclass that uses ``TableAttribute``'s.
   If the data were an instance of the table then attributes provided in the
   table initialization call could be ignored. [#11217]
-
-astropy.tests
-^^^^^^^^^^^^^
 
 astropy.time
 ^^^^^^^^^^^^
@@ -440,13 +489,6 @@ astropy.time
   to ``1970-01-01T00:00:00 TAI`` to match the intended and documented behaviour.
   This essentially changes the resulting times by 8.000082 seconds, the initial
   offset between TAI and UTC. [#11249]
-
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -461,9 +503,6 @@ astropy.utils
 - Fix a bug so that ``np.shape``, ``np.ndim`` and ``np.size`` again work on
   classes that use ``ShapedLikeNDArray``, like representations, frames,
   sky coordinates, and times. [#11133]
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
 
 astropy.wcs
 ^^^^^^^^^^^
