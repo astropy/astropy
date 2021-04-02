@@ -1,0 +1,1 @@
+``NumericArray`` converter now properly broadcasts scalar mask to array.

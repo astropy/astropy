@@ -1,0 +1,4 @@
+Allow ``Distance`` instances with negative distance values as input for
+``SphericalRepresentation``.  This was always noted as allowed in an
+exception message when a negative ``Quantity`` with length units was
+passed in, but was not actually possible to do.

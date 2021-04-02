@@ -1,0 +1,3 @@
+When writing to a FITS tables, masked values are again always converted to
+the standard FITS mask values of ``NaN`` for float and null string
+for string, not just for table with ``masked=True``.

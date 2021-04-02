@@ -1,0 +1,1 @@
+Officially declared minversion of ``ipython`` to be 4.2.

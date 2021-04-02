@@ -1,0 +1,3 @@
+Changed the implementation of the ``table.index.Index`` class so instantiating
+from this class now returns an ``Index`` object as expected instead of a
+``SlicedIndex`` object.

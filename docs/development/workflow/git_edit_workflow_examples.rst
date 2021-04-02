@@ -469,50 +469,6 @@ The `git`_ commands, without their output, are::
     git commit -m "Add tests of len() for scalar coordinate and length 1 coordinate"
     git log
 
-.. _git_edit_changelog:
-
-Edit the changelog
-==================
-
-Keeping the list of changes up to date is nearly impossible unless each
-contributor makes the appropriate updates as they propose changes.
-
-Changes are in the file ``CHANGES.rst`` in the top-level directory (the
-directory where ``setup.py`` is). Put the change under the list that matches
-the milestone (a.k.a. release) that is set by a maintainer for the issue in GitHub. If you are
-proposing a new feature in a pull request, you may need to wait on this change
-until the pull request is discussed.
-
-This issue was tagged for ``astropy`` 0.3.1, as shown in the image below, so the changelog
-entry went there.
-
-    .. image:: milestone.png
-
-The entry in ``CHANGES.rst`` should summarize what you did and include the
-pull request number. For writing changelog entries, you do not need to know
-much about the markup language being used (though you can read as much as
-you want about it at the `Sphinx primer`_); look at other entries and
-emulate.
-
-For this issue, the entry was the line that started with ``- Implemented``::
-
-    astropy.coordinates
-    ^^^^^^^^^^^^^^^^^^^
-
-    - Implemented ``len()`` for coordinate objects. [#1761]
-
-Starting the line with a ``-`` makes a bulleted list item, making
-it a sub-list of ``astropy.coordinates`` and putting ``len()`` in
-double-backtick makes that text render in a monospaced font.
-
-Commit your changes to the CHANGES.rst
---------------------------------------
-
-You can use ``git status`` as above or jump right to staging and committing::
-
-    git add CHANGES.rst
-    git commit -m "Add changelog entry for 1761"
-
 Push your changes to your GitHub fork of astropy
 ================================================
 
@@ -543,6 +499,37 @@ leading ``#`` in the description of the pull request so that a link is
 created to the original issue, as stated in ``astropy``'s pull request template.
 
 Please see `pull request 1917`_ for the pull request showcased in this tutorial.
+
+.. _git_edit_changelog:
+
+Edit the changelog
+==================
+
+Keeping the list of changes up to date is nearly impossible unless each
+contributor makes the appropriate updates as they propose changes.
+
+Create a file ``docs/changes/coordinates/<PULL REQUEST>.feature.rst``, where
+``<PULL REQUEST>`` is the pull request number (1917 for this example).  The
+content of this file should summarize what you did. For writing changelog
+entries, you do not need to know much about the markup language being used
+(though you can read as much as you want about it at the `Sphinx primer`_); look
+at other entries and emulate.
+
+For this issue, the file would contain::
+
+    Implemented ``len()`` for coordinate objects.
+
+Putting ``len()`` in double-backtick makes that text render in a monospaced
+font.
+
+Commit your changes and push
+----------------------------
+
+You can use ``git status`` as above or jump right to staging and committing::
+
+    git add docs/changes/coordinates/<PULL REQUEST>.feature.rst
+    git commit -m "Add changelog entry"
+    git push
 
 Revise and push as necessary
 ============================
