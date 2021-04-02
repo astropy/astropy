@@ -1,0 +1,1 @@
+Make ``Unit`` string parsing (as well as ``Angle`` parsing) thread-safe.
