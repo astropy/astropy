@@ -1,0 +1,4 @@
+The configuration file is no longer created by default when importing astropy
+and its existence is no longer required. Affiliated packages should update their
+``__init__.py`` module to remove the block using ``update_default_config`` and
+``ConfigurationDefaultMissingWarning``. 
