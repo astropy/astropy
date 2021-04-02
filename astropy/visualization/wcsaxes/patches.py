@@ -7,9 +7,11 @@ from matplotlib.patches import Polygon
 from astropy import units as u
 from astropy.coordinates.representation import UnitSphericalRepresentation
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
-
+from astropy.utils.introspection import minversion
 
 __all__ = ['Quadrangle', 'SphericalCircle']
+
+MATPLOTLIB_GE_3_4 = minversion('matplotlib', '3.4')
 
 
 def _rotate_polygon(lon, lat, lon0, lat0):
@@ -37,7 +39,34 @@ def _rotate_polygon(lon, lat, lon0, lat0):
     return polygon.lon, polygon.lat
 
 
-class SphericalCircle(Polygon):
+# TODO: Remove this when no longer relevant.
+# See https://github.com/matplotlib/matplotlib/issues/19839
+if MATPLOTLIB_GE_3_4:
+    class _HackyMixin:
+        @property
+        def validCap(self):
+            """Deprecated"""
+            return Polygon.validCap
+
+        @property
+        def validJoin(self):
+            """Deprecated"""
+            return Polygon.validJoin
+
+    Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
+        "`.CapStyle`", "``matplotlib._enums.CapStyle``")
+    Polygon.__init__.__doc__ = Polygon.__init__.__doc__.replace(
+        "`.JoinStyle`", "``matplotlib._enums.JoinStyle``")
+    Polygon.set_capstyle.__doc__ = Polygon.set_capstyle.__doc__.replace(
+        "`.CapStyle`", "``matplotlib._enums.CapStyle``")
+    Polygon.set_joinstyle.__doc__ = Polygon.set_joinstyle.__doc__.replace(
+        "`.JoinStyle`", "``matplotlib._enums.JoinStyle``")
+else:
+    class _HackyMixin:
+        pass  # no-op
+
+
+class SphericalCircle(_HackyMixin, Polygon):
     """
     Create a patch representing a spherical circle - that is, a circle that is
     formed of all the points that are within a certain angle of the central
@@ -90,7 +119,7 @@ class SphericalCircle(Polygon):
         super().__init__(vertices, **kwargs)
 
 
-class Quadrangle(Polygon):
+class Quadrangle(_HackyMixin, Polygon):
     """
     Create a patch representing a latitude-longitude quadrangle.
 
