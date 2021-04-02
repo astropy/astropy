@@ -1578,13 +1578,15 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-
-        # TODO: this could be optimized to shortcut even if a differential_class
-        # is passed in, using the ._re_represent_differentials() method
+        # TODO! for differential_class. This cannot (currently) be implement
+        # like in the other Representations since `_re_represent_differentials`
+        # keeps differentials' unit keys, but this can result in a mismatch
+        # between the UnitSpherical expected key (e.g. "s") and that expected
+        # in the other class (here "s / m"). For more info, see PR #11467
         if inspect.isclass(other_class) and not differential_class:
             if issubclass(other_class, PhysicsSphericalRepresentation):
-                return other_class(phi=self.lon, theta=90 * u.deg - self.lat, r=1.0,
-                                   copy=False)
+                return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
+                                   r=1.0, copy=False)
             elif issubclass(other_class, SphericalRepresentation):
                 return other_class(lon=self.lon, lat=self.lat, distance=1.0,
                                    copy=False)
@@ -1864,14 +1866,19 @@ class SphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
 
-        # TODO: this could be optimized to shortcut even if a differential_class
-        # is passed in, using the ._re_represent_differentials() method
-        if inspect.isclass(other_class) and not differential_class:
+        if inspect.isclass(other_class):
             if issubclass(other_class, PhysicsSphericalRepresentation):
+                diffs = self._re_represent_differentials(other_class,
+                                                         differential_class)
                 return other_class(phi=self.lon, theta=90 * u.deg - self.lat,
-                                   r=self.distance, copy=False)
+                                   r=self.distance, differentials=diffs,
+                                   copy=False)
+
             elif issubclass(other_class, UnitSphericalRepresentation):
-                return other_class(lon=self.lon, lat=self.lat, copy=False)
+                diffs = self._re_represent_differentials(other_class,
+                                                         differential_class)
+                return other_class(lon=self.lon, lat=self.lat,
+                                   differentials=diffs, copy=False)
 
         return super().represent_as(other_class, differential_class)
 
@@ -2022,14 +2029,18 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
 
-        # TODO: this could be optimized to shortcut even if a differential_class
-        # is passed in, using the ._re_represent_differentials() method
-        if inspect.isclass(other_class) and not differential_class:
+        if inspect.isclass(other_class):
             if issubclass(other_class, SphericalRepresentation):
+                diffs = self._re_represent_differentials(other_class,
+                                                         differential_class)
                 return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
-                                   distance=self.r)
+                                   distance=self.r, differentials=diffs,
+                                   copy=False)
             elif issubclass(other_class, UnitSphericalRepresentation):
-                return other_class(lon=self.phi, lat=90 * u.deg - self.theta)
+                diffs = self._re_represent_differentials(other_class,
+                                                         differential_class)
+                return other_class(lon=self.phi, lat=90 * u.deg - self.theta,
+                                   differentials=diffs, copy=False)
 
         return super().represent_as(other_class, differential_class)
 
