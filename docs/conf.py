@@ -78,6 +78,7 @@ intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')
+exclude_patterns.append('changes')
 exclude_patterns.append('_pkgtemplate.rst')
 exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them
 
@@ -86,6 +87,7 @@ if 'templates_path' not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append('_templates')
 
+extensions += ["sphinx_changelog"]  # noqa: F405
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.

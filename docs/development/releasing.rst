@@ -117,15 +117,14 @@ packages that use the full bugfix/maintenance branch approach.)
       $ TEST_READ_HUGE_FILE=1 pytest -sv astropy/io/ascii/tests/test_c_reader.py -k big_table
       $ python setup.py check --restructuredtext
 
-#. Edit the ``CHANGES.rst`` file by changing the date for the version you are
-   about to release from "unreleased" to today's date.  Also be sure to remove
-   any sections of the changelog for that version that have no entries.
-   For releases that come after release candidates (:ref:`release-procedure-beta-rc`),
-   the title of the changelog section should be replaced too, thus getting rid
-   of any mention of the release candidate.
-   Then add and commit those changes with::
+#. Render the changelog with towncrier, and confirm that the fragments can be
+   deleted. (Note: update this when doing the next release!)
+   ::
 
-      <use your favorite editor on CHANGES.rst>
+       towncrier [--draft] --version 4.3
+
+#. Then add and commit those changes with::
+
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
@@ -272,13 +271,6 @@ Post-Release procedures
       $ git add setup.cfg
       $ git commit -m "Back to development: v<next_version>.dev"
 
-#. Also update the ``CHANGES.rst`` file with a new section for the next version.
-   Then add and commit::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add v<next_version> to the changelog"
-
 #. Push up these changes to the `astropy core repository`_::
 
       $ git push upstream v<version branch>.x
@@ -416,13 +408,6 @@ The procedure for this is straightforward:
       <use your favorite editor on setup.cfg>
       $ git add setup.cfg
       $ git commit -m "Next major version: <next_version>"
-
-#. Update the ``CHANGES.rst`` file with a new section at the very top for the
-   next major version. Then add and commit those changes::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add <next_version> to changelog"
 
 #. Also update the "what's new" section of the docs to include a section for the
    next major version.  E.g.::
