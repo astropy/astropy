@@ -1,0 +1,1 @@
+The name of the default branch for the astropy git repository has been renamed to ``main``, and the documentation and tooling has been updated accordingly. If you have made a local clone you may wish to update it following the instructions in the repository's README.
