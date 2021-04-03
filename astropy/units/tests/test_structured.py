@@ -5,6 +5,7 @@ Test Structured units and quantities.
 """
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.units import (StructuredUnit, StructuredQuantity,
@@ -484,3 +485,25 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert q_pv_t['t'][1] == 5. * u.yr
         q_pv_t['pv'] = (1., 0.5) * self.pv_unit
         assert np.all(q_pv_t['pv'] == (1., 0.5) * self.pv_unit)
+
+
+class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
+    @classmethod
+    def setup_class(self):
+        super().setup_class()
+        self.q_pv = self.pv << self.pv_unit
+        self.q_pv_t = self.pv_t << self.pv_t_unit
+
+    def test_empty_like(self):
+        z = np.empty_like(self.q_pv)
+        assert z.dtype == self.pv_dtype
+        assert z.unit == self.pv_unit
+        assert z.shape == self.pv.shape
+
+    @pytest.mark.parametrize('func', [np.zeros_like, np.ones_like])
+    def test_zeros_ones_like(self, func):
+        z = func(self.q_pv)
+        assert z.dtype == self.pv_dtype
+        assert z.unit == self.pv_unit
+        assert z.shape == self.pv.shape
+        assert_array_equal(z, func(self.pv) << self.pv_unit)
