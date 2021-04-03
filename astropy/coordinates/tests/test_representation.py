@@ -1375,6 +1375,26 @@ class TestCartesianRepresentationWithDifferential:
             rep1.represent_as('name')
         assert 'use frame object' in str(excinfo.value)
 
+    @pytest.mark.parametrize('sph_diff,usph_diff', [
+        (SphericalDifferential, UnitSphericalDifferential),
+        (SphericalCosLatDifferential, UnitSphericalCosLatDifferential)])
+    def test_represent_as_unit_spherical_with_diff(self, sph_diff, usph_diff):
+        """Test that differential angles are correctly reduced."""
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+        rep = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                      differentials=diff)
+        sph = rep.represent_as(SphericalRepresentation, sph_diff)
+        usph = rep.represent_as(UnitSphericalRepresentation, usph_diff)
+        assert components_equal(usph, sph.represent_as(UnitSphericalRepresentation))
+        assert components_equal(usph.differentials['s'],
+                                sph.differentials['s'].represent_as(usph_diff))
+        # Just to be sure components_equal and the represent_as work as advertised,
+        # a sanity check: d_lat is always defined and should be the same.
+        assert_array_equal(sph.differentials['s'].d_lat,
+                           usph.differentials['s'].d_lat)
+
     def test_getitem(self):
 
         d = CartesianDifferential(d_x=np.arange(10) * u.m/u.s,
