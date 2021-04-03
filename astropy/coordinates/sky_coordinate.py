@@ -1842,10 +1842,10 @@ class SkyCoord(ShapedLikeNDArray):
         in an astropy Table.
 
         This method matches table columns that start with the case-insensitive
-        names of the the components of the requested frames, if they are also
-        followed by a non-alphanumeric character. It will also match columns
-        that *end* with the component name if a non-alphanumeric character is
-        *before* it.
+        names of the the components of the requested frames (including
+        differentials), if they are also followed by a non-alphanumeric
+        character. It will also match columns that *end* with the component name
+        if a non-alphanumeric character is *before* it.
 
         For example, the first rule means columns with names like
         ``'RA[J2000]'`` or ``'ra'`` will be interpreted as ``ra`` attributes for
@@ -1872,13 +1872,26 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         newsc : same as this class
             The new `SkyCoord` (or subclass) object.
+
+        Raises
+        ------
+        ValueError
+            If more than one match is found in the table for a component,
+            unless the additional matches are also valid frame component names.
+            If a "coord_kwargs" is provided for a value also found in the table.
+
         """
         _frame_cls, _frame_kwargs = _get_frame_without_data([], coord_kwargs)
         frame = _frame_cls(**_frame_kwargs)
         coord_kwargs['frame'] = coord_kwargs.get('frame', frame)
 
+        representation_component_names = (
+            set(frame.get_representation_component_names())
+            .union(set(frame.get_representation_component_names("s")))
+        )
+
         comp_kwargs = {}
-        for comp_name in frame.representation_component_names:
+        for comp_name in representation_component_names:
             # this matches things like 'ra[...]'' but *not* 'rad'.
             # note that the "_" must be in there explicitly, because
             # "alphanumeric" usually includes underscores.
@@ -1887,18 +1900,32 @@ class SkyCoord(ShapedLikeNDArray):
             # 'aura'
             ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
             # the final regex ORs together the two patterns
-            rex = re.compile('(' + starts_with_comp + ')|(' + ends_with_comp + ')',
+            rex = re.compile(rf"({starts_with_comp})|({ends_with_comp})",
                              re.IGNORECASE | re.UNICODE)
 
-            for col_name in table.colnames:
-                if rex.match(col_name):
-                    if comp_name in comp_kwargs:
-                        oldname = comp_kwargs[comp_name].name
-                        msg = ('Found at least two matches for  component "{0}"'
-                               ': "{1}" and "{2}". Cannot continue with this '
-                               'ambiguity.')
-                        raise ValueError(msg.format(comp_name, oldname, col_name))
-                    comp_kwargs[comp_name] = table[col_name]
+            # find all matches
+            matches = {col_name for col_name in table.colnames
+                       if rex.match(col_name)}
+
+            # now need to select among matches, also making sure we don't have
+            # an exact match with another component
+            if len(matches) == 0:  # no matches
+                continue
+            elif len(matches) == 1:  # only one match
+                col_name = matches.pop()
+            else:  # more than 1 match
+                # try to sieve out other components
+                matches -= representation_component_names - {comp_name}
+                # if there's only one remaining match, it worked.
+                if len(matches) == 1:
+                    col_name = matches.pop()
+                else:
+                    raise ValueError(
+                        'Found at least two matches for component '
+                        f'"{comp_name}": "{matches}". Cannot guess coordinates '
+                        'from a table with this ambiguity.')
+
+            comp_kwargs[comp_name] = table[col_name]
 
         for k, v in comp_kwargs.items():
             if k in coord_kwargs:
