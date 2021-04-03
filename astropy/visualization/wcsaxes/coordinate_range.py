@@ -38,7 +38,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
         ``'scalar'`` value.
     coord_units : list of `astropy.units.Unit`
         The units for each coordinate.
-    coord_wraps : list of floats, list of `astropy.units.Quantity`
+    coord_wraps : list of float, list of `astropy.units.Quantity`
         The wrap angles for longitudes (in degrees).
     """
     # Sample coordinates on a NX x NY grid.
@@ -58,14 +58,7 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
 
     ranges = []
 
-    new_coord_wrap = []
-    for coord_wrap in coord_wraps:
-        if isinstance(coord_wrap, Quantity):
-            new_coord_wrap.append(coord_wrap.to_value(u.deg))
-        else:
-            new_coord_wrap.append(coord_wrap)
-
-    coord_wraps = new_coord_wrap
+    coord_wraps = [(c.to_value(u.deg) if isinstance(c, Quantity) else c) for c in coord_wraps]
 
     for coord_index, coord_type in enumerate(coord_types):
 

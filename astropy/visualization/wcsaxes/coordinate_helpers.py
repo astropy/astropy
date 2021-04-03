@@ -74,7 +74,7 @@ class CoordinateHelper:
         The unit that this coordinate is in given the output of transform.
     format_unit : `~astropy.units.Unit`, optional
         The unit to use to display the coordinates.
-    coord_wrap : float, `~astropy.units.Quantity`, optional
+    coord_wrap : float or `~astropy.units.Quantity`, optional
         The angle at which the longitude wraps (in degrees)
         Defaults to 360 degrees.
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
@@ -185,7 +185,7 @@ class CoordinateHelper:
         ----------
         coord_type : str
             One of 'longitude', 'latitude' or 'scalar'
-        coord_wrap : float, `~astropy.units.Quantity`, optional
+        coord_wrap : float or `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates
         """
 
