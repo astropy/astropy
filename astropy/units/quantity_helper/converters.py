@@ -338,10 +338,15 @@ def check_output(output, unit, inputs, function=None):
         # check we can handle the dtype (e.g., that we are not int
         # when float is required).  Note that we only do this for Quantity
         # output; for array output, we defer to numpy's default handling.
-        if not np.can_cast(np.result_type(*inputs), output.dtype,
-                           casting='same_kind'):
-            raise TypeError("Arguments cannot be cast safely to inplace "
-                            "output with dtype={}".format(output.dtype))
+        # Also, any structured dtype are ignored (likely erfa ufuncs).
+        # TODO: make more logical; is this necessary at all?
+        if inputs and not output.dtype.names:
+            result_type = np.result_type(*inputs)
+            if not (result_type.names
+                    or np.can_cast(result_type, output.dtype,
+                                   casting='same_kind')):
+                raise TypeError("Arguments cannot be cast safely to inplace "
+                                "output with dtype={}".format(output.dtype))
         # Turn into ndarray, so we do not loop into array_wrap/array_ufunc
         # if the output is used to store results of a function.
         return output.view(np.ndarray)
