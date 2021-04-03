@@ -9,7 +9,7 @@ import operator
 
 import numpy as np
 
-from .core import Unit, UnitBase, UnitsError
+from .core import Unit, UnitBase, UnitsError, UnitTypeError, UnitConversionError
 from .quantity import Quantity
 
 
@@ -359,6 +359,12 @@ class StructuredUnit(np.void):
             return self.__class__(new_units, self.names)
         return NotImplemented
 
+    def __rlshift__(self, m):
+        try:
+            return StructuredQuantity(m, self, copy=False, subok=True)
+        except Exception:
+            return NotImplemented
+
     def __str__(self):
         return self.to_string('generic')
 
@@ -468,6 +474,24 @@ class StructuredQuantity(Quantity):
     --------
     to_value : Get the numerical value in a given unit.
     """)
+
+    def __ilshift__(self, other):
+        # Override definition in Quantity, since we can never simplify to
+        # multiplying with a single factor.
+        # TODO: implement simplifying with multiple factors.
+        try:
+            other = Unit(other, parse_strict='silent')
+        except UnitTypeError:
+            return NotImplemented
+
+        try:
+            value = self._to_value(other)
+        except UnitConversionError:
+            return NotImplemented
+
+        self.view(np.ndarray)[...] = value
+        self._set_unit(other)
+        return self
 
     def _to_own_unit(self, other, check_precision=False):
         other_value = super()._to_own_unit(other, check_precision)

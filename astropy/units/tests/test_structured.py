@@ -330,10 +330,17 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         q_pv_t = self.pv_t * self.pv_t_unit
         assert q_pv_t.unit is self.pv_t_unit
         assert np.all(q_pv_t.value == self.pv_t)
+        assert not np.may_share_memory(q_pv_t, self.pv_t)
         q_pv_t2 = self.pv_t_unit * self.pv_t
         assert q_pv_t.unit is self.pv_t_unit
         # Not testing equality of StructuredQuantity here.
         assert np.all(q_pv_t2.value == q_pv_t.value)
+
+    def test_initialization_by_shifting_to_unit(self):
+        q_pv_t = self.pv_t << self.pv_t_unit
+        assert q_pv_t.unit is self.pv_t_unit
+        assert np.all(q_pv_t.value == self.pv_t)
+        assert np.may_share_memory(q_pv_t, self.pv_t)
 
     def test_getitem(self):
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
@@ -379,6 +386,51 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert pv11 == pv1[1]
         q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
         q2 = q_pv_t.to((('kpc', 'kpc/Myr'), 'Myr'))
+        assert q2['pv']['p'].unit == u.kpc
+        assert q2['pv']['v'].unit == u.kpc / u.Myr
+        assert q2['t'].unit == u.Myr
+        assert np.all(q2['pv']['p'] == q_pv_t['pv']['p'].to(u.kpc))
+        assert np.all(q2['pv']['v'] == q_pv_t['pv']['v'].to(u.kpc/u.Myr))
+        assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
+
+    def test_conversion_via_lshift(self):
+        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q1 = q_pv << StructuredUnit(('AU', 'AU/day'))
+        assert isinstance(q1, StructuredQuantity)
+        assert q1['p'].unit == u.AU
+        assert q1['v'].unit == u.AU / u.day
+        assert np.all(q1['p'] == q_pv['p'].to(u.AU))
+        assert np.all(q1['v'] == q_pv['v'].to(u.AU/u.day))
+        q2 = q_pv << self.pv_unit
+        assert q2['p'].unit == self.p_unit
+        assert q2['v'].unit == self.v_unit
+        assert np.all(q2['p'].value == self.pv['p'])
+        assert np.all(q2['v'].value == self.pv['v'])
+        assert np.may_share_memory(q2, q_pv)
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q2 = q_pv_t << '(kpc,kpc/Myr),Myr'
+        assert q2['pv']['p'].unit == u.kpc
+        assert q2['pv']['v'].unit == u.kpc / u.Myr
+        assert q2['t'].unit == u.Myr
+        assert np.all(q2['pv']['p'] == q_pv_t['pv']['p'].to(u.kpc))
+        assert np.all(q2['pv']['v'] == q_pv_t['pv']['v'].to(u.kpc/u.Myr))
+        assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
+
+    def test_inplace_conversion(self):
+        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q1 = q_pv.copy()
+        q_link = q1
+        q1 <<= StructuredUnit(('AU', 'AU/day'))
+        assert q1 is q_link
+        assert q1['p'].unit == u.AU
+        assert q1['v'].unit == u.AU / u.day
+        assert np.all(q1['p'] == q_pv['p'].to(u.AU))
+        assert np.all(q1['v'] == q_pv['v'].to(u.AU/u.day))
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q2 = q_pv_t.copy()
+        q_link = q2
+        q2 <<= '(kpc,kpc/Myr),Myr'
+        assert q2 is q_link
         assert q2['pv']['p'].unit == u.kpc
         assert q2['pv']['v'].unit == u.kpc / u.Myr
         assert q2['t'].unit == u.Myr
