@@ -1270,8 +1270,8 @@ def test_guess_from_table():
 
     tab = Table()
     with NumpyRNGContext(987654321):
-        tab.add_column(Column(data=np.random.rand(1000), unit='deg', name='RA[J2000]'))
-        tab.add_column(Column(data=np.random.rand(1000), unit='deg', name='DEC[J2000]'))
+        tab.add_column(Column(data=np.random.rand(10), unit='deg', name='RA[J2000]'))
+        tab.add_column(Column(data=np.random.rand(10), unit='deg', name='DEC[J2000]'))
 
     sc = SkyCoord.guess_from_table(tab)
     npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
@@ -1286,20 +1286,44 @@ def test_guess_from_table():
 
     # but should work if provided
     sc2 = SkyCoord.guess_from_table(tab, unit=u.deg)
-    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
-    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+    npt.assert_array_equal(sc2.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc2.dec.deg, tab['DEC[J2000]'])
 
     # should fail if two options are available - ambiguity bad!
-    tab.add_column(Column(data=np.random.rand(1000), name='RA_J1900'))
+    tab.add_column(Column(data=np.random.rand(10), name='RA_J1900'))
     with pytest.raises(ValueError) as excinfo:
-        sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
+        SkyCoord.guess_from_table(tab, unit=u.deg)
     assert 'J1900' in excinfo.value.args[0] and 'J2000' in excinfo.value.args[0]
+
+    tab.remove_column('RA_J1900')
+    tab['RA[J2000]'].unit = u.deg
+    tab['DEC[J2000]'].unit = u.deg
+
+    # but should succeed if the ambiguity can be broken b/c one of the matches
+    # is the name of a different component
+    tab.add_column(Column(data=np.random.rand(10)*u.mas/u.yr,
+                          name='pm_ra_cosdec'))
+    tab.add_column(Column(data=np.random.rand(10)*u.mas/u.yr,
+                          name='pm_dec'))
+    sc3 = SkyCoord.guess_from_table(tab)
+    assert u.allclose(sc3.ra, tab['RA[J2000]'])
+    assert u.allclose(sc3.dec, tab['DEC[J2000]'])
+    assert u.allclose(sc3.pm_ra_cosdec, tab['pm_ra_cosdec'])
+    assert u.allclose(sc3.pm_dec, tab['pm_dec'])
+
+    # should fail if stuff doesn't have proper units
+    tab['RA[J2000]'].unit = None
+    tab['DEC[J2000]'].unit = None
+    with pytest.raises(u.UnitTypeError, match="no unit was given."):
+        SkyCoord.guess_from_table(tab)
+
+    tab.remove_column('pm_ra_cosdec')
+    tab.remove_column('pm_dec')
 
     # should also fail if user specifies something already in the table, but
     # should succeed even if the user has to give one of the components
-    tab.remove_column('RA_J1900')
     with pytest.raises(ValueError):
-        sc3 = SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
+        SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
 
     oldra = tab['RA[J2000]']
     tab.remove_column('RA[J2000]')
