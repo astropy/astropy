@@ -69,7 +69,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.nonzero, np.argwhere, np.flatnonzero,
     np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
     np.real, np.imag, np.diagonal, np.diagflat,
-    np.empty_like, np.zeros_like,
+    np.empty_like,
     np.compress, np.extract, np.delete, np.trim_zeros, np.roll, np.take,
     np.put, np.fill_diagonal, np.tile, np.repeat,
     np.split, np.array_split, np.hsplit, np.vsplit, np.dsplit,
@@ -182,13 +182,15 @@ def invariant_x_helper(x, *args, **kwargs):
     return (x.view(np.ndarray),) + args, kwargs, x.unit, None
 
 
-# Note that ones_like does *not* work by default (unlike zeros_like) since if
-# one creates an empty array with a unit, one cannot just fill it with unity.
-# Indeed, in this respect, it is a bit of an odd function for Quantity. On the
-# other hand, it matches the idea that a unit is the same as the quantity with
-# that unit and value of 1. Also, it used to work without __array_function__.
-@function_helper
-def ones_like(a, *args, **kwargs):
+# Note that ones_like does *not* work by default since if one creates an empty
+# array with a unit, one cannot just fill it with unity.  Indeed, in this
+# respect, it is a bit of an odd function for Quantity. On the other hand, it
+# matches the idea that a unit is the same as the quantity with that unit and
+# value of 1. Also, it used to work without __array_function__.
+# zeros_like does work by default for regular quantities, but not for structured
+# dtype, so we include it here too.
+@function_helper(helps={np.ones_like, np.zeros_like})
+def like_helper(a, *args, **kwargs):
     subok = args[2] if len(args) > 2 else kwargs.pop('subok', True)
     unit = a.unit if subok else None
     return (a.view(np.ndarray),) + args, kwargs, unit, None
