@@ -613,7 +613,7 @@ class BaseHeader:
                 yield line
 
     def write_comments(self, lines, meta):
-        if self.write_comment is not False:
+        if self.write_comment not in (False, None):
             for comment in meta.get('comments', []):
                 lines.append(self.write_comment + comment)
 

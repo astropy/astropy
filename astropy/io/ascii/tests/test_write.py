@@ -780,6 +780,24 @@ def test_write_newlines(fast_writer, tmpdir):
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_csv_with_comments(fast_writer):
+    """
+    Test fix for #7357 where writing a Table with comments to 'csv' fails with
+    a cryptic message. The comments are dropped by default, but when comment='#'
+    is supplied they are still written.
+    """
+    out = StringIO()
+    t = table.Table([[1, 2], [3, 4]], names=['a', 'b'])
+    t.meta['comments'] = ['hello']
+    ascii.write(t, out, format='csv', fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == ['a,b', '1,3', '2,4']
+
+    out = StringIO()
+    ascii.write(t, out, format='csv', fast_writer=fast_writer, comment='#')
+    assert out.getvalue().splitlines() == ['#hello', 'a,b', '1,3', '2,4']
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_formatted_mixin(fast_writer):
     """
     Test fix for #8680 where writing a QTable with a quantity mixin generates
