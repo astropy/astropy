@@ -1,0 +1,4 @@
+Fixed bug where writing a table that has comments defined (via
+``tbl.meta['comments']``) with the 'csv' format was failing. Since the formally
+defined CSV format does not support comments, the comments are now just ignored
+unless ``comment=<comment prefix>`` is supplied to the ``write()`` call.
