@@ -74,7 +74,7 @@ COUNT_UNITS = (u.count, u.electron, u.dimensionless_unscaled, u.chan, u.bin, u.v
 
 def poisson(center, n_samples, cls=Distribution, **kwargs):
     """
-    Create a Poisson distribution.
+    This function is used to create a Poisson distribution.
 
     Parameters
     ----------
