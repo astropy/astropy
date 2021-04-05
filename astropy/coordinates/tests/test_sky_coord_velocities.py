@@ -14,9 +14,12 @@ import numpy as np
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.coordinates import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-                SphericalCosLatDifferential, CartesianRepresentation,
-                CartesianDifferential, Galactic, PrecessedGeocentric)
+from astropy.coordinates import (
+    SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
+    SphericalCosLatDifferential, UnitSphericalRepresentation,
+    UnitSphericalDifferential, UnitSphericalCosLatDifferential,
+    RadialDifferential, CartesianRepresentation,
+    CartesianDifferential, Galactic, PrecessedGeocentric)
 
 try:
     import scipy
@@ -236,3 +239,31 @@ def test_cartesian_to_spherical(sph_type):
         assert c.distance == 1*u.kpc
     else:
         assert not hasattr(c, 'distance')
+
+
+@pytest.mark.parametrize('diff_info, diff_cls', [
+    (dict(radial_velocity=[20, 30]*u.km/u.s), RadialDifferential),
+    (dict(pm_ra=[2, 3]*u.mas/u.yr, pm_dec=[-3, -4]*u.mas/u.yr,
+          differential_type='unitspherical'), UnitSphericalDifferential),
+    (dict(pm_ra_cosdec=[2, 3]*u.mas/u.yr, pm_dec=[-3, -4]*u.mas/u.yr),
+     UnitSphericalCosLatDifferential)], scope='class')
+class TestDifferentialClassPropagation:
+    """Test that going in between spherical and unit-spherical, we do not
+    change differential type (since both can handle the same types).
+    """
+    def test_sc_unit_spherical_with_pm_or_rv_only(self, diff_info, diff_cls):
+        sc = SkyCoord(ra=[10, 20]*u.deg, dec=[-10, 10]*u.deg, **diff_info)
+        assert isinstance(sc.data, UnitSphericalRepresentation)
+        assert isinstance(sc.data.differentials['s'], diff_cls)
+        sr = sc.represent_as('spherical')
+        assert isinstance(sr, SphericalRepresentation)
+        assert isinstance(sr.differentials['s'], diff_cls)
+
+    def test_sc_spherical_with_pm_or_rv_only(self, diff_info, diff_cls):
+        sc = SkyCoord(ra=[10, 20]*u.deg, dec=[-10, 10]*u.deg,
+                      distance=1.*u.kpc, **diff_info)
+        assert isinstance(sc.data, SphericalRepresentation)
+        assert isinstance(sc.data.differentials['s'], diff_cls)
+        sr = sc.represent_as('unitspherical')
+        assert isinstance(sr, UnitSphericalRepresentation)
+        assert isinstance(sr.differentials['s'], diff_cls)

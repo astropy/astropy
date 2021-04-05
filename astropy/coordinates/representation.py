@@ -734,9 +734,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                             "differentials are attached to a {}."
                             .format(op_name, self.__class__.__name__))
 
-    @property
-    def _compatible_differentials(self):
-        return [DIFFERENTIAL_CLASSES[self.get_name()]]
+    @classproperty
+    def _compatible_differentials(cls):
+        return [DIFFERENTIAL_CLASSES[cls.get_name()]]
 
     @property
     def differentials(self):
@@ -1521,8 +1521,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
     def __init__(self, lon, lat=None, differentials=None, copy=True):
         super().__init__(lon, lat, differentials=differentials, copy=copy)
 
-    @property
-    def _compatible_differentials(self):
+    @classproperty
+    def _compatible_differentials(cls):
         return [UnitSphericalDifferential, UnitSphericalCosLatDifferential,
                 SphericalDifferential, SphericalCosLatDifferential,
                 RadialDifferential]
@@ -1816,8 +1816,8 @@ class SphericalRepresentation(BaseRepresentation):
                 else:
                     raise
 
-    @property
-    def _compatible_differentials(self):
+    @classproperty
+    def _compatible_differentials(cls):
         return [UnitSphericalDifferential, UnitSphericalCosLatDifferential,
                 SphericalDifferential, SphericalCosLatDifferential,
                 RadialDifferential]

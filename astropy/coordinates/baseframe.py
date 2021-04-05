@@ -1055,7 +1055,15 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         representation_cls = repr_classes['base']
         # We only keep velocity information
         if 's' in self.data.differentials:
-            differential_cls = repr_classes['s']
+            # For the default 'base' option in which _get_repr_classes has
+            # given us a best guess based on the representation class, we only
+            # use it if the class we had already is incompatible.
+            if (s == 'base'
+                and (self.data.differentials['s'].__class__
+                     in representation_cls._compatible_differentials)):
+                differential_cls = self.data.differentials['s'].__class__
+            else:
+                differential_cls = repr_classes['s']
         elif s is None or s == 'base':
             differential_cls = None
         else:
