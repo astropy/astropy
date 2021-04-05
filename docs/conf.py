@@ -104,14 +104,14 @@ project = u'Astropy'
 min_versions = {}
 for line in importlib_metadata.requires('astropy'):
     req = Requirement(line.split(';')[0])
-    min_versions[req.name] = str(req.specifier)
+    min_versions[req.name.lower()] = str(req.specifier)
 
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += "\n".join(
     f".. |minimum_{name}_version| replace:: {min_versions[name]}"
-    for name in ('numpy', 'pyerfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + f"""
+    for name in ('numpy', 'pyerfa', 'scipy', 'pyyaml', 'asdf', 'matplotlib', 'ipython')) + f"""
 .. |minimum_python_version| replace:: {__minimum_python_version__}
 
 .. Astropy
