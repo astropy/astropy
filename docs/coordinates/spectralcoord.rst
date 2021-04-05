@@ -277,11 +277,11 @@ have been measured (for the purposes of the example here we will assume we have 
                       (0., 0., 0.)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
-          radial_velocity=41.03594947739035 km / s
-          redshift=0.00013689056309340586)
+          radial_velocity=41.03594953774002 km / s
+          redshift=0.00013689056329480032)
       [200., 210., 220., 230., 240., 250., 260., 270., 280., 290., 300.] GHz>
 
 We can already see above that |SpectralCoord| has computed the difference in
@@ -324,8 +324,8 @@ the effect of the Earth's rotation), we can use the ``'gcrs'`` which stands for
                       (4.33251262e-09, 8.96175625e-08, -1.49258412e-08)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=40.674086368345165 km / s
           redshift=0.00013568335316072044)
@@ -347,8 +347,8 @@ origin of the *International Celestial Reference System* (ICRS) system, we can u
                       (0., 0., 0.)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=23.9 km / s
           redshift=7.97249967898761e-05)
@@ -375,8 +375,8 @@ branches of astronomy (such as radio astronomy)::
                       (0., 0., 0.)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=12.50698856018455 km / s
           redshift=4.171969349386906e-05)
@@ -402,8 +402,8 @@ rest frame of the target::
                       (9.34149908, 20.49579745, 7.99178839)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0)
@@ -434,8 +434,8 @@ We can convert these to the rest frame of the target using::
                       (9.34149908, 20.49579745, 7.99178839)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0)
@@ -455,8 +455,8 @@ T Tau. We can convert these frequencies to velocities assuming the Doppler shift
                       (9.34149908, 20.49579745, 7.99178839)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=0.0 km / s
           redshift=0.0
@@ -537,8 +537,8 @@ in that frame of reference::
                       (-1.42108547e-14, -300., 2.84217094e-14)>
         target: <ICRS Coordinate: (ra, dec, distance) in (deg, deg, pc)
                     (65.497625, 19.53511111, 144.321)
-                 (pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)
-                    (1.37949782e-15, 1.46375638e-15, 23.9)>
+                 (radial_velocity) in km / s
+                    (23.9,)>
         observer to target (computed from above):
           radial_velocity=42.33062895275233 km / s
           redshift=0.00014120974955456056)
