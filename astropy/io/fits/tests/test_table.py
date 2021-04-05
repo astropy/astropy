@@ -689,6 +689,99 @@ class TestTableFunctions(FitsTestCase):
             formats='a10,u4,a10,5f4,l')
         assert comparerecords(tbhdu1.data, array)
 
+    def test_adding_a_column_inplace(self):
+        # Tests adding a column to a table.
+        counts = np.array([312, 334, 308, 317])
+        names = np.array(['NGC1', 'NGC2', 'NGC3', 'NCG4'])
+        c1 = fits.Column(name='target', format='10A', array=names)
+        c2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
+        c3 = fits.Column(name='notes', format='A10')
+        c4 = fits.Column(name='spectrum', format='5E')
+        c5 = fits.Column(name='flag', format='L', array=[1, 0, 1, 1])
+        coldefs = fits.ColDefs([c1, c2, c3, c4])
+        tbhdu = fits.BinTableHDU.from_columns(coldefs)
+
+        assert tbhdu.columns.names == ['target', 'counts', 'notes', 'spectrum']
+
+        tbhdu.columns.add_col(c5)
+        assert tbhdu.columns.names == ['target', 'counts', 'notes',
+                                       'spectrum', 'flag']
+
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
+        array = np.rec.array(
+            [('NGC1', 312, '', z, True),
+             ('NGC2', 334, '', z, False),
+             ('NGC3', 308, '', z, True),
+             ('NCG4', 317, '', z, True)],
+            formats='a10,u4,a10,5f4,l')
+        assert comparerecords(tbhdu.data, array)
+
+    def test_adding_a_column_to_file(self):
+        hdul = fits.open(self.data('table.fits'))
+        tbhdu = hdul[1]
+        col = fits.Column(name='a', array=np.array([1, 2]), format='K')
+        tbhdu.columns.add_col(col)
+        assert tbhdu.columns.names == ['target', 'V_mag', 'a']
+        array = np.rec.array(
+            [('NGC1001', 11.1, 1),
+             ('NGC1002', 12.3, 2),
+             ('NGC1003', 15.2, 0)],
+            formats='a20,f4,i8')
+        assert comparerecords(tbhdu.data, array)
+        hdul.close()
+
+    def test_removing_a_column_inplace(self):
+        # Tests adding a column to a table.
+        counts = np.array([312, 334, 308, 317])
+        names = np.array(['NGC1', 'NGC2', 'NGC3', 'NCG4'])
+        c1 = fits.Column(name='target', format='10A', array=names)
+        c2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
+        c3 = fits.Column(name='notes', format='A10')
+        c4 = fits.Column(name='spectrum', format='5E')
+        c5 = fits.Column(name='flag', format='L', array=[1, 0, 1, 1])
+        coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
+        tbhdu = fits.BinTableHDU.from_columns(coldefs)
+
+        assert tbhdu.columns.names == ['target', 'counts', 'notes',
+                                       'spectrum', 'flag']
+
+        tbhdu.columns.del_col('flag')
+
+        assert tbhdu.columns.names == ['target', 'counts', 'notes', 'spectrum']
+        z = np.array([0., 0., 0., 0., 0.], dtype=np.float32)
+        array = np.rec.array(
+            [('NGC1', 312, '', z),
+             ('NGC2', 334, '', z),
+             ('NGC3', 308, '', z),
+             ('NCG4', 317, '', z)],
+            formats='a10,u4,a10,5f4')
+        assert comparerecords(tbhdu.data, array)
+
+        tbhdu.columns.del_col('counts')
+        tbhdu.columns.del_col('notes')
+
+        assert tbhdu.columns.names == ['target', 'spectrum']
+        array = np.rec.array(
+            [('NGC1', z),
+             ('NGC2', z),
+             ('NGC3', z),
+             ('NCG4', z)],
+            formats='a10,5f4')
+        assert comparerecords(tbhdu.data, array)
+
+    def test_removing_a_column_from_file(self):
+        hdul = fits.open(self.data('table.fits'))
+        tbhdu = hdul[1]
+        tbhdu.columns.del_col('V_mag')
+        assert tbhdu.columns.names == ['target']
+        array = np.rec.array(
+            [('NGC1001', ),
+             ('NGC1002', ),
+             ('NGC1003', )],
+            formats='a20')
+        assert comparerecords(tbhdu.data, array)
+        hdul.close()
+
     def test_merge_tables(self):
         counts = np.array([312, 334, 308, 317])
         names = np.array(['NGC1', 'NGC2', 'NGC3', 'NCG4'])

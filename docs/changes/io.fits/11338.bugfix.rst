@@ -1,0 +1,2 @@
+Fix ``ColDefs.add_col/del_col`` to allow in-place addition or removal of
+a column.
