@@ -111,7 +111,7 @@ for line in importlib_metadata.requires('astropy'):
 # be used globally.
 rst_epilog += "\n".join(
     f".. |minimum_{name}_version| replace:: {min_versions[name]}"
-    for name in ('numpy', 'erfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + f"""
+    for name in ('numpy', 'pyerfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + f"""
 .. |minimum_python_version| replace:: {__minimum_python_version__}
 
 .. Astropy
