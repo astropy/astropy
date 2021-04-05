@@ -6,7 +6,7 @@ This package defines units used in the CDS format, both the units
 defined in `Centre de Données astronomiques de Strasbourg
 <http://cds.u-strasbg.fr/>`_ `Standards for Astronomical Catalogues 2.0
 <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_ format and the `complete
-set of supported units <http://vizier.u-strasbg.fr/cgi-bin/Unit>`_.
+set of supported units <https://vizier.u-strasbg.fr/viz-bin/Unit>`_.
 This format is used by VOTable up to version 1.2.
 
 These units are not available in the top-level `astropy.units`
@@ -43,7 +43,7 @@ def _initialize_module():
     prefixes = [(short, short, factor) for (short, long, factor) in prefixes]
 
     # The following units are defined in alphabetical order, directly from
-    # here: http://vizier.u-strasbg.fr/cgi-bin/Unit
+    # here: https://vizier.u-strasbg.fr/viz-bin/Unit
 
     mapping = [
         (['A'], u.A, "Ampere"),
