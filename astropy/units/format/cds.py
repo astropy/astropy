@@ -36,7 +36,7 @@ class CDS(Base):
     <http://cds.u-strasbg.fr/>`_ `Standards for Astronomical
     Catalogues 2.0 <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_
     format, and the `complete set of supported units
-    <http://vizier.u-strasbg.fr/cgi-bin/Unit>`_.  This format is used
+    <https://vizier.u-strasbg.fr/viz-bin/Unit>`_.  This format is used
     by VOTable up to version 1.2.
     """
 
