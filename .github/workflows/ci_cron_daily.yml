@@ -6,10 +6,9 @@ on:
     - cron: '0 3 * * *'
   pull_request:
     # We also want this workflow triggered if the 'Extra CI' label is added
-    # The first two are subset of the defaults
+    # or present when PR is updated
     types:
       - synchronize
-      - reopened
       - labeled
 
 env:
