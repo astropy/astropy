@@ -38,9 +38,10 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=10000,
         if HAS_SCIPY:
             interpolation = 'cubic'
         else:
-            warnings.warn("""\
-SciPy not found, so falling back to linear numpy interpolation scheme
-for array z_at_value, instead of the normal cubic spline.""")
+            warnings.warn((
+                "SciPy not found, so falling back to linear numpy interpolation"
+                " scheme for array z_at_value, instead of the normal cubic"
+                " spline."))
             interpolation = 'linear'
 
     assert interpolation in ['cubic', 'linear']
