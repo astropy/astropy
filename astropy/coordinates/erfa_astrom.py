@@ -18,6 +18,7 @@ from .builtin_frames.utils import (
     get_jd12, get_cip, prepare_earth_position_vel, get_polar_motion,
     pav2pv
 )
+from .matrix_utilities import rotation_matrix
 
 
 __all__ = []
@@ -108,36 +109,61 @@ class ErfaAstrom:
             for which to calculate the calculate the astrom values.
             For this function, an AltAz frame is expected.
         '''
+        # Calculate erfa.apio input parameters.
+        # TIO locator s'
+        sp = erfa.sp00(*get_jd12(frame_or_coord.obstime, 'tt'))
+
+        # Earth rotation angle.
+        theta = erfa.era00(*get_jd12(frame_or_coord.obstime, 'ut1'))
+
+        # Longitude and latitude in radians.
         lon, lat, height = frame_or_coord.location.to_geodetic('WGS84')
-        jd1_tt, jd2_tt = get_jd12(frame_or_coord.obstime, 'tt')
+        elong = lon.to_value(u.radian)
+        phi = lat.to_value(u.radian)
+
+        # Polar motion, rotated onto local meridian
+        xp, yp = get_polar_motion(frame_or_coord.obstime)
 
         # we need an empty astrom structure before we fill in the required sections
         astrom = np.zeros(frame_or_coord.obstime.shape, dtype=erfa.dt_eraASTROM)
 
-        # longitude with adjustment for TIO locator s'
-        astrom['along'] = lon.to_value(u.radian) + erfa.sp00(jd1_tt, jd2_tt)
+        # Form the rotation matrix, CIRS to apparent [HA,Dec].
+        r = (rotation_matrix(elong, 'z', unit=u.radian)
+             @ rotation_matrix(-yp, 'x', unit=u.radian)
+             @ rotation_matrix(-xp, 'y', unit=u.radian)
+             @ rotation_matrix(theta+sp, 'z', unit=u.radian))
 
-        # Polar motion, rotated onto local meridian
-        xp, yp = get_polar_motion(frame_or_coord.obstime)
-        sl = np.sin(astrom['along'])
-        cl = np.cos(astrom['along'])
-        astrom['xpl'] = xp*cl - yp*sl
-        astrom['ypl'] = xp*sl + yp*cl
+        # Solve for local Earth rotation angle.
+        a = r[..., 0, 0]
+        b = r[..., 0, 1]
+        eral = np.arctan2(b, a)
+        astrom['eral'] = eral
 
-        # Functions of latitude
-        astrom['sphi'] = np.sin(lat)
-        astrom['cphi'] = np.cos(lat)
+        # Solve for polar motion [X,Y] with respect to local meridian.
+        c = r[..., 0, 2]
+        astrom['xpl'] = np.arctan2(c, np.sqrt(a*a+b*b))
+        a = r[..., 1, 2]
+        b = r[..., 2, 2]
+        astrom['ypl'] = -np.arctan2(a, b)
 
-        # refraction constants
+        # Adjusted longitude.
+        astrom['along'] = erfa.anpm(eral - theta)
+
+        # Functions of latitude.
+        astrom['sphi'] = np.sin(phi)
+        astrom['cphi'] = np.cos(phi)
+
+        # Omit two steps that are zero for a geocentric observer:
+        # Observer's geocentric position and velocity (m, m/s, CIRS).
+        # Magnitude of diurnal aberration vector.
+
+        # Refraction constants.
         astrom['refa'], astrom['refb'] = erfa.refco(
             frame_or_coord.pressure.to_value(u.hPa),
             frame_or_coord.temperature.to_value(u.deg_C),
             frame_or_coord.relative_humidity.value,
             frame_or_coord.obswl.to_value(u.micron)
         )
-
-        # update local earth rotation angle
-        astrom['eral'] = erfa.era00(*get_jd12(frame_or_coord.obstime, 'ut1')) + astrom['along']
         return astrom
 
 
