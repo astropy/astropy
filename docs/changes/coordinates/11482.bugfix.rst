@@ -1,0 +1,4 @@
+When re-representing coordinates from spherical to unit-spherical and vice
+versa, the type of differential will now be preserved. For instance, if only a
+radial velocity was present, that will remain the case (previously, a zero
+proper motion component was added).
