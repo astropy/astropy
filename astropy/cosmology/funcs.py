@@ -9,9 +9,9 @@ import numpy as np
 try:
     from scipy.interpolate import CubicSpline
 except ImportError:
-    USE_SCIPY = False
+    HAS_SCIPY = False
 else:
-    USE_SCIPY = True
+    HAS_SCIPY = True
 
 from .core import CosmologyError
 from astropy.units import Quantity
@@ -35,7 +35,7 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=10000,
     fgrid_val = fgrid.to_value(fvals.unit)
 
     if interpolation is None:
-        if USE_SCIPY:
+        if HAS_SCIPY:
             interpolation = 'cubic'
         else:
             warnings.warn("""\
