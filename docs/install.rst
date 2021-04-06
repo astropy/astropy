@@ -13,7 +13,7 @@ Requirements
 
 - `Numpy`_ |minimum_numpy_version| or later
 
-- `PyERFA`_ |minimum_erfa_version| or later
+- `PyERFA`_ |minimum_pyerfa_version| or later
 
 ``astropy`` also depends on other packages for optional features:
 
@@ -33,7 +33,7 @@ Requirements
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `PyYAML <https://pyyaml.org>`_ |minimum_yaml_version| or later: To read/write
+- `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
   format and to serialize mixins for various formats.
 
