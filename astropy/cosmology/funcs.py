@@ -84,7 +84,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     Parameters
     ----------
-    func : function or method
+    func : callable
        A function that takes a redshift as input.
     fval : astropy.Quantity instance or array_like
        The value of ``func(z)``.
@@ -147,8 +147,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
            (not isinstance(fval, Quantity) and isinstance(fval, np.ndarray))
            )
     if is_array:
-        fvals = fval
-        return _z_at_array(func, fvals,
+        return _z_at_array(func, fval,
                            zmin=zmin, zmax=zmax,
                            nbins=nbins, logspace=logspace,
                            interpolation=interpolation)
