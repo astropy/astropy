@@ -1,0 +1,3 @@
+Replace ``pkg_resources`` (from setuptools) with ``importlib.metadata`` which
+comes from the stdlib, except for Python 3.7 where the backport package is added
+as a new dependency.
