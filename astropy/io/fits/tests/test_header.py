@@ -2375,6 +2375,30 @@ class TestHeaderFunctions(FitsTestCase):
             else:
                 c.verify('exception')
 
+    def test_long_commentary_card_appended_to_header(self):
+        """
+        If a HISTORY or COMMENT card with a too-long value is appended to a
+        header with Header.append (as opposed to assigning to hdr['HISTORY']
+        it fails verification.
+
+        Regression test for https://github.com/astropy/astropy/issues/11486
+        """
+
+        header = fits.Header()
+        value = 'abc' * 90
+        # this is what Table does when saving its history metadata key to a
+        # FITS file
+        header.append(('history', value))
+        assert len(header.cards) == 1
+
+        # Test Card._split() directly since this was the main problem area
+        key, val = header.cards[0]._split()
+        assert key == 'HISTORY' and val == value
+
+        # Try writing adding this header to an HDU and writing it to a file
+        hdu = fits.PrimaryHDU(header=header)
+        hdu.writeto(self.temp('test.fits'), overwrite=True)
+
     def test_header_fromstring_bytes(self):
         """
         Test reading a Header from a `bytes` string.
