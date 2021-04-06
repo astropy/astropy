@@ -169,7 +169,7 @@ class _EulerRotation:
 
     def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
         shape = None
-        if isinstance(alpha, np.ndarray) and alpha.ndim == 2:
+        if isinstance(alpha, np.ndarray):
             alpha = alpha.flatten()
             delta = delta.flatten()
             shape = alpha.shape
