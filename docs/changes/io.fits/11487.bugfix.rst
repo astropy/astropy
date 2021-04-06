@@ -1,0 +1,3 @@
+Fixed regression introduced in Astropy 4.0.5 and 4.2.1 with verification of
+FITS headers with HISTORY or COMMENT cards with long (> 72 characters)
+values.
