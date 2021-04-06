@@ -16,9 +16,6 @@ build-backend = 'setuptools.build_meta'
     [tool.astropy-bot.changelog_checker]
         enabled = false
 
-    [tool.astropy-bot.circleci_artifacts]
-        enabled = false
-
     [tool.astropy-bot.pull_requests]
         enabled = true
 
