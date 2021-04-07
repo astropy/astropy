@@ -1086,7 +1086,7 @@ The 32-bit tests on CircleCI use the
 `quay.io/pypa/manylinux1_i686 <https://quay.io/pypa/manylinux1_i686>`_
 docker image which includes a 32-bit Python environment for each major Python
 version. See the CircleCI
-`configuration file <https://github.com/astropy/astropy/blob/master/.circleci/config.yml>`_
+`configuration file <https://github.com/astropy/astropy/blob/main/.circleci/config.yml>`_
 for the core package for how to access the different Python versions.
 
 In some cases, you may see failures on continuous integration services that

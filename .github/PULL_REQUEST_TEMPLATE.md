@@ -2,9 +2,9 @@
 so you do not need to remove them! -->
 
 <!-- Please be sure to check out our contributing guidelines,
-https://github.com/astropy/astropy/blob/master/CONTRIBUTING.md .
+https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md .
 Please be sure to check out our code of conduct,
-https://github.com/astropy/astropy/blob/master/CODE_OF_CONDUCT.md . -->
+https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md . -->
 
 <!-- If you are new or need to be re-acquainted with Astropy
 contributing workflow, please see

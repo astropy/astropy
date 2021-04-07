@@ -416,7 +416,7 @@ Overview of `astropy.coordinates` Concepts
 .. note ::
     The `~astropy.coordinates` package from v0.4 onward builds from
     previous versions of  the package, and more detailed information and
-    justification of the design is available in `APE (Astropy Proposal for Enhancement) 5 <https://github.com/astropy/astropy- APEs/blob/master/APE5.rst>`_.
+    justification of the design is available in `APE (Astropy Proposal for Enhancement) 5 <https://github.com/astropy/astropy-APEs/blob/main/APE5.rst>`_.
 
 Here we provide an overview of the package and associated framework.
 This background information is not necessary for using `~astropy.coordinates`,

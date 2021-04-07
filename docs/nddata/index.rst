@@ -505,4 +505,4 @@ Reference/API
 .. automodapi:: astropy.nddata.utils
     :no-inheritance-diagram:
 
-.. _APE 7: https://github.com/astropy/astropy-APEs/blob/master/APE7.rst
+.. _APE 7: https://github.com/astropy/astropy-APEs/blob/main/APE7.rst
