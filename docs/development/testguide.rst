@@ -645,26 +645,24 @@ failure to be reported.
 Tests requiring optional dependencies
 =====================================
 
-For tests that test functions or methods that require optional
-dependencies (e.g. Scipy), pytest should be instructed to skip the
-test if the dependencies are not present. The following example shows
-how this should be done::
+For tests that test functions or methods that require optional dependencies
+(e.g. Scipy), pytest should be instructed to skip the test if the dependencies
+are not present, as the Astropy tests should succeed even if an optional
+dependency is not present. Astropy provides a list of boolean flags that test
+whether optional dependencies are installed (at import time). For example, to
+load the corresponding flag for Scipy and mark a test to skip if Scipy is not
+present, use::
 
     import pytest
-
-    try:
-        import scipy
-        HAS_SCIPY = True
-    except ImportError:
-        HAS_SCIPY = False
+    from astropy.utils.compat.optional_deps import HAS_SCIPY
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_that_uses_scipy():
         ...
 
-In this way, the test is run if Scipy is present, and skipped if
-not. No tests should fail simply because an optional dependency is not
-present.
+These variables should exist for all of Astropy's optional dependencies; a
+complete list of supported flags can be found in
+``astropy.utils.compat.optional_deps``.
 
 Using pytest helper functions
 =============================
