@@ -27,9 +27,9 @@
 
 import os
 import sys
-
 import configparser
 from datetime import datetime
+
 from packaging.requirements import Requirement
 
 try:
@@ -239,6 +239,7 @@ for line in open('nitpick-exceptions'):
 
 try:
     import warnings
+
     import sphinx_gallery  # noqa: F401
     extensions += ["sphinx_gallery.gen_gallery"]  # noqa: F405
 
