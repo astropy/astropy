@@ -134,10 +134,9 @@ General guidelines for milestones:
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
     issues that are important, but that we know won't be resolved in the next release.
 
-* Active milestones associated with a specific release (eg. v0.3.0) should contain at least one issue with the
-  release label representing the actual task for releasing that version (this also works around the GitHub annoyance
-  that milestones without any open issues are automatically closed).
-  For example, we have `Rolling reminder: update wcslib and cfitsio and leap second/IERS B table to the latest version <https://github.com/astropy/astropy/issues/9018>`_.
+* We have `Rolling reminder: update wcslib and cfitsio and leap second/IERS B table to the latest version <https://github.com/astropy/astropy/issues/9018>`_.
+  The milestone for this issue should be updated as part of the release
+  procedures.
 
 General guidelines for labels:
 
