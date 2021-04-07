@@ -16,12 +16,7 @@ from astropy.convolution.kernels import (
 from astropy.convolution.utils import KernelSizeError
 from astropy.modeling.models import Box2D, Gaussian1D, Gaussian2D
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
-
-try:
-    from scipy.ndimage import filters
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 WIDTHS_ODD = [3, 5, 7, 9]
 WIDTHS_EVEN = [2, 4, 8, 16]
@@ -58,6 +53,8 @@ class TestKernels:
         """
         Test GaussianKernel against SciPy ndimage gaussian filter.
         """
+        from scipy.ndimage import filters
+
         gauss_kernel_1D = Gaussian1DKernel(width)
         gauss_kernel_1D.normalize()
         gauss_kernel_2D = Gaussian2DKernel(width)
@@ -78,6 +75,8 @@ class TestKernels:
         """
         Test RickerWavelet kernels against SciPy ndimage gaussian laplace filters.
         """
+        from scipy.ndimage import filters
+
         ricker_kernel_1D = RickerWavelet1DKernel(width)
         ricker_kernel_2D = RickerWavelet2DKernel(width)
 

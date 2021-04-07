@@ -10,13 +10,7 @@ from astropy.units import allclose
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
-
-try:
-    import scipy  # pylint: disable=W0611  # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_init():

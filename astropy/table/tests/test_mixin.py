@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-try:
-    import h5py  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_H5PY = False
-else:
-    HAS_H5PY = True
-
-try:
-    import yaml  # pylint: disable=W0611 # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
 
 import copy
 import pickle
@@ -33,6 +21,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.utils.compat.optional_deps import HAS_YAML
 
 from .conftest import MIXIN_COLS
 

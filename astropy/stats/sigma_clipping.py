@@ -4,16 +4,12 @@ import warnings
 
 import numpy as np
 
+from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
-
-
-try:
-    import bottleneck  # pylint: disable=W0611
-    HAS_BOTTLENECK = True
-    from astropy.units import Quantity
-except ImportError:
-    HAS_BOTTLENECK = False
+from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
+if HAS_BOTTLENECK:
+    import bottleneck
 
 
 __all__ = ['SigmaClip', 'sigma_clip', 'sigma_clipped_stats']

@@ -5,13 +5,7 @@ import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
 from astropy import units as u
-
-try:
-    import scipy.stats
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 from astropy.stats.circstats import _length, circmean, circvar, circmoment, circcorrcoef
 from astropy.stats.circstats import rayleightest, vtest, vonmisesmle
@@ -36,6 +30,8 @@ def test_circmean():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_circmean_against_scipy():
+    import scipy.stats
+
     # testing against scipy.stats.circmean function
     # the data is the same as the test before, but in radians
     data = np.array([0.89011792, 1.1693706, 0.6981317, 1.90240888, 0.54105207,

@@ -27,12 +27,7 @@ from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLoca
                                  SphericalCosLatDifferential)
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
-
-try:
-    import yaml  # pylint: disable=W0611  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 
 def equal_data(a, b):

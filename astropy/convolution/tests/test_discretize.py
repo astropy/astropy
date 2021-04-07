@@ -11,12 +11,7 @@ from astropy.modeling.functional_models import (
     Gaussian1D, Box1D, RickerWavelet1D, Gaussian2D, Box2D, RickerWavelet2D)
 from astropy.modeling.tests.example_models import models_1D, models_2D
 from astropy.modeling.tests.test_models import create_model
-
-try:
-    import scipy  # pylint: disable=W0611
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 modes = ['center', 'linear_interp', 'oversample']

@@ -12,15 +12,10 @@ from astropy.table import Table, QTable
 from astropy.table.table_helpers import simple_table
 from astropy import units as u
 from astropy.utils import console
+from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
-
-try:
-    import yaml  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
 
 
 @pytest.mark.usefixtures('table_type')

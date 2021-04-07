@@ -10,14 +10,11 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.mpl_normalize import ImageNormalize, simple_norm, imshow_norm
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB, HAS_PLT  # noqa
 
-try:
-    import matplotlib    # pylint: disable=W0611
-    from matplotlib import pyplot as plt
-    HAS_MATPLOTLIB = True
+if HAS_MATPLOTLIB:
+    import matplotlib
     MATPLOTLIB_LT_32 = Version(matplotlib.__version__) < Version('3.2')
-except ImportError:
-    HAS_MATPLOTLIB = False
 
 DATA = np.linspace(0., 15., 6)
 DATA2 = np.arange(3)
@@ -263,8 +260,9 @@ class TestImageScaling:
             simple_norm(DATA2, stretch='invalid')
 
 
-@pytest.mark.skipif('not HAS_MATPLOTLIB')
+@pytest.mark.skipif('not HAS_PLT')
 def test_imshow_norm():
+    import matplotlib.pyplot as plt
     image = np.random.randn(10, 10)
 
     ax = plt.subplot(label='test_imshow_norm')

@@ -13,16 +13,13 @@ from astropy import table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.context import nullcontext
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy import units as u
 
 from .common import setup_function, teardown_function  # noqa
 
-# Check to see if the BeautifulSoup dependency is present.
-try:
+if HAS_BS4:
     from bs4 import BeautifulSoup, FeatureNotFound  # noqa
-    HAS_BEAUTIFUL_SOUP = True
-except ImportError:
-    HAS_BEAUTIFUL_SOUP = False
 
 test_defs = [
     dict(kwargs=dict(),
@@ -737,7 +734,7 @@ def test_roundtrip_masked(fmt_name_class):
         return
 
     # Skip tests for fixed_width or HTML without bs4
-    if ((fmt_name == 'html' and not HAS_BEAUTIFUL_SOUP)
+    if ((fmt_name == 'html' and not HAS_BS4)
             or fmt_name == 'fixed_width'):
         return
 

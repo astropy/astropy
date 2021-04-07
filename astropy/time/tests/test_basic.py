@@ -20,12 +20,7 @@ from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES
 from astropy.coordinates import EarthLocation
 from astropy import units as u
 from astropy.table import Column, Table
-
-try:
-    import pytz
-    HAS_PYTZ = True
-except ImportError:
-    HAS_PYTZ = False
+from astropy.utils.compat.optional_deps import HAS_PYTZ  # noqa
 
 
 allclose_jd = functools.partial(np.allclose, rtol=np.finfo(float).eps, atol=0)
@@ -1550,7 +1545,7 @@ def test_to_datetime():
 
 @pytest.mark.skipif('not HAS_PYTZ')
 def test_to_datetime_pytz():
-
+    import pytz
     tz = pytz.timezone('US/Hawaii')
     time = Time('2010-09-03 00:00:00')
     tz_aware_datetime = time.to_datetime(tz)

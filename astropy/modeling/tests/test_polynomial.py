@@ -23,13 +23,7 @@ from astropy.modeling.functional_models import Linear1D
 from astropy.modeling.mappings import Identity
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-
-try:
-    from scipy import optimize  # pylint: disable=W0611 # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
-
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 linear1d = {
     Chebyshev1D: {
