@@ -1285,7 +1285,7 @@ class TestCartesianRepresentationWithDifferential:
         for name in REPRESENTATION_CLASSES:
             if name == 'radial':
                 # TODO: Converting a CartesianDifferential to a
-                #       RadialDifferential fails, even on `master`
+                #       RadialDifferential fails, even on `main`
                 continue
             new_rep = rep1.represent_as(REPRESENTATION_CLASSES[name],
                                         DIFFERENTIAL_CLASSES[name])

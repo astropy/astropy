@@ -126,7 +126,7 @@ The current planned and existing sub-packages are:
             </td>
             <td>
                 New in v0.2, major changes in v0.4.  Subsequent versions should
-                maintain a stable/backwards-compatible API, following the plan of <a href="https://github.com/astropy/astropy-APEs/blob/master/APE5.rst">APE 5</a>.  Further major additions/enhancements likely, but with basic framework unchanged.
+                maintain a stable/backwards-compatible API, following the plan of <a href="https://github.com/astropy/astropy-APEs/blob/main/APE5.rst">APE 5</a>.  Further major additions/enhancements likely, but with basic framework unchanged.
             </td>
         </tr>
         <tr>
@@ -203,7 +203,7 @@ The current planned and existing sub-packages are:
                 <span class="dev"></span>
             </td>
             <td>
-                Significantly revised in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>. Major changes in the API are not anticipated, broader use may reveal flaws that require API changes.
+                Significantly revised in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/main/APE7.rst">APE 7</a>. Major changes in the API are not anticipated, broader use may reveal flaws that require API changes.
             </td>
         </tr>
         <tr>

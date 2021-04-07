@@ -62,9 +62,9 @@ Set up an isolated workspace
 + Make a new `git`_ branch for fixing this issue, check it out, and let my
   GitHub account know about this branch::
 
-    git branch fix-1761 astropy/master   # branch based on latest from GitHub
-    git checkout fix-1761                   # switch to this branch
-    git push --set-upstream origin fix-1761 # tell my github acct about it
++ Make a new `git`_ branch for fixing this issue and switch to the branch::
+
+    git checkout astropy/main -b fix-1761
 
 + Make a python environment just for this fix and switch to that environment.
   The example below shows the necessary steps in the Anaconda python
@@ -76,9 +76,9 @@ Set up an isolated workspace
   If you are using a different distribution, see :ref:`virtual_envs` for
   instructions for creating and activating a new environment.
 + Install our branch in this environment with::
-  
+
     pip install -e .
-  
+
   Remember also to use the proper version of pip or python in this context.
 
 Do you really have to set up a separate python environment for each fix? No,
@@ -181,7 +181,7 @@ We can see what has changed with ``git status``::
 
     $ git status
     On branch fix-1761
-    Your branch is up-to-date with 'origin/fix-1761'.
+    Your branch is up-to-date with 'astropy/main'.
 
     Changes not staged for commit:
       (use "git add <file>..." to update what will be committed)
@@ -253,7 +253,7 @@ You get no notice at the command line that anything has changed, but
 
     $ git status
     On branch fix-1761
-    Your branch is up-to-date with 'origin/fix-1761'.
+    Your branch is up-to-date with 'astropy/main'.
 
     Changes to be committed:
       (use "git reset HEAD <file>..." to unstage)
@@ -279,7 +279,7 @@ Use ``git status`` to get a recap of where we are so far::
 
     $ git status
     On branch fix-1761
-    Your branch is ahead of 'origin/fix-1761' by 1 commit.
+    Your branch is ahead of 'astropy/main' by 1 commit.
       (use "git push" to publish your local commits)
 
     nothing to commit, working directory clean
@@ -334,7 +334,7 @@ are still in the top level directory and check the ``git status``::
 
     $ git status
     On branch fix-1761
-    Your branch is ahead of 'origin/fix-1761' by 1 commit.
+    Your branch is ahead of 'astropy/main' by 1 commit.
       (use "git push" to publish your local commits)
 
     Changes not staged for commit:
