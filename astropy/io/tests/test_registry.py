@@ -14,6 +14,7 @@ from astropy.table import Table
 from astropy.utils.compat.context import nullcontext
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
+from astropy.utils.compat.optional_deps import HAS_YAML
 
 # Since we reset the readers/writers below, we need to also import any
 # sub-package that defines readers/writers first
@@ -26,12 +27,6 @@ from astropy import timeseries  # noqa
 # during test collection but *before* tests (and the final teardown) get run.
 # This leaves the registry corrupted.
 ORIGINAL = {}
-
-try:
-    import yaml  # pylint: disable=W0611 # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
 
 
 class TestData:

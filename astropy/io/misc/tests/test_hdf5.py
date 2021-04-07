@@ -16,20 +16,9 @@ from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io.misc.hdf5 import meta_path
-
-try:
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_YAML  # noqa
+if HAS_H5PY:
     import h5py
-except ImportError:
-    HAS_H5PY = False
-else:
-    HAS_H5PY = True
-
-try:
-    import yaml  # noqa
-except ImportError:
-    HAS_YAML = False
-else:
-    HAS_YAML = True
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,

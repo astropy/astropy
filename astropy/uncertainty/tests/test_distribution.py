@@ -8,14 +8,11 @@ from astropy.uncertainty.core import Distribution
 from astropy.uncertainty import distributions as ds
 from astropy.utils import NumpyRNGContext
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
-try:
+if HAS_SCIPY:
     from scipy.stats import norm  # pylint: disable=W0611
     SMAD_FACTOR = 1 / norm.ppf(0.75)
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
 
 
 def test_numpy_init():

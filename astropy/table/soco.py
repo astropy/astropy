@@ -7,12 +7,10 @@ Index engine for Tables.
 
 from collections import OrderedDict
 from itertools import starmap
+from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
-try:
+if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
-    HAS_SOCO = True
-except ImportError:
-    HAS_SOCO = False
 
 
 class Node(object):

@@ -8,14 +8,12 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal
 
-try:
-    from PIL import Image
-    HAS_PIL = True
-except ImportError:
-    HAS_PIL = False
-
 from astropy.io.fits import util
 from astropy.io.fits.util import ignore_sigint, _rstrip_inplace
+from astropy.utils.compat.optional_deps import HAS_PIL
+
+if HAS_PIL:
+    from PIL import Image
 
 from . import FitsTestCase
 

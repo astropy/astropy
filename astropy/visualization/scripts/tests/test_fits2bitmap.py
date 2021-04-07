@@ -4,14 +4,12 @@ import pytest
 import numpy as np
 
 from astropy.io import fits
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
-try:
-    import matplotlib  # pylint: disable=W0611
+
+if HAS_MATPLOTLIB:
     import matplotlib.image as mpimg
-    HAS_MATPLOTLIB = True
     from astropy.visualization.scripts.fits2bitmap import fits2bitmap, main
-except ImportError:
-    HAS_MATPLOTLIB = False
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')

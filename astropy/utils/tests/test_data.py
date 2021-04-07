@@ -65,19 +65,7 @@ TESTURL2 = "http://www.astropy.org/about.html"
 TESTLOCAL = get_pkg_data_filename(os.path.join("data", "local.dat"))
 
 # NOTE: Python can be built without bz2 or lzma.
-try:
-    import bz2  # noqa
-except ImportError:
-    HAS_BZ2 = False
-else:
-    HAS_BZ2 = True
-
-try:
-    import lzma  # noqa
-except ImportError:
-    HAS_XZ = False
-else:
-    HAS_XZ = True
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
 
 # For when we need "some" test URLs
 FEW = 5
@@ -917,7 +905,8 @@ def test_get_invalid(package):
     ("filename"), ["local.dat", "local.dat.gz", "local.dat.bz2", "local.dat.xz"]
 )
 def test_local_data_obj(filename):
-    if (not HAS_BZ2 and "bz2" in filename) or (not HAS_XZ and "xz" in filename):
+    if ((not HAS_BZ2 and "bz2" in filename) or
+            (not HAS_LZMA and "xz" in filename)):
         with pytest.raises(ValueError) as e:
             with get_pkg_data_fileobj(
                 os.path.join("data", filename), encoding="binary"
@@ -966,7 +955,7 @@ def test_local_data_obj_invalid(bad_compressed):
     # they're not local anymore: they just live in a temporary directory
     # created by pytest. However, we can still use get_readable_fileobj for the
     # test.
-    if (not HAS_BZ2 and is_bz2) or (not HAS_XZ and is_xz):
+    if (not HAS_BZ2 and is_bz2) or (not HAS_LZMA and is_xz):
         with pytest.raises(ModuleNotFoundError,
                            match=r'does not provide the [lb]z[2m]a? module\.'):
             with get_readable_fileobj(bad_compressed, encoding="binary") as f:
@@ -1124,7 +1113,7 @@ def test_data_noastropy_fallback(monkeypatch):
         ),
         pytest.param(
             "unicode.txt.xz",
-            marks=pytest.mark.xfail(not HAS_XZ, reason="no lzma support"),
+            marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
         ),
     ],
 )

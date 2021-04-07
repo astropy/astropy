@@ -1274,17 +1274,7 @@ def _kraft_burrows_nousek(N, B, CL):
     <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     '''
-    try:
-        import scipy  # noqa
-        HAS_SCIPY = True
-    except ImportError:
-        HAS_SCIPY = False
-
-    try:
-        import mpmath  # noqa
-        HAS_MPMATH = True
-    except ImportError:
-        HAS_MPMATH = False
+    from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH
 
     if HAS_SCIPY and N <= 100:
         try:

@@ -9,12 +9,7 @@ from astropy.modeling import models, InputParameterError
 from astropy.coordinates import Angle
 from astropy.modeling import fitting
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
-
-try:
-    from scipy.integrate import quad  # pylint: disable=W0611  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_sigma_constant():
@@ -261,6 +256,8 @@ def test_Voigt1D():
 @pytest.mark.parametrize('algorithm', ('humlicek2', 'wofz'))
 def test_Voigt1D_norm(algorithm):
     """Test integral of normalized Voigt profile."""
+    from scipy.integrate import quad
+
     voi = models.Voigt1D(amplitude_L=1.0/np.pi, x_0=0.0, fwhm_L=2.0, fwhm_G=1.5, method=algorithm)
     if algorithm == 'wofz':
         atol = 1e-14

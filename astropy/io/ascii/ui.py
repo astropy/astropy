@@ -42,12 +42,6 @@ from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
 
-try:
-    import yaml  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
-
 # Default setting for guess parameter in read()
 _GUESS = True
 

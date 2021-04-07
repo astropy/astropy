@@ -30,6 +30,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -42,13 +43,6 @@ def allclose(a, b, rtol=0.0, atol=None):
     if atol is None:
         atol = 1.e-8 * getattr(a, 'unit', 1.)
     return quantity_allclose(a, b, rtol, atol)
-
-
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 
 def setup_function(func):

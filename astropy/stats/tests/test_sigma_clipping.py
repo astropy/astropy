@@ -4,17 +4,11 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
-try:
-    from scipy import stats  # used in testing
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
-
 from astropy import units as u
 from astropy.stats.sigma_clipping import sigma_clip, SigmaClip, sigma_clipped_stats
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_sigma_clip():
@@ -66,9 +60,10 @@ def test_sigma_clip():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
+    from scipy import stats
+
     # need to seed the numpy RNG to make sure we don't get some
     # amazingly flukey random number that breaks one of the tests
-
     with NumpyRNGContext(12345):
 
         randvar = np.random.randn(10000)

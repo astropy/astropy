@@ -28,14 +28,8 @@ from astropy.utils import iers
 from astropy.table import Table
 
 from astropy.tests.helper import assert_quantity_allclose
-from .test_matching import HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_YAML  # noqa
 from astropy.units import allclose as quantity_allclose
-
-try:
-    import yaml  # pylint: disable=W0611  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
 
 
 def test_regression_5085():

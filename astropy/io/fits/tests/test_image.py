@@ -13,16 +13,10 @@ from astropy.io import fits
 from astropy.io.fits.hdu.compressed import SUBTRACTIVE_DITHER_1, DITHER_SEED_CHECKSUM
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from .test_table import comparerecords
 
 from . import FitsTestCase
-
-try:
-    import scipy  # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
 
 
 class TestImageFunctions(FitsTestCase):
