@@ -199,11 +199,6 @@ class TestRunnerBase:
             for egg in glob.glob(os.path.join('.eggs', '*.egg')):
                 sys.path.insert(0, egg)
 
-            # We now need to force reload pkg_resources in case any pytest
-            # plugins were added above, so that their entry points are picked up
-            import pkg_resources
-            importlib.reload(pkg_resources)
-
         self._has_test_dependencies()  # pragma: no cover
 
         # The docstring for this method is defined as a class variable.

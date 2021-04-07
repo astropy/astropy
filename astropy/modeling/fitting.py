@@ -27,6 +27,11 @@ import inspect
 import operator
 import warnings
 
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from functools import reduce, wraps
 
 import numpy as np
@@ -37,14 +42,6 @@ from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
-
-# Check pkg_resources exists
-try:
-    from pkg_resources import iter_entry_points
-    HAS_PKG = True
-except ImportError:
-    HAS_PKG = False
-
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
@@ -1729,12 +1726,13 @@ def populate_entry_points(entry_points):
     This injects entry points into the `astropy.modeling.fitting` namespace.
     This provides a means of inserting a fitting routine without requirement
     of it being merged into astropy's core.
+
     Parameters
     ----------
-    entry_points : a list of `~pkg_resources.EntryPoint`
-                  entry_points are objects which encapsulate
-                  importable objects and are defined on the
-                  installation of a package.
+    entry_points : list of `~importlib.metadata.EntryPoint`
+        entry_points are objects which encapsulate importable objects and
+        are defined on the installation of a package.
+
     Notes
     -----
     An explanation of entry points can be found `here <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`
@@ -1763,6 +1761,4 @@ def populate_entry_points(entry_points):
                         'astropy.modeling.Fitter' .format(name)))
 
 
-# this is so fitting doesn't choke if pkg_resources doesn't exist
-if HAS_PKG:
-    populate_entry_points(iter_entry_points(group='astropy.modeling', name=None))
+populate_entry_points(entry_points().get('astropy.modeling', []))
