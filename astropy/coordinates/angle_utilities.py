@@ -636,7 +636,7 @@ def sexagesimal_to_string(values, precision=None, pad=False, sep=(':',),
         literal.append('{last_value}{sep[2]}')
     literal = ''.join(literal)
     return literal.format(np.copysign(values[0], sign),
-                          int(values[1]), values[2],
+                          int(np.nan_to_num(values[1])), values[2],
                           sep=sep, pad=pad,
                           last_value=last_value)
 
