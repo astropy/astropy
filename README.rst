@@ -80,7 +80,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :target: https://numfocus.salsalabs.org/donate-to-astropy/index.html
 
 
-If you locally cloned this repo before 2 Apr 2021
+If you locally cloned this repo before 7 Apr 2021
 -------------------------------------------------
 
 The primary branch for this repo has been transitioned from ``master`` to
