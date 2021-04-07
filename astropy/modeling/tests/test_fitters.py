@@ -7,6 +7,11 @@ import os.path
 import warnings
 from unittest import mock
 
+try:
+    from importlib.metadata import EntryPoint
+except ImportError:
+    from importlib_metadata import EntryPoint
+
 import pytest
 import numpy as np
 from numpy import linalg
@@ -30,13 +35,6 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
-
-try:
-    from pkg_resources import EntryPoint
-    HAS_PKG = True
-except ImportError:
-    HAS_PKG = False
-
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 
@@ -526,7 +524,6 @@ class TestNonLinearFitters:
         assert_allclose(olscov, fitter.fit_info['param_cov'])
 
 
-@pytest.mark.skipif('not HAS_PKG')
 class TestEntryPoint:
     """Tests population of fitting with entry point fitters"""
 

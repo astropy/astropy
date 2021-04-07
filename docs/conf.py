@@ -25,12 +25,17 @@
 # be accessible, and the documentation will not build correctly.
 # See sphinx_astropy.conf for which values are set there.
 
-from datetime import datetime
 import os
 import sys
-
 import configparser
-from pkg_resources import get_distribution
+from datetime import datetime
+
+from packaging.requirements import Requirement
+
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    import importlib_metadata
 
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
@@ -95,26 +100,18 @@ setup_cfg = configparser.ConfigParser()
 setup_cfg.read(os.path.join(os.path.pardir, 'setup.cfg'))
 __minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=', '')
 project = u'Astropy'
-astropy_dist = get_distribution(project)
-astropy_req = astropy_dist.requires(extras=('all', ))
 
-
-def minvers(name):
-    if name == 'yaml':
-        name = 'PyYAML'
-    elif name == 'erfa':
-        name = 'pyerfa'
-    for cur_req in astropy_req:
-        if cur_req.name == name:
-            return cur_req.specs[0][1]
-    raise ValueError(f"{name} not among requirements!")
+min_versions = {}
+for line in importlib_metadata.requires('astropy'):
+    req = Requirement(line.split(';')[0])
+    min_versions[req.name.lower()] = str(req.specifier)
 
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += "\n".join(
-    f".. |minimum_{name}_version| replace:: {minvers(name)}"
-    for name in ('numpy', 'erfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + f"""
+    f".. |minimum_{name}_version| replace:: {min_versions[name]}"
+    for name in ('numpy', 'pyerfa', 'scipy', 'pyyaml', 'asdf', 'matplotlib', 'ipython')) + f"""
 .. |minimum_python_version| replace:: {__minimum_python_version__}
 
 .. Astropy
@@ -132,7 +129,7 @@ copyright = f'2011–{datetime.utcnow().year}, ' + author
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = astropy_dist.version
+release = importlib_metadata.version(project)
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
@@ -242,6 +239,7 @@ for line in open('nitpick-exceptions'):
 
 try:
     import warnings
+
     import sphinx_gallery  # noqa: F401
     extensions += ["sphinx_gallery.gen_gallery"]  # noqa: F405
 
