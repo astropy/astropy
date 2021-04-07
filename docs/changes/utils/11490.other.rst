@@ -1,0 +1,2 @@
+Added a new module at ``astropy.utils.compat.optional_deps`` to consolidate the
+definition of ``HAS_x`` optional dependency flag variables, like ``HAS_SCIPY``.
