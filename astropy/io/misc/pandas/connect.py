@@ -42,12 +42,11 @@ def import_html_libs():
 
     global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
 
-    from astropy.utils.compat.optional_deps import (HAS_BS4,
-                                                    HAS_LXML,
-                                                    HAS_HTML5LIB)
-    _HAS_BS4 = HAS_BS4
-    _HAS_LXML = HAS_LXML
-    _HAS_HTML5LIB = HAS_HTML5LIB
+    from astropy.utils.compat.optional_deps import (
+        HAS_BS4 as _HAS_BS4,
+        HAS_LXML as _HAS_LXML,
+        HAS_HTML5LIB as _HAS_HTML5LIB
+    )
     _IMPORTS = True
 
 
