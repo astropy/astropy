@@ -9,19 +9,7 @@ from astropy import units as u
 from astropy.utils import iers
 from astropy.time import Time
 from astropy.table import Table
-
-try:
-    import h5py  # pylint: disable=W0611  # noqa
-except ImportError:
-    HAS_H5PY = False
-else:
-    HAS_H5PY = True
-
-try:
-    import yaml  # pylint: disable=W0611  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_YAML
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol

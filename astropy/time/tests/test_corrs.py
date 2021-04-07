@@ -5,13 +5,7 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, solar_system_ephemeris
 from astropy.time import Time, TimeDelta
 from astropy.utils import iers
-
-try:
-    import jplephem  # pylint: disable=W0611  # noqa
-except ImportError:
-    HAS_JPLEPHEM = False
-else:
-    HAS_JPLEPHEM = True
+from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
 
 
 class TestHelioBaryCentric:

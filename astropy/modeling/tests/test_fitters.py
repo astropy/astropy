@@ -26,15 +26,14 @@ from astropy.utils import NumpyRNGContext
 from astropy.utils.data import get_pkg_data_filename
 from astropy.stats import sigma_clip
 
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.modeling.fitting import populate_entry_points
 from . import irafutil
 
-try:
+if HAS_SCIPY:
     from scipy import optimize
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+
 
 fitters = [SimplexLSQFitter, SLSQPLSQFitter]
 

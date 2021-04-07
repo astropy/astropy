@@ -9,6 +9,7 @@ from astropy.convolution.kernels import Gaussian2DKernel
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
 from astropy.utils.compat.context import nullcontext
+from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_PANDAS  # noqa
 
 from numpy.testing import (assert_array_almost_equal_nulp,
                            assert_array_almost_equal,
@@ -29,17 +30,6 @@ BOUNDARIES_AND_CONVOLUTIONS = (list(zip(itertools.cycle((convolve,)),
                                                                'wrap'),
                                                               (convolve_fft,
                                                                'fill')])
-HAS_SCIPY = True
-try:
-    import scipy
-except ImportError:
-    HAS_SCIPY = False
-
-HAS_PANDAS = True
-try:
-    import pandas
-except ImportError:
-    HAS_PANDAS = False
 
 
 class TestConvolve1D:
@@ -936,6 +926,8 @@ def test_astropy_convolution_against_scipy():
 
 @pytest.mark.skipif('not HAS_PANDAS')
 def test_regression_6099():
+    import pandas
+
     wave = np.array(np.linspace(5000, 5100, 10))
     boxcar = 3
     nonseries_result = convolve(wave, np.ones((boxcar,))/boxcar)

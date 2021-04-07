@@ -11,13 +11,8 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import cosmology
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
-try:
-    from scipy import optimize, integrate  # noqa
-
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 __doctest_skip__ = ["*"]
 

@@ -11,17 +11,13 @@ from astropy import units as u
 
 from astropy.coordinates import matching
 
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+
 """
 These are the tests for coordinate matching.
 
 Note that this requires scipy.
 """
-
-try:
-    import scipy  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")

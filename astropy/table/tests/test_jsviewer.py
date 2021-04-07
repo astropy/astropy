@@ -9,18 +9,7 @@ from astropy.time import Time
 from astropy.table.table import Table
 from astropy import extern
 
-try:
-    import bleach  # noqa
-    HAS_BLEACH = True
-except ImportError:
-    HAS_BLEACH = False
-
-try:
-    import IPython  # noqa
-except ImportError:
-    HAS_IPYTHON = False
-else:
-    HAS_IPYTHON = True
+from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON  # noqa
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data'))
 

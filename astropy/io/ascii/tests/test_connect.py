@@ -1,12 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
-
 import pytest
 
 from astropy.table import Table, Column
 
 from astropy.table.table_helpers import simple_table
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.compat.optional_deps import HAS_BS4, HAS_YAML  # noqa
 
 import numpy as np
 
@@ -14,21 +13,8 @@ import numpy as np
 files = ['data/cds.dat', 'data/ipac.dat', 'data/daophot.dat', 'data/latex1.tex',
          'data/simple_csv.csv']
 
-# Check to see if the BeautifulSoup dependency is present.
 
-try:
-    from bs4 import BeautifulSoup  # noqa
-    HAS_BEAUTIFUL_SOUP = True
-except ImportError:
-    HAS_BEAUTIFUL_SOUP = False
-
-try:
-    import yaml  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
-
-if HAS_BEAUTIFUL_SOUP:
+if HAS_BS4:
     files.append('data/html.html')
 
 
@@ -80,12 +66,12 @@ def test_write_latex_noformat(tmpdir):
     t.write(path)
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_read_html():
     Table.read(get_pkg_data_filename('data/html.html'), format='html')
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_read_html_noformat():
     Table.read(get_pkg_data_filename('data/html.html'))
 

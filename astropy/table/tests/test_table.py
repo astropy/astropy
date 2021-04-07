@@ -25,18 +25,7 @@ from astropy import units as u
 from astropy.time import Time, TimeDelta
 from .conftest import MaskedTable, MIXIN_COLS
 
-try:
-    import pandas  # noqa
-except ImportError:
-    HAS_PANDAS = False
-else:
-    HAS_PANDAS = True
-
-try:
-    import yaml  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_YAML  # noqa
 
 
 class SetupData:

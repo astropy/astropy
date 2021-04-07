@@ -42,24 +42,11 @@ def import_html_libs():
 
     global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
 
-    try:
-        import bs4  # noqa
-        _HAS_BS4 = True
-    except ImportError:
-        pass
-
-    try:
-        import lxml  # noqa
-        _HAS_LXML = True
-    except ImportError:
-        pass
-
-    try:
-        import html5lib  # noqa
-        _HAS_HTML5LIB = True
-    except ImportError:
-        pass
-
+    from astropy.utils.compat.optional_deps import (
+        HAS_BS4 as _HAS_BS4,
+        HAS_LXML as _HAS_LXML,
+        HAS_HTML5LIB as _HAS_HTML5LIB
+    )
     _IMPORTS = True
 
 
