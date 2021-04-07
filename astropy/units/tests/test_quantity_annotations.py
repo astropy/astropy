@@ -224,6 +224,15 @@ def test_return_annotation_none():
     assert solarx is None
 
 
+def test_return_annotation_notUnit():
+    @u.quantity_input
+    def myfunc_args(solarx: u.arcsec) -> int:
+        return 0
+
+    solarx = myfunc_args(1*u.arcsec)
+    assert solarx == 0
+
+
 def test_enum_annotation():
     # Regression test for gh-9932
     from enum import Enum, auto
