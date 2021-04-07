@@ -656,7 +656,7 @@ present, use::
     import pytest
     from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='scipy is required')
     def test_that_uses_scipy():
         ...
 
