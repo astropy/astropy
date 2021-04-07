@@ -1,0 +1,15 @@
+name: Check PR change log
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
+
+jobs:
+  changelog_checker:
+    name: Check if towncrier change log entry is correct
+    runs-on: ubuntu-latest
+    steps:
+    - uses: pllim/actions-towncrier-changelog@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BOT_USERNAME: gilesbot
