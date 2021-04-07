@@ -34,13 +34,7 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                _pixel_to_world_correlation_matrix,
                                local_partial_pixel_derivatives,
                                fit_wcs_from_points)
-
-try:
-    import scipy  # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_wcs_dropping():

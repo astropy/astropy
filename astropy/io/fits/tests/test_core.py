@@ -25,12 +25,9 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
 
 # NOTE: Python can be built without bz2.
-try:
+from astropy.utils.compat.optional_deps import HAS_BZ2
+if HAS_BZ2:
     import bz2
-except ImportError:
-    HAS_BZ2 = False
-else:
-    HAS_BZ2 = True
 
 
 class TestCore(FitsTestCase):

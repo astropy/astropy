@@ -21,11 +21,7 @@ from astropy.coordinates import (
     RadialDifferential, CartesianRepresentation,
     CartesianDifferential, Galactic, PrecessedGeocentric)
 
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_creation_frameobjs():

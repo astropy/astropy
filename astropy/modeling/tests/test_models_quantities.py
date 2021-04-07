@@ -6,6 +6,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 from astropy.modeling.functional_models import (
     Gaussian1D,
@@ -26,12 +27,6 @@ from astropy.modeling.powerlaws import (
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 
 from astropy.modeling.fitting import LevMarLSQFitter
-
-try:
-    from scipy import optimize  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,

@@ -7,14 +7,8 @@ import pytest
 from astropy.convolution.convolve import convolve, convolve_fft, convolve_models
 from astropy.modeling import models, fitting
 from astropy.utils.misc import NumpyRNGContext
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from numpy.testing import assert_allclose, assert_almost_equal
-
-try:
-    import scipy
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
 
 
 class TestConvolve1DModels:

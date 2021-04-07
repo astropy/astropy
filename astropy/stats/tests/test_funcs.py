@@ -5,19 +5,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
-try:
-    import scipy  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
-
-try:
-    import mpmath  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_MPMATH = False
-else:
-    HAS_MPMATH = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH  # noqa
 
 from astropy.stats import funcs
 from astropy import units as u
@@ -743,6 +731,8 @@ def test_detect_kuiper_two_different():
                                  (5, 5),
                                  (1000, 100)])
 def test_fpp_kuiper_two(N, M):
+    from scipy.stats import binom
+
     with NumpyRNGContext(12345):
         R = 100
         fpp = 0.05
@@ -751,12 +741,14 @@ def test_fpp_kuiper_two(N, M):
             D, f = funcs.kuiper_two(np.random.random(N), np.random.random(M))
             if f < fpp:
                 fps += 1
-        assert scipy.stats.binom(R, fpp).sf(fps - 1) > 0.005
-        assert scipy.stats.binom(R, fpp).cdf(fps - 1) > 0.005
+        assert binom(R, fpp).sf(fps - 1) > 0.005
+        assert binom(R, fpp).cdf(fps - 1) > 0.005
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_histogram():
+    from scipy.stats import chi2
+
     with NumpyRNGContext(1234):
         a, b = 0.3, 3.14
         s = np.random.uniform(a, b, 10000) % 1
@@ -771,8 +763,8 @@ def test_histogram():
 
         c2 = np.sum(((nn - 1) / uu)**2)
 
-        assert scipy.stats.chi2(len(h)).cdf(c2) > 0.01
-        assert scipy.stats.chi2(len(h)).sf(c2) > 0.01
+        assert chi2(len(h)).cdf(c2) > 0.01
+        assert chi2(len(h)).sf(c2) > 0.01
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -805,11 +797,13 @@ def test_uniform_binomial(N, m, p):
     but the longer the runtime.
 
     """
+    from scipy.stats import binom
+
     with NumpyRNGContext(1234):
         fpps = np.array([funcs.kuiper(np.random.random(N))[1]
                          for i in range(m)])
         assert (fpps >= 0).all()
         assert (fpps <= 1).all()
-        low = scipy.stats.binom(n=m, p=p).ppf(0.01)
-        high = scipy.stats.binom(n=m, p=p).ppf(0.99)
+        low = binom(n=m, p=p).ppf(0.01)
+        high = binom(n=m, p=p).ppf(0.99)
         assert (low < sum(fpps < p) < high)

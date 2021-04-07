@@ -11,12 +11,7 @@ from astropy.modeling import models
 from astropy.modeling import fitting
 from astropy.modeling.core import Model, FittableModel, Fittable1DModel
 from astropy.modeling.parameters import Parameter
-
-try:
-    from scipy import optimize  # pylint: disable=W0611 # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 model1d_params = [

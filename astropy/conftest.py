@@ -20,22 +20,20 @@ import pytest
 
 from astropy import __version__
 from astropy.tests.helper import enable_deprecations_as_exceptions
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
-try:
-    # This is needed to silence a warning from matplotlib caused by
-    # PyInstaller's matplotlib runtime hook.  This can be removed once the
-    # issue is fixed upstream in PyInstaller, and only impacts us when running
-    # the tests from a PyInstaller bundle.
-    # See https://github.com/astropy/astropy/issues/10785
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        # The above checks whether we are running in a PyInstaller bundle.
-        warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*",
-                                category=UserWarning)
+if HAS_MATPLOTLIB:
     import matplotlib
-except ImportError:
-    HAS_MATPLOTLIB = False
-else:
-    HAS_MATPLOTLIB = True
+
+# This is needed to silence a warning from matplotlib caused by
+# PyInstaller's matplotlib runtime hook.  This can be removed once the
+# issue is fixed upstream in PyInstaller, and only impacts us when running
+# the tests from a PyInstaller bundle.
+# See https://github.com/astropy/astropy/issues/10785
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # The above checks whether we are running in a PyInstaller bundle.
+    warnings.filterwarnings("ignore", "(?s).*MATPLOTLIBDATA.*",
+                            category=UserWarning)
 
 enable_deprecations_as_exceptions(
     include_astropy_deprecations=False,

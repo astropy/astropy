@@ -2,18 +2,13 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-try:
-    import scipy
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
-
 import astropy.units as u
 from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._statistics import (fap_single, inv_fap_single,
                                                                      METHODS)
 from astropy.timeseries.periodograms.lombscargle.utils import convert_normalization, compute_chi2_ref
+
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']

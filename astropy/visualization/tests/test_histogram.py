@@ -3,17 +3,9 @@
 
 from numpy.testing import assert_allclose
 
-try:
+from astropy.utils.compat.optional_deps import HAS_PLT, HAS_SCIPY
+if HAS_PLT:
     import matplotlib.pyplot as plt
-    HAS_PLT = True
-except ImportError:
-    HAS_PLT = False
-
-try:
-    import scipy  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 import pytest
 import numpy as np

@@ -15,14 +15,7 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-
-
-try:
-    import scipy  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 testcase = namedtuple('testcase', ['f', 'q_in', 'q_out'])
