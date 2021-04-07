@@ -4,13 +4,15 @@
 """
 import importlib
 
+# TODO: This is a duplicate of the dependencies in setup.cfg "all", but some of
+# the package names are different from the pip-install name (e.g.,
+# beautifulsoup4 -> bs4).
+_optional_deps = ['bleach', 'bottleneck', 'bs4', 'bz2', 'h5py', 'html5lib',
+                  'IPython', 'jplephem', 'lxml', 'matplotlib', 'mpmath',
+                  'pandas', 'PIL', 'pkg_resources', 'pytz', 'scipy', 'skyfield',
+                  'sortedcontainers', 'lzma', 'yaml']
 
-__all__ = [  # noqa
-    'HAS_bleach', 'HAS_bottleneck', 'HAS_bs4', 'HAS_bz2', 'HAS_h5py',
-    'HAS_html5lib', 'HAS_IPython', 'HAS_jplephem', 'HAS_lxml', 'HAS_matplotlib',
-    'HAS_mpmath', 'HAS_pandas', 'HAS_PIL', 'HAS_pkg_resources', 'HAS_pytz',
-    'HAS_scipy', 'HAS_skyfield', 'HAS_sortedcontainers', 'HAS_lzma', 'HAS_yaml'
-]
+__all__ = [f"HAS_{pkg}" for pkg in _optional_deps]
 
 
 def __getattr__(name):
@@ -23,4 +25,8 @@ def __getattr__(name):
             return False
         return True
 
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    # I don't think we can ever get here, because if a name doesn't exist, it
+    # should fail to import from this module. But adding this for safety!
+    raise AttributeError(f"Module {__name__!r} has no attribute {name!r}. To "
+                         "add support for checking if a package name is "
+                         "available for import, add the package name")
