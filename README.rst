@@ -52,15 +52,15 @@ Astropy is licensed under a 3-clause BSD style license - see the
     :target: https://github.com/astropy/astropy/actions
     :alt: Astropy's GitHub Actions CI Status
 
-.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/master?logo=circleci&label=CircleCI
+.. |CircleCI Status| image::  https://img.shields.io/circleci/build/github/astropy/astropy/main?logo=circleci&label=CircleCI
     :target: https://circleci.com/gh/astropy/astropy
     :alt: Astropy's CircleCI Status
 
-.. |Azure Status| image:: https://dev.azure.com/astropy-project/astropy/_apis/build/status/astropy.astropy?repoName=astropy%2Fastropy&branchName=master
+.. |Azure Status| image:: https://dev.azure.com/astropy-project/astropy/_apis/build/status/astropy.astropy?repoName=astropy%2Fastropy&branchName=main
     :target: https://dev.azure.com/astropy-project/astropy
     :alt: Astropy's Azure Pipelines Status
 
-.. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/master/graph/badge.svg
+.. |Coverage Status| image:: https://codecov.io/gh/astropy/astropy/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/astropy/astropy
     :alt: Astropy's Coverage Status
 
@@ -78,3 +78,21 @@ Astropy is licensed under a 3-clause BSD style license - see the
 
 .. |Donate| image:: https://img.shields.io/badge/Donate-to%20Astropy-brightgreen.svg
     :target: https://numfocus.salsalabs.org/donate-to-astropy/index.html
+
+
+If you locally cloned this repo before 2 Apr 2021
+-------------------------------------------------
+
+The primary branch for this repo has been transitioned from ``master`` to
+``main``.  If you have a local clone of this repository and want to keep your
+local branch in sync with this repo, you'll need to do the following in your
+local clone from your terminal::
+
+   git fetch --all --prune
+   # you can stop here if you don't use your local "master"/"main" branch
+   git branch -m master main
+   git branch -u origin/main main
+
+If you are using a GUI to manage your repos you'll have to find the equivalent
+commands as it's different for different programs. Alternatively, you can just
+delete your local clone and re-clone!

@@ -760,7 +760,7 @@ class SkyCoord(ShapedLikeNDArray):
     def __getattr__(self, attr):
         """
         Overrides getattr to return coordinates that this can be transformed
-        to, based on the alias attr in the master transform graph.
+        to, based on the alias attr in the primary transform graph.
         """
         if '_sky_coord_frame' in self.__dict__:
             if self._is_name(attr):

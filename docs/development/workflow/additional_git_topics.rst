@@ -20,9 +20,9 @@ You can do these independent of each other.
 To delete both your local copy AND the GitHub copy from the command line follow
 these instructions::
 
-   # change to the master branch (if you still have one, otherwise change to
+   # change to the main branch (if you still have one, otherwise change to
    # another branch)
-   git checkout master
+   git checkout main
 
    # delete branch locally
    # Note: -d tells git to check whether your branch has been merged somewhere
@@ -67,7 +67,7 @@ Your collaborators can then commit directly into that repo with the
 usual::
 
      git commit -am 'ENH - much better code'
-     git push origin master # pushes directly into your repo
+     git push origin main # pushes directly into your repo
 
 Explore your repository
 =======================
@@ -130,12 +130,12 @@ To do a rebase on trunk::
     git branch tmp cool-feature
 
     # Rebase cool-feature onto trunk
-    git rebase --onto upstream/master upstream/master cool-feature
+    git rebase --onto upstream/main upstream/main cool-feature
 
 In this situation, where you are already on branch ``cool-feature``, the last
 command can be written more succinctly as::
 
-    git rebase upstream/master
+    git rebase upstream/main
 
 When all looks good you can delete your backup branch::
 
@@ -285,18 +285,18 @@ Merge commits and cherry picks
 ==============================
 
 Let's say that you have a fork (origin) on GitHub of the main Astropy
-repository (upstream).  Your fork is up to date with upstream's master branch
+repository (upstream).  Your fork is up to date with upstream's main branch
 and you've made some commits branching off from it on your own branch::
 
     upstream:
 
-       master
+       main
           |
     A--B--C
 
     origin:
 
-     upstream/master
+     upstream/main
           |
     A--B--C
            \
@@ -304,11 +304,11 @@ and you've made some commits branching off from it on your own branch::
                |
            issue-branch
 
-Then say you make a pull request of issue-branch against Astroy's master, and
+Then say you make a pull request of issue-branch against Astroy's main, and
 the pull request is accepted and merged.  When GitHub merges the pull request
 it's basically doing the following in the upstream repository::
 
-    $ git checkout master
+    $ git checkout main
     $ git remote add yourfork file:///path/to/your/fork/astropy
     $ git fetch yourfork
     $ git merge --no-ff yourfork/issue-branch
@@ -321,7 +321,7 @@ that).  Now the main Astropy repository looks like this::
 
     upstream:
 
-              master
+              main
                  |
     A--B--C------F
            \    /
@@ -338,11 +338,11 @@ this case "C") and applies that diff as a patch to whatever your HEAD is.
 The problem with a merge commit, such as "F", is that "F" has two parents: "C"
 and "E".  It doesn't know whether to apply the diff of "F" with "C" or the diff
 of "F" with "E".  Clearly in this case of backporting a pull request to a bug
-fix branch we want to apply everything that changed on master from the merge,
+fix branch we want to apply everything that changed on main from the merge,
 so we want the diff of "F" with "C".
 
-Since GitHub was on ``master`` when it did ``git merge yourfork/issue-branch``, the
-last commit in ``master`` is the first parent.  Basically whatever HEAD you're on
+Since GitHub was on ``main`` when it did ``git merge yourfork/issue-branch``, the
+last commit in ``main`` is the first parent.  Basically whatever HEAD you're on
 when you do the merge is the first parent, and the tip you're merging from is
 the second parent (octopus merge gets more complicated but only a little, and
 that doesn't apply to pull requests).  Since parents are numbered starting from
@@ -355,7 +355,7 @@ upstream we also have a backport branch that we want to cherry pick "F" onto::
 
       backport
          |
-         G       master
+         G       main
         /          |
     A--B----C------F
              \    /

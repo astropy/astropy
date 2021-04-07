@@ -7,7 +7,7 @@ Reading and Writing Table Objects
 
 ``astropy`` provides a unified interface for reading and writing data in
 different formats. For many common cases this will streamline the process of
-file I/O and reduce the need to master the separate details of all of the I/O
+file I/O and reduce the need to learn the separate details of all of the I/O
 packages within ``astropy``. For details and examples of using this interface
 see the :ref:`table_io` section.
 

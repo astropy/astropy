@@ -14,7 +14,7 @@ Interface and Dependencies
 
 * All code must be compatible with the versions of Python indicated by the
   ``python_requires`` key in the `setup.cfg
-  <https://github.com/astropy/astropy/blob/master/setup.cfg>`_ file of the
+  <https://github.com/astropy/astropy/blob/main/setup.cfg>`_ file of the
   core package.
 
 * Usage of ``six``, ``__future__``, and ``2to3`` is no longer acceptable.
