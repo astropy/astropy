@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from astropy.io import ascii
 from astropy.io.ascii.qdp import _read_table_qdp, _write_table_qdp
+from astropy.io.ascii.qdp import _get_lines_from_file
 from astropy.table import Table, Column, MaskedColumn
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -189,6 +190,7 @@ def test_roundtrip_example_comma(tmpdir):
     for col1, col2 in zip(t.itercols(), t2.itercols()):
         assert np.allclose(col1, col2, equal_nan=True)
 
+
 def test_read_write_simple(tmpdir):
     test_file = str(tmpdir.join('test.qdp'))
     t1 = Table()
@@ -217,3 +219,17 @@ def test_read_write_simple_specify_name(tmpdir):
     t1.write(test_file, format='ascii.qdp')
     t2 = Table.read(test_file, table_id=0, format='ascii.qdp', names=['a'])
     assert np.all(t2['a'] == t1['a'])
+
+
+def test_get_lines_from_qdp(tmpdir):
+    test_file = str(tmpdir.join('test.qdp'))
+    text_string = "A\nB"
+    text_output = _get_lines_from_file(text_string)
+    with open(test_file, "w") as fobj:
+        print(text_string, file=fobj)
+    file_output = _get_lines_from_file(test_file)
+    list_output = _get_lines_from_file(["A", "B"])
+    for i, line in enumerate(["A", "B"]):
+        assert file_output[i] == line
+        assert list_output[i] == line
+        assert text_output[i] == line

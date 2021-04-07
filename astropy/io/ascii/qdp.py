@@ -15,12 +15,6 @@ from astropy.table import Table
 from . import core, basic
 
 
-def is_qdp(origin, filepath, fileobj, *args, **kwargs):
-    if filepath is not None:
-        return filepath.endswith(('.qdp'))
-    return False
-
-
 def _line_type(line, delimiter=None):
     """Interpret a QDP file line
 
@@ -142,7 +136,7 @@ def _get_lines_from_file(qdp_file):
         lines = qdp_file.split("\n")
     elif isinstance(qdp_file, str):
         with open(qdp_file) as fobj:
-            lines = fobj.readlines()
+            lines = [line.strip() for line in fobj.readlines()]
     elif isinstance(qdp_file, Iterable):
         lines = qdp_file
 
@@ -299,6 +293,7 @@ def _get_tables_from_qdp_file(qdp_file, input_colnames=None, delimiter=None):
             if err_specs == {} and command_lines != "":
                 for cline in command_lines.strip().split('\n'):
                     command = cline.strip().split()
+                    # This should never happen, but just in case.
                     if len(command) < 3:
                         continue
                     err_specs[command[1].lower()] = [int(c) for c in
@@ -542,6 +537,7 @@ class QDP(basic.Basic):
     ``NO`` entries. The delimiter is usually whitespace, more rarely a comma.
     The QDP format differentiates between data and error columns. The table
     above has commands
+
     ::
         READ TERR 1
         READ SERR 3
