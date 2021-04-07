@@ -5,20 +5,8 @@ import numpy as np
 from astropy.io.ascii import read
 from astropy.utils.data import get_pkg_data_filename
 
-# NOTE: Python can be built without bz2 or lzma.
-try:
-    import bz2  # noqa
-except ImportError:
-    HAS_BZ2 = False
-else:
-    HAS_BZ2 = True
-
-try:
-    import lzma  # noqa
-except ImportError:
-    HAS_XZ = False
-else:
-    HAS_XZ = True
+# NOTE: Python can be built without bz2 or lzma
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA  # noqa
 
 
 @pytest.mark.parametrize('filename', ['data/daophot.dat.gz', 'data/latex1.tex.gz',
@@ -39,7 +27,7 @@ def test_bzip2(filename):
     assert np.all(t_comp.as_array() == t_uncomp.as_array())
 
 
-@pytest.mark.xfail('not HAS_XZ')
+@pytest.mark.xfail('not HAS_LZMA')
 @pytest.mark.parametrize('filename', ['data/short.rdb.xz', 'data/ipac.dat.xz'])
 def test_xz(filename):
     t_comp = read(get_pkg_data_filename(filename))

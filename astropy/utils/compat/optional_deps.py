@@ -10,12 +10,12 @@ import importlib
 # beautifulsoup4 -> bs4).
 _optional_deps = ['bleach', 'bottleneck', 'bs4', 'bz2', 'h5py', 'html5lib',
                   'IPython', 'jplephem', 'lxml', 'matplotlib', 'mpmath',
-                  'pandas', 'PIL', 'pkg_resources', 'pytz', 'scipy', 'skyfield',
+                  'pandas', 'PIL', 'pytz', 'scipy', 'skyfield',
                   'sortedcontainers', 'lzma', 'yaml']
-_deps = {k: k for k in _optional_deps}
+_deps = {k.upper(): k for k in _optional_deps}
 
 # Any subpackages that have different import behavior:
-_deps['plt'] = 'matplotlib.pyplot'
+_deps['PLT'] = 'matplotlib.pyplot'
 
 __all__ = [f"HAS_{pkg}" for pkg in _deps]
 
@@ -30,8 +30,4 @@ def __getattr__(name):
             return False
         return True
 
-    # I don't think we can ever get here, because if a name doesn't exist, it
-    # should fail to import from this module. But adding this for safety!
-    raise AttributeError(f"Module {__name__!r} has no attribute {name!r}. To "
-                         "add support for checking if a package name is "
-                         "available for import, add the package name")
+    raise AttributeError(f"Module {__name__!r} has no attribute {name!r}.")

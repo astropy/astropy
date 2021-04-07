@@ -15,13 +15,7 @@ from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
-
-try:
-    import scipy  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 class NonFittableModel(Model):

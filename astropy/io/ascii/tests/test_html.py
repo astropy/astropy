@@ -22,22 +22,13 @@ import numpy as np
 from .common import setup_function, teardown_function  # noqa
 from astropy.io import ascii
 
-try:
-    import bleach  # noqa
-    HAS_BLEACH = True
-except ImportError:
-    HAS_BLEACH = False
+from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_BS4  # noqa
 
-# Check to see if the BeautifulSoup dependency is present.
-try:
-
+if HAS_BS4:
     from bs4 import BeautifulSoup, FeatureNotFound
-    HAS_BEAUTIFUL_SOUP = True
-except ImportError:
-    HAS_BEAUTIFUL_SOUP = False
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_soupstring():
     """
     Test to make sure the class SoupString behaves properly.
@@ -68,7 +59,7 @@ def test_listwriter():
     assert lst == [0, 1, 2, 3, 4, 'a', 'b', 'c', 'd', 'e']
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_identify_table():
     """
     Test to make sure that identify_table() returns whether the
@@ -94,7 +85,7 @@ def test_identify_table():
     assert html.identify_table(soup, {'table_id': 'foo'}, 1) is True
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_missing_data():
     """
     Test reading a table with missing data
@@ -122,7 +113,7 @@ def test_missing_data():
     assert dat['A'].dtype.kind == 'i'
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_rename_cols():
     """
     Test reading a table and renaming cols
@@ -144,7 +135,7 @@ def test_rename_cols():
     assert np.all(dat['A'] == 2)
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_no_names():
     """
     Test reading a table witn no column header
@@ -162,7 +153,7 @@ def test_no_names():
     assert len(dat) == 2
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_identify_table_fail():
     """
     Raise an exception with an informative error message if table_id
@@ -182,7 +173,7 @@ def test_identify_table_fail():
     assert err.match("ERROR: HTML table number 3 not found$")
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_backend_parsers():
     """
     Make sure the user can specify which back-end parser to use
@@ -203,7 +194,7 @@ def test_backend_parsers():
                    htmldict={'parser': 'foo'}, guess=False)
 
 
-@pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('HAS_BS4')
 def test_htmlinputter_no_bs4():
     """
     This should return an OptionalTableImportError if BeautifulSoup
@@ -215,7 +206,7 @@ def test_htmlinputter_no_bs4():
         inputter.process_lines([])
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_htmlinputter():
     """
     Test to ensure that HTMLInputter correctly converts input
@@ -258,7 +249,7 @@ def test_htmlinputter():
     assert [str(x) for x in inputter.get_lines(table)] == expected
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_htmlsplitter():
     """
     Test to make sure that HTMLSplitter correctly inputs lines
@@ -285,7 +276,7 @@ def test_htmlsplitter():
         list(splitter([]))
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_htmlheader_start():
     """
     Test to ensure that the start_line method of HTMLHeader
@@ -325,7 +316,7 @@ def test_htmlheader_start():
         header.start_line(lines)
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_htmldata():
     """
     Test to ensure that the start_line and end_lines methods
@@ -545,7 +536,7 @@ def test_write_no_multicols():
         expected.strip()
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_multicolumn_read():
     """
     Test to make sure that the HTML reader inputs multidimensional
@@ -728,7 +719,7 @@ def test_multi_column_write_table_html_fill_values_masked():
     assert buffer_output.getvalue() == buffer_expected.getvalue()
 
 
-@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+@pytest.mark.skipif('not HAS_BS4')
 def test_read_html_unicode():
     """
     Test reading an HTML table with unicode values

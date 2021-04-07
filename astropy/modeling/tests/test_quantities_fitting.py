@@ -14,12 +14,7 @@ from astropy.modeling import fitting
 from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel
 from astropy.modeling.parameters import Parameter
-
-try:
-    from scipy import optimize  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 # Fitting should be as intuitive as possible to the user. Essentially, models

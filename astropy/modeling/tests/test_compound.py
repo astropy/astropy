@@ -17,12 +17,7 @@ from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian
                                      Identity, Mapping,
                                      Tabular1D, fix_inputs)
 import astropy.units as u
-
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 @pytest.mark.parametrize(('expr', 'result'),

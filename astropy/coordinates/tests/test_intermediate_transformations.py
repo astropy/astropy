@@ -19,6 +19,7 @@ from astropy.coordinates import (
 from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates, get_body
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
 
 from astropy.coordinates.tests.utils import randomly_sample_sphere
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
@@ -28,13 +29,6 @@ from astropy.coordinates import solar_system_ephemeris
 from astropy.units import allclose
 
 CI = os.environ.get('CI', False) == "true"
-
-try:
-    import jplephem  # pylint: disable=W0611  # noqa
-except ImportError:
-    HAS_JPLEPHEM = False
-else:
-    HAS_JPLEPHEM = True
 
 
 def test_icrs_cirs():

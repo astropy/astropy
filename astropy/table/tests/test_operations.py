@@ -20,12 +20,7 @@ from astropy.coordinates import (SkyCoord, SphericalRepresentation,
                                  search_around_3d)
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
-
-try:
-    import scipy  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def sort_eq(list1, list2):
