@@ -45,8 +45,8 @@ class Convolution(CompoundModel):
     interpolates the results from this cache.
     """
 
-    def __init__(self, model, kernal, bounding_box, resolution, cache=True):
-        super().__init__('convolve_fft', model, kernal)
+    def __init__(self, model, kernel, bounding_box, resolution, cache=True):
+        super().__init__('convolve_fft', model, kernel)
 
         self.bounding_box = bounding_box
         self._resolution = resolution
