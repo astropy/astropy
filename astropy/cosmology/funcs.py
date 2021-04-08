@@ -68,25 +68,25 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     This finds the redshift at which one of the cosmology functions or
     methods (for example Planck13.distmod) is equal to a known value.
 
-    .. warning::
-      Make sure you understand the behavior of the function that you
-      are trying to invert! Depending on the cosmology, there may not
-      be a unique solution. For example, in the standard Lambda CDM
-      cosmology, there are two redshifts which give an angular
-      diameter distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To force
-      ``z_at_value`` to find the solution you are interested in, use the
-      ``zmin`` and ``zmax`` keywords to limit the search range (see the
-      example below).
+    Warnings
+    --------
+       * **Uniqueness**. Make sure you understand the behavior of the
+       function that you are trying to invert! Depending on the cosmology,
+       there may not be a unique solution. For example, in the standard
+       Lambda CDM cosmology, there are two redshifts which give an angular
+       diameter distance of 1500 Mpc, z ~ 0.7 and z ~ 3.8. To force
+       ``z_at_value`` to find the solution you are interested in, use the
+       ``zmin`` and ``zmax`` keywords to limit the search range (see the
+       example below).
 
-    .. warning::
-      The results of this function will likely differ depending on whether
-      you input a single value for ``fval``, or an array of values.
-      In the single value case, this function will attempt to find
-      something close to the exact value using ``fminbound`` (proximity
-      depending on ``ztol``), but in the array case, this function
-      will use a cubic spline interpolation scheme, which will give
-      approximate answers which increase in accuracy as ``nbins``
-      is increased.
+       * **Arrays**. The results of this function will differ depending
+       on whether you input a scalar for ``fval``, or an array.
+       In the single value case, this function will attempt to find
+       something close to the exact value using ``fminbound`` (proximity
+       depending on ``ztol``), but in the array case, this function
+       will use a cubic spline interpolation scheme, which will give
+       approximate answers which increase in accuracy as ``nbins``
+       is increased.
 
     Parameters
     ----------
@@ -115,8 +115,9 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         to create the gridpoints in logarithmic space
     interpolation: {'cubic', 'linear'} or None, optional
         If passing an array for ``fval``, this specifies the
-        interpolation method. Default is ``'cubic''' if
-        scipy is installed, or ``'linear''' otherwise.
+        interpolation method. Default is ``'cubic'`` (a cubic
+        spline interpolation scheme) if
+        scipy is installed, or ``'linear'`` interpolation otherwise.
 
     Returns
     -------
