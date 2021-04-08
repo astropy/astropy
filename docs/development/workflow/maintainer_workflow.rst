@@ -109,27 +109,19 @@ branch in the ``upstream-rw`` repository.
 Using Milestones and Labels
 ===========================
 
-These guidelines are adapted from `similar guidelines <https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow>`_
-followed by IPython:
+General guidelines for milestones:
 
-* 100% of confirmed issues and new features should have a milestone
+* 100% of pull requests should have a milestone
 
-* Only the following criteria should result in an issue being closed without a milestone:
+* Issues are not milestoned unless they block a given release
 
-  * Not actually an issue (user error, etc.)
+* Only the following criteria should result in a pull request being closed without a milestone:
 
-  * Duplicate of an existing issue
+  * Invalid (user error, etc.)
+
+  * Duplicate of an existing pull request
 
   * A pull request superseded by a new pull request providing an alternate implementation
-
-* Open issues should only lack a milestone if:
-
-  * More clarification is required
-
-  * Which milestone it belongs in requires some discussion
-
-* Corollary: When an issue is closed without a milestone that means that the issue will not be fixed, or that it was
-  not a real issue at all.
 
 * In general there should be the following open milestones:
 
@@ -142,25 +134,19 @@ followed by IPython:
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
     issues that are important, but that we know won't be resolved in the next release.
 
-  * Future--this is for all issues that require attention at some point but for which no immediate solution is in
-    sight.
+* We have `Rolling reminder: update wcslib and cfitsio and leap second/IERS B table to the latest version <https://github.com/astropy/astropy/issues/9018>`_.
+  The milestone for this issue should be updated as part of the release
+  procedures.
 
-* Bug fix release milestones should only be used for deferring issues that won't be fixed in the next minor release,
-  or for issues is previous releases that no longer apply to the mainline.
+General guidelines for labels:
 
-* When in doubt about which milestone to use for an issue, use the next minor release--it can always be moved once
-  it's been more closely reviewed prior to release.
+* Issues: Maintainer should be proactive in labeling issues as they come in.
+  At the very least, label the subpackage(s) involved and whether the issue
+  is a bug.
 
-* Active milestones associated with a specific release (eg. v0.3.0) should contain at least one issue with the
-  release label representing the actual task for releasing that version (this also works around the GitHub annoyance
-  that milestones without any open issues are automatically closed).
-
-* Issues that require fixing in the mainline, but that also are confirmed to apply to supported stable version lines
-  should be marked with one or more ``'backport-*'`` labels for each v0.X.Y branch that has the issue.
-
-  * In some cases it may require extra work beyond a simple merge to port bug fixes to older lines of development; if
-    such additional work is required it is not a bad idea to open a "Backport #nnn to v0.X.Y" issue in the appropriate
-    v0.X.Y milestone.
+* Pull requests: We have GitHub Actions to automatically apply labels using
+  some simple rules when a pull request is opened. Once that is done, a
+  maintainer can then manually apply any other labels that apply.
 
 
 .. _changelog-format:
