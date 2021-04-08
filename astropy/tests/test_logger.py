@@ -27,6 +27,10 @@ except NameError:
 
 
 def setup_function(function):
+    """Reinitialize all global state.
+
+    Because of its name, this is run before every test.
+    """
 
     # Reset modules to default
     importlib.reload(warnings)
@@ -46,6 +50,7 @@ def setup_function(function):
         log.disable_exception_logging()
 
 
+# Ensure this gets run again once all tests from this module are run.
 teardown_module = setup_function
 
 
@@ -70,7 +75,13 @@ def test_warnings_logging_overridden():
         log.disable_warnings_logging()
 
 
-def test_warnings_logging():
+def test_warnings_logging_switch_mode():
+    log.enable_warnings_logging(which="astropy")
+    log.enable_warnings_logging(which="all")
+    log.enable_warnings_logging(which="astropy")
+
+
+def test_warnings_logging_diabled():
 
     # Without warnings logging
     with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
@@ -79,18 +90,21 @@ def test_warnings_logging():
     assert len(log_list) == 0
     assert len(warn_list) == 1
 
+
+def test_warnings_logging_enabled_astropy():
     # With warnings logging
     with pytest.warns(None) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
-        log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 0
     assert log_list[0].levelname == 'WARNING'
     assert log_list[0].message.startswith('This is a warning')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
+
+def test_warnings_logging_enabled_noastropy():
     # With warnings logging (differentiate between Astropy and non-Astropy)
     with pytest.warns(UserWarning, match="This is another warning, not "
                       "from Astropy") as warn_list:
@@ -98,19 +112,24 @@ def test_warnings_logging():
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
             warnings.warn("This is another warning, not from Astropy")
-        log.disable_warnings_logging()
     assert len(log_list) == 1
     assert len(warn_list) == 1
     assert log_list[0].levelname == 'WARNING'
     assert log_list[0].message.startswith('This is a warning')
     assert log_list[0].origin == 'astropy.tests.test_logger'
 
-    # Without warnings logging
-    with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
+
+def test_warnings_logging_enabled_all():
+    # With warnings logging
+    with pytest.warns(None) as warn_list:
+        log.enable_warnings_logging(which="all")
         with log.log_to_list() as log_list:
-            warnings.warn("This is a warning", AstropyUserWarning)
-    assert len(log_list) == 0
-    assert len(warn_list) == 1
+            warnings.warn("This is a warning")
+    assert len(log_list) == 1
+    assert len(warn_list) == 0
+    assert log_list[0].levelname == 'WARNING'
+    assert log_list[0].message.startswith('UserWarning: This is a warning')
+    assert log_list[0].origin == 'astropy.tests.test_logger'
 
 
 def test_warnings_logging_with_custom_class():

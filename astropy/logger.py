@@ -57,6 +57,9 @@ class Conf(_config.ConfigNamespace):
     log_warnings = _config.ConfigItem(
         True,
         "Whether to log `warnings.warn` calls.")
+    log_warnings_which = _config.ConfigItem(
+        "astropy",
+        "Which `warnings.warn` calls to log - 'astropy' or 'all'.")
     log_exceptions = _config.ConfigItem(
         False,
         "Whether to log exceptions before raising "
@@ -147,7 +150,7 @@ class AstropyLogger(Logger):
     The main functionality added by this class over the built-in
     logging.Logger class is the ability to keep track of the origin of the
     messages, the ability to enable logging of warnings.warn calls and
-    exceptions, and the addition of colorized output and context managers to
+    uncaught exceptions, and the addition of colorized output and context managers to
     easily capture messages to a file or list.
     '''
 
@@ -166,12 +169,14 @@ class AstropyLogger(Logger):
                                  sinfo=sinfo)
 
     _showwarning_orig = None
+    _which_warnings = "astropy"
 
     def _showwarning(self, *args, **kwargs):
 
-        # Bail out if we are not catching a warning from Astropy
-        if not isinstance(args[0], AstropyWarning):
-            return self._showwarning_orig(*args, **kwargs)
+        if self._which_warnings == "astropy":
+            # Bail out if we are not catching a warning from Astropy
+            if not isinstance(args[0], AstropyWarning):
+                return self._showwarning_orig(*args, **kwargs)
 
         warning = args[0]
         # Deliberately not using isinstance here: We want to display
@@ -208,7 +213,7 @@ class AstropyLogger(Logger):
     def warnings_logging_enabled(self):
         return self._showwarning_orig is not None
 
-    def enable_warnings_logging(self):
+    def enable_warnings_logging(self, which=None):
         '''
         Enable logging of warnings.warn() calls
 
@@ -216,12 +221,26 @@ class AstropyLogger(Logger):
         redirected to this logger and emitted with level ``WARN``. Note that
         this replaces the output from ``warnings.warn``.
 
+        If warnings logging is already enabled, raises
+        ``astropy.logger.LoggingException`` - unless `which` is set (see below).
+
         This can be disabled with ``disable_warnings_logging``.
+
+        Parameters
+        ----------
+        which : "astropy" or "all" or None
+            Which warnings to log - if "astropy", log only warnings that are subclasses of
+            AstropyUserWarning; if "all", log all messages. If None, default to "astropy".
         '''
         if self.warnings_logging_enabled():
-            raise LoggingError("Warnings logging has already been enabled")
-        self._showwarning_orig = warnings.showwarning
-        warnings.showwarning = self._showwarning
+            if which is None:
+                raise LoggingError("Warnings logging has already been enabled")
+        else:
+            self._showwarning_orig = warnings.showwarning
+            warnings.showwarning = self._showwarning
+        if which is None:
+            which = "astropy"
+        self._which_warnings = which
 
     def disable_warnings_logging(self):
         '''
@@ -286,7 +305,7 @@ class AstropyLogger(Logger):
 
     def enable_exception_logging(self):
         '''
-        Enable logging of exceptions
+        Enable logging of uncaught exceptions.
 
         Once called, any uncaught exceptions will be emitted with level
         ``ERROR`` by this logger, before being raised.
@@ -327,7 +346,7 @@ class AstropyLogger(Logger):
 
     def disable_exception_logging(self):
         '''
-        Disable logging of exceptions
+        Disable logging of uncaught exceptions.
 
         Once called, any uncaught exceptions will no longer be emitted by this
         logger.
@@ -356,13 +375,13 @@ class AstropyLogger(Logger):
 
     def enable_color(self):
         '''
-        Enable colorized output
+        Enable colorized output.
         '''
         _conf.use_color = True
 
     def disable_color(self):
         '''
-        Disable colorized output
+        Disable colorized output.
         '''
         _conf.use_color = False
 
@@ -512,7 +531,7 @@ class AstropyLogger(Logger):
                 self.addHandler(fh)
 
         if conf.log_warnings:
-            self.enable_warnings_logging()
+            self.enable_warnings_logging(which=conf.log_warnings_which)
 
         if conf.log_exceptions:
             self.enable_exception_logging()

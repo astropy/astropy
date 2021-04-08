@@ -22,7 +22,7 @@ levels:
 * WARNING: An indication that something unexpected happened, and that user
   action may be required.
 
-* ERROR: indicates a more serious issue, including exceptions
+* ERROR: indicates a more serious issue, including uncaught exceptions
 
 By default, INFO, WARNING and ERROR messages are displayed, and are sent to a
 log file located at ``~/.astropy/astropy.log`` (if the file is writeable).
@@ -54,7 +54,7 @@ which can be disabled with::
 
     log.disable_warnings_logging()
 
-and exceptions can be included in the log with::
+and uncaught exceptions can be included in the log with::
 
     log.enable_exception_logging()
 
@@ -130,6 +130,9 @@ of the Astropy configuration file::
 
     # Whether to log warnings.warn calls
     log_warnings = False
+
+    # Whether to log warnings.warn calls
+    log_warnings_which = 'astropy'
 
     # Whether to log exceptions before raising them
     log_exceptions = False
