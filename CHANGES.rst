@@ -1,11 +1,3 @@
-4.2.2 (unreleased)
-==================
-
-astropy.logger
-^^^^^^^^^^^^^^
-
-- Allow logging of all warnings. [#11500]
-
 4.2.1 (2021-4-1)
 ================
 

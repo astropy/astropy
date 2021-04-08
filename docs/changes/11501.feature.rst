@@ -1,0 +1,3 @@
+- Allow logging of all warnings. [#11500]
+
+
