@@ -20,6 +20,8 @@ __all__ = ['z_at_value']
 
 __doctest_requires__ = {'*': ['scipy']}
 
+_interpolation_choices = ['cubic', 'linear']
+
 
 def _z_at_array(func, fvals, zmin, zmax, nbins=10000,
                 logspace=True, interpolation=None):
@@ -44,7 +46,11 @@ def _z_at_array(func, fvals, zmin, zmax, nbins=10000,
                 " spline."))
             interpolation = 'linear'
 
-    assert interpolation in ['cubic', 'linear']
+    if interpolation not in _interpolation_choices:
+        raise ValueError(
+                f"{interpolation} is an invalid interpolation method."
+                f" Please use an option from {_interpolation_choices}."
+            )
 
     if interpolation == 'cubic':
         interpolator = CubicSpline(fgrid_val, zgrid)
