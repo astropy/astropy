@@ -101,20 +101,22 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     zmax : float, optional
        The upper search limit for ``z`` (default 1000).
     ztol : float, optional
-       The relative error in ``z`` acceptable for convergence.
+       If passing a scalar for ``fval``, the relative error
+       in ``z`` acceptable for convergence.
     maxfun : int, optional
-       The maximum number of function evaluations allowed in the
+       If passing a scalar for ``fval``,
+       the maximum number of function evaluations allowed in the
        optimization routine (default 500).
     nbins : float, optional
-        If passing an array of ``fval``, this specifies the number
+        If passing an array for ``fval``, this specifies the number
         of gridpoints to use for interpolation.
     logspace: bool, optional
-        If passing an array of ``fval``, this specifies whether
+        If passing an array for ``fval``, this specifies whether
         to create the gridpoints in logarithmic space
-    interpolation: None or string, optional
-        To force linear interpolation, use ``'linear'``. Otherwise,
-        the choice depends on whether scipy is installed (cubic) or not
-        (linear).
+    interpolation: {'cubic', 'linear'} or None, optional
+        If passing an array for ``fval``, this specifies the
+        interpolation method. Default is ``'cubic''' if
+        scipy is installed, or ``'linear''' otherwise.
 
     Returns
     -------
