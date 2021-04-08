@@ -78,6 +78,11 @@ class SphericalCircle(Polygon):
     -----
     Additional keyword arguments are passed to `~matplotlib.patches.Polygon`
     """
+    # TODO: Remove this once minversion of matplotlib has removed the code.
+    # These are deprecated by matplotlib anyway and is generating warnings
+    # on RTD.
+    validCap = None
+    validJoin = None
 
     def __init__(self, center, radius, resolution=100, vertex_unit=u.degree, **kwargs):
 
@@ -134,6 +139,11 @@ class Quadrangle(Polygon):
     -----
     Additional keyword arguments are passed to `~matplotlib.patches.Polygon`
     """
+    # TODO: Remove this once minversion of matplotlib has removed the code.
+    # These are deprecated by matplotlib anyway and is generating warnings
+    # on RTD.
+    validCap = None
+    validJoin = None
 
     def __init__(self, anchor, width, height, resolution=100, vertex_unit=u.degree, **kwargs):
 
