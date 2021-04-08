@@ -55,16 +55,15 @@ teardown_module = setup_function
 
 
 def test_warnings_logging_disable_no_enable():
-    with pytest.raises(LoggingError) as e:
-        log.disable_warnings_logging()
-    assert e.value.args[0] == 'Warnings logging has not been enabled'
+    log.disable_warnings_logging()
+    assert not log.warnings_logging_enabled()
 
 
 def test_warnings_logging_enable_twice():
     log.enable_warnings_logging()
-    with pytest.raises(LoggingError) as e:
-        log.enable_warnings_logging()
-    assert e.value.args[0] == 'Warnings logging has already been enabled'
+    assert log.warnings_logging_enabled()
+    log.enable_warnings_logging()
+    assert log.warnings_logging_enabled()
 
 
 def test_warnings_logging_overridden():
@@ -86,8 +85,6 @@ def test_warnings_logging_switch_mode():
 
 
 def test_warnings_logging_diabled():
-
-    # Without warnings logging
     with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
         with log.log_to_list() as log_list:
             warnings.warn("This is a warning", AstropyUserWarning)
@@ -96,7 +93,6 @@ def test_warnings_logging_diabled():
 
 
 def test_warnings_logging_enabled_astropy():
-    # With warnings logging
     with pytest.warns(None) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
@@ -124,7 +120,6 @@ def test_warnings_logging_enabled_noastropy():
 
 
 def test_warnings_logging_enabled_all():
-    # With warnings logging
     with pytest.warns(None) as warn_list:
         log.enable_warnings_logging(which="all")
         with log.log_to_list() as log_list:
@@ -140,7 +135,6 @@ def test_warnings_logging_with_custom_class():
     class CustomAstropyWarningClass(AstropyWarning):
         pass
 
-    # With warnings logging
     with pytest.warns(None) as warn_list:
         log.enable_warnings_logging()
         with log.log_to_list() as log_list:
@@ -194,16 +188,15 @@ def test_import_error_in_warning_logging():
 
 
 def test_exception_logging_disable_no_enable():
-    with pytest.raises(LoggingError) as e:
-        log.disable_exception_logging()
-    assert e.value.args[0] == 'Exception logging has not been enabled'
+    log.disable_exception_logging()
+    assert not log.exception_logging_enabled()
 
 
 def test_exception_logging_enable_twice():
     log.enable_exception_logging()
-    with pytest.raises(LoggingError) as e:
-        log.enable_exception_logging()
-    assert e.value.args[0] == 'Exception logging has already been enabled'
+    assert log.exception_logging_enabled()
+    log.enable_exception_logging()
+    assert log.exception_logging_enabled()
 
 
 # You can't really override the exception handler in IPython this way, so

@@ -228,9 +228,6 @@ class AstropyLogger(Logger):
         redirected to this logger and emitted with level ``WARN``. Note that
         this replaces the output from ``warnings.warn``.
 
-        If warnings logging is already enabled, raises
-        ``astropy.logger.LoggingException`` - unless `which` is set (see below).
-
         This can be disabled with ``disable_warnings_logging``.
 
         Parameters
@@ -239,15 +236,11 @@ class AstropyLogger(Logger):
             Which warnings to log - if "astropy", log only warnings that are subclasses of
             AstropyUserWarning; if "all", log all messages. If None, default to "astropy".
         '''
-        if self.warnings_logging_enabled():
-            if which is None:
-                raise LoggingError("Warnings logging has already been enabled")
-        else:
+        if not self.warnings_logging_enabled():
             self._showwarning_orig = warnings.showwarning
             warnings.showwarning = self._showwarning
-        if which is None:
-            which = "astropy"
-        self._which_warnings = which
+        if which is not None:
+            self._which_warnings = which
 
     def disable_warnings_logging(self):
         '''
@@ -258,14 +251,13 @@ class AstropyLogger(Logger):
 
         This can be re-enabled with ``enable_warnings_logging``.
         '''
-        if not self.warnings_logging_enabled():
-            raise LoggingError("Warnings logging has not been enabled")
-        if warnings.showwarning != self._showwarning:
-            raise LoggingError("Cannot disable warnings logging: "
-                               "warnings.showwarning was not set by this "
-                               "logger, or has been overridden")
-        warnings.showwarning = self._showwarning_orig
-        self._showwarning_orig = None
+        if self.warnings_logging_enabled():
+            if warnings.showwarning != self._showwarning:
+                raise LoggingError("Cannot disable warnings logging: "
+                                   "warnings.showwarning was not set by this "
+                                   "logger, or has been overridden")
+            warnings.showwarning = self._showwarning_orig
+            self._showwarning_orig = None
 
     _excepthook_orig = None
 
@@ -315,41 +307,41 @@ class AstropyLogger(Logger):
         Enable logging of uncaught exceptions.
 
         Once called, any uncaught exceptions will be emitted with level
-        ``ERROR`` by this logger, before being raised.
+        ``ERROR`` by this logger when they reach the top level. Logging
+        context managers do affect what happens to these messages even
+        though the exceptions percolate outside them.
 
         This can be disabled with ``disable_exception_logging``.
         '''
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
+        if not self.exception_logging_enabled():
+            try:
+                ip = get_ipython()
+            except NameError:
+                ip = None
 
-        if self.exception_logging_enabled():
-            raise LoggingError("Exception logging has already been enabled")
+            if ip is None:
+                # standard python interpreter
+                self._excepthook_orig = sys.excepthook
+                sys.excepthook = self._excepthook
+            else:
+                # IPython has its own way of dealing with excepthook
 
-        if ip is None:
-            # standard python interpreter
-            self._excepthook_orig = sys.excepthook
-            sys.excepthook = self._excepthook
-        else:
-            # IPython has its own way of dealing with excepthook
+                # We need to locally define the function here, because IPython
+                # actually makes this a member function of their own class
+                def ipy_exc_handler(ipyshell, etype, evalue, tb, tb_offset=None):
+                    # First use our excepthook
+                    self._excepthook(etype, evalue, tb)
 
-            # We need to locally define the function here, because IPython
-            # actually makes this a member function of their own class
-            def ipy_exc_handler(ipyshell, etype, evalue, tb, tb_offset=None):
-                # First use our excepthook
-                self._excepthook(etype, evalue, tb)
+                    # Now also do IPython's traceback
+                    ipyshell.showtraceback((etype, evalue, tb), tb_offset=tb_offset)
 
-                # Now also do IPython's traceback
-                ipyshell.showtraceback((etype, evalue, tb), tb_offset=tb_offset)
+                # now register the function with IPython
+                # note that we include _AstLogIPYExc so `disable_exception_logging`
+                # knows that it's disabling the right thing
+                ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
 
-            # now register the function with IPython
-            # note that we include _AstLogIPYExc so `disable_exception_logging`
-            # knows that it's disabling the right thing
-            ip.set_custom_exc((BaseException, _AstLogIPYExc), ipy_exc_handler)
-
-            # and set self._excepthook_orig to a no-op
-            self._excepthook_orig = lambda etype, evalue, tb: None
+                # and set self._excepthook_orig to a no-op
+                self._excepthook_orig = lambda etype, evalue, tb: None
 
     def disable_exception_logging(self):
         '''
@@ -360,25 +352,23 @@ class AstropyLogger(Logger):
 
         This can be re-enabled with ``enable_exception_logging``.
         '''
-        try:
-            ip = get_ipython()
-        except NameError:
-            ip = None
+        if self.exception_logging_enabled():
+            try:
+                ip = get_ipython()
+            except NameError:
+                ip = None
 
-        if not self.exception_logging_enabled():
-            raise LoggingError("Exception logging has not been enabled")
-
-        if ip is None:
-            # standard python interpreter
-            if sys.excepthook != self._excepthook:
-                raise LoggingError("Cannot disable exception logging: "
-                                   "sys.excepthook was not set by this logger, "
-                                   "or has been overridden")
-            sys.excepthook = self._excepthook_orig
-            self._excepthook_orig = None
-        else:
-            # IPython has its own way of dealing with exceptions
-            ip.set_custom_exc(tuple(), None)
+            if ip is None:
+                # standard python interpreter
+                if sys.excepthook != self._excepthook:
+                    raise LoggingError("Cannot disable exception logging: "
+                                       "sys.excepthook was not set by this logger, "
+                                       "or has been overridden")
+                sys.excepthook = self._excepthook_orig
+                self._excepthook_orig = None
+            else:
+                # IPython has its own way of dealing with exceptions
+                ip.set_custom_exc(tuple(), None)
 
     def enable_color(self):
         '''
