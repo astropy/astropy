@@ -1,0 +1,1 @@
+Fixes the improper propagation of ``bounding_box`` from ``astropy.modeling.models`` to their inverses. For cases in which the inverses ``bounding_box`` can be determined, the proper calculation has been implemented.
