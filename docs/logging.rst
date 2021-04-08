@@ -46,9 +46,12 @@ and enabled with::
 
     log.enable_color()
 
-Warnings from ``warnings.warn`` can be logged with::
+Warnings from ``warnings.warn``, all or only those that are instances of
+AstropyUserWarning, can be logged with::
 
     log.enable_warnings_logging()
+    log.enable_warnings_logging(which="all")
+    log.enable_warnings_logging(which="astropy")
 
 which can be disabled with::
 
