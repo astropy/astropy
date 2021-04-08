@@ -9,19 +9,19 @@ from .core import CompoundModel, SPECIAL_OPERATORS
 
 class Convolution(CompoundModel):
     """
-    Wrapper class for a Convolution model:
+    Wrapper class for a convolution model:
 
     Parameters
     ----------
     model : Model
-        the model for the convolution.
-    kernal: Model
-        the kernal model for the convolution.
+        The model for the convolution.
+    kernel: Model
+        The kernel model for the convolution.
     bounding_box : tuple
-        a bounding box to define the limits of the integration
+        A bounding box to define the limits of the integration
         approximation for the convolution.
     resolution : float
-        the resolution for the approximation of the convolution.
+        The resolution for the approximation of the convolution.
     cache : bool, optional
         Allow convolution computation to be cached for reuse. This is
         enabled by default.
@@ -30,16 +30,16 @@ class Convolution(CompoundModel):
     -----
     This is wrapper is necessary to handle the limitations of the
     pseudospectral convolution binary operator implemented in
-    astropy.convolution under `convolve_fft`. In this `convolve_fft` it
-    is assumed that the inputs `array` and `kernel` span a sufficient
+    astropy.convolution under `~astropy.convolution.convolve_fft`. In this `~astropy.convolution.convolve_fft` it
+    is assumed that the inputs ``array`` and ``kernel`` span a sufficient
     portion of the support of the functions of the convolution.
-    Consequently, the ``Compound`` created by the `convolve_models` function
+    Consequently, the ``Compound`` created by the `~astropy.convolution.convolve_models` function
     makes the assumption that one should pass an input array that
     sufficiently spans this space. This means that slightly different
     input arrays to this model will result in different outputs, even
     on points of intersection between these arrays.
 
-    This issue is solved by requiring a bounding_box together with a
+    This issue is solved by requiring a ``bounding_box`` together with a
     resolution so that one can pre-calculate the entire domain and then
     (by default) cache the convolution values. The function then just
     interpolates the results from this cache.
