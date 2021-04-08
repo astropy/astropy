@@ -1,0 +1,2 @@
+Binary wheels are now built to the manylinux2010 specification. These wheels
+should be supported on all versions of pip shipped with Python 3.7+.
