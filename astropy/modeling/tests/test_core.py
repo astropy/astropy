@@ -532,3 +532,17 @@ def test_coerce_units():
 
     with pytest.raises(ValueError, match=r"return_units length does not match n_outputs"):
         model.coerce_units(return_units=(u.m, u.s))
+
+
+def test_bounding_box_general_inverse():
+    model = NonFittableModel(42.5)
+
+    with pytest.raises(NotImplementedError):
+        model.bounding_box
+    model.bounding_box = ()
+    assert model.bounding_box == ()
+
+    model.inverse = NonFittableModel(3.14)
+    inverse_model = model.inverse
+    with pytest.raises(NotImplementedError):
+        inverse_model.bounding_box

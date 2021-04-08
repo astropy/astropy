@@ -668,6 +668,8 @@ class Model(metaclass=_ModelMeta):
     _bounding_box = None
     _user_bounding_box = None
 
+    _has_inverse_bounding_box = False
+
     # Default n_models attribute, so that __len__ is still defined even when a
     # model hasn't completed initialization yet
     _n_models = 1
@@ -1149,6 +1151,8 @@ class Model(metaclass=_ModelMeta):
         elif self._inverse is not None:
             result = self._inverse()
             if result is not NotImplemented:
+                if not self._has_inverse_bounding_box:
+                    result.bounding_box = None
                 return result
 
         raise NotImplementedError("No analytical or user-supplied inverse transform "
