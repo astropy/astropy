@@ -2026,8 +2026,7 @@ class Model(metaclass=_ModelMeta):
                 model_set_axis = False
         else:
             if not (model_set_axis is False or
-                    (isinstance(model_set_axis, int) and
-                     not isinstance(model_set_axis, bool))):
+                    np.issubdtype(type(model_set_axis), np.integer)):
                 raise ValueError(
                     "model_set_axis must be either False or an integer "
                     "specifying the parameter array axis to map to each "
@@ -2597,7 +2596,7 @@ class CompoundModel(Model):
             keys = right.keys()
             input_ind = []
             for key in keys:
-                if isinstance(key, int):
+                if np.issubdtype(type(key), np.integer):
                     if key >= left.n_inputs or key < 0:
                         raise ValueError(
                             'Substitution key integer value '
@@ -2738,7 +2737,7 @@ class CompoundModel(Model):
         if op == 'fix_inputs':
             pos_index = dict(zip(self.left.inputs, range(self.left.n_inputs)))
             fixed_inputs = {
-                key if isinstance(key, int) else pos_index[key]: value
+                key if np.issubdtype(type(key), np.integer) else pos_index[key]: value
                 for key, value in self.right.items()
             }
             left_inputs = [
@@ -2870,7 +2869,7 @@ class CompoundModel(Model):
             subinds = []
             subvals = []
             for key in subs.keys():
-                if isinstance(key, int):
+                if np.issubdtype(type(key), np.integer):
                     subinds.append(key)
                 elif isinstance(key, str):
                     ind = self.left.inputs.index(key)
@@ -2900,9 +2899,9 @@ class CompoundModel(Model):
                 subargs = list(zip(subinds, subvals))
                 subargs.sort()
                 # subindsorted, subvalsorted = list(zip(*subargs))
-            # The substitutions must be inserted in order
-            for ind, val in subargs:
-                newargs.insert(ind, val)
+                # The substitutions must be inserted in order
+                for ind, val in subargs:
+                    newargs.insert(ind, val)
             return self.left(*newargs, **kw)
 
     @property

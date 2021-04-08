@@ -1,0 +1,1 @@
+Bugfixes for ``astropy.modeling`` to allow ``fix_inputs`` to accept empty dictionaries and dictionaries with ``numpy`` integer keys.
