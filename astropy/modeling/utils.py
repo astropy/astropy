@@ -517,11 +517,12 @@ class _BoundingBox(tuple):
 
     def domain(self, resolution):
         """
-        Given a resolution find the meshgrid approximation of the bounding box
+        Given a resolution find the meshgrid approximation of the bounding box.
 
         Parameters
         ----------
-        resolution: the resolution of the grid
+        resolution: float
+            The resolution of the grid.
         """
 
         if self.dimension == 1:
