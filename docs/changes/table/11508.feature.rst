@@ -1,0 +1,2 @@
+A new feature, the ``_repr_latex_`` method, is now available for  ``table.Table``.
+This displays a LaTeX formatted table on the screen and can be called using ``Table._repr_latex_()``.
