@@ -211,7 +211,14 @@ class AstropyLogger(Logger):
             self.warning(message)
 
     def warnings_logging_enabled(self):
-        return self._showwarning_orig is not None
+        """Determine if warnings logging is enabled.
+
+        If True, return a string describing which warnings are logged.
+        """
+        if self._showwarning_orig is not None:
+            return self._which_warnings
+        else:
+            return False
 
     def enable_warnings_logging(self, which=None):
         '''

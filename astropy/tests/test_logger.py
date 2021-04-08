@@ -76,9 +76,13 @@ def test_warnings_logging_overridden():
 
 
 def test_warnings_logging_switch_mode():
+    assert not log.warnings_logging_enabled()
     log.enable_warnings_logging(which="astropy")
+    assert log.warnings_logging_enabled() == "astropy"
     log.enable_warnings_logging(which="all")
+    assert log.warnings_logging_enabled() == "all"
     log.enable_warnings_logging(which="astropy")
+    assert log.warnings_logging_enabled() == "astropy"
 
 
 def test_warnings_logging_diabled():
