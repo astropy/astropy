@@ -882,6 +882,16 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
         Functional model
     kernel : `~astropy.modeling.core.Model`
         Convolution kernel
+    bounding_box: tuple
+        The bounding box which encompasses enough of the support of both
+        the `model` and `kernel` so that an accurate convolution can be
+        computed.
+    resolution: float
+        The resolution that one wishes to approximate the convolution
+        integral at.
+    cache: optional, bool
+        Default value True. Allow for the storage of the convolution
+        computation for later reuse.
     kwargs : dict
         Keyword arguments to be passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.
