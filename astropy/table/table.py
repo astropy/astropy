@@ -1521,6 +1521,31 @@ class Table:
     def __repr__(self):
         return self._base_repr_(html=False, max_width=None)
 
+    def _repr_latex_(self):
+        """
+        Format a Table object into the LaTeX format, and return it as a string.
+
+        Notes
+        -----
+        Uses `astropy.io.ascii.latex.Latex.write()` function to change
+        the Table format to LaTeX. The default LaTeX formatting options defined
+        in ``latex.Latex`` are assumed if the ``table.Table.meta`` dictionary
+        doesn't already contain a ``latexdict`` keyword.
+        See: `astropy.io.ascii.Latex`
+
+        A new key ``latexdict`` corresponding to ``Latex.latex`` dictionary of
+        ``astropy.io.ascii.latex`` object is added to ``table.Table.meta``.
+        It contains the LaTeX formatting options for the table used.
+        """
+        from astropy.io import ascii
+
+        latexdict = self.meta.get('latexdict', {})
+        lTable = ascii.latex.Latex(latexdict=latexdict)
+        lines = lTable.write(table=self)
+        self.meta['latexdict'] = lTable.latex
+
+        return '\n'.join(lines)
+
     def __str__(self):
         return '\n'.join(self.pformat())
 
