@@ -39,7 +39,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
-                    _ConstraintsDict)
+                    _ConstraintsDict, _SpecialOperatorsDict)
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -2504,11 +2504,11 @@ BINARY_OPERATORS = {
     '&': _join_operator
 }
 
-SPECIAL_OPERATORS = {}
+SPECIAL_OPERATORS = _SpecialOperatorsDict()
 
 
 def _add_special_operator(sop_name, sop):
-    SPECIAL_OPERATORS[sop_name] = sop
+    return SPECIAL_OPERATORS.add(sop_name, sop)
 
 
 class CompoundModel(Model):
