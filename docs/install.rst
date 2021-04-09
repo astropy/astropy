@@ -2,107 +2,6 @@
 Installation
 ************
 
-.. _astropy-main-req:
-
-Requirements
-============
-
-``astropy`` has the following strict requirements:
-
-- `Python <https://www.python.org/>`_ |minimum_python_version| or later
-
-- `Numpy`_ |minimum_numpy_version| or later
-
-- `PyERFA`_ |minimum_pyerfa_version| or later
-
-``astropy`` also depends on other packages for optional features:
-
-- `scipy`_ |minimum_scipy_version| or later: To power a variety of features
-  in several modules.
-
-- `h5py <http://www.h5py.org/>`_: To read/write
-  :class:`~astropy.table.Table` objects from/to HDF5 files.
-
-- `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
-  :class:`~astropy.table.table.Table` objects from HTML files.
-
-- `html5lib <https://html5lib.readthedocs.io/en/stable/>`_: To read
-  :class:`~astropy.table.table.Table` objects from HTML files using the
-  `pandas <https://pandas.pydata.org/>`_ reader.
-
-- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
-  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
-
-- `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later: To read/write
-  :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
-  format and to serialize mixins for various formats.
-
-- `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
-  This is a command line tool installed outside of Python.
-
-- `pandas <https://pandas.pydata.org/>`_: To convert
-  :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
-  Version 0.14 or higher is required to use the :ref:`table_io_pandas`
-  I/O functions to read/write :class:`~astropy.table.Table` objects.
-
-- `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
-  ``SCEngine`` indexing engine with ``Table``, although this may still be
-  slower in some cases than the default indexing engine.
-
-- `pytz <https://pythonhosted.org/pytz/>`_: To specify and convert between
-  timezones.
-
-- `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
-  ephemeris of Solar System objects.
-
-- `matplotlib <https://matplotlib.org/>`_ |minimum_matplotlib_version| or later: To provide plotting
-  functionality that `astropy.visualization` enhances.
-
-- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
-  entry points which are used to insert fitters into `astropy.modeling.fitting`.
-
-- `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
-  interval in `~astropy.stats.poisson_conf_interval`.
-
-- `asdf <https://github.com/spacetelescope/asdf>`_ |minimum_asdf_version| or later: Enables the
-  serialization of various Astropy classes into a portable, hierarchical,
-  human-readable representation.
-
-- `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
-  of sigma-clipping and other functionality that may require computing
-  statistics on arrays with NaN values.
-
-However, note that these packages require installation only if those particular
-features are needed. ``astropy`` will import even if these dependencies are not
-installed.
-
-The following packages can optionally be used when testing:
-
-- `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
-  :ref:`sourcebuildtest`
-
-- `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
-  distributed testing.
-
-- `pytest-mpl <https://github.com/matplotlib/pytest-mpl>`_: Used for testing
-  with Matplotlib figures.
-
-- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
-
-- `IPython <https://ipython.org/>`__ |minimum_ipython_version| or later:
-  Used for testing the notebook interface of `~astropy.table.Table`.
-
-- `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
-  measurements.
-
-- `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
-  coordinates.
-
-- `spgp4 <https://pypi.org/project/sgp4/>`_: Used for testing satellite positions.
-
-- `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
-  and documentation builds.
-
 Installing ``astropy``
 ======================
 
@@ -223,6 +122,107 @@ source code directory, or :ref:`running-tests` for more details.
 See the `latest documentation on how to test your installed version of astropy <https://docs.astropy.org/en/latest/install.html#testing-an-installed-astropy>`__.
 
 {%endif%}
+
+.. _astropy-main-req:
+
+Requirements
+============
+
+``astropy`` has the following strict requirements:
+
+- `Python <https://www.python.org/>`_ |minimum_python_version| or later
+
+- `Numpy`_ |minimum_numpy_version| or later
+
+- `PyERFA`_ |minimum_pyerfa_version| or later
+
+``astropy`` also depends on other packages for optional features:
+
+- `scipy`_ |minimum_scipy_version| or later: To power a variety of features
+  in several modules.
+
+- `h5py <http://www.h5py.org/>`_: To read/write
+  :class:`~astropy.table.Table` objects from/to HDF5 files.
+
+- `BeautifulSoup <https://www.crummy.com/software/BeautifulSoup/>`_: To read
+  :class:`~astropy.table.table.Table` objects from HTML files.
+
+- `html5lib <https://html5lib.readthedocs.io/en/stable/>`_: To read
+  :class:`~astropy.table.table.Table` objects from HTML files using the
+  `pandas <https://pandas.pydata.org/>`_ reader.
+
+- `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
+  disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
+
+- `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later: To read/write
+  :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
+  format and to serialize mixins for various formats.
+
+- `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
+  This is a command line tool installed outside of Python.
+
+- `pandas <https://pandas.pydata.org/>`_: To convert
+  :class:`~astropy.table.Table` objects from/to pandas DataFrame objects.
+  Version 0.14 or higher is required to use the :ref:`table_io_pandas`
+  I/O functions to read/write :class:`~astropy.table.Table` objects.
+
+- `sortedcontainers <https://pypi.org/project/sortedcontainers/>`_ for faster
+  ``SCEngine`` indexing engine with ``Table``, although this may still be
+  slower in some cases than the default indexing engine.
+
+- `pytz <https://pythonhosted.org/pytz/>`_: To specify and convert between
+  timezones.
+
+- `jplephem <https://pypi.org/project/jplephem/>`_: To retrieve JPL
+  ephemeris of Solar System objects.
+
+- `matplotlib <https://matplotlib.org/>`_ |minimum_matplotlib_version| or later: To provide plotting
+  functionality that `astropy.visualization` enhances.
+
+- `setuptools <https://setuptools.readthedocs.io>`_: Used for discovery of
+  entry points which are used to insert fitters into `astropy.modeling.fitting`.
+
+- `mpmath <http://mpmath.org/>`_: Used for the 'kraft-burrows-nousek'
+  interval in `~astropy.stats.poisson_conf_interval`.
+
+- `asdf <https://github.com/spacetelescope/asdf>`_ |minimum_asdf_version| or later: Enables the
+  serialization of various Astropy classes into a portable, hierarchical,
+  human-readable representation.
+
+- `bottleneck <https://pypi.org/project/Bottleneck/>`_: Improves the performance
+  of sigma-clipping and other functionality that may require computing
+  statistics on arrays with NaN values.
+
+However, note that these packages require installation only if those particular
+features are needed. ``astropy`` will import even if these dependencies are not
+installed.
+
+The following packages can optionally be used when testing:
+
+- `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
+  :ref:`sourcebuildtest`
+
+- `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
+  distributed testing.
+
+- `pytest-mpl <https://github.com/matplotlib/pytest-mpl>`_: Used for testing
+  with Matplotlib figures.
+
+- `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
+
+- `IPython <https://ipython.org/>`__ |minimum_ipython_version| or later:
+  Used for testing the notebook interface of `~astropy.table.Table`.
+
+- `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
+  measurements.
+
+- `skyfield <https://rhodesmill.org/skyfield/>`_: Used for testing Solar System
+  coordinates.
+
+- `spgp4 <https://pypi.org/project/sgp4/>`_: Used for testing satellite positions.
+
+- `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
+  and documentation builds.
 
 Building from Source
 ====================
