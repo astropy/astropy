@@ -118,7 +118,7 @@ def test_fixes():
     with pytest.raises(wcs.InvalidTransformError), pytest.warns(wcs.FITSFixedWarning) as w:
         wcs.WCS(header, translate_units='dhs')
 
-    if _WCSLIB_VER >= Version('7.4'):
+    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
         assert len(w) == 3
         assert "'datfix' made the change 'Success'." in str(w.pop().message)
     else:
@@ -159,7 +159,7 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    if _WCSLIB_VER >= Version('7.4'):
+    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
         assert len(caught_warnings) == 2
     else:
         assert len(caught_warnings) == 1
@@ -327,7 +327,7 @@ def test_invalid_shape():
 
 def test_warning_about_defunct_keywords():
     header = get_pkg_data_contents('data/defunct_keywords.hdr', encoding='binary')
-    if _WCSLIB_VER >= Version('7.4'):
+    if Version('7.4') <= _WCSLIB_VER < Version('7.6'):
         n_warn = 5
     else:
         n_warn = 4
@@ -338,7 +338,7 @@ def test_warning_about_defunct_keywords():
             wcs.WCS(header)
 
         assert len(w) == n_warn
-        # 7.4 adds a fifth warning "'datfix' made the change 'Success'."
+        # 7.4 adds a spurious fifth warning "'datfix' made the change 'Success'."; fixed in 7.6
         for item in w[:4]:
             assert 'PCi_ja' in str(item.message)
 
@@ -457,6 +457,8 @@ def test_validate():
         filename = 'data/validate.txt'
     with open(get_pkg_data_filename(filename), "r") as fd:
         lines = fd.readlines()
+    if _WCSLIB_VER >= Version('7.6'):
+        lines.remove("    - 'datfix' made the change 'Success'.\n")
     assert sorted(set([x.strip() for x in lines])) == results_txt
 
 
