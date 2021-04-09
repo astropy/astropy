@@ -785,3 +785,32 @@ class _ConstraintsDict(UserDict):
         super().__setitem__(key, val)
         param = getattr(self._model, key)
         setattr(param, self.constraint_type, val)
+
+
+class _SpecialOperatorsDict(UserDict):
+    """
+    Wrapper around UserDict to allow for better tracking of the Special
+    Operators for CompoundModels
+    """
+
+    def __init__(self, unique_id = 0, special_operators={}):
+        super().__init__(special_operators)
+        self._unique_id = unique_id
+
+    def __setitem__(self, key, val):
+        if key in self:
+            raise ValueError(f'Special operator "{key}" already exists')
+        else:
+            super().__setitem__(key, val)
+
+    def _get_unique_id(self):
+        self._unique_id += 1
+
+        return self._unique_id
+
+    def add(self, operator_name, operator):
+        key = (operator_name, self._get_unique_id())
+
+        self[key] = operator
+
+        return key
