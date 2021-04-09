@@ -1,0 +1,3 @@
+Prevent warnings about ``HIERARCH`` with ``CompImageHeader`` class.
+
+Previously if a compressed image header was assigned a value using a key of ``HIERARCH X Y Z`` a warning would be issued suggesting that ``HIERARCH`` should be used.
