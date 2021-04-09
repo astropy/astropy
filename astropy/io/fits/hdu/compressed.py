@@ -204,6 +204,12 @@ class CompImageHeader(Header):
         super().append(card=card, useblanks=useblanks, bottom=bottom, end=end)
 
         remapped_keyword = self._remap_keyword(card.keyword)
+
+        # card.keyword strips the HIERARCH if present so this must be added
+        # back to avoid a warning.
+        if str(card).startswith("HIERARCH ") and not remapped_keyword.startswith("HIERARCH "):
+            remapped_keyword = "HIERARCH " + remapped_keyword
+
         card = Card(remapped_keyword, card.value, card.comment)
 
         # Here we disable the use of blank cards, because the call above to
