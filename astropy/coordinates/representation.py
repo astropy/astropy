@@ -16,6 +16,7 @@ from erfa import ufunc as erfa_ufunc
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
+from .matrix_utilities import is_rotation
 from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
@@ -1642,12 +1643,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
-        # matrix is in O(3) (rotations, proper and improper).
-        # If not, then route through dimensional representation.
-        I = np.identity(matrix.shape[-1])
-        is_O3 = np.allclose(matrix @ matrix.swapaxes(-2, -1), I, atol=1e-15)
-
-        if is_O3:  # remain in unit-representation
+        # matrix is in O(3) (rotations, proper and improper) and keeps lengths.
+        if is_rotation(matrix, allow_improper=True):  # remain in unit-rep
             if self.differentials:
                 # TODO! shortcut if there are differentials.
                 # Currently just super, which uses Cartesian backend.

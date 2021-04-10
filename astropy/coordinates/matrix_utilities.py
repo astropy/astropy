@@ -2,7 +2,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains utililies used for constructing rotation matrices.
+Utililies used for constructing and inspecting rotation matrices.
 """
 from functools import reduce
 import numpy as np
@@ -129,3 +129,37 @@ def angle_axis(matrix):
     angle = np.arctan2(r[..., 0],
                        m[..., 0, 0] + m[..., 1, 1] + m[..., 2, 2] - 1.)
     return Angle(angle, u.radian), -axis / r
+
+
+def is_rotation(matrix, allow_improper=False):
+    """Check whether a matrix is a rotation, proper or improper.
+
+    Parameters
+    ----------
+    matrix : array-like
+        Must have attribute ``.shape`` and method ``.swapaxes()`` and not error
+        when using `~numpy.allclose` and `~numpy.linalg.det`.
+    allow_improper : bool, optional
+        Whether to restrict check to the SO(3), the group of proper rotations,
+        or also allow improper rotations (with determinant -1).
+        The default (False) is only SO(3).
+
+    Notes
+    -----
+    The orthogonal group O(3) preserves lengths, so encompasses the more
+    restrictive group SO(3), which is the group of rotations, but does not keep
+    orientations, so allows for reflections. Rotations with determinant -1 are
+    both a rotation and a reflection.
+    For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
+
+    """
+    # matrix is in O(3) (rotations, proper and improper).
+    I = np.identity(matrix.shape[-1])
+    is_O3 = np.allclose(matrix @ matrix.swapaxes(-2, -1), I, atol=1e-15)
+
+    if allow_improper:  # determinant can be +/- 1
+        is_det1 = np.allclose(np.abs(np.linalg.det(matrix)), 1.0)
+    else:  # restrict to SO(3)
+        is_det1 = np.allclose(np.linalg.det(matrix), 1.0)
+
+    return is_O3 & is_det1
