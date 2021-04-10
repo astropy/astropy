@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcs.h,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.5 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -88,8 +88,10 @@
 * pixel coordinate a hybrid routine, wcsmix(), iteratively solves for the
 * unknown elements.
 *
-* wcssptr() translates the spectral axis in a wcsprm struct.  For example, a
-* 'FREQ' axis may be translated into 'ZOPT-F2W' and vice versa.
+* wcsccs() changes the celestial coordinate system of a wcsprm struct, for
+* example, from equatorial to galactic, and wcssptr() translates the spectral
+* axis.  For example, a 'FREQ' axis may be translated into 'ZOPT-F2W' and vice
+* versa.
 *
 * wcslib_version() returns the WCSLIB version number.
 *
@@ -803,6 +805,141 @@
 *      compute-limited applications more efficient special-case solvers could
 *      be written for simple projections, for example non-oblique cylindrical
 *      projections.
+*
+*
+* wcsccs() - Change celestial coordinate system
+* ---------------------------------------------
+* wcsccs() changes the celestial coordinate system of a wcsprm struct.  For
+* example, from equatorial to galactic coordinates.
+*
+* Parameters that define the spherical coordinate transformation, essentially
+* being three Euler angles, must be provided.  Thereby wcsccs() does not need
+* prior knowledge of specific celestial coordinate systems.  It also has the
+* advantage of making it completely general.
+*
+* Auxiliary members of the wcsprm struct relating to equatorial celestial
+* coordinate systems may also be changed.
+*
+* Only orthodox spherical coordinate systems are supported.  That is, they
+* must be right-handed, with latitude increasing from zero at the equator to
+* +90 degrees at the pole.  This precludes systems such as aziumuth and zenith
+* distance, which, however, could be handled as negative azimuth and
+* elevation.
+*
+* PLEASE NOTE: Information in the wcsprm struct relating to the original
+* coordinate system will be overwritten and therefore lost.  If this is
+* undesirable, invoke wcsccs() on a copy of the struct made with wcssub().
+*
+* Given and returned:
+*   wcs       struct wcsprm*
+*                       Coordinate transformation parameters.  Particular
+*                       "values to be given" elements of the wcsprm struct
+*                       are modified.
+*
+* Given:
+*   lng2p1,
+*   lat2p1    double    Longitude and latitude in the new celestial coordinate
+*                       system of the pole (i.e. latitude +90) of the original
+*                       system [deg].  See notes 1 and 2 below.
+*
+*   lng1p2    double    Longitude in the original celestial coordinate system
+*                       of the pole (i.e. latitude +90) of the new system
+*                       [deg].  See note 1 below.
+*
+*   clng,clat const char*
+*                       Longitude and latitude identifiers of the new CTYPEia
+*                       celestial axis codes, without trailing dashes.  For
+*                       example, "RA" and "DEC" or "GLON" and "GLAT".  Up to
+*                       four characters are used, longer strings need not be
+*                       null-terminated.
+*
+*   radesys   const char*
+*                       Used when transforming to equatorial coordinates,
+*                       identified by clng == "RA" and clat = "DEC".  May be
+*                       set to the null pointer to preserve the current value.
+*                       Up to 71 characters are used, longer strings need not
+*                       be null-terminated.
+*
+*                       If the new coordinate system is anything other than
+*                       equatorial, then wcsprm::radesys will be cleared.
+*
+*   equinox   double    Used when transforming to equatorial coordinates.  May
+*                       be set to zero to preserve the current value.
+*
+*                       If the new coordinate system is not equatorial, then
+*                       wcsprm::equinox will be marked as undefined.
+*
+*   alt       const char*
+*                       Character code for alternate coordinate descriptions
+*                       (i.e. the 'a' in keyword names such as CTYPEia).  This
+*                       is blank for the primary coordinate description, or
+*                       one of the 26 upper-case letters, A-Z.  May be set to
+*                       the null pointer, or null string if no change is
+*                       required.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null wcsprm pointer passed.
+*                        12: Invalid subimage specification (no celestial
+*                            axes).
+*
+* Notes:
+*   1: Follows the prescription given in WCS Paper II, Sect. 2.7 for changing
+*      celestial coordinates.
+*
+*      The implementation takes account of indeterminacies that arise in that
+*      prescription in the particular cases where one of the poles of the new
+*      system is at the fiducial point, or one of them is at the native pole.
+*
+*   2: If lat2p1 == +90, i.e. where the poles of the two coordinate systems
+*      coincide, then the spherical coordinate transformation becomes a simple
+*      change in origin of longitude given by
+*      lng2 = lng1 + (lng2p1 - lng1p2 - 180), and lat2 = lat1, where
+*      (lng2,lat2) are coordinates in the new system, and (lng1,lat1) are
+*      coordinates in the original system.
+*
+*      Likewise, if lat2p1 == -90, then lng2 = -lng1 + (lng2p1 + lng1p2), and
+*      lat2 = -lat1.
+*
+*   3: For example, if the original coordinate system is B1950 equatorial and
+*      the desired new coordinate system is galactic, then
+*
+*      - (lng2p1,lat2p1) are the galactic coordinates of the B1950 celestial
+*        pole, defined by the IAU to be (123.0,+27.4), and lng1p2 is the B1950
+*        right ascension of the galactic pole, defined as 192.25.  Clearly
+*        these coordinates are fixed for a particular coordinate
+*        transformation.
+*
+*      - (clng,clat) would be 'GLON' and 'GLAT', these being the FITS standard
+*        identifiers for galactic coordinates.
+*
+*      - Since the new coordinate system is not equatorial, wcsprm::radesys
+*        and wcsprm::equinox will be cleared.
+*
+*   4. The coordinates required for some common transformations (obtained from
+*      https://ned.ipac.caltech.edu/coordinate_calculator) are as follows:
+*
+=      (123.0000,+27.4000) galactic coordinates of B1950 celestial pole,
+=      (192.2500,+27.4000) B1950 equatorial coordinates of galactic pole.
+*
+=      (122.9319,+27.1283) galactic coordinates of J2000 celestial pole,
+=      (192.8595,+27.1283) J2000 equatorial coordinates of galactic pole.
+*
+=      (359.6774,+89.7217) B1950 equatorial coordinates of J2000 pole,
+=      (180.3162,+89.7217) J2000 equatorial coordinates of B1950 pole.
+*
+=      (270.0000,+66.5542) B1950 equatorial coordinates of B1950 ecliptic pole,
+=      ( 90.0000,+66.5542) B1950 ecliptic coordinates of B1950 celestial pole.
+*
+=      (270.0000,+66.5607) J2000 equatorial coordinates of J2000 ecliptic pole,
+=      ( 90.0000,+66.5607) J2000 ecliptic coordinates of J2000 celestial pole.
+*
+=      ( 26.7315,+15.6441) supergalactic coordinates of B1950 celestial pole,
+=      (283.1894,+15.6441) B1950 equatorial coordinates of supergalactic pole.
+*
+=      ( 26.4505,+15.7089) supergalactic coordinates of J2000 celestial pole,
+=      (283.7542,+15.7089) J2000 equatorial coordinates of supergalactic pole.
 *
 *
 * wcssptr() - Spectral axis translation
@@ -1974,6 +2111,10 @@ int wcss2p(struct wcsprm *wcs, int ncoord, int nelem, const double world[],
 int wcsmix(struct wcsprm *wcs, int mixpix, int mixcel, const double vspan[],
            double vstep, int viter, double world[], double phi[],
            double theta[], double imgcrd[], double pixcrd[]);
+
+int wcsccs(struct wcsprm *wcs, double lng2p1, double lat2p1, double lng1p2,
+           const char *clng, const char *clat, const char *radesys,
+           double equinox, const char *alt);
 
 int wcssptr(struct wcsprm *wcs, int *i, char ctype[9]);
 

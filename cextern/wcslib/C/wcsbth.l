@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.l,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsbth.l,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -73,6 +73,7 @@
 %option outfile="wcsbth.c"
 %option prefix="wcsbth"
 %option reentrant
+%option extra-type="struct wcsbth_extra *"
 
 /* Indices for parameterized keywords. */
 Z1	[0-9]
@@ -141,38 +142,15 @@ INLINE " "*(\/.*)?
 			// image array (without axis number) or
 			// pixel list, e.g. LONPna or OBSGXn.
 
-static int wcsbth_scanner(char *header, int nkeyrec, int relax, int ctrl,
-                          int keysel, int *colsel, int *nreject, int *nwcs,
-                          struct wcsprm **wcs, yyscan_t yyscanner);
+// User data associated with yyscanner.
+struct wcsbth_extra {
+  // Values passed to YY_INPUT.
+  char *hdr;
+  int  nkeyrec;
 
-//----------------------------------------------------------------------------
-
-int wcsbth(
-  char *header,
-  int nkeyrec,
-  int relax,
-  int ctrl,
-  int keysel,
-  int *colsel,
-  int *nreject,
-  int *nwcs,
-  struct wcsprm **wcs)
-
-{
-  int status;
-  yyscan_t yyscanner;
-  int yylex_init(yyscan_t *yyscanner);
-  int yylex_destroy(yyscan_t yyscanner);
-
-  yylex_init(&yyscanner);
-  status = wcsbth_scanner(header, nkeyrec, relax, ctrl, keysel, colsel,
-                          nreject, nwcs, wcs, yyscanner);
-  yylex_destroy(yyscanner);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
 
 #define YY_DECL int wcsbth_scanner(char *header, int nkeyrec, int relax, \
  int ctrl, int keysel, int *colsel, int *nreject, int *nwcs, \
@@ -180,27 +158,26 @@ int wcsbth(
 
 #define YY_INPUT(inbuff, count, bufsize) \
 	{ \
-	  if (wcsbth_nkeyrec) { \
-	    strncpy(inbuff, wcsbth_hdr, 80); \
+	  if (yyextra->nkeyrec) { \
+	    strncpy(inbuff, yyextra->hdr, 80); \
 	    inbuff[80] = '\n'; \
-	    wcsbth_hdr += 80; \
-	    wcsbth_nkeyrec--; \
+	    yyextra->hdr += 80; \
+	    yyextra->nkeyrec--; \
 	    count = 81; \
 	  } else { \
 	    count = YY_NULL; \
 	  } \
 	}
 
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
+
 // A convenience macro to get around incompatibilities between unput() and
 // yyless(): put yytext followed by a blank back onto the input stream.
 #define WCSBTH_PUTBACK \
   sprintf(strtmp, "%s ", yytext); \
-  iz = strlen(strtmp); \
+  size_t iz = strlen(strtmp); \
   while (iz) unput(strtmp[--iz]);
-
-// These global variables are required by YY_INPUT.
-static char *wcsbth_hdr;
-static int  wcsbth_nkeyrec;
 
 // Struct used internally for header bookkeeping.
 struct wcsbth_alts {
@@ -218,6 +195,7 @@ struct wcsbth_alts {
 };
 
 // Internal helper functions.
+static YY_DECL;
 static int wcsbth_colax(struct wcsprm *wcs, struct wcsbth_alts *alts, int k,
         char a);
 static int wcsbth_final(struct wcsbth_alts *alts, int *nwcs,
@@ -239,96 +217,79 @@ static int wcsbth_vsource(double *wptr, const double *vsource);
 // Helper functions for keyvalue validity checking.
 static int wcsbth_timepixr(double timepixr);
 
-// Used in preempting the call to exit() by yy_fatal_error().
-jmp_buf wcsbth_abort_jmp_env;
-#define exit(status) longjmp(wcsbth_abort_jmp_env, status)
-
 %}
 
 %%
-	// Keyword indices, as used in the WCS papers, e.g. iVn_ma, TPn_ka.
-	char a;
-	int  i, j, k, m, n;
-	
-	char *cptr, *errmsg, errtxt[80], exclude[1000], gotone, *hptr, *keep,
-	     *keyname, *keyrec, ptype, strtmp[80];
-	int  altlin, auxprm, ialt, icol, incl, imherit, inttmp, ipass, ipx,
-	     itmp, ix, jx, keytype, naux, nother, nsel, npass, nvalid, status,
-	     valtype;
-	ptrdiff_t voff;
-	size_t iz;
+	char *errmsg, errtxt[80], *keyname, strtmp[80];
+	int  auxprm, inttmp;
 	double dbltmp, dbl2tmp[2];
-	void   *vptr, *wptr;
-	struct wcsbth_alts alts;
-	struct auxprm *auxp, auxtem;
-	struct wcsprm *wcsp, wcstem;
-	int (*chekval)(double);
-	int (*special)(double *, const double *);
+	struct auxprm auxtem;
+	struct wcsprm wcstem;
 	
-	// The data structures produced.
+	// Initialize returned values.
+	*nreject = 0;
 	*nwcs = 0;
 	*wcs  = 0x0;
 	
-	// Parameters used to implement YY_INPUT.
-	wcsbth_hdr = header;
-	wcsbth_nkeyrec = nkeyrec;
-	
 	// Our handle on the input stream.
-	keyrec = header;
-	hptr = header;
-	keep = 0x0;
+	char *keyrec = header;
+	char *hptr = header;
+	char *keep = 0x0;
 	
 	// For keeping tallies of keywords found.
-	*nreject = 0;
-	nvalid = 0;
-	nother = 0;
+	int nvalid = 0;
+	int nother = 0;
 	
 	// Used to flag image header keywords that are always inherited.
-	imherit = 1;
+	int imherit = 1;
 	
 	// If strict, then also reject.
 	if (relax & WCSHDR_strict) relax |= WCSHDR_reject;
 	
-	// Keyword parameters.
-	i = j = 0;
-	n = k = 0;
-	m = 0;
-	a = ' ';
+	// Keyword indices, as used in the WCS papers, e.g. iVn_ma, TPn_ka.
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	int n = 0;
+	int m = 0;
+	char a = ' ';
 	
 	// Header bookkeeping.
+	struct wcsbth_alts alts;
 	alts.ncol = 0;
 	alts.arridx  = 0x0;
 	alts.pixlist = 0x0;
 	alts.npv = 0x0;
 	alts.nps = 0x0;
 	
-	for (ialt = 0; ialt < 27; ialt++) {
+	for (int ialt = 0; ialt < 27; ialt++) {
 	  alts.pixidx[ialt] = 0;
 	  alts.pixnpv[ialt] = 0;
 	  alts.pixnps[ialt] = 0;
 	}
 	
 	// For decoding the keyvalue.
-	keytype =  0;
-	valtype = -1;
-	vptr    = 0x0;
+	int keytype =  0;
+	int valtype = -1;
+	void *vptr  = 0x0;
 	
 	// For keywords that require special handling.
-	altlin  = 0;
-	ptype   = ' ';
-	chekval = 0x0;
-	special = 0x0;
-	auxprm  = 0;
-	naux    = 0;
+	int altlin  = 0;
+	char ptype  = ' ';
+	int (*chekval)(double) = 0x0;
+	int (*special)(double *, const double *) = 0x0;
+	struct auxprm *auxp = 0x0;
+	int naux = 0;
 	
 	// Selection by column number.
-	nsel = colsel ? colsel[0] : 0;
-	incl = (nsel > 0);
-	for (icol = 0; icol < 1000; icol++) {
+	int nsel = colsel ? colsel[0] : 0;
+	int incl = (nsel > 0);
+	char exclude[1000];
+	for (int icol = 0; icol < 1000; icol++) {
 	  exclude[icol] = incl;
 	}
-	for (icol = 1; icol <= abs(nsel); icol++) {
-	  itmp = colsel[icol];
+	for (int icol = 1; icol <= abs(nsel); icol++) {
+	  int itmp = colsel[icol];
 	  if (0 < itmp && itmp < 1000) {
 	    exclude[itmp] = !incl;
 	  }
@@ -336,9 +297,9 @@ jmp_buf wcsbth_abort_jmp_env;
 	exclude[0] = 0;
 	
 	// Selection by keyword type.
-	itmp = keysel;
-	keysel = 0;
-	if (itmp) {
+	if (keysel) {
+	  int itmp = keysel;
+	  keysel = 0;
 	  if (itmp & WCSHDR_IMGHEAD) keysel |= IMGHEAD;
 	  if (itmp & WCSHDR_BIMGARR) keysel |= BIMGARR;
 	  if (itmp & WCSHDR_PIXLIST) keysel |= PIXLIST;
@@ -348,12 +309,16 @@ jmp_buf wcsbth_abort_jmp_env;
 	}
 	
 	// Control variables.
-	ipass = 1;
-	npass = 2;
+	int ipass = 1;
+	int npass = 2;
+	
+	// User data associated with yyscanner.
+	yyextra->hdr = header;
+	yyextra->nkeyrec = nkeyrec;
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
-	if (setjmp(wcsbth_abort_jmp_env)) {
-	  return 4;
+	if (setjmp(yyextra->abort_jmp_env)) {
+	  return WCSHDRERR_PARSER;
 	}
 	
 	BEGIN(INITIAL);
@@ -1941,8 +1906,8 @@ jmp_buf wcsbth_abort_jmp_env;
 	}
 
 ^END" "{77} {
-	  if (wcsbth_nkeyrec) {
-	    wcsbth_nkeyrec = 0;
+	  if (yyextra->nkeyrec) {
+	    yyextra->nkeyrec = 0;
 	    errmsg = "keyrecords following the END keyrecord were ignored";
 	    BEGIN(ERROR);
 	  } else {
@@ -2722,7 +2687,7 @@ jmp_buf wcsbth_abort_jmp_env;
 	    if (k && (exclude[n] != exclude[k])) {
 	      // For keywords such as TCn_ka, both columns must be excluded.
 	      // User error, so return immediately.
-	      return 3;
+	      return WCSHDRERR_BAD_COLUMN;
 	
 	    } else {
 	      BEGIN(DISCARD);
@@ -2840,11 +2805,11 @@ jmp_buf wcsbth_abort_jmp_env;
 	
 	  } else {
 	    // Read the keyvalue.
-	      strcpy(strtmp, yytext+1);
+	    strcpy(strtmp, yytext+1);
 	
 	    // Squeeze out repeated quotes.
-	    ix = 0;
-	    for (jx = 0; jx < 72; jx++) {
+	    int ix = 0;
+	    for (int jx = 0; jx < 72; jx++) {
 	      if (ix < jx) {
 	        strtmp[ix] = strtmp[jx];
 	      }
@@ -2880,19 +2845,21 @@ jmp_buf wcsbth_abort_jmp_env;
 	    alts.ialt = 0;
 	
 	    // Update each coordinate representation.
-	    gotone = 0;
+	    int gotone = 0;
+	    struct wcsprm *wcsp;
 	    while ((wcsp = wcsbth_idx(*wcs, &alts, keytype, n, a))) {
 	      gotone = 1;
 	
 	      if (vptr) {
+	        void *wptr;
 	        if (auxprm) {
 	          // Additional auxiliary parameter.
 	          auxp = wcsp->aux;
-	          voff = (char *)vptr - (char *)(&auxtem);
+	          ptrdiff_t voff = (char *)vptr - (char *)(&auxtem);
 	          wptr = (void *)((char *)auxp + voff);
 	        } else {
 	          // A parameter that lives directly in wcsprm.
-	          voff = (char *)vptr - (char *)(&wcstem);
+	          ptrdiff_t voff = (char *)vptr - (char *)(&wcstem);
 	          wptr = (void *)((char *)wcsp + voff);
 	        }
 	
@@ -2902,7 +2869,7 @@ jmp_buf wcsbth_abort_jmp_env;
 	        } else if (valtype == FLOAT) {
 	          // Apply keyword parameterization.
 	          if (ptype == 'v') {
-	            ipx = (wcsp->npv)++;
+	            int ipx = (wcsp->npv)++;
 	            wcsp->pv[ipx].i = i;
 	            wcsp->pv[ipx].m = m;
 	            wptr = &(wcsp->pv[ipx].value);
@@ -2939,7 +2906,7 @@ jmp_buf wcsbth_abort_jmp_env;
 	        } else if (valtype == STRING) {
 	          // Apply keyword parameterization.
 	          if (ptype == 's') {
-	            ipx = wcsp->nps++;
+	            int ipx = wcsp->nps++;
 	            wcsp->ps[ipx].i = i;
 	            wcsp->ps[ipx].m = m;
 	            wptr = wcsp->ps[ipx].value;
@@ -2952,7 +2919,7 @@ jmp_buf wcsbth_abort_jmp_env;
 	            wptr = *((char (**)[72])wptr) + (i - 1);
 	          }
 	
-	          cptr = (char *)wptr;
+	          char *cptr = (char *)wptr;
 	          strcpy(cptr, strtmp);
 	        }
 	      }
@@ -3068,6 +3035,7 @@ jmp_buf wcsbth_abort_jmp_env;
 <<EOF>>	 {
 	  // End-of-input.
 	  if (ipass == 1) {
+	    int status;
 	    if ((status = wcsbth_init1(&alts, naux, nwcs, wcs)) ||
 	        (*nwcs == 0 && ctrl == 0)) {
 	      return status;
@@ -3088,8 +3056,8 @@ jmp_buf wcsbth_abort_jmp_env;
 	  }
 	
 	  if (ipass++ < npass) {
-	    wcsbth_hdr = header;
-	    wcsbth_nkeyrec = nkeyrec;
+	    yyextra->hdr = header;
+	    yyextra->nkeyrec = nkeyrec;
 	    keyrec = header;
 	    *nreject = 0;
 	
@@ -3136,6 +3104,36 @@ jmp_buf wcsbth_abort_jmp_env;
 %%
 
 /*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int wcsbth(
+  char *header,
+  int nkeyrec,
+  int relax,
+  int ctrl,
+  int keysel,
+  int *colsel,
+  int *nreject,
+  int *nwcs,
+  struct wcsprm **wcs)
+
+{
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct wcsbth_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = wcsbth_scanner(header, nkeyrec, relax, ctrl, keysel, colsel,
+                              nreject, nwcs, wcs, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*----------------------------------------------------------------------------
 * Perform first-pass tasks:
 *
 * 1) Count the number of coordinate axes in each of the 27 possible alternate
@@ -3172,14 +3170,12 @@ int wcsbth_pass1(
   struct wcsbth_alts *alts)
 
 {
-  int ialt, icol, mask, ncol;
-
   if (a == 0) {
     // Keywords such as DATE-OBS go along for the ride.
     return 0;
   }
 
-  ncol = alts->ncol;
+  int ncol = alts->ncol;
 
   // Do we need to allocate memory for alts?
   if (alts->arridx == 0x0) {
@@ -3201,7 +3197,7 @@ int wcsbth_pass1(
       if (alts->npv)     free(alts->npv);
       if (alts->nps)     free(alts->nps);
       if (alts->pixlist) free(alts->pixlist);
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     alts->ncol = ncol;
@@ -3221,12 +3217,12 @@ int wcsbth_pass1(
       if (alts->npv)     free(alts->npv);
       if (alts->nps)     free(alts->nps);
       if (alts->pixlist) free(alts->pixlist);
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     // Since realloc() doesn't initialize the extra memory.
-    for (icol = (1 + alts->ncol); icol < (1 + ncol); icol++) {
-      for (ialt = 0; ialt < 27; ialt++) {
+    for (int icol = (1 + alts->ncol); icol < (1 + ncol); icol++) {
+      for (int ialt = 0; ialt < 27; ialt++) {
         alts->arridx[icol][ialt] = 0;
         alts->npv[icol][ialt] = 0;
         alts->nps[icol][ialt] = 0;
@@ -3237,7 +3233,7 @@ int wcsbth_pass1(
     alts->ncol = ncol;
   }
 
-  ialt = 0;
+  int ialt = 0;
   if (a != ' ') {
     ialt = a - 'A' + 1;
   }
@@ -3274,7 +3270,7 @@ int wcsbth_pass1(
   // image arrays, never contribute to recognizing a table column as a pixel
   // list axis.  A PIXLIST keytype is required for that.
   if (keytype == PIXLIST) {
-    mask = 1 << ialt;
+    int mask = 1 << ialt;
 
     // n > 0 for PIXLIST keytypes.
     alts->pixlist[n] |= mask;
@@ -3308,9 +3304,7 @@ int wcsbth_init1(
   struct wcsprm **wcs)
 
 {
-  int ialt, icol, inherit[27], ix, mask, ncol, npsmax, npvmax, status = 0;
-  struct wcsprm *wcsp;
-
+  int status = 0;
 
   if (alts->arridx == 0x0) {
     *nwcs = 0;
@@ -3318,12 +3312,12 @@ int wcsbth_init1(
   }
 
   // Determine the number of axes in each pixel list representation.
-  ncol = alts->ncol;
+  int ialt, mask, ncol = alts->ncol;
   for (ialt = 0, mask = 1; ialt < 27; ialt++, mask <<= 1) {
     alts->pixidx[ialt] = 0;
 
     if (alts->pixlist[0] | mask) {
-      for (icol = 1; icol <= ncol; icol++) {
+      for (int icol = 1; icol <= ncol; icol++) {
         if (alts->pixlist[icol] & mask) {
           alts->pixidx[ialt]++;
         }
@@ -3334,10 +3328,11 @@ int wcsbth_init1(
   // Find the total number of coordinate representations.
   *nwcs = 0;
   alts->imgherit = 0;
-  for (ialt = 0; ialt < 27; ialt++) {
+  int inherit[27];
+  for (int ialt = 0; ialt < 27; ialt++) {
     inherit[ialt] = 0;
 
-    for (icol = 1; icol <= ncol; icol++) {
+    for (int icol = 1; icol <= ncol; icol++) {
       if (alts->arridx[icol][ialt] < 0) {
         // No BIMGARR keytype but there's at least one BINTAB.
         if (alts->arridx[0][ialt] > 0) {
@@ -3385,20 +3380,20 @@ int wcsbth_init1(
   if (*nwcs) {
     // Allocate memory for the required number of wcsprm structs.
     if (!(*wcs = calloc(*nwcs, sizeof(struct wcsprm)))) {
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     // Initialize each wcsprm struct.
-    wcsp = *wcs;
+    struct wcsprm *wcsp = *wcs;
     *nwcs = 0;
-    for (icol = 0; icol <= ncol; icol++) {
-      for (ialt = 0; ialt < 27; ialt++) {
+    for (int icol = 0; icol <= ncol; icol++) {
+      for (int ialt = 0; ialt < 27; ialt++) {
         if (alts->arridx[icol][ialt] > 0) {
           // Image-header representations that are not for inheritance
           // (icol == 0) or binary table image array representations.
           wcsp->flag = -1;
-          npvmax = alts->npv[icol][ialt];
-          npsmax = alts->nps[icol][ialt];
+          int npvmax = alts->npv[icol][ialt];
+          int npsmax = alts->nps[icol][ialt];
           if ((status = wcsinit(1, (int)(alts->arridx[icol][ialt]), wcsp,
                                 npvmax, npsmax, -1))) {
             wcsvfree(nwcs, wcs);
@@ -3433,12 +3428,12 @@ int wcsbth_init1(
       }
     }
 
-    for (ialt = 0; ialt < 27; ialt++) {
+    for (int ialt = 0; ialt < 27; ialt++) {
       if (alts->pixidx[ialt]) {
         // Pixel lists representations.
         wcsp->flag = -1;
-        npvmax = alts->pixnpv[ialt];
-        npsmax = alts->pixnps[ialt];
+        int npvmax = alts->pixnpv[ialt];
+        int npsmax = alts->pixnps[ialt];
         if ((status = wcsinit(1, (int)(alts->pixidx[ialt]), wcsp, npvmax,
                               npsmax, -1))) {
           wcsvfree(nwcs, wcs);
@@ -3458,7 +3453,7 @@ int wcsbth_init1(
         }
 
         // Record the pixel list column numbers.
-        mask = (1 << ialt);
+        int icol, ix, mask = (1 << ialt);
         for (icol = 1, ix = 0; icol <= ncol; icol++) {
           if (alts->pixlist[icol] & mask) {
             wcsp->colax[ix++] = icol;
@@ -3495,11 +3490,10 @@ struct wcsprm *wcsbth_idx(
 
 {
   const char as[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  int iwcs;
 
   if (!wcs) return 0x0;
 
-  iwcs = -1;
+  int iwcs = -1;
   for (; iwcs < 0 && alts->ialt < 27; alts->ialt++) {
     // Note that a == 0 applies to every alternate, otherwise this
     // loop simply determines the appropriate value of alts->ialt.
@@ -3541,17 +3535,14 @@ int wcsbth_colax(
   char a)
 
 {
-  int ix;
-  struct wcsprm *wcsp;
-
   if (!wcs) return 0;
 
-  wcsp = wcs;
+  struct wcsprm *wcsp = wcs;
   if (a != ' ') {
     wcsp += alts->pixidx[a-'A'+1];
   }
 
-  for (ix = 0; ix < wcsp->naxis; ix++) {
+  for (int ix = 0; ix < wcsp->naxis; ix++) {
     if (wcsp->colax[ix] == n) {
       return ++ix;
     }
@@ -3629,12 +3620,12 @@ int wcsbth_epoch(double *equinox, const double *epoch)
 int wcsbth_vsource(double *zsource, const double *vsource)
 
 {
-  double beta, c = 299792458.0;
+  const double c = 299792458.0;
 
   // If ZSOURCEa is currently undefined then set it from VSOURCEa.
   if (undefined(*zsource)) {
     // Convert relativistic Doppler velocity to redshift.
-    beta = *vsource/c;
+    double beta = *vsource/c;
     *zsource = (1.0 + beta)/sqrt(1.0 - beta*beta) - 1.0;
   }
 
@@ -3663,15 +3654,14 @@ int wcsbth_final(
   struct wcsprm **wcs)
 
 {
-  int ialt, status;
-
   if (alts->arridx)  free(alts->arridx);
   if (alts->npv)     free(alts->npv);
   if (alts->nps)     free(alts->nps);
   if (alts->pixlist) free(alts->pixlist);
 
-  for (ialt = 0; ialt < *nwcs; ialt++) {
+  for (int ialt = 0; ialt < *nwcs; ialt++) {
     // Interpret -TAB header keywords.
+    int status;
     if ((status = wcstab(*wcs+ialt))) {
        wcsvfree(nwcs, wcs);
        return status;

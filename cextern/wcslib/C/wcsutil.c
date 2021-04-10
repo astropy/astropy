@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsutil.c,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -44,53 +44,52 @@ void wcsdealloc(void *ptr)
 
 //----------------------------------------------------------------------------
 
-void wcsutil_strcvt(int n, char c, const char src[], char dst[])
+void wcsutil_strcvt(int n, char c, int nt, const char src[], char dst[])
 
 {
-  int j;
-
   if (n <= 0) return;
 
   if (c != '\0') c = ' ';
 
   if (src == 0x0) {
     if (dst) {
-       memset(dst, c, n);
+      memset(dst, c, n);
     }
-
-    return;
-  }
-
-  // Copy to the first NULL character.
-  for (j = 0; j < n; j++) {
-    if ((dst[j] = src[j]) == '\0') {
-      break;
-    }
-  }
-
-  if (j < n) {
-    // The given string is null-terminated.
-    memset(dst+j, c, n-j);
 
   } else {
-    // The given string is not null-terminated.
-    if (c == '\0') {
-      j = n - 1;
-      dst[j] = '\0';
-
-      j--;
-
-      // Work backwards, looking for the first non-blank.
-      for (; j >= 0; j--) {
-        if (dst[j] != ' ') {
-          break;
-        }
+    // Copy to the first NULL character.
+    int j;
+    for (j = 0; j < n; j++) {
+      if ((dst[j] = src[j]) == '\0') {
+        break;
       }
+    }
 
-      j++;
-      memset(dst+j, '\0', n-j);
+    if (j < n) {
+      // The given string is null-terminated.
+      memset(dst+j, c, n-j);
+
+    } else {
+      // The given string is not null-terminated.
+      if (c == '\0') {
+        // Work backwards, looking for the first non-blank.
+        for (j = n - 1; j >= 0; j--) {
+          if (dst[j] != ' ') {
+            break;
+          }
+        }
+
+        j++;
+	if (j == n && !nt) {
+	  dst[n-1] = '\0';
+	} else {
+          memset(dst+j, '\0', n-j);
+	}
+      }
     }
   }
+
+  if (nt) dst[n] = '\0';
 
   return;
 }

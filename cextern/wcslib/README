@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
-                         WCSLIB 7.4 and PGSBOX 7.4
+                         WCSLIB 7.5 and PGSBOX 7.5
 ------------------------------------------------------------------------------
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -21,7 +21,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: README,v 7.4 2021/01/31 02:24:52 mcalabre Exp $
+  $Id: README,v 7.5 2021/03/20 05:54:59 mcalabre Exp $
 ------------------------------------------------------------------------------
 
 Please refer to

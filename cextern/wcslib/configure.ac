@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 7.4 2021/01/31 02:24:52 mcalabre Exp $
+# $Id: configure.ac,v 7.5 2021/03/20 05:54:59 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [7.4], [mark@calabretta.id.au], [wcslib-7.4])
+AC_INIT([WCSLIB], [7.5], [mark@calabretta.id.au], [wcslib-7.5])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 7.4 $])
+AC_REVISION([$Revision: 7.5 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -544,6 +544,17 @@ else
   INSTDIR="$INSTDIR utils"
 fi
 
+# Default observer coordinates for sundazel.
+if test -f "$HOME/.sundazelrc"; then
+  . "$HOME/.sundazelrc"
+fi
+
+if test "x$OBSLNG" = x; then
+  OBSLNG=0.0
+  OBSLAT=0.0
+  OBSTZ=0.0
+fi
+
 
 AC_SUBST([CFITSIOINC])
 AC_SUBST([CFITSIOLIB])
@@ -555,6 +566,10 @@ AC_SUBST([PGPLOTLIB])
 AC_SUBST([SUBDIRS])
 AC_SUBST([TSTDIRS])
 AC_SUBST([INSTDIR])
+
+AC_SUBST([OBSLNG])
+AC_SUBST([OBSLAT])
+AC_SUBST([OBSTZ])
 
 AC_MSG_NOTICE([End of auxiliary configuration.
 ])

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsutil.h,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.5 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -64,9 +64,10 @@
 * wcsutil_strcvt() copies one character string to another up to the specified
 * maximum number of characters.
 *
-* If the given string is null-terminated, then the terminating NULL character,
-* and all characters following it up to the specified maximum, are replaced
-* with the specified substitute character, either blank or NULL.
+* If the given string is null-terminated, then the NULL character copied to
+* the returned string, and all characters following it up to the specified
+* maximum, are replaced with the specified substitute character, either blank
+* or NULL.
 *
 * If the source string is not null-terminated and the substitute character is
 * blank, then copy the maximum number of characters and do nothing further.
@@ -82,9 +83,11 @@
 *   c         char      Substitute character, either NULL or blank (anything
 *                       other than NULL).
 *
-*   src       const char[]
-*                       Character string to be copied.  Need not be
-*                       null-terminated.
+*   nt        int       If true, then dst is of length n+1, with the last
+*                       character always set to NULL.
+*
+*   src       char[]    Character string to be copied.  If null-terminated,
+*                       then need not be of length n, otherwise it must be.
 *
 * Returned:
 *   dst       char[]    Destination character string, which must be long
@@ -403,7 +406,7 @@ extern "C" {
 
 void wcsdealloc(void *ptr);
 
-void wcsutil_strcvt(int n, char c, const char src[], char dst[]);
+void wcsutil_strcvt(int n, char c, int nt, const char src[], char dst[]);
 
 void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);

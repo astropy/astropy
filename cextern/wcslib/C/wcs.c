@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcs.c,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -4021,6 +4021,190 @@ int wcsmix(
 
   // No solution.
   return wcserr_set(WCS_ERRMSG(WCSERR_NO_SOLUTION));
+}
+
+//----------------------------------------------------------------------------
+
+int wcsccs(
+  struct wcsprm *wcs,
+  double lng2P1,
+  double lat2P1,
+  double lng1P2,
+  const char *clng,
+  const char *clat,
+  const char *radesys,
+  double equinox,
+  const char *alt)
+
+{
+  static const char *function = "wcsccs";
+
+  // Initialize if required.
+  if (wcs == 0x0) return WCSERR_NULL_POINTER;
+  struct wcserr **err = &(wcs->err);
+
+  if (wcs->flag != WCSSET) {
+    int status;
+    if ((status = wcsset(wcs))) return status;
+  }
+
+  if (wcs->lng < 0 || wcs->lat < 0) {
+    return wcserr_set(WCSERR_SET(WCSERR_BAD_SUBIMAGE),
+      "Image does not have celestial axes.");
+  }
+
+  // (lng1XX,lat1XX)  ...longitude and latitude of XX in the old system.
+  // (lng2XX,lat2XX)  ...longitude and latitude of XX in the new system.
+  // XX = NP          ...natuve pole,
+  //      P1          ...pole of the old system,
+  //      P2          ...pole of the new system,
+  //      FP          ...fiducial point.
+
+  // Set up the transformation from the old to the new system.
+  double euler12[5];
+  euler12[0] = lng2P1;
+  euler12[1] = 90.0 - lat2P1;
+  euler12[2] = lng1P2;
+  euler12[3] = cosd(euler12[1]);
+  euler12[4] = sind(euler12[1]);
+
+  // Transform coordinates of the fiducial point (FP) to the new system.
+  double lng1FP = wcs->crval[wcs->lng];
+  double lat1FP = wcs->crval[wcs->lat];
+  double lng2FP, lat2FP;
+  (void)sphx2s(euler12, 1, 1, 1, 1, &lng1FP, &lat1FP, &lng2FP, &lat2FP);
+
+  // Compute native coordinates of the new pole (noting lat1P2 == lat2P1).
+  double phiP2, thetaP2;
+  (void)sphs2x(wcs->cel.euler, 1, 1, 1, 1, &lng1P2, &lat2P1,
+               &phiP2, &thetaP2);
+
+  if (fabs(lat2FP) == 90.0 || fabs(thetaP2) == 90.0) {
+    // If one of the poles of the new system is at the fiducial point, then
+    // lng2FP is indeterminate, and if one of them is at the native pole, then
+    // phiP2 is indeterminate.  We have to work harder to obtain these values.
+
+    // Compute coordinates of the native pole (NP) in the old and new systems.
+    double phiNP = 0.0, thetaNP = 90.0;
+    double lng1NP, lat1NP;
+    (void)sphx2s(wcs->cel.euler, 1, 1, 1, 1, &phiNP, &thetaNP,
+                 &lng1NP, &lat1NP);
+
+    double lng2NP, lat2NP;
+    (void)sphx2s(euler12, 1, 1, 1, 1, &lng1NP, &lat1NP, &lng2NP, &lat2NP);
+
+    // Native latitude and longitude of the fiducial point, (phi0,theta0).
+    double phiFP   = wcs->cel.prj.phi0;
+    double thetaFP = wcs->cel.prj.theta0;
+
+    if (fabs(lat2NP) == 90.0) {
+      // Following WCS Paper II equations (3) and (4), we are free to choose
+      // phiP2 and set lng2NP accordingly.  So set phiP2 to its default value
+      // for the projection.
+      if (thetaFP < lat2FP) {
+        phiP2 = 0.0;
+      } else {
+        phiP2 = 180.0;
+      }
+
+      // Compute coordinates in the old system of test point X.
+      double phiX = 0.0, thetaX = 0.0;
+      double lng1X, lat1X;
+      (void)sphx2s(wcs->cel.euler, 1, 1, 1, 1, &phiX, &thetaX,
+                   &lng1X, &lat1X);
+
+      // Ensure that lng1X is not indeterminate.
+      if (fabs(lat1X) == 90.0) {
+        phiX = 90.0;
+        (void)sphx2s(wcs->cel.euler, 1, 1, 1, 1, &phiX, &thetaX,
+                     &lng1X, &lat1X);
+      }
+
+      // Compute coordinates in the new system of test point X.
+      double lng2X, lat2X;
+      (void)sphx2s(euler12, 1, 1, 1, 1, &lng1X, &lat1X, &lng2X, &lat2X);
+
+      // Apply WCS Paper II equations (3) and (4).
+      if (lat2NP == +90.0) {
+        lng2NP = lng2X + (phiP2 - phiX) + 180.0;
+      } else {
+        lng2NP = lng2X - (phiP2 - phiX);
+      }
+
+    } else {
+      // For (lng2NP + 90, 0), WCS Paper II equation (5) reduces to
+      // phi = phiP2 - 90.
+      double lng2X = lng2NP + 90.0;
+      double lat2X = 0.0;
+      double lng1X, lat1X;
+      (void)sphs2x(euler12, 1, 1, 1, 1, &lng2X, &lat2X, &lng1X, &lat1X);
+
+      double phiX, thetaX;
+      (void)sphs2x(wcs->cel.euler, 1, 1, 1, 1, &lng1X, &lat1X,
+                   &phiX, &thetaX);
+
+      phiP2 = phiX + 90.0;
+    }
+
+    // Compute the longitude of the fiducial point in the new system.
+    double eulerN2[5];
+    eulerN2[0] = lng2NP;
+    eulerN2[1] = 90.0 - lat2NP;
+    eulerN2[2] = phiP2;
+    eulerN2[3] = cosd(eulerN2[1]);
+    eulerN2[4] = sind(eulerN2[1]);
+
+    (void)sphx2s(eulerN2, 1, 1, 1, 1, &phiFP, &thetaFP, &lng2FP, &lat2FP);
+  }
+
+  // Update reference values in wcsprm.
+  wcs->flag = 0;
+  wcs->crval[wcs->lng] = lng2FP;
+  wcs->crval[wcs->lat] = lat2FP;
+  wcs->lonpole = phiP2;
+  wcs->latpole = thetaP2;
+
+  // Update wcsprm::ctype.
+  if (clng) {
+    strncpy(wcs->ctype[wcs->lng], clng, 4);
+    for (int i = 0; i < 4; i++) {
+      if (wcs->ctype[wcs->lng][i] == '\0') {
+        wcs->ctype[wcs->lng][i] = '-';
+      }
+    }
+  }
+
+  if (clat) {
+    strncpy(wcs->ctype[wcs->lat], clat, 4);
+    for (int i = 0; i < 4; i++) {
+      if (wcs->ctype[wcs->lat][i] == '\0') {
+        wcs->ctype[wcs->lat][i] = '-';
+      }
+    }
+  }
+
+  // Update auxiliary values.
+  if (strncmp(wcs->ctype[wcs->lng], "RA--", 4) == 0 &&
+      strncmp(wcs->ctype[wcs->lat], "DEC-", 4) == 0) {
+    // Transforming to equatorial coordinates.
+    if (radesys) {
+      strncpy(wcs->radesys, radesys, 71);
+    }
+
+    if (equinox != 0.0) {
+      wcs->equinox = equinox;
+    }
+  } else {
+    // Meaningless for other than equatorial coordinates.
+    memset(wcs->radesys, 0, 72);
+    wcs->equinox = UNDEFINED;
+  }
+
+  if (alt && *alt) {
+    wcs->alt[0] = *alt;
+  }
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------
