@@ -15,23 +15,14 @@ from astropy.utils.exceptions import DuplicateRepresentationWarning
 from astropy.coordinates.angles import Longitude, Latitude, Angle
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import rotation_matrix
-from astropy.coordinates.representation import (REPRESENTATION_CLASSES,
-                                                DIFFERENTIAL_CLASSES,
-                                                DUPLICATE_REPRESENTATIONS,
-                                                BaseRepresentation,
-                                                SphericalRepresentation,
-                                                UnitSphericalRepresentation,
-                                                SphericalCosLatDifferential,
-                                                CartesianRepresentation,
-                                                CylindricalRepresentation,
-                                                PhysicsSphericalRepresentation,
-                                                CartesianDifferential,
-                                                SphericalDifferential,
-                                                RadialDifferential,
-                                                CylindricalDifferential,
-                                                PhysicsSphericalDifferential,
-                                                UnitSphericalDifferential,
-                                                UnitSphericalCosLatDifferential)
+from astropy.coordinates.representation import (
+    REPRESENTATION_CLASSES, DIFFERENTIAL_CLASSES, DUPLICATE_REPRESENTATIONS,
+    BaseRepresentation, SphericalRepresentation, UnitSphericalRepresentation,
+    SphericalCosLatDifferential, CartesianRepresentation, RadialDifferential,
+    CylindricalRepresentation, PhysicsSphericalRepresentation,
+    CartesianDifferential, SphericalDifferential, CylindricalDifferential,
+    PhysicsSphericalDifferential, UnitSphericalDifferential,
+    UnitSphericalCosLatDifferential)
 
 
 # Preserve the original REPRESENTATION_CLASSES dict so that importing

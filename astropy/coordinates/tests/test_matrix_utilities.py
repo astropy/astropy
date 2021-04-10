@@ -4,7 +4,8 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import rotation_matrix, angle_axis
+from astropy.coordinates.matrix_utilities import (rotation_matrix, angle_axis,
+                                                  is_rotation)
 
 
 def test_rotation_matrix():
@@ -45,3 +46,25 @@ def test_angle_axis():
 
     assert an2 - 89*u.deg < 1e-10*u.deg
     assert_allclose(ax2, [-2**-0.5, -2**-0.5, 0])
+
+
+def test_is_rotation():
+    """Test the rotation matrix checker ``is_rotation``."""
+    # Normal rotation matrix
+    m1 = rotation_matrix(35*u.deg, 'x')
+
+    assert is_rotation(m1)
+    assert is_rotation(m1, allow_improper=True)  # (a less restrictive test)
+
+    # Improper rotation
+    m2 = np.identity(3)
+    m2[0,0] = -1
+
+    assert not is_rotation(m2)
+    assert is_rotation(m2, allow_improper=True)
+
+    # Not any sort of rotation
+    m3 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+    assert not is_rotation(m3)
+    assert not is_rotation(m3, allow_improper=True)
