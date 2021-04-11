@@ -444,23 +444,28 @@ class TestUnitSphericalRepresentation:
 
     def test_representation_shortcuts(self):
         """Test that shortcuts in ``represent_as`` don't fail."""
+        # TODO! representation transformations with differentials cannot
+        # (currently) be implemented due to a mismatch between the UnitSpherical
+        # expected keys (e.g. "s") and that expected in the other class
+        # (here "s / m"). For more info, see PR #11467
+        # We leave the test code commented out for future use.
         # diffs = UnitSphericalCosLatDifferential(4*u.mas/u.yr, 5*u.mas/u.yr,
         #                                         6*u.km/u.s)
         sph = UnitSphericalRepresentation(1*u.deg, 2*u.deg)
-                                          # differentials={'s': diffs}
+                                          # , differentials={'s': diffs}
         got = sph.represent_as(PhysicsSphericalRepresentation)
-                               # PhysicsSphericalDifferential)
+                               # , PhysicsSphericalDifferential)
         assert np.may_share_memory(sph.lon, got.phi)
         expected = BaseRepresentation.represent_as(
             sph, PhysicsSphericalRepresentation)  # PhysicsSphericalDifferential
         assert representation_equal_up_to_angular_type(got, expected)
 
         got = sph.represent_as(SphericalRepresentation)
-                               # SphericalDifferential
+                               # , SphericalDifferential)
         assert np.may_share_memory(sph.lon, got.lon)
         assert np.may_share_memory(sph.lat, got.lat)
         expected = BaseRepresentation.represent_as(
-            sph, SphericalRepresentation) # SphericalDifferential)
+            sph, SphericalRepresentation) # , SphericalDifferential)
         assert representation_equal_up_to_angular_type(got, expected)
 
 
