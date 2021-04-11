@@ -2,8 +2,6 @@
 """Accuracy tests for ICRS transformations, primarily to/from AltAz.
 
 """
-import pytest
-import numpy as np
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
@@ -14,17 +12,16 @@ from astropy.coordinates import (
 from astropy.coordinates.tests.utils import randomly_sample_sphere
 from astropy.coordinates import frame_transform_graph
 
-ra, dec, dist = randomly_sample_sphere(200)
-icrs_coords = SkyCoord(ra=ra, dec=dec, distance=dist*u.km*1e5)
 
-
-@pytest.mark.parametrize('icoo', icrs_coords)
-def test_icrs_consistency(icoo):
+def test_icrs_consistency():
     """
     Check ICRS<->AltAz for consistency with ICRS<->CIRS<->AltAz
 
     The latter is extensively tested in test_intermediate_transformations.py
     """
+    ra, dec, dist = randomly_sample_sphere(200)
+    icoo = SkyCoord(ra=ra, dec=dec, distance=dist*u.km*1e5)
+
     observer = EarthLocation(28*u.deg, 23*u.deg, height=2000.*u.km)
     obstime = Time('J2010')
     aa_frame = AltAz(obstime=obstime, location=observer)
