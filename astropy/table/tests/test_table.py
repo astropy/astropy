@@ -2031,6 +2031,17 @@ class TestPandas:
         assert len(record) == 1
         assert "{'y'}" in record[0].message.args[0]
 
+    def test_to_pandas_masked_int_data_with__index(self):
+        data = {"data": [0, 1, 2], "index": [10, 11, 12]}
+        t = table.Table(data=data, masked=True)
+
+        t.add_index("index")
+        t["data"].mask = [1, 1, 0]
+
+        df = t.to_pandas()
+
+        assert df["data"].iloc[-1] == 2
+
 
 @pytest.mark.usefixtures('table_types')
 class TestReplaceColumn(SetupData):
