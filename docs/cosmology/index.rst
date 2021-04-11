@@ -248,6 +248,28 @@ To make a copy of a cosmological instance using the ``clone`` operation:
 ..
   EXAMPLE END
 
+Directly instantiating the `~astropy.cosmology.Cosmology`` base class clones the
+current default cosmology (set by `~astropy.cosmology.default_cosmology`),
+updating parameters as specified. This allows for:
+
+..
+  EXAMPLE START
+  Making New Cosmology Instances with the Base Class.
+
+  >>> from astropy.cosmology import Cosmology, default_cosmology
+  >>> Cosmology()  # the default cosmology
+  FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), ...)
+
+  >>> with default_cosmology.set("WMAP5"):
+  >>>      print(Cosmology())  # gets the new default
+  FlatLambdaCDM(name="WMAP5", H0=70.2 km / (Mpc s), ...)
+
+  >>> Cosmology(name="modified", H0=70)  # perturb around the default
+  FlatLambdaCDM(name="modified", H0=70 km / (Mpc s), ...)
+  
+..
+  EXAMPLE END
+
 Finding the Redshift at a Given Value of a Cosmological Quantity
 ----------------------------------------------------------------
 

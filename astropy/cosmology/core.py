@@ -26,8 +26,8 @@ from . import parameters
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
+__all__ = ["Cosmology", "FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM",
+           "FlatwCDM", "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
 
 __doctest_requires__ = {'*': ['scipy']}
 
@@ -83,8 +83,29 @@ kB_evK = const.k_B.to(u.eV / u.K)
 class CosmologyError(Exception):
     pass
 
+class CosmologyMeta(ABCMeta):
+    def __call__(cls, *args, **kwargs):
+        """
+        Create Cosmology instance. If class is Cosmology,
+        create from `default_cosmology`, else create as normal.
 
-class Cosmology(metaclass=ABCMeta):
+        Returns
+        -------
+        `~astropy.cosmology.Cosmology`
+
+        """
+        if cls is Cosmology:
+            from .realizations import default_cosmology
+
+            base = default_cosmology.get()
+            cosmo = base.clone(*args, **kwargs)
+            return cosmo
+
+        # else, proceed normally
+        return super().__call__(*args, **kwargs)
+
+
+class Cosmology(metaclass=CosmologyMeta):
     """Base-class for all Cosmologies.
 
     Parameters
