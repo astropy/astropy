@@ -116,7 +116,7 @@ class Masked(NDArrayShapeMethods):
 
     @classmethod
     def _get_masked_instance(cls, data, mask=None, copy=False):
-        data, data_mask = cls._data_mask(data)
+        data, data_mask = cls._get_data_and_mask(data)
         if mask is None:
             mask = False if data_mask is None else data_mask
 
@@ -160,7 +160,7 @@ class Masked(NDArrayShapeMethods):
         return masked_cls
 
     @classmethod
-    def _data_mask(cls, data, allow_ma_masked=False):
+    def _get_data_and_mask(cls, data, allow_ma_masked=False):
         """Split data into unmasked and mask, if present.
 
         Parameters
@@ -169,11 +169,19 @@ class Masked(NDArrayShapeMethods):
             Possibly masked item, judged by whether it has a ``mask`` attribute.
             If so, checks for being an instance of `~astropy.utils.masked.Masked`
             or `~numpy.ma.MaskedArray`, and gets unmasked data appropriately.
+        allow_ma_masked : bool, optional
+            Whether or not to process `~numpy.ma.masked`, i.e., an item that
+            implies no data but the presence of a mask.
 
         Returns
         -------
         unmasked, mask : array-like
             Unmasked will be `None` for `~numpy.ma.masked`.
+
+        Raises
+        ------
+        ValueError
+            If `~numpy.ma.masked` is passed in and ``allow_ma_masked`` is not set.
 
         """
         mask = getattr(data, 'mask', None)
@@ -194,8 +202,8 @@ class Masked(NDArrayShapeMethods):
         return data, mask
 
     @classmethod
-    def _data_masks(cls, *args):
-        data_masks = [cls._data_mask(arg) for arg in args]
+    def _get_data_and_masks(cls, *args):
+        data_masks = [cls._get_data_and_mask(arg) for arg in args]
         return (tuple(data for data, _ in data_masks),
                 tuple(mask for _, mask in data_masks))
 
@@ -270,7 +278,7 @@ class Masked(NDArrayShapeMethods):
         return self.from_unmasked(data, mask, copy=False)
 
     def __setitem__(self, item, value):
-        value, mask = self._data_mask(value, allow_ma_masked=True)
+        value, mask = self._get_data_and_mask(value, allow_ma_masked=True)
         if value is not None:
             self.unmasked[item] = value
         self.mask[item] = mask
@@ -364,7 +372,7 @@ def _comparison_method(op):
     and hence return unmasked results.
     """
     def _compare(self, other):
-        other_data, other_mask = self._data_mask(other)
+        other_data, other_mask = self._get_data_and_mask(other)
         result = getattr(self.unmasked, op)(other_data)
         if result is NotImplemented:
             return NotImplemented
@@ -414,7 +422,7 @@ class MaskedIterator:
         return self._masked.from_unmasked(out, mask, copy=False)
 
     def __setitem__(self, index, value):
-        data, mask = self._masked._data_mask(value, allow_ma_masked=True)
+        data, mask = self._masked._get_data_and_mask(value, allow_ma_masked=True)
         if data is not None:
             self._dataiter[index] = data
         self._maskiter[index] = mask
@@ -616,7 +624,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         out_unmasked = None
         out_mask = None
         if out is not None:
-            out_unmasked, out_masks = self._data_masks(*out)
+            out_unmasked, out_masks = self._get_data_and_masks(*out)
             for d, m in zip(out_unmasked, out_masks):
                 if m is None:
                     # TODO: allow writing to unmasked output if nothing is masked?
@@ -625,7 +633,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 elif out_mask is None:
                     out_mask = m
 
-        unmasked, masks = self._data_masks(*inputs)
+        unmasked, masks = self._get_data_and_masks(*inputs)
 
         if ufunc.signature:
             # We're dealing with a gufunc. For now, only deal with
@@ -979,8 +987,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         are ignored for clipping.  The mask of the input array is propagated.
         """
         # TODO: implement this at the ufunc level.
-        dmin, mmin = self._data_mask(min)
-        dmax, mmax = self._data_mask(max)
+        dmin, mmin = self._get_data_and_mask(min)
+        dmax, mmax = self._get_data_and_mask(max)
         if mmin is None and mmax is None:
             # Fast path for unmasked max, min.
             return super().clip(min, max, out=out, **kwargs)
