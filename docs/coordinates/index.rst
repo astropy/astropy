@@ -408,7 +408,7 @@ be used to retrieve the timezone name for an address with:
 
 The resulting timezone name could then be used with any packages that support
 time zone definitions, such as the (Python 3.9 default package) `zoneinfo
-<https://docs.python.org/3/library/zoneinfo.html>`_::
+<https://docs.python.org/3/library/zoneinfo.html>`_:
 
 .. doctest-skip::
 
