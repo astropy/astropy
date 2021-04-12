@@ -14,7 +14,7 @@ import pytest
 # TODO: Exclusively use select when Python minversion is 3.10
 eps = entry_points()
 if hasattr(eps, 'select'):
-    ep = [entry.name for entry in eps.select('asdf_extensions', [])]
+    ep = [entry.name for entry in eps.select(group='asdf_extensions')]
 else:
     ep = [entry.name for entry in eps.get('asdf_extensions', [])]
 ASDF_ENTRY_INSTALLED = 'astropy' in ep and 'astropy-asdf' in ep
