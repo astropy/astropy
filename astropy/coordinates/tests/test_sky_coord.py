@@ -1843,3 +1843,26 @@ def test_passing_inconsistent_coordinates_and_units_raises_helpful_error(kwargs,
     # https://github.com/astropy/astropy/issues/10725
     with pytest.raises(ValueError, match=error_message):
         SkyCoord(**kwargs)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
+def test_match_to_catalog_3d_and_sky():
+    # Test for issue #5857. See PR #11449
+    cfk5_default = SkyCoord([1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 1, 1.5, 1] * u.kpc,
+                            frame='fk5')
+    cfk5_J1950 = SkyCoord([1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 1, 1.5, 1] * u.kpc,
+                          frame='fk5').transform_to(FK5(equinox='J1950'))
+
+    idx, angle, quantity = cfk5_J1950.match_to_catalog_3d(cfk5_default)
+    npt.assert_array_equal(idx, [0, 1, 2, 3])
+    assert_allclose(angle, [2.27537943e-16, 6.67985006e-16, 6.62615559e-17, 8.89567656e-16]*u.deg)
+
+    expected_quantity = [4.44144264e-16, 4.44144264e-16, 6.66714062e-16, 4.44306844e-16] * u.kpc
+    assert_allclose(quantity, expected_quantity, atol=1*u.mpc, rtol=0)
+
+    idx, angle, distance = cfk5_J1950.match_to_catalog_sky(cfk5_default)
+    npt.assert_array_equal(idx, [0, 1, 2, 3])
+    assert_allclose(angle, [2.04902545e-16, 7.96690162e-16, 4.03053309e-16, 7.96690162e-16] * u.deg)
+
+    expected_distance = [4.44144264e-16, 4.44144264e-16, 6.66714062e-16, 4.44306844e-16] * u.kpc
+    assert_allclose(distance, expected_distance, atol=1*u.mpc, rtol=0)
