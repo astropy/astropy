@@ -171,14 +171,14 @@ apply_to_both = FunctionAssigner(APPLY_TO_BOTH_FUNCTIONS)
 dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
 
 
-def _data_masks(*args):
+def _get_data_and_masks(*args):
     """Separate out arguments into tuples of data and masks.
 
     An all-False mask is created if an argument does not have a mask.
     """
     from .core import Masked
 
-    data, masks = Masked._data_masks(*args)
+    data, masks = Masked._get_data_and_masks(*args)
     masks = tuple(m if m is not None else np.zeros(np.shape(d), bool)
                   for d, m in zip(data, masks))
     return data, masks
@@ -219,25 +219,25 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 @apply_to_both(helps={
     np.copy, np.asfarray, np.resize, np.moveaxis, np.rollaxis, np.roll})
 def masked_a_helper(a, *args, **kwargs):
-    data, mask = _data_masks(a)
+    data, mask = _get_data_and_masks(a)
     return data + args, mask + args, kwargs, None
 
 
 @apply_to_both(helps={np.flip, np.flipud, np.fliplr, np.rot90, np.triu, np.tril})
 def masked_m_helper(m, *args, **kwargs):
-    data, mask = _data_masks(m)
+    data, mask = _get_data_and_masks(m)
     return data + args, mask + args, kwargs, None
 
 
 @apply_to_both(helps={np.diag, np.diagflat})
 def masked_v_helper(v, *args, **kwargs):
-    data, mask = _data_masks(v)
+    data, mask = _get_data_and_masks(v)
     return data + args, mask + args, kwargs, None
 
 
 @apply_to_both(helps={np.delete})
 def masked_arr_helper(array, *args, **kwargs):
-    data, mask = _data_masks(array)
+    data, mask = _get_data_and_masks(array)
     return data + args, mask + args, kwargs, None
 
 
@@ -250,7 +250,7 @@ def broadcast_to(array,  shape, subok=False):
     the unmasked data and mask are allowed, i.e., for ``subok=False``,
     a `~astropy.utils.masked.MaskedNDArray` will be returned.
     """
-    data, mask = _data_masks(array)
+    data, mask = _get_data_and_masks(array)
     return data, mask, dict(shape=shape, subok=subok), None
 
 
@@ -322,7 +322,7 @@ def put(a, ind, v, mode='raise'):
     if isinstance(ind, Masked) or not isinstance(a, Masked):
         raise NotImplementedError
 
-    v_data, v_mask = a._data_mask(v)
+    v_data, v_mask = a._get_data_and_mask(v)
     if v_data is not None:
         np.put(a.unmasked, ind, v_data, mode=mode)
     # v_mask of None will be correctly interpreted as False.
@@ -341,7 +341,7 @@ def putmask(a, mask, values):
     if isinstance(mask, Masked) or not isinstance(a, Masked):
         raise NotImplementedError
 
-    values_data, values_mask = a._data_mask(values)
+    values_data, values_mask = a._get_data_and_mask(values)
     if values_data is not None:
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
@@ -359,7 +359,7 @@ def place(arr, mask, vals):
     if isinstance(mask, Masked) or not isinstance(arr, Masked):
         raise NotImplementedError
 
-    vals_data, vals_mask = arr._data_mask(vals)
+    vals_data, vals_mask = arr._get_data_and_mask(vals)
     if vals_data is not None:
         np.place(arr.unmasked, mask, vals_data)
     np.place(arr.mask, mask, vals_mask)
@@ -377,7 +377,7 @@ def copyto(dst, src,  casting='same_kind', where=True):
     if not isinstance(dst, Masked) or isinstance(where, Masked):
         raise NotImplementedError
 
-    src_data, src_mask = dst._data_mask(src)
+    src_data, src_mask = dst._get_data_and_mask(src)
 
     if src_data is not None:
         np.copyto(dst.unmasked, src_data, casting=casting, where=where)
@@ -420,7 +420,7 @@ def bincount(x, weights=None, minlength=0):
         x = x.unmasked[~x.mask]
     mask = None
     if weights is not None:
-        weights, w_mask = Masked._data_mask(weights)
+        weights, w_mask = Masked._get_data_and_mask(weights)
         if w_mask is not None:
             mask = np.bincount(x, w_mask.astype(int),
                                minlength=minlength).astype(bool)
@@ -453,13 +453,13 @@ def sort_complex(a):
 
 @apply_to_both
 def concatenate(arrays, axis=0, out=None):
-    data, masks = _data_masks(*arrays)
+    data, masks = _get_data_and_masks(*arrays)
     return (data,), (masks,), dict(axis=axis), out
 
 
 @apply_to_both
 def append(arr, values, axis=None):
-    data, masks = _data_masks(arr, values)
+    data, masks = _get_data_and_masks(arr, values)
     return data, masks, dict(axis=axis), None
 
 
@@ -523,7 +523,7 @@ def insert(arr, obj, values, axis=None):
     if isinstance(obj, Masked) or not isinstance(arr, Masked):
         raise NotImplementedError
 
-    (arr_data, val_data), (arr_mask, val_mask) = _data_masks(arr, values)
+    (arr_data, val_data), (arr_mask, val_mask) = _get_data_and_masks(arr, values)
     return ((arr_data, obj, val_data, axis),
             (arr_mask, obj, val_mask, axis), {}, None)
 
@@ -651,7 +651,7 @@ def percentile(a, q, *args, **kwargs):
 
 @dispatched_function
 def array_equal(a1, a2, equal_nan=False):
-    (a1d, a2d), (a1m, a2m) = _data_masks(a1, a2)
+    (a1d, a2d), (a1m, a2m) = _get_data_and_masks(a1, a2)
     if a1d.shape != a2d.shape:
         return False
 
@@ -672,9 +672,9 @@ def where(condition, *args):
     if not args:
         return condition.nonzero(), None, None
 
-    condition, c_mask = Masked._data_mask(condition)
+    condition, c_mask = Masked._get_data_and_mask(condition)
 
-    data, masks = _data_masks(*args)
+    data, masks = _get_data_and_masks(*args)
     unmasked = np.where(condition, *data)
     mask = np.where(condition, *masks)
     if c_mask is not None:
@@ -694,7 +694,7 @@ def choose(a, choices, out=None, mode='raise'):
     """
     from astropy.utils.masked import Masked
 
-    a_data, a_mask = Masked._data_mask(a)
+    a_data, a_mask = Masked._get_data_and_mask(a)
     if a_mask is not None and mode == 'raise':
         # Avoid raising on masked indices.
         a_data = a.filled(fill_value=0)
@@ -705,7 +705,7 @@ def choose(a, choices, out=None, mode='raise'):
             raise NotImplementedError
         kwargs['out'] = out.unmasked
 
-    data, masks = _data_masks(*choices)
+    data, masks = _get_data_and_masks(*choices)
     data_chosen = np.choose(a_data, data, **kwargs)
     if out is not None:
         kwargs['out'] = out.mask
@@ -730,7 +730,7 @@ def select(condlist, choicelist, default=0):
     condlist = [c.unmasked if isinstance(c, Masked) else c
                 for c in condlist]
 
-    data_list, mask_list = _data_masks(*choicelist)
+    data_list, mask_list = _get_data_and_masks(*choicelist)
     default = Masked(default) if default is not np.ma.masked else Masked(0, mask=True)
     return ((condlist, data_list, default.unmasked),
             (condlist, mask_list, default.mask), {}, None)
@@ -795,9 +795,9 @@ def interp(x, xp, fp, *args, **kwargs):
     but masked on output.
     """
     from astropy.utils.masked import Masked
-    xd, xm = Masked._data_mask(x)
+    xd, xm = Masked._get_data_and_mask(x)
     if isinstance(xp, Masked) or isinstance(fp, Masked):
-        (xp, fp), (xpm, fpm) = _data_masks(xp, fp)
+        (xp, fp), (xpm, fpm) = _get_data_and_masks(xp, fp)
         if xp.ndim == fp.ndim == 1:
             # Avoid making arrays 1-D; will just raise below.
             m = xpm | fpm
