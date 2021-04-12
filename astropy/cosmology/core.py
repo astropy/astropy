@@ -84,12 +84,96 @@ class CosmologyError(Exception):
     pass
 
 
-class Cosmology:
-    """ Placeholder for when a more general Cosmology class is
-    implemented. """
+class Cosmology(metaclass=ABCMeta):
+    """Base-class for all Cosmologies.
+
+    Parameters
+    ----------
+    *args
+        Arguments into the cosmology; used by subclasses, not this base class.
+    name : str or None (optional, keyword-only)
+        The name of the cosmology.
+    **kwargs
+        Arguments into the cosmology; used by subclasses, not this base class.
+
+    Notes
+    -----
+    Class instances are static -- you cannot (and should not) change the values
+    of the parameters.  That is, all of the attributes above are
+    read only.
+
+    """
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        # get signature, dropping "self" by taking arguments [1:]
+        sig = signature(cls.__init__)
+        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
+        cls._init_signature = sig  # store (immutable) initialization signature
+
+    def __new__(cls, *args, **kwargs):
+        # bundle initialization argument
+        if not args:
+            parameters = kwargs
+        else:  # have to merge args and kwargs.
+            # bind any arguments passed
+            ba = cls._init_signature.bind_partial(*args, **kwargs)
+            ba.apply_defaults()  # and fill in the defaults
+            # get dictionary of arguments
+            parameters = ba.arguments
+
+        self = super().__new__(cls)
+        self._init_arguments = parameters  # store arguments from initialization
+
+        return self
+
+    def __init__(self, *args, name=None, **kwargs):
+        self.name = name
+
+    def clone(self, **kwargs):
+        """Returns a copy of this object with updated parameters, as specified.
+
+        This cannot be used to change the type of the cosmology, so ``clone()``
+        cannot be used to change between flat and non-flat cosmologies.  If no
+        modifications are requested, then a reference to this object is
+        returned.
+
+        Returns
+        -------
+        newcosmo : `~astropy.cosmology.Cosmology` subclass instance
+            A new instance of this class with updated parameters as specified.
+
+        Examples
+        --------
+        To make a copy of the ``Planck13`` cosmology with a different matter
+        density (``Om0``):
+        and a new name:
+
+        >>> from astropy.cosmology import Planck13
+        >>> newcosmo = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+        """
+        # Quick return check, taking advantage of the
+        # immutability of cosmological objects
+        if len(kwargs) == 0:
+            return self
+
+        # Mix kwargs into initial arguments, preferring the former.
+        full_kwargs = {**self._init_arguments, **kwargs}
+        # Create BoundArgument to handle args versus kwargs.
+        # This also handles all errors from mismatched arguments
+        try:
+            ba = self._init_signature.bind_partial(**full_kwargs)
+        except TypeError as e:
+            # for backward compatibility, map TypeError to AttributeError
+            warnings.warn("Starting in Astropy v5.0, passing an unrecognized "
+                          "argument will instead raise a TypeError.",
+                          category=AstropyDeprecationWarning)
+            raise AttributeError(e)
+        # Return new instance
+        return self.__class__(*ba.args, **ba.kwargs)
 
 
-class FLRW(Cosmology, metaclass=ABCMeta):
+class FLRW(Cosmology):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -99,7 +183,6 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
     Parameters
     ----------
-
     H0 : float or scalar `~astropy.units.Quantity`
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
@@ -138,13 +221,14 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
     Notes
     -----
-    Class instances are static -- you can't change the values
+    Class instances are static -- you cannot change the values
     of the parameters.  That is, all of the attributes above are
     read only.
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+        super().__init__(name=name)
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -167,7 +251,6 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         if self._Neff < 0.0:
             raise ValueError("Effective number of neutrinos can "
                              "not be negative")
-        self.name = name
 
         # Tcmb may have units
         self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K)
@@ -408,67 +491,6 @@ class FLRW(Cosmology, metaclass=ABCMeta):
     def Onu0(self):
         """ Omega nu; the density/critical density of neutrinos at z=0"""
         return self._Onu0
-
-    def clone(self, **kwargs):
-        """ Returns a copy of this object, potentially with some changes.
-
-        Returns
-        -------
-        newcos : Subclass of FLRW
-        A new instance of this class with the specified changes.
-
-        Notes
-        -----
-        This assumes that the values of all constructor arguments
-        are available as properties, which is true of all the provided
-        subclasses but may not be true of user-provided ones.  You can't
-        change the type of class, so this can't be used to change between
-        flat and non-flat.  If no modifications are requested, then
-        a reference to this object is returned.
-
-        Examples
-        --------
-        To make a copy of the Planck13 cosmology with a different Omega_m
-        and a new name:
-
-        >>> from astropy.cosmology import Planck13
-        >>> newcos = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
-        """
-
-        # Quick return check, taking advantage of the
-        # immutability of cosmological objects
-        if len(kwargs) == 0:
-            return self
-
-        # Get constructor arguments
-        arglist = signature(self.__init__).parameters.keys()
-
-        # Build the dictionary of values used to construct this
-        #  object.  This -assumes- every argument to __init__ has a
-        #  property.  This is true of all the classes we provide, but
-        #  maybe a user won't do that.  So at least try to have a useful
-        #  error message.
-        argdict = {}
-        for arg in arglist:
-            try:
-                val = getattr(self, arg)
-                argdict[arg] = val
-            except AttributeError:
-                # We didn't find a property -- complain usefully
-                errstr = "Object did not have property corresponding "\
-                         "to constructor argument '{}'; perhaps it is a "\
-                         "user provided subclass that does not do so"
-                raise AttributeError(errstr.format(arg))
-
-        # Now substitute in new arguments
-        for newarg in kwargs:
-            if newarg not in argdict:
-                errstr = "User provided argument '{}' not found in "\
-                         "constructor for this object"
-                raise AttributeError(errstr.format(newarg))
-            argdict[newarg] = kwargs[newarg]
-
-        return self.__class__(**argdict)
 
     @abstractmethod
     def w(self, z):
