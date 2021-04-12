@@ -157,6 +157,11 @@ class Cosmology(metaclass=ABCMeta):
         if len(kwargs) == 0:
             return self
 
+        # There are changed parameter values.
+        # The name needs to be changed accordingly, if it wasn't already.
+        kwargs.setdefault("name", (self.name + " (modified)"
+                                   if self.name is not None else None))
+
         # Mix kwargs into initial arguments, preferring the former.
         full_kwargs = {**self._init_arguments, **kwargs}
         # Create BoundArgument to handle args versus kwargs.
