@@ -10,7 +10,7 @@ from astropy.utils.state import ScienceState
 from . import parameters
 from .core import Cosmology, FlatLambdaCDM, LambdaCDM
 
-__all__ = ["default_cosmology"] + parameters.available
+__all__ = ["default_cosmology"] + list(parameters.available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -23,8 +23,8 @@ for key in parameters.available:
 
     if par["cosmology"] == "FlatLambdaCDM":
         cosmo = FlatLambdaCDM(
-            par["H0"],
-            par["Om0"],
+            H0=u.Quantity(par["H0"], u.km / u.s / u.Mpc),
+            Om0=par["Om0"],
             Tcmb0=par["Tcmb0"],
             Neff=par["Neff"],
             m_nu=u.Quantity(par["m_nu"], u.eV),

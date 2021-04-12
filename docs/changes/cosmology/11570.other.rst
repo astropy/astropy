@@ -1,0 +1,2 @@
+Dictionaries of parameters are moved from ``parameters.py`` to file
+``parameters.json``.
