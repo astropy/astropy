@@ -124,6 +124,10 @@ utils.iers:
   - astropy/utils/iers/**/*
   - docs/utils/iers.rst
 
+utils.masked:
+  - astropy/utils/masked/**/*
+  - docs/utils/masked/index.rst
+
 visualization:
   - any: ['**/visualization/**/*', '!**/visualization/wcsaxes/**/*']
 
