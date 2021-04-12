@@ -47,11 +47,57 @@ _convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRI
                           ctypes.c_bool,  # embed_result_within_padded_region
                           ctypes.c_uint]  # n_threads
 
+# np.unique([scipy.fft.next_fast_len(i, real=True) for i in range(10000)])
+_good_sizes = [   0,    1,    2,    3,    4,    5,    6,    8,    9,   10,   12,  # noqa E201
+                 15,   16,   18,   20,   24,   25,   27,   30,   32,   36,   40,
+                 45,   48,   50,   54,   60,   64,   72,   75,   80,   81,   90,
+                 96,  100,  108,  120,  125,  128,  135,  144,  150,  160,  162,
+                180,  192,  200,  216,  225,  240,  243,  250,  256,  270,  288,
+                300,  320,  324,  360,  375,  384,  400,  405,  432,  450,  480,
+                486,  500,  512,  540,  576,  600,  625,  640,  648,  675,  720,
+                729,  750,  768,  800,  810,  864,  900,  960,  972, 1000, 1024,
+               1080, 1125, 1152, 1200, 1215, 1250, 1280, 1296, 1350, 1440, 1458,
+               1500, 1536, 1600, 1620, 1728, 1800, 1875, 1920, 1944, 2000, 2025,
+               2048, 2160, 2187, 2250, 2304, 2400, 2430, 2500, 2560, 2592, 2700,
+               2880, 2916, 3000, 3072, 3125, 3200, 3240, 3375, 3456, 3600, 3645,
+               3750, 3840, 3888, 4000, 4050, 4096, 4320, 4374, 4500, 4608, 4800,
+               4860, 5000, 5120, 5184, 5400, 5625, 5760, 5832, 6000, 6075, 6144,
+               6250, 6400, 6480, 6561, 6750, 6912, 7200, 7290, 7500, 7680, 7776,
+               8000, 8100, 8192, 8640, 8748, 9000, 9216, 9375, 9600, 9720, 10000]
+_good_range = int(np.log10(_good_sizes[-1]))
+
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
 __doctest_skip__ = ['*']
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
+
+
+def _next_fast_lengths(shape):
+    """
+    Find optimal or good sizes to pad an array of ``shape`` to for better
+    performance with `numpy.fft.*fft` and `scipy.fft.*fft`.
+    Calculated directly with `scipy.fft.next_fast_len`, if available; otherwise
+    looked up from list and scaled by powers of 10, if necessary.
+    """
+
+    try:
+        import scipy.fft
+        return np.array([scipy.fft.next_fast_len(j, real=False) for j in shape])
+    except ImportError:
+        pass
+
+    newshape = np.empty(len(np.atleast_1d(shape)), dtype=int)
+    for i, j in enumerate(shape):
+        scale = 10 ** max(int(np.ceil(np.log10(j))) - _good_range, 0)
+        for n in _good_sizes:
+            if n * scale >= j:
+                newshape[i] = n * scale
+                break
+        else:
+            raise ValueError(f'No next fast length for {j} found in list of _good_sizes '
+                             f'<= {_good_sizes[-1] * scale}.')
+    return newshape
 
 
 def _copy_input_if_needed(input, dtype=float, order='C', nan_treatment=None,
@@ -489,7 +535,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         array or kernel size is >1 GB.
     fftn : functions, optional
         The fft function.  Can be overridden to use your own ffts,
-        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fftpack.fftn``.
+        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fft.fftn``.
     ifftn : functions, optional
         The inverse fft function. Can be overridden the same way ``fttn``.
     complex_dtype : numpy.complex, optional
@@ -550,10 +596,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     ...               normalize_kernel=True)
     array([ 1.,  2.,  3.])
 
-    >>> import scipy.fftpack  # optional - requires scipy
+    >>> import scipy.fft  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True,
-    ...               fftn=scipy.fftpack.fft, ifftn=scipy.fftpack.ifft)
+    ...               fftn=scipy.fft.fft, ifftn=scipy.fft.ifft)
     array([ 1.,  2.,  3.])
 
     """
@@ -666,25 +712,24 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         raise NotImplementedError("The 'extend' option is not implemented "
                                   "for fft-based convolution")
 
-    # find ideal size (power of 2) for fft.
-    # Can add shapes because they are tuples
+    # Find ideal size for fft (was power of 2, now any powers of prime factors 2, 3, 5).
+    # Add shapes elementwise for psf_pad.
     if fft_pad:  # default=True
         if psf_pad:  # default=False
-            # add the dimensions and then take the max (bigger)
-            fsize = 2 ** np.ceil(np.log2(
-                np.max(np.array(arrayshape) + np.array(kernshape))))
+            # add the sizes along each dimension (bigger)
+            fsize = np.array(arrayshape) + np.array(kernshape)
         else:
-            # add the shape lists (max of a list of length 4) (smaller)
-            # also makes the shapes square
-            fsize = 2 ** np.ceil(np.log2(np.max(arrayshape + kernshape)))
-        newshape = np.full((array.ndim, ), fsize, dtype=int)
+            # take the larger shape in each dimension (smaller)
+            fsize = np.maximum(arrayshape, kernshape)
+        # newshape = np.array([2 ** np.ceil(np.log2(i)).astype(int) for i in fsize])
+        # Get optimized sizes from scipy.
+        newshape = _next_fast_lengths(fsize)
     else:
         if psf_pad:
             # just add the biggest dimensions
             newshape = np.array(arrayshape) + np.array(kernshape)
         else:
-            newshape = np.array([np.max([imsh, kernsh])
-                                 for imsh, kernsh in zip(arrayshape, kernshape)])
+            newshape = np.maximum(arrayshape, kernshape)
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
