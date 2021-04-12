@@ -1,0 +1,1 @@
+Cosmology instance names are now immutable.
