@@ -390,6 +390,35 @@ high-level |skycoord| method - see :ref:`astropy-coordinates-rv-corrs`)::
     >>> target.radial_velocity_correction(obstime=obstime, location=keck).to('km/s')  # doctest: +FLOAT_CMP  +REMOTE_DATA
     <Quantity -22.359784554780255 km / s>
 
+While ``astropy.coordinates`` does not natively support converting an Earth
+location to a timezone, the longitude and latitude can be retrieved from any
+`~astropy.coordinates.EarthLocation` object, which could then be passed to any
+third-party package that supports timezone solving, such as `timezonefinder
+<https://timezonefinder.readthedocs.io/>`_. For example, ``timezonefinder`` can
+be used to retrieve the timezone name for an address with:
+
+.. doctest-skip::
+
+    >>> loc = EarthLocation.of_address('Tucson, AZ')
+    >>> from timezonefinder import TimezoneFinder
+    >>> tz_name = TimezoneFinder().timezone_at(lng=loc.lon.degree,
+    ...                                        lat=loc.lat.degree)
+    >>> tz_name
+    'America/Phoenix'
+
+The resulting timezone name could then be used with any packages that support
+time zone definitions, such as the (Python 3.9 default package) `zoneinfo
+<https://docs.python.org/3/library/zoneinfo.html>`_:
+
+.. doctest-skip::
+
+    >>> from zoneinfo import ZoneInfo  # requires Python 3.9 or greater
+    >>> tz = ZoneInfo(tz_name)
+    >>> dt = datetime.datetime(2021, 4, 12, 20, 0, 0, tzinfo=tz)
+
+(Please note that the above code is not tested regularly with the ``astropy`` test
+suite, so please raise an issue if this no longer works.)
+
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
 
