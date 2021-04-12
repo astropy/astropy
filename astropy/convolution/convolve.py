@@ -48,22 +48,22 @@ _convolveNd_c.argtypes = [ndpointer(ctypes.c_double, flags={"C_CONTIGUOUS", "WRI
                           ctypes.c_uint]  # n_threads
 
 # np.unique([scipy.fft.next_fast_len(i, real=True) for i in range(10000)])
-_good_sizes = [   0,    1,    2,    3,    4,    5,    6,    8,    9,   10,   12,  # noqa E201
-                 15,   16,   18,   20,   24,   25,   27,   30,   32,   36,   40,
-                 45,   48,   50,   54,   60,   64,   72,   75,   80,   81,   90,
-                 96,  100,  108,  120,  125,  128,  135,  144,  150,  160,  162,
-                180,  192,  200,  216,  225,  240,  243,  250,  256,  270,  288,
-                300,  320,  324,  360,  375,  384,  400,  405,  432,  450,  480,
-                486,  500,  512,  540,  576,  600,  625,  640,  648,  675,  720,
-                729,  750,  768,  800,  810,  864,  900,  960,  972, 1000, 1024,
-               1080, 1125, 1152, 1200, 1215, 1250, 1280, 1296, 1350, 1440, 1458,
-               1500, 1536, 1600, 1620, 1728, 1800, 1875, 1920, 1944, 2000, 2025,
-               2048, 2160, 2187, 2250, 2304, 2400, 2430, 2500, 2560, 2592, 2700,
-               2880, 2916, 3000, 3072, 3125, 3200, 3240, 3375, 3456, 3600, 3645,
-               3750, 3840, 3888, 4000, 4050, 4096, 4320, 4374, 4500, 4608, 4800,
-               4860, 5000, 5120, 5184, 5400, 5625, 5760, 5832, 6000, 6075, 6144,
-               6250, 6400, 6480, 6561, 6750, 6912, 7200, 7290, 7500, 7680, 7776,
-               8000, 8100, 8192, 8640, 8748, 9000, 9216, 9375, 9600, 9720, 10000]
+_good_sizes = np.array([   0,    1,    2,    3,    4,    5,    6,    8,    9,   10,   12,  # noqa E201
+                          15,   16,   18,   20,   24,   25,   27,   30,   32,   36,   40,
+                          45,   48,   50,   54,   60,   64,   72,   75,   80,   81,   90,
+                          96,  100,  108,  120,  125,  128,  135,  144,  150,  160,  162,
+                         180,  192,  200,  216,  225,  240,  243,  250,  256,  270,  288,
+                         300,  320,  324,  360,  375,  384,  400,  405,  432,  450,  480,
+                         486,  500,  512,  540,  576,  600,  625,  640,  648,  675,  720,
+                         729,  750,  768,  800,  810,  864,  900,  960,  972, 1000, 1024,
+                        1080, 1125, 1152, 1200, 1215, 1250, 1280, 1296, 1350, 1440, 1458,
+                        1500, 1536, 1600, 1620, 1728, 1800, 1875, 1920, 1944, 2000, 2025,
+                        2048, 2160, 2187, 2250, 2304, 2400, 2430, 2500, 2560, 2592, 2700,
+                        2880, 2916, 3000, 3072, 3125, 3200, 3240, 3375, 3456, 3600, 3645,
+                        3750, 3840, 3888, 4000, 4050, 4096, 4320, 4374, 4500, 4608, 4800,
+                        4860, 5000, 5120, 5184, 5400, 5625, 5760, 5832, 6000, 6075, 6144,
+                        6250, 6400, 6480, 6561, 6750, 6912, 7200, 7290, 7500, 7680, 7776,
+                        8000, 8100, 8192, 8640, 8748, 9000, 9216, 9375, 9600, 9720, 10000])
 _good_range = int(np.log10(_good_sizes[-1]))
 
 # Disabling all doctests in this module until a better way of handling warnings
@@ -611,13 +611,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     if isinstance(kernel, Kernel):
         kernel = kernel.array
         if isinstance(array, Kernel):
-            raise TypeError("Can't convolve two kernels with convolve_fft.  "
-                            "Use convolve instead.")
+            raise TypeError("Can't convolve two kernels with convolve_fft.  Use convolve instead.")
 
     if nan_treatment not in ('interpolate', 'fill'):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    #Get array quantity if it exists
+    # Get array quantity if it exists
     array_unit = getattr(array, "unit", None)
 
     # Convert array dtype to complex
@@ -631,18 +630,16 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
-        raise ValueError("Image and kernel must have same number of "
-                         "dimensions")
+        raise ValueError("Image and kernel must have same number of dimensions")
 
     arrayshape = array.shape
     kernshape = kernel.shape
 
     array_size_B = (np.product(arrayshape, dtype=np.int64) *
-                    np.dtype(complex_dtype).itemsize)*u.byte
-    if array_size_B > 1*u.GB and not allow_huge:
-        raise ValueError("Size Error: Arrays will be {}.  Use "
-                         "allow_huge=True to override this exception."
-                         .format(human_file_size(array_size_B.to_value(u.byte))))
+                    np.dtype(complex_dtype).itemsize) * u.byte
+    if array_size_B > 1 * u.GB and not allow_huge:
+        raise ValueError(f"Size Error: Arrays will be {human_file_size(array_size_B)}.  "
+                         f"Use allow_huge=True to override this exception.")
 
     # NaN and inf catching
     nanmaskarray = np.isnan(array) | np.isinf(array)
@@ -692,9 +689,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
         if psf_pad is False:
-            warnings.warn("psf_pad was set to {}, which overrides the "
-                          "boundary='fill' setting.".format(psf_pad),
-                          AstropyUserWarning)
+            warnings.warn(f"psf_pad was set to {psf_pad}, which overrides the "
+                          f"boundary='fill' setting.", AstropyUserWarning)
         else:
             psf_pad = True
         if fft_pad is None:
@@ -733,11 +729,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
-                    np.dtype(complex_dtype).itemsize)*u.byte
-    if array_size_C > 1*u.GB and not allow_huge:
-        raise ValueError("Size Error: Arrays will be {}.  Use "
-                         "allow_huge=True to override this exception."
-                         .format(human_file_size(array_size_C)))
+                    np.dtype(complex_dtype).itemsize) * u.byte
+    if array_size_C > 1 * u.GB and not allow_huge:
+        raise ValueError(f"Size Error: Arrays will be {human_file_size(array_size_C)}.  "
+                         f"Use allow_huge=True to override this exception.")
 
     # For future reference, this can be used to predict "almost exactly"
     # how much *additional* memory will be used.
