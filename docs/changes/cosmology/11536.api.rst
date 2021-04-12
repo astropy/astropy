@@ -1,2 +1,2 @@
 Cloning a cosmology with changed parameter(s) now appends "(modified)" to the
-new instance's name, unless a name is explicitly passed to clone.
+new instance's name, unless a name is explicitly passed to ``clone``.
