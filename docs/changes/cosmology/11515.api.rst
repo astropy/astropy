@@ -1,0 +1,5 @@
+Since cosmologies are immutable, the initialization signature and values can
+be stored, greatly simplifying cloning logic and extending it to user-defined
+cosmology classes that do not have attributes with the same name as each
+initialization argument.
+Also, the class abstraction is moved from ``FLRW`` to the base, ``Cosmology``.

@@ -10,7 +10,8 @@ from astropy.cosmology.realizations import Planck13
 from astropy.units import allclose
 from astropy import constants as const
 from astropy import units as u
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
+                                      AstropyUserWarning)
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
@@ -289,7 +290,8 @@ def test_clone():
 
     # Now test exception if user passes non-parameter
     with pytest.raises(AttributeError):
-        newclone = cosmo.clone(not_an_arg=4)
+        with pytest.warns(AstropyDeprecationWarning, match="Astropy v5.0"):
+            newclone = cosmo.clone(not_an_arg=4)
 
 
 def test_xtfuncs():
