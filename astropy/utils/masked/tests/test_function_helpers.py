@@ -5,7 +5,11 @@ Here, run through all functions, with simple tests just to check the helpers.
 More complicated tests of functionality, including with subclasses, are done
 in test_functions.
 
-TODO: finish full coverage.
+TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
+- np.linalg
+- np.fft (is there any point?)
+- np.lib.nanfunctions
+
 """
 import inspect
 import itertools
@@ -29,7 +33,6 @@ from astropy.utils.masked.function_helpers import (
 from .test_masked import assert_masked_equal, MaskedArraySetup
 
 
-# TODO: add np.linalg, np.fft
 all_wrapped_functions = get_wrapped_functions(np)
 all_wrapped = set(all_wrapped_functions.values())
 
