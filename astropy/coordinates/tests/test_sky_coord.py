@@ -1843,3 +1843,21 @@ def test_passing_inconsistent_coordinates_and_units_raises_helpful_error(kwargs,
     # https://github.com/astropy/astropy/issues/10725
     with pytest.raises(ValueError, match=error_message):
         SkyCoord(**kwargs)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
+def test_match_to_catalog_3d_and_sky():
+    # Test for issue #5857. See PR #11449
+    cfk5_default = SkyCoord([1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 1, 1.5, 1] * u.kpc,
+                            frame='fk5')
+    cfk5_J1950 = cfk5_default.transform_to(FK5(equinox='J1950'))
+
+    idx, angle, quantity = cfk5_J1950.match_to_catalog_3d(cfk5_default)
+    npt.assert_array_equal(idx, [0, 1, 2, 3])
+    assert_allclose(angle, 0*u.deg, atol=1e-15*u.deg, rtol=0)
+    assert_allclose(quantity, 0*u.kpc, atol=1e-15*u.kpc, rtol=0)
+
+    idx, angle, distance = cfk5_J1950.match_to_catalog_sky(cfk5_default)
+    npt.assert_array_equal(idx, [0, 1, 2, 3])
+    assert_allclose(angle, 0 * u.deg, atol=1e-15*u.deg, rtol=0)
+    assert_allclose(distance, 0*u.kpc, atol=1e-15*u.kpc, rtol=0)

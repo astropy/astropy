@@ -1224,14 +1224,12 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_sky
 
-        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
+        if not (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
                 and catalogcoord.has_data):
-            self_in_catalog_frame = self.transform_to(catalogcoord)
-        else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
 
-        res = match_coordinates_sky(self_in_catalog_frame, catalogcoord,
+        res = match_coordinates_sky(self, catalogcoord,
                                     nthneighbor=nthneighbor,
                                     storekdtree='_kdtree_sky')
         return res
@@ -1289,14 +1287,12 @@ class SkyCoord(ShapedLikeNDArray):
         """
         from .matching import match_coordinates_3d
 
-        if (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
+        if not (isinstance(catalogcoord, (SkyCoord, BaseCoordinateFrame))
                 and catalogcoord.has_data):
-            self_in_catalog_frame = self.transform_to(catalogcoord)
-        else:
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
 
-        res = match_coordinates_3d(self_in_catalog_frame, catalogcoord,
+        res = match_coordinates_3d(self, catalogcoord,
                                    nthneighbor=nthneighbor,
                                    storekdtree='_kdtree_3d')
 
