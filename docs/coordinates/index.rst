@@ -416,8 +416,8 @@ time zone definitions, such as the (Python 3.9 default package) `zoneinfo
     >>> tz = ZoneInfo(tz_name)
     >>> dt = datetime.datetime(2021, 4, 12, 20, 0, 0, tzinfo=tz)
 
-(but note that the above code is not tested regularly with the ``astropy`` test
-suite, so please raise an issue if this no longer works).
+(Please note that the above code is not tested regularly with the ``astropy`` test
+suite, so please raise an issue if this no longer works.)
 
 Velocities (Proper Motions and Radial Velocities)
 -------------------------------------------------
