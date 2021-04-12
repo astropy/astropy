@@ -184,9 +184,22 @@ def test_cds_function_units2():
                         10.**(np.array([-2.07, -1.50, -2.11, -1.64])))
 
 
+def test_cds_ignore_nullable():
+    # Make sure CDS Reader does not ignore nullabilty for columns
+    # with a limit specifier
+    readme = 'data/cds/null/ReadMe'
+    data = 'data/cds/null/table.dat'
+    r = ascii.Cds(readme)
+    r.read(data)
+    assert_equal(r.header.cols[6].description, 'Temperature class codified (10)')
+    assert_equal(r.header.cols[8].description, 'Luminosity class codified (11)')
+    assert_equal(r.header.cols[5].description, 'Pericenter position angle (18)')
+
+
 if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()
     test_glob_header()
     test_description()
     test_cds_units()
+    test_cds_ignore_nullable()
