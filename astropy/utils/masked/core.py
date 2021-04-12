@@ -1069,7 +1069,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             return string
 
 
-class Maskedrecord(np.recarray, MaskedNDArray, data_cls=np.recarray):
+class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
     # Explicit definition since we need to override some methods.
 
     def __array_finalize__(self, obj):
