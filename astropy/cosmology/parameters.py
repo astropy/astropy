@@ -57,6 +57,7 @@ doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 # Unlike Planck 2015, the paper includes massive neutrinos in Om0, which here
 # are included in m_nu.  Hence, the Om0 value differs slightly from the paper.
 Planck18 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.2607,
     Ob0=0.04897,
     Om0=0.30966,
@@ -77,6 +78,7 @@ Planck18 = dict(
 # Planck 2018 paper VI v2.  Identical to Planck18 above.
 # Warning: deprecated and will be removed in future versions.
 Planck18_arXiv_v2 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.2607,
     Ob0=0.04897,
     Om0=0.30966,
@@ -96,6 +98,7 @@ Planck18_arXiv_v2 = dict(
 
 # Planck 2015 paper XII Table 4 final column (best fit)
 Planck15 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.2589,
     Ob0=0.04860,
     Om0=0.3075,
@@ -115,6 +118,7 @@ Planck15 = dict(
 
 # Planck 2013 paper XVI Table 5 penultimate column (best fit)
 Planck13 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.25886,
     Ob0=0.048252,
     Om0=0.30712,
@@ -134,6 +138,7 @@ Planck13 = dict(
 
 
 WMAP9 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.2402,
     Ob0=0.04628,
     Om0=0.2865,
@@ -153,6 +158,7 @@ WMAP9 = dict(
 )
 
 WMAP7 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.226,
     Ob0=0.0455,
     Om0=0.272,
@@ -172,6 +178,7 @@ WMAP7 = dict(
 )
 
 WMAP5 = dict(
+    cosmology="FlatLambdaCDM",
     Oc0=0.231,
     Ob0=0.0459,
     Om0=0.277,
@@ -191,5 +198,5 @@ WMAP5 = dict(
 )
 
 # If new parameters are added, this list must be updated
-available = ['Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13', 'WMAP9', 'WMAP7',
-             'WMAP5']
+available = ['Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
+             'WMAP9', 'WMAP7', 'WMAP5']
