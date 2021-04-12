@@ -144,7 +144,7 @@ def pytest_terminal_summary(terminalreporter):
 
     terminalreporter.ensure_newline()
     terminalreporter.write_line(
-        'Some tests are known to fail when run from the IPython prompt; '
+        'Some tests may fail when run from the IPython prompt; '
         'especially, but not limited to tests involving logging and warning '
         'handling.  Unless you are certain as to the cause of the failure, '
         'please check that the failure occurs outside IPython as well.  See '
