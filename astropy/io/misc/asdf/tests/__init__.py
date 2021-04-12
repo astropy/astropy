@@ -11,10 +11,15 @@ except ImportError:
 
 import pytest
 
-ep = [entry.name for entry in entry_points().get('asdf_extensions', [])]
+# TODO: Exclusively use select when Python minversion is 3.10
+eps = entry_points()
+if hasattr(eps, 'select'):
+    ep = [entry.name for entry in eps.select('asdf_extensions', [])]
+else:
+    ep = [entry.name for entry in eps.get('asdf_extensions', [])]
 ASDF_ENTRY_INSTALLED = 'astropy' in ep and 'astropy-asdf' in ep
 
-del entry_points, ep
+del entry_points, eps, ep
 
 if not ASDF_ENTRY_INSTALLED:
     pytest.skip('The astropy asdf entry points are not installed',
