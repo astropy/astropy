@@ -278,7 +278,7 @@ def test_clone():
                          Om0=0.27, Ode0=0.5, wa=0.1, Tcmb0=4.0 * u.K)
     newclone = cosmo.clone(w0=-1.1, wa=0.2)
     assert newclone.__class__ == cosmo.__class__
-    assert newclone.name == cosmo.name
+    assert newclone.name == cosmo.name + " (modified)"
     assert allclose(newclone.H0, cosmo.H0)
     assert allclose(newclone.Om0, cosmo.Om0)
     assert allclose(newclone.Ode0, cosmo.Ode0)
