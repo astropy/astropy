@@ -234,12 +234,17 @@ class NDData(NDDataBase):
         self.uncertainty = uncertainty
 
     def __str__(self):
-        return str(self.data)
+        data = str(self.data)
+        unit = f" {self.unit}" if self.unit is not None else ''
+
+        return data + unit
 
     def __repr__(self):
         prefix = self.__class__.__name__ + '('
-        body = np.array2string(self.data, separator=', ', prefix=prefix)
-        return ''.join([prefix, body, ')'])
+        data = np.array2string(self.data, separator=', ', prefix=prefix)
+        unit = f", unit='{self.unit}'" if self.unit is not None else ''
+
+        return ''.join([prefix, data, unit, ')'])
 
     @property
     def data(self):
