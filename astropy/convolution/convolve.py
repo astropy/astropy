@@ -447,7 +447,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
 
     * It can treat ``NaN`` values as zeros or interpolate over them.
     * ``inf`` values are treated as ``NaN``
-    * (optionally) It pads to the nearest 2^n size to improve FFT speed.
+    * It optionally pads to the nearest faster sizes to improve FFT speed.
+      These sizes are optimized for the numpy and scipy implementations, and
+      ``fftconvolve`` uses them by default as well; when using other external
+      functions (see below), results may vary.
     * Its only valid ``mode`` is 'same' (i.e., the same shape array is returned)
     * It lets you use your own fft, e.g.,
       `pyFFTW <https://pypi.org/project/pyFFTW/>`_ or
@@ -456,7 +459,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
       the ``fftn`` and ``ifftn`` keywords to override the default, which is
-      `numpy.fft.fft` and `numpy.fft.ifft`.
+      `numpy.fft.fftn` and `numpy.fft.ifftn`.  The `scipy.fft` functions also
+      offer somewhat better performance and a multi-threaded option.
 
     Parameters
     ----------
@@ -516,8 +520,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         Return the ``fft(image)*fft(kernel)`` instead of the convolution (which is
         ``ifft(fft(image)*fft(kernel))``).  Useful for making PSDs.
     fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest 2^n.  With
-        ``boundary='wrap'``, this will be disabled.
+        Default on.  Zero-pad image to the nearest size supporting more efficient
+        execution of the FFT, generally values factorizable into the first 3-5
+        prime numbers.  With ``boundary='wrap'``, this will be disabled.
     psf_pad : bool, optional
         Zero-pad image to be at least the sum of the image sizes to avoid
         edge-wrapping when smoothing.  This is enabled by default with
@@ -564,8 +569,9 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     Notes
     -----
         With ``psf_pad=True`` and a large PSF, the resulting data can become
-        very large and consume a lot of memory.  See Issue
-        https://github.com/astropy/astropy/pull/4366 for further detail.
+        large and consume a lot of memory.  See Issue
+        https://github.com/astropy/astropy/pull/4366 and the update in
+        https://github.com/astropy/astropy/pull/11533 for further details.
 
     Examples
     --------
@@ -599,9 +605,14 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     >>> import scipy.fft  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True,
-    ...               fftn=scipy.fft.fft, ifftn=scipy.fft.ifft)
+    ...               fftn=scipy.fft.fftn, ifftn=scipy.fft.ifftn)
     array([ 1.,  2.,  3.])
 
+    >>> fft_mp = lambda a: scipy.fft.fftn(a, workers=-1)  # use all available cores
+    >>> ifft_mp = lambda a: scipy.fft.ifftn(a, workers=-1)
+    >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
+    ...               normalize_kernel=True, fftn=fft_mp, ifftn=ifft_mp)
+    array([ 1.,  2.,  3.])
     """
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
