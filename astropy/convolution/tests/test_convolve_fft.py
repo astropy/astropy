@@ -675,12 +675,12 @@ class TestConvolve2D:
         to length of longest side (#11242/#10047).
         """
 
-        # old implementation expanded this to up to 2048**2
-        shape = (1226, 518)
+        # old implementation expanded this to up to 2048**3
+        shape = (1, 1226, 518)
         img = np.zeros(shape, dtype='float64')
-        img[600:610, 300:304] = 1.0
-        kernel = np.zeros((7, 7), dtype='float64')
-        kernel[3, 3] = 1.0
+        img[0, 600:610, 300:304] = 1.0
+        kernel = np.zeros((1, 7, 7), dtype='float64')
+        kernel[0, 3, 3] = 1.0
 
         with pytest.warns(AstropyUserWarning,
                           match="psf_pad was set to False, which overrides the boundary='fill'"):
@@ -688,12 +688,12 @@ class TestConvolve2D:
             assert_array_equal(img_fft.shape, shape)
             img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=False, fft_pad=True)
             # should be from either hardcoded _good_sizes[] or scipy.fft.next_fast_len()
-            assert img_fft.shape in ((1250, 540), (1232, 525))
+            assert img_fft.shape in ((1, 1250, 540), (1, 1232, 525))
 
         img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=True, fft_pad=False)
         assert_array_equal(img_fft.shape, np.array(shape) + np.array(kernel.shape))
         img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=True, fft_pad=True)
-        assert img_fft.shape in ((1250, 540), (1250, 525))
+        assert img_fft.shape in ((2, 1250, 540), (2, 1250, 525))
 
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_non_normalized_kernel(self, boundary):
