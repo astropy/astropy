@@ -9,7 +9,7 @@ from .core import CompoundModel, SPECIAL_OPERATORS
 
 class Convolution(CompoundModel):
     """
-    Wrapper class for a convolution model:
+    Wrapper class for a convolution model.
 
     Parameters
     ----------
