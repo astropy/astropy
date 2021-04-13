@@ -244,7 +244,7 @@ class NDData(NDDataBase):
         data = np.array2string(self.data, separator=', ', prefix=prefix)
         unit = f", unit='{self.unit}'" if self.unit is not None else ''
 
-        return ''.join([prefix, data, unit, ')'])
+        return ''.join((prefix, data, unit, ')'))
 
     @property
     def data(self):

@@ -426,6 +426,10 @@ def test_nddata_str():
     arr = NDData(np.array([1, 2, 3]), unit="km")
     assert str(arr) == '[1 2 3] km'
 
+    # what if it had these units?
+    arr = NDData(np.array([1, 2, 3]), unit="erg cm^-2 s^-1 A^-1")
+    assert str(arr) == '[1 2 3] erg / (A cm2 s)'
+
 
 def test_nddata_repr():
     # The big test is eval(repr()) should be equal to the original!
