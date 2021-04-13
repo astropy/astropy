@@ -3893,15 +3893,6 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
         broadcasts.append(max_broadcast)
 
     if model.n_outputs > model.n_inputs:
-        if len(set(broadcasts)) > 1:
-            raise ValueError(
-                "For models with n_outputs > n_inputs, the combination of "
-                "all inputs and parameters must broadcast to the same shape, "
-                "which will be used as the shape of all outputs.  In this "
-                "case some of the inputs had different shapes, so it is "
-                "ambiguous how to format outputs for this model.  Try using "
-                "inputs that are all the same size and shape.")
-        # Extend the broadcasts list to include shapes for all outputs
         extra_outputs = model.n_outputs - model.n_inputs
         if not broadcasts:
             # If there were no inputs then the broadcasts list is empty
@@ -3914,16 +3905,24 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
 
 
 def _prepare_outputs_single_model(outputs, format_info):
-    broadcasts = format_info[0]
     outputs = list(outputs)
     for idx, output in enumerate(outputs):
-        broadcast_shape = broadcasts[idx]
+        try:
+            broadcast_shape = check_broadcast(*format_info[0])
+        except (IndexError, TypeError) as e:
+            broadcast_shape = format_info[0][idx]
+
         if broadcast_shape is not None:
             if not broadcast_shape:
-                # Shape is (), i.e. a scalar should be returned
                 outputs[idx] = output.item()
             else:
-                outputs[idx] = output.reshape(broadcast_shape)
+                try:
+                    outputs[idx] = output.reshape(broadcast_shape)
+                except ValueError:
+                    try:
+                        outputs[idx] = output.item()
+                    except ValueError:
+                        outputs[idx] = output
 
     return tuple(outputs)
 
@@ -4050,7 +4049,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                                            n_models))
         all_shapes.append(input_shape)
 
-    input_shape = check_consistent_shapes(*all_shapes)
+    input_shape = check_broadcast(*all_shapes)
     if input_shape is None:
         raise ValueError(
             "All inputs must have identical shapes or must be scalars.")
