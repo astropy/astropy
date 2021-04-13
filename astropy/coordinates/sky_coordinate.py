@@ -531,6 +531,43 @@ class SkyCoord(ShapedLikeNDArray):
         out[idx0 + n_values:] = self[idx0:]
 
         return out
+    
+    def is_transformable_to(self, new_frame):
+        """
+        Determines if this coordinate frame can be transformed to another
+        given frame.
+
+        Parameters
+        ----------
+        new_frame : frame class, frame object, or str
+            The proposed frame to transform into.
+
+        Returns
+        -------
+        transformable : bool or str
+            `True` if this can be transformed to ``new_frame``, `False` if
+            not, or the string 'same' if ``new_frame`` is the same system as
+            this object but no transformation is defined.
+
+        Notes
+        -----
+        A return value of 'same' means the transformation will work, but it will
+        just give back a copy of this object.  The intended usage is::
+
+            if coord.is_transformable_to(some_unknown_frame):
+                coord2 = coord.transform_to(some_unknown_frame)
+
+        This will work even if ``some_unknown_frame``  turns out to be the same
+        frame class as ``coord``.  This is intended for cases where the frame
+        is the same regardless of the frame attributes (e.g. ICRS), but be
+        aware that it *might* also indicate that someone forgot to define the
+        transformation between two objects of the same frame class but with
+        different attributes.
+        """
+        # TODO! like matplotlib, do string overrides for modified methods
+        new_frame = (_get_frame_class(new_frame) if isinstance(new_frame, str)
+                     else new_frame)
+        return self.frame.is_transformable_to(new_frame)
 
     def transform_to(self, frame, merge_attributes=True):
         """Transform this coordinate to a new frame.
