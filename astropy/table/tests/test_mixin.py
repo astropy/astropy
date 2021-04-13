@@ -436,8 +436,8 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
                         or func in (copy.copy, copy.deepcopy)):
                     original = getattr(m.info, attr)
                 else:
-                    # func does not preserve byteorder, check against (native) base type.
-                    original = m.info.dtype.name
+                    # func does not preserve byteorder, check against (native) type.
+                    original = m.info.dtype.newbyteorder('=')
                 assert getattr(m2.info, attr) == original
 
 
