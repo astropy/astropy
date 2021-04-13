@@ -57,6 +57,24 @@ def teardown_function(func):
     DUPLICATE_REPRESENTATIONS.update(func.DUPLICATE_REPRESENTATIONS_ORIG)
 
 
+def test_is_transformable_to_str_input():
+    """Test method ``is_transformable_to`` with string input.
+
+    The only difference from the frame method of the same name is that
+    strings are allowed. As the frame tests cover ``is_transform_to``, here
+    we only test the added string option.
+
+    """
+    # make example SkyCoord
+    c = SkyCoord(90*u.deg, -11*u.deg)
+
+    # iterate through some frames, checking consistency
+    names = frame_transform_graph.get_names()
+    for name in names:
+        frame = frame_transform_graph.lookup_name(name)()
+        assert c.is_transformable_to(name) == c.is_transformable_to(frame)
+
+
 def test_transform_to():
     for frame in (FK5(), FK5(equinox=Time('J1975.0')),
                   FK4(), FK4(equinox=Time('J1975.0')),
