@@ -345,6 +345,39 @@ class TestSphericalRepresentation:
         assert_allclose(s3.lat.deg, expected.lat.deg)
         assert_allclose(s3.distance.value, expected.distance.value)
 
+    def test_transform_with_NaN(self):
+        # all over again, but with a NaN in the distance
+
+        s1 = SphericalRepresentation(lon=[1, 2] * u.deg, lat=[3, 4] * u.deg,
+                                     distance=[5, np.nan] * u.kpc)
+
+        matrix = rotation_matrix(-10, "z", u.deg)
+
+        s2 = s1.transform(matrix)
+
+        assert_allclose(s2.lon.deg, s1.lon.deg + 10)
+        assert_allclose(s2.lat.deg, s1.lat.deg)
+        assert_allclose(s2.distance.value, s1.distance.value)
+
+        # now with a non rotation matrix
+        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+        s3 = s1.transform(matrix)
+        # s3 should not propagate Nan.
+        assert tuple(np.isnan(s3.lon.deg)) == (False, False)
+        assert tuple(np.isnan(s3.lat.deg)) == (False, False)
+        assert tuple(np.isnan(s3.distance.value)) == (False, True)
+
+        # through Cartesian should
+        thruC = (s1.to_cartesian().transform(matrix)
+                   .represent_as(SphericalRepresentation))
+        assert tuple(np.isnan(thruC.lon.deg)) == (False, True)
+        assert tuple(np.isnan(thruC.lat.deg)) == (False, True)
+        assert tuple(np.isnan(thruC.distance.value)) == (False, True)
+        # test that they are close on the first value
+        assert_allclose(s3.lon.deg[0], thruC.lon.deg[0])
+        assert_allclose(s3.lat.deg[0], thruC.lat.deg[0])
+
 
 class TestUnitSphericalRepresentation:
 
@@ -685,11 +718,48 @@ class TestPhysicsSphericalRepresentation:
         matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         s3 = s1.transform(matrix)
-        expected = s1.to_cartesian().transform(matrix).represent_as(PhysicsSphericalRepresentation)
+        expected = (s1.to_cartesian().transform(matrix)
+                      .represent_as(PhysicsSphericalRepresentation))
 
         assert_allclose(s3.phi.deg, expected.phi.deg)
         assert_allclose(s3.theta.deg, expected.theta.deg)
         assert_allclose(s3.r.value, expected.r.value)
+
+    def test_transform_with_NaN(self):
+        # all over again, but with a NaN in the distance
+
+        s1 = PhysicsSphericalRepresentation(
+            phi=[1, 2] * u.deg, theta=[3, 4] * u.deg, r=[5, np.nan] * u.kpc)
+
+        matrix = rotation_matrix(-10, "z", u.deg)
+
+        s2 = s1.transform(matrix)
+
+        assert_allclose(s2.phi.deg, s1.phi.deg + 10)
+        assert_allclose(s2.theta.deg, s1.theta.deg)
+        assert_allclose(s2.r.value, s1.r.value)
+
+        # TODO! implement these checks. First requires solving the problem that
+        # expected = (s1.to_cartesian().transform(matrix).represent_as(PhysicsSphericalRepresentation))
+        # raises an error. Once fixed, this should just work.
+        # # now with a non rotation matrix
+        # matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+        # s3 = s1.transform(matrix)
+        # # s3 should not propagate Nan.
+        # assert tuple(np.isnan(s3.phi.deg)) == (False, False)
+        # assert tuple(np.isnan(s3.theta.deg)) == (False, False)
+        # assert tuple(np.isnan(s3.r.value)) == (False, True)
+
+        # through Cartesian does
+        # expected = (s1.to_cartesian().transform(matrix)
+        #               .represent_as(PhysicsSphericalRepresentation))
+        # assert tuple(np.isnan(thruC.phi.deg)) == (False, True)
+        # assert tuple(np.isnan(thruC.theta.deg)) == (False, True)
+        # assert tuple(np.isnan(thruC.r.value)) == (False, True)
+        # so only test on the first value
+        # assert_allclose(s3.phi.deg[0], thruC.phi.deg[0])
+        # assert_allclose(s3.theta.deg[0], thruC.theta.deg[0])
 
 
 class TestCartesianRepresentation:
