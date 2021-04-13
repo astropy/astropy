@@ -884,7 +884,7 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
         Convolution kernel
     bounding_box: tuple
         The bounding box which encompasses enough of the support of both
-        the `model` and `kernel` so that an accurate convolution can be
+        the ``model`` and ``kernel`` so that an accurate convolution can be
         computed.
     resolution: float
         The resolution that one wishes to approximate the convolution
