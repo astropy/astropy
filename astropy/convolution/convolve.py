@@ -708,24 +708,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         raise NotImplementedError("The 'extend' option is not implemented "
                                   "for fft-based convolution")
 
-    # Find ideal size for fft (was power of 2, now any powers of prime factors 2, 3, 5).
     # Add shapes elementwise for psf_pad.
-    if fft_pad:  # default=True
-        if psf_pad:  # default=False
-            # add the sizes along each dimension (bigger)
-            fsize = np.array(arrayshape) + np.array(kernshape)
-        else:
-            # take the larger shape in each dimension (smaller)
-            fsize = np.maximum(arrayshape, kernshape)
-        # newshape = np.array([2 ** np.ceil(np.log2(i)).astype(int) for i in fsize])
-        # Get optimized sizes from scipy.
-        newshape = _next_fast_lengths(fsize)
+    if psf_pad:  # default=False
+        # add the sizes along each dimension (bigger)
+        newshape = np.array(arrayshape) + np.array(kernshape)
     else:
-        if psf_pad:
-            # just add the biggest dimensions
-            newshape = np.array(arrayshape) + np.array(kernshape)
-        else:
-            newshape = np.maximum(arrayshape, kernshape)
+        # take the larger shape in each dimension (smaller)
+        newshape = np.maximum(arrayshape, kernshape)
+
+    # Find ideal size for fft (was power of 2, now any powers of prime factors 2, 3, 5).
+    if fft_pad:  # default=True
+        # Get optimized sizes from scipy.
+        newshape = _next_fast_lengths(newshape)
 
     # perform a second check after padding
     array_size_C = (np.product(newshape, dtype=np.int64) *
