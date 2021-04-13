@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.l,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: fitshdr.l,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner
@@ -41,6 +41,7 @@
 %option outfile="fitshdr.c"
 %option prefix="fitshdr"
 %option reentrant
+%option extra-type="struct fitshdr_extra *"
 
 /* Keywords. */
 KEYCHR	[-_A-Z0-9]
@@ -81,35 +82,15 @@ UNITSTR \[[-+*/^(). 0-9a-zA-Z]+\]
 #include "fitshdr.h"
 #include "wcsutil.h"
 
-static int fitshdr_scanner(const char header[], int nkeyrec, int nkeyids, \
-                           struct fitskeyid keyids[], int *nreject, \
-                           struct fitskey **keys, yyscan_t yyscanner);
+// User data associated with yyscanner.
+struct fitshdr_extra {
+  // Values passed to YY_INPUT.
+  const char *hdr;
+  int  nkeyrec;
 
-//----------------------------------------------------------------------------
-
-int fitshdr(
-  const char header[],
-  int nkeyrec,
-  int nkeyids,
-  struct fitskeyid keyids[],
-  int *nreject,
-  struct fitskey **keys)
-
-{
-  int status;
-  yyscan_t yyscanner;
-  int yylex_init(yyscan_t *yyscanner);
-  int yylex_destroy(yyscan_t yyscanner);
-
-  yylex_init(&yyscanner);
-  status = fitshdr_scanner(header, nkeyrec, nkeyids, keyids, nreject,
-                           keys, yyscanner);
-  yylex_destroy(yyscanner);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
 
 #define YY_DECL int fitshdr_scanner(const char header[], int nkeyrec, \
   int nkeyids, struct fitskeyid keyids[], int *nreject, \
@@ -117,24 +98,23 @@ int fitshdr(
 
 #define YY_INPUT(inbuff, count, bufsize) \
 	{ \
-	  if (fitshdr_nkeyrec) { \
-	    strncpy(inbuff, fitshdr_hdr, 80); \
+	  if (yyextra->nkeyrec) { \
+	    strncpy(inbuff, yyextra->hdr, 80); \
 	    inbuff[80] = '\n'; \
-	    fitshdr_hdr += 80; \
-	    fitshdr_nkeyrec--; \
+	    yyextra->hdr += 80; \
+	    yyextra->nkeyrec--; \
 	    count = 81; \
 	  } else { \
 	    count = YY_NULL; \
 	  } \
 	}
 
-// These global variables are required by YY_INPUT.
-const char *fitshdr_hdr;
-int  fitshdr_nkeyrec;
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
 
-// Used in preempting the call to exit() by yy_fatal_error().
-jmp_buf fitshdr_abort_jmp_env;
-#define exit(status) longjmp(fitshdr_abort_jmp_env, status)
+// Internal helper functions.
+static YY_DECL;
+static void nullfill(char cptr[], int len);
 
 // Map status return value to message.
 const char *fitshdr_errmsg[] = {
@@ -146,44 +126,59 @@ const char *fitshdr_errmsg[] = {
 %}
 
 %%
-	char *cptr, ctmp[72];
-	int  blank, continuation, end, j, k, keyno;
-	double dtmp;
-	struct fitskey *kptr;
-	struct fitskeyid *iptr;
-	void nullfill(char cptr[], int len);
-	
-	fitshdr_hdr = header;
-	fitshdr_nkeyrec = nkeyrec;
-	
-	*nreject = 0;
-	keyno = 0;
+	char ctmp[72];
 	
 	if (keys == 0x0) {
-	  return 1;
+	  return FITSHDRERR_NULL_POINTER;
 	}
 	
 	// Allocate memory for the required number of fitskey structs.
 	// Recall that calloc() initializes allocated memory to zero.
+	struct fitskey *kptr;
 	if (!(kptr = *keys = calloc(nkeyrec, sizeof(struct fitskey)))) {
-	  return 2;
+	  return FITSHDRERR_MEMORY;
 	}
 	
+	// Initialize returned values.
+	*nreject = 0;
+	
 	// Initialize keyids[].
-	iptr = keyids;
-	for (j = 0; j < nkeyids; j++, iptr++) {
+	struct fitskeyid *iptr = keyids;
+	for (int j = 0; j < nkeyids; j++, iptr++) {
 	  iptr->count  = 0;
 	  iptr->idx[0] = -1;
 	  iptr->idx[1] = -1;
 	}
+
+	int keyno = 0;
 	
-	blank = 0;
-	continuation = 0;
-	end = 0;
+	int blank = 0;
+	int continuation = 0;
+	int end = 0;
+	
+	#ifdef WCSLIB_INT64
+	  #define asString(S) stringize(S)
+	  #define stringize(S) #S
+	
+	  const char *int64fmt;
+	  if (strcmp(asString(WCSLIB_INT64), "long long int") == 0) {
+	    int64fmt = "%lld";
+	  } else if (strcmp(asString(WCSLIB_INT64), "long int") == 0) {
+	    int64fmt = "%ld";
+	  } else if (strcmp(asString(WCSLIB_INT64), "int") == 0) {
+	    int64fmt = "%d";
+	  } else {
+	    return FITSHDRERR_DATA_TYPE;
+	  }
+	#endif
+	
+	// User data associated with yyscanner.
+	yyextra->hdr = header;
+	yyextra->nkeyrec = nkeyrec;
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
-	if (setjmp(fitshdr_abort_jmp_env)) {
-	  return 3;
+	if (setjmp(yyextra->abort_jmp_env)) {
+	  return FITSHDRERR_FLEX_PARSER;
 	}
 	
 	BEGIN(INITIAL);
@@ -232,6 +227,7 @@ const char *fitshdr_errmsg[] = {
 	
 	  if (keyno > 0 && (kptr-1)->type%10 == 8) {
 	    // Put back the string keyvalue.
+	    int k;
 	    for (k = 10; yytext[k] != '\''; k++);
 	    yyless(k);
 	    continuation = 1;
@@ -289,6 +285,7 @@ const char *fitshdr_errmsg[] = {
 
 <VALUE>{INT64} {
 	  // 64-bit signed integer keyvalue (up to 18 digits).
+	  double dtmp;
 	  if (wcsutil_str2double(yytext, &dtmp)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
@@ -306,7 +303,7 @@ const char *fitshdr_errmsg[] = {
 	    kptr->type = 3;
 	    #ifdef WCSLIB_INT64
 	      // Native 64-bit integer is available.
-	      if (sscanf(yytext, "%lld", &(kptr->keyvalue.k)) < 1) {
+	      if (sscanf(yytext, int64fmt, &(kptr->keyvalue.k)) < 1) {
 	        kptr->status |= FITSHDR_KEYVALUE;
 	        BEGIN(ERROR);
 	      }
@@ -332,7 +329,7 @@ const char *fitshdr_errmsg[] = {
 	  // Very long integer keyvalue (and 19-digit int64).
 	  kptr->type = 4;
 	  strcpy(ctmp, yytext);
-	  k = yyleng;
+	  int j, k = yyleng;
 	  for (j = 0; j < 8; j++) {
 	    // Read it backwards.
 	    k -= 9;
@@ -359,7 +356,7 @@ const char *fitshdr_errmsg[] = {
 	    #ifdef WCSLIB_INT64
 	      // Native 64-bit integer is available.
 	      kptr->keyvalue.l[2] = 0;
-	      if (sscanf(yytext, "%lld", &(kptr->keyvalue.k)) < 1) {
+	      if (sscanf(yytext, int64fmt, &(kptr->keyvalue.k)) < 1) {
 	        kptr->status |= FITSHDR_KEYVALUE;
 	        BEGIN(ERROR);
 	      }
@@ -396,6 +393,8 @@ const char *fitshdr_errmsg[] = {
 	  // Floating point complex keyvalue.
 	  kptr->type = 7;
 	
+	  char *cptr;
+	  int k;
 	  for (cptr = ctmp, k = 1; yytext[k] != ','; cptr++, k++) {
 	    *cptr = yytext[k];
 	  }
@@ -422,12 +421,12 @@ const char *fitshdr_errmsg[] = {
 <VALUE>{STRING} {
 	  // String keyvalue.
 	  kptr->type = 8;
-	  cptr = kptr->keyvalue.s;
+	  char *cptr = kptr->keyvalue.s;
 	  strcpy(cptr, yytext+1);
 	
 	  // Squeeze out repeated quotes.
-	  k = 0;
-	  for (j = 0; j < 72; j++) {
+	  int k = 0;
+	  for (int j = 0; j < 72; j++) {
 	    if (k < j) {
 	      cptr[k] = cptr[j];
 	    }
@@ -501,7 +500,7 @@ const char *fitshdr_errmsg[] = {
 <ERROR>.* {
 	  if (!continuation) kptr->type = -abs(kptr->type);
 	
-	  sprintf(kptr->comment, "%.80s", fitshdr_hdr-80);
+	  sprintf(kptr->comment, "%.80s", yyextra->hdr-80);
 	  kptr->comment[80] = '\0';
 	  nullfill(kptr->comment+80, 4);
 	
@@ -519,8 +518,9 @@ const char *fitshdr_errmsg[] = {
 	  // Do indexing.
 	  iptr = keyids;
 	  kptr->keyid = -1;
-	  for (j = 0; j < nkeyids; j++, iptr++) {
-	    cptr = iptr->name;
+	  for (int j = 0; j < nkeyids; j++, iptr++) {
+	    int k;
+	    char *cptr = iptr->name;
 	    cptr[8] = '\0';
 	    nullfill(cptr, 12);
 	    for (k = 0; k < 8; k++, cptr++) {
@@ -545,7 +545,7 @@ const char *fitshdr_errmsg[] = {
 	  if (continuation) {
 	    // Tidy up the previous string keyvalue.
 	    if ((kptr-1)->type == 8) (kptr-1)->type += 10;
-	    cptr = (kptr-1)->keyvalue.s;
+	    char *cptr = (kptr-1)->keyvalue.s;
 	    if (cptr[strlen(cptr)-1] == '&') cptr[strlen(cptr)-1] = '\0';
 	
 	    kptr->type = (kptr-1)->type + 10;
@@ -571,24 +571,53 @@ const char *fitshdr_errmsg[] = {
 
 %%
 
-//----------------------------------------------------------------------------
+/*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int fitshdr(
+  const char header[],
+  int nkeyrec,
+  int nkeyids,
+  struct fitskeyid keyids[],
+  int *nreject,
+  struct fitskey **keys)
+
+{
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct fitshdr_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = fitshdr_scanner(header, nkeyrec, nkeyids, keyids, nreject,
+                               keys, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*----------------------------------------------------------------------------
+* Pad a string with null characters.
+*---------------------------------------------------------------------------*/
 
 void nullfill(char cptr[], int len)
 
 {
-  int j, k;
-
-  // Null-fill the string.
+  // Propagate the terminating null to the end of the string.
+  int j;
   for (j = 0; j < len; j++) {
     if (cptr[j] == '\0') {
-      for (k = j+1; k < len; k++) {
+      for (int k = j+1; k < len; k++) {
         cptr[k] = '\0';
       }
       break;
     }
   }
 
-  for (k = j-1; k >= 0; k--) {
+  // Remove trailing blanks.
+  for (int k = j-1; k >= 0; k--) {
     if (cptr[k] != ' ') break;
     cptr[k] = '\0';
   }

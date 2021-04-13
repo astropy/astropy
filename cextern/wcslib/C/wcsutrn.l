@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsutrn.l,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -40,6 +40,7 @@
 %option outfile="wcsutrn.c"
 %option prefix="wcsutrn"
 %option reentrant
+%option extra-type="struct wcsutrn_extra *"
 
 /* Exclusive start states. */
 %x NEXT FLUSH
@@ -53,30 +54,11 @@
 #include "wcserr.h"
 #include "wcsunits.h"
 
-static int wcsutrne_scanner(int ctrl, char unitstr[], struct wcserr **err,
-                            yyscan_t yyscanner);
-
-//----------------------------------------------------------------------------
-
-int wcsutrne(
-  int ctrl,
-  char unitstr[],
-  struct wcserr **err)
-
-{
-  int status;
-  yyscan_t yyscanner;
-  int yylex_init(yyscan_t *yyscanner);
-  int yylex_destroy(yyscan_t yyscanner);
-
-  yylex_init(&yyscanner);
-  status = wcsutrne_scanner(ctrl, unitstr, err, yyscanner);
-  yylex_destroy(yyscanner);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
+// User data associated with yyscanner.
+struct wcsutrn_extra {
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
 
 #define YY_DECL int wcsutrne_scanner(int ctrl, char unitstr[], \
  struct wcserr **err, yyscan_t yyscanner)
@@ -84,33 +66,35 @@ int wcsutrne(
 // Dummy definition to circumvent compiler warnings.
 #define YY_INPUT(inbuff, count, bufsize) { count = YY_NULL; }
 
-// Used in preempting the call to exit() by yy_fatal_error().
-jmp_buf wcsutrn_abort_jmp_env;
-#define exit(status) longjmp(wcsutrn_abort_jmp_env, status)
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
+
+// Internal helper functions.
+static YY_DECL;
 
 %}
 
 %%
-	static const char *function = "wcsutrne";
-	
-	char orig[80], subs[80];
-	int bracket = 0;
-	int unsafe  = 0;
-	int status  = -1;
+	static const char *function = "wcsutrne_scanner";
 	
 	if (err) *err = 0x0;
 	
+	char orig[80], subs[80];
 	*orig = '\0';
 	*subs = '\0';
+	
+	int bracket = 0;
+	int unsafe  = 0;
+	int status  = -1;
 	
 	yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
 	yy_scan_string(unitstr, yyscanner);
 	*unitstr = '\0';
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
-	if (setjmp(wcsutrn_abort_jmp_env)) {
+	if (setjmp(yyextra->abort_jmp_env)) {
 	  return wcserr_set(WCSERR_SET(UNITSERR_PARSER_ERROR),
-	    "Internal units translator error parsing '%s'", unitstr);
+	    "Internal units translator error");
 	}
 	
 	BEGIN(INITIAL);
@@ -357,3 +341,28 @@ years?|YR|YEARS? {
 	}
 
 %%
+
+/*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int wcsutrne(
+  int ctrl,
+  char unitstr[],
+  struct wcserr **err)
+
+{
+  static const char *function = "wcsutrne";
+
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct wcsutrn_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = wcsutrne_scanner(ctrl, unitstr, err, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}

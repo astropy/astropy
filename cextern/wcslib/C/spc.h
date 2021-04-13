@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: spc.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -49,7 +49,8 @@
 *
 * Routine spcini() is provided to initialize the spcprm struct with default
 * values, spcfree() reclaims any memory that may have been allocated to store
-* an error message, and spcprt() prints its contents.
+* an error message, spcsize() computes its total size including allocated
+* memory, and spcprt() prints its contents.
 *
 * spcperr() prints the error message(s) (if any) stored in a spcprm struct.
 *
@@ -208,6 +209,33 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null spcprm pointer passed.
+*
+*
+* spcsize() - Compute the size of a spcprm struct
+* -----------------------------------------------
+* spcsize() computes the full size of a spcprm struct, including allocated
+* memory.
+*
+* Given:
+*   spc       const struct spcprm*
+*                       Spectral transformation parameters.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct spcprm).  The second element
+*                       is the total allocated size, in bytes.  This figure
+*                       includes memory allocated for the constituent struct,
+*                       spcprm::err.
+*
+*                       It is not an error for the struct not to have been set
+*                       up via spcset().
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * spcprt() - Print routine for the spcprm struct
@@ -858,6 +886,8 @@ struct spcprm {
 int spcini(struct spcprm *spc);
 
 int spcfree(struct spcprm *spc);
+
+int spcsize(const struct spcprm *spc, int sizes[2]);
 
 int spcprt(const struct spcprm *spc);
 
