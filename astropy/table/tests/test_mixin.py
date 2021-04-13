@@ -429,8 +429,10 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
         for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
             m2 = func(m)
             for attr in attrs:
+                # non-native byteorder not preserved by last 2 func, _except_ for structured dtype
                 if (attr != 'dtype'
                         or getattr(m.info.dtype, 'isnative', True)
+                        or m.info.dtype.name.startswith('void')
                         or func in (copy.copy, copy.deepcopy)):
                     original = getattr(m.info, attr)
                 else:
