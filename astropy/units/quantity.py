@@ -1349,22 +1349,21 @@ class Quantity(np.ndarray):
         try:
             _value = value.to_value(self.unit)
         except AttributeError:
-            # We're not a Quantity, so let's try a more general conversion.
+            # We're not a Quantity.
+            # First remove two special cases (with a fast test):
+            # 1) Maybe masked printing? MaskedArray with quantities does not
+            # work very well, but no reason to break even repr and str.
+            # 2) np.ma.masked? useful if we're a MaskedQuantity.
+            if (value is np.ma.masked
+                or (value is np.ma.masked_print_option
+                    and self.dtype.kind == 'O')):
+                return value
+            # Now, let's try a more general conversion.
             # Plain arrays will be converted to dimensionless in the process,
             # but anything with a unit attribute will use that.
             try:
                 as_quantity = Quantity(value)
                 _value = as_quantity.to_value(self.unit)
-            except TypeError:
-                # Could not make a Quantity.  Maybe masked printing?
-                # Note: masked quantities do not work very well, but no reason
-                # to break even repr and str.
-                if (value is np.ma.masked_print_option and
-                        self.dtype.kind == 'O'):
-                    return value
-                else:
-                    raise
-
             except UnitsError:
                 # last chance: if this was not something with a unit
                 # and is all 0, inf, or nan, we treat it as arbitrary unit.
@@ -1374,8 +1373,8 @@ class Quantity(np.ndarray):
                 else:
                     raise
 
-        if check_precision:
-            # If, e.g., we are casting double to float, we want to fail if
+        if self.dtype.kind == 'i' and check_precision:
+            # If, e.g., we are casting float to int, we want to fail if
             # precision is lost, but let things pass if it works.
             _value = np.array(_value, copy=False, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
