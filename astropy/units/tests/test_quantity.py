@@ -1610,3 +1610,46 @@ def test_masked_quantity_str_repr():
                                   mask=[True, False, True, False])
     str(masked_quantity)
     repr(masked_quantity)
+
+
+class TestQuantitySubclassAboveAndBelow:
+    @classmethod
+    def setup_class(self):
+        class MyArray(np.ndarray):
+            def __array_finalize__(self, obj):
+                super_array_finalize = super().__array_finalize__
+                if super_array_finalize is not None:
+                    super_array_finalize(obj)
+                if hasattr(obj, 'my_attr'):
+                    self.my_attr = obj.my_attr
+
+        self.MyArray = MyArray
+        self.MyQuantity1 = type('MyQuantity1', (u.Quantity, MyArray),
+                                dict(my_attr='1'))
+        self.MyQuantity2 = type('MyQuantity2', (MyArray, u.Quantity),
+                                dict(my_attr='2'))
+
+    def test_setup(self):
+        mq1 = self.MyQuantity1(10, u.m)
+        assert isinstance(mq1, self.MyQuantity1)
+        assert mq1.my_attr == '1'
+        assert mq1.unit is u.m
+        mq2 = self.MyQuantity2(10, u.m)
+        assert isinstance(mq2, self.MyQuantity2)
+        assert mq2.my_attr == '2'
+        assert mq2.unit is u.m
+
+    def test_attr_propagation(self):
+        mq1 = self.MyQuantity1(10, u.m)
+        mq12 = self.MyQuantity2(mq1)
+        assert isinstance(mq12, self.MyQuantity2)
+        assert not isinstance(mq12, self.MyQuantity1)
+        assert mq12.my_attr == '1'
+        assert mq12.unit is u.m
+
+        mq2 = self.MyQuantity2(10, u.m)
+        mq21 = self.MyQuantity1(mq2)
+        assert isinstance(mq21, self.MyQuantity1)
+        assert not isinstance(mq21, self.MyQuantity2)
+        assert mq21.my_attr == '2'
+        assert mq21.unit is u.m
