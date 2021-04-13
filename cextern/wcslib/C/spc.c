@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: spc.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -133,6 +133,31 @@ int spcfree(struct spcprm *spc)
   wcserr_clear(&(spc->err));
 
   return 0;
+}
+
+//----------------------------------------------------------------------------
+
+int spcsize(const struct spcprm *spc, int sizes[2])
+
+{
+  if (spc == 0x0) {
+    sizes[0] = sizes[1] = 0;
+    return SPCERR_SUCCESS;
+  }
+
+  // Base size, in bytes.
+  sizes[0] = sizeof(struct spcprm);
+
+  // Total size of allocated memory, in bytes.
+  sizes[1] = 0;
+
+  int exsizes[2];
+
+  // spcprm::err.
+  wcserr_size(spc->err, exsizes);
+  sizes[1] += exsizes[0] + exsizes[1];
+
+  return SPCERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

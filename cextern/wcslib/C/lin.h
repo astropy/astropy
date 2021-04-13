@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: lin.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -41,8 +41,8 @@
 * like a C++ class but with no encapsulation.
 *
 * Six routines, linini(), lininit(), lindis(), lindist() lincpy(), and
-* linfree() are provided to manage the linprm struct, and another, linprt(),
-* prints its contents.
+* linfree() are provided to manage the linprm struct, linsize() computes its
+* total size including allocated memory, and linprt() prints its contents.
 *
 * linperr() prints the error message(s) (if any) stored in a linprm struct,
 * and the disprm structs that it may contain.
@@ -220,6 +220,35 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null linprm pointer passed.
+*
+*
+* linsize() - Compute the size of a linprm struct
+* -----------------------------------------------
+* linsize() computes the full size of a linprm struct, including allocated
+* memory.
+*
+* Given:
+*   lin       const struct linprm*
+*                       Linear transformation parameters.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct linprm).  The second element
+*                       is the total allocated size, in bytes, assuming that
+*                       the allocation was done by linini().  This figure
+*                       includes memory allocated for members of constituent
+*                       structs, such as linprm::dispre.
+*
+*                       It is not an error for the struct not to have been set
+*                       up via linset(), which normally results in additional
+*                       memory allocation.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * linprt() - Print routine for the linprm struct
@@ -676,6 +705,8 @@ int lindist(int sequence, struct linprm *lin, struct disprm *dis, int ndpmax);
 int lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst);
 
 int linfree(struct linprm *lin);
+
+int linsize(const struct linprm *lin, int sizes[2]);
 
 int linprt(const struct linprm *lin);
 

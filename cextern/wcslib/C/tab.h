@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: tab.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -49,7 +49,8 @@
 * encapsulation.
 *
 * tabini(), tabmem(), tabcpy(), and tabfree() are provided to manage the
-* tabprm struct, and another, tabprt(), to print its contents.
+* tabprm struct, tabsize() computes its total size including allocated memory,
+* and tabprt() prints its contents.
 *
 * tabperr() prints the error message(s) (if any) stored in a tabprm struct.
 *
@@ -230,6 +231,35 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null tabprm pointer passed.
+*
+*
+* tabsize() - Compute the size of a tabprm struct
+* -----------------------------------------------
+* tabsize() computes the full size of a tabprm struct, including allocated
+* memory.
+*
+* Given:
+*   tab       const struct tabprm*
+*                       Tabular transformation parameters.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct tabprm).  The second element
+*                       is the total allocated size, in bytes, assuming that
+*                       the allocation was done by tabini().  This figure
+*                       includes memory allocated for the constituent struct,
+*                       tabprm::err.
+*
+*                       It is not an error for the struct not to have been set
+*                       up via tabset(), which normally results in additional
+*                       memory allocation. 
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * tabprt() - Print routine for the tabprm struct
@@ -602,6 +632,8 @@ int tabcmp(int cmp, double tol, const struct tabprm *tab1,
            const struct tabprm *tab2, int *equal);
 
 int tabfree(struct tabprm *tab);
+
+int tabsize(const struct tabprm *tab, int size[2]);
 
 int tabprt(const struct tabprm *tab);
 

@@ -10233,7 +10233,7 @@ static const yy_state_type yy_NUL_trans[551] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "fitshdr.l"
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -10253,7 +10253,7 @@ static const yy_state_type yy_NUL_trans[551] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: fitshdr.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner
@@ -10272,7 +10272,7 @@ static const yy_state_type yy_NUL_trans[551] =
 /* Characters forming standard unit strings (jwBIQX are not used). */
 /* Exclusive start states. */
 
-#line 75 "fitshdr.l"
+#line 76 "fitshdr.l"
 #include <math.h>
 #include <limits.h>
 #include <setjmp.h>
@@ -10282,35 +10282,15 @@ static const yy_state_type yy_NUL_trans[551] =
 #include "fitshdr.h"
 #include "wcsutil.h"
 
-static int fitshdr_scanner(const char header[], int nkeyrec, int nkeyids, \
-                           struct fitskeyid keyids[], int *nreject, \
-                           struct fitskey **keys, yyscan_t yyscanner);
+// User data associated with yyscanner.
+struct fitshdr_extra {
+  // Values passed to YY_INPUT.
+  const char *hdr;
+  int  nkeyrec;
 
-//----------------------------------------------------------------------------
-
-int fitshdr(
-  const char header[],
-  int nkeyrec,
-  int nkeyids,
-  struct fitskeyid keyids[],
-  int *nreject,
-  struct fitskey **keys)
-
-{
-  int status;
-  yyscan_t yyscanner;
-  int yylex_init(yyscan_t *yyscanner);
-  int yylex_destroy(yyscan_t yyscanner);
-
-  yylex_init(&yyscanner);
-  status = fitshdr_scanner(header, nkeyrec, nkeyids, keyids, nreject,
-                           keys, yyscanner);
-  yylex_destroy(yyscanner);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
 
 #define YY_DECL int fitshdr_scanner(const char header[], int nkeyrec, \
   int nkeyids, struct fitskeyid keyids[], int *nreject, \
@@ -10318,24 +10298,23 @@ int fitshdr(
 
 #define YY_INPUT(inbuff, count, bufsize) \
 	{ \
-	  if (fitshdr_nkeyrec) { \
-	    strncpy(inbuff, fitshdr_hdr, 80); \
+	  if (yyextra->nkeyrec) { \
+	    strncpy(inbuff, yyextra->hdr, 80); \
 	    inbuff[80] = '\n'; \
-	    fitshdr_hdr += 80; \
-	    fitshdr_nkeyrec--; \
+	    yyextra->hdr += 80; \
+	    yyextra->nkeyrec--; \
 	    count = 81; \
 	  } else { \
 	    count = YY_NULL; \
 	  } \
 	}
 
-// These global variables are required by YY_INPUT.
-const char *fitshdr_hdr;
-int  fitshdr_nkeyrec;
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
 
-// Used in preempting the call to exit() by yy_fatal_error().
-jmp_buf fitshdr_abort_jmp_env;
-#define exit(status) longjmp(fitshdr_abort_jmp_env, status)
+// Internal helper functions.
+static YY_DECL;
+static void nullfill(char cptr[], int len);
 
 // Map status return value to message.
 const char *fitshdr_errmsg[] = {
@@ -10344,8 +10323,8 @@ const char *fitshdr_errmsg[] = {
    "Memory allocation failed",
    "Fatal error returned by Flex parser"};
 
-#line 10348 "fitshdr.c"
-#line 10349 "fitshdr.c"
+#line 10327 "fitshdr.c"
+#line 10328 "fitshdr.c"
 
 #define INITIAL 0
 #define VALUE 1
@@ -10363,9 +10342,7 @@ const char *fitshdr_errmsg[] = {
 #include <unistd.h>
 #endif
 
-#ifndef YY_EXTRA_TYPE
-#define YY_EXTRA_TYPE void *
-#endif
+#define YY_EXTRA_TYPE struct fitshdr_extra *
 
 /* Holds the entire state of the reentrant scanner. */
 struct yyguts_t
@@ -10596,52 +10573,67 @@ YY_DECL
 		}
 
 	{
-#line 148 "fitshdr.l"
+#line 128 "fitshdr.l"
 
-#line 150 "fitshdr.l"
-	char *cptr, ctmp[72];
-	int  blank, continuation, end, j, k, keyno;
-	double dtmp;
-	struct fitskey *kptr;
-	struct fitskeyid *iptr;
-	void nullfill(char cptr[], int len);
-	
-	fitshdr_hdr = header;
-	fitshdr_nkeyrec = nkeyrec;
-	
-	*nreject = 0;
-	keyno = 0;
+#line 130 "fitshdr.l"
+	char ctmp[72];
 	
 	if (keys == 0x0) {
-	  return 1;
+	  return FITSHDRERR_NULL_POINTER;
 	}
 	
 	// Allocate memory for the required number of fitskey structs.
 	// Recall that calloc() initializes allocated memory to zero.
+	struct fitskey *kptr;
 	if (!(kptr = *keys = calloc(nkeyrec, sizeof(struct fitskey)))) {
-	  return 2;
+	  return FITSHDRERR_MEMORY;
 	}
 	
+	// Initialize returned values.
+	*nreject = 0;
+	
 	// Initialize keyids[].
-	iptr = keyids;
-	for (j = 0; j < nkeyids; j++, iptr++) {
+	struct fitskeyid *iptr = keyids;
+	for (int j = 0; j < nkeyids; j++, iptr++) {
 	  iptr->count  = 0;
 	  iptr->idx[0] = -1;
 	  iptr->idx[1] = -1;
 	}
+
+	int keyno = 0;
 	
-	blank = 0;
-	continuation = 0;
-	end = 0;
+	int blank = 0;
+	int continuation = 0;
+	int end = 0;
+	
+#ifdef WCSLIB_INT64
+#define asString(S) stringize(S)
+#define stringize(S) #S
+	
+	  const char *int64fmt;
+	  if (strcmp(asString(WCSLIB_INT64), "long long int") == 0) {
+	    int64fmt = "%lld";
+	  } else if (strcmp(asString(WCSLIB_INT64), "long int") == 0) {
+	    int64fmt = "%ld";
+	  } else if (strcmp(asString(WCSLIB_INT64), "int") == 0) {
+	    int64fmt = "%d";
+	  } else {
+	    return FITSHDRERR_DATA_TYPE;
+	  }
+#endif
+	
+	// User data associated with yyscanner.
+	yyextra->hdr = header;
+	yyextra->nkeyrec = nkeyrec;
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
-	if (setjmp(fitshdr_abort_jmp_env)) {
-	  return 3;
+	if (setjmp(yyextra->abort_jmp_env)) {
+	  return FITSHDRERR_FLEX_PARSER;
 	}
 	
 	BEGIN(INITIAL);
 
-#line 10645 "fitshdr.c"
+#line 10637 "fitshdr.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -10695,7 +10687,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 192 "fitshdr.l"
+#line 187 "fitshdr.l"
 {
 	  // A completely blank keyrecord.
 	  strncpy(kptr->keyword, yytext, 8);
@@ -10706,7 +10698,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 200 "fitshdr.l"
+#line 195 "fitshdr.l"
 {
 	  strncpy(kptr->keyword, yytext, 8);
 	  BEGIN(COMMENT);
@@ -10714,7 +10706,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 205 "fitshdr.l"
+#line 200 "fitshdr.l"
 {
 	  strncpy(kptr->keyword, yytext, 8);
 	  end = 1;
@@ -10723,7 +10715,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 211 "fitshdr.l"
+#line 206 "fitshdr.l"
 {
 	  // Illegal END keyrecord.
 	  strncpy(kptr->keyword, yytext, 8);
@@ -10733,7 +10725,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 218 "fitshdr.l"
+#line 213 "fitshdr.l"
 {
 	  // Illegal END keyrecord.
 	  strncpy(kptr->keyword, yytext, 8);
@@ -10743,7 +10735,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 225 "fitshdr.l"
+#line 220 "fitshdr.l"
 {
 	  strncpy(kptr->keyword, yytext, 8);
 	  BEGIN(VALUE);
@@ -10752,13 +10744,14 @@ YY_RULE_SETUP
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 230 "fitshdr.l"
+#line 225 "fitshdr.l"
 {
 	  // Continued string keyvalue.
 	  strncpy(kptr->keyword, yytext, 8);
 	
 	  if (keyno > 0 && (kptr-1)->type%10 == 8) {
 	    // Put back the string keyvalue.
+	    int k;
 	    for (k = 10; yytext[k] != '\''; k++);
 	    yyless(k);
 	    continuation = 1;
@@ -10773,7 +10766,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 248 "fitshdr.l"
+#line 244 "fitshdr.l"
 {
 	  // Keyword without value.
 	  strncpy(kptr->keyword, yytext, 8);
@@ -10782,7 +10775,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 254 "fitshdr.l"
+#line 250 "fitshdr.l"
 {
 	  // Illegal keyword, carry on regardless.
 	  strncpy(kptr->keyword, yytext, 8);
@@ -10792,7 +10785,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 261 "fitshdr.l"
+#line 257 "fitshdr.l"
 {
 	  // Illegal keyword, carry on regardless.
 	  strncpy(kptr->keyword, yytext, 8);
@@ -10805,7 +10798,7 @@ case 11:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 268 "fitshdr.l"
+#line 264 "fitshdr.l"
 {
 	  // Null keyvalue.
 	  BEGIN(INLINE);
@@ -10813,7 +10806,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 273 "fitshdr.l"
+#line 269 "fitshdr.l"
 {
 	  // Logical keyvalue.
 	  kptr->type = 1;
@@ -10823,7 +10816,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 280 "fitshdr.l"
+#line 276 "fitshdr.l"
 {
 	  // 32-bit signed integer keyvalue.
 	  kptr->type = 2;
@@ -10837,9 +10830,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 291 "fitshdr.l"
+#line 287 "fitshdr.l"
 {
 	  // 64-bit signed integer keyvalue (up to 18 digits).
+	  double dtmp;
 	  if (wcsutil_str2double(yytext, &dtmp)) {
 	    kptr->status |= FITSHDR_KEYVALUE;
 	    BEGIN(ERROR);
@@ -10857,7 +10851,7 @@ YY_RULE_SETUP
 	    kptr->type = 3;
 #ifdef WCSLIB_INT64
 	      // Native 64-bit integer is available.
-	      if (sscanf(yytext, "%lld", &(kptr->keyvalue.k)) < 1) {
+	      if (sscanf(yytext, int64fmt, &(kptr->keyvalue.k)) < 1) {
 	        kptr->status |= FITSHDR_KEYVALUE;
 	        BEGIN(ERROR);
 	      }
@@ -10881,12 +10875,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 332 "fitshdr.l"
+#line 329 "fitshdr.l"
 {
 	  // Very long integer keyvalue (and 19-digit int64).
 	  kptr->type = 4;
 	  strcpy(ctmp, yytext);
-	  k = yyleng;
+	  int j, k = yyleng;
 	  for (j = 0; j < 8; j++) {
 	    // Read it backwards.
 	    k -= 9;
@@ -10913,7 +10907,7 @@ YY_RULE_SETUP
 #ifdef WCSLIB_INT64
 	      // Native 64-bit integer is available.
 	      kptr->keyvalue.l[2] = 0;
-	      if (sscanf(yytext, "%lld", &(kptr->keyvalue.k)) < 1) {
+	      if (sscanf(yytext, int64fmt, &(kptr->keyvalue.k)) < 1) {
 	        kptr->status |= FITSHDR_KEYVALUE;
 	        BEGIN(ERROR);
 	      }
@@ -10925,7 +10919,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 373 "fitshdr.l"
+#line 370 "fitshdr.l"
 {
 	  // Float keyvalue.
 	  kptr->type = 5;
@@ -10939,7 +10933,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 384 "fitshdr.l"
+#line 381 "fitshdr.l"
 {
 	  // Integer complex keyvalue.
 	  kptr->type = 6;
@@ -10954,11 +10948,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 396 "fitshdr.l"
+#line 393 "fitshdr.l"
 {
 	  // Floating point complex keyvalue.
 	  kptr->type = 7;
 	
+	  char *cptr;
+	  int k;
 	  for (cptr = ctmp, k = 1; yytext[k] != ','; cptr++, k++) {
 	    *cptr = yytext[k];
 	  }
@@ -10985,16 +10981,16 @@ YY_RULE_SETUP
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 423 "fitshdr.l"
+#line 422 "fitshdr.l"
 {
 	  // String keyvalue.
 	  kptr->type = 8;
-	  cptr = kptr->keyvalue.s;
+	  char *cptr = kptr->keyvalue.s;
 	  strcpy(cptr, yytext+1);
 	
 	  // Squeeze out repeated quotes.
-	  k = 0;
-	  for (j = 0; j < 72; j++) {
+	  int k = 0;
+	  for (int j = 0; j < 72; j++) {
 	    if (k < j) {
 	      cptr[k] = cptr[j];
 	    }
@@ -11021,7 +11017,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 456 "fitshdr.l"
+#line 455 "fitshdr.l"
 {
 	  kptr->status |= FITSHDR_KEYVALUE;
 	  BEGIN(ERROR);
@@ -11032,7 +11028,7 @@ case 21:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 461 "fitshdr.l"
+#line 460 "fitshdr.l"
 {
 	  BEGIN(FLUSH);
 	}
@@ -11042,21 +11038,21 @@ case 22:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 465 "fitshdr.l"
+#line 464 "fitshdr.l"
 {
 	  BEGIN(FLUSH);
 	}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 469 "fitshdr.l"
+#line 468 "fitshdr.l"
 {
 	  BEGIN(UNITS);
 	}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 473 "fitshdr.l"
+#line 472 "fitshdr.l"
 {
 	  kptr->status |= FITSHDR_COMMENT;
 	  BEGIN(ERROR);
@@ -11064,7 +11060,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 478 "fitshdr.l"
+#line 477 "fitshdr.l"
 {
 	  // Keyvalue parsing must now also be suspect.
 	  kptr->status |= FITSHDR_COMMENT;
@@ -11074,7 +11070,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 485 "fitshdr.l"
+#line 484 "fitshdr.l"
 {
 	  kptr->ulen = yyleng;
 	  yymore();
@@ -11083,7 +11079,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 491 "fitshdr.l"
+#line 490 "fitshdr.l"
 {
 	  yymore();
 	  BEGIN(COMMENT);
@@ -11091,7 +11087,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 496 "fitshdr.l"
+#line 495 "fitshdr.l"
 {
 	  strcpy(kptr->comment, yytext);
 	  nullfill(kptr->comment, 84);
@@ -11100,11 +11096,11 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 502 "fitshdr.l"
+#line 501 "fitshdr.l"
 {
 	  if (!continuation) kptr->type = -abs(kptr->type);
 	
-	  sprintf(kptr->comment, "%.80s", fitshdr_hdr-80);
+	  sprintf(kptr->comment, "%.80s", yyextra->hdr-80);
 	  kptr->comment[80] = '\0';
 	  nullfill(kptr->comment+80, 4);
 	
@@ -11114,7 +11110,7 @@ YY_RULE_SETUP
 case 30:
 /* rule 30 can match eol */
 YY_RULE_SETUP
-#line 512 "fitshdr.l"
+#line 511 "fitshdr.l"
 {
 	  // Discard the rest of the input line.
 	  kptr->keyno = ++keyno;
@@ -11126,8 +11122,9 @@ YY_RULE_SETUP
 	  // Do indexing.
 	  iptr = keyids;
 	  kptr->keyid = -1;
-	  for (j = 0; j < nkeyids; j++, iptr++) {
-	    cptr = iptr->name;
+	  for (int j = 0; j < nkeyids; j++, iptr++) {
+	    int k;
+	    char *cptr = iptr->name;
 	    cptr[8] = '\0';
 	    nullfill(cptr, 12);
 	    for (k = 0; k < 8; k++, cptr++) {
@@ -11152,7 +11149,7 @@ YY_RULE_SETUP
 	  if (continuation) {
 	    // Tidy up the previous string keyvalue.
 	    if ((kptr-1)->type == 8) (kptr-1)->type += 10;
-	    cptr = (kptr-1)->keyvalue.s;
+	    char *cptr = (kptr-1)->keyvalue.s;
 	    if (cptr[strlen(cptr)-1] == '&') cptr[strlen(cptr)-1] = '\0';
 	
 	    kptr->type = (kptr-1)->type + 10;
@@ -11189,7 +11186,7 @@ YY_RULE_SETUP
 #line 573 "fitshdr.l"
 ECHO;
 	YY_BREAK
-#line 11193 "fitshdr.c"
+#line 11190 "fitshdr.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -12319,24 +12316,53 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 #line 573 "fitshdr.l"
 
 
-//----------------------------------------------------------------------------
+/*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int fitshdr(
+  const char header[],
+  int nkeyrec,
+  int nkeyids,
+  struct fitskeyid keyids[],
+  int *nreject,
+  struct fitskey **keys)
+
+{
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct fitshdr_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = fitshdr_scanner(header, nkeyrec, nkeyids, keyids, nreject,
+                               keys, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
+/*----------------------------------------------------------------------------
+* Pad a string with null characters.
+*---------------------------------------------------------------------------*/
 
 void nullfill(char cptr[], int len)
 
 {
-  int j, k;
-
-  // Null-fill the string.
+  // Propagate the terminating null to the end of the string.
+  int j;
   for (j = 0; j < len; j++) {
     if (cptr[j] == '\0') {
-      for (k = j+1; k < len; k++) {
+      for (int k = j+1; k < len; k++) {
         cptr[k] = '\0';
       }
       break;
     }
   }
 
-  for (k = j-1; k >= 0; k--) {
+  // Remove trailing blanks.
+  for (int k = j-1; k >= 0; k--) {
     if (cptr[k] != ' ') break;
     cptr[k] = '\0';
   }
