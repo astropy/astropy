@@ -138,8 +138,10 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
               'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
-              'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
-                           dtype='<i4,|S1').view(table.NdarrayMixin),
+              'ndarraylil': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
+                                  dtype='<i4,|S1').view(table.NdarrayMixin),
+              'ndarraybig': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
+                                  dtype='>i4,|S1').view(table.NdarrayMixin),
               }
 MIXIN_COLS['earthlocation'] = coordinates.EarthLocation(
     lon=MIXIN_COLS['longitude'], lat=MIXIN_COLS['latitude'],
