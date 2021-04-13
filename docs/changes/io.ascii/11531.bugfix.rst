@@ -1,0 +1,2 @@
+Fixed the issue where the CDS reader failed to treat columns 
+as nullable if the ReadMe file contains a limits specifier.
