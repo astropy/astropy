@@ -1865,7 +1865,7 @@ class TestPandas:
     def test_mixin_pandas(self):
         t = table.QTable()
         for name in sorted(MIXIN_COLS):
-            if name != 'ndarray':
+            if not name.startswith('ndarray'):
                 t[name] = MIXIN_COLS[name]
 
         t['dt'] = TimeDelta([0, 2, 4, 6], format='sec')
