@@ -324,13 +324,14 @@ def check_output(output, unit, inputs, function=None):
                                  if function is not None else ""),
                                 type(output)))
 
-        if output.__quantity_subclass__(unit)[0] is not type(output):
+        q_cls, subok = output.__quantity_subclass__(unit)
+        if not (subok or q_cls is type(output)):
             raise UnitTypeError(
                 "Cannot store output with unit '{}'{} "
                 "in {} instance.  Use {} instance instead."
                 .format(unit, (f" from {function.__name__} function"
-                               if function is not None else ""), type(output),
-                        output.__quantity_subclass__(unit)[0]))
+                               if function is not None else ""),
+                        type(output), q_cls))
 
         # check we can handle the dtype (e.g., that we are not int
         # when float is required).  Note that we only do this for Quantity

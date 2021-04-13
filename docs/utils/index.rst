@@ -26,6 +26,7 @@ The exceptions are below:
 
    iers
    data
+   masked/index
 
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
