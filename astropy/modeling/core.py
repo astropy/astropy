@@ -3052,19 +3052,25 @@ class CompoundModel(Model):
                 operands.append(format_leaf(leaf_idx, node))
                 leaf_idx += 1
                 continue
-            oper_order = OPERATOR_PRECEDENCE[node.op]
+
             right = operands.pop()
             left = operands.pop()
+            if node.op in OPERATOR_PRECEDENCE:
+                oper_order = OPERATOR_PRECEDENCE[node.op]
 
-            if isinstance(node, CompoundModel):
-                if (isinstance(node.left, CompoundModel) and
-                        OPERATOR_PRECEDENCE[node.left.op] < oper_order):
-                    left = f'({left})'
-                if (isinstance(node.right, CompoundModel) and
-                        OPERATOR_PRECEDENCE[node.right.op] < oper_order):
-                    right = f'({right})'
+                if isinstance(node, CompoundModel):
+                    if (isinstance(node.left, CompoundModel) and
+                            OPERATOR_PRECEDENCE[node.left.op] < oper_order):
+                        left = f'({left})'
+                    if (isinstance(node.right, CompoundModel) and
+                            OPERATOR_PRECEDENCE[node.right.op] < oper_order):
+                        right = f'({right})'
 
-            operands.append(' '.join((left, node.op, right)))
+                operands.append(' '.join((left, node.op, right)))
+            else:
+                left = f'(({left}),'
+                right = f'({right}))'
+                operands.append(' '.join((node.op, left, right)))
 
         return ''.join(operands)
 

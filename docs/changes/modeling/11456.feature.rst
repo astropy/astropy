@@ -1,0 +1,1 @@
+The ``convolve_models_fft`` function implements model convolution so that one insures that the convolution remains consistent across multiple different inputs.
