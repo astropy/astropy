@@ -531,7 +531,7 @@ class SkyCoord(ShapedLikeNDArray):
         out[idx0 + n_values:] = self[idx0:]
 
         return out
-    
+
     def is_transformable_to(self, new_frame):
         """
         Determines if this coordinate frame can be transformed to another
