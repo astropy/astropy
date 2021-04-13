@@ -1761,4 +1761,13 @@ def populate_entry_points(entry_points):
                         'astropy.modeling.Fitter' .format(name)))
 
 
-populate_entry_points(entry_points().get('astropy.modeling', []))
+def _populate_ep():
+    # TODO: Exclusively use select when Python minversion is 3.10
+    ep = entry_points()
+    if hasattr(ep, 'select'):
+        populate_entry_points(ep.select(group='astropy.modeling'))
+    else:
+        populate_entry_points(ep.get('astropy.modeling', []))
+
+
+_populate_ep()
