@@ -1628,41 +1628,34 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+            A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
 
         Returns
         -------
         `UnitSphericalRepresentation` or `SphericalRepresentation`
             If ``matrix`` is O(3) -- :math:`M \dot M^T = I` -- like a rotation,
             then the result is a `UnitSphericalRepresentation`.
-            The differentials' classes are also preserved.
             All other matrices will change the distance, so the dimensional
             representation is used instead.
-            Likewise, the classes of the differentials will be made dimensional.
 
         """
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
-        # matrix is in O(3) and keeps lengths.
+        # matrix is in O(3) and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
             if self.differentials:
                 # TODO! shortcut if there are differentials.
                 # Currently just super, which uses Cartesian backend.
                 rep = super().transform(matrix)
-
             else:
                 xyz = erfa_ufunc.s2c(self.lon, self.lat)
                 p = erfa_ufunc.rxp(matrix, xyz)
                 lon, lat = erfa_ufunc.c2s(p)
                 rep = self.__class__(lon=lon, lat=lat)
-
-        else:  # route through dimensional representation
-            diff_cls = {k: getattr(d, '_dimensional_differential', d.__class__)
-                        for k, d in self.differentials.items()}  # UnitX -> X
-            diffs = self._re_represent_differentials(self, diff_cls)
-            # ^ works with `self` instead of new_rep b/c compatible diffs
+        else:
             rep = self._dimensional_representation(
-                lon=self.lon, lat=self.lat, distance=1, differentials=diffs
+                lon=self.lon, lat=self.lat, distance=1,
+                differentials=self.differentials
             ).transform(matrix)
 
         return rep
@@ -2006,7 +1999,7 @@ class SphericalRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+            A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
 
         """
         if self.differentials:
@@ -2200,7 +2193,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+            A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
 
         """
         if self.differentials:

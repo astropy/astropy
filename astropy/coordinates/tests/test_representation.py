@@ -331,19 +331,20 @@ class TestSphericalRepresentation:
 
         s2 = s1.transform(matrix)
 
-        assert_allclose(s2.lon.deg, s1.lon.deg + 10)
-        assert_allclose(s2.lat.deg, s1.lat.deg)
-        assert_allclose(s2.distance.value, s1.distance.value)
+        assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
+        assert_allclose_quantity(s2.lat, s1.lat)
+        assert_allclose_quantity(s2.distance, s1.distance)
 
         # now with a non rotation matrix
         matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
         s3 = s1.transform(matrix)
-        expected = s1.to_cartesian().transform(matrix).represent_as(SphericalRepresentation)
+        expected = (s1.to_cartesian().transform(matrix)
+                      .represent_as(SphericalRepresentation))
 
-        assert_allclose(s3.lon.deg, expected.lon.deg)
-        assert_allclose(s3.lat.deg, expected.lat.deg)
-        assert_allclose(s3.distance.value, expected.distance.value)
+        assert_allclose_quantity(s3.lon, expected.lon)
+        assert_allclose_quantity(s3.lat, expected.lat)
+        assert_allclose_quantity(s3.distance, expected.distance)
 
     def test_transform_with_NaN(self):
         # all over again, but with a NaN in the distance
@@ -355,9 +356,9 @@ class TestSphericalRepresentation:
 
         s2 = s1.transform(matrix)
 
-        assert_allclose(s2.lon.deg, s1.lon.deg + 10)
-        assert_allclose(s2.lat.deg, s1.lat.deg)
-        assert_allclose(s2.distance.value, s1.distance.value)
+        assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
+        assert_allclose_quantity(s2.lat, s1.lat)
+        assert_allclose_quantity(s2.distance, s1.distance)
 
         # now with a non rotation matrix
         matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -375,8 +376,8 @@ class TestSphericalRepresentation:
         assert tuple(np.isnan(thruC.lat.deg)) == (False, True)
         assert tuple(np.isnan(thruC.distance.value)) == (False, True)
         # test that they are close on the first value
-        assert_allclose(s3.lon.deg[0], thruC.lon.deg[0])
-        assert_allclose(s3.lat.deg[0], thruC.lat.deg[0])
+        assert_allclose_quantity(s3.lon[0], thruC.lon[0])
+        assert_allclose_quantity(s3.lat[0], thruC.lat[0])
 
 
 class TestUnitSphericalRepresentation:
@@ -524,8 +525,8 @@ class TestUnitSphericalRepresentation:
 
         s2 = s1.transform(matrix)
 
-        assert_allclose(s2.lon.deg, s1.lon.deg + 10)
-        assert_allclose(s2.lat.deg, s1.lat.deg)
+        assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
+        assert_allclose_quantity(s2.lat, s1.lat)
 
         # now with a non rotation matrix
         # note that the result will be a Spherical, not UnitSpherical
@@ -534,9 +535,9 @@ class TestUnitSphericalRepresentation:
         s3 = s1.transform(matrix)
         expected = s1.to_cartesian().transform(matrix).represent_as(SphericalRepresentation)
 
-        assert_allclose(s3.lon.deg, expected.lon.deg)
-        assert_allclose(s3.lat.deg, expected.lat.deg)
-        assert_allclose(s3.distance.value, expected.distance.value)
+        assert_allclose_quantity(s3.lon, expected.lon)
+        assert_allclose_quantity(s3.lat, expected.lat)
+        assert_allclose_quantity(s3.distance, expected.distance)
 
 
 class TestPhysicsSphericalRepresentation:
@@ -710,9 +711,9 @@ class TestPhysicsSphericalRepresentation:
 
         s2 = s1.transform(matrix)
 
-        assert_allclose(s2.phi.deg, s1.phi.deg + 10)
-        assert_allclose(s2.theta.deg, s1.theta.deg)
-        assert_allclose(s2.r.value, s1.r.value)
+        assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
+        assert_allclose_quantity(s2.theta, s1.theta)
+        assert_allclose_quantity(s2.r, s1.r)
 
         # now with a non rotation matrix
         matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -721,9 +722,9 @@ class TestPhysicsSphericalRepresentation:
         expected = (s1.to_cartesian().transform(matrix)
                       .represent_as(PhysicsSphericalRepresentation))
 
-        assert_allclose(s3.phi.deg, expected.phi.deg)
-        assert_allclose(s3.theta.deg, expected.theta.deg)
-        assert_allclose(s3.r.value, expected.r.value)
+        assert_allclose_quantity(s3.phi, expected.phi)
+        assert_allclose_quantity(s3.theta, expected.theta)
+        assert_allclose_quantity(s3.r, expected.r)
 
     def test_transform_with_NaN(self):
         # all over again, but with a NaN in the distance
@@ -735,13 +736,13 @@ class TestPhysicsSphericalRepresentation:
 
         s2 = s1.transform(matrix)
 
-        assert_allclose(s2.phi.deg, s1.phi.deg + 10)
-        assert_allclose(s2.theta.deg, s1.theta.deg)
-        assert_allclose(s2.r.value, s1.r.value)
+        assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
+        assert_allclose_quantity(s2.theta, s1.theta)
+        assert_allclose_quantity(s2.r, s1.r)
 
         # TODO! implement these checks. First requires solving the problem that
         # expected = (s1.to_cartesian().transform(matrix).represent_as(PhysicsSphericalRepresentation))
-        # raises an error. Once fixed, this should just work.
+        # raises a warning. Once fixed, this should just work.
         # # now with a non rotation matrix
         # matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
@@ -758,8 +759,8 @@ class TestPhysicsSphericalRepresentation:
         # assert tuple(np.isnan(thruC.theta.deg)) == (False, True)
         # assert tuple(np.isnan(thruC.r.value)) == (False, True)
         # so only test on the first value
-        # assert_allclose(s3.phi.deg[0], thruC.phi.deg[0])
-        # assert_allclose(s3.theta.deg[0], thruC.theta.deg[0])
+        # assert_allclose_quantity(s3.phi[0], thruC.phi[0])
+        # assert_allclose_quantity(s3.theta[0], thruC.theta[0])
 
 
 class TestCartesianRepresentation:
@@ -1156,9 +1157,9 @@ class TestCylindricalRepresentation:
 
         s2 = s1.transform(matrix)
 
-        assert_allclose(s2.phi.deg, s1.phi.deg + 10)
-        assert_allclose(s2.z.to_value(u.pc), s1.z.value)
-        assert_allclose(s2.rho.value, s1.rho.value)
+        assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
+        assert_allclose_quantity(s2.z, s1.z)
+        assert_allclose_quantity(s2.rho, s1.rho)
 
         assert s2.phi.unit is u.rad
         assert s2.z.unit is u.kpc
@@ -1170,9 +1171,9 @@ class TestCylindricalRepresentation:
         s3 = s1.transform(matrix)
         expected = s1.to_cartesian().transform(matrix).represent_as(CylindricalRepresentation)
 
-        assert_allclose(s3.phi.deg, expected.phi.deg)
-        assert_allclose(s3.z.value, expected.z.value)
-        assert_allclose(s3.rho.value, expected.rho.value)
+        assert_allclose_quantity(s3.phi, expected.phi)
+        assert_allclose_quantity(s3.z, expected.z)
+        assert_allclose_quantity(s3.rho, expected.rho)
 
 
 def test_cartesian_spherical_roundtrip():
