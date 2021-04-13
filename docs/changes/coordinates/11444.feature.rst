@@ -3,5 +3,6 @@ transformed by a 3x3 matrix in a Cartesian basis. By default, transformations
 are routed through ``CartesianRepresentation``. ``SphericalRepresentation`` and
 ``PhysicssphericalRepresentation`` override this for speed and to prevent NaN
 leakage from the distance to the angular components.
-Also, add a utility function in ``matrix_utities`` to check whether a matrix is
-a rotation  (proper or improper).
+Also, the functions ``is_O3`` and ``is_rotation`` have been added to
+``matrix_utities`` for checking whether a matrix is in the O(3) group or is a
+rotation (proper or improper), respectively.
