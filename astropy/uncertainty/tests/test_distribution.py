@@ -432,5 +432,20 @@ def test_distr_angle_view_as_quantity():
     assert isinstance(qd3, Distribution)
     assert_array_equal(qd3.distribution, qd.distribution)
 
-    with pytest.raises(ValueError, match='just a new dtype'):
+
+def test_distr_cannot_view_new_dtype():
+    # A Distribution has a very specific structured dtype with just one
+    # element that holds the array of samples.  As it is not clear what
+    # to do with a view as a new dtype, we just error on it.
+    # TODO: with a lot of thought, this restriction can likely be relaxed.
+    distr = Distribution([2., 3., 4.])
+    with pytest.raises(ValueError, match='with a new dtype'):
+        distr.view(np.dtype('f8'))
+
+    # Check subclass just in case.
+    ad = Angle(distr, 'deg')
+    with pytest.raises(ValueError, match='with a new dtype'):
         ad.view(np.dtype('f8'))
+
+    with pytest.raises(ValueError, match='with a new dtype'):
+        ad.view(np.dtype('f8'), Distribution)
