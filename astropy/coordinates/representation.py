@@ -16,7 +16,7 @@ from erfa import ufunc as erfa_ufunc
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
-from .matrix_utilities import is_rotation
+from .matrix_utilities import is_O3
 from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
@@ -880,7 +880,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 transformation matrix, such as a rotation matrix.
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
 
         """
         # route transformation through Cartesian
@@ -1628,7 +1628,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 transformation matrix, such as a rotation matrix.
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
 
         Returns
         -------
@@ -1643,8 +1643,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
-        # matrix is in O(3) (rotations, proper and improper) and keeps lengths.
-        if is_rotation(matrix, allow_improper=True):  # remain in unit-rep
+        # matrix is in O(3) and keeps lengths.
+        if np.all(is_O3(matrix)):  # remain in unit-rep
             if self.differentials:
                 # TODO! shortcut if there are differentials.
                 # Currently just super, which uses Cartesian backend.
@@ -1653,12 +1653,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
             else:
                 xyz = erfa_ufunc.s2c(self.lon, self.lat)
                 p = erfa_ufunc.rxp(matrix, xyz)
-                lon, lat, _ = erfa_ufunc.p2s(p)
+                lon, lat = erfa_ufunc.c2s(p)
                 rep = self.__class__(lon=lon, lat=lat)
 
         else:  # route through dimensional representation
-            diff_cls = {k: d._dimensional_differential  # class UnitX -> X
-                        for k, d in self.differentials.items()}
+            diff_cls = {k: getattr(d, '_dimensional_differential', d.__class__)
+                        for k, d in self.differentials.items()}  # UnitX -> X
             diffs = self._re_represent_differentials(self, diff_cls)
             # ^ works with `self` instead of new_rep b/c compatible diffs
             rep = self._dimensional_representation(
@@ -2006,7 +2006,7 @@ class SphericalRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 transformation matrix, such as a rotation matrix.
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
 
         """
         if self.differentials:
@@ -2200,7 +2200,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         Parameters
         ----------
         matrix : (3,3) array-like
-            A 3x3 transformation matrix, such as a rotation matrix.
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
 
         """
         if self.differentials:
