@@ -399,7 +399,7 @@ Installing pre-built Development Versions of ``astropy``
 
 Most nights a development snapshot of ``astropy`` will be compiled.
 This is useful if you want to test against a development version of astropy but
-do not want to have to build it yourself. You can see the
+do not want to have to build it yourselves. You can see the
 `available astropy dev snapshots page <https://dev.azure.com/astropy-project/astropy/_packaging?_a=package&feed=nightly&package=astropy&protocolType=PyPI&view=versions>`_
 to find out what is currently being offered.
 
