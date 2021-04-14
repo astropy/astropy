@@ -1,28 +1,26 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
 from astropy.stats import bayesian_blocks, RegularEvents
-from astropy.utils.exceptions import AstropyUserWarning
 
 
 def test_single_change_point(rseed=0):
-    rng = np.random.RandomState(rseed)
-    x = np.concatenate([rng.rand(100),
-                        1 + rng.rand(200)])
+    rng = np.random.default_rng(rseed)
+    x = np.concatenate([rng.random(100),
+                        1 + rng.random(200)])
 
     bins = bayesian_blocks(x)
 
     assert (len(bins) == 3)
-    assert_allclose(bins[1], 1, rtol=0.02)
+    assert_allclose(bins[1], 0.927289, rtol=0.02)
 
 
 def test_duplicate_events(rseed=0):
-    rng = np.random.RandomState(rseed)
-    t = rng.rand(100)
+    rng = np.random.default_rng(rseed)
+    t = rng.random(100)
     t[80:] = t[:20]
 
     # Using int array as a regression test for gh-6877
@@ -36,11 +34,11 @@ def test_duplicate_events(rseed=0):
 
 
 def test_measures_fitness_homoscedastic(rseed=0):
-    rng = np.random.RandomState(rseed)
+    rng = np.random.default_rng(rseed)
     t = np.linspace(0, 1, 11)
     x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01 ** 2)
     sigma = 0.05
-    x = x + sigma * rng.randn(len(x))
+    x = x + sigma * rng.standard_normal(len(x))
 
     bins = bayesian_blocks(t, x, sigma, fitness='measures')
 
@@ -48,11 +46,11 @@ def test_measures_fitness_homoscedastic(rseed=0):
 
 
 def test_measures_fitness_heteroscedastic():
-    rng = np.random.RandomState(1)
+    rng = np.random.default_rng(1)
     t = np.linspace(0, 1, 11)
     x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01 ** 2)
-    sigma = 0.02 + 0.02 * rng.rand(len(x))
-    x = x + sigma * rng.randn(len(x))
+    sigma = 0.02 + 0.02 * rng.random(len(x))
+    x = x + sigma * rng.standard_normal(len(x))
 
     bins = bayesian_blocks(t, x, sigma, fitness='measures')
 
@@ -60,10 +58,10 @@ def test_measures_fitness_heteroscedastic():
 
 
 def test_regular_events():
-    rng = np.random.RandomState(0)
+    rng = np.random.default_rng(1234)
     dt = 0.01
-    steps = np.concatenate([np.unique(rng.randint(0, 500, 100)),
-                            np.unique(rng.randint(500, 1000, 200))])
+    steps = np.concatenate([np.unique(rng.integers(0, 500, 100)),
+                            np.unique(rng.integers(500, 1000, 200))])
     t = dt * steps
 
     # string fitness
@@ -81,8 +79,8 @@ def test_regular_events():
 
 
 def test_errors():
-    rng = np.random.RandomState(0)
-    t = rng.rand(100)
+    rng = np.random.default_rng(0)
+    t = rng.random(100)
 
     # x must be integer or None for events
     with pytest.raises(ValueError):
@@ -117,35 +115,35 @@ def test_errors():
 
 def test_fitness_function_results():
     """Test results for several fitness functions"""
-    rng = np.random.RandomState(42)
+    rng = np.random.default_rng(42)
 
     # Event Data
-    t = rng.randn(100)
+    t = rng.standard_normal(100)
     edges = bayesian_blocks(t, fitness='events')
-    assert_allclose(edges, [-2.6197451, -0.71094865, 0.36866702, 1.85227818])
+    assert_allclose(edges, [-1.95103519, -1.01861547, 0.95442154, 2.1416476])
 
     # Event data with repeats
     t[80:] = t[:20]
     edges = bayesian_blocks(t, fitness='events', p0=0.01)
-    assert_allclose(edges, [-2.6197451, -0.47432431, -0.46202823, 1.85227818])
+    assert_allclose(edges, [-1.95103519, -1.08663566, 1.17575682, 2.1416476])
 
     # Regular event data
     dt = 0.01
     t = dt * np.arange(1000)
     x = np.zeros(len(t))
     N = len(t) // 10
-    x[rng.randint(0, len(t), N)] = 1
-    x[rng.randint(0, len(t) // 2, N)] = 1
+    x[rng.integers(0, len(t), N)] = 1
+    x[rng.integers(0, len(t) // 2, N)] = 1
     edges = bayesian_blocks(t, x, fitness='regular_events', dt=dt)
-    assert_allclose(edges, [0, 5.105, 9.99])
+    assert_allclose(edges, [0, 4.365, 4.995, 9.99])
 
     # Measured point data with errors
-    t = 100 * rng.rand(20)
+    t = 100 * rng.random(20)
     x = np.exp(-0.5 * (t - 50) ** 2)
     sigma = 0.1
-    x_obs = x + sigma * rng.randn(len(x))
+    x_obs = x + sigma * rng.standard_normal(len(x))
     edges = bayesian_blocks(t, x_obs, sigma, fitness='measures')
-    expected = [4.360377, 48.456895, 52.597917, 99.455051]
+    expected = [1.39362877, 44.30811196, 49.46626158, 54.37232704, 92.7562551]
     assert_allclose(edges, expected)
 
     # Optional arguments are passed (p0)

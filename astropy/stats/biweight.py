@@ -99,10 +99,10 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_location
-    >>> rand = np.random.RandomState(12345)
-    >>> biloc = biweight_location(rand.randn(1000))
+    >>> rand = np.random.default_rng(12345)
+    >>> biloc = biweight_location(rand.standard_normal(1000))
     >>> print(biloc)    # doctest: +FLOAT_CMP
-    -0.0175741540445
+    0.01535330525461019
     """
 
     median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
@@ -258,10 +258,10 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_scale
-    >>> rand = np.random.RandomState(12345)
-    >>> biscl = biweight_scale(rand.randn(1000))
+    >>> rand = np.random.default_rng(12345)
+    >>> biscl = biweight_scale(rand.standard_normal(1000))
     >>> print(biscl)    # doctest: +FLOAT_CMP
-    0.986726249291
+    1.0239311812635818
     """
 
     return np.sqrt(
@@ -371,10 +371,10 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midvariance
-    >>> rand = np.random.RandomState(12345)
-    >>> bivar = biweight_midvariance(rand.randn(1000))
+    >>> rand = np.random.default_rng(12345)
+    >>> bivar = biweight_midvariance(rand.standard_normal(1000))
     >>> print(bivar)    # doctest: +FLOAT_CMP
-    0.97362869104
+    1.0484350639638342
     """
 
     median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
@@ -591,19 +591,19 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     >>> import numpy as np
     >>> from astropy.stats import biweight_midcovariance
     >>> # Generate two random variables x and y
-    >>> rng = np.random.RandomState(1)
+    >>> rng = np.random.default_rng(1)
     >>> x = rng.normal(0, 1, 200)
     >>> y = rng.normal(0, 3, 200)
     >>> # Introduce an obvious outlier
     >>> x[0] = 30.0
     >>> # Calculate the biweight midcovariances between x and y
     >>> bicov = biweight_midcovariance([x, y])
-    >>> print(bicov)    # doctest: +FLOAT_CMP
-    [[ 0.82483155 -0.18961219]
-     [-0.18961219 9.80265764]]
+    >>> print(bicov)  # doctest: +FLOAT_CMP
+    [[0.83435568 0.02379316]
+     [0.02379316 7.15665769]]
     >>> # Print standard deviation estimates
-    >>> print(np.sqrt(bicov.diagonal()))    # doctest: +FLOAT_CMP
-    [ 0.90820237  3.13091961]
+    >>> print(np.sqrt(bicov.diagonal()))  # doctest: +FLOAT_CMP
+    [0.91343072 2.67519302]
     """
 
     data = np.asanyarray(data).astype(np.float64)
@@ -722,14 +722,14 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
 
     >>> import numpy as np
     >>> from astropy.stats import biweight_midcorrelation
-    >>> rng = np.random.RandomState(12345)
+    >>> rng = np.random.default_rng(12345)
     >>> x = rng.normal(0, 1, 200)
     >>> y = rng.normal(0, 3, 200)
     >>> # Introduce an obvious outlier
     >>> x[0] = 30.0
     >>> bicorr = biweight_midcorrelation(x, y)
-    >>> print(bicorr)    # doctest: +FLOAT_CMP
-    -0.0495780713907
+    >>> print(bicorr)  # doctest: +FLOAT_CMP
+    -0.09203238319481295
     """
 
     x = np.asanyarray(x)
