@@ -56,7 +56,7 @@ and follow the Astropy guidelines for reuse, interoperability, and interfacing.
 Each affiliated package has its own developers/maintainers and its own specific
 guidelines for contributions, so be sure to read their docs.
 
-Once you open a pull request (which should be opened against the ``master``
+Once you open a pull request (which should be opened against the ``main``
 branch, not against any of the other branches), please make sure to
 include the following:
 
@@ -81,8 +81,11 @@ include the following:
   [in the README for that repository](https://github.com/astropy/astropy-benchmarks#contributing-benchmarks).
 
 - **Changelog entry**: whether you are fixing a bug or adding new
-  functionality, you should add an entry to the [``CHANGES.rst``](CHANGES.rst) file that
-  includes the PR number. If you are opening a pull request you may not know
+  functionality, you should add a changelog fragment in the ``docs/changes/``
+  directory. See ``docs/changes/README.rst`` for some guidance on the creation
+  of this file.
+
+  If you are opening a pull request you may not know
   the PR number yet, but you can add it once the pull request is open. If you
   are not sure where to put the changelog entry, wait until a maintainer
   has reviewed your PR and assigned it to a milestone.

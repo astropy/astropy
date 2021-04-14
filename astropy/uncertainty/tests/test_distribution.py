@@ -1,47 +1,58 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 
 from astropy import units as u
+from astropy.coordinates import Angle
 from astropy.uncertainty.core import Distribution
 from astropy.uncertainty import distributions as ds
 from astropy.utils import NumpyRNGContext
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
-try:
+if HAS_SCIPY:
     from scipy.stats import norm  # pylint: disable=W0611
     SMAD_FACTOR = 1 / norm.ppf(0.75)
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
 
 
-def test_numpy_init():
-    # Test that we can initialize directly from a Numpy array
-    rates = np.array([1, 5, 30, 400])[:, np.newaxis]
-    parr = np.random.poisson(rates, (4, 1000))
-    Distribution(parr)
+class TestInit:
+    @classmethod
+    def setup_class(self):
+        self.rates = np.array([1, 5, 30, 400])[:, np.newaxis]
+        self.parr = np.random.poisson(self.rates, (4, 1000))
+        self.parr_t = np.random.poisson(self.rates.squeeze(), (1000, 4))
 
+    def test_numpy_init(self):
+        # Test that we can initialize directly from a Numpy array
+        Distribution(self.parr)
 
-def test_numpy_init_T():
-    rates = np.array([1, 5, 30, 400])
-    parr = np.random.poisson(rates, (1000, 4))
-    Distribution(parr.T)
+    def test_numpy_init_T(self):
+        Distribution(self.parr_t.T)
 
+    def test_quantity_init(self):
+        # Test that we can initialize directly from a Quantity
+        pq = self.parr << u.ct
+        pqd = Distribution(pq)
+        assert isinstance(pqd, u.Quantity)
+        assert isinstance(pqd, Distribution)
+        assert isinstance(pqd.value, Distribution)
+        assert_array_equal(pqd.value.distribution, self.parr)
 
-def test_quantity_init():
-    # Test that we can initialize directly from a Quantity
-    pq = np.random.poisson(np.array([1, 5, 30, 400])[:, np.newaxis],
-                           (4, 1000)) * u.ct
-    Distribution(pq)
+    def test_quantity_init_T(self):
+        # Test that we can initialize directly from a Quantity
+        pq = self.parr_t << u.ct
+        Distribution(pq.T)
 
-
-def test_quantity_init_T():
-    # Test that we can initialize directly from a Quantity
-    pq = np.random.poisson(np.array([1, 5, 30, 400]), (1000, 4)) * u.ct
-    Distribution(pq.T)
+    def test_quantity_init_with_distribution(self):
+        # Test that we can initialize a Quantity from a Distribution.
+        pd = Distribution(self.parr)
+        qpd = pd << u.ct
+        assert isinstance(qpd, u.Quantity)
+        assert isinstance(qpd, Distribution)
+        assert qpd.unit == u.ct
+        assert_array_equal(qpd.value.distribution, pd.distribution.astype(float))
 
 
 def test_init_scalar():
@@ -377,3 +388,64 @@ def test_distr_noq_to_value():
     distr = ds.normal(10, n_samples=100, std=1)
     with pytest.raises(AttributeError):
         distr.to_value(u.m)
+
+
+def test_distr_angle():
+    # Check that Quantity subclasses decay to Quantity appropriately.
+    distr = Distribution([2., 3., 4.])
+    ad = Angle(distr, 'deg')
+    ad_plus_ad = ad + ad
+    assert isinstance(ad_plus_ad, Angle)
+    assert isinstance(ad_plus_ad, Distribution)
+
+    ad_times_ad = ad * ad
+    assert not isinstance(ad_times_ad, Angle)
+    assert isinstance(ad_times_ad, u.Quantity)
+    assert isinstance(ad_times_ad, Distribution)
+
+    ad += ad
+    assert isinstance(ad, Angle)
+    assert isinstance(ad, Distribution)
+    assert_array_equal(ad.distribution, ad_plus_ad.distribution)
+
+    with pytest.raises(u.UnitTypeError):
+        ad *= ad
+
+
+def test_distr_angle_view_as_quantity():
+    # Check that Quantity subclasses decay to Quantity appropriately.
+    distr = Distribution([2., 3., 4.])
+    ad = Angle(distr, 'deg')
+    qd = ad.view(u.Quantity)
+    assert not isinstance(qd, Angle)
+    assert isinstance(qd, u.Quantity)
+    assert isinstance(qd, Distribution)
+    # View directly as DistributionQuantity class.
+    qd2 = ad.view(qd.__class__)
+    assert not isinstance(qd2, Angle)
+    assert isinstance(qd2, u.Quantity)
+    assert isinstance(qd2, Distribution)
+    assert_array_equal(qd2.distribution, qd.distribution)
+    qd3 = ad.view(qd.dtype, qd.__class__)
+    assert not isinstance(qd3, Angle)
+    assert isinstance(qd3, u.Quantity)
+    assert isinstance(qd3, Distribution)
+    assert_array_equal(qd3.distribution, qd.distribution)
+
+
+def test_distr_cannot_view_new_dtype():
+    # A Distribution has a very specific structured dtype with just one
+    # element that holds the array of samples.  As it is not clear what
+    # to do with a view as a new dtype, we just error on it.
+    # TODO: with a lot of thought, this restriction can likely be relaxed.
+    distr = Distribution([2., 3., 4.])
+    with pytest.raises(ValueError, match='with a new dtype'):
+        distr.view(np.dtype('f8'))
+
+    # Check subclass just in case.
+    ad = Angle(distr, 'deg')
+    with pytest.raises(ValueError, match='with a new dtype'):
+        ad.view(np.dtype('f8'))
+
+    with pytest.raises(ValueError, match='with a new dtype'):
+        ad.view(np.dtype('f8'), Distribution)

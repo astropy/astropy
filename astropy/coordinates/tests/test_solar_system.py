@@ -18,20 +18,11 @@ from astropy.coordinates.funcs import get_sun
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.data import download_file
+from astropy.utils.compat.optional_deps import (HAS_JPLEPHEM,  # noqa
+                                                HAS_SKYFIELD)
 
-try:
-    import jplephem  # pylint: disable=W0611
-except ImportError:
-    HAS_JPLEPHEM = False
-else:
-    HAS_JPLEPHEM = True
-
-try:
-    from skyfield.api import Loader, Topos  # pylint: disable=W0611
-except ImportError:
-    HAS_SKYFIELD = False
-else:
-    HAS_SKYFIELD = True
+if HAS_SKYFIELD:
+    from skyfield.api import Loader, Topos
 
 de432s_separation_tolerance_planets = 5*u.arcsec
 de432s_separation_tolerance_moon = 5*u.arcsec

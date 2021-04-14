@@ -30,6 +30,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.io.misc.asdf.tags.helpers import skycoord_equal
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -42,13 +43,6 @@ def allclose(a, b, rtol=0.0, atol=None):
     if atol is None:
         atol = 1.e-8 * getattr(a, 'unit', 1.)
     return quantity_allclose(a, b, rtol, atol)
-
-
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 
 def setup_function(func):
@@ -1270,8 +1264,8 @@ def test_guess_from_table():
 
     tab = Table()
     with NumpyRNGContext(987654321):
-        tab.add_column(Column(data=np.random.rand(1000), unit='deg', name='RA[J2000]'))
-        tab.add_column(Column(data=np.random.rand(1000), unit='deg', name='DEC[J2000]'))
+        tab.add_column(Column(data=np.random.rand(10), unit='deg', name='RA[J2000]'))
+        tab.add_column(Column(data=np.random.rand(10), unit='deg', name='DEC[J2000]'))
 
     sc = SkyCoord.guess_from_table(tab)
     npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
@@ -1286,20 +1280,44 @@ def test_guess_from_table():
 
     # but should work if provided
     sc2 = SkyCoord.guess_from_table(tab, unit=u.deg)
-    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
-    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+    npt.assert_array_equal(sc2.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc2.dec.deg, tab['DEC[J2000]'])
 
     # should fail if two options are available - ambiguity bad!
-    tab.add_column(Column(data=np.random.rand(1000), name='RA_J1900'))
+    tab.add_column(Column(data=np.random.rand(10), name='RA_J1900'))
     with pytest.raises(ValueError) as excinfo:
-        sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
+        SkyCoord.guess_from_table(tab, unit=u.deg)
     assert 'J1900' in excinfo.value.args[0] and 'J2000' in excinfo.value.args[0]
+
+    tab.remove_column('RA_J1900')
+    tab['RA[J2000]'].unit = u.deg
+    tab['DEC[J2000]'].unit = u.deg
+
+    # but should succeed if the ambiguity can be broken b/c one of the matches
+    # is the name of a different component
+    tab.add_column(Column(data=np.random.rand(10)*u.mas/u.yr,
+                          name='pm_ra_cosdec'))
+    tab.add_column(Column(data=np.random.rand(10)*u.mas/u.yr,
+                          name='pm_dec'))
+    sc3 = SkyCoord.guess_from_table(tab)
+    assert u.allclose(sc3.ra, tab['RA[J2000]'])
+    assert u.allclose(sc3.dec, tab['DEC[J2000]'])
+    assert u.allclose(sc3.pm_ra_cosdec, tab['pm_ra_cosdec'])
+    assert u.allclose(sc3.pm_dec, tab['pm_dec'])
+
+    # should fail if stuff doesn't have proper units
+    tab['RA[J2000]'].unit = None
+    tab['DEC[J2000]'].unit = None
+    with pytest.raises(u.UnitTypeError, match="no unit was given."):
+        SkyCoord.guess_from_table(tab)
+
+    tab.remove_column('pm_ra_cosdec')
+    tab.remove_column('pm_dec')
 
     # should also fail if user specifies something already in the table, but
     # should succeed even if the user has to give one of the components
-    tab.remove_column('RA_J1900')
     with pytest.raises(ValueError):
-        sc3 = SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
+        SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
 
     oldra = tab['RA[J2000]']
     tab.remove_column('RA[J2000]')
@@ -1825,3 +1843,21 @@ def test_passing_inconsistent_coordinates_and_units_raises_helpful_error(kwargs,
     # https://github.com/astropy/astropy/issues/10725
     with pytest.raises(ValueError, match=error_message):
         SkyCoord(**kwargs)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="Requires scipy.")
+def test_match_to_catalog_3d_and_sky():
+    # Test for issue #5857. See PR #11449
+    cfk5_default = SkyCoord([1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree, distance=[1, 1, 1.5, 1] * u.kpc,
+                            frame='fk5')
+    cfk5_J1950 = cfk5_default.transform_to(FK5(equinox='J1950'))
+
+    idx, angle, quantity = cfk5_J1950.match_to_catalog_3d(cfk5_default)
+    npt.assert_array_equal(idx, [0, 1, 2, 3])
+    assert_allclose(angle, 0*u.deg, atol=1e-15*u.deg, rtol=0)
+    assert_allclose(quantity, 0*u.kpc, atol=1e-15*u.kpc, rtol=0)
+
+    idx, angle, distance = cfk5_J1950.match_to_catalog_sky(cfk5_default)
+    npt.assert_array_equal(idx, [0, 1, 2, 3])
+    assert_allclose(angle, 0 * u.deg, atol=1e-15*u.deg, rtol=0)
+    assert_allclose(distance, 0*u.kpc, atol=1e-15*u.kpc, rtol=0)

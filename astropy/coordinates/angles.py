@@ -477,7 +477,7 @@ def _no_angle_subclass(obj):
     if isinstance(obj, tuple):
         return tuple(_no_angle_subclass(_obj) for _obj in obj)
 
-    return obj.view(Angle) if isinstance(obj, Angle) else obj
+    return obj.view(Angle) if isinstance(obj, (Latitude, Longitude)) else obj
 
 
 class Latitude(Angle):

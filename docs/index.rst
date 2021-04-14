@@ -1,4 +1,4 @@
-.. Astropy documentation master file, created by
+.. Astropy documentation index file, created by
    sphinx-quickstart on Tue Jul 26 02:59:34 2011.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -117,8 +117,6 @@ Nuts and bolts
    logging
    warnings
    utils/index
-   testhelpers
-   development/workflow/get_devel_version
 
 .. _developer-docs:
 
@@ -127,19 +125,25 @@ Developer Documentation
 ***********************
 
 The developer documentation contains instructions for how to contribute to
-Astropy or affiliated packages, as well as coding, documentation, and
-testing guidelines. For the guiding vision of this process and the project
+Astropy or affiliated packages, install and test the development version,
+as well as coding, documentation, and testing guidelines.
+
+{% if is_development %}
+
+For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
 
 .. toctree::
    :maxdepth: 1
 
    development/workflow/development_workflow
+   development/workflow/get_devel_version
    development/when_to_rebase
    development/codeguide
    development/docguide
    development/style-guide
    development/testguide
+   testhelpers
    development/scripts
    development/building
    development/ccython
@@ -151,6 +155,18 @@ as a whole, see :doc:`development/vision`.
 There are some additional tools, mostly of use for maintainers, in the
 `astropy/astropy-procedures repository
 <https://github.com/astropy/astropy-procedures>`__.
+
+{%else%}
+
+To read the developer documentation, you will need to go to the
+`latest developer version of the documentation <https://docs.astropy.org/en/latest/#developer-documentation>`__.
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
+{%endif%}
 
 .. _project-details:
 

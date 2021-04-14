@@ -8,7 +8,8 @@ import subprocess
 
 import pytest
 
-from astropy.config import configuration, set_temp_config, paths
+from astropy.config import (configuration, set_temp_config, paths,
+                            create_config_file)
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -144,6 +145,15 @@ def test_config_file():
     reload_config('astropy')
 
 
+def check_config(conf):
+    # test that the output contains some lines that we expect
+    assert '# unicode_output = False' in conf
+    assert '[io.fits]' in conf
+    assert '[visualization.wcsaxes]' in conf
+    assert '## Whether to log exceptions before raising them.' in conf
+    assert '# log_exceptions = False' in conf
+
+
 def test_generate_config(tmp_path):
     from astropy.config.configuration import generate_config
     out = io.StringIO()
@@ -156,12 +166,7 @@ def test_generate_config(tmp_path):
         conf2 = fp.read()
 
     for c in (conf, conf2):
-        # test that the output contains some lines that we expect
-        assert '# unicode_output = False' in c
-        assert '[io.fits]' in c
-        assert '[visualization.wcsaxes]' in c
-        assert '## Whether to log exceptions before raising them.' in c
-        assert '# log_exceptions = False' in c
+        check_config(c)
 
 
 def test_generate_config2(tmp_path):
@@ -176,12 +181,44 @@ def test_generate_config2(tmp_path):
     with open(tmp_path / 'astropy' / 'astropy.cfg') as fp:
         conf = fp.read()
 
-    # test that the output contains some lines that we expect
-    assert '# unicode_output = False' in conf
-    assert '[io.fits]' in conf
-    assert '[visualization.wcsaxes]' in conf
-    assert '## Whether to log exceptions before raising them.' in conf
-    assert '# log_exceptions = False' in conf
+    check_config(conf)
+
+
+def test_create_config_file(tmp_path, caplog):
+    with set_temp_config(tmp_path):
+        create_config_file('astropy')
+
+    # check that the config file has been created
+    assert ('The configuration file has been successfully written'
+            in caplog.records[0].message)
+    assert os.path.exists(tmp_path / 'astropy' / 'astropy.cfg')
+
+    with open(tmp_path / 'astropy' / 'astropy.cfg') as fp:
+        conf = fp.read()
+    check_config(conf)
+
+    caplog.clear()
+
+    # now modify the config file
+    conf = conf.replace('# unicode_output = False', 'unicode_output = True')
+    with open(tmp_path / 'astropy' / 'astropy.cfg', mode='w') as fp:
+        fp.write(conf)
+
+    with set_temp_config(tmp_path):
+        create_config_file('astropy')
+
+    # check that the config file has not been overwritten since it was modified
+    assert ('The configuration file already exists and seems to have been '
+            'customized' in caplog.records[0].message)
+
+    caplog.clear()
+
+    with set_temp_config(tmp_path):
+        create_config_file('astropy', overwrite=True)
+
+    # check that the config file has been overwritten
+    assert ('The configuration file has been successfully written'
+            in caplog.records[0].message)
 
 
 def test_configitem():
@@ -327,10 +364,7 @@ def test_config_noastropy_fallback(monkeypatch):
 
     # now run the basic tests, and make sure the warning about no astropy
     # is present
-    with pytest.warns(configuration.ConfigurationMissingWarning,
-                      match='Configuration defaults will be used') as w:
-        test_configitem()
-    assert len(w) == 1
+    test_configitem()
 
 
 def test_configitem_setters():
@@ -375,12 +409,6 @@ def test_empty_config_file():
 
     content = get_content('data/not_empty.cfg')
     assert not is_unedited_config_file(content)
-
-    content = get_content('data/astropy.0.3.cfg')
-    assert is_unedited_config_file(content)
-
-    content = get_content('data/astropy.0.3.windows.cfg')
-    assert is_unedited_config_file(content)
 
 
 class TestAliasRead:
@@ -466,10 +494,3 @@ def test_no_home():
         env=env)
 
     assert retcode == 0
-
-
-def test_unedited_template():
-    # Test that the config file is written at most once
-    config_dir = os.path.join(os.path.dirname(__file__), '..', '..')
-    configuration.update_default_config('astropy', config_dir)
-    assert configuration.update_default_config('astropy', config_dir) is False

@@ -10,7 +10,7 @@ resources:
     name: OpenAstronomy/azure-pipelines-templates
     ref: master
 
-# NOTE: for now we only use Azure Pipelines on v* branches, tags, and master
+# NOTE: for now we only use Azure Pipelines on v* branches, tags, and main
 # only on a cron for building the source and wheel distributions. If you want to
 # make changes to this configuration via a pull request, you can *temporarily*
 # change the pr branches include trigger to just '*'
@@ -18,7 +18,7 @@ trigger:
   branches:
     include:
     - 'v*'
-    - master
+    - main
   tags:
     include:
     - 'v*'
@@ -32,25 +32,25 @@ schedules:
     displayName: Daily Build for Nightly Wheels
     branches:
       include:
-        - master
+        - main
     always: true
 
 # Build Linux wheels using manylinux1 for compatibility with old versions
 # of pip and old platforms.
 variables:
-  CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-  CIBW_MANYLINUX_I686_IMAGE: manylinux1
+  CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
+  CIBW_MANYLINUX_I686_IMAGE: manylinux2010
   CI: true
 
 jobs:
-# Run this job on non-master branches (when triggered) or if we are on master and on the cron, or if manually triggered through the web ui.
-- ${{ if or(ne(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'Manual')) }}:
+# Run this job on non-main branches (when triggered) or if we are on main and on the cron, or if manually triggered through the web ui.
+- ${{ if or(ne(variables['Build.SourceBranchName'], 'main'), eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'Manual')) }}:
   - template: publish.yml@OpenAstronomy
     parameters:
 
       # FIXME: we exclude the test_data_out_of_range test since it
       # currently fails, see https://github.com/astropy/astropy/issues/10409
-      test_command: pytest -p no:warnings --astropy-header -k "not test_data_out_of_range and not test_datetime_difference_agrees_with_timedelta" --pyargs astropy
+      test_command: pytest -p no:warnings --astropy-header -k "not test_data_out_of_range and not test_datetime_difference_agrees_with_timedelta and not test_wcsapi_extension" --pyargs astropy
       test_extras: test
 
       # NOTE: for v* tags, we auto-release to PyPI. See
@@ -59,8 +59,8 @@ jobs:
       ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/v') }}:
         pypi_connection_name : 'pypi_endpoint'
 
-      # If the build has run on master then upload the artifacts to the nightly feed
-      ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      # If the build has run on main then upload the artifacts to the nightly feed
+      ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
         artifact_project : 'astropy'
         artifact_feed : 'nightly'
         remove_local_scheme: true

@@ -645,32 +645,30 @@ failure to be reported.
 Tests requiring optional dependencies
 =====================================
 
-For tests that test functions or methods that require optional
-dependencies (e.g. Scipy), pytest should be instructed to skip the
-test if the dependencies are not present. The following example shows
-how this should be done::
+For tests that test functions or methods that require optional dependencies
+(e.g., Scipy), pytest should be instructed to skip the test if the dependencies
+are not present, as the ``astropy`` tests should succeed even if an optional
+dependency is not present. ``astropy`` provides a list of boolean flags that
+test whether optional dependencies are installed (at import time). For example,
+to load the corresponding flag for Scipy and mark a test to skip if Scipy is not
+present, use::
 
     import pytest
+    from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-    try:
-        import scipy
-        HAS_SCIPY = True
-    except ImportError:
-        HAS_SCIPY = False
-
-    @pytest.mark.skipif('not HAS_SCIPY')
+    @pytest.mark.skipif(not HAS_SCIPY, reason='scipy is required')
     def test_that_uses_scipy():
         ...
 
-In this way, the test is run if Scipy is present, and skipped if
-not. No tests should fail simply because an optional dependency is not
-present.
+These variables should exist for all of Astropy's optional dependencies; a
+complete list of supported flags can be found in
+``astropy.utils.compat.optional_deps``.
 
 Using pytest helper functions
 =============================
 
 If your tests need to use `pytest helper functions
-<https://docs.pytest.org/en/latest/reference.html#functions>`_, such as
+<https://docs.pytest.org/en/latest/reference/reference.html#functions>`_, such as
 ``pytest.raises``, import ``pytest`` into your test module like so::
 
     import pytest
@@ -1086,7 +1084,7 @@ The 32-bit tests on CircleCI use the
 `quay.io/pypa/manylinux1_i686 <https://quay.io/pypa/manylinux1_i686>`_
 docker image which includes a 32-bit Python environment for each major Python
 version. See the CircleCI
-`configuration file <https://github.com/astropy/astropy/blob/master/.circleci/config.yml>`_
+`configuration file <https://github.com/astropy/astropy/blob/main/.circleci/config.yml>`_
 for the core package for how to access the different Python versions.
 
 In some cases, you may see failures on continuous integration services that

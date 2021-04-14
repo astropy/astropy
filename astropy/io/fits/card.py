@@ -806,7 +806,8 @@ class Card(_Verify):
         else:
             image = self.image
 
-        # Split cards with CONTINUE cards
+        # Split cards with CONTINUE cards or commentary keywords with long
+        # values
         if len(self._image) > self.length:
             values = []
             comments = []
@@ -815,6 +816,10 @@ class Card(_Verify):
                 kw, vc = card._split()
                 if keyword is None:
                     keyword = kw
+
+                if keyword in self._commentary_keywords:
+                    values.append(vc)
+                    continue
 
                 # Should match a string followed by a comment; if not it
                 # might be an invalid Card, so we just take it verbatim
@@ -831,7 +836,11 @@ class Card(_Verify):
                 if comment:
                     comments.append(comment.rstrip())
 
-            valuecomment = f"'{''.join(values)}' / {' '.join(comments)}"
+            if keyword in self._commentary_keywords:
+                valuecomment = ''.join(values)
+            else:
+                # CONTINUE card
+                valuecomment = f"'{''.join(values)}' / {' '.join(comments)}"
             return keyword, valuecomment
 
         if self.keyword in self._special_keywords:
@@ -1159,16 +1168,21 @@ class Card(_Verify):
         If the card image is greater than 80 characters, it should consist of a
         normal card followed by one or more CONTINUE card.  This method returns
         the subcards that make up this logical card.
+
+        This can also support the case where a HISTORY or COMMENT card has a
+        long value that is stored internally as multiple concatenated card
+        images.
         """
 
         ncards = len(self._image) // Card.length
 
         for idx in range(0, Card.length * ncards, Card.length):
             card = Card.fromstring(self._image[idx:idx + Card.length])
-            if idx > 0 and card.keyword.upper() != 'CONTINUE':
+            if idx > 0 and card.keyword.upper() not in self._special_keywords:
                 raise VerifyError(
                         'Long card images must have CONTINUE cards after '
-                        'the first card.')
+                        'the first card or have commentary keywords like '
+                        'HISTORY or COMMENT.')
 
             if not isinstance(card.value, str):
                 raise VerifyError('CONTINUE cards must have string values.')

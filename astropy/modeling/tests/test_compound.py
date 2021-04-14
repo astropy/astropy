@@ -17,12 +17,7 @@ from astropy.modeling.models import (Const1D, Shift, Scale, Rotation2D, Gaussian
                                      Identity, Mapping,
                                      Tabular1D, fix_inputs)
 import astropy.units as u
-
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -329,6 +324,12 @@ def test_fix_inputs_invalid():
         fix_inputs(g1, {3: 2})
 
     with pytest.raises(ValueError):
+        fix_inputs(g1, {np.int32(3): 2})
+
+    with pytest.raises(ValueError):
+        fix_inputs(g1, {np.int64(3): 2})
+
+    with pytest.raises(ValueError):
         fix_inputs(g1, {'w': 2})
 
     with pytest.raises(ModelDefinitionError):
@@ -336,6 +337,14 @@ def test_fix_inputs_invalid():
 
     with pytest.raises(ValueError):
         gg1 = fix_inputs(g1, {0: 1})
+        gg1(2, y=2)
+
+    with pytest.raises(ValueError):
+        gg1 = fix_inputs(g1, {np.int32(0): 1})
+        gg1(2, y=2)
+
+    with pytest.raises(ValueError):
+        gg1 = fix_inputs(g1, {np.int64(0): 1})
         gg1(2, y=2)
 
 
@@ -473,6 +482,14 @@ def test_inherit_constraints():
     model[1].mean.fixed = False
     assert model.mean_1.fixed is False
     assert model[1].mean.fixed is False
+
+    # Now turn off syncing of constraints
+    assert model.bounds['stddev_0']  == (0.1, 0.5)
+    model.sync_constraints = False
+    model[0].stddev.bounds = (0, 0.2)
+    assert model.bounds['stddev_0'] == (0.1, 0.5)
+    model.sync_constraints = True
+    assert model.bounds['stddev_0'] == (0, 0.2)
 
 
 def test_compound_custom_inverse():

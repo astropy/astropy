@@ -1,0 +1,1 @@
+The minimum version of ERFA is now 1.7.2.

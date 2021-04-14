@@ -36,15 +36,18 @@ class Gaussian1D(Fittable1DModel):
 
     Parameters
     ----------
-    amplitude : float
-        Amplitude of the Gaussian.
-    mean : float
+    amplitude : float or `~astropy.units.Quantity`.
+        Amplitude (peak value) of the Gaussian - for a normalized profile
+        (integrating to 1), set amplitude = 1 / (stddev * np.sqrt(2 * np.pi))
+    mean : float or `~astropy.units.Quantity`.
         Mean of the Gaussian.
-    stddev : float
-        Standard deviation of the Gaussian.
+    stddev : float or `~astropy.units.Quantity`.
+        Standard deviation of the Gaussian with FWHM = 2 * stddev * np.sqrt(2 * np.log(2)).
 
     Notes
     -----
+    Either all or none of input ``x``, ``mean`` and ``stddev`` must be provided
+    consistently with compatible units or as unitless numbers.
 
     Model formula:
 
@@ -192,22 +195,22 @@ class Gaussian2D(Fittable2DModel):
 
     Parameters
     ----------
-    amplitude : float
-        Amplitude of the Gaussian.
-    x_mean : float
+    amplitude : float or `~astropy.units.Quantity`.
+        Amplitude (peak value) of the Gaussian.
+    x_mean : float or `~astropy.units.Quantity`.
         Mean of the Gaussian in x.
-    y_mean : float
+    y_mean : float or `~astropy.units.Quantity`.
         Mean of the Gaussian in y.
-    x_stddev : float or None
+    x_stddev : float or `~astropy.units.Quantity` or None.
         Standard deviation of the Gaussian in x before rotating by theta. Must
         be None if a covariance matrix (``cov_matrix``) is provided. If no
         ``cov_matrix`` is given, ``None`` means the default value (1).
-    y_stddev : float or None
+    y_stddev : float or `~astropy.units.Quantity` or None.
         Standard deviation of the Gaussian in y before rotating by theta. Must
         be None if a covariance matrix (``cov_matrix``) is provided. If no
         ``cov_matrix`` is given, ``None`` means the default value (1).
-    theta : float, optional
-        Rotation angle in radians. The rotation angle increases
+    theta : float or `~astropy.units.Quantity`, optional.
+        Rotation angle (value in radians). The rotation angle increases
         counterclockwise.  Must be None if a covariance matrix (``cov_matrix``)
         is provided. If no ``cov_matrix`` is given, ``None`` means the default
         value (0).
@@ -217,6 +220,9 @@ class Gaussian2D(Fittable2DModel):
 
     Notes
     -----
+    Either all or none of input ``x, y``, ``[x,y]_mean`` and ``[x,y]_stddev``
+    must be provided consistently with compatible units or as unitless numbers.
+
     Model formula:
 
         .. math::
@@ -455,6 +461,8 @@ class Shift(Fittable1DModel):
     offset = Parameter(default=0)
     linear = True
 
+    _has_inverse_bounding_box = True
+
     @property
     def input_units(self):
         if self.offset.unit is None:
@@ -464,8 +472,17 @@ class Shift(Fittable1DModel):
     @property
     def inverse(self):
         """One dimensional inverse Shift model function"""
+
         inv = self.copy()
         inv.offset *= -1
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.offset) for x in self.bounding_box)
+
         return inv
 
     @staticmethod
@@ -513,6 +530,8 @@ class Scale(Fittable1DModel):
     _input_units_strict = True
     _input_units_allow_dimensionless = True
 
+    _has_inverse_bounding_box = True
+
     @property
     def input_units(self):
         if self.factor.unit is None:
@@ -524,6 +543,14 @@ class Scale(Fittable1DModel):
         """One dimensional inverse Scale model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.factor) for x in self.bounding_box)
+
         return inv
 
     @staticmethod
@@ -559,11 +586,21 @@ class Multiply(Fittable1DModel):
     linear = True
     fittable = True
 
+    _has_inverse_bounding_box = True
+
     @property
     def inverse(self):
         """One dimensional inverse multiply model function"""
         inv = self.copy()
         inv.factor = 1 / self.factor
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.factor) for x in self.bounding_box)
+
         return inv
 
     @staticmethod
@@ -600,6 +637,8 @@ class RedshiftScaleFactor(Fittable1DModel):
 
     z = Parameter(description='redshift', default=0)
 
+    _has_inverse_bounding_box = True
+
     @staticmethod
     def evaluate(x, z):
         """One dimensional RedshiftScaleFactor model function"""
@@ -619,6 +658,14 @@ class RedshiftScaleFactor(Fittable1DModel):
 
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
+
+        try:
+            self.bounding_box
+        except NotImplementedError:
+            pass
+        else:
+            inv.bounding_box = tuple(self.evaluate(x, self.z) for x in self.bounding_box)
+
         return inv
 
 
@@ -912,11 +959,12 @@ class Lorentz1D(Fittable1DModel):
 
     Parameters
     ----------
-    amplitude : float
-        Peak value
-    x_0 : float
+    amplitude : float or `~astropy.units.Quantity`.
+        Peak value - for a normalized profile (integrating to 1),
+        set amplitude = 2 / (np.pi * fwhm)
+    x_0 : float or `~astropy.units.Quantity`.
         Position of the peak
-    fwhm : float
+    fwhm : float or `~astropy.units.Quantity`.
         Full width at half maximum (FWHM)
 
     See Also
@@ -925,6 +973,9 @@ class Lorentz1D(Fittable1DModel):
 
     Notes
     -----
+    Either all or none of input ``x``, position ``x_0`` and ``fwhm`` must be provided
+    consistently with compatible units or as unitless numbers.
+
     Model formula:
 
     .. math::
@@ -1012,14 +1063,20 @@ class Voigt1D(Fittable1DModel):
 
     Parameters
     ----------
-    x_0 : float
+    x_0 : float or `~astropy.units.Quantity`
         Position of the peak
-    amplitude_L : float
-        The Lorentzian amplitude
-    fwhm_L : float
+    amplitude_L : float or `~astropy.units.Quantity`.
+        The Lorentzian amplitude (peak of the associated Lorentz function)
+        - for a normalized profile (integrating to 1), set
+        amplitude_L = 2 / (np.pi * fwhm_L)
+    fwhm_L : float or `~astropy.units.Quantity`
         The Lorentzian full width at half maximum
-    fwhm_G : float
+    fwhm_G : float or `~astropy.units.Quantity`.
         The Gaussian full width at half maximum
+    method : str, optional
+        Algorithm for computing the complex error function; one of
+        'Humlicek2' (default, fast and generally more accurate than ``rtol=3.e-5``) or
+        'Scipy', alternatively 'wofz' (requires `scipy`, almost as fast and reference in accuracy).
 
     See Also
     --------
@@ -1027,11 +1084,12 @@ class Voigt1D(Fittable1DModel):
 
     Notes
     -----
-    Algorithm for the computation taken from
-    McLean, A. B., Mitchell, C. E. J. & Swanston, D. M. Implementation of an
-    efficient analytical approximation to the Voigt function for photoemission
-    lineshape analysis. Journal of Electron Spectroscopy and Related Phenomena
-    69, 125-132 (1994)
+    Either all or none of input ``x``, position ``x_0`` and the ``fwhm_*`` must be provided
+    consistently with compatible units or as unitless numbers.
+    Voigt function is calculated as real part of the complex error function computed from either
+    Humlicek's rational approximations (JQSRT 21:309, 1979; 27:437, 1982) following
+    Schreier 2018 (MNRAS 479, 3068; and ``hum2zpf16m`` from his cpfX.py module); or
+    `~scipy.special.wofz` (implementing 'Faddeeva.cc').
 
     Examples
     --------
@@ -1050,53 +1108,69 @@ class Voigt1D(Fittable1DModel):
     """
 
     x_0 = Parameter(default=0)
-    amplitude_L = Parameter(default=1)
-    fwhm_L = Parameter(default=2/np.pi)
-    fwhm_G = Parameter(default=np.log(2))
+    amplitude_L = Parameter(default=1)     # noqa: N815
+    fwhm_L = Parameter(default=2/np.pi)    # noqa: N815
+    fwhm_G = Parameter(default=np.log(2))  # noqa: N815
 
-    _abcd = np.array([
-        [-1.2150, -1.3509, -1.2150, -1.3509],  # A
-        [1.2359, 0.3786, -1.2359, -0.3786],    # B
-        [-0.3085, 0.5906, -0.3085, 0.5906],    # C
-        [0.0210, -1.1858, -0.0210, 1.1858]])   # D
+    sqrt_pi = np.sqrt(np.pi)
+    sqrt_ln2 = np.sqrt(np.log(2))
+    sqrt_ln2pi = np.sqrt(np.log(2) * np.pi)
+    _last_z = np.zeros(1, dtype=complex)
+    _last_w = np.zeros(1, dtype=float)
+    _faddeeva = None
 
-    @classmethod
-    def evaluate(cls, x, x_0, amplitude_L, fwhm_L, fwhm_G):
+    def __init__(self, x_0=x_0.default, amplitude_L=amplitude_L.default,            # noqa: N803
+                 fwhm_L=fwhm_L.default, fwhm_G=fwhm_G.default, method='humlicek2',  # noqa: N803
+                 **kwargs):
+        if str(method).lower() in ('wofz', 'scipy'):
+            try:
+                from scipy.special import wofz
+            except (ValueError, ImportError) as err:
+                raise ImportError(f'Voigt1D method {method} requires scipy: {err}.') from err
+            self._faddeeva = wofz
+        elif str(method).lower() == 'humlicek2':
+            self._faddeeva = self._hum2zpf16c
+        else:
+            raise ValueError(f'Not a valid method for Voigt1D Faddeeva function: {method}.')
+        self.method = self._faddeeva.__name__
 
-        A, B, C, D = cls._abcd
-        sqrt_ln2 = np.sqrt(np.log(2))
-        X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
-        X = np.atleast_1d(X)[..., np.newaxis]
-        Y = fwhm_L * sqrt_ln2 / fwhm_G
-        Y = np.atleast_1d(Y)[..., np.newaxis]
+        super().__init__(x_0=x_0, amplitude_L=amplitude_L, fwhm_L=fwhm_L, fwhm_G=fwhm_G, **kwargs)
 
-        V = np.sum((C * (Y - A) + D * (X - B))/((Y - A) ** 2 + (X - B) ** 2), axis=-1)
+    def _wrap_wofz(self, z):
+        """Call complex error (Faddeeva) function w(z) implemented by algorithm `method`;
+        cache results for consecutive calls from `evaluate`, `fit_deriv`."""
 
-        return (fwhm_L * amplitude_L * np.sqrt(np.pi) * sqrt_ln2 / fwhm_G) * V
+        if (z.shape == self._last_z.shape and
+                np.allclose(z, self._last_z, rtol=1.e-14, atol=1.e-15)):
+            return self._last_w
 
-    @classmethod
-    def fit_deriv(cls, x, x_0, amplitude_L, fwhm_L, fwhm_G):
+        self._last_w = self._faddeeva(z)
+        self._last_z = z
+        return self._last_w
 
-        A, B, C, D = cls._abcd
-        sqrt_ln2 = np.sqrt(np.log(2))
-        X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
-        X = np.atleast_1d(X)[:, np.newaxis]
-        Y = fwhm_L * sqrt_ln2 / fwhm_G
-        Y = np.atleast_1d(Y)[:, np.newaxis]
-        constant = fwhm_L * amplitude_L * np.sqrt(np.pi) * sqrt_ln2 / fwhm_G
+    def evaluate(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
+        """One dimensional Voigt function scaled to Lorentz peak amplitude."""
 
-        alpha = C * (Y - A) + D * (X - B)
-        beta = (Y - A) ** 2 + (X - B) ** 2
-        V = np.sum((alpha / beta), axis=-1)
-        dVdx = np.sum((D/beta - 2 * (X - B) * alpha / np.square(beta)), axis=-1)
-        dVdy = np.sum((C/beta - 2 * (Y - A) * alpha / np.square(beta)), axis=-1)
+        z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * self.sqrt_ln2 / fwhm_G
+        # The normalised Voigt profile is w.real * self.sqrt_ln2 / (self.sqrt_pi * fwhm_G) * 2 ;
+        # for the legacy definition we multiply with np.pi * fwhm_L / 2 * amplitude_L
+        return self._wrap_wofz(z).real * self.sqrt_ln2pi / fwhm_G * fwhm_L * amplitude_L
 
-        dyda = [-constant * dVdx * 2 * sqrt_ln2 / fwhm_G,
-                constant * V / amplitude_L,
-                constant * (V / fwhm_L + dVdy * sqrt_ln2 / fwhm_G),
-                -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) *
-                                                        dVdx + fwhm_L * dVdy)) / fwhm_G]
-        return dyda
+    def fit_deriv(self, x, x_0, amplitude_L, fwhm_L, fwhm_G):  # noqa: N803
+        """Derivative of the one dimensional Voigt function with respect to parameters."""
+
+        s = self.sqrt_ln2 / fwhm_G
+        z = np.atleast_1d(2 * (x - x_0) + 1j * fwhm_L) * s
+        # V * constant from McLean implementation (== their Voigt function)
+        w = self._wrap_wofz(z) * s * fwhm_L * amplitude_L * self.sqrt_pi
+
+        # Schreier (2018) Eq. 6 == (dvdx + 1j * dvdy) / (sqrt(pi) * fwhm_L * amplitude_L)
+        dwdz = -2 * z * w + 2j * s * fwhm_L * amplitude_L
+
+        return [-dwdz.real * 2 * s,
+                w.real / amplitude_L,
+                w.real / fwhm_L - dwdz.imag * s,
+                (-w.real - s * (2 * (x - x_0) * dwdz.real - fwhm_L * dwdz.imag)) / fwhm_G]
 
     @property
     def input_units(self):
@@ -1109,6 +1183,59 @@ class Voigt1D(Fittable1DModel):
                 'fwhm_L': inputs_unit[self.inputs[0]],
                 'fwhm_G': inputs_unit[self.inputs[0]],
                 'amplitude_L': outputs_unit[self.outputs[0]]}
+
+    @staticmethod
+    def _hum2zpf16c(z, s=10.0):
+        """Complex error function w(z) for z = x + iy combining Humlicek's rational approximations:
+
+        |x| + y > 10:  Humlicek (JQSRT, 1982) rational approximation for region II;
+        else:          Humlicek (JQSRT, 1979) rational approximation with n=16 and delta=y0=1.35
+
+        Version using a mask and np.place;
+        single complex argument version of Franz Schreier's cpfX.hum2zpf16m.
+        Originally licensed under a 3-clause BSD style license - see
+        https://atmos.eoc.dlr.de/tools/lbl4IR/cpfX.py
+        """
+
+        # Optimized (single fraction) Humlicek region I rational approximation for n=16, delta=1.35
+
+        AA = np.array([+46236.3358828121,   -147726.58393079657j,   # noqa: N806
+                       -206562.80451354137,  281369.1590631087j,
+                       +183092.74968253175, -184787.96830696272j,
+                       -66155.39578477248,   57778.05827983565j,
+                       +11682.770904216826, -9442.402767960672j,
+                       -1052.8438624933142,  814.0996198624186j,
+                       +45.94499030751872,  -34.59751573708725j,
+                       -0.7616559377907136,  0.5641895835476449j])  # 1j/sqrt(pi) to the 12. digit
+
+        bb = np.array([+7918.06640624997, 0.0,
+                       -126689.0625,      0.0,
+                       +295607.8125,      0.0,
+                       -236486.25,        0.0,
+                       +84459.375,        0.0,
+                       -15015.0,          0.0,
+                       +1365.0,           0.0,
+                       -60.0,             0.0,
+                       +1.0])
+
+        sqrt_piinv = 1.0 / np.sqrt(np.pi)
+
+        zz = z * z
+        w  = 1j * (z * (zz * sqrt_piinv - 1.410474)) / (0.75 + zz*(zz - 3.0))
+
+        if np.any(z.imag < s):
+            mask  = abs(z.real) + z.imag < s  # returns true for interior points
+            # returns small complex array covering only the interior region
+            Z     = z[np.where(mask)] + 1.35j
+            ZZ    = Z * Z
+            numer = (((((((((((((((AA[15]*Z + AA[14])*Z + AA[13])*Z + AA[12])*Z + AA[11])*Z +
+                               AA[10])*Z + AA[9])*Z + AA[8])*Z + AA[7])*Z + AA[6])*Z +
+                          AA[5])*Z + AA[4])*Z+AA[3])*Z + AA[2])*Z + AA[1])*Z + AA[0])
+            denom = (((((((ZZ + bb[14])*ZZ + bb[12])*ZZ + bb[10])*ZZ+bb[8])*ZZ + bb[6])*ZZ +
+                      bb[4])*ZZ + bb[2])*ZZ + bb[0]
+            np.place(w, mask, numer / denom)
+
+        return w
 
 
 class Const1D(Fittable1DModel):

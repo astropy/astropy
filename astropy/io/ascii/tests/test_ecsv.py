@@ -28,12 +28,7 @@ from astropy.utils.exceptions import AstropyWarning
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
 from astropy import units as u
-
-try:
-    import yaml  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',

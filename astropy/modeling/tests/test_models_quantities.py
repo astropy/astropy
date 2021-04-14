@@ -6,6 +6,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 from astropy.modeling.functional_models import (
     Gaussian1D,
@@ -26,12 +27,6 @@ from astropy.modeling.powerlaws import (
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 
 from astropy.modeling.fitting import LevMarLSQFitter
-
-try:
-    from scipy import optimize  # noqa
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,
@@ -57,7 +52,7 @@ FUNC_MODELS_1D = [
 {'class': Voigt1D,
  'parameters': {'amplitude_L': 2 * u.Jy, 'x_0': 505 * u.nm,
                 'fwhm_L': 100 * u.AA, 'fwhm_G': 50 * u.AA},
- 'evaluation': [(0.51 * u.micron, 1.06264568 * u.Jy)],
+ 'evaluation': [(0.51 * u.micron, 1.0621795524 * u.Jy)],
  'bounding_box': False},
 {'class': Const1D,
  'parameters': {'amplitude': 3 * u.Jy},

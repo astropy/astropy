@@ -258,6 +258,12 @@ class Csv(Basic):
     from the typical default for `astropy.io.ascii` in which missing values are
     indicated by ``--``.
 
+    Since the `CSV format <https://tools.ietf.org/html/rfc4180>`_ does not
+    formally support comments, any comments defined for the table via
+    ``tbl.meta['comments']`` are ignored by default. If you would still like to
+    write those comments then include a keyword ``comment='#'`` to the
+    ``write()`` call.
+
     Example::
 
       num,ra,dec,radius,mag

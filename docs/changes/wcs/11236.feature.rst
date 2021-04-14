@@ -1,0 +1,1 @@
+Add ``STOKES`` FITS WCS keyword to the IVOA UCD mapping.

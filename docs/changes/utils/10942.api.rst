@@ -1,0 +1,1 @@
+Removed usage of deprecated ``ipython`` stream in ``utils.console``.

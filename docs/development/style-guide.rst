@@ -163,7 +163,7 @@ material is included within another sentence.
 Examples
 --------
 * (For full contributor guidelines, see our documentation.)
-* Once you open a pull request (which should be opened against the ``master``
+* Once you open a pull request (which should be opened against the ``main``
   branch), please make sure to include the following.
 * In some cases, most of the required functionality is contained in a single
   class (or a few classes).

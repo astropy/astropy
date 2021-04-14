@@ -5,12 +5,7 @@ import io
 import pytest
 
 from astropy.utils.xml import check, unescaper, writer
-
-try:
-    import bleach  # noqa
-    HAS_BLEACH = True
-except ImportError:
-    HAS_BLEACH = False
+from astropy.utils.compat.optional_deps import HAS_BLEACH  # noqa
 
 
 def test_writer():

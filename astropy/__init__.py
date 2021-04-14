@@ -139,9 +139,6 @@ test = TestRunner.make_test_runner_in(__path__[0])
 # if we are *not* in setup mode, import the logger and possibly populate the
 # configuration file with the defaults
 def _initialize_astropy():
-
-    from . import config
-
     try:
         from .utils import _compiler  # noqa: F401
     except ImportError:
@@ -157,16 +154,6 @@ def _initialize_astropy():
             # Outright broken installation, just raise standard error
             raise
 
-    # add these here so we only need to cleanup the namespace at the end
-    config_dir = os.path.dirname(__file__)
-
-    try:
-        config.configuration.update_default_config(__package__, config_dir)
-    except config.configuration.ConfigurationDefaultMissingError as e:
-        wmsg = (e.args[0] + " Cannot install default profile. If you are "
-                "importing from source, this is expected.")
-        warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
-
 
 # Set the bibtex entry to the article referenced in CITATION.
 def _get_bibtex():
@@ -181,11 +168,6 @@ def _get_bibtex():
 
 
 __citation__ = __bibtex__ = _get_bibtex()
-
-import logging  # noqa: E402
-
-# Use the root logger as a dummy log before initilizing Astropy's logger
-log = logging.getLogger()
 
 from .logger import _init_log, _teardown_log  # noqa: E402, F401
 

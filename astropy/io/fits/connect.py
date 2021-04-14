@@ -241,12 +241,12 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         # string, empty strings.
         masked = mask = False
         if col.null is not None:
-            mask = col.array == col.null
+            mask = data[col.name] == col.null
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
         elif issubclass(col.dtype.type, np.inexact):
-            mask = np.isnan(col.array)
+            mask = np.isnan(data[col.name])
         elif issubclass(col.dtype.type, np.character):
             mask = col.array == b''
 

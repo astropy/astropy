@@ -25,12 +25,17 @@
 # be accessible, and the documentation will not build correctly.
 # See sphinx_astropy.conf for which values are set there.
 
-from datetime import datetime
 import os
 import sys
-
 import configparser
-from pkg_resources import get_distribution
+from datetime import datetime
+
+from packaging.requirements import Requirement
+
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    import importlib_metadata
 
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
@@ -78,6 +83,7 @@ intersphinx_mapping['h5py'] = ('http://docs.h5py.org/en/stable/', None)  # noqa:
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')  # noqa: F405
+exclude_patterns.append('changes')  # noqa: F405
 exclude_patterns.append('_pkgtemplate.rst')  # noqa: F405
 exclude_patterns.append('**/*.inc.rst')  # .inc.rst mean *include* files, don't have sphinx process them  # noqa: F405, E501
 
@@ -86,31 +92,26 @@ if 'templates_path' not in locals():  # in case parent conf.py defines it
     templates_path = []
 templates_path.append('_templates')
 
+
+extensions += ["sphinx_changelog"]  # noqa: F405
+
 # Grab minversion from setup.cfg
 setup_cfg = configparser.ConfigParser()
 setup_cfg.read(os.path.join(os.path.pardir, 'setup.cfg'))
 __minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=', '')
 project = u'Astropy'
-astropy_dist = get_distribution(project)
-astropy_req = astropy_dist.requires(extras=('all', ))
 
-
-def minvers(name):
-    if name == 'yaml':
-        name = 'PyYAML'
-    elif name == 'erfa':
-        name = 'pyerfa'
-    for cur_req in astropy_req:
-        if cur_req.name == name:
-            return cur_req.specs[0][1]
-    raise ValueError(f"{name} not among requirements!")
+min_versions = {}
+for line in importlib_metadata.requires('astropy'):
+    req = Requirement(line.split(';')[0])
+    min_versions[req.name.lower()] = str(req.specifier)
 
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
 rst_epilog += "\n".join(
-    f".. |minimum_{name}_version| replace:: {minvers(name)}"
-    for name in ('numpy', 'erfa', 'scipy', 'yaml', 'asdf', 'matplotlib', 'ipython')) + f"""
+    f".. |minimum_{name}_version| replace:: {min_versions[name]}"
+    for name in ('numpy', 'pyerfa', 'scipy', 'pyyaml', 'asdf', 'matplotlib', 'ipython')) + f"""
 .. |minimum_python_version| replace:: {__minimum_python_version__}
 
 .. Astropy
@@ -128,9 +129,15 @@ copyright = f'2011–{datetime.utcnow().year}, ' + author
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = astropy_dist.version
+release = importlib_metadata.version(project)
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
+
+# Only include dev docs in dev version.
+dev = 'dev' in release
+if not dev:
+    exclude_patterns.append('development/*')  # noqa: F405
+    exclude_patterns.append('testhelpers.rst')  # noqa: F405
 
 # -- Options for the module index ---------------------------------------------
 
@@ -189,7 +196,8 @@ htmlhelp_basename = project + 'doc'
 
 # A dictionary of values to pass into the template engine’s context for all pages.
 html_context = {
-    'to_be_indexed': ['stable', 'latest']
+    'to_be_indexed': ['stable', 'latest'],
+    'is_development': dev
 }
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -211,7 +219,7 @@ man_pages = [('index', project.lower(), project + u' Documentation',
 
 # Setting this URL is requited by sphinx-astropy
 github_issues_url = 'https://github.com/astropy/astropy/issues/'
-edit_on_github_branch = 'master'
+edit_on_github_branch = 'main'
 
 # Enable nitpicky mode - which ensures that all references in the docs
 # resolve.
@@ -231,6 +239,7 @@ for line in open('nitpick-exceptions'):
 
 try:
     import warnings
+
     import sphinx_gallery  # noqa: F401
     extensions += ["sphinx_gallery.gen_gallery"]  # noqa: F405
 
@@ -254,18 +263,7 @@ try:
                                     ' non-GUI backend, so cannot show the figure.')
 
 except ImportError:
-    def setup(app):
-        msg = ('The sphinx_gallery extension is not installed, so the '
-               'gallery will not be built.  You will probably see '
-               'additional warnings about undefined references due '
-               'to this.')
-        try:
-            app.warn(msg)
-        except AttributeError:
-            # Sphinx 1.6+
-            from sphinx.util import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(msg)
+    sphinx_gallery = None
 
 
 # -- Options for linkcheck output -------------------------------------------
@@ -283,3 +281,34 @@ linkcheck_anchors = False
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.
 html_extra_path = ['robots.txt']
+
+
+def rstjinja(app, docname, source):
+    """Render pages as a jinja template to hide/show dev docs. """
+    # Make sure we're outputting HTML
+    if app.builder.format != 'html':
+        return
+    files_to_render = ["index", "install"]
+    if docname in files_to_render:
+        print(f"Jinja rendering {docname}")
+        rendered = app.builder.templates.render_string(
+            source[0], app.config.html_context)
+        source[0] = rendered
+
+
+def setup(app):
+    if sphinx_gallery is None:
+        msg = ('The sphinx_gallery extension is not installed, so the '
+               'gallery will not be built.  You will probably see '
+               'additional warnings about undefined references due '
+               'to this.')
+        try:
+            app.warn(msg)
+        except AttributeError:
+            # Sphinx 1.6+
+            from sphinx.util import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(msg)
+
+    # Generate the page from Jinja template
+    app.connect("source-read", rstjinja)

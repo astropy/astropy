@@ -76,23 +76,23 @@ About names in `git`_
 
 `git`_ is designed to be a *distributed* version control system. Each clone of
 a repository is, itself, a repository. That can lead to some confusion,
-especially for the branch called ``master``. If you list all of the branches
+especially for the branch called ``main``. If you list all of the branches
 your clone of git knows about with ``git branch -a`` you will see there are
-*three* different branches called ``master``::
+*three* different branches called ``main``::
 
-    * master                              # this is master in your local repo
-    remotes/your-github-username/master   # master on your fork of Astropy on GitHub
-    remotes/astropy/master                # the official development branch of Astropy
+    * main                              # this is main in your local repo
+    remotes/your-github-username/main   # main on your fork of Astropy on GitHub
+    remotes/astropy/main                # the official development branch of Astropy
 
 The naming scheme used by `git`_ will also be used here. A plain branch name,
-like ``master`` means a branch in your local copy of Astropy. A branch on a
-remote, like ``astropy`` , is labeled by that remote, ``astropy/master``.
+like ``main`` means a branch in your local copy of Astropy. A branch on a
+remote, like ``astropy`` , is labeled by that remote, ``astropy/main``.
 
 This duplication of names can get very confusing when working with pull
-requests, especially when the official master branch, ``astropy/master``,
+requests, especially when the official main branch, ``astropy/main``,
 changes due to other contributions before your contributions are merged in.
-As a result, you should never do any work in your master
-branch, ``master``. Always work on a branch instead.
+As a result, you should never do any work in your main
+branch, ``main``. Always work on a branch instead.
 
 Essential `git`_ commands
 =========================
@@ -127,7 +127,7 @@ walks you through recovering from `git`_ mistakes is the
 Astropy Guidelines for `git`_
 *****************************
 
-* Don't use your ``master`` branch for anything. Consider :ref:`delete-master`.
+* Don't use your ``main`` branch for anything. Consider :ref:`delete-main`.
 * Make a new branch, called a *feature branch*, for each separable set of
   changes: "one task, one branch" (`ipython git workflow`_).
 * Start that new *feature branch* from the most current development version
@@ -137,7 +137,7 @@ Astropy Guidelines for `git`_
 * Make frequent commits, and always include a commit message. Each commit
   should represent one logical set of changes.
 * Ask on the `astropy-dev mailing list`_ if you get stuck.
-* Never merge changes from ``astropy/master`` into your feature branch. If
+* Never merge changes from ``astropy/main`` into your feature branch. If
   changes in the development version require changes to our code you can
   :ref:`rebase`.
 
@@ -176,13 +176,13 @@ A worked example that follows these steps for fixing an Astropy issue is at
 
 Some additional topics related to `git`_ are in :ref:`additional-git`.
 
-.. _delete-master:
+.. _delete-main:
 
-Deleting your master branch
-===========================
+Deleting your main branch
+=========================
 
-It may sound strange, but deleting your own ``master`` branch can help reduce
-confusion about which branch you are on.  See `deleting master on github`_ for
+It may sound strange, but deleting your own ``main`` branch can help reduce
+confusion about which branch you are on.  See `deleting main on github`_ for
 details.
 
 .. _fetch-latest:
@@ -191,14 +191,14 @@ Fetch the latest Astropy
 ************************
 
 From time to time you should fetch the development version (i.e. Astropy
-``astropy/master``) changes from GitHub::
+``astropy/main``) changes from GitHub::
 
    git fetch astropy --tags
 
 This will pull down any commits you don't have, and set the remote branches to
 point to the latest commit. For example, 'trunk' is the branch referred to by
-``astropy/master``, and if there have been commits since
-you last checked, ``astropy/master`` will change after you do the fetch.
+``astropy/main``, and if there have been commits since
+you last checked, ``astropy/main`` will change after you do the fetch.
 
 .. _make-feature-branch:
 
@@ -219,14 +219,14 @@ Choose an informative name for the branch to remind yourself and the rest of us
 what the changes in the branch are for. Branch names like ``add-ability-to-fly``
 or ``buxfix-for-issue-42`` clearly describe the purpose of the branch.
 
-Always make your branch from ``astropy/master`` so that you are basing your
+Always make your branch from ``astropy/main`` so that you are basing your
 changes on the latest version of Astropy::
 
     # Update the mirror of trunk
     git fetch astropy --tags
 
-    # Make new feature branch starting at astropy/master
-    git branch my-new-feature astropy/master
+    # Make new feature branch starting at astropy/main
+    git branch my-new-feature astropy/main
     git checkout my-new-feature
 
 Connect the branch to GitHub
@@ -361,13 +361,22 @@ In more detail
 Add a changelog entry
 *********************
 
-Add an entry to the file ``CHANGES.rst`` briefly describing the change you
-made. Include the pull request number, too at the end of the entry. An
-example entry, for the changes in
-`PR 1845 <https://github.com/astropy/astropy/pull/1845>`_, is::
+Add a changelog fragment briefly describing the change you made by creating
+a new file in ``docs/changes/<sub-package>/``. The file should be named like
+``<PULL REQUEST>.<TYPE>.rst``, where ``<PULL REQUEST>`` is a pull request
+number, and ``<TYPE>`` is one of:
 
-  - ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
-    being ignored when none was present in the FITS file. [#1845]
+* ``feature``: New feature.
+* ``api``: API change.
+* ``bugfix``: Bug fix.
+* ``other``: Other changes and additions.
+
+An example entry, for the changes in `PR 1845
+<https://github.com/astropy/astropy/pull/1845>`_, the file would be
+``docs/changes/wcs/1845.bugfix.rst`` and would contain::
+
+    ``astropy.wcs.Wcs.printwcs`` will no longer warn that ``cdelt`` is
+    being ignored when none was present in the FITS file.
 
 If you are opening a new pull request, you may not know its number yet, but you
 can add it *after* you make the pull request. If you're not sure where to
@@ -443,7 +452,7 @@ to GitHub. GitHub will automatically update your pull request.
 Do Not Create a Merge Commit
 ****************************
 
-If your branch associated with the pull request falls behind the ``master``
+If your branch associated with the pull request falls behind the ``main``
 branch of https://github.com/astropy/astropy, GitHub might offer you the option
 to catch up or resolve conflicts via its web interface, but do not use this. Using
 the web interface might create a "merge commit" in your commit history, which is
@@ -461,7 +470,7 @@ Rebase, but only if asked
 
 Sometimes the maintainers of Astropy may ask a pull request to be *rebased*
 or *squashed* in the process of reviewing a pull request for merging into
-the main Astropy *master* repository.
+the main Astropy *main* repository.
 
 The decisions of when to request a *squash* or *rebase* are left to
 individual maintainers.  These may be requested to reduce the number of
@@ -497,8 +506,8 @@ branch from the development branch and applying your changes to your branch.
 
 The actual rebasing is usually easy::
 
-    git fetch astropy master # get the latest development astropy
-    git rebase astropy/master my-new-feature
+    git fetch astropy main # get the latest development astropy
+    git rebase astropy/main my-new-feature
 
 You are more likely to run into *conflicts* here — places where the changes you
 made conflict with changes that someone else made — than anywhere else. Ask for
@@ -523,7 +532,7 @@ Many of us find that is it actually easiest to squash using rebase. In particula
 you can rebase and squash within the existing branch using::
 
   git fetch astropy
-  git rebase -i astropy/master
+  git rebase -i astropy/main
 
 The last command will open an editor with all your commits, allowing you to
 squash several commits together, rename them, etc. Helpfully, the file you are

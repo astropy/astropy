@@ -5,18 +5,14 @@ from io import StringIO
 import pytest
 import numpy as np
 
-from astropy.cosmology import core, funcs
+from astropy.cosmology import core, funcs, realizations
+from astropy.cosmology.realizations import Planck13
 from astropy.units import allclose
 from astropy import constants as const
 from astropy import units as u
-from astropy.utils.exceptions import AstropyUserWarning
-
-try:
-    import scipy  # pylint: disable=W0611  # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
+                                      AstropyUserWarning)
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_init():
@@ -53,7 +49,7 @@ def test_init():
         cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27)
         cosmo.Odm(1)
     with pytest.raises(TypeError):
-        core.default_cosmology.validate(4)
+        realizations.default_cosmology.validate(4)
 
 
 def test_basic():
@@ -282,7 +278,7 @@ def test_clone():
                          Om0=0.27, Ode0=0.5, wa=0.1, Tcmb0=4.0 * u.K)
     newclone = cosmo.clone(w0=-1.1, wa=0.2)
     assert newclone.__class__ == cosmo.__class__
-    assert newclone.name == cosmo.name
+    assert newclone.name == cosmo.name + " (modified)"
     assert allclose(newclone.H0, cosmo.H0)
     assert allclose(newclone.Om0, cosmo.Om0)
     assert allclose(newclone.Ode0, cosmo.Ode0)
@@ -294,7 +290,8 @@ def test_clone():
 
     # Now test exception if user passes non-parameter
     with pytest.raises(AttributeError):
-        newclone = cosmo.clone(not_an_arg=4)
+        with pytest.warns(AstropyDeprecationWarning, match="Astropy v5.0"):
+            newclone = cosmo.clone(not_an_arg=4)
 
 
 def test_xtfuncs():
@@ -1560,7 +1557,7 @@ def test_z_at_value():
     # there we are checking internal consistency on the same architecture
     # and so can be more demanding
     z_at_value = funcs.z_at_value
-    cosmo = core.Planck13
+    cosmo = Planck13
     d = cosmo.luminosity_distance(3)
     assert allclose(z_at_value(cosmo.luminosity_distance, d), 3,
                     rtol=1e-8)
@@ -1607,7 +1604,7 @@ def test_z_at_value_roundtrip():
             'de_density_scale', 'w')
 
     import inspect
-    methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
+    methods = inspect.getmembers(Planck13, predicate=inspect.ismethod)
 
     for name, func in methods:
         if name.startswith('_') or name in skip:
@@ -1623,11 +1620,11 @@ def test_z_at_value_roundtrip():
 
     # Test distance functions between two redshifts
     z2 = 2.0
-    func_z1z2 = [lambda z1: core.Planck13._comoving_distance_z1z2(z1, z2),
-                 lambda z1:
-                 core.Planck13._comoving_transverse_distance_z1z2(z1, z2),
-                 lambda z1:
-                 core.Planck13.angular_diameter_distance_z1z2(z1, z2)]
+    func_z1z2 = [
+        lambda z1: Planck13._comoving_distance_z1z2(z1, z2),
+        lambda z1: Planck13._comoving_transverse_distance_z1z2(z1, z2),
+        lambda z1: Planck13.angular_diameter_distance_z1z2(z1, z2)
+    ]
     for func in func_z1z2:
         fval = func(z)
         assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),

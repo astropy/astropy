@@ -22,7 +22,7 @@ Make sure that pull requests do not contain a messy history with merges, etc. If
 Integrating changes manually
 ============================
 
-First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_master` add a remote that has read-only
+First, check out the ``astropy`` repository. The instructions in :ref:`set_upstream_main` add a remote that has read-only
 access to the upstream repo.  Being a maintainer, you've got read-write access.
 
 It's good to have your upstream remote have a scary name, to remind you that
@@ -32,7 +32,7 @@ it's a read-write remote::
     git fetch upstream-rw --tags
 
 Let's say you have some changes that need to go into trunk
-(``upstream-rw/master``).
+(``upstream-rw/main``).
 
 The changes are in some branch that you are currently on. For example, you are
 looking at someone's changes like this::
@@ -54,7 +54,7 @@ If there are only a few commits, consider rebasing to upstream::
     git fetch upstream-rw
 
     # Rebase
-    git rebase upstream-rw/master
+    git rebase upstream-rw/main
 
 Remember that, if you do a rebase, and push that, you'll have to close any
 github pull requests manually, because github will not be able to detect the
@@ -66,7 +66,7 @@ A long series of commits
 If there are a longer series of related commits, consider a merge instead::
 
     git fetch upstream-rw
-    git merge --no-ff upstream-rw/master
+    git merge --no-ff upstream-rw/main
 
 The merge will be detected by github, and should close any related pull
 requests automatically.
@@ -83,11 +83,11 @@ Now, in either case, you should check that the history is sensible and you
 have the right commits::
 
     git log --oneline --graph
-    git log -p upstream-rw/master..
+    git log -p upstream-rw/main..
 
 The first line above just shows the history in a compact way, with a text
 representation of the history graph. The second line shows the log of commits
-excluding those that can be reached from trunk (``upstream-rw/master``), and
+excluding those that can be reached from trunk (``upstream-rw/main``), and
 including those that can be reached from current HEAD (implied with the ``..``
 at the end). So, it shows the commits unique to this branch compared to trunk.
 The ``-p`` option shows the diff for these commits in patch form.
@@ -97,9 +97,9 @@ Push to trunk
 
 ::
 
-    git push upstream-rw my-new-feature:master
+    git push upstream-rw my-new-feature:main
 
-This pushes the ``my-new-feature`` branch in this repository to the ``master``
+This pushes the ``my-new-feature`` branch in this repository to the ``main``
 branch in the ``upstream-rw`` repository.
 
 
@@ -109,27 +109,19 @@ branch in the ``upstream-rw`` repository.
 Using Milestones and Labels
 ===========================
 
-These guidelines are adapted from `similar guidelines <https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow>`_
-followed by IPython:
+General guidelines for milestones:
 
-* 100% of confirmed issues and new features should have a milestone
+* 100% of pull requests should have a milestone
 
-* Only the following criteria should result in an issue being closed without a milestone:
+* Issues are not milestoned unless they block a given release
 
-  * Not actually an issue (user error, etc.)
+* Only the following criteria should result in a pull request being closed without a milestone:
 
-  * Duplicate of an existing issue
+  * Invalid (user error, etc.)
+
+  * Duplicate of an existing pull request
 
   * A pull request superseded by a new pull request providing an alternate implementation
-
-* Open issues should only lack a milestone if:
-
-  * More clarification is required
-
-  * Which milestone it belongs in requires some discussion
-
-* Corollary: When an issue is closed without a milestone that means that the issue will not be fixed, or that it was
-  not a real issue at all.
 
 * In general there should be the following open milestones:
 
@@ -137,30 +129,24 @@ followed by IPython:
     0.2.x and 0.3.x are still supported there should be milestones for the next 0.2.x and 0.3.x releases.
 
   * The next X.Y release, i.e. the next minor release; this is generally the next release that all development in
-    master is aimed toward.
+    main is aimed toward.
 
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
     issues that are important, but that we know won't be resolved in the next release.
 
-  * Future--this is for all issues that require attention at some point but for which no immediate solution is in
-    sight.
+* We have `Rolling reminder: update wcslib and cfitsio and leap second/IERS B table to the latest version <https://github.com/astropy/astropy/issues/9018>`_.
+  The milestone for this issue should be updated as part of the release
+  procedures.
 
-* Bug fix release milestones should only be used for deferring issues that won't be fixed in the next minor release,
-  or for issues is previous releases that no longer apply to the mainline.
+General guidelines for labels:
 
-* When in doubt about which milestone to use for an issue, use the next minor release--it can always be moved once
-  it's been more closely reviewed prior to release.
+* Issues: Maintainer should be proactive in labeling issues as they come in.
+  At the very least, label the subpackage(s) involved and whether the issue
+  is a bug.
 
-* Active milestones associated with a specific release (eg. v0.3.0) should contain at least one issue with the
-  release label representing the actual task for releasing that version (this also works around the GitHub annoyance
-  that milestones without any open issues are automatically closed).
-
-* Issues that require fixing in the mainline, but that also are confirmed to apply to supported stable version lines
-  should be marked with one or more ``'backport-*'`` labels for each v0.X.Y branch that has the issue.
-
-  * In some cases it may require extra work beyond a simple merge to port bug fixes to older lines of development; if
-    such additional work is required it is not a bad idea to open a "Backport #nnn to v0.X.Y" issue in the appropriate
-    v0.X.Y milestone.
+* Pull requests: We have GitHub Actions to automatically apply labels using
+  some simple rules when a pull request is opened. Once that is done, a
+  maintainer can then manually apply any other labels that apply.
 
 
 .. _changelog-format:
@@ -169,16 +155,17 @@ followed by IPython:
 Updating and Maintaining the Changelog
 ======================================
 
-The Astropy "changelog" is kept in the file ``CHANGES.rst`` at the root of the
-repository.  As the filename extension suggests this is a reStructured Text
-file.  The purpose of this file is to give a technical, but still user (and
-developer) oriented overview of what changes were made to Astropy between each
-public release.  The idea is that it's a little more to the point and easier to
-follow than trying to read through full git log.  It lists all new features
-added between versions, so that a user can easily find out from reading the
-changelog when a feature was added.  Likewise it lists any features or APIs
-that were changed (and how they were changed) or removed.  It also lists all
-bug fixes.  Affiliated packages are encouraged to maintain a similar changelog.
+The Astropy "changelog" is managed with ``towncrier``, which is used to generate
+the ``CHANGES.rst`` file at the root of the repository. The changelog fragment
+files should be added with each PR as described in ``docs/changes/README.rst``.
+The purpose of this file is to give a technical, but still user (and developer)
+oriented overview of what changes were made to Astropy between each public
+release.  The idea is that it's a little more to the point and easier to follow
+than trying to read through full git log.  It lists all new features added
+between versions, so that a user can easily find out from reading the changelog
+when a feature was added.  Likewise it lists any features or APIs that were
+changed (and how they were changed) or removed.  It also lists all bug fixes.
+Affiliated packages are encouraged to maintain a similar changelog.
 
 Adding to the changelog
 -----------------------
@@ -186,7 +173,7 @@ Adding to the changelog
 There are two approaches one may take to adding a new entry to the changelog,
 each with certain pros and cons.  Before describing the two specific approaches
 it should be said that *all* additions to the changelog should be made first
-in the 'master' branch.  This is because every release of Astropy includes a
+in the 'main' branch.  This is because every release of Astropy includes a
 copy of the changelog, and it should list all the changes in every prior
 version of Astropy.  For example, when Astropy v0.3.0 is released, in addition
 to the changes new to that version the changelog should have all the changes
@@ -201,14 +188,14 @@ are:
 
   Pro: An addition to the changelog is just like any other documentation
   update, and should be part of any atomic change to the software.  It can
-  be pulled into master along with the rest of the change.
+  be pulled into main along with the rest of the change.
 
   Con: If many pull requests also include changelog updates, they can quickly
   conflict with each other and require rebasing.  This is not difficult to
   resolve if the only conflict is in the changelog, but it can still be trouble
   especially for new contributors.
 
-* Add to the changelog after a change has been merged to master, whether by
+* Add to the changelog after a change has been merged to main, whether by
   pull request or otherwise.
 
   Pro: Largely escapes the merge conflict issue.

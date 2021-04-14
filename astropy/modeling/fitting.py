@@ -27,6 +27,11 @@ import inspect
 import operator
 import warnings
 
+try:
+    from importlib.metadata import entry_points
+except ImportError:
+    from importlib_metadata import entry_points
+
 from functools import reduce, wraps
 
 import numpy as np
@@ -37,14 +42,6 @@ from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
-
-# Check pkg_resources exists
-try:
-    from pkg_resources import iter_entry_points
-    HAS_PKG = True
-except ImportError:
-    HAS_PKG = False
-
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter']
@@ -535,6 +532,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         _validate_constraints(self.supported_constraints, model)
 
         model_copy = model.copy()
+        model_copy.sync_constraints = False
         _, fitparam_indices = _model_to_fit_params(model_copy)
 
         if model_copy.n_inputs == 2 and z is None:
@@ -785,7 +783,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             if len(y) > len(lacoef):
                 self._add_fitting_uncertainties(model_copy, a*scl,
                                                len(lacoef), x, y, z, resids)
-
+        model_copy.sync_constraints = True
         return model_copy
 
 
@@ -1147,6 +1145,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         from scipy import optimize
 
         model_copy = _validate_model(model, self.supported_constraints)
+        model_copy.sync_constraints = False
         farg = (model_copy, weights, ) + _convert_input(x, y, z)
         if model_copy.fit_deriv is None or estimate_jacobian:
             dfunc = None
@@ -1180,6 +1179,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
                 self._add_fitting_uncertainties(model_copy,
                                                self.fit_info['param_cov'])
 
+        model_copy.sync_constraints = True
         return model_copy
 
     @staticmethod
@@ -1302,6 +1302,7 @@ class SLSQPLSQFitter(Fitter):
         """
 
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
+        model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
         init_values, _ = _model_to_fit_params(model_copy)
@@ -1309,6 +1310,7 @@ class SLSQPLSQFitter(Fitter):
             self.objective_function, init_values, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
 
+        model_copy.sync_constraints = True
         return model_copy
 
 
@@ -1367,6 +1369,7 @@ class SimplexLSQFitter(Fitter):
 
         model_copy = _validate_model(model,
                                      self._opt_method.supported_constraints)
+        model_copy.sync_constraints = False
         farg = _convert_input(x, y, z)
         farg = (model_copy, weights, ) + farg
 
@@ -1375,6 +1378,7 @@ class SimplexLSQFitter(Fitter):
         fitparams, self.fit_info = self._opt_method(
             self.objective_function, init_values, farg, **kwargs)
         _fitter_to_model_params(model_copy, fitparams)
+        model_copy.sync_constraints = True
         return model_copy
 
 
@@ -1722,12 +1726,13 @@ def populate_entry_points(entry_points):
     This injects entry points into the `astropy.modeling.fitting` namespace.
     This provides a means of inserting a fitting routine without requirement
     of it being merged into astropy's core.
+
     Parameters
     ----------
-    entry_points : a list of `~pkg_resources.EntryPoint`
-                  entry_points are objects which encapsulate
-                  importable objects and are defined on the
-                  installation of a package.
+    entry_points : list of `~importlib.metadata.EntryPoint`
+        entry_points are objects which encapsulate importable objects and
+        are defined on the installation of a package.
+
     Notes
     -----
     An explanation of entry points can be found `here <http://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins>`
@@ -1756,6 +1761,13 @@ def populate_entry_points(entry_points):
                         'astropy.modeling.Fitter' .format(name)))
 
 
-# this is so fitting doesn't choke if pkg_resources doesn't exist
-if HAS_PKG:
-    populate_entry_points(iter_entry_points(group='astropy.modeling', name=None))
+def _populate_ep():
+    # TODO: Exclusively use select when Python minversion is 3.10
+    ep = entry_points()
+    if hasattr(ep, 'select'):
+        populate_entry_points(ep.select(group='astropy.modeling'))
+    else:
+        populate_entry_points(ep.get('astropy.modeling', []))
+
+
+_populate_ep()

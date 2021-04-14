@@ -32,6 +32,12 @@ tiny = np.finfo(float).eps
 dt_tiny = TimeDelta(tiny, format='jd')
 
 
+def setup_module():
+    # Pre-load leap seconds table to avoid flakiness in hypothesis runs.
+    # See https://github.com/astropy/astropy/issues/11030
+    Time('2020-01-01').ut1
+
+
 @pytest.fixture(scope='module')
 def iers_b():
     """This is an expensive operation, so we share it between tests using a

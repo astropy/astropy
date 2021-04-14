@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcstrig.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcstrig.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -175,7 +172,7 @@ extern "C" {
 
 #ifdef WCSTRIG_MACRO
 
-/* Macro implementation of the trigd functions. */
+// Macro implementation of the trigd functions.
 #include "wcsmath.h"
 
 #define cosd(X) cos((X)*D2R)
@@ -193,7 +190,7 @@ extern "C" {
 
 #else
 
-/* Use WCSLIB wrappers or native trigd functions. */
+// Use WCSLIB wrappers or native trigd functions.
 
 double cosd(double angle);
 double sind(double angle);
@@ -204,14 +201,14 @@ double asind(double y);
 double atand(double s);
 double atan2d(double y, double x);
 
-/* Domain tolerance for asin() and acos() functions. */
+// Domain tolerance for asin() and acos() functions.
 #define WCSTRIG_TOL 1e-10
 
-#endif /* WCSTRIG_MACRO */
+#endif // WCSTRIG_MACRO
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* WCSLIB_WCSTRIG */
+#endif // WCSLIB_WCSTRIG

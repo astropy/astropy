@@ -52,9 +52,8 @@ are restored to the fit polynomial and this is the polynomial returned from the 
         1.0  2.072116176718454   2.99115839177437
         1.0 1.9818866652726403 3.0024208951927585
 
-
-  The syntax to fix the same parameter ``c0`` using an argument to the model
-  instead of ``p1.c0.fixed = True`` would be::
+The syntax to fix the same parameter ``c0`` using an argument to the model
+instead of ``p1.c0.fixed = True`` would be::
 
     >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
     ...                          n_models=2, fixed={'c0': True})

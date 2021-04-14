@@ -15,12 +15,7 @@ from numpy.testing import assert_equal
 
 from astropy.convolution import convolve, Gaussian2DKernel
 from astropy.visualization import lupton_rgb
-
-try:
-    import matplotlib  # noqa
-    HAS_MATPLOTLIB = True
-except ImportError:
-    HAS_MATPLOTLIB = False
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB  # noqa
 
 # Set display=True to get matplotlib imshow windows to help with debugging.
 display = False

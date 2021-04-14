@@ -15,13 +15,7 @@ from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
-
-try:
-    import scipy  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 class NonFittableModel(Model):
@@ -89,6 +83,11 @@ def test_inputless_model():
 
     # Test a model set
     m = TestModel(a=[[1, 2, 3], [4, 5, 6]], model_set_axis=0)
+    assert len(m) == 2
+    assert np.all(m() == [[1, 2, 3], [4, 5, 6]])
+
+    # Test a model set
+    m = TestModel(a=[[1, 2, 3], [4, 5, 6]], model_set_axis=np.int64(0))
     assert len(m) == 2
     assert np.all(m() == [[1, 2, 3], [4, 5, 6]])
 
@@ -481,6 +480,34 @@ def test_rename_2d(model_class):
     assert new_model.name == 'Test2D'
 
 
+def test_fix_inputs_integer():
+    """
+    Tests that numpy integers can be passed as dictionary keys to fix_inputs
+    Issue #11358
+    """
+    m = models.Identity(2)
+
+    mf = models.fix_inputs(m, {1: 22})
+    assert mf(1) == (1, 22)
+
+    mf_int32 = models.fix_inputs(m, {np.int32(1): 33})
+    assert mf_int32(1) == (1, 33)
+
+    mf_int64 = models.fix_inputs(m, {np.int64(1): 44})
+    assert mf_int64(1) == (1, 44)
+
+
+def test_fix_inputs_empty_dict():
+    """
+    Tests that empty dictionary can be passed to fix_inputs
+    Issue #11355
+    """
+    m = models.Identity(2)
+
+    mf = models.fix_inputs(m, {})
+    assert mf(1, 2) == (1, 2)
+
+
 def test_rename_inputs_outputs():
     g2 = models.Gaussian2D(10, 2, 3, 1, 2)
     assert g2.inputs == ("x", "y")
@@ -538,3 +565,17 @@ def test_coerce_units():
 
     with pytest.raises(ValueError, match=r"return_units length does not match n_outputs"):
         model.coerce_units(return_units=(u.m, u.s))
+
+
+def test_bounding_box_general_inverse():
+    model = NonFittableModel(42.5)
+
+    with pytest.raises(NotImplementedError):
+        model.bounding_box
+    model.bounding_box = ()
+    assert model.bounding_box == ()
+
+    model.inverse = NonFittableModel(3.14)
+    inverse_model = model.inverse
+    with pytest.raises(NotImplementedError):
+        inverse_model.bounding_box

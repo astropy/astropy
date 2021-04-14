@@ -13,12 +13,7 @@ from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 from astropy.modeling import fitting
 from astropy.utils.exceptions import AstropyUserWarning
-
-try:
-    from scipy import optimize
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 class TestNonLinearConstraints:
@@ -56,6 +51,8 @@ class TestNonLinearConstraints:
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_joint_fitter(self):
+        from scipy import optimize
+
         g1 = models.Gaussian1D(10, 14.9, stddev=.3)
         g2 = models.Gaussian1D(10, 13, stddev=.4)
         jf = fitting.JointFitter([g1, g2], {g1: ['amplitude'],
@@ -86,6 +83,8 @@ class TestNonLinearConstraints:
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_no_constraints(self):
+        from scipy import optimize
+
         g1 = models.Gaussian1D(9.9, 14.5, stddev=.3)
 
         def func(p, x):

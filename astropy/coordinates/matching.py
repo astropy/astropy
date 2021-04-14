@@ -9,6 +9,7 @@ import numpy as np
 from .representation import UnitSphericalRepresentation
 from astropy import units as u
 from . import Angle
+from .sky_coordinate import SkyCoord
 
 __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
            'search_around_sky']
@@ -67,7 +68,10 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
     kdt = _get_cartesian_kdtree(catalogcoord, storekdtree)
 
     # make sure coordinate systems match
-    matchcoord = matchcoord.transform_to(catalogcoord)
+    if isinstance(matchcoord, SkyCoord):
+        matchcoord = matchcoord.transform_to(catalogcoord, merge_attributes=False)
+    else:
+        matchcoord = matchcoord.transform_to(catalogcoord)
 
     # make sure units match
     catunit = catalogcoord.cartesian.x.unit
@@ -140,7 +144,10 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
                          'scalar or length-0.')
 
     # send to catalog frame
-    newmatch = matchcoord.transform_to(catalogcoord)
+    if isinstance(matchcoord, SkyCoord):
+        newmatch = matchcoord.transform_to(catalogcoord, merge_attributes=False)
+    else:
+        newmatch = matchcoord.transform_to(catalogcoord)
 
     # strip out distance info
     match_urepr = newmatch.data.represent_as(UnitSphericalRepresentation)

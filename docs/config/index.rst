@@ -14,18 +14,26 @@ parameters used in Astropy or affiliated packages without delving into the
 source code to make those changes.
 
 .. note::
-    The configuration system got a major overhaul in ``astropy`` 0.4 as
-    part of APE3. See :ref:`config-0-4-transition` for information
-    about updating code to use the new API.
+    * Before version 4.3 the configuration file was created by default
+      when importing ``astropy``. Its existence was required, which is
+      no longer the case.
+    * The configuration system got a major overhaul in ``astropy`` 0.4 as
+      part of APE3. See :ref:`config-0-4-transition` for information
+      about updating code to use the new API.
 
 
 Getting Started
 ===============
 
 The Astropy configuration options are most conveniently set by modifying the
-configuration file. It will be automatically generated with all of the
-default values commented out the first time you import Astropy. You
-can find the exact location by doing::
+configuration file. Since Astropy 4.3 you need to create this file, whereas
+before it was created automatically when importing Astropy. To create the file
+with all of the default values commented out::
+
+    >>> from astropy.config import create_config_file
+    >>> create_config_file('astropy')
+
+You can find the exact location of this file by doing::
 
     >>> from astropy.config import get_config_dir
     >>> get_config_dir()
@@ -216,17 +224,15 @@ Upgrading ``astropy``
 ---------------------
 
 Each time you upgrade to a new major version of ``astropy``, the
-configuration parameters may have changed.
+configuration parameters may have changed. If you want to create a new
+configuration file, you can run::
 
-If you never edited your configuration file, there is nothing for you
-to do. It will automatically be replaced with a configuration file
-template for the newly installed version of ``astropy``.
+    >>> from astropy.config import create_config_file
+    >>> create_config_file('astropy', overwrite=True)
 
-If you did customize your configuration file, it will not be touched.
-Instead, a new configuration file template will be installed alongside
-it with the version number in the filename, for example
-``astropy.0.4.cfg``. You can compare this file to your
-``astropy.cfg`` file to see what needs to be changed or updated.
+Note that this will overwrite the existing file, so if you modified it you
+may want to report your changes in the new file. Another possibility is to
+have a look at the :ref:`astropy_config` to see what has changed.
 
 .. _config-developer:
 

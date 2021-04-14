@@ -92,15 +92,14 @@ packages that use the full bugfix/maintenance branch approach.)
       $ pip install tox --upgrade
       $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
 
-#. Edit the ``CHANGES.rst`` file by changing the date for the version you are
-   about to release from "unreleased" to today's date.  Also be sure to remove
-   any sections of the changelog for that version that have no entries.
-   For releases that come after release candidates (:ref:`release-procedure-beta-rc`),
-   the title of the changelog section should be replaced too, thus getting rid
-   of any mention of the release candidate.
-   Then add and commit those changes with::
+#. Render the changelog with towncrier, and confirm that the fragments can be
+   deleted. (Note: update this when doing the next release!)
+   ::
 
-      <use your favorite editor on CHANGES.rst>
+       towncrier [--draft] --version 4.3
+
+#. Then add and commit those changes with::
+
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
@@ -159,15 +158,6 @@ clean-up tasks to finalize the process.
 Post-Release procedures
 -----------------------
 
-#. Go back to release branch (e.g., ``1.2.x``) and update the ``CHANGES.rst``
-   file with a new section for the next version.
-   Then add and commit::
-
-      $ git checkout v1.2.x
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add v<next_version> to the changelog"
-
 #. Push up these changes to the `astropy core repository`_::
 
       $ git push upstream v<version branch>.x
@@ -198,16 +188,12 @@ Post-Release procedures
    bugfix or a new major version.  You may also need to update the contributor
    list on the web site if you updated the ``docs/credits.rst`` at the outset.
 
-#. Open a PR to the astropy *master* branch to
-   update the ``CHANGES.rst`` to reflect the date of the release you just
-   performed and to include the new section of the changelog.  Often the easiest
-   way to do this is to use ``git cherry-pick`` the changelog commit just before
-   the release commit from above. If you are not sure how to do this, you might
-   be better off copying-and-pasting the relevant parts of the maintenance
-   branch's ``CHANGES.rst`` into master. In the same PR, you also have to
-   update ``docs/whatsnew/index.rst`` and ``docs/whatsnew/X.Y.rst`` to link to
-   "what's new" documentation in the released RTD branch, using the existing
-   text as example.
+#. Cherry-pick the commit rendering the changelog and deleting the fragments and
+   open a PR to the astropy *main* branch. Note: updating this when doing the
+   next release with towncrier.
+   In the same PR, you also have to update ``docs/whatsnew/index.rst`` and
+   ``docs/whatsnew/X.Y.rst`` to link to "what's new" documentation in the
+   released RTD branch, using the existing text as example.
 
 #. ``conda-forge`` has a bot that automatically opens
    a PR from a new PyPI (stable) release, which you need to follow up on and
@@ -279,31 +265,26 @@ Performing a Feature Freeze/Branching new Major Versions
 ========================================================
 
 As outlined in
-`APE2 <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_, astropy
+`APE2 <https://github.com/astropy/astropy-APEs/blob/main/APE2.rst>`_, astropy
 releases occur at regular intervals, but feature freezes occur well before the
-actual release.  Feature freezes are also the time when the master branch's
+actual release.  Feature freezes are also the time when the main branch's
 development separates from the new major version's maintenance branch.  This
 allows new development for the next major version to continue while the
 soon-to-be-released version can focus on bug fixes and documentation updates.
 
 The procedure for this is straightforward:
 
-#. Update your local master branch to use to the latest version from github::
+#. Update your local main branch to use to the latest version from github::
 
       $ git fetch upstream --tags
-      $ git checkout -B master upstream/master
+      $ git checkout -B main upstream/main
 
-#. Create a new branch from master at the point you want the feature freeze to
+#. Create a new branch from main at the point you want the feature freeze to
    occur::
 
       $ git branch v<version>.x
 
-#. Update the ``CHANGES.rst`` file with a new section at the very top for the
-   next major version. Then add and commit those changes::
-
-      <use your favorite editor on CHANGES.rst>
-      $ git add CHANGES.rst
-      $ git commit -m "Add <next_version> to changelog"
+#. Render the changelog with towncrier, as above.
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
    if you have just branched ``4.0``, create the ``v4.1.dev`` tag on the commit
@@ -331,7 +312,7 @@ The procedure for this is straightforward:
 #. Push all of these changes up to github::
 
       $ git push upstream v<version>.x:v<version>.x
-      $ git push upstream master:master
+      $ git push upstream main:main
 
    .. note::
 
@@ -362,9 +343,9 @@ that enhance clarity but do not describe new features (e.g., more examples,
 typo fixes, etc).
 
 Bug fix releases are typically managed by maintaining one or more bug fix
-branches separate from the master branch (the release procedure below discusses
+branches separate from the main branch (the release procedure below discusses
 creating these branches).  Typically, whenever an issue is fixed on the Astropy
-master branch a decision must be made whether this is a fix that should be
+main branch a decision must be made whether this is a fix that should be
 included in the Astropy bug fix release.  Usually the answer to this question
 is "yes", though there are some issues that may not apply to the bug fix
 branch.  For example, it is not necessary to backport a fix to a new feature
@@ -372,7 +353,7 @@ that did not exist when the bug fix branch was first created.  New features
 are never merged into the bug fix branch--only bug fixes; hence the name.
 
 In rare cases a bug fix may be made directly into the bug fix branch without
-going into the master branch first.  This may occur if a fix is made to a
+going into the main branch first.  This may occur if a fix is made to a
 feature that has been removed or rewritten in the development version and no
 longer has the issue being fixed.  However, depending on how critical the bug
 is it may be worth including in a bug fix release, as some users can be slow to
@@ -385,23 +366,23 @@ For example, at the time of writing there are two release milestones open:
 v1.2.2 and v0.3.0.  In this case, v1.2.2 is the next bug fix release and all
 issues that should include fixes in that release should be assigned that
 milestone.  Any issues that implement new features would go into the v0.3.0
-milestone--this is any work that goes in the master branch that should not
+milestone--this is any work that goes in the main branch that should not
 be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
 
 
 .. _release-procedure-bug-fix-backport:
 
-Backporting fixes from master
------------------------------
+Backporting fixes from main
+---------------------------
 
 .. note::
 
     The changelog script in ``astropy-procedures`` (``pr_consistency`` scripts
     in particular) does not know about minor releases, thus please be careful.
-    For example, let's say we have two branches (``master`` and ``v1.2.x``).
+    For example, let's say we have two branches (``main`` and ``v1.2.x``).
     Both 1.2.0 and 1.2.1 releases will come out of the same v1.2.x branch.
-    If a PR for 1.2.1 is merged into ``master`` before 1.2.0 is released,
+    If a PR for 1.2.1 is merged into ``main`` before 1.2.0 is released,
     it should not be backported into v1.2.x branch until after 1.2.0 is
     released, despite complaining from the aforementioned script.
     This situation only arises in a very narrow time frame after 1.2.0
@@ -409,7 +390,7 @@ Backporting fixes from master
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
-current bug fix branch is 'v1.2.x', and that a bug was fixed in master in a
+current bug fix branch is 'v1.2.x', and that a bug was fixed in main in a
 commit ``abcd1234``.  In order to backport the fix, checkout the v1.2.x
 branch (it's also good to make sure it's in sync with the
 `astropy core repository`_) and cherry-pick the appropriate commit::
@@ -427,8 +408,8 @@ sure to backport that as well.
 
 What if the issue required more than one commit to fix?  There are a few
 possibilities for this.  The easiest is if the fix came in the form of a
-pull request that was merged into the master branch.  Whenever GitHub merges
-a pull request it generates a merge commit in the master branch.  This merge
+pull request that was merged into the main branch.  Whenever GitHub merges
+a pull request it generates a merge commit in the main branch.  This merge
 commit represents the *full* difference of all the commits in the pull request
 combined.  What this means is that it is only necessary to cherry-pick the
 merge commit (this requires adding the ``-m 1`` option to the cherry-pick
@@ -476,11 +457,11 @@ there are two choices:
    check out the bug fix branch and commit and push your fix directly.
 
 2. **Preferable**: You may also make a pull request through GitHub against the
-   bug fix branch rather than against master.  Normally when making a pull
+   bug fix branch rather than against main.  Normally when making a pull
    request from a branch on your fork to the `astropy core repository`_, GitHub
-   compares your branch to Astropy's master.  If you look on the left-hand
+   compares your branch to Astropy's main.  If you look on the left-hand
    side of the pull request page, under "base repo: astropy/astropy" there is
-   a drop-down list labeled "base branch: master".  You can click on this
+   a drop-down list labeled "base branch: main".  You can click on this
    drop-down and instead select the bug fix branch ("v1.2.x" for example). Then
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
@@ -502,7 +483,7 @@ right version number).
 
 2. The Astropy changelog must be updated to list all issues--especially
    user-visible issues--fixed for the current release.  The changelog should
-   be updated in the master branch, and then merged into the bug fix branch.
+   be updated in the main branch, and then merged into the bug fix branch.
    Most issues *should* already have changelog entries for them. But
    occasionally these are forgotten, so if doesn't exist yet please add one in
    the process of backporting.  See :ref:`changelog-format` for more details.
@@ -523,7 +504,7 @@ The script to actually check consistency should be run like::
     $ python 4.check_consistency.py > consistency.html
 
 Which will generate a simple web page that shows all of the areas where either
-a pull request was merged into master but is *not* in the relevant release that
+a pull request was merged into main but is *not* in the relevant release that
 it has been milestoned for, as well as any changelog irregularities (i.e., PRs
 that are in the wrong section for what the github milestone indicates).  You'll
 want to correct those irregularities *first* before starting the backport

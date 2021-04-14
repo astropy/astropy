@@ -7,9 +7,9 @@ about: Suggest an idea to improve astropy
 so you do not need to remove them! -->
 
 <!-- Please be sure to check out our contributing guidelines,
-https://github.com/astropy/astropy/blob/master/CONTRIBUTING.md .
+https://github.com/astropy/astropy/blob/main/CONTRIBUTING.md .
 Please be sure to check out our code of conduct,
-https://github.com/astropy/astropy/blob/master/CODE_OF_CONDUCT.md . -->
+https://github.com/astropy/astropy/blob/main/CODE_OF_CONDUCT.md . -->
 
 <!-- Please have a search on our GitHub repository to see if a similar
 issue has already been posted.

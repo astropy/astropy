@@ -12,6 +12,7 @@ import numpy as np
 from astropy.utils.decorators import wraps
 from .core import (Unit, UnitBase, UnitsError, add_enabled_equivalencies,
                    dimensionless_unscaled)
+from .function.core import FunctionUnitBase
 from .physical import _unit_physical_mapping
 
 
@@ -252,7 +253,8 @@ class QuantityInput:
                 return_ = wrapped_function(*func_args, **func_kwargs)
 
             valid_empty = (inspect.Signature.empty, None)
-            if wrapped_signature.return_annotation not in valid_empty:
+            if (wrapped_signature.return_annotation not in valid_empty) and isinstance(
+                wrapped_signature.return_annotation, (str, UnitBase, FunctionUnitBase)):
                 return return_.to(wrapped_signature.return_annotation)
             else:
                 return return_

@@ -1,0 +1,3 @@
+Ensure that proper motions can be calculated when converting a ``SkyCoord``
+with cartesian representation to unit-spherical, by fixing the conversion of
+``CartesianDifferential`` to ``UnitSphericalDifferential``.

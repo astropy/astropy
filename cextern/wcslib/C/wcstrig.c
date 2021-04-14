@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcstrig.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcstrig.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -52,7 +49,7 @@ double cosd(double angle)
   return cos(angle*D2R);
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 double sind(double angle)
 
@@ -76,7 +73,7 @@ double sind(double angle)
   return sin(angle*D2R);
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 void sincosd(double angle, double *s, double *c)
 
@@ -115,7 +112,7 @@ void sincosd(double angle, double *s, double *c)
   return;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 double tand(double angle)
 
@@ -134,7 +131,7 @@ double tand(double angle)
   return tan(angle*D2R);
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 double acosd(double v)
 
@@ -150,7 +147,7 @@ double acosd(double v)
   return acos(v)*R2D;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 double asind(double v)
 
@@ -166,7 +163,7 @@ double asind(double v)
   return asin(v)*R2D;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 double atand(double v)
 
@@ -182,7 +179,7 @@ double atand(double v)
   return atan(v)*R2D;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 double atan2d(double y, double x)
 

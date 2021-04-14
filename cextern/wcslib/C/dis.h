@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: dis.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -91,6 +88,10 @@
 * where i, a, m, and the value for each DQia match each PVi_ma.  Consequently,
 * WCSLIB would handle a FITS header containing these keywords, along with
 * CQDISia = 'TPV' and the required DQia.NAXES and DQia.AXIS.ihat keywords.
+*
+* Note that, as defined, TPV assumes that CDi_ja is used to define the linear
+* transformation.  The section on historical idiosyncrasies (below) cautions
+* about translating CDi_ja to PCi_ja plus CDELTia in this case.
 *
 * SIP - Simple Imaging Polynomial:
 * --------------------------------
@@ -165,6 +166,10 @@
 * along with CQDISia = 'WAT' and the required DPja.NAXES keywords.  For ZPX,
 * the ZPN projection parameters are also encoded in WATi_n, and wcspih()
 * translates these to standard PVi_ma.
+*
+* Note that, as defined, TNX and ZPX assume that CDi_ja is used to define the
+* linear transformation.  The section on historical idiosyncrasies (below)
+* cautions about translating CDi_ja to PCi_ja plus CDELTia in this case.
 *
 * TPD - Template Polynomial Distortion:
 * -------------------------------------
@@ -246,6 +251,12 @@
 * where r = sqrt(xx + yy).  Note that even powers of r are excluded since they
 * can be accomodated by powers of (xx + yy).
 *
+* Note here that "x" refers to the axis to which the distortion function is
+* attached, with "y" being the complementary axis.  So, for example, with
+* longitude on axis 1 and latitude on axis 2, for TPD attached to axis 1, "x"
+* refers to axis 1 and "y" to axis 2.  For TPD attached to axis 2, "x" refers
+* to axis 2, and "y" to axis 1.
+*
 * TPV uses all terms up to 39.  The m in its PVi_ma keywords translates
 * directly to the TPD coefficient number.
 *
@@ -306,6 +317,13 @@
 =   DPja = 'OFFSET.jhat: <value>'
 *
 * where the value corresponds to CRPIXja.
+*
+* Likewise, because TPV, TNX, and ZPX are defined in terms of CDi_ja, the
+* independent variables of the polynomial are intermediate world coordinates
+* rather than intermediate pixel coordinates.  Because sequent distortions
+* are always applied before CDELTia, if CDi_ja is translated to PCi_ja plus
+* CDELTia, then either CDELTia must be unity, or the distortion polynomial
+* coefficients must be adjusted to account for the change of scale.
 *
 * Summary of the dis routines:
 * ----------------------------
@@ -1010,88 +1028,88 @@ extern "C" {
 extern const char *dis_errmsg[];
 
 enum dis_errmsg_enum {
-  DISERR_SUCCESS      = 0,	/* Success. */
-  DISERR_NULL_POINTER = 1,	/* Null disprm pointer passed. */
-  DISERR_MEMORY       = 2,	/* Memory allocation failed. */
-  DISERR_BAD_PARAM    = 3,	/* Invalid parameter value. */
-  DISERR_DISTORT      = 4,	/* Distortion error. */
-  DISERR_DEDISTORT    = 5	/* De-distortion error. */
+  DISERR_SUCCESS      = 0,	// Success.
+  DISERR_NULL_POINTER = 1,	// Null disprm pointer passed.
+  DISERR_MEMORY       = 2,	// Memory allocation failed.
+  DISERR_BAD_PARAM    = 3,	// Invalid parameter value.
+  DISERR_DISTORT      = 4,	// Distortion error.
+  DISERR_DEDISTORT    = 5	// De-distortion error.
 };
 
-/* For use in declaring distortion function prototypes (= DISX2P_ARGS). */
+// For use in declaring distortion function prototypes (= DISX2P_ARGS).
 #define DISP2X_ARGS int inverse, const int iparm[], const double dparm[], \
 int ncrd, const double rawcrd[], double *discrd
 
-/* For use in declaring de-distortion function prototypes (= DISP2X_ARGS). */
+// For use in declaring de-distortion function prototypes (= DISP2X_ARGS).
 #define DISX2P_ARGS int inverse, const int iparm[], const double dparm[], \
 int ncrd, const double discrd[], double *rawcrd
 
 
-/* Struct used for storing DPja and DQia keyvalues. */
+// Struct used for storing DPja and DQia keyvalues.
 struct dpkey {
-  char field[72];		/* Full record field name (no colon).       */
-  int j;			/* Axis number, as in DPja (1-relative).    */
-  int type;			/* Data type of value.                      */
+  char field[72];		// Full record field name (no colon).
+  int j;			// Axis number, as in DPja (1-relative).
+  int type;			// Data type of value.
   union {
-    int    i;			/* Integer record value.                    */
-    double f;			/* Floating point record value.             */
-  } value;			/* Record value.                            */
+    int    i;			// Integer record value.
+    double f;			// Floating point record value.
+  } value;			// Record value.
 };
 
-/* Size of the dpkey struct in int units, used by the Fortran wrappers. */
+// Size of the dpkey struct in int units, used by the Fortran wrappers.
 #define DPLEN (sizeof(struct dpkey)/sizeof(int))
 
 
 struct disprm {
-  /* Initialization flag (see the prologue above).                          */
-  /*------------------------------------------------------------------------*/
-  int flag;			/* Set to zero to force initialization.     */
+  // Initialization flag (see the prologue above).
+  //--------------------------------------------------------------------------
+  int flag;			// Set to zero to force initialization.
 
-  /* Parameters to be provided (see the prologue above).                    */
-  /*------------------------------------------------------------------------*/
-  int naxis;			/* The number of pixel coordinate elements, */
-				/* given by NAXIS.                          */
-  char   (*dtype)[72];		/* For each axis, the distortion type.      */
-  int    ndp;			/* Number of DPja or DQia keywords, and the */
-  int    ndpmax;		/* number for which space was allocated.    */
-  struct dpkey *dp;		/* DPja or DQia keyvalues (not both).       */
-  double *maxdis;		/* For each axis, the maximum distortion.   */
-  double totdis;		/* The maximum combined distortion.         */
+  // Parameters to be provided (see the prologue above).
+  //--------------------------------------------------------------------------
+  int naxis;			// The number of pixel coordinate elements,
+				// given by NAXIS.
+  char   (*dtype)[72];		// For each axis, the distortion type.
+  int    ndp;			// Number of DPja or DQia keywords, and the
+  int    ndpmax;		// number for which space was allocated.
+  struct dpkey *dp;		// DPja or DQia keyvalues (not both).
+  double *maxdis;		// For each axis, the maximum distortion.
+  double totdis;		// The maximum combined distortion.
 
-  /* Information derived from the parameters supplied.                      */
-  /*------------------------------------------------------------------------*/
-  int    *docorr;		/* For each axis, the mode of correction.   */
-  int    *Nhat;			/* For each axis, the number of coordinate  */
-				/* axes that form the independent variables */
-				/* of the distortion function.              */
-  int    **axmap;		/* For each axis, the axis mapping array.   */
-  double **offset;		/* For each axis, renormalization offsets.  */
-  double **scale;		/* For each axis, renormalization scales.   */
-  int    **iparm;		/* For each axis, the array of integer      */
-				/* distortion parameters.                   */
-  double **dparm;		/* For each axis, the array of floating     */
-				/* point distortion parameters.             */
-  int    i_naxis;		/* Dimension of the internal arrays.        */
-  int    ndis;			/* The number of distortion functions.      */
+  // Information derived from the parameters supplied.
+  //--------------------------------------------------------------------------
+  int    *docorr;		// For each axis, the mode of correction.
+  int    *Nhat;			// For each axis, the number of coordinate
+				// axes that form the independent variables
+				// of the distortion function.
+  int    **axmap;		// For each axis, the axis mapping array.
+  double **offset;		// For each axis, renormalization offsets.
+  double **scale;		// For each axis, renormalization scales.
+  int    **iparm;		// For each axis, the array of integer
+				// distortion parameters.
+  double **dparm;		// For each axis, the array of floating
+				// point distortion parameters.
+  int    i_naxis;		// Dimension of the internal arrays.
+  int    ndis;			// The number of distortion functions.
 
-  /* Error handling, if enabled.                                            */
-  /*------------------------------------------------------------------------*/
+  // Error handling, if enabled.
+  //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  /* Private - the remainder are for internal use.                          */
-  /*------------------------------------------------------------------------*/
-  int (**disp2x)(DISP2X_ARGS);	/* For each axis, pointers to the           */
-  int (**disx2p)(DISX2P_ARGS);	/* distortion function and its inverse.     */
+  // Private - the remainder are for internal use.
+  //--------------------------------------------------------------------------
+  int (**disp2x)(DISP2X_ARGS);	// For each axis, pointers to the
+  int (**disx2p)(DISX2P_ARGS);	// distortion function and its inverse.
 
   double *tmpmem;
 
-  int    m_flag, m_naxis;	/* The remainder are for memory management. */
+  int    m_flag, m_naxis;	// The remainder are for memory management.
   char   (*m_dtype)[72];
   struct dpkey *m_dp;
   double *m_maxdis;
 };
 
-/* Size of the disprm struct in int units, used by the Fortran wrappers. */
+// Size of the disprm struct in int units, used by the Fortran wrappers.
 #define DISLEN (sizeof(struct disprm)/sizeof(int))
 
 
@@ -1134,4 +1152,4 @@ int diswarp(struct disprm *dis, const double pixblc[], const double pixtrc[],
 }
 #endif
 
-#endif /* WCSLIB_DIS */
+#endif // WCSLIB_DIS

@@ -14,15 +14,14 @@ import numpy as np
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.coordinates import (SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
-                SphericalCosLatDifferential, CartesianRepresentation,
-                CartesianDifferential, Galactic, PrecessedGeocentric)
+from astropy.coordinates import (
+    SkyCoord, ICRS, SphericalRepresentation, SphericalDifferential,
+    SphericalCosLatDifferential, UnitSphericalRepresentation,
+    UnitSphericalDifferential, UnitSphericalCosLatDifferential,
+    RadialDifferential, CartesianRepresentation,
+    CartesianDifferential, Galactic, PrecessedGeocentric)
 
-try:
-    import scipy
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_creation_frameobjs():
@@ -218,3 +217,49 @@ def test_separation_3d_with_differentials():
 
     sep = c1.separation_3d(c2)
     assert_quantity_allclose(sep, 5*u.pc)
+
+
+@pytest.mark.parametrize('sph_type', ['spherical', 'unitspherical'])
+def test_cartesian_to_spherical(sph_type):
+    """Conversion to unitspherical should work, even if we lose distance."""
+    c = SkyCoord(x=1*u.kpc, y=0*u.kpc, z=0*u.kpc,
+                 v_x=10*u.km/u.s, v_y=0*u.km/u.s, v_z=4.74*u.km/u.s,
+                 representation_type='cartesian')
+    c.representation_type = sph_type
+    assert c.ra == 0
+    assert c.dec == 0
+    assert c.pm_ra == 0
+    assert u.allclose(c.pm_dec, 1*u.mas/u.yr, rtol=1e-3)
+    assert c.radial_velocity == 10*u.km/u.s
+    if sph_type == 'spherical':
+        assert c.distance == 1*u.kpc
+    else:
+        assert not hasattr(c, 'distance')
+
+
+@pytest.mark.parametrize('diff_info, diff_cls', [
+    (dict(radial_velocity=[20, 30]*u.km/u.s), RadialDifferential),
+    (dict(pm_ra=[2, 3]*u.mas/u.yr, pm_dec=[-3, -4]*u.mas/u.yr,
+          differential_type='unitspherical'), UnitSphericalDifferential),
+    (dict(pm_ra_cosdec=[2, 3]*u.mas/u.yr, pm_dec=[-3, -4]*u.mas/u.yr),
+     UnitSphericalCosLatDifferential)], scope='class')
+class TestDifferentialClassPropagation:
+    """Test that going in between spherical and unit-spherical, we do not
+    change differential type (since both can handle the same types).
+    """
+    def test_sc_unit_spherical_with_pm_or_rv_only(self, diff_info, diff_cls):
+        sc = SkyCoord(ra=[10, 20]*u.deg, dec=[-10, 10]*u.deg, **diff_info)
+        assert isinstance(sc.data, UnitSphericalRepresentation)
+        assert isinstance(sc.data.differentials['s'], diff_cls)
+        sr = sc.represent_as('spherical')
+        assert isinstance(sr, SphericalRepresentation)
+        assert isinstance(sr.differentials['s'], diff_cls)
+
+    def test_sc_spherical_with_pm_or_rv_only(self, diff_info, diff_cls):
+        sc = SkyCoord(ra=[10, 20]*u.deg, dec=[-10, 10]*u.deg,
+                      distance=1.*u.kpc, **diff_info)
+        assert isinstance(sc.data, SphericalRepresentation)
+        assert isinstance(sc.data.differentials['s'], diff_cls)
+        sr = sc.represent_as('unitspherical')
+        assert isinstance(sr, UnitSphericalRepresentation)
+        assert isinstance(sr.differentials['s'], diff_cls)

@@ -5,12 +5,9 @@ import io
 
 import pytest
 
-try:
+from astropy.utils.compat.optional_deps import HAS_PLT
+if HAS_PLT:
     import matplotlib.pyplot as plt
-except ImportError:
-    HAS_PLT = False
-else:
-    HAS_PLT = True
 
 from astropy import units as u
 from astropy.coordinates import Angle

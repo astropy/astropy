@@ -1,0 +1,2 @@
+Decorator ``astropy.units.decorators.quantity_input`` now only evaluates return type annotations based on ``UnitBase`` or ``FunctionUnitBase`` types.
+Other annotations are skipped over and are not attempted to convert to the correct type.

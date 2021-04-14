@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: log.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: log.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -144,13 +141,13 @@ extern "C" {
 extern const char *log_errmsg[];
 
 enum log_errmsg_enum {
-  LOGERR_SUCCESS         = 0,	/* Success. */
-  LOGERR_NULL_POINTER    = 1,	/* Null pointer passed. */
-  LOGERR_BAD_LOG_REF_VAL = 2,	/* Invalid log-coordinate reference value. */
-  LOGERR_BAD_X           = 3,	/* One or more of the x coordinates were
-				   invalid. */
-  LOGERR_BAD_WORLD       = 4 	/* One or more of the world coordinates were
-				   invalid. */
+  LOGERR_SUCCESS         = 0,	// Success.
+  LOGERR_NULL_POINTER    = 1,	// Null pointer passed.
+  LOGERR_BAD_LOG_REF_VAL = 2,	// Invalid log-coordinate reference value.
+  LOGERR_BAD_X           = 3,	// One or more of the x coordinates were
+				// invalid.
+  LOGERR_BAD_WORLD       = 4 	// One or more of the world coordinates were
+				// invalid.
 };
 
 int logx2s(double crval, int nx, int sx, int slogc, const double x[],
@@ -164,4 +161,4 @@ int logs2x(double crval, int nlogc, int slogc, int sx, const double logc[],
 }
 #endif
 
-#endif /* WCSLIB_LOG */
+#endif // WCSLIB_LOG

@@ -885,7 +885,12 @@ class UnitBase:
             f"{unit_str} and {other_str} are not convertible")
 
     def _get_converter(self, other, equivalencies=[]):
-        other = Unit(other)
+        """Get a converter for values in ``self`` to ``other``.
+
+        If no conversion is necessary, returns ``unit_scale_converter``
+        (which is used as a check in quantity helpers).
+
+        """
 
         # First see if it is just a scaling.
         try:
@@ -893,7 +898,10 @@ class UnitBase:
         except UnitsError:
             pass
         else:
-            return lambda val: scale * _condition_arg(val)
+            if scale == 1.:
+                return unit_scale_converter
+            else:
+                return lambda val: scale * _condition_arg(val)
 
         # if that doesn't work, maybe we can do it with equivalencies?
         try:
@@ -981,7 +989,8 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self._get_converter(other, equivalencies=equivalencies)(value)
+            return self._get_converter(Unit(other),
+                                       equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -2402,6 +2411,15 @@ def _condition_arg(value):
         raise ValueError("Value not scalar compatible or convertible to "
                          "an int, float, or complex array")
     return avalue
+
+
+def unit_scale_converter(val):
+    """Function that just multiplies the value by unity.
+
+    This is a separate function so it can be recognized and
+    discarded in unit conversion.
+    """
+    return 1. * _condition_arg(val)
 
 
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)

@@ -1,0 +1,1 @@
+Fixed a bug that resulted in some parts of grid lines being visible when they should have been hidden.

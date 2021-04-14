@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wtbarr.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wtbarr.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -95,24 +92,24 @@
 
 #ifdef __cplusplus
 extern "C" {
-#define wtbarr wtbarr_s		/* See prologue above.                      */
+#define wtbarr wtbarr_s		// See prologue above.
 #endif
-				/* For extracting wcstab arrays.  Matches   */
-				/* the wtbarr typedef defined in CFITSIO    */
-				/* header fitsio.h.                         */
+				// For extracting wcstab arrays.  Matches
+				// the wtbarr typedef defined in CFITSIO
+				// header fitsio.h.
 struct wtbarr {
-  int  i;			/* Image axis number.                       */
-  int  m;			/* Array axis number for index vectors.     */
-  int  kind;			/* wcstab array type.                       */
-  char extnam[72];		/* EXTNAME of binary table extension.       */
-  int  extver;			/* EXTVER  of binary table extension.       */
-  int  extlev;			/* EXTLEV  of binary table extension.       */
-  char ttype[72];		/* TTYPEn of column containing the array.   */
-  long row;			/* Table row number.                        */
-  int  ndim;			/* Expected wcstab array dimensionality.    */
-  int  *dimlen;			/* Where to write the array axis lengths.   */
-  double **arrayp;		/* Where to write the address of the array  */
-				/* allocated to store the wcstab array.     */
+  int  i;			// Image axis number.
+  int  m;			// Array axis number for index vectors.
+  int  kind;			// wcstab array type.
+  char extnam[72];		// EXTNAME of binary table extension.
+  int  extver;			// EXTVER  of binary table extension.
+  int  extlev;			// EXTLEV  of binary table extension.
+  char ttype[72];		// TTYPEn of column containing the array.
+  long row;			// Table row number.
+  int  ndim;			// Expected wcstab array dimensionality.
+  int  *dimlen;			// Where to write the array axis lengths.
+  double **arrayp;		// Where to write the address of the array
+				// allocated to store the wcstab array.
 };
 
 #ifdef __cplusplus
@@ -120,4 +117,4 @@ struct wtbarr {
 }
 #endif
 
-#endif /* WCSLIB_WTBARR */
+#endif // WCSLIB_WTBARR

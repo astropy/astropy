@@ -25,18 +25,7 @@ from astropy import units as u
 from astropy.time import Time, TimeDelta
 from .conftest import MaskedTable, MIXIN_COLS
 
-try:
-    import pandas  # noqa
-except ImportError:
-    HAS_PANDAS = False
-else:
-    HAS_PANDAS = True
-
-try:
-    import yaml  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_YAML  # noqa
 
 
 class SetupData:
@@ -1876,7 +1865,7 @@ class TestPandas:
     def test_mixin_pandas(self):
         t = table.QTable()
         for name in sorted(MIXIN_COLS):
-            if name != 'ndarray':
+            if not name.startswith('ndarray'):
                 t[name] = MIXIN_COLS[name]
 
         t['dt'] = TimeDelta([0, 2, 4, 6], format='sec')
@@ -2041,6 +2030,17 @@ class TestPandas:
             table.Table.from_pandas(df, units={'x': u.m, 't': u.s, 'y': u.m})
         assert len(record) == 1
         assert "{'y'}" in record[0].message.args[0]
+
+    def test_to_pandas_masked_int_data_with__index(self):
+        data = {"data": [0, 1, 2], "index": [10, 11, 12]}
+        t = table.Table(data=data, masked=True)
+
+        t.add_index("index")
+        t["data"].mask = [1, 1, 0]
+
+        df = t.to_pandas()
+
+        assert df["data"].iloc[-1] == 2
 
 
 @pytest.mark.usefixtures('table_types')

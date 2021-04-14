@@ -241,7 +241,7 @@ class Ecsv(basic.Basic):
     Th ECSV format allows for specification of key table and column meta-data, in
     particular the data type and unit.
 
-    See: https://github.com/astropy/astropy-APEs/blob/master/APE6.rst
+    See: https://github.com/astropy/astropy-APEs/blob/main/APE6.rst
 
     Examples
     --------

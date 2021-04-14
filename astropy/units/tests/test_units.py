@@ -13,20 +13,6 @@ from astropy import constants as c
 from astropy.units import utils
 
 
-def test_getting_started():
-    """
-    Corresponds to "Getting Started" section in the docs.
-    """
-    from astropy.units import imperial
-    with imperial.enable():
-        speed_unit = u.cm / u.s
-        x = speed_unit.to(imperial.mile / u.hour, 1)
-        assert_allclose(x, 0.02236936292054402)
-        speed_converter = speed_unit._get_converter("mile hour^-1")
-        x = speed_converter([1., 1000., 5000.])
-        assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
-
-
 def test_initialisation():
     assert u.Unit(u.m) is u.m
 
