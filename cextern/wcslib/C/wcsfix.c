@@ -1143,7 +1143,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
 //----------------------------------------------------------------------------
 
 // Helper function used only by wcspcx().
-static void unscramble(int n, int mapto[], int step, int type, void *vptr);
+static int unscramble(int n, int mapto[], int step, int type, void *vptr);
 
 int wcspcx(
   struct wcsprm *wcs,
@@ -1227,7 +1227,11 @@ int wcspcx(
   }
 
   // mapto[i] records where row i of PCi_j should move to.
-  int mapto[naxis];
+  int *mapto;
+  if ((mapto = (int*)malloc(naxis * sizeof(int))) == 0x0) {
+    free(mem);
+    return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+  }
   for (int i = 0; i < naxis; i++) {
     mapto[i] = -1;
   }
@@ -1270,7 +1274,6 @@ int wcspcx(
       }
     }
   }
-
 
   // Fix the sign of CDELTi.  Celestial axes are special, otherwise diagonal
   // elements of the correctly permuted matrix should be positive.
@@ -1342,12 +1345,19 @@ int wcspcx(
     if (scrambled) {
       for (int i = 0; i < naxis; i++) {
         // Do columns of the PCi_ja matrix.
-        unscramble(naxis, mapto, naxis, 1, wcs->pc + i);
+        if (unscramble(naxis, mapto, naxis, 1, wcs->pc + i)) {
+          free(mapto);
+          return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+        }
       }
-      unscramble(naxis, mapto, 1, 1, wcs->cdelt);
-      unscramble(naxis, mapto, 1, 1, wcs->crval);
-      unscramble(naxis, mapto, 1, 2, wcs->cunit);
-      unscramble(naxis, mapto, 1, 2, wcs->ctype);
+
+      if (unscramble(naxis, mapto, 1, 1, wcs->cdelt) ||
+          unscramble(naxis, mapto, 1, 1, wcs->crval) ||
+          unscramble(naxis, mapto, 1, 2, wcs->cunit) ||
+          unscramble(naxis, mapto, 1, 2, wcs->ctype)) {
+        free(mapto);
+        return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+      }
 
       for (int ipv = 0; ipv < wcs->npv; ipv++) {
         // Noting that PVi_ma axis numbers are 1-relative.
@@ -1364,20 +1374,29 @@ int wcspcx(
       if (wcs->altlin & 2) {
         for (int i = 0; i < naxis; i++) {
           // Do columns of the CDi_ja matrix.
-          unscramble(naxis, mapto, naxis, 1, wcs->cd + i);
+          if (unscramble(naxis, mapto, naxis, 1, wcs->cd + i)) {
+            free(mapto);
+            return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+          }
         }
       }
 
       if (wcs->altlin & 4) {
-        unscramble(naxis, mapto, 1, 1, wcs->crota);
+        if (unscramble(naxis, mapto, 1, 1, wcs->crota)) {
+          free(mapto);
+          return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+        }
       }
 
-      unscramble(naxis, mapto, 1, 3, wcs->colax);
-      unscramble(naxis, mapto, 1, 2, wcs->cname);
-      unscramble(naxis, mapto, 1, 1, wcs->crder);
-      unscramble(naxis, mapto, 1, 1, wcs->csyer);
-      unscramble(naxis, mapto, 1, 1, wcs->czphs);
-      unscramble(naxis, mapto, 1, 1, wcs->cperi);
+      if (unscramble(naxis, mapto, 1, 3, wcs->colax) ||
+          unscramble(naxis, mapto, 1, 2, wcs->cname) ||
+          unscramble(naxis, mapto, 1, 1, wcs->crder) ||
+          unscramble(naxis, mapto, 1, 1, wcs->csyer) ||
+          unscramble(naxis, mapto, 1, 1, wcs->czphs) ||
+          unscramble(naxis, mapto, 1, 1, wcs->cperi)) {
+        free(mapto);
+        return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+      }
 
       // Coordinate lookup tables.
       for (int itab = 0; itab < wcs->ntab; itab++) {
@@ -1397,6 +1416,7 @@ int wcspcx(
     }
   }
 
+  free(mapto);
 
   // Reset the struct.
   if ((status = wcsset(wcs))) return fix_wcserr[status];
@@ -1405,7 +1425,7 @@ int wcspcx(
 }
 
 
-void unscramble(
+int unscramble(
   int n,
   int mapto[],
   int step,
@@ -1417,7 +1437,12 @@ void unscramble(
 
   if (type == 1) {
     double *dval = (double *)vptr;
-    double dtmp[n];
+
+    double *dtmp;
+    if ((dtmp = (double *)malloc(n * sizeof(double))) == 0x0) {
+      return 1;
+    }
+
     for (int i = 0; i < n; i++) {
       dtmp[mapto[i]] = dval[i*step];
     }
@@ -1426,20 +1451,35 @@ void unscramble(
       dval[i*step] = dtmp[i];
     }
 
+    free(dtmp);
+
   } else if (type == 2) {
     char (*cval)[72] = (char (*)[72])vptr;
-    char ctmp[n][72];
-    for (int i = 0; i < n; i++) {
-      memcpy(ctmp[mapto[i]], cval[i], 72);
+
+    int row_size = 72 * sizeof(char);
+    char *ctmp;
+    if ((ctmp = (char *)malloc(n * row_size)) == 0x0) {
+      return 1;
     }
 
     for (int i = 0; i < n; i++) {
-      memcpy(cval[i], ctmp[i], 72);
+      memcpy(ctmp + row_size * mapto[i], cval[i], 72);
     }
+
+    for (int i = 0; i < n; i++) {
+      memcpy(cval[i], ctmp + row_size * i, 72);
+    }
+
+    free(ctmp);
 
   } else if (type == 3) {
     int *ival = (int *)vptr;
-    int itmp[n];
+
+    int *itmp;
+    if ((itmp = (int *)malloc(n * sizeof(int))) == 0x0) {
+      return 1;
+    }
+
     for (int i = 0; i < n; i++) {
       itmp[mapto[i]] = ival[i];
     }
@@ -1447,5 +1487,9 @@ void unscramble(
     for (int i = 0; i < n; i++) {
       ival[i] = itmp[i];
     }
+
+    free(itmp);
   }
+
+  return 0;
 }
