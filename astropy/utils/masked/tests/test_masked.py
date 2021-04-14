@@ -1085,14 +1085,15 @@ def test_masked_str_explicit():
 
 
 def test_masked_repr_explicit():
-    sa = np.array([(1., 2.), (3., 4.)], dtype='f8,f8')
+    # Use explicit endianness to ensure tests pass on all architectures
+    sa = np.array([(1., 2.), (3., 4.)], dtype='>f8,>f8')
     msa = Masked(sa, [(False, True), (False, False)])
     assert repr(msa) == ("MaskedNDArray([(1., ——), (3., 4.)], "
-                         "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+                         "dtype=[('f0', '>f8'), ('f1', '>f8')])")
     assert repr(msa[0]) == ("MaskedNDArray((1., ——), "
-                            "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+                            "dtype=[('f0', '>f8'), ('f1', '>f8')])")
     assert repr(msa[1]) == ("MaskedNDArray((3., 4.), "
-                            "dtype=[('f0', '<f8'), ('f1', '<f8')])")
+                            "dtype=[('f0', '>f8'), ('f1', '>f8')])")
 
 
 def test_masked_repr_summary():
