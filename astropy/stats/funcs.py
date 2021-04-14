@@ -806,11 +806,11 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
         >>> import numpy as np
         >>> from astropy.stats import median_absolute_deviation
-        >>> rand = np.random.RandomState(12345)
+        >>> rand = np.random.default_rng(12345)
         >>> from numpy.random import randn
-        >>> mad = median_absolute_deviation(rand.randn(1000))
+        >>> mad = median_absolute_deviation(rand.standard_normal(1000))
         >>> print(mad)    # doctest: +FLOAT_CMP
-        0.65244241428454486
+        0.6829504282771885
 
     See Also
     --------
@@ -902,10 +902,10 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
     --------
     >>> import numpy as np
     >>> from astropy.stats import mad_std
-    >>> rand = np.random.RandomState(12345)
+    >>> rand = np.random.default_rng(12345)
     >>> madstd = mad_std(rand.normal(5, 2, (100, 100)))
     >>> print(madstd)    # doctest: +FLOAT_CMP
-    2.0232764659422626
+    1.984147963351707
 
     See Also
     --------

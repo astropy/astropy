@@ -16,8 +16,8 @@ from astropy.stats import histogram
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_hist_basic(rseed=0):
-    rng = np.random.RandomState(rseed)
-    x = rng.randn(100)
+    rng = np.random.default_rng(rseed)
+    x = rng.standard_normal(100)
 
     for range in [None, (-2, 2)]:
         n1, bins1, patches1 = plt.hist(x, 10, range=range)
@@ -29,8 +29,8 @@ def test_hist_basic(rseed=0):
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_hist_specify_ax(rseed=0):
-    rng = np.random.RandomState(rseed)
-    x = rng.randn(100)
+    rng = np.random.default_rng(rseed)
+    x = rng.standard_normal(100)
 
     fig, ax = plt.subplots(2)
     n1, bins1, patches1 = hist(x, 10, ax=ax[0])
@@ -42,8 +42,8 @@ def test_hist_specify_ax(rseed=0):
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_hist_autobin(rseed=0):
-    rng = np.random.RandomState(rseed)
-    x = rng.randn(100)
+    rng = np.random.default_rng(rseed)
+    x = rng.standard_normal(100)
 
     # 'knuth' bintype depends on scipy that is optional dependency
     if HAS_SCIPY:

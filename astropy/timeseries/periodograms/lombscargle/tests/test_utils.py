@@ -12,12 +12,12 @@ NORMALIZATIONS = ['standard', 'model', 'log', 'psd']
 @pytest.fixture
 def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):
     """Generate some data for testing"""
-    rng = np.random.RandomState(rseed)
-    t = 5 * period * rng.rand(N)
+    rng = np.random.default_rng(rseed)
+    t = 5 * period * rng.random(N)
     omega = 2 * np.pi / period
     y = theta[0] + theta[1] * np.sin(omega * t) + theta[2] * np.cos(omega * t)
-    dy = dy * (0.5 + rng.rand(N))
-    y += dy * rng.randn(N)
+    dy = dy * (0.5 + rng.random(N))
+    y += dy * rng.standard_normal(N)
 
     return t, y, dy
 
