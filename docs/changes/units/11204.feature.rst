@@ -1,0 +1,12 @@
+Create the ``astropy.units.physical.PhysicalType`` class to represent the
+physical types of units and allow there to be more than one physical type
+associated with a unit.  The ``physical_type`` attribute of each unit is
+now an instance of the ``PhysicalType`` class instead of a string.  The
+operations multiplication, division, and exponentiation are able to be
+performed on ``PhysicalType`` instances to facilitate dimensional analysis.
+Several additional physical types have been defined.  The function
+``astropy.units.physical.def_physical_type`` can now be used to either define
+entirely new physical types, or to add more physical type names to an existing
+physical type.  The function ``astropy.units.physical.get_physical_type`` now
+accepts strings representing the names of physical types, and will return a
+dimensionless physical type when provided with the number one.
