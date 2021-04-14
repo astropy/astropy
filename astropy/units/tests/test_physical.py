@@ -135,6 +135,17 @@ def test_physical_type_names(unit, physical_type):
     )
 
 
+@pytest.mark.parametrize(
+    "physical_type_representation, physical_type_name",
+    [(1.0, "dimensionless"), (u.m, "length"), ("length", "length")],
+)
+def test_get_physical_type(physical_type_representation, physical_type_name):
+    """Test different ways of getting a physical type."""
+    physical_type = physical.get_physical_type(physical_type_representation)
+    assert isinstance(physical_type, physical.PhysicalType)
+    assert physical_type == physical_type_name
+
+
 def test_physical_type_cannot_become_quantity():
     """
     Test that `PhysicalType` instances cannot be cast into `Quantity`
@@ -187,13 +198,21 @@ operation_parameters = [
     (length, u.m, "__mul__", area),
     (length, u.m, "__rmul__", area),
     (speed, u.s, "__mul__", length),
-    (length, 3.2, "__mul__", length),
-    (length, 3.2, "__rmul__", length),
+    (length, 1, "__mul__", length),
+    (length, 1, "__rmul__", length),
     (length, u.s, "__truediv__", speed),
-    (area, 3.2, "__truediv__", area),
+    (area, 1, "__truediv__", area),
     (time, u.m, "__rtruediv__", speed),
-    (length, 3.2, "__rtruediv__", wavenumber),
+    (length, 1.0, "__rtruediv__", wavenumber),
     (length, 2, "__pow__", area),
+    (length, 32, "__mul__", NotImplemented),
+    (length, 0, "__rmul__", NotImplemented),
+    (length, 3.2, "__truediv__", NotImplemented),
+    (length, -1, "__rtruediv__", NotImplemented),
+    (length, "length", "__mul__", area),
+    (length, "length", "__rmul__", area),
+    (area, "length", "__truediv__", length),
+    (length, "area", "__rtruediv__", length),
 ]
 
 
@@ -349,13 +368,14 @@ def test_physical_type_hash():
     assert dictionary[length] == 42
 
 
-def test_physical_type_multiplication():
+@pytest.mark.parametrize("multiplicand", [list(), 42, 0, -1])
+def test_physical_type_multiplication(multiplicand):
     """
     Test that multiplication of a physical type returns `NotImplemented`
     when attempted for an invalid type.
     """
     with pytest.raises(TypeError):
-        length * []
+        length * multiplicand
 
 
 def test_unrecognized_unit_physical_type():

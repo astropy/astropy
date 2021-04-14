@@ -131,6 +131,20 @@ _units_and_physical_types = [
 
 _physical_unit_mapping = {}
 _unit_physical_mapping = {}
+_name_physical_mapping = {}
+
+
+def _physical_type_from_str(name):
+    """
+    Return the `PhysicalType` instance associated with the name of a
+    physical.
+    """
+    if name == "unknown":
+        raise ValueError("cannot uniquely identify an unknown physical type.")
+    if name in _name_physical_mapping:
+        return _name_physical_mapping[name]
+    else:
+        raise ValueError(f"{name!r} is not a known physical type.")
 
 
 def _replace_temperatures_with_kelvin(unit):
@@ -259,6 +273,14 @@ class PhysicalType:
     >>> length ** 3
     PhysicalType('volume')
 
+    Dimensional analysis may also be performed using a string that
+    contains the name of a physical type.
+
+    >>> "length" * area
+    PhysicalType('volume')
+    >>> "area" / length
+    PhysicalType('length')
+
     Unknown physical types are labelled as ``"unknown"``.
 
     >>> (u.s ** 13).physical_type
@@ -317,17 +339,22 @@ class PhysicalType:
     @staticmethod
     def _dimensionally_compatible_unit(obj):
         """
-        If a unit is passed in, return that unit.  If a physical type is
-        passed in, return a unit that corresponds to that physical type.
-        If a real number is passed in, return a dimensionless unit.
+        Return a unit that corresponds to the provided argument.
+
+        If a unit is passed in, return that unit.  If a physical type
+        (or a `str` with the name of a physical type) is passed in,
+        return a unit that corresponds to that physical type.  If the
+        number equal to ``1`` is passed in, return a dimensionless unit.
         Otherwise, return `NotImplemented`.
         """
         if isinstance(obj, core.UnitBase):
             return _replace_temperatures_with_kelvin(obj)
         elif isinstance(obj, PhysicalType):
             return obj._unit
-        elif isinstance(obj, numbers.Real):
+        elif isinstance(obj, numbers.Real) and obj == 1:
             return core.dimensionless_unscaled
+        elif isinstance(obj, str):
+            return _physical_type_from_str(obj)._unit
         else:
             return NotImplemented
 
@@ -408,14 +435,14 @@ def def_physical_type(unit, name):
         If a physical type name is already in use for another unit, or
         if attempting to name a unit as ``"unknown"``.
     """
-    name = _standardize_physical_type_names(name)
+    physical_type_names = _standardize_physical_type_names(name)
 
-    if "unknown" in name:
+    if "unknown" in physical_type_names:
         raise ValueError("cannot uniquely define an unknown physical type")
 
     names_for_other_units = _get_names_in_use_except_from(unit)
 
-    names_already_in_use = name & names_for_other_units
+    names_already_in_use = physical_type_names & names_for_other_units
     if names_already_in_use:
         raise ValueError(
             f"the following physical type names are already in use: "
@@ -426,19 +453,23 @@ def def_physical_type(unit, name):
     unit_already_in_use = physical_type_id in _physical_unit_mapping
     if unit_already_in_use:
         physical_type = _physical_unit_mapping[physical_type_id]
-        name |= set(physical_type)
-        physical_type.__init__(unit, name)
+        physical_type_names |= set(physical_type)
+        physical_type.__init__(unit, physical_type_names)
     else:
-        physical_type = PhysicalType(unit, name)
+        physical_type = PhysicalType(unit, physical_type_names)
         _physical_unit_mapping[physical_type_id] = physical_type
 
     for ptype in physical_type:
         _unit_physical_mapping[ptype] = physical_type_id
 
+    for ptype_name in physical_type_names:
+        _name_physical_mapping[ptype_name] = physical_type
+
 
 def get_physical_type(unit):
     """
-    Return a representation of the physical type of a unit.
+    Return the physical type that corresponds to a unit (or another
+    physical type representation).
 
     This function is not intended to be called directly in user code.
     Physical types should be accessed using the ``physical_type``
@@ -446,14 +477,20 @@ def get_physical_type(unit):
 
     Parameters
     ----------
-    unit : `~astropy.units.UnitBase` instance
-        The unit for which to get the physical type.
+    unit : `~astropy.units.UnitBase`, `str`, or the number one
+        The unit to get the physical type for, a string containing a name
+        of a physical type, or the number 1 to represent a dimensionless
+        physical type.
 
     Returns
     -------
-    physical : PhysicalType
+    physical_type : PhysicalType
         A representation of the physical type(s) of the unit.
     """
+    if isinstance(unit, str):
+        return _physical_type_from_str(unit)
+    if isinstance(unit, numbers.Real) and unit == 1:
+        unit = core.dimensionless_unscaled
     unit = _replace_temperatures_with_kelvin(unit)
     physical_type_id = unit._get_physical_type_id()
     unit_has_known_physical_type = physical_type_id in _physical_unit_mapping
