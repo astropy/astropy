@@ -288,3 +288,19 @@ class Ecsv(basic.Basic):
         with serialize_context_as('ecsv'):
             out = serialize.represent_mixins_as_columns(table)
         return out
+
+    def _check_multidim_table(self, table, max_ndim=1):
+        """Check that ``table`` has only 1-d columns.
+
+        This is overriding a base method that raises an exception if non-allowed
+        columns (dim > max_ndim) are present. The ECSV reader class supports N-d
+        columns so just pass.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table` Input table. max_ndim : int Max allowed
+            number of dimensions (default=1)
+        max_ndim : int
+            Max allowed number of dimensions (default=1)
+        """
+        pass
