@@ -122,10 +122,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: (Allowed Failure) Python 3.7 with remote data and dev version of key dependencies
+          - name: (Allowed Failure) Python 3.10 with remote data and dev version of key dependencies
             os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
+            python: 3.10-dev
+            toxenv: py310-test-devdeps
             toxposargs: --remote-data=any
 
     steps:
