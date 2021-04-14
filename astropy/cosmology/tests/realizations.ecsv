@@ -1,0 +1,64 @@
+# %ECSV 0.9
+# ---
+# datatype:
+# - {name: name, datatype: string}
+# - {name: cosmology, datatype: string}
+# - {name: Oc0, datatype: float64}
+# - {name: Ob0, datatype: float64}
+# - {name: Om0, datatype: float64}
+# - {name: H0, unit: km / (Mpc s), datatype: float64}
+# - {name: n, datatype: float64}
+# - {name: sigma8, datatype: float64}
+# - {name: tau, datatype: float64}
+# - {name: z_reion, datatype: float64}
+# - {name: t0, unit: Gyr, datatype: float64}
+# - {name: Tcmb0, unit: K, datatype: float64}
+# - {name: Neff, datatype: float64}
+# - {name: flat, datatype: bool}
+# - {name: m_nu_1, unit: eV, datatype: float64}
+# - {name: m_nu_2, unit: eV, datatype: float64}
+# - {name: m_nu_3, unit: eV, datatype: float64}
+# meta: !!omap
+# - TestPlanck13: {reference: 'Planck Collaboration 2014, A&A, 571, A16 (Paper XVI), Table 5 (Planck + WP + highL + BAO)'}
+# - TestPlanck15: {reference: 'Planck Collaboration 2016, A&A, 594, A13 (Paper XIII), Table 4 (TT, TE, EE + lowP + lensing + ext)'}
+# - TestPlanck18: {reference: 'Planck Collaboration 2018, 2020, A&A, 641, A6  (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)'}
+# - TestPlanck18_arXiv_v2: {reference: 'DEPRECATED: Planck Collaboration 2018, arXiv:1807.06209 v2 (Paper VI), Table 2 (TT, TE, EE + lowE
+#       + lensing + BAO)'}
+# - TestWMAP5: {reference: 'Komatsu et al. 2009, ApJS, 180, 330, doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).'}
+# - TestWMAP7: {reference: 'Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).'}
+# - TestWMAP9: {reference: 'Hinshaw et al. 2013, ApJS, 208, 19, doi: 10.1088/0067-0049/208/2/19. Table 4 (WMAP9 + eCMB + BAO + H0, last
+#       column)'}
+# - __serialized_columns__:
+#     H0:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: km / (Mpc s)}
+#       value: !astropy.table.SerializedColumn {name: H0}
+#     Tcmb0:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: K}
+#       value: !astropy.table.SerializedColumn {name: Tcmb0}
+#     m_nu_1:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: &id001 !astropy.units.Unit {unit: eV}
+#       value: !astropy.table.SerializedColumn {name: m_nu_1}
+#     m_nu_2:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: m_nu_2}
+#     m_nu_3:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: m_nu_3}
+#     t0:
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: Gyr}
+#       value: !astropy.table.SerializedColumn {name: t0}
+# schema: astropy-2.0
+name cosmology Oc0 Ob0 Om0 H0 n sigma8 tau z_reion t0 Tcmb0 Neff flat m_nu_1 m_nu_2 m_nu_3
+TestPlanck18 FlatLambdaCDM 0.2607 0.04897 0.30966 67.66 0.9665 0.8102 0.0561 7.82 13.787 2.7255 3.046 True 0.0 0.0 0.06
+TestPlanck18_arXiv_v2 FlatLambdaCDM 0.2607 0.04897 0.30966 67.66 0.9665 0.8102 0.0561 7.82 13.787 2.7255 3.046 True 0.0 0.0 0.06
+TestPlanck15 FlatLambdaCDM 0.2589 0.0486 0.3075 67.74 0.9667 0.8159 0.066 8.8 13.799 2.7255 3.046 True 0.0 0.0 0.06
+TestPlanck13 FlatLambdaCDM 0.25886 0.048252 0.30712 67.77 0.9611 0.8288 0.0952 11.52 13.7965 2.7255 3.046 True 0.0 0.0 0.06
+TestWMAP9 FlatLambdaCDM 0.2402 0.04628 0.2865 69.32 0.9608 0.82 0.081 10.1 13.772 2.725 3.04 True 0.0 0.0 0.0
+TestWMAP7 FlatLambdaCDM 0.226 0.0455 0.272 70.4 0.967 0.81 0.085 10.3 13.76 2.725 3.04 True 0.0 0.0 0.0
+TestWMAP5 FlatLambdaCDM 0.231 0.0459 0.277 70.2 0.962 0.817 0.088 11.3 13.72 2.725 3.04 True 0.0 0.0 0.0

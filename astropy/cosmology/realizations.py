@@ -33,7 +33,7 @@ for key in parameters.available:
         )
 
         # set the docs for builtin realizations
-        if key in parameters.AVAILABLE_BUILTIN:
+        if key in parameters.AVAILABLE_BUILTIN_COSMOLOGIES:
             docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
             cosmo.__doc__ = docstr.format(key, par["reference"])
     else:

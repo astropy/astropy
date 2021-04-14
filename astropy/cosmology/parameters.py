@@ -216,7 +216,7 @@ WMAP5 = dict(
 )
 
 # If new parameters are added, this list must be updated
-available = AVAILABLE_BUILTIN = frozenset(
+available = AVAILABLE_BUILTIN_COSMOLOGIES = frozenset(
     ('Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
      'WMAP9', 'WMAP7', 'WMAP5'))
 
@@ -224,7 +224,7 @@ available = AVAILABLE_BUILTIN = frozenset(
 # ======================================================
 # User-Defined Paramaters
 
-AVAILABLE_USER = frozenset()
+AVAILABLE_USER_COSMOLOGIES = frozenset()
 
 
 def _load_from_ecsv(fp):
@@ -254,19 +254,7 @@ def _load_from_ecsv(fp):
     all_cosmo_params = dict()
     for name, row in zip(user_available, parameter_table):
         params = dict(row)
-
-        # metadata
-        # TODO! this assumes meta=
-        # params["meta"] = parameter_table.meta.get(name, None)
-        # TODO! the following is assuming **meta
-        meta = parameter_table.meta.get(name, None)
-        if isinstance(meta, Mapping):
-            intersection = set(params.keys()) & meta.keys()
-            if intersection:
-                raise NameError(
-                    f"Cosmology {name} metadata cannot have keys {intersection}"
-                )
-            params.update(meta)
+        params["meta"] = parameter_table.meta.get(name, None)  # metadata
 
         all_cosmo_params[name] = params
 
@@ -274,6 +262,7 @@ def _load_from_ecsv(fp):
 
 
 if HAS_YAML:
+
     # TODO! this is not a robust place to put this
     drct = pathlib.Path(get_config_dir()).parent.joinpath("cosmology")
 
@@ -282,12 +271,12 @@ if HAS_YAML:
         for fp in drct.glob("*.ecsv"):
             _available, _params = _load_from_ecsv(fp)
  
-            AVAILABLE_USER = AVAILABLE_USER | _available
+            AVAILABLE_USER_COSMOLOGIES = AVAILABLE_USER_COSMOLOGIES | _available
             # add parameter dictionary (later added to __all__)
             [setattr(sys.modules[__name__], n, p) for n, p in _params.items()]
 
         # add all user definitions to "available"
-        available = available | AVAILABLE_USER
+        available = available | AVAILABLE_USER_COSMOLOGIES
 
 # TODO! same for JSON
 
