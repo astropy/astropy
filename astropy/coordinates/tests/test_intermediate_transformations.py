@@ -709,9 +709,9 @@ def test_aa_high_precision():
     TARGET_AZ, TARGET_EL = 15.032673509886*u.deg, 50.303110133928*u.deg
     TARGET_DISTANCE = 376252883.247239*u.m
 
-    assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1*u.uas, rtol=3.7e-10)
-    assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1*u.uas, rtol=4.7e-10)
-    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1*u.mm, rtol=1.1e-10)
+    assert_allclose(moon_aa.az, TARGET_AZ, atol=19.62*u.uas, rtol=0)
+    assert_allclose(moon_aa.alt, TARGET_EL, atol=0.85*u.uas, rtol=0)
+    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=38.87*u.mm, rtol=0)
 
 
 def test_aa_high_precision_nodata():
