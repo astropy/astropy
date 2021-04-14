@@ -17,12 +17,11 @@ __doctest_requires__ = {"*": ["scipy"]}
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
 # with the same name as the parameter set in the current module's namespace.
-# Note this assumes all the cosmologies in parameters are LambdaCDM,
-# which is true at least as of this writing.
 
 for key in parameters.available:
     par = getattr(parameters, key)
-    if par["flat"]:
+
+    if par["cosmology"] == "FlatLambdaCDM":
         cosmo = FlatLambdaCDM(
             par["H0"],
             par["Om0"],
