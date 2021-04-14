@@ -354,7 +354,8 @@ def test_physical_type_multiplication():
     Test that multiplication of a physical type returns `NotImplemented`
     when attempted for an invalid type.
     """
-    assert length.__mul__([]) is NotImplemented
+    with pytest.raises(TypeError):
+        length * []
 
 
 def test_unrecognized_unit_physical_type():
@@ -415,7 +416,7 @@ class TestDefPhysType:
 
         physical.def_physical_type(self.weird_unit, weird_name)
         assert (
-                self.weird_unit.physical_type == weird_name
+            self.weird_unit.physical_type == weird_name
         ), f"unable to set physical type for {self.weird_unit}"
 
         physical.def_physical_type(self.weird_unit, strange_name)
