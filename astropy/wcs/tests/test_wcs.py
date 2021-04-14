@@ -105,7 +105,16 @@ class TestSpectra:
             header = get_pkg_data_contents(
                 os.path.join("data", "spectra", filename), encoding='binary')
             # finally run the test.
-            all_wcs = wcs.find_all_wcs(header)
+            with pytest.warns(None) as w:
+                all_wcs = wcs.find_all_wcs(header)
+
+            if _WCSLIB_VER >= Version('7.4'):
+                assert len(w) == 9
+                m = str(w.pop().message)
+                assert "'datfix' made the change 'Set MJD-OBS to 53925.853472 from DATE-OBS'." in m
+            else:
+                assert len(w) == 0
+
             assert len(all_wcs) == 9
 
 
@@ -221,7 +230,15 @@ def test_dict_init():
     if _WCSLIB_VER >= Version('7.1'):
         hdr['DATEREF'] = '1858-11-17'
 
-    w = wcs.WCS(hdr)
+    with pytest.warns(None) as wrng:
+        w = wcs.WCS(hdr)
+
+    if _WCSLIB_VER >= Version('7.4'):
+        assert len(wrng) == 1
+        msg = str(wrng[0].message)
+        assert "'datfix' made the change 'Set MJDREF to 0.000000 from DATEREF'." in msg
+    else:
+        assert len(wrng) == 0
 
     xp, yp = w.wcs_world2pix(41., 2., 0)
 
