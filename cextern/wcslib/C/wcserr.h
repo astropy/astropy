@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.5 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -20,10 +20,10 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.h,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+  $Id: wcserr.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.5 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -31,7 +31,7 @@
 * ------------------------------
 * Most of the structs in WCSLIB contain a pointer to a wcserr struct as a
 * member.  Functions in WCSLIB that return an error status code can also
-* allocate and set a detailed error message in this struct which also
+* allocate and set a detailed error message in this struct, which also
 * identifies the function, source file, and line number where the error
 * occurred.
 *
@@ -92,6 +92,29 @@
 *             int       Status return value:
 *                         0: Error messaging is disabled.
 *                         1: Error messaging is enabled.
+*
+*
+* wcserr_size() - Compute the size of a wcserr struct
+* ---------------------------------------------------
+* wcserr_size() computes the full size of a wcserr struct, including allocated
+* memory.
+*
+* Given:
+*   err       const struct wcserr*
+*                       The error object.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct wcserr).  The second element
+*                       is the total allocated size of the message buffer, in
+*                       bytes.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * wcserr_prt() - Print a wcserr struct
@@ -229,6 +252,8 @@ struct wcserr {
 #define ERRLEN (sizeof(struct wcserr)/sizeof(int))
 
 int wcserr_enable(int enable);
+
+int wcserr_size(const struct wcserr *err, int sizes[2]);
 
 int wcserr_prt(const struct wcserr *err, const char *prefix);
 

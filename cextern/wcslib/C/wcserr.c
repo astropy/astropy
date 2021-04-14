@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.5 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -20,7 +20,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcserr.c,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+  $Id: wcserr.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -39,6 +39,29 @@ int wcserr_enable(int enable)
 
 {
   return wcserr_enabled = (enable ? 1 : 0);
+}
+
+//----------------------------------------------------------------------------
+
+int wcserr_size(const struct wcserr *err, int sizes[2])
+
+{
+  if (err == 0x0) {
+    sizes[0] = sizes[1] = 0;
+    return 0;
+  }
+
+  // Base size, in bytes.
+  sizes[0] = sizeof(struct wcserr);
+
+  // Total size of allocated memory, in bytes.
+  sizes[1] = 0;
+
+  if (err->msg) {
+    sizes[1] += strlen(err->msg) + 1;
+  }
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------

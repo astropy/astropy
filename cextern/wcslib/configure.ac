@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 7.5 2021/03/20 05:54:59 mcalabre Exp $
+# $Id: configure.ac,v 7.6 2021/04/13 12:57:02 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [7.5], [mark@calabretta.id.au], [wcslib-7.5])
+AC_INIT([WCSLIB], [7.6], [mark@calabretta.id.au], [wcslib-7.6])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 7.5 $])
+AC_REVISION([$Revision: 7.6 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -26,22 +26,31 @@ AC_SUBST([ARCH])
 
 
 # Look for Flex.
-AC_CHECK_PROG([FLEX], [flex], [flex], [], [], [])
-if test "x$FLEX" = xflex ; then
-  # Version 2.5.9 or later is required.
-  V=`flex --version | awk '{print $2}'`
-  W=`echo $V | awk -F. '{if ((($1*100 + $2)*100 + $3) < 20509) print "no"}'`
-  if test "x$W" != x ; then
-    AC_MSG_NOTICE([Flex version $V is too old, ignored.])
-    FLEX=
-  else
-    AC_MSG_NOTICE([Using Flex version $V.])
-  fi
-fi
+AC_ARG_ENABLE([flex], [AS_HELP_STRING([--disable-flex],
+            [don't apply flex (use pre-generated sources)])], [])
+if test "x$enable_flex" = xno ; then
+  FLEX=
+  AC_MSG_WARN([Generation of flex sources disabled by request, using
+           pre-generated sources.])
 
-if test "x$FLEX" = x ; then
-  AC_MSG_WARN([Flex version 2.5.9 or later does not appear to be
+else
+  AC_CHECK_PROG([FLEX], [flex], [flex], [], [], [])
+  if test "x$FLEX" = xflex ; then
+    # Version 2.6.0 or later is required.
+    V=`flex --version | awk '{print $2}'`
+    W=`echo $V | awk -F. '{if ((($1*100 + $2)*100 + $3) < 20600) print "no"}'`
+    if test "x$W" != x ; then
+      AC_MSG_WARN([Flex version $V is too old, ignored.])
+      FLEX=
+    else
+      AC_MSG_NOTICE([Using Flex version $V.])
+    fi
+  fi
+
+  if test "x$FLEX" = x ; then
+    AC_MSG_WARN([Flex version 2.6.0 or later does not appear to be
            available, will use pre-generated sources.])
+  fi
 fi
 
 
@@ -176,7 +185,7 @@ fi
 if test "x$F77" = xno ; then
   F77=
 
-  AC_MSG_WARN([Compilation of Fortran wrappers and PGSBOX disabled])
+  AC_MSG_WARN([Compilation of Fortran wrappers and PGSBOX disabled.])
 
 else
   if test "x$F77" = x ; then
@@ -280,7 +289,7 @@ SHRLN=
 
 if test "x$ac_cv_c_compiler_gnu" = xyes ; then
   if test "x$enable_shared" = xno ; then
-    AC_MSG_WARN([Generation of WCS shared libraries disabled])
+    AC_MSG_WARN([Generation of WCS shared libraries disabled.])
 
   else
     SHVER=`echo "$LIBVER" | sed -e 's/\..*$//'`
@@ -353,7 +362,7 @@ LIBDIRS=
 AC_ARG_WITH([cfitsio], [AS_HELP_STRING([--without-cfitsio],
             [eschew CFITSIO])], [])
 if test "x$with_cfitsio" = xno ; then
-  AC_MSG_WARN([CFITSIO disabled])
+  AC_MSG_WARN([CFITSIO disabled.])
 else
   AC_ARG_WITH([cfitsiolib], [AS_HELP_STRING([--with-cfitsiolib=DIR],
               [directory containing cfitsio library])], [])
@@ -379,7 +388,7 @@ fi
 AC_ARG_WITH([pgplot], [AS_HELP_STRING([--without-pgplot],
             [eschew PGPLOT])], [])
 if test "x$with_pgplot" = xno ; then
-  AC_MSG_WARN([PGPLOT disabled])
+  AC_MSG_WARN([PGPLOT disabled.])
 else
   AC_ARG_WITH([pgplotlib], [AS_HELP_STRING([--with-pgplotlib=DIR],
               [directory containing pgplot library])], [])
@@ -538,7 +547,7 @@ fi
 AC_ARG_ENABLE([utils], [AS_HELP_STRING([--disable-utils],
             [don't build the WCS utilities])], [])
 if test "x$enable_utils" = xno ; then
-  AC_MSG_WARN([Compilation of WCS utilities disabled])
+  AC_MSG_WARN([Compilation of WCS utilities disabled.])
 else
   SUBDIRS="$SUBDIRS utils"
   INSTDIR="$INSTDIR utils"

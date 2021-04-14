@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 7.5 and its test suite.
+# GNU makefile for building WCSLIB 7.6 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+# $Id: GNUmakefile,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -91,24 +91,39 @@ TEST_X := tsphdpa twcshdr
 TESTS  := $(TEST_N)
 
 # Do we have CFITSIO?
-ifeq "$(CFITSIOINC)$(CFITSIOLIB)" ""
-  # No, amend TEST_X.
-  TEST_X := $(filter-out $(TEST_C),$(TEST_X))
-else
+DO_CFITSIO := 1
+ifeq "$(CFITSIOINC)" ""
+  DO_CFITSIO := 0
+else ifeq "$(CFITSIOLIB)" ""
+  DO_CFITSIO := 0
+endif
+
+ifeq "$(DO_CFITSIO)" "1"
   # Yes, add test programs that use it.
   TESTS += $(TEST_C)
   CFITSIO_CFLAGS := $(filter-out -Wpadded,$(CFLAGS))
+else
+  # No, amend TEST_X.
+  TEST_X := $(filter-out $(TEST_C),$(TEST_X))
 endif
 
 # Do we have PGPLOT?
+DO_PGPLOT := 0
 ifneq "$(CHECK)" "nopgplot"
-ifeq "$(PGPLOTINC)$(PGPLOTLIB)" ""
-  # No, amend TEST_X.
-  TEST_X := $(filter-out $(TEST_P) $(TEST_B),$(TEST_X))
-else
-  # Yes, add test programs that use it.
-  TESTS += $(TEST_P) $(TEST_B)
-endif
+  DO_PGPLOT := 1
+  ifeq "$(PGPLOTINC)" ""
+    DO_PGPLOT := 0
+  else ifeq "$(PGPLOTLIB)" ""
+    DO_PGPLOT := 0
+  endif
+
+  ifeq "$(DO_PGPLOT)" "1"
+    # Yes, add test programs that use it.
+    TESTS += $(TEST_P) $(TEST_B)
+  else
+    # No, amend TEST_X.
+    TEST_X := $(filter-out $(TEST_P) $(TEST_B),$(TEST_X))
+  endif
 endif
 
 # Remove tests that aren't automatically exercised.
@@ -456,6 +471,8 @@ GNUmakefile : ../makedefs ;
 show ::
 	-@ echo '  FLEXMODS    := $(FLEXMODS)'
 	-@ echo '  MODULES     := $(MODULES)'
+	-@ echo '  DO_CFITSIO  := $(DO_CFITSIO)'
+	-@ echo '  DO_PGPLOT   := $(DO_PGPLOT)'
 	-@ echo '  TESTS       := $(TESTS)'
 	-@ echo '  TEST_X      := $(TEST_X)'
 

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.5 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,13 +19,13 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+  $Id: lin.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "wcserr.h"
 #include "wcsprintf.h"
@@ -438,6 +438,64 @@ int linfree(struct linprm *lin)
   lin->flag = 0;
 
   return 0;
+}
+
+//----------------------------------------------------------------------------
+
+int linsize(const struct linprm *lin, int sizes[2])
+
+{
+
+  if (lin == 0x0) {
+    sizes[0] = sizes[1] = 0;
+    return LINERR_SUCCESS;
+  }
+
+  // Base size, in bytes.
+  sizes[0] = sizeof(struct linprm);
+
+  // Total size of allocated memory, in bytes.
+  sizes[1] = 0;
+
+  int exsizes[2];
+  int naxis = lin->naxis;
+
+  // linprm::crpix[].
+  sizes[1] += naxis * sizeof(double);
+
+  // linprm::pc[].
+  sizes[1] += naxis*naxis * sizeof(double);
+
+  // linprm::cdelt[].
+  sizes[1] += naxis * sizeof(double);
+
+  // linprm::dispre[].
+  dissize(lin->dispre, exsizes);
+  sizes[2] += exsizes[0] + exsizes[1];
+
+  // linprm::disseq[].
+  dissize(lin->disseq, exsizes);
+  sizes[2] += exsizes[0] + exsizes[1];
+
+  // linprm::err[].
+  wcserr_size(lin->err, exsizes);
+  sizes[1] += exsizes[0] + exsizes[1];
+
+  // The remaining arrays are allocated unconditionally by linset().
+  if (lin->flag != LINSET) {
+    return LINERR_SUCCESS;
+  }
+
+  // linprm::piximg[].
+  sizes[1] += naxis*naxis * sizeof(double);
+
+  // linprm::imgpix[].
+  sizes[1] += naxis*naxis * sizeof(double);
+
+  // linprm::tmpcrd[].
+  sizes[1] += naxis * sizeof(double);
+
+  return LINERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

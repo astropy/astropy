@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.5 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+  $Id: wcsutil.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.5 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -142,6 +142,69 @@
 *             void
 *
 *
+* wcsutil_all_ival() - Test if all elements an int array have a given value
+* -------------------------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_all_ival() tests whether all elements of an array of type int all
+* have the specified value.
+*
+* Given:
+*   nelem     int       The length of the array.
+*
+*   ival      int       Value to be tested.
+*
+*   iarr      const int[]
+*                       Pointer to the first element of the array.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not all equal.
+*                         1: All equal.
+*
+*
+* wcsutil_all_dval() - Test if all elements a double array have a given value
+* ---------------------------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_all_dval() tests whether all elements of an array of type double all
+* have the specified value.
+*
+* Given:
+*   nelem     int       The length of the array.
+*
+*   dval      int       Value to be tested.
+*
+*   darr      const double[]
+*                       Pointer to the first element of the array.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not all equal.
+*                         1: All equal.
+*
+*
+* wcsutil_all_sval() - Test if all elements a string array have a given value
+* ---------------------------------------------------------------------------
+* INTERNAL USE ONLY.
+*
+* wcsutil_all_sval() tests whether all elements of an array of type
+* char (*)[72] all have the specified value.
+*
+* Given:
+*   nelem     int       The length of the array.
+*
+*   sval      char *    String to be tested.
+*
+*   sarr      const (*char)[72]
+*                       Pointer to the first element of the array.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Not all equal.
+*                         1: All equal.
+*
+*
 * wcsutil_allEq() - Test for equality of a particular vector element
 * ------------------------------------------------------------------
 * INTERNAL USE ONLY.
@@ -173,11 +236,11 @@
 *                         1: All equal.
 *
 *
-* wcsutil_Eq() - Test for equality of two double arrays
-* -----------------------------------------------------
+* wcsutil_dblEq() - Test for equality of two arrays of type double
+* ----------------------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_Eq() tests for equality of two double-precision arrays.
+* wcsutil_dblEq() tests for equality of two double-precision arrays.
 *
 * Given:
 *   nelem     int       The number of elements in each array.
@@ -199,8 +262,8 @@
 *                         1: Equal.
 *
 *
-* wcsutil_intEq() - Test for equality of two int arrays
-* -----------------------------------------------------
+* wcsutil_intEq() - Test for equality of two arrays of type int
+* -------------------------------------------------------------
 * INTERNAL USE ONLY.
 *
 * wcsutil_intEq() tests for equality of two int arrays.
@@ -245,7 +308,8 @@
 * --------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_setAll() sets the value of a particular element in a set of vectors.
+* wcsutil_setAll() sets the value of a particular element in a set of vectors
+* of type double.
 *
 * Given:
 *   nvec      int       The number of vectors.
@@ -273,7 +337,8 @@
 * --------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_setAli() sets the value of a particular element in a set of vectors.
+* wcsutil_setAli() sets the value of a particular element in a set of vectors
+* of type int.
 *
 * Given:
 *   nvec      int       The number of vectors.
@@ -411,9 +476,13 @@ void wcsutil_strcvt(int n, char c, int nt, const char src[], char dst[]);
 void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);
 
+int  wcsutil_all_ival(int nelem, int ival, const int iarr[]);
+int  wcsutil_all_dval(int nelem, double dval, const double darr[]);
+int  wcsutil_all_sval(int nelem, const char *sval, const char (*sarr)[72]);
 int  wcsutil_allEq (int nvec, int nelem, const double *first);
-int  wcsutil_Eq(int nelem, double tol, const double *arr1,
-                const double *arr2);
+
+int  wcsutil_dblEq(int nelem, double tol, const double *arr1,
+                   const double *arr2);
 int  wcsutil_intEq(int nelem, const int *arr1, const int *arr2);
 int  wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72]);
 void wcsutil_setAll(int nvec, int nelem, double *first);

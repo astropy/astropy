@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.5 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+  $Id: wcs.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.5 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -64,12 +64,13 @@
 * set by the user, and others that are maintained by these routines, somewhat
 * like a C++ class but with no encapsulation.
 *
-* wcsnpv(), wcsnps(), wcsini(), wcsinit(), wcssub(), and wcsfree() are
-* provided to manage the wcsprm struct and another, wcsprt(), prints its
-* contents.  Refer to the description of the wcsprm struct for an explanation
-* of the anticipated usage of these routines.  wcscopy(), which does a deep
-* copy of one wcsprm struct to another, is defined as a preprocessor macro
-* function that invokes wcssub().
+* wcsnpv(), wcsnps(), wcsini(), wcsinit(), wcssub(), wcsfree(), and wcstrim(),
+* are provided to manage the wcsprm struct, wcssize() computes its total size
+* including allocated memory, and wcsprt() prints its contents.  Refer to the
+* description of the wcsprm struct for an explanation of the anticipated usage
+* of these routines.  wcscopy(), which does a deep copy of one wcsprm struct
+* to another, is defined as a preprocessor macro function that invokes
+* wcssub().
 *
 * wcsperr() prints the error message(s) (if any) stored in a wcsprm struct,
 * and the linprm, celprm, prjprm, spcprm, and tabprm structs that it contains.
@@ -450,7 +451,7 @@
 * PLEASE NOTE: wcsfree() must not be invoked on a wcsprm struct that was not
 * initialized by wcsinit().
 *
-* Returned:
+* Given and returned:
 *   wcs       struct wcsprm*
 *                       Coordinate transformation parameters.
 *
@@ -458,6 +459,91 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null wcsprm pointer passed.
+*
+*
+* wcstrim() - Free unused arrays in the wcsprm struct
+* ---------------------------------------------------
+* wcstrim() frees memory allocated by wcsinit() for arrays in the wcsprm
+* struct that remains unused after it has been set up by wcsset().
+*
+* The free'd array members are associated with FITS WCS keyrecords that are
+* rarely used and usually just bloat the struct: wcsprm::crota, wcsprm::colax,
+* wcsprm::cname, wcsprm::crder, wcsprm::csyer, wcsprm::czphs, and
+* wcsprm::cperi.  If unused, wcsprm::pv, wcsprm::ps, and wcsprm::cd are also
+* freed.
+*
+* Once these arrays have been freed, a test such as
+=
+=        if (!undefined(wcs->cname[i])) {...}
+=
+* must be protected as follows
+=
+=        if (wcs->cname && !undefined(wcs->cname[i])) {...}
+=
+* In addition, if wcsprm::npv is non-zero but less than wcsprm::npvmax, then
+* the unused space in wcsprm::pv will be recovered (using realloc()).
+* Likewise for wcsprm::ps.
+*
+* Given and returned:
+*   wcs       struct wcsprm*
+*                       Coordinate transformation parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null wcsprm pointer passed.
+*                        14: wcsprm struct is unset.
+*
+*
+* wcssize() - Compute the size of a wcsprm struct
+* -----------------------------------------------
+* wcssize() computes the full size of a wcsprm struct, including allocated
+* memory.
+*
+* Given:
+*   wcs       const struct wcsprm*
+*                       Coordinate transformation parameters.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct wcsprm).  The second element
+*                       is the total allocated size, in bytes, assuming that
+*                       the allocation was done by wcsini().  This figure
+*                       includes memory allocated for members of constituent
+*                       structs, such as wcsprm::lin.
+*
+*                       It is not an error for the struct not to have been set
+*                       up via wcsset(), which normally results in additional
+*                       memory allocation. 
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*
+*
+* auxsize() - Compute the size of a auxprm struct
+* -----------------------------------------------
+* auxsize() computes the full size of a auxprm struct, including allocated
+* memory.
+*
+* Given:
+*   aux       const struct auxprm*
+*                       Auxiliary coordinate information.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct auxprm).  The second element
+*                       is the total allocated size, in bytes, currently zero.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * wcsprt() - Print routine for the wcsprm struct
@@ -829,6 +915,7 @@
 * PLEASE NOTE: Information in the wcsprm struct relating to the original
 * coordinate system will be overwritten and therefore lost.  If this is
 * undesirable, invoke wcsccs() on a copy of the struct made with wcssub().
+* The wcsprm struct is reset on return with an explicit call to wcsset().
 *
 * Given and returned:
 *   wcs       struct wcsprm*
@@ -946,6 +1033,11 @@
 * -------------------------------------
 * wcssptr() translates the spectral axis in a wcsprm struct.  For example, a
 * 'FREQ' axis may be translated into 'ZOPT-F2W' and vice versa.
+*
+* PLEASE NOTE: Information in the wcsprm struct relating to the original
+* coordinate system will be overwritten and therefore lost.  If this is
+* undesirable, invoke wcssptr() on a copy of the struct made with wcssub().
+* The wcsprm struct is reset on return with an explicit call to wcsset().
 *
 * Given and returned:
 *   wcs       struct wcsprm*
@@ -1236,38 +1328,45 @@
 *
 *     - Bit 1: CDi_ja is present.
 *
-*       Matrix elements in the IRAF convention are
-*       equivalent to the product CDi_ja = CDELTia * PCi_ja, but the
-*       defaults differ from that of the PCi_ja matrix.  If one or more
-*       CDi_ja keywords are present then all unspecified CDi_ja default to
-*       zero.  If no CDi_ja (or CROTAi) keywords are present, then the
-*       header is assumed to be in PCi_ja form whether or not any PCi_ja
-*       keywords are present since this results in an interpretation of
-*       CDELTia consistent with the original FITS specification.
+*       Matrix elements in the IRAF convention are equivalent to the product
+*       CDi_ja = CDELTia * PCi_ja, but the defaults differ from that of the
+*       PCi_ja matrix.  If one or more CDi_ja keywords are present then all
+*       unspecified CDi_ja default to zero.  If no CDi_ja (or CROTAi) keywords
+*       are present, then the header is assumed to be in PCi_ja form whether
+*       or not any PCi_ja keywords are present since this results in an
+*       interpretation of CDELTia consistent with the original FITS
+*       specification.
 *
 *       While CDi_ja may not formally co-exist with PCi_ja, it may co-exist
 *       with CDELTia and CROTAi which are to be ignored.
 *
 *     - Bit 2: CROTAi is present.
 *
-*       In the AIPS convention, CROTAi may only be
-*       associated with the latitude axis of a celestial axis pair.  It
-*       specifies a rotation in the image plane that is applied AFTER the
-*       CDELTia; any other CROTAi keywords are ignored.
+*       In the AIPS convention, CROTAi may only be associated with the
+*       latitude axis of a celestial axis pair.  It specifies a rotation in
+*       the image plane that is applied AFTER the CDELTia; any other CROTAi
+*       keywords are ignored.
 *
 *       CROTAi may not formally co-exist with PCi_ja.
 *
 *       CROTAi and CDELTia may formally co-exist with CDi_ja but if so are to
 *       be ignored.
 *
-*     CDi_ja and CROTAi keywords, if found, are to be stored in the
-*     wcsprm::cd and wcsprm::crota arrays which are dimensioned similarly to
-*     wcsprm::pc and wcsprm::cdelt.  FITS
-*     header parsers should use the following procedure:
+*     - Bit 3: PCi_ja + CDELTia was derived from CDi_ja by wcspcx().
 *
-*     - Whenever a PCi_ja  keyword is encountered: altlin |= 1;
+*       This bit is set by wcspcx() when it derives PCi_ja and CDELTia from
+*       CDi_ja via an orthonormal decomposition.  In particular, it signals
+*       wcsset() not to replace PCi_ja by a copy of CDi_ja with CDELTia set
+*       to unity.
 *
-*     - Whenever a CDi_ja  keyword is encountered: altlin |= 2;
+*     CDi_ja and CROTAi keywords, if found, are to be stored in the wcsprm::cd
+*     and wcsprm::crota arrays which are dimensioned similarly to wcsprm::pc
+*     and wcsprm::cdelt.  FITS header parsers should use the following
+*     procedure:
+*
+*     - Whenever a PCi_ja keyword is encountered: altlin |= 1;
+*
+*     - Whenever a CDi_ja keyword is encountered: altlin |= 2;
 *
 *     - Whenever a CROTAi keyword is encountered: altlin |= 4;
 *
@@ -1276,8 +1375,9 @@
 *
 *     These alternate specifications of the linear transformation matrix are
 *     translated immediately to PCi_ja by wcsset() and are invisible to the
-*     lower-level WCSLIB routines.  In particular, wcsset() resets
-*     wcsprm::cdelt to unity if CDi_ja is present (and no PCi_ja).
+*     lower-level WCSLIB routines.  In particular, unless bit 3 is also set,
+*     wcsset() resets wcsprm::cdelt to unity if CDi_ja is present (and no
+*     PCi_ja).
 *
 *     If CROTAi are present but none is associated with the latitude axis
 *     (and no PCi_ja or CDi_ja), then wcsset() reverts to a unity PCi_ja
@@ -1903,7 +2003,8 @@ enum wcs_errmsg_enum {
   WCSERR_NO_SOLUTION     = 11,	// No solution found in the specified
 				// interval.
   WCSERR_BAD_SUBIMAGE    = 12,	// Invalid subimage specification.
-  WCSERR_NON_SEPARABLE   = 13 	// Non-separable subimage coordinate system.
+  WCSERR_NON_SEPARABLE   = 13,	// Non-separable subimage coordinate system.
+  WCSERR_UNSET           = 14 	// wcsprm struct is unset.
 };
 
 
@@ -1975,8 +2076,8 @@ struct wcsprm {
   double *cd;			// CDi_ja linear transformation matrix.
   double *crota;		// CROTAi keyvalues for each coord axis.
   int    altlin;		// Alternative representations
-				//   Bit 0: PCi_ja  is present,
-				//   Bit 1: CDi_ja  is present,
+				//   Bit 0: PCi_ja is present,
+				//   Bit 1: CDi_ja is present,
 				//   Bit 2: CROTAi is present.
   int    velref;		// AIPS velocity code, VELREF.
 
@@ -2091,6 +2192,12 @@ int wcscompare(int cmp, double tol, const struct wcsprm *wcs1,
                const struct wcsprm *wcs2, int *equal);
 
 int wcsfree(struct wcsprm *wcs);
+
+int wcstrim(struct wcsprm *wcs);
+
+int wcssize(const struct wcsprm *wcs, int sizes[2]);
+
+int auxsize(const struct auxprm *aux, int sizes[2]);
 
 int wcsprt(const struct wcsprm *wcs);
 

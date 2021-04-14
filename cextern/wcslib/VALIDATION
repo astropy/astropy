@@ -1,5 +1,15 @@
 Platforms on which the installation procedures and test suite were exercised.
 
+WCSLIB version 7.6 (2021/04/13)
+-------------------------------
+
+* Dell Latitude E6530 (Intel Core i7-3740QM, 4 cores, 8 processors, x86_64)
+  KDE Neon User Edition 5.21 (over Kubuntu 20.04, (focal))
+  uname -r (kernel version): 5.4.0-67-generic
+  gcc --version: gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
+  gfortran --version: GNU Fortran (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
+
+
 WCSLIB version 7.5 (2021/03/20)
 -------------------------------
 
@@ -656,4 +666,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 7.5 2021/03/20 05:54:59 mcalabre Exp $
+$Id: VALIDATION,v 7.6 2021/04/13 12:57:02 mcalabre Exp $

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.5 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 7.5 2021/03/20 05:54:58 mcalabre Exp $
+  $Id: cel.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -94,6 +94,35 @@ int celfree(struct celprm *cel)
   wcserr_clear(&(cel->err));
 
   return cel_prjerr[prjfree(&(cel->prj))];
+}
+
+//----------------------------------------------------------------------------
+
+int celsize(const struct celprm *cel, int sizes[2])
+
+{
+  if (cel == 0x0) {
+    sizes[0] = sizes[1] = 0;
+    return CELERR_SUCCESS;
+  }
+
+  // Base size, in bytes.
+  sizes[0] = sizeof(struct celprm);
+
+  // Total size of allocated memory, in bytes.
+  sizes[1] = 0;
+
+  int exsizes[2];
+
+  // celprm::prj.
+  prjsize(&(cel->prj), exsizes);
+  sizes[1] += exsizes[1];
+
+  // celprm::err.
+  wcserr_size(cel->err, exsizes);
+  sizes[1] += exsizes[0] + exsizes[1];
+
+  return CELERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

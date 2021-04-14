@@ -1,3 +1,59 @@
+WCSLIB version 7.6 (2021/04/13)
+-------------------------------
+
+* C library
+
+  - Bug fix in tabs2x() triggered for 1-dimensional coordinate lookup
+    tables on axes > 1.  Reported by Mihai Cara.
+
+  - In datfix(), don't return status 0 if no change was made (fix for
+    change made at release 7.4).  Reported by Derek Homeier.
+
+  - New function wcspcx() in the wcsfix suite regularizes the linear
+    transformation component of a coordinate description to make it more
+    human-readable.  It decomposes CDi_ja into PCi_ja and CDELTia in
+    such a way that CDELTia forms meaningful scaling parameters, often
+    leaving an orthogonal or near-orthogonal matrix.  Optionally, it can
+    then permute rows of this matrix to unscramble axis permutations.
+
+    A test header may be generated from wcspcx.keyrec for input to
+    wcsware (not exercised as part of the standard test suite).
+
+  - New function wcstrim() frees memory allocated by wcsinit() for
+    arrays in a wcsprm struct that remain unused after the struct has
+    been set up.
+
+  - New functions wcssize(), auxsize(), tabsize(), linsize(), dissize(),
+    celsize(), prjsize(), spcsize(), and wcserr_size() compute the total
+    size of the relevant structs, including allocated memory.
+
+  - In the C test suite, inserted a brief pause in tprj2 and tspc, which
+    otherwise have now become a blur.
+
+* Fortran wrappers
+
+  - Added wrappers for wcspcx(), wcstrim(), wcssize(), auxsize(),
+    tabsize(), linsize(), dissize(), celsize(), prjsize(), spcsize(),
+    and wcserr_size().
+
+* Utilities
+
+  - Added -c, -cp, -C, and -Cp options to wcsware to apply wcspcx()
+    in a variety of ways, -m to apply wcstrim(), and -z to report the
+    total size of the wcsprm struct with a breakdown of the sizes of
+    its constituent structs.
+
+  - Fixed compiler warnings for sundazel (portability issue).
+
+* Installation
+
+  - Upped the required version of Flex to 2.6.0 (was 2.5.9).  Problems
+    with Flex 2.5.39 reported by Derek Homeier.
+
+    Also added '--disable-flex' as a new configure option to force the
+    use of the pre-generated Flex sources.
+
+
 WCSLIB version 7.5 (2021/03/20)
 -------------------------------
 
@@ -3157,4 +3213,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.5 2021/03/20 05:54:59 mcalabre Exp $
+$Id: CHANGES,v 7.6 2021/04/13 12:57:02 mcalabre Exp $
