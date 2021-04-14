@@ -576,30 +576,30 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     Examples
     --------
     >>> convolve_fft([1, 0, 3], [1, 1, 1])
-    array([0.33333333, 1.33333333, 1.        ])
+    array([0.33333333, 1.33333333, 1.])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1])
-    array([0.5, 2. , 1.5])
+    array([0.5, 2., 1.5])
 
     >>> convolve_fft([1, 0, 3], [0, 1, 0])
-    array([ 1.,  0.,  3.])
+    array([1., 0., 3.])
 
     >>> convolve_fft([1, 2, 3], [1])
-    array([ 1.,  2.,  3.])
+    array([1., 2., 3.])
 
     >>> convolve_fft([1, np.nan, 3], [0, 1, 0], nan_treatment='interpolate')
-    array([ 1.,  0.,  3.])
+    array([1., 0., 3.])
 
     >>> convolve_fft([1, np.nan, 3], [0, 1, 0], nan_treatment='interpolate',
     ...              min_wt=1e-8)
-    array([ 1.,  nan,  3.])
+    array([1., nan, 3.])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate')
-    array([0.5, 2. , 1.5])
+    array([0.5, 2., 1.5])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True)
-    array([0.5, 2. , 1.5])
+    array([0.5, 2., 1.5])
 
     >>> import scipy.fft  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
