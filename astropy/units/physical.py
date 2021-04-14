@@ -1,12 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-Defines the physical types that correspond to different units.
-
-This module is not intended for use by user code directly.  Instead,
-the physical unit name(s) of a `Unit` can be obtained using its
-``physical_type`` property.
-"""
+"""Defines the physical types that correspond to different units."""
 
 import numbers
 
@@ -205,9 +199,10 @@ class PhysicalType:
     Represents the physical type(s) that are dimensionally compatible
     with a set of units.
 
-    Instances of this class should be accessed using the ``physical_type``
-    property of `Unit` instances.  This class is not intended to be
-    instantiated directly in user code.
+    Instances of this class should be accessed through either
+    `get_physical_type` or by using the ``physical_type`` property of
+    units. This class is not intended to be instantiated directly in
+    user code.
 
     Parameters
     ----------
@@ -234,18 +229,29 @@ class PhysicalType:
 
     Examples
     --------
-    The preferred method to access a physical type is by accessing the
-    ``physical_type`` attribute of a unit.
+    `PhysicalType` instances may be accessed via the ``physical_type``
+    attribute of units.
 
     >>> import astropy.units as u
     >>> u.meter.physical_type
     PhysicalType('length')
 
+    `PhysicalType` instances may also be accessed by calling
+    `get_physical_type`. This function will accept a unit, a string
+    containing the name of a physical type, or the number one.
+
+    >>> u.get_physical_type(u.m ** -3)
+    PhysicalType('number density')
+    >>> u.get_physical_type("volume")
+    PhysicalType('volume')
+    >>> u.get_physical_type(1)
+    PhysicalType('dimensionless')
+
     Some units are dimensionally compatible with multiple physical types.
     A pascal is intended to represent pressure and stress, but the unit
     decomposition is equivalent to that of energy density.
 
-    >>> pressure = u.Pa.physical_type
+    >>> pressure = get_physical_type("pressure")
     >>> pressure
     PhysicalType({'energy density', 'pressure', 'stress'})
     >>> 'energy density' in pressure
@@ -273,8 +279,8 @@ class PhysicalType:
     >>> length ** 3
     PhysicalType('volume')
 
-    Dimensional analysis may also be performed using a string that
-    contains the name of a physical type.
+    may also be performed using a string that contains the name of a
+    physical type.
 
     >>> "length" * area
     PhysicalType('volume')
@@ -417,8 +423,6 @@ def def_physical_type(unit, name):
     If a physical type already exists for a unit, add new physical type
     names so long as those names do not correspond to other units.
 
-    This function is not intended to be called directly in user code.
-
     Parameters
     ----------
     unit : `~astropy.units.Unit`
@@ -471,10 +475,6 @@ def get_physical_type(unit):
     Return the physical type that corresponds to a unit (or another
     physical type representation).
 
-    This function is not intended to be called directly in user code.
-    Physical types should be accessed using the ``physical_type``
-    property of `Unit` instances.
-
     Parameters
     ----------
     unit : `~astropy.units.UnitBase`, `str`, or the number one
@@ -486,6 +486,16 @@ def get_physical_type(unit):
     -------
     physical_type : PhysicalType
         A representation of the physical type(s) of the unit.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> u.get_physical_type(u.meter ** -2)
+    PhysicalType('column density')
+    >>> u.get_physical_type("energy")
+    PhysicalType({'energy', 'torque', 'work'})
+    >>> u.get_physical_type(1)
+    PhysicalType('dimensionless')
     """
     if isinstance(unit, str):
         return _physical_type_from_str(unit)
