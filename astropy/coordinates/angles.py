@@ -363,6 +363,31 @@ class Angle(u.SpecificTypeQuantity):
             result = result[()]
         return result
 
+    def _wrap_at(self, wrap_angle):
+        """
+        Implementation that assumes ``angle`` is already validated
+        and that wrapping is inplace.
+        """
+        # Convert the wrap angle and 360 degrees to the native unit of
+        # this Angle, then do all the math on raw Numpy arrays rather
+        # than Quantity objects for speed.
+        a360 = u.degree.to(self.unit, 360.0)
+        wrap_angle = wrap_angle.to_value(self.unit)
+        wrap_angle_floor = wrap_angle - a360
+        self_angle = self.view(np.ndarray)
+        # Do the wrapping, but only if any angles need to be wrapped
+        #
+        # This invalid catch block is needed both for the floor division
+        # and for the comparisons later on (latter not really needed
+        # any more for >= 1.19 (NUMPY_LT_1_19), but former is).
+        with np.errstate(invalid='ignore'):
+            wraps = (self_angle - wrap_angle_floor) // a360
+            if np.any(wraps != 0):
+                self_angle -= wraps*a360
+                # Rounding errors can cause problems.
+                self_angle[self_angle >= wrap_angle] -= a360
+                self_angle[self_angle < wrap_angle_floor] += a360
+
     def wrap_at(self, wrap_angle, inplace=False):
         """
         Wrap the `~astropy.coordinates.Angle` object at the given ``wrap_angle``.
@@ -404,13 +429,11 @@ class Angle(u.SpecificTypeQuantity):
             with angles wrapped accordingly.  Otherwise wrap in place and
             return `None`.
         """
-        wrap_angle = Angle(wrap_angle)  # Convert to an Angle
-        wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
-
-        if inplace:
-            self[()] = wrapped
-        else:
-            return wrapped
+        wrap_angle = Angle(wrap_angle, copy=False)  # Convert to an Angle
+        if not inplace:
+            self = self.copy()
+        self._wrap_at(wrap_angle)
+        return None if inplace else self
 
     def is_within_bounds(self, lower=None, upper=None):
         """
@@ -648,29 +671,7 @@ class Longitude(Angle):
         if isinstance(value, Latitude):
             raise TypeError("A Latitude angle cannot be assigned to a Longitude angle")
         super().__setitem__(item, value)
-        self._wrap_internal()
-
-    def _wrap_internal(self):
-        """
-        Wrap the internal values in the Longitude object. Using the
-        :meth:`~astropy.coordinates.Angle.wrap_at` method causes
-        recursion.
-        """
-        # Convert the wrap angle and 360 degrees to the native unit of
-        # this Angle, then do all the math on raw Numpy arrays rather
-        # than Quantity objects for speed.
-        a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = self.wrap_angle.to_value(self.unit)
-        wrap_angle_floor = wrap_angle - a360
-        self_angle = self.value
-        # Do the wrapping, but only if any angles need to be wrapped
-        #
-        # This invalid catch block can be removed when the minimum numpy
-        # version is >= 1.19 (NUMPY_LT_1_19)
-        with np.errstate(invalid='ignore'):
-            wraps = (self_angle - wrap_angle_floor) // a360
-        if np.any(wraps != 0):
-            self -= (wraps * a360) << self.unit
+        self._wrap_at(self.wrap_angle)
 
     @property
     def wrap_angle(self):
@@ -679,7 +680,7 @@ class Longitude(Angle):
     @wrap_angle.setter
     def wrap_angle(self, value):
         self._wrap_angle = Angle(value, copy=False)
-        self._wrap_internal()
+        self._wrap_at(self.wrap_angle)
 
     def __array_finalize__(self, obj):
         super().__array_finalize__(obj)

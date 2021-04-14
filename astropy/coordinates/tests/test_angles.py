@@ -1009,6 +1009,11 @@ def test_latitude_nan():
     Latitude([0, np.nan, 1] * u.deg)
 
 
+def test_angle_wrap_at_nan():
+    # Check that passing a NaN to Latitude doesn't raise a warning
+    Angle([0, np.nan, 1] * u.deg).wrap_at(180*u.deg)
+
+
 def test_angle_multithreading():
     """
     Regression test for issue #7168
