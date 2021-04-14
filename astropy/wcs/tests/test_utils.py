@@ -5,6 +5,7 @@ import pytest
 from io import StringIO
 from itertools import product
 
+from packaging.version import Version
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal, assert_allclose
 
@@ -17,6 +18,7 @@ from astropy.coordinates import SkyCoord
 from astropy.units import Quantity
 from astropy.io import fits
 
+from astropy.wcs import _wcs  # noqa
 from astropy.wcs.wcs import (WCS, Sip, WCSSUB_LONGITUDE, WCSSUB_LATITUDE,
                              FITSFixedWarning)
 from astropy.wcs.wcsapi.fitswcs import SlicedFITSWCS
@@ -1261,16 +1263,25 @@ def test_issue10991():
 @pytest.mark.parametrize('x_in,y_in', [[0, 0], [np.arange(5), np.arange(5)]])
 def test_pixel_to_world_itrs(x_in, y_in):
     """Regression test for https://github.com/astropy/astropy/pull/9609"""
-    wcs = WCS({'NAXIS': 2,
-               'CTYPE1': 'TLON-CAR',
-               'CTYPE2': 'TLAT-CAR',
-               'RADESYS': 'ITRS ',
-               'DATE-OBS': '2017-08-17T12:41:04.444'})
+    with pytest.warns(None) as w:
+        wcs = WCS({'NAXIS': 2,
+                   'CTYPE1': 'TLON-CAR',
+                   'CTYPE2': 'TLAT-CAR',
+                   'RADESYS': 'ITRS ',
+                   'DATE-OBS': '2017-08-17T12:41:04.444'})
+
+    if Version(_wcs.__version__) >= Version('7.4'):
+        assert len(w) == 1
+        msg = str(w[0].message)
+        assert "'datfix' made the change 'Set MJD-OBS to 57982.528524 from DATE-OBS'." in msg
+    else:
+        assert len(w) == 0
 
     # This shouldn't raise an exception.
     coord = wcs.pixel_to_world(x_in, y_in)
 
     # Check round trip transformation.
     x, y = wcs.world_to_pixel(coord)
+
     np.testing.assert_almost_equal(x, x_in)
     np.testing.assert_almost_equal(y, y_in)
