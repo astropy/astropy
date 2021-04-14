@@ -12,6 +12,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
+from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import get_pkg_data_filename
 
 from astropy.visualization.wcsaxes.core import WCSAxes
@@ -23,6 +24,7 @@ from astropy.visualization.wcsaxes.transforms import CurvedTransform
 ft_version = Version(matplotlib.ft2font.__freetype_version__)
 FREETYPE_261 = ft_version == Version("2.6.1")
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
+MATPLOTLIB_GT_3_4_1 = Version(matplotlib.__version__) > Version('3.4.1')
 
 
 def teardown_function(function):
@@ -76,7 +78,12 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     ax.imshow(np.zeros((100, 200)))
     ax.coords.grid(color='white', grid_type=grid_type)
 
-    with pytest.warns(None) as warning_lines:
+    if MATPLOTLIB_GT_3_4_1 and grid_type == 'contours':
+        ctx = pytest.raises(AttributeError, match='dpi')
+    else:
+        ctx = nullcontext()
+
+    with pytest.warns(None) as warning_lines, ctx:
         plt.savefig(tmpdir.join('test.png').strpath)
 
     # There should be no warnings raised if some pixels are outside WCS
