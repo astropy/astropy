@@ -1264,11 +1264,12 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         trans = frame_transform_graph.get_transform(self.__class__, new_frame_cls)
 
         if trans is None:
-            transformable = 'same' if new_frame_cls is self.__class__ else False
+            if new_frame_cls is self.__class__:
+                return 'same'
+            else:
+                return False
         else:
-            transformable = True
-
-        return transformable
+            return True
 
     def is_frame_attr_default(self, attrnm):
         """
