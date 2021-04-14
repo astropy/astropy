@@ -399,14 +399,16 @@ Installing pre-built Development Versions of ``astropy``
 
 Most nights a development snapshot of ``astropy`` will be compiled.
 This is useful if you want to test against a development version of astropy but
-do not want to have to build it yourself.
+do not want to have to build it yourself. You can see the
+`available astropy dev snapshots page <https://dev.azure.com/astropy-project/astropy/_packaging?_a=package&feed=nightly&package=astropy&protocolType=PyPI&view=versions>`_
+to find out what is currently being offered.
 
-Installing these "nighlies" of ``astropy`` can be achieved by using pip::
+Installing these "nightlies" of ``astropy`` can be achieved by using ``pip``::
 
   $ pip install --extra-index-url=https://pkgs.dev.azure.com/astropy-project/astropy/_packaging/nightly/pypi/simple/ --pre astropy
 
-The extra index URL tells pip to check the pip index on Azure where the
-nightlies are built, and the ``--pre`` command tells pip to install pre-release
+The extra index URL tells ``pip`` to check the ``pip`` index on Azure Pipelines, where the
+nightlies are built, and the ``--pre`` command tells ``pip`` to install pre-release
 versions (in this case ``.dev`` releases).
 
 .. _builddocs:
