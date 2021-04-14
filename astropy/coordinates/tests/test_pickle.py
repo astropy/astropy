@@ -7,11 +7,7 @@ from astropy import coordinates as coord
 from astropy.tests.helper import pickle_protocol, check_pickling_recovery  # noqa
 
 # Can't test distances without scipy due to cosmology deps
-try:
-    import scipy  # pylint: disable=W0611
-    HAS_SCIPY = True
-except ImportError:
-    HAS_SCIPY = False
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_basic():

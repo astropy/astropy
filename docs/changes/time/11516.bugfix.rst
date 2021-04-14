@@ -1,0 +1,2 @@
+Fixed converting a zero-length time object from UTC to 
+UT1 when an empty array is passed.

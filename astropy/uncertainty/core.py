@@ -4,6 +4,7 @@
 """
 Distribution class and associated machinery.
 """
+import builtins
 
 import numpy as np
 
@@ -274,14 +275,29 @@ class ArrayDistribution(Distribution, np.ndarray):
 
     # Override view so that we stay a Distribution version of the new type.
     def view(self, dtype=None, type=None):
-        if type is None:
-            if issubclass(dtype, np.ndarray):
-                type = dtype
-                dtype = None
-            else:
-                raise ValueError('Cannot set just dtype for a Distribution.')
+        """New view of array with the same data.
 
-        result = self.distribution.view(dtype, type)
+        Like `~numpy.ndarray.view` except that the result will always be a new
+        `~astropy.uncertainty.Distribution` instance.  If the requested
+        ``type`` is a `~astropy.uncertainty.Distribution`, then no change in
+        ``dtype`` is allowed.
+
+        """
+        if type is None and (isinstance(dtype, builtins.type)
+                             and issubclass(dtype, np.ndarray)):
+            type = dtype
+            dtype = None
+
+        view_args = [item for item in (dtype, type) if item is not None]
+
+        if type is None or (isinstance(type, builtins.type)
+                            and issubclass(type, Distribution)):
+            if dtype is not None and dtype != self.dtype:
+                raise ValueError('cannot view as Distribution subclass with a new dtype.')
+            return super().view(*view_args)
+
+        # View as the new non-Distribution class, but turn into a Distribution again.
+        result = self.distribution.view(*view_args)
         return Distribution(result)
 
     # Override __getitem__ so that 'samples' is returned as the sample class.

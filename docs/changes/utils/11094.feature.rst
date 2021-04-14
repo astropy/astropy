@@ -1,0 +1,3 @@
+Deprecated ``astropy.utils.OrderedDescriptor`` and
+``astropy.utils.OrderedDescriptorContainer``, as new features in Python 3
+make their use less compelling.

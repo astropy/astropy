@@ -392,11 +392,6 @@ supply the ``base`` (representation)::
 Attaching ``Differential`` Objects to ``Representation`` Objects
 ================================================================
 
-.. warning::
-
-    The API for this functionality may change in future versions and should be
-    viewed as provisional!
-
 ``Differential`` objects can be attached to ``Representation`` objects as a way
 to encapsulate related information into a single object. ``Differential``
 objects can be passed in to the initializer of any of the built-in

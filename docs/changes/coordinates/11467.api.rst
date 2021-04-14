@@ -1,0 +1,2 @@
+Except for ``UnitSphericalRepresentation``, shortcuts in representations now
+allow for attached differentials.

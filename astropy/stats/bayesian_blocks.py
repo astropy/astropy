@@ -426,7 +426,7 @@ class Events(FitnessFunc):
 
     def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2012
-        return N_k * (np.log(N_k) - np.log(T_k))
+        return N_k * (np.log(N_k / T_k))
 
     def validate_input(self, t, x, sigma):
         t, x, sigma = super().validate_input(t, x, sigma)

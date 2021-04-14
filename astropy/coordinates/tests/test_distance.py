@@ -13,13 +13,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.coordinates import Longitude, Latitude, Distance, CartesianRepresentation
 from astropy.coordinates.builtin_frames import ICRS, Galactic
 from astropy.utils.exceptions import AstropyWarning
-
-try:
-    import scipy  # pylint: disable=W0611  # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_distances():

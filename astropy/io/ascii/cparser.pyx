@@ -1053,7 +1053,7 @@ cdef class FastWriter:
                       for name in self.use_names]
 
     cdef _write_comments(self, output):
-        if self.comment is not False:
+        if self.comment not in (False, None):
             for comment_line in self.line_comments:
                 output.write(self.comment + comment_line + '\n')
 

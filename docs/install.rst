@@ -2,6 +2,127 @@
 Installation
 ************
 
+Installing ``astropy``
+======================
+
+If you are new to Python and/or do not have familiarity with `Python virtual
+environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
+starting by installing the `Anaconda Distribution
+<https://www.anaconda.com/distribution/>`_. This works on all platforms (linux,
+Mac, Windows) and installs a full-featured scientific Python in a user directory
+without requiring root permissions.
+
+Using pip
+---------
+
+.. warning::
+
+    Users of the Anaconda Python distribution should follow the instructions
+    for :ref:`anaconda_install`.
+
+To install ``astropy`` with `pip <https://pip.pypa.io>`__, run::
+
+    pip install astropy
+
+If you want to make sure none of your existing dependencies get upgraded, you
+can also do::
+
+    pip install astropy --no-deps
+
+On the other hand, if you want to install ``astropy`` along with all of the
+available optional dependencies, you can do::
+
+    pip install astropy[all]
+
+In most cases, this will install a pre-compiled version (called a *wheel*) of
+astropy, but if you are using a very recent version of Python, if a new version
+of astropy has just been released, or if you are building astropy for a platform
+that is not common, astropy will be installed from a source file. Note that in
+this case you will need a C compiler (e.g., ``gcc`` or ``clang``) to be installed
+(see `Building from source`_ below) for the installation to succeed.
+
+If you get a ``PermissionError`` this means that you do not have the required
+administrative access to install new packages to your Python installation. In
+this case you may consider using the ``--user`` option to install the package
+into your home directory. You can read more about how to do this in the `pip
+documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
+
+{% if is_development %}
+
+Alternatively, if you intend to do development on other software that uses
+``astropy``, such as an affiliated package, consider installing ``astropy`` into a :ref:`virtualenv<using-virtualenv>`.
+
+{%else%}
+
+Alternatively, if you intend to do development on other software that uses
+``astropy``, such as an affiliated package, consider installing ``astropy`` into a `virtualenv <https://docs.astropy.org/en/latest/development/workflow/virtualenv_detail.html>`__.
+
+{%endif%}
+
+Do **not** install ``astropy`` or other third-party packages using ``sudo``
+unless you are fully aware of the risks.
+
+.. _anaconda_install:
+
+Using Conda
+-----------
+
+To install ``astropy`` using conda run::
+
+    conda install astropy
+
+``astropy`` is installed by default with the `Anaconda Distribution
+<https://www.anaconda.com/distribution/>`_. To update to the latest version run::
+
+    conda update astropy
+
+There may be a delay of a day or two between when a new version of ``astropy``
+is released and when a package is available for conda. You can check
+for the list of available versions with ``conda search astropy``.
+
+It is highly recommended that you install all of the optional dependencies with::
+
+    conda install -c astropy -c defaults \
+      scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
+      pytz matplotlib setuptools mpmath bottleneck jplephem asdf
+
+To also be able to run tests (see below) and support :ref:`builddocs` use the
+following. We use ``pip`` for these packages to ensure getting the latest
+releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
+
+    pip install pytest-astropy sphinx-astropy
+
+.. warning::
+
+    Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
+    of ``astropy`` itself may result in a corrupted installation.
+
+.. _testing_installed_astropy:
+
+Testing an Installed ``astropy``
+--------------------------------
+
+{% if is_development %}
+
+The easiest way to test if your installed version of ``astropy`` is running
+correctly is to use the :ref:`astropy.test()` function::
+
+    import astropy
+    astropy.test()
+
+The tests should run and print out any failures, which you can report at
+the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
+
+This way of running the tests may not work if you do it in the ``astropy`` source
+distribution. See :ref:`sourcebuildtest` for how to run the tests from the
+source code directory, or :ref:`running-tests` for more details.
+
+{%else%}
+
+See the `latest documentation on how to test your installed version of astropy <https://docs.astropy.org/en/latest/install.html#testing-an-installed-astropy>`__.
+
+{%endif%}
+
 .. _astropy-main-req:
 
 Requirements
@@ -13,7 +134,7 @@ Requirements
 
 - `Numpy`_ |minimum_numpy_version| or later
 
-- `PyERFA`_ |minimum_erfa_version| or later
+- `PyERFA`_ |minimum_pyerfa_version| or later
 
 ``astropy`` also depends on other packages for optional features:
 
@@ -33,7 +154,7 @@ Requirements
 - `bleach <https://bleach.readthedocs.io/>`_: Used to sanitize text when
   disabling HTML escaping in the :class:`~astropy.table.Table` HTML writer.
 
-- `PyYAML <https://pyyaml.org>`_ |minimum_yaml_version| or later: To read/write
+- `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
   format and to serialize mixins for various formats.
 
@@ -102,111 +223,6 @@ The following packages can optionally be used when testing:
 
 - `tox <https://tox.readthedocs.io/en/latest/>`_: Used to automate testing
   and documentation builds.
-
-Installing ``astropy``
-======================
-
-If you are new to Python and/or do not have familiarity with `Python virtual
-environments <https://docs.python.org/3/tutorial/venv.html>`_, then we recommend
-starting by installing the `Anaconda Distribution
-<https://www.anaconda.com/distribution/>`_. This works on all platforms (linux,
-Mac, Windows) and installs a full-featured scientific Python in a user directory
-without requiring root permissions.
-
-Using pip
----------
-
-.. warning::
-
-    Users of the Anaconda Python distribution should follow the instructions
-    for :ref:`anaconda_install`.
-
-To install ``astropy`` with `pip <https://pip.pypa.io>`__, run::
-
-    pip install astropy
-
-If you want to make sure none of your existing dependencies get upgraded, you
-can also do::
-
-    pip install astropy --no-deps
-
-On the other hand, if you want to install ``astropy`` along with all of the
-available optional dependencies, you can do::
-
-    pip install astropy[all]
-
-In most cases, this will install a pre-compiled version (called a *wheel*) of
-astropy, but if you are using a very recent version of Python, if a new version
-of astropy has just been released, or if you are building astropy for a platform
-that is not common, astropy will be installed from a source file. Note that in
-this case you will need a C compiler (e.g., ``gcc`` or ``clang``) to be installed
-(see `Building from source`_ below) for the installation to succeed.
-
-If you get a ``PermissionError`` this means that you do not have the required
-administrative access to install new packages to your Python installation. In
-this case you may consider using the ``--user`` option to install the package
-into your home directory. You can read more about how to do this in the `pip
-documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
-
-Alternatively, if you intend to do development on other software that uses
-``astropy``, such as an affiliated package, consider installing ``astropy`` into a
-:ref:`virtualenv<using-virtualenv>`.
-
-Do **not** install ``astropy`` or other third-party packages using ``sudo``
-unless you are fully aware of the risks.
-
-.. _anaconda_install:
-
-Using Conda
------------
-
-To install ``astropy`` using conda run::
-
-    conda install astropy
-
-``astropy`` is installed by default with the `Anaconda Distribution
-<https://www.anaconda.com/distribution/>`_. To update to the latest version run::
-
-    conda update astropy
-
-There may be a delay of a day or two between when a new version of ``astropy``
-is released and when a package is available for conda. You can check
-for the list of available versions with ``conda search astropy``.
-
-It is highly recommended that you install all of the optional dependencies with::
-
-    conda install -c astropy -c defaults \
-      scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
-      pytz matplotlib setuptools mpmath bottleneck jplephem asdf
-
-To also be able to run tests (see below) and support :ref:`builddocs` use the
-following. We use ``pip`` for these packages to ensure getting the latest
-releases which are compatible with the latest ``pytest`` and ``sphinx`` releases::
-
-    pip install pytest-astropy sphinx-astropy
-
-.. warning::
-
-    Attempting to use `pip <https://pip.pypa.io>`__ to upgrade your installation
-    of ``astropy`` itself may result in a corrupted installation.
-
-.. _testing_installed_astropy:
-
-Testing an Installed ``astropy``
---------------------------------
-
-The easiest way to test if your installed version of ``astropy`` is running
-correctly is to use the :ref:`astropy.test()` function::
-
-    import astropy
-    astropy.test()
-
-The tests should run and print out any failures, which you can report at
-the `Astropy issue tracker <https://github.com/astropy/astropy/issues>`_.
-
-This way of running the tests may not work if you do it in the ``astropy`` source
-distribution. See :ref:`sourcebuildtest` for how to run the tests from the
-source code directory, or :ref:`running-tests` for more details.
 
 Building from Source
 ====================
@@ -505,6 +521,8 @@ can also open issues in the repositories for some of the dependencies:
 Testing a Source Code Build of ``astropy``
 ------------------------------------------
 
+{% if is_development %}
+
 The easiest way to run the tests in a source checkout of ``astropy``
 is to use `tox <https://tox.readthedocs.io/en/latest/>`_::
 
@@ -512,5 +530,11 @@ is to use `tox <https://tox.readthedocs.io/en/latest/>`_::
 
 There are also alternative methods of :ref:`running-tests` if you
 would like more control over the testing process.
+
+{%else%}
+
+See the `latest documentation on how to run the tests in a source checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`__.
+
+{%endif%}
 
 .. include:: development/workflow/known_projects.inc

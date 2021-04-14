@@ -406,6 +406,20 @@ class TestHeaderFunctions(FitsTestCase):
                 "CONTINUE  '&' / comment long comment long comment long comment long comment     "
                 "CONTINUE  '' / long comment                                                     ")
 
+    def test_long_string_value_with_multiple_long_words(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/11298
+        """
+        c = fits.Card('WHATEVER',
+                      'SuperCalibrationParameters_XXXX_YYYY_ZZZZZ_KK_01_02_'
+                      '03)-AAABBBCCC.n.h5 SuperNavigationParameters_XXXX_YYYY'
+                      '_ZZZZZ_KK_01_02_03)-AAABBBCCC.n.xml')
+        assert (str(c) ==
+                "WHATEVER= 'SuperCalibrationParameters_XXXX_YYYY_ZZZZZ_KK_01_02_03)-AAABBBCCC.n&'"
+                "CONTINUE  '.h5 &'                                                               "
+                "CONTINUE  'SuperNavigationParameters_XXXX_YYYY_ZZZZZ_KK_01_02_03)-AAABBBCCC.n.&'"
+                "CONTINUE  'xml'                                                                 ")
+
     def test_long_unicode_string(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/1
@@ -574,6 +588,24 @@ class TestHeaderFunctions(FitsTestCase):
         assert c.keyword == 'key.META_4'
         assert c.value == 'calFileVersion'
         assert c.comment == ''
+
+    def test_hierarch_not_warn(self):
+        """Check that compressed image headers do not issue HIERARCH warnings.
+        """
+        filename = fits.util.get_testdata_filepath('compressed_image.fits')
+        with fits.open(filename) as hdul:
+            header = hdul[1].header
+        with pytest.warns(None) as warning_list:
+            header["HIERARCH LONG KEYWORD"] = 42
+        assert len(warning_list) == 0
+        assert header["LONG KEYWORD"] == 42
+        assert header["HIERARCH LONG KEYWORD"] == 42
+
+        # Check that it still warns if we do not use HIERARCH
+        with pytest.warns(fits.verify.VerifyWarning,
+                          match=r'greater than 8 characters'):
+            header["LONG KEYWORD2"] = 1
+        assert header["LONG KEYWORD2"] == 1
 
     def test_hierarch_keyword_whitespace(self):
         """
@@ -2361,6 +2393,30 @@ class TestHeaderFunctions(FitsTestCase):
             else:
                 c.verify('exception')
 
+    def test_long_commentary_card_appended_to_header(self):
+        """
+        If a HISTORY or COMMENT card with a too-long value is appended to a
+        header with Header.append (as opposed to assigning to hdr['HISTORY']
+        it fails verification.
+
+        Regression test for https://github.com/astropy/astropy/issues/11486
+        """
+
+        header = fits.Header()
+        value = 'abc' * 90
+        # this is what Table does when saving its history metadata key to a
+        # FITS file
+        header.append(('history', value))
+        assert len(header.cards) == 1
+
+        # Test Card._split() directly since this was the main problem area
+        key, val = header.cards[0]._split()
+        assert key == 'HISTORY' and val == value
+
+        # Try writing adding this header to an HDU and writing it to a file
+        hdu = fits.PrimaryHDU(header=header)
+        hdu.writeto(self.temp('test.fits'), overwrite=True)
+
     def test_header_fromstring_bytes(self):
         """
         Test reading a Header from a `bytes` string.
@@ -2429,6 +2485,25 @@ class TestHeaderFunctions(FitsTestCase):
 
         with fits.open(self.temp('bogus_fixed.fits')) as hdul:
             assert hdul[0].header['KW'] == -1
+
+    def test_index_numpy_int(self):
+        header = fits.Header([('A', 'FOO'), ('B', 2), ('C', 'BAR')])
+        idx = np.int8(2)
+        assert header[idx] == 'BAR'
+
+        header[idx] = 'BAZ'
+        assert header[idx] == 'BAZ'
+
+        header.insert(idx, ('D', 42))
+        assert header[idx] == 42
+
+        header.add_comment('HELLO')
+        header.add_comment('WORLD')
+        assert header['COMMENT'][np.int64(1)] == 'WORLD'
+
+        header.append(('C', 'BAZBAZ'))
+        assert header[('C', np.int16(0))] == 'BAZ'
+        assert header[('C', np.uint32(1))] == 'BAZBAZ'
 
 
 class TestRecordValuedKeywordCards(FitsTestCase):

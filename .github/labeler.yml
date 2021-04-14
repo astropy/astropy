@@ -118,11 +118,17 @@ units:
 
 utils:
   - cextern/expat/**/*
-  - any: ['**/utils/**/*', '!astropy/utils/iers/**/*', '!docs/utils/iers.rst']
+  - any: ['**/utils/**/*',
+          '!astropy/utils/iers/**/*', '!docs/utils/iers.rst',
+          '!astropy/utils/masked/**/*', '!docs/utils/masked/**/*']
 
 utils.iers:
   - astropy/utils/iers/**/*
   - docs/utils/iers.rst
+
+utils.masked:
+  - astropy/utils/masked/**/*
+  - docs/utils/masked/**/*
 
 visualization:
   - any: ['**/visualization/**/*', '!**/visualization/wcsaxes/**/*']

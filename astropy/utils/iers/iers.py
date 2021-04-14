@@ -356,6 +356,9 @@ class IERS(QTable):
         if is_scalar:
             mjd = np.array([mjd])
             utc = np.array([utc])
+        elif mjd.size == 0:
+            # Short-cut empty input.
+            return np.array([])
 
         self._refresh_table_as_needed(mjd)
 

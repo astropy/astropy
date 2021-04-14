@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: spx.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -477,60 +474,60 @@ extern "C" {
 extern const char *spx_errmsg[];
 
 enum spx_errmsg {
-  SPXERR_SUCCESS          = 0,	/* Success. */
-  SPXERR_NULL_POINTER     = 1,	/* Null spxprm pointer passed. */
-  SPXERR_BAD_SPEC_PARAMS  = 2,	/* Invalid spectral parameters. */
-  SPXERR_BAD_SPEC_VAR     = 3,	/* Invalid spectral variable. */
-  SPXERR_BAD_INSPEC_COORD = 4 	/* One or more of the inspec coordinates were
-				   invalid. */
+  SPXERR_SUCCESS          = 0,	// Success.
+  SPXERR_NULL_POINTER     = 1,	// Null spxprm pointer passed.
+  SPXERR_BAD_SPEC_PARAMS  = 2,	// Invalid spectral parameters.
+  SPXERR_BAD_SPEC_VAR     = 3,	// Invalid spectral variable.
+  SPXERR_BAD_INSPEC_COORD = 4 	// One or more of the inspec coordinates were
+				// invalid.
 };
 
 struct spxprm {
-  double restfrq, restwav;	/* Rest frequency [Hz] and wavelength [m].  */
+  double restfrq, restwav;	// Rest frequency [Hz] and wavelength [m].
 
-  int wavetype, velotype;	/* True if wave/velocity types have been    */
-				/* computed; types are defined below.       */
+  int wavetype, velotype;	// True if wave/velocity types have been
+				// computed; types are defined below.
 
-  /* Spectral variables computed by specx().                                */
-  /*------------------------------------------------------------------------*/
-  double freq,			/* wavetype: Frequency [Hz].                */
-         afrq,			/* wavetype: Angular frequency [rad/s].     */
-         ener,			/* wavetype: Photon energy [J].             */
-         wavn,			/* wavetype: Wave number [/m].              */
-         vrad,			/* velotype: Radio velocity [m/s].          */
-         wave,			/* wavetype: Vacuum wavelength [m].         */
-         vopt,			/* velotype: Optical velocity [m/s].        */
-         zopt,			/* velotype: Redshift.                      */
-         awav,			/* wavetype: Air wavelength [m].            */
-         velo,			/* velotype: Relativistic velocity [m/s].   */
-         beta;			/* velotype: Relativistic beta.             */
+  // Spectral variables computed by specx().
+  //--------------------------------------------------------------------------
+  double freq,			// wavetype: Frequency [Hz].
+         afrq,			// wavetype: Angular frequency [rad/s].
+         ener,			// wavetype: Photon energy [J].
+         wavn,			// wavetype: Wave number [/m].
+         vrad,			// velotype: Radio velocity [m/s].
+         wave,			// wavetype: Vacuum wavelength [m].
+         vopt,			// velotype: Optical velocity [m/s].
+         zopt,			// velotype: Redshift.
+         awav,			// wavetype: Air wavelength [m].
+         velo,			// velotype: Relativistic velocity [m/s].
+         beta;			// velotype: Relativistic beta.
 
-  /* Derivatives of spectral variables computed by specx().                 */
-  /*------------------------------------------------------------------------*/
-  double dfreqafrq, dafrqfreq,	/* Constant, always available.              */
-         dfreqener, denerfreq,	/* Constant, always available.              */
-         dfreqwavn, dwavnfreq,	/* Constant, always available.              */
-         dfreqvrad, dvradfreq,	/* wavetype && velotype.                    */
-         dfreqwave, dwavefreq,	/* wavetype.                                */
-         dfreqawav, dawavfreq,	/* wavetype.                                */
-         dfreqvelo, dvelofreq,	/* wavetype && velotype.                    */
-         dwavevopt, dvoptwave,	/* wavetype && velotype.                    */
-         dwavezopt, dzoptwave,	/* wavetype && velotype.                    */
-         dwaveawav, dawavwave,	/* wavetype.                                */
-         dwavevelo, dvelowave,	/* wavetype && velotype.                    */
-         dawavvelo, dveloawav,	/* wavetype && velotype.                    */
-         dvelobeta, dbetavelo;	/* Constant, always available.              */
+  // Derivatives of spectral variables computed by specx().
+  //--------------------------------------------------------------------------
+  double dfreqafrq, dafrqfreq,	// Constant, always available.
+         dfreqener, denerfreq,	// Constant, always available.
+         dfreqwavn, dwavnfreq,	// Constant, always available.
+         dfreqvrad, dvradfreq,	// wavetype && velotype.
+         dfreqwave, dwavefreq,	// wavetype.
+         dfreqawav, dawavfreq,	// wavetype.
+         dfreqvelo, dvelofreq,	// wavetype && velotype.
+         dwavevopt, dvoptwave,	// wavetype && velotype.
+         dwavezopt, dzoptwave,	// wavetype && velotype.
+         dwaveawav, dawavwave,	// wavetype.
+         dwavevelo, dvelowave,	// wavetype && velotype.
+         dawavvelo, dveloawav,	// wavetype && velotype.
+         dvelobeta, dbetavelo;	// Constant, always available.
 
-  /* Error handling                                                         */
-  /*------------------------------------------------------------------------*/
+  // Error handling
+  //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  /* Private                                                                */
-  /*------------------------------------------------------------------------*/
-  void   *padding;		/* (Dummy inserted for alignment purposes.) */
+  // Private
+  //--------------------------------------------------------------------------
+  void   *padding;		// (Dummy inserted for alignment purposes.)
 };
 
-/* Size of the spxprm struct in int units, used by the Fortran wrappers. */
+// Size of the spxprm struct in int units, used by the Fortran wrappers.
 #define SPXLEN (sizeof(struct spxprm)/sizeof(int))
 
 
@@ -539,7 +536,7 @@ int specx(const char *type, double spec, double restfrq, double restwav,
 
 int spxperr(const struct spxprm *spx, const char *prefix);
 
-/* For use in declaring function prototypes, e.g. in spcprm. */
+// For use in declaring function prototypes, e.g. in spcprm.
 #define SPX_ARGS double param, int nspec, int instep, int outstep, \
     const double inspec[], double outspec[], int stat[]
 
@@ -589,4 +586,4 @@ int zoptwave(SPX_ARGS);
 }
 #endif
 
-#endif /* WCSLIB_SPEC */
+#endif // WCSLIB_SPEC

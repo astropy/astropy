@@ -668,6 +668,8 @@ class Model(metaclass=_ModelMeta):
     _bounding_box = None
     _user_bounding_box = None
 
+    _has_inverse_bounding_box = False
+
     # Default n_models attribute, so that __len__ is still defined even when a
     # model hasn't completed initialization yet
     _n_models = 1
@@ -1053,12 +1055,31 @@ class Model(metaclass=_ModelMeta):
         self._array_to_parameters()
 
     @property
+    def sync_constraints(self):
+        '''
+        This is a boolean property that indicates whether or not accessing constraints
+        automatically check the constituent models current values. It defaults to True
+        on creation of a model, but for fitting purposes it should be set to False
+        for performance reasons.
+        '''
+        if not hasattr(self, '_sync_constraints'):
+            self._sync_constraints = True
+        return self._sync_constraints
+
+    @sync_constraints.setter
+    def sync_constraints(self, value):
+        if not isinstance(value, bool):
+            raise ValueError('sync_constraints only accepts True or False as values')
+        self._sync_constraints = value
+
+    @property
     def fixed(self):
         """
         A ``dict`` mapping parameter names to their fixed constraint.
         """
-
-        return _ConstraintsDict(self, 'fixed')
+        if not hasattr(self, '_fixed') or self.sync_constraints:
+            self._fixed = _ConstraintsDict(self, 'fixed')
+        return self._fixed
 
     @property
     def bounds(self):
@@ -1066,15 +1087,18 @@ class Model(metaclass=_ModelMeta):
         A ``dict`` mapping parameter names to their upper and lower bounds as
         ``(min, max)`` tuples or ``[min, max]`` lists.
         """
-        return _ConstraintsDict(self, 'bounds')
+        if not hasattr(self, '_bounds') or self.sync_constraints:
+            self._bounds = _ConstraintsDict(self, 'bounds')
+        return self._bounds
 
     @property
     def tied(self):
         """
         A ``dict`` mapping parameter names to their tied constraint.
         """
-
-        return _ConstraintsDict(self, 'tied')
+        if not hasattr(self, '_tied') or self.sync_constraints:
+            self._tied = _ConstraintsDict(self, 'tied')
+        return self._tied
 
     @property
     def eqcons(self):
@@ -1127,6 +1151,8 @@ class Model(metaclass=_ModelMeta):
         elif self._inverse is not None:
             result = self._inverse()
             if result is not NotImplemented:
+                if not self._has_inverse_bounding_box:
+                    result.bounding_box = None
                 return result
 
         raise NotImplementedError("No analytical or user-supplied inverse transform "
@@ -2000,8 +2026,7 @@ class Model(metaclass=_ModelMeta):
                 model_set_axis = False
         else:
             if not (model_set_axis is False or
-                    (isinstance(model_set_axis, int) and
-                     not isinstance(model_set_axis, bool))):
+                    np.issubdtype(type(model_set_axis), np.integer)):
                 raise ValueError(
                     "model_set_axis must be either False or an integer "
                     "specifying the parameter array axis to map to each "
@@ -2571,7 +2596,7 @@ class CompoundModel(Model):
             keys = right.keys()
             input_ind = []
             for key in keys:
-                if isinstance(key, int):
+                if np.issubdtype(type(key), np.integer):
                     if key >= left.n_inputs or key < 0:
                         raise ValueError(
                             'Substitution key integer value '
@@ -2712,7 +2737,7 @@ class CompoundModel(Model):
         if op == 'fix_inputs':
             pos_index = dict(zip(self.left.inputs, range(self.left.n_inputs)))
             fixed_inputs = {
-                key if isinstance(key, int) else pos_index[key]: value
+                key if np.issubdtype(type(key), np.integer) else pos_index[key]: value
                 for key, value in self.right.items()
             }
             left_inputs = [
@@ -2844,7 +2869,7 @@ class CompoundModel(Model):
             subinds = []
             subvals = []
             for key in subs.keys():
-                if isinstance(key, int):
+                if np.issubdtype(type(key), np.integer):
                     subinds.append(key)
                 elif isinstance(key, str):
                     ind = self.left.inputs.index(key)
@@ -2874,9 +2899,9 @@ class CompoundModel(Model):
                 subargs = list(zip(subinds, subvals))
                 subargs.sort()
                 # subindsorted, subvalsorted = list(zip(*subargs))
-            # The substitutions must be inserted in order
-            for ind, val in subargs:
-                newargs.insert(ind, val)
+                # The substitutions must be inserted in order
+                for ind, val in subargs:
+                    newargs.insert(ind, val)
             return self.left(*newargs, **kw)
 
     @property
@@ -3027,19 +3052,25 @@ class CompoundModel(Model):
                 operands.append(format_leaf(leaf_idx, node))
                 leaf_idx += 1
                 continue
-            oper_order = OPERATOR_PRECEDENCE[node.op]
+
             right = operands.pop()
             left = operands.pop()
+            if node.op in OPERATOR_PRECEDENCE:
+                oper_order = OPERATOR_PRECEDENCE[node.op]
 
-            if isinstance(node, CompoundModel):
-                if (isinstance(node.left, CompoundModel) and
-                        OPERATOR_PRECEDENCE[node.left.op] < oper_order):
-                    left = f'({left})'
-                if (isinstance(node.right, CompoundModel) and
-                        OPERATOR_PRECEDENCE[node.right.op] < oper_order):
-                    right = f'({right})'
+                if isinstance(node, CompoundModel):
+                    if (isinstance(node.left, CompoundModel) and
+                            OPERATOR_PRECEDENCE[node.left.op] < oper_order):
+                        left = f'({left})'
+                    if (isinstance(node.right, CompoundModel) and
+                            OPERATOR_PRECEDENCE[node.right.op] < oper_order):
+                        right = f'({right})'
 
-            operands.append(' '.join((left, node.op, right)))
+                operands.append(' '.join((left, node.op, right)))
+            else:
+                left = f'(({left}),'
+                right = f'({right}))'
+                operands.append(' '.join((node.op, left, right)))
 
         return ''.join(operands)
 

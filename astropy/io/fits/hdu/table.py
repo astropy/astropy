@@ -206,31 +206,32 @@ class _TableLikeHDU(_ValidHDU):
         # new data placed in the column object above
         del columns._arrays
 
+    def _update_load_data(self):
+        """Load the data if asked to."""
+        if not self._data_loaded:
+            self.data
+
     def _update_column_added(self, columns, column):
         """
         Update the data upon addition of a new column through the `ColDefs`
         interface.
         """
-
-        # TODO: It's not clear that this actually works--it probably does not.
-        # This is what the code used to do before introduction of the
-        # notifier interface, but I don't believe it actually worked (there are
-        # several bug reports related to this...)
-        if self._data_loaded:
-            del self.data
+        # recreate data from the columns
+        self.data = FITS_rec.from_columns(
+            self.columns, nrows=self._nrows, fill=False,
+            character_as_bytes=self._character_as_bytes
+        )
 
     def _update_column_removed(self, columns, col_idx):
         """
         Update the data upon removal of a column through the `ColDefs`
         interface.
         """
-
-        # For now this doesn't do anything fancy--it just deletes the data
-        # attribute so that it is forced to be recreated again.  It doesn't
-        # change anything on the existing data recarray (this is also how this
-        # worked before introducing the notifier interface)
-        if self._data_loaded:
-            del self.data
+        # recreate data from the columns
+        self.data = FITS_rec.from_columns(
+            self.columns, nrows=self._nrows, fill=False,
+            character_as_bytes=self._character_as_bytes
+        )
 
 
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
@@ -350,6 +351,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 self._header['TFIELDS'] = len(self.data._coldefs)
 
                 self.columns = self.data._coldefs
+                self.columns._add_listener(self.data)
                 self.update()
 
                 with suppress(TypeError, AttributeError):
@@ -435,9 +437,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 new_columns = self._columns_type(data.columns)
                 data = FITS_rec.from_columns(new_columns)
 
+            if 'data' in self.__dict__:
+                self.columns._remove_listener(self.__dict__['data'])
             self.__dict__['data'] = data
 
             self.columns = self.data.columns
+            self.columns._add_listener(self.data)
             self.update()
 
             with suppress(TypeError, AttributeError):

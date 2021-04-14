@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsunits.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: wcsunits.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -162,42 +159,44 @@
 *                            or not (see notes).
 *
 * Notes:
-*   Translation of non-standard unit specifications: apart from leading and
-*   trailing blanks, a case-sensitive match is required for the aliases listed
-*   below, in particular the only recognized aliases with metric prefixes are
-*   "KM", "KHZ", "MHZ", and "GHZ".  Potentially unsafe translations of "D",
-*   "H", and "S", shown in parentheses, are optional.
+*   1: Translation of non-standard unit specifications: apart from leading and
+*      trailing blanks, a case-sensitive match is required for the aliases
+*      listed below, in particular the only recognized aliases with metric
+*      prefixes are "KM", "KHZ", "MHZ", and "GHZ".  Potentially unsafe
+*      translations of "D", "H", and "S", shown in parentheses, are optional.
 *
-=     Unit       Recognized aliases
-=     ----       -------------------------------------------------------------
-=     Angstrom   angstrom
-=     arcmin     arcmins, ARCMIN, ARCMINS
-=     arcsec     arcsecs, ARCSEC, ARCSECS
-=     beam       BEAM
-=     byte       Byte
-=     d          day, days, (D), DAY, DAYS
-=     deg        degree, degrees, Deg, Degree, Degrees, DEG, DEGREE, DEGREES
-=     GHz        GHZ
-=     h          hr, (H), HR
-=     Hz         hz, HZ
-=     kHz        KHZ
-=     Jy         JY
-=     K          kelvin, kelvins, Kelvin, Kelvins, KELVIN, KELVINS
-=     km         KM
-=     m          metre, meter, metres, meters, M, METRE, METER, METRES, METERS
-=     min        MIN
-=     MHz        MHZ
-=     Ohm        ohm
-=     Pa         pascal, pascals, Pascal, Pascals, PASCAL, PASCALS
-=     pixel      pixels, PIXEL, PIXELS
-=     rad        radian, radians, RAD, RADIAN, RADIANS
-=     s          sec, second, seconds, (S), SEC, SECOND, SECONDS
-=     V          volt, volts, Volt, Volts, VOLT, VOLTS
-=     yr         year, years, YR, YEAR, YEARS
+=        Unit       Recognized aliases
+=        ----       ----------------------------------------------------------
+=        Angstrom   Angstroms angstrom angstroms
+=        arcmin     arcmins, ARCMIN, ARCMINS
+=        arcsec     arcsecs, ARCSEC, ARCSECS
+=        beam       BEAM
+=        byte       Byte
+=        d          day, days, (D), DAY, DAYS
+=        deg        degree, degrees, Deg, Degree, Degrees, DEG, DEGREE,
+=                   DEGREES
+=        GHz        GHZ
+=        h          hr, (H), HR
+=        Hz         hz, HZ
+=        kHz        KHZ
+=        Jy         JY
+=        K          kelvin, kelvins, Kelvin, Kelvins, KELVIN, KELVINS
+=        km         KM
+=        m          metre, meter, metres, meters, M, METRE, METER, METRES,
+=                   METERS
+=        min        MIN
+=        MHz        MHZ
+=        Ohm        ohm
+=        Pa         pascal, pascals, Pascal, Pascals, PASCAL, PASCALS
+=        pixel      pixels, PIXEL, PIXELS
+=        rad        radian, radians, RAD, RADIAN, RADIANS
+=        s          sec, second, seconds, (S), SEC, SECOND, SECONDS
+=        V          volt, volts, Volt, Volts, VOLT, VOLTS
+=        yr         year, years, YR, YEAR, YEARS
 *
-*   The aliases "angstrom", "ohm", and "Byte" for (Angstrom, Ohm, and byte)
-*   are recognized by wcsulexe() itself as an unofficial extension of the
-*   standard, but they are converted to the standard form here.
+*      The aliases "angstrom", "ohm", and "Byte" for (Angstrom, Ohm, and byte)
+*      are recognized by wcsulexe() itself as an unofficial extension of the
+*      standard, but they are converted to the standard form here.
 *
 *
 * wcsulexe() - FITS units specification parser
@@ -348,21 +347,19 @@ extern "C" {
 extern const char *wcsunits_errmsg[];
 
 enum wcsunits_errmsg_enum {
-  UNITSERR_SUCCESS            =  0,	/* Success. */
-  UNITSERR_BAD_NUM_MULTIPLIER =  1,	/* Invalid numeric multiplier. */
-  UNITSERR_DANGLING_BINOP     =  2,	/* Dangling binary operator. */
-  UNITSERR_BAD_INITIAL_SYMBOL =  3,	/* Invalid symbol in INITIAL
-					   context. */
-  UNITSERR_FUNCTION_CONTEXT   =  4,	/* Function in invalid context. */
-  UNITSERR_BAD_EXPON_SYMBOL   =  5,	/* Invalid symbol in EXPON context. */
-  UNITSERR_UNBAL_BRACKET      =  6,	/* Unbalanced bracket. */
-  UNITSERR_UNBAL_PAREN        =  7,	/* Unbalanced parenthesis. */
-  UNITSERR_CONSEC_BINOPS      =  8,	/* Consecutive binary operators. */
-  UNITSERR_PARSER_ERROR       =  9,	/* Internal parser error. */
-  UNITSERR_BAD_UNIT_SPEC      = 10,	/* Non-conformant unit
-					   specifications. */
-  UNITSERR_BAD_FUNCS          = 11,	/* Non-conformant functions. */
-  UNITSERR_UNSAFE_TRANS       = 12	/* Potentially unsafe translation. */
+  UNITSERR_SUCCESS            =  0,	// Success.
+  UNITSERR_BAD_NUM_MULTIPLIER =  1,	// Invalid numeric multiplier.
+  UNITSERR_DANGLING_BINOP     =  2,	// Dangling binary operator.
+  UNITSERR_BAD_INITIAL_SYMBOL =  3,	// Invalid symbol in INITIAL context.
+  UNITSERR_FUNCTION_CONTEXT   =  4,	// Function in invalid context.
+  UNITSERR_BAD_EXPON_SYMBOL   =  5,	// Invalid symbol in EXPON context.
+  UNITSERR_UNBAL_BRACKET      =  6,	// Unbalanced bracket.
+  UNITSERR_UNBAL_PAREN        =  7,	// Unbalanced parenthesis.
+  UNITSERR_CONSEC_BINOPS      =  8,	// Consecutive binary operators.
+  UNITSERR_PARSER_ERROR       =  9,	// Internal parser error.
+  UNITSERR_BAD_UNIT_SPEC      = 10,	// Non-conformant unit specifications.
+  UNITSERR_BAD_FUNCS          = 11,	// Non-conformant functions.
+  UNITSERR_UNSAFE_TRANS       = 12	// Potentially unsafe translation.
 };
 
 extern const char *wcsunits_types[];
@@ -397,7 +394,7 @@ int wcsutrne(int ctrl, char unitstr[], struct wcserr **err);
 int wcsulexe(const char unitstr[], int *func, double *scale,
              double units[WCSUNITS_NTYPE], struct wcserr **err);
 
-/* Deprecated. */
+// Deprecated.
 int wcsunits(const char have[], const char want[], double *scale,
              double *offset, double *power);
 int wcsutrn(int ctrl, char unitstr[]);
@@ -408,4 +405,4 @@ int wcsulex(const char unitstr[], int *func, double *scale,
 }
 #endif
 
-#endif /* WCSLIB_WCSUNITS */
+#endif // WCSLIB_WCSUNITS

@@ -27,8 +27,7 @@ from . import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
-           "default_cosmology"] + parameters.available
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
 
 __doctest_requires__ = {'*': ['scipy']}
 
@@ -85,12 +84,101 @@ class CosmologyError(Exception):
     pass
 
 
-class Cosmology:
-    """ Placeholder for when a more general Cosmology class is
-    implemented. """
+class Cosmology(metaclass=ABCMeta):
+    """Base-class for all Cosmologies.
+
+    Parameters
+    ----------
+    *args
+        Arguments into the cosmology; used by subclasses, not this base class.
+    name : str or None (optional, keyword-only)
+        The name of the cosmology.
+    **kwargs
+        Arguments into the cosmology; used by subclasses, not this base class.
+
+    Notes
+    -----
+    Class instances are static -- you cannot (and should not) change the values
+    of the parameters.  That is, all of the attributes above are
+    read only.
+
+    """
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        # get signature, dropping "self" by taking arguments [1:]
+        sig = signature(cls.__init__)
+        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
+        cls._init_signature = sig  # store (immutable) initialization signature
+
+    def __new__(cls, *args, **kwargs):
+        # bundle initialization argument
+        if not args:
+            parameters = kwargs
+        else:  # have to merge args and kwargs.
+            # bind any arguments passed
+            ba = cls._init_signature.bind_partial(*args, **kwargs)
+            ba.apply_defaults()  # and fill in the defaults
+            # get dictionary of arguments
+            parameters = ba.arguments
+
+        self = super().__new__(cls)
+        self._init_arguments = parameters  # store arguments from initialization
+
+        return self
+
+    def __init__(self, *args, name=None, **kwargs):
+        self.name = name
+
+    def clone(self, **kwargs):
+        """Returns a copy of this object with updated parameters, as specified.
+
+        This cannot be used to change the type of the cosmology, so ``clone()``
+        cannot be used to change between flat and non-flat cosmologies.  If no
+        modifications are requested, then a reference to this object is
+        returned.
+
+        Returns
+        -------
+        newcosmo : `~astropy.cosmology.Cosmology` subclass instance
+            A new instance of this class with updated parameters as specified.
+
+        Examples
+        --------
+        To make a copy of the ``Planck13`` cosmology with a different matter
+        density (``Om0``):
+        and a new name:
+
+        >>> from astropy.cosmology import Planck13
+        >>> newcosmo = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+        """
+        # Quick return check, taking advantage of the
+        # immutability of cosmological objects
+        if len(kwargs) == 0:
+            return self
+
+        # There are changed parameter values.
+        # The name needs to be changed accordingly, if it wasn't already.
+        kwargs.setdefault("name", (self.name + " (modified)"
+                                   if self.name is not None else None))
+
+        # Mix kwargs into initial arguments, preferring the former.
+        full_kwargs = {**self._init_arguments, **kwargs}
+        # Create BoundArgument to handle args versus kwargs.
+        # This also handles all errors from mismatched arguments
+        try:
+            ba = self._init_signature.bind_partial(**full_kwargs)
+        except TypeError as e:
+            # for backward compatibility, map TypeError to AttributeError
+            warnings.warn("Starting in Astropy v5.0, passing an unrecognized "
+                          "argument will instead raise a TypeError.",
+                          category=AstropyDeprecationWarning)
+            raise AttributeError(e)
+        # Return new instance
+        return self.__class__(*ba.args, **ba.kwargs)
 
 
-class FLRW(Cosmology, metaclass=ABCMeta):
+class FLRW(Cosmology):
     """ A class describing an isotropic and homogeneous
     (Friedmann-Lemaitre-Robertson-Walker) cosmology.
 
@@ -100,7 +188,6 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
     Parameters
     ----------
-
     H0 : float or scalar `~astropy.units.Quantity`
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
@@ -139,13 +226,14 @@ class FLRW(Cosmology, metaclass=ABCMeta):
 
     Notes
     -----
-    Class instances are static -- you can't change the values
+    Class instances are static -- you cannot change the values
     of the parameters.  That is, all of the attributes above are
     read only.
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+        super().__init__(name=name)
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -168,7 +256,6 @@ class FLRW(Cosmology, metaclass=ABCMeta):
         if self._Neff < 0.0:
             raise ValueError("Effective number of neutrinos can "
                              "not be negative")
-        self.name = name
 
         # Tcmb may have units
         self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K)
@@ -409,67 +496,6 @@ class FLRW(Cosmology, metaclass=ABCMeta):
     def Onu0(self):
         """ Omega nu; the density/critical density of neutrinos at z=0"""
         return self._Onu0
-
-    def clone(self, **kwargs):
-        """ Returns a copy of this object, potentially with some changes.
-
-        Returns
-        -------
-        newcos : Subclass of FLRW
-        A new instance of this class with the specified changes.
-
-        Notes
-        -----
-        This assumes that the values of all constructor arguments
-        are available as properties, which is true of all the provided
-        subclasses but may not be true of user-provided ones.  You can't
-        change the type of class, so this can't be used to change between
-        flat and non-flat.  If no modifications are requested, then
-        a reference to this object is returned.
-
-        Examples
-        --------
-        To make a copy of the Planck13 cosmology with a different Omega_m
-        and a new name:
-
-        >>> from astropy.cosmology import Planck13
-        >>> newcos = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
-        """
-
-        # Quick return check, taking advantage of the
-        # immutability of cosmological objects
-        if len(kwargs) == 0:
-            return self
-
-        # Get constructor arguments
-        arglist = signature(self.__init__).parameters.keys()
-
-        # Build the dictionary of values used to construct this
-        #  object.  This -assumes- every argument to __init__ has a
-        #  property.  This is true of all the classes we provide, but
-        #  maybe a user won't do that.  So at least try to have a useful
-        #  error message.
-        argdict = {}
-        for arg in arglist:
-            try:
-                val = getattr(self, arg)
-                argdict[arg] = val
-            except AttributeError:
-                # We didn't find a property -- complain usefully
-                errstr = "Object did not have property corresponding "\
-                         "to constructor argument '{}'; perhaps it is a "\
-                         "user provided subclass that does not do so"
-                raise AttributeError(errstr.format(arg))
-
-        # Now substitute in new arguments
-        for newarg in kwargs:
-            if newarg not in argdict:
-                errstr = "User provided argument '{}' not found in "\
-                         "constructor for this object"
-                raise AttributeError(errstr.format(newarg))
-            argdict[newarg] = kwargs[newarg]
-
-        return self.__class__(**argdict)
 
     @abstractmethod
     def w(self, z):
@@ -3279,83 +3305,3 @@ def inf_like(x):
         return np.inf
     else:
         return np.full_like(x, np.inf, dtype='float')
-
-
-# Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a LambdaCDM or FlatLambdaCDM instance
-# with the same name as the parameter set in the current module's namespace.
-# Note this assumes all the cosmologies in parameters are LambdaCDM,
-# which is true at least as of this writing.
-
-for key in parameters.available:
-    par = getattr(parameters, key)
-    if par['flat']:
-        cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
-                              Neff=par['Neff'],
-                              m_nu=u.Quantity(par['m_nu'], u.eV),
-                              name=key,
-                              Ob0=par['Ob0'])
-        docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
-        cosmo.__doc__ = docstr.format(key, par['reference'])
-    else:
-        cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
-                          Tcmb0=par['Tcmb0'], Neff=par['Neff'],
-                          m_nu=u.Quantity(par['m_nu'], u.eV), name=key,
-                          Ob0=par['Ob0'])
-        docstr = "{} instance of LambdaCDM cosmology\n\n(from {})"
-        cosmo.__doc__ = docstr.format(key, par['reference'])
-    setattr(sys.modules[__name__], key, cosmo)
-
-# don't leave these variables floating around in the namespace
-del key, par, cosmo
-
-#########################################################################
-# The science state below contains the current cosmology.
-#########################################################################
-
-
-class default_cosmology(ScienceState):
-    """
-    The default cosmology to use.  To change it::
-
-        >>> from astropy.cosmology import default_cosmology, WMAP7
-        >>> with default_cosmology.set(WMAP7):
-        ...     # WMAP7 cosmology in effect
-        ...     pass
-
-    Or, you may use a string::
-
-        >>> with default_cosmology.set('WMAP7'):
-        ...     # WMAP7 cosmology in effect
-        ...     pass
-    """
-    _value = 'Planck18'
-
-    @staticmethod
-    def get_cosmology_from_string(arg):
-        """ Return a cosmology instance from a string.
-        """
-        if arg == 'no_default':
-            cosmo = None
-        else:
-            try:
-                cosmo = getattr(sys.modules[__name__], arg)
-            except AttributeError:
-                s = "Unknown cosmology '{}'. Valid cosmologies:\n{}".format(
-                    arg, parameters.available)
-                raise ValueError(s)
-        return cosmo
-
-    @classmethod
-    def validate(cls, value):
-        if value is None:
-            value = 'Planck18'
-        if isinstance(value, str):
-            if value == 'Planck18_arXiv_v2':
-                warnings.warn(f"{value} is deprecated in astropy 4.2, use Planck18 instead",
-                              AstropyDeprecationWarning)
-            return cls.get_cosmology_from_string(value)
-        elif isinstance(value, Cosmology):
-            return value
-        else:
-            raise TypeError("default_cosmology must be a string or Cosmology instance.")

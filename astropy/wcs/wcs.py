@@ -2673,6 +2673,22 @@ reduce these to 2 dimensions using the naxis kwarg.
             for kw in keys_to_remove:
                 if kw in header:
                     del header[kw]
+            # Check if we can handle TPD distortion correctly
+            if int(_parsed_version[0]) * 10 + int(_parsed_version[1]) < 71:
+                for kw, val in header.items():
+                    if kw[:5] in ('CPDIS', 'CQDIS') and val == 'TPD':
+                        warnings.warn(
+                            f"WCS contains a TPD distortion model in {kw}. WCSLIB "
+                            f"{_wcs.__version__} is writing this in a format incompatible with "
+                            f"current versions - please update to 7.4 or use the bundled WCSLIB.",
+                            AstropyWarning)
+            elif int(_parsed_version[0]) * 10 + int(_parsed_version[1]) < 74:
+                for kw, val in header.items():
+                    if kw[:5] in ('CPDIS', 'CQDIS') and val == 'TPD':
+                        warnings.warn(
+                            f"WCS contains a TPD distortion model in {kw}, which requires WCSLIB "
+                            f"7.4 or later to store in a FITS header (having {_wcs.__version__}).",
+                            AstropyWarning)
         else:
             header = fits.Header()
 

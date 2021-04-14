@@ -4,15 +4,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
-try:
-    import scipy  # pylint: disable=W0611 # noqa
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
-
 from astropy.stats.jackknife import jackknife_resampling, jackknife_stats
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
 def test_jackknife_resampling():

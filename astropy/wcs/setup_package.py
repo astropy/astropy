@@ -16,7 +16,7 @@ import numpy
 from extension_helpers import import_file, write_if_different, get_compiler, pkg_config
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "7.3.0"
+WCSVERSION = "7.4"
 
 
 def b(s):
@@ -226,6 +226,9 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
 
     if sys.platform.startswith('linux'):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
+
+    # For 4.7+ enable C99 syntax in older compilers
+    cfg['extra_compile_args'].extend(['-std=gnu99'])
 
     # Squelch a few compilation warnings in WCSLIB
     if get_compiler() in ('unix', 'mingw32'):

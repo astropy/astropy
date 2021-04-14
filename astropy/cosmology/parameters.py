@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-""" This module contains dictionaries with sets of parameters for a
+"""This module contains dictionaries with sets of parameters for a
 given cosmology.
 
 Each cosmology has the following parameters defined:

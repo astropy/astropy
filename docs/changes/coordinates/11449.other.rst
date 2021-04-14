@@ -1,0 +1,2 @@
+Removed duplicate calls to ```transform_to``` from ```match_to_catalog_sky```
+and ```match_to_catalog_3d```, improving their performance.

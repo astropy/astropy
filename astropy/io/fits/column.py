@@ -1721,6 +1721,9 @@ class ColDefs(NotifierMixin):
         if not isinstance(column, Column):
             raise AssertionError
 
+        # Ask the HDU object to load the data before we modify our columns
+        self._notify('load_data')
+
         self._arrays.append(column.array)
         # Obliterate caches of certain things
         del self.dtype
@@ -1746,6 +1749,9 @@ class ColDefs(NotifierMixin):
         col_name : str or int
             The column's name or index
         """
+
+        # Ask the HDU object to load the data before we modify our columns
+        self._notify('load_data')
 
         indx = _get_index(self.names, col_name)
         col = self.columns[indx]

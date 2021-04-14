@@ -1,0 +1,2 @@
+Adds a direct transformation from ``ICRS`` to ``AltAz`` frames. This
+provides a modest speedup of approximately 10 percent.

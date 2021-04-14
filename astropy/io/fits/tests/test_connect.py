@@ -27,12 +27,7 @@ from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLoca
                                  SphericalCosLatDifferential)
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
-
-try:
-    import yaml  # pylint: disable=W0611  # noqa
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 
 def equal_data(a, b):
@@ -303,6 +298,26 @@ class TestSingleTable:
         t.write(filename, append=True)
         check_equal(filename, 3, start_from=2)
         assert equal_data(t2, Table.read(filename, hdu=1))
+
+    def test_mask_nans_on_read(self, tmpdir):
+        filename = str(tmpdir.join('test_inexact_format_parse_on_read.fits'))
+        c1 = fits.Column(name='a', array=np.array([1, 2, np.nan]), format='E')
+        table_hdu = fits.TableHDU.from_columns([c1])
+        table_hdu.writeto(filename)
+
+        tab = Table.read(filename)
+        assert any(tab.mask)
+        assert tab.mask[2]
+
+    def test_mask_null_on_read(self, tmpdir):
+        filename = str(tmpdir.join('test_null_format_parse_on_read.fits'))
+        col = fits.Column(name='a', array=np.array([1, 2, 99, 60000], dtype='u2'), format='I', null=99, bzero=32768)
+        bin_table_hdu = fits.BinTableHDU.from_columns([col])
+        bin_table_hdu.writeto(filename, overwrite=True)
+
+        tab = Table.read(filename)
+        assert any(tab.mask)
+        assert tab.mask[2]
 
 
 class TestMultipleHDU:

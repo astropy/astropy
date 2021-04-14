@@ -56,6 +56,15 @@ def components_equal(rep1, rep2):
     return result
 
 
+def components_allclose(rep1, rep2):
+    result = True
+    if type(rep1) is not type(rep2):
+        return False
+    for component in rep1.components:
+        result &= u.allclose(getattr(rep1, component), getattr(rep2, component))
+    return result
+
+
 def representation_equal(rep1, rep2):
     result = True
     if type(rep1) is not type(rep2):
@@ -69,6 +78,21 @@ def representation_equal(rep1, rep2):
         return False
 
     return result & components_equal(rep1, rep2)
+
+
+def representation_equal_up_to_angular_type(rep1, rep2):
+    result = True
+    if type(rep1) is not type(rep2):
+        return False
+    if getattr(rep1, '_differentials', False):
+        if rep1._differentials.keys() != rep2._differentials.keys():
+            return False
+        for key, diff1 in rep1._differentials.items():
+            result &= components_allclose(diff1, rep2._differentials[key])
+    elif getattr(rep2, '_differentials', False):
+        return False
+
+    return result & components_allclose(rep1, rep2)
 
 
 class TestSphericalRepresentation:
@@ -283,6 +307,29 @@ class TestSphericalRepresentation:
         with pytest.raises(TypeError, match='unexpected keyword.*parrot'):
             SphericalRepresentation(1*u.deg, 2*u.deg, 1.*u.kpc, parrot=10)
 
+    def test_representation_shortcuts(self):
+        """Test that shortcuts in ``represent_as`` don't fail."""
+        difs = SphericalCosLatDifferential(4*u.mas/u.yr,5*u.mas/u.yr,6*u.km/u.s)
+        sph = SphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc,
+                                      differentials={'s': difs})
+
+        got = sph.represent_as(PhysicsSphericalRepresentation,
+                               PhysicsSphericalDifferential)
+        assert np.may_share_memory(sph.lon, got.phi)
+        assert np.may_share_memory(sph.distance, got.r)
+        expected = BaseRepresentation.represent_as(
+            sph, PhysicsSphericalRepresentation, PhysicsSphericalDifferential)
+        # equal up to angular type
+        assert representation_equal_up_to_angular_type(got, expected)
+
+        got = sph.represent_as(UnitSphericalRepresentation,
+                               UnitSphericalDifferential)
+        assert np.may_share_memory(sph.lon, got.lon)
+        assert np.may_share_memory(sph.lat, got.lat)
+        expected = BaseRepresentation.represent_as(
+            sph, UnitSphericalRepresentation, UnitSphericalDifferential)
+        assert representation_equal_up_to_angular_type(got, expected)
+
 
 class TestUnitSphericalRepresentation:
 
@@ -394,6 +441,32 @@ class TestUnitSphericalRepresentation:
 
         with pytest.raises(TypeError):
             s_slc = s[0]
+
+    def test_representation_shortcuts(self):
+        """Test that shortcuts in ``represent_as`` don't fail."""
+        # TODO! representation transformations with differentials cannot
+        # (currently) be implemented due to a mismatch between the UnitSpherical
+        # expected keys (e.g. "s") and that expected in the other class
+        # (here "s / m"). For more info, see PR #11467
+        # We leave the test code commented out for future use.
+        # diffs = UnitSphericalCosLatDifferential(4*u.mas/u.yr, 5*u.mas/u.yr,
+        #                                         6*u.km/u.s)
+        sph = UnitSphericalRepresentation(1*u.deg, 2*u.deg)
+                                          # , differentials={'s': diffs}
+        got = sph.represent_as(PhysicsSphericalRepresentation)
+                               # , PhysicsSphericalDifferential)
+        assert np.may_share_memory(sph.lon, got.phi)
+        expected = BaseRepresentation.represent_as(
+            sph, PhysicsSphericalRepresentation)  # PhysicsSphericalDifferential
+        assert representation_equal_up_to_angular_type(got, expected)
+
+        got = sph.represent_as(SphericalRepresentation)
+                               # , SphericalDifferential)
+        assert np.may_share_memory(sph.lon, got.lon)
+        assert np.may_share_memory(sph.lat, got.lat)
+        expected = BaseRepresentation.represent_as(
+            sph, SphericalRepresentation) # , SphericalDifferential)
+        assert representation_equal_up_to_angular_type(got, expected)
 
 
 class TestPhysicsSphericalRepresentation:
@@ -528,6 +601,27 @@ class TestPhysicsSphericalRepresentation:
 
         with pytest.raises(TypeError):
             s_slc = s[0]
+
+    def test_representation_shortcuts(self):
+        """Test that shortcuts in ``represent_as`` don't fail."""
+        difs = PhysicsSphericalDifferential(4*u.mas/u.yr,5*u.mas/u.yr,6*u.km/u.s)
+        sph = PhysicsSphericalRepresentation(1*u.deg, 2*u.deg, 3*u.kpc,
+                                             differentials={'s': difs})
+
+        got = sph.represent_as(SphericalRepresentation,
+                               SphericalDifferential)
+        assert np.may_share_memory(sph.phi, got.lon)
+        assert np.may_share_memory(sph.r, got.distance)
+        expected = BaseRepresentation.represent_as(
+            sph, SphericalRepresentation, SphericalDifferential)
+        assert representation_equal_up_to_angular_type(got, expected)
+
+        got = sph.represent_as(UnitSphericalRepresentation,
+                               UnitSphericalDifferential)
+        assert np.may_share_memory(sph.phi, got.lon)
+        expected = BaseRepresentation.represent_as(
+            sph, UnitSphericalRepresentation, UnitSphericalDifferential)
+        assert representation_equal_up_to_angular_type(got, expected)
 
 
 class TestCartesianRepresentation:
@@ -1360,7 +1454,7 @@ class TestCartesianRepresentationWithDifferential:
         for name in REPRESENTATION_CLASSES:
             if name == 'radial':
                 # TODO: Converting a CartesianDifferential to a
-                #       RadialDifferential fails, even on `master`
+                #       RadialDifferential fails, even on `main`
                 continue
             elif name.endswith("geodetic"):
                 # TODO: Geodetic representations do not have differentials yet
@@ -1374,6 +1468,26 @@ class TestCartesianRepresentationWithDifferential:
         with pytest.raises(ValueError) as excinfo:
             rep1.represent_as('name')
         assert 'use frame object' in str(excinfo.value)
+
+    @pytest.mark.parametrize('sph_diff,usph_diff', [
+        (SphericalDifferential, UnitSphericalDifferential),
+        (SphericalCosLatDifferential, UnitSphericalCosLatDifferential)])
+    def test_represent_as_unit_spherical_with_diff(self, sph_diff, usph_diff):
+        """Test that differential angles are correctly reduced."""
+        diff = CartesianDifferential(d_x=1 * u.km/u.s,
+                                     d_y=2 * u.km/u.s,
+                                     d_z=3 * u.km/u.s)
+        rep = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc,
+                                      differentials=diff)
+        sph = rep.represent_as(SphericalRepresentation, sph_diff)
+        usph = rep.represent_as(UnitSphericalRepresentation, usph_diff)
+        assert components_equal(usph, sph.represent_as(UnitSphericalRepresentation))
+        assert components_equal(usph.differentials['s'],
+                                sph.differentials['s'].represent_as(usph_diff))
+        # Just to be sure components_equal and the represent_as work as advertised,
+        # a sanity check: d_lat is always defined and should be the same.
+        assert_array_equal(sph.differentials['s'].d_lat,
+                           usph.differentials['s'].d_lat)
 
     def test_getitem(self):
 

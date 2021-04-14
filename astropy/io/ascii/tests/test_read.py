@@ -25,16 +25,11 @@ from astropy.io.ascii import core
 from astropy.io.ascii.ui import _probably_html, get_read_trace
 from astropy.utils.exceptions import AstropyWarning
 
+# NOTE: Python can be built without bz2.
+from astropy.utils.compat.optional_deps import HAS_BZ2  # noqa
+
 # setup/teardown function to have the tests run in the correct directory
 from .common import setup_function, teardown_function  # noqa
-
-# NOTE: Python can be built without bz2.
-try:
-    import bz2  # noqa
-except ImportError:
-    HAS_BZ2 = False
-else:
-    HAS_BZ2 = True
 
 
 def asciiIO(x):

@@ -2,14 +2,10 @@
 """Accuracy tests for AltAz to ICRS coordinate transformations.
 
 We use "known good" examples computed with other coordinate libraries.
-
-Note that we use very low precision asserts because some people run tests on 32-bit
-machines and we want the tests to pass there.
-TODO: check if these tests pass on 32-bit machines and implement
-higher-precision checks on 64-bit machines.
 """
 
 import pytest
+import numpy as np
 
 from astropy import units as u
 from astropy.time import Time
@@ -91,6 +87,22 @@ def test_against_hor2eq():
     assert distance_noatm < 0.4 * u.arcsec
 
 
+def run_pyephem():
+    """Test run of pyephem, just in case the numbers below need to be reproduced."""
+    import ephem
+
+    observer = ephem.Observer()
+    observer.lon = -1 * np.radians(109 + 24/60. + 53.1/60**2)
+    observer.lat = np.radians(33 + 41/60. + 46.0/60.**2)
+    observer.elevation = 300
+    observer.date = 2455822.868055556-ephem.julian_date(0)
+
+    ra, dec = observer.radec_of(np.radians(6.8927), np.radians(60.7665))
+    print(f"EPHEM: {observer.date}: {np.degrees(ra)}, {np.degrees(dec)}")
+    # 2021-04-06: EPHEM: 2011/9/18 08:50:00: 27.107480889479397, 62.512687777362046
+    # NOTE: independent of elevation.
+
+
 def test_against_pyephem():
     """Check that Astropy gives consistent results with one PyEphem example.
 
@@ -103,28 +115,26 @@ def test_against_pyephem():
     obstime = Time('2011-09-18 08:50:00')
     location = EarthLocation(lon=Angle('-109d24m53.1s'),
                              lat=Angle('33d41m46.0s'),
-                             height=30000. * u.m)
+                             height=300. * u.m)
     # We are using the default pressure and temperature in PyEphem
     # relative_humidity = ?
     # obswl = ?
     altaz_frame = AltAz(obstime=obstime, location=location,
                         temperature=15 * u.deg_C, pressure=1.010 * u.bar)
 
-    altaz = SkyCoord('6.8927d -60.7665d', frame=altaz_frame)
+    altaz = SkyCoord('6.8927d +60.7665d', frame=altaz_frame)
     radec_actual = altaz.transform_to('icrs')
 
-    radec_expected = SkyCoord('196.497518d -4.569323d', frame='icrs')  # EPHEM
-    # radec_expected = SkyCoord('196.496220d -4.569390d', frame='icrs')  # HORIZON
-    distance = radec_actual.separation(radec_expected).to('arcsec')
-    # TODO: why is this difference so large?
-    # It currently is: 31.45187984720655 arcsec
-    assert distance < 1e3 * u.arcsec
+    radec_expected = SkyCoord('27.107480889479397d +62.512687777362046d', frame='icrs')
+    distance_ephem = radec_actual.separation(radec_expected).to('arcsec')
+    # 2021-04-06: 2.42 arcsec
+    assert distance_ephem < 3 * u.arcsec
 
     # Add assert on current Astropy result so that we notice if something changes
-    radec_expected = SkyCoord('196.495372d -4.560694d', frame='icrs')
-    distance = radec_actual.separation(radec_expected).to('arcsec')
-    # Current value: 0.0031402822944751997 arcsec
-    assert distance < 1 * u.arcsec
+    radec_expected = SkyCoord('27.10602683d +62.51275391d', frame='icrs')
+    distance_astropy = radec_actual.separation(radec_expected).to('arcsec')
+    # 2021-04-06: 5e-6 arcsec (erfa 1.7.2 vs erfa 1.7.1).
+    assert distance_astropy < 0.1 * u.arcsec
 
 
 def test_against_jpl_horizons():
@@ -145,7 +155,8 @@ def test_against_jpl_horizons():
     radec_actual = altaz.transform_to('icrs')
     radec_expected = SkyCoord('19h24m55.01s -40d56m28.9s', frame='icrs')
     distance = radec_actual.separation(radec_expected).to('arcsec')
-    # Current value: 0.238111 arcsec
+    # 2021-04-06: astropy 4.2.1, erfa 1.7.1: 0.23919259 arcsec
+    # 2021-04-06: astropy 4.3dev, erfa 1.7.2: 0.2391959 arcsec
     assert distance < 1 * u.arcsec
 
 

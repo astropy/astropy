@@ -3,6 +3,7 @@
 import collections
 import copy
 import itertools
+import numbers
 import re
 import warnings
 
@@ -189,7 +190,7 @@ class Header:
             comment = None
 
         card = None
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             card = self._cards[key]
         elif isinstance(key, tuple):
             card = self._cards[self._cardindex(key)]
@@ -1437,7 +1438,7 @@ class Header:
             rather than before it.  Defaults to `False`.
         """
 
-        if not isinstance(key, int):
+        if not isinstance(key, numbers.Integral):
             # Don't pass through ints to _cardindex because it will not take
             # kindly to indices outside the existing number of cards in the
             # header, which insert needs to be able to support (for example
@@ -1708,7 +1709,7 @@ class Header:
         if isinstance(key, str):
             keyword = key
             n = 0
-        elif isinstance(key, int):
+        elif isinstance(key, numbers.Integral):
             # If < 0, determine the actual index
             if key < 0:
                 key += len(self._cards)
@@ -1719,7 +1720,7 @@ class Header:
             return key
         elif isinstance(key, tuple):
             if (len(key) != 2 or not isinstance(key[0], str) or
-                    not isinstance(key[1], int)):
+                    not isinstance(key[1], numbers.Integral)):
                 raise ValueError(
                     'Tuple indices must be 2-tuples consisting of a '
                     'keyword string and an integer index.')
@@ -1784,7 +1785,7 @@ class Header:
             insertionkey = before
 
         def get_insertion_idx():
-            if not (isinstance(insertionkey, int) and
+            if not (isinstance(insertionkey, numbers.Integral) and
                     insertionkey >= len(self._cards)):
                 idx = self._cardindex(insertionkey)
             else:
@@ -2032,7 +2033,7 @@ class _BasicHeader(collections.abc.Mapping):
         self._modified = False
 
     def __getitem__(self, key):
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             key = self._keys[key]
 
         try:
@@ -2226,7 +2227,7 @@ class _HeaderCommentaryCards(_CardAccessor):
             n = self.__class__(self._header, self._keyword)
             n._indices = idx.indices(self._count)
             return n
-        elif not isinstance(idx, int):
+        elif not isinstance(idx, numbers.Integral):
             raise ValueError(f'{self._keyword} index must be an integer')
 
         idx = list(range(*self._indices))[idx]

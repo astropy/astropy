@@ -1,0 +1,4 @@
+``SkyCoord.guess_from_table`` now also searches for differentials in the table.
+In addition, multiple regex matches can be resolved when they are exact
+component names, e.g. having both columns “dec” and “pm_dec” no longer errors
+and will be included in the SkyCoord.

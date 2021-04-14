@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +17,9 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: tab.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -38,7 +35,7 @@
 
 const int TABSET = 137;
 
-/* Map status return value to message. */
+// Map status return value to message.
 const char *tab_errmsg[] = {
   "Success",
   "Null tabprm pointer passed",
@@ -47,10 +44,10 @@ const char *tab_errmsg[] = {
   "One or more of the x coordinates were invalid",
   "One or more of the world coordinates were invalid"};
 
-/* Convenience macro for invoking wcserr_set(). */
+// Convenience macro for invoking wcserr_set().
 #define TAB_ERRMSG(status) WCSERR_SET(status), tab_errmsg[status]
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
@@ -63,7 +60,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
   if (tab == 0x0) return TABERR_NULL_POINTER;
 
-  /* Initialize error message handling. */
+  // Initialize error message handling.
   if (tab->flag == -1) {
     tab->err = 0x0;
   }
@@ -76,7 +73,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
       "M must be positive, got %d", M);
   }
 
-  /* Determine the total number of elements in the coordinate array. */
+  // Determine the total number of elements in the coordinate array.
   if (K) {
     N = M;
 
@@ -91,12 +88,12 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
     }
 
   } else {
-    /* Axis lengths as yet unknown. */
+    // Axis lengths as yet unknown.
     N = 0;
   }
 
 
-  /* Initialize memory management. */
+  // Initialize memory management.
   if (tab->flag == -1 || tab->m_flag != TABSET) {
     if (tab->flag == -1) {
       tab->sense   = 0x0;
@@ -117,7 +114,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
     tab->m_coord = 0x0;
 
   } else {
-    /* Clear any outstanding signals set by wcstab(). */
+    // Clear any outstanding signals set by wcstab().
     for (m = 0; m < tab->m_M; m++) {
       if (tab->m_indxs[m] == (double *)0x1) tab->m_indxs[m] = 0x0;
     }
@@ -126,7 +123,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
   }
 
 
-  /* Allocate memory for arrays if required. */
+  // Allocate memory for arrays if required.
   if (alloc ||
      tab->K == 0x0 ||
      tab->map == 0x0 ||
@@ -134,15 +131,15 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
      tab->index == 0x0 ||
      tab->coord == 0x0) {
 
-    /* Was sufficient allocated previously? */
+    // Was sufficient allocated previously?
     if (tab->m_flag == TABSET && (tab->m_M < M || tab->m_N < N)) {
-      /* No, free it. */
+      // No, free it.
       tabfree(tab);
     }
 
     if (alloc || tab->K == 0x0) {
       if (tab->m_K) {
-        /* In case the caller fiddled with it. */
+        // In case the caller fiddled with it.
         tab->K = tab->m_K;
 
       } else {
@@ -158,7 +155,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
     if (alloc || tab->map == 0x0) {
       if (tab->m_map) {
-        /* In case the caller fiddled with it. */
+        // In case the caller fiddled with it.
         tab->map = tab->m_map;
 
       } else {
@@ -174,7 +171,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
     if (alloc || tab->crval == 0x0) {
       if (tab->m_crval) {
-        /* In case the caller fiddled with it. */
+        // In case the caller fiddled with it.
         tab->crval = tab->m_crval;
 
       } else {
@@ -190,7 +187,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
     if (alloc || tab->index == 0x0) {
       if (tab->m_index) {
-        /* In case the caller fiddled with it. */
+        // In case the caller fiddled with it.
         tab->index = tab->m_index;
 
       } else {
@@ -207,7 +204,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
           return wcserr_set(TAB_ERRMSG(TABERR_MEMORY));
         }
 
-        /* Recall that calloc() initializes these pointers to zero. */
+        // Recall that calloc() initializes these pointers to zero.
         if (K) {
           for (m = 0; m < M; m++) {
             if (K[m]) {
@@ -224,7 +221,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
 
     if (alloc || tab->coord == 0x0) {
       if (tab->m_coord) {
-        /* In case the caller fiddled with it. */
+        // In case the caller fiddled with it.
         tab->coord = tab->m_coord;
 
       } else if (N) {
@@ -243,7 +240,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
   tab->flag = 0;
   tab->M = M;
 
-  /* Set defaults. */
+  // Set defaults.
   for (m = 0; m < M; m++) {
     tab->map[m] = -1;
     tab->crval[m] = 0.0;
@@ -260,7 +257,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
     }
   }
 
-  /* Initialize the coordinate array. */
+  // Initialize the coordinate array.
   for (dp = tab->coord; dp < tab->coord + N; dp++) {
     *dp = UNDEFINED;
   }
@@ -268,7 +265,7 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabmem(struct tabprm *tab)
 
@@ -282,7 +279,7 @@ int tabmem(struct tabprm *tab)
   err = &(tab->err);
 
   if (tab->M == 0 || tab->K == 0x0) {
-    /* Should have been set by this time. */
+    // Should have been set by this time.
     return wcserr_set(WCSERR_SET(TABERR_MEMORY),
       "Null pointers in tabprm struct");
   }
@@ -303,7 +300,7 @@ int tabmem(struct tabprm *tab)
   if (tab->m_M == 0) {
     tab->m_M = M;
   } else if (tab->m_M < M) {
-    /* Only possible if the user changed M. */
+    // Only possible if the user changed M.
     return wcserr_set(WCSERR_SET(TABERR_MEMORY),
       "tabprm struct inconsistent");
   }
@@ -311,7 +308,7 @@ int tabmem(struct tabprm *tab)
   if (tab->m_N == 0) {
     tab->m_N = N;
   } else if (tab->m_N < N) {
-    /* Only possible if the user changed K[]. */
+    // Only possible if the user changed K[].
     return wcserr_set(WCSERR_SET(TABERR_MEMORY),
       "tabprm struct inconsistent");
   }
@@ -359,7 +356,7 @@ int tabmem(struct tabprm *tab)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
 
@@ -409,7 +406,7 @@ int tabcpy(int alloc, const struct tabprm *tabsrc, struct tabprm *tabdst)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabcmp(
   int dummy,
@@ -421,7 +418,7 @@ int tabcmp(
 {
   int m, M, N;
 
-  /* Avert nuisance compiler warnings about unused parameters. */
+  // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   if (tab1  == 0x0) return TABERR_NULL_POINTER;
@@ -461,7 +458,7 @@ int tabcmp(
 }
 
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabfree(struct tabprm *tab)
 
@@ -471,14 +468,14 @@ int tabfree(struct tabprm *tab)
   if (tab == 0x0) return TABERR_NULL_POINTER;
 
   if (tab->flag != -1) {
-    /* Clear any outstanding signals set by wcstab(). */
+    // Clear any outstanding signals set by wcstab().
     for (m = 0; m < tab->m_M; m++) {
       if (tab->m_indxs[m] == (double *)0x1) tab->m_indxs[m] = 0x0;
     }
 
     if (tab->m_coord == (double *)0x1) tab->m_coord = 0x0;
 
-    /* Free memory allocated by tabini(). */
+    // Free memory allocated by tabini().
     if (tab->m_flag == TABSET) {
       if (tab->K     == tab->m_K)     tab->K = 0x0;
       if (tab->map   == tab->m_map)   tab->map = 0x0;
@@ -501,7 +498,7 @@ int tabfree(struct tabprm *tab)
       if (tab->m_coord) free(tab->m_coord);
     }
 
-    /* Free memory allocated by tabset(). */
+    // Free memory allocated by tabset().
     if (tab->sense)   free(tab->sense);
     if (tab->p0)      free(tab->p0);
     if (tab->delta)   free(tab->delta);
@@ -531,7 +528,7 @@ int tabfree(struct tabprm *tab)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabprt(const struct tabprm *tab)
 
@@ -550,7 +547,7 @@ int tabprt(const struct tabprm *tab)
   wcsprintf("       flag: %d\n", tab->flag);
   wcsprintf("          M: %d\n", tab->M);
 
-  /* Array dimensions. */
+  // Array dimensions.
   WCSPRINTF_PTR("          K: ", tab->K, "\n");
   wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
@@ -558,7 +555,7 @@ int tabprt(const struct tabprm *tab)
   }
   wcsprintf("\n");
 
-  /* Map vector. */
+  // Map vector.
   WCSPRINTF_PTR("        map: ", tab->map, "\n");
   wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
@@ -566,7 +563,7 @@ int tabprt(const struct tabprm *tab)
   }
   wcsprintf("\n");
 
-  /* Reference index value. */
+  // Reference index value.
   WCSPRINTF_PTR("      crval: ", tab->crval, "\n");
   wcsprintf("            ");
   for (m = 0; m < tab->M; m++) {
@@ -574,7 +571,7 @@ int tabprt(const struct tabprm *tab)
   }
   wcsprintf("\n");
 
-  /* Index vectors. */
+  // Index vectors.
   WCSPRINTF_PTR("      index: ", tab->index, "\n");
   for (m = 0; m < tab->M; m++) {
     wcsprintf("   index[%d]: ", m);
@@ -590,11 +587,11 @@ int tabprt(const struct tabprm *tab)
     }
   }
 
-  /* Coordinate array. */
+  // Coordinate array.
   WCSPRINTF_PTR("      coord: ", tab->coord, "\n");
   dp = tab->coord;
   for (n = 0; n < tab->nc; n++) {
-    /* Array index. */
+    // Array index.
     j = n;
     cp = text;
     for (m = 0; m < tab->M; m++) {
@@ -643,7 +640,7 @@ int tabprt(const struct tabprm *tab)
   WCSPRINTF_PTR("    extrema: ", tab->extrema, "\n");
   dp = tab->extrema;
   for (n = 0; n < tab->nc/tab->K[0]; n++) {
-    /* Array index. */
+    // Array index.
     j = n;
     cp = text;
     *cp = '\0';
@@ -667,7 +664,7 @@ int tabprt(const struct tabprm *tab)
     wcserr_prt(tab->err, "             ");
   }
 
-  /* Memory management. */
+  // Memory management.
   wcsprintf("     m_flag: %d\n", tab->m_flag);
   wcsprintf("        m_M: %d\n", tab->m_M);
   wcsprintf("        m_N: %d\n", tab->m_N);
@@ -701,7 +698,7 @@ int tabprt(const struct tabprm *tab)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabperr(const struct tabprm *tab, const char *prefix)
 
@@ -715,7 +712,7 @@ int tabperr(const struct tabprm *tab, const char *prefix)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabset(struct tabprm *tab)
 
@@ -729,13 +726,13 @@ int tabset(struct tabprm *tab)
   if (tab == 0x0) return TABERR_NULL_POINTER;
   err = &(tab->err);
 
-  /* Check the number of tabular coordinate axes. */
+  // Check the number of tabular coordinate axes.
   if ((M = tab->M) < 1) {
     return wcserr_set(WCSERR_SET(TABERR_BAD_PARAMS),
       "Invalid tabular parameters: M must be positive, got %d", M);
   }
 
-  /* Check the axis lengths. */
+  // Check the axis lengths.
   if (!tab->K) {
     return wcserr_set(WCSERR_SET(TABERR_MEMORY),
       "Null pointers in tabprm struct");
@@ -749,11 +746,11 @@ int tabset(struct tabprm *tab)
         "got %d", tab->K[m]);
     }
 
-    /* Number of coordinate vectors in the coordinate array. */
+    // Number of coordinate vectors in the coordinate array.
     tab->nc *= tab->K[m];
   }
 
-  /* Check that the map vector is sensible. */
+  // Check that the map vector is sensible.
   if (!tab->map) {
     return wcserr_set(WCSERR_SET(TABERR_MEMORY),
       "Null pointers in tabprm struct");
@@ -768,13 +765,13 @@ int tabset(struct tabprm *tab)
     }
   }
 
-  /* Check memory allocation for the remaining vectors. */
+  // Check memory allocation for the remaining vectors.
   if (!tab->crval || !tab->index || !tab->coord) {
     return wcserr_set(WCSERR_SET(TABERR_MEMORY),
       "Null pointers in tabprm struct");
   }
 
-  /* Take memory if signalled to by wcstab(). */
+  // Take memory if signalled to by wcstab().
   for (m = 0; m < tab->m_M; m++) {
     if (tab->m_indxs[m] == (double *)0x1 &&
       (tab->m_indxs[m] = tab->index[m])) {
@@ -788,15 +785,15 @@ int tabset(struct tabprm *tab)
   }
 
 
-  /* Allocate memory for work vectors. */
+  // Allocate memory for work vectors.
   if (tab->flag != TABSET || tab->set_M < M) {
-    /* Free memory that may have been allocated previously. */
+    // Free memory that may have been allocated previously.
     if (tab->sense)   free(tab->sense);
     if (tab->p0)      free(tab->p0);
     if (tab->delta)   free(tab->delta);
     if (tab->extrema) free(tab->extrema);
 
-    /* Allocate memory for internal arrays. */
+    // Allocate memory for internal arrays.
     if (!(tab->sense = calloc(M, sizeof(int)))) {
       return wcserr_set(TAB_ERRMSG(TABERR_MEMORY));
     }
@@ -823,14 +820,14 @@ int tabset(struct tabprm *tab)
     tab->set_M = M;
   }
 
-  /* Check that the index vectors are monotonic. */
+  // Check that the index vectors are monotonic.
   Km = tab->K;
   for (m = 0; m < M; m++, Km++) {
     tab->sense[m] = 0;
 
     if (*Km > 1) {
       if ((Psi = tab->index[m]) == 0x0) {
-        /* Default indexing. */
+        // Default indexing.
         tab->sense[m] = 1;
 
       } else {
@@ -838,17 +835,17 @@ int tabset(struct tabprm *tab)
           switch (tab->sense[m]) {
           case 0:
             if (Psi[k] < Psi[k+1]) {
-              /* Monotonic increasing. */
+              // Monotonic increasing.
               tab->sense[m] = 1;
             } else if (Psi[k] > Psi[k+1]) {
-              /* Monotonic decreasing. */
+              // Monotonic decreasing.
               tab->sense[m] = -1;
             }
             break;
 
           case 1:
             if (Psi[k] > Psi[k+1]) {
-              /* Should be monotonic increasing. */
+              // Should be monotonic increasing.
               free(tab->sense);
               free(tab->p0);
               free(tab->delta);
@@ -861,7 +858,7 @@ int tabset(struct tabprm *tab)
 
           case -1:
             if (Psi[k] < Psi[k+1]) {
-              /* Should be monotonic decreasing. */
+              // Should be monotonic decreasing.
               free(tab->sense);
               free(tab->p0);
               free(tab->delta);
@@ -886,14 +883,14 @@ int tabset(struct tabprm *tab)
     }
   }
 
-  /* Find the extremal values of the coordinate elements in each row. */
+  // Find the extremal values of the coordinate elements in each row.
   dcrd = tab->coord;
   dmin = tab->extrema;
   dmax = tab->extrema + M;
   for (ic = 0; ic < tab->nc; ic += tab->K[0]) {
     for (m = 0; m < M; m++, dcrd++) {
       if (tab->K[0] > 1) {
-        /* Extrapolate a little before the start of the row. */
+        // Extrapolate a little before the start of the row.
         Psi = tab->index[0];
         if (Psi == 0x0) {
           dPsi = 1.0;
@@ -919,7 +916,7 @@ int tabset(struct tabprm *tab)
         if (*(dmin+m) > *dcrd) *(dmin+m) = *dcrd;
 
         if (tab->K[0] > 1 && i == tab->K[0]-1) {
-          /* Extrapolate a little beyond the end of the row. */
+          // Extrapolate a little beyond the end of the row.
           Psi = tab->index[0];
           if (Psi == 0x0) {
             dPsi = 1.0;
@@ -947,7 +944,7 @@ int tabset(struct tabprm *tab)
   return 0;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
 int tabx2s(
   struct tabprm *tab,
@@ -970,12 +967,12 @@ int tabx2s(
   if (tab == 0x0) return TABERR_NULL_POINTER;
   err = &(tab->err);
 
-  /* Initialize if required. */
+  // Initialize if required.
   if (tab->flag != TABSET) {
     if ((status = tabset(tab))) return status;
   }
 
-  /* This is used a lot. */
+  // This is used a lot.
   M = tab->M;
 
   status = 0;
@@ -983,25 +980,25 @@ int tabx2s(
   wp = world;
   statp = stat;
   for (n = 0; n < ncoord; n++) {
-    /* Determine the indexes. */
+    // Determine the indexes.
     Km = tab->K;
     for (m = 0; m < M; m++, Km++) {
-      /* N.B. psi_m and Upsilon_m are 1-relative FITS indexes. */
+      // N.B. psi_m and Upsilon_m are 1-relative FITS indexes.
       i = tab->map[m];
       psi_m = *(xp+i) + tab->crval[m];
 
       Psi = tab->index[m];
       if (Psi == 0x0) {
-        /* Default indexing is simple. */
+        // Default indexing is simple.
         upsilon = psi_m;
 
       } else {
-        /* To ease confusion, decrement Psi so that we can use 1-relative
-           C array indexing to match the 1-relative FITS indexing. */
+        // To ease confusion, decrement Psi so that we can use 1-relative
+        // C array indexing to match the 1-relative FITS indexing.
         Psi--;
 
         if (*Km == 1) {
-          /* Index vector is degenerate. */
+          // Index vector is degenerate.
           if (Psi[1]-0.5 <= psi_m && psi_m <= Psi[1]+0.5) {
             upsilon = psi_m;
           } else {
@@ -1011,16 +1008,16 @@ int tabx2s(
           }
 
         } else {
-          /* Interpolate in the indexing vector. */
+          // Interpolate in the indexing vector.
           if (tab->sense[m] == 1) {
-            /* Monotonic increasing index values. */
+            // Monotonic increasing index values.
             if (psi_m < Psi[1]) {
               if (Psi[1] - 0.5*(Psi[2]-Psi[1]) <= psi_m) {
-                /* Allow minor extrapolation. */
+                // Allow minor extrapolation.
                 k = 1;
 
               } else {
-                /* Index is out of range. */
+                // Index is out of range.
                 *statp = 1;
                 status = wcserr_set(TAB_ERRMSG(TABERR_BAD_X));
                 goto next;
@@ -1028,11 +1025,11 @@ int tabx2s(
 
             } else if (Psi[*Km] < psi_m) {
               if (psi_m <= Psi[*Km] + 0.5*(Psi[*Km]-Psi[*Km-1])) {
-                /* Allow minor extrapolation. */
+                // Allow minor extrapolation.
                 k = *Km - 1;
 
               } else {
-                /* Index is out of range. */
+                // Index is out of range.
                 *statp = 1;
                 status = wcserr_set(TAB_ERRMSG(TABERR_BAD_X));
                 goto next;
@@ -1053,14 +1050,14 @@ int tabx2s(
             }
 
           } else {
-            /* Monotonic decreasing index values. */
+            // Monotonic decreasing index values.
             if (psi_m > Psi[1]) {
               if (Psi[1] + 0.5*(Psi[1]-Psi[2]) >= psi_m) {
-                /* Allow minor extrapolation. */
+                // Allow minor extrapolation.
                 k = 1;
 
               } else {
-                /* Index is out of range. */
+                // Index is out of range.
                 *statp = 1;
                 status = wcserr_set(TAB_ERRMSG(TABERR_BAD_X));
                 goto next;
@@ -1068,11 +1065,11 @@ int tabx2s(
 
             } else if (psi_m < Psi[*Km]) {
               if (Psi[*Km] - 0.5*(Psi[*Km-1]-Psi[*Km]) <= psi_m) {
-                /* Allow minor extrapolation. */
+                // Allow minor extrapolation.
                 k = *Km - 1;
 
               } else {
-                /* Index is out of range. */
+                // Index is out of range.
                 *statp = 1;
                 status = wcserr_set(TAB_ERRMSG(TABERR_BAD_X));
                 goto next;
@@ -1098,41 +1095,41 @@ int tabx2s(
       }
 
       if (upsilon < 0.5 || upsilon > *Km + 0.5) {
-        /* Index out of range. */
+        // Index out of range.
         *statp = 1;
         status = wcserr_set(TAB_ERRMSG(TABERR_BAD_X));
         goto next;
       }
 
-      /* Fiducial array indices and fractional offset.
-         p1 is 1-relative while tab::p0 is 0-relative. */
+      // Fiducial array indices and fractional offset.
+      // p1 is 1-relative while tab::p0 is 0-relative.
       p1 = (int)floor(upsilon);
       tab->p0[m] = p1 - 1;
       tab->delta[m] = upsilon - p1;
 
       if (p1 == 0) {
-        /* Extrapolation below p1 == 1. */
+        // Extrapolation below p1 == 1.
         tab->p0[m] += 1;
         tab->delta[m] -= 1.0;
       } else if (p1 == *Km && *Km > 1) {
-        /* Extrapolation above p1 == K_m. */
+        // Extrapolation above p1 == K_m.
         tab->p0[m] -= 1;
         tab->delta[m] += 1.0;
       }
     }
 
 
-    /* Now interpolate in the coordinate array; the M-dimensional linear  */
-    /* interpolation algorithm is described in Sect. 3.4 of WCS Paper IV. */
+    // Now interpolate in the coordinate array; the M-dimensional linear
+    // interpolation algorithm is described in Sect. 3.4 of WCS Paper IV.
     for (m = 0; m < M; m++) {
      i = tab->map[m];
      *(wp+i) = 0.0;
     }
 
-    /* Loop over the 2^M vertices surrounding P. */
+    // Loop over the 2^M vertices surrounding P.
     nv = 1 << M;
     for (iv = 0; iv < nv; iv++) {
-      /* Locate vertex in the coordinate array and compute its weight. */
+      // Locate vertex in the coordinate array and compute its weight.
       offset = 0;
       wgt = 1.0;
       for (m = M-1; m >= 0; m--) {
@@ -1148,7 +1145,7 @@ int tabx2s(
 
       if (wgt == 0.0) continue;
 
-      /* Add the contribution from this vertex to each element. */
+      // Add the contribution from this vertex to each element.
       coord = tab->coord + offset*M;
       for (m = 0; m < M; m++) {
         i = tab->map[m];
@@ -1169,9 +1166,9 @@ next:
   return status;
 }
 
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
 
-/* Helper functions used only by tabs2x(). */
+// Helper functions used only by tabs2x().
 static int tabedge(struct tabprm *);
 static int tabrow(struct tabprm *, const double *);
 static int tabvox(struct tabprm *, const double *, int, double **,
@@ -1198,12 +1195,12 @@ int tabs2x(
   if (tab == 0x0) return TABERR_NULL_POINTER;
   err = &(tab->err);
 
-  /* Initialize if required. */
+  // Initialize if required.
   if (tab->flag != TABSET) {
     if ((status = tabset(tab))) return status;
   }
 
-  /* This is used a lot. */
+  // This is used a lot.
   M = tab->M;
 
   tabcoord = 0x0;
@@ -1219,7 +1216,7 @@ int tabs2x(
   xp = x;
   statp = stat;
   for (n = 0; n < ncoord; n++) {
-    /* Locate this coordinate in the coordinate array. */
+    // Locate this coordinate in the coordinate array.
     edge = 0;
     for (m = 0; m < M; m++) {
       tab->p0[m] = 0;
@@ -1227,23 +1224,23 @@ int tabs2x(
 
     for (ic = 0; ic < tab->nc; ic++) {
       if (tab->p0[0] == 0) {
-        /* New row, could it contain a solution? */
+        // New row, could it contain a solution?
         if (edge || tabrow(tab, wp)) {
-          /* No, skip it. */
+          // No, skip it.
           ic += tab->K[0];
           if (1 < M) {
             tab->p0[1]++;
             edge = tabedge(tab);
           }
 
-          /* Because ic will be incremented when the loop is reentered. */
+          // Because ic will be incremented when the loop is reentered.
           ic--;
           continue;
         }
       }
 
       if (M == 1) {
-        /* Deal with the one-dimensional case separately for efficiency. */
+        // Deal with the one-dimensional case separately for efficiency.
         if (*wp == tab->coord[0]) {
           tab->p0[0] = 0;
           tab->delta[0] = 0.0;
@@ -1262,9 +1259,9 @@ int tabs2x(
         }
 
       } else {
-        /* Multi-dimensional tables are harder. */
+        // Multi-dimensional tables are harder.
         if (!edge) {
-          /* Addresses of the coordinates for each corner of the "voxel". */
+          // Addresses of the coordinates for each corner of the "voxel".
           for (iv = 0; iv < nv; iv++) {
             offset = 0;
             for (m = M-1; m >= 0; m--) {
@@ -1276,12 +1273,12 @@ int tabs2x(
           }
 
           if (tabvox(tab, wp, 0, tabcoord, 0x0) == 0) {
-            /* Found a solution. */
+            // Found a solution.
             break;
           }
         }
 
-        /* Next voxel. */
+        // Next voxel.
         tab->p0[0]++;
         edge = tabedge(tab);
       }
@@ -1289,9 +1286,9 @@ int tabs2x(
 
 
     if (ic == tab->nc) {
-      /* Coordinate not found; allow minor extrapolation. */
+      // Coordinate not found; allow minor extrapolation.
       if (M == 1) {
-        /* Should there be a solution? */
+        // Should there be a solution?
         if (tab->extrema[0] <= *wp && *wp <= tab->extrema[1]) {
           dcrd = tab->coord;
           for (i = 0; i < 2; i++) {
@@ -1317,43 +1314,43 @@ int tabs2x(
         }
 
       } else {
-        /* Multi-dimensional tables. */
-        /* >>> TBD <<< */
+        // Multi-dimensional tables.
+        // >>> TBD <<<
       }
     }
 
 
     if (ic == tab->nc) {
-      /* Coordinate not found. */
+      // Coordinate not found.
       *statp = 1;
       status = wcserr_set(TAB_ERRMSG(TABERR_BAD_WORLD));
 
     } else {
-      /* Determine the intermediate world coordinates. */
+      // Determine the intermediate world coordinates.
       Km = tab->K;
       for (m = 0; m < M; m++, Km++) {
-        /* N.B. Upsilon_m and psi_m are 1-relative FITS indexes. */
+        // N.B. Upsilon_m and psi_m are 1-relative FITS indexes.
         upsilon = (tab->p0[m] + 1) + tab->delta[m];
 
         if (upsilon < 0.5 || upsilon > *Km + 0.5) {
-          /* Index out of range. */
+          // Index out of range.
           *statp = 1;
           status = wcserr_set(TAB_ERRMSG(TABERR_BAD_WORLD));
 
         } else {
-          /* Do inverse lookup of the index vector. */
+          // Do inverse lookup of the index vector.
           Psi = tab->index[m];
           if (Psi == 0x0) {
-            /* Default indexing. */
+            // Default indexing.
             psi_m = upsilon;
 
           } else {
-            /* Decrement Psi and use 1-relative C array indexing to match the
-               1-relative FITS indexing. */
+            // Decrement Psi and use 1-relative C array indexing to match the
+            // 1-relative FITS indexing.
             Psi--;
 
             if (*Km == 1) {
-              /* Degenerate index vector. */
+              // Degenerate index vector.
               psi_m = Psi[1];
             } else {
               k = (int)(upsilon);
@@ -1396,14 +1393,14 @@ int tabedge(struct tabprm* tab)
   edge = 0;
   for (m = 0; m < tab->M; m++) {
     if (tab->p0[m] == tab->K[m]) {
-      /* p0 has been incremented beyond the end of an index vector, point it
-         to the next one. */
+      // p0 has been incremented beyond the end of an index vector, point it
+      // to the next one.
       tab->p0[m] = 0;
       if (m < tab->M-1) {
         tab->p0[m+1]++;
       }
     } else if (tab->p0[m] == tab->K[m]-1 && tab->K[m] > 1) {
-      /* p0 is sitting at the end of a non-degenerate index vector. */
+      // p0 is sitting at the end of a non-degenerate index vector.
       edge = 1;
     }
   }
@@ -1450,48 +1447,48 @@ int tabrow(struct tabprm* tab, const double *wp)
 
   M = tab->M;
 
-  /* The number of corners in a "voxel".  We need examine only half this
-     number of rows.  The extra factor of two will be used to select between
-     the minimal and maximal values in each row. */
+  // The number of corners in a "voxel".  We need examine only half this
+  // number of rows.  The extra factor of two will be used to select between
+  // the minimal and maximal values in each row.
   nv = 1 << M;
 
   eq = 0;
   lt = 0;
   gt = 0;
   for (iv = 0; iv < nv; iv++) {
-    /* Find the index into tabprm::extrema for this row. */
+    // Find the index into tabprm::extrema for this row.
     offset = 0;
     for (m = M-1; m > 0; m--) {
       offset *= tab->K[m];
       offset += tab->p0[m];
 
-      /* Select the row. */
+      // Select the row.
       if (iv & (1 << m)) {
         if (tab->K[m] > 1) offset++;
       }
     }
 
-    /* The K_1 dimension has length 2 (see prologue). */
+    // The K_1 dimension has length 2 (see prologue).
     offset *= 2;
 
-    /* Select the minimum on even numbered iterations, else the maximum. */
+    // Select the minimum on even numbered iterations, else the maximum.
     if (iv & 1) offset++;
 
-    /* The last dimension has length M (see prologue). */
+    // The last dimension has length M (see prologue).
     offset *= M;
 
-    /* Address of the extremal elements (min or max) for this row. */
+    // Address of the extremal elements (min or max) for this row.
     cp = tab->extrema + offset;
 
-    /* For each coordinate element, we only need to find one row where its
-       minimum value is less than that of wp, and one row where the maximum
-       value is greater.  That doesn't mean that there is a solution, only
-       that there might be. */
+    // For each coordinate element, we only need to find one row where its
+    // minimum value is less than that of wp, and one row where the maximum
+    // value is greater.  That doesn't mean that there is a solution, only
+    // that there might be.
     for (m = 0; m < M; m++, cp++) {
-      /* Apply the axis mapping. */
+      // Apply the axis mapping.
       w = wp[tab->map[m]];
 
-      /* Finally the test itself; set bits in the bitmask. */
+      // Finally the test itself; set bits in the bitmask.
       if (fabs(*cp - w) < tol) {
         eq |= (1 << m);
       } else if (*cp < w) {
@@ -1501,14 +1498,14 @@ int tabrow(struct tabprm* tab, const double *wp)
       }
     }
 
-    /* Have all bits been switched on? */
+    // Have all bits been switched on?
     if ((lt | eq) == nv-1 && (gt | eq) == nv-1) {
-      /* A solution could lie within this row of voxels. */
+      // A solution could lie within this row of voxels.
       return 0;
     }
   }
 
-  /* No solution in this row. */
+  // No solution in this row.
   return 1;
 }
 
@@ -1547,7 +1544,7 @@ int tabvox(
 
   M = tab->M;
 
-  /* The number of corners in a voxel. */
+  // The number of corners in a voxel.
   nv = 1 << M;
 
   dv = 1.0;
@@ -1555,14 +1552,14 @@ int tabvox(
     dv /= 2.0;
   }
 
-  /* Could the coordinate lie within this voxel (level == 0) or sub-voxel
-     (level > 0)?  We use the fact that with linear interpolation the
-     coordinate elements are extremal in a corner and test each one. */
+  // Could the coordinate lie within this voxel (level == 0) or sub-voxel
+  // (level > 0)?  We use the fact that with linear interpolation the
+  // coordinate elements are extremal in a corner and test each one.
   lt = 0;
   gt = 0;
   eq = 0;
   for (iv = 0; iv < nv; iv++) {
-    /* Select a corner of the sub-voxel. */
+    // Select a corner of the sub-voxel.
     for (m = 0; m < M; m++) {
       coord[m] = 0.0;
       tab->delta[m] = level ? dv*vox[m] : 0.0;
@@ -1572,11 +1569,11 @@ int tabvox(
       }
     }
 
-    /* Compute the coordinates of this corner of the sub-voxel by linear
-       interpolation using the weighting algorithm described in Sect. 3.4 of
-       WCS Paper IV. */
+    // Compute the coordinates of this corner of the sub-voxel by linear
+    // interpolation using the weighting algorithm described in Sect. 3.4 of
+    // WCS Paper IV.
     for (jv = 0; jv < nv; jv++) {
-      /* Find the weight for this corner of the parent voxel. */
+      // Find the weight for this corner of the parent voxel.
       wgt = 1.0;
       for (m = 0; m < M; m++) {
         if (jv & (1 << m)) {
@@ -1588,7 +1585,7 @@ int tabvox(
 
       if (wgt == 0.0) continue;
 
-      /* Add its contribution to each coordinate element. */
+      // Add its contribution to each coordinate element.
       cp = tabcoord[jv];
       for (m = 0; m < M; m++) {
         coord[m] += *(cp++) * wgt;
@@ -1597,13 +1594,13 @@ int tabvox(
       if (wgt == 1.0) break;
     }
 
-    /* Coordinate elements are minimal or maximal in a corner. */
+    // Coordinate elements are minimal or maximal in a corner.
     et = 0;
     for (m = 0; m < M; m++) {
-      /* Apply the axis mapping. */
+      // Apply the axis mapping.
       w = wp[tab->map[m]];
 
-      /* Finally the test itself; set bits in the bitmask. */
+      // Finally the test itself; set bits in the bitmask.
       if (fabs(coord[m] - w) < tol) {
         et |= (1 << m);
       } else if (coord[m] < w) {
@@ -1614,20 +1611,20 @@ int tabvox(
     }
 
     if (et == nv-1) {
-      /* We've stumbled across a solution in this corner of the sub-voxel. */
+      // We've stumbled across a solution in this corner of the sub-voxel.
       return 0;
     }
 
     eq |= et;
   }
 
-  /* Could the coordinate lie within this sub-voxel? */
+  // Could the coordinate lie within this sub-voxel?
   if ((lt | eq) == nv-1 && (gt | eq) == nv-1) {
-    /* Yes it could, but does it? */
+    // Yes it could, but does it?
 
-    /* Is it time to stop the recursion? */
+    // Is it time to stop the recursion?
     if (level == 31) {
-      /* We have a solution, squeeze out the last bit of juice. */
+      // We have a solution, squeeze out the last bit of juice.
       dv /= 2.0;
       for (m = 0; m < M; m++) {
         tab->delta[m] = dv * (2.0*vox[m] + 1.0);
@@ -1636,9 +1633,9 @@ int tabvox(
       return 0;
     }
 
-    /* Subdivide the sub-voxel and try again for each subdivision. */
+    // Subdivide the sub-voxel and try again for each subdivision.
     for (iv = 0; iv < nv; iv++) {
-      /* Select the subdivision. */
+      // Select the subdivision.
       for (m = 0; m < M; m++) {
         vox2[m] = level ? 2*vox[m] : 0;
         if (iv & (1 << m)) {
@@ -1646,13 +1643,13 @@ int tabvox(
         }
       }
 
-      /* Recurse. */
+      // Recurse.
       if (tabvox(tab, wp, level+1, tabcoord, vox2) == 0) {
         return 0;
       }
     }
   }
 
-  /* No solution in this sub-voxel. */
+  // No solution in this sub-voxel.
   return 1;
 }

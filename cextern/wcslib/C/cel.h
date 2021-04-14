@@ -1,7 +1,6 @@
 /*============================================================================
-
-  WCSLIB 7.3 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2020, Mark Calabretta
+  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,14 +17,12 @@
   You should have received a copy of the GNU Lesser General Public License
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
-  Direct correspondence concerning WCSLIB to mark@calabretta.id.au
-
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.h,v 7.3 2020/06/03 03:37:02 mcalabre Exp $
+  $Id: cel.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.3 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -382,50 +379,50 @@ extern "C" {
 extern const char *cel_errmsg[];
 
 enum cel_errmsg_enum {
-  CELERR_SUCCESS         = 0,	/* Success. */
-  CELERR_NULL_POINTER    = 1,	/* Null celprm pointer passed. */
-  CELERR_BAD_PARAM       = 2,	/* Invalid projection parameters. */
-  CELERR_BAD_COORD_TRANS = 3,	/* Invalid coordinate transformation
-				   parameters. */
-  CELERR_ILL_COORD_TRANS = 4,	/* Ill-conditioned coordinated transformation
-				   parameters. */
-  CELERR_BAD_PIX         = 5,	/* One or more of the (x,y) coordinates were
-				   invalid. */
-  CELERR_BAD_WORLD       = 6 	/* One or more of the (lng,lat) coordinates
-				   were invalid. */
+  CELERR_SUCCESS         = 0,	// Success.
+  CELERR_NULL_POINTER    = 1,	// Null celprm pointer passed.
+  CELERR_BAD_PARAM       = 2,	// Invalid projection parameters.
+  CELERR_BAD_COORD_TRANS = 3,	// Invalid coordinate transformation
+				// parameters.
+  CELERR_ILL_COORD_TRANS = 4,	// Ill-conditioned coordinated transformation
+				// parameters.
+  CELERR_BAD_PIX         = 5,	// One or more of the (x,y) coordinates were
+				// invalid.
+  CELERR_BAD_WORLD       = 6 	// One or more of the (lng,lat) coordinates
+				// were invalid.
 };
 
 struct celprm {
-  /* Initialization flag (see the prologue above).                          */
-  /*------------------------------------------------------------------------*/
-  int    flag;			/* Set to zero to force initialization.     */
+  // Initialization flag (see the prologue above).
+  //--------------------------------------------------------------------------
+  int    flag;			// Set to zero to force initialization.
 
-  /* Parameters to be provided (see the prologue above).                    */
-  /*------------------------------------------------------------------------*/
-  int    offset;		/* Force (x,y) = (0,0) at (phi_0,theta_0).  */
-  double phi0, theta0;		/* Native coordinates of fiducial point.    */
-  double ref[4];		/* Celestial coordinates of fiducial        */
-                                /* point and native coordinates of          */
-                                /* celestial pole.                          */
+  // Parameters to be provided (see the prologue above).
+  //--------------------------------------------------------------------------
+  int    offset;		// Force (x,y) = (0,0) at (phi_0,theta_0).
+  double phi0, theta0;		// Native coordinates of fiducial point.
+  double ref[4];		// Celestial coordinates of fiducial
+                                // point and native coordinates of
+                                // celestial pole.
 
-  struct prjprm prj;		/* Projection parameters (see prj.h).       */
+  struct prjprm prj;		// Projection parameters (see prj.h).
 
-  /* Information derived from the parameters supplied.                      */
-  /*------------------------------------------------------------------------*/
-  double euler[5];		/* Euler angles and functions thereof.      */
-  int    latpreq;		/* LATPOLEa requirement.                    */
-  int    isolat;		/* True if |latitude| is preserved.         */
+  // Information derived from the parameters supplied.
+  //--------------------------------------------------------------------------
+  double euler[5];		// Euler angles and functions thereof.
+  int    latpreq;		// LATPOLEa requirement.
+  int    isolat;		// True if |latitude| is preserved.
 
-  /* Error handling                                                         */
-  /*------------------------------------------------------------------------*/
+  // Error handling
+  //--------------------------------------------------------------------------
   struct wcserr *err;
 
-  /* Private                                                                */
-  /*------------------------------------------------------------------------*/
-  void   *padding;		/* (Dummy inserted for alignment purposes.) */
+  // Private
+  //--------------------------------------------------------------------------
+  void   *padding;		// (Dummy inserted for alignment purposes.)
 };
 
-/* Size of the celprm struct in int units, used by the Fortran wrappers. */
+// Size of the celprm struct in int units, used by the Fortran wrappers.
 #define CELLEN (sizeof(struct celprm)/sizeof(int))
 
 
@@ -450,7 +447,7 @@ int cels2x(struct celprm *cel, int nlng, int nlat, int sll, int sxy,
            int stat[]);
 
 
-/* Deprecated. */
+// Deprecated.
 #define celini_errmsg cel_errmsg
 #define celprt_errmsg cel_errmsg
 #define celset_errmsg cel_errmsg
@@ -461,4 +458,4 @@ int cels2x(struct celprm *cel, int nlng, int nlat, int sll, int sxy,
 }
 #endif
 
-#endif /* WCSLIB_CEL */
+#endif // WCSLIB_CEL

@@ -15,20 +15,10 @@ from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
-
-try:
+from astropy.io.misc.hdf5 import meta_path
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_YAML  # noqa
+if HAS_H5PY:
     import h5py
-except ImportError:
-    HAS_H5PY = False
-else:
-    HAS_H5PY = True
-
-try:
-    import yaml  # noqa
-except ImportError:
-    HAS_YAML = False
-else:
-    HAS_YAML = True
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
@@ -461,6 +451,11 @@ def test_preserve_serialized(tmpdir):
     assert t1['a'].description == t2['a'].description
     assert t1['a'].meta == t2['a'].meta
     assert t1.meta == t2.meta
+
+    # Check that the meta table is fixed-width bytes (see #11299)
+    h5 = h5py.File(test_file, 'r')
+    meta_lines = h5[meta_path('the_table')]
+    assert meta_lines.dtype.kind == 'S'
 
 
 @pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
