@@ -1,5 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""This module defines a logging class based on the built-in logging module"""
+"""This module defines a logging class based on the built-in logging module.
+
+.. note::
+
+    This module is meant for ``astropy`` usage.
+    If you wish to use it for your own packages, your mileage might vary.
+
+"""
 
 import inspect
 import os
