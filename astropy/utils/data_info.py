@@ -64,8 +64,10 @@ def serialize_context_as(context):
     """
     old_context = BaseColumnInfo._serialize_context
     BaseColumnInfo._serialize_context = context
-    yield
-    BaseColumnInfo._serialize_context = old_context
+    try:
+        yield
+    finally:
+        BaseColumnInfo._serialize_context = old_context
 
 
 def dtype_info_name(dtype):
