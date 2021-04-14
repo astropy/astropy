@@ -186,11 +186,27 @@ class VOUnit(generic.Generic):
                     return core.PrefixUnit(
                         [prefix + x for x in base_unit.names],
                         core.CompositeUnit(factor, [base_unit], [1],
-                                        _error_check=False),
+                                           _error_check=False),
                         format={'vounit': prefix + base_unit.names[-1]},
                         namespace=cls._custom_units)
 
         return def_base(unit)
+
+    @classmethod
+    def _format_unit_list(cls, units):
+        out = []
+        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
+
+        for base, power in units:
+            if power == 1:
+                out.append(cls._get_unit_name(base))
+            else:
+                power = utils.format_power(power)
+                if '/' in power or '.' in power:
+                    out.append(f'{cls._get_unit_name(base)}({power})')
+                else:
+                    out.append(f'{cls._get_unit_name(base)}**{power}')
+        return '.'.join(out)
 
     @classmethod
     def to_string(cls, unit):
