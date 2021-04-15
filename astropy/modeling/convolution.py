@@ -13,6 +13,8 @@ class Convolution(CompoundModel):
 
     Parameters
     ----------
+    operator: tuple
+        The SPECIAL_OPERATORS entry for the convolution being used.
     model : Model
         The model for the convolution.
     kernel: Model
@@ -45,8 +47,8 @@ class Convolution(CompoundModel):
     interpolates the results from this cache.
     """
 
-    def __init__(self, model, kernel, bounding_box, resolution, cache=True):
-        super().__init__('convolve_fft', model, kernel)
+    def __init__(self, operator, model, kernel, bounding_box, resolution, cache=True):
+        super().__init__(operator, model, kernel)
 
         self.bounding_box = bounding_box
         self._resolution = resolution
