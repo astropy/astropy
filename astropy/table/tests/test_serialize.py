@@ -34,6 +34,12 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
+    # For a column that is a native astropy Column, ignore the specified
+    # `attrs`. This happens for a mixin like Quantity that is stored in a
+    # `Table` (not QTable).
+    if isinstance(obj1, Column):
+        attrs = []
+
     assert obj1.shape == obj2.shape
 
     info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
@@ -53,6 +59,13 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
         else:
             assert np.all(a1 == a2)
 
+    # For no attrs that means we just compare directly.
+    if not attrs:
+        if isinstance(obj1, np.ndarray) and obj1.dtype.kind == 'f':
+            assert quantity_allclose(obj1, obj2, rtol=1e-10)
+        else:
+            assert np.all(obj1 == obj2)
+
 
 # TODO: unify with the very similar tests in fits/tests/test_connect.py.
 el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
@@ -71,6 +84,7 @@ tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=e
 tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
+obj = Column([{'a': 1}, {'b': [2]}], dtype='object')
 
 # NOTE: in the test below the name of the column "x" for the Quantity is
 # important since it tests the fix for #10215 (namespace clash, where "x"
@@ -96,7 +110,8 @@ mixin_cols = {
     'cr': cr,
     'sd': sd,
     'srd': srd,
-    'nd': NdarrayMixin([1, 2])
+    'nd': NdarrayMixin([1, 2]),
+    'obj': obj
 }
 
 time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
@@ -125,6 +140,7 @@ compare_attrs = {
     'sd': ['d_lon_coslat', 'd_lat', 'd_distance'],
     'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
             'differentials.s.d_lat', 'differentials.s.d_distance'],
+    'obj': []
 }
 
 
@@ -194,6 +210,7 @@ def test_ecsv_mixins_as_one(table_cls):
                         'lat',
                         'lon',
                         'nd',
+                        'obj',
                         'qdb',
                         'qdex',
                         'qmag',
@@ -257,9 +274,6 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
     t = table_cls([c, col, c], names=['c1', name, 'c2'])
     t[name].info.description = 'description'
 
-    if not t.has_mixin_columns:
-        pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
-
     out = StringIO()
     t.write(out, format="ascii.ecsv")
     t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
@@ -285,7 +299,7 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
     t['c'][0] = ''  # This would come back as masked for default "" NULL marker
 
     # MaskedColumn with no masked elements. See table the MaskedColumnInfo class
-    # _represent_as_dict() method for info about we test a column with no masked elements.
+    # _represent_as_dict() method for info about how we test a column with no masked elements.
     t['d'] = [1, 2, 3]
 
     t.write(filename, serialize_method='data_mask')
