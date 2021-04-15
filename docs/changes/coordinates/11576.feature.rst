@@ -1,0 +1,2 @@
+``RadialRepresentation.transform`` can work with a multiplication matrix only.
+All other matrices still raise an exception.
