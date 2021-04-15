@@ -58,22 +58,22 @@ class LombScargle(BasePeriodogram):
     --------
     Generate noisy periodic data:
 
-    >>> rand = np.random.RandomState(42)
-    >>> t = 100 * rand.rand(100)
-    >>> y = np.sin(2 * np.pi * t) + rand.randn(100)
+    >>> rand = np.random.default_rng(42)
+    >>> t = 100 * rand.random(100)
+    >>> y = np.sin(2 * np.pi * t) + rand.standard_normal(100)
 
     Compute the Lomb-Scargle periodogram on an automatically-determined
     frequency grid & find the frequency of max power:
 
     >>> frequency, power = LombScargle(t, y).autopower()
     >>> frequency[np.argmax(power)]  # doctest: +FLOAT_CMP
-    1.0016662310392956
+    1.0007641728995051
 
     Compute the Lomb-Scargle periodogram at a user-specified frequency grid:
 
     >>> freq = np.arange(0.8, 1.3, 0.1)
     >>> LombScargle(t, y).power(freq)  # doctest: +FLOAT_CMP
-    array([0.0204304 , 0.01393845, 0.35552682, 0.01358029, 0.03083737])
+    array([0.0792948 , 0.01778874, 0.25328167, 0.01064157, 0.01471387])
 
     If the inputs are astropy Quantities with units, the units will be
     validated and the outputs will also be Quantities with appropriate units:

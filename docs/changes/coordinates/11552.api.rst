@@ -1,0 +1,1 @@
+Allow coordinate name strings as input to ``SkyCoord.is_transformable_to``
