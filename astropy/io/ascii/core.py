@@ -247,6 +247,12 @@ class BoolType(NoType):
     """
 
 
+class ObjectType(NoType):
+    """
+    Describes object data.
+    """
+
+
 class IntType(NumType):
     """
     Describes integer data.
@@ -949,6 +955,8 @@ def convert_numpy(numpy_type):
         converter_type = BoolType
     elif 'str' in type_name:
         converter_type = StrType
+    elif 'object' in type_name:
+        converter_type = ObjectType
     else:
         converter_type = AllType
 
@@ -1034,7 +1042,7 @@ class BaseOutputter:
                     converter_func, converter_type = col.converters[0]
                     if not issubclass(converter_type, col.type):
                         raise TypeError('converter type does not match column type')
-                    if col.shape:  # or object type, later?
+                    if col.shape or converter_type is ObjectType:
                         import json
                         try:
                             col_vals = [json.loads(val) for val in col.str_vals]

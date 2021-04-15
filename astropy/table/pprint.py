@@ -469,6 +469,8 @@ class TableFormatter:
         def format_col_str_json(idx):
             if multidims:
                 return json.dumps(col[idx].tolist(), separators=(',', ':'))
+            elif col.info.dtype.kind == 'O':
+                return json.dumps(col[idx], separators=(',', ':'))
             else:
                 return format_func(col_format, col[idx])  # str(col[idx]) ??
 
