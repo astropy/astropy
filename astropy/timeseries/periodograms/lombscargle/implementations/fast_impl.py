@@ -14,9 +14,9 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     Parameters
     ----------
-    t, y, dy : array-like  (NOT astropy.Quantities)
+    t, y, dy : array-like
         times, values, and errors of the data points. These should be
-        broadcastable to the same shape.
+        broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     f0, df, Nf : (float, float, int)
         parameters describing the frequency grid, f = f0 + df * arange(Nf).
     center_data : bool (default=True)

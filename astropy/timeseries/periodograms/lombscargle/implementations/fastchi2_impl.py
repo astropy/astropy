@@ -16,9 +16,9 @@ def lombscargle_fastchi2(t, y, dy, f0, df, Nf, normalization='standard',
 
     Parameters
     ----------
-    t, y, dy : array-like  (NOT astropy.Quantities)
+    t, y, dy : array-like
         times, values, and errors of the data points. These should be
-        broadcastable to the same shape.
+        broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     f0, df, Nf : (float, float, int)
         parameters describing the frequency grid, f = f0 + df * arange(Nf).
     normalization : str, optional
