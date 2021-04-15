@@ -486,7 +486,7 @@ def get_physical_type(obj):
 
     Returns
     -------
-    physical_type : `PhysicalType`
+    physical_type : `~astropy.units.PhysicalType`
         A representation of the physical type(s) of the unit.
 
     Examples
