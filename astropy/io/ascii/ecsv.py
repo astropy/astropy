@@ -162,7 +162,7 @@ class EcsvHeader(basic.BasicHeader):
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
         for col in self.cols:
-            for attr in ('description', 'format', 'unit', 'meta'):
+            for attr in ('description', 'format', 'unit', 'meta', 'shape'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
             col.dtype = header_cols[col.name]['datatype']

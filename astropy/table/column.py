@@ -3,7 +3,6 @@
 import itertools
 import warnings
 import weakref
-import json
 
 from copy import deepcopy
 
@@ -14,6 +13,7 @@ from astropy.units import Unit, Quantity
 from astropy.utils.console import color_print
 from astropy.utils.metadata import MetaData
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.misc import dtype_bytes_or_chars
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name

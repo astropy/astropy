@@ -172,6 +172,9 @@ def _get_col_attributes(col):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
     attrs['datatype'] = type_name
 
+    if len(col.shape) > 1:
+        attrs['shape'] = list(col.shape[1:])
+
     # Set the output attributes
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
                                     ('format', lambda x: x is not None, None),
