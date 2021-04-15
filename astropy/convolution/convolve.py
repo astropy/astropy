@@ -581,7 +581,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     array([0.5, 2. , 1.5])
 
     >>> convolve_fft([1, 0, 3], [0, 1, 0])
-    array([1., 0., 3.])
+    array([ 1.00000000e+00, -3.70074342e-17,  3.00000000e+00])
 
     >>> convolve_fft([1, 2, 3], [1])
     array([1., 2., 3.])
