@@ -141,15 +141,6 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
             new_name = name + '.' + data_attr
             new_info = {}
 
-        # If the data attribute is not a Mixin (aka a Column or ndarray) and
-        # multidimensional. For instance saving an N-d Time object can send a
-        # data attribute that is an N-d np.ndarray, so we need to recast that
-        # as NdarrayMixin so it gets flattened (in the right context i.e. ECSV).
-        if (not has_info_class(data, MixinInfo)
-                and col.info._serialize_context in FLATTEN_MULTIDIM
-                and len(data.shape) > 1):
-            data = NdarrayMixin(data)
-
         if not has_info_class(data, MixinInfo):
             col_cls = MaskedColumn if (hasattr(data, 'mask')
                                        and np.any(data.mask)) else Column
