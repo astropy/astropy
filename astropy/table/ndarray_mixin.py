@@ -5,7 +5,7 @@ import itertools
 
 import numpy as np
 
-from astropy.utils.data_info import ParentDtypeInfo, FLATTEN_MULTIDIM
+from astropy.utils.data_info import ParentDtypeInfo, MULTIDIM_AS_JSON
 
 
 class NdarrayMixinInfo(ParentDtypeInfo):

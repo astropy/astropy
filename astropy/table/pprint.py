@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy import log
 from astropy.utils.console import Getch, color_print, terminal_size, conf
-from astropy.utils.data_info import FLATTEN_MULTIDIM, dtype_info_name
+from astropy.utils.data_info import MULTIDIM_AS_JSON, dtype_info_name
 
 __all__ = []
 
@@ -474,7 +474,7 @@ class TableFormatter:
             else:
                 return format_func(col_format, col[idx])  # str(col[idx]) ??
 
-        format_col_str = (format_col_str_json if col.info._serialize_context in FLATTEN_MULTIDIM
+        format_col_str = (format_col_str_json if col.info._serialize_context in MULTIDIM_AS_JSON
                           else format_col_str_normal)
 
         # Add formatted values if within bounds allowed by max_lines
