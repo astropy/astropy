@@ -11,4 +11,4 @@ Performance Tips
 The :func:`~astropy.convolution.convolve` function is best suited to small
 kernels, and can become very slow for larger kernels. In this case, consider
 using :func:`~astropy.convolution.convolve_fft` (though note that this function
-uses more memory).
+uses more memory, and consider the different padding options).

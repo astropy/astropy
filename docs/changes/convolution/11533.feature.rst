@@ -1,0 +1,4 @@
+Change padding sizes for ``fft_pad`` in ``convolve_fft`` from powers of
+2 only to scipy-optimized numbers, applied separately to each dimension;
+yielding some performance gains and avoiding potential large memory
+impact for certain multi-dimensional inputs.
