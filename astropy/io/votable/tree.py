@@ -3600,7 +3600,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         Parameters
         ----------
         fd : str or file-like
-            Where to write the file. If file, must be writable.
+            Where to write the file. If a file-like object, must be writable.
 
         compressed : bool, optional
             When `True`, write to a gzip-compressed file.  (Default:
