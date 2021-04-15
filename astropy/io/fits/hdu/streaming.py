@@ -38,8 +38,8 @@ class StreamingHDU:
 
         Parameters
         ----------
-        name : file path, file object, or file like object
-            The file to which the header and data will be streamed.  If opened,
+        name : path-like or file-like
+            The file to which the header and data will be streamed. If opened,
             the file object must be opened in a writeable binary mode such as
             'wb' or 'ab+'.
 

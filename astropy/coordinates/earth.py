@@ -217,9 +217,9 @@ class EarthLocation(u.Quantity):
 
         Parameters
         ----------
-        x, y, z : `~astropy.units.Quantity` or array_like
+        x, y, z : `~astropy.units.Quantity` or array-like
             Cartesian coordinates.  If not quantities, ``unit`` should be given.
-        unit : `~astropy.units.UnitBase` object or None
+        unit : unit-like or None
             Physical unit of the coordinate values.  If ``x``, ``y``, and/or
             ``z`` are quantities, they will be converted to this unit.
 
@@ -338,8 +338,9 @@ class EarthLocation(u.Quantity):
 
         Returns
         -------
-        site : This class (a `~astropy.coordinates.EarthLocation` or subclass)
-            The location of the observatory.
+        site : `~astropy.coordinates.EarthLocation` (or subclass) instance
+            The location of the observatory. The returned class will be the same
+            as this class.
 
         Examples
         --------
@@ -414,8 +415,9 @@ class EarthLocation(u.Quantity):
 
         Returns
         -------
-        location : This class (a `~astropy.coordinates.EarthLocation` or subclass)
+        location : `~astropy.coordinates.EarthLocation` (or subclass) instance
             The location of the input address.
+            Will be type(this class)
 
         References
         ----------
@@ -581,9 +583,10 @@ class EarthLocation(u.Quantity):
 
         Returns
         -------
-        (lon, lat, height) : tuple
-            The tuple contains instances of `~astropy.coordinates.Longitude`,
-            `~astropy.coordinates.Latitude`, and `~astropy.units.Quantity`
+        lon, lat, height : `~astropy.units.Quantity`
+            The tuple is a ``GeodeticLocation`` namedtuple and is comprised of
+            instances of `~astropy.coordinates.Longitude`,
+            `~astropy.coordinates.Latitude`, and `~astropy.units.Quantity`.
 
         Raises
         ------
@@ -756,7 +759,7 @@ class EarthLocation(u.Quantity):
             the Moon.  Earth is always included (because the class represents
             an *Earth* location).
 
-        masses : dict of str to Quantity, optional
+        masses : dict[str, `~astropy.units.Quantity`], optional
             The mass or gravitational parameters (G * mass) to assume for the
             bodies requested in ``bodies``. Can be used to override the
             defaults for the Sun, Jupiter, the Moon, and the Earth, or to
@@ -853,12 +856,13 @@ geodetic_base_doc = """{__doc__}
 
     Parameters
     ----------
-    lon, lat : `.Longitude`, `.Latitude` or equivalent
+    lon, lat : angle-like
         The longitude and latitude of the point(s), in angular units. The
         latitude should be between -90 and 90 degrees, and the longitude will
         be wrapped to an angle between 0 and 360 degrees. These can also be
-        instances of `~astropy.units.Quantity`, `~astropy.coordinates.Angle`,
-        `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
+        instances of `~astropy.coordinates.Angle` and either
+        `~astropy.coordinates.Longitude` not `~astropy.coordinates.Latitude`,
+        depending on the parameter.
     height : `~astropy.units.Quantity`
         The height to the point(s).
     copy : bool, optional

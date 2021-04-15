@@ -59,7 +59,7 @@ def circmean(data, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray or Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
@@ -73,7 +73,7 @@ def circmean(data, axis=None, weights=None):
 
     Returns
     -------
-    circmean : numpy.ndarray or Quantity
+    circmean : ndarray or `~astropy.units.Quantity`
         Circular mean.
 
     Examples
@@ -105,9 +105,10 @@ def circvar(data, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray or dimensionless Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
+        Dimensionless, if Quantity.
     axis : int, optional
         Axis along which circular variances are computed. The default is to
         compute the variance of the flattened array.
@@ -119,8 +120,8 @@ def circvar(data, axis=None, weights=None):
 
     Returns
     -------
-    circvar : numpy.ndarray or dimensionless Quantity
-        Circular variance.
+    circvar : ndarray or `~astropy.units.Quantity`
+        Circular variance. Dimensionless, if Quantity.
 
     Examples
     --------
@@ -164,9 +165,10 @@ def circstd(data, axis=None, weights=None, method='angular'):
 
     Parameters
     ----------
-    data : numpy.ndarray or dimensionless Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
+        If quantity, must be dimensionless.
     axis : int, optional
         Axis along which circular variances are computed. The default is to
         compute the variance of the flattened array.
@@ -185,8 +187,9 @@ def circstd(data, axis=None, weights=None, method='angular'):
 
     Returns
     -------
-    circstd : numpy.ndarray or dimensionless Quantity
+    circstd : ndarray or `~astropy.units.Quantity`
         Angular or circular standard deviation.
+        Dimensionless, if Quantity.
 
     Examples
     --------
@@ -232,7 +235,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray or Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
     p : float, optional
@@ -251,7 +254,7 @@ def circmoment(data, p=1.0, centered=False, axis=None, weights=None):
 
     Returns
     -------
-    circmoment : numpy.ndarray or Quantity
+    circmoment : ndarray or `~astropy.units.Quantity`
         The first and second elements correspond to the direction and length of
         the ``p``-th circular moment, respectively.
 
@@ -288,10 +291,10 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 
     Parameters
     ----------
-    alpha : numpy.ndarray or Quantity
+    alpha : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
-    beta : numpy.ndarray or Quantity
+    beta : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
@@ -308,8 +311,8 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 
     Returns
     -------
-    rho : numpy.ndarray or dimensionless Quantity
-        Circular correlation coefficient.
+    rho : ndarray or `~astropy.units.Quantity`
+        Circular correlation coefficient. Dimensionless, if Quantity.
 
     Examples
     --------
@@ -359,7 +362,7 @@ def rayleightest(data, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray or Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
@@ -372,8 +375,8 @@ def rayleightest(data, axis=None, weights=None):
 
     Returns
     -------
-    p-value : float or dimensionless Quantity
-        p-value.
+    p-value : float or `~astropy.units.Quantity`
+        p-value. Dimensionless, if Quantity.
 
     Examples
     --------
@@ -418,10 +421,10 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 
     Parameters
     ----------
-    data : numpy.ndarray or Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
-    mu : float or Quantity, optional
+    mu : float or `~astropy.units.Quantity`, optional
         Mean angle. Assumed to be known.
     axis : int, optional
         Axis along which the V test will be performed.
@@ -433,8 +436,8 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 
     Returns
     -------
-    p-value : float or dimensionless Quantity
-        p-value.
+    p-value : float or `~astropy.units.Quantity`
+        p-value. Dimensionless, if Quantity.
 
     Examples
     --------
@@ -492,7 +495,7 @@ def vonmisesmle(data, axis=None):
 
     Parameters
     ----------
-    data : numpy.ndarray or Quantity
+    data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
     axis : int, optional
@@ -500,10 +503,10 @@ def vonmisesmle(data, axis=None):
 
     Returns
     -------
-    mu : float or Quantity
+    mu : float or `~astropy.units.Quantity`
         the mean (aka location parameter).
-    kappa : float or dimensionless Quantity
-        the concentration parameter.
+    kappa : float or `~astropy.units.Quantity`
+        the concentration parameter. Dimensionless, if Quantity.
 
     Examples
     --------

@@ -394,7 +394,7 @@ def fileobj_open(filename, mode):
 
 def fileobj_name(f):
     """
-    Returns the 'name' of file-like object f, if it has anything that could be
+    Returns the 'name' of file-like object *f*, if it has anything that could be
     called its name.  Otherwise f's class or type is returned.  If f is a
     string f itself is returned.
     """
@@ -422,7 +422,7 @@ def fileobj_name(f):
 
 def fileobj_closed(f):
     """
-    Returns True if the given file-like object is closed or if f is a string
+    Returns True if the given file-like object is closed or if *f* is a string
     (and assumed to be a pathname).
 
     Returns False for all other types of objects, under the assumption that
@@ -603,7 +603,7 @@ def _array_to_file(arr, outfile):
 
     Parameters
     ----------
-    arr : `~numpy.ndarray`
+    arr : ndarray
         The Numpy array to write.
     outfile : file-like
         A file-like object such as a Python file object, an `io.BytesIO`, or

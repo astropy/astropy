@@ -172,11 +172,11 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : unit object or string or tuple
+        other : `~astropy.units.Unit`, string, or tuple
             The unit to convert to. If a tuple of units is specified, this
             method returns true if the unit matches any of those in the tuple.
 
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             This list is in addition to the built-in equivalencies between the
@@ -205,14 +205,14 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : `~astropy.units.Unit` object, `~astropy.units.function.FunctionUnitBase` object or string
+        other : `~astropy.units.Unit`, `~astropy.units.function.FunctionUnitBase`, or str
             The unit to convert to.
 
-        value : scalar int or float, or sequence convertible to array, optional
+        value : int, float, or scalar array-like, optional
             Value(s) in the current unit to be converted to the specified unit.
             If not provided, defaults to 1.0.
 
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             This list is in meant to treat only equivalencies between different
@@ -227,7 +227,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Raises
         ------
-        UnitsError
+        `~astropy.units.UnitsError`
             If units are inconsistent.
         """
         # conversion to one's own physical unit should be fastest
@@ -423,7 +423,7 @@ class FunctionQuantity(Quantity):
 
     Parameters
     ----------
-    value : number, sequence of convertible items, `~astropy.units.Quantity`, or `~astropy.units.function.FunctionQuantity`
+    value : number, quantity-like, or sequence thereof
         The numerical value of the function quantity. If a number or
         a `~astropy.units.Quantity` with a function unit, it will be converted
         to ``unit`` and the physical unit will be inferred from ``unit``.

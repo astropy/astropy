@@ -46,7 +46,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
 
     Returns
     -------
-    idx : integer array
+    idx : int array
         Indices into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.coordinates.Angle`
@@ -122,7 +122,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
 
     Returns
     -------
-    idx : integer array
+    idx : int array
         Indices into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.coordinates.Angle`
@@ -195,8 +195,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
         ``coords1`` within ``seplimit``.  Cannot be a scalar coordinate.
-    distlimit : `~astropy.units.Quantity` with distance units
-        The physical radius to search within.
+    distlimit : `~astropy.units.Quantity`
+        The physical radius to search within. Must have distance units.
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
@@ -204,10 +204,10 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
     Returns
     -------
-    idx1 : integer array
+    idx1 : int array
         Indices into ``coords1`` that matches to the corresponding element of
         ``idx2``. Shape matches ``idx2``.
-    idx2 : integer array
+    idx2 : int array
         Indices into ``coords2`` that matches to the corresponding element of
         ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`
@@ -292,14 +292,14 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
 
     Parameters
     ----------
-    coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+    coords1 : coordinate-like
         The first set of coordinates, which will be searched for matches from
         ``coords2`` within ``seplimit``. Cannot be a scalar coordinate.
-    coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+    coords2 : coordinate-like
         The second set of coordinates, which will be searched for matches from
         ``coords1`` within ``seplimit``. Cannot be a scalar coordinate.
-    seplimit : `~astropy.units.Quantity` with angle units
-        The on-sky separation to search within.
+    seplimit : `~astropy.units.Quantity`
+        The on-sky separation to search within. Must have angular units.
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
@@ -307,10 +307,10 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
 
     Returns
     -------
-    idx1 : integer array
+    idx1 : int array
         Indices into ``coords1`` that matches to the corresponding element of
         ``idx2``. Shape matches ``idx2``.
-    idx2 : integer array
+    idx2 : int array
         Indices into ``coords2`` that matches to the corresponding element of
         ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`

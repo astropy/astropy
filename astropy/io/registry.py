@@ -81,7 +81,7 @@ def get_formats(data_class=None, readwrite=None):
 
     Parameters
     ----------
-    data_class : classobj, optional
+    data_class : class, optional
         Filter readers/writer to match data class (default = all classes).
 
     readwrite : str or None, optional
@@ -92,7 +92,7 @@ def get_formats(data_class=None, readwrite=None):
 
     Returns
     -------
-    format_table : Table
+    format_table : :class:`~astropy.table.Table`
         Table of available I/O formats.
     """
     from astropy.table import Table
@@ -214,7 +214,7 @@ def register_reader(data_format, data_class, function, force=False, priority=0):
     data_format : str
         The data format identifier. This is the string that will be used to
         specify the data type when reading.
-    data_class : classobj
+    data_class : class
         The class of the object that the reader produces.
     function : function
         The function to read in a data object.
@@ -246,7 +246,7 @@ def unregister_reader(data_format, data_class):
     ----------
     data_format : str
         The data format identifier.
-    data_class : classobj
+    data_class : class
         The class of the object that the reader produces.
     """
 
@@ -269,7 +269,7 @@ def register_writer(data_format, data_class, function, force=False, priority=0):
     data_format : str
         The data format identifier. This is the string that will be used to
         specify the data type when writing.
-    data_class : classobj
+    data_class : class
         The class of the object that can be written.
     function : function
         The function to write out a data object.
@@ -301,7 +301,7 @@ def unregister_writer(data_format, data_class):
     ----------
     data_format : str
         The data format identifier.
-    data_class : classobj
+    data_class : class
         The class of the object that can be written.
     """
 
@@ -324,7 +324,7 @@ def register_identifier(data_format, data_class, identifier, force=False):
     data_format : str
         The data format identifier. This is the string that is used to
         specify the data type when reading/writing.
-    data_class : classobj
+    data_class : class
         The class of the object that can be written.
     identifier : function
         A function that checks the argument specified to `read` or `write` to
@@ -376,7 +376,7 @@ def unregister_identifier(data_format, data_class):
     ----------
     data_format : str
         The data format identifier.
-    data_class : classobj
+    data_class : class
         The class of the object that can be read/written.
     """
 
@@ -398,9 +398,9 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     data_class_required : object
         The specified class for the result of `read` or the class that is to be
         written.
-    path : str, other path object or None
+    path : str or path-like or None
         The path to the file or None.
-    fileobj : File object or None.
+    fileobj : file-like or None.
         An open file object to read the file's contents, or ``None`` if the
         file could not be opened.
     args : sequence
@@ -440,7 +440,7 @@ def get_reader(data_format, data_class):
     data_format : str
         The data format identifier. This is the string that is used to
         specify the data type when reading/writing.
-    data_class : classobj
+    data_class : class
         The class of the object that can be written.
 
     Returns
@@ -468,7 +468,7 @@ def get_writer(data_format, data_class):
     data_format : str
         The data format identifier. This is the string that is used to
         specify the data type when reading/writing.
-    data_class : classobj
+    data_class : class
         The class of the object that can be written.
 
     Returns
@@ -686,7 +686,7 @@ class UnifiedReadWrite:
         ----------
         format : str
             Unified I/O format name, e.g. 'fits' or 'ascii.ecsv'
-        out : None or file handle object
+        out : None or path-like
             Output destination (default is stdout via a pager)
         """
         cls = self._cls

@@ -96,7 +96,6 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
 
     Parameters
     ----------
-
     module : module or `str`
         An imported module of which to check the version, or the name of
         that module (in which case an import of that module is attempted--

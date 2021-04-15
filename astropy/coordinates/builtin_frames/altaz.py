@@ -17,22 +17,22 @@ __all__ = ['AltAz']
 _90DEG = 90*u.deg
 
 doc_components = """
-    az : `~astropy.coordinates.Angle`, optional, must be keyword
+    az : `~astropy.coordinates.Angle`, optional, keyword-only
         The Azimuth for this object (``alt`` must also be given and
         ``representation`` must be None).
-    alt : `~astropy.coordinates.Angle`, optional, must be keyword
+    alt : `~astropy.coordinates.Angle`, optional, keyword-only
         The Altitude for this object (``az`` must also be given and
         ``representation`` must be None).
-    distance : :class:`~astropy.units.Quantity`, optional, must be keyword
+    distance : `~astropy.units.Quantity`, optional, keyword-only
         The Distance for this object along the line-of-sight.
 
-    pm_az_cosalt : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_az_cosalt : `~astropy.units.Quantity`, optional, keyword-only
         The proper motion in azimuth (including the ``cos(alt)`` factor) for
         this object (``pm_alt`` must also be given).
-    pm_alt : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_alt : `~astropy.units.Quantity`, optional, keyword-only
         The proper motion in altitude for this object (``pm_az_cosalt`` must
         also be given).
-    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
         The radial velocity of this object."""
 
 doc_footer = """

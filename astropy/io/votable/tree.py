@@ -41,7 +41,7 @@ except ImportError:
 __all__ = [
     'Link', 'Info', 'Values', 'Field', 'Param', 'CooSys', 'TimeSys',
     'FieldRef', 'ParamRef', 'Group', 'Table', 'Resource',
-    'VOTableFile'
+    'VOTableFile', 'Element'
     ]
 
 
@@ -431,7 +431,7 @@ class Element:
 
         Parameters
         ----------
-        iterator : xml iterator
+        iterator : xml iterable
             An iterator over XML elements as returned by
             `~astropy.utils.xml.iterparser.get_xml_iterator`.
 
@@ -441,7 +441,7 @@ class Element:
 
         Returns
         -------
-        self : Element
+        self : `~astropy.io.votable.tree.Element`
             Returns self as a convenience.
         """
         raise NotImplementedError()
@@ -3599,8 +3599,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         Parameters
         ----------
-        fd : str path or writable file-like object
-            Where to write the file.
+        fd : str or file-like
+            Where to write the file. If file, must be writable.
 
         compressed : bool, optional
             When `True`, write to a gzip-compressed file.  (Default:

@@ -55,12 +55,12 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Input array or object that can be converted to an array.
         ``data`` can be a `~numpy.ma.MaskedArray`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 6.0).
-    M : float or array_like, optional
+    M : float or array-like, optional
         Initial guess for the location.  If ``M`` is a scalar value,
         then its value will be used for the entire array (or along each
         ``axis``, if specified).  If ``M`` is an array, then its must be
@@ -68,7 +68,7 @@ def biweight_location(data, c=6.0, M=None, axis=None, *, ignore_nan=False):
         ``axis`` of the input array.  If `None` (default), then the
         median of the input array will be used (or along each ``axis``,
         if specified).
-    axis : `None`, int, or tuple of ints, optional
+    axis : None, int, or tuple of int, optional
         The axis or axes along which the biweight locations are
         computed.  If `None` (default), then the biweight location of
         the flattened input array will be computed.
@@ -206,19 +206,19 @@ def biweight_scale(data, c=9.0, M=None, axis=None, modify_sample_size=False,
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Input array or object that can be converted to an array.
         ``data`` can be a `~numpy.ma.MaskedArray`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
-    M : float or array_like, optional
+    M : float or array-like, optional
         The location estimate.  If ``M`` is a scalar value, then its
         value will be used for the entire array (or along each ``axis``,
         if specified).  If ``M`` is an array, then its must be an array
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
-    axis : `None`, int, or tuple of ints, optional
+    axis : None, int, or tuple of int, optional
         The axis or axes along which the biweight scales are computed.
         If `None` (default), then the biweight scale of the flattened
         input array will be computed.
@@ -319,19 +319,19 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Input array or object that can be converted to an array.
         ``data`` can be a `~numpy.ma.MaskedArray`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
-    M : float or array_like, optional
+    M : float or array-like, optional
         The location estimate.  If ``M`` is a scalar value, then its
         value will be used for the entire array (or along each ``axis``,
         if specified).  If ``M`` is an array, then its must be an array
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
-    axis : `None`, int, or tuple of ints, optional
+    axis : None, int, or tuple of int, optional
         The axis or axes along which the biweight midvariances are
         computed.  If `None` (default), then the biweight midvariance of
         the flattened input array will be computed.
@@ -537,7 +537,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     Parameters
     ----------
-    data : 2D or 1D array_like
+    data : 2D or 1D array-like
         Input data either as a 2D or 1D array.  For a 2D array, it
         should have a shape (N_variables, N_observations).  A 1D array
         may be input for observations of a single variable, in which
@@ -549,7 +549,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
 
-    M : float or 1D array_like, optional
+    M : float or 1D array-like, optional
         The location estimate of each variable, either as a scalar or
         array.  If ``M`` is an array, then its must be a 1D array
         containing the location estimate of each row (i.e. ``a.ndim``
@@ -568,7 +568,7 @@ def biweight_midcovariance(data, c=9.0, M=None, modify_sample_size=False):
 
     Returns
     -------
-    biweight_midcovariance : `~numpy.ndarray`
+    biweight_midcovariance : ndarray
         A 2D array representing the biweight midcovariances between each
         pair of the variables (rows) in the input array.  The output
         array will have a shape of (N_variables, N_variables).  The
@@ -678,13 +678,13 @@ def biweight_midcorrelation(x, y, c=9.0, M=None, modify_sample_size=False):
 
     Parameters
     ----------
-    x, y : 1D array_like
+    x, y : 1D array-like
         Input arrays for the two variables.  ``x`` and ``y`` must be 1D
         arrays and have the same number of elements.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).  See
         `biweight_midcovariance` for more details.
-    M : float or array_like, optional
+    M : float or array-like, optional
         The location estimate.  If ``M`` is a scalar value, then its
         value will be used for the entire array (or along each ``axis``,
         if specified).  If ``M`` is an array, then its must be an array

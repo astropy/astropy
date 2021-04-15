@@ -34,7 +34,7 @@ def support_nddata(_func=None, accepts=NDData,
         argument.
         Default is ``None``.
 
-    accepts : cls, optional
+    accepts : class, optional
         The class or subclass of ``NDData`` that should be unpacked before
         calling the function.
         Default is ``NDData``

@@ -55,14 +55,14 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
 
     Parameters
     ----------
-    frequency : array_like or Quantity
+    frequency : array-like or Quantity
         input frequency grid
     assume_regular_frequency : bool (default = False)
         if True, then do not check whether frequency is a regular grid
 
     Returns
     -------
-    f0, df, N : scalars
+    f0, df, N : scalar
         Parameters such that all(frequency == f0 + df * np.arange(N))
     """
     frequency = np.asarray(frequency)
@@ -120,13 +120,13 @@ def lombscargle(t, y, dy=None,
 
     Parameters
     ----------
-    t : array_like
+    t : array-like
         sequence of observation times
-    y : array_like
+    y : array-like
         sequence of observations associated with times t
-    dy : float or array_like, optional
+    dy : float or array-like, optional
         error or sequence of observational errors associated with times t
-    frequency : array_like
+    frequency : array-like
         frequencies (not angular frequencies) at which to evaluate the
         periodogram. If not specified, optimal frequencies will be chosen using
         a heuristic which will attempt to provide sufficient frequency range
@@ -170,7 +170,7 @@ def lombscargle(t, y, dy=None,
 
     Returns
     -------
-    PLS : array_like
+    PLS : array-like
         Lomb-Scargle power associated with each frequency omega
     """
     # frequencies should be one-dimensional arrays

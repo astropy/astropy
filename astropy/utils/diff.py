@@ -53,7 +53,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
         Values to compare. Anything that can be turned into strings
         and compared using :py:mod:`difflib` should work.
 
-    fileobj : obj
+    fileobj : object
         File-like object to write to.
         The default is ``sys.stdout``, which writes to terminal.
 
@@ -145,7 +145,7 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
 
     Parameters
     ----------
-    a, b : array_like
+    a, b : array-like
         Input arrays to compare.
 
     rtol, atol : float
@@ -154,7 +154,7 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
 
     Returns
     -------
-    idx : tuple of arrays
+    idx : tuple of array
         Indices where the two arrays differ.
 
     """

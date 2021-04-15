@@ -11,7 +11,7 @@ def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
 
     Parameters
     ----------
-    y : array_like
+    y : array-like
         data values
     dy : float, array, or None, optional
         data uncertainties
@@ -45,9 +45,9 @@ def convert_normalization(Z, N, from_normalization, to_normalization,
 
     Parameters
     ----------
-    Z : array_like
+    Z : array-like
         the periodogram output
-    N : integer
+    N : int
         the number of data points
     from_normalization, to_normalization : str
         the normalization to convert from and to. Options are

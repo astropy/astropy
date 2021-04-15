@@ -13,10 +13,10 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
 
     Parameters
     ----------
-    t, y, dy : array_like (NOT astropy.Quantities)
+    t, y, dy : array-like (NOT astropy.Quantities)
         times, values, and errors of the data points. These should be
         broadcastable to the same shape.
-    frequency : array_like
+    frequency : array-like
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : str, optional
         Normalization to use for the periodogram.
@@ -33,7 +33,7 @@ def lombscargle_chi2(t, y, dy, frequency, normalization='standard',
 
     Returns
     -------
-    power : array_like
+    power : array-like
         Lomb-Scargle power associated with each frequency.
         Units of the result depend on the normalization.
 

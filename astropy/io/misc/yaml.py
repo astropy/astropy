@@ -293,7 +293,7 @@ def load(stream):
 
     Parameters
     ----------
-    stream : str or file-like object
+    stream : str or file-like
         YAML input
 
     Returns
@@ -310,7 +310,7 @@ def load_all(stream):
 
     Parameters
     ----------
-    stream : str or file-like object
+    stream : str or file-like
         YAML input
 
     Returns
@@ -330,7 +330,7 @@ def dump(data, stream=None, **kwargs):
     ----------
     data: object
         Object to serialize to YAML
-    stream : file-like object, optional
+    stream : file-like, optional
         YAML output (if not supplied a string is returned)
     **kwargs
         Other keyword arguments that get passed to yaml.dump()

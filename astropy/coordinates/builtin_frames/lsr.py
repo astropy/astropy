@@ -84,23 +84,23 @@ def lsr_to_icrs(lsr_coord, icrs_frame):
 
 
 doc_components_gal = """
-    l : `~astropy.coordinates.Angle`, optional, must be keyword
+    l : `~astropy.coordinates.Angle`, optional, keyword-only
         The Galactic longitude for this object (``b`` must also be given and
         ``representation`` must be None).
-    b : `~astropy.coordinates.Angle`, optional, must be keyword
+    b : `~astropy.coordinates.Angle`, optional, keyword-only
         The Galactic latitude for this object (``l`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
+    distance : `~astropy.units.Quantity`, optional, keyword-only
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
 
-    pm_l_cosb : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_l_cosb : `~astropy.units.Quantity`, optional, keyword-only
         The proper motion in Galactic longitude (including the ``cos(b)`` term)
         for this object (``pm_b`` must also be given).
-    pm_b : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_b : `~astropy.units.Quantity`, optional, keyword-only
         The proper motion in Galactic latitude for this object (``pm_l_cosb``
         must also be given).
-    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
         The radial velocity of this object.
 """
 

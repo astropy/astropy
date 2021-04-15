@@ -122,17 +122,17 @@ class SigmaClip:
         ``sigma_lower`` and ``sigma_upper``, if input.  The default is
         3.
 
-    sigma_lower : float or `None`, optional
+    sigma_lower : float or None, optional
         The number of standard deviations to use as the lower bound for
         the clipping limit.  If `None` then the value of ``sigma`` is
         used.  The default is `None`.
 
-    sigma_upper : float or `None`, optional
+    sigma_upper : float or None, optional
         The number of standard deviations to use as the upper bound for
         the clipping limit.  If `None` then the value of ``sigma`` is
         used.  The default is `None`.
 
-    maxiters : int or `None`, optional
+    maxiters : int or None, optional
         The maximum number of sigma-clipping iterations to perform or
         `None` to clip until convergence is achieved (i.e., iterate
         until the last iteration clips nothing).  If convergence is
@@ -434,10 +434,10 @@ class SigmaClip:
 
         Parameters
         ----------
-        data : array_like or `~numpy.ma.MaskedArray`
+        data : array-like or `~numpy.ma.MaskedArray`
             The data to be sigma clipped.
 
-        axis : `None` or int or tuple of int, optional
+        axis : None or int or tuple of int, optional
             The axis or axes along which to sigma clip the data.  If `None`,
             then the flattened data will be used.  ``axis`` is passed
             to the ``cenfunc`` and ``stdfunc``.  The default is `None`.
@@ -461,7 +461,7 @@ class SigmaClip:
 
         Returns
         -------
-        result : flexible
+        result : array-like
             If ``masked=True``, then a `~numpy.ma.MaskedArray` is
             returned, where the mask is `True` for clipped values and
             where the input mask was `True`.
@@ -549,7 +549,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
     Parameters
     ----------
-    data : array_like or `~numpy.ma.MaskedArray`
+    data : array-like or `~numpy.ma.MaskedArray`
         The data to be sigma clipped.
 
     sigma : float, optional
@@ -558,17 +558,17 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         ``sigma_lower`` and ``sigma_upper``, if input.  The default is
         3.
 
-    sigma_lower : float or `None`, optional
+    sigma_lower : float or None, optional
         The number of standard deviations to use as the lower bound for
         the clipping limit.  If `None` then the value of ``sigma`` is
         used.  The default is `None`.
 
-    sigma_upper : float or `None`, optional
+    sigma_upper : float or None, optional
         The number of standard deviations to use as the upper bound for
         the clipping limit.  If `None` then the value of ``sigma`` is
         used.  The default is `None`.
 
-    maxiters : int or `None`, optional
+    maxiters : int or None, optional
         The maximum number of sigma-clipping iterations to perform or
         `None` to clip until convergence is achieved (i.e., iterate
         until the last iteration clips nothing).  If convergence is
@@ -597,7 +597,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
-    axis : `None` or int or tuple of int, optional
+    axis : None or int or tuple of int, optional
         The axis or axes along which to sigma clip the data.  If `None`,
         then the flattened data will be used.  ``axis`` is passed to the
         ``cenfunc`` and ``stdfunc``.  The default is `None`.
@@ -628,7 +628,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
     Returns
     -------
-    result : flexible
+    result : array-like
         If ``masked=True``, then a `~numpy.ma.MaskedArray` is returned,
         where the mask is `True` for clipped values and where the input
         mask was `True`.
@@ -708,7 +708,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     Parameters
     ----------
-    data : array_like or `~numpy.ma.MaskedArray`
+    data : array-like or `~numpy.ma.MaskedArray`
         Data array or object that can be converted to an array.
 
     mask : `numpy.ndarray` (bool), optional
@@ -727,17 +727,17 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         ``sigma_lower`` and ``sigma_upper``, if input.  The default is
         3.
 
-    sigma_lower : float or `None`, optional
+    sigma_lower : float or None, optional
         The number of standard deviations to use as the lower bound for
         the clipping limit.  If `None` then the value of ``sigma`` is
         used.  The default is `None`.
 
-    sigma_upper : float or `None`, optional
+    sigma_upper : float or None, optional
         The number of standard deviations to use as the upper bound for
         the clipping limit.  If `None` then the value of ``sigma`` is
         used.  The default is `None`.
 
-    maxiters : int or `None`, optional
+    maxiters : int or None, optional
         The maximum number of sigma-clipping iterations to perform or
         `None` to clip until convergence is achieved (i.e., iterate
         until the last iteration clips nothing).  If convergence is
@@ -772,7 +772,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         std_ddof``, where ``N`` represents the number of elements.  The
         default is 0.
 
-    axis : `None` or int or tuple of int, optional
+    axis : None or int or tuple of int, optional
         The axis or axes along which to sigma clip the data.  If `None`,
         then the flattened data will be used.  ``axis`` is passed
         to the ``cenfunc`` and ``stdfunc``.  The default is `None`.

@@ -307,7 +307,7 @@ def get_body_barycentric_posvel(body, time, ephemeris=None):
 
     Parameters
     ----------
-    body : str or other
+    body : str or list of tuple
         The solar system body for which to calculate positions.  Can also be a
         kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
         kernel.
@@ -345,7 +345,7 @@ def get_body_barycentric(body, time, ephemeris=None):
 
     Parameters
     ----------
-    body : str or other
+    body : str or list of tuple
         The solar system body for which to calculate positions.  Can also be a
         kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
         kernel.
@@ -434,7 +434,7 @@ def get_body(body, time, location=None, ephemeris=None):
 
     Parameters
     ----------
-    body : str or other
+    body : str or list of tuple
         The solar system body for which to calculate positions.  Can also be a
         kernel specifier (list of 2-tuples) if the ``ephemeris`` is a JPL
         kernel.

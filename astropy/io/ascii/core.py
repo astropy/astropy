@@ -288,10 +288,10 @@ class BaseInputter:
 
         Parameters
         ----------
-        table : str, file_like, list
+        table : str, file-like, list
             Can be either a file name, string (newline separated) with all header and data
-            lines (must have at least 2 lines), a file-like object with a ``read()`` method,
-            or a list of strings.
+            lines (must have at least 2 lines), a file-like  object with a
+            ``read()`` method, or a list of strings.
         newline: line separator, if `None` use OS default from ``splitlines()``.
 
         Returns
@@ -438,9 +438,9 @@ class DefaultSplitter(BaseSplitter):
         lines : list
             List of table lines
 
-        Returns
-        -------
-        lines : iterator
+        Yields
+        ------
+        lines : list
 
         """
         if self.process_line:
@@ -907,11 +907,12 @@ def convert_numpy(numpy_type):
 
     Returns
     -------
-    (converter, converter_type) : (function, generic data-type)
+    converter : callable
         ``converter`` is a function which accepts a list and converts it to a
         numpy array of type ``numpy_type``.
-        ``converter_type`` tracks the generic data type produced by the converter
-        function.
+    converter_type : type
+        ``converter_type`` tracks the generic data type produced by the
+        converter function.
 
     Raises
     ------
@@ -1234,7 +1235,7 @@ class BaseReader(metaclass=MetaBaseReader):
 
         Parameters
         ----------
-        table : str, file_like, list
+        table : str, file-like, list
             Input table.
 
         Returns

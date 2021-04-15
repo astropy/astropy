@@ -25,7 +25,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale', 'with_H0']
+           'pixel_scale', 'plate_scale', 'with_H0', "Equivalency"]
 
 
 class Equivalency(UserList):
@@ -106,7 +106,7 @@ def parallax():
 def spectral():
     """
     Returns a list of equivalence pairs that handle spectral
-    wavelength, wave number, frequency, and energy equivalences.
+    wavelength, wave number, frequency, and energy equivalencies.
 
     Allows conversions between wavelength units, wave number units,
     frequency units, and energy units as they relate to light.
@@ -553,14 +553,14 @@ def brightness_temperature(frequency, beam_area=None):
 
     Parameters
     ----------
-    frequency : `~astropy.units.Quantity` with spectral units
+    frequency : `~astropy.units.Quantity`
         The observed ``spectral`` equivalent `~astropy.units.Unit` (e.g.,
         frequency or wavelength).  The variable is named 'frequency' because it
         is more commonly used in radio astronomy.
         BACKWARD COMPATIBILITY NOTE: previous versions of the brightness
         temperature equivalency used the keyword ``disp``, which is no longer
         supported.
-    beam_area : angular area equivalent
+    beam_area : `~astropy.units.Quantity`
         Beam area in angular units, i.e. steradian equivalent
 
     Examples
@@ -641,8 +641,9 @@ def beam_angular_area(beam_area):
 
     Parameters
     ----------
-    beam_area : angular area equivalent
+    beam_area : unit-like
         The area of the beam in angular area units (e.g., steradians)
+        Must have angular area equivalent units.
     """
     return Equivalency([(astrophys.beam, Unit(beam_area)),
                         (astrophys.beam**-1, Unit(beam_area)**-1),
@@ -662,12 +663,12 @@ def thermodynamic_temperature(frequency, T_cmb=None):
 
     Parameters
     ----------
-    frequency : `~astropy.units.Quantity` with spectral units
+    frequency : `~astropy.units.Quantity`
         The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
-        frequency or wavelength)
-    T_cmb :  `~astropy.units.Quantity` with temperature units or None
+        frequency or wavelength). Must have spectral units.
+    T_cmb :  `~astropy.units.Quantity` or None
         The CMB temperature at z=0.  If `None`, the default cosmology will be
-        used to get this temperature.
+        used to get this temperature. Must have units of temperature.
 
     Notes
     -----
@@ -799,7 +800,7 @@ def with_H0(H0=None):
 
     Parameters
     ----------
-    H0 : `None` or `~astropy.units.Quantity`
+    H0 : None or `~astropy.units.Quantity`
         The value of the Hubble constant to assume. If a `~astropy.units.Quantity`,
         will assume the quantity *is* ``H0``.  If `None` (default), use the
         ``H0`` attribute from the default `astropy.cosmology` cosmology.

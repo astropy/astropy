@@ -32,7 +32,7 @@ class Distribution:
 
     Parameters
     ----------
-    samples : array_like
+    samples : array-like
         The distribution, with sampling along the *leading* axis. If 1D, the
         sole dimension is used as the sampling axis (i.e., it is a scalar
         distribution).
@@ -200,7 +200,7 @@ class Distribution:
 
         Parameters
         ----------
-        percentile : float or array of floats or `~astropy.units.Quantity`
+        percentile : float or array of float or `~astropy.units.Quantity`
             The desired  precentiles of the distribution (i.e., on [0,100]).
             `~astropy.units.Quantity` will be converted to percent, meaning
             that a ``dimensionless_unscaled`` `~astropy.units.Quantity` will

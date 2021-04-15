@@ -59,7 +59,7 @@ class XMLWriter:
         """
         Parameters
         ----------
-        file : writable file-like object.
+        file : writable file-like
         """
         self.write = file.write
         if hasattr(file, "flush"):

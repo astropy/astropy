@@ -124,8 +124,9 @@ class Row:
 
         Returns
         -------
-        void_row : np.void (unmasked) or np.ma.mvoid (masked)
-            Copy of row values
+        void_row : ``numpy.void`` or ``numpy.ma.mvoid``
+            Copy of row values.
+            ``numpy.void`` if unmasked, ``numpy.ma.mvoid`` else.
         """
         index = self._index
         cols = self._table.columns.values()

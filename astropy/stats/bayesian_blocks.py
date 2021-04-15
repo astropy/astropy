@@ -59,11 +59,11 @@ def bayesian_blocks(t, x=None, sigma=None,
 
     Parameters
     ----------
-    t : array_like
+    t : array-like
         data times (one dimensional, length N)
-    x : array_like, optional
+    x : array-like, optional
         data values
-    sigma : array_like or float, optional
+    sigma : array-like or float, optional
         data errors
     fitness : str or object
         the fitness function to use for the model.
@@ -204,16 +204,16 @@ class FitnessFunc:
 
         Parameters
         ----------
-        t : array_like
+        t : array-like
             times of observations
-        x : array_like, optional
+        x : array-like, optional
             values observed at each time
-        sigma : float or array_like, optional
+        sigma : float or array-like, optional
             errors in values x
 
         Returns
         -------
-        t, x, sigma : array_like, float or None
+        t, x, sigma : array-like, float or None
             validated and perhaps modified versions of inputs
         """
         # validate array input
@@ -304,11 +304,11 @@ class FitnessFunc:
 
         Parameters
         ----------
-        t : array_like
+        t : array-like
             data times (one dimensional, length N)
-        x : array_like, optional
+        x : array-like, optional
             data values
-        sigma : array_like or float, optional
+        sigma : array-like or float, optional
             data errors
 
         Returns
