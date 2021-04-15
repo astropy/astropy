@@ -1,0 +1,4 @@
+Cosmology parameter dictionaries now also specify the Cosmology class to which
+the parameters correspond. For example, the dictionary for
+``astropy.cosmology.parameters.Planck18`` has the added key-value pair
+("cosmology", "FlatLambdaCDM").

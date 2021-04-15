@@ -40,9 +40,9 @@ To detect periodic signals in unevenly spaced observations, consider the
 following data:
 
 >>> import numpy as np
->>> rand = np.random.RandomState(42)
->>> t = 100 * rand.rand(100)
->>> y = np.sin(2 * np.pi * t) + 0.1 * rand.randn(100)
+>>> rand = np.random.default_rng(42)
+>>> t = 100 * rand.random(100)
+>>> y = np.sin(2 * np.pi * t) + 0.1 * rand.standard_normal(100)
 
 These are 100 noisy measurements taken at irregular times, with a frequency
 of 1 cycle per unit time.
@@ -66,9 +66,9 @@ Plotting the result with Matplotlib gives:
     import numpy as np
     import matplotlib.pyplot as plt
 
-    rand = np.random.RandomState(42)
-    t = 100 * rand.rand(100)
-    y = np.sin(2 * np.pi * t) + 0.1 * rand.randn(100)
+    rand = np.random.default_rng(42)
+    t = 100 * rand.random(100)
+    y = np.sin(2 * np.pi * t) + 0.1 * rand.standard_normal(100)
 
     frequency, power = LombScargle(t, y).autopower()
     fig = plt.figure(figsize=(6, 4.5))
@@ -98,8 +98,8 @@ If all uncertainties are the same, you can pass a scalar:
 If uncertainties vary from observation to observation, you can pass them as
 an array:
 
->>> dy = 0.1 * (1 + rand.rand(100))
->>> y = np.sin(2 * np.pi * t) + dy * rand.randn(100)
+>>> dy = 0.1 * (1 + rand.random(100))
+>>> y = np.sin(2 * np.pi * t) + dy * rand.standard_normal(100)
 >>> frequency, power = LombScargle(t, y, dy).autopower()
 
 Gaussian uncertainties are assumed, and ``dy`` here specifies the standard
@@ -167,14 +167,14 @@ To tune the heuristic using keywords passed to the
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=2)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
-(500, 0.0010189890448009111, 1.0179700557561102)
+(500, 0.0010327803641893758, 1.0317475838251864)
 
 Here the highest frequency is two times the average Nyquist frequency.
 If we increase the ``nyquist_factor``, we can probe higher frequencies:
 
 >>> frequency, power = LombScargle(t, y, dy).autopower(nyquist_factor=10)
 >>> len(frequency), frequency.min(), frequency.max()  # doctest: +FLOAT_CMP
-(2500, 0.0010189890448009111, 5.0939262349597545)
+(2500, 0.0010327803641893758, 5.16286904058269)
 
 Alternatively, we can use the :func:`~astropy.timeseries.LombScargle.power`
 method to evaluate the periodogram at a user-specified set of frequencies:
@@ -212,10 +212,10 @@ Imagine you chose to evaluate your periodogram at 100 points:
     import matplotlib.pyplot as plt
     from astropy.timeseries import LombScargle
 
-    rand = np.random.RandomState(42)
-    t = 100 * rand.rand(100)
+    rand = np.random.default_rng(42)
+    t = 100 * rand.random(100)
     dy = 0.1
-    y = np.sin(2 * np.pi * t) + dy * rand.randn(100)
+    y = np.sin(2 * np.pi * t) + dy * rand.standard_normal(100)
 
     frequency = np.linspace(0.1, 1.9, 100)
     power = LombScargle(t, y, dy).power(frequency)
@@ -238,7 +238,7 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
 >>> frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
 ...                                                    maximum_frequency=1.9)
 >>> len(frequency)
-884
+872
 >>> plt.plot(frequency, power)   # doctest: +SKIP
 
 .. plot::
@@ -247,10 +247,10 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
     import matplotlib.pyplot as plt
     from astropy.timeseries import LombScargle
 
-    rand = np.random.RandomState(42)
-    t = 100 * rand.rand(100)
+    rand = np.random.default_rng(42)
+    t = 100 * rand.random(100)
     dy = 0.1
-    y = np.sin(2 * np.pi * t) + dy * rand.randn(100)
+    y = np.sin(2 * np.pi * t) + dy * rand.standard_normal(100)
 
     frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
                                                        maximum_frequency=1.9)
@@ -274,7 +274,7 @@ significant periodogram peak; this can be increased by changing the
 ...                                                    maximum_frequency=1.9,
 ...                                                    samples_per_peak=10)
 >>> len(frequency)
-1767
+1744
 
 Keep in mind that the width of the peak scales inversely with the baseline of
 the observations (i.e., the difference between the maximum and minimum time),
@@ -311,10 +311,10 @@ We can then phase the data and plot the Lomb-Scargle model fit:
 
     from astropy.timeseries import LombScargle
 
-    rand = np.random.RandomState(42)
-    t = 100 * rand.rand(100)
+    rand = np.random.default_rng(42)
+    t = 100 * rand.random(100)
     dy = 0.1
-    y = np.sin(2 * np.pi * t) + dy * rand.randn(100)
+    y = np.sin(2 * np.pi * t) + dy * rand.standard_normal(100)
 
     frequency, power = LombScargle(t, y, dy).autopower(minimum_frequency=0.1,
                                                        maximum_frequency=1.9)
@@ -338,7 +338,7 @@ The best-fit model parameters can be computed with the
 
 >>> theta = ls.model_parameters(best_frequency)
 >>> theta.round(2)
-array([-0.02,  1.05,  0.07])
+array([-0.01,  0.99,  0.11])
 
 These parameters :math:`\vec{\theta}` are fit using the following model:
 
@@ -487,7 +487,7 @@ Fourier periodogram for uniformly sampled quantities:
 Next we compute the two versions of the PSD from uniformly sampled data:
 
 >>> t_days = np.arange(100) * u.day
->>> y_mags = rand.randn(100) * u.mag
+>>> y_mags = rand.standard_normal(100) * u.mag
 >>> frequency, PSD_fourier = fourier_periodogram(t_days, y_mags)
 >>> ls = LombScargle(t_days, y_mags, normalization='psd')
 >>> PSD_LS = ls.power(frequency)
@@ -527,13 +527,13 @@ Example
 To use the Lomb-Scargle periodogram to decide if our signal contains a periodic
 component, we can start by simulating 60 observations of a sine wave with noise:
 
->>> t = 100 * rand.rand(60)
+>>> t = 100 * rand.random(60)
 >>> dy = 1.0
->>> y = np.sin(2 * np.pi * t) + dy * rand.randn(60)
+>>> y = np.sin(2 * np.pi * t) + dy * rand.standard_normal(60)
 >>> ls = LombScargle(t, y, dy)
 >>> freq, power = ls.autopower()
 >>> print(power.max())  # doctest: +FLOAT_CMP
-0.33814001958188855
+0.29154492887882927
 
 The peak of the periodogram has a value of 0.33, but how significant is
 this peak? We can address this question using the
@@ -542,7 +542,7 @@ this peak? We can address this question using the
 .. doctest-requires:: scipy
 
   >>> ls.false_alarm_probability(power.max())  # doctest: +FLOAT_CMP
-  0.0043217866919174324
+  0.028959671719328808
 
 What this tells us is that under the assumption that there is no periodic
 signal in the data, we will observe a peak this high or higher approximately
@@ -570,7 +570,7 @@ false alarm probability, which can be done with the
 
   >>> probabilities = [0.1, 0.05, 0.01]
   >>> ls.false_alarm_level(probabilities)  # doctest: +FLOAT_CMP
-  array([0.25446627, 0.27436154, 0.31716182])
+  array([0.25681381, 0.27663466, 0.31928202])
 
 This tells us that to attain a 10% false alarm probability requires the highest
 periodogram peak to be approximately 0.25; 5% requires 0.27, and 1% requires
@@ -598,7 +598,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='baluev')  # doctest: +FLOAT_CMP
-    0.0043217866919174324
+    0.028959671719328808
 
 - ``method="bootstrap"`` implements a bootstrap simulation: effectively it
   computes many Lomb-Scargle periodograms on simulated data at the same
@@ -619,7 +619,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='davies')  # doctest: +FLOAT_CMP
-    0.0043311525763707216
+    0.029387277355227746
 
 - ``method="naive"`` is a basic method based on the assumption that
   well-separated areas in the periodogram are independent. In general, it
@@ -629,7 +629,7 @@ which can be chosen using the ``method`` keyword:
 .. doctest-requires:: scipy
 
     >>> ls.false_alarm_probability(power.max(), method='naive')  # doctest: +FLOAT_CMP
-    0.0011693992470136049
+    0.00810080828660202
 
 The following figure compares these false alarm estimates at a range of
 peak heights for 100 observations with a heavily aliased observing pattern:
@@ -641,13 +641,13 @@ peak heights for 100 observations with a heavily aliased observing pattern:
 
     from astropy.timeseries import LombScargle
 
-    rng = np.random.RandomState(42)
+    rng = np.random.default_rng(42)
 
     N = 100
-    t = 5 * rng.rand(N)
+    t = 5 * rng.random(N)
     t -= 0.5 * (t % 1)  # create alias-inducing structure in the window function
-    dy = 0.5 * (1 + rng.rand(N))
-    y = dy * rng.randn(N)
+    dy = 0.5 * (1 + rng.random(N))
+    y = dy * rng.standard_normal(N)
 
     ls = LombScargle(t, y, dy, normalization='standard')
     z = np.linspace(1E-3, 0.15, 1000)
@@ -823,15 +823,15 @@ complicated than a simple sine wave:
         coeffs = [-0.0191, 0.1375, -0.1968, 0.0959, 0.075,
                   -0.0686, 0.0307, -0.0045, -0.0421, 0.0216, 0.0041]
 
-        rand = np.random.RandomState(rseed)
+        rand = np.random.default_rng(rseed)
         t = phase + np.arange(N, dtype=float)
-        t += 0.1 * rand.randn(N)
-        dmag = 0.01 + 0.03 * rand.rand(N)
+        t += 0.1 * rand.standard_normal(N)
+        dmag = 0.01 + 0.03 * rand.random(N)
 
         omega = 2 * np.pi / period
         n = np.arange(1 + len(coeffs) // 2)[:, None]
 
-        mag = (15 + dmag * rand.randn(N)
+        mag = (15 + dmag * rand.standard_normal(N)
                + np.dot(coeffs[::2], np.cos(n * omega * t)) +
                + np.dot(coeffs[1::2], np.sin(n[1:] * omega * t)))
 

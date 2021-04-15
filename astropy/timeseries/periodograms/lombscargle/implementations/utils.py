@@ -35,8 +35,8 @@ def extirpolate(x, y, N=None, M=4):
 
     Example
     -------
-    >>> rng = np.random.RandomState(0)
-    >>> x = 100 * rng.rand(20)
+    >>> rng = np.random.default_rng(0)
+    >>> x = 100 * rng.random(20)
     >>> y = np.sin(x)
     >>> y_hat = extirpolate(x, y)
     >>> x_hat = np.arange(len(y_hat))

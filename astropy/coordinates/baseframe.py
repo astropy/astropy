@@ -1260,7 +1260,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         transformation between two objects of the same frame class but with
         different attributes.
         """
-
         new_frame_cls = new_frame if inspect.isclass(new_frame) else new_frame.__class__
         trans = frame_transform_graph.get_transform(self.__class__, new_frame_cls)
 

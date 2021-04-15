@@ -44,11 +44,11 @@ class BoxLeastSquares(BasePeriodogram):
     --------
     Generate noisy data with a transit:
 
-    >>> rand = np.random.RandomState(42)
+    >>> rand = np.random.default_rng(42)
     >>> t = rand.uniform(0, 10, 500)
     >>> y = np.ones_like(t)
     >>> y[np.abs((t + 1.0)%2.0-1)<0.08] = 1.0 - 0.1
-    >>> y += 0.01 * rand.randn(len(t))
+    >>> y += 0.01 * rand.standard_normal(len(t))
 
     Compute the transit periodogram on a heuristically determined period grid
     and find the period with maximum power:
@@ -56,14 +56,14 @@ class BoxLeastSquares(BasePeriodogram):
     >>> model = BoxLeastSquares(t, y)
     >>> results = model.autopower(0.16)
     >>> results.period[np.argmax(results.power)]  # doctest: +FLOAT_CMP
-    1.9923406038842544
+    2.000412388152837
 
     Compute the periodogram on a user-specified period grid:
 
     >>> periods = np.linspace(1.9, 2.1, 5)
     >>> results = model.power(periods, 0.16)
     >>> results.power  # doctest: +FLOAT_CMP
-    array([0.01421067, 0.02842475, 0.10867671, 0.05117755, 0.01783253])
+    array([0.01723948, 0.0643028 , 0.1338783 , 0.09428816, 0.03577543])
 
     If the inputs are AstroPy Quantities with units, the units will be
     validated and the outputs will also be Quantities with appropriate units:
