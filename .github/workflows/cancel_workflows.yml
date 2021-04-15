@@ -2,7 +2,7 @@ name: Cancel duplicate workflows
 
 on:
   workflow_run:
-    workflows: ["CI", "Daily cron", "Weekly cron"]
+    workflows: ["CI", "Daily cron", "Weekly cron", "Check PR change log"]
     types:
       - requested
 
