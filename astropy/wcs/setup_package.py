@@ -228,8 +228,10 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
 
     # For 4.7+ enable C99 syntax in older compilers (need 'gnu99' std for gcc)
-    if get_compiler() == 'unix':
+    if determine_64_bit_int() != 'int' and get_compiler() == 'unix':
         cfg['extra_compile_args'].extend(['-std=gnu99'])
+    else:
+        cfg['extra_compile_args'].extend(['-std=c99'])
 
     # Squelch a few compilation warnings in WCSLIB
     if get_compiler() in ('unix', 'mingw32'):
