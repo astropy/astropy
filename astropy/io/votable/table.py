@@ -37,7 +37,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
 
     Parameters
     ----------
-    source : str or file-like
+    source : path-like or file-like
         Path or file-like object containing a VOTABLE_ xml file.
         If file, must be readable.
 
@@ -98,7 +98,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
         VOTable, and ``vounit`` in more recent versions of the spec).
 
     datatype_mapping : dict, optional
-        A mapping of datatype names (str) to valid VOTable datatype names
+        A mapping of datatype names (`str`) to valid VOTable datatype names
         (str). For example, if the file being read contains the datatype
         "unsignedInt" (an invalid datatype in VOTable), include the mapping
         ``{"unsignedInt": "long"}``.
@@ -223,7 +223,7 @@ def validate(source, output=None, xmllint=False, filename=None):
     Parameters
     ----------
     source : path-like or file-like
-        Path to a VOTABLE_ xml file or pathlib.path
+        Path to a VOTABLE_ xml file or `~pathlib.Path`
         object having Path to a VOTABLE_ xml file.
         If file-like object, must be readable.
 
@@ -372,7 +372,7 @@ def is_votable(source):
 
     Parameters
     ----------
-    source : str or file-like
+    source : path-like or file-like
         Path or file object containing a VOTABLE_ xml file.
         If file, must be readable.
 
