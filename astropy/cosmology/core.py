@@ -128,7 +128,11 @@ class Cosmology(metaclass=ABCMeta):
         return self
 
     def __init__(self, *args, name=None, **kwargs):
-        self.name = name
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     def clone(self, **kwargs):
         """Returns a copy of this object with updated parameters, as specified.

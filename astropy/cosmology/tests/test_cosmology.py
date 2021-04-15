@@ -52,6 +52,13 @@ def test_init():
         realizations.default_cosmology.validate(4)
 
 
+def test_immutability():
+    """Test immutability of cosmologies."""
+    cosmo = core.Cosmology()
+    with pytest.raises(AttributeError):
+        cosmo.name = "new name"
+
+
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
                                Ob0=0.05)
