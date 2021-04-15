@@ -271,6 +271,8 @@ class Column:
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
     * **dtype** : numpy dtype (optional, overrides **type** if set)
     * **str_vals** : list of column values as strings
+    * **fill_values** : dict of fill values
+    * **shape** : list of element shape (default [] => scalar)
     * **data** : list of converted column values
     """
 
@@ -280,6 +282,7 @@ class Column:
         self.dtype = None  # Numpy dtype if available
         self.str_vals = []
         self.fill_values = {}
+        self.shape = []
 
 
 class BaseInputter:
@@ -1031,6 +1034,15 @@ class BaseOutputter:
                     converter_func, converter_type = col.converters[0]
                     if not issubclass(converter_type, col.type):
                         raise TypeError('converter type does not match column type')
+                    if col.shape:  # or object type, later?
+                        import json
+                        try:
+                            col_vals = [json.loads(val) for val in col.str_vals]
+                            col.data = converter_func(col_vals)
+                        except json.JSONDecodeError:
+                            raise ValueError('failed to decode as JSON')
+                        if col.data.shape[1:] != tuple(col.shape):
+                            raise ValueError('shape mismatch')
                     col.data = converter_func(col.str_vals)
                     col.type = converter_type
                 except (TypeError, ValueError) as err:
