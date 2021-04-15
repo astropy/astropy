@@ -200,9 +200,9 @@ class PhysicalType:
     with a set of units.
 
     Instances of this class should be accessed through either
-    `get_physical_type` or by using the ``physical_type`` property of
-    units. This class is not intended to be instantiated directly in
-    user code.
+    `get_physical_type` or by using the
+    `~astropy.units.core.UnitBase.physical_type` attribute of units.
+    This class is not intended to be instantiated directly in user code.
 
     Parameters
     ----------
@@ -229,8 +229,8 @@ class PhysicalType:
 
     Examples
     --------
-    `PhysicalType` instances may be accessed via the ``physical_type``
-    attribute of units.
+    `PhysicalType` instances may be accessed via the
+    `~astropy.units.core.UnitBase.physical_type` attribute of units.
 
     >>> import astropy.units as u
     >>> u.meter.physical_type
@@ -421,7 +421,8 @@ def def_physical_type(unit, name):
     Add a mapping between a unit and the corresponding physical type(s).
 
     If a physical type already exists for a unit, add new physical type
-    names so long as those names do not correspond to other units.
+    names so long as those names are not already in use for other
+    physical types.
 
     Parameters
     ----------
@@ -470,37 +471,56 @@ def def_physical_type(unit, name):
         _name_physical_mapping[ptype_name] = physical_type
 
 
-def get_physical_type(unit):
+def get_physical_type(obj):
     """
     Return the physical type that corresponds to a unit (or another
     physical type representation).
 
     Parameters
     ----------
-    unit : `~astropy.units.UnitBase`, `str`, or the number one
-        The unit to get the physical type for, a string containing a name
-        of a physical type, or the number 1 to represent a dimensionless
-        physical type.
+    obj : `~astropy.units.UnitBase`, `str`, number, or `~astropy.units.Quantity`
+        The object for which to retreive the physical type.  This object
+        should be a unit, the name of a physical type, the number one, a
+        `~astropy.units.Quantity`, or an `object` that has a ``unit``
+        attribute that is a unit.
 
     Returns
     -------
-    physical_type : PhysicalType
+    physical_type : `PhysicalType`
         A representation of the physical type(s) of the unit.
 
     Examples
     --------
+    The physical type may be retrieved from a unit or a
+    `~astropy.units.Quantity`.
+
     >>> import astropy.units as u
     >>> u.get_physical_type(u.meter ** -2)
     PhysicalType('column density')
+    >>> u.get_physical_type(0.62 * u.barn * u.Mpc)
+    PhysicalType('volume')
+
+    The physical type may also be retrieved by providing a `str` that
+    contains the name of a physical type.
+
     >>> u.get_physical_type("energy")
     PhysicalType({'energy', 'torque', 'work'})
+
+    The number one corresponds to a dimensionless physical type.
+
     >>> u.get_physical_type(1)
     PhysicalType('dimensionless')
     """
-    if isinstance(unit, str):
-        return _physical_type_from_str(unit)
-    if isinstance(unit, numbers.Real) and unit == 1:
+    if isinstance(obj, str):
+        return _physical_type_from_str(obj)
+
+    if hasattr(obj, "unit"):
+        unit = obj.unit
+    elif isinstance(obj, numbers.Real) and obj == 1:
         unit = core.dimensionless_unscaled
+    else:
+        unit = obj
+
     unit = _replace_temperatures_with_kelvin(unit)
     physical_type_id = unit._get_physical_type_id()
     unit_has_known_physical_type = physical_type_id in _physical_unit_mapping

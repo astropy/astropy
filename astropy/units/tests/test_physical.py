@@ -137,9 +137,9 @@ def test_physical_type_names(unit, physical_type):
 
 @pytest.mark.parametrize(
     "physical_type_representation, physical_type_name",
-    [(1.0, "dimensionless"), (u.m, "length"), ("length", "length")],
+    [(1.0, "dimensionless"), (u.m, "length"), ("work", "work"), (5 * u.m, "length")],
 )
-def test_get_physical_type(physical_type_representation, physical_type_name):
+def test_getting_physical_type(physical_type_representation, physical_type_name):
     """Test different ways of getting a physical type."""
     physical_type = physical.get_physical_type(physical_type_representation)
     assert isinstance(physical_type, physical.PhysicalType)
