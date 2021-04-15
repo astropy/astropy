@@ -3070,7 +3070,7 @@ class CompoundModel(Model):
             else:
                 left = f'(({left}),'
                 right = f'({right}))'
-                operands.append(' '.join((node.op, left, right)))
+                operands.append(' '.join((node.op[0], left, right)))
 
         return ''.join(operands)
 

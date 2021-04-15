@@ -947,6 +947,6 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
         Convolved model
     """
 
-    SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
+    operator = SPECIAL_OPERATORS.add('convolve_fft', partial(convolve_fft, **kwargs))
 
-    return Convolution(model, kernel, bounding_box, resolution, cache)
+    return Convolution(operator, model, kernel, bounding_box, resolution, cache)
