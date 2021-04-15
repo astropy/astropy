@@ -67,7 +67,7 @@ _good_sizes = np.array([   0,    1,    2,    3,    4,    5,    6,    8,    9,   
 _good_range = int(np.log10(_good_sizes[-1]))
 
 # Disabling doctests when scipy isn't present.
-__doctest_requires__ = {('convolve_fft',): ['scipy']}
+__doctest_requires__ = {('convolve_fft',): ['scipy.fft']}
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
