@@ -76,7 +76,7 @@ class Distance(u.SpecificTypeQuantity):
         If ``z`` is provided with a ``unit`` or ``cosmology`` is provided
         when ``z`` is *not* given, or ``value`` is given as well as ``z``.
 
-        If none of ``value``, ``z``, ``distmod``, or ``parallax`` were given
+        If none of ``value``, ``z``, ``distmod``, or ``parallax`` were given.
 
 
     Examples
