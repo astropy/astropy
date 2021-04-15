@@ -190,8 +190,9 @@ class Kernel1D(Kernel):
     model : `~astropy.modeling.FittableModel`
         Model to be evaluated.
     x_size : int or None, optional
-        Size of the kernel array. Default = 8 * width.
-    array : ndarray
+        Size of the kernel array. Default = ⌊8*width+1⌋.
+        Only used if ``array`` is None.
+    array : ndarray or None, optional
         Kernel array.
     width : number
         Width of the filter kernel.
@@ -249,11 +250,13 @@ class Kernel2D(Kernel):
     model : `~astropy.modeling.FittableModel`
         Model to be evaluated.
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None.
     y_size : int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
-    array : ndarray
-        Kernel array.
+        Size in y direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None,
+    array : ndarray or None, optional
+        Kernel array. Default is None.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
