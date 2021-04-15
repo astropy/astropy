@@ -23,7 +23,6 @@ class NdarrayMixinInfo(ParentDtypeInfo):
         These then get constructed back into the same (2, 2, 20) Column.
         """
         col = self._parent
-
         out = {'data': col.view(np.ndarray)}
 
         return out
