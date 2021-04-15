@@ -404,18 +404,6 @@ class PhysicalType:
     __array__ = None
 
 
-def _get_names_in_use_except_from(unit):
-    """
-    Get a `set` containing all of the physical type names in use, except
-    for the names that correspond to ``unit``.
-    """
-    names_in_use = set(_unit_physical_mapping.keys())
-    id = unit._get_physical_type_id()
-    known_physical_type = id in _physical_unit_mapping.keys()
-    names_for_unit = set(_physical_unit_mapping[id]) if known_physical_type else set()
-    return names_in_use - names_for_unit
-
-
 def def_physical_type(unit, name):
     """
     Add a mapping between a unit and the corresponding physical type(s).
@@ -440,21 +428,20 @@ def def_physical_type(unit, name):
         If a physical type name is already in use for another unit, or
         if attempting to name a unit as ``"unknown"``.
     """
+    physical_type_id = unit._get_physical_type_id()
     physical_type_names = _standardize_physical_type_names(name)
 
     if "unknown" in physical_type_names:
         raise ValueError("cannot uniquely define an unknown physical type")
 
-    names_for_other_units = _get_names_in_use_except_from(unit)
-
+    names_for_other_units = set(_unit_physical_mapping.keys()).difference(
+        _physical_unit_mapping.get(physical_type_id, {}))
     names_already_in_use = physical_type_names & names_for_other_units
     if names_already_in_use:
         raise ValueError(
             f"the following physical type names are already in use: "
-            f"{names_already_in_use}."
-        )
+            f"{names_already_in_use}.")
 
-    physical_type_id = unit._get_physical_type_id()
     unit_already_in_use = physical_type_id in _physical_unit_mapping
     if unit_already_in_use:
         physical_type = _physical_unit_mapping[physical_type_id]
