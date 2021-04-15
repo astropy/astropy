@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord, representation as r
 from astropy.time import Time
 
-from .. import Masked
+from astropy.utils.masked import Masked
 
 
 class TestRepresentations:
