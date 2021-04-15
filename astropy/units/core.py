@@ -1340,7 +1340,7 @@ class UnitBase:
 
         Returns
         -------
-        ~astropy.units.physical.PhysicalType
+        `~astropy.units.physical.PhysicalType`
             A representation of the physical type(s) of a unit.
 
         Examples
