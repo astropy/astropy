@@ -37,7 +37,7 @@ class Gaussian1DKernel(Kernel1D):
     stddev : number
         Standard deviation of the Gaussian kernel.
     x_size : int, optional
-        Size of the kernel array. Default = 8 * stddev. Must be odd.
+        Size of the kernel array. Default = 8 * stddev.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -106,10 +106,8 @@ class Gaussian2DKernel(Kernel2D):
         The rotation angle increases counterclockwise.
     x_size : int, optional
         Size in x direction of the kernel array. Default = 8 * stddev.
-        Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = 8 * stddev.
-        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -567,7 +565,6 @@ class RickerWavelet1DKernel(Kernel1D):
         of the Gaussian function from which it is derived.
     x_size : int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -644,10 +641,8 @@ class RickerWavelet2DKernel(Kernel2D):
         of the Gaussian function from which it is derived.
     x_size : int, optional
         Size in x direction of the kernel array. Default = 8 * width.
-        Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -710,10 +705,8 @@ class AiryDisk2DKernel(Kernel2D):
         The radius of the Airy disk kernel (radius of the first zero).
     x_size : int, optional
         Size in x direction of the kernel array. Default = 8 * radius.
-        Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = 8 * radius.
-        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -776,10 +769,8 @@ class Moffat2DKernel(Kernel2D):
         Power index of the Moffat model.
     x_size : int, optional
         Size in x direction of the kernel array. Default = 8 * radius.
-        Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = 8 * radius.
-        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -911,7 +902,6 @@ class Model2DKernel(Kernel2D):
         Must be odd.
     y_size : int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
