@@ -160,7 +160,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     Parameters
     ----------
-    array : `~astropy.nddata.NDData` or ndarray or array-like
+    array : `~astropy.nddata.NDData` or array-like
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
