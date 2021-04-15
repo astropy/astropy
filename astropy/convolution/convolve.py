@@ -160,7 +160,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
 
     Parameters
     ----------
-    array : `~astropy.nddata.NDData` or `numpy.ndarray` or array_like
+    array : `~astropy.nddata.NDData` or ndarray or array-like
         The array to convolve. This should be a 1, 2, or 3-dimensional array
         or a list or a set of nested lists representing a 1, 2, or
         3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
@@ -196,7 +196,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     preserve_nan : bool
         After performing convolution, should pixels that were originally NaN
         again become NaN?
-    mask : `None` or `numpy.ndarray`
+    mask : None or ndarray
         A "mask" array.  Shape must match ``array``, and anything that is masked
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
@@ -491,7 +491,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         numerical value (default zero, see ``fill_value``) prior to
         convolution.  Note that if the kernel has a sum equal to zero, NaN
         interpolation is not possible and will raise an exception.
-    normalize_kernel : function or boolean, optional
+    normalize_kernel : callable or boolean, optional
         If specified, this is the function to divide kernel by to normalize it.
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
@@ -503,7 +503,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     preserve_nan : bool
         After performing convolution, should pixels that were originally NaN
         again become NaN?
-    mask : `None` or `numpy.ndarray`
+    mask : None or ndarray
         A "mask" array.  Shape must match ``array``, and anything that is masked
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
@@ -538,20 +538,20 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     allow_huge : bool, optional
         Allow huge arrays in the FFT?  If False, will raise an exception if the
         array or kernel size is >1 GB.
-    fftn : functions, optional
+    fftn : callable, optional
         The fft function.  Can be overridden to use your own ffts,
-        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fft.fftn``.
-    ifftn : functions, optional
+        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fftpack.fftn``.
+    ifftn : callable, optional
         The inverse fft function. Can be overridden the same way ``fttn``.
-    complex_dtype : numpy.complex, optional
+    complex_dtype : complex type, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
 
     Raises
     ------
     ValueError:
-        If the array is bigger than 1 GB after padding, will raise this exception
-        unless ``allow_huge`` is True
+        If the array is bigger than 1 GB after padding, will raise this
+        exception unless ``allow_huge`` is True
 
     See Also
     --------
@@ -903,7 +903,7 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
 
     Returns
     -------
-    default : CompoundModel
+    default : `~astropy.modeling.core.CompoundModel`
         Convolved model
     """
 

@@ -175,7 +175,8 @@ class IERS(QTable):
 
         Returns
         -------
-        An IERS table class instance
+        IERS
+            An IERS table class instance
 
         Notes
         -----
@@ -224,7 +225,7 @@ class IERS(QTable):
 
         Parameters
         ----------
-        jd1 : float, array, or Time
+        jd1 : float, array, or `~astropy.time.Time`
             first part of two-part JD, or Time object
         jd2 : float or array, optional
             second part of two-part JD.
@@ -251,7 +252,7 @@ class IERS(QTable):
 
         Parameters
         ----------
-        jd1 : float, float array, or Time object
+        jd1 : float, array of float, or `~astropy.time.Time` object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
             second part of two-part JD.
@@ -281,7 +282,7 @@ class IERS(QTable):
 
         Parameters
         ----------
-        jd1 : float, float array, or Time object
+        jd1 : float, array of float, or `~astropy.time.Time` object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
             second part of two-part JD (default 0., ignored if jd1 is Time)
@@ -292,10 +293,12 @@ class IERS(QTable):
 
         Returns
         -------
-        D_x : Quantity with angle units
-            x component of CIP correction for the requested times
-        D_y : Quantity with angle units
+        D_x : `~astropy.units.Quantity`
+            x component of CIP correction for the requested times.
+            Must have angular units.
+        D_y : `~astropy.units.Quantity`
             y component of CIP correction for the requested times
+            Must have angular units.
         status : int or int array
             Status values (if ``return_status``=``True``)::
             ``iers.FROM_IERS_B``
@@ -312,7 +315,7 @@ class IERS(QTable):
 
         Parameters
         ----------
-        jd1 : float, float array, or Time object
+        jd1 : float, array of float, or `~astropy.time.Time` object
             first part of two-part JD, or Time object
         jd2 : float or float array, optional
             second part of two-part JD.
@@ -324,10 +327,12 @@ class IERS(QTable):
 
         Returns
         -------
-        PM_x : Quantity with angle units
-            x component of polar motion for the requested times
-        PM_y : Quantity with angle units
-            y component of polar motion for the requested times
+        PM_x : `~astropy.units.Quantity`
+            x component of polar motion for the requested times.
+            Must have angular units.
+        PM_y : `~astropy.units.Quantity`
+            y component of polar motion for the requested times.
+            Must have angular units.
         status : int or int array
             Status values (if ``return_status``=``True``)::
             ``iers.FROM_IERS_B``
@@ -656,7 +661,8 @@ class IERS_Auto(IERS_A):
 
         Returns
         -------
-        `~astropy.table.QTable` instance with IERS (Earth rotation) data columns
+        `~astropy.table.QTable` instance
+            With IERS (Earth rotation) data columns
 
         """
         if not conf.auto_download:
@@ -894,7 +900,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, or None
+        file : path-like or None
             Full local or network path to the file holding leap-second data,
             for passing on to the various ``from_`` class methods.
             If 'erfa', return the data used by the ERFA library.
@@ -955,7 +961,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        files : list of path, optional
+        files : list of path-like, optional
             List of files/URLs to attempt to open.  By default, uses
             ``cls._auto_open_files``.
 
@@ -1055,7 +1061,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, optional
+        file : path-like, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IERS.  By default, uses
             ``iers.IERS_LEAP_SECOND_FILE``.
@@ -1074,7 +1080,7 @@ class LeapSeconds(QTable):
 
         Parameters
         ----------
-        file : path, optional
+        file : path-like, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IETF.  Up to date versions
             can be retrieved from ``iers.IETF_LEAP_SECOND_URL``.

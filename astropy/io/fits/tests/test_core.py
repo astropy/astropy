@@ -1094,7 +1094,7 @@ class TestFileFunctions(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/2356
 
-        Demonstrates that FITS files can still be read from "file-like" objects
+        Demonstrates that FITS files can still be read from file-like objects
         that don't have an obvious "open" or "closed" state.
         """
 

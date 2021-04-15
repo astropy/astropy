@@ -60,7 +60,7 @@ class NDData(NDDataBase):
         an empty `collections.OrderedDict` is created.
         Default is ``None``.
 
-    unit : `~astropy.units.Unit`-like or str, optional
+    unit : unit-like, optional
         Unit for the dataset. Strings that can be converted to a
         `~astropy.units.Unit` are allowed.
         Default is ``None``.

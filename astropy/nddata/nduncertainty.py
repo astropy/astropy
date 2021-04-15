@@ -44,7 +44,7 @@ class NDUncertainty(metaclass=ABCMeta):
         to a plain `numpy.ndarray`.
         Default is ``None``.
 
-    unit : `~astropy.units.Unit` or str, optional
+    unit : unit-like, optional
         Unit for the uncertainty ``array``. Strings that can be converted to a
         `~astropy.units.Unit` are allowed.
         Default is ``None``.
@@ -294,7 +294,7 @@ class NDUncertainty(metaclass=ABCMeta):
         other_nddata : `NDData` instance
             The second operand in the arithmetic operation.
 
-        result_data : `~astropy.units.Quantity` or `numpy.ndarray`
+        result_data : `~astropy.units.Quantity` or ndarray
             The result of the arithmetic operations on the data.
 
         correlation : `numpy.ndarray` or number
@@ -477,7 +477,7 @@ class _VariancePropagationMixin:
         result_data : `~astropy.nddata.NDData` instance
             The results of the operation on the data.
 
-        correlation : float or `numpy.ndarray`-like
+        correlation : float or array-like
             Correlation of the uncertainties.
 
         subtract : bool, optional
@@ -560,7 +560,7 @@ class _VariancePropagationMixin:
         result_data : `~astropy.nddata.NDData` instance
             The results of the operation on the data.
 
-        correlation : float or `numpy.ndarray`-like
+        correlation : float or array-like
             Correlation of the uncertainties.
 
         divide : bool, optional

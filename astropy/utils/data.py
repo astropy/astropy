@@ -47,6 +47,7 @@ __all__ = [
     'check_free_space_in_dir',
     'get_file_contents',
     'CacheMissingWarning',
+    "CacheDamaged"
 ]
 
 _dataurls_to_alias = {}
@@ -171,7 +172,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     Parameters
     ----------
-    name_or_obj : str or file-like object
+    name_or_obj : str or file-like
         The filename of the file to access (if given as a string), or
         the file-like object to access.
 
@@ -220,7 +221,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
 
     Returns
     -------
-    file : readable file-like object
+    file : readable file-like
     """
 
     # close_fds is a list of file handles created by this function
@@ -392,7 +393,7 @@ def get_file_contents(*args, **kwargs):
 
     Returns
     -------
-    content
+    object
         The content of the file (as requested by ``encoding``).
     """
     with get_readable_fileobj(*args, **kwargs) as f:
@@ -814,7 +815,7 @@ def get_pkg_data_fileobjs(datadir, package=None, pattern='*', encoding=None):
 
     Returns
     -------
-    fileobjs : iterator of file objects
+    fileobjs : iterator of file object
         File objects for each of the files on the local filesystem in
         *datadir* matching *pattern*.
 
@@ -880,7 +881,7 @@ def get_pkg_data_path(*path, package=None):
         Name/location of the desired data file/directory.
         May be a tuple of strings for ``os.path`` joining.
 
-    package : str or `None`, optional, keyword only
+    package : str or None, optional, keyword-only
         If specified, look for a file relative to the given package, rather
         than the calling module's package.
 
@@ -1668,7 +1669,7 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
 
     Parameters
     ----------
-    pkgname : `str`, optional
+    pkgname : str, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
@@ -1680,7 +1681,7 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
 
     Raises
     ------
-    CacheDamaged
+    `~astropy.utils.data.CacheDamaged`
         To indicate a problem with the cache contents; the exception contains
         a ``.bad_files`` attribute containing a set of filenames to allow the
         user to use `clear_download_cache` to remove the offending items.

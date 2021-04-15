@@ -43,10 +43,10 @@ def reshape_as_blocks(data, block_size):
 
     Parameters
     ----------
-    data : `~numpy.ndarray`
+    data : ndarray
         The input data array.
 
-    block_size : int or array_like (int)
+    block_size : int or array-like (int)
         The integer block size along each axis.  If ``block_size`` is a
         scalar and ``data`` has more than one dimension, then
         ``block_size`` will be used for for every axis.  Each dimension
@@ -55,7 +55,7 @@ def reshape_as_blocks(data, block_size):
 
     Returns
     -------
-    output : `~numpy.ndarray`
+    output : ndarray
         The reshaped array as a view of the input ``data`` array.
 
     Examples
@@ -104,10 +104,10 @@ def block_reduce(data, block_size, func=np.sum):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         The data to be resampled.
 
-    block_size : int or array_like (int)
+    block_size : int or array-like (int)
         The integer block size along each axis.  If ``block_size`` is a
         scalar and ``data`` has more than one dimension, then
         ``block_size`` will be used for for every axis.
@@ -122,7 +122,7 @@ def block_reduce(data, block_size, func=np.sum):
 
     Returns
     -------
-    output : array_like
+    output : array-like
         The resampled data.
 
     Examples
@@ -163,10 +163,10 @@ def block_replicate(data, block_size, conserve_sum=True):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         The data to be block replicated.
 
-    block_size : int or array_like (int)
+    block_size : int or array-like (int)
         The integer block size along each axis.  If ``block_size`` is a
         scalar and ``data`` has more than one dimension, then
         ``block_size`` will be used for for every axis.
@@ -177,7 +177,7 @@ def block_replicate(data, block_size, conserve_sum=True):
 
     Returns
     -------
-    output : array_like
+    output : array-like
         The block-replicated data.
 
     Examples

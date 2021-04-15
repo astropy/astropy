@@ -24,10 +24,10 @@ class BlackBody(Fittable1DModel):
 
     Parameters
     ----------
-    temperature : :class:`~astropy.units.Quantity`
+    temperature : `~astropy.units.Quantity`
         Blackbody temperature.
 
-    scale : float or :class:`~astropy.units.Quantity`
+    scale : float or `~astropy.units.Quantity`
         Scale factor
 
     Notes
@@ -380,7 +380,7 @@ class NFW(Fittable1DModel):
 
     Parameters
     ----------
-    mass : float or :class:`~astropy.units.Quantity`
+    mass : float or `~astropy.units.Quantity`
         Mass of NFW peak within specified overdensity radius.
     concentration : float
         Concentration of the NFW profile.
@@ -463,9 +463,9 @@ class NFW(Fittable1DModel):
 
         Parameters
         ----------
-        r : float or :class:`~astropy.units.Quantity`
+        r : float or `~astropy.units.Quantity`
             Radial position of density to be calculated for the NFW profile.
-        mass : float or :class:`~astropy.units.Quantity`
+        mass : float or `~astropy.units.Quantity`
             Mass of NFW peak within specified overdensity radius.
         concentration : float
             Concentration of the NFW profile.
@@ -474,7 +474,7 @@ class NFW(Fittable1DModel):
 
         Returns
         -------
-        density : float or :class:`~astropy.units.Quantity`
+        density : float or `~astropy.units.Quantity`
             NFW profile mass density at location ``r``. The density units are:
             [``mass`` / ``r`` ^3]
 
@@ -659,12 +659,12 @@ class NFW(Fittable1DModel):
 
         Parameters
         ----------
-        r : float or :class:`~astropy.units.Quantity`
+        r : float or `~astropy.units.Quantity`
             Radial position of velocity to be calculated for the NFW profile.
 
         Returns
         -------
-        velocity : float or :class:`~astropy.units.Quantity`
+        velocity : float or `~astropy.units.Quantity`
             NFW profile circular velocity at location ``r``. The velocity units are:
             [km / s]
 

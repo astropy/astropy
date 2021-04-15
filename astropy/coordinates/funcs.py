@@ -46,12 +46,12 @@ def cartesian_to_spherical(x, y, z):
 
     Parameters
     ----------
-    x : scalar, array_like, or `~astropy.units.Quantity`
-        The first cartesian coordinate.
-    y : scalar, array_like, or `~astropy.units.Quantity`
-        The second cartesian coordinate.
-    z : scalar, array_like, or `~astropy.units.Quantity`
-        The third cartesian coordinate.
+    x : scalar, array-like, or `~astropy.units.Quantity`
+        The first Cartesian coordinate.
+    y : scalar, array-like, or `~astropy.units.Quantity`
+        The second Cartesian coordinate.
+    z : scalar, array-like, or `~astropy.units.Quantity`
+        The third Cartesian coordinate.
 
     Returns
     -------
@@ -92,11 +92,11 @@ def spherical_to_cartesian(r, lat, lon):
 
     Parameters
     ----------
-    r : scalar, array_like, or `~astropy.units.Quantity`
+    r : scalar, array-like, or `~astropy.units.Quantity`
         The radial coordinate (in the same units as the inputs).
-    lat : scalar, array_like, or `~astropy.units.Quantity`
+    lat : scalar, array-like, or `~astropy.units.Quantity`
         The latitude (in radians if array or scalar)
-    lon : scalar, array_like, or `~astropy.units.Quantity`
+    lon : scalar, array-like, or `~astropy.units.Quantity`
         The longitude (in radians if array or scalar)
 
     Returns
@@ -180,7 +180,7 @@ def get_constellation(coord, short_name=False, constellation_list='iau'):
 
     Parameters
     ----------
-    coord : coordinate object
+    coord : coordinate-like
         The object to determine the constellation of.
     short_name : bool
         If True, the returned names are the IAU-sanctioned abbreviated
@@ -291,14 +291,15 @@ def concatenate_representations(reps):
 
     Parameters
     ----------
-    reps : sequence of representation objects
+    reps : sequence of `~astropy.coordinates.BaseRepresentation`
         The objects to concatenate
 
     Returns
     -------
-    rep : `~astropy.coordinates.BaseRepresentation` subclass
+    rep : `~astropy.coordinates.BaseRepresentation` subclass instance
         A single representation object with its data set to the concatenation of
         all the elements of the input sequence of representations.
+
     """
     if not isinstance(reps, (Sequence, np.ndarray)):
         raise TypeError('Input must be a list or iterable of representation '
@@ -350,7 +351,7 @@ def concatenate(coords):
 
     Parameters
     ----------
-    coords : sequence of coordinate objects
+    coords : sequence of coordinate-like
         The objects to concatenate
 
     Returns

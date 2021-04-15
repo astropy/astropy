@@ -45,7 +45,7 @@ def zero_point_flux(flux0):
 
     Parameters
     ----------
-    flux0 : u.Quantity
+    flux0 : `~astropy.units.Quantity`
         The flux of a magnitude-0 object in the "maggy" system.
     """
     flux_unit0 = Unit(flux0)

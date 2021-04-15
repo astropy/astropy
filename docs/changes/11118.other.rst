@@ -1,0 +1,8 @@
+Turn on `numpydoc <https://numpydoc.readthedocs.io/en/latest/install.html>`_
+``numpydoc_xref_param_type``  to create cross-references for the parameter types
+in the Parameters, Other Parameters, Returns and Yields sections of the
+docstrings.
+Docstrings across the package are standardized to enable references.
+Also added is an Astropy glossary-of-terms to define standard inputs,
+e.g. ``quantity-like`` indicates an input that can be interpreted by
+``astropy.units.Quantity``.

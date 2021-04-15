@@ -22,7 +22,7 @@ def get_grouped_by_powers(bases, powers):
     ----------
     bases : list of `astropy.units.UnitBase` instances
 
-    powers : list of ints
+    powers : list of int
 
     Returns
     -------

@@ -20,7 +20,7 @@ _arit_doc = """
 
     Parameters
     ----------
-    operand, operand2 : `NDData`-like instance or convertible to one.
+    operand, operand2 : `NDData`-like instance
         If ``operand2`` is ``None`` or not given it will perform the operation
         ``self`` {op} ``operand``.
         If ``operand2`` is given it will perform ``operand`` {op} ``operand2``.
@@ -204,7 +204,7 @@ class NDArithmeticMixin:
 
         Returns
         -------
-        result : `~numpy.ndarray` or `~astropy.units.Quantity`
+        result : ndarray or `~astropy.units.Quantity`
             The resulting data as array (in case both operands were without
             unit) or as quantity if at least one had a unit.
 
@@ -301,7 +301,7 @@ class NDArithmeticMixin:
 
         Returns
         -------
-        result_data : `~numpy.ndarray` or `~astropy.units.Quantity`
+        result_data : ndarray or `~astropy.units.Quantity`
             If both operands had no unit the resulting data is a simple numpy
             array, but if any of the operands had a unit the return is a
             Quantity.

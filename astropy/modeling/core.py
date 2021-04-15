@@ -1505,7 +1505,7 @@ class Model(metaclass=_ModelMeta):
         out : `numpy.ndarray`, optional
             An array that the evaluated model will be added to.  If this is not
             given (or given as ``None``), a new array will be created.
-        coords : array_like, optional
+        coords : array-like, optional
             An array to be used to translate from the model's input coordinates
             to the ``out`` array. It should have the property that
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
@@ -3371,7 +3371,7 @@ class CompoundModel(Model):
         out : `numpy.ndarray`, optional
             An array that the evaluated model will be added to.  If this is not
             given (or given as ``None``), a new array will be created.
-        coords : array_like, optional
+        coords : array-like, optional
             An array to be used to translate from the model's input coordinates
             to the ``out`` array. It should have the property that
             ``self(coords)`` yields the same shape as ``out``.  If ``out`` is
@@ -3596,9 +3596,11 @@ def fix_inputs(modelinstance, values):
 
     Parameters
     ----------
-    modelinstance : Model instance. This is the model that one or more of the
+    modelinstance : `~astropy.modeling.Model` instance
+        This is the model that one or more of the
         model input values will be fixed to some constant value.
-    values : A dictionary where the key identifies which input to fix
+    values : dict
+        A dictionary where the key identifies which input to fix
         and its value is the value to fix it at. The key may either be the
         name of the input or a number reflecting its order in the inputs.
 
@@ -3775,7 +3777,7 @@ def render_model(model, arr=None, coords=None):
         Model to be evaluated.
     arr : `numpy.ndarray`, optional
         Array on which the model is evaluated.
-    coords : array_like, optional
+    coords : array-like, optional
         Coordinate arrays mapping to ``arr``, such that
         ``arr[coords] == arr``.
 

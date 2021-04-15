@@ -6,6 +6,7 @@ This module contains the fundamental classes used for representing
 coordinates in astropy.
 """
 
+import warnings
 from collections import namedtuple
 
 import numpy as np
@@ -88,7 +89,7 @@ class Angle(u.SpecificTypeQuantity):
         values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
-    unit : `~astropy.units.UnitBase`, str, optional
+    unit : unit-like, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
@@ -370,8 +371,8 @@ class Angle(u.SpecificTypeQuantity):
         This method forces all the angle values to be within a contiguous
         360 degree range so that ``wrap_angle - 360d <= angle <
         wrap_angle``. By default a new Angle object is returned, but if the
-        ``inplace`` argument is `True` then the `~astropy.coordinates.Angle` object is wrapped in
-        place and nothing is returned.
+        ``inplace`` argument is `True` then the `~astropy.coordinates.Angle`
+        object is wrapped in place and nothing is returned.
 
         For instance::
 
@@ -388,10 +389,10 @@ class Angle(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        wrap_angle : str, `~astropy.coordinates.Angle`, angular `~astropy.units.Quantity`
+        wrap_angle : angle-like
             Specifies a single value for the wrap angle.  This can be any
-            object that can initialize an `~astropy.coordinates.Angle` object, e.g. ``'180d'``,
-            ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
+            object that can initialize an `~astropy.coordinates.Angle` object,
+            e.g. ``'180d'``, ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
 
         inplace : bool
             If `True` then wrap the object in place instead of returning
@@ -399,10 +400,10 @@ class Angle(u.SpecificTypeQuantity):
 
         Returns
         -------
-        out : Angle or `None`
-            If ``inplace is False`` (default), return new `~astropy.coordinates.Angle` object
-            with angles wrapped accordingly.  Otherwise wrap in place and
-            return `None`.
+        out : Angle or None
+            If ``inplace is False`` (default), return new
+            `~astropy.coordinates.Angle` object with angles wrapped accordingly.
+            Otherwise wrap in place and return `None`.
         """
         wrap_angle = Angle(wrap_angle)  # Convert to an Angle
         wrapped = np.mod(self - wrap_angle, 360.0 * u.deg) - (360.0 * u.deg - wrap_angle)
@@ -431,11 +432,11 @@ class Angle(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        lower : str, `~astropy.coordinates.Angle`, angular `~astropy.units.Quantity`, `None`
+        lower : angle-like or None
             Specifies lower bound for checking.  This can be any object
             that can initialize an `~astropy.coordinates.Angle` object, e.g. ``'180d'``,
             ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
-        upper : str, `~astropy.coordinates.Angle`, angular `~astropy.units.Quantity`, `None`
+        upper : angle-like or None
             Specifies upper bound for checking.  This can be any object
             that can initialize an `~astropy.coordinates.Angle` object, e.g. ``'180d'``,
             ``180 * u.deg``, or ``Angle(180, unit=u.deg)``.
@@ -503,9 +504,9 @@ class Latitude(Angle):
 
     Parameters
     ----------
-    angle : array, list, scalar, `~astropy.units.Quantity`, `~astropy.coordinates.Angle`. The
-        angle value(s). If a tuple, will be interpreted as ``(h, m, s)`` or
-        ``(d, m, s)`` depending on ``unit``. If a string, it will be
+    angle : array, list, scalar, `~astropy.units.Quantity`, `~astropy.coordinates.Angle`
+        The angle value(s). If a tuple, will be interpreted as ``(h, m, s)``
+        or ``(d, m, s)`` depending on ``unit``. If a string, it will be
         interpreted following the rules described for
         :class:`~astropy.coordinates.Angle`.
 
@@ -513,7 +514,7 @@ class Latitude(Angle):
         values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
-    unit : :class:`~astropy.units.UnitBase`, str, optional
+    unit : unit-like, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
@@ -608,13 +609,13 @@ class Longitude(Angle):
         values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
-    unit : :class:`~astropy.units.UnitBase`, str, optional
+    unit : unit-like, optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular
         unit.
 
-    wrap_angle : :class:`~astropy.coordinates.Angle` or equivalent, or None
+    wrap_angle : angle-like or None
         Angle at which to wrap back to ``wrap_angle - 360 deg``.
         If ``None`` (default), it will be taken to be 360 deg unless ``angle``
         has a ``wrap_angle`` attribute already (i.e., is a ``Longitude``),
@@ -640,7 +641,15 @@ class Longitude(Angle):
         self = super().__new__(cls, angle, unit=unit, **kwargs)
         if wrap_angle is None:
             wrap_angle = getattr(angle, 'wrap_angle', self._default_wrap_angle)
-        self.wrap_angle = wrap_angle
+
+        if (issubclass(wrap_angle.__class__, Angle)
+            and wrap_angle.__class__ is not Angle):
+            warnings.warn((
+                    f"`wrap_angle` is <{type(wrap_angle)}>, not <Angle>."
+                    "It is currently converted, but will error in the future."
+                ),
+                DeprecationWarning)
+        self.wrap_angle = Angle(wrap_angle, copy=False)
         return self
 
     def __setitem__(self, item, value):

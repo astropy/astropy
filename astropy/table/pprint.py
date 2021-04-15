@@ -516,7 +516,7 @@ class TableFormatter:
             "table{id}", where id is the unique integer id of the table object,
             id(table)
 
-        tableclass : str or list of str or `None`
+        tableclass : str or list of str or None
             CSS classes for the table; only used if html is set.  Default is
             none
 

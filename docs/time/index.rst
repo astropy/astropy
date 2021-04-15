@@ -1387,7 +1387,7 @@ are available, including the requirements for using JPL ephemerides, see
 
 .. EXAMPLE END
 
-Interaction with Time-Like Quantities
+Interaction with time-like Quantities
 -------------------------------------
 
 Where possible, |Quantity| objects with units of time are treated as |TimeDelta|
@@ -1399,7 +1399,7 @@ of time.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Time Object Interaction with Time-Like Quantities
+.. EXAMPLE START: Time Object Interaction with time-like Quantities
 
 To use |Quantity| objects with units of time::
 

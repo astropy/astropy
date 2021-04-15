@@ -1076,7 +1076,8 @@ class Voigt1D(Fittable1DModel):
     method : str, optional
         Algorithm for computing the complex error function; one of
         'Humlicek2' (default, fast and generally more accurate than ``rtol=3.e-5``) or
-        'Scipy', alternatively 'wofz' (requires `scipy`, almost as fast and reference in accuracy).
+        'Scipy', alternatively 'wofz' (requires ``scipy``, almost as fast and
+        reference in accuracy).
 
     See Also
     --------

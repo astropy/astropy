@@ -37,7 +37,7 @@ class SpectralQuantity(SpecificTypeQuantity):
     ----------
     value : ndarray or `~astropy.units.Quantity` or `SpectralQuantity`
         Spectral axis data values.
-    unit : str or `~astropy.units.Unit`
+    unit : unit-like
         Unit for the given data.
     doppler_rest : `~astropy.units.Quantity`, optional
         The rest value to use for conversions from/to velocities
@@ -190,11 +190,11 @@ class SpectralQuantity(SpecificTypeQuantity):
 
         Parameters
         ----------
-        unit : `~astropy.units.UnitBase` instance, str
+        unit : unit-like
             An object that represents the unit to convert to. Must be
             an `~astropy.units.UnitBase` object or a string parseable
             by the `~astropy.units` package, and should be a spectral unit.
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of `~astropy.units.equivalencies.Equivalency`, optional
             A list of equivalence pairs to try if the units are not
             directly convertible (along with spectral).  See :ref:`unit_equivalencies`.
             If not provided or ``[]``, spectral equivalencies will be used.

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
 # Dependencies
 import numpy as np
 
@@ -80,7 +79,7 @@ class Attribute:
 
         Returns
         -------
-        output_value
+        output_value : object
             The ``value`` converted to the correct type (or just ``value`` if
             ``converted`` is False)
         converted : bool
@@ -90,6 +89,7 @@ class Attribute:
         ------
         ValueError
             If the input is not valid for this attribute.
+
         """
         return value, False
 
@@ -202,7 +202,7 @@ class CartesianRepresentationAttribute(Attribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-    unit : unit object or None
+    unit : unit-like or None
         Name of a unit that the input will be converted into. If None, no
         unit-checking or conversion is performed
     """
@@ -223,9 +223,10 @@ class CartesianRepresentationAttribute(Attribute):
 
         Returns
         -------
-        out, converted : correctly-typed object, boolean
-            Tuple consisting of the correctly-typed object and a boolean which
-            indicates if conversion was actually performed.
+        out : object
+            The correctly-typed object.
+        converted : boolean
+            A boolean which indicates if conversion was actually performed.
 
         Raises
         ------
@@ -266,17 +267,17 @@ class QuantityAttribute(Attribute):
 
     Parameters
     ----------
-    default : value or Quantity or None
+    default : number or `~astropy.units.Quantity` or None, optional
         Default value for the attribute if the user does not supply one. If a
         Quantity, it must be consistent with ``unit``, or if a value, ``unit``
         cannot be None.
-    secondary_attribute : str
+    secondary_attribute : str, optional
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-    unit : unit object or None
+    unit : unit-like or None, optional
         Name of a unit that the input will be converted into. If None, no
         unit-checking or conversion is performed
-    shape : tuple or None
+    shape : tuple or None, optional
         If given, specifies the shape the attribute must be
     """
 
@@ -406,7 +407,7 @@ class CoordinateAttribute(Attribute):
 
     Parameters
     ----------
-    frame : a coordinate frame class
+    frame : `~astropy.coordinates.BaseCoordinateFrame` class
         The type of frame this attribute can be
     default : object
         Default value for the attribute if not provided

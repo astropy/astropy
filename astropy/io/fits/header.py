@@ -87,7 +87,7 @@ class Header:
 
         Parameters
         ----------
-        cards : A list of `Card` objects, optional
+        cards : list of `Card`, optional
             The cards to initialize the header with. Also allowed are other
             `Header` (or `dict`-like) objects.
 
@@ -388,7 +388,7 @@ class Header:
 
         Returns
         -------
-        header
+        `Header`
             A new `Header` instance.
         """
 
@@ -487,7 +487,7 @@ class Header:
 
         Returns
         -------
-        header
+        `Header`
             A new `Header` instance.
         """
 
@@ -681,7 +681,7 @@ class Header:
 
         Returns
         -------
-        s : str
+        str
             A string representing a FITS header.
         """
 
@@ -713,9 +713,9 @@ class Header:
 
         Parameters
         ----------
-        fileobj : str, file, optional
+        fileobj : path-like or file-like, optional
             Either the pathname of a file, or an open file handle or file-like
-            object
+            object.
 
         sep : str, optional
             The character or string with which to separate cards.  By default
@@ -825,7 +825,7 @@ class Header:
 
         Returns
         -------
-        header
+        `Header`
             A new :class:`Header` instance.
         """
 
@@ -860,7 +860,7 @@ class Header:
 
         Returns
         -------
-        header
+        `Header`
             A new `Header` instance.
         """
 
@@ -887,7 +887,7 @@ class Header:
 
         Returns
         -------
-        value
+        value: str, number, complex, bool, or ``astropy.io.fits.card.Undefined``
             The value associated with the given keyword, or the default value
             if the keyword is not in the header.
         """

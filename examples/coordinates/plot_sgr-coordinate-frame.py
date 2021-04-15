@@ -79,15 +79,15 @@ class Sagittarius(coord.BaseCoordinateFrame):
         The longitude-like angle corresponding to Sagittarius' orbit.
     Beta : `~astropy.coordinates.Angle`, optional, must be keyword
         The latitude-like angle corresponding to Sagittarius' orbit.
-    distance : `Quantity`, optional, must be keyword
+    distance : `~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
-    pm_Lambda_cosBeta : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_Lambda_cosBeta : `~astropy.units.Quantity`, optional, must be keyword
         The proper motion along the stream in ``Lambda`` (including the
         ``cos(Beta)`` factor) for this object (``pm_Beta`` must also be given).
-    pm_Beta : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_Beta : `~astropy.units.Quantity`, optional, must be keyword
         The proper motion in Declination for this object (``pm_ra_cosdec`` must
         also be given).
-    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
         The radial velocity of this object.
 
     """

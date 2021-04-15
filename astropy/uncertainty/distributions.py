@@ -23,14 +23,14 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     ----------
     center : `~astropy.units.Quantity`
         The center of this distribution
-    std : `~astropy.units.Quantity` or `None`
+    std : `~astropy.units.Quantity` or None
         The standard deviation/σ of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
         are set).
-    var : `~astropy.units.Quantity` or `None`
+    var : `~astropy.units.Quantity` or None
         The variance of this distribution. Shape must match and unit must be
         compatible with ``center``, or be `None` (if ``std`` or ``ivar`` are set).
-    ivar : `~astropy.units.Quantity` or `None`
+    ivar : `~astropy.units.Quantity` or None
         The inverse variance of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``std`` or ``var``
         are set).
@@ -44,8 +44,10 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
 
     Returns
     -------
-    distr : ``cls``, usually `Distribution`
+    distr : `~astropy.uncertainty.Distribution` or object
         The sampled Gaussian distribution.
+        The type will be the same as the parameter ``cls``.
+
     """
     center = np.asanyarray(center)
     if var is not None:
@@ -90,8 +92,9 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
 
     Returns
     -------
-    distr : ``cls``, usually `Distribution`
-        The sampled poisson distribution.
+    distr : `~astropy.uncertainty.Distribution` or object
+        The sampled Poisson distribution.
+        The type will be the same as the parameter ``cls``.
     """
     # we convert to arrays because np.random.poisson has trouble with quantities
     has_unit = False
@@ -129,16 +132,16 @@ def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
 
     Parameters
     ----------
-    lower : array_like
+    lower : array-like
         The lower edge of this distribution. If a `~astropy.units.Quantity`, the
         distribution will have the same units as ``lower``.
     upper : `~astropy.units.Quantity`
         The upper edge of this distribution. Must match shape and if a
         `~astropy.units.Quantity` must have compatible units with ``lower``.
-    center : array_like
+    center : array-like
         The center value of the distribution. Cannot be provided at the same
         time as ``lower``/``upper``.
-    width : array_like
+    width : array-like
         The width of the distribution.  Must have the same shape and compatible
         units with ``center`` (if any).
     n_samples : int
@@ -151,8 +154,9 @@ def uniform(*, lower=None, upper=None, center=None, width=None, n_samples,
 
     Returns
     -------
-    distr : ``cls``, usually `Distribution`
+    distr : `~astropy.uncertainty.Distribution` or object
         The sampled uniform distribution.
+        The type will be the same as the parameter ``cls``.
     """
     if center is None and width is None:
         lower = np.asanyarray(lower)

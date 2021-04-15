@@ -81,7 +81,7 @@ READ_DOCSTRING = """
 
     Returns
     -------
-    dat : `~astropy.table.Table` OR <generator>
+    dat : `~astropy.table.Table` or <generator>
         Output table
 
     """
@@ -129,10 +129,10 @@ WRITE_DOCSTRING = """
 
     Parameters
     ----------
-    table : `~astropy.io.ascii.BaseReader`, array_like, str, file_like, list
+    table : `~astropy.io.ascii.BaseReader`, array-like, str, file-like, list
         Input table as a Reader object, Numpy struct array, file name,
         file-like object, list of strings, or single newline-separated string.
-    output : str, file_like
+    output : str, file-like
         Output [filename, file-like object]. Defaults to``sys.stdout``.
     format : str
         Output table format. Defaults to 'basic'.

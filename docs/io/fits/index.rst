@@ -181,13 +181,14 @@ a pre-existing file that is being written to.
 
 Working with non-standard files
 """""""""""""""""""""""""""""""
-When `astropy.io.fits` reads a FITS file which does not conform to the FITS standard it will try
-to make an educated interpretation of non-compliant fields. This may not always
-succeed and may trigger warnings when accessing headers or exceptions when writing
-to file. Verification of fields written to an output file can be controlled with
-the ``output_verify`` parameter of :func:`open`. Files opened for reading can be
-verified and fixed with method ``HDUList.verify``. This method is typically invoked
-after opening the file but before accessing any headers or data::
+When `astropy.io.fits` reads a FITS file which does not conform to the FITS
+standard it will try to make an educated interpretation of non-compliant fields.
+This may not always succeed and may trigger warnings when accessing headers or
+exceptions when writing to file. Verification of fields written to an output
+file can be controlled with the ``output_verify`` parameter of :func:`open`.
+Files opened for reading can be verified and fixed with method
+``HDUList.verify``. This method is typically invoked after opening the file
+but before accessing any headers or data::
 
     >>> with fits.open(fits_image_filename) as hdul:
     ...    hdul.verify('fix')

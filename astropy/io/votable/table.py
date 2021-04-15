@@ -37,8 +37,9 @@ def parse(source, columns=None, invalid='exception', verify=None,
 
     Parameters
     ----------
-    source : str or readable file-like object
-        Path or file object containing a VOTABLE_ xml file.
+    source : str or file-like
+        Path or file-like object containing a VOTABLE_ xml file.
+        If file, must be readable.
 
     columns : sequence of str, optional
         List of field names to include in the output.  The default is
@@ -96,11 +97,11 @@ def parse(source, columns=None, invalid='exception', verify=None,
         VOTable specification (which is ``cds`` up to version 1.3 of
         VOTable, and ``vounit`` in more recent versions of the spec).
 
-    datatype_mapping : dict of str to str, optional
-        A mapping of datatype names to valid VOTable datatype names.
-        For example, if the file being read contains the datatype
-        "unsignedInt" (an invalid datatype in VOTable), include the
-        mapping ``{"unsignedInt": "long"}``.
+    datatype_mapping : dict, optional
+        A mapping of datatype names (str) to valid VOTable datatype names
+        (str). For example, if the file being read contains the datatype
+        "unsignedInt" (an invalid datatype in VOTable), include the mapping
+        ``{"unsignedInt": "long"}``.
 
     Returns
     -------
@@ -194,7 +195,7 @@ def writeto(table, file, tabledata_format=None):
     ----------
     table : `~astropy.io.votable.tree.VOTableFile` or `~astropy.table.Table` instance.
 
-    file : str or writable file-like object
+    file : str or writable file-like
         Path or file object to write to
 
     tabledata_format : str, optional
@@ -221,13 +222,15 @@ def validate(source, output=None, xmllint=False, filename=None):
 
     Parameters
     ----------
-    source : str or readable file-like object
+    source : path-like or file-like
         Path to a VOTABLE_ xml file or pathlib.path
         object having Path to a VOTABLE_ xml file.
+        If file-like object, must be readable.
 
-    output : writable file-like object, optional
+    output : file-like, optional
         Where to output the report.  Defaults to ``sys.stdout``.
         If `None`, the output will be returned as a string.
+        Must be writable.
 
     xmllint : bool, optional
         When `True`, also send the file to ``xmllint`` for schema and
@@ -369,8 +372,9 @@ def is_votable(source):
 
     Parameters
     ----------
-    source : str or readable file-like object
+    source : str or file-like
         Path or file object containing a VOTABLE_ xml file.
+        If file, must be readable.
 
     Returns
     -------

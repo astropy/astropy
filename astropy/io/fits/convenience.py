@@ -89,7 +89,7 @@ def getheader(filename, *args, **kwargs):
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         File to get header from.  If an opened file object, its mode
         must be one of the following rb, rb+, or ab+).
 
@@ -125,7 +125,7 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         File to get data from.  If opened, mode must be one of the
         following rb, rb+, or ab+.
 
@@ -182,7 +182,7 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
     Returns
     -------
-    array : array, record array or groups data object
+    array : ndarray or `~numpy.recarray` or `~astropy.io.fits.Group`
         Type depends on the type of the extension being referenced.
 
         If the optional keyword ``header`` is set to `True`, this
@@ -240,7 +240,7 @@ def getval(filename, keyword, *args, **kwargs):
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         Name of the FITS file, or file object (if opened, mode must be
         one of the following rb, rb+, or ab+).
 
@@ -286,7 +286,7 @@ def setval(filename, keyword, *args, value=None, comment=None, before=None,
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         Name of the FITS file, or file object If opened, mode must be update
         (rb+).  An opened file object or `~gzip.GzipFile` object will be closed
         upon return.
@@ -347,7 +347,7 @@ def delval(filename, keyword, *args, **kwargs):
     Parameters
     ----------
 
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         Name of the FITS file, or file object If opened, mode must be update
         (rb+).  An opened file object or `~gzip.GzipFile` object will be closed
         upon return.
@@ -386,11 +386,11 @@ def writeto(filename, data, header=None, output_verify='exception',
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
-        File to write to.  If opened, must be opened in a writeable binary
+    filename : path-like or file-like
+        File to write to.  If opened, must be opened in a writable binary
         mode such as 'wb' or 'ab+'.
 
-    data : array, record array, or groups data object
+    data : array or `~numpy.recarray` or `~astropy.io.fits.Group`
         data to write to the new file
 
     header : `Header` object, optional
@@ -612,13 +612,13 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         File to write to.  If opened, must be opened for update (rb+) unless it
         is a new file, then it must be opened for append (ab+).  A file or
         `~gzip.GzipFile` object opened for update will be closed after return.
 
-    data : array, table, or group data object
-        the new data used for appending
+    data : array, :class:`~astropy.table.Table`, or `~astropy.io.fits.Group`
+        The new data used for appending.
 
     header : `Header` object, optional
         The header associated with ``data``.  If `None`, an appropriate header
@@ -684,12 +684,12 @@ def update(filename, data, *args, **kwargs):
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         File to update.  If opened, mode must be update (rb+).  An opened file
         object or `~gzip.GzipFile` object will be closed upon return.
 
-    data : array, table, or group data object
-        the new data used for updating
+    data : array, `~astropy.table.Table`, or `~astropy.io.fits.Group`
+        The new data used for updating.
 
     header : `Header` object, optional
         The header associated with ``data``.  If `None`, an appropriate header
@@ -709,7 +709,7 @@ def update(filename, data, *args, **kwargs):
             update(file, dat, 3, header=hdr)  # update the 3rd extension
             update(file, dat, header=hdr, ext=5)  # update the 5th extension
 
-    kwargs
+    **kwargs
         Any additional keyword arguments to be passed to
         `astropy.io.fits.open`.
     """
@@ -746,7 +746,7 @@ def info(filename, output=None, **kwargs):
 
     Parameters
     ----------
-    filename : file path, file object, or file like object
+    filename : path-like or file-like
         FITS file to obtain info from.  If opened, mode must be one of
         the following: rb, rb+, or ab+ (i.e. the file must be readable).
 
@@ -895,19 +895,19 @@ def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
 
     Parameters
     ----------
-    filename : file path, file object or file-like object
+    filename : path-like or file-like
         Input fits file.
 
-    datafile : file path, file object or file-like object, optional
+    datafile : path-like or file-like, optional
         Output data file.  The default is the root name of the input
         fits file appended with an underscore, followed by the
         extension number (ext), followed by the extension ``.txt``.
 
-    cdfile : file path, file object or file-like object, optional
+    cdfile : path-like or file-like, optional
         Output column definitions file.  The default is `None`,
         no column definitions output is produced.
 
-    hfile : file path, file object or file-like object, optional
+    hfile : path-like or file-like, optional
         Output header parameters file.  The default is `None`,
         no header parameters output is produced.
 
@@ -965,16 +965,16 @@ def tableload(datafile, cdfile, hfile=None):
 
     Parameters
     ----------
-    datafile : file path, file object or file-like object
+    datafile : path-like or file-like
         Input data file containing the table data in ASCII format.
 
-    cdfile : file path, file object or file-like object
+    cdfile : path-like or file-like
         Input column definition file containing the names, formats,
         display formats, physical units, multidimensional array
         dimensions, undefined values, scale factors, and offsets
         associated with the columns in the table.
 
-    hfile : file path, file object or file-like object, optional
+    hfile : path-like or file-like, optional
         Input parameter definition file containing the header
         parameter definitions to be associated with the table.
         If `None`, a minimal header is constructed.

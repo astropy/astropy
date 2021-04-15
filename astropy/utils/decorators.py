@@ -31,7 +31,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
     To mark an attribute as deprecated, use `deprecated_attribute`.
 
     Parameters
-    ------------
+    ----------
     since : str
         The release at which this API became deprecated.  This is
         required.
@@ -68,7 +68,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         The type of this object, if the automatically determined one
         needs to be overridden.
 
-    warning_type : warning
+    warning_type : Warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
     """
@@ -240,7 +240,7 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         If True, uses a AstropyPendingDeprecationWarning instead of
         ``warning_type``.
 
-    warning_type : warning
+    warning_type : Warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
@@ -288,17 +288,17 @@ def deprecated_renamed_argument(old_name, new_name, since,
 
     Parameters
     ----------
-    old_name : str or list/tuple thereof
+    old_name : str or sequence of str
         The old name of the argument.
 
-    new_name : str or list/tuple thereof or `None`
+    new_name : str or sequence of str or None
         The new name of the argument. Set this to `None` to remove the
         argument ``old_name`` instead of renaming it.
 
-    since : str or number or list/tuple thereof
+    since : str or number or sequence of str or number
         The release at which the old argument became deprecated.
 
-    arg_in_kwargs : bool or list/tuple thereof, optional
+    arg_in_kwargs : bool or sequence of bool, optional
         If the argument is not a named argument (for example it
         was meant to be consumed by ``**kwargs``) set this to
         ``True``.  Otherwise the decorator will throw an Exception
@@ -306,18 +306,18 @@ def deprecated_renamed_argument(old_name, new_name, since,
         the decorated function.
         Default is ``False``.
 
-    relax : bool or list/tuple thereof, optional
+    relax : bool or sequence of bool, optional
         If ``False`` a ``TypeError`` is raised if both ``new_name`` and
         ``old_name`` are given.  If ``True`` the value for ``new_name`` is used
         and a Warning is issued.
         Default is ``False``.
 
-    pending : bool or list/tuple thereof, optional
+    pending : bool or sequence of bool, optional
         If ``True`` this will hide the deprecation warning and ignore the
         corresponding ``relax`` parameter value.
         Default is ``False``.
 
-    warning_type : warning
+    warning_type : Warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
