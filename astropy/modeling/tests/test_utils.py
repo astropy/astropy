@@ -112,7 +112,8 @@ def test__SpecialOperatorsDict___setitem__():
     special_operators = _SpecialOperatorsDict()
     assert key not in special_operators
 
-    special_operators[key] = val
+    with pytest.raises(DeprecationWarning, match='Setting special operator directly is being deprecated soon.'):
+        special_operators[key] = val
     assert key in special_operators
     assert special_operators[key] == val
 

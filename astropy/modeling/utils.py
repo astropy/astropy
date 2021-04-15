@@ -802,6 +802,7 @@ class _SpecialOperatorsDict(UserDict):
             raise ValueError(f'Special operator "{key}" already exists')
         else:
             super().__setitem__(key, val)
+        raise DeprecationWarning('Setting special operator directly is being deprecated soon.')
 
     def _get_unique_id(self):
         self._unique_id += 1
@@ -811,6 +812,9 @@ class _SpecialOperatorsDict(UserDict):
     def add(self, operator_name, operator):
         key = (operator_name, self._get_unique_id())
 
-        self[key] = operator
+        try:
+            self[key] = operator
+        except DeprecationWarning:
+            pass
 
         return key
