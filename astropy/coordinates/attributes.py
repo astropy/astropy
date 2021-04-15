@@ -102,25 +102,8 @@ class Attribute:
                 out = getattr(instance, self.secondary_attribute, self.default)
 
         out, converted = self.convert_input(out)
-        if instance is not None:
-            instance_shape = getattr(instance, 'shape', None)  # None if instance (frame) has no data!
-            if instance_shape is not None and (getattr(out, 'shape', ()) and
-                                               out.shape != instance_shape):
-                # If the shapes do not match, try broadcasting.
-                try:
-                    if isinstance(out, ShapedLikeNDArray):
-                        out = out._apply(np.broadcast_to, shape=instance_shape,
-                                         subok=True)
-                    else:
-                        out = np.broadcast_to(out, instance_shape, subok=True)
-                except ValueError:
-                    # raise more informative exception.
-                    raise ValueError(
-                        "attribute {} should be scalar or have shape {}, "
-                        "but is has shape {} and could not be broadcast."
-                        .format(self.name, instance_shape, out.shape))
-
-                converted = True
+        if instance is not None and converted:
+            setattr(instance, '_' + self.name, out)
 
             if converted:
                 setattr(instance, '_' + self.name, out)
@@ -328,14 +311,6 @@ class QuantityAttribute(Attribute):
 
         oldvalue = value
         value = u.Quantity(oldvalue, self.unit, copy=False)
-        if self.shape is not None and value.shape != self.shape:
-            if value.shape == () and oldvalue == 0:
-                # Allow a single 0 to fill whatever shape is needed.
-                value = np.broadcast_to(value, self.shape, subok=True)
-            else:
-                raise ValueError(
-                    f'The provided value has shape "{value.shape}", but '
-                    f'should have shape "{self.shape}"')
 
         converted = oldvalue is not value
         return value, converted
