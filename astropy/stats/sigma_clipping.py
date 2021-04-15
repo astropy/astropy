@@ -546,7 +546,8 @@ class SigmaClip:
             `False` and ``masked=True``, then the returned masked array
             data will contain the same array as the input ``data`` (if
             ``data`` is a `~numpy.ndarray` or `~numpy.ma.MaskedArray`).
-            The default is `True`.
+            If `False` and ``masked=False``, the input data is modified
+            in-place. The default is `True`.
 
         Returns
         -------
@@ -708,11 +709,12 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         returned.
 
     copy : bool, optional
-        If `True`, then the ``data`` array will be copied.  If `False`
-        and ``masked=True``, then the returned masked array data will
-        contain the same array as the input ``data`` (if ``data`` is a
-        `~numpy.ndarray` or `~numpy.ma.MaskedArray`).  The default is
-        `True`.
+        If `True`, then the ``data`` array will be copied.  If
+        `False` and ``masked=True``, then the returned masked array
+        data will contain the same array as the input ``data`` (if
+        ``data`` is a `~numpy.ndarray` or `~numpy.ma.MaskedArray`).
+        If `False` and ``masked=False``, the input data is modified
+        in-place. The default is `True`.
 
     grow : float or `False`, optional
         Radius within which to mask the neighbouring pixels of those that
