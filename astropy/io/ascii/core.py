@@ -1043,7 +1043,8 @@ class BaseOutputter:
                             raise ValueError('failed to decode as JSON')
                         if col.data.shape[1:] != tuple(col.shape):
                             raise ValueError('shape mismatch')
-                    col.data = converter_func(col.str_vals)
+                    else:
+                        col.data = converter_func(col.str_vals)
                     col.type = converter_type
                 except (TypeError, ValueError) as err:
                     col.converters.pop(0)

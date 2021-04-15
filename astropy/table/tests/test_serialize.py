@@ -262,8 +262,6 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
 
     out = StringIO()
     t.write(out, format="ascii.ecsv")
-    t_raw = Table.read(out.getvalue(), format='ascii.basic', delimiter=' ', guess=False)
-    assert len(t_raw.colnames) >= 3 * 3**(ndim - 1)  # 3 columns, each with 3**(ndim-1) subcols
     t2 = table_cls.read(out.getvalue(), format='ascii.ecsv')
 
     assert t.colnames == t2.colnames
