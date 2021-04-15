@@ -1176,7 +1176,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_frame : coordinate-like or `BaseCoordinateFrame` subclass
+        new_frame : coordinate-like or `BaseCoordinateFrame` subclass instance
             The frame to transform this coordinate frame into.
             The frame class option is deprecated.
 
@@ -1238,7 +1238,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         Parameters
         ----------
-        new_frame : `BaseCoordinateFrame` class or instance
+        new_frame : `BaseCoordinateFrame` subclass or instance
             The proposed frame to transform into.
 
         Returns
