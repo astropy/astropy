@@ -615,7 +615,7 @@ class Longitude(Angle):
         better to give an actual unit object.  Must be an angular
         unit.
 
-    wrap_angle : angle-like or None
+    wrap_angle : :class:`~astropy.coordinates.Angle` or None, optional
         Angle at which to wrap back to ``wrap_angle - 360 deg``.
         If ``None`` (default), it will be taken to be 360 deg unless ``angle``
         has a ``wrap_angle`` attribute already (i.e., is a ``Longitude``),
@@ -641,15 +641,7 @@ class Longitude(Angle):
         self = super().__new__(cls, angle, unit=unit, **kwargs)
         if wrap_angle is None:
             wrap_angle = getattr(angle, 'wrap_angle', self._default_wrap_angle)
-
-        if (issubclass(wrap_angle.__class__, Angle)
-            and wrap_angle.__class__ is not Angle):
-            warnings.warn((
-                    f"`wrap_angle` is <{type(wrap_angle)}>, not <Angle>."
-                    "It is currently converted, but will error in the future."
-                ),
-                DeprecationWarning)
-        self.wrap_angle = Angle(wrap_angle, copy=False)
+        self.wrap_angle = wrap_angle
         return self
 
     def __setitem__(self, item, value):
