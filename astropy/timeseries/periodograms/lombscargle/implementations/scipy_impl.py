@@ -12,9 +12,9 @@ def lombscargle_scipy(t, y, frequency, normalization='standard',
 
     Parameters
     ----------
-    t, y: array-like  (NOT astropy.Quantities)
+    t, y: array-like
         times, values, and errors of the data points. These should be
-        broadcastable to the same shape.
+        broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     frequency : array-like
         frequencies (not angular frequencies) at which to calculate periodogram
     normalization : str, optional

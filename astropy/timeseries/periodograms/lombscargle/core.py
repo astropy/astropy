@@ -40,7 +40,7 @@ class LombScargle(BasePeriodogram):
         sequence of observation times
     y : array-like or `~astropy.units.Quantity`
         sequence of observations associated with times t
-    dy : float or array-like or `~astropy.units.Quantity`, optional
+    dy : float, array-like, or `~astropy.units.Quantity`, optional
         error or sequence of observational errors associated with times t
     fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
@@ -399,8 +399,8 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        t : array-like or `~astropy.units.Quantity`.
-            Times at which to compute the model (should have length n_samples).
+        t : array-like or `~astropy.units.Quantity`
+            Times (length ``n_samples``) at which to compute the model.
         frequency : float
             the frequency for the model
 
@@ -408,7 +408,7 @@ class LombScargle(BasePeriodogram):
         -------
         y : np.ndarray
             The model fit corresponding to the input times
-            (will have length n_samples).
+            (will have length ``n_samples``).
 
         See Also
         --------
@@ -504,7 +504,7 @@ class LombScargle(BasePeriodogram):
         frequency : float
             the frequency for the model
         t : array-like, `~astropy.units.Quantity`, or `~astropy.time.Time` (optional)
-            Times at which to compute the model (should have length n_samples).
+            Times (length ``n_samples``) at which to compute the model.
             If not specified, then the times and uncertainties of the input
             data are used.
 
@@ -512,7 +512,7 @@ class LombScargle(BasePeriodogram):
         -------
         X : array
             The design matrix for the model at the given frequency.
-            This should have a shape of (len(t), n_parameters).
+            This should have a shape of (``len(t)``, ``n_parameters``).
 
         See Also
         --------
