@@ -37,7 +37,7 @@ class Gaussian1DKernel(Kernel1D):
     stddev : number
         Standard deviation of the Gaussian kernel.
     x_size : int, optional
-        Size of the kernel array. Default = 8 * stddev.
+        Size of the kernel array. Default = ⌊8*stddev+1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -105,9 +105,9 @@ class Gaussian2DKernel(Kernel2D):
         Rotation angle. If passed as a float, it is assumed to be in radians.
         The rotation angle increases counterclockwise.
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * stddev.
+        Size in x direction of the kernel array. Default = ⌊8*stddev + 1⌋.
     y_size : int, optional
-        Size in y direction of the kernel array. Default = 8 * stddev.
+        Size in y direction of the kernel array. Default = ⌊8*stddev + 1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -564,7 +564,7 @@ class RickerWavelet1DKernel(Kernel1D):
         Width of the filter kernel, defined as the standard deviation
         of the Gaussian function from which it is derived.
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -640,9 +640,9 @@ class RickerWavelet2DKernel(Kernel2D):
         Width of the filter kernel, defined as the standard deviation
         of the Gaussian function from which it is derived.
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     y_size : int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
+        Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -704,9 +704,9 @@ class AiryDisk2DKernel(Kernel2D):
     radius : float
         The radius of the Airy disk kernel (radius of the first zero).
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * radius.
+        Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
-        Size in y direction of the kernel array. Default = 8 * radius.
+        Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -768,9 +768,9 @@ class Moffat2DKernel(Kernel2D):
     alpha : float
         Power index of the Moffat model.
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * radius.
+        Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
-        Size in y direction of the kernel array. Default = 8 * radius.
+        Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -833,7 +833,7 @@ class Model1DKernel(Kernel1D):
     model : `~astropy.modeling.Fittable1DModel`
         Kernel response function model
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
         Must be odd.
     mode : str, optional
         One of the following discretization modes:
@@ -898,10 +898,10 @@ class Model2DKernel(Kernel2D):
     model : `~astropy.modeling.Fittable2DModel`
         Kernel response function model
     x_size : int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
         Must be odd.
     y_size : int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
+        Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
