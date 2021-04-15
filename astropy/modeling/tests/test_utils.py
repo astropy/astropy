@@ -105,6 +105,21 @@ def test_ellipse_extent():
         assert diff < 1
 
 
+def test__SpecialOperatorsDict__set_value():
+    key = 'test'
+    val = 'value'
+
+    special_operators = _SpecialOperatorsDict()
+    assert key not in special_operators
+
+    special_operators._set_value(key, val)
+    assert key in special_operators
+    assert special_operators[key] == val
+
+    with pytest.raises(ValueError, match='Special operator "test" already exists'):
+        special_operators._set_value(key, val)
+
+
 def test__SpecialOperatorsDict___setitem__():
     key = 'test'
     val = 'value'
@@ -112,13 +127,10 @@ def test__SpecialOperatorsDict___setitem__():
     special_operators = _SpecialOperatorsDict()
     assert key not in special_operators
 
-    with pytest.raises(DeprecationWarning, match='Setting special operator directly is being deprecated soon.'):
+    with pytest.deprecated_call():
         special_operators[key] = val
     assert key in special_operators
     assert special_operators[key] == val
-
-    with pytest.raises(ValueError, match='Special operator "test" already exists'):
-        special_operators[key] = val
 
 
 def test__SpecialOperatorsDict__get_unique_id():

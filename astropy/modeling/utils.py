@@ -9,6 +9,7 @@ from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
+import warnings
 from astropy.utils.decorators import deprecated
 from astropy.utils import isiterable, check_broadcast
 
@@ -797,12 +798,15 @@ class _SpecialOperatorsDict(UserDict):
         super().__init__(special_operators)
         self._unique_id = unique_id
 
-    def __setitem__(self, key, val):
+    def _set_value(self, key, val):
         if key in self:
             raise ValueError(f'Special operator "{key}" already exists')
         else:
             super().__setitem__(key, val)
-        raise DeprecationWarning('Setting special operator directly is being deprecated soon.')
+
+    def __setitem__(self, key, val):
+        self._set_value(key, val)
+        warnings.warn(DeprecationWarning("Special operator dictionary assignment has been deprecated."))
 
     def _get_unique_id(self):
         self._unique_id += 1
@@ -812,9 +816,6 @@ class _SpecialOperatorsDict(UserDict):
     def add(self, operator_name, operator):
         key = (operator_name, self._get_unique_id())
 
-        try:
-            self[key] = operator
-        except DeprecationWarning:
-            pass
+        self._set_value(key, operator)
 
         return key
