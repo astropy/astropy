@@ -28,7 +28,7 @@ The key distinctions between |SkyCoord| and the low-level classes
 
 - The |SkyCoord| class is more flexible with inputs to accommodate a wide
   variety of user preferences and available data formats, whereas the frame
-  classes expect to receive Quantity-like objects with angular units.
+  classes expect to receive quantity-like objects with angular units.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
   in typical analysis.
@@ -281,13 +281,13 @@ frame-specific names can be used as keyword arguments:
 
 The following keywords can be specified for any frame:
 
-*distance*: valid `~astropy.coordinates.Distance` initializer, optional
+*distance*: distance quantity-like, optional
     Distance from reference from center to source
 
-*obstime*: valid `~astropy.time.Time` initializer, optional
+*obstime*: time-like, optional
     Time of observation
 
-*equinox*: valid `~astropy.time.Time` initializer, optional
+*equinox*: time-like, optional
     Coordinate frame equinox
 
 If custom user-defined frames are included in the transform graph and they
@@ -1036,7 +1036,7 @@ As in the last example, we first import the required packages.
     >>> import numpy as np
 
 We now generate random data for visualization using
-`numpy.random.Generator.multivariate_normal`.
+``numpy.random.Generator.multivariate_normal``.
 
     >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
     >>> bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)

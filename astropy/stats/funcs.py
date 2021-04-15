@@ -57,9 +57,9 @@ def _expand_dims(data, axis):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Input array.
-    axis : int or tuple of ints
+    axis : int or tuple of int
         Position in the expanded axes where the new axis (or axes) is
         placed.  A tuple of axes is now supported.  Out of range axes as
         described above are now forbidden and raise an `AxisError`.
@@ -99,9 +99,10 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     n : int or numpy.ndarray
         Number of trials (``n`` > 0).  If both ``k`` and ``n`` are arrays,
         they must have the same shape.
-    confidence_level : float in [0, 1], optional
+    confidence_level : float, optional
         Desired probability content of interval. Default is 0.68269,
         corresponding to 1 sigma in a 1-dimensional Gaussian distribution.
+        Confidence level must be in range [0, 1].
     interval : {'wilson', 'jeffreys', 'flat', 'wald'}, optional
         Formula used for confidence interval. See notes for details.  The
         ``'wilson'`` and ``'jeffreys'`` intervals generally give similar
@@ -113,7 +114,7 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
 
     Returns
     -------
-    conf_interval : numpy.ndarray
+    conf_interval : ndarray
         ``conf_interval[0]`` and ``conf_interval[1]`` correspond to the lower
         and upper limits, respectively, for each element in ``k``, ``n``.
 
@@ -194,7 +195,7 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     provided here for comparison purposes due to its prevalence in
     everyday practical statistics.
 
-    This function requires `scipy` for all interval types.
+    This function requires ``scipy`` for all interval types.
 
     References
     ----------
@@ -328,12 +329,12 @@ def binned_binom_proportion(x, success, bins=10, range=None,
 
     Parameters
     ----------
-    x : list_like
+    x : sequence
         Values.
-    success : list_like (bool)
+    success : sequence of bool
         Success (`True`) or failure (`False`) corresponding to each value
         in ``x``.  Must be same length as ``x``.
-    bins : int or sequence of scalars, optional
+    bins : int or sequence of scalar, optional
         If bins is an int, it defines the number of equal-width bins
         in the given range (10, by default). If bins is a sequence, it
         defines the bin edges, including the rightmost edge, allowing
@@ -342,7 +343,8 @@ def binned_binom_proportion(x, success, bins=10, range=None,
         The lower and upper range of the bins. If `None` (default),
         the range is set to ``(x.min(), x.max())``. Values outside the
         range are ignored.
-    confidence_level : float in [0, 1], optional
+    confidence_level : float, optional
+        Must be in range [0, 1].
         Desired probability content in the confidence
         interval ``(p - perr[0], p + perr[1])`` in each bin. Default is
         0.68269.
@@ -358,21 +360,21 @@ def binned_binom_proportion(x, success, bins=10, range=None,
 
     Returns
     -------
-    bin_ctr : numpy.ndarray
+    bin_ctr : ndarray
         Central value of bins. Bins without any entries are not returned.
-    bin_halfwidth : numpy.ndarray
+    bin_halfwidth : ndarray
         Half-width of each bin such that ``bin_ctr - bin_halfwidth`` and
         ``bin_ctr + bins_halfwidth`` give the left and right side of each bin,
         respectively.
-    p : numpy.ndarray
+    p : ndarray
         Efficiency in each bin.
-    perr : numpy.ndarray
+    perr : ndarray
         2-d array of shape (2, len(p)) representing the upper and lower
         uncertainty on p in each bin.
 
     Notes
     -----
-    This function requires `scipy` for all interval types.
+    This function requires ``scipy`` for all interval types.
 
     See Also
     --------
@@ -528,7 +530,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
 
     Returns
     -------
-    conf_interval : numpy.ndarray
+    conf_interval : ndarray
         ``conf_interval[0]`` and ``conf_interval[1]`` correspond to the lower
         and upper limits, respectively, for each element in ``n``.
 
@@ -778,9 +780,9 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Input array or object that can be converted to an array.
-    axis : `None`, int, or tuple of ints, optional
+    axis : None, int, or tuple of int, optional
         The axis or axes along which the MADs are computed.  The default
         (`None`) is to compute the MAD of the flattened array.
     func : callable, optional
@@ -876,9 +878,9 @@ def mad_std(data, axis=None, func=None, ignore_nan=False):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Data array or object that can be converted to an array.
-    axis : `None`, int, or tuple of ints, optional
+    axis : None, int, or tuple of int, optional
         The axis or axes along which the robust standard deviations are
         computed.  The default (`None`) is to compute the robust
         standard deviation of the flattened array.
@@ -972,7 +974,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : ndarray
         N-D array. The bootstrap resampling will be performed on the first
         index, so the first index should access the relevant information
         to be bootstrapped.
@@ -988,7 +990,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
 
     Returns
     -------
-    boot : numpy.ndarray
+    boot : ndarray
 
         If bootfunc is None, then each row is a bootstrap resample of the data.
         If bootfunc is specified, then the columns will correspond to the
@@ -1097,11 +1099,11 @@ def _scipy_kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    Requires `scipy`. This implementation will cause Overflow Errors for about
-    N > 100 (the exact limit depends on details of how scipy was compiled).
-    See `~astropy.stats.mpmath_poisson_upper_limit` for an implementation that
-    is slower, but can deal with arbitrarily high numbers since it is based on
-    the `mpmath <http://mpmath.org/>`_ library.
+    Requires :mod:`~scipy`. This implementation will cause Overflow Errors for
+    about N > 100 (the exact limit depends on details of how scipy was
+    compiled). See `~astropy.stats.mpmath_poisson_upper_limit` for an
+    implementation that is slower, but can deal with arbitrarily high numbers
+    since it is based on the `mpmath <http://mpmath.org/>`_ library.
     '''
 
     from scipy.optimize import brentq
@@ -1270,7 +1272,7 @@ def _kraft_burrows_nousek(N, B, CL):
 
     Notes
     -----
-    This functions has an optional dependency: Either `scipy` or `mpmath
+    This functions has an optional dependency: Either :mod:`scipy` or `mpmath
     <http://mpmath.org/>`_  need to be available. (Scipy only works for
     N < 100).
     '''
@@ -1378,7 +1380,7 @@ def kuiper(data, cdf=lambda x: x, args=()):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         The data values.
     cdf : callable
         A callable to evaluate the CDF of the distribution being tested
@@ -1444,9 +1446,9 @@ def kuiper_two(data1, data2):
 
     Parameters
     ----------
-    data1 : array_like
+    data1 : array-like
         The first set of data values.
-    data2 : array_like
+    data2 : array-like
         The second set of data values.
 
     Returns
@@ -1492,16 +1494,16 @@ def fold_intervals(intervals):
 
     Parameters
     ----------
-    intervals : list of three-element tuples (ai,bi,wi)
-        The intervals to fold; ai and bi are the limits of the interval, and
-        wi is the weight to apply to the interval.
+    intervals : list of (3,) tuple
+        For each tuple (ai,bi,wi); ai and bi are the limits of the interval,
+        and wi is the weight to apply to the interval.
 
     Returns
     -------
-    breaks : array of floats length N
+    breaks : (N,) array of float
         The endpoints of a set of intervals covering [0,1]; breaks[0]=0 and
         breaks[-1] = 1
-    weights : array of floats of length N-1
+    weights : (N-1,) array of float
         The ith element is the sum of number of times the interval
         breaks[i],breaks[i+1] is included in each interval times the weight
         associated with that interval.
@@ -1539,9 +1541,9 @@ def cdf_from_intervals(breaks, totals):
 
     Parameters
     ----------
-    breaks : array of floats of length N
+    breaks : (N,) array of float
         The boundaries of successive intervals.
-    totals : array of floats of length N-1
+    totals : (N-1,) array of float
         The weight for each interval.
 
     Returns
@@ -1571,8 +1573,8 @@ def interval_overlap_length(i1, i2):
 
     Parameters
     ----------
-    i1, i2 : pairs of two floats
-        The two intervals.
+    i1, i2 : (float, float)
+        The two intervals, (interval 1, interval 2).
 
     Returns
     -------
@@ -1608,14 +1610,14 @@ def histogram_intervals(n, breaks, totals):
     ----------
     n : int
         The number of bins
-    breaks : array of floats of length N
+    breaks : (N,) array of float
         Endpoints of the intervals in the PDF
-    totals : array of floats of length N-1
+    totals : (N-1,) array of float
         Probability densities in each bin
 
     Returns
     -------
-    h : array of floats
+    h : array of float
         The average weight for each bin
 
     """

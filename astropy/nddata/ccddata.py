@@ -80,7 +80,7 @@ class CCDData(NDDataArray):
 
     Parameters
     -----------
-    data : `~astropy.nddata.CCDData`-like or `numpy.ndarray`-like
+    data : `~astropy.nddata.CCDData`-like or array-like
         The actual data contained in this `~astropy.nddata.CCDData` object.
         Note that the data will always be saved by *reference*, so you should
         make a copy of the ``data`` before passing it in if that's the desired

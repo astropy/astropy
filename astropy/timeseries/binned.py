@@ -19,25 +19,26 @@ class BinnedTimeSeries(BaseTimeSeries):
     """
     A class to represent binned time series data in tabular form.
 
-    `~astropy.timeseries.BinnedTimeSeries` provides a class for representing
-    time series as a collection of values of different quantities measured in
-    time bins (for time series with values sampled at specific times, see the
-    `~astropy.timeseries.TimeSeries` class).
-    `~astropy.timeseries.BinnedTimeSeries` is a sub-class of `~astropy.table.QTable`
-    and thus provides all the standard table maniplation methods available to
-    tables, but it also provides additional conveniences for dealing with time
-    series, such as a flexible initializer for setting up the times, and
-    attributes to access the start/center/end time of bins.
+    `~astropy.timeseries.BinnedTimeSeries` provides a class for
+    representing time series as a collection of values of different
+    quantities measured in time bins (for time series with values
+    sampled at specific times, see the `~astropy.timeseries.TimeSeries`
+    class). `~astropy.timeseries.BinnedTimeSeries` is a sub-class of
+    `~astropy.table.QTable` and thus provides all the standard table
+    maniplation methods available to tables, but it also provides
+    additional conveniences for dealing with time series, such as a
+    flexible initializer for setting up the times, and attributes to
+    access the start/center/end time of bins.
 
     See also: https://docs.astropy.org/en/stable/timeseries/
 
     Parameters
     ----------
-    data : numpy ndarray, dict, list, Table, or table-like object, optional
-        Data to initialize time series. This does not need to contain the times,
-        which can be provided separately, but if it does contain the times they
-        should be in columns called ``'time_bin_start'`` and ``'time_bin_size'``
-        to be automatically recognized.
+    data : numpy ndarray, dict, list, table-like object, optional
+        Data to initialize time series. This does not need to contain the
+        times, which can be provided separately, but if it does contain the
+        times they should be in columns called ``'time_bin_start'`` and
+        ``'time_bin_size'`` to be automatically recognized.
     time_bin_start : `~astropy.time.Time` or iterable
         The times of the start of each bin - this can be either given
         directly as a `~astropy.time.Time` array or as any iterable that
@@ -45,15 +46,15 @@ class BinnedTimeSeries(BaseTimeSeries):
         the remaining time-related arguments should not be used. This can also
         be a scalar value if ``time_bin_size`` is provided.
     time_bin_end : `~astropy.time.Time` or iterable
-        The times of the end of each bin - this can be either given directly as
-        a `~astropy.time.Time` array or as any value or iterable that
+        The times of the end of each bin - this can be either given directly
+        as a `~astropy.time.Time` array or as any value or iterable that
         initializes the `~astropy.time.Time` class. If this is given, then the
         remaining time-related arguments should not be used. This can only be
         given if ``time_bin_start`` is an array of values. If ``time_bin_end``
         is a scalar, time bins are assumed to be contiguous, such that the end
-        of each bin is the start of the next one, and ``time_bin_end`` gives the
-        end time for the last bin. If ``time_bin_end`` is an array, the time
-        bins do not need to be contiguous. If this argument is provided,
+        of each bin is the start of the next one, and ``time_bin_end`` gives
+        the end time for the last bin. If ``time_bin_end`` is an array, the
+        time bins do not need to be contiguous. If this argument is provided,
         ``time_bin_size`` should not be provided.
     time_bin_size : `~astropy.time.TimeDelta` or `~astropy.units.Quantity`
         The size of the time bins, either as a scalar value (in which case all

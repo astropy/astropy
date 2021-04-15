@@ -225,10 +225,10 @@ class SkyCoord(ShapedLikeNDArray):
         Note that passing only one unit might lead to unit conversion errors
         if the coordinate values are expected to have mixed physical meanings
         (e.g., angles and distances).
-    obstime : valid `~astropy.time.Time` initializer, optional
+    obstime : time-like, optional
         Time(s) of observation.
-    equinox : valid `~astropy.time.Time` initializer, optional
-        Coordinate frame equinox.
+    equinox : time-like, optional
+        Coordinate frame equinox time.
     representation_type : str or Representation class
         Specifies the representation, e.g. 'spherical', 'cartesian', or
         'cylindrical'.  This affects the positional args and other keyword args
@@ -240,13 +240,13 @@ class SkyCoord(ShapedLikeNDArray):
         Other keyword arguments as applicable for user-defined coordinate frames.
         Common options include:
 
-        ra, dec : valid `~astropy.coordinates.Angle` initializer, optional
+        ra, dec : angle-like, optional
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
             frame's ``representation_component_names``, including `ICRS`,
             `FK5`, `FK4`, and `FK4NoETerms`.
         pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
             Proper motion components, in angle per time units.
-        l, b : valid `~astropy.coordinates.Angle` initializer, optional
+        l, b : angle-like, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the `Galactic` frame.
@@ -483,7 +483,7 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         obj : int
             Integer index before which ``values`` is inserted.
-        values : array_like
+        values : array-like
             Value(s) to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
         axis : int, optional
@@ -1234,7 +1234,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        idx : integer array
+        idx : int array
             Indices into ``catalogcoord`` to get the matched points for
             each of this object's coordinates. Shape matches this
             object.
@@ -1299,7 +1299,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        idx : integer array
+        idx : int array
             Indices into ``catalogcoord`` to get the matched points for
             each of this object's coordinates. Shape matches this
             object.
@@ -1350,20 +1350,20 @@ class SkyCoord(ShapedLikeNDArray):
 
         Parameters
         ----------
-        searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+        searcharoundcoords : coordinate-like
             The coordinates to search around to try to find matching points in
             this `SkyCoord`. This should be an object with array coordinates,
             not a scalar coordinate object.
-        seplimit : `~astropy.units.Quantity` with angle units
-            The on-sky separation to search within.
+        seplimit : `~astropy.units.Quantity`
+            The on-sky separation to search within. Must have angular units.
 
         Returns
         -------
-        idxsearcharound : integer array
+        idxsearcharound : int array
             Indices into ``searcharoundcoords`` that match the
             corresponding elements of ``idxself``. Shape matches
             ``idxself``.
-        idxself : integer array
+        idxself : int array
             Indices into ``self`` that match the
             corresponding elements of ``idxsearcharound``. Shape matches
             ``idxsearcharound``.
@@ -1413,16 +1413,16 @@ class SkyCoord(ShapedLikeNDArray):
             The coordinates to search around to try to find matching points in
             this `SkyCoord`. This should be an object with array coordinates,
             not a scalar coordinate object.
-        distlimit : `~astropy.units.Quantity` with distance units
-            The physical radius to search within.
+        distlimit : `~astropy.units.Quantity`
+            The physical radius to search within. Must have distance units.
 
         Returns
         -------
-        idxsearcharound : integer array
+        idxsearcharound : int array
             Indices into ``searcharoundcoords`` that match the
             corresponding elements of ``idxself``. Shape matches
             ``idxself``.
-        idxself : integer array
+        idxself : int array
             Indices into ``self`` that match the
             corresponding elements of ``idxsearcharound``. Shape matches
             ``idxsearcharound``.
@@ -1509,7 +1509,7 @@ class SkyCoord(ShapedLikeNDArray):
             A sky offset frame of the same type as this `SkyCoord` (e.g., if
             this object has an ICRS coordinate, the resulting frame is
             SkyOffsetICRS, with the origin set to this object)
-        rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
+        rotation : angle-like
             The final rotation of the frame about the ``origin``. The sign of
             the rotation is the left-hand rule. That is, an object at a
             particular position angle in the un-rotated system will be sent to
@@ -1599,7 +1599,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Parameters
         ----------
-        xp, yp : float or `numpy.ndarray`
+        xp, yp : float or ndarray
             The coordinates to convert.
         wcs : `~astropy.wcs.WCS`
             The WCS to use for convert
@@ -1611,7 +1611,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        coord : an instance of this class
+        coord : `~astropy.coordinates.SkyCoord`
             A new object with sky coordinates corresponding to the input ``xp``
             and ``yp``.
 
@@ -1692,11 +1692,11 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        vcorr : `~astropy.units.Quantity` with velocity units
+        vcorr : `~astropy.units.Quantity`
             The  correction with a positive sign.  I.e., *add* this
             to an observed radial velocity to get the barycentric (or
             heliocentric) velocity. If m/s precision or better is needed,
-            see the notes below.
+            see the notes below. Must have physical type of 'speed'.
 
         Notes
         -----
@@ -1895,15 +1895,15 @@ class SkyCoord(ShapedLikeNDArray):
 
         Parameters
         ----------
-        table : astropy.Table
+        table : `~astropy.table.Table` or subclass
             The table to load data from.
-        coord_kwargs
+        **coord_kwargs
             Any additional keyword arguments are passed directly to this class's
             constructor.
 
         Returns
         -------
-        newsc : same as this class
+        newsc : `~astropy.coordinates.SkyCoord` or subclass
             The new `SkyCoord` (or subclass) object.
 
         Raises

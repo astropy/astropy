@@ -9,23 +9,23 @@ __all__ = ['BaseRADecFrame']
 
 
 doc_components = """
-    ra : `~astropy.coordinates.Angle`, optional, must be keyword
+    ra : `~astropy.coordinates.Angle`, optional, keyword-only
         The RA for this object (``dec`` must also be given and ``representation``
         must be None).
-    dec : `~astropy.coordinates.Angle`, optional, must be keyword
+    dec : `~astropy.coordinates.Angle`, optional, keyword-only
         The Declination for this object (``ra`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
+    distance : `~astropy.units.Quantity`, optional, keyword-only
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
 
-    pm_ra_cosdec : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_ra_cosdec : `~astropy.units.Quantity`, optional, keyword-only
         The proper motion in Right Ascension (including the ``cos(dec)`` factor)
         for this object (``pm_dec`` must also be given).
-    pm_dec : :class:`~astropy.units.Quantity`, optional, must be keyword
+    pm_dec : `~astropy.units.Quantity`, optional, keyword-only
         The proper motion in Declination for this object (``pm_ra_cosdec`` must
         also be given).
-    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
         The radial velocity of this object.
 """
 

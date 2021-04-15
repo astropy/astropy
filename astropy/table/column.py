@@ -124,7 +124,7 @@ def _expand_string_array_for_values(arr, values):
     ----------
     arr : np.ndarray
         Input array
-    values : scalar or array_like
+    values : scalar or array-like
         Values for width comparison for string arrays
 
     Returns
@@ -170,7 +170,7 @@ def _convert_sequence_data_to_array(data, dtype=None):
     ----------
     data : N-d sequence
         Input data, typically list or list of lists
-    dtype : None or dtype-compatible
+    dtype : None or dtype-like
         Output datatype (None lets np.array choose)
 
     Returns
@@ -806,7 +806,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         new_unit : str or `astropy.units.UnitBase` instance
             The unit to convert to.
 
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
            A list of equivalence pairs to try if the unit are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
@@ -885,10 +885,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         Parameters
         ----------
-        unit : `~astropy.units.Unit` or str
+        unit : unit-like
             The unit to convert to (i.e., a valid argument to the
             :meth:`astropy.units.Quantity.to` method).
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             Equivalencies to use for this conversion.  See
             :meth:`astropy.units.Quantity.to` for more details.
 
@@ -945,11 +945,11 @@ class Column(BaseColumn):
 
     Parameters
     ----------
-    data : list, ndarray or None
+    data : list, ndarray, or None
         Column data values
     name : str
         Column name and key for reference within Table
-    dtype : numpy.dtype compatible value
+    dtype : `~numpy.dtype`-like
         Data type for column
     shape : tuple or ()
         Dimensions of a single row element in the column data
@@ -959,7 +959,7 @@ class Column(BaseColumn):
         Full description of column
     unit : str or None
         Physical unit
-    format : str or None or function or callable
+    format : str, None, or callable
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
         format specification string or a function or any callable object that
@@ -1174,10 +1174,10 @@ class Column(BaseColumn):
 
         Parameters
         ----------
-        obj : int, slice or sequence of ints
+        obj : int, slice or sequence of int
             Object that defines the index or indices before which ``values`` is
             inserted.
-        values : array_like
+        values : array-like
             Value(s) to insert.  If the type of ``values`` is different from
             that of the column, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately.
@@ -1289,15 +1289,15 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     Parameters
     ----------
-    data : list, ndarray or None
+    data : list, ndarray, or None
         Column data values
     name : str
         Column name and key for reference within Table
     mask : list, ndarray or None
         Boolean mask for which True indicates missing or invalid data
-    fill_value : float, int, str or None
+    fill_value : float, int, str, or None
         Value used when filling masked column elements
-    dtype : numpy.dtype compatible value
+    dtype : `~numpy.dtype`-like
         Data type for column
     shape : tuple or ()
         Dimensions of a single row element in the column data
@@ -1307,7 +1307,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         Full description of column
     unit : str or None
         Physical unit
-    format : str or None or function or callable
+    format : str, None, or callable
         Format string for outputting column values.  This can be an
         "old-style" (``format % value``) or "new-style" (`str.format`)
         format specification string or a function or any callable object that
@@ -1482,14 +1482,14 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         Parameters
         ----------
-        obj : int, slice or sequence of ints
+        obj : int, slice or sequence of int
             Object that defines the index or indices before which ``values`` is
             inserted.
-        values : array_like
+        values : array-like
             Value(s) to insert.  If the type of ``values`` is different from
             that of the column, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately.
-        mask : bool or array_like
+        mask : bool or array-like
             Mask value(s) to insert.  If not supplied, and values does not have
             a mask either, then False is used.
         axis : int, optional

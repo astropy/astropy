@@ -14,9 +14,9 @@ __all__ = ['Constant', 'EMConstant']
 
 
 class ConstantMeta(type):
-    """Metaclass for the :class:`Constant`. The primary purpose of this is to
-    wrap the double-underscore methods of :class:`Quantity` which is the
-    superclass of :class:`Constant`.
+    """Metaclass for `~astropy.constants.Constant`. The primary purpose of this
+    is to wrap the double-underscore methods of `~astropy.units.Quantity`
+    which is the superclass of `~astropy.constants.Constant`.
 
     In particular this wraps the operator overloads such as `__add__` to
     prevent their use with constants such as ``e`` from being used in

@@ -17,7 +17,7 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
 
     Parameters
     ----------
-    x : array_like
+    x : array-like
         array of data to be histogrammed
 
     bins : int, list, or str, optional
@@ -31,8 +31,8 @@ def hist(x, bins=10, ax=None, max_bins=1e5, **kwargs):
 
         - 'freedman' : use the Freedman-Diaconis rule to determine bins
 
-    ax : Axes instance, optional
-        specify the Axes on which to draw the histogram.  If not specified,
+    ax : `~matplotlib.axes.Axes` instance, optional
+        Specify the Axes on which to draw the histogram. If not specified,
         then the current active axes will be used.
 
     max_bins : int, optional

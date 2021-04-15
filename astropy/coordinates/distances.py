@@ -23,16 +23,17 @@ class Distance(u.SpecificTypeQuantity):
     """
     A one-dimensional distance.
 
-    This can be initialized in one of four ways:
+    This can be initialized in one of five ways:
 
     * A distance ``value`` (array or float) and a ``unit``
     * A `~astropy.units.Quantity` object
     * A redshift and (optionally) a cosmology.
     * Providing a distance modulus
+    * Providing a parallax
 
     Parameters
     ----------
-    value : scalar or `~astropy.units.Quantity`.
+    value : scalar or `~astropy.units.Quantity`
         The value of this distance.
     unit : `~astropy.units.UnitBase`
         The units for this distance, *if* ``value`` is not a
@@ -42,7 +43,7 @@ class Distance(u.SpecificTypeQuantity):
         by computing the luminosity distance for this redshift given the
         cosmology specified by ``cosmology``. Must be given as a keyword
         argument.
-    cosmology : ``Cosmology`` or `None`
+    cosmology : `~astropy.cosmology.Cosmology` or None
         A cosmology that will be used to compute the distance from ``z``.
         If `None`, the current cosmology will be used (see
         `astropy.cosmology` for details).
@@ -74,6 +75,8 @@ class Distance(u.SpecificTypeQuantity):
 
         If ``z`` is provided with a ``unit`` or ``cosmology`` is provided
         when ``z`` is *not* given, or ``value`` is given as well as ``z``.
+
+        If none of ``value``, ``z``, ``distmod``, or ``parallax`` were given
 
 
     Examples
@@ -201,7 +204,7 @@ class Distance(u.SpecificTypeQuantity):
 
         Parameters
         ----------
-        cosmology : ``Cosmology`` or `None`
+        cosmology : `~astropy.cosmology.Cosmology` or None
             The cosmology to assume for this calculation, or `None` to use the
             current cosmology (see `astropy.cosmology` for details).
 

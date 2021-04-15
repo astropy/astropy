@@ -36,8 +36,8 @@ class Conf(_config.ConfigNamespace):
         'treated as case-sensitive.')
     strip_header_whitespace = _config.ConfigItem(
         True,
-        'If True, automatically remove trailing whitespace for string values in '
-        'headers.  Otherwise the values are returned verbatim, with all '
+        'If True, automatically remove trailing whitespace for string values in'
+        ' headers. Otherwise the values are returned verbatim, with all '
         'whitespace intact.')
     use_memmap = _config.ConfigItem(
         True,

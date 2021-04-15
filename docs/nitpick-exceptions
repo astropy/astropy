@@ -35,6 +35,9 @@ py:class yaml.composer.Composer
 py:class yaml.resolver.Resolver
 py:class yaml.emitter.Emitter
 
+# astropy.units
+py:obj astropy.units.function.logarithmic.m_bol
+
 # astropy.utils
 py:class astropy.extern.six.Iterator
 py:class type
@@ -72,6 +75,8 @@ py:obj args
 
 # other classes and functions that cannot be linked to
 py:class numpy.ma.core.MaskedArray
+py:class numpy.ma.mvoid
+py:class numpy.void
 py:class numpy.core.records.recarray
 py:class xmlrpclib.Fault
 py:class xmlrpclib.Error

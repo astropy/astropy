@@ -41,10 +41,12 @@ class _Tabular(Model):
 
     Parameters
     ----------
-    points : tuple of ndarray of float, with shapes (m1, ), ..., (mn, ), optional
+    points : tuple of ndarray of float, optional
         The points defining the regular grid in n dimensions.
-    lookup_table : array_like, shape (m1, ..., mn, ...)
+        ndarray must have shapes (m1, ), ..., (mn, ),
+    lookup_table : array-like
         The data on a regular grid in n dimensions.
+        Must have shapes (m1, ..., mn, ...)
     method : str, optional
         The method of interpolation to perform. Supported are "linear" and
         "nearest", and "splinef2d". "splinef2d" is only supported for
@@ -202,7 +204,7 @@ class _Tabular(Model):
 
         Parameters
         ----------
-        inputs : list of scalars or ndarrays
+        inputs : list of scalar or list of ndarray
             Input coordinates. The number of inputs must be equal
             to the dimensions of the lookup table.
         """
@@ -351,9 +353,9 @@ Tabular1D.__doc__ = """
 
     Parameters
     ----------
-    points : array_like of float of ndim=1.
+    points : array-like of float of ndim=1.
         The points defining the regular grid in n dimensions.
-    lookup_table : array_like, of ndim=1.
+    lookup_table : array-like, of ndim=1.
         The data in one dimensions.
 """ + _tab_docs
 
@@ -363,9 +365,11 @@ Tabular2D.__doc__ = """
 
     Parameters
     ----------
-    points : tuple of ndarray of float, with shapes (m1, m2), optional
+    points : tuple of ndarray of float, optional
         The points defining the regular grid in n dimensions.
-    lookup_table : array_like, shape (m1, m2)
+        ndarray with shapes (m1, m2).
+    lookup_table : array-like
         The data on a regular grid in 2 dimensions.
+        Shape (m1, m2).
 
 """ + _tab_docs

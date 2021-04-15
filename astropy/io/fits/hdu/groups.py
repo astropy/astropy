@@ -109,7 +109,7 @@ class GroupData(FITS_rec):
             data type as expressed in FITS ``BITPIX`` value (8, 16, 32,
             64, -32, or -64)
 
-        pardata : sequence of arrays
+        pardata : sequence of array
             parameter data, as a list of (numeric) arrays.
 
         parnames : sequence of str

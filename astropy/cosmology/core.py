@@ -26,8 +26,8 @@ from . import parameters
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
+__all__ = ["Cosmology", "FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM",
+           "FlatwCDM", "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
 
 __doctest_requires__ = {'*': ['scipy']}
 
@@ -507,13 +507,14 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        w : ndarray, or float if input scalar
-          The dark energy equation of state
+        w : ndarray or float
+          The dark energy equation of state.
+          float if scalar input.
 
         Notes
         -----
@@ -532,14 +533,15 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Om : ndarray, or float if input scalar
+        Om : ndarray or float
           The density of non-relativistic matter relative to the critical
           density at each redshift.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -556,14 +558,15 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Ob : ndarray, or float if input scalar
+        Ob : ndarray or float
           The density of baryonic matter relative to the critical density at
           each redshift.
+          Returns float if input scalar.
 
         Raises
         ------
@@ -582,14 +585,15 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Odm : ndarray, or float if input scalar
+        Odm : ndarray or float
           The density of non-relativistic dark matter relative to the critical
           density at each redshift.
+          Returns float if input scalar.
 
         Raises
         ------
@@ -615,13 +619,14 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Ok : ndarray, or float if input scalar
+        Ok : ndarray or float
           The equivalent density parameter for curvature at each redshift.
+          Returns float if input scalar.
         """
 
         if isiterable(z):
@@ -640,14 +645,15 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Ode : ndarray, or float if input scalar
+        Ode : ndarray or float
           The density of non-relativistic matter relative to the critical
           density at each redshift.
+          Returns float if input scalar.
         """
 
         if isiterable(z):
@@ -666,14 +672,15 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Ogamma : ndarray, or float if input scalar
+        Ogamma : ndarray or float
           The energy density of photons relative to the critical
           density at each redshift.
+          Returns float if input scalar.
         """
 
         if isiterable(z):
@@ -685,17 +692,18 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        Onu : ndarray, or float if input scalar
+        Onu : ndarray or float
           The energy density of neutrinos relative to the critical
           density at each redshift.  Note that this includes their
           kinetic energy (if they have mass), so it is not equal to
           the commonly used :math:`\\sum \\frac{m_{\\nu}}{94 eV}`,
           which does not include kinetic energy.
+          Returns float if input scalar.
         """
 
         if isiterable(z):
@@ -713,7 +721,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -731,7 +739,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -750,14 +758,15 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array like
+        z : array-like
            Redshift
 
         Returns
         -------
-         f : ndarray, or float if z is scalar
+        f : ndarray or float
            The neutrino density scaling factor relative to the density
-           in photons at each redshift
+           in photons at each redshift.
+           Only returns float if z is scalar.
 
         Notes
         -----
@@ -829,13 +838,14 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : ndarray or float
           The scaling of the energy density of dark energy with redshift.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -879,13 +889,14 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -913,13 +924,14 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The redshift scaling of the inverse Hubble constant.
+          Returns float if input scalar.
         """
 
         # Avoid the function overhead by repeating code
@@ -961,7 +973,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : float or array_like
+        z : float or array-like
           Input redshift.
 
         Returns
@@ -1031,7 +1043,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1049,13 +1061,14 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        a : ndarray, or float if input scalar
+        a : ndarray or float
           Scale factor at each input redshift.
+          Returns float if input scalar.
         """
 
         if isiterable(z):
@@ -1071,7 +1084,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1093,7 +1106,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1111,7 +1124,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1132,7 +1145,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -1147,7 +1160,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1168,7 +1181,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1185,7 +1198,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1207,7 +1220,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1228,7 +1241,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1249,7 +1262,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : (N,) array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1269,7 +1282,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : (N,) array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1293,7 +1306,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1320,7 +1333,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : (N,) array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1358,7 +1371,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1381,7 +1394,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1410,15 +1423,17 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : (N,) array-like
           Input redshifts. For most practical applications such as gravitational lensing,
           z2 should be larger than z1.  The method will work for z2<z1; however, this will
           return negative distances.
 
         Returns
         -------
-        d : `~astropy.units.Quantity`, shape (N,) or single if input scalar
-          The angular diameter distance between each input redshift pair.
+        d : (N,) or scalar `~astropy.units.Quantity`
+          The angular diameter distance between each input redshift
+          pair.
+          Returns scalar if input is scalar, array else-wise.
 
         """
         z1 = np.asanyarray(z1)
@@ -1437,7 +1452,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1463,7 +1478,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1493,7 +1508,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1529,7 +1544,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1547,7 +1562,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1565,7 +1580,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1583,7 +1598,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1601,7 +1616,7 @@ class FLRW(Cosmology):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1723,13 +1738,14 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        w : ndarray, or float if input scalar
-          The dark energy equation of state
+        w : ndarray or float
+          The dark energy equation of state.
+          Returns float if input scalar.
 
         Notes
         ------
@@ -1750,13 +1766,14 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : ndarray or float
           The scaling of the energy density of dark energy with redshift.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -1784,7 +1801,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array_like
+        z1, z2 : array-like
           Input redshifts.
 
         Returns
@@ -1852,7 +1869,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : (N,) array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1879,7 +1896,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array_like, shape (N,)
+        z1, z2 : (N,) array-like
           Input redshifts.  Must be 1D or scalar.
 
         Returns
@@ -1910,7 +1927,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : array_like
+        z1, z2 : array-like
           Input redshifts.
 
         Returns
@@ -1950,7 +1967,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1969,7 +1986,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -1991,7 +2008,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2022,7 +2039,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -2045,7 +2062,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
@@ -2070,7 +2087,7 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.  Must be 1D or scalar
 
         Returns
@@ -2085,13 +2102,14 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2117,13 +2135,14 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The inverse redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2226,13 +2245,14 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2258,13 +2278,14 @@ class FlatLambdaCDM(LambdaCDM):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The inverse redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2384,13 +2405,14 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        w : ndarray, or float if input scalar
+        w : ndarray or float
           The dark energy equation of state
+          Returns float if input scalar.
 
         Notes
         ------
@@ -2411,13 +2433,14 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : ndarray or float
           The scaling of the energy density of dark energy with redshift.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2435,13 +2458,14 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2465,13 +2489,14 @@ class wCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The inverse redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2586,13 +2611,14 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2616,13 +2642,14 @@ class FlatwCDM(wCDM):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        E : ndarray, or float if input scalar
+        E : ndarray or float
           The inverse redshift scaling of the Hubble constant.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -2755,13 +2782,14 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        w : ndarray, or float if input scalar
+        w : ndarray or float
           The dark energy equation of state
+          Returns float if input scalar.
 
         Notes
         ------
@@ -2782,13 +2810,14 @@ class w0waCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : ndarray or float
           The scaling of the energy density of dark energy with redshift.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -3037,13 +3066,14 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        w : ndarray, or float if input scalar
+        w : ndarray or float
           The dark energy equation of state
+          Returns float if input scalar.
 
         Notes
         ------
@@ -3066,13 +3096,14 @@ class wpwaCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : ndarray or float
           The scaling of the energy density of dark energy with redshift.
+          Returns float if input scalar.
 
         Notes
         -----
@@ -3213,13 +3244,14 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        w : ndarray, or float if input scalar
+        w : ndarray or float
           The dark energy equation of state
+          Returns float if input scalar.
 
         Notes
         ------
@@ -3240,13 +3272,14 @@ class w0wzCDM(FLRW):
 
         Parameters
         ----------
-        z : array_like
+        z : array-like
           Input redshifts.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : ndarray or float
           The scaling of the energy density of dark energy with redshift.
+          Returns float if input scalar.
 
         Notes
         -----

@@ -348,10 +348,10 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
         Parameters
         ----------
-        parent : obj
+        parent : object
             Parent `~astropy.time.Time` object associated with this
             `~astropy.time.TimeFormat` object
-        out_subfmt : str or `None`
+        out_subfmt : str or None
             Output subformt (use existing self.out_subfmt if `None`)
 
         Returns
@@ -1186,7 +1186,7 @@ class TimezoneInfo(datetime.tzinfo):
         dst : `~astropy.units.Quantity`, optional
             Daylight Savings Time offset in days. Defaults to zero
             (no daylight savings).
-        tzname : str or `None`, optional
+        tzname : str or None, optional
             Name of timezone
 
         Examples

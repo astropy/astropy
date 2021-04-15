@@ -124,7 +124,8 @@ def can_have_arbitrary_unit(value):
 
     Returns
     -------
-    `True` if each member is either zero or not finite, `False` otherwise
+    bool
+        `True` if each member is either zero or not finite, `False` otherwise
     """
     return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
 
@@ -144,7 +145,7 @@ def converters_and_unit(function, method, *args):
     method : str
         Method with which the function is evaluated, e.g.,
         '__call__', 'reduce', etc.
-    *args : Quantity or other ndarray subclass
+    *args :  `~astropy.units.Quantity` or ndarray subclass
         Input arguments to the function
 
     Raises
@@ -297,7 +298,8 @@ def check_output(output, unit, inputs, function=None):
 
     Returns
     -------
-    arrays : `~numpy.ndarray` view of ``output`` (or tuple of such views).
+    arrays : ndarray view or tuple thereof
+        The view(s) is of ``output``.
 
     Raises
     ------

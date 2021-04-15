@@ -36,8 +36,9 @@ class SortedArray:
         Sorted columns of the original table
     row_index : Column object
         Row numbers corresponding to data columns
-    unique : bool (defaults to False)
-        Whether the values of the index must be unique
+    unique : bool
+        Whether the values of the index must be unique.
+        Defaults to False.
     '''
 
     def __init__(self, data, row_index, unique=False):
@@ -167,11 +168,11 @@ class SortedArray:
             Lower search bound
         upper : tuple
             Upper search bound
-        bounds : tuple (x, y) of bools
+        bounds : (2,) tuple of bool
             Indicates whether the search should be inclusive or
             exclusive with respect to the endpoints. The first
-            argument x corresponds to an inclusive lower bound,
-            and the second argument y to an inclusive upper bound.
+            argument corresponds to an inclusive lower bound,
+            and the second argument to an inclusive upper bound.
         '''
         lower_pos = self.find_pos(lower, 0)
         upper_pos = self.find_pos(upper, 0)

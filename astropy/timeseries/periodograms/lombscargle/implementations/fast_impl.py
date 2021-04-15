@@ -14,7 +14,7 @@ def lombscargle_fast(t, y, dy, f0, df, Nf,
 
     Parameters
     ----------
-    t, y, dy : array_like  (NOT astropy.Quantities)
+    t, y, dy : array-like  (NOT astropy.Quantities)
         times, values, and errors of the data points. These should be
         broadcastable to the same shape.
     f0, df, Nf : (float, float, int)

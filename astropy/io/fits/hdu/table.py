@@ -82,7 +82,7 @@ class _TableLikeHDU(_ValidHDU):
 
         Parameters
         ----------
-        columns : sequence of `Column`, `ColDefs`, or other
+        columns : sequence of `Column`, `ColDefs` -like
             The columns from which to create the table data, or an object with
             a column-like structure from which a `ColDefs` can be instantiated.
             This includes an existing `BinTableHDU` or `TableHDU`, or a
@@ -142,7 +142,7 @@ class _TableLikeHDU(_ValidHDU):
     @property
     def _nrows(self):
         """
-        Table-like HDUs must provide an attribute that specifies the number of
+        table-like HDUs must provide an attribute that specifies the number of
         rows in the HDU's table.
 
         For now this is an internal-only attribute.
@@ -1056,16 +1056,16 @@ class BinTableHDU(_TableBaseHDU):
 
         Parameters
         ----------
-        datafile : file path, file object or file-like object, optional
+        datafile : path-like or file-like, optional
             Output data file.  The default is the root name of the
             fits file associated with this HDU appended with the
             extension ``.txt``.
 
-        cdfile : file path, file object or file-like object, optional
+        cdfile : path-like or file-like, optional
             Output column definitions file.  The default is `None`, no
             column definitions output is produced.
 
-        hfile : file path, file object or file-like object, optional
+        hfile : path-like or file-like, optional
             Output header parameters file.  The default is `None`,
             no header parameters output is produced.
 
@@ -1129,10 +1129,10 @@ class BinTableHDU(_TableBaseHDU):
 
         Parameters
         ----------
-        datafile : file path, file object or file-like object
+        datafile : path-like or file-like
             Input data file containing the table data in ASCII format.
 
-        cdfile : file path, file object, file-like object, optional
+        cdfile : path-like or file-like, optional
             Input column definition file containing the names,
             formats, display formats, physical units, multidimensional
             array dimensions, undefined values, scale factors, and
@@ -1140,7 +1140,7 @@ class BinTableHDU(_TableBaseHDU):
             `None`, the column definitions are taken from the current
             values in this object.
 
-        hfile : file path, file object, file-like object, optional
+        hfile : path-like or file-like, optional
             Input parameter definition file containing the header
             parameter definitions to be associated with the table.  If
             `None`, the header parameter definitions are taken from

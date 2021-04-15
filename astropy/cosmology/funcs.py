@@ -34,7 +34,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500):
     ----------
     func : function or method
        A function that takes a redshift as input.
-    fval : astropy.Quantity instance
+    fval : `~astropy.units.Quantity` instance
        The value of ``func(z)``.
     zmin : float, optional
        The lower search limit for ``z``.  Beware of divergences

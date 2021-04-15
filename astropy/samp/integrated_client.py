@@ -205,7 +205,7 @@ class SAMPIntegratedClient:
         mtype : str
             the MType to be notified
 
-        params : dict or set of keywords
+        params : dict or set of str
             Variable keyword set which contains the list of parameters for the
             specified MType.
 
@@ -241,7 +241,7 @@ class SAMPIntegratedClient:
         mtype : str
             MType to be notified.
 
-        params : dict or set of keywords
+        params : dict or set of str
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
@@ -284,7 +284,7 @@ class SAMPIntegratedClient:
         mtype : str
             MType to be sent
 
-        params : dict of set of keywords
+        params : dict of set of str
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
@@ -325,7 +325,7 @@ class SAMPIntegratedClient:
         mtype : str
             MType to be sent
 
-        params : dict of set of keywords
+        params : dict of set of str
             Variable keyword set which contains the list of parameters for
             the specified MType.
 
@@ -368,7 +368,7 @@ class SAMPIntegratedClient:
         timeout : str
             Call timeout in seconds
 
-        params : dict of set of keywords
+        params : dict of set of str
             Variable keyword set which contains the list of parameters for
             the specified MType.
 

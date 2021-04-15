@@ -478,13 +478,13 @@ good_mask_value=False, dtype=numpy.bool_)
 
     Parameters
     ----------
-    bitfield : numpy.ndarray
+    bitfield : ndarray
         An array of bit flags. By default, values different from zero are
         interpreted as "bad" values and values equal to zero are considered
         as "good" values. However, see ``ignore_flags`` parameter on how to
         selectively ignore some bits in the ``bitfield`` array data.
 
-    ignore_flags : int, str, list, None (Default = 0)
+    ignore_flags : int, str, list, None (default = 0)
         An integer bit mask, `None`, a Python list of bit flags, a comma-,
         or ``'|'``-separated, ``'+'``-separated string list of integer
         bit flags or mnemonic flag names that indicate what bits in the input
@@ -561,7 +561,7 @@ good_mask_value=False, dtype=numpy.bool_)
             to setting ``flip_bits`` to `True`, ``flip_bits`` cannot be used
             with string ``ignore_flags`` and it must be set to `None`.
 
-    flip_bits : bool, None (Default = None)
+    flip_bits : bool, None (default = None)
         Specifies whether or not to invert the bits of the bit mask either
         supplied directly through ``ignore_flags`` parameter or built from the
         bit flags passed through ``ignore_flags`` (only when bit flags are
@@ -584,7 +584,7 @@ good_mask_value=False, dtype=numpy.bool_)
             `None` or a string list of flags, ``flip_bits`` **MUST** be set
             to `None`.
 
-    good_mask_value : int, bool (Default = False)
+    good_mask_value : int, bool (default = False)
         This parameter is used to derive the values that will be assigned to
         the elements in the output boolean mask array that correspond to the
         "good" bit fields (that are 0 after zeroing bits specified by
@@ -600,7 +600,7 @@ good_mask_value=False, dtype=numpy.bool_)
         ``numpy.bool_``) or 0 (if ``dtype`` is of numerical type) and values
         of corresponding to "bad" flags will be ``numpy.True_`` (or 1).
 
-    dtype : data-type (Default = ``numpy.bool_``)
+    dtype : data-type (default = ``numpy.bool_``)
         The desired data-type for the output binary mask array.
 
     flag_name_map : BitFlagNameMap
@@ -611,7 +611,7 @@ good_mask_value=False, dtype=numpy.bool_)
 
     Returns
     -------
-    mask : numpy.ndarray
+    mask : ndarray
         Returns an array of the same dimensionality as the input ``bitfield``
         array whose elements can have two possible values,
         e.g., ``numpy.True_`` or ``numpy.False_`` (or 1 or 0 for integer

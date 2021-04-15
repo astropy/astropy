@@ -82,7 +82,7 @@ def dtype_info_name(dtype):
 
     Parameters
     ----------
-    dtype : str, np.dtype, type
+    dtype : str, `~numpy.dtype`, type
         Input dtype as an object that can be converted via np.dtype()
 
     Returns
@@ -433,15 +433,16 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
 
         Parameters
         ----------
-        option : str, function, list of (str or function)
+        option : str, callable, list of (str or callable)
             Info option, defaults to 'attributes'.
-        out : file-like object, None
+        out : file-like, None
             Output destination, defaults to sys.stdout.  If None then the
             OrderedDict with information attributes is returned
 
         Returns
         -------
-        info : OrderedDict if out==None else None
+        info : `~collections.OrderedDict` or None
+            `~collections.OrderedDict` if out==None else None
         """
         if out == '':
             out = sys.stdout
@@ -623,8 +624,9 @@ class BaseColumnInfo(DataInfo):
 
         Parameters
         ----------
-        col_slice : Column or mixin
-            Sliced object
+        col_slice : `~astropy.table.Column` or mixin
+            Sliced object. If not a column, it must be a valid mixin, see
+            https://docs.astropy.org/en/stable/table/mixin_columns.html
         item : slice, list, or ndarray
             Slice used to create col_slice
         col_len : int
@@ -680,7 +682,8 @@ class BaseColumnInfo(DataInfo):
 
         Returns
         -------
-        attrs : dict of merged attributes
+        attrs : dict
+            Of merged attributes.
 
         """
         from astropy.table.np_utils import TableMergeError
