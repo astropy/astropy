@@ -4,7 +4,7 @@ import itertools
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose, assert_array_almost_equal_nulp
+from numpy.testing import assert_allclose, assert_array_equal, assert_array_almost_equal_nulp
 
 from astropy.convolution.convolve import convolve_fft, convolve
 from astropy.utils.exceptions import AstropyUserWarning
@@ -659,7 +659,7 @@ class TestConvolve2D:
         assert_floatclose(z[posns], z[posns])
 
     def test_big_fail(self):
-        """ Test that convolve_fft raises an exception if a too-large array is passed in """
+        """ Test that convolve_fft raises an exception if a too-large array is passed in."""
 
         with pytest.raises((ValueError, MemoryError)):
             # while a good idea, this approach did not work; it actually writes to disk
@@ -668,6 +668,32 @@ class TestConvolve2D:
             arr = np.empty([512, 512, 512], dtype=complex)
             # note 512**3 * 16 bytes = 2.0 GB
             convolve_fft(arr, arr)
+
+    def test_padding(self):
+        """
+        Test that convolve_fft pads to _next_fast_lengths and does not expand all dimensions
+        to length of longest side (#11242/#10047).
+        """
+
+        # old implementation expanded this to up to 2048**3
+        shape = (1, 1226, 518)
+        img = np.zeros(shape, dtype='float64')
+        img[0, 600:610, 300:304] = 1.0
+        kernel = np.zeros((1, 7, 7), dtype='float64')
+        kernel[0, 3, 3] = 1.0
+
+        with pytest.warns(AstropyUserWarning,
+                          match="psf_pad was set to False, which overrides the boundary='fill'"):
+            img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=False, fft_pad=False)
+            assert_array_equal(img_fft.shape, shape)
+            img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=False, fft_pad=True)
+            # should be from either hardcoded _good_sizes[] or scipy.fft.next_fast_len()
+            assert img_fft.shape in ((1, 1250, 540), (1, 1232, 525))
+
+        img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=True, fft_pad=False)
+        assert_array_equal(img_fft.shape, np.array(shape) + np.array(kernel.shape))
+        img_fft = convolve_fft(img, kernel, return_fft=True, psf_pad=True, fft_pad=True)
+        assert img_fft.shape in ((2, 1250, 540), (2, 1250, 525))
 
     @pytest.mark.parametrize(('boundary'), BOUNDARY_OPTIONS)
     def test_non_normalized_kernel(self, boundary):
