@@ -131,6 +131,11 @@ class Cosmology(metaclass=ABCMeta):
         self._name = name
         self.meta.update(meta or {})
 
+    # make initial signature of cosmology. overwritten in subclasses
+    _init_signature = signature(__init__)
+    _init_signature = _init_signature.replace(
+        parameters=list(_init_signature.parameters.values())[1:])
+
     @property
     def name(self):
         return self._name
