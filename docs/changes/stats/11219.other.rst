@@ -1,0 +1,2 @@
+Significantly improved the performance of sigma clipping when cenfunc and
+stdfunc are passed as strings and the ``grow`` option is not used.

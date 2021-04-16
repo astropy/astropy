@@ -266,16 +266,14 @@ def test_sigma_clip_axis_tuple_3D():
 def test_sigmaclip_repr():
 
     sigclip = SigmaClip()
-    median_str = str(sigclip._parse_cenfunc('median'))
-    std_str = str(sigclip._parse_stdfunc('std'))
 
     sigclip_repr = ('SigmaClip(sigma=3.0, sigma_lower=3.0, sigma_upper=3.0,'
-                    ' maxiters=5, cenfunc={}, stdfunc={}, '
-                    'grow=False)'.format(median_str, std_str))
+                    ' maxiters=5, cenfunc=median, stdfunc=std, '
+                    'grow=False)')
     sigclip_str = ('<SigmaClip>\n    sigma: 3.0\n    sigma_lower: 3.0\n'
                    '    sigma_upper: 3.0\n    maxiters: 5\n'
-                   '    cenfunc: {}\n    stdfunc: {}\n'
-                   '    grow: False'.format(median_str, std_str))
+                   '    cenfunc: median\n    stdfunc: std\n'
+                   '    grow: False')
 
     assert repr(sigclip) == sigclip_repr
     assert str(sigclip) == sigclip_str
@@ -407,3 +405,42 @@ def test_sigma_clip_grow():
     )
 
     assert np.array_equal(np.where(filtered_data.mask), expected)
+
+
+@pytest.mark.parametrize(('axis', 'bounds_shape'), [(None, ()),
+                                                    (0, (4, 5, 6, 7)),
+                                                    (1, (3, 5, 6, 7)),
+                                                    (-1, (3, 4, 5, 6)),
+                                                    ((1, 3), (3, 5, 7)),
+                                                    ((3, 1), (3, 5, 7)),
+                                                    ((1, 2, 4), (3, 6))])
+def test_sigma_clip_axis_shapes(axis, bounds_shape):
+
+    # Check the shapes of the output for different use cases
+
+    with NumpyRNGContext(12345):
+        array = np.random.random((3, 4, 5, 6, 7))
+
+    result1 = sigma_clip(array, axis=axis)
+    assert result1.shape == array.shape
+
+    result2, bound1, bound2 = sigma_clip(array, axis=axis, return_bounds=True)
+    assert result2.shape == array.shape
+    assert bound1.shape == bounds_shape
+    assert bound2.shape == bounds_shape
+
+
+@pytest.mark.parametrize('dtype', ['>f2', '<f2', '>f4', '<f4', '>f8', '<f8', '<i4', '>i8'])
+def test_sigma_clip_dtypes(dtype):
+
+    # Check the shapes of the output for different use cases
+
+    with NumpyRNGContext(12345):
+        array = np.random.randint(-5, 5, 1000).astype(float)
+    array[30] = 1000
+
+    reference = sigma_clip(array, copy=True, masked=False)
+
+    actual = sigma_clip(array.astype(dtype), copy=True, masked=False)
+
+    assert_equal(reference, actual)
