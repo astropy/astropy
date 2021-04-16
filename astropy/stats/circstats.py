@@ -504,9 +504,9 @@ def vonmisesmle(data, axis=None):
     Returns
     -------
     mu : float or `~astropy.units.Quantity`
-        the mean (aka location parameter).
+        The mean (aka location parameter).
     kappa : float or `~astropy.units.Quantity`
-        the concentration parameter. Dimensionless, if Quantity.
+        The concentration parameter. Dimensionless, if Quantity.
 
     Examples
     --------
