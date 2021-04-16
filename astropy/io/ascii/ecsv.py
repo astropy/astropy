@@ -18,7 +18,7 @@ from astropy.io.ascii.core import convert_numpy
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
-ECSV_VERSION = '0.9'
+ECSV_VERSION = '1.0'
 DELIMITERS = (' ', ',')
 
 
@@ -206,20 +206,41 @@ class EcsvOutputter(core.TableOutputter):
         advance.
         """
         for col in cols:
-            converter_func, converter_type = convert_numpy(col.dtype)
+            converter_func, _ = convert_numpy(col.dtype)
             try:
-                if col.shape or np.dtype(col.dtype).kind == 'O':
+                # Object columns are serialized as JSON.
+                if np.dtype(col.dtype).kind == 'O':
                     import json
-                    try:
-                        col_vals = [json.loads(val) for val in col.str_vals]
-                        col.data = converter_func(col_vals)
-                    except json.JSONDecodeError:
-                        raise ValueError('failed to decode as JSON')
-                    if col.data.shape[1:] != tuple(col.shape):
-                        raise ValueError('shape mismatch')
+                    col_vals = [json.loads(val) for val in col.str_vals]
+                    col.data = np.array(col_vals, dtype=col.dtype)
+
+                # Multidim columns are serialized as JSON
+                elif col.shape:
+                    import json
+                    col_vals = [json.loads(val) for val in col.str_vals]
+                    # Make a numpy object array of col_vals to look for None
+                    data = np.array(col_vals, dtype=object)
+                    mask = (data == None)  # noqa
+                    if not np.any(mask):
+                        # No None's, just convert to required dtype
+                        col.data = data.astype(col.dtype)
+                    else:
+                        # Replace all the None with an appropriate fill value
+                        kind = np.dtype(col.dtype).kind
+                        if kind == 'U':
+                            fill = ''
+                        elif kind == 'S':
+                            fill = b''
+                        else:
+                            fill = 0
+                        data[mask] = fill
+                        # Finally make a MaskedArray with the filled data + mask
+                        col.data = np.ma.array(data.astype(col.dtype), mask=mask)
                 else:
                     col.data = converter_func(col.str_vals)
-                col.type = converter_type
+
+                if col.data.shape[1:] != tuple(col.shape):
+                    raise ValueError('shape mismatch')
             except Exception as exc:
                 raise ValueError(f'Column {col.name} failed to convert: {exc}')
 

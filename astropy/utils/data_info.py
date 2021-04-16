@@ -32,7 +32,7 @@ from . import metadata
 
 
 __all__ = ['data_info_factory', 'dtype_info_name', 'BaseColumnInfo',
-           'DataInfo', 'MixinInfo', 'ParentDtypeInfo', 'MULTIDIM_AS_JSON']
+           'DataInfo', 'MixinInfo', 'ParentDtypeInfo']
 
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning, message='All-NaN|'
@@ -43,10 +43,6 @@ STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
                      (False, 'U'): 'unicode',
                      (True, 'S'): 'bytes',  # PY3
                      (True, 'U'): 'str'}
-
-# Context types for which multidimensional data will be represented as a JSON
-# string.
-MULTIDIM_AS_JSON = ['ecsv']
 
 
 @contextmanager
