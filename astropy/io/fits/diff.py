@@ -9,8 +9,8 @@ import fnmatch
 import glob
 import io
 import operator
+import os
 import os.path
-import pathlib
 import textwrap
 
 from collections import defaultdict
@@ -269,7 +269,7 @@ class FITSDiff(_BaseDiff):
             whitespace (default: True).
         """
 
-        if isinstance(a, (str, pathlib.Path)):
+        if isinstance(a, (str, os.PathLike)):
             try:
                 a = fitsopen(a)
             except Exception as exc:
@@ -279,7 +279,7 @@ class FITSDiff(_BaseDiff):
         else:
             close_a = False
 
-        if isinstance(b, (str, pathlib.Path)):
+        if isinstance(b, (str, os.PathLike)):
             try:
                 b = fitsopen(b)
             except Exception as exc:
