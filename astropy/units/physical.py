@@ -9,6 +9,7 @@ from . import si
 from . import astrophys
 from . import cgs
 from . import misc
+from . import quantity
 
 __all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
@@ -134,7 +135,8 @@ def _physical_type_from_str(name):
     physical.
     """
     if name == "unknown":
-        raise ValueError("cannot uniquely identify an unknown physical type.")
+        raise ValueError("cannot uniquely identify an 'unknown' physical type.")
+
     if name in _name_physical_mapping:
         return _name_physical_mapping[name]
     else:
@@ -465,15 +467,17 @@ def get_physical_type(obj):
 
     Parameters
     ----------
-    obj : `~astropy.units.UnitBase`, `str`, number, or `~astropy.units.Quantity`
-        The object for which to retreive the physical type.  This object
-        should be a unit, the name of a physical type, the number one, a
-        `~astropy.units.Quantity`, or an `object` that has a ``unit``
-        attribute that is a unit.
+    obj
+        An object that (implicitly or explicitly) has a corresponding
+        physical type. This object may be a unit, a
+        `~astropy.units.Quantity`, an object that can be converted to a
+        `~astropy.units.Quantity` (such as a number or array), a string
+        that contains a name of a physical type, or a
+        `~astropy.units.PhysicalType` instance.
 
     Returns
     -------
-    physical_type : `~astropy.units.PhysicalType`
+    `~astropy.units.PhysicalType`
         A representation of the physical type(s) of the unit.
 
     Examples
@@ -493,24 +497,27 @@ def get_physical_type(obj):
     >>> u.get_physical_type("energy")
     PhysicalType({'energy', 'torque', 'work'})
 
-    The number one corresponds to a dimensionless physical type.
+    Numbers and arrays of numbers correspond to a dimensionless physical
+    type.
 
     >>> u.get_physical_type(1)
     PhysicalType('dimensionless')
     """
+    if isinstance(obj, PhysicalType):
+        return obj
+
     if isinstance(obj, str):
         return _physical_type_from_str(obj)
 
-    if hasattr(obj, "unit"):
-        unit = obj.unit
-    elif isinstance(obj, numbers.Real) and obj == 1:
-        unit = core.dimensionless_unscaled
-    else:
-        unit = obj
+    try:
+        unit = obj if isinstance(obj, core.UnitBase) else quantity.Quantity(obj).unit
+    except TypeError as exc:
+        raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 
     unit = _replace_temperatures_with_kelvin(unit)
     physical_type_id = unit._get_physical_type_id()
     unit_has_known_physical_type = physical_type_id in _physical_unit_mapping
+
     if unit_has_known_physical_type:
         return _physical_unit_mapping[physical_type_id]
     else:
