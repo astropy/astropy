@@ -132,7 +132,7 @@ _name_physical_mapping = {}
 def _physical_type_from_str(name):
     """
     Return the `PhysicalType` instance associated with the name of a
-    physical.
+    physical type.
     """
     if name == "unknown":
         raise ValueError("cannot uniquely identify an 'unknown' physical type.")
