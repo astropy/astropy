@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import contextlib
-import pathlib
 import re
 import sys
 import inspect
@@ -24,7 +23,7 @@ _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
 
-PATH_TYPES = (str, pathlib.Path)
+PATH_TYPES = (str, os.PathLike)
 
 
 class IORegistryError(Exception):
@@ -504,9 +503,9 @@ def read(cls, *args, format=None, cache=False, **kwargs):
             if len(args):
                 if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
                     from astropy.utils.data import get_readable_fileobj
-                    # path might be a pathlib.Path object
-                    if isinstance(args[0], pathlib.Path):
-                        args = (str(args[0]),) + args[1:]
+                    # path might be a os.PathLike object
+                    if isinstance(args[0], os.PathLike):
+                        args = (os.fspath(args[0]),) + args[1:]
                     path = args[0]
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary', cache=cache)
@@ -555,9 +554,9 @@ def write(data, *args, format=None, **kwargs):
         fileobj = None
         if len(args):
             if isinstance(args[0], PATH_TYPES):
-                # path might be a pathlib.Path object
-                if isinstance(args[0], pathlib.Path):
-                    args = (str(args[0]),) + args[1:]
+                # path might be a os.PathLike object
+                if isinstance(args[0], os.PathLike):
+                    args = (os.fspath(args[0]),) + args[1:]
                 path = args[0]
                 fileobj = None
             elif hasattr(args[0], 'read'):

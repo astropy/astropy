@@ -6,7 +6,6 @@ import io
 import mmap
 import operator
 import os
-import pathlib
 import platform
 import signal
 import sys
@@ -26,8 +25,7 @@ import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-from os import PathLike
-path_like = (str, PathLike)
+path_like = (str, os.PathLike)
 
 cmp = lambda a, b: (a > b) - (a < b)
 
@@ -429,7 +427,7 @@ def fileobj_closed(f):
     they are file-like objects with no sense of a 'closed' state.
     """
 
-    if isinstance(f, (str, pathlib.Path)):
+    if isinstance(f, path_like):
         return True
 
     if hasattr(f, 'closed'):
