@@ -135,15 +135,46 @@ def test_physical_type_names(unit, physical_type):
     )
 
 
+length = u.m.physical_type
+time = u.s.physical_type
+speed = (u.m / u.s).physical_type
+area = (u.m ** 2).physical_type
+wavenumber = (u.m ** -1).physical_type
+dimensionless = u.dimensionless_unscaled.physical_type
+pressure = u.Pa.physical_type
+momentum = (u.kg * u.m / u.s).physical_type
+
+
 @pytest.mark.parametrize(
-    "physical_type_representation, physical_type_name",
-    [(1.0, "dimensionless"), (u.m, "length"), ("work", "work"), (5 * u.m, "length")],
+    "physical_type_representation, physical_type_name", [
+        (1.0, "dimensionless"),
+        (u.m, "length"),
+        ("work", "work"),
+        (5 * u.m, "length"),
+        (length, length)
+    ],
 )
 def test_getting_physical_type(physical_type_representation, physical_type_name):
     """Test different ways of getting a physical type."""
     physical_type = physical.get_physical_type(physical_type_representation)
     assert isinstance(physical_type, physical.PhysicalType)
     assert physical_type == physical_type_name
+
+
+@pytest.mark.parametrize(
+    "argument, exception", [
+        ("unknown", ValueError),
+        ("not a name of a physical type", ValueError),
+        ({"this set cannot be made into a Quantity"}, TypeError),
+    ]
+)
+def test_getting_physical_type_exceptions(argument, exception):
+    """
+    Test that `get_physical_type` raises appropriate exceptions when
+    provided with invalid arguments.
+    """
+    with pytest.raises(exception):
+        physical.get_physical_type(argument)
 
 
 def test_physical_type_cannot_become_quantity():
@@ -155,15 +186,6 @@ def test_physical_type_cannot_become_quantity():
     with pytest.raises(TypeError):
         u.Quantity(u.m.physical_type, u.m)
 
-
-length = u.m.physical_type
-time = u.s.physical_type
-speed = (u.m / u.s).physical_type
-area = (u.m ** 2).physical_type
-wavenumber = (u.m ** -1).physical_type
-dimensionless = u.dimensionless_unscaled.physical_type
-pressure = u.Pa.physical_type
-momentum = (u.kg * u.m / u.s).physical_type
 
 # left term, right term, operator, expected value
 operation_parameters = [
@@ -384,6 +406,9 @@ def test_invalid_physical_types(invalid_input):
     with pytest.raises(ValueError):
         physical.PhysicalType(obscure_unit, invalid_input)
     assert obscure_unit.physical_type == "unknown"
+
+
+# Test that get_physical_type of a PhysicalType returns itself
 
 
 class TestDefPhysType:
