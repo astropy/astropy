@@ -290,7 +290,7 @@ class BaseInputter:
         ----------
         table : str, file-like, list
             Can be either a file name, string (newline separated) with all header and data
-            lines (must have at least 2 lines), a file-like  object with a
+            lines (must have at least 2 lines), a file-like object with a
             ``read()`` method, or a list of strings.
         newline: line separator, if `None` use OS default from ``splitlines()``.
 
@@ -440,7 +440,8 @@ class DefaultSplitter(BaseSplitter):
 
         Yields
         ------
-        lines : list
+        line : list of str
+            Each line's split values.
 
         """
         if self.process_line:
