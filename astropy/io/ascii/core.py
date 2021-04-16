@@ -247,12 +247,6 @@ class BoolType(NoType):
     """
 
 
-class ObjectType(NoType):
-    """
-    Describes object data.
-    """
-
-
 class IntType(NumType):
     """
     Describes integer data.
@@ -967,8 +961,6 @@ def convert_numpy(numpy_type):
         converter_type = BoolType
     elif 'str' in type_name:
         converter_type = StrType
-    elif 'object' in type_name:
-        converter_type = ObjectType
     else:
         converter_type = AllType
 
