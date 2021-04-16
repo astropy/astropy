@@ -8,11 +8,13 @@ import re
 from collections import OrderedDict
 import warnings
 
+import numpy as np
+
 from . import core, basic
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyWarning
-from astropy.io.ascii.core import convert_numpy, ObjectType
+from astropy.io.ascii.core import convert_numpy
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -206,7 +208,7 @@ class EcsvOutputter(core.TableOutputter):
         for col in cols:
             converter_func, converter_type = convert_numpy(col.dtype)
             try:
-                if col.shape or converter_type is ObjectType:
+                if col.shape or np.dtype(col.dtype).kind == 'O':
                     import json
                     try:
                         col_vals = [json.loads(val) for val in col.str_vals]
