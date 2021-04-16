@@ -13,12 +13,11 @@ from . import scalar_inv_efuncs
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils import isiterable
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
+                                      AstropyUserWarning)
 from astropy.utils.metadata import MetaData
 from astropy.utils.state import ScienceState
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-
-from . import parameters
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
@@ -3047,7 +3046,7 @@ class wpwaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *, 
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
                  name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
