@@ -167,7 +167,7 @@ numpydoc_xref_aliases = {
     "Representation": ":class:`~astropy.coordinates.BaseRepresentation`",
     "writable": ":term:`writable file-like object`",
     "readable": ":term:`readable file-like object`",
-    "BaseHDU": ":term:`Base HDU`"
+    "BaseHDU": ":doc:`HDU </io/fits/api/hdus>`"
 }
 
 
