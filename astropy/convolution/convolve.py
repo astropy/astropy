@@ -66,9 +66,8 @@ _good_sizes = np.array([   0,    1,    2,    3,    4,    5,    6,    8,    9,   
                         8000, 8100, 8192, 8640, 8748, 9000, 9216, 9375, 9600, 9720, 10000])
 _good_range = int(np.log10(_good_sizes[-1]))
 
-# Disabling all doctests in this module until a better way of handling warnings
-# in doctests can be determined
-__doctest_skip__ = ['*']
+# Disabling doctests when scipy isn't present.
+__doctest_requires__ = {('convolve_fft',): ['scipy.fft']}
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
@@ -576,43 +575,42 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     Examples
     --------
     >>> convolve_fft([1, 0, 3], [1, 1, 1])
-    array([ 1.,  4.,  3.])
+    array([0.33333333, 1.33333333, 1.        ])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1])
-    array([ 1.,  4.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> convolve_fft([1, 0, 3], [0, 1, 0])
-    array([ 1.,  0.,  3.])
+    array([ 1.00000000e+00, -3.70074342e-17,  3.00000000e+00])
 
     >>> convolve_fft([1, 2, 3], [1])
-    array([ 1.,  2.,  3.])
+    array([1., 2., 3.])
 
     >>> convolve_fft([1, np.nan, 3], [0, 1, 0], nan_treatment='interpolate')
-    ...
-    array([ 1.,  0.,  3.])
+    array([1., 0., 3.])
 
     >>> convolve_fft([1, np.nan, 3], [0, 1, 0], nan_treatment='interpolate',
     ...              min_wt=1e-8)
-    array([ 1.,  nan,  3.])
+    array([ 1., nan,  3.])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate')
-    array([ 1.,  4.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True)
-    array([ 1.,  2.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> import scipy.fft  # optional - requires scipy
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True,
     ...               fftn=scipy.fft.fftn, ifftn=scipy.fft.ifftn)
-    array([ 1.,  2.,  3.])
+    array([0.5, 2. , 1.5])
 
     >>> fft_mp = lambda a: scipy.fft.fftn(a, workers=-1)  # use all available cores
     >>> ifft_mp = lambda a: scipy.fft.ifftn(a, workers=-1)
     >>> convolve_fft([1, np.nan, 3], [1, 1, 1], nan_treatment='interpolate',
     ...               normalize_kernel=True, fftn=fft_mp, ifftn=ifft_mp)
-    array([ 1.,  2.,  3.])
+    array([0.5, 2. , 1.5])
     """
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
