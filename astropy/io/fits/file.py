@@ -5,7 +5,6 @@ import errno
 import http.client
 import mmap
 import operator
-import pathlib
 import io
 import os
 import sys
@@ -131,9 +130,8 @@ class _File:
             return
         else:
             self.simulateonly = False
-            # If fileobj is of type pathlib.Path
-            if isinstance(fileobj, pathlib.Path):
-                fileobj = str(fileobj)
+            if isinstance(fileobj, os.PathLike):
+                fileobj = os.fspath(fileobj)
 
         if mode is not None and mode not in IO_FITS_MODES:
             raise ValueError(f"Mode '{mode}' not recognized")

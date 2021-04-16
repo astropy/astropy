@@ -10,11 +10,11 @@ configuration files for Astropy and affiliated packages.
 """
 
 import io
-import pathlib
 import pkgutil
 import warnings
 import importlib
 import contextlib
+import os
 from os import path
 from textwrap import TextWrapper
 from warnings import warn
@@ -634,7 +634,7 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
         filename = get_config_filename(pkgname)
 
     with contextlib.ExitStack() as stack:
-        if isinstance(filename, (str, pathlib.Path)):
+        if isinstance(filename, (str, os.PathLike)):
             fp = stack.enter_context(open(filename, 'w'))
         else:
             # assume it's a file object, or io.StringIO

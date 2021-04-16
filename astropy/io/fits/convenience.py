@@ -54,7 +54,6 @@ explanation of all the different formats.
     around a single format and officially deprecate the other formats.
 """
 
-import pathlib
 import operator
 import os
 import warnings
@@ -1083,8 +1082,8 @@ def _makehdu(data, header):
 
 
 def _stat_filename_or_fileobj(filename):
-    if isinstance(filename, pathlib.Path):
-        filename = str(filename)
+    if isinstance(filename, os.PathLike):
+        filename = os.fspath(filename)
     closed = fileobj_closed(filename)
     name = fileobj_name(filename) or ''
 

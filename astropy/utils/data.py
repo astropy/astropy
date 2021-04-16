@@ -9,7 +9,6 @@ import fnmatch
 import hashlib
 import os
 import io
-import pathlib
 import re
 import shutil
 import socket
@@ -229,7 +228,6 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     # passed in.  In that case it is not the responsibility of this
     # function to close it: doing so could result in a "double close"
     # and an "invalid file descriptor" exception.
-    PATH_TYPES = (str, pathlib.Path)
 
     close_fds = []
     delete_fds = []
@@ -238,11 +236,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # use configfile default
         remote_timeout = conf.remote_timeout
 
-    # Get a file object to the content
-    if isinstance(name_or_obj, PATH_TYPES):
-        # name_or_obj could be a Path object if pathlib is available
-        name_or_obj = str(name_or_obj)
+    # name_or_obj could be an os.PathLike object
+    if isinstance(name_or_obj, os.PathLike):
+        name_or_obj = os.fspath(name_or_obj)
 
+    # Get a file object to the content
+    if isinstance(name_or_obj, str):
         is_url = _is_url(name_or_obj)
         if is_url:
             name_or_obj = download_file(
