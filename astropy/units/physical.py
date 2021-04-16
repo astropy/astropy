@@ -467,7 +467,7 @@ def get_physical_type(obj):
 
     Parameters
     ----------
-    obj
+    obj : quantity-like or `~astropy.units.PhysicalType`-like
         An object that (implicitly or explicitly) has a corresponding
         physical type. This object may be a unit, a
         `~astropy.units.Quantity`, an object that can be converted to a
