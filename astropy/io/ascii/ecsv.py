@@ -12,6 +12,7 @@ from . import core, basic
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyWarning
+from astropy.io.ascii.core import convert_numpy, ObjectType
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
@@ -195,6 +196,31 @@ class EcsvOutputter(core.TableOutputter):
 
         return out
 
+    def _convert_vals(self, cols):
+        """Convert str_vals in `cols` to final arrays with correct dtypes.
+
+        This is adapted (and shortened) from BaseOutputter._convert_vals. In
+        the case of ECSV there is no guessing and all types are known in
+        advance.
+        """
+        for col in cols:
+            converter_func, converter_type = convert_numpy(col.dtype)
+            try:
+                if col.shape or converter_type is ObjectType:
+                    import json
+                    try:
+                        col_vals = [json.loads(val) for val in col.str_vals]
+                        col.data = converter_func(col_vals)
+                    except json.JSONDecodeError:
+                        raise ValueError('failed to decode as JSON')
+                    if col.data.shape[1:] != tuple(col.shape):
+                        raise ValueError('shape mismatch')
+                else:
+                    col.data = converter_func(col.str_vals)
+                col.type = converter_type
+            except Exception as exc:
+                raise ValueError(f'Column {col.name} failed to convert: {exc}')
+
 
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
@@ -225,6 +251,28 @@ class EcsvData(basic.BasicData):
             if (col.dtype == 'str' and col.name in scs
                     and scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
                 col.fill_values = {}  # No data value replacement
+
+    def str_vals(self):
+        """WRITE: convert all values in table to a list of lists of strings
+
+        The base method sets fill values and column formats, but that is not
+        needed here.
+
+        This ends up calling table.pprint._pformat_col_iter()
+        by a circuitous path. That function does the real work of formatting.
+        Finally replace any masked values with "".
+        """
+        for col in self.cols:
+            col.str_vals = list(col.info.iter_str_vals())
+
+            # Replace every masked value in a 1-d column with an empty string.
+            # For multi-dim columns this gets done by JSON via "null".
+            if hasattr(col, 'mask') and len(col.shape) == 1:
+                for idx in col.mask.nonzero()[0]:
+                    col.str_vals[idx] = ""
+
+        out = [col.str_vals for col in self.cols]
+        return out
 
 
 class Ecsv(basic.Basic):
