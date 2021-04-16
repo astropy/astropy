@@ -510,7 +510,7 @@ def get_physical_type(obj):
         return _physical_type_from_str(obj)
 
     try:
-        unit = obj if isinstance(obj, core.UnitBase) else quantity.Quantity(obj).unit
+        unit = obj if isinstance(obj, core.UnitBase) else quantity.Quantity(obj, copy=False).unit
     except TypeError as exc:
         raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 
