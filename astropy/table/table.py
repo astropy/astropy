@@ -18,6 +18,7 @@ from astropy import log
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MetaData, MetaAttribute
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo, DataInfo
 from astropy.utils.decorators import format_doc
@@ -3869,7 +3870,8 @@ class QTable(Table):
             except Exception as exc:
                 warnings.warn(f"column {col.info.name} has a unit but is kept as "
                               f"a {col.__class__.__name__} as an attempt to "
-                              f"convert it to Quantity failed with:\n{exc!r}")
+                              f"convert it to Quantity failed with:\n{exc!r}",
+                              AstropyUserWarning)
             else:
                 # What to do with MaskedColumn with units: leave as MaskedColumn or
                 # turn into Quantity and drop mask?  Assuming we have masking support
@@ -3877,7 +3879,8 @@ class QTable(Table):
                 # behavior) but issue a warning.
                 if isinstance(col, MaskedColumn) and np.any(col.mask):
                     warnings.warn("dropping mask in Quantity column '{}': "
-                                  "masked Quantity not supported".format(col.info.name))
+                                  "masked Quantity not supported".format(col.info.name),
+                                  AstropyUserWarning)
 
                 qcol.info = col.info
                 qcol.info.indices = col.info.indices
