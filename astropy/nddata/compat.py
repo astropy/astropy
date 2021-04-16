@@ -32,7 +32,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
     Parameters
     -----------
-    data : array or `NDData`
+    data : ndarray or `NDData`
         The actual data contained in this `NDData` object. Not that this
         will always be copies by *reference* , so you should make copy
         the ``data`` before passing it in if that's the  desired behavior.

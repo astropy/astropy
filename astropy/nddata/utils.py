@@ -68,10 +68,10 @@ def overlap_slices(large_array_shape, small_array_shape, position,
     large_array_shape : tuple of int or int
         The shape of the large array (for 1D arrays, this can be an
         `int`).
-    small_array_shape : tuple of int or int
+    small_array_shape : int or tuple thereof
         The shape of the small array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
-    position : tuple of numbers or number
+    position : number or tuple thereof
         The position of the small array's center with respect to the
         large array.  The pixel coordinates should be in the same order
         as the array shape.  Integer positions are at the pixel centers.
@@ -170,10 +170,10 @@ def extract_array(array_large, shape, position, mode='partial',
     ----------
     array_large : ndarray
         The array from which to extract the small array.
-    shape : tuple or int
+    shape : int or tuple thereof
         The shape of the extracted array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
-    position : tuple of numbers or number
+    position : number or tuple thereof
         The position of the small array's center with respect to the
         large array.  The pixel coordinates should be in the same order
         as the array shape.  Integer positions are at the pixel centers

@@ -129,9 +129,9 @@ numpydoc_xref_param_type = True
 numpydoc_xref_ignore = {
     'type', 'optional', 'default', 'or', 'of', 'method', 'instance', "like",
     "class", 'subclass', "keyword-only", "default", "thereof", "mixin",
-    # needed in subclassing numpy
+    # needed in subclassing numpy  # TODO! revisit
     "Arguments", "Path",
-    # TODO, not need to ignore.
+    # TODO! not need to ignore.
     "flag", "bits",
 }
 
@@ -153,6 +153,8 @@ numpydoc_xref_aliases = {
     "function": ":term:`python:function`",
     # for matplotlib
     "color": ":term:`color`",
+    # for numpy
+    "ints": ":class:`python:int`",
     # for astropy
     "unit-like": ":term:`unit-like`",
     "quantity-like": ":term:`quantity-like`",
