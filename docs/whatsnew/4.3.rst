@@ -16,6 +16,8 @@ In particular, this release includes:
 
 * :ref:`whatsnew-4.3-coordinates`
 * :ref:`whatsnew-4.3-threadsafe`
+* :ref:`whatsnew-4.3-sigma-clipping`
+*
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -50,6 +52,19 @@ parsing of units and angles, and initializing leap-second tables should now be
 safe even when done simultaneously in multiple threads, as should any use of
 the `~astropy.utils.decorators.lazyproperty` decorator (and the ``lazy=True``
 version of `~astropy.utils.decorators.classproperty`).
+
+.. _whatsnew-4.3-sigma-clipping:
+
+Performance improvements to sigma clipping
+==========================================
+
+The performance of the sigma clipping functions in the :ref:`stats` module has
+now been significantly improved when more than a couple of iterations are
+required and the built-in functions for determining the central values and
+standard deviations are used. The performance gains are especially noticeable
+when using the ``axis`` keyword and different parts of the array being sigma
+clipped require different numbers of iterations. In these cases the performance
+can be 10-20x better or more.
 
 Full change log
 ===============
