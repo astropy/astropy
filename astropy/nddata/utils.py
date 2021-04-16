@@ -191,7 +191,7 @@ def extract_array(array_large, shape, position, mode='partial',
         array will be filled with ``fill_value``.  In ``'trim'`` mode
         only the overlapping elements are returned, thus the resulting
         small array may be smaller than the requested ``shape``.
-    fill_value : float or int, optional
+    fill_value : number, optional
         If ``mode='partial'``, the value to fill pixels in the extracted
         small array that do not overlap with the input ``array_large``.
         ``fill_value`` will be changed to have the same ``dtype`` as the
