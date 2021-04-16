@@ -297,7 +297,6 @@ class ColumnInfo(BaseColumnInfo):
     """
     attrs_from_parent = BaseColumnInfo.attr_names
     _supports_indexing = True
-    _represent_as_dict_primary_data = 'data'
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
