@@ -4,13 +4,12 @@ import os
 import sys
 import re
 import fnmatch
-import json
 
 import numpy as np
 
 from astropy import log
 from astropy.utils.console import Getch, color_print, terminal_size, conf
-from astropy.utils.data_info import MULTIDIM_AS_JSON, dtype_info_name
+from astropy.utils.data_info import dtype_info_name
 
 __all__ = []
 
@@ -452,7 +451,7 @@ class TableFormatter:
             i0 = -1
             indices = np.arange(len(col))
 
-        def format_col_str_normal(idx):
+        def format_col_str(idx):
             if multidims:
                 # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
                 # with shape (n,1,...,1) from being printed as if there was
@@ -465,17 +464,6 @@ class TableFormatter:
                     return f'{left} .. {right}'
             else:
                 return format_func(col_format, col[idx])
-
-        def format_col_str_json(idx):
-            if multidims:
-                return json.dumps(col[idx].tolist(), separators=(',', ':'))
-            elif col.info.dtype.kind == 'O':
-                return json.dumps(col[idx], separators=(',', ':'))
-            else:
-                return format_func(col_format, col[idx])  # str(col[idx]) ??
-
-        format_col_str = (format_col_str_json if col.info._serialize_context in MULTIDIM_AS_JSON
-                          else format_col_str_normal)
 
         # Add formatted values if within bounds allowed by max_lines
         for idx in indices:
