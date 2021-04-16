@@ -139,6 +139,24 @@ A workaround for this at the moment would be to do::
 
 As well as with `~numpy.full` one cannot do `~numpy.zeros`, `~numpy.ones`, and `~numpy.empty`.
 
+The `~numpy.arange` function does not work either::
+
+    >>> np.arange(0 * u.m, 10 * u.m, 1 * u.m)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    TypeError: only dimensionless scalar quantities can be converted to Python scalars
+
+Workarounds include moving the units outside of the call to
+`~numpy.arange`::
+
+    >>> np.arange(0, 10, 1) * u.m
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+
+Also, `~numpy.linspace` does work:
+
+    >>> np.linspace(0 * u.m, 9 * u.m, 10)
+    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
+
 
 Quantities Lose Their Units When Broadcasted
 --------------------------------------------
