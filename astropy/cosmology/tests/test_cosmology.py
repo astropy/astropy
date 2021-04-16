@@ -56,6 +56,11 @@ def test_immutability():
     with pytest.raises(AttributeError):
         cosmo.name = "new name"
 
+    # The metadata is NOT immutable
+    assert "a" not in cosmo.meta
+    cosmo.meta["a"] = 1
+    assert "a" in cosmo.meta
+
 
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
