@@ -77,6 +77,25 @@ class TestCore(FitsTestCase):
             with fits.open(self.data('tdim.fits')) as hdulist2:
                 assert FITSDiff(hdulist2, hdulist).identical is True
 
+    def test_fits_pathlike_object(self):
+        """
+        Testing when fits file is passed as os.PathLike object #11579.
+        """
+        class TPath(os.PathLike):
+            def __init__(self, path):
+                self.path = path
+
+            def __fspath__(self):
+                return str(self.path)
+
+        fpath = TPath(self.data('tdim.fits'))
+        with fits.open(fpath) as hdulist:
+            assert hdulist[0].filebytes() == 2880
+            assert hdulist[1].filebytes() == 5760
+
+            with fits.open(self.data('tdim.fits')) as hdulist2:
+                assert FITSDiff(hdulist2, hdulist).identical is True
+
     def test_fits_file_bytes_object(self):
         """
         Testing when fits file is passed as bytes.
