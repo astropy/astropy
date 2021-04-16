@@ -14,7 +14,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
-from astropy.table import (Table, QTable, MaskedColumn, TableReplaceWarning,
+from astropy.table import (Table, QTable, Column, MaskedColumn, TableReplaceWarning,
                            TableAttribute)
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.coordinates import SkyCoord
@@ -2105,11 +2105,19 @@ class TestReplaceColumn(SetupData):
         t['a'][0] = 10
         assert t['a'][0] == a[0]
 
+
+class TestQTableColumnConversionCornerCases:
     def test_replace_with_masked_col_with_units_in_qtable(self):
         """This is a small regression from #8902"""
         t = QTable([[1, 2], [3, 4]], names=['a', 'b'])
         t['a'] = MaskedColumn([5, 6], unit='m')
         assert isinstance(t['a'], u.Quantity)
+
+    def test_do_not_replace_string_column_with_units_in_qtable(self):
+        t = QTable([[1*u.m]])
+        with pytest.warns(UserWarning, match='convert it to Quantity failed'):
+            t['a'] = Column(['a'], unit=u.m)
+        assert isinstance(t['a'], Column)
 
 
 class Test__Astropy_Table__():
