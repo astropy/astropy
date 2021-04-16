@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsutil.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -44,53 +44,52 @@ void wcsdealloc(void *ptr)
 
 //----------------------------------------------------------------------------
 
-void wcsutil_strcvt(int n, char c, const char src[], char dst[])
+void wcsutil_strcvt(int n, char c, int nt, const char src[], char dst[])
 
 {
-  int j;
-
   if (n <= 0) return;
 
   if (c != '\0') c = ' ';
 
   if (src == 0x0) {
     if (dst) {
-       memset(dst, c, n);
+      memset(dst, c, n);
     }
-
-    return;
-  }
-
-  // Copy to the first NULL character.
-  for (j = 0; j < n; j++) {
-    if ((dst[j] = src[j]) == '\0') {
-      break;
-    }
-  }
-
-  if (j < n) {
-    // The given string is null-terminated.
-    memset(dst+j, c, n-j);
 
   } else {
-    // The given string is not null-terminated.
-    if (c == '\0') {
-      j = n - 1;
-      dst[j] = '\0';
-
-      j--;
-
-      // Work backwards, looking for the first non-blank.
-      for (; j >= 0; j--) {
-        if (dst[j] != ' ') {
-          break;
-        }
+    // Copy to the first NULL character.
+    int j;
+    for (j = 0; j < n; j++) {
+      if ((dst[j] = src[j]) == '\0') {
+        break;
       }
+    }
 
-      j++;
-      memset(dst+j, '\0', n-j);
+    if (j < n) {
+      // The given string is null-terminated.
+      memset(dst+j, c, n-j);
+
+    } else {
+      // The given string is not null-terminated.
+      if (c == '\0') {
+        // Work backwards, looking for the first non-blank.
+        for (j = n - 1; j >= 0; j--) {
+          if (dst[j] != ' ') {
+            break;
+          }
+        }
+
+        j++;
+	if (j == n && !nt) {
+	  dst[n-1] = '\0';
+	} else {
+          memset(dst+j, '\0', n-j);
+	}
+      }
     }
   }
+
+  if (nt) dst[n] = '\0';
 
   return;
 }
@@ -100,8 +99,6 @@ void wcsutil_strcvt(int n, char c, const char src[], char dst[])
 void wcsutil_blank_fill(int n, char c[])
 
 {
-  int j;
-
   if (n <= 0) return;
 
   if (c == 0x0) {
@@ -109,7 +106,7 @@ void wcsutil_blank_fill(int n, char c[])
   }
 
   // Replace the terminating null and all successive characters.
-  for (j = 0; j < n; j++) {
+  for (int j = 0; j < n; j++) {
     if (c[j] == '\0') {
       memset(c+j, ' ', n-j);
       break;
@@ -124,8 +121,6 @@ void wcsutil_blank_fill(int n, char c[])
 void wcsutil_null_fill(int n, char c[])
 
 {
-  int j;
-
   if (n <= 0) return;
 
   if (c == 0x0) {
@@ -133,6 +128,7 @@ void wcsutil_null_fill(int n, char c[])
   }
 
   // Find the first NULL character.
+  int j;
   for (j = 0; j < n; j++) {
     if (c[j] == '\0') {
       break;
@@ -162,16 +158,49 @@ void wcsutil_null_fill(int n, char c[])
 
 //----------------------------------------------------------------------------
 
+int wcsutil_all_ival(int nelem, int ival, const int iarr[])
+
+{
+  for (int i = 0; i < nelem; i++) {
+    if (iarr[i] != ival) return 0;
+  }
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+
+int wcsutil_all_dval(int nelem, double dval, const double darr[])
+
+{
+  for (int i = 0; i < nelem; i++) {
+    if (darr[i] != dval) return 0;
+  }
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+
+int wcsutil_all_sval(int nelem, const char *sval, const char (*sarr)[72])
+
+{
+  for (int i = 0; i < nelem; i++) {
+    if (strncmp(sarr[i], sval, 72)) return 0;
+  }
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+
 int wcsutil_allEq(int nvec, int nelem, const double *first)
 
 {
-  double v0;
-  const double *vp;
-
   if (nvec <= 0 || nelem <= 0) return 0;
 
-  v0 = *first;
-  for (vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
+  double v0 = *first;
+  for (const double *vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
     if (*vp != v0) return 0;
   }
 
@@ -180,31 +209,42 @@ int wcsutil_allEq(int nvec, int nelem, const double *first)
 
 //----------------------------------------------------------------------------
 
-int wcsutil_Eq(int nelem, double tol, const double *arr1, const double *arr2)
+int wcsutil_dblEq(
+  int nelem,
+  double tol,
+  const double *darr1,
+  const double *darr2)
 
 {
-  int i;
-
   if (nelem == 0) return 1;
   if (nelem  < 0) return 0;
 
-  if (arr1 == 0x0 && arr2 == 0x0) return 1;
-  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+  if (darr1 == 0x0 && darr2 == 0x0) return 1;
 
   if (tol == 0.0) {
     // Handled separately for speed of execution.
-    for (i = 0; i < nelem; i++, arr1++, arr2++) {
-      if (*arr1 != *arr2) return 0;
+    for (int i = 0; i < nelem; i++) {
+      double dval1 = (darr1 ? darr1[i] : UNDEFINED);
+      double dval2 = (darr2 ? darr2[i] : UNDEFINED);
+
+      // Undefined values must match exactly.
+      if (dval1 == UNDEFINED && dval2 != UNDEFINED) return 0;
+      if (dval1 != UNDEFINED && dval2 == UNDEFINED) return 0;
+
+      if (dval1 != dval2) return 0;
     }
 
   } else {
-    for (i = 0; i < nelem; i++, arr1++, arr2++) {
+    for (int i = 0; i < nelem; i++) {
+      double dval1 = (darr1 ? darr1[i] : UNDEFINED);
+      double dval2 = (darr2 ? darr2[i] : UNDEFINED);
+
       // Undefined values must match exactly.
-      if (*arr1 == UNDEFINED && *arr2 != UNDEFINED) return 0;
-      if (*arr1 != UNDEFINED && *arr2 == UNDEFINED) return 0;
+      if (dval1 == UNDEFINED && dval2 != UNDEFINED) return 0;
+      if (dval1 != UNDEFINED && dval2 == UNDEFINED) return 0;
 
       // Otherwise, compare within the specified tolerance.
-      if (fabs(*arr1 - *arr2) > 0.5*tol) return 0;
+      if (fabs(dval1 - dval2) > 0.5*tol) return 0;
     }
   }
 
@@ -213,19 +253,19 @@ int wcsutil_Eq(int nelem, double tol, const double *arr1, const double *arr2)
 
 //----------------------------------------------------------------------------
 
-int wcsutil_intEq(int nelem, const int *arr1, const int *arr2)
+int wcsutil_intEq(int nelem, const int *iarr1, const int *iarr2)
 
 {
-  int i;
-
   if (nelem == 0) return 1;
   if (nelem  < 0) return 0;
 
-  if (arr1 == 0x0 && arr2 == 0x0) return 1;
-  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+  if (iarr1 == 0x0 && iarr2 == 0x0) return 1;
 
-  for (i = 0; i < nelem; i++, arr1++, arr2++) {
-    if (*arr1 != *arr2) return 0;
+  for (int i = 0; i < nelem; i++) {
+    int ival1 = (iarr1 ?  iarr1[i] : 0);
+    int ival2 = (iarr2 ?  iarr2[i] : 0);
+
+    if (ival1 != ival2) return 0;
   }
 
   return 1;
@@ -233,19 +273,19 @@ int wcsutil_intEq(int nelem, const int *arr1, const int *arr2)
 
 //----------------------------------------------------------------------------
 
-int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72])
+int wcsutil_strEq(int nelem, char (*sarr1)[72], char (*sarr2)[72])
 
 {
-  int i;
-
   if (nelem == 0) return 1;
   if (nelem  < 0) return 0;
 
-  if (arr1 == 0x0 && arr2 == 0x0) return 1;
-  if (arr1 == 0x0 || arr2 == 0x0) return 0;
+  if (sarr1 == 0x0 && sarr2 == 0x0) return 1;
 
-  for (i = 0; i < nelem; i++, arr1++, arr2++) {
-    if (strncmp(*arr1, *arr2, 72)) return 0;
+  for (int i = 0; i < nelem; i++) {
+    char *sval1 = (sarr1 ?  sarr1[i] : "");
+    char *sval2 = (sarr2 ?  sarr2[i] : "");
+
+    if (strncmp(sval1, sval2, 72)) return 0;
   }
 
   return 1;
@@ -256,12 +296,10 @@ int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72])
 void wcsutil_setAll(int nvec, int nelem, double *first)
 
 {
-  double v0, *vp;
-
   if (nvec <= 0 || nelem <= 0) return;
 
-  v0 = *first;
-  for (vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
+  double v0 = *first;
+  for (double *vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
     *vp = v0;
   }
 }
@@ -271,12 +309,10 @@ void wcsutil_setAll(int nvec, int nelem, double *first)
 void wcsutil_setAli(int nvec, int nelem, int *first)
 
 {
-  int v0, *vp;
-
   if (nvec <= 0 || nelem <= 0) return;
 
-  v0 = *first;
-  for (vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
+  int v0 = *first;
+  for (int *vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
     *vp = v0;
   }
 }
@@ -286,19 +322,17 @@ void wcsutil_setAli(int nvec, int nelem, int *first)
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 
 {
-  int *arrp;
-
   if (bits == 0 || nelem <= 0) return;
 
   if (sel == 0x0) {
     // All elements selected.
-    for (arrp = array; arrp < array + nelem; arrp++) {
+    for (int *arrp = array; arrp < array + nelem; arrp++) {
       *arrp |= bits;
     }
 
   } else {
     // Some elements selected.
-    for (arrp = array; arrp < array + nelem; arrp++) {
+    for (int *arrp = array; arrp < array + nelem; arrp++) {
       if (*(sel++)) *arrp |= bits;
     }
   }
@@ -309,25 +343,24 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array)
 char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
 
 {
-  unsigned char *p = (unsigned char *)(&fptr);
-  char *t = hext;
-  unsigned int i;
-  int *(ip[2]), j[2], le = 1, gotone = 0;
-
   // Test for little-endian addresses.
+  int *(ip[2]), j[2], le = 1;
   ip[0] = j;
   ip[1] = j + 1;
+  unsigned char *p = (unsigned char *)(&fptr);
   if ((unsigned char *)ip[0] < (unsigned char *)ip[1]) {
     // Little-endian, reverse it.
     p += sizeof(fptr) - 1;
     le = -1;
   }
 
+  char *t = hext;
   sprintf(t, "0x0");
   t += 2;
 
-  for (i = 0; i < sizeof(fptr); i++) {
+  for (size_t i = 0; i < sizeof(fptr); i++) {
     // Skip leading zeroes.
+    int gotone = 0;
     if (*p) gotone = 1;
 
     if (gotone) {
@@ -371,13 +404,11 @@ static void wcsutil_locale_to_dot(char *buf)
 void wcsutil_double2str(char *buf, const char *format, double value)
 
 {
-  char *bp, *cp;
-
   sprintf(buf, format, value);
   wcsutil_locale_to_dot(buf);
 
   // Look for a decimal point or exponent.
-  bp = buf;
+  char *bp = buf;
   while (*bp) {
     if (*bp != ' ') {
       if (*bp == '.') return;
@@ -390,7 +421,7 @@ void wcsutil_double2str(char *buf, const char *format, double value)
   // Not found, add a fractional part.
   bp = buf;
   if (*bp == ' ') {
-    cp = buf + 1;
+    char *cp = buf + 1;
     if (*cp == ' ') cp++;
 
     while (*cp) {
@@ -446,24 +477,24 @@ int wcsutil_str2double(const char *buf, double *value)
 int wcsutil_str2double2(const char *buf, double *value)
 
 {
-  char   *cptr, ctmp[72], *dptr, *eptr, ltmp[72];
-  int    exp = 0;
-
   value[0] = 0.0;
   value[1] = 0.0;
 
   // Get the integer part.
+  char ltmp[72];
   if (sscanf(wcsutil_dot_to_locale(buf, ltmp), "%lf", value) < 1) {
     return 1;
   }
   value[0] = floor(value[0]);
 
+  char ctmp[72];
   strcpy(ctmp, buf);
 
   // Look for a decimal point.
-  dptr = strchr(ctmp, '.');
+  char *dptr = strchr(ctmp, '.');
 
   // Look for an exponent.
+  char *eptr;
   if ((eptr = strchr(ctmp, 'E')) == NULL) {
     if ((eptr = strchr(ctmp, 'D')) == NULL) {
       if ((eptr = strchr(ctmp, 'e')) == NULL) {
@@ -472,6 +503,7 @@ int wcsutil_str2double2(const char *buf, double *value)
     }
   }
 
+  int exp = 0;
   if (eptr) {
     // Get the exponent.
     if (sscanf(eptr+1, "%d", &exp) < 1) {
@@ -494,7 +526,7 @@ int wcsutil_str2double2(const char *buf, double *value)
 
   // Get the fractional part.
   if (dptr) {
-    cptr = ctmp;
+    char *cptr = ctmp;
     while (cptr <= dptr+exp) {
       if ('0' < *cptr && *cptr <= '9') *cptr = '0';
       cptr++;

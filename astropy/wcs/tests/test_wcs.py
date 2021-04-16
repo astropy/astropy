@@ -105,7 +105,16 @@ class TestSpectra:
             header = get_pkg_data_contents(
                 os.path.join("data", "spectra", filename), encoding='binary')
             # finally run the test.
-            all_wcs = wcs.find_all_wcs(header)
+            with pytest.warns(None) as w:
+                all_wcs = wcs.find_all_wcs(header)
+
+            if _WCSLIB_VER >= Version('7.4'):
+                assert len(w) == 9
+                m = str(w.pop().message)
+                assert "'datfix' made the change 'Set MJD-OBS to 53925.853472 from DATE-OBS'." in m
+            else:
+                assert len(w) == 0
+
             assert len(all_wcs) == 9
 
 
@@ -118,7 +127,7 @@ def test_fixes():
     with pytest.raises(wcs.InvalidTransformError), pytest.warns(wcs.FITSFixedWarning) as w:
         wcs.WCS(header, translate_units='dhs')
 
-    if _WCSLIB_VER >= Version('7.4'):
+    if Version('7.4') <=_WCSLIB_VER < Version('7.6'):
         assert len(w) == 3
         assert "'datfix' made the change 'Success'." in str(w.pop().message)
     else:
@@ -159,7 +168,7 @@ def test_pix2world():
         ww = wcs.WCS(filename)
 
     # might as well monitor for changing behavior
-    if _WCSLIB_VER >= Version('7.4'):
+    if Version('7.4') <=_WCSLIB_VER < Version('7.6'):
         assert len(caught_warnings) == 2
     else:
         assert len(caught_warnings) == 1
@@ -221,7 +230,15 @@ def test_dict_init():
     if _WCSLIB_VER >= Version('7.1'):
         hdr['DATEREF'] = '1858-11-17'
 
-    w = wcs.WCS(hdr)
+    with pytest.warns(None) as wrng:
+        w = wcs.WCS(hdr)
+
+    if _WCSLIB_VER >= Version('7.4'):
+        assert len(wrng) == 1
+        msg = str(wrng[0].message)
+        assert "'datfix' made the change 'Set MJDREF to 0.000000 from DATEREF'." in msg
+    else:
+        assert len(wrng) == 0
 
     xp, yp = w.wcs_world2pix(41., 2., 0)
 
@@ -327,7 +344,7 @@ def test_invalid_shape():
 
 def test_warning_about_defunct_keywords():
     header = get_pkg_data_contents('data/defunct_keywords.hdr', encoding='binary')
-    if _WCSLIB_VER >= Version('7.4'):
+    if Version('7.4') <=_WCSLIB_VER < Version('7.6'):
         n_warn = 5
     else:
         n_warn = 4
@@ -445,7 +462,9 @@ def test_find_all_wcs_crash():
 def test_validate():
     results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
     results_txt = sorted(set([x.strip() for x in repr(results).splitlines()]))
-    if _WCSLIB_VER >= Version('7.4'):
+    if _WCSLIB_VER >= Version('7.6'):
+        filename = 'data/validate.7.6.txt'
+    elif _WCSLIB_VER >= Version('7.4'):
         filename = 'data/validate.7.4.txt'
     elif _WCSLIB_VER >= Version('6.0'):
         filename = 'data/validate.6.txt'

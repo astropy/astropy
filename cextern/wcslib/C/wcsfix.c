@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsfix.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -27,15 +27,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "wcserr.h"
-#include "wcsmath.h"
-#include "wcstrig.h"
-#include "wcsutil.h"
 #include "lin.h"
 #include "sph.h"
+#include "tab.h"
 #include "wcs.h"
-#include "wcsunits.h"
+#include "wcserr.h"
 #include "wcsfix.h"
+#include "wcsmath.h"
+#include "wcstrig.h"
+#include "wcsunits.h"
+#include "wcsutil.h"
+#include "wtbarr.h"
 
 extern const int WCSSET;
 
@@ -133,8 +135,7 @@ int wcsfixi(
   struct wcserr info[])
 
 {
-  int ifix, status = 0;
-  struct wcserr err;
+  int status = 0;
 
   // Handling the status values returned from the sub-fixers is trickier than
   // it might seem, especially considering that wcs->err may contain an error
@@ -146,9 +147,10 @@ int wcsfixi(
   // To get informative messages from spcfix() it must precede celfix() and
   // cylfix().  The latter call wcsset() which also translates AIPS-convention
   // spectral axes.
+  struct wcserr err;
   wcserr_copy(wcs->err, &err);
 
-  for (ifix = CDFIX; ifix < NWCSFIX; ifix++) {
+  for (int ifix = CDFIX; ifix < NWCSFIX; ifix++) {
     // Clear (delete) wcs->err.
     wcserr_clear(&(wcs->err));
 
@@ -216,9 +218,6 @@ int wcsfixi(
 int cdfix(struct wcsprm *wcs)
 
 {
-  int  i, k, naxis, status = FIXERR_NO_CHANGE;
-  double *cd;
-
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
 
   if ((wcs->altlin & 1) || !(wcs->altlin & 2)) {
@@ -226,18 +225,18 @@ int cdfix(struct wcsprm *wcs)
     return FIXERR_NO_CHANGE;
   }
 
-  naxis = wcs->naxis;
-  status = FIXERR_NO_CHANGE;
-  for (i = 0; i < naxis; i++) {
+  int naxis  = wcs->naxis;
+  int status = FIXERR_NO_CHANGE;
+  for (int i = 0; i < naxis; i++) {
     // Row of zeros?
-    cd = wcs->cd + i * naxis;
-    for (k = 0; k < naxis; k++, cd++) {
+    double *cd = wcs->cd + i*naxis;
+    for (int k = 0; k < naxis; k++, cd++) {
       if (*cd != 0.0) goto next;
     }
 
     // Column of zeros?
     cd = wcs->cd + i;
-    for (k = 0; k < naxis; k++, cd += naxis) {
+    for (int k = 0; k < naxis; k++, cd += naxis) {
       if (*cd != 0.0) goto next;
     }
 
@@ -257,7 +256,6 @@ static int parse_date(const char *buf, int *hour, int *minute, double *sec)
 
 {
   char ctmp[72];
-
   if (sscanf(buf, "%2d:%2d:%s", hour, minute, ctmp) < 3 ||
       wcsutil_str2double(ctmp, sec)) {
     return 1;
@@ -271,7 +269,6 @@ static void write_date(char *buf, int hour, int minute, double sec)
 
 {
   char ctmp[32];
-
   wcsutil_double2str(ctmp, "%04.1f", sec);
   sprintf(buf, "T%.2d:%.2d:%s", hour, minute, ctmp);
 }
@@ -281,7 +278,6 @@ static char *newline(char **cp)
 
 {
   size_t k;
-
   if ((k = strlen(*cp))) {
     *cp += k;
     strcat(*cp, ".\n");
@@ -305,22 +301,24 @@ int datfix(struct wcsprm *wcs)
   const double djy = 365.25;
   const double dty = 365.242198781;
 
-  const char *dateid;
-  char *cp, *date, infomsg[512], orig_date[72];
-  int  day, dd, hour = 0, i, jd, minute = 0, month, msec, n4, status, year;
-  double bepoch, jepoch, mjd[2], mjdsum, mjdtmp, sec = 0.0, t, *wcsmjd;
-  struct wcserr **err;
+  int  day, hour = 0, minute = 0, month, year;
+  double sec = 0.0;
 
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  err = &(wcs->err);
+  struct wcserr **err = &(wcs->err);
 
-  cp = infomsg;
+  char infomsg[512];
+  char *cp = infomsg;
   *cp = '\0';
-  status = FIXERR_NO_CHANGE;
 
-  for (i = 0; i < 5; i++) {
+  int status = FIXERR_NO_CHANGE;
+
+  for (int i = 0; i < 5; i++) {
     // MJDREF is split into integer and fractional parts, wheres MJDOBS and
     // the rest are a single value.
+    const char *dateid;
+    char *date;
+    double *wcsmjd;
     if (i == 0) {
       // Note, DATEREF and MJDREF, not DATE-REF and MJD-REF (sigh).
       dateid = "REF";
@@ -344,6 +342,7 @@ int datfix(struct wcsprm *wcs)
       wcsmjd = &(wcs->mjdend);
     }
 
+    char orig_date[72];
     strncpy(orig_date, date, 72);
 
     if (date[0] == '\0') {
@@ -354,13 +353,13 @@ int datfix(struct wcsprm *wcs)
         if (!undefined(wcs->jepoch)) {
           *wcsmjd = mjd2000 + (wcs->jepoch - 2000.0)*djy;
           sprintf(newline(&cp), "Set MJD-OBS to %.6f from JEPOCH", *wcsmjd);
+	  if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
 
         } else if (!undefined(wcs->bepoch)) {
           *wcsmjd = mjd1900 + (wcs->bepoch - 1900.0)*dty;
           sprintf(newline(&cp), "Set MJD-OBS to %.6f from BEPOCH", *wcsmjd);
+	  if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
         }
-
-	if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
       }
 
       if (undefined(*wcsmjd)) {
@@ -368,6 +367,7 @@ int datfix(struct wcsprm *wcs)
 
       } else {
         // Calendar date from MJD, with allowance for MJD < 0.
+        double mjd[2], t;
         if (i == 0) {
           // MJDREF is already split into integer and fractional parts.
           mjd[0] = wcsmjd[0];
@@ -384,10 +384,10 @@ int datfix(struct wcsprm *wcs)
           mjd[1] = *wcsmjd - mjd[0];
         }
 
-        jd = 2400001 + (int)mjd[0];
+        int jd = 2400001 + (int)mjd[0];
 
-        n4 =  4*(jd + ((2*((4*jd - 17918)/146097)*3)/4 + 1)/2 - 37);
-        dd = 10*(((n4-237)%1461)/4) + 5;
+        int n4 =  4*(jd + ((2*((4*jd - 17918)/146097)*3)/4 + 1)/2 - 37);
+        int dd = 10*(((n4-237)%1461)/4) + 5;
 
         year  = n4/1461 - 4712;
         month = (2 + dd/306)%12 + 1;
@@ -407,7 +407,7 @@ int datfix(struct wcsprm *wcs)
           hour = dd / 3600000;
           dd -= 3600000 * hour;
           minute = dd / 60000;
-          msec = dd - 60000 * minute;
+          int msec = dd - 60000 * minute;
           sprintf(date+10, "T%.2d:%.2d:%.2d", hour, minute, msec/1000);
 
           // Write fractions of a second only if non-zero.
@@ -516,12 +516,13 @@ int datfix(struct wcsprm *wcs)
       }
 
       // Compute MJD.
+      double mjd[2];
       mjd[0] = (double)((1461*(year - (12-month)/10 + 4712))/4
                + (306*((month+9)%12) + 5)/10
                - (3*((year - (12-month)/10 + 4900)/100))/4
                + day - 2399904);
       mjd[1] = (hour + (minute + sec/60.0)/60.0)/24.0;
-      mjdsum = mjd[0] + mjd[1];
+      double mjdsum = mjd[0] + mjd[1];
 
       if (undefined(*wcsmjd)) {
         if (i == 0) {
@@ -537,6 +538,7 @@ int datfix(struct wcsprm *wcs)
 
       } else {
         // Check for consistency.
+        double mjdtmp;
         if (i == 0) {
           mjdtmp = wcsmjd[0] + wcsmjd[1];
         } else {
@@ -554,7 +556,7 @@ int datfix(struct wcsprm *wcs)
       if (i == 1) {
         if (!undefined(wcs->jepoch)) {
           // Check consistency of JEPOCH.
-          jepoch = 2000.0 + (*wcsmjd - mjd2000) / djy;
+          double jepoch = 2000.0 + (*wcsmjd - mjd2000) / djy;
 
           if (0.000002 < fabs(jepoch - wcs->jepoch)) {
             // Informational only, no error.
@@ -564,7 +566,7 @@ int datfix(struct wcsprm *wcs)
 
         if (!undefined(wcs->bepoch)) {
           // Check consistency of BEPOCH.
-          bepoch = 1900.0 + (*wcsmjd - mjd1900) / dty;
+          double bepoch = 1900.0 + (*wcsmjd - mjd1900) / dty;
 
           if (0.000002 < fabs(bepoch - wcs->bepoch)) {
             // Informational only, no error.
@@ -602,23 +604,19 @@ int obsfix(int ctrl, struct wcsprm *wcs)
   static const char *function = "obsfix";
 
   // IAU(1976) ellipsoid (as prescribed by WCS Paper VII).
-  const double a = 6378140.0, f = 1.0 / 298.2577;
+  const double a  = 6378140.0;
+  const double f  = 1.0 / 298.2577;
   const double e2 = (2.0 - f)*f;
 
-  char   *cp, infomsg[256];
-  int    havelbh = 7, havexyz = 7, i, status;
-  size_t k;
-  double coslat, coslng, d, hgt, lat, lng, n, r2, rho, sinlat, sinlng, x, y,
-         z, zeta;
-  struct wcserr **err;
-
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  err = &(wcs->err);
+  struct wcserr **err = &(wcs->err);
 
   // Set masks for checking partially-defined coordinate triplets.
+  int havexyz = 7;
   havexyz -= 1*undefined(wcs->obsgeo[0]);
   havexyz -= 2*undefined(wcs->obsgeo[1]);
   havexyz -= 4*undefined(wcs->obsgeo[2]);
+  int havelbh = 7;
   havelbh -= 1*undefined(wcs->obsgeo[3]);
   havelbh -= 2*undefined(wcs->obsgeo[4]);
   havelbh -= 4*undefined(wcs->obsgeo[5]);
@@ -645,15 +643,20 @@ int obsfix(int ctrl, struct wcsprm *wcs)
   }
 
 
+  char infomsg[256];
   infomsg[0] = '\0';
-  status = FIXERR_NO_CHANGE;
 
+  int status = FIXERR_NO_CHANGE;
+
+  size_t k;
+  double x, y, z;
   if (havelbh == 7) {
     // Compute (x,y,z) from (lng,lat,hgt).
+    double coslat, coslng, sinlat, sinlng;
     sincosd(wcs->obsgeo[3], &sinlng, &coslng);
     sincosd(wcs->obsgeo[4], &sinlat, &coslat);
-    n = a / sqrt(1.0 - e2*sinlat*sinlat);
-    rho = n + wcs->obsgeo[5];
+    double n = a / sqrt(1.0 - e2*sinlat*sinlat);
+    double rho = n + wcs->obsgeo[5];
 
     x = rho*coslng*coslat;
     y = rho*sinlng*coslat;
@@ -662,7 +665,7 @@ int obsfix(int ctrl, struct wcsprm *wcs)
     if (havexyz < 7) {
       // One or more of the Cartesian elements was undefined.
       status = FIXERR_SUCCESS;
-      cp = infomsg;
+      char *cp = infomsg;
 
       if (ctrl == 1 || !(havexyz & 1)) {
         wcs->obsgeo[0] = x;
@@ -706,11 +709,12 @@ int obsfix(int ctrl, struct wcsprm *wcs)
     x = wcs->obsgeo[0];
     y = wcs->obsgeo[1];
     z = wcs->obsgeo[2];
-    r2 = x*x + y*y;
+    double r2 = x*x + y*y;
 
     // Iterate over the value of zeta.
-    zeta = z;
-    for (i = 0; i < 4; i++) {
+    double coslat, coslng, sinlat, sinlng;
+    double n, rho, zeta = z;
+    for (int i = 0; i < 4; i++) {
       rho = sqrt(r2 + zeta*zeta);
       sinlat = zeta / rho;
       n = a / sqrt(1.0 - e2*sinlat*sinlat);
@@ -718,14 +722,14 @@ int obsfix(int ctrl, struct wcsprm *wcs)
       zeta = z / (1.0 - n*e2/rho);
     }
 
-    lng = atan2d(y, x);
-    lat = asind(sinlat);
-    hgt = rho - n;
+    double lng = atan2d(y, x);
+    double lat = asind(sinlat);
+    double hgt = rho - n;
 
     if (havelbh < 7) {
       // One or more of the Geodetic elements was undefined.
       status = FIXERR_SUCCESS;
-      cp = infomsg;
+      char *cp = infomsg;
 
       if (ctrl == 1 || !(havelbh & 1)) {
         wcs->obsgeo[3] = lng;
@@ -780,7 +784,7 @@ int obsfix(int ctrl, struct wcsprm *wcs)
 
 
   // Check consistency.
-  r2 = 0.0;
+  double d, r2 = 0.0;
   d = wcs->obsgeo[0] - x;
   r2 += d*d;
   d = wcs->obsgeo[1] - y;
@@ -805,23 +809,23 @@ int unitfix(int ctrl, struct wcsprm *wcs)
 {
   const char *function = "unitfix";
 
-  char   orig_unit[72], msg[512], msgtmp[192];
-  int    i, result, status = FIXERR_NO_CHANGE;
-  size_t msglen;
-  struct wcserr **err;
-
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  err = &(wcs->err);
+  struct wcserr **err = &(wcs->err);
 
+  int status = FIXERR_NO_CHANGE;
+
+  char msg[512];
   strncpy(msg, "Changed units:", 512);
 
-  for (i = 0; i < wcs->naxis; i++) {
+  for (int i = 0; i < wcs->naxis; i++) {
+    char orig_unit[72];
     strncpy(orig_unit, wcs->cunit[i], 71);
-    result = wcsutrne(ctrl, wcs->cunit[i], &(wcs->err));
+    int result = wcsutrne(ctrl, wcs->cunit[i], &(wcs->err));
     if (result == 0 || result == 12) {
-      msglen = strlen(msg);
+      size_t msglen = strlen(msg);
       if (msglen < 511) {
         wcsutil_null_fill(72, orig_unit);
+        char msgtmp[192];
         sprintf(msgtmp, "\n  '%s' -> '%s',", orig_unit, wcs->cunit[i]);
         strncpy(msg+msglen, msgtmp, 511-msglen);
         status = FIXERR_UNITS_ALIAS;
@@ -831,7 +835,7 @@ int unitfix(int ctrl, struct wcsprm *wcs)
 
   if (status == FIXERR_UNITS_ALIAS) {
     // Chop off the trailing ", ".
-    msglen = strlen(msg) - 2;
+    size_t msglen = strlen(msg) - 2;
     msg[msglen] = '\0';
     wcserr_set(WCSERR_SET(FIXERR_UNITS_ALIAS), msg);
 
@@ -848,16 +852,13 @@ int spcfix(struct wcsprm *wcs)
 {
   static const char *function = "spcfix";
 
-  char ctype[9], specsys[9];
-  int  i, status;
-  struct wcserr **err;
-
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  err = &(wcs->err);
+  struct wcserr **err = &(wcs->err);
 
-  for (i = 0; i < wcs->naxis; i++) {
+  for (int i = 0; i < wcs->naxis; i++) {
     // Translate an AIPS-convention spectral type if present.
-    status = spcaips(wcs->ctype[i], wcs->velref, ctype, specsys);
+    char ctype[9], specsys[9];
+    int status = spcaips(wcs->ctype[i], wcs->velref, ctype, specsys);
     if (status == FIXERR_SUCCESS) {
       // An AIPS type was found but it may match what we already have.
       status = FIXERR_NO_CHANGE;
@@ -916,15 +917,11 @@ int celfix(struct wcsprm *wcs)
 {
   static const char *function = "celfix";
 
-  int k, status;
-  struct celprm *wcscel = &(wcs->cel);
-  struct prjprm *wcsprj = &(wcscel->prj);
-  struct wcserr **err;
-
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  err = &(wcs->err);
+  struct wcserr **err = &(wcs->err);
 
   // Initialize if required.
+  int status;
   if (wcs->flag != WCSSET) {
     if ((status = wcsset(wcs))) return fix_wcserr[status];
   }
@@ -947,7 +944,7 @@ int celfix(struct wcsprm *wcs)
           wcs->npvmax = wcs->npv + 2;
           wcs->m_flag = WCSSET;
 
-          for (k = 0; k < wcs->npv; k++) {
+          for (int k = 0; k < wcs->npv; k++) {
             wcs->pv[k] = wcs->m_pv[k];
           }
 
@@ -959,6 +956,8 @@ int celfix(struct wcsprm *wcs)
         }
       }
 
+      struct celprm *wcscel = &(wcs->cel);
+      struct prjprm *wcsprj = &(wcscel->prj);
       wcs->pv[wcs->npv].i = wcs->lat + 1;
       wcs->pv[wcs->npv].m = 1;
       wcs->pv[wcs->npv].value = wcsprj->pv[1];
@@ -969,7 +968,7 @@ int celfix(struct wcsprm *wcs)
       wcs->pv[wcs->npv].value = wcsprj->pv[2];
       (wcs->npv)++;
 
-      return 0;
+      return FIXERR_SUCCESS;
 
     } else if (strcmp(wcs->ctype[wcs->lat]+5, "GLS") == 0) {
       strcpy(wcs->ctype[wcs->lng]+5, "SFL");
@@ -995,7 +994,7 @@ int celfix(struct wcsprm *wcs)
             wcs->npvmax = wcs->npv + 3;
             wcs->m_flag = WCSSET;
 
-            for (k = 0; k < wcs->npv; k++) {
+            for (int k = 0; k < wcs->npv; k++) {
               wcs->pv[k] = wcs->m_pv[k];
             }
 
@@ -1024,7 +1023,7 @@ int celfix(struct wcsprm *wcs)
         (wcs->npv)++;
       }
 
-      return 0;
+      return FIXERR_SUCCESS;
     }
   }
 
@@ -1038,17 +1037,12 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
 {
   static const char *function = "cylfix";
 
-  unsigned short icnr, indx[NMAX], ncnr;
-  int    j, k, stat[4], status;
-  double img[4][NMAX], lat, lng, phi[4], phi0, phimax, phimin, pix[4][NMAX],
-         *pixj, theta[4], theta0, world[4][NMAX], x, y;
-  struct wcserr **err;
-
   if (naxis == 0x0) return FIXERR_NO_CHANGE;
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
-  err = &(wcs->err);
+  struct wcserr **err = &(wcs->err);
 
   // Initialize if required.
+  int status;
   if (wcs->flag != WCSSET) {
     if ((status = wcsset(wcs))) return fix_wcserr[status];
   }
@@ -1059,20 +1053,24 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
 
 
   // Compute the native longitude in each corner of the image.
-  ncnr = 1 << wcs->naxis;
+  unsigned short ncnr = 1 << wcs->naxis;
 
-  for (k = 0; k < NMAX; k++) {
+  unsigned short indx[NMAX];
+  for (int k = 0; k < NMAX; k++) {
     indx[k] = 1 << k;
   }
 
-  phimin =  1.0e99;
-  phimax = -1.0e99;
-  for (icnr = 0; icnr < ncnr;) {
-    // Do four corners at a time.
-    for (j = 0; j < 4; j++, icnr++) {
-      pixj = pix[j];
+  int    stat[4];
+  double img[4][NMAX], phi[4], pix[4][NMAX], theta[4], world[4][NMAX];
 
-      for (k = 0; k < wcs->naxis; k++) {
+  double phimin =  1.0e99;
+  double phimax = -1.0e99;
+  for (unsigned short icnr = 0; icnr < ncnr;) {
+    // Do four corners at a time.
+    for (int j = 0; j < 4; j++, icnr++) {
+      double *pixj = pix[j];
+
+      for (int k = 0; k < wcs->naxis; k++) {
         if (icnr & indx[k]) {
           *(pixj++) = naxis[k] + 0.5;
         } else {
@@ -1083,7 +1081,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
 
     if (!(status = wcsp2s(wcs, 4, NMAX, pix[0], img[0], phi, theta, world[0],
                           stat))) {
-      for (j = 0; j < 4; j++) {
+      for (int j = 0; j < 4; j++) {
         if (phi[j] < phimin) phimin = phi[j];
         if (phi[j] > phimax) phimax = phi[j];
       }
@@ -1097,9 +1095,10 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
 
 
   // Compute the new reference pixel coordinates.
-  phi0 = (phimin + phimax) / 2.0;
-  theta0 = 0.0;
+  double phi0 = (phimin + phimax) / 2.0;
+  double theta0 = 0.0;
 
+  double x, y;
   if ((status = prjs2x(&(wcs->cel.prj), 1, 1, 1, 1, &phi0, &theta0, &x, &y,
                        stat))) {
     if (status == PRJERR_BAD_PARAM) {
@@ -1110,7 +1109,7 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
     return wcserr_set(WCSFIX_ERRMSG(status));
   }
 
-  for (k = 0; k < wcs->naxis; k++) {
+  for (int k = 0; k < wcs->naxis; k++) {
     img[0][k] = 0.0;
   }
   img[0][wcs->lng] = x;
@@ -1128,8 +1127,8 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
   }
 
   // Compute native coordinates of the celestial pole.
-  lng =  0.0;
-  lat = 90.0;
+  double lng =  0.0;
+  double lat = 90.0;
   (void)sphs2x(wcs->cel.euler, 1, 1, 1, 1, &lng, &lat, phi, theta);
 
   wcs->crpix[wcs->lng] = pix[0][wcs->lng];
@@ -1139,4 +1138,358 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
   wcs->lonpole = phi[0] - phi0;
 
   return wcsset(wcs);
+}
+
+//----------------------------------------------------------------------------
+
+// Helper function used only by wcspcx().
+static int unscramble(int n, int mapto[], int step, int type, void *vptr);
+
+int wcspcx(
+  struct wcsprm *wcs,
+  int dopc,
+  int permute,
+  double rotn[2])
+
+{
+  static const char *function = "wcspcx";
+
+  // Initialize if required.
+  if (wcs == 0x0) return FIXERR_NULL_POINTER;
+  struct wcserr **err = &(wcs->err);
+
+  int status;
+  if (wcs->flag != WCSSET) {
+    if ((status = wcsset(wcs))) return fix_wcserr[status];
+  }
+
+  // Check for CDi_j usage.
+  double *wcscd = wcs->cd;
+  if ((wcs->altlin & 1) || !(wcs->altlin & 2)) {
+    if ((wcs->altlin & 1) && dopc == 1) {
+      // Recompose PCi_j + CDELTi.
+      wcscd = wcs->pc;
+    } else {
+      return wcserr_set(WCSERR_SET(FIXERR_BAD_PARAM),
+        "CDi_j is not used in this coordinate representation");
+    }
+  }
+
+  // Check for sequent distortions.
+  if (wcs->lin.disseq) {
+    return wcserr_set(WCSERR_SET(FIXERR_BAD_COORD_TRANS),
+      "Cannot handle coordinate descriptions containing sequent distortions");
+  }
+
+
+  // Allocate memory in bulk for two nxn matrices.
+  int naxis = wcs->naxis;
+  double *mem;
+  if ((mem = calloc(2*naxis*naxis, sizeof(double))) == 0x0) {
+    return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+  }
+
+  double *mat = mem;
+  double *inv = mem + naxis*naxis;
+
+  // Construct the transpose of CDi_j with each element squared.
+  double *matij = mat;
+  for (int i = 0; i < naxis; i++) {
+    double *cdji = wcscd + i;
+    for (int j = 0; j < naxis; j++) {
+      *(matij++) = (*cdji) * (*cdji);
+      cdji += naxis;
+    }
+  }
+
+  // Invert the matrix.
+  if ((status = matinv(naxis, mat, inv))) {
+    return wcserr_set(WCSERR_SET(FIXERR_SINGULAR_MTX),
+      "No solution for CDi_j matrix decomposition");
+  }
+
+  // Apply scaling.
+  double *invij = inv;
+  double *pcij = wcs->pc;
+  double *cdij = wcscd;
+  for (int i = 0; i < naxis; i++) {
+    double scl = 0.0;
+    for (int j = 0; j < naxis; j++) {
+      scl += *(invij++);
+    }
+
+    scl = sqrt(scl);
+    wcs->cdelt[i] /= scl;
+
+    for (int j = 0; j < naxis; j++) {
+      *(pcij++) = *(cdij++) * scl;
+    }
+  }
+
+  // mapto[i] records where row i of PCi_j should move to.
+  int *mapto;
+  if ((mapto = (int*)malloc(naxis * sizeof(int))) == 0x0) {
+    free(mem);
+    return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+  }
+  for (int i = 0; i < naxis; i++) {
+    mapto[i] = -1;
+  }
+
+  // Ensure that latitude always follows longitude.
+  if (wcs->lng >= 0 && wcs->lat >= 0) {
+    double *pci = wcs->pc + naxis*wcs->lng;
+
+    // Take the first non-zero element in the row.
+    for (int j = 0; j < naxis; j++) {
+      if (fabs(pci[j]) != 0.0) {
+        mapto[wcs->lng] = j;
+        break;
+      }
+    }
+
+    if (mapto[wcs->lng] == naxis-1) {
+      mapto[wcs->lng]--;
+    }
+
+    mapto[wcs->lat] = mapto[wcs->lng] + 1;
+  }
+
+  // Fill in the rest of the row permutation map.
+  for (int j = 0; j < naxis; j++) {
+    // Column j.
+    double *pcij = wcs->pc + j;
+    double colmax = 0.0;
+
+    // Look down the column to find the absolute maximum element.
+    for (int i = 0; i < naxis; i++, pcij += naxis) {
+      if (!(mapto[i] < 0)) {
+        // This row is already mapped.
+        continue;
+      }
+
+      if (fabs(*pcij) > colmax) {
+        mapto[i] = j;
+        colmax = fabs(*pcij);
+      }
+    }
+  }
+
+  // Fix the sign of CDELTi.  Celestial axes are special, otherwise diagonal
+  // elements of the correctly permuted matrix should be positive.
+  for (int i = 0; i < naxis; i++) {
+    int chsgn;
+    double *pci = wcs->pc + naxis*i;
+
+    // Celestial axes are special.
+    if (i == wcs->lng) {
+      // Longitude axis - force CDELTi < 0.0.
+      chsgn = (wcs->cdelt[i] > 0.0);
+    } else if (i == wcs->lat) {
+      // Latitude axis - force CDELTi > 0.0.
+      chsgn = (wcs->cdelt[i] < 0.0);
+    } else {
+      chsgn = (pci[mapto[i]] < 0.0);
+    }
+
+    if (chsgn) {
+      wcs->cdelt[i] = -wcs->cdelt[i];
+
+      for (int j = 0; j < naxis; j++) {
+        // Test needed to prevent negative zeros.
+        if (pci[j] != 0.0) {
+          pci[j] = -pci[j];
+        }
+      }
+    }
+  }
+
+  free(mem);
+
+  // Setting bit 3 in wcsprm::altlin stops wcsset() from reconstructing
+  // PCi_j and CDELTi from CDi_j.
+  wcs->altlin |= 8;
+
+
+  // Compute rotation angle of each basis vector of the celestial axes.
+  if (rotn) {
+    if (wcs->lng < 0 || wcs->lat < 0) {
+      // No celestial axes.
+      rotn[0] = 0.0;
+      rotn[1] = 0.0;
+
+    } else {
+      double x, y;
+      x =  wcs->pc[naxis*wcs->lng + mapto[wcs->lng]];
+      y =  wcs->pc[naxis*wcs->lat + mapto[wcs->lng]];
+      rotn[0] = atan2d(y, x);
+
+      y = -wcs->pc[naxis*wcs->lng + mapto[wcs->lat]];
+      x =  wcs->pc[naxis*wcs->lat + mapto[wcs->lat]];
+      rotn[1] = atan2d(y, x);
+    }
+  }
+
+
+  // Permute rows?
+  if (permute) {
+    // Check whether there's anything to unscramble.
+    int scrambled = 0;
+    for (int i = 0; i < naxis; i++) {
+      if (mapto[i] != i) {
+        scrambled = 1;
+        break;
+      }
+    }
+
+    if (scrambled) {
+      for (int i = 0; i < naxis; i++) {
+        // Do columns of the PCi_ja matrix.
+        if (unscramble(naxis, mapto, naxis, 1, wcs->pc + i)) {
+          free(mapto);
+          return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+        }
+      }
+
+      if (unscramble(naxis, mapto, 1, 1, wcs->cdelt) ||
+          unscramble(naxis, mapto, 1, 1, wcs->crval) ||
+          unscramble(naxis, mapto, 1, 2, wcs->cunit) ||
+          unscramble(naxis, mapto, 1, 2, wcs->ctype)) {
+        free(mapto);
+        return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+      }
+
+      for (int ipv = 0; ipv < wcs->npv; ipv++) {
+        // Noting that PVi_ma axis numbers are 1-relative.
+        int i = wcs->pv[ipv].i - 1;
+        wcs->pv[ipv].i = mapto[i] + 1;
+      }
+
+      for (int ips = 0; ips < wcs->nps; ips++) {
+        // Noting that PSi_ma axis numbers are 1-relative.
+        int i = wcs->ps[ips].i - 1;
+        wcs->ps[ips].i = mapto[i] + 1;
+      }
+
+      if (wcs->altlin & 2) {
+        for (int i = 0; i < naxis; i++) {
+          // Do columns of the CDi_ja matrix.
+          if (unscramble(naxis, mapto, naxis, 1, wcs->cd + i)) {
+            free(mapto);
+            return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+          }
+        }
+      }
+
+      if (wcs->altlin & 4) {
+        if (unscramble(naxis, mapto, 1, 1, wcs->crota)) {
+          free(mapto);
+          return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+        }
+      }
+
+      if (unscramble(naxis, mapto, 1, 3, wcs->colax) ||
+          unscramble(naxis, mapto, 1, 2, wcs->cname) ||
+          unscramble(naxis, mapto, 1, 1, wcs->crder) ||
+          unscramble(naxis, mapto, 1, 1, wcs->csyer) ||
+          unscramble(naxis, mapto, 1, 1, wcs->czphs) ||
+          unscramble(naxis, mapto, 1, 1, wcs->cperi)) {
+        free(mapto);
+        return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
+      }
+
+      // Coordinate lookup tables.
+      for (int itab = 0; itab < wcs->ntab; itab++) {
+        for (int m = 0; m < wcs->tab[itab].M; m++) {
+          int i = wcs->tab[itab].map[m];
+          wcs->tab[itab].map[m] = mapto[i];
+        }
+      }
+
+      for (int iwtb = 0; iwtb < wcs->nwtb; iwtb++) {
+        int i = wcs->wtb[iwtb].i;
+        wcs->wtb[iwtb].i = mapto[i];
+      }
+
+      // Distortions?  No. Prior distortions operate on pixel coordinates and
+      // therefore are not permuted, and sequent distortions are not handled.
+    }
+  }
+
+  free(mapto);
+
+  // Reset the struct.
+  if ((status = wcsset(wcs))) return fix_wcserr[status];
+
+  return FIXERR_SUCCESS;
+}
+
+
+int unscramble(
+  int n,
+  int mapto[],
+  int step,
+  int type,
+  void *vptr)
+
+{
+  if (step == 0) step = 1;
+
+  if (type == 1) {
+    double *dval = (double *)vptr;
+
+    double *dtmp;
+    if ((dtmp = (double *)malloc(n * sizeof(double))) == 0x0) {
+      return 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+      dtmp[mapto[i]] = dval[i*step];
+    }
+
+    for (int i = 0; i < n; i++) {
+      dval[i*step] = dtmp[i];
+    }
+
+    free(dtmp);
+
+  } else if (type == 2) {
+    char (*cval)[72] = (char (*)[72])vptr;
+
+    int row_size = 72 * sizeof(char);
+    char *ctmp;
+    if ((ctmp = (char *)malloc(n * row_size)) == 0x0) {
+      return 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+      memcpy(ctmp + row_size * mapto[i], cval[i], 72);
+    }
+
+    for (int i = 0; i < n; i++) {
+      memcpy(cval[i], ctmp + row_size * i, 72);
+    }
+
+    free(ctmp);
+
+  } else if (type == 3) {
+    int *ival = (int *)vptr;
+
+    int *itmp;
+    if ((itmp = (int *)malloc(n * sizeof(int))) == 0x0) {
+      return 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+      itmp[mapto[i]] = ival[i];
+    }
+
+    for (int i = 0; i < n; i++) {
+      ival[i] = itmp[i];
+    }
+
+    free(itmp);
+  }
+
+  return 0;
 }

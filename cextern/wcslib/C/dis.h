@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: dis.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -337,7 +337,8 @@
 * dpfill(), dpkeyi(), and dpkeyd() are provided to manage the dpkey struct.
 *
 * disndp(), disini(), disinit(), discpy(), and disfree() are provided to
-* manage the disprm struct, and another, disprt(), prints its contents.
+* manage the disprm struct, dissize() computes its total size including
+* allocated memory, and disprt() prints its contents.
 *
 * disperr() prints the error message(s) (if any) stored in a disprm struct.
 *
@@ -561,6 +562,35 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null disprm pointer passed.
+*
+*
+* dissize() - Compute the size of a disprm struct
+* -----------------------------------------------
+* dissize() computes the full size of a disprm struct, including allocated
+* memory.
+*
+* Given:
+*   dis       const struct disprm*
+*                       Distortion function parameters.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct disprm).  The second element
+*                       is the total allocated size, in bytes, assuming that
+*                       the allocation was done by disini().  This figure
+*                       includes memory allocated for members of constituent
+*                       structs, such as disprm::dp.
+*
+*                       It is not an error for the struct not to have been set
+*                       up via tabset(), which normally results in additional
+*                       memory allocation. 
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * disprt() - Print routine for the disprm struct
@@ -1129,6 +1159,8 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax);
 int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst);
 
 int disfree(struct disprm *dis);
+
+int dissize(const struct disprm *dis, int sizes[2]);
 
 int disprt(const struct disprm *dis);
 

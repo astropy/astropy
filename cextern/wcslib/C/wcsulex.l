@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.l,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsulex.l,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
@@ -41,6 +41,7 @@
 %option outfile="wcsulex.c"
 %option prefix="wcsulex"
 %option reentrant
+%option extra-type="struct wcsulex_extra *"
 
 /* Exponents. */
 INTEGER	  [+-]?[1-9][0-9]*
@@ -91,71 +92,54 @@ ADD_UNIT  {ADD_ALL}|{ADD_SUP}|{ADD_SUB}|{ADD_NONE}
 #include "wcsunits.h"
 #include "wcsutil.h"
 
-static int wcsulex_scanner(const char unitstr[], int *func, double *scale,
-                           double units[WCSUNITS_NTYPE], struct wcserr **err,
-                           yyscan_t yyscanner);
+// User data associated with yyscanner.
+struct wcsulex_extra {
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
 
-//----------------------------------------------------------------------------
-
-int wcsulexe(
-  const char unitstr[],
-  int *func,
-  double *scale,
-  double units[WCSUNITS_NTYPE],
-  struct wcserr **err)
-
-{
-  int status;
-  yyscan_t yyscanner;
-  int yylex_init(yyscan_t *yyscanner);
-  int yylex_destroy(yyscan_t yyscanner);
-
-  yylex_init(&yyscanner);
-  status = wcsulex_scanner(unitstr, func, scale, units, err, yyscanner);
-  yylex_destroy(yyscanner);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
-
-#define YY_DECL int wcsulex_scanner(const char unitstr[], int *func, \
+#define YY_DECL int wcsulexe_scanner(const char unitstr[], int *func, \
  double *scale, double units[WCSUNITS_NTYPE], struct wcserr **err, \
  yyscan_t yyscanner)
 
 // Dummy definition to circumvent compiler warnings.
 #define YY_INPUT(inbuff, count, bufsize) { count = YY_NULL; }
 
-// Used in preempting the call to exit() by yy_fatal_error().
-jmp_buf wcsulex_abort_jmp_env;
-#define exit(status) longjmp(wcsulex_abort_jmp_env, status)
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
+
+// Internal helper functions.
+static YY_DECL;
 
 %}
 
 %%
-	static const char *function = "wcsulexe";
+	static const char *function = "wcsulexe_scanner";
 	
-	char ctmp[72];
+	void add(double *factor, double types[], double *expon, double *scale,
+	    double units[]);
+	
+	// Initialise returned values.
+	*func  = 0;
+	*scale = 1.0;
+	
+	for (int i = 0; i < WCSUNITS_NTYPE; i++) {
+	  units[i] = 0.0;
+	}
+	
+	if (err) *err = 0x0;
+	
+	double types[WCSUNITS_NTYPE];
+	for (int i = 0; i < WCSUNITS_NTYPE; i++) {
+	  types[i] = 0.0;
+	}
+	double expon  = 1.0;
+	double factor = 1.0;
+	
 	int bracket  = 0;
 	int operator = 0;
 	int paren    = 0;
 	int status   = 0;
-	int func_r, i, j;
-	double dexp, expon, factor, factor_r, types[WCSUNITS_NTYPE];
-	YY_BUFFER_STATE buf;
-	void add(double *factor, double types[], double *expon, double *scale,
-	    double units[]);
-	
-	if (err) *err = 0x0;
-	
-	*func = 0;
-	for (i = 0; i < WCSUNITS_NTYPE; i++) {
-	  units[i] = 0.0;
-	  types[i] = 0.0;
-	}
-	expon  = 1.0;
-	factor = 1.0;
-	*scale = 1.0;
 	
 	// Avert a flex-induced memory leak.
 	if (YY_CURRENT_BUFFER && YY_CURRENT_BUFFER->yy_input_file == stdin) {
@@ -165,7 +149,7 @@ jmp_buf wcsulex_abort_jmp_env;
 	yy_scan_string(unitstr, yyscanner);
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
-	if (setjmp(wcsulex_abort_jmp_env)) {
+	if (setjmp(yyextra->abort_jmp_env)) {
 	  return wcserr_set(WCSERR_SET(UNITSERR_PARSER_ERROR),
 	    "Internal units parser error parsing '%s'", unitstr);
 	}
@@ -295,8 +279,11 @@ sqrt" "*"(" {
 	    // Balanced; strip off the outer parentheses and recurse.
 	    yytext[yyleng-1] = '\0';
 	
-	    buf = YY_CURRENT_BUFFER;
+	    int func_r;
+	    double factor_r;
 	    status = wcsulexe(yytext+1, &func_r, &factor_r, types, err);
+	
+	    YY_BUFFER_STATE buf = YY_CURRENT_BUFFER;
 	    yy_switch_to_buffer(buf, yyscanner);
 	
 	    if (func_r) {
@@ -885,6 +872,7 @@ sqrt" "*"(" {
 	}
 
 <EXPON>" "*{INTEGER} {
+	  int i;
 	  sscanf(yytext, " %d", &i);
 	  expon *= (double)i;
 	  add(&factor, types, &expon, scale, units);
@@ -893,6 +881,7 @@ sqrt" "*"(" {
 	}
 
 <EXPON>" "*"("" "*{INTEGER}" "*")" {
+	  int i;
 	  sscanf(yytext, " (%d)", &i);
 	  expon *= (double)i;
 	  add(&factor, types, &expon, scale, units);
@@ -901,6 +890,7 @@ sqrt" "*"(" {
 	}
 
 <EXPON>" "*"("" "*{FRAC}" "*")" {
+	  int i, j;
 	  sscanf(yytext, " (%d/%d)", &i, &j);
 	  expon *= (double)i / (double)j;
 	  add(&factor, types, &expon, scale, units);
@@ -909,7 +899,9 @@ sqrt" "*"(" {
 	}
 
 <EXPON>" "*"("" "*{FLOAT}" "*")" {
+	  char ctmp[72];
 	  sscanf(yytext, " (%s)", ctmp);
+	  double dexp;
 	  wcsutil_str2double(ctmp, &dexp);
 	  expon *= dexp;
 	  add(&factor, types, &expon, scale, units);
@@ -1000,7 +992,7 @@ sqrt" "*"(" {
 	  }
 	
 	  if (status) {
-	    for (i = 0; i < WCSUNITS_NTYPE; i++) {
+	    for (int i = 0; i < WCSUNITS_NTYPE; i++) {
 	      units[i] = 0.0;
 	      *scale = 0.0;
 	    }
@@ -1010,6 +1002,34 @@ sqrt" "*"(" {
 	}
 
 %%
+
+/*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int wcsulexe(
+  const char unitstr[],
+  int *func,
+  double *scale,
+  double units[WCSUNITS_NTYPE],
+  struct wcserr **err)
+
+{
+  static const char *function = "wcsulexe";
+
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct wcsulex_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = wcsulexe_scanner(unitstr, func, scale, units, err, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
+
 
 /*----------------------------------------------------------------------------
 * Accumulate a term in a units specification and reset work variables.
@@ -1023,11 +1043,9 @@ void add(
   double units[])
 
 {
-  int i;
-
   *scale *= pow(*factor, *expon);
 
-  for (i = 0; i < WCSUNITS_NTYPE; i++) {
+  for (int i = 0; i < WCSUNITS_NTYPE; i++) {
     units[i] += *expon * types[i];
     types[i] = 0.0;
   }

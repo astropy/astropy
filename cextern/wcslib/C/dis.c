@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: dis.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -425,6 +425,89 @@ int disfree(struct disprm *dis)
   dis->flag = 0;
 
   return 0;
+}
+
+//----------------------------------------------------------------------------
+
+int dissize(const struct disprm *dis, int sizes[2])
+
+{
+  if (dis == 0x0) {
+    sizes[0] = sizes[1] = 0;
+    return DISERR_NULL_POINTER;
+  }
+
+  // Base size, in bytes.
+  sizes[0] = sizeof(struct disprm);
+
+  // Total size of allocated memory, in bytes.
+  sizes[1] = 0;
+
+  int exsizes[2];
+  int naxis = dis->naxis;
+
+  // disprm::dtype[].
+  sizes[1] += naxis * sizeof(char [72]);
+
+  // disprm::dp[].
+  sizes[1] += dis->ndpmax * sizeof(struct dpkey);
+
+  // disprm::maxdis[].
+  sizes[1] += naxis * sizeof(double);
+
+  // dis::err[].
+  wcserr_size(dis->err, exsizes);
+  sizes[1] += exsizes[0] + exsizes[1];
+
+  // The remaining arrays are allocated by disset().
+  if (dis->flag != DISSET) {
+    return DISERR_SUCCESS;
+  }
+
+  // dis::docorr[].
+  sizes[1] += naxis * sizeof(int *);
+
+  // dis::Nhat[].
+  sizes[1] += naxis * sizeof(int *);
+
+  // dis::axmap[][].
+  sizes[1] += naxis * sizeof(int *);
+  sizes[1] += naxis*naxis * sizeof(int);
+
+  // dis::offset[][].
+  sizes[1] += naxis * sizeof(double *);
+  sizes[1] += naxis*naxis * sizeof(double);
+
+  // dis::scale[][].
+  sizes[1] += naxis * sizeof(double *);
+  sizes[1] += naxis*naxis * sizeof(double);
+
+  // dis::iparm[][].
+  sizes[1] += naxis * sizeof(int *);
+  for (int j = 0; j < naxis; j++) {
+    if (dis->iparm[j]) {
+      sizes[1] += dis->iparm[j][I_NIPARM] * sizeof(int);
+    }
+  }
+
+  // dis::dparm[][].
+  sizes[1] += naxis * sizeof(double *);
+  for (int j = 0; j < naxis; j++) {
+    if (dis->dparm[j]) {
+      sizes[1] += dis->dparm[j][I_NDPARM] * sizeof(double);
+    }
+  }
+
+  // dis::disp2x[].
+  sizes[1] += naxis * sizeof(int (*)(DISP2X_ARGS));
+
+  // dis::disx2p[].
+  sizes[1] += naxis * sizeof(int (*)(DISX2P_ARGS));
+
+  // dis::tmpmem[].
+  sizes[1] += 5*naxis * sizeof(double);
+
+  return DISERR_SUCCESS;
 }
 
 //----------------------------------------------------------------------------

@@ -1,3 +1,123 @@
+WCSLIB version 7.6 (2021/04/13)
+-------------------------------
+
+* C library
+
+  - Bug fix in tabs2x() triggered for 1-dimensional coordinate lookup
+    tables on axes > 1.  Reported by Mihai Cara.
+
+  - In datfix(), don't return status 0 if no change was made (fix for
+    change made at release 7.4).  Reported by Derek Homeier.
+
+  - New function wcspcx() in the wcsfix suite regularizes the linear
+    transformation component of a coordinate description to make it more
+    human-readable.  It decomposes CDi_ja into PCi_ja and CDELTia in
+    such a way that CDELTia forms meaningful scaling parameters, often
+    leaving an orthogonal or near-orthogonal matrix.  Optionally, it can
+    then permute rows of this matrix to unscramble axis permutations.
+
+    A test header may be generated from wcspcx.keyrec for input to
+    wcsware (not exercised as part of the standard test suite).
+
+  - New function wcstrim() frees memory allocated by wcsinit() for
+    arrays in a wcsprm struct that remain unused after the struct has
+    been set up.
+
+  - New functions wcssize(), auxsize(), tabsize(), linsize(), dissize(),
+    celsize(), prjsize(), spcsize(), and wcserr_size() compute the total
+    size of the relevant structs, including allocated memory.
+
+  - In the C test suite, inserted a brief pause in tprj2 and tspc, which
+    otherwise have now become a blur.
+
+* Fortran wrappers
+
+  - Added wrappers for wcspcx(), wcstrim(), wcssize(), auxsize(),
+    tabsize(), linsize(), dissize(), celsize(), prjsize(), spcsize(),
+    and wcserr_size().
+
+* Utilities
+
+  - Added -c, -cp, -C, and -Cp options to wcsware to apply wcspcx()
+    in a variety of ways, -m to apply wcstrim(), and -z to report the
+    total size of the wcsprm struct with a breakdown of the sizes of
+    its constituent structs.
+
+  - Fixed compiler warnings for sundazel (portability issue).
+
+* Installation
+
+  - Upped the required version of Flex to 2.6.0 (was 2.5.9).  Problems
+    with Flex 2.5.39 reported by Derek Homeier.
+
+    Also added '--disable-flex' as a new configure option to force the
+    use of the pre-generated Flex sources.
+
+
+WCSLIB version 7.5 (2021/03/20)
+-------------------------------
+
+The C code in WCSLIB is moving piecemeal to the C99 standard.  In fact,
+various indispensible C99 constructs have been used in WCSLIB for many
+years: the long long int data type (in fitshdr() only); stdint.h,
+inttypes.h, and the use of PRI formatting control (in wcsprintf(), which
+is widely used by the library); and the C99-extended library function
+vsnprintf() (used by wcserr for a decade).  Flex-generated C code also
+uses C99 extensions, though with workarounds if they are not available.
+
+Except in the header prologues, which are formatted in a special way for
+generating the user manual, comments were changed en masse to C99 style
+in release 7.3.1, and variable declarations in code that I have occasion
+to modify will transition to the more general placement allowed by C99.
+However, I have no plans to use any of the more esoteric features of
+C99.
+
+* C library
+
+  - New function, wcsccs(), changes the celestial coordinate system of a
+    wcsprm struct, for example, from equatorial to galactic coordinates.
+    The parameters that define the spherical coordinate transformation
+    must be provided.  This allows WCSLIB to provide this functionality
+    without needing to know anything about specific celestial coordinate
+    systems, and has the advantage of making the routine completely
+    general.  Requested by Mohammad Akhlaghi.
+
+    Modified test program twcsfix also to test wcsccs().
+
+  - Fixed a problem common to all of the Flex code (fitshdr, wcsbth,
+    wcspih, wcsulex, and wcsutrn) that made it thread-unsafe.  Reported
+    by Cyril Richard.
+
+    Added a new test program, tpthreads, to test thread safety.  It is
+    only used for code development, and not exercised as part of the
+    standard test suite.
+
+  - In fitshdr(), fixed a problem that potentially could arise on
+    systems where sizeof(long long int) is greater than 8 (64 bits).
+
+* Fortran wrappers
+
+  - Match changes to the C library: added a wrapper for wcsccs(), and
+    modified twcsfix.f.
+
+  - Because null addresses cannot be passed to functions in Fortran,
+    wcssub_() now interprets *nsub == -1 && *axes == -1 as a signal to
+    do a deep copy of one wcsprm struct to another.
+
+* Utilities
+
+  - New utility, sundazel, computes the local time of the Sun's passage
+    through the specified apparent longitude or latitude in a user-
+    defined coordinate system.  It can also perform several other Solar
+    related calculations.  (It is unrelated to FITS WCS, and does not
+    use WCSLIB.)
+
+* Installation
+
+  - Added an 'uninstall' rule to the makefiles.  Suggested by
+    Cyril Richard.
+
+
 WCSLIB version 7.4 (2021/01/31)
 -------------------------------
 
@@ -3093,4 +3213,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.4 2021/01/31 02:24:52 mcalabre Exp $
+$Id: CHANGES,v 7.6 2021/04/13 12:57:02 mcalabre Exp $

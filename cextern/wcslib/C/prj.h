@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: prj.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -51,7 +51,8 @@
 *
 * Routine prjini() is provided to initialize the prjprm struct with default
 * values, prjfree() reclaims any memory that may have been allocated to store
-* an error message, and prjprt() prints its contents.
+* an error message, prjsize() computes its total size including allocated
+* memory, and prjprt() prints its contents.
 *
 * prjperr() prints the error message(s) (if any) stored in a prjprm struct.
 * prjbchk() performs bounds checking on native spherical coordinates.
@@ -73,7 +74,8 @@
 * In summary, the routines are:
 *   - prjini()                Initialization routine for the prjprm struct.
 *   - prjfree()               Reclaim memory allocated for error messages.
-*   - prjprt()                Print the prjprm struct.
+*   - prjsize()               Compute total size of a prjprm struct.
+*   - prjprt()                Print a prjprm struct.
 *   - prjperr()               Print error message (if any).
 *   - prjbchk()               Bounds checking on native coordinates.
 *
@@ -179,6 +181,33 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null prjprm pointer passed.
+*
+*
+* prjsize() - Compute the size of a prjprm struct
+* -----------------------------------------------
+* prjsize() computes the full size of a prjprm struct, including allocated
+* memory.
+*
+* Given:
+*   prj       const struct prjprm*
+*                       Projection parameters.
+*
+*                       If NULL, the base size of the struct and the allocated
+*                       size are both set to zero.
+*
+* Returned:
+*   sizes     int[2]    The first element is the base size of the struct as
+*                       returned by sizeof(struct prjprm).  The second element
+*                       is the total allocated size, in bytes.  This figure
+*                       includes memory allocated for the constituent struct,
+*                       prjprm::err.
+*
+*                       It is not an error for the struct not to have been set
+*                       up via prjset().
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
 *
 *
 * prjprt() - Print routine for the prjprm struct
@@ -709,14 +738,20 @@ struct prjprm {
 #define PRJLEN (sizeof(struct prjprm)/sizeof(int))
 
 
-// Use the preprocessor to help declare function prototypes (see above).
 int prjini(struct prjprm *prj);
+
 int prjfree(struct prjprm *prj);
+
+int prjsize(const struct prjprm *prj, int sizes[2]);
+
 int prjprt(const struct prjprm *prj);
+
 int prjperr(const struct prjprm *prj, const char *prefix);
+
 int prjbchk(double tol, int nphi, int ntheta, int spt, double phi[],
             double theta[], int stat[]);
 
+// Use the preprocessor to help declare function prototypes (see above).
 int prjset(struct prjprm *prj);
 int prjx2s(PRJX2S_ARGS);
 int prjs2x(PRJS2X_ARGS);

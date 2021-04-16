@@ -25388,7 +25388,7 @@ static const yy_state_type yy_NUL_trans[1416] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcsbth.l"
 /*============================================================================
-  WCSLIB 7.4 - an implementation of the FITS WCS standard.
+  WCSLIB 7.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -25408,7 +25408,7 @@ static const yy_state_type yy_NUL_trans[1416] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.c,v 7.4 2021/01/31 02:24:51 mcalabre Exp $
+  $Id: wcsbth.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -25470,7 +25470,7 @@ static const yy_state_type yy_NUL_trans[1416] =
 
 
 
-#line 112 "wcsbth.l"
+#line 113 "wcsbth.l"
 #include <math.h>
 #include <setjmp.h>
 #include <stddef.h>
@@ -25503,38 +25503,15 @@ static const yy_state_type yy_NUL_trans[1416] =
 			// image array (without axis number) or
 			// pixel list, e.g. LONPna or OBSGXn.
 
-static int wcsbth_scanner(char *header, int nkeyrec, int relax, int ctrl,
-                          int keysel, int *colsel, int *nreject, int *nwcs,
-                          struct wcsprm **wcs, yyscan_t yyscanner);
+// User data associated with yyscanner.
+struct wcsbth_extra {
+  // Values passed to YY_INPUT.
+  char *hdr;
+  int  nkeyrec;
 
-//----------------------------------------------------------------------------
-
-int wcsbth(
-  char *header,
-  int nkeyrec,
-  int relax,
-  int ctrl,
-  int keysel,
-  int *colsel,
-  int *nreject,
-  int *nwcs,
-  struct wcsprm **wcs)
-
-{
-  int status;
-  yyscan_t yyscanner;
-  int yylex_init(yyscan_t *yyscanner);
-  int yylex_destroy(yyscan_t yyscanner);
-
-  yylex_init(&yyscanner);
-  status = wcsbth_scanner(header, nkeyrec, relax, ctrl, keysel, colsel,
-                          nreject, nwcs, wcs, yyscanner);
-  yylex_destroy(yyscanner);
-
-  return status;
-}
-
-//----------------------------------------------------------------------------
+  // Used in preempting the call to exit() by yy_fatal_error().
+  jmp_buf abort_jmp_env;
+};
 
 #define YY_DECL int wcsbth_scanner(char *header, int nkeyrec, int relax, \
  int ctrl, int keysel, int *colsel, int *nreject, int *nwcs, \
@@ -25542,27 +25519,26 @@ int wcsbth(
 
 #define YY_INPUT(inbuff, count, bufsize) \
 	{ \
-	  if (wcsbth_nkeyrec) { \
-	    strncpy(inbuff, wcsbth_hdr, 80); \
+	  if (yyextra->nkeyrec) { \
+	    strncpy(inbuff, yyextra->hdr, 80); \
 	    inbuff[80] = '\n'; \
-	    wcsbth_hdr += 80; \
-	    wcsbth_nkeyrec--; \
+	    yyextra->hdr += 80; \
+	    yyextra->nkeyrec--; \
 	    count = 81; \
 	  } else { \
 	    count = YY_NULL; \
 	  } \
 	}
 
+// Preempt the call to exit() by yy_fatal_error().
+#define exit(status) longjmp(yyextra->abort_jmp_env, status);
+
 // A convenience macro to get around incompatibilities between unput() and
 // yyless(): put yytext followed by a blank back onto the input stream.
 #define WCSBTH_PUTBACK \
   sprintf(strtmp, "%s ", yytext); \
-  iz = strlen(strtmp); \
+  size_t iz = strlen(strtmp); \
   while (iz) unput(strtmp[--iz]);
-
-// These global variables are required by YY_INPUT.
-static char *wcsbth_hdr;
-static int  wcsbth_nkeyrec;
 
 // Struct used internally for header bookkeeping.
 struct wcsbth_alts {
@@ -25580,6 +25556,7 @@ struct wcsbth_alts {
 };
 
 // Internal helper functions.
+static YY_DECL;
 static int wcsbth_colax(struct wcsprm *wcs, struct wcsbth_alts *alts, int k,
         char a);
 static int wcsbth_final(struct wcsbth_alts *alts, int *nwcs,
@@ -25601,12 +25578,8 @@ static int wcsbth_vsource(double *wptr, const double *vsource);
 // Helper functions for keyvalue validity checking.
 static int wcsbth_timepixr(double timepixr);
 
-// Used in preempting the call to exit() by yy_fatal_error().
-jmp_buf wcsbth_abort_jmp_env;
-#define exit(status) longjmp(wcsbth_abort_jmp_env, status)
-
-#line 25609 "wcsbth.c"
-#line 25610 "wcsbth.c"
+#line 25582 "wcsbth.c"
+#line 25583 "wcsbth.c"
 
 #define INITIAL 0
 #define CCCCCia 1
@@ -25651,9 +25624,7 @@ jmp_buf wcsbth_abort_jmp_env;
 #include <unistd.h>
 #endif
 
-#ifndef YY_EXTRA_TYPE
-#define YY_EXTRA_TYPE void *
-#endif
+#define YY_EXTRA_TYPE struct wcsbth_extra *
 
 /* Holds the entire state of the reentrant scanner. */
 struct yyguts_t
@@ -25886,92 +25857,79 @@ YY_DECL
 		}
 
 	{
-#line 248 "wcsbth.l"
+#line 222 "wcsbth.l"
 
-#line 250 "wcsbth.l"
-	// Keyword indices, as used in the WCS papers, e.g. iVn_ma, TPn_ka.
-	char a;
-	int  i, j, k, m, n;
-	
-	char *cptr, *errmsg, errtxt[80], exclude[1000], gotone, *hptr, *keep,
-	     *keyname, *keyrec, ptype, strtmp[80];
-	int  altlin, auxprm, ialt, icol, incl, imherit, inttmp, ipass, ipx,
-	     itmp, ix, jx, keytype, naux, nother, nsel, npass, nvalid, status,
-	     valtype;
-	ptrdiff_t voff;
-	size_t iz;
+#line 224 "wcsbth.l"
+	char *errmsg, errtxt[80], *keyname, strtmp[80];
+	int  auxprm, inttmp;
 	double dbltmp, dbl2tmp[2];
-	void   *vptr, *wptr;
-	struct wcsbth_alts alts;
-	struct auxprm *auxp, auxtem;
-	struct wcsprm *wcsp, wcstem;
-	int (*chekval)(double);
-	int (*special)(double *, const double *);
+	struct auxprm auxtem;
+	struct wcsprm wcstem;
 	
-	// The data structures produced.
+	// Initialize returned values.
+	*nreject = 0;
 	*nwcs = 0;
 	*wcs  = 0x0;
 	
-	// Parameters used to implement YY_INPUT.
-	wcsbth_hdr = header;
-	wcsbth_nkeyrec = nkeyrec;
-	
 	// Our handle on the input stream.
-	keyrec = header;
-	hptr = header;
-	keep = 0x0;
+	char *keyrec = header;
+	char *hptr = header;
+	char *keep = 0x0;
 	
 	// For keeping tallies of keywords found.
-	*nreject = 0;
-	nvalid = 0;
-	nother = 0;
+	int nvalid = 0;
+	int nother = 0;
 	
 	// Used to flag image header keywords that are always inherited.
-	imherit = 1;
+	int imherit = 1;
 	
 	// If strict, then also reject.
 	if (relax & WCSHDR_strict) relax |= WCSHDR_reject;
 	
-	// Keyword parameters.
-	i = j = 0;
-	n = k = 0;
-	m = 0;
-	a = ' ';
+	// Keyword indices, as used in the WCS papers, e.g. iVn_ma, TPn_ka.
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	int n = 0;
+	int m = 0;
+	char a = ' ';
 	
 	// Header bookkeeping.
+	struct wcsbth_alts alts;
 	alts.ncol = 0;
 	alts.arridx  = 0x0;
 	alts.pixlist = 0x0;
 	alts.npv = 0x0;
 	alts.nps = 0x0;
 	
-	for (ialt = 0; ialt < 27; ialt++) {
+	for (int ialt = 0; ialt < 27; ialt++) {
 	  alts.pixidx[ialt] = 0;
 	  alts.pixnpv[ialt] = 0;
 	  alts.pixnps[ialt] = 0;
 	}
 	
 	// For decoding the keyvalue.
-	keytype =  0;
-	valtype = -1;
-	vptr    = 0x0;
+	int keytype =  0;
+	int valtype = -1;
+	void *vptr  = 0x0;
 	
 	// For keywords that require special handling.
-	altlin  = 0;
-	ptype   = ' ';
-	chekval = 0x0;
-	special = 0x0;
-	auxprm  = 0;
-	naux    = 0;
+	int altlin  = 0;
+	char ptype  = ' ';
+	int (*chekval)(double) = 0x0;
+	int (*special)(double *, const double *) = 0x0;
+	struct auxprm *auxp = 0x0;
+	int naux = 0;
 	
 	// Selection by column number.
-	nsel = colsel ? colsel[0] : 0;
-	incl = (nsel > 0);
-	for (icol = 0; icol < 1000; icol++) {
+	int nsel = colsel ? colsel[0] : 0;
+	int incl = (nsel > 0);
+	char exclude[1000];
+	for (int icol = 0; icol < 1000; icol++) {
 	  exclude[icol] = incl;
 	}
-	for (icol = 1; icol <= abs(nsel); icol++) {
-	  itmp = colsel[icol];
+	for (int icol = 1; icol <= abs(nsel); icol++) {
+	  int itmp = colsel[icol];
 	  if (0 < itmp && itmp < 1000) {
 	    exclude[itmp] = !incl;
 	  }
@@ -25979,9 +25937,9 @@ YY_DECL
 	exclude[0] = 0;
 	
 	// Selection by keyword type.
-	itmp = keysel;
-	keysel = 0;
-	if (itmp) {
+	if (keysel) {
+	  int itmp = keysel;
+	  keysel = 0;
 	  if (itmp & WCSHDR_IMGHEAD) keysel |= IMGHEAD;
 	  if (itmp & WCSHDR_BIMGARR) keysel |= BIMGARR;
 	  if (itmp & WCSHDR_PIXLIST) keysel |= PIXLIST;
@@ -25991,18 +25949,22 @@ YY_DECL
 	}
 	
 	// Control variables.
-	ipass = 1;
-	npass = 2;
+	int ipass = 1;
+	int npass = 2;
+	
+	// User data associated with yyscanner.
+	yyextra->hdr = header;
+	yyextra->nkeyrec = nkeyrec;
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
-	if (setjmp(wcsbth_abort_jmp_env)) {
-	  return 4;
+	if (setjmp(yyextra->abort_jmp_env)) {
+	  return WCSHDRERR_PARSER;
 	}
 	
 	BEGIN(INITIAL);
 
 
-#line 26006 "wcsbth.c"
+#line 25968 "wcsbth.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -26050,7 +26012,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 363 "wcsbth.l"
+#line 328 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    if (alts.ncol == 0) {
@@ -26068,7 +26030,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 378 "wcsbth.l"
+#line 343 "wcsbth.l"
 {
 	  if (!(keysel & IMGAXIS)) {
 	    // Ignore this key type.
@@ -26103,12 +26065,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 3:
-#line 412 "wcsbth.l"
+#line 377 "wcsbth.l"
 case 4:
-#line 413 "wcsbth.l"
+#line 378 "wcsbth.l"
 case 5:
 YY_RULE_SETUP
-#line 413 "wcsbth.l"
+#line 378 "wcsbth.l"
 {
 	  keyname = "WCAXna";
 	
@@ -26136,14 +26098,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
-#line 439 "wcsbth.l"
+#line 404 "wcsbth.l"
 case 7:
 /* rule 7 can match eol */
-#line 440 "wcsbth.l"
+#line 405 "wcsbth.l"
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 440 "wcsbth.l"
+#line 405 "wcsbth.l"
 {
 	  // Cross-reference supplier.
 	  keyname = "WCSTna";
@@ -26153,14 +26115,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
-#line 448 "wcsbth.l"
+#line 413 "wcsbth.l"
 case 10:
 /* rule 10 can match eol */
-#line 449 "wcsbth.l"
+#line 414 "wcsbth.l"
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 449 "wcsbth.l"
+#line 414 "wcsbth.l"
 {
 	  // Cross-reference consumer.
 	  keyname = "WCSXna";
@@ -26170,7 +26132,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 456 "wcsbth.l"
+#line 421 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crpix);
@@ -26180,10 +26142,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 13:
-#line 465 "wcsbth.l"
+#line 430 "wcsbth.l"
 case 14:
 YY_RULE_SETUP
-#line 465 "wcsbth.l"
+#line 430 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crpix);
@@ -26200,10 +26162,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 15:
-#line 481 "wcsbth.l"
+#line 446 "wcsbth.l"
 case 16:
 YY_RULE_SETUP
-#line 481 "wcsbth.l"
+#line 446 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crpix);
@@ -26219,7 +26181,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 494 "wcsbth.l"
+#line 459 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pc);
@@ -26231,7 +26193,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 503 "wcsbth.l"
+#line 468 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pc);
@@ -26244,10 +26206,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 19:
-#line 515 "wcsbth.l"
+#line 480 "wcsbth.l"
 case 20:
 YY_RULE_SETUP
-#line 515 "wcsbth.l"
+#line 480 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pc);
@@ -26264,7 +26226,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 529 "wcsbth.l"
+#line 494 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cd);
@@ -26276,7 +26238,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 538 "wcsbth.l"
+#line 503 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cd);
@@ -26289,10 +26251,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 23:
-#line 550 "wcsbth.l"
+#line 515 "wcsbth.l"
 case 24:
 YY_RULE_SETUP
-#line 550 "wcsbth.l"
+#line 515 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cd);
@@ -26309,7 +26271,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 564 "wcsbth.l"
+#line 529 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cdelt);
@@ -26319,10 +26281,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 26:
-#line 573 "wcsbth.l"
+#line 538 "wcsbth.l"
 case 27:
 YY_RULE_SETUP
-#line 573 "wcsbth.l"
+#line 538 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cdelt);
@@ -26339,10 +26301,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 28:
-#line 589 "wcsbth.l"
+#line 554 "wcsbth.l"
 case 29:
 YY_RULE_SETUP
-#line 589 "wcsbth.l"
+#line 554 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cdelt);
@@ -26358,7 +26320,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 602 "wcsbth.l"
+#line 567 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crota);
@@ -26370,7 +26332,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 611 "wcsbth.l"
+#line 576 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crota);
@@ -26384,7 +26346,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 622 "wcsbth.l"
+#line 587 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crota);
@@ -26396,7 +26358,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 631 "wcsbth.l"
+#line 596 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.cunit);
@@ -26406,10 +26368,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 34:
-#line 640 "wcsbth.l"
+#line 605 "wcsbth.l"
 case 35:
 YY_RULE_SETUP
-#line 640 "wcsbth.l"
+#line 605 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.cunit);
@@ -26426,10 +26388,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 36:
-#line 656 "wcsbth.l"
+#line 621 "wcsbth.l"
 case 37:
 YY_RULE_SETUP
-#line 656 "wcsbth.l"
+#line 621 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.cunit);
@@ -26445,7 +26407,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 669 "wcsbth.l"
+#line 634 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.ctype);
@@ -26455,10 +26417,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 39:
-#line 678 "wcsbth.l"
+#line 643 "wcsbth.l"
 case 40:
 YY_RULE_SETUP
-#line 678 "wcsbth.l"
+#line 643 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.ctype);
@@ -26475,10 +26437,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 41:
-#line 694 "wcsbth.l"
+#line 659 "wcsbth.l"
 case 42:
 YY_RULE_SETUP
-#line 694 "wcsbth.l"
+#line 659 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.ctype);
@@ -26494,7 +26456,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 707 "wcsbth.l"
+#line 672 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crval);
@@ -26504,10 +26466,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 44:
-#line 716 "wcsbth.l"
+#line 681 "wcsbth.l"
 case 45:
 YY_RULE_SETUP
-#line 716 "wcsbth.l"
+#line 681 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crval);
@@ -26524,10 +26486,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 46:
-#line 732 "wcsbth.l"
+#line 697 "wcsbth.l"
 case 47:
 YY_RULE_SETUP
-#line 732 "wcsbth.l"
+#line 697 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crval);
@@ -26542,10 +26504,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 48:
-#line 746 "wcsbth.l"
+#line 711 "wcsbth.l"
 case 49:
 YY_RULE_SETUP
-#line 746 "wcsbth.l"
+#line 711 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.lonpole);
@@ -26561,10 +26523,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 50:
-#line 761 "wcsbth.l"
+#line 726 "wcsbth.l"
 case 51:
 YY_RULE_SETUP
-#line 761 "wcsbth.l"
+#line 726 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.latpole);
@@ -26580,12 +26542,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 52:
-#line 776 "wcsbth.l"
+#line 741 "wcsbth.l"
 case 53:
-#line 777 "wcsbth.l"
+#line 742 "wcsbth.l"
 case 54:
 YY_RULE_SETUP
-#line 777 "wcsbth.l"
+#line 742 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.restfrq);
@@ -26613,10 +26575,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 55:
-#line 804 "wcsbth.l"
+#line 769 "wcsbth.l"
 case 56:
 YY_RULE_SETUP
-#line 804 "wcsbth.l"
+#line 769 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.restwav);
@@ -26632,7 +26594,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 817 "wcsbth.l"
+#line 782 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pv);
@@ -26643,10 +26605,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 58:
-#line 827 "wcsbth.l"
+#line 792 "wcsbth.l"
 case 59:
 YY_RULE_SETUP
-#line 827 "wcsbth.l"
+#line 792 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pv);
@@ -26664,10 +26626,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 60:
-#line 844 "wcsbth.l"
+#line 809 "wcsbth.l"
 case 61:
 YY_RULE_SETUP
-#line 844 "wcsbth.l"
+#line 809 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pv);
@@ -26684,7 +26646,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 858 "wcsbth.l"
+#line 823 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pv);
@@ -26696,7 +26658,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 867 "wcsbth.l"
+#line 832 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.ps);
@@ -26707,10 +26669,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 64:
-#line 877 "wcsbth.l"
+#line 842 "wcsbth.l"
 case 65:
 YY_RULE_SETUP
-#line 877 "wcsbth.l"
+#line 842 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.ps);
@@ -26728,10 +26690,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 66:
-#line 894 "wcsbth.l"
+#line 859 "wcsbth.l"
 case 67:
 YY_RULE_SETUP
-#line 894 "wcsbth.l"
+#line 859 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.ps);
@@ -26748,7 +26710,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 908 "wcsbth.l"
+#line 873 "wcsbth.l"
 {
 	  sscanf(yytext, "VELREF%c", &a);
 	
@@ -26777,7 +26739,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 934 "wcsbth.l"
+#line 899 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.cname);
@@ -26787,10 +26749,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 70:
-#line 943 "wcsbth.l"
+#line 908 "wcsbth.l"
 case 71:
 YY_RULE_SETUP
-#line 943 "wcsbth.l"
+#line 908 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.cname);
@@ -26808,10 +26770,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 72:
-#line 960 "wcsbth.l"
+#line 925 "wcsbth.l"
 case 73:
 YY_RULE_SETUP
-#line 960 "wcsbth.l"
+#line 925 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = &(wcstem.cname);
@@ -26828,7 +26790,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 974 "wcsbth.l"
+#line 939 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crder);
@@ -26838,10 +26800,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 75:
-#line 983 "wcsbth.l"
+#line 948 "wcsbth.l"
 case 76:
 YY_RULE_SETUP
-#line 983 "wcsbth.l"
+#line 948 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crder);
@@ -26859,10 +26821,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 77:
-#line 1000 "wcsbth.l"
+#line 965 "wcsbth.l"
 case 78:
 YY_RULE_SETUP
-#line 1000 "wcsbth.l"
+#line 965 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.crder);
@@ -26879,7 +26841,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 1014 "wcsbth.l"
+#line 979 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.csyer);
@@ -26889,10 +26851,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 80:
-#line 1023 "wcsbth.l"
+#line 988 "wcsbth.l"
 case 81:
 YY_RULE_SETUP
-#line 1023 "wcsbth.l"
+#line 988 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.csyer);
@@ -26910,10 +26872,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 82:
-#line 1040 "wcsbth.l"
+#line 1005 "wcsbth.l"
 case 83:
 YY_RULE_SETUP
-#line 1040 "wcsbth.l"
+#line 1005 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.csyer);
@@ -26930,7 +26892,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 1054 "wcsbth.l"
+#line 1019 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.czphs);
@@ -26940,10 +26902,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 85:
-#line 1063 "wcsbth.l"
+#line 1028 "wcsbth.l"
 case 86:
 YY_RULE_SETUP
-#line 1063 "wcsbth.l"
+#line 1028 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.czphs);
@@ -26961,10 +26923,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 87:
-#line 1080 "wcsbth.l"
+#line 1045 "wcsbth.l"
 case 88:
 YY_RULE_SETUP
-#line 1080 "wcsbth.l"
+#line 1045 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.czphs);
@@ -26981,7 +26943,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 1094 "wcsbth.l"
+#line 1059 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cperi);
@@ -26991,10 +26953,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 90:
-#line 1103 "wcsbth.l"
+#line 1068 "wcsbth.l"
 case 91:
 YY_RULE_SETUP
-#line 1103 "wcsbth.l"
+#line 1068 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cperi);
@@ -27012,10 +26974,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 92:
-#line 1120 "wcsbth.l"
+#line 1085 "wcsbth.l"
 case 93:
 YY_RULE_SETUP
-#line 1120 "wcsbth.l"
+#line 1085 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.cperi);
@@ -27031,12 +26993,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 94:
-#line 1135 "wcsbth.l"
+#line 1100 "wcsbth.l"
 case 95:
-#line 1136 "wcsbth.l"
+#line 1101 "wcsbth.l"
 case 96:
 YY_RULE_SETUP
-#line 1136 "wcsbth.l"
+#line 1101 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.wcsname;
@@ -27058,7 +27020,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 1155 "wcsbth.l"
+#line 1120 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.timesys;
@@ -27068,10 +27030,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 98:
-#line 1164 "wcsbth.l"
+#line 1129 "wcsbth.l"
 case 99:
 YY_RULE_SETUP
-#line 1164 "wcsbth.l"
+#line 1129 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.trefpos;
@@ -27087,10 +27049,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 100:
-#line 1179 "wcsbth.l"
+#line 1144 "wcsbth.l"
 case 101:
 YY_RULE_SETUP
-#line 1179 "wcsbth.l"
+#line 1144 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.trefdir;
@@ -27107,7 +27069,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 1193 "wcsbth.l"
+#line 1158 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.plephem;
@@ -27118,7 +27080,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 1201 "wcsbth.l"
+#line 1166 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.timeunit;
@@ -27128,10 +27090,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 104:
-#line 1210 "wcsbth.l"
+#line 1175 "wcsbth.l"
 case 105:
 YY_RULE_SETUP
-#line 1210 "wcsbth.l"
+#line 1175 "wcsbth.l"
 {
 	  if ((yytext[4] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    valtype = STRING;
@@ -27150,10 +27112,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 106:
-#line 1228 "wcsbth.l"
+#line 1193 "wcsbth.l"
 case 107:
 YY_RULE_SETUP
-#line 1228 "wcsbth.l"
+#line 1193 "wcsbth.l"
 {
 	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    valtype = FLOAT2;
@@ -27172,10 +27134,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 108:
-#line 1246 "wcsbth.l"
+#line 1211 "wcsbth.l"
 case 109:
 YY_RULE_SETUP
-#line 1246 "wcsbth.l"
+#line 1211 "wcsbth.l"
 {
 	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    // Actually integer, but treated as float.
@@ -27195,10 +27157,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 110:
-#line 1265 "wcsbth.l"
+#line 1230 "wcsbth.l"
 case 111:
 YY_RULE_SETUP
-#line 1265 "wcsbth.l"
+#line 1230 "wcsbth.l"
 {
 	  if ((yytext[3] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    valtype = FLOAT;
@@ -27217,10 +27179,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 112:
-#line 1283 "wcsbth.l"
+#line 1248 "wcsbth.l"
 case 113:
 YY_RULE_SETUP
-#line 1283 "wcsbth.l"
+#line 1248 "wcsbth.l"
 {
 	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    valtype = FLOAT2;
@@ -27240,10 +27202,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 114:
-#line 1302 "wcsbth.l"
+#line 1267 "wcsbth.l"
 case 115:
 YY_RULE_SETUP
-#line 1302 "wcsbth.l"
+#line 1267 "wcsbth.l"
 {
 	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    // Actually integer, but treated as float.
@@ -27264,10 +27226,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 116:
-#line 1322 "wcsbth.l"
+#line 1287 "wcsbth.l"
 case 117:
 YY_RULE_SETUP
-#line 1322 "wcsbth.l"
+#line 1287 "wcsbth.l"
 {
 	  if ((yytext[2] == 'R') || (relax & WCSHDR_DATEREF)) {
 	    valtype = FLOAT;
@@ -27288,7 +27250,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 1340 "wcsbth.l"
+#line 1305 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.timeoffs);
@@ -27299,7 +27261,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 1348 "wcsbth.l"
+#line 1313 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.dateobs;
@@ -27311,12 +27273,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 120:
-#line 1359 "wcsbth.l"
+#line 1324 "wcsbth.l"
 case 121:
-#line 1360 "wcsbth.l"
+#line 1325 "wcsbth.l"
 case 122:
 YY_RULE_SETUP
-#line 1360 "wcsbth.l"
+#line 1325 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.dateobs;
@@ -27338,7 +27300,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 1379 "wcsbth.l"
+#line 1344 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.datebeg;
@@ -27349,10 +27311,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 124:
-#line 1389 "wcsbth.l"
+#line 1354 "wcsbth.l"
 case 125:
 YY_RULE_SETUP
-#line 1389 "wcsbth.l"
+#line 1354 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.dateavg;
@@ -27369,7 +27331,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 1403 "wcsbth.l"
+#line 1368 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.dateend;
@@ -27380,10 +27342,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 127:
-#line 1413 "wcsbth.l"
+#line 1378 "wcsbth.l"
 case 128:
 YY_RULE_SETUP
-#line 1413 "wcsbth.l"
+#line 1378 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.mjdobs);
@@ -27401,7 +27363,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 1428 "wcsbth.l"
+#line 1393 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.mjdbeg);
@@ -27412,10 +27374,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 130:
-#line 1438 "wcsbth.l"
+#line 1403 "wcsbth.l"
 case 131:
 YY_RULE_SETUP
-#line 1438 "wcsbth.l"
+#line 1403 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.mjdavg);
@@ -27432,7 +27394,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 1452 "wcsbth.l"
+#line 1417 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.mjdend);
@@ -27444,7 +27406,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 1461 "wcsbth.l"
+#line 1426 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.jepoch);
@@ -27456,7 +27418,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 1470 "wcsbth.l"
+#line 1435 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.bepoch);
@@ -27468,7 +27430,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 1479 "wcsbth.l"
+#line 1444 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.tstart);
@@ -27480,7 +27442,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 1488 "wcsbth.l"
+#line 1453 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.tstop);
@@ -27492,7 +27454,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 1497 "wcsbth.l"
+#line 1462 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.xposure);
@@ -27504,7 +27466,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 1506 "wcsbth.l"
+#line 1471 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.telapse);
@@ -27516,7 +27478,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 1515 "wcsbth.l"
+#line 1480 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.timsyer);
@@ -27528,7 +27490,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 1524 "wcsbth.l"
+#line 1489 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.timrder);
@@ -27540,7 +27502,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-#line 1533 "wcsbth.l"
+#line 1498 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.timedel);
@@ -27552,7 +27514,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 1542 "wcsbth.l"
+#line 1507 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.timepixr);
@@ -27564,10 +27526,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 143:
-#line 1553 "wcsbth.l"
+#line 1518 "wcsbth.l"
 case 144:
 YY_RULE_SETUP
-#line 1553 "wcsbth.l"
+#line 1518 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = wcstem.obsgeo;
@@ -27583,10 +27545,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 145:
-#line 1568 "wcsbth.l"
+#line 1533 "wcsbth.l"
 case 146:
 YY_RULE_SETUP
-#line 1568 "wcsbth.l"
+#line 1533 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = wcstem.obsgeo + 1;
@@ -27602,10 +27564,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 147:
-#line 1583 "wcsbth.l"
+#line 1548 "wcsbth.l"
 case 148:
 YY_RULE_SETUP
-#line 1583 "wcsbth.l"
+#line 1548 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = wcstem.obsgeo + 2;
@@ -27622,7 +27584,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 149:
 YY_RULE_SETUP
-#line 1597 "wcsbth.l"
+#line 1562 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = wcstem.obsgeo + 3;
@@ -27633,12 +27595,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 150:
-#line 1607 "wcsbth.l"
+#line 1572 "wcsbth.l"
 case 151:
-#line 1608 "wcsbth.l"
+#line 1573 "wcsbth.l"
 case 152:
 YY_RULE_SETUP
-#line 1608 "wcsbth.l"
+#line 1573 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.obsgeo + 3;
@@ -27660,7 +27622,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 153:
 YY_RULE_SETUP
-#line 1627 "wcsbth.l"
+#line 1592 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = wcstem.obsgeo + 4;
@@ -27671,12 +27633,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 154:
-#line 1637 "wcsbth.l"
+#line 1602 "wcsbth.l"
 case 155:
-#line 1638 "wcsbth.l"
+#line 1603 "wcsbth.l"
 case 156:
 YY_RULE_SETUP
-#line 1638 "wcsbth.l"
+#line 1603 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.obsgeo + 3;
@@ -27698,7 +27660,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 157:
 YY_RULE_SETUP
-#line 1657 "wcsbth.l"
+#line 1622 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = wcstem.obsgeo + 5;
@@ -27709,12 +27671,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 158:
-#line 1667 "wcsbth.l"
+#line 1632 "wcsbth.l"
 case 159:
-#line 1668 "wcsbth.l"
+#line 1633 "wcsbth.l"
 case 160:
 YY_RULE_SETUP
-#line 1668 "wcsbth.l"
+#line 1633 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.obsgeo + 3;
@@ -27736,7 +27698,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 161:
 YY_RULE_SETUP
-#line 1687 "wcsbth.l"
+#line 1652 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.obsorbit;
@@ -27746,10 +27708,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 162:
-#line 1696 "wcsbth.l"
+#line 1661 "wcsbth.l"
 case 163:
 YY_RULE_SETUP
-#line 1696 "wcsbth.l"
+#line 1661 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.radesys;
@@ -27766,7 +27728,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 164:
 YY_RULE_SETUP
-#line 1710 "wcsbth.l"
+#line 1675 "wcsbth.l"
 {
 	  if (relax & WCSHDR_RADECSYS) {
 	    valtype = STRING;
@@ -27789,7 +27751,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 165:
 YY_RULE_SETUP
-#line 1730 "wcsbth.l"
+#line 1695 "wcsbth.l"
 {
 	  sscanf(yytext, "EPOCH%c", &a);
 	
@@ -27818,10 +27780,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 166:
-#line 1758 "wcsbth.l"
+#line 1723 "wcsbth.l"
 case 167:
 YY_RULE_SETUP
-#line 1758 "wcsbth.l"
+#line 1723 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.equinox);
@@ -27837,10 +27799,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 168:
-#line 1773 "wcsbth.l"
+#line 1738 "wcsbth.l"
 case 169:
 YY_RULE_SETUP
-#line 1773 "wcsbth.l"
+#line 1738 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.specsys;
@@ -27855,10 +27817,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 170:
-#line 1787 "wcsbth.l"
+#line 1752 "wcsbth.l"
 case 171:
 YY_RULE_SETUP
-#line 1787 "wcsbth.l"
+#line 1752 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.ssysobs;
@@ -27873,10 +27835,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 172:
-#line 1801 "wcsbth.l"
+#line 1766 "wcsbth.l"
 case 173:
 YY_RULE_SETUP
-#line 1801 "wcsbth.l"
+#line 1766 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.velosys);
@@ -27892,7 +27854,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 174:
 YY_RULE_SETUP
-#line 1814 "wcsbth.l"
+#line 1779 "wcsbth.l"
 {
 	  if (relax & WCSHDR_VSOURCE) {
 	    valtype = FLOAT;
@@ -27914,12 +27876,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 175:
-#line 1835 "wcsbth.l"
+#line 1800 "wcsbth.l"
 case 176:
-#line 1836 "wcsbth.l"
+#line 1801 "wcsbth.l"
 case 177:
 YY_RULE_SETUP
-#line 1836 "wcsbth.l"
+#line 1801 "wcsbth.l"
 {
 	  if (relax & WCSHDR_VSOURCE) {
 	    valtype = FLOAT;
@@ -27941,10 +27903,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 178:
-#line 1857 "wcsbth.l"
+#line 1822 "wcsbth.l"
 case 179:
 YY_RULE_SETUP
-#line 1857 "wcsbth.l"
+#line 1822 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.zsource);
@@ -27959,10 +27921,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 180:
-#line 1871 "wcsbth.l"
+#line 1836 "wcsbth.l"
 case 181:
 YY_RULE_SETUP
-#line 1871 "wcsbth.l"
+#line 1836 "wcsbth.l"
 {
 	  valtype = STRING;
 	  vptr    = wcstem.ssyssrc;
@@ -27977,10 +27939,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 182:
-#line 1885 "wcsbth.l"
+#line 1850 "wcsbth.l"
 case 183:
 YY_RULE_SETUP
-#line 1885 "wcsbth.l"
+#line 1850 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.velangl);
@@ -27996,7 +27958,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 184:
 YY_RULE_SETUP
-#line 1898 "wcsbth.l"
+#line 1863 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  auxprm  = 1;
@@ -28008,7 +27970,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 185:
 YY_RULE_SETUP
-#line 1907 "wcsbth.l"
+#line 1872 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  auxprm  = 1;
@@ -28020,7 +27982,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 186:
 YY_RULE_SETUP
-#line 1916 "wcsbth.l"
+#line 1881 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  auxprm  = 1;
@@ -28032,7 +27994,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 187:
 YY_RULE_SETUP
-#line 1925 "wcsbth.l"
+#line 1890 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  auxprm  = 1;
@@ -28043,10 +28005,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 188:
-#line 1935 "wcsbth.l"
+#line 1900 "wcsbth.l"
 case 189:
 YY_RULE_SETUP
-#line 1935 "wcsbth.l"
+#line 1900 "wcsbth.l"
 {
 	  valtype = FLOAT;
 	  auxprm  = 1;
@@ -28058,10 +28020,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 190:
 YY_RULE_SETUP
-#line 1944 "wcsbth.l"
+#line 1909 "wcsbth.l"
 {
-	  if (wcsbth_nkeyrec) {
-	    wcsbth_nkeyrec = 0;
+	  if (yyextra->nkeyrec) {
+	    yyextra->nkeyrec = 0;
 	    errmsg = "keyrecords following the END keyrecord were ignored";
 	    BEGIN(ERROR);
 	  } else {
@@ -28071,16 +28033,16 @@ YY_RULE_SETUP
 	YY_BREAK
 case 191:
 YY_RULE_SETUP
-#line 1954 "wcsbth.l"
+#line 1919 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 192:
-#line 1959 "wcsbth.l"
+#line 1924 "wcsbth.l"
 case 193:
 YY_RULE_SETUP
-#line 1959 "wcsbth.l"
+#line 1924 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    sscanf(yytext, "%d%c", &i, &a);
@@ -28100,10 +28062,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 194:
-#line 1978 "wcsbth.l"
+#line 1943 "wcsbth.l"
 case 195:
 YY_RULE_SETUP
-#line 1978 "wcsbth.l"
+#line 1943 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    if (relax & WCSHDR_reject) {
@@ -28130,12 +28092,12 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 196:
-#line 2004 "wcsbth.l"
+#line 1969 "wcsbth.l"
 case 197:
-#line 2005 "wcsbth.l"
+#line 1970 "wcsbth.l"
 case 198:
 YY_RULE_SETUP
-#line 2005 "wcsbth.l"
+#line 1970 "wcsbth.l"
 {
 	  // Anything that has fallen through to this point must contain
 	  // an invalid axis number.
@@ -28157,7 +28119,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 199:
 YY_RULE_SETUP
-#line 2024 "wcsbth.l"
+#line 1989 "wcsbth.l"
 {
 	  if (relax & WCSHDR_reject) {
 	    // Looks too much like a FITS WCS keyword not to flag it.
@@ -28173,18 +28135,18 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 200:
-#line 2039 "wcsbth.l"
+#line 2004 "wcsbth.l"
 case 201:
-#line 2040 "wcsbth.l"
+#line 2005 "wcsbth.l"
 case 202:
-#line 2041 "wcsbth.l"
+#line 2006 "wcsbth.l"
 case 203:
-#line 2042 "wcsbth.l"
+#line 2007 "wcsbth.l"
 case 204:
-#line 2043 "wcsbth.l"
+#line 2008 "wcsbth.l"
 case 205:
 YY_RULE_SETUP
-#line 2043 "wcsbth.l"
+#line 2008 "wcsbth.l"
 {
 	  if (vptr) {
 	    WCSBTH_PUTBACK;
@@ -28201,14 +28163,14 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 206:
-#line 2059 "wcsbth.l"
+#line 2024 "wcsbth.l"
 case 207:
-#line 2060 "wcsbth.l"
+#line 2025 "wcsbth.l"
 case 208:
-#line 2061 "wcsbth.l"
+#line 2026 "wcsbth.l"
 case 209:
 YY_RULE_SETUP
-#line 2061 "wcsbth.l"
+#line 2026 "wcsbth.l"
 {
 	  if (vptr && (relax & WCSHDR_LONGKEY)) {
 	    WCSBTH_PUTBACK;
@@ -28231,27 +28193,27 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 210:
-#line 2083 "wcsbth.l"
+#line 2048 "wcsbth.l"
 case 211:
 YY_RULE_SETUP
-#line 2083 "wcsbth.l"
+#line 2048 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 212:
-#line 2088 "wcsbth.l"
+#line 2053 "wcsbth.l"
 case 213:
-#line 2089 "wcsbth.l"
+#line 2054 "wcsbth.l"
 case 214:
-#line 2090 "wcsbth.l"
+#line 2055 "wcsbth.l"
 case 215:
-#line 2091 "wcsbth.l"
+#line 2056 "wcsbth.l"
 case 216:
-#line 2092 "wcsbth.l"
+#line 2057 "wcsbth.l"
 case 217:
 YY_RULE_SETUP
-#line 2092 "wcsbth.l"
+#line 2057 "wcsbth.l"
 {
 	  sscanf(yytext, "%d%c", &n, &a);
 	  if (YY_START == TCCCna) i = wcsbth_colax(*wcs, &alts, n, a);
@@ -28260,23 +28222,23 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 218:
-#line 2100 "wcsbth.l"
+#line 2065 "wcsbth.l"
 case 219:
 YY_RULE_SETUP
-#line 2100 "wcsbth.l"
+#line 2065 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 220:
-#line 2105 "wcsbth.l"
+#line 2070 "wcsbth.l"
 case 221:
-#line 2106 "wcsbth.l"
+#line 2071 "wcsbth.l"
 case 222:
-#line 2107 "wcsbth.l"
+#line 2072 "wcsbth.l"
 case 223:
 YY_RULE_SETUP
-#line 2107 "wcsbth.l"
+#line 2072 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    sscanf(yytext, "%d_%d%c", &i, &j, &a);
@@ -28296,48 +28258,48 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 224:
-#line 2126 "wcsbth.l"
+#line 2091 "wcsbth.l"
 case 225:
-#line 2127 "wcsbth.l"
+#line 2092 "wcsbth.l"
 case 226:
-#line 2128 "wcsbth.l"
+#line 2093 "wcsbth.l"
 case 227:
-#line 2129 "wcsbth.l"
+#line 2094 "wcsbth.l"
 case 228:
-#line 2130 "wcsbth.l"
+#line 2095 "wcsbth.l"
 case 229:
-#line 2131 "wcsbth.l"
+#line 2096 "wcsbth.l"
 case 230:
-#line 2132 "wcsbth.l"
+#line 2097 "wcsbth.l"
 case 231:
-#line 2133 "wcsbth.l"
+#line 2098 "wcsbth.l"
 case 232:
-#line 2134 "wcsbth.l"
+#line 2099 "wcsbth.l"
 case 233:
-#line 2135 "wcsbth.l"
+#line 2100 "wcsbth.l"
 case 234:
-#line 2136 "wcsbth.l"
+#line 2101 "wcsbth.l"
 case 235:
-#line 2137 "wcsbth.l"
+#line 2102 "wcsbth.l"
 case 236:
-#line 2138 "wcsbth.l"
+#line 2103 "wcsbth.l"
 case 237:
-#line 2139 "wcsbth.l"
+#line 2104 "wcsbth.l"
 case 238:
-#line 2140 "wcsbth.l"
+#line 2105 "wcsbth.l"
 case 239:
-#line 2141 "wcsbth.l"
+#line 2106 "wcsbth.l"
 case 240:
-#line 2142 "wcsbth.l"
+#line 2107 "wcsbth.l"
 case 241:
-#line 2143 "wcsbth.l"
+#line 2108 "wcsbth.l"
 case 242:
-#line 2144 "wcsbth.l"
+#line 2109 "wcsbth.l"
 case 243:
-#line 2145 "wcsbth.l"
+#line 2110 "wcsbth.l"
 case 244:
 YY_RULE_SETUP
-#line 2145 "wcsbth.l"
+#line 2110 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    if (((altlin == 1) && (relax & WCSHDR_PC0i_0ja)) ||
@@ -28369,26 +28331,26 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 245:
-#line 2176 "wcsbth.l"
+#line 2141 "wcsbth.l"
 case 246:
-#line 2177 "wcsbth.l"
+#line 2142 "wcsbth.l"
 case 247:
-#line 2178 "wcsbth.l"
+#line 2143 "wcsbth.l"
 case 248:
-#line 2179 "wcsbth.l"
+#line 2144 "wcsbth.l"
 case 249:
-#line 2180 "wcsbth.l"
+#line 2145 "wcsbth.l"
 case 250:
-#line 2181 "wcsbth.l"
+#line 2146 "wcsbth.l"
 case 251:
-#line 2182 "wcsbth.l"
+#line 2147 "wcsbth.l"
 case 252:
-#line 2183 "wcsbth.l"
+#line 2148 "wcsbth.l"
 case 253:
-#line 2184 "wcsbth.l"
+#line 2149 "wcsbth.l"
 case 254:
 YY_RULE_SETUP
-#line 2184 "wcsbth.l"
+#line 2149 "wcsbth.l"
 {
 	  // Anything that has fallen through to this point must contain
 	  // an invalid axis number.
@@ -28409,26 +28371,26 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 255:
-#line 2204 "wcsbth.l"
+#line 2169 "wcsbth.l"
 case 256:
-#line 2205 "wcsbth.l"
+#line 2170 "wcsbth.l"
 case 257:
-#line 2206 "wcsbth.l"
+#line 2171 "wcsbth.l"
 case 258:
-#line 2207 "wcsbth.l"
+#line 2172 "wcsbth.l"
 case 259:
-#line 2208 "wcsbth.l"
+#line 2173 "wcsbth.l"
 case 260:
-#line 2209 "wcsbth.l"
+#line 2174 "wcsbth.l"
 case 261:
-#line 2210 "wcsbth.l"
+#line 2175 "wcsbth.l"
 case 262:
-#line 2211 "wcsbth.l"
+#line 2176 "wcsbth.l"
 case 263:
-#line 2212 "wcsbth.l"
+#line 2177 "wcsbth.l"
 case 264:
 YY_RULE_SETUP
-#line 2212 "wcsbth.l"
+#line 2177 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    errmsg = errtxt;
@@ -28450,7 +28412,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 265:
 YY_RULE_SETUP
-#line 2231 "wcsbth.l"
+#line 2196 "wcsbth.l"
 {
 	  // This covers the defunct forms CD00i00j and PC00i00j.
 	  if (relax & WCSHDR_ALLIMG) {
@@ -28487,18 +28449,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 266:
 YY_RULE_SETUP
-#line 2265 "wcsbth.l"
+#line 2230 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 267:
-#line 2270 "wcsbth.l"
+#line 2235 "wcsbth.l"
 case 268:
-#line 2271 "wcsbth.l"
+#line 2236 "wcsbth.l"
 case 269:
 YY_RULE_SETUP
-#line 2271 "wcsbth.l"
+#line 2236 "wcsbth.l"
 {
 	  sscanf(yytext, "%d%c", &n, &a);
 	  keytype = BIMGARR;
@@ -28506,18 +28468,18 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 270:
-#line 2278 "wcsbth.l"
+#line 2243 "wcsbth.l"
 case 271:
-#line 2279 "wcsbth.l"
+#line 2244 "wcsbth.l"
 case 272:
-#line 2280 "wcsbth.l"
+#line 2245 "wcsbth.l"
 case 273:
-#line 2281 "wcsbth.l"
+#line 2246 "wcsbth.l"
 case 274:
-#line 2282 "wcsbth.l"
+#line 2247 "wcsbth.l"
 case 275:
 YY_RULE_SETUP
-#line 2282 "wcsbth.l"
+#line 2247 "wcsbth.l"
 {
 	  if (relax & WCSHDR_LONGKEY) {
 	    WCSBTH_PUTBACK;
@@ -28536,24 +28498,24 @@ YY_RULE_SETUP
 	YY_BREAK
 case 276:
 YY_RULE_SETUP
-#line 2298 "wcsbth.l"
+#line 2263 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 277:
-#line 2303 "wcsbth.l"
+#line 2268 "wcsbth.l"
 case 278:
-#line 2304 "wcsbth.l"
+#line 2269 "wcsbth.l"
 case 279:
-#line 2305 "wcsbth.l"
+#line 2270 "wcsbth.l"
 case 280:
-#line 2306 "wcsbth.l"
+#line 2271 "wcsbth.l"
 case 281:
-#line 2307 "wcsbth.l"
+#line 2272 "wcsbth.l"
 case 282:
 YY_RULE_SETUP
-#line 2307 "wcsbth.l"
+#line 2272 "wcsbth.l"
 {
 	  sscanf(yytext, "%d_%d%c", &n, &k, &a);
 	  i = wcsbth_colax(*wcs, &alts, n, a);
@@ -28563,14 +28525,14 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 283:
-#line 2316 "wcsbth.l"
+#line 2281 "wcsbth.l"
 case 284:
-#line 2317 "wcsbth.l"
+#line 2282 "wcsbth.l"
 case 285:
-#line 2318 "wcsbth.l"
+#line 2283 "wcsbth.l"
 case 286:
 YY_RULE_SETUP
-#line 2318 "wcsbth.l"
+#line 2283 "wcsbth.l"
 {
 	  sscanf(yytext, "%d_%d", &n, &k);
 	  a = ' ';
@@ -28582,18 +28544,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 287:
 YY_RULE_SETUP
-#line 2327 "wcsbth.l"
+#line 2292 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 288:
-#line 2332 "wcsbth.l"
+#line 2297 "wcsbth.l"
 case 289:
-#line 2333 "wcsbth.l"
+#line 2298 "wcsbth.l"
 case 290:
 YY_RULE_SETUP
-#line 2333 "wcsbth.l"
+#line 2298 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    a = ' ';
@@ -28630,7 +28592,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 291:
 YY_RULE_SETUP
-#line 2367 "wcsbth.l"
+#line 2332 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    yyless(0);
@@ -28642,32 +28604,32 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 292:
-#line 2378 "wcsbth.l"
+#line 2343 "wcsbth.l"
 case 293:
-#line 2379 "wcsbth.l"
+#line 2344 "wcsbth.l"
 case 294:
-#line 2380 "wcsbth.l"
+#line 2345 "wcsbth.l"
 case 295:
-#line 2381 "wcsbth.l"
+#line 2346 "wcsbth.l"
 case 296:
-#line 2382 "wcsbth.l"
+#line 2347 "wcsbth.l"
 case 297:
 YY_RULE_SETUP
-#line 2382 "wcsbth.l"
+#line 2347 "wcsbth.l"
 {
 	  WCSBTH_PUTBACK;
 	  BEGIN((YY_START == iCROTn) ? iCCCna : TCCCna);
 	}
 	YY_BREAK
 case 298:
-#line 2388 "wcsbth.l"
+#line 2353 "wcsbth.l"
 case 299:
-#line 2389 "wcsbth.l"
+#line 2354 "wcsbth.l"
 case 300:
-#line 2390 "wcsbth.l"
+#line 2355 "wcsbth.l"
 case 301:
 YY_RULE_SETUP
-#line 2390 "wcsbth.l"
+#line 2355 "wcsbth.l"
 {
 	  if (relax & WCSHDR_CROTAia) {
 	    WCSBTH_PUTBACK;
@@ -28686,19 +28648,19 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 302:
-#line 2408 "wcsbth.l"
+#line 2373 "wcsbth.l"
 case 303:
 YY_RULE_SETUP
-#line 2408 "wcsbth.l"
+#line 2373 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 304:
-#line 2413 "wcsbth.l"
+#line 2378 "wcsbth.l"
 case 305:
 YY_RULE_SETUP
-#line 2413 "wcsbth.l"
+#line 2378 "wcsbth.l"
 {
 	  // Image-header keyword.
 	  if (imherit || (relax & (WCSHDR_AUXIMG | WCSHDR_ALLIMG))) {
@@ -28725,7 +28687,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 306:
 YY_RULE_SETUP
-#line 2437 "wcsbth.l"
+#line 2402 "wcsbth.l"
 {
 	  if (relax & WCSHDR_reject) {
 	    // Looks too much like a FITS WCS keyword not to flag it.
@@ -28741,16 +28703,16 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 307:
-#line 2452 "wcsbth.l"
+#line 2417 "wcsbth.l"
 case 308:
-#line 2453 "wcsbth.l"
+#line 2418 "wcsbth.l"
 case 309:
-#line 2454 "wcsbth.l"
+#line 2419 "wcsbth.l"
 case 310:
-#line 2455 "wcsbth.l"
+#line 2420 "wcsbth.l"
 case 311:
 YY_RULE_SETUP
-#line 2455 "wcsbth.l"
+#line 2420 "wcsbth.l"
 {
 	  sscanf(yytext, "%d%c", &n, &a);
 	  keytype = BINTAB;
@@ -28759,7 +28721,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 312:
 YY_RULE_SETUP
-#line 2461 "wcsbth.l"
+#line 2426 "wcsbth.l"
 {
 	  sscanf(yytext, "%d", &n);
 	  a = ' ';
@@ -28768,29 +28730,29 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 313:
-#line 2469 "wcsbth.l"
+#line 2434 "wcsbth.l"
 case 314:
 YY_RULE_SETUP
-#line 2469 "wcsbth.l"
+#line 2434 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 315:
-#line 2474 "wcsbth.l"
+#line 2439 "wcsbth.l"
 case 316:
-#line 2475 "wcsbth.l"
+#line 2440 "wcsbth.l"
 case 317:
-#line 2476 "wcsbth.l"
+#line 2441 "wcsbth.l"
 case 318:
-#line 2477 "wcsbth.l"
+#line 2442 "wcsbth.l"
 case 319:
-#line 2478 "wcsbth.l"
+#line 2443 "wcsbth.l"
 case 320:
-#line 2479 "wcsbth.l"
+#line 2444 "wcsbth.l"
 case 321:
 YY_RULE_SETUP
-#line 2479 "wcsbth.l"
+#line 2444 "wcsbth.l"
 {
 	  sscanf(yytext, "%d", &n);
 	  a = 0;
@@ -28799,23 +28761,23 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 322:
-#line 2487 "wcsbth.l"
+#line 2452 "wcsbth.l"
 case 323:
 YY_RULE_SETUP
-#line 2487 "wcsbth.l"
+#line 2452 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 324:
-#line 2492 "wcsbth.l"
+#line 2457 "wcsbth.l"
 case 325:
-#line 2493 "wcsbth.l"
+#line 2458 "wcsbth.l"
 case 326:
-#line 2494 "wcsbth.l"
+#line 2459 "wcsbth.l"
 case 327:
 YY_RULE_SETUP
-#line 2494 "wcsbth.l"
+#line 2459 "wcsbth.l"
 {
 	  // Image-header keyword.
 	  if (relax & WCSHDR_ALLIMG) {
@@ -28836,48 +28798,48 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 328:
-#line 2514 "wcsbth.l"
+#line 2479 "wcsbth.l"
 case 329:
-#line 2515 "wcsbth.l"
+#line 2480 "wcsbth.l"
 case 330:
-#line 2516 "wcsbth.l"
+#line 2481 "wcsbth.l"
 case 331:
-#line 2517 "wcsbth.l"
+#line 2482 "wcsbth.l"
 case 332:
-#line 2518 "wcsbth.l"
+#line 2483 "wcsbth.l"
 case 333:
-#line 2519 "wcsbth.l"
+#line 2484 "wcsbth.l"
 case 334:
-#line 2520 "wcsbth.l"
+#line 2485 "wcsbth.l"
 case 335:
-#line 2521 "wcsbth.l"
+#line 2486 "wcsbth.l"
 case 336:
-#line 2522 "wcsbth.l"
+#line 2487 "wcsbth.l"
 case 337:
-#line 2523 "wcsbth.l"
+#line 2488 "wcsbth.l"
 case 338:
-#line 2524 "wcsbth.l"
+#line 2489 "wcsbth.l"
 case 339:
-#line 2525 "wcsbth.l"
+#line 2490 "wcsbth.l"
 case 340:
-#line 2526 "wcsbth.l"
+#line 2491 "wcsbth.l"
 case 341:
-#line 2527 "wcsbth.l"
+#line 2492 "wcsbth.l"
 case 342:
-#line 2528 "wcsbth.l"
+#line 2493 "wcsbth.l"
 case 343:
-#line 2529 "wcsbth.l"
+#line 2494 "wcsbth.l"
 case 344:
-#line 2530 "wcsbth.l"
+#line 2495 "wcsbth.l"
 case 345:
-#line 2531 "wcsbth.l"
+#line 2496 "wcsbth.l"
 case 346:
-#line 2532 "wcsbth.l"
+#line 2497 "wcsbth.l"
 case 347:
-#line 2533 "wcsbth.l"
+#line 2498 "wcsbth.l"
 case 348:
 YY_RULE_SETUP
-#line 2533 "wcsbth.l"
+#line 2498 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    if (((valtype == FLOAT)  && (relax & WCSHDR_PV0i_0ma)) ||
@@ -28909,26 +28871,26 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 349:
-#line 2564 "wcsbth.l"
+#line 2529 "wcsbth.l"
 case 350:
-#line 2565 "wcsbth.l"
+#line 2530 "wcsbth.l"
 case 351:
-#line 2566 "wcsbth.l"
+#line 2531 "wcsbth.l"
 case 352:
-#line 2567 "wcsbth.l"
+#line 2532 "wcsbth.l"
 case 353:
-#line 2568 "wcsbth.l"
+#line 2533 "wcsbth.l"
 case 354:
-#line 2569 "wcsbth.l"
+#line 2534 "wcsbth.l"
 case 355:
-#line 2570 "wcsbth.l"
+#line 2535 "wcsbth.l"
 case 356:
-#line 2571 "wcsbth.l"
+#line 2536 "wcsbth.l"
 case 357:
-#line 2572 "wcsbth.l"
+#line 2537 "wcsbth.l"
 case 358:
 YY_RULE_SETUP
-#line 2572 "wcsbth.l"
+#line 2537 "wcsbth.l"
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    // Anything that has fallen through to this point must contain
@@ -28949,26 +28911,26 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 359:
-#line 2592 "wcsbth.l"
+#line 2557 "wcsbth.l"
 case 360:
-#line 2593 "wcsbth.l"
+#line 2558 "wcsbth.l"
 case 361:
-#line 2594 "wcsbth.l"
+#line 2559 "wcsbth.l"
 case 362:
-#line 2595 "wcsbth.l"
+#line 2560 "wcsbth.l"
 case 363:
-#line 2596 "wcsbth.l"
+#line 2561 "wcsbth.l"
 case 364:
-#line 2597 "wcsbth.l"
+#line 2562 "wcsbth.l"
 case 365:
-#line 2598 "wcsbth.l"
+#line 2563 "wcsbth.l"
 case 366:
-#line 2599 "wcsbth.l"
+#line 2564 "wcsbth.l"
 case 367:
-#line 2600 "wcsbth.l"
+#line 2565 "wcsbth.l"
 case 368:
 YY_RULE_SETUP
-#line 2600 "wcsbth.l"
+#line 2565 "wcsbth.l"
 {
 	  errmsg = errtxt;
 	  sprintf(errmsg, "%s keyword must use an underscore, not a dash",
@@ -28978,36 +28940,36 @@ YY_RULE_SETUP
 	YY_BREAK
 case 369:
 YY_RULE_SETUP
-#line 2607 "wcsbth.l"
+#line 2572 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 370:
-#line 2612 "wcsbth.l"
+#line 2577 "wcsbth.l"
 case 371:
-#line 2613 "wcsbth.l"
+#line 2578 "wcsbth.l"
 case 372:
-#line 2614 "wcsbth.l"
+#line 2579 "wcsbth.l"
 case 373:
-#line 2615 "wcsbth.l"
+#line 2580 "wcsbth.l"
 case 374:
-#line 2616 "wcsbth.l"
+#line 2581 "wcsbth.l"
 case 375:
-#line 2617 "wcsbth.l"
+#line 2582 "wcsbth.l"
 case 376:
-#line 2618 "wcsbth.l"
+#line 2583 "wcsbth.l"
 case 377:
-#line 2619 "wcsbth.l"
+#line 2584 "wcsbth.l"
 case 378:
-#line 2620 "wcsbth.l"
+#line 2585 "wcsbth.l"
 case 379:
-#line 2621 "wcsbth.l"
+#line 2586 "wcsbth.l"
 case 380:
-#line 2622 "wcsbth.l"
+#line 2587 "wcsbth.l"
 case 381:
 YY_RULE_SETUP
-#line 2622 "wcsbth.l"
+#line 2587 "wcsbth.l"
 {
 	  if (relax & WCSHDR_LONGKEY) {
 	    WCSBTH_PUTBACK;
@@ -29025,39 +28987,39 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 382:
-#line 2639 "wcsbth.l"
+#line 2604 "wcsbth.l"
 case 383:
 YY_RULE_SETUP
-#line 2639 "wcsbth.l"
+#line 2604 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 384:
-#line 2644 "wcsbth.l"
+#line 2609 "wcsbth.l"
 case 385:
-#line 2645 "wcsbth.l"
+#line 2610 "wcsbth.l"
 case 386:
-#line 2646 "wcsbth.l"
+#line 2611 "wcsbth.l"
 case 387:
-#line 2647 "wcsbth.l"
+#line 2612 "wcsbth.l"
 case 388:
-#line 2648 "wcsbth.l"
+#line 2613 "wcsbth.l"
 case 389:
-#line 2649 "wcsbth.l"
+#line 2614 "wcsbth.l"
 case 390:
-#line 2650 "wcsbth.l"
+#line 2615 "wcsbth.l"
 case 391:
-#line 2651 "wcsbth.l"
+#line 2616 "wcsbth.l"
 case 392:
-#line 2652 "wcsbth.l"
+#line 2617 "wcsbth.l"
 case 393:
-#line 2653 "wcsbth.l"
+#line 2618 "wcsbth.l"
 case 394:
-#line 2654 "wcsbth.l"
+#line 2619 "wcsbth.l"
 case 395:
 YY_RULE_SETUP
-#line 2654 "wcsbth.l"
+#line 2619 "wcsbth.l"
 {
 	  sscanf(yytext, "%d_%d%c", &n, &m, &a);
 	  if (YY_START == TCn_ma) i = wcsbth_colax(*wcs, &alts, n, a);
@@ -29066,22 +29028,22 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 396:
-#line 2662 "wcsbth.l"
+#line 2627 "wcsbth.l"
 case 397:
-#line 2663 "wcsbth.l"
+#line 2628 "wcsbth.l"
 case 398:
-#line 2664 "wcsbth.l"
+#line 2629 "wcsbth.l"
 case 399:
-#line 2665 "wcsbth.l"
+#line 2630 "wcsbth.l"
 case 400:
-#line 2666 "wcsbth.l"
+#line 2631 "wcsbth.l"
 case 401:
-#line 2667 "wcsbth.l"
+#line 2632 "wcsbth.l"
 case 402:
-#line 2668 "wcsbth.l"
+#line 2633 "wcsbth.l"
 case 403:
 YY_RULE_SETUP
-#line 2668 "wcsbth.l"
+#line 2633 "wcsbth.l"
 {
 	  // Invalid combinations will be flagged by <VALUE>.
 	  sscanf(yytext, "%d_%d", &n, &m);
@@ -29092,17 +29054,17 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 404:
-#line 2678 "wcsbth.l"
+#line 2643 "wcsbth.l"
 case 405:
 YY_RULE_SETUP
-#line 2678 "wcsbth.l"
+#line 2643 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 406:
 YY_RULE_SETUP
-#line 2682 "wcsbth.l"
+#line 2647 "wcsbth.l"
 {
 	  if (relax & WCSHDR_PROJPn) {
 	    sscanf(yytext, "%d", &m);
@@ -29122,10 +29084,10 @@ YY_RULE_SETUP
 	}
 	YY_BREAK
 case 407:
-#line 2701 "wcsbth.l"
+#line 2666 "wcsbth.l"
 case 408:
 YY_RULE_SETUP
-#line 2701 "wcsbth.l"
+#line 2666 "wcsbth.l"
 {
 	  if (relax & (WCSHDR_PROJPn | WCSHDR_reject)) {
 	    errmsg = "invalid PROJPn keyword";
@@ -29138,14 +29100,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 409:
 YY_RULE_SETUP
-#line 2711 "wcsbth.l"
+#line 2676 "wcsbth.l"
 {
 	  BEGIN(DISCARD);
 	}
 	YY_BREAK
 case 410:
 YY_RULE_SETUP
-#line 2715 "wcsbth.l"
+#line 2680 "wcsbth.l"
 {
 	  // Do checks on i, j, m, n, k.
 	  if (!(keytype & keysel)) {
@@ -29157,7 +29119,7 @@ YY_RULE_SETUP
 	    if (k && (exclude[n] != exclude[k])) {
 	      // For keywords such as TCn_ka, both columns must be excluded.
 	      // User error, so return immediately.
-	      return 3;
+	      return WCSHDRERR_BAD_COLUMN;
 	
 	    } else {
 	      BEGIN(DISCARD);
@@ -29210,7 +29172,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 411:
 YY_RULE_SETUP
-#line 2777 "wcsbth.l"
+#line 2742 "wcsbth.l"
 {
 	  errmsg = "invalid KEYWORD = VALUE syntax";
 	  BEGIN(ERROR);
@@ -29218,7 +29180,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 412:
 YY_RULE_SETUP
-#line 2782 "wcsbth.l"
+#line 2747 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    BEGIN(COMMENT);
@@ -29233,7 +29195,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 413:
 YY_RULE_SETUP
-#line 2794 "wcsbth.l"
+#line 2759 "wcsbth.l"
 {
 	  errmsg = "an integer value was expected";
 	  BEGIN(ERROR);
@@ -29241,7 +29203,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 414:
 YY_RULE_SETUP
-#line 2799 "wcsbth.l"
+#line 2764 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    BEGIN(COMMENT);
@@ -29261,7 +29223,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 415:
 YY_RULE_SETUP
-#line 2816 "wcsbth.l"
+#line 2781 "wcsbth.l"
 {
 	  errmsg = "a floating-point value was expected";
 	  BEGIN(ERROR);
@@ -29269,7 +29231,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 416:
 YY_RULE_SETUP
-#line 2821 "wcsbth.l"
+#line 2786 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    BEGIN(COMMENT);
@@ -29284,7 +29246,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 417:
 YY_RULE_SETUP
-#line 2833 "wcsbth.l"
+#line 2798 "wcsbth.l"
 {
 	  errmsg = "a floating-point value was expected";
 	  BEGIN(ERROR);
@@ -29293,18 +29255,18 @@ YY_RULE_SETUP
 case 418:
 /* rule 418 can match eol */
 YY_RULE_SETUP
-#line 2838 "wcsbth.l"
+#line 2803 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    BEGIN(COMMENT);
 	
 	  } else {
 	    // Read the keyvalue.
-	      strcpy(strtmp, yytext+1);
+	    strcpy(strtmp, yytext+1);
 	
 	    // Squeeze out repeated quotes.
-	    ix = 0;
-	    for (jx = 0; jx < 72; jx++) {
+	    int ix = 0;
+	    for (int jx = 0; jx < 72; jx++) {
 	      if (ix < jx) {
 	        strtmp[ix] = strtmp[jx];
 	      }
@@ -29325,7 +29287,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 419:
 YY_RULE_SETUP
-#line 2867 "wcsbth.l"
+#line 2832 "wcsbth.l"
 {
 	  errmsg = "a string value was expected";
 	  BEGIN(ERROR);
@@ -29336,7 +29298,7 @@ case 420:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2872 "wcsbth.l"
+#line 2837 "wcsbth.l"
 {
 	  if (ipass == 1) {
 	    // Do first-pass bookkeeping.
@@ -29349,19 +29311,21 @@ YY_RULE_SETUP
 	    alts.ialt = 0;
 	
 	    // Update each coordinate representation.
-	    gotone = 0;
+	    int gotone = 0;
+	    struct wcsprm *wcsp;
 	    while ((wcsp = wcsbth_idx(*wcs, &alts, keytype, n, a))) {
 	      gotone = 1;
 	
 	      if (vptr) {
+	        void *wptr;
 	        if (auxprm) {
 	          // Additional auxiliary parameter.
 	          auxp = wcsp->aux;
-	          voff = (char *)vptr - (char *)(&auxtem);
+	          ptrdiff_t voff = (char *)vptr - (char *)(&auxtem);
 	          wptr = (void *)((char *)auxp + voff);
 	        } else {
 	          // A parameter that lives directly in wcsprm.
-	          voff = (char *)vptr - (char *)(&wcstem);
+	          ptrdiff_t voff = (char *)vptr - (char *)(&wcstem);
 	          wptr = (void *)((char *)wcsp + voff);
 	        }
 	
@@ -29371,7 +29335,7 @@ YY_RULE_SETUP
 	        } else if (valtype == FLOAT) {
 	          // Apply keyword parameterization.
 	          if (ptype == 'v') {
-	            ipx = (wcsp->npv)++;
+	            int ipx = (wcsp->npv)++;
 	            wcsp->pv[ipx].i = i;
 	            wcsp->pv[ipx].m = m;
 	            wptr = &(wcsp->pv[ipx].value);
@@ -29408,7 +29372,7 @@ YY_RULE_SETUP
 	        } else if (valtype == STRING) {
 	          // Apply keyword parameterization.
 	          if (ptype == 's') {
-	            ipx = wcsp->nps++;
+	            int ipx = wcsp->nps++;
 	            wcsp->ps[ipx].i = i;
 	            wcsp->ps[ipx].m = m;
 	            wptr = wcsp->ps[ipx].value;
@@ -29421,7 +29385,7 @@ YY_RULE_SETUP
 	            wptr = *((char (**)[72])wptr) + (i - 1);
 	          }
 	
-	          cptr = (char *)wptr;
+	          char *cptr = (char *)wptr;
 	          strcpy(cptr, strtmp);
 	        }
 	      }
@@ -29457,7 +29421,7 @@ case 421:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2987 "wcsbth.l"
+#line 2954 "wcsbth.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -29468,7 +29432,7 @@ case 422:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2992 "wcsbth.l"
+#line 2959 "wcsbth.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -29479,7 +29443,7 @@ case 423:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2997 "wcsbth.l"
+#line 2964 "wcsbth.l"
 {
 	  errmsg = "invalid keyvalue or malformed keycomment";
 	  BEGIN(ERROR);
@@ -29490,7 +29454,7 @@ case 424:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3002 "wcsbth.l"
+#line 2969 "wcsbth.l"
 {
 	  errmsg = "malformed keycomment";
 	  BEGIN(ERROR);
@@ -29501,7 +29465,7 @@ case 425:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3007 "wcsbth.l"
+#line 2974 "wcsbth.l"
 {
 	  if (ipass == npass) {
 	    if (ctrl < 0) {
@@ -29522,7 +29486,7 @@ case 426:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 3022 "wcsbth.l"
+#line 2989 "wcsbth.l"
 {
 	  if (ipass == npass) {
 	    (*nreject)++;
@@ -29542,7 +29506,7 @@ YY_RULE_SETUP
 case 427:
 /* rule 427 can match eol */
 YY_RULE_SETUP
-#line 3038 "wcsbth.l"
+#line 3005 "wcsbth.l"
 {
 	  if (ipass == npass && keep) {
 	    if (hptr < keep) {
@@ -29608,10 +29572,11 @@ case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(DISCARD):
 case YY_STATE_EOF(ERROR):
 case YY_STATE_EOF(FLUSH):
-#line 3069 "wcsbth.l"
+#line 3036 "wcsbth.l"
 {
 	  // End-of-input.
 	  if (ipass == 1) {
+	    int status;
 	    if ((status = wcsbth_init1(&alts, naux, nwcs, wcs)) ||
 	        (*nwcs == 0 && ctrl == 0)) {
 	      return status;
@@ -29632,8 +29597,8 @@ case YY_STATE_EOF(FLUSH):
 	  }
 	
 	  if (ipass++ < npass) {
-	    wcsbth_hdr = header;
-	    wcsbth_nkeyrec = nkeyrec;
+	    yyextra->hdr = header;
+	    yyextra->nkeyrec = nkeyrec;
 	    keyrec = header;
 	    *nreject = 0;
 	
@@ -29679,10 +29644,10 @@ case YY_STATE_EOF(FLUSH):
 	YY_BREAK
 case 428:
 YY_RULE_SETUP
-#line 3137 "wcsbth.l"
+#line 3105 "wcsbth.l"
 ECHO;
 	YY_BREAK
-#line 29686 "wcsbth.c"
+#line 29651 "wcsbth.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -30847,8 +30812,38 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 3137 "wcsbth.l"
+#line 3105 "wcsbth.l"
 
+
+/*----------------------------------------------------------------------------
+* External interface to the scanner.
+*---------------------------------------------------------------------------*/
+
+int wcsbth(
+  char *header,
+  int nkeyrec,
+  int relax,
+  int ctrl,
+  int keysel,
+  int *colsel,
+  int *nreject,
+  int *nwcs,
+  struct wcsprm **wcs)
+
+{
+  // Function prototypes.
+  int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
+  int yylex_destroy(yyscan_t yyscanner);
+
+  struct wcsbth_extra extra;
+  yyscan_t yyscanner;
+  yylex_init_extra(&extra, &yyscanner);
+  int status = wcsbth_scanner(header, nkeyrec, relax, ctrl, keysel, colsel,
+                              nreject, nwcs, wcs, yyscanner);
+  yylex_destroy(yyscanner);
+
+  return status;
+}
 
 /*----------------------------------------------------------------------------
 * Perform first-pass tasks:
@@ -30887,14 +30882,12 @@ int wcsbth_pass1(
   struct wcsbth_alts *alts)
 
 {
-  int ialt, icol, mask, ncol;
-
   if (a == 0) {
     // Keywords such as DATE-OBS go along for the ride.
     return 0;
   }
 
-  ncol = alts->ncol;
+  int ncol = alts->ncol;
 
   // Do we need to allocate memory for alts?
   if (alts->arridx == 0x0) {
@@ -30916,7 +30909,7 @@ int wcsbth_pass1(
       if (alts->npv)     free(alts->npv);
       if (alts->nps)     free(alts->nps);
       if (alts->pixlist) free(alts->pixlist);
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     alts->ncol = ncol;
@@ -30936,12 +30929,12 @@ int wcsbth_pass1(
       if (alts->npv)     free(alts->npv);
       if (alts->nps)     free(alts->nps);
       if (alts->pixlist) free(alts->pixlist);
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     // Since realloc() doesn't initialize the extra memory.
-    for (icol = (1 + alts->ncol); icol < (1 + ncol); icol++) {
-      for (ialt = 0; ialt < 27; ialt++) {
+    for (int icol = (1 + alts->ncol); icol < (1 + ncol); icol++) {
+      for (int ialt = 0; ialt < 27; ialt++) {
         alts->arridx[icol][ialt] = 0;
         alts->npv[icol][ialt] = 0;
         alts->nps[icol][ialt] = 0;
@@ -30952,7 +30945,7 @@ int wcsbth_pass1(
     alts->ncol = ncol;
   }
 
-  ialt = 0;
+  int ialt = 0;
   if (a != ' ') {
     ialt = a - 'A' + 1;
   }
@@ -30989,7 +30982,7 @@ int wcsbth_pass1(
   // image arrays, never contribute to recognizing a table column as a pixel
   // list axis.  A PIXLIST keytype is required for that.
   if (keytype == PIXLIST) {
-    mask = 1 << ialt;
+    int mask = 1 << ialt;
 
     // n > 0 for PIXLIST keytypes.
     alts->pixlist[n] |= mask;
@@ -31023,9 +31016,7 @@ int wcsbth_init1(
   struct wcsprm **wcs)
 
 {
-  int ialt, icol, inherit[27], ix, mask, ncol, npsmax, npvmax, status = 0;
-  struct wcsprm *wcsp;
-
+  int status = 0;
 
   if (alts->arridx == 0x0) {
     *nwcs = 0;
@@ -31033,12 +31024,12 @@ int wcsbth_init1(
   }
 
   // Determine the number of axes in each pixel list representation.
-  ncol = alts->ncol;
+  int ialt, mask, ncol = alts->ncol;
   for (ialt = 0, mask = 1; ialt < 27; ialt++, mask <<= 1) {
     alts->pixidx[ialt] = 0;
 
     if (alts->pixlist[0] | mask) {
-      for (icol = 1; icol <= ncol; icol++) {
+      for (int icol = 1; icol <= ncol; icol++) {
         if (alts->pixlist[icol] & mask) {
           alts->pixidx[ialt]++;
         }
@@ -31049,10 +31040,11 @@ int wcsbth_init1(
   // Find the total number of coordinate representations.
   *nwcs = 0;
   alts->imgherit = 0;
-  for (ialt = 0; ialt < 27; ialt++) {
+  int inherit[27];
+  for (int ialt = 0; ialt < 27; ialt++) {
     inherit[ialt] = 0;
 
-    for (icol = 1; icol <= ncol; icol++) {
+    for (int icol = 1; icol <= ncol; icol++) {
       if (alts->arridx[icol][ialt] < 0) {
         // No BIMGARR keytype but there's at least one BINTAB.
         if (alts->arridx[0][ialt] > 0) {
@@ -31100,20 +31092,20 @@ int wcsbth_init1(
   if (*nwcs) {
     // Allocate memory for the required number of wcsprm structs.
     if (!(*wcs = calloc(*nwcs, sizeof(struct wcsprm)))) {
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     // Initialize each wcsprm struct.
-    wcsp = *wcs;
+    struct wcsprm *wcsp = *wcs;
     *nwcs = 0;
-    for (icol = 0; icol <= ncol; icol++) {
-      for (ialt = 0; ialt < 27; ialt++) {
+    for (int icol = 0; icol <= ncol; icol++) {
+      for (int ialt = 0; ialt < 27; ialt++) {
         if (alts->arridx[icol][ialt] > 0) {
           // Image-header representations that are not for inheritance
           // (icol == 0) or binary table image array representations.
           wcsp->flag = -1;
-          npvmax = alts->npv[icol][ialt];
-          npsmax = alts->nps[icol][ialt];
+          int npvmax = alts->npv[icol][ialt];
+          int npsmax = alts->nps[icol][ialt];
           if ((status = wcsinit(1, (int)(alts->arridx[icol][ialt]), wcsp,
                                 npvmax, npsmax, -1))) {
             wcsvfree(nwcs, wcs);
@@ -31148,12 +31140,12 @@ int wcsbth_init1(
       }
     }
 
-    for (ialt = 0; ialt < 27; ialt++) {
+    for (int ialt = 0; ialt < 27; ialt++) {
       if (alts->pixidx[ialt]) {
         // Pixel lists representations.
         wcsp->flag = -1;
-        npvmax = alts->pixnpv[ialt];
-        npsmax = alts->pixnps[ialt];
+        int npvmax = alts->pixnpv[ialt];
+        int npsmax = alts->pixnps[ialt];
         if ((status = wcsinit(1, (int)(alts->pixidx[ialt]), wcsp, npvmax,
                               npsmax, -1))) {
           wcsvfree(nwcs, wcs);
@@ -31173,7 +31165,7 @@ int wcsbth_init1(
         }
 
         // Record the pixel list column numbers.
-        mask = (1 << ialt);
+        int icol, ix, mask = (1 << ialt);
         for (icol = 1, ix = 0; icol <= ncol; icol++) {
           if (alts->pixlist[icol] & mask) {
             wcsp->colax[ix++] = icol;
@@ -31210,11 +31202,10 @@ struct wcsprm *wcsbth_idx(
 
 {
   const char as[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  int iwcs;
 
   if (!wcs) return 0x0;
 
-  iwcs = -1;
+  int iwcs = -1;
   for (; iwcs < 0 && alts->ialt < 27; alts->ialt++) {
     // Note that a == 0 applies to every alternate, otherwise this
     // loop simply determines the appropriate value of alts->ialt.
@@ -31256,17 +31247,14 @@ int wcsbth_colax(
   char a)
 
 {
-  int ix;
-  struct wcsprm *wcsp;
-
   if (!wcs) return 0;
 
-  wcsp = wcs;
+  struct wcsprm *wcsp = wcs;
   if (a != ' ') {
     wcsp += alts->pixidx[a-'A'+1];
   }
 
-  for (ix = 0; ix < wcsp->naxis; ix++) {
+  for (int ix = 0; ix < wcsp->naxis; ix++) {
     if (wcsp->colax[ix] == n) {
       return ++ix;
     }
@@ -31344,12 +31332,12 @@ int wcsbth_epoch(double *equinox, const double *epoch)
 int wcsbth_vsource(double *zsource, const double *vsource)
 
 {
-  double beta, c = 299792458.0;
+  const double c = 299792458.0;
 
   // If ZSOURCEa is currently undefined then set it from VSOURCEa.
   if (undefined(*zsource)) {
     // Convert relativistic Doppler velocity to redshift.
-    beta = *vsource/c;
+    double beta = *vsource/c;
     *zsource = (1.0 + beta)/sqrt(1.0 - beta*beta) - 1.0;
   }
 
@@ -31378,15 +31366,14 @@ int wcsbth_final(
   struct wcsprm **wcs)
 
 {
-  int ialt, status;
-
   if (alts->arridx)  free(alts->arridx);
   if (alts->npv)     free(alts->npv);
   if (alts->nps)     free(alts->nps);
   if (alts->pixlist) free(alts->pixlist);
 
-  for (ialt = 0; ialt < *nwcs; ialt++) {
+  for (int ialt = 0; ialt < *nwcs; ialt++) {
     // Interpret -TAB header keywords.
+    int status;
     if ((status = wcstab(*wcs+ialt))) {
        wcsvfree(nwcs, wcs);
        return status;

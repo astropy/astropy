@@ -409,12 +409,15 @@ def test_fix():
         'unitfix': 'No change',
         'celfix': 'No change',
         'obsfix': 'No change'}
+
     version = wcs._wcs.__version__
     if Version(version) <= Version('5'):
         del fix_ref['obsfix']
+
     if Version(version) >= Version('7.1'):
         w.dateref = '1858-11-17'
-    if Version(version) >= Version('7.4'):
+
+    if Version('7.4') <= Version(version) < Version('7.6'):
         fix_ref['datfix'] = 'Success'
 
     assert w.fix() == fix_ref
