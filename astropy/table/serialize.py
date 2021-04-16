@@ -6,8 +6,8 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .column import Column, MaskedColumn
 from astropy.utils.data_info import MixinInfo
+from .column import Column, MaskedColumn
 from .table import Table, QTable, has_info_class
 from astropy.units.quantity import QuantityInfo
 

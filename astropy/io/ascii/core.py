@@ -773,7 +773,7 @@ class BaseData:
 
     def process_lines(self, lines):
         """
-        Strip out comment lines and blank lines from list of ``lines``
+        READ: Strip out comment lines and blank lines from list of ``lines``
 
         Parameters
         ----------
@@ -794,8 +794,8 @@ class BaseData:
             return [x for x in nonblank_lines]
 
     def get_data_lines(self, lines):
-        """Set the ``data_lines`` attribute to the lines slice comprising the
-        table data values."""
+        """READ: Set ``data_lines`` attribute to lines slice comprising table data values.
+        """
         data_lines = self.process_lines(lines)
         start_line = _get_line_index(self.start_line, data_lines)
         end_line = _get_line_index(self.end_line, data_lines)
@@ -811,7 +811,7 @@ class BaseData:
         return self.splitter(self.data_lines)
 
     def masks(self, cols):
-        """Set fill value for each column and then apply that fill value
+        """READ: Set fill value for each column and then apply that fill value
 
         In the first step it is evaluated with value from ``fill_values`` applies to
         which column using ``fill_include_names`` and ``fill_exclude_names``.
@@ -822,11 +822,11 @@ class BaseData:
             self._set_masks(cols)
 
     def _set_fill_values(self, cols):
-        """Set the fill values of the individual cols based on fill_values of BaseData
+        """READ, WRITE: Set fill values of individual cols based on fill_values of BaseData
 
-        fill values has the following form:
-        <fill_spec> = (<bad_value>, <fill_value>, <optional col_name>...)
-        fill_values = <fill_spec> or list of <fill_spec>'s
+        fill values has the following form: <fill_spec> = (<bad_value>,
+        <fill_value>, <optional col_name>...) fill_values = <fill_spec> or list
+        of <fill_spec>'s
 
         """
         if self.fill_values:
@@ -866,7 +866,7 @@ class BaseData:
                     cols[i].fill_values[replacement[0]] = str(replacement[1])
 
     def _set_masks(self, cols):
-        """Replace string values in col.str_vals and set masks"""
+        """READ: Replace string values in col.str_vals and set masks"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 col.mask = numpy.zeros(len(col.str_vals), dtype=bool)
@@ -876,7 +876,7 @@ class BaseData:
                     col.mask[i] = True
 
     def _replace_vals(self, cols):
-        """Replace string values in col.str_vals"""
+        """WRITE: replace string values in col.str_vals"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
@@ -888,7 +888,13 @@ class BaseData:
                         col.str_vals[i] = mask_val
 
     def str_vals(self):
-        '''convert all values in table to a list of lists of strings'''
+        """WRITE: convert all values in table to a list of lists of strings
+
+        This sets the fill values and possibly column formats from the input
+        formats={} keyword, then ends up calling table.pprint._pformat_col_iter()
+        by a circuitous path. That function does the real work of formatting.
+        Finally replace anything matching the fill_values.
+        """
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
@@ -897,6 +903,13 @@ class BaseData:
         return [col.str_vals for col in self.cols]
 
     def write(self, lines):
+        """Write ``self.cols`` in place to ``lines``
+
+        Parameters
+        ----------
+        lines : list
+            List for collecting output of writing self.cols
+        """
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
         else:
@@ -910,8 +923,7 @@ class BaseData:
             lines.append(self.splitter.join(vals))
 
     def _set_col_formats(self):
-        """
-        """
+        """WRITE: set column formats"""
         for col in self.cols:
             if col.info.name in self.formats:
                 col.info.format = self.formats[col.info.name]
@@ -1048,17 +1060,7 @@ class BaseOutputter:
                     converter_func, converter_type = col.converters[0]
                     if not issubclass(converter_type, col.type):
                         raise TypeError('converter type does not match column type')
-                    if col.shape or converter_type is ObjectType:
-                        import json
-                        try:
-                            col_vals = [json.loads(val) for val in col.str_vals]
-                            col.data = converter_func(col_vals)
-                        except json.JSONDecodeError:
-                            raise ValueError('failed to decode as JSON')
-                        if col.data.shape[1:] != tuple(col.shape):
-                            raise ValueError('shape mismatch')
-                    else:
-                        col.data = converter_func(col.str_vals)
+                    col.data = converter_func(col.str_vals)
                     col.type = converter_type
                 except (TypeError, ValueError) as err:
                     col.converters.pop(0)
