@@ -20,6 +20,7 @@ from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.coordinates import SkyCoord
 
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy import table
 from astropy import units as u
 from astropy.time import Time, TimeDelta
@@ -2115,7 +2116,7 @@ class TestQTableColumnConversionCornerCases:
 
     def test_do_not_replace_string_column_with_units_in_qtable(self):
         t = QTable([[1*u.m]])
-        with pytest.warns(UserWarning, match='convert it to Quantity failed'):
+        with pytest.warns(AstropyUserWarning, match='convert it to Quantity failed'):
             t['a'] = Column(['a'], unit=u.m)
         assert isinstance(t['a'], Column)
 
