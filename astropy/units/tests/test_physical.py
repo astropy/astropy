@@ -254,17 +254,6 @@ def test_physical_type_in():
     assert "pressure" in pressure
 
 
-def test_physical_type_id():
-    """
-    Test that the physical type ID of a `physical.PhysicalType`
-    instance matches that of a unit of that physical type.
-    """
-    time_physical_type = u.s.physical_type
-    time_id = time_physical_type._physical_type_id
-    hour_id = u.hr._get_physical_type_id()
-    assert time_id == hour_id
-
-
 equivalent_unit_pairs = [
     (u.m, u.m),
     (u.m, u.cm),
@@ -276,14 +265,6 @@ equivalent_unit_pairs = [
     (u.deg_C, u.imperial.deg_F),
     (u.m ** 18, u.pc ** 18),
 ]
-
-
-@pytest.mark.parametrize("unit1, unit2", equivalent_unit_pairs)
-def test_physical_type_id(unit1, unit2):
-    """Test that the physical type IDs of equivalent units match."""
-    id1 = physical.get_physical_type(unit1)._physical_type_id
-    id2 = physical.get_physical_type(unit2)._physical_type_id
-    assert id1 == id2
 
 
 @pytest.mark.parametrize("unit1, unit2", equivalent_unit_pairs)
