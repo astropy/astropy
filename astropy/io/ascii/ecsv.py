@@ -199,7 +199,7 @@ class EcsvOutputter(core.TableOutputter):
         return out
 
     def _convert_vals(self, cols):
-        """Convert str_vals in `cols` to final arrays with correct dtypes.
+        """READ: Convert str_vals in `cols` to final arrays with correct dtypes.
 
         This is adapted (and shortened) from BaseOutputter._convert_vals. In
         the case of ECSV there is no guessing and all types are known in
@@ -226,7 +226,7 @@ class EcsvOutputter(core.TableOutputter):
 
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
-        """Set the fill values of the individual cols based on fill_values of BaseData
+        """READ: Set the fill values of the individual cols based on fill_values of BaseData
 
         For ECSV handle the corner case of data that has been serialized using
         the serialize_method='data_mask' option, which writes the full data and
@@ -257,19 +257,33 @@ class EcsvData(basic.BasicData):
     def str_vals(self):
         """WRITE: convert all values in table to a list of lists of strings
 
-        The base method sets fill values and column formats, but that is not
-        needed here.
-
-        This ends up calling table.pprint._pformat_col_iter()
-        by a circuitous path. That function does the real work of formatting.
-        Finally replace any masked values with "".
+        This version considerably simplifies the base method:
+        - No need to set fill values and column formats
+        - No per-item formatting, just use repr()
+        - Use JSON for object-type or multidim values
+        - Only Column or MaskedColumn can end up as cols here.
+        - Only replace masked values with "", not the generalized filling
         """
         for col in self.cols:
-            col.str_vals = list(col.info.iter_str_vals())
+            if len(col.shape) > 1:
+                import json
+
+                def format_col_item(idx):
+                    return json.dumps(col[idx].tolist(), separators=(',', ':'))
+            elif col.info.dtype.kind == 'O':
+                import json
+
+                def format_col_item(idx):
+                    return json.dumps(col[idx], separators=(',', ':'))
+            else:
+                def format_col_item(idx):
+                    return str(col[idx])
+
+            col.str_vals = [format_col_item(idx) for idx in range(len(col))]
 
             # Replace every masked value in a 1-d column with an empty string.
             # For multi-dim columns this gets done by JSON via "null".
-            if hasattr(col, 'mask') and len(col.shape) == 1:
+            if hasattr(col, 'mask') and col.ndim == 1:
                 for idx in col.mask.nonzero()[0]:
                     col.str_vals[idx] = ""
 
