@@ -1,0 +1,3 @@
+Updated bundled version of WCSLIB to version 7.6. See
+https://www.atnf.csiro.au/people/mcalabre/WCS/CHANGES for a list of
+included changes.
