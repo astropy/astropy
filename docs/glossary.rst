@@ -73,10 +73,6 @@ Astropy Glossary
       In the context of a :term:`python:file-like object` object, anything
       that supports writing with a method ``read``.
 
-   Base HDU
-      The fundamental HDU data structure.
-      Defined in ``astropy.io.fits.hdu``.
-
 
 ***************************
 Optional Packages' Glossary
