@@ -1,11 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import re
-import itertools
-
 import numpy as np
 
-from astropy.utils.data_info import ParentDtypeInfo, MULTIDIM_AS_JSON
+from astropy.utils.data_info import ParentDtypeInfo
 
 
 class NdarrayMixinInfo(ParentDtypeInfo):

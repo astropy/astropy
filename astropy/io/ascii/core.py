@@ -972,12 +972,6 @@ def convert_numpy(numpy_type):
         if len(vals) == 0:
             return numpy.array([], dtype=bool)
 
-        # If the input already appears to be bool values then convert right
-        # away. This can happen for multidim input where JSON is used to decode
-        # the values instead of just getting the string values.
-        if numpy.asarray(vals[:1000]).dtype.name == 'bool':
-            return numpy.asarray(vals, dtype=bool)
-
         # Try a smaller subset first for a long array
         if len(vals) > 10000:
             svals = numpy.asarray(vals[:1000])

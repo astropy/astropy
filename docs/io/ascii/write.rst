@@ -516,9 +516,9 @@ Multidimensional Columns
 ------------------------
 
 Using ECSV it is possible to write a table that contains multidimensional
-columns. This is done by encoding a single multidimensional (N-d) column into
-the corresponding 1-d columns for each axis. This functionality works for all
-column types that are supported by ECSV including mixins.
+columns (both masked and unmasked). This is done by encoding each element as a
+string using JSON. This functionality works for all column types that are
+supported by ECSV including mixins.
 
 Example
 =======
@@ -546,38 +546,25 @@ We start by defining a table with 2 rows where each element in the first column
         [4., 5.]])
 
 Now we can write this to ECSV and observe how the N-d column ``'a'`` has been
-"flattened" into a sequence of 1-d columns that are named by their indices.
+written as a string. Notice also that the column descriptor for the column
+includes the ``shape: [3, 2]`` attribute specifying the shape of each item.
 
   >>> ascii.write(t, format='ecsv')  # doctest: +SKIP
-  # %ECSV 0.9
+  # %ECSV 1.0
   # ---
   # datatype:
-  # - {name: a.0_0, datatype: float64}
-  # - {name: a.0_1, datatype: float64}
-  # - {name: a.1_0, datatype: float64}
-  # - {name: a.1_1, datatype: float64}
-  # - {name: a.2_0, datatype: float64}
-  # - {name: a.2_1, datatype: float64}
+  # - name: a
+  #   datatype: float64
+  #   shape: [3, 2]
   # - {name: b, datatype: string}
-  # meta: !!omap
-  # - __serialized_columns__:
-  #     a:
-  #       __class__: astropy.table.column.Column
-  #       data: !astropy.table.SerializedColumn
-  #         '0_0': !astropy.table.SerializedColumn {name: a.0_0}
-  #         '0_1': !astropy.table.SerializedColumn {name: a.0_1}
-  #         '1_0': !astropy.table.SerializedColumn {name: a.1_0}
-  #         '1_1': !astropy.table.SerializedColumn {name: a.1_1}
-  #         '2_0': !astropy.table.SerializedColumn {name: a.2_0}
-  #         '2_1': !astropy.table.SerializedColumn {name: a.2_1}
-  #         __class__: astropy.table.table.NdarrayMixin
   # schema: astropy-2.0
-  a.0_0 a.0_1 a.1_0 a.1_1 a.2_0 a.2_1 b
-  0.0 1.0 2.0 3.0 4.0 5.0 x
-  6.0 7.0 8.0 9.0 10.0 11.0 y
+  a b
+  [[0.0,1.0],[2.0,3.0],[4.0,5.0]] x
+  [[6.0,7.0],[8.0,9.0],[10.0,11.0]] y
 
-When you read this back in, the sequence of flattened 1-d columns are
-reassembled into the original N-d column.
+When you read this back in, the sequence of JSON-encoded column items are then
+decoded using JSON back into the original N-d column.
+
 
 ..
   EXAMPLE END

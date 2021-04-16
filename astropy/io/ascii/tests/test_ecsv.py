@@ -309,14 +309,17 @@ False
 
 
 @pytest.mark.skipif('not HAS_YAML')
-def test_roundtrip_multidim_masked_array():
+@pytest.mark.parametrize('serialize_method', ['null_value', 'data_mask'])
+@pytest.mark.parametrize('dtype', [np.int64, np.float64, np.bool, np.str])
+def test_roundtrip_multidim_masked_array(serialize_method, dtype):
+    # TODO also test empty string with null value
     t = Table()
-    col = MaskedColumn(np.arange(6).reshape(3, 2))
-    col.mask[0, 0] = True
-    col.mask[2, 1] = True
+    col = MaskedColumn(np.arange(12).reshape(2, 3, 2), dtype=dtype)
+    col.mask[0, 0, 0] = True
+    col.mask[1, 1, 1] = True
     t['a'] = col
     out = StringIO()
-    t.write(out, format='ascii.ecsv', serialize_method='data_mask')
+    t.write(out, format='ascii.ecsv', serialize_method=serialize_method)
     t2 = Table.read(out.getvalue(), format='ascii.ecsv')
 
     assert t2.masked is False
