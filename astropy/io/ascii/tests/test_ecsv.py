@@ -306,3 +306,21 @@ False
     assert isinstance(col, MaskedColumn)
     assert np.all(col.mask == [False, False, False, True, False])
     assert np.all(col == [True, False, True, False, False])
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_roundtrip_multidim_masked_array():
+    t = Table()
+    col = MaskedColumn(np.arange(6).reshape(3, 2))
+    col.mask[0, 0] = True
+    col.mask[2, 1] = True
+    t['a'] = col
+    out = StringIO()
+    t.write(out, format='ascii.ecsv', serialize_method='data_mask')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t2.masked is False
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
