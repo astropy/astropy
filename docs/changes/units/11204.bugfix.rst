@@ -1,0 +1,3 @@
+The physical type of ``astropy.units.mol / astropy.units.m ** 3`` is now
+defined as molar concentration.  It was previously incorrectly defined
+as molar volume.
