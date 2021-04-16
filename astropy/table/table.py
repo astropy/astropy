@@ -3861,21 +3861,27 @@ class QTable(Table):
 
     def _convert_col_for_table(self, col):
         if isinstance(col, Column) and getattr(col, 'unit', None) is not None:
-            # What to do with MaskedColumn with units: leave as MaskedColumn or
-            # turn into Quantity and drop mask?  Assuming we have masking support
-            # in Quantity someday, let's drop the mask (consistent with legacy
-            # behavior) but issue a warning.
-            if isinstance(col, MaskedColumn) and np.any(col.mask):
-                warnings.warn("dropping mask in Quantity column '{}': "
-                              "masked Quantity not supported".format(col.info.name))
-
             # We need to turn the column into a quantity, or a subclass
             # identified in the unit (such as u.mag()).
             q_cls = getattr(col.unit, '_quantity_class', Quantity)
-            qcol = q_cls(col.data, col.unit, copy=False)
-            qcol.info = col.info
-            qcol.info.indices = col.info.indices
-            col = qcol
+            try:
+                qcol = q_cls(col.data, col.unit, copy=False)
+            except Exception as exc:
+                warnings.warn(f"column {col.info.name} has a unit but is kept as "
+                              f"a {col.__class__.__name__} as an attempt to "
+                              f"convert it to Quantity failed with:\n{exc!r}")
+            else:
+                # What to do with MaskedColumn with units: leave as MaskedColumn or
+                # turn into Quantity and drop mask?  Assuming we have masking support
+                # in Quantity someday, let's drop the mask (consistent with legacy
+                # behavior) but issue a warning.
+                if isinstance(col, MaskedColumn) and np.any(col.mask):
+                    warnings.warn("dropping mask in Quantity column '{}': "
+                                  "masked Quantity not supported".format(col.info.name))
+
+                qcol.info = col.info
+                qcol.info.indices = col.info.indices
+                col = qcol
         else:
             col = super()._convert_col_for_table(col)
 
