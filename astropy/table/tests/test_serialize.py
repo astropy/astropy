@@ -6,13 +6,15 @@ including ECSV, FITS, and HDF5 reader/writers.
 
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+from astropy.table.serialize import represent_mixins_as_columns
+from astropy.utils.data_info import ParentDtypeInfo
 from io import StringIO
 
 import pytest
 import numpy as np
 
 from astropy.table import Table, Column, QTable, NdarrayMixin
-from astropy.table.table_helpers import simple_table
+from astropy.table.table_helpers import ArrayWrapper, simple_table
 from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
                                  SphericalRepresentation, CartesianRepresentation,
                                  SphericalCosLatDifferential)
@@ -357,3 +359,17 @@ def test_ecsv_round_trip_user_defined_unit(table_cls, tmpdir):
         t4 = table_cls.read(filename)
         assert t4['l'].unit is unit
         assert np.all(t4['l'] == t['l'])
+
+
+def test_bad_info_class():
+    """Make a mixin column class that does not trigger the machinery to generate
+    a pure column representation"""
+    class MyArrayWrapper(ArrayWrapper):
+        info = ParentDtypeInfo()
+
+    t = Table()
+    t['tm'] = MyArrayWrapper([0, 1, 2])
+    out = StringIO()
+    match = r"failed to represent column 'tm' \(MyArrayWrapper\) as one or more Column subclasses"
+    with pytest.raises(TypeError, match=match):
+        represent_mixins_as_columns(t)

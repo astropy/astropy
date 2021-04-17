@@ -236,12 +236,21 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
                                    exclude_classes=exclude_classes)
 
     # If no metadata was created then just return the original table.
-    if not mixin_cols:
-        return tbl
+    if mixin_cols:
+        meta = deepcopy(tbl.meta)
+        meta['__serialized_columns__'] = mixin_cols
+        out = Table(new_cols, meta=meta, copy=False)
+    else:
+        out = tbl
 
-    meta = deepcopy(tbl.meta)
-    meta['__serialized_columns__'] = mixin_cols
-    out = Table(new_cols, meta=meta, copy=False)
+    for col in out.itercols():
+        if not isinstance(col, Column) and col.__class__ not in exclude_classes:
+            raise TypeError(
+                'failed to represent column '
+                f'{col.info.name!r} ({col.__class__.__name__}) as one '
+                'or more Column subclasses. This looks like a mixin class '
+                'that does not have the correct _represent_as_dict() method '
+                'in the class `info` attribute.')
 
     return out
 
