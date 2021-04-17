@@ -360,9 +360,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        args : tuple
+        *args : tuple
             Any positional arguments for ``method``.
-        kwargs : dict
+        **kwargs : dict
             Any keyword arguments for ``method``.
         """
         if callable(method):
@@ -968,9 +968,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        args : tuple
+        *args : tuple
             Any positional arguments for ``method``.
-        kwargs : dict
+        **kwargs : dict
             Any keyword arguments for ``method``.
 
         """

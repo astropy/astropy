@@ -422,8 +422,6 @@ class AstropyLogger(Logger):
 
         Parameters
         ----------
-        filename : str
-            The file to log messages to.
         filter_level : str
             If set, any log messages less important than ``filter_level`` will
             not be output to the file. Note that this is in addition to the

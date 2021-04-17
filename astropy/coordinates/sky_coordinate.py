@@ -398,9 +398,9 @@ class SkyCoord(ShapedLikeNDArray):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        args : tuple
+        *args : tuple
             Any positional arguments for ``method``.
-        kwargs : dict
+        **kwargs : dict
             Any keyword arguments for ``method``.
         """
         def apply_method(value):
@@ -939,7 +939,7 @@ class SkyCoord(ShapedLikeNDArray):
         style : {'hmsdms', 'dms', 'decimal'}
             The formatting specification to use. These encode the three most
             common ways to represent coordinates. The default is `decimal`.
-        kwargs
+        **kwargs
             Keyword args passed to :meth:`~astropy.coordinates.Angle.to_string`.
         """
 
@@ -1897,7 +1897,7 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         table : astropy.Table
             The table to load data from.
-        coord_kwargs
+        **coord_kwargs
             Any additional keyword arguments are passed directly to this class's
             constructor.
 
@@ -1987,7 +1987,7 @@ class SkyCoord(ShapedLikeNDArray):
             The name of the object to get coordinates for, e.g. ``'M42'``.
         frame : str or `BaseCoordinateFrame` class or instance
             The frame to transform the object to.
-        parse: bool
+        parse : bool
             Whether to attempt extracting the coordinates from the name by
             parsing with a regex. For objects catalog names that have
             J-coordinates embedded in their names, e.g.,

@@ -292,7 +292,7 @@ class BaseInputter:
             Can be either a file name, string (newline separated) with all header and data
             lines (must have at least 2 lines), a file-like object with a ``read()`` method,
             or a list of strings.
-        newline: line separator, if `None` use OS default from ``splitlines()``.
+        newline : line separator, if `None` use OS default from ``splitlines()``.
 
         Returns
         -------

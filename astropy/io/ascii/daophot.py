@@ -156,7 +156,7 @@ class DaophotHeader(core.BaseHeader):
             List of table lines
 
         Returns
-        ----------
+        -------
         col : list
             List of table Columns
         """

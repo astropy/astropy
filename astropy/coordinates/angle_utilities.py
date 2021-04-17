@@ -753,9 +753,6 @@ def offset_by(lon, lat, posang, distance):
         The position of the final point.  If any of the angles are arrays,
         these will contain arrays following the appropriate `numpy` broadcasting rules.
         0 <= lon < 2pi.
-
-    Notes
-    -----
     """
     from .angles import Angle
 
