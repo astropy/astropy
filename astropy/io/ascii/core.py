@@ -818,9 +818,9 @@ class BaseData:
     def _set_fill_values(self, cols):
         """READ, WRITE: Set fill values of individual cols based on fill_values of BaseData
 
-        fill values has the following form: <fill_spec> = (<bad_value>,
-        <fill_value>, <optional col_name>...) fill_values = <fill_spec> or list
-        of <fill_spec>'s
+        fill values has the following form:
+        <fill_spec> = (<bad_value>, <fill_value>, <optional col_name>...)
+        fill_values = <fill_spec> or list of <fill_spec>'s
 
         """
         if self.fill_values:

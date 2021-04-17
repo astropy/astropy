@@ -38,7 +38,6 @@ from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
-from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 
 _read_trace = []
@@ -843,8 +842,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
         writer.write(table, output)
         return
 
-    with serialize_context_as('ecsv' if format == 'ecsv' else None):
-        lines = writer.write(table)
+    lines = writer.write(table)
 
     # Write the lines to output
     outstr = os.linesep.join(lines)

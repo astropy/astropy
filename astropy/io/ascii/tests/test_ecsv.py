@@ -24,6 +24,9 @@ from astropy.io import ascii
 from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
+
+pytestmark = pytest.mark.skipif(not HAS_YAML, reason='YAML required')
+
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',
           'str']
@@ -46,7 +49,7 @@ for dtype in DTYPES:
 T_DTYPES.meta['comments'] = ['comment1', 'comment2']
 
 # Corresponds to simple_table()
-SIMPLE_LINES = ['# %ECSV 0.9',
+SIMPLE_LINES = ['# %ECSV 1.0',
                 '# ---',
                 '# datatype:',
                 '# - {name: a, datatype: int64}',
@@ -59,7 +62,6 @@ SIMPLE_LINES = ['# %ECSV 0.9',
                 '3 3.0 e']
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_write_simple():
     """
     Write a simple table with common types.  This shows the compact version
@@ -72,13 +74,12 @@ def test_write_simple():
     assert out.getvalue().splitlines() == SIMPLE_LINES
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_write_full():
     """
     Write a full-featured table with common types and explicitly checkout output
     """
     t = T_DTYPES['bool', 'int64', 'float64', 'str']
-    lines = ['# %ECSV 0.9',
+    lines = ['# %ECSV 1.0',
              '# ---',
              '# datatype:',
              '# - name: bool',
@@ -114,7 +115,6 @@ def test_write_full():
     assert out.getvalue().splitlines() == lines
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_write_read_roundtrip():
     """
     Write a full-featured table with all types and see that it round-trips on
@@ -137,7 +137,6 @@ def test_write_read_roundtrip():
                 assert np.all(t[name] == t2[name])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter():
     """
     Passing a delimiter other than space or comma gives an exception
@@ -148,7 +147,6 @@ def test_bad_delimiter():
     assert 'only space and comma are allowed' in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_bad_header_start():
     """
     Bad header without initial # %ECSV x.x
@@ -159,7 +157,6 @@ def test_bad_header_start():
         Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter_input():
     """
     Illegal delimiter in input
@@ -171,7 +168,6 @@ def test_bad_delimiter_input():
     assert 'only space and comma are allowed' in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_multidim_input():
     """
     Multi-dimensional column in input
@@ -195,7 +191,6 @@ def test_multidim_input():
     assert np.all(t2['b'] == t['b'])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_round_trip_empty_table():
     """Test fix in #5010 for issue #5009 (ECSV fails for empty type with bool type)"""
     t = Table(dtype=[bool, 'i', 'f'], names=['a', 'b', 'c'])
@@ -206,7 +201,6 @@ def test_round_trip_empty_table():
     assert len(t2) == 0
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_csv_ecsv_colnames_mismatch():
     """
     Test that mismatch in column names from normal CSV header vs.
@@ -220,7 +214,6 @@ def test_csv_ecsv_colnames_mismatch():
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_regression_5604():
     """
     See https://github.com/astropy/astropy/issues/5604 for more.
@@ -236,12 +229,13 @@ def test_regression_5604():
     assert '!astropy.units.Quantity' in out.getvalue()
 
 
-@pytest.mark.skipif('HAS_YAML')
-def test_ecsv_but_no_yaml_warning():
+def test_ecsv_but_no_yaml_warning(monkeypatch):
     """
     Test that trying to read an ECSV without PyYAML installed when guessing
     emits a warning, but reading with guess=False gives an exception.
     """
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+
     with pytest.warns(AstropyWarning, match=r'file looks like ECSV format but '
                       'PyYAML is not installed') as w:
         ascii.read(SIMPLE_LINES)
@@ -252,7 +246,6 @@ def test_ecsv_but_no_yaml_warning():
         ascii.read(SIMPLE_LINES, format='ecsv')
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_round_trip_masked_table_default(tmpdir):
     """Test (mostly) round-trip of MaskedColumn through ECSV using default serialization
     that uses an empty string "" to mark NULL values.  Note:
@@ -286,10 +279,9 @@ def test_round_trip_masked_table_default(tmpdir):
         assert not np.all(t2[name] == t[name])  # Expected diff
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_read_masked_bool():
     txt = """\
-# %ECSV 0.9
+# %ECSV 1.0
 # ---
 # datatype:
 # - {name: col0, datatype: bool}
@@ -308,16 +300,17 @@ False
     assert np.all(col == [True, False, True, False, False])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('serialize_method', ['null_value', 'data_mask'])
-@pytest.mark.parametrize('dtype', [np.int64, np.float64, np.bool, np.str])
-def test_roundtrip_multidim_masked_array(serialize_method, dtype):
+@pytest.mark.parametrize('dtype', [np.int64, np.float64, bool, str])
+@pytest.mark.parametrize('delimiter', [',', ' '])
+def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
     # TODO also test empty string with null value
     t = Table()
     col = MaskedColumn(np.arange(12).reshape(2, 3, 2), dtype=dtype)
     col.mask[0, 0, 0] = True
     col.mask[1, 1, 1] = True
     t['a'] = col
+    t['b'] = ['x', 'y']  # Add another column for kicks
     out = StringIO()
     t.write(out, format='ascii.ecsv', serialize_method=serialize_method)
     t2 = Table.read(out.getvalue(), format='ascii.ecsv')
@@ -325,11 +318,11 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype):
     assert t2.masked is False
     assert t2.colnames == t.colnames
     for name in t2.colnames:
-        assert np.all(t2[name].mask == t[name].mask)
+        if hasattr(t[name], 'mask'):
+            assert np.all(t2[name].mask == t[name].mask)
         assert np.all(t2[name] == t[name])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_multidim_bad_shape():
     """Test a malformed ECSV file"""
     txt = """\
@@ -343,5 +336,46 @@ def test_multidim_bad_shape():
 a
 [1,2]
 [3,4]"""
-    with pytest.raises(ValueError, match='column a failed to convert: shape mismatch'):
+    with pytest.raises(ValueError, match="column 'a' failed to convert: shape mismatch"):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_object_column():
+    """Test variable length list and nested object.
+
+    This is also covered somewhat in test_serialize.
+    """
+    t = Table()
+    t['a'] = np.array([[1, 2], [1, 2, 3]], dtype=object)
+    t['b'] = np.array([{'a': 1}, [{'b': 2}, [1, 2]]], dtype=object)
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert np.all(t2[name] == t[name])
+
+
+def test_write_not_json_serializable():
+    t = Table()
+    t['a'] = np.array([set([1, 2]), 1], dtype=object)
+    match = "could not convert column 'a' to string: Object of type set is not JSON serializable"
+    out = StringIO()
+    with pytest.raises(TypeError, match=match):
+        t.write(out, format='ascii.ecsv')
+
+
+def test_read_not_json_serializable():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    match = "column 'a' failed to convert: column value is not valid JSON"
+    with pytest.raises(ValueError, match=match):
         Table.read(txt, format='ascii.ecsv')
