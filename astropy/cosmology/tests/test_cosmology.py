@@ -205,8 +205,7 @@ def test_distance_broadcast():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_clone():
-    """ Test clone operation"""
-
+    """Test clone operation."""
     cosmo = core.FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27,
                                Tcmb0=3.0 * u.K, name="test", meta={"a":"b"})
     z = np.linspace(0.1, 3, 15)
@@ -252,7 +251,7 @@ def test_clone():
 
     # Now try changing multiple things
     newclone = cosmo.clone(name="New name", H0=65 * u.km / u.s / u.Mpc,
-                           Tcmb0=2.8 * u.K)
+                           Tcmb0=2.8 * u.K, meta=dict(zz="tops"))
     assert newclone.__class__ == cosmo.__class__
     assert not newclone.name == cosmo.name
     assert not allclose(newclone.H0.value, cosmo.H0.value)
@@ -265,6 +264,7 @@ def test_clone():
     assert allclose(newclone.Tcmb0, 2.8 * u.K)
     assert allclose(newclone.m_nu, cosmo.m_nu)
     assert allclose(newclone.Neff, cosmo.Neff)
+    assert newclone.meta == dict(a="b", zz="tops")
 
     # And direct comparison
     cmp = core.FlatLambdaCDM(name="New name", H0=65 * u.km / u.s / u.Mpc,
