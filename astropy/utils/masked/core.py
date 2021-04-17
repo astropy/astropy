@@ -548,7 +548,21 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     @property
     def shape(self):
-        # Redefinition to allow defining a setter.
+        """The shape of the data and the mask.
+
+        Usually used to get the current shape of an array, but may also be
+        used to reshape the array in-place by assigning a tuple of array
+        dimensions to it.  As with `numpy.reshape`, one of the new shape
+        dimensions can be -1, in which case its value is inferred from the
+        size of the array and the remaining dimensions.
+
+        Raises
+        ------
+        AttributeError
+            If a copy is required, of either the data or the mask.
+
+        """
+        # Redefinition to allow defining a setter and add a docstring.
         return super().shape
 
     @shape.setter
