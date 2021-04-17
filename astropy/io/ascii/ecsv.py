@@ -7,6 +7,7 @@ writing all the meta data associated with an astropy Table object.
 import re
 from collections import OrderedDict
 import warnings
+import json
 
 import numpy as np
 
@@ -211,13 +212,11 @@ class EcsvOutputter(core.TableOutputter):
             try:
                 # Object columns are serialized as JSON.
                 if np.dtype(col.dtype).kind == 'O':
-                    import json
                     col_vals = [json.loads(val) for val in col.str_vals]
                     col.data = np.array(col_vals, dtype=col.dtype)
 
                 # Multidim columns are serialized as JSON
                 elif col.shape:
-                    import json
                     col_vals = [json.loads(val) for val in col.str_vals]
                     # Make a numpy object array of col_vals to look for None
                     data = np.array(col_vals, dtype=object)
@@ -228,22 +227,20 @@ class EcsvOutputter(core.TableOutputter):
                     else:
                         # Replace all the None with an appropriate fill value
                         kind = np.dtype(col.dtype).kind
-                        if kind == 'U':
-                            fill = ''
-                        elif kind == 'S':
-                            fill = b''
-                        else:
-                            fill = 0
-                        data[mask] = fill
+                        data[mask] = {'U': '', 'S': b''}.get(kind, 0)
                         # Finally make a MaskedArray with the filled data + mask
                         col.data = np.ma.array(data.astype(col.dtype), mask=mask)
                 else:
                     col.data = converter_func(col.str_vals)
 
                 if col.data.shape[1:] != tuple(col.shape):
-                    raise ValueError('shape mismatch')
+                    raise ValueError('shape mismatch between value and column specifier')
+
+            except json.JSONDecodeError:
+                raise ValueError(f'column {col.name!r} failed to convert: '
+                                 'column value is not valid JSON')
             except Exception as exc:
-                raise ValueError(f'Column {col.name} failed to convert: {exc}')
+                raise ValueError(f'column {col.name!r} failed to convert: {exc}')
 
 
 class EcsvData(basic.BasicData):
@@ -288,20 +285,20 @@ class EcsvData(basic.BasicData):
         """
         for col in self.cols:
             if len(col.shape) > 1:
-                import json
-
                 def format_col_item(idx):
                     return json.dumps(col[idx].tolist(), separators=(',', ':'))
             elif col.info.dtype.kind == 'O':
-                import json
-
                 def format_col_item(idx):
                     return json.dumps(col[idx], separators=(',', ':'))
             else:
                 def format_col_item(idx):
                     return str(col[idx])
 
-            col.str_vals = [format_col_item(idx) for idx in range(len(col))]
+            try:
+                col.str_vals = [format_col_item(idx) for idx in range(len(col))]
+            except TypeError as exc:
+                raise TypeError(f'could not convert column {col.info.name!r}'
+                                f' to string: {exc}')
 
             # Replace every masked value in a 1-d column with an empty string.
             # For multi-dim columns this gets done by JSON via "null".
