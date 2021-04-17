@@ -173,7 +173,7 @@ class Cosmology(metaclass=ABCMeta):
             >>> from astropy.cosmology import Planck13
             >>> newcosmo = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
 
-        If no name is specified, the new name will note the modification
+        If no name is specified, the new name will note the modification.
             >>> Planck13.clone(Om0=0.35).name
             'Planck13 (modified)'
 
