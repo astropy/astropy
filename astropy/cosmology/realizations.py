@@ -41,7 +41,7 @@ for key in parameters.available:
 
         ba = cosmo_cls._init_signature.bind_partial(**par, name=key, meta=meta)
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        cosmo.__doc__ = (f"{key} instance of {cosmo_cls} cosmology\n"
+        cosmo.__doc__ = (f"{key} instance of {cosmo_cls.__name__} cosmology\n"
                          f"(from {meta['reference']})")
 
         setattr(sys.modules[__name__], key, cosmo)
