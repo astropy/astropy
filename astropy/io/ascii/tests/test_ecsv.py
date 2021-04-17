@@ -327,3 +327,21 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype):
     for name in t2.colnames:
         assert np.all(t2[name].mask == t[name].mask)
         assert np.all(t2[name] == t[name])
+
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_multidim_bad_shape():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - name: a
+#   datatype: int64
+#   shape: [3]
+# schema: astropy-2.0
+a
+[1,2]
+[3,4]"""
+    with pytest.raises(ValueError, match='column a failed to convert: shape mismatch'):
+        Table.read(txt, format='ascii.ecsv')
