@@ -23,7 +23,7 @@ def make_skyoffset_cls(framecls):
 
     Parameters
     ----------
-    framecls : coordinate frame class (i.e., subclass of `~astropy.coordinates.BaseCoordinateFrame`)
+    framecls : `~astropy.coordinates.BaseCoordinateFrame` subclass
         The class to create the SkyOffsetFrame of.
 
     Returns
@@ -111,11 +111,11 @@ class SkyOffsetFrame(BaseCoordinateFrame):
     ----------
     representation : `~astropy.coordinates.BaseRepresentation` or None
         A representation object or None to have no data (or use the other keywords)
-    origin : `~astropy.coordinates.SkyCoord` or low-level coordinate object.
+    origin : coordinate-like
         The coordinate which specifies the origin of this frame. Note that this
         origin is used purely for on-sky location/rotation.  It can have a
         ``distance`` but it will not be used by this ``SkyOffsetFrame``.
-    rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity` with angle units
+    rotation : angle-like
         The final rotation of the frame about the ``origin``. The sign of
         the rotation is the left-hand rule.  That is, an object at a
         particular position angle in the un-rotated system will be sent to

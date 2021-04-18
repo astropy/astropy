@@ -189,7 +189,8 @@ class Converter:
 
         Returns
         -------
-        native : tuple (value, mask)
+        native : tuple
+            A two-element tuple of: value, mask.
             The value as a Numpy array or scalar, and *mask* is True
             if the value is missing.
         """
@@ -210,7 +211,8 @@ class Converter:
 
         Returns
         -------
-        native : tuple (value, mask)
+        native : (2,) tuple
+            (value, mask)
             The value as a Numpy array or scalar, and *mask* is True
             if the value is missing.
         """
@@ -224,8 +226,8 @@ class Converter:
 
         Parameters
         ----------
-        value : native type corresponding to this converter
-            The value
+        value
+            The value, the native type corresponding to this converter
 
         mask : bool
             If `True`, will return the string representation of a
@@ -253,9 +255,9 @@ class Converter:
 
         Returns
         -------
-        native : tuple (value, mask)
-            The value as a Numpy array or scalar, and *mask* is True
-            if the value is missing.
+        native : (2,) tuple
+            (value, mask). The value as a Numpy array or scalar, and *mask* is
+            True if the value is missing.
         """
         raise NotImplementedError(
             "This datatype must implement a 'binparse' method.")
@@ -268,8 +270,8 @@ class Converter:
 
         Parameters
         ----------
-        value : native type corresponding to this converter
-            The value
+        value
+            The value, the native type corresponding to this converter
 
         mask : bool
             If `True`, will return the string representation of a
@@ -277,7 +279,7 @@ class Converter:
 
         Returns
         -------
-        bytes : byte string
+        bytes : bytes
             The binary representation of the value, suitable for
             serialization in the BINARY_ format.
         """

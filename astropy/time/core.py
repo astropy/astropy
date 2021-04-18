@@ -750,7 +750,7 @@ class TimeBase(ShapedLikeNDArray):
         format : str
             The format in which one wants the time values. Default: the current
             format.
-        subfmt : str or `None`, optional
+        subfmt : str or None, optional
             Value or wildcard pattern to select the sub-format in which the
             values should be given.  The default of '*' picks the first
             available for a given format, i.e., 'float' or 'date_hms'.
@@ -834,7 +834,7 @@ class TimeBase(ShapedLikeNDArray):
         ----------
         obj : int
             Integer index before which ``values`` is inserted.
-        values : array_like
+        values : array-like
             Value(s) to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
         axis : int, optional
@@ -1608,7 +1608,7 @@ class Time(TimeBase):
 
         Returns
         -------
-        nowtime
+        nowtime : :class:`~astropy.time.Time`
             A new `Time` object (or a subclass of `Time` if this is called from
             such a subclass) at the current time.
         """
@@ -1795,7 +1795,7 @@ class Time(TimeBase):
         kind : str
             ``'mean'`` or ``'apparent'``, i.e., accounting for precession
             only, or also for nutation.
-        longitude : `~astropy.units.Quantity`, `str`, or `None`; optional
+        longitude : `~astropy.units.Quantity`, `str`, or None; optional
             The longitude on the Earth at which to compute the sidereal time.
             Can be given as a `~astropy.units.Quantity` with angular units
             (or an `~astropy.coordinates.Angle` or
@@ -1803,7 +1803,7 @@ class Time(TimeBase):
             observatory (currently, only ``'greenwich'`` is supported,
             equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
             the Time object is used.
-        model : str or `None`; optional
+        model : str or None; optional
             Precession (and nutation) model to use.  The available ones are:
             - {0}: {1}
             - {2}: {3}
@@ -1876,7 +1876,7 @@ class Time(TimeBase):
 
         Parameters
         ----------
-        iers_table : `~astropy.utils.iers.IERS` table, optional
+        iers_table : `~astropy.utils.iers.IERS`, optional
             Table containing UT1-UTC differences from IERS Bulletins A
             and/or B.  Default: `~astropy.utils.iers.earth_orientation_table`
             (which in turn defaults to the combined version provided by
@@ -2394,9 +2394,9 @@ class TimeDelta(TimeBase):
 
         Parameters
         ----------
-        unit : `~astropy.units.UnitBase` instance, str
+        unit : unit-like
             The unit to convert to.
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not directly
             convertible (see :ref:`unit_equivalencies`). If `None`, no
             equivalencies will be applied at all, not even any set globallyq
@@ -2462,7 +2462,7 @@ class TimeDelta(TimeBase):
             for a given format, i.e., 'float' or 'date_hms').
         unit : `~astropy.units.UnitBase` instance or str, optional
             The unit in which the value should be given.
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not directly
             convertible (see :ref:`unit_equivalencies`). If `None`, no
             equivalencies will be applied at all, not even any set globally or
@@ -2470,7 +2470,7 @@ class TimeDelta(TimeBase):
 
         Returns
         -------
-        value : `~numpy.ndarray` or scalar
+        value : ndarray or scalar
             The value in the format or units specified.
 
         See also
@@ -2665,7 +2665,7 @@ def update_leap_seconds(files=None):
 
     Parameters
     ----------
-    files : list of path, optional
+    files : list of path-like, optional
         List of files/URLs to attempt to open.  By default, uses defined by
         `astropy.utils.iers.LeapSeconds.auto_open`, which includes the table
         used by ERFA itself, so if that is up to date, nothing will happen.

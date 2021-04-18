@@ -16,15 +16,15 @@ def leastsquare(measured_vals, updated_model, weights, *x):
 
     Parameters
     ----------
-    measured_vals : `~numpy.ndarray` or Sequence
+    measured_vals : ndarray or sequence
         Measured data values. Will be cast to array whose
         shape must match the array-cast of the evaluated model.
     updated_model : :class:`~astropy.modeling.Model` instance
         Model with parameters set by the current iteration of the optimizer.
         when evaluated on "x", must return array of shape "measured_vals"
-    weights : `~numpy.ndarray` or None
+    weights : ndarray or None
         Array of weights to apply to each residual.
-    *x : `~numpy.ndarray`
+    *x : ndarray
         Independent variables on which to evaluate the model.
 
     Returns
@@ -74,13 +74,13 @@ def leastsquare_1d(measured_vals, updated_model, weights, x):
 
     Parameters
     ----------
-    measured_vals : `~numpy.ndarray`
+    measured_vals : ndarray
         Measured data values.
     updated_model : `~astropy.modeling.Model`
         Model with parameters set by the current iteration of the optimizer.
-    weights : `~numpy.ndarray` or None
+    weights : ndarray or None
         Array of weights to apply to each residual.
-    x : `~numpy.ndarray`
+    x : ndarray
         Independent variable "x" on which to evaluate the model.
 
     Returns
@@ -108,15 +108,15 @@ def leastsquare_2d(measured_vals, updated_model, weights, x, y):
 
     Parameters
     ----------
-    measured_vals : `~numpy.ndarray`
+    measured_vals : ndarray
         Measured data values.
     updated_model : `~astropy.modeling.Model`
         Model with parameters set by the current iteration of the optimizer.
-    weights : `~numpy.ndarray` or None
+    weights : ndarray or None
         Array of weights to apply to each residual.
-    x : `~numpy.ndarray`
+    x : ndarray
         Independent variable "x" on which to evaluate the model.
-    y : `~numpy.ndarray`
+    y : ndarray
         Independent variable "y" on which to evaluate the model.
 
     Returns
@@ -144,17 +144,17 @@ def leastsquare_3d(measured_vals, updated_model, weights, x, y, z):
 
     Parameters
     ----------
-    measured_vals : `~numpy.ndarray`
+    measured_vals : ndarray
         Measured data values.
     updated_model : `~astropy.modeling.Model`
         Model with parameters set by the current iteration of the optimizer.
-    weights : `~numpy.ndarray` or None
+    weights : ndarray or None
         Array of weights to apply to each residual.
-    x : `~numpy.ndarray`
+    x : ndarray
         Independent variable "x" on which to evaluate the model.
-    y : `~numpy.ndarray`
+    y : ndarray
         Independent variable "y" on which to evaluate the model.
-    z : `~numpy.ndarray`
+    z : ndarray
         Independent variable "z" on which to evaluate the model.
 
     Returns

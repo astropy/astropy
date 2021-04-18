@@ -41,7 +41,7 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
 
     Parameters
     ----------
-    origin : str or readable file-like object
+    origin : str or readable file-like
         Path or file object containing a potential FITS file.
 
     Returns
@@ -138,7 +138,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
     Parameters
     ----------
-    input : str or file-like object or compatible `astropy.io.fits` HDU object
+    input : str or file-like or compatible `astropy.io.fits` HDU object
         If a string, the filename to read the table from. If a file object, or
         a compatible HDU object, the object to extract the table from. The
         following `astropy.io.fits` HDU objects can be used as input:

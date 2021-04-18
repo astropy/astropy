@@ -15,12 +15,12 @@ __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
 
 def calculate_bin_edges(a, bins=10, range=None, weights=None):
     """
-    Calculate histogram bin edges like `numpy.histogram_bin_edges`.
+    Calculate histogram bin edges like ``numpy.histogram_bin_edges``.
 
     Parameters
     ----------
 
-    a : array_like
+    a : array-like
         Input data. The bin edges are calculated over the flattened array.
 
     bins : int, list, or str, optional
@@ -34,7 +34,7 @@ def calculate_bin_edges(a, bins=10, range=None, weights=None):
         it will be (a.min(), a.max()). However, if bins is a list it is
         returned unmodified regardless of the range argument.
 
-    weights : array_like, optional
+    weights : array-like, optional
         An array the same shape as ``a``. If given, the histogram accumulates
         the value of the weight corresponding to ``a`` instead of returning the
         count of values. This argument does not affect determination of bin
@@ -93,7 +93,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         array of data to be histogrammed
 
     bins : int, list, or str, optional
@@ -111,7 +111,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
         the minimum and maximum range for the histogram.  If not specified,
         it will be (x.min(), x.max())
 
-    weights : array_like, optional
+    weights : array-like, optional
         An array the same shape as ``a``. If given, the histogram accumulates
         the value of the weight corresponding to ``a`` instead of returning the
         count of values. This argument does not affect determination of bin
@@ -146,7 +146,7 @@ def scott_bin_width(data, return_bins=False):
 
     Parameters
     ----------
-    data : array_like, ndim=1
+    data : array-like, ndim=1
         observed (one-dimensional) data
     return_bins : bool, optional
         if True, then return the bin edges
@@ -207,7 +207,7 @@ def freedman_bin_width(data, return_bins=False):
 
     Parameters
     ----------
-    data : array_like, ndim=1
+    data : array-like, ndim=1
         observed (one-dimensional) data
     return_bins : bool, optional
         if True, then return the bin edges
@@ -280,7 +280,7 @@ def knuth_bin_width(data, return_bins=False, quiet=True):
 
     Parameters
     ----------
-    data : array_like, ndim=1
+    data : array-like, ndim=1
         observed (one-dimensional) data
     return_bins : bool, optional
         if True, then return the bin edges
@@ -340,7 +340,7 @@ class _KnuthF:
 
     Parameters
     ----------
-    data : array_like, one dimension
+    data : array-like, one dimension
         data to be histogrammed
 
     Notes

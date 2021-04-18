@@ -20,6 +20,9 @@ except ImportError:
         pass
 
 
+__all__ = ["Section", "PrimaryHDU", "ImageHDU"]
+
+
 class _ImageBaseHDU(_ValidHDU):
     """FITS image HDU base class.
 
@@ -1028,7 +1031,7 @@ class PrimaryHDU(_ImageBaseHDU):
 
         Parameters
         ----------
-        data : array or DELAYED, optional
+        data : array or ``astropy.io.fits.hdu.base.DELAYED``, optional
             The data in the HDU.
 
         header : `~astropy.io.fits.Header`, optional

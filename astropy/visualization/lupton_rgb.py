@@ -20,17 +20,17 @@ def compute_intensity(image_r, image_g=None, image_b=None):
 
     Parameters
     ----------
-    image_r : `~numpy.ndarray`
+    image_r : ndarray
         Intensity of image to be mapped to red; or total intensity if ``image_g``
         and ``image_b`` are None.
-    image_g : `~numpy.ndarray`, optional
+    image_g : ndarray, optional
         Intensity of image to be mapped to green.
-    image_b : `~numpy.ndarray`, optional
+    image_b : ndarray, optional
         Intensity of image to be mapped to blue.
 
     Returns
     -------
-    intensity : `~numpy.ndarray`
+    intensity : ndarray
         Total intensity from the red, blue and green intensities, or ``image_r``
         if green and blue images are not provided.
     """
@@ -54,7 +54,7 @@ class Mapping:
     ----------
     minimum : float or sequence(3)
         Intensity that should be mapped to black (a scalar or array for R, G, B).
-    image : `~numpy.ndarray`, optional
+    image : ndarray, optional
         An image used to calculate some parameters of some mappings.
     """
 
@@ -77,16 +77,16 @@ class Mapping:
 
         Parameters
         ----------
-        image_r : `~numpy.ndarray`
+        image_r : ndarray
             Image to map to red.
-        image_g : `~numpy.ndarray`
+        image_g : ndarray
             Image to map to green.
-        image_b : `~numpy.ndarray`
+        image_b : ndarray
             Image to map to blue.
 
         Returns
         -------
-        RGBimage : `~numpy.ndarray`
+        RGBimage : ndarray
             RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
         """
         image_r = np.asarray(image_r)
@@ -106,17 +106,17 @@ class Mapping:
 
         Parameters
         ----------
-        image_r : `~numpy.ndarray`
+        image_r : ndarray
             Intensity of image to be mapped to red; or total intensity if
             ``image_g`` and ``image_b`` are None.
-        image_g : `~numpy.ndarray`, optional
+        image_g : ndarray, optional
             Intensity of image to be mapped to green.
-        image_b : `~numpy.ndarray`, optional
+        image_b : ndarray, optional
             Intensity of image to be mapped to blue.
 
         Returns
         -------
-        intensity : `~numpy.ndarray`
+        intensity : ndarray
             Total intensity from the red, blue and green intensities, or
             ``image_r`` if green and blue images are not provided.
         """
@@ -132,12 +132,12 @@ class Mapping:
 
         Parameters
         ----------
-        I : `~numpy.ndarray`
+        I : ndarray
             Intensity to be mapped.
 
         Returns
         -------
-        mapped_I : `~numpy.ndarray`
+        mapped_I : ndarray
             ``I`` mapped to uint8
         """
         with np.errstate(invalid='ignore', divide='ignore'):
@@ -267,12 +267,12 @@ class AsinhZScaleMapping(AsinhMapping):
 
     Parameters
     ----------
-    image1 : `~numpy.ndarray` or a list of arrays
+    image1 : ndarray or a list of arrays
         The image to analyse, or a list of 3 images to be converted to
         an intensity image.
-    image2 : `~numpy.ndarray`, optional
+    image2 : ndarray, optional
         the second image to analyse (must be specified with image3).
-    image3 : `~numpy.ndarray`, optional
+    image3 : ndarray, optional
         the third image to analyse (must be specified with image2).
     Q : float, optional
         The asinh softening parameter. Default is 8.
@@ -339,11 +339,11 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
     Parameters
     ----------
 
-    image_r : `~numpy.ndarray`
+    image_r : ndarray
         Image to map to red.
-    image_g : `~numpy.ndarray`
+    image_g : ndarray
         Image to map to green.
-    image_b : `~numpy.ndarray`
+    image_b : ndarray
         Image to map to blue.
     minimum : float
         Intensity that should be mapped to black (a scalar or array for R, G, B).
@@ -357,7 +357,7 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
 
     Returns
     -------
-    rgb : `~numpy.ndarray`
+    rgb : ndarray
         RGB (integer, 8-bits per channel) color image as an NxNx3 numpy array.
     """
     asinhMap = AsinhMapping(minimum, stretch, Q)

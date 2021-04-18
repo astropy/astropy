@@ -650,7 +650,7 @@ for the ``data`` argument.
 **table-like object**
     If another table-like object has a ``__astropy_table__`` method then
     that object can be used to directly create a ``Table`` object. See
-    the `Table-like objects`_ section for details.
+    the `table-like objects`_ section for details.
 
 **None**
     Initialize a zero-length table. If ``names`` and optionally ``dtype``
@@ -1174,7 +1174,7 @@ units, see the :ref:`columns_with_units` section.
 
 .. EXAMPLE END
 
-Table-Like Objects
+table-like Objects
 ==================
 
 In order to improve interoperability between different table classes, an

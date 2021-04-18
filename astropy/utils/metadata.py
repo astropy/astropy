@@ -42,7 +42,7 @@ def common_dtype(arrs):
 
     Parameters
     ----------
-    arrs : list of ndarray objects
+    arrs : list of ndarray
         Arrays for which to find the common dtype
 
     Returns
@@ -280,7 +280,7 @@ def enable_merge_strategies(*merge_strategies):
 
     Parameters
     ----------
-    merge_strategies : one or more `~astropy.utils.metadata.MergeStrategy` args
+    *merge_strategies : `~astropy.utils.metadata.MergeStrategy`
         Merge strategies that will be enabled.
 
     """

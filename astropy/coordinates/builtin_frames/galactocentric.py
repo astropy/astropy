@@ -356,16 +356,16 @@ doc_components = """
 doc_footer = """
     Other parameters
     ----------------
-    galcen_coord : `ICRS`, optional, must be keyword
+    galcen_coord : `ICRS`, optional, keyword-only
         The ICRS coordinates of the Galactic center.
-    galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
+    galcen_distance : `~astropy.units.Quantity`, optional, keyword-only
         The distance from the sun to the Galactic center.
-    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, optional, must be keyword
+    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, optional, keyword-only
         The velocity of the sun *in the Galactocentric frame* as Cartesian
         velocity components.
-    z_sun : `~astropy.units.Quantity`, optional, must be keyword
+    z_sun : `~astropy.units.Quantity`, optional, keyword-only
         The distance from the sun to the Galactic midplane.
-    roll : `~astropy.coordinates.Angle`, optional, must be keyword
+    roll : `~astropy.coordinates.Angle`, optional, keyword-only
         The angle to rotate about the final x-axis, relative to the
         orientation for Galactic. For example, if this roll angle is 0,
         the final x-z plane will align with the Galactic coordinates x-z

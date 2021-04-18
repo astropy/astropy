@@ -34,7 +34,7 @@ class Kernel:
 
     Parameters
     ----------
-    array : `~numpy.ndarray`
+    array : ndarray
         Kernel array.
     """
     _separable = False
@@ -189,9 +189,10 @@ class Kernel1D(Kernel):
     ----------
     model : `~astropy.modeling.FittableModel`
         Model to be evaluated.
-    x_size : odd int, optional
-        Size of the kernel array. Default = 8 * width.
-    array : `~numpy.ndarray`
+    x_size : int or None, optional
+        Size of the kernel array. Default = ⌊8*width+1⌋.
+        Only used if ``array`` is None.
+    array : ndarray or None, optional
         Kernel array.
     width : number
         Width of the filter kernel.
@@ -248,12 +249,14 @@ class Kernel2D(Kernel):
     ----------
     model : `~astropy.modeling.FittableModel`
         Model to be evaluated.
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
-    y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
-    array : `~numpy.ndarray`
-        Kernel array.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*width + 1⌋.
+        Only used if ``array`` is None,
+    array : ndarray or None, optional
+        Kernel array. Default is None.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -319,9 +322,9 @@ def kernel_arithmetics(kernel, value, operation):
     Parameters
     ----------
     kernel : `astropy.convolution.Kernel`
-        Kernel instance
-    value : kernel, float or int
-        Value to operate with
+        Kernel instance.
+    value : `astropy.convolution.Kernel`, float, or int
+        Value to operate with.
     operation : {'add', 'sub', 'mul'}
         One of the following operations:
             * 'add'

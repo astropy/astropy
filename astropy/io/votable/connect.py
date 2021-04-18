@@ -18,7 +18,7 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
 
     Parameters
     ----------
-    origin : str or readable file-like object
+    origin : str or readable file-like
         Path or file object containing a VOTABLE_ xml file.
 
     Returns

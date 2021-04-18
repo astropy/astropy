@@ -68,10 +68,10 @@ def overlap_slices(large_array_shape, small_array_shape, position,
     large_array_shape : tuple of int or int
         The shape of the large array (for 1D arrays, this can be an
         `int`).
-    small_array_shape : tuple of int or int
+    small_array_shape : int or tuple thereof
         The shape of the small array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
-    position : tuple of numbers or number
+    position : number or tuple thereof
         The position of the small array's center with respect to the
         large array.  The pixel coordinates should be in the same order
         as the array shape.  Integer positions are at the pixel centers.
@@ -90,11 +90,11 @@ def overlap_slices(large_array_shape, small_array_shape, position,
 
     Returns
     -------
-    slices_large : tuple of slices
+    slices_large : tuple of slice
         A tuple of slice objects for each axis of the large array, such
         that ``large_array[slices_large]`` extracts the region of the
         large array that overlaps with the small array.
-    slices_small : tuple of slices
+    slices_small : tuple of slice
         A tuple of slice objects for each axis of the small array, such
         that ``small_array[slices_small]`` extracts the region that is
         inside the large array.
@@ -168,12 +168,12 @@ def extract_array(array_large, shape, position, mode='partial',
 
     Parameters
     ----------
-    array_large : `~numpy.ndarray`
+    array_large : ndarray
         The array from which to extract the small array.
-    shape : tuple or int
+    shape : int or tuple thereof
         The shape of the extracted array (for 1D arrays, this can be an
         `int`).  See the ``mode`` keyword for additional details.
-    position : tuple of numbers or number
+    position : number or tuple thereof
         The position of the small array's center with respect to the
         large array.  The pixel coordinates should be in the same order
         as the array shape.  Integer positions are at the pixel centers
@@ -204,7 +204,7 @@ def extract_array(array_large, shape, position, mode='partial',
 
     Returns
     -------
-    array_small : `~numpy.ndarray`
+    array_small : ndarray
         The extracted array.
     new_position : tuple
         If ``return_position`` is true, this tuple will contain the
@@ -271,9 +271,9 @@ def add_array(array_large, array_small, position):
 
     Parameters
     ----------
-    array_large : `~numpy.ndarray`
+    array_large : ndarray
         Large array.
-    array_small : `~numpy.ndarray`
+    array_small : ndarray
         Small array to add. Can be equal to ``array_large`` in size in a given
         dimension, but not larger.
     position : tuple
@@ -282,7 +282,7 @@ def add_array(array_large, array_small, position):
 
     Returns
     -------
-    new_array : `~numpy.ndarray`
+    new_array : ndarray
         The new array formed from the sum of ``array_large`` and
         ``array_small``.
 
@@ -329,14 +329,14 @@ def subpixel_indices(position, subsampling):
 
     Parameters
     ----------
-    position : `~numpy.ndarray` or array_like
+    position : ndarray or array-like
         Positions in pixels.
     subsampling : int
         Subsampling factor per pixel.
 
     Returns
     -------
-    indices : `~numpy.ndarray`
+    indices : ndarray
         The integer subpixel indices corresponding to the input positions.
 
     Examples
@@ -385,7 +385,7 @@ class Cutout2D:
 
     Parameters
     ----------
-    data : `~numpy.ndarray`
+    data : ndarray
         The 2D data array from which to extract the cutout array.
 
     position : tuple or `~astropy.coordinates.SkyCoord`
@@ -395,7 +395,7 @@ class Cutout2D:
         `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
         required input.
 
-    size : int, array_like, or `~astropy.units.Quantity`
+    size : int, array-like, or `~astropy.units.Quantity`
         The size of the cutout array along each axis.  If ``size``
         is a scalar number or a scalar `~astropy.units.Quantity`,
         then a square cutout of ``size`` will be created.  If
@@ -437,7 +437,7 @@ class Cutout2D:
         thus the resulting cutout array may be smaller than the
         requested ``shape``.
 
-    fill_value : number, optional
+    fill_value : float or int, optional
         If ``mode='partial'``, the value to fill pixels in the
         cutout array that do not overlap with the input ``data``.
         ``fill_value`` must have the same ``dtype`` as the input
@@ -453,27 +453,27 @@ class Cutout2D:
     data : 2D `~numpy.ndarray`
         The 2D cutout array.
 
-    shape : 2 tuple
+    shape : (2,) tuple
         The ``(ny, nx)`` shape of the cutout array.
 
-    shape_input : 2 tuple
+    shape_input : (2,) tuple
         The ``(ny, nx)`` shape of the input (original) array.
 
-    input_position_cutout : 2 tuple
+    input_position_cutout : (2,) tuple
         The (unrounded) ``(x, y)`` position with respect to the cutout
         array.
 
-    input_position_original : 2 tuple
+    input_position_original : (2,) tuple
         The original (unrounded) ``(x, y)`` input position (with respect
         to the original array).
 
-    slices_original : 2 tuple of slice objects
+    slices_original : (2,) tuple of slice object
         A tuple of slice objects for the minimal bounding box of the
         cutout with respect to the original array.  For
         ``mode='partial'``, the slices are for the valid (non-filled)
         cutout values.
 
-    slices_cutout : 2 tuple of slice objects
+    slices_cutout : (2,) tuple of slice object
         A tuple of slice objects for the minimal bounding box of the
         cutout with respect to the cutout array.  For
         ``mode='partial'``, the slices are for the valid (non-filled)
@@ -493,7 +493,7 @@ class Cutout2D:
         are for the valid (non-filled) cutout values.  These values are
         the same as those in `bbox_cutout`.
 
-    wcs : `~astropy.wcs.WCS` or `None`
+    wcs : `~astropy.wcs.WCS` or None
         A WCS object associated with the cutout array if a ``wcs``
         was input.
 

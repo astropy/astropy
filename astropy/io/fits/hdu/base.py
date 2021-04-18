@@ -24,6 +24,15 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
 
+__all__ = [
+    "DELAYED",
+    # classes
+    "InvalidHDUException",
+    "ExtensionHDU",
+    "NonstandardExtHDU",
+]
+
+
 class _Delayed:
     pass
 
@@ -303,7 +312,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
         Parameters
         ----------
-        fileobj : file object or file-like object
+        fileobj : file-like
             Input FITS file.  The file's seek pointer is assumed to be at the
             beginning of the HDU.
 
@@ -341,7 +350,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
 
         Parameters
         ----------
-        name : file path, file object or file-like object
+        name : path-like or file-like
             Output FITS file.  If the file object is already opened, it must
             be opened in a writeable mode.
 

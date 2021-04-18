@@ -128,7 +128,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
 
         Returns
         -------
-        col : Representation or Differential
+        col : `BaseRepresentation` or `BaseDifferential` subclass instance
             Empty instance of this class consistent with ``cols``
 
         """
@@ -276,7 +276,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
 
         Returns
         -------
-        representation : object of this class
+        representation : `BaseRepresentation` subclass instance
             A new representation of this class's type.
         """
         # Note: the above docstring gets overridden for differentials.
@@ -879,12 +879,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Parameters
         ----------
-        differentials : Sequence of `~astropy.coordinates.BaseDifferential`
+        differentials : sequence of `~astropy.coordinates.BaseDifferential` subclass instance
             The differentials for the new representation to have.
 
         Returns
         -------
-        newrepr
+        `~astropy.coordinates.BaseRepresentation` subclass instance
             A copy of this representation, but with the ``differentials`` as
             its differentials.
         """
@@ -907,7 +907,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        newrepr
+        `~astropy.coordinates.BaseRepresentation` subclass instance
             A shallow copy of this representation, without any differentials.
             If no differentials were present, no copy is made.
         """
@@ -1051,7 +1051,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         ----------
         op : `~operator` callable
             Operator to apply (e.g., `~operator.add`, `~operator.sub`, etc.
-        other : `~astropy.coordinates.BaseRepresentation` instance
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             The other representation.
         reverse : bool
             Whether the operands should be reversed (e.g., as we got here via
@@ -1116,7 +1116,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        mean : representation
+        mean : `~astropy.coordinates.BaseRepresentation` subclass instance
             Vector mean, in the same representation as that of the input.
         """
         self._raise_if_has_differentials('mean')
@@ -1135,7 +1135,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        sum : representation
+        sum : `~astropy.coordinates.BaseRepresentation` subclass instance
             Vector sum, in the same representation as that of the input.
         """
         self._raise_if_has_differentials('sum')
@@ -1172,12 +1172,12 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         Parameters
         ----------
-        other : representation
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             The representation to take the cross product with.
 
         Returns
         -------
-        cross_product : representation
+        cross_product : `~astropy.coordinates.BaseRepresentation` subclass instance
             With vectors perpendicular to both ``self`` and ``other``, in the
             same type of representation as ``self``.
         """
@@ -1196,7 +1196,7 @@ class CartesianRepresentation(BaseRepresentation):
         have different shapes, they should be broadcastable. If not quantity,
         ``unit`` should be set.  If only ``x`` is given, it is assumed that it
         contains an array with the 3 coordinates stored along ``xyz_axis``.
-    unit : `~astropy.units.Unit` or str
+    unit : unit-like
         If given, the coordinates will be converted to this unit (or taken to
         be in this unit if not given.
     xyz_axis : int, optional
@@ -1332,7 +1332,7 @@ class CartesianRepresentation(BaseRepresentation):
 
         Parameters
         ----------
-        matrix : `~numpy.ndarray`
+        matrix : ndarray
             A 3x3 transformation matrix, such as a rotation matrix.
 
 
@@ -1438,7 +1438,7 @@ class CartesianRepresentation(BaseRepresentation):
 
         Parameters
         ----------
-        other : representation
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             If not already cartesian, it is converted.
 
         Returns
@@ -1462,7 +1462,7 @@ class CartesianRepresentation(BaseRepresentation):
 
         Parameters
         ----------
-        other : representation
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             If not already cartesian, it is converted.
 
         Returns
@@ -1670,7 +1670,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         Parameters
         ----------
-        other : representation
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             The representation to take the cross product with.
 
         Returns
@@ -2334,7 +2334,9 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        This object as a `CartesianDifferential`
+        `CartesianDifferential`
+            This object, converted.
+
         """
         base_e, base_sf = self._get_base_vectors(base)
         return functools.reduce(
@@ -2357,7 +2359,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         Returns
         -------
-        A new differential object that is this class' type.
+        `BaseDifferential` subclass instance
+            A new differential object that is this class' type.
         """
         base = base.represent_as(cls.base_representation)
         base_e, base_sf = cls._get_base_vectors(base)
@@ -2436,7 +2439,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         ----------
         op : `~operator` callable
             Operator to apply (e.g., `~operator.add`, `~operator.sub`, etc.
-        other : `~astropy.coordinates.BaseRepresentation` instance
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             The other differential or representation.
         reverse : bool
             Whether the operands should be reversed (e.g., as we got here via
@@ -2631,7 +2634,7 @@ class BaseSphericalDifferential(BaseDifferential):
         ----------
         op : `~operator` callable
             Operator to apply (e.g., `~operator.add`, `~operator.sub`, etc.
-        other : `~astropy.coordinates.BaseRepresentation` instance
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             The other differential or representation.
         reverse : bool
             Whether the operands should be reversed (e.g., as we got here via
@@ -2836,7 +2839,7 @@ class BaseSphericalCosLatDifferential(BaseDifferential):
         ----------
         op : `~operator` callable
             Operator to apply (e.g., `~operator.add`, `~operator.sub`, etc.
-        other : `~astropy.coordinates.BaseRepresentation` instance
+        other : `~astropy.coordinates.BaseRepresentation` subclass instance
             The other differential or representation.
         reverse : bool
             Whether the operands should be reversed (e.g., as we got here via

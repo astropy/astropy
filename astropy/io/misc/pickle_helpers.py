@@ -31,10 +31,10 @@ def fnunpickle(fileorname, number=0):
 
     Returns
     -------
-    contents : obj or list
-        If ``number`` is 0, this is a individual object - the first one unpickled
-        from the file. Otherwise, it is a list of objects unpickled from the
-        file.
+    contents : object or list
+        If ``number`` is 0, this is a individual object - the first one
+        unpickled from the file. Otherwise, it is a list of objects unpickled
+        from the file.
 
     """
 

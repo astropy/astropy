@@ -130,7 +130,10 @@ def get_xml_iterator(source, _debug_python_based_parser=False):
 
     Parameters
     ----------
-    fd : readable file-like object or read function
+    source : path-like, readable file-like, or callable
+        Handle that contains the data or function that reads it.
+        If a function or callable object, it must directly read from a stream.
+        Non-callable objects must define a ``read`` method.
 
     Returns
     -------
@@ -168,7 +171,10 @@ def get_xml_encoding(source):
 
     Parameters
     ----------
-    source : readable file-like object, read function or str path
+    source : path-like, readable file-like, or callable
+        Handle that contains the data or function that reads it.
+        If a function or callable object, it must directly read from a stream.
+        Non-callable objects must define a ``read`` method.
 
     Returns
     -------
@@ -190,7 +196,10 @@ def xml_readlines(source):
 
     Parameters
     ----------
-    source : readable file-like object, read function or str path
+    source : path-like, readable file-like, or callable
+        Handle that contains the data or function that reads it.
+        If a function or callable object, it must directly read from a stream.
+        Non-callable objects must define a ``read`` method.
 
     Returns
     -------

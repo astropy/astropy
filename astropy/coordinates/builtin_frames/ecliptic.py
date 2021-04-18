@@ -16,23 +16,23 @@ __all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
 
 
 doc_components_ecl = """
-    lon : `~astropy.coordinates.Angle`, optional, must be keyword
+    lon : `~astropy.coordinates.Angle`, optional, keyword-only
         The ecliptic longitude for this object (``lat`` must also be given and
         ``representation`` must be None).
-    lat : `~astropy.coordinates.Angle`, optional, must be keyword
+    lat : `~astropy.coordinates.Angle`, optional, keyword-only
         The ecliptic latitude for this object (``lon`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, must be keyword
+    distance : `~astropy.units.Quantity`, optional, keyword-only
         The distance for this object from the {0}.
         (``representation`` must be None).
 
-    pm_lon_coslat : `~astropy.coordinates.Angle`, optional, must be keyword
+    pm_lon_coslat : `~astropy.coordinates.Angle`, optional, keyword-only
         The proper motion in the ecliptic longitude (including the ``cos(lat)``
         factor) for this object (``pm_lat`` must also be given).
-    pm_lat : `~astropy.coordinates.Angle`, optional, must be keyword
+    pm_lat : `~astropy.coordinates.Angle`, optional, keyword-only
         The proper motion in the ecliptic latitude for this object
         (``pm_lon_coslat`` must also be given).
-    radial_velocity : :class:`~astropy.units.Quantity`, optional, must be keyword
+    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
         The radial velocity of this object.
 """
 

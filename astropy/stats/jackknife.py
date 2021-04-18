@@ -9,7 +9,7 @@ __doctest_requires__ = {'jackknife_stats': ['scipy']}
 
 
 def jackknife_resampling(data):
-    """ Performs jackknife resampling on numpy arrays.
+    """Performs jackknife resampling on numpy arrays.
 
     Jackknife resampling is a technique to generate 'n' deterministic samples
     of size 'n-1' from a measured sample of size 'n'. Basically, the i-th
@@ -20,13 +20,13 @@ def jackknife_resampling(data):
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : ndarray
         Original sample (1-D array) from which the jackknife resamples will be
         generated.
 
     Returns
     -------
-    resamples : numpy.ndarray
+    resamples : ndarray
         The i-th row is the i-th jackknife sample, i.e., the original sample
         with the i-th measurement deleted.
 
@@ -56,13 +56,13 @@ def jackknife_resampling(data):
 
 @deprecated_renamed_argument('conf_lvl', 'confidence_level', '4.0')
 def jackknife_stats(data, statistic, confidence_level=0.95):
-    """ Performs jackknife estimation on the basis of jackknife resamples.
+    """Performs jackknife estimation on the basis of jackknife resamples.
 
     This function requires `SciPy <https://www.scipy.org/>`_ to be installed.
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : ndarray
         Original sample (1-D array).
     statistic : function
         Any function (or vector of functions) on the basis of the measured
@@ -74,16 +74,16 @@ def jackknife_stats(data, statistic, confidence_level=0.95):
 
     Returns
     -------
-    estimate : numpy.float64 or numpy.ndarray
+    estimate : float or `~numpy.ndarray`
         The i-th element is the bias-corrected "jackknifed" estimate.
 
-    bias : numpy.float64 or numpy.ndarray
+    bias : float or `~numpy.ndarray`
         The i-th element is the jackknife bias.
 
-    std_err : numpy.float64 or numpy.ndarray
+    std_err : float or `~numpy.ndarray`
         The i-th element is the jackknife standard error.
 
-    conf_interval : numpy.ndarray
+    conf_interval : ndarray
         If ``statistic`` is single-valued, the first and second elements are
         the lower and upper bounds, respectively. If ``statistic`` is
         vector-valued, each column corresponds to the confidence interval for
