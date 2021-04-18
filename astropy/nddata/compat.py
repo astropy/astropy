@@ -32,7 +32,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
     Parameters
     -----------
-    data : `~numpy.ndarray` or `NDData`
+    data : ndarray or `NDData`
         The actual data contained in this `NDData` object. Not that this
         will always be copies by *reference* , so you should make copy
         the ``data`` before passing it in if that's the  desired behavior.
@@ -40,7 +40,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     uncertainty : `~astropy.nddata.NDUncertainty`, optional
         Uncertainties on the data.
 
-    mask : `~numpy.ndarray`-like, optional
+    mask : array-like, optional
         Mask for the data, given as a boolean Numpy array or any object that
         can be converted to a boolean Numpy array with a shape
         matching that of the data. The values must be ``False`` where
@@ -49,14 +49,14 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         ``mask`` here will causes the mask from the masked array to be
         ignored.
 
-    flags : `~numpy.ndarray`-like or `~astropy.nddata.FlagCollection`, optional
+    flags : array-like or `~astropy.nddata.FlagCollection`, optional
         Flags giving information about each pixel. These can be specified
         either as a Numpy array of any type (or an object which can be converted
         to a Numpy array) with a shape matching that of the
         data, or as a `~astropy.nddata.FlagCollection` instance which has a
         shape matching that of the data.
 
-    wcs : undefined, optional
+    wcs : None, optional
         WCS-object containing the world coordinate system for the data.
 
         .. warning::
@@ -252,7 +252,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         unit : `astropy.units.UnitBase` instance or str
             The unit to convert to.
 
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
            A list of equivalence pairs to try if the units are not
            directly convertible.  See :ref:`unit_equivalencies`.
 
@@ -263,7 +263,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
         Raises
         ------
-        UnitsError
+        `~astropy.units.UnitsError`
             If units are inconsistent.
 
         """

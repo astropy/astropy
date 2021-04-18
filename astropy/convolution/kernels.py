@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 from .core import Kernel1D, Kernel2D, Kernel
-from .utils import has_even_axis, raise_even_kernel_exception
+from .utils import has_even_axis, raise_even_kernel_exception, KernelSizeError
 from astropy.modeling import models
 from astropy.modeling.core import Fittable1DModel, Fittable2DModel
 from astropy.utils.decorators import deprecated
@@ -36,8 +36,8 @@ class Gaussian1DKernel(Kernel1D):
     ----------
     stddev : number
         Standard deviation of the Gaussian kernel.
-    x_size : odd int, optional
-        Size of the kernel array. Default = 8 * stddev
+    x_size : int, optional
+        Size of the kernel array. Default = ⌊8*stddev+1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -101,13 +101,13 @@ class Gaussian2DKernel(Kernel2D):
         Standard deviation of the Gaussian in x before rotating by theta.
     y_stddev : float
         Standard deviation of the Gaussian in y before rotating by theta.
-    theta : float or :class:`~astropy.units.Quantity`
+    theta : float or `~astropy.units.Quantity`
         Rotation angle. If passed as a float, it is assumed to be in radians.
         The rotation angle increases counterclockwise.
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * stddev.
-    y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * stddev.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*stddev + 1⌋.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*stddev + 1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -563,8 +563,8 @@ class RickerWavelet1DKernel(Kernel1D):
     width : number
         Width of the filter kernel, defined as the standard deviation
         of the Gaussian function from which it is derived.
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -639,10 +639,10 @@ class RickerWavelet2DKernel(Kernel2D):
     width : number
         Width of the filter kernel, defined as the standard deviation
         of the Gaussian function from which it is derived.
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
-    y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -703,10 +703,10 @@ class AiryDisk2DKernel(Kernel2D):
     ----------
     radius : float
         The radius of the Airy disk kernel (radius of the first zero).
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * radius.
-    y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * radius.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -767,10 +767,10 @@ class Moffat2DKernel(Kernel2D):
         Core width of the Moffat model.
     alpha : float
         Power index of the Moffat model.
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * radius.
-    y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * radius.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*radius + 1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -832,8 +832,9 @@ class Model1DKernel(Kernel1D):
     ----------
     model : `~astropy.modeling.Fittable1DModel`
         Kernel response function model
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
+        Must be odd.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -896,10 +897,11 @@ class Model2DKernel(Kernel2D):
     ----------
     model : `~astropy.modeling.Fittable2DModel`
         Kernel response function model
-    x_size : odd int, optional
-        Size in x direction of the kernel array. Default = 8 * width.
-    y_size : odd int, optional
-        Size in y direction of the kernel array. Default = 8 * width.
+    x_size : int, optional
+        Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
+        Must be odd.
+    y_size : int, optional
+        Size in y direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -977,7 +979,7 @@ class CustomKernel(Kernel):
     ------
     TypeError
         If array is not a list or array.
-    KernelSizeError
+    `~astropy.convolution.KernelSizeError`
         If array size is even.
 
     See also

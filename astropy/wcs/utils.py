@@ -34,7 +34,8 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 
     Returns
     -------
-    A new `~astropy.wcs.WCS` instance with an additional axis
+    `~astropy.wcs.WCS`
+        A new `~astropy.wcs.WCS` instance with an additional axis
     """
 
     inds = [i + 1 for i in range(wcs.wcs.naxis)]
@@ -315,7 +316,7 @@ def proj_plane_pixel_scales(wcs):
 
     Returns
     -------
-    scale : `~numpy.ndarray`
+    scale : ndarray
         A vector (`~numpy.ndarray`) of projection plane increments
         corresponding to each pixel side (axis). The units of the returned
         results are the same as the units of `~astropy.wcs.Wcsprm.cdelt`,
@@ -573,7 +574,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
 
     Parameters
     ----------
-    xp, yp : float or `numpy.ndarray`
+    xp, yp : float or ndarray
         The coordinates to convert.
     wcs : `~astropy.wcs.WCS`
         The WCS transformation to use.
@@ -589,8 +590,8 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
 
     Returns
     -------
-    coords : Whatever ``cls`` is (a subclass of `~astropy.coordinates.SkyCoord`)
-        The celestial coordinates
+    coords : `~astropy.coordinates.SkyCoord` subclass
+        The celestial coordinates. Whatever ``cls`` type is.
 
     See Also
     --------
@@ -985,7 +986,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
     Parameters
     ----------
-    xy : tuple of two `numpy.ndarray`
+    xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
         x & y pixel coordinates.
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.

@@ -217,7 +217,7 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        formatter : str or Formatter
+        formatter : str or `~matplotlib.ticker.Formatter`
             The format or formatter to use.
         """
         if isinstance(formatter, Formatter):

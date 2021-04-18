@@ -18,9 +18,9 @@ def extirpolate(x, y, N=None, M=4):
 
     Parameters
     ----------
-    x : array_like
+    x : array-like
         array of abscissas
-    y : array_like
+    y : array-like
         array of ordinates
     N : int
         number of integer bins to use. For best performance, N should be larger
@@ -92,9 +92,9 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
 
     Parameters
     ----------
-    t : array_like
+    t : array-like
         array of input times
-    h : array_like
+    h : array-like
         array weights for the sum
     df : float
         frequency spacing
@@ -118,7 +118,7 @@ def trig_sum(t, h, df, N, f0=0, freq_factor=1,
 
     Returns
     -------
-    S, C : ndarrays
+    S, C : ndarray
         summation arrays for frequencies f = df * np.arange(1, N + 1)
     """
     df *= freq_factor

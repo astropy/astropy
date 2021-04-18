@@ -24,6 +24,7 @@ a standard pipeline.
 """
 
 from .wcs import *
+from .wcs import InvalidTabularParametersError  # just for docs
 from . import utils
 
 

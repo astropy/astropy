@@ -162,7 +162,7 @@ class SpectralCoord(SpectralQuantity):
     value : ndarray or `~astropy.units.Quantity` or `SpectralCoord`
         Spectral values, which should be either wavelength, frequency,
         energy, wavenumber, or velocity values.
-    unit : str or `~astropy.units.Unit`
+    unit : unit-like
         Unit for the given spectral values.
     observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
         The coordinate (position and velocity) of observer. If no velocities
@@ -319,7 +319,7 @@ class SpectralCoord(SpectralQuantity):
         value : ndarray or `~astropy.units.Quantity` or `SpectralCoord`, optional
             Spectral values, which should be either wavelength, frequency,
             energy, wavenumber, or velocity values.
-        unit : str or `~astropy.units.Unit`
+        unit : unit-like
             Unit for the given spectral values.
         observer : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
             The coordinate (position and velocity) of observer.

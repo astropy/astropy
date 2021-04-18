@@ -67,8 +67,9 @@ class SCEngine:
         Sorted columns of the original table
     row_index : Column object
         Row numbers corresponding to data columns
-    unique : bool (defaults to False)
-        Whether the values of the index must be unique
+    unique : bool
+        Whether the values of the index must be unique.
+        Defaults to False.
     '''
 
     def __init__(self, data, row_index, unique=False):

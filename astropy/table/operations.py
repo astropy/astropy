@@ -110,8 +110,9 @@ def join_skycoord(distance, distance_func='search_around_sky'):
 
     Parameters
     ----------
-    distance : Quantity (angle or length)
-        Maximum distance between points to be considered a join match
+    distance : `~astropy.units.Quantity`
+        Maximum distance between points to be considered a join match.
+        Must have angular or distance units.
     distance_func : str or function
         Specifies the function for performing the cross-match based on
         ``distance``. If supplied as a string this specifies the name of a
@@ -221,7 +222,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
     Parameters
     ----------
-    distance : float, Quantity
+    distance : float or `~astropy.units.Quantity`
         Maximum distance between points to be considered a join match
     kdtree_args : dict, None
         Optional extra args for `~scipy.spatial.cKDTree`
@@ -343,10 +344,10 @@ def join(left, right, keys=None, join_type='inner',
 
     Parameters
     ----------
-    left : Table object or a value that will initialize a Table object
-        Left side table in the join
-    right : Table object or a value that will initialize a Table object
-        Right side table in the join
+    left : `~astropy.table.Table`-like object
+        Left side table in the join. If not a Table, will call ``Table(left)``
+    right : `~astropy.table.Table`-like object
+        Right side table in the join. If not a Table, will call ``Table(right)``
     keys : str or list of str
         Name(s) of column(s) used to match rows of left and right tables.
         Default is to use all columns which are common to both tables.
@@ -498,7 +499,7 @@ def dstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table or Row objects
+    tables : `~astropy.table.Table` or `~astropy.table.Row` or list thereof
         Table(s) to stack along depth-wise with the current table
         Table columns should have same shape and name for depth-wise stacking
     join_type : str
@@ -591,8 +592,8 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
 
     Parameters
     ----------
-    tables : Table or list of Table or Row objects
-        Table(s) to stack along rows (vertically)
+    tables : `~astropy.table.Table` or `~astropy.table.Row` or list thereof
+        Table(s) to stack along rows (vertically) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     metadata_conflicts : str
@@ -660,8 +661,8 @@ def hstack(tables, join_type='outer',
 
     Parameters
     ----------
-    tables : Table or list of Table or Row objects
-        Tables to stack along columns (horizontally)
+    tables : `~astropy.table.Table` or `~astropy.table.Row` or list thereof
+        Tables to stack along columns (horizontally) with the current table
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
     uniq_col_name : str or None
@@ -673,7 +674,8 @@ def hstack(tables, join_type='outer',
     metadata_conflicts : str
         How to proceed with metadata conflicts. This should be one of:
             * ``'silent'``: silently pick the last conflicting meta-data value
-            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'warn'``: pick the last conflicting meta-data value,
+              but emit a warning (default)
             * ``'error'``: raise an exception.
 
     Returns
@@ -725,13 +727,11 @@ def unique(input_table, keys=None, silent=False, keep='first'):
 
     Parameters
     ----------
-
-    input_table : `~astropy.table.Table` object or a value that
-        will initialize a `~astropy.table.Table` object
+    input_table : table-like
     keys : str or list of str
         Name(s) of column(s) used to create unique rows.
         Default is to use all columns.
-    keep : one of 'first', 'last' or 'none'
+    keep : {'first', 'last', 'none'}
         Whether to keep the first or last row for each set of
         duplicates. If 'none', all rows that are duplicate are
         removed, leaving only rows that are already unique in

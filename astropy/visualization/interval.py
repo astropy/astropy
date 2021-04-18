@@ -31,7 +31,7 @@ class BaseInterval(BaseTransform):
 
         Parameters
         ----------
-        values : `~numpy.ndarray`
+        values : ndarray
             The image values.
 
         Returns
@@ -48,18 +48,18 @@ class BaseInterval(BaseTransform):
 
         Parameters
         ----------
-        values : array_like
+        values : array-like
             The input values.
         clip : bool, optional
             If `True` (default), values outside the [0:1] range are
             clipped to the [0:1] range.
-        out : `~numpy.ndarray`, optional
+        out : ndarray, optional
             If specified, the output values will be placed in this array
             (typically used for in-place calculations).
 
         Returns
         -------
-        result : `~numpy.ndarray`
+        result : ndarray
             The transformed values.
         """
 

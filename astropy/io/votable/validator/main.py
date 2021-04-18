@@ -83,12 +83,12 @@ def make_validation_report(
 
     Parameters
     ----------
-    urls : list of strings, optional
+    urls : list of str, optional
         If provided, is a list of HTTP urls to download VOTable files
         from.  If not provided, a built-in set of ~22,000 urls
         compiled by HEASARC will be used.
 
-    destdir : path, optional
+    destdir : path-like, optional
         The directory to write the report to.  By default, this is a
         directory called ``'results'`` in the current directory. If the
         directory does not exist, it will be created.
@@ -97,7 +97,7 @@ def make_validation_report(
         If `True` (default), perform validations in parallel using all
         of the cores on this machine.
 
-    stilts : path, optional
+    stilts : path-like, optional
         To perform validation with ``votlint`` from the the Java-based
         `STILTS <http://www.star.bris.ac.uk/~mbt/stilts/>`_ VOTable
         parser, in addition to `astropy.io.votable`, set this to the

@@ -129,7 +129,7 @@ class _BaseDiff:
 
         Parameters
         ----------
-        fileobj : file-like object, string, or None, optional
+        fileobj : file-like, string, or None, optional
             If `None`, this method returns the report as a string. Otherwise it
             returns `None` and writes the report to the given file-like object
             (which must have a ``.write()`` method at a minimum), or to a new

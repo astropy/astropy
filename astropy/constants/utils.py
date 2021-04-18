@@ -54,7 +54,7 @@ def _set_c(codata, iaudata, module, not_in_module_only=True, doclines=None,
         If ``True``, constants that are already in the namespace
         of ``module`` will not be modified.
 
-    doclines : list or `None`
+    doclines : list or None
         If a list is given, this list will be modified in-place to include
         documentation of modified constants. This can be used to update
         docstring of ``module``.

@@ -159,7 +159,7 @@ class _UnitRegistry:
 
         Parameters
         ----------
-        units : list of sequences, dicts, or modules containing units, or units
+        units : list of sequence, dict, or module
             This is a list of things in which units may be found
             (sequences, dicts or modules), or units themselves.  The
             entire set will be "enabled" for searching through by
@@ -178,7 +178,7 @@ class _UnitRegistry:
 
         Parameters
         ----------
-        units : list of sequences, dicts, or modules containing units, or units
+        units : list of sequence, dict, or module
             This is a list of things in which units may be found
             (sequences, dicts or modules), or units themselves.  The
             entire set will be added to the "enabled" set for
@@ -234,8 +234,8 @@ class _UnitRegistry:
 
         Parameters
         ----------
-        equivalencies : list of equivalent pairs
-            E.g., as returned by
+        equivalencies : list of tuple
+            List of equivalent pairs, e.g., as returned by
             `~astropy.units.equivalencies.dimensionless_angles`.
         """
         self._reset_equivalencies()
@@ -253,8 +253,8 @@ class _UnitRegistry:
 
         Parameters
         ----------
-        equivalencies : list of equivalent pairs
-            E.g., as returned by
+        equivalencies : list of tuple
+            List of equivalent pairs, e.g., as returned by
             `~astropy.units.equivalencies.dimensionless_angles`.
         """
         # pre-normalize list to help catch mistakes
@@ -293,7 +293,7 @@ def set_enabled_units(units):
 
     Parameters
     ----------
-    units : list of sequences, dicts, or modules containing units, or units
+    units : list of sequence, dict, or module
         This is a list of things in which units may be found
         (sequences, dicts or modules), or units themselves.  The
         entire set will be "enabled" for searching through by methods
@@ -345,7 +345,7 @@ def add_enabled_units(units):
 
     Parameters
     ----------
-    units : list of sequences, dicts, or modules containing units, or units
+    units : list of sequence, dict, or module
         This is a list of things in which units may be found
         (sequences, dicts or modules), or units themselves.  The
         entire set will be added to the "enabled" set for searching
@@ -400,8 +400,8 @@ def set_enabled_equivalencies(equivalencies):
 
     Parameters
     ----------
-    equivalencies : list of equivalent pairs
-        E.g., as returned by
+    equivalencies : list of tuple
+        list of equivalent pairs, e.g., as returned by
         `~astropy.units.equivalencies.dimensionless_angles`.
 
     Examples
@@ -435,8 +435,8 @@ def add_enabled_equivalencies(equivalencies):
 
     Parameters
     ----------
-    equivalencies : list of equivalent pairs
-        E.g., as returned by
+    equivalencies : list of tuple
+        list of equivalent pairs, e.g., as returned by
         `~astropy.units.equivalencies.dimensionless_angles`.
     """
     # get a context with a new registry, which is a copy of the current one
@@ -619,7 +619,7 @@ class UnitBase:
 
         Parameters
         ----------
-        equivalencies : list of equivalency pairs, or `None`
+        equivalencies : list of equivalency pairs, or None
 
         Returns
         -------
@@ -745,7 +745,7 @@ class UnitBase:
         except (ValueError, UnitsError, TypeError):
             return NotImplemented
 
-        # Other is Unit-like, but the test below requires it is a UnitBase
+        # Other is unit-like, but the test below requires it is a UnitBase
         # instance; if it is not, give up (so that other can try).
         if not isinstance(other, UnitBase):
             return NotImplemented
@@ -781,11 +781,11 @@ class UnitBase:
 
         Parameters
         ----------
-        other : unit object or string or tuple
+        other : `~astropy.units.Unit`, str, or tuple
             The unit to convert to. If a tuple of units is specified, this
             method returns true if the unit matches any of those in the tuple.
 
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
@@ -961,14 +961,14 @@ class UnitBase:
 
         Parameters
         ----------
-        other : unit object or string
+        other : unit-like
             The unit to convert to.
 
-        value : scalar int or float, or sequence convertible to array, optional
+        value : int, float, or scalar array-like, optional
             Value(s) in the current unit to be converted to the
             specified unit.  If not provided, defaults to 1.0
 
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
@@ -1014,7 +1014,7 @@ class UnitBase:
 
         Returns
         -------
-        unit : CompositeUnit object
+        unit : `~astropy.units.CompositeUnit`
             New object containing only irreducible unit objects.
         """
         raise NotImplementedError()
@@ -1150,14 +1150,14 @@ class UnitBase:
 
         Parameters
         ----------
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
             `set_enabled_equivalencies`.
             Use `None` to turn off all equivalencies.
 
-        units : set of units to compose to, optional
+        units : set of `~astropy.units.Unit`, optional
             If not provided, any known units may be used to compose
             into.  Otherwise, ``units`` is a dict, module or sequence
             containing the units to compose into.
@@ -1385,7 +1385,7 @@ class UnitBase:
 
         Parameters
         ----------
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to also pull options from.
             See :ref:`unit_equivalencies`.  It must already be
             normalized using `_normalize_equivalencies`.
@@ -1481,13 +1481,13 @@ class UnitBase:
 
         Parameters
         ----------
-        equivalencies : list of equivalence pairs, optional
+        equivalencies : list of tuple
             A list of equivalence pairs to also list.  See
             :ref:`unit_equivalencies`.
             Any list given, including an empty one, supersedes global defaults
             that may be in effect (as set by `set_enabled_equivalencies`)
 
-        units : set of units to search in, optional
+        units : set of `~astropy.units.Unit`, optional
             If not provided, all defined units will be searched for
             equivalencies.  Otherwise, may be a dict, module or
             sequence containing the units to search for equivalencies.
@@ -1989,7 +1989,7 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
 
             {'latex': r'\\Omega'}
 
-    namespace : dictionary, optional
+    namespace : dict, optional
         When provided, inject the unit (and all of its aliases) into
         the given namespace.
 
@@ -2365,7 +2365,7 @@ def def_unit(s, represents=None, doc=None, format=None, prefixes=False,
 
     Returns
     -------
-    unit : `UnitBase` object
+    unit : `~astropy.units.UnitBase`
         The newly-defined unit, or a matching unit that was already
         defined.
     """

@@ -54,13 +54,13 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    z : array_like
+    z : array-like
         The periodogram value.
     N : int
         The number of data points from which the periodogram was computed.
     normalization : {'standard', 'model', 'log', 'psd'}
         The periodogram normalization.
-    dH, dK : integers, optional
+    dH, dK : int, optional
         The number of parameters in the null hypothesis and the model.
 
     Returns
@@ -104,13 +104,13 @@ def fap_single(z, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    z : array_like
+    z : array-like
         The periodogram value.
     N : int
         The number of data points from which the periodogram was computed.
     normalization : {'standard', 'model', 'log', 'psd'}
         The periodogram normalization.
-    dH, dK : integers, optional
+    dH, dK : int, optional
         The number of parameters in the null hypothesis and the model.
 
     Returns
@@ -154,13 +154,13 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    fap : array_like
+    fap : array-like
         The false alarm probability.
     N : int
         The number of data points from which the periodogram was computed.
     normalization : {'standard', 'model', 'log', 'psd'}
         The periodogram normalization.
-    dH, dK : integers, optional
+    dH, dK : int, optional
         The number of parameters in the null hypothesis and the model.
 
     Returns
@@ -206,13 +206,13 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
 
     Parameters
     ----------
-    z : array_like
+    z : array-like
         The periodogram value.
     N : int
         The number of data points from which the periodogram was computed.
     normalization : {'standard', 'model', 'log', 'psd'}
         The periodogram normalization.
-    dH, dK : integers, optional
+    dH, dK : int, optional
         The number of parameters in the null hypothesis and the model.
 
     Returns
@@ -392,11 +392,11 @@ def false_alarm_probability(Z, fmax, t, y, dy, normalization='standard',
 
     Parameters
     ----------
-    Z : array_like
+    Z : array-like
         The periodogram value.
     fmax : float
         The maximum frequency of the periodogram.
-    t, y, dy : array_like
+    t, y, dy : array-like
         The data times, values, and errors.
     normalization : {'standard', 'model', 'log', 'psd'}, optional
         The periodogram normalization.
@@ -452,7 +452,7 @@ def false_alarm_level(p, fmax, t, y, dy, normalization,
 
     Parameters
     ----------
-    p : array_like
+    p : array-like
         The false alarm probability (0 < p < 1).
     fmax : float
         The maximum frequency of the periodogram.

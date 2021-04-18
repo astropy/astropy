@@ -117,6 +117,7 @@ Nuts and bolts
    logging
    warnings
    utils/index
+   glossary
 
 .. _developer-docs:
 
