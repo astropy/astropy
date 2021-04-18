@@ -333,11 +333,9 @@ def get_body_barycentric_posvel(body, time, ephemeris=None):
     The velocity cannot be calculated for the Moon.  To just get the position,
     use :func:`~astropy.coordinates.get_body_barycentric`.
 
+    {_EPHEMERIS_NOTE}
     """
     return _get_body_barycentric_posvel(body, time, ephemeris)
-
-
-get_body_barycentric_posvel.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def get_body_barycentric(body, time, ephemeris=None):
@@ -366,12 +364,10 @@ def get_body_barycentric(body, time, ephemeris=None):
 
     Notes
     -----
+    {_EPHEMERIS_NOTE}
     """
     return _get_body_barycentric_posvel(body, time, ephemeris,
                                         get_velocity=False)
-
-
-get_body_barycentric.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def _get_apparent_body_position(body, time, ephemeris, obsgeoloc=None):
@@ -392,10 +388,15 @@ def _get_apparent_body_position(body, time, ephemeris, obsgeoloc=None):
         ``~astropy.coordinates.solar_system_ephemeris.set``
     obsgeoloc : `~astropy.coordinates.CartesianRepresentation`, optional
         The GCRS position of the observer
+
     Returns
     -------
     cartesian_position : `~astropy.coordinates.CartesianRepresentation`
         Barycentric (ICRS) apparent position of the body in cartesian coordinates
+
+    Notes
+    -----
+    {_EPHEMERIS_NOTE}
     """
     if ephemeris is None:
         ephemeris = solar_system_ephemeris.get()
@@ -421,9 +422,6 @@ def _get_apparent_body_position(body, time, ephemeris, obsgeoloc=None):
         emitted_time = time - light_travel_time
 
     return get_body_barycentric(body, emitted_time, ephemeris)
-
-
-_get_apparent_body_position.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def get_body(body, time, location=None, ephemeris=None):
@@ -458,6 +456,8 @@ def get_body(body, time, location=None, ephemeris=None):
     The coordinate returned is the apparent position, which is the position of
     the body at time *t* minus the light travel time from the *body* to the
     observing *location*.
+
+    {_EPHEMERIS_NOTE}
     """
     if location is None:
         location = time.location
@@ -474,9 +474,6 @@ def get_body(body, time, location=None, ephemeris=None):
                                   obsgeovel=obsgeovel))
 
     return SkyCoord(gcrs)
-
-
-get_body.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
 
 
 def get_moon(time, location=None, ephemeris=None):
@@ -504,12 +501,17 @@ def get_moon(time, location=None, ephemeris=None):
 
     Notes
     -----
+    {_EPHEMERIS_NOTE}
     """
 
     return get_body('moon', time, location=location, ephemeris=ephemeris)
 
 
-get_moon.__doc__ += indent(_EPHEMERIS_NOTE)[4:]
+# Add note about the ephemeris choices to the docstrings of relevant functions.
+# Note: sadly, one cannot use f-strings for docstrings, so we format explicitly.
+for f in [f for f in locals().values() if callable(f) and f.__doc__ is not None
+          and '{_EPHEMERIS_NOTE}' in f.__doc__]:
+    f.__doc__ = f.__doc__.format(_EPHEMERIS_NOTE=indent(_EPHEMERIS_NOTE)[4:])
 
 
 deprecation_msg = """
