@@ -126,8 +126,16 @@ class CdsHeader(core.BaseHeader):
                 col.type = self.get_col_type(col)
 
                 match = re.match(
-                    r'(?P<limits>[\[\]] \S* [\[\]])? \? (?P<equal> =)?'
-                    r'(?P<nullval> \S*) (\s+ (?P<descriptiontext> \S.*))?',
+                    r'(?P<limits>[\[\]] \S* [\[\]])?'  # Matches limits specifier (eg [])
+                                                       # that may or may not be present
+                    r'\?'  # Matches '?' directly
+                    r'((?P<equal>=)(?P<nullval> \S*))?'  # Matches to nullval if and only
+                                                         # if '=' is present
+                    r'(?P<order>[-+]?[=]?)'  # Matches to order specifier:
+                                             # ('+', '-', '+=', '-=')
+                    r'(\s* (?P<descriptiontext> \S.*))?',  # Matches description text even
+                                                           # even if no whitespace is
+                                                           # present after '?'
                     col.description, re.VERBOSE)
                 if match:
                     col.description = (match.group('descriptiontext') or '').strip()
@@ -144,6 +152,8 @@ class CdsHeader(core.BaseHeader):
                             self.data.fill_values.append(('-' * i, fillval, col.name))
                     else:
                         col.null = match.group('nullval')
+                        if (col.null is None):
+                            col.null = ''
                         self.data.fill_values.append((col.null, fillval, col.name))
 
                 cols.append(col)
