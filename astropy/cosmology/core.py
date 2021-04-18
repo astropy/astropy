@@ -3395,11 +3395,3 @@ def inf_like(x):
         return np.inf
     else:
         return np.full_like(x, np.inf, dtype='float')
-
-
-# modified from https://stackoverflow.com/a/33607093
-def _get_subclasses(cls):
-    for subclass in cls.__subclasses__():
-        yield from _get_subclasses(subclass)
-        yield subclass.__qualname__, subclass
-    yield cls.__qualname__, cls

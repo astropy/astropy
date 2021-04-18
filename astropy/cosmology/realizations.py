@@ -8,16 +8,23 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.state import ScienceState
 
 from . import parameters
-from .core import Cosmology, _get_subclasses
+from .core import Cosmology
 
 __all__ = ["default_cosmology"] + parameters.available
 
 __doctest_requires__ = {"*": ["scipy"]}
 
+def _all_subclasses(cls):
+    """Yield a (qualname, cls) of all subclasses (inclusive)."""
+    # modified from https://stackoverflow.com/a/33607093
+    yield cls.__qualname__, cls
+    for subclass in cls.__subclasses__():
+        yield from _all_subclasses(subclass)  # recursion in subclass
+
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a cosmology instance with the same name as the
 # parameter set in the current module's namespace.
-_subclasses = dict(_get_subclasses(Cosmology))
+_subclasses = dict(_all_subclasses(Cosmology))
 for key in parameters.available:
     params = getattr(parameters, key)
 
