@@ -511,7 +511,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
     package or module.
 
     Parameters
-    -----------
+    ----------
     packageormod : str or None
         The package for which to retrieve the configuration object. If a
         string, it must be a valid package name, or if ``None``, the package from
