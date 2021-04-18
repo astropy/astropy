@@ -36,9 +36,9 @@ class ErfaAstrom:
         '''
         Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
 
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+        Parameters
+        ----------
+        frame_or_coord : ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
             For this function, an AltAz or CIRS frame is expected.
@@ -79,9 +79,9 @@ class ErfaAstrom:
         '''
         Wrapper for ``erfa.apcs``, used in conversions GCRS <-> ICRS
 
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+        Parameters
+        ----------
+        frame_or_coord : ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
             For this function, a GCRS frame is expected.
@@ -102,9 +102,9 @@ class ErfaAstrom:
         Since we use a topocentric CIRS frame, we have dropped the steps needed to calculate
         diurnal aberration.
 
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+        Parameters
+        ----------
+        frame_or_coord : ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
             For this function, an AltAz frame is expected.
@@ -315,9 +315,9 @@ class ErfaAstromInterpolator(ErfaAstrom):
         '''
         Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS
 
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+        Parameters
+        ----------
+        frame_or_coord : ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
             For this function, an AltAz or CIRS frame is expected.
@@ -361,9 +361,9 @@ class ErfaAstromInterpolator(ErfaAstrom):
         '''
         Wrapper for ``erfa.apci``, used in conversions GCRS <-> ICRS
 
-        Arguments
-        ---------
-        frame_or_coord: ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
+        Parameters
+        ----------
+        frame_or_coord : ``astropy.coordinates.BaseCoordinateFrame`` or ``astropy.coordinates.SkyCoord``
             Frame or coordinate instance in the corresponding frame
             for which to calculate the calculate the astrom values.
             For this function, a GCRS frame is expected.
