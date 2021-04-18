@@ -201,7 +201,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         `None`, no masking will be performed unless ``array`` is a masked array.
         If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
         masked of it is masked in either ``mask`` *or* ``array.mask``.
-    normalization_zero_tol: float, optional
+    normalization_zero_tol : float, optional
         The absolute tolerance on whether the kernel is different than zero.
         If the kernel sums to zero to within this precision, it cannot be
         normalized. Default is "1e-8".
@@ -495,7 +495,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
         ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
         ``normalize_kernel = np.sum``.
-    normalization_zero_tol: float, optional
+    normalization_zero_tol : float, optional
         The absolute tolerance on whether the kernel is different than zero.
         If the kernel sums to zero to within this precision, it cannot be
         normalized. Default is "1e-8".
@@ -895,7 +895,7 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
         Keyword representing which function to use for convolution.
             * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
             * 'convolve' : use `~astropy.convolution.convolve`.
-    kwargs : dict
+    **kwargs : dict
         Keyword arguments to me passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.
 
@@ -925,17 +925,17 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
         Functional model
     kernel : `~astropy.modeling.core.Model`
         Convolution kernel
-    bounding_box: tuple
+    bounding_box : tuple
         The bounding box which encompasses enough of the support of both
         the ``model`` and ``kernel`` so that an accurate convolution can be
         computed.
-    resolution: float
+    resolution : float
         The resolution that one wishes to approximate the convolution
         integral at.
-    cache: optional, bool
+    cache : optional, bool
         Default value True. Allow for the storage of the convolution
         computation for later reuse.
-    kwargs : dict
+    **kwargs : dict
         Keyword arguments to be passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.
 

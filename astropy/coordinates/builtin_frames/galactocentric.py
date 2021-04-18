@@ -318,7 +318,7 @@ class galactocentric_frame_defaults(ScienceState):
         references : dict or None, optional
             References for contents of `parameters`.
             None becomes empty dict.
-        **meta: dict, optional
+        **meta : dict, optional
             Any other properties to register.
 
         """
