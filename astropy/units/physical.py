@@ -253,7 +253,7 @@ class PhysicalType:
     A pascal is intended to represent pressure and stress, but the unit
     decomposition is equivalent to that of energy density.
 
-    >>> pressure = get_physical_type("pressure")
+    >>> pressure = u.get_physical_type("pressure")
     >>> pressure
     PhysicalType({'energy density', 'pressure', 'stress'})
     >>> 'energy density' in pressure
