@@ -59,6 +59,18 @@ def test_sigma_clip():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+def test_axis_none():
+    """
+    For masked=False and axis=None, masked elements should be removed
+    from the result.
+    """
+    data = np.arange(10.)
+    data[0] = 100
+    result = sigma_clip(data, masked=False, axis=None)
+    assert_equal(result, data[1:])
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_compare_to_scipy_sigmaclip():
     from scipy import stats
 
@@ -407,8 +419,7 @@ def test_sigma_clip_grow():
     assert np.array_equal(np.where(filtered_data.mask), expected)
 
 
-@pytest.mark.parametrize(('axis', 'bounds_shape'), [(None, ()),
-                                                    (0, (4, 5, 6, 7)),
+@pytest.mark.parametrize(('axis', 'bounds_shape'), [(0, (4, 5, 6, 7)),
                                                     (1, (3, 5, 6, 7)),
                                                     (-1, (3, 4, 5, 6)),
                                                     ((1, 3), (3, 5, 7)),
@@ -430,7 +441,7 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
     assert bound2.shape == bounds_shape
 
 
-@pytest.mark.parametrize('dtype', ['>f2', '<f2', '>f4', '<f4', '>f8', '<f8', '<i4', '>i8'])
+@pytest.mark.parametrize('dtype', ['>f4', '<f4', '>f8', '<f8', '<i4', '>i8'])
 def test_sigma_clip_dtypes(dtype):
 
     # Check the shapes of the output for different use cases
