@@ -182,7 +182,7 @@ def spectral_density(wav, factor=None):
     phot_L_la = astrophys.photon / (si.s * si.AA)
     phot_L_nu = astrophys.photon / (si.s * si.Hz)
 
-    # surface brigthness (flux equiv)
+    # surface brightness (flux equiv)
     S_la = cgs.erg / si.angstrom / si.cm ** 2 / si.s / si.sr
     S_nu = cgs.erg / si.Hz / si.cm ** 2 / si.s / si.sr
     nu_S_nu = cgs.erg / si.cm ** 2 / si.s / si.sr
