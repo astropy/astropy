@@ -1,0 +1,3 @@
+The new DE440 and DE440s ephemerides are now available via shortcuts 'de440'
+and 'de440s'.  The DE 440s ephemeris will probably become the default
+ephemeris when chosing 'jpl' in 5.0.
