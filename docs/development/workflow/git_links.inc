@@ -54,8 +54,5 @@
 .. _ipython notebook on using git in science: https://nbviewer.jupyter.org/github/fperez/reprosw/blob/master/Version%20Control.ipynb
 
 .. other stuff
-.. _python: http://www.python.org
-
 .. |emdash| unicode:: U+02014
-
 .. vim: ft=rst

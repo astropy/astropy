@@ -109,25 +109,11 @@ for line in importlib_metadata.requires('astropy'):
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-rst_epilog += "\n".join(
-    f".. |minimum_{name}_version| replace:: {min_versions[name]}"
-    for name in ('numpy', 'pyerfa', 'scipy', 'pyyaml', 'asdf', 'matplotlib', 'ipython')) + f"""
-.. |minimum_python_version| replace:: {__minimum_python_version__}
+rst_epilog += f"""
+.. ------------------------------------------------------------------
+.. RST SUBSITUTIONS
 
-.. Python
-.. _OrderedDict: https://docs.python.org/3/library/collections.html#collections.OrderedDict
-
-.. Dependencies
-.. _SOFA: http://www.iausofa.org/index.html
-.. _ERFA: https://github.com/liberfa/erfa
-.. _PyERFA: https://github.com/liberfa/pyerfa
-
-.. Astropy
-.. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
-.. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
-
-..
-   RST SUBSITUTIONS
+.. |OrderedDict| replace:: https://docs.python.org/3/library/collections.html#collections.OrderedDict
 
 .. |ndarray| replace:: :class:`numpy.ndarray`
 
@@ -149,7 +135,6 @@ rst_epilog += "\n".join(
 .. |Row| replace:: :class:`~astropy.table.Row`
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
-.. |join| replace:: :func:`~astropy.table.join`
 .. |Time| replace:: :class:`~astropy.time.Time`
 .. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
 .. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
@@ -158,6 +143,75 @@ rst_epilog += "\n".join(
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Unit| replace:: :class:`~astropy.units.UnitBase`
 .. |Masked| replace:: :class:`~astropy.utils.masked.Masked`
+
+.. ------------------------------------------------------------------
+.. KNOWN PROJECTS
+
+.. _Python: https://www.python.org/
+.. |minimum_python_version| replace:: {__minimum_python_version__}
+
+.. Astropy
+.. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
+.. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
+
+.. NumPy
+.. _NumPy: https://numpy.org/
+.. _`numpy github`: https://github.com/numpy/numpy
+.. _`numpy mailing list`: http://mail.python.org/mailman/listinfo/numpy-discussion
+.. |minimum_numpy_version| replace:: {min_versions['numpy']}
+
+.. PyErfa
+.. _ERFA: https://github.com/liberfa/erfa
+.. _PyErfa: http://pyerfa.readthedocs.org/
+.. _`pyerfa github`: https://github.com/liberfa/pyerfa/
+.. |minimum_pyerfa_version| replace:: {min_versions['pyerfa']}
+
+.. matplotlib
+.. _Matplotlib: https://matplotlib.org/
+.. |minimum_matplotlib_version| replace:: {min_versions['matplotlib']}
+
+.. sofa
+.. _SOFA: http://www.iausofa.org/index.html
+
+.. scipy
+.. _scipy: https://www.scipy.org/
+.. _`scipy github`: https://github.com/scipy/scipy
+.. _`scipy mailing list`: http://mail.python.org/mailman/listinfo/scipy-dev
+.. |minimum_scipy_version| replace:: {min_versions['scipy']}
+
+.. asdf
+.. |minimum_asdf_version| replace:: {min_versions['asdf']}
+
+.. pyyaml
+.. |minimum_pyyaml_version| replace:: {min_versions['pyyaml']}
+
+.. IPython
+.. _ipython: http://ipython.scipy.org
+.. _`ipython github`: https://github.com/ipython/ipython
+.. _`ipython mailing list`: http://mail.python.org/mailman/listinfo/IPython-dev
+.. |minimum_ipython_version| replace:: {min_versions['ipython']}
+
+.. pip
+.. _pip: https://pip.pypa.io
+
+.. virtualenv
+.. _virtualenv: https://pypi.org/project/virtualenv
+.. _virtualenvwrapper: https://pypi.org/project/virtualenvwrapper
+.. _virtualenvwrapper-win: https://github.com/davidmarble/virtualenvwrapper-win
+.. _venv: https://docs.python.org/dev/library/venv.html
+
+.. conda
+.. _conda: https://conda.io/docs/
+
+.. py.test
+.. _pytest: https://pytest.org/en/latest/
+.. _pytest-astropy: https://github.com/astropy/pytest-astropy
+.. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
+.. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
+.. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
+
+.. pychecker
+.. _pychecker: https://pypi.org/project/PyChecker
 
 """
 

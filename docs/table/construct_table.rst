@@ -689,9 +689,9 @@ meta
 
 The ``meta`` argument is an object that contains metadata associated
 with the table. It is recommended that this object be a dict or
-OrderedDict_, but the only firm requirement is that it can be copied with
+|OrderedDict|, but the only firm requirement is that it can be copied with
 the standard library ``copy.deepcopy()`` routine. By default, ``meta`` is
-an empty OrderedDict_.
+an empty |OrderedDict|.
 
 copy
 ----
