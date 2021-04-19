@@ -3,10 +3,6 @@
 Reading and Writing Time Series
 *******************************
 
-.. |Table| replace:: :class:`~astropy.table.Table`
-.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
-.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
-
 Built-in Readers
 ================
 

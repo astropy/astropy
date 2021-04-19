@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _construct_table:
 
 Constructing a Table

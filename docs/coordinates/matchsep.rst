@@ -1,6 +1,3 @@
-.. include:: references.txt
-
-
 .. _astropy-coordinates-separations-matching:
 
 Separations, Offsets, Catalog Matching, and Related Functionality
@@ -74,7 +71,7 @@ offsets encountered in astronomy.
 The first piece of such functionality is the
 :meth:`~astropy.coordinates.SkyCoord.position_angle` method. This method
 computes the position angle between one
-|skycoord| instance and another (passed as the argument) following the
+|SkyCoord| instance and another (passed as the argument) following the
 astronomy convention (positive angles East of North)::
 
     >>> from astropy import units as u
@@ -262,7 +259,7 @@ the catalog:
 This functionality can also be accessed from the
 :func:`~astropy.coordinates.match_coordinates_sky` and
 :func:`~astropy.coordinates.match_coordinates_3d` functions. These
-will work on either |skycoord| objects *or* the lower-level frame classes:
+will work on either |SkyCoord| objects *or* the lower-level frame classes:
 
 .. doctest-requires:: scipy
 
@@ -310,7 +307,7 @@ with an interface very similar to ``match_coordinates_*``:
 The key difference for these methods is that there can be multiple (or no)
 matches in ``catalog`` around any locations in ``c``. Hence, indices into both
 ``c`` and ``catalog`` are returned instead of just indices into ``catalog``.
-These can then be indexed back into the two |skycoord| objects, or, for that
+These can then be indexed back into the two |SkyCoord| objects, or, for that
 matter, any array with the same order:
 
 ..  doctest-requires:: scipy

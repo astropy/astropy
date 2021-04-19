@@ -3,11 +3,6 @@
 Interfacing with the Pandas Package
 ***********************************
 
-.. |Time| replace:: :class:`~astropy.time.Time`
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
-.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
-
 The `astropy.timeseries` package is not the only package to provide
 functionality related to time series. Another notable package is `pandas
 <https://pandas.pydata.org/>`_, which provides a :class:`pandas.DataFrame`

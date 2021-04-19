@@ -1,15 +1,8 @@
-.. include:: references.txt
-
 .. _astropy-time:
 
 *******************************
 Time and Dates (`astropy.time`)
 *******************************
-
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
-.. |EarthLocation| replace:: :class:`~astropy.coordinates.EarthLocation`
-.. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
 
 Introduction
 ============

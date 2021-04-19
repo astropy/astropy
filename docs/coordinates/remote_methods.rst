@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-remote:
 
 Usage Tips/Suggestions for Methods That Access Remote Resources
