@@ -81,7 +81,7 @@ class solar_system_ephemeris(ScienceState):
     This can be one of the following::
 
     - 'builtin': polynomial approximations to the orbital elements.
-    - 'de430' or 'de432s': short-cuts for recent JPL dynamical models.
+    - 'de430', 'de432s', 'de440', 'de440s': short-cuts for recent JPL dynamical models.
     - 'jpl': Alias for the default JPL ephemeris (currently, 'de430').
     - URL: (str) The url to a SPK ephemeris in SPICE binary (.bsp) format.
     - PATH: (str) File path to a SPK ephemeris in SPICE binary (.bsp) format.
@@ -96,8 +96,9 @@ class solar_system_ephemeris(ScienceState):
     Any file required will be downloaded (and cached) when the state is set.
     The default Satellite Planet Kernel (SPK) file from NASA JPL (de430) is
     ~120MB, and covers years ~1550-2650 CE [1]_.  The smaller de432s file is
-    ~10MB, and covers years 1950-2050 [2]_.  Older versions of the JPL
-    ephemerides (such as the widely used de200) can be used via their URL [3]_.
+    ~10MB, and covers years 1950-2050 [2]_ (and similarly for the newer de440
+    and de440s).  Older versions of the JPL ephemerides (such as the widely
+    used de200) can be used via their URL [3]_.
 
     .. [1] https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de430-de431.txt
     .. [2] https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/aareadme_de432s.txt
@@ -162,7 +163,7 @@ def _get_kernel(value):
     if value.lower() == 'jpl':
         value = DEFAULT_JPL_EPHEMERIS
 
-    if value.lower() in ('de430', 'de432s'):
+    if value.lower() in ('de430', 'de432s', 'de440', 'de440s'):
         value = ('https://naif.jpl.nasa.gov/pub/naif/generic_kernels'
                  '/spk/planets/{:s}.bsp'.format(value.lower()))
 
