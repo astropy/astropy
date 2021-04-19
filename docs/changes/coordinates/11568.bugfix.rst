@@ -1,0 +1,3 @@
+Ensure that wrapping of ``Angle`` does not raise a warning even if ``nan`` are
+present.  Also try to make sure that the result is within the wrapped range
+even in the presence of rounding errors.
