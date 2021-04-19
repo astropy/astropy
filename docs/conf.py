@@ -179,6 +179,88 @@ numpydoc_xref_aliases.update({
 # Add from sphinx-astropy 1) glossary aliases 2) physical types.
 numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
+numpydoc_validation_checks = {
+    # Docstring text (summary) should start in the line immediately after the
+    # opening quotes (not in the same line, or leaving a blank line in between)
+    "GL01",
+    # Closing quotes should be placed in the line after the last text in the
+    # docstring (do not close the quotes in the same line as the text, or leave
+    # a blank line between the last text and the quotes).
+    # "GL02",
+    # # Double line break found; please use only 1 blank line to separate sections
+    # # or paragraphs, and do not leave blank lines at the end of docstrings.
+    # "GL03",
+    # # Tabs found at the start of line {X}, please use whitespace only
+    # "GL05",
+    # # Found unknown section {section}. Allowed sections are: {allowed_sections}
+    # "GL06",
+    # # Sections are in the wrong order. Correct order is: {correct_sections}",
+    # "GL07",
+    # # The object does not have a docstring",
+    # "GL08",
+    # # Deprecation warning should precede extended summary",
+    # "GL09",
+    # # reST directives {directives} must be followed by two colons",
+    # "GL10",
+    # # No summary found (a short summary in a single line should be present at the beginning of the docstring)",
+    # "SS01",
+    # # Summary does not start with a capital letter",
+    # "SS02",
+    # # Summary does not end with a period",
+    # "SS03",
+    # # Summary contains heading whitespaces",
+    # "SS04",
+    # # Summary must start with infinitive verb, not third person (e.g. use "Generate" instead of "Generates")",
+    # "SS05",
+    # # Summary should fit in a single line",
+    # "SS06",
+    # # No extended summary found",
+    # "ES01",
+    # # Parameters {missing_params} not documented",
+    # "PR01",
+    # # Unknown parameters {unknown_params}",
+    # "PR02",
+    # # Wrong parameters order. Actual: {actual_params}. Documented: {documented_params}",
+    # "PR03",
+    # # Parameter {param_name} has no type,
+    # "PR04",
+    # # Parameter {param_name} type should not finish with ".",
+    # "PR05",
+    # # Parameter {param_name} type should use {right_type} instead of {wrong_type}
+    # "PR06",
+    # # Parameter {param_name} has no description,
+    # "PR07",
+    # # Parameter {param_name} description should start with a capital letter,
+    # "PR08",
+    # # Parameter {param_name} description should finish with ".",
+    # "PR09",
+    # # Parameter {param_name} requires a space before the colon separating the
+    # # parameter name and type.
+    # "PR10",
+    # # No Returns section found
+    # "RT01",
+    # # The first line of the Returns section should contain only the type, unless
+    # # multiple values are being returned
+    # "RT02",
+    # # Return value has no description
+    # "RT03",
+    # # Return value description should start with a capital letter
+    # "RT04",
+    # # Return value description should finish with "."
+    # "RT05",
+    # # No Yields section found
+    # "YD01",
+    # # See Also section not found
+    # "SA01",
+    # # Missing period at end of description for See Also {reference_name} reference
+    # "SA02",
+    # # Description should be capitalized for See Also {reference_name} reference
+    # "SA03",
+    # # Missing description for See Also {reference_name} reference,
+    # "SA04",
+    # # No examples section found,
+    # "EX01",
+}
 
 # -- Project information ------------------------------------------------------
 
