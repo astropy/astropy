@@ -164,9 +164,15 @@ def test_invalid_sigma_clip():
     data[3, 4] = np.nan
     data[1, 1] = np.inf
 
+    data_ma = np.ma.MaskedArray(data)
+
     with pytest.warns(AstropyUserWarning,
                       match=r'Input data contains invalid values'):
         result = sigma_clip(data)
+        result_ma = sigma_clip(data_ma)
+
+    assert_equal(result.data, result_ma.data)
+    assert_equal(result.mask, result_ma.mask)
 
     # Pre #4051 if data contains any NaN or infs sigma_clip returns the
     # mask containing `False` only or TypeError if data also contains a
