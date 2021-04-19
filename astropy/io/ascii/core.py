@@ -274,6 +274,7 @@ class Column:
     * **fill_values** : dict of fill values
     * **shape** : list of element shape (default [] => scalar)
     * **data** : list of converted column values
+    * **subtype** : actual datatype for columns serialized with JSON
     """
 
     def __init__(self, name):
@@ -283,6 +284,7 @@ class Column:
         self.str_vals = []
         self.fill_values = {}
         self.shape = []
+        self.subtype = None
 
 
 class BaseInputter:

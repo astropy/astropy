@@ -2,6 +2,7 @@ import textwrap
 import copy
 from collections import OrderedDict
 
+import numpy as np
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
@@ -230,7 +231,7 @@ def _get_variable_length_array_shape(col):
         except ConvertError:
             # `col` is not a variable length array, return shape and dtype to
             #  the original. Note that this function is only called if
-            #  col.shape[1:] was ().
+            #  col.shape[1:] was () and col.info.dtype is object.
             shape = ()
             dtype = col.info.dtype
 
@@ -241,24 +242,41 @@ def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
+
+    Parameters
+    ==========
+    col : column-like
+        Input Table column
+
+    Returns
+    =======
+    attrs : dict
+        Dict of ECSV attributes for ``col``
     """
-    shape = col.shape[1:]
-    dtype = col.info.dtype
+    dtype = col.info.dtype  # Type of column values that get written
+    subtype = None  # Type of data for object columns serialized with JSON
+    shape = col.shape[1:]  # Shape of multidim / variable length columns
 
-    # 1-d object type column might be a variable length array
-    if dtype.kind == 'O' and shape == ():
-        shape, dtype = _get_variable_length_array_shape(col)
+    if dtype.name == 'object':
+        if shape == ():
+            # 1-d object type column might be a variable length array
+            dtype = np.dtype(str)
+            shape, subtype = _get_variable_length_array_shape(col)
+        else:
+            # N-d object column is subtype object but serialized as JSON string
+            dtype = np.dtype(str)
+            subtype = np.dtype(object)
+    elif shape:
+        # N-d column which is not object is serialized as JSON string
+        dtype = np.dtype(str)
+        subtype = col.info.dtype
 
-    type_name = dtype.type.__name__
-    if type_name.startswith(('bytes', 'str')):
-        type_name = 'string'
-    if type_name.endswith('_'):
-        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
+    datatype = _get_datatype_from_dtype(dtype)
 
     # Set the output attributes
     attrs = ColumnDict()
     attrs['name'] = col.info.name
-    attrs['datatype'] = type_name
+    attrs['datatype'] = datatype
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
                                     ('format', lambda x: x is not None, None),
                                     ('description', lambda x: x is not None, None),
@@ -266,10 +284,23 @@ def _get_col_attributes(col):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
             attrs[attr] = xform(col_attr) if xform else col_attr
+
+    if subtype:
+        attrs['subtype'] = _get_datatype_from_dtype(subtype)
     if shape:
         attrs['shape'] = list(shape)
 
     return attrs
+
+
+def _get_datatype_from_dtype(dtype):
+    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
+    datatype = dtype.type.__name__
+    if datatype.startswith(('bytes', 'str')):
+        datatype = 'string'
+    if datatype.endswith('_'):
+        datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
+    return datatype
 
 
 def get_yaml_from_table(table):

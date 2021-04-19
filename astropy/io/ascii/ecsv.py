@@ -47,13 +47,20 @@ class EcsvHeader(basic.BasicHeader):
 
     def write(self, lines):
         """
-        Write header information in the ECSV ASCII format.  This format
-        starts with a delimiter separated list of the column names in order
-        to make this format readable by humans and simple csv-type readers.
-        It then encodes the full table meta and column attributes and meta
-        as YAML and pretty-prints this in the header.  Finally the delimited
-        column names are repeated again, for humans and readers that look
-        for the *last* comment line as defining the column names.
+        Write header information in the ECSV ASCII format.
+
+        This function is called at the point when preprocessing has been done to
+        convert the input table columns to `self.cols` which is a list of
+        `astropy.io.ascii.core.Column` objects. In particular `col.str_vals`
+        is available for each column with the string representation of each
+        column item for output.
+
+        This format starts with a delimiter separated list of the column names
+        in order to make this format readable by humans and simple csv-type
+        readers. It then encodes the full table meta and column attributes and
+        meta as YAML and pretty-prints this in the header.  Finally the
+        delimited column names are repeated again, for humans and readers that
+        look for the *last* comment line as defining the column names.
         """
         if self.splitter.delimiter not in DELIMITERS:
             raise ValueError('only space and comma are allowed for delimiter in ECSV format')
@@ -77,21 +84,21 @@ class EcsvHeader(basic.BasicHeader):
 
     def write_comments(self, lines, meta):
         """
-        Override the default write_comments to do nothing since this is handled
+        WRITE: Override the default write_comments to do nothing since this is handled
         in the custom write method.
         """
         pass
 
     def update_meta(self, lines, meta):
         """
-        Override the default update_meta to do nothing.  This process is done
+        READ: Override the default update_meta to do nothing.  This process is done
         in get_cols() for this reader.
         """
         pass
 
     def get_cols(self, lines):
         """
-        Initialize the header Column objects from the table ``lines``.
+        READ: Initialize the header Column objects from the table ``lines``.
 
         Parameters
         ----------
@@ -166,15 +173,17 @@ class EcsvHeader(basic.BasicHeader):
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
         for col in self.cols:
-            for attr in ('description', 'format', 'unit', 'meta', 'shape'):
+            for attr in ('description', 'format', 'unit', 'meta', 'shape', 'subtype'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
             col.dtype = header_cols[col.name]['datatype']
+
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
-            if col.dtype == 'string':
-                col.dtype = 'str'
-            if col.dtype.startswith('complex'):
-                raise TypeError('ecsv reader does not support complex number types')
+            for attr in ('dtype', 'subtype'):
+                if getattr(col, attr) == 'string':
+                    setattr(col, attr, 'str')
+                if (getattr(col, attr) or '').startswith('complex'):
+                    raise TypeError('ecsv reader does not support complex number types')
 
 
 class EcsvOutputter(core.TableOutputter):
@@ -208,15 +217,11 @@ class EcsvOutputter(core.TableOutputter):
         object data and structured values that may contain masked data.
         """
         for col in cols:
-            col_dtype = np.dtype(col.dtype)
-            converter_func, _ = convert_numpy(col.dtype)
             try:
-                # 1-d object columns are serialized as JSON.
-                if col_dtype.kind == 'O':
-                    if col.shape:
-                        raise ValueError('multidimensional object arrays are not allowed')
+                # 1-d or N-d object columns are serialized as JSON.
+                if col.subtype == 'object':
                     col_vals = [json.loads(val) for val in col.str_vals]
-                    col.data = np.array(col_vals, dtype=col.dtype)
+                    col.data = np.array(col_vals, dtype=col.subtype)
 
                 # Variable length arrays with shape (n, m, ..., *) for fixed
                 # n, m, .. and variable in last axis. Masked values here are
@@ -224,7 +229,7 @@ class EcsvOutputter(core.TableOutputter):
                 elif col.shape and col.shape[-1] is None:
                     # Remake as a 1-d object column of numpy ndarrays using the
                     # datatype specified in the ECSV file.
-                    col_vals = [np.array(json.loads(val), dtype=col_dtype)
+                    col_vals = [np.array(json.loads(val), dtype=col.subtype)
                                 for val in col.str_vals]
                     col.shape = ()
                     col.dtype = np.dtype(object)
@@ -242,16 +247,17 @@ class EcsvOutputter(core.TableOutputter):
                     mask = (data == None)  # noqa
                     if not np.any(mask):
                         # No None's, just convert to required dtype
-                        col.data = data.astype(col.dtype)
+                        col.data = data.astype(col.subtype)
                     else:
                         # Replace all the None with an appropriate fill value
-                        kind = np.dtype(col.dtype).kind
+                        kind = np.dtype(col.subtype).kind
                         data[mask] = {'U': '', 'S': b''}.get(kind, 0)
                         # Finally make a MaskedArray with the filled data + mask
                         col.data = np.ma.array(data.astype(col.dtype), mask=mask)
 
                 # Regular scalar value column
                 else:
+                    converter_func, _ = convert_numpy(col.dtype)
                     col.data = converter_func(col.str_vals)
 
                 if col.data.shape[1:] != tuple(col.shape):
