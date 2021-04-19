@@ -197,8 +197,8 @@ def test_invalid_sigma_clip():
     data[0, :] = np.nan     # row of all nans
     with pytest.warns(AstropyUserWarning,
                       match=r'Input data contains invalid values'):
-        result4, minarr, maxarr = sigma_clip(data, axis=1, masked=False,
-                                             return_bounds=True)
+        _, minarr, maxarr = sigma_clip(data, axis=1, masked=False,
+                                       return_bounds=True)
     assert np.isnan(minarr[0])
     assert np.isnan(maxarr[0])
 
@@ -218,7 +218,7 @@ def test_sigmaclip_fully_masked():
     data = np.ma.MaskedArray(data=[[1., 0.], [0., 1.]],
                              mask=[[True, True], [True, True]])
     clipped_data = sigma_clip(data)
-    np.ma.allequal(data, clipped_data)
+    assert np.ma.allequal(data, clipped_data)
 
     clipped_data = sigma_clip(data, masked=False)
     assert not isinstance(clipped_data, np.ma.MaskedArray)
@@ -232,7 +232,7 @@ def test_sigmaclip_empty_masked():
 
     data = np.ma.MaskedArray(data=[], mask=[])
     clipped_data = sigma_clip(data)
-    np.ma.allequal(data, clipped_data)
+    assert np.ma.allequal(data, clipped_data)
 
 
 def test_sigmaclip_empty():
