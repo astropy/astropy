@@ -4,13 +4,6 @@
 Time Series (`astropy.timeseries`)
 **********************************
 
-.. |Time| replace:: :class:`~astropy.time.Time`
-.. |Table| replace:: :class:`~astropy.table.Table`
-.. |QTable| replace:: :class:`~astropy.table.QTable`
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
-.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
-
 Introduction
 ============
 

@@ -3,13 +3,6 @@
 Creating Time Series
 ********************
 
-.. |Time| replace:: :class:`~astropy.time.Time`
-.. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
-.. |Table| replace:: :class:`~astropy.table.Table`
-.. |QTable| replace:: :class:`~astropy.table.Table`
-.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
-.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
-
 Initializing a Time Series
 ==========================
 

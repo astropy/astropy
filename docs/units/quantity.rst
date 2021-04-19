@@ -3,8 +3,6 @@
 Quantity
 ********
 
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-
 The |Quantity| object is meant to represent a value that has some unit
 associated with the number.
 

@@ -1,7 +1,4 @@
-.. include:: references.txt
 .. |join| replace:: :func:`~astropy.table.join`
-.. |Time| replace:: :class:`~astropy.time.Time`
-.. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
 
 .. _mixin_columns:
 

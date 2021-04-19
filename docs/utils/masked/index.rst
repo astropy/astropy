@@ -1,5 +1,3 @@
-.. |Masked| replace:: :class:`~astropy.utils.masked.Masked`
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. _utils-masked:
 
 **************************************
