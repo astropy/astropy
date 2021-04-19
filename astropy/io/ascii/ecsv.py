@@ -208,17 +208,36 @@ class EcsvOutputter(core.TableOutputter):
         object data and structured values that may contain masked data.
         """
         for col in cols:
+            col_dtype = np.dtype(col.dtype)
             converter_func, _ = convert_numpy(col.dtype)
             try:
-                # Object columns are serialized as JSON.
-                if np.dtype(col.dtype).kind == 'O':
+                # 1-d object columns are serialized as JSON.
+                if col_dtype.kind == 'O':
+                    if col.shape:
+                        raise ValueError('multidimensional object arrays are not allowed')
                     col_vals = [json.loads(val) for val in col.str_vals]
                     col.data = np.array(col_vals, dtype=col.dtype)
 
-                # Multidim columns are serialized as JSON
+                # Variable length arrays with shape (n, m, ..., *) for fixed
+                # n, m, .. and variable in last axis. Masked values here are
+                # not currently supported.
+                elif col.shape and col.shape[-1] is None:
+                    # Remake as a 1-d object column of numpy ndarrays using the
+                    # datatype specified in the ECSV file.
+                    col_vals = [np.array(json.loads(val), dtype=col_dtype)
+                                for val in col.str_vals]
+                    col.shape = ()
+                    col.dtype = np.dtype(object)
+                    # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
+                    col.data = np.empty(len(col_vals), dtype=object)
+                    col.data[:] = col_vals
+
+                # Multidim columns with consistent shape (n, m, ...). These
+                # might be masked.
                 elif col.shape:
                     col_vals = [json.loads(val) for val in col.str_vals]
                     # Make a numpy object array of col_vals to look for None
+                    # (masked values)
                     data = np.array(col_vals, dtype=object)
                     mask = (data == None)  # noqa
                     if not np.any(mask):
@@ -230,6 +249,8 @@ class EcsvOutputter(core.TableOutputter):
                         data[mask] = {'U': '', 'S': b''}.get(kind, 0)
                         # Finally make a MaskedArray with the filled data + mask
                         col.data = np.ma.array(data.astype(col.dtype), mask=mask)
+
+                # Regular scalar value column
                 else:
                     col.data = converter_func(col.str_vals)
 
