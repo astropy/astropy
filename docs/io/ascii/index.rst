@@ -27,7 +27,7 @@ section on `Supported formats`_ contains the full list.
 * :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line
-* :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_
+* :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <https://sextractor.readthedocs.io/en/latest/>`_
 
 The strength of `astropy.io.ascii` is the support for astronomy-specific
 formats (often with metadata) and specialized data types such as
