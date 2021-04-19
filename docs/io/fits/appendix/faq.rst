@@ -31,9 +31,7 @@ written in C that is required to read/write compressed image data. However,
 the rest of PyFITS functions without this extension module.
 
 .. _PyFITS: https://github.com/spacetelescope/pyfits
-.. _Python: https://www.python.org/
 .. _FITS: https://fits.gsfc.nasa.gov/
-.. _Numpy: https://numpy.org/
 
 
 What is the development status of PyFITS?

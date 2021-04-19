@@ -41,8 +41,12 @@ the standard Astropy docstring format.
 
 * All documentation text should follow the :ref:`astropy-style-guide`.
 
-* All documentation should be written use the `Sphinx`_
+* All documentation should be written using the `Sphinx`_
   documentation tool.
+  
+* ReST substitutions are centralized in ``docs/conf.py::rst_epilog`` for
+  consistency across the documentation and docstrings. These should be used over
+  custom redefinitions; and new substitutions should probably be placed there.
 
 * The `package template <https://github.com/astropy/package-template>`_ provides
   a recommended general structure for documentation.
@@ -114,12 +118,9 @@ In addition, the sphinx-astropy_ includes a few small extensions:
 * ``sphinx_astropy.ext.doctest`` - an extension that makes it possible to
   add metadata about doctests inside ``.rst`` files
 
-.. _NumPy: https://numpy.org/
-.. _numpydoc: https://pypi.org/project/numpydoc/
-.. _Matplotlib: https://matplotlib.org/
-.. _SciPy: https://www.scipy.org/
 .. _Sphinx: http://www.sphinx-doc.org/
 .. _sphinx-automodapi: https://github.com/astropy/sphinx-automodapi
 .. _astropy-sphinx-theme: https://github.com/astropy/astropy-sphinx-theme
 .. _sphinx-astropy: https://github.com/astropy/sphinx-astropy
 .. _sphinx-gallery: https://sphinx-gallery.readthedocs.io
+.. _numpydoc: https://pypi.org/project/numpydoc/

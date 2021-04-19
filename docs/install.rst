@@ -554,5 +554,3 @@ would like more control over the testing process.
 See the `latest documentation on how to run the tests in a source checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`__.
 
 {%endif%}
-
-.. include:: development/workflow/known_projects.inc
