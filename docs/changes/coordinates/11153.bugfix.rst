@@ -1,0 +1,2 @@
+Makes the ``Angle.to_string`` method to follow the format described in the
+docstring with up to 8 significant decimals instead of 4.
