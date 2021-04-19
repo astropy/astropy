@@ -15,8 +15,6 @@ on:
   schedule:
     # run every Wednesday at 6am UTC
     - cron: '0 6 * * 3'
-  # REMOVE ME
-  pull_request:
 
 jobs:
   analyze:
