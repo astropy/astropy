@@ -324,17 +324,17 @@ class SigmaClip:
         if data_reshaped.dtype.kind != 'f' or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
+        mask = ~np.isfinite(data_reshaped)
+        if np.any(mask):
+            warnings.warn('Input data contains invalid values (NaNs or '
+                          'infs), which were automatically clipped.',
+                          AstropyUserWarning)
+
         if isinstance(data_reshaped, np.ma.MaskedArray):
-            mask = data_reshaped.mask
+            mask |= data_reshaped.mask
             data = data.view(np.ndarray)
             data_reshaped = data_reshaped.view(np.ndarray)
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
-        else:
-            mask = ~np.isfinite(data_reshaped)
-            if np.any(mask):
-                warnings.warn('Input data contains invalid values (NaNs or '
-                            'infs), which were automatically clipped.',
-                            AstropyUserWarning)
 
         bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
                                   -1 if np.isinf(self.maxiters) else self.maxiters,
