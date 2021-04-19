@@ -1,0 +1,3 @@
+Fixed ``Table`` HTML representation in Jupyter notebooks so that it is
+horizontally scrollable within Visual Studio Code. This was done by wrapping
+the ``<table>`` in a ``<div>`` element.
