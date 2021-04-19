@@ -111,7 +111,7 @@
         "info": "Unlike Planck 2015, the paper includes massive neutrinos in Om0, which here are included in m_nu. Hence, the Om0 value differs slightly from the paper."
     },
     "Planck18_arXiv_v2": {
-        "name": "Planck18_arXiv_v2",
+        "name": "Planck18",
         "cosmology": "FlatLambdaCDM",
         "Oc0": 0.2607,
         "Ob0": 0.04897,

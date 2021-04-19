@@ -28,7 +28,7 @@ for key in parameters.available:
             Tcmb0=par["Tcmb0"],
             Neff=par["Neff"],
             m_nu=u.Quantity(par["m_nu"], u.eV),
-            name=key,
+            name=par["name"],
             Ob0=par["Ob0"],
         )
         docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
