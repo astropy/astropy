@@ -26,5 +26,5 @@ well-defined but idiosyncratic formats.
 * :class:`~astropy.io.ascii.NoHeader`: basic table with no header where columns are auto-named.
 * :class:`~astropy.io.ascii.Rdb`: tab-separated values with an extra line after the column definition line.
 * :class:`~astropy.io.ascii.RST`: `reStructuredText simple format table <https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#simple-tables>`_.
-* :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <http://www.astromatic.net/software/sextractor>`_.
+* :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <https://sextractor.readthedocs.io/en/latest/>`_.
 * :class:`~astropy.io.ascii.Tab`: tab-separated values.
