@@ -105,13 +105,13 @@ There are many ways to represent the value of an |Angle|::
     >>> a.to_string()
     '1rad'
     >>> a.to_string(unit=u.degree)
-    '57d17m44.8062s'
+    '57d17m44.8062471s'
     >>> a.to_string(unit=u.degree, sep=':')
-    '57:17:44.8062'
+    '57:17:44.8062471'
     >>> a.to_string(unit=u.degree, sep=('deg', 'm', 's'))
-    '57deg17m44.8062s'
+    '57deg17m44.8062471s'
     >>> a.to_string(unit=u.hour)
-    '3h49m10.9871s'
+    '3h49m10.98708314s'
     >>> a.to_string(unit=u.hour, decimal=True)
     '3.81972'
 
