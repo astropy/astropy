@@ -157,25 +157,108 @@ def _repr_column_dict(dumper, data):
     return dumper.represent_mapping('tag:yaml.org,2002:map', data)
 
 
+def _get_variable_length_array_shape(col):
+    """Check if object-type ``col`` is really a variable length list.
+
+    That is true if the object consists purely of list of nested lists, where
+    the shape of every item can be represented as (m, n, ..., *) where the (m,
+    n, ...) are constant and only the lists in the last axis have variable
+    shape. If so the returned value of shape will be a tuple in the form (m, n,
+    ..., None).
+
+    If ``col`` is a variable length array then the return ``dtype`` corresponds
+    to the type found by numpy for all the individual values. Otherwise it will
+    be ``np.dtype(object)``.
+
+    Parameters
+    ==========
+    col : column-like
+        Input table column, assumed to be object-type
+
+    Returns
+    =======
+    shape : tuple
+        Inferred variable length shape or None
+    dtype : np.dtype
+        Numpy dtype that applies to col
+    """
+    import warnings
+    import numpy as np
+
+    class ConvertError(ValueError):
+        """Local conversion error used below"""
+
+    dtype = col.info.dtype
+    shape = None
+
+    with warnings.catch_warnings():
+        # Turn every numpy warning (from np.array(val) below) into an error. See
+        # also _convert_sequence_data_to_array in table/column.py. Depending on
+        # the numpy version doing something like ``np.array([{'a': 1}])`` may
+        # succeed (with object type) with no warning, raise a warning, or
+        # raise an exception. We need all of those to fail.
+        warnings.simplefilter('error')
+        try:
+            for val in col:
+                # This statement will raise various warnings or an error for
+                # anything but a well-formed N-d list of lists.
+                try:
+                    arr = np.array(val)
+                except Exception:
+                    raise ConvertError
+                if arr.dtype.kind == 'O':
+                    # Couldn't convert to a native type, fail.
+                    raise ConvertError
+                # Last axis is allowed to have variable shape, all others must
+                # stay the same.
+                arr_shape = arr.shape[:-1]
+                if arr_shape != shape:
+                    if shape is None:  # First time through
+                        shape = arr_shape
+                        dtype = arr.dtype
+                    else:
+                        # Shape changed from previous, fail.
+                        raise ConvertError
+
+                # Keep track of the running dtype that works for everything
+                dtype = np.promote_types(dtype, arr.dtype)
+
+            # `col` is a variable length array. `shape` tuple needs to end with
+            # with None as a placeholder for the variable dimension.
+            shape = shape + (None,)
+
+        except ConvertError:
+            # `col` is not a variable length array, return shape and dtype to
+            #  the original. Note that this function is only called if
+            #  col.shape[1:] was ().
+            shape = ()
+            dtype = col.info.dtype
+
+    return shape, dtype
+
+
 def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
     """
-    attrs = ColumnDict()
-    attrs['name'] = col.info.name
+    shape = col.shape[1:]
+    dtype = col.info.dtype
 
-    type_name = col.info.dtype.type.__name__
+    # 1-d object type column might be a variable length array
+    if dtype.kind == 'O' and shape == ():
+        shape, dtype = _get_variable_length_array_shape(col)
+
+    type_name = dtype.type.__name__
     if type_name.startswith(('bytes', 'str')):
         type_name = 'string'
     if type_name.endswith('_'):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-    attrs['datatype'] = type_name
-
-    if len(col.shape) > 1:
-        attrs['shape'] = list(col.shape[1:])
 
     # Set the output attributes
+    attrs = ColumnDict()
+    attrs['name'] = col.info.name
+    attrs['datatype'] = type_name
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
                                     ('format', lambda x: x is not None, None),
                                     ('description', lambda x: x is not None, None),
@@ -183,6 +266,8 @@ def _get_col_attributes(col):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
             attrs[attr] = xform(col_attr) if xform else col_attr
+    if shape:
+        attrs['shape'] = list(shape)
 
     return attrs
 
