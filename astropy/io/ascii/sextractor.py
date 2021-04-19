@@ -112,7 +112,7 @@ class SExtractor(core.BaseReader):
     SExtractor is a package for faint-galaxy photometry (Bertin & Arnouts
     1996, A&A Supp. 317, 393.)
 
-    See: http://www.astromatic.net/software/sextractor
+    See: https://sextractor.readthedocs.io/en/latest/
 
     Example::
 
