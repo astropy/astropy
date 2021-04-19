@@ -3,8 +3,8 @@
 
 .. note::
 
-    This module is meant for ``astropy`` usage.
-    If you wish to use it for your own packages, your mileage might vary.
+    This module is meant for internal ``astropy`` usage. For use in other
+    packages, we recommend implementing your own logger instead.
 
 """
 
