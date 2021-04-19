@@ -347,18 +347,18 @@ def test_angle_formatting():
     angle = Angle(-1.23456789, unit=u.degree)
     angle2 = Angle(-1.23456789, unit=u.hour)
 
-    assert angle.to_string() == '-1d14m04.4444s'
-    assert angle.to_string(pad=True) == '-01d14m04.4444s'
-    assert angle.to_string(unit=u.hour) == '-0h04m56.2963s'
-    assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.4444s'
+    assert angle.to_string() == '-1d14m04.444404s'
+    assert angle.to_string(pad=True) == '-01d14m04.444404s'
+    assert angle.to_string(unit=u.hour) == '-0h04m56.2962936s'
+    assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.444404s'
     assert angle.to_string(unit=u.radian, decimal=True) == '-0.0215473'
 
 
 def test_to_string_vector():
     # Regression test for the fact that vectorize doesn't work with Numpy 1.6
-    assert Angle([1./7., 1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
-    assert Angle([1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
-    assert Angle(1./7., unit='deg').to_string() == "0d08m34.2857s"
+    assert Angle([1./7., 1./7.], unit='deg').to_string()[0] == "0d08m34.28571429s"
+    assert Angle([1./7.], unit='deg').to_string()[0] == "0d08m34.28571429s"
+    assert Angle(1./7., unit='deg').to_string() == "0d08m34.28571429s"
 
 
 def test_angle_format_roundtripping():
@@ -869,6 +869,13 @@ def test_regression_formatting_negative():
     assert Angle(-1., unit='deg').to_string() == '-1d00m00s'
     assert Angle(-0., unit='hour').to_string() == '-0h00m00s'
     assert Angle(-1., unit='hour').to_string() == '-1h00m00s'
+
+
+def test_regression_formatting_default_precision():
+    # Regression test for issue #11140
+    assert Angle('10:20:30.12345678d').to_string() == '10d20m30.12345678s'
+    assert Angle('10d20m30.123456784564s').to_string() == '10d20m30.12345678s'
+    assert Angle('10d20m30.123s').to_string() == '10d20m30.123s'
 
 
 def test_empty_sep():
