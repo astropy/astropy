@@ -25,7 +25,7 @@ __all__ = ["get_body", "get_moon", "get_body_barycentric",
            "get_body_barycentric_posvel", "solar_system_ephemeris"]
 
 
-DEFAULT_JPL_EPHEMERIS = 'de430'
+DEFAULT_JPL_EPHEMERIS = 'de440s'
 
 """List of kernel pairs needed to calculate positions of a given object."""
 BODY_NAME_TO_KERNEL_SPEC = {

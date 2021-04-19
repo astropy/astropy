@@ -7,7 +7,7 @@ from urllib.error import HTTPError
 from astropy.time import Time
 from astropy import units as u
 from astropy.constants import c
-from astropy.coordinates.builtin_frames import GCRS, TETE
+from astropy.coordinates.builtin_frames import TETE
 from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.coordinates.representation import CartesianRepresentation, UnitSphericalRepresentation
@@ -24,9 +24,9 @@ from astropy.utils.compat.optional_deps import (HAS_JPLEPHEM,  # noqa
 if HAS_SKYFIELD:
     from skyfield.api import Loader, Topos
 
-de432s_separation_tolerance_planets = 5*u.arcsec
-de432s_separation_tolerance_moon = 5*u.arcsec
-de432s_distance_tolerance = 20*u.km
+jpl_separation_tolerance_planets = 5*u.arcsec
+jpl_separation_tolerance_moon = 5*u.arcsec
+jpl_distance_tolerance = 20*u.km
 
 skyfield_angular_separation_tolerance = 1*u.arcsec
 skyfield_separation_tolerance = 10*u.km
@@ -81,7 +81,10 @@ def test_positions_skyfield(tmpdir):
     skyfield_moon = SkyCoord(ra.to(u.deg), dec.to(u.deg), distance=dist.to(u.km),
                              frame=frame)
 
-    # planet positions w.r.t true equator and equinox
+    # planet positions w.r.t true equator and equinox.
+    # Use DE430 here as that is closed to what is used by skyfield too.
+    # TODO: investigate why one cannot just change both the load command above
+    # and the ephemeris here to de440s.
     moon_astropy = get_moon(t, location, ephemeris='de430').transform_to(frame)
     mercury_astropy = get_body('mercury', t, location, ephemeris='de430').transform_to(frame)
     jupiter_astropy = get_body('jupiter', t, location, ephemeris='de430').transform_to(frame)
@@ -111,7 +114,9 @@ class TestPositionsGeocentric:
     def setup(self):
         self.t = Time('1980-03-25 00:00')
         self.apparent_frame = TETE(obstime=self.t)
-        # Results returned by JPL Horizons web interface
+        # Results returned by JPL Horizons web interface, using DE432.
+        # TODO: update to de440s, by re-getting the positions.
+        self.ephemeris = 'de432s'
         self.horizons = {
             'mercury': SkyCoord(ra='22h41m47.78s', dec='-08d29m32.0s',
                                 distance=c*6.323037*u.min, frame=self.apparent_frame),
@@ -149,8 +154,8 @@ class TestPositionsGeocentric:
     @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter', 'sun'))
-    def test_de432s_planet(self, body):
-        astropy = get_body(body, self.t, ephemeris='de432s')
+    def test_jpl_planet(self, body):
+        astropy = get_body(body, self.t, ephemeris=self.ephemeris)
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
@@ -158,16 +163,16 @@ class TestPositionsGeocentric:
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
-                de432s_separation_tolerance_planets)
+                jpl_separation_tolerance_planets)
 
         # Assert distances are close.
         assert_quantity_allclose(astropy.distance, horizons.distance,
-                                 atol=de432s_distance_tolerance)
+                                 atol=jpl_distance_tolerance)
 
     @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
-    def test_de432s_moon(self):
-        astropy = get_moon(self.t, ephemeris='de432s')
+    def test_jpl_moon(self):
+        astropy = get_moon(self.t, ephemeris=self.ephemeris)
         horizons = self.horizons['moon']
 
         # convert to true equator and equinox
@@ -175,11 +180,11 @@ class TestPositionsGeocentric:
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
-                de432s_separation_tolerance_moon)
+                jpl_separation_tolerance_moon)
 
         # Assert distances are close.
         assert_quantity_allclose(astropy.distance, horizons.distance,
-                                 atol=de432s_distance_tolerance)
+                                 atol=jpl_distance_tolerance)
 
 
 class TestPositionKittPeak:
@@ -194,7 +199,9 @@ class TestPositionKittPeak:
                                                 height=2120*u.m)
         self.t = Time('2014-09-25T00:00', location=kitt_peak)
         self.apparent_frame = TETE(obstime=self.t, location=kitt_peak)
-        # Results returned by JPL Horizons web interface
+        # Results returned by JPL Horizons web interface, using DE432.
+        # TODO: update to de440s, by re-getting the positions.
+        self.ephemeris = 'de432s'
         self.horizons = {
             'mercury': SkyCoord(ra='13h38m58.50s', dec='-13d34m42.6s',
                                 distance=c*7.699020*u.min, frame=self.apparent_frame),
@@ -230,8 +237,8 @@ class TestPositionKittPeak:
     @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
     @pytest.mark.parametrize('body', ('mercury', 'jupiter'))
-    def test_de432s_planet(self, body):
-        astropy = get_body(body, self.t, ephemeris='de432s')
+    def test_jpl_planet(self, body):
+        astropy = get_body(body, self.t, ephemeris=self.ephemeris)
         horizons = self.horizons[body]
 
         # convert to true equator and equinox
@@ -239,16 +246,16 @@ class TestPositionKittPeak:
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
-                de432s_separation_tolerance_planets)
+                jpl_separation_tolerance_planets)
 
         # Assert distances are close.
         assert_quantity_allclose(astropy.distance, horizons.distance,
-                                 atol=de432s_distance_tolerance)
+                                 atol=jpl_distance_tolerance)
 
     @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
-    def test_de432s_moon(self):
-        astropy = get_moon(self.t, ephemeris='de432s')
+    def test_jpl_moon(self):
+        astropy = get_moon(self.t, ephemeris=self.ephemeris)
         horizons = self.horizons['moon']
 
         # convert to true equator and equinox
@@ -256,11 +263,11 @@ class TestPositionKittPeak:
 
         # Assert sky coordinates are close.
         assert (astropy.separation(horizons) <
-                de432s_separation_tolerance_moon)
+                jpl_separation_tolerance_moon)
 
         # Assert distances are close.
         assert_quantity_allclose(astropy.distance, horizons.distance,
-                                 atol=de432s_distance_tolerance)
+                                 atol=jpl_distance_tolerance)
 
     @pytest.mark.remote_data
     @pytest.mark.skipif('not HAS_JPLEPHEM')
@@ -269,9 +276,9 @@ class TestPositionKittPeak:
         """
         Checks that giving a kernel specifier instead of a body name works
         """
-        coord_by_name = get_body(bodyname, self.t, ephemeris='de432s')
+        coord_by_name = get_body(bodyname, self.t, ephemeris=self.ephemeris)
         kspec = BODY_NAME_TO_KERNEL_SPEC[bodyname]
-        coord_by_kspec = get_body(kspec, self.t, ephemeris='de432s')
+        coord_by_kspec = get_body(kspec, self.t, ephemeris=self.ephemeris)
 
         assert_quantity_allclose(coord_by_name.ra, coord_by_kspec.ra)
         assert_quantity_allclose(coord_by_name.dec, coord_by_kspec.dec)
@@ -292,6 +299,7 @@ def test_horizons_consistency_with_precision():
     """
     # JPL Horizon values for 2020_04_06 00:00 to 23:00 in 1 hour steps
     # JPL Horizons has a known offset (frame bias) of 51.02 mas in RA. We correct that here
+    # TODO: reget those coordinates for DE 440s
     ra_apparent_horizons = [
         170.167332531, 170.560688674, 170.923834838, 171.271663481, 171.620188972, 171.985340827,
         172.381766539, 172.821772139, 173.314502650, 173.865422398, 174.476108551, 175.144332386,
@@ -304,7 +312,7 @@ def test_horizons_consistency_with_precision():
         6.698336823, 6.450150213, 6.207828142, 5.970645962, 5.737565957, 5.507313851, 5.278462034,
         5.049521497, 4.819038911, 4.585696512
     ] * u.deg
-    with solar_system_ephemeris.set('de430'):
+    with solar_system_ephemeris.set('de432s'):
         loc = EarthLocation.from_geodetic(-67.787260*u.deg, -22.959748*u.deg, 5186*u.m)
         times = Time('2020-04-06 00:00') + np.arange(0, 24, 1)*u.hour
         astropy = get_body('moon', times, loc)
@@ -325,10 +333,10 @@ def test_get_sun_consistency(time):
     """
     Test that the sun from JPL and the builtin get_sun match
     """
-    sun_jpl_gcrs = get_body('sun', time, ephemeris='de432s')
+    sun_jpl_gcrs = get_body('sun', time, ephemeris='jpl')
     builtin_get_sun = get_sun(time)
     sep = builtin_get_sun.separation(sun_jpl_gcrs)
-    assert sep < 0.1*u.arcsec
+    assert sep < 0.2*u.arcsec
 
 
 def test_get_moon_nonscalar_regression():
@@ -378,23 +386,23 @@ def test_earth_barycentric_velocity_multi_d():
 @pytest.mark.remote_data
 @pytest.mark.skipif('not HAS_JPLEPHEM')
 @pytest.mark.parametrize(('body', 'pos_tol', 'vel_tol'),
-                         (('mercury', 1000.*u.km, 1.*u.km/u.s),
+                         (('mercury', 1500.*u.km, 1.*u.km/u.s),
                           ('jupiter', 100000.*u.km, 2.*u.km/u.s),
-                          ('earth', 10*u.km, 10*u.mm/u.s),
-                          ('moon', 18*u.km, 50*u.mm/u.s)))
+                          ('earth', 120*u.km, 10*u.mm/u.s),
+                          ('moon', 120*u.km, 50*u.mm/u.s)))
 def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
     # Tolerances are about 1.5 times the rms listed for plan94 and epv00,
     # except for Mercury (which nominally is 334 km rms), and the Moon
     # (which nominally is 6 km rms).
     t = Time('2016-03-20T12:30:00')
     ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
-    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
+    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='jpl')
     assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
     assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
     # Might as well test it with a multidimensional array too.
     t = Time('2016-03-20T12:30:00') + np.arange(8.).reshape(2, 2, 2) * u.yr / 2.
     ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
-    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')
+    dp, dv = get_body_barycentric_posvel(body, t, ephemeris='jpl')
     assert_quantity_allclose(ep.xyz, dp.xyz, atol=pos_tol)
     assert_quantity_allclose(ev.xyz, dv.xyz, atol=vel_tol)
 
@@ -405,8 +413,8 @@ def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
                                   Time('1980-03-25 00:00'),
                                   Time('2010-10-13 00:00')))
 def test_url_or_file_ephemeris(time):
-    # URL for ephemeris de432s used for testing:
-    url = 'http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de432s.bsp'
+    # URL for ephemeris de440s used for testing:
+    url = 'http://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp'
 
     # Pass the ephemeris directly as a URL.
     coord_by_url = get_body('earth', time, ephemeris=url)
