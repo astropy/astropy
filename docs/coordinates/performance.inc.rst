@@ -8,20 +8,20 @@
 Performance Tips
 ================
 
-If you are using |skycoord| for many different coordinates, you will see much
-better performance if you create a single |skycoord| with arrays of coordinates
-as opposed to creating individual |skycoord| objects for each individual
+If you are using |SkyCoord| for many different coordinates, you will see much
+better performance if you create a single |SkyCoord| with arrays of coordinates
+as opposed to creating individual |SkyCoord| objects for each individual
 coordinate::
 
     >>> coord = SkyCoord(ra_array, dec_array, unit='deg')  # doctest: +SKIP
 
-In addition, looping over a |skycoord| object can be slow. If you need to
+In addition, looping over a |SkyCoord| object can be slow. If you need to
 transform the coordinates to a different frame, it is much faster to transform a
-single |skycoord| with arrays of values as opposed to looping over the
-|skycoord| and transforming them individually.
+single |SkyCoord| with arrays of values as opposed to looping over the
+|SkyCoord| and transforming them individually.
 
 Finally, for more advanced users, note that you can use broadcasting to
-transform |skycoord| objects into frames with vector properties.
+transform |SkyCoord| objects into frames with vector properties.
 
 Example
 -------
@@ -30,7 +30,7 @@ Example
   EXAMPLE START
   Performance Tips for Transforming SkyCoord Objects
 
-To use broadcasting to transform |skycoord| objects into frames with vector
+To use broadcasting to transform |SkyCoord| objects into frames with vector
 properties::
 
     >>> from astropy.coordinates import SkyCoord, EarthLocation
@@ -65,7 +65,7 @@ The most expensive operations when transforming between observer-dependent coord
 frames (e.g. ``AltAz``) and sky-fixed frames (e.g. ``ICRS``) are the calculation
 of the orientation and position of Earth.
 
-If |skycoord| instances are transformed for a large  number of closely spaced ``obstime``,
+If |SkyCoord| instances are transformed for a large  number of closely spaced ``obstime``,
 these calculations can be sped up by factors up to 100, whilst still keeping micro-arcsecond precision,
 by utilizing interpolation instead of calculating Earth orientation parameters for each individual point.
 

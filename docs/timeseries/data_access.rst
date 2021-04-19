@@ -3,11 +3,6 @@
 Accessing Data in Time Series
 *****************************
 
-.. |Time| replace:: :class:`~astropy.time.Time`
-.. |Table| replace:: :class:`~astropy.table.Table`
-.. |QTable| replace:: :class:`~astropy.table.QTable`
-.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
-.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
 .. |time_attr| replace:: :attr:`~astropy.timeseries.TimeSeries.time`
 .. |time_bin_start| replace:: :attr:`~astropy.timeseries.BinnedTimeSeries.time_bin_start`
 .. |time_bin_center| replace:: :attr:`~astropy.timeseries.BinnedTimeSeries.time_bin_center`

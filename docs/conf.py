@@ -114,9 +114,51 @@ rst_epilog += "\n".join(
     for name in ('numpy', 'pyerfa', 'scipy', 'pyyaml', 'asdf', 'matplotlib', 'ipython')) + f"""
 .. |minimum_python_version| replace:: {__minimum_python_version__}
 
+.. Python
+.. _OrderedDict: https://docs.python.org/3/library/collections.html#collections.OrderedDict
+
+.. Dependencies
+.. _SOFA: http://www.iausofa.org/index.html
+.. _ERFA: https://github.com/liberfa/erfa
+.. _PyERFA: https://github.com/liberfa/pyerfa
+
 .. Astropy
 .. _`Astropy mailing list`: https://mail.python.org/mailman/listinfo/astropy
 .. _`astropy-dev mailing list`: http://groups.google.com/group/astropy-dev
+
+..
+   RST SUBSITUTIONS
+
+.. |ndarray| replace:: :class:`numpy.ndarray`
+
+.. |EarthLocation| replace:: :class:`~astropy.coordinates.EarthLocation`
+.. |Angle| replace:: `~astropy.coordinates.Angle`
+.. |Latitude| replace:: `~astropy.coordinates.Latitude`
+.. |Longitude| replace:: :class:`~astropy.coordinates.Longitude`
+.. |BaseFrame| replace:: `~astropy.coordinates.BaseCoordinateFrame`
+.. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
+.. |SpectralCoord| replace:: `~astropy.coordinates.SpectralCoord`
+.. |SAMPClient| replace:: :class:`~astropy.samp.SAMPClient`
+.. |SAMPIntegratedClient| replace:: :class:`~astropy.samp.SAMPIntegratedClient`
+.. |SAMPHubServer| replace:: :class:`~astropy.samp.SAMPHubServer`
+.. |SAMPHubProxy| replace:: :class:`~astropy.samp.SAMPHubProxy`
+.. |SAMPMsgReplierWrapper| replace:: :class:`~astropy.samp.SAMPMsgReplierWrapper`
+.. |Column| replace:: :class:`~astropy.table.Column`
+.. |MaskedColumn| replace:: :class:`~astropy.table.MaskedColumn`
+.. |TableColumns| replace:: :class:`~astropy.table.TableColumns`
+.. |Row| replace:: :class:`~astropy.table.Row`
+.. |Table| replace:: :class:`~astropy.table.Table`
+.. |QTable| replace:: :class:`~astropy.table.QTable`
+.. |join| replace:: :func:`~astropy.table.join`
+.. |Time| replace:: :class:`~astropy.time.Time`
+.. |TimeDelta| replace:: :class:`~astropy.time.TimeDelta`
+.. |TimeSeries| replace:: :class:`~astropy.timeseries.TimeSeries`
+.. |BinnedTimeSeries| replace:: :class:`~astropy.timeseries.BinnedTimeSeries`
+.. |Distribution| replace:: :class:`~astropy.uncertainty.Distribution`
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Unit| replace:: :class:`~astropy.units.UnitBase`
+.. |Masked| replace:: :class:`~astropy.utils.masked.Masked`
+
 """
 
 # Whether to create cross-references for the parameter types in the

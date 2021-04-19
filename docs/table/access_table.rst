@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _access_table:
 
 Accessing a Table
