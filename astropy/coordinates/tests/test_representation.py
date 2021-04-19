@@ -623,6 +623,14 @@ class TestPhysicsSphericalRepresentation:
             sph, UnitSphericalRepresentation, UnitSphericalDifferential)
         assert representation_equal_up_to_angular_type(got, expected)
 
+    def test_initialize_with_nan(self):
+        # Regression test for gh-11558: initialization used to fail.
+        psr = PhysicsSphericalRepresentation([1., np.nan]*u.deg, [np.nan, 2.]*u.deg,
+                                             [3., np.nan]*u.m)
+        assert_array_equal(np.isnan(psr.phi), [False, True])
+        assert_array_equal(np.isnan(psr.theta), [True, False])
+        assert_array_equal(np.isnan(psr.r), [False, True])
+
 
 class TestCartesianRepresentation:
 
