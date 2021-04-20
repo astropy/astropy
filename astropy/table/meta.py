@@ -296,7 +296,7 @@ def _get_col_attributes(col):
 
 def _get_datatype_from_dtype(dtype):
     """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
-    datatype = dtype.type.__name__
+    datatype = dtype.name
     if datatype.startswith(('bytes', 'str')):
         datatype = 'string'
     if datatype.endswith('_'):
