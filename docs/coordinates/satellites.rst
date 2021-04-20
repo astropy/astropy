@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-satellites:
 
 Working with Earth Satellites Using Astropy Coordinates

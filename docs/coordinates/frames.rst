@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. We call EarthLocation.of_site here first to force the downloading
 .. of sites.json so that future doctest output isn't cluttered with
 .. "Downloading ... [done]". This can be removed once we have a better
@@ -14,7 +12,7 @@ Using and Designing Coordinate Frames
 *************************************
 
 In `astropy.coordinates`, as outlined in the
-:ref:`astropy-coordinates-overview`, subclasses of |baseframe| ("frame
+:ref:`astropy-coordinates-overview`, subclasses of |BaseFrame| ("frame
 classes") define particular coordinate frames. They can (but do not
 *have* to) contain representation objects storing the actual coordinate
 data. The actual coordinate transformations are defined as functions
@@ -70,11 +68,11 @@ Frames with Data
 
 The second use for frame objects is to store actual realized coordinate
 data for frames like those described above. In this use, it is similar
-to the |skycoord| class, and in fact, the |skycoord| class internally
+to the |SkyCoord| class, and in fact, the |SkyCoord| class internally
 uses the frame classes as its implementation. However, the frame
 classes have fewer "convenience" features, thereby streamlining the
 implementation of frame classes. As such, they are created
-similarly to |skycoord| objects. One suggested way is to use
+similarly to |SkyCoord| objects. One suggested way is to use
 with keywords appropriate for the frame (e.g., ``ra`` and ``dec`` for
 equatorial systems)::
 
@@ -706,7 +704,7 @@ Final Notes
 
 You can also define arbitrary methods for any added functionality you
 want your frame to have that is unique to that frame. These methods will
-be available in any |skycoord| that is created using your user-defined
+be available in any |SkyCoord| that is created using your user-defined
 frame.
 
 For examples of defining frame classes, the first place to look is

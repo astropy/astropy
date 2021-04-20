@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-spectralcoord:
 
 Using the SpectralCoord Class

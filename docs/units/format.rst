@@ -3,10 +3,6 @@
 String Representations of Units
 *******************************
 
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-
-.. |Unit| replace:: :class:`~astropy.units.UnitBase`
-
 Converting Units to String Representations
 ==========================================
 

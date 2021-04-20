@@ -565,4 +565,4 @@ can delete any backup branches that may have been created::
 .. _git book: https://git-scm.com/book/
 .. _Astropy issue list: https://github.com/astropy/astropy/issues
 .. _git choose-your-own-adventure: http://sethrobertson.github.io/GitFixUm/fixup.html
-.. _Numpydoc format: https://numpydoc.readthedocs.io/en/latest/format.html
+.. _numpydoc format: https://numpydoc.readthedocs.io/en/latest/format.html

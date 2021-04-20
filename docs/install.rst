@@ -20,7 +20,7 @@ Using pip
     Users of the Anaconda Python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
-To install ``astropy`` with `pip <https://pip.pypa.io>`__, run::
+To install ``astropy`` with `pip`_, run::
 
     pip install astropy
 
@@ -130,7 +130,7 @@ Requirements
 
 ``astropy`` has the following strict requirements:
 
-- `Python <https://www.python.org/>`_ |minimum_python_version| or later
+- `Python`_ |minimum_python_version| or later
 
 - `Numpy`_ |minimum_numpy_version| or later
 
@@ -199,8 +199,7 @@ installed.
 
 The following packages can optionally be used when testing:
 
-- `pytest-astropy <https://github.com/astropy/pytest-astropy>`_: See
-  :ref:`sourcebuildtest`
+- `pytest-astropy`_: See :ref:`sourcebuildtest`
 
 - `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
   distributed testing.
@@ -210,7 +209,7 @@ The following packages can optionally be used when testing:
 
 - `objgraph <https://mg.pov.lt/objgraph/>`_: Used only in tests to test for reference leaks.
 
-- `IPython <https://ipython.org/>`__ |minimum_ipython_version| or later:
+- `IPython`_ |minimum_ipython_version| or later:
   Used for testing the notebook interface of `~astropy.table.Table`.
 
 - `coverage <https://coverage.readthedocs.io/>`_: Used for code coverage
@@ -462,7 +461,7 @@ dependencies, including:
   that makes it easy to automatically generate API documentation
 * `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
   extension to generate example galleries
-* `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
+* `numpydoc`_ - an extension to parse
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available
@@ -554,5 +553,3 @@ would like more control over the testing process.
 See the `latest documentation on how to run the tests in a source checkout of astropy <https://docs.astropy.org/en/latest/install.html#testing-a-source-code-build-of-astropy>`__.
 
 {%endif%}
-
-.. include:: development/workflow/known_projects.inc
