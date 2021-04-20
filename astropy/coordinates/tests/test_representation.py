@@ -740,27 +740,24 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(s2.theta, s1.theta)
         assert_allclose_quantity(s2.r, s1.r)
 
-        # TODO! implement these checks. First requires solving the problem that
-        # expected = (s1.to_cartesian().transform(matrix).represent_as(PhysicsSphericalRepresentation))
-        # raises a warning. Once fixed, this should just work.
-        # # now with a non rotation matrix
-        # matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        # now with a non rotation matrix
+        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-        # s3 = s1.transform(matrix)
-        # # s3 should not propagate Nan.
-        # assert tuple(np.isnan(s3.phi.deg)) == (False, False)
-        # assert tuple(np.isnan(s3.theta.deg)) == (False, False)
-        # assert tuple(np.isnan(s3.r.value)) == (False, True)
+        s3 = s1.transform(matrix)
+        # s3 should not propagate Nan.
+        assert tuple(np.isnan(s3.phi.deg)) == (False, False)
+        assert tuple(np.isnan(s3.theta.deg)) == (False, False)
+        assert tuple(np.isnan(s3.r.value)) == (False, True)
 
         # through Cartesian does
-        # expected = (s1.to_cartesian().transform(matrix)
-        #               .represent_as(PhysicsSphericalRepresentation))
-        # assert tuple(np.isnan(thruC.phi.deg)) == (False, True)
-        # assert tuple(np.isnan(thruC.theta.deg)) == (False, True)
-        # assert tuple(np.isnan(thruC.r.value)) == (False, True)
+        thruC = (s1.to_cartesian().transform(matrix)
+                 .represent_as(PhysicsSphericalRepresentation))
+        assert tuple(np.isnan(thruC.phi.deg)) == (False, True)
+        assert tuple(np.isnan(thruC.theta.deg)) == (False, True)
+        assert tuple(np.isnan(thruC.r.value)) == (False, True)
         # so only test on the first value
-        # assert_allclose_quantity(s3.phi[0], thruC.phi[0])
-        # assert_allclose_quantity(s3.theta[0], thruC.theta[0])
+        assert_allclose_quantity(s3.phi[0], thruC.phi[0])
+        assert_allclose_quantity(s3.theta[0], thruC.theta[0])
 
 
 class TestCartesianRepresentation:
