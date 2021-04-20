@@ -181,6 +181,8 @@ def test_invalid_sigma_clip():
     with pytest.warns(AstropyUserWarning,
                       match=r'Input data contains invalid values'):
         result = sigma_clip(data)
+    with pytest.warns(AstropyUserWarning,
+                      match=r'Input data contains invalid values'):
         result_ma = sigma_clip(data_ma)
 
     assert_equal(result.data, result_ma.data)
