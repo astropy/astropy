@@ -886,9 +886,8 @@ Missing values in a `~astropy.time.TimeFormat` subclass object are marked by
 setting the corresponding entries of the ``jd2`` attribute to be ``numpy.nan``
 (but this is never done directly by the user). For most array operations and
 ``numpy`` functions the ``numpy.nan`` entries are propagated as expected and
-all is well. However, this is not always the case, and in particular the `ERFA
-<https://github.com/liberfa/erfa>`_ routines do not generally support
-``numpy.nan`` values gracefully.
+all is well. However, this is not always the case, and in particular the `ERFA`_
+routines do not generally support ``numpy.nan`` values gracefully.
 
 In cases where ``numpy.nan`` is not acceptable, format class methods should use
 the ``jd2_filled`` property instead of ``jd2``. This replaces ``numpy.nan`` with

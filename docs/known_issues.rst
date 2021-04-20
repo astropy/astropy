@@ -380,16 +380,15 @@ The IPython issue: https://github.com/ipython/ipython/pull/2738
 Compatibility Issues with pytest 3.7 and later
 ----------------------------------------------
 
-Due to a bug in `pytest <http://www.pytest.org>`_ related to test collection,
-the tests for the core ``astropy`` package for version 2.0.x (LTS), and for
-packages using the core package's test infrastructure and being tested against
-2.0.x (LTS), will not be executed correctly with pytest 3.7, 3.8, or 3.9. The
-symptom of this bug is that no tests or only tests in RST files are collected.
-In addition, ``astropy`` 2.0.x (LTS) is not compatible with pytest 4.0 and above,
-as in this case deprecation errors from pytest can cause tests to fail.
-Therefore, when testing against ``astropy`` v2.0.x (LTS), pytest 3.6 or earlier
-versions should be used. These issues do not occur in version 3.0.x and above of
-the core package.
+Due to a bug in `pytest`_ related to test collection, the tests for the core
+``astropy`` package for version 2.0.x (LTS), and for packages using the core
+package's test infrastructure and being tested against 2.0.x (LTS), will not be
+executed correctly with pytest 3.7, 3.8, or 3.9. The symptom of this bug is that
+no tests or only tests in RST files are collected. In addition, ``astropy``
+2.0.x (LTS) is not compatible with pytest 4.0 and above, as in this case
+deprecation errors from pytest can cause tests to fail. Therefore, when testing
+against ``astropy`` v2.0.x (LTS), pytest 3.6 or earlier versions should be used.
+These issues do not occur in version 3.0.x and above of the core package.
 
 There is an unrelated issue that also affects more recent versions of
 ``astropy`` when testing with pytest 4.0 and later, which can
