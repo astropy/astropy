@@ -109,8 +109,9 @@ def time_support(*, scale=None, format=None, simplify=True):
                         # Generate the months for these steps
                         times = []
                         for month in range(mmin, mmax + 1, mstep):
-                            times.append(datetime(year=ymin + month // 12,
-                                                  month=month % 12, day=1))
+                            times.append(datetime(year=ymin + (month - 1) // 12,
+                                                  month=(month - 1) % 12 + 1,
+                                                  day=1))
 
                     # Convert back to MJD
                     values = Time(times, scale=self._converter.scale).mjd
