@@ -307,6 +307,9 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
     # TODO also test empty string with null value
     t = Table()
     col = MaskedColumn(np.arange(12).reshape(2, 3, 2), dtype=dtype)
+    if dtype is str:
+        # np does something funny and gives a dtype of U12.
+        col = col.astype('U2')
     col.mask[0, 0, 0] = True
     col.mask[1, 1, 1] = True
     t['a'] = col
@@ -318,6 +321,7 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
     assert t2.masked is False
     assert t2.colnames == t.colnames
     for name in t2.colnames:
+        assert t2[name].dtype == t[name].dtype
         if hasattr(t[name], 'mask'):
             assert np.all(t2[name].mask == t[name].mask)
         assert np.all(t2[name] == t[name])
@@ -330,7 +334,8 @@ def test_multidim_bad_shape():
 # ---
 # datatype:
 # - name: a
-#   datatype: int64
+#   datatype: string
+#   subtype: int64
 #   shape: [3]
 # schema: astropy-2.0
 a
@@ -346,14 +351,16 @@ def test_object_column():
     This is also covered somewhat in test_serialize.
     """
     t = Table()
-    t['a'] = np.array([[1, 2], [1, 2, 3]], dtype=object)
+    t['a'] = np.array([np.array([1, 2]), np.array([1, 2, 3])], dtype=object)
     t['b'] = np.array([{'a': 1}, [{'b': 2}, [1, 2]]], dtype=object)
     out = StringIO()
     t.write(out, format='ascii.ecsv')
     t2 = Table.read(out.getvalue(), format='ascii.ecsv')
     assert t2.colnames == t.colnames
     for name in t2.colnames:
-        assert np.all(t2[name] == t[name])
+        assert t2[name].dtype == t[name].dtype
+        for val1, val2 in zip(t2[name], t[name]):
+            assert np.all(val1 == val2)
 
 
 def test_write_not_json_serializable():
@@ -371,11 +378,43 @@ def test_read_not_json_serializable():
 # %ECSV 1.0
 # ---
 # datatype:
-# - {name: a, datatype: object}
+# - {name: a, datatype: string, subtype: object}
 # schema: astropy-2.0
 a
 fail
 [3,4]"""
     match = "column 'a' failed to convert: column value is not valid JSON"
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_bad_datatype_for_object_subtype():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: int64, subtype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    match = "column 'a' failed to convert: datatype of column 'a' must be \"string\""
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_bad_datatype():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    match = r"column 'a' is not in allowed values \('bool', 'int8', 'int16', 'int32'"
     with pytest.raises(ValueError, match=match):
         Table.read(txt, format='ascii.ecsv')
