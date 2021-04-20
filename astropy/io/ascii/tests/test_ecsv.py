@@ -6,7 +6,6 @@ reader/writer.
 
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
-import yaml
 from astropy.table.column import MaskedColumn
 import os
 import copy
@@ -693,8 +692,7 @@ def test_multidim_bad_shape():
 # datatype:
 # - name: a
 #   datatype: string
-#   subtype: int64
-#   shape: [3]
+#   subtype: int64[3]
 # schema: astropy-2.0
 a
 [1,2]
@@ -767,11 +765,13 @@ fail
 
 # First here is some helper code used to make the expected outputs code.
 def _get_ecsv_header_dict(text):
+    import yaml
     lines = [line.strip() for line in text.splitlines()]
     lines = [line[2:] for line in lines if line.startswith('#')]
     lines = lines[2:]  # Get rid of the header
     out = yaml.safe_load('\n'.join(lines))
     return out
+
 
 def _make_expected_values(cols):
     from pprint import pformat
@@ -785,6 +785,7 @@ def _make_expected_values(cols):
         print(f'exps[{name!r}] =', fmt_hdr[:1])
         print(fmt_hdr[1:])
         print()
+
 
 # Expected values of `datatype` for each column
 exps = {}
@@ -804,8 +805,7 @@ c[1] = [[1, 2, 3], [4, 5.25, 6]]
 exps['2-d variable array lists'] = [
     {'datatype': 'string',
      'name': '2-d variable array lists',
-     'shape': [2, None],
-     'subtype': 'string'}]
+     'subtype': 'string[2,null]'}]
 
 # Array of numpy arrays that is a 2-d variable array
 cols['2-d variable array numpy'] = c = np.empty(shape=(2,), dtype=object)
@@ -814,15 +814,13 @@ c[1] = np.array([[1, 2, 3], [4, 5.5, 6]], dtype=np.float32)
 exps['2-d variable array numpy'] = [
     {'datatype': 'string',
      'name': '2-d variable array numpy',
-     'shape': [2, None],
-     'subtype': 'float32'}]
+     'subtype': 'float32[2,null]'}]
 
 cols['1-d variable array lists'] = np.array([[1, 2], [3, 4, 5]], dtype=object)
 exps['1-d variable array lists'] = [
     {'datatype': 'string',
      'name': '1-d variable array lists',
-     'shape': [None],
-     'subtype': 'int64'}]
+     'subtype': 'int64[null]'}]
 
 cols['1-d variable array numpy'] = np.array(
     [np.array([1, 2], dtype=np.uint8),
@@ -830,8 +828,7 @@ cols['1-d variable array numpy'] = np.array(
 exps['1-d variable array numpy'] = [
     {'datatype': 'string',
      'name': '1-d variable array numpy',
-     'shape': [None],
-     'subtype': 'uint8'}]
+     'subtype': 'uint8[null]'}]
 
 cols['1-d variable array numpy str'] = np.array(
     [np.array(['a', 'b']),
@@ -839,8 +836,7 @@ cols['1-d variable array numpy str'] = np.array(
 exps['1-d variable array numpy str'] = [
     {'datatype': 'string',
      'name': '1-d variable array numpy str',
-     'shape': [None],
-     'subtype': 'string'}]
+     'subtype': 'string[null]'}]
 
 cols['1-d variable array numpy bool'] = np.array(
     [np.array([True, False]),
@@ -848,22 +844,19 @@ cols['1-d variable array numpy bool'] = np.array(
 exps['1-d variable array numpy bool'] = [
     {'datatype': 'string',
      'name': '1-d variable array numpy bool',
-     'shape': [None],
-     'subtype': 'bool'}]
+     'subtype': 'bool[null]'}]
 
 cols['1-d regular array'] = np.array([[1, 2], [3, 4]], dtype=np.int8)
 exps['1-d regular array'] = [
     {'datatype': 'string',
      'name': '1-d regular array',
-     'shape': [2],
-     'subtype': 'int8'}]
+     'subtype': 'int8[2]'}]
 
 cols['2-d regular array'] = np.arange(8, dtype=np.float16).reshape(2, 2, 2)
 exps['2-d regular array'] = [
     {'datatype': 'string',
      'name': '2-d regular array',
-     'shape': [2, 2],
-     'subtype': 'float16'}]
+     'subtype': 'float16[2,2]'}]
 
 cols['scalar object'] = np.array([{'a': 1}, {'b':2}], dtype=object)
 exps['scalar object'] = [
@@ -875,8 +868,8 @@ cols['1-d object'] = np.array(
 exps['1-d object'] = [
     {'datatype': 'string',
      'name': '1-d object',
-     'shape': [2],
-     'subtype': 'object'}]
+     'subtype': 'object[2]'}]
+
 
 @pytest.mark.parametrize('name,col,exp',
                          list(zip(cols, cols.values(), exps.values())))

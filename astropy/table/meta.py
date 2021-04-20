@@ -1,3 +1,4 @@
+import json
 import textwrap
 import copy
 from collections import OrderedDict
@@ -288,7 +289,7 @@ def _get_col_attributes(col):
     if subtype:
         attrs['subtype'] = _get_datatype_from_dtype(subtype)
     if shape:
-        attrs['shape'] = list(shape)
+        attrs['subtype'] += json.dumps(list(shape), separators=(',', ':'))
 
     return attrs
 
