@@ -1,0 +1,3 @@
+A utility function ``tie_inputs`` is added to enable quick tying of parameters.
+Multiplicative scalings have a shortcut syntax, but Parameters can be tied with
+any custom callable.

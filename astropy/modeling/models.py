@@ -6,7 +6,7 @@ Creates a common namespace for all pre-defined models.
 
 # pylint: disable=unused-wildcard-import, unused-import, wildcard-import
 
-from .core import custom_model, hide_inverse, fix_inputs # pylint: disable=W0611
+from .core import custom_model, hide_inverse, fix_inputs, tie_inputs # pylint: disable=W0611
 from .mappings import *
 from .projections import *
 from .rotations import *

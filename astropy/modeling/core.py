@@ -38,14 +38,15 @@ from astropy.utils.codegen import make_function_with_signature
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
-                    get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
-                    _ConstraintsDict)
+                    get_inputs_and_params, _BoundingBox, _TieParameterTo,
+                    _combine_equivalency_dict, _ConstraintsDict)
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'CompoundModel', 'fix_inputs', 'custom_model', 'ModelDefinitionError']
+           'CompoundModel', 'fix_inputs', 'tie_inputs', 'custom_model',
+           'ModelDefinitionError']
 
 
 def _model_oper(oper, **kwargs):
@@ -3614,6 +3615,39 @@ def fix_inputs(modelinstance, values):
     Results in a 1D function equivalent to Gaussian2D(1, 2, 3, 4, 5)(x=2.5, y)
     """
     return CompoundModel('fix_inputs', modelinstance, values)
+
+
+def tie_inputs(modelinstance, values):
+    r"""Tie inputs on a model (singular or compound).
+
+    Parameters
+    ----------
+    modelinstance : `~astropy.modeling.Model`
+        The model instance, singular or compound.
+    values :  dict[str, str or tuple[str, number] or callable]
+        A dictionary where the key identifies the parameter which is tied to the
+        parameter identified in the value. The value can also be:
+        - a custom callable : (modelinstance) -> parameter_value.
+        - a tuple of the parameter name and a multiplicative factor
+
+    Example
+    -------
+    ``{'p_1':'p_2'}`` maps `p_1` to be equal to `p_2`.
+    `p_2` is the "real" parameter which p_1 shadows.
+
+    """
+    # Future Note: could use AST to enable any expression on the parameters
+    for tie, toinfo in values.items():
+        # get the tied parameter (this will shadow the `to` parameter)
+        param = getattr(modelinstance, tie)
+
+        # get the `to` parameter (str or function) and the tying factor
+        to, mul = toinfo if isinstance(toinfo, tuple) else (toinfo, 1)
+        # create tie, detecting if callable or multiplicative factor
+        to = to if callable(to) else _TieParameterTo(to, mul)
+        setattr(param, "tied", to)
+        # evaluate tie on the model
+        setattr(modelinstance, tie, param.tied(modelinstance))
 
 
 def custom_model(*args, fit_deriv=None, **kwargs):

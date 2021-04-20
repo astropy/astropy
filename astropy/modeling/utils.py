@@ -5,7 +5,7 @@ This module provides utility functions for the models package.
 """
 # pylint: disable=invalid-name
 from collections import deque, UserDict
-from collections.abc import MutableMapping
+from collections.abc import MutableMapping, Callable
 from inspect import signature
 
 import numpy as np
@@ -531,6 +531,29 @@ class _BoundingBox(tuple):
             return [np.arange(self[i][0], self[i][1] + resolution, resolution) for i in range(self.dimension)]
         else:
             raise ValueError('Bounding box must have positive dimension')
+
+
+class _TieParameterTo(Callable):
+    """Tie `astropy.modeling.Parameter` to another parameter.
+
+    Parameters
+    ----------
+    to : str
+        Name of parameter in model instance.
+    mul : float (optional)
+        Multiplicative factor for parameter `to`
+    """
+
+    def __init__(self, to, mul = 1):
+        self._to = to
+        self._mul = mul
+
+    def __call__(self, modelinstance):
+        val = getattr(modelinstance, self._to) * self._mul
+        return val
+
+    def __repr__(self):
+        return f"<TieParameterTo('{self._to}',{self._mul}) at {hex(id(self))}>"
 
 
 def make_binary_operator_eval(oper, f, g):

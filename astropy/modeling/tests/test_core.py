@@ -579,3 +579,32 @@ def test_bounding_box_general_inverse():
     inverse_model = model.inverse
     with pytest.raises(NotImplementedError):
         inverse_model.bounding_box
+
+
+def test_tie_inputs():
+    """Test the helper function ``tie_inputs``."""
+    # first need to make an Model
+    # this has parameters amplitude, x_0, y_0, a, b, theta
+    model = models.Ellipse2D(a=3)
+
+    assert model.b.tied is False
+
+    # tie model inputs
+    models.tie_inputs(model, dict(b=("a", 2)))
+    assert callable(model.b.tied)
+    assert model.b == 6
+
+    # also test repr of _TieParameterTo
+    s = repr(model.b.tied)
+    assert 'TieParameterTo' in s
+    assert "'a'" in s
+    assert str(2) in s
+
+    # now pass in a custom function
+    # first, reset
+    model.b.tied = False
+    assert model.b.tied is False
+
+    models.tie_inputs(model, dict(b=lambda model: 10 * model.a))
+    assert callable(model.b.tied)
+    assert model.b == 30
