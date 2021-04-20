@@ -25,7 +25,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
 
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
@@ -662,6 +662,27 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
         if hasattr(t[name], 'mask'):
             assert np.all(t2[name].mask == t[name].mask)
         assert np.all(t2[name] == t[name])
+
+
+def test_multidim_unknown_subtype():
+    """Test an ECSV file with a string type but unknown subtype"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - name: a
+#   datatype: string
+#   subtype: some-user-type
+# schema: astropy-2.0
+a
+[1,2]
+[3,4]"""
+    with pytest.warns(AstropyUserWarning,
+                      match=r"unexpected subtype 'some-user-type' set for column 'a'"):
+        t = ascii.read(txt, format='ecsv')
+
+    assert t['a'].dtype.kind == 'U'
+    assert t['a'][0] == '[1,2]'
 
 
 def test_multidim_bad_shape():
