@@ -98,14 +98,12 @@ facilitate easily documenting code in a homogeneous and readable way.
 
 The main extensions used are:
 
-* sphinx-automodapi_ - an extension
-  that makes it easy to automatically generate API documentation.
+* sphinx-automodapi_ - an extension that makes it easy to automatically
+  generate API documentation.
 
-* sphinx-gallery_ - an
-  extension to generate example galleries
+* sphinx-gallery_ - an extension to generate example galleries
 
-* numpydoc_ - an extension to parse
-  docstrings in NumpyDoc format
+* `numpydoc`_ - an extension to parse docstrings in NumpyDoc format
 
 In addition, the sphinx-astropy_ includes a few small extensions:
 
@@ -123,4 +121,3 @@ In addition, the sphinx-astropy_ includes a few small extensions:
 .. _astropy-sphinx-theme: https://github.com/astropy/astropy-sphinx-theme
 .. _sphinx-astropy: https://github.com/astropy/sphinx-astropy
 .. _sphinx-gallery: https://sphinx-gallery.readthedocs.io
-.. _numpydoc: https://pypi.org/project/numpydoc/

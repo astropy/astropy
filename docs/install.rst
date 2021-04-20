@@ -461,7 +461,7 @@ dependencies, including:
   that makes it easy to automatically generate API documentation
 * `sphinx-gallery <https://sphinx-gallery.readthedocs.io/en/latest/>`_ - an
   extension to generate example galleries
-* `numpydoc <https://numpydoc.readthedocs.io>`_ - an extension to parse
+* `numpydoc`_ - an extension to parse
   docstrings in NumPyDoc format
 * `pillow <https://pillow.readthedocs.io>`_ - used in one of the examples
 * `Graphviz <http://www.graphviz.org>`_ - generate inheritance graphs (available

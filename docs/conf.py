@@ -158,6 +158,8 @@ rst_epilog += rf"""
 .. _`numpy mailing list`: http://mail.python.org/mailman/listinfo/numpy-discussion
 .. |minimum_numpy_version| replace:: {min_versions['numpy']}
 
+.. _numpydoc: https://pypi.org/project/numpydoc/
+
 .. erfa
 .. _ERFA: https://github.com/liberfa/erfa
 .. _PyErfa: http://pyerfa.readthedocs.org/
