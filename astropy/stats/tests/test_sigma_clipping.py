@@ -176,9 +176,17 @@ def test_invalid_sigma_clip():
     data[3, 4] = np.nan
     data[1, 1] = np.inf
 
+    data_ma = np.ma.MaskedArray(data)
+
     with pytest.warns(AstropyUserWarning,
                       match=r'Input data contains invalid values'):
         result = sigma_clip(data)
+    with pytest.warns(AstropyUserWarning,
+                      match=r'Input data contains invalid values'):
+        result_ma = sigma_clip(data_ma)
+
+    assert_equal(result.data, result_ma.data)
+    assert_equal(result.mask, result_ma.mask)
 
     # Pre #4051 if data contains any NaN or infs sigma_clip returns the
     # mask containing `False` only or TypeError if data also contains a
@@ -203,8 +211,8 @@ def test_invalid_sigma_clip():
     data[0, :] = np.nan     # row of all nans
     with pytest.warns(AstropyUserWarning,
                       match=r'Input data contains invalid values'):
-        result4, minarr, maxarr = sigma_clip(data, axis=1, masked=False,
-                                             return_bounds=True)
+        _, minarr, maxarr = sigma_clip(data, axis=1, masked=False,
+                                       return_bounds=True)
     assert np.isnan(minarr[0])
     assert np.isnan(maxarr[0])
 
@@ -224,7 +232,7 @@ def test_sigmaclip_fully_masked():
     data = np.ma.MaskedArray(data=[[1., 0.], [0., 1.]],
                              mask=[[True, True], [True, True]])
     clipped_data = sigma_clip(data)
-    np.ma.allequal(data, clipped_data)
+    assert np.ma.allequal(data, clipped_data)
 
     clipped_data = sigma_clip(data, masked=False)
     assert not isinstance(clipped_data, np.ma.MaskedArray)
@@ -238,7 +246,7 @@ def test_sigmaclip_empty_masked():
 
     data = np.ma.MaskedArray(data=[], mask=[])
     clipped_data = sigma_clip(data)
-    np.ma.allequal(data, clipped_data)
+    assert np.ma.allequal(data, clipped_data)
 
 
 def test_sigmaclip_empty():
