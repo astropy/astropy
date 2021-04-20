@@ -14,7 +14,7 @@ import numpy as np
 from . import core, basic
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.io.ascii.core import convert_numpy
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
@@ -273,6 +273,10 @@ class EcsvOutputter(core.TableOutputter):
 
                 # Regular scalar value column
                 else:
+                    if col.subtype:
+                        warnings.warn(f'unexpected subtype {col.subtype!r} set for column '
+                                      f'{col.name!r}, using dtype={col.dtype!r} instead.',
+                                      category=AstropyUserWarning)
                     converter_func, _ = convert_numpy(col.dtype)
                     col.data = converter_func(col.str_vals)
 
