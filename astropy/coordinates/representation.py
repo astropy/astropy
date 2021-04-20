@@ -1603,7 +1603,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        # TODO! for differential_class. This cannot (currently) be implement
+        # TODO! for differential_class. This cannot (currently) be implemented
         # like in the other Representations since `_re_represent_differentials`
         # keeps differentials' unit keys, but this can result in a mismatch
         # between the UnitSpherical expected key (e.g. "s") and that expected
