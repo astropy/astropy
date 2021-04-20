@@ -6,6 +6,7 @@ reader/writer.
 
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+import yaml
 from astropy.table.column import MaskedColumn
 import os
 import copy
@@ -681,24 +682,6 @@ a
         Table.read(txt, format='ascii.ecsv')
 
 
-def test_object_column():
-    """Test variable length list and nested object.
-
-    This is also covered somewhat in test_serialize.
-    """
-    t = Table()
-    t['a'] = np.array([np.array([1, 2]), np.array([1, 2, 3])], dtype=object)
-    t['b'] = np.array([{'a': 1}, [{'b': 2}, [1, 2]]], dtype=object)
-    out = StringIO()
-    t.write(out, format='ascii.ecsv')
-    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
-    assert t2.colnames == t.colnames
-    for name in t2.colnames:
-        assert t2[name].dtype == t[name].dtype
-        for val1, val2 in zip(t2[name], t[name]):
-            assert np.all(val1 == val2)
-
-
 def test_write_not_json_serializable():
     t = Table()
     t['a'] = np.array([set([1, 2]), 1], dtype=object)
@@ -754,3 +737,147 @@ fail
     match = r"column 'a' is not in allowed values \('bool', 'int8', 'int16', 'int32'"
     with pytest.raises(ValueError, match=match):
         Table.read(txt, format='ascii.ecsv')
+
+
+#############################################################################
+# Define a number of specialized columns for testing and the expected values
+# of `datatype` for each column.
+#############################################################################
+
+# First here is some helper code used to make the expected outputs code.
+def _get_ecsv_header_dict(text):
+    lines = [line.strip() for line in text.splitlines()]
+    lines = [line[2:] for line in lines if line.startswith('#')]
+    lines = lines[2:]  # Get rid of the header
+    out = yaml.safe_load('\n'.join(lines))
+    return out
+
+def _make_expected_values(cols):
+    from pprint import pformat
+    for name, col in cols.items():
+        t = Table()
+        t[name] = col
+        out = StringIO()
+        t.write(out, format='ascii.ecsv')
+        hdr = _get_ecsv_header_dict(out.getvalue())
+        fmt_hdr = pformat(hdr['datatype'])
+        print(f'exps[{name!r}] =', fmt_hdr[:1])
+        print(fmt_hdr[1:])
+        print()
+
+# Expected values of `datatype` for each column
+exps = {}
+cols = {}
+
+# Run of the mill scalar for completeness
+cols['scalar'] = np.array([1, 2], dtype=np.int16)
+exps['scalar'] = [
+    {'datatype': 'int16', 'name': 'scalar'}]
+
+# Array of lists that works as a 2-d variable array
+# Note in this case that everything gets promoted to string subtype because
+# of the one "a" in there.
+cols['2-d variable array lists'] = c = np.empty(shape=(2,), dtype=object)
+c[0] = [[1, 2], ["a", 4]]
+c[1] = [[1, 2, 3], [4, 5.25, 6]]
+exps['2-d variable array lists'] = [
+    {'datatype': 'string',
+     'name': '2-d variable array lists',
+     'shape': [2, None],
+     'subtype': 'string'}]
+
+# Array of numpy arrays that is a 2-d variable array
+cols['2-d variable array numpy'] = c = np.empty(shape=(2,), dtype=object)
+c[0] = np.array([[1, 2], [3, 4]], dtype=np.float32)
+c[1] = np.array([[1, 2, 3], [4, 5.5, 6]], dtype=np.float32)
+exps['2-d variable array numpy'] = [
+    {'datatype': 'string',
+     'name': '2-d variable array numpy',
+     'shape': [2, None],
+     'subtype': 'float32'}]
+
+cols['1-d variable array lists'] = np.array([[1, 2], [3, 4, 5]], dtype=object)
+exps['1-d variable array lists'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array lists',
+     'shape': [None],
+     'subtype': 'int64'}]
+
+cols['1-d variable array numpy'] = np.array(
+    [np.array([1, 2], dtype=np.uint8),
+     np.array([3, 4, 5], np.uint8)], dtype=object)
+exps['1-d variable array numpy'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array numpy',
+     'shape': [None],
+     'subtype': 'uint8'}]
+
+cols['1-d variable array numpy str'] = np.array(
+    [np.array(['a', 'b']),
+     np.array(['c', 'd', 'e'])], dtype=object)
+exps['1-d variable array numpy str'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array numpy str',
+     'shape': [None],
+     'subtype': 'string'}]
+
+cols['1-d variable array numpy bool'] = np.array(
+    [np.array([True, False]),
+     np.array([True, False, True])], dtype=object)
+exps['1-d variable array numpy bool'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array numpy bool',
+     'shape': [None],
+     'subtype': 'bool'}]
+
+cols['1-d regular array'] = np.array([[1, 2], [3, 4]], dtype=np.int8)
+exps['1-d regular array'] = [
+    {'datatype': 'string',
+     'name': '1-d regular array',
+     'shape': [2],
+     'subtype': 'int8'}]
+
+cols['2-d regular array'] = np.arange(8, dtype=np.float16).reshape(2, 2, 2)
+exps['2-d regular array'] = [
+    {'datatype': 'string',
+     'name': '2-d regular array',
+     'shape': [2, 2],
+     'subtype': 'float16'}]
+
+cols['scalar object'] = np.array([{'a': 1}, {'b':2}], dtype=object)
+exps['scalar object'] = [
+    {'datatype': 'string', 'name': 'scalar object', 'subtype': 'object'}]
+
+cols['1-d object'] = np.array(
+    [[{'a': 1}, {'b':2}],
+     [{'a': 1}, {'b':2}]], dtype=object)
+exps['1-d object'] = [
+    {'datatype': 'string',
+     'name': '1-d object',
+     'shape': [2],
+     'subtype': 'object'}]
+
+@pytest.mark.parametrize('name,col,exp',
+                         list(zip(cols, cols.values(), exps.values())))
+def test_specialized_columns(name, col, exp):
+    """Test variable length lists, multidim columns, object columns.
+    """
+    t = Table()
+    t[name] = col
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    hdr = _get_ecsv_header_dict(out.getvalue())
+    assert hdr['datatype'] == exp
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert t2[name].dtype == t[name].dtype
+        if name == '2-d variable array lists':
+            # This one is special because it has mixed object types in the
+            # original (including one string) but after going through ECSV it
+            # comes back with all string.
+            continue
+        for val1, val2 in zip(t2[name], t[name]):
+            if isinstance(val1, np.ndarray) and name != '1-d variable array lists':
+                assert val1.dtype == val2.dtype
+            assert np.all(val1 == val2)
