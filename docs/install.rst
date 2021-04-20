@@ -20,7 +20,7 @@ Using pip
     Users of the Anaconda Python distribution should follow the instructions
     for :ref:`anaconda_install`.
 
-To install ``astropy`` with `pip <https://pip.pypa.io>`__, run::
+To install ``astropy`` with `pip`_, run::
 
     pip install astropy
 
