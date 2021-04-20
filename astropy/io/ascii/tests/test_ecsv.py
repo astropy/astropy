@@ -816,11 +816,12 @@ exps['2-d variable array numpy'] = [
      'name': '2-d variable array numpy',
      'subtype': 'float32[2,null]'}]
 
+np_int_name = np.array(0).dtype.name  # Type for an unspecified Python integer
 cols['1-d variable array lists'] = np.array([[1, 2], [3, 4, 5]], dtype=object)
 exps['1-d variable array lists'] = [
     {'datatype': 'string',
      'name': '1-d variable array lists',
-     'subtype': 'int64[null]'}]
+     'subtype': f'{np_int_name}[null]'}]
 
 cols['1-d variable array numpy'] = np.array(
     [np.array([1, 2], dtype=np.uint8),
