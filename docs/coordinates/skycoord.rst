@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-high-level:
 
 Using the SkyCoord High-Level Class

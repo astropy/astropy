@@ -1,4 +1,3 @@
-.. include:: references.txt
 .. |join| replace:: :func:`~astropy.table.join`
 
 .. _table_operations:

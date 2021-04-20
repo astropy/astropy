@@ -1,6 +1,5 @@
 .. doctest-skip-all
 
-.. include:: workflow/known_projects.inc
 .. _testing-guidelines:
 
 ******************
@@ -16,8 +15,6 @@ Testing Framework
 
 The testing framework used by astropy (and packages using the :doc:`Astropy
 package template <astropy-package-template>`) is the `pytest`_ framework.
-
-.. _pytest: https://pytest.org/en/latest/
 
 .. _testing-dependencies:
 
@@ -44,8 +41,6 @@ option::
 
 A detailed description of the plugins can be found in the :ref:`pytest-plugins`
 section.
-
-.. _pytest-astropy: https://github.com/astropy/pytest-astropy
 
 .. _running-tests:
 
@@ -1170,8 +1165,6 @@ marked with ``internet_off`` will also be skipped in this case.
 
 Also see :ref:`data-files`.
 
-.. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
-
 .. _doctestplus-plugin:
 
 pytest-doctestplus
@@ -1196,8 +1189,6 @@ the test suite directly from ``pytest`` (instead of through the Astropy test
 runner), it is necessary to explicitly provide these options when they are
 needed.
 
-.. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
-
 .. _openfiles-plugin:
 
 pytest-openfiles
@@ -1214,5 +1205,3 @@ handles or other I/O resources. It allows developers to ensure that this kind
 of code properly cleans up I/O resources when they are no longer needed.
 
 Also see :ref:`open-files`.
-
-.. _pytest-openfiles: https://github.com/astropy/pytest-openfiles

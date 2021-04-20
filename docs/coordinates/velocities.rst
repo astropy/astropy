@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-velocities:
 
 Working with Velocities in Astropy Coordinates
@@ -9,7 +7,7 @@ Using Velocities with ``SkyCoord``
 ==================================
 
 The best way to start getting a coordinate object with velocities is to use the
-|skycoord| interface.
+|SkyCoord| interface.
 
 Examples
 --------
@@ -18,7 +16,7 @@ Examples
   EXAMPLE START
   Using SkyCoord to Get Coordinate Objects with Velocities
 
-A |skycoord| to represent a star with a measured radial velocity but unknown
+A |SkyCoord| to represent a star with a measured radial velocity but unknown
 proper motion and distance could be created as::
 
     >>> from astropy.coordinates import SkyCoord
@@ -32,7 +30,7 @@ proper motion and distance could be created as::
     >>> sc.radial_velocity  # doctest: +FLOAT_CMP
     <Quantity 20.0 km / s>
 
-|skycoord| objects created in this manner follow all of the same transformation
+|SkyCoord| objects created in this manner follow all of the same transformation
 rules and will correctly update their velocities when transformed to other
 frames. For example, to determine proper motions in Galactic coordinates for
 a star with proper motions measured in ICRS::
@@ -51,7 +49,7 @@ For more details on valid operations and limitations of velocity support in
 `astropy.coordinates` (particularly the :ref:`current accuracy limitations
 <astropy-coordinate-finite-difference-velocities>` ), see the more detailed
 discussions below of velocity support in the lower-level frame objects. All
-these same rules apply for |skycoord| objects, as they are built directly on top
+these same rules apply for |SkyCoord| objects, as they are built directly on top
 of the frame classes' velocity functionality detailed here.
 
 .. _astropy-coordinate-custom-frame-with-velocities:
@@ -202,7 +200,7 @@ Adding Velocities to Existing Frame Objects
 ===========================================
 
 Another use case similar to the above comes up when you have an existing frame
-object (or |skycoord|) and want an object with the same position but with
+object (or |SkyCoord|) and want an object with the same position but with
 velocities added. The most conceptually direct way to do this is to
 use the differential objects along with
 `~astropy.coordinates.BaseCoordinateFrame.realize_frame`.
