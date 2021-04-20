@@ -109,11 +109,9 @@ for line in importlib_metadata.requires('astropy'):
 
 # This is added to the end of RST files - a good place to put substitutions to
 # be used globally.
-rst_epilog += f"""
+rst_epilog += rf"""
 .. ------------------------------------------------------------------
 .. RST SUBSITUTIONS
-
-.. |OrderedDict| replace:: https://docs.python.org/3/library/collections.html#collections.OrderedDict
 
 .. |ndarray| replace:: :class:`numpy.ndarray`
 
@@ -186,7 +184,7 @@ rst_epilog += f"""
 .. |minimum_pyyaml_version| replace:: {min_versions['pyyaml']}
 
 .. IPython
-.. _ipython: http://ipython.scipy.org
+.. _IPython: http://ipython.org/
 .. _`ipython github`: https://github.com/ipython/ipython
 .. _`ipython mailing list`: http://mail.python.org/mailman/listinfo/IPython-dev
 .. |minimum_ipython_version| replace:: {min_versions['ipython']}
@@ -204,14 +202,11 @@ rst_epilog += f"""
 .. _conda: https://conda.io/docs/
 
 .. py.test
-.. _pytest: https://pytest.org/en/latest/
+.. _pytest: https://pytest.org/en/latest/index.html
 .. _pytest-astropy: https://github.com/astropy/pytest-astropy
 .. _pytest-doctestplus: https://github.com/astropy/pytest-doctestplus
 .. _pytest-openfiles: https://github.com/astropy/pytest-openfiles
 .. _pytest-remotedata: https://github.com/astropy/pytest-remotedata
-
-.. pychecker
-.. _pychecker: https://pypi.org/project/PyChecker
 
 """
 
