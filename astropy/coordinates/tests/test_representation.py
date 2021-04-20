@@ -365,16 +365,16 @@ class TestSphericalRepresentation:
 
         s3 = s1.transform(matrix)
         # s3 should not propagate Nan.
-        assert tuple(np.isnan(s3.lon.deg)) == (False, False)
-        assert tuple(np.isnan(s3.lat.deg)) == (False, False)
-        assert tuple(np.isnan(s3.distance.value)) == (False, True)
+        assert_array_equal(np.isnan(s3.lon.deg), (False, False))
+        assert_array_equal(np.isnan(s3.lat.deg), (False, False))
+        assert_array_equal(np.isnan(s3.distance.value), (False, True))
 
         # through Cartesian should
         thruC = (s1.to_cartesian().transform(matrix)
                    .represent_as(SphericalRepresentation))
-        assert tuple(np.isnan(thruC.lon.deg)) == (False, True)
-        assert tuple(np.isnan(thruC.lat.deg)) == (False, True)
-        assert tuple(np.isnan(thruC.distance.value)) == (False, True)
+        assert_array_equal(np.isnan(thruC.lon.deg), (False, True))
+        assert_array_equal(np.isnan(thruC.lat.deg), (False, True))
+        assert_array_equal(np.isnan(thruC.distance.value), (False, True))
         # test that they are close on the first value
         assert_allclose_quantity(s3.lon[0], thruC.lon[0])
         assert_allclose_quantity(s3.lat[0], thruC.lat[0])
@@ -745,16 +745,16 @@ class TestPhysicsSphericalRepresentation:
 
         s3 = s1.transform(matrix)
         # s3 should not propagate Nan.
-        assert tuple(np.isnan(s3.phi.deg)) == (False, False)
-        assert tuple(np.isnan(s3.theta.deg)) == (False, False)
-        assert tuple(np.isnan(s3.r.value)) == (False, True)
+        assert_array_equal(np.isnan(s3.phi.deg), (False, False))
+        assert_array_equal(np.isnan(s3.theta.deg), (False, False))
+        assert_array_equal(np.isnan(s3.r.value), (False, True))
 
         # through Cartesian does
         thruC = (s1.to_cartesian().transform(matrix)
                  .represent_as(PhysicsSphericalRepresentation))
-        assert tuple(np.isnan(thruC.phi.deg)) == (False, True)
-        assert tuple(np.isnan(thruC.theta.deg)) == (False, True)
-        assert tuple(np.isnan(thruC.r.value)) == (False, True)
+        assert_array_equal(np.isnan(thruC.phi.deg), (False, True))
+        assert_array_equal(np.isnan(thruC.theta.deg), (False, True))
+        assert_array_equal(np.isnan(thruC.r.value), (False, True))
         # so only test on the first value
         assert_allclose_quantity(s3.phi[0], thruC.phi[0])
         assert_allclose_quantity(s3.theta[0], thruC.theta[0])
