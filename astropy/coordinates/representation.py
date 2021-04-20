@@ -16,6 +16,7 @@ from erfa import ufunc as erfa_ufunc
 
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
+from .matrix_utilities import is_O3
 from astropy.utils import ShapedLikeNDArray, classproperty
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.exceptions import DuplicateRepresentationWarning
@@ -869,6 +870,31 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
             return new_rep
 
+    def transform(self, matrix):
+        """Transform coordinates using a 3x3 matrix in a Cartesian basis.
+
+        This returns a new representation and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+
+        """
+        # route transformation through Cartesian
+        difs_cls = {k: CartesianDifferential for k in self.differentials.keys()}
+        crep = self.represent_as(CartesianRepresentation,
+                                 differential_class=difs_cls
+                                ).transform(matrix)
+
+        # move back to original representation
+        difs_cls = {k: diff.__class__ for k, diff in self.differentials.items()}
+        rep = crep.represent_as(self.__class__, difs_cls)
+
+        return rep
+
     def with_differentials(self, differentials):
         """
         Create a new representation with the same positions as this
@@ -1335,7 +1361,6 @@ class CartesianRepresentation(BaseRepresentation):
         matrix : ndarray
             A 3x3 transformation matrix, such as a rotation matrix.
 
-
         Examples
         --------
 
@@ -1578,7 +1603,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def represent_as(self, other_class, differential_class=None):
         # Take a short cut if the other class is a spherical representation
-        # TODO! for differential_class. This cannot (currently) be implement
+        # TODO! for differential_class. This cannot (currently) be implemented
         # like in the other Representations since `_re_represent_differentials`
         # keeps differentials' unit keys, but this can result in a mismatch
         # between the UnitSpherical expected key (e.g. "s") and that expected
@@ -1592,6 +1617,48 @@ class UnitSphericalRepresentation(BaseRepresentation):
                                    copy=False)
 
         return super().represent_as(other_class, differential_class)
+
+    def transform(self, matrix):
+        r"""Transform the unit-spherical coordinates using a 3x3 matrix.
+
+        This returns a new representation and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
+
+        Returns
+        -------
+        `UnitSphericalRepresentation` or `SphericalRepresentation`
+            If ``matrix`` is O(3) -- :math:`M \dot M^T = I` -- like a rotation,
+            then the result is a `UnitSphericalRepresentation`.
+            All other matrices will change the distance, so the dimensional
+            representation is used instead.
+
+        """
+        # the transformation matrix does not need to be a rotation matrix,
+        # so the unit-distance is not guaranteed. For speed, we check if the
+        # matrix is in O(3) and preserves lengths.
+        if np.all(is_O3(matrix)):  # remain in unit-rep
+            if self.differentials:
+                # TODO! shortcut if there are differentials.
+                # Currently just super, which uses Cartesian backend.
+                rep = super().transform(matrix)
+            else:
+                xyz = erfa_ufunc.s2c(self.lon, self.lat)
+                p = erfa_ufunc.rxp(matrix, xyz)
+                lon, lat = erfa_ufunc.c2s(p)
+                rep = self.__class__(lon=lon, lat=lat)
+        else:
+            rep = self._dimensional_representation(
+                lon=self.lon, lat=self.lat, distance=1,
+                differentials=self.differentials
+            ).transform(matrix)
+
+        return rep
 
     def __mul__(self, other):
         self._raise_if_has_differentials('multiplication')
@@ -1762,6 +1829,19 @@ class RadialRepresentation(BaseRepresentation):
     def _combine_operation(self, op, other, reverse=False):
         return NotImplemented
 
+    def transform(self, matrix):
+        """Radial representations cannot be transformed by a Cartesian matrix.
+
+        Raises
+        ------
+        NotImplementedError
+
+        """
+        raise NotImplementedError(
+            "Radial representations cannot be transformed "
+            "by a Cartesian matrix."
+        )
+
 
 class SphericalRepresentation(BaseRepresentation):
     """
@@ -1908,6 +1988,32 @@ class SphericalRepresentation(BaseRepresentation):
         p = cart.get_xyz(xyz_axis=-1)
         # erfa p2s: P-vector to spherical polar coordinates.
         return cls(*erfa_ufunc.p2s(p), copy=False)
+
+    def transform(self, matrix):
+        """Transform the spherical coordinates using a 3x3 matrix.
+
+        This returns a new representation and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
+
+        """
+        if self.differentials:
+            # TODO! shortcut if there are differentials.
+            # Currently just super, which uses Cartesian backend.
+            rep = super().transform(matrix)
+
+        else:
+            xyz = erfa_ufunc.s2c(self.lon, self.lat)
+            p = erfa_ufunc.rxp(matrix, xyz)
+            lon, lat, ur = erfa_ufunc.p2s(p)
+            rep = self.__class__(lon=lon, lat=lat, distance=self.distance * ur)
+
+        return rep
 
     def norm(self):
         """Vector norm.
@@ -2076,6 +2182,36 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         theta = np.arctan2(s, cart.z)
 
         return cls(phi=phi, theta=theta, r=r, copy=False)
+
+    def transform(self, matrix):
+        """Transform the spherical coordinates using a 3x3 matrix.
+
+        This returns a new representation and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
+
+        """
+        if self.differentials:
+            # TODO! shortcut if there are differentials.
+            # Currently just super, which uses Cartesian backend.
+            rep = super().transform(matrix)
+
+        else:
+            # apply transformation in unit-spherical coordinates
+            xyz = erfa_ufunc.s2c(self.phi, 90*u.deg-self.theta)
+            p = erfa_ufunc.rxp(matrix, xyz)
+            lon, lat, ur = erfa_ufunc.p2s(p)  # `ur` is transformed unit-`r`
+
+            # create transformed physics-spherical representation,
+            # reapplying the distance scaling
+            rep = self.__class__(phi=lon, theta=90*u.deg-lat, r=self.r * ur)
+
+        return rep
 
     def norm(self):
         """Vector norm.
