@@ -177,7 +177,7 @@ class EcsvHeader(basic.BasicHeader):
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
         for col in self.cols:
-            for attr in ('description', 'format', 'unit', 'meta', 'shape', 'subtype'):
+            for attr in ('description', 'format', 'unit', 'meta', 'subtype'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
 
@@ -185,6 +185,14 @@ class EcsvHeader(basic.BasicHeader):
             if col.dtype not in ECSV_DATATYPES:
                 raise ValueError(f'datatype {col.dtype!r} of column {col.name!r} '
                                  f'is not in allowed values {ECSV_DATATYPES}')
+
+            # Subtype is written like "int64[2,null]" and we want to split this
+            # out to "int64" and [2, None].
+            subtype = col.subtype
+            if subtype and '[' in subtype:
+                idx = subtype.index('[')
+                col.subtype = subtype[:idx]
+                col.shape = json.loads(subtype[idx:])
 
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
             for attr in ('dtype', 'subtype'):
