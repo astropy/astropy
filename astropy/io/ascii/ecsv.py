@@ -21,6 +21,10 @@ __doctest_requires__ = {'Ecsv': ['yaml']}
 
 ECSV_VERSION = '1.0'
 DELIMITERS = (' ', ',')
+ECSV_DATATYPES = (
+    'bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16',
+    'uint32', 'uint64', 'float16', 'float32', 'float64',
+    'float128', 'complex64', 'complex128', 'complex256', 'string')
 
 
 class EcsvHeader(basic.BasicHeader):
@@ -176,7 +180,11 @@ class EcsvHeader(basic.BasicHeader):
             for attr in ('description', 'format', 'unit', 'meta', 'shape', 'subtype'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
+
             col.dtype = header_cols[col.name]['datatype']
+            if col.dtype not in ECSV_DATATYPES:
+                raise ValueError(f'datatype {col.dtype!r} of column {col.name!r} '
+                                 f'is not in allowed values {ECSV_DATATYPES}')
 
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
             for attr in ('dtype', 'subtype'):
@@ -184,6 +192,11 @@ class EcsvHeader(basic.BasicHeader):
                     setattr(col, attr, 'str')
                 if (getattr(col, attr) or '').startswith('complex'):
                     raise TypeError('ecsv reader does not support complex number types')
+
+
+def _check_dtype_is_str(col):
+    if col.dtype != 'str':
+        raise ValueError(f'datatype of column {col.name!r} must be "string"')
 
 
 class EcsvOutputter(core.TableOutputter):
@@ -220,6 +233,7 @@ class EcsvOutputter(core.TableOutputter):
             try:
                 # 1-d or N-d object columns are serialized as JSON.
                 if col.subtype == 'object':
+                    _check_dtype_is_str(col)
                     col_vals = [json.loads(val) for val in col.str_vals]
                     col.data = np.array(col_vals, dtype=col.subtype)
 
@@ -227,6 +241,7 @@ class EcsvOutputter(core.TableOutputter):
                 # n, m, .. and variable in last axis. Masked values here are
                 # not currently supported.
                 elif col.shape and col.shape[-1] is None:
+                    _check_dtype_is_str(col)
                     # Remake as a 1-d object column of numpy ndarrays using the
                     # datatype specified in the ECSV file.
                     col_vals = [np.array(json.loads(val), dtype=col.subtype)
@@ -240,11 +255,12 @@ class EcsvOutputter(core.TableOutputter):
                 # Multidim columns with consistent shape (n, m, ...). These
                 # might be masked.
                 elif col.shape:
+                    _check_dtype_is_str(col)
                     col_vals = [json.loads(val) for val in col.str_vals]
                     # Make a numpy object array of col_vals to look for None
                     # (masked values)
                     data = np.array(col_vals, dtype=object)
-                    mask = (data == None)  # noqa
+                    mask = (data == None)  # noqa: E711
                     if not np.any(mask):
                         # No None's, just convert to required dtype
                         col.data = data.astype(col.subtype)
@@ -253,7 +269,7 @@ class EcsvOutputter(core.TableOutputter):
                         kind = np.dtype(col.subtype).kind
                         data[mask] = {'U': '', 'S': b''}.get(kind, 0)
                         # Finally make a MaskedArray with the filled data + mask
-                        col.data = np.ma.array(data.astype(col.dtype), mask=mask)
+                        col.data = np.ma.array(data.astype(col.subtype), mask=mask)
 
                 # Regular scalar value column
                 else:
@@ -311,12 +327,14 @@ class EcsvData(basic.BasicData):
         - Only replace masked values with "", not the generalized filling
         """
         for col in self.cols:
-            if len(col.shape) > 1:
+            if len(col.shape) > 1 or col.info.dtype.kind == 'O':
                 def format_col_item(idx):
-                    return json.dumps(col[idx].tolist(), separators=(',', ':'))
-            elif col.info.dtype.kind == 'O':
-                def format_col_item(idx):
-                    return json.dumps(col[idx], separators=(',', ':'))
+                    obj = col[idx]
+                    try:
+                        obj = obj.tolist()
+                    except AttributeError:
+                        pass
+                    return json.dumps(obj, separators=(',', ':'))
             else:
                 def format_col_item(idx):
                     return str(col[idx])
