@@ -441,14 +441,14 @@ def test_sigma_clip_axis_shapes(axis, bounds_shape):
     assert bound2.shape == bounds_shape
 
 
-@pytest.mark.parametrize('dtype', ['>f4', '<f4', '>f8', '<f8', '<i4', '>i8'])
+@pytest.mark.parametrize('dtype', ['>f2', '<f2', '>f4', '<f4', '>f8', '<f8', '<i4', '>i8'])
 def test_sigma_clip_dtypes(dtype):
 
     # Check the shapes of the output for different use cases
 
     with NumpyRNGContext(12345):
         array = np.random.randint(-5, 5, 1000).astype(float)
-    array[30] = 1000
+    array[30] = 100
 
     reference = sigma_clip(array, copy=True, masked=False)
 
