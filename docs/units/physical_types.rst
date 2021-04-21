@@ -16,6 +16,7 @@ instances from strings with a name of a physical type, units, |Quantity|
 instances, objects that can become quantities (e.g., numbers), and
 |PhysicalType| instances.
 
+  >>> import astropy.units as u
   >>> u.get_physical_type('speed')  # from the name of a physical type
   PhysicalType('speed')
   >>> u.get_physical_type(u.meter)  # from a unit
@@ -45,19 +46,19 @@ An equality comparison between a |PhysicalType| and a string will return
 `True` if the string is a name of the |PhysicalType|.
 
   >>> import astropy.units as u
-  >> speed = u.get_physical_type(u.m / u.s)
-  >> speed == 'speed'
+  >>> speed = u.get_physical_type(u.m / u.s)
+  >>> speed == 'speed'
   True
 
 Some units may correspond to multiple physical types because compatible
 units can be used to quantify different phenomena.
 
-  >> u.get_physical_type('pressure')
+  >>> u.get_physical_type('pressure')
   PhysicalType({'energy density', 'pressure', 'stress'})
 
 We can iterate through the names of a |PhysicalType|.
 
-  >> for name in u.J.physical_type: print(name)
+  >>> for name in u.J.physical_type: print(name)
   energy
   torque
   work
@@ -65,9 +66,9 @@ We can iterate through the names of a |PhysicalType|.
 We can test for membership or equality with a string that has the name
 of a |PhysicalType|.
 
-  >> 'energy' == u.J.physical_type
+  >>> 'energy' == u.J.physical_type
   True
-  >> 'work' in u.J.physical_type
+  >>> 'work' in u.J.physical_type
   True
 
 .. EXAMPLE END
