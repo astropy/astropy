@@ -1847,17 +1847,16 @@ class RadialRepresentation(BaseRepresentation):
 
         Raises
         ------
-        NotImplementedError
+        ValueError
             If the matrix is not a multiplication.
 
         """
         scl = matrix[..., 0, 0]
         # check that the matrix is a scaled identity matrix on the last 2 axes.
         if np.any(matrix != scl[..., np.newaxis, np.newaxis] * np.identity(3)):
-            raise NotImplementedError("Radial representations can only be "
-                                      "transformed by a scaled identity matrix")
+            raise ValueError("Radial representations can only be "
+                             "transformed by a scaled identity matrix")
 
-        # route through __mul__
         return self * scl
 
 
