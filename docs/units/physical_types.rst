@@ -29,7 +29,6 @@ instances, objects that can become quantities (e.g., numbers), and
 The physical type of a unit can be accessed via its
 `~astropy.units.UnitBase.physical_type` attribute.
 
-  >>> import astropy.units as u
   >>> u.coulomb.physical_type
   PhysicalType('electrical charge')
   >>> (u.meter ** 2).physical_type
@@ -86,10 +85,9 @@ dimensional analysis.
   >>> length = u.get_physical_type('length')
   >>> time = u.get_physical_type('time')
   >>> length ** 2
-  PhysicalType({'area')
+  PhysicalType('area')
   >>> 1 / time
   PhysicalType('time')
-  >>>
 
 Dimensional analysis can be performed between a |PhysicalType| and a
 unit or between a |PhysicalType| and a string with a name of a
