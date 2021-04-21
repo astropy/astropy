@@ -87,7 +87,7 @@ dimensional analysis.
   >>> length ** 2
   PhysicalType('area')
   >>> 1 / time
-  PhysicalType('time')
+  PhysicalType('frequency')
 
 Dimensional analysis can be performed between a |PhysicalType| and a
 unit or between a |PhysicalType| and a string with a name of a
