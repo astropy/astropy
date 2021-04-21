@@ -2,6 +2,7 @@
 
 """Defines the physical types that correspond to different units."""
 
+import io
 import numbers
 
 from . import core
@@ -526,5 +527,30 @@ def get_physical_type(obj):
 
 for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
+
+
+# This generates a docstring addition for this module that describes all of the
+# standard physical types defined here.
+if __doc__ is not None:
+    docstring = io.StringIO()
+
+    docstring.write("""
+
+.. list-table:: Units with known Physical Type
+   :header-rows: 1
+   :widths: 20 60
+
+   * - Unit
+     - Physical Type(s)
+""")
+
+    for physical_type in _physical_unit_mapping.values():
+        docstring.write(f"""
+   * - :math:`{physical_type._unit.to_string('latex')[1:-1]}`
+     - {physical_type}
+""")
+
+    __doc__ += docstring.getvalue()
+
 
 del unit, physical_type
