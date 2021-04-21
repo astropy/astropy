@@ -1,0 +1,2 @@
+Fixed a bug that resulted in ``time_support()`` failing for intervals of
+a few months if one of the ticks was the month December.
