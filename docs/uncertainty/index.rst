@@ -1,7 +1,3 @@
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-.. |Distribution| replace:: :class:`~astropy.uncertainty.Distribution`
-.. |ndarray| replace:: :class:`numpy.ndarray`
-
 .. _astropy-uncertainty:
 
 *******************************************************

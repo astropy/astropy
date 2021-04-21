@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-transforming:
 
 Transforming between Systems
@@ -106,9 +104,9 @@ The same lower-level frame classes also have a
 :meth:`~astropy.coordinates.BaseCoordinateFrame.transform_to` method
 that works the same as above, but they do not support attribute-style
 access. They are also subtly different in that they only use frame
-attributes present in the initial or final frame, while |skycoord|
+attributes present in the initial or final frame, while |SkyCoord|
 objects use any frame attributes they have for all transformation
-steps. So |skycoord| can always transform from one frame to another and
+steps. So |SkyCoord| can always transform from one frame to another and
 back again without change, while low-level classes may lose information
 and hence often do not round-trip.
 

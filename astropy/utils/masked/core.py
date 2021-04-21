@@ -241,7 +241,7 @@ class Masked(NDArrayShapeMethods):
 
         See Also
         --------
-        filled
+        astropy.utils.masked.Masked.filled
         """
         return self._unmasked
 
@@ -255,7 +255,7 @@ class Masked(NDArrayShapeMethods):
 
         See Also
         --------
-        unmasked
+        astropy.utils.masked.Masked.unmasked
         """
         unmasked = self.unmasked.copy()
         if self.mask.dtype.names:

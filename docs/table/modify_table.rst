@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _modify_table:
 
 Modifying a Table

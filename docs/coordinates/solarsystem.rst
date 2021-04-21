@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-solarsystem:
 
 Solar System Ephemerides

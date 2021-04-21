@@ -1,4 +1,4 @@
 .. compiling links file
-.. include:: known_projects.inc
+.. note ``known_links.inc`` has been subsumed into ``conf.py``
 .. include:: this_project.inc
 .. include:: git_links.inc

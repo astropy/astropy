@@ -298,8 +298,9 @@ class SigmaClip:
             unit = None
 
         if copy is False and masked is False and data.dtype.kind != 'f':
-            raise Exception("cannot mask non-floating-point array with NaN values, "
-                             "set copy=True or masked=True to avoid this.")
+            raise Exception("cannot mask non-floating-point array with NaN "
+                            "values, set copy=True or masked=True to avoid "
+                            "this.")
 
         if axis is None:
             axis = -1 if data.ndim == 1 else tuple(range(data.ndim))
@@ -318,27 +319,27 @@ class SigmaClip:
             data_transposed = data.transpose(transposed_axes)
             transposed_shape = data_transposed.shape
             data_reshaped = data_transposed.reshape(
-                transposed_shape[:data.ndim-len(axis)]+(-1,))
+                transposed_shape[:data.ndim - len(axis)] + (-1,))
             axis = -1
 
         if data_reshaped.dtype.kind != 'f' or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
+        mask = ~np.isfinite(data_reshaped)
+        if np.any(mask):
+            warnings.warn('Input data contains invalid values (NaNs or '
+                          'infs), which were automatically clipped.',
+                          AstropyUserWarning)
+
         if isinstance(data_reshaped, np.ma.MaskedArray):
-            mask = data_reshaped.mask
+            mask |= data_reshaped.mask
             data = data.view(np.ndarray)
             data_reshaped = data_reshaped.view(np.ndarray)
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
-        else:
-            mask = ~np.isfinite(data_reshaped)
-            if np.any(mask):
-                warnings.warn('Input data contains invalid values (NaNs or '
-                            'infs), which were automatically clipped.',
-                            AstropyUserWarning)
 
         bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
-                                  -1 if np.isinf(self.maxiters) else self.maxiters,
-                                  self.sigma_lower, self.sigma_upper, axis=axis)
+                                              -1 if np.isinf(self.maxiters) else self.maxiters,
+                                              self.sigma_lower, self.sigma_upper, axis=axis)
 
         with np.errstate(invalid='ignore'):
             mask |= data_reshaped < np.expand_dims(bound_lo, axis)
@@ -589,15 +590,14 @@ class SigmaClip:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
         # Shortcut for common cases where a fast C implementation can be used.
-        if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and not self.grow:
+        if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and axis is not None and not self.grow:
             return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                         return_bounds=return_bounds,
                                         copy=copy)
 
         # These two cases are treated separately because when ``axis=None``
         # we can simply remove clipped values from the array.  This is not
-        # possible when ``axis`` or ``grow`` is specified, so instead we
-        # replace clipped values with NaNs as a placeholder value.
+        # possible when ``axis`` or ``grow`` is specified.
         if axis is None and not self.grow:
             return self._sigmaclip_noaxis(data, masked=masked,
                                           return_bounds=return_bounds,
