@@ -758,6 +758,19 @@ fail
         Table.read(txt, format='ascii.ecsv')
 
 
+def test_full_repr_roundtrip():
+    """Test round-trip of float values to full precision even with format
+    specified"""
+    t = Table()
+    t['a'] = np.array([np.pi, 1/7], dtype=np.float64)
+    t['a'].info.format = '.2f'
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert np.all(t['a'] == t2['a'])
+    assert t2['a'].info.format == '.2f'
+
+
 #############################################################################
 # Define a number of specialized columns for testing and the expected values
 # of `datatype` for each column.
