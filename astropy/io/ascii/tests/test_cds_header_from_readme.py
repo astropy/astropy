@@ -196,6 +196,34 @@ def test_cds_ignore_nullable():
     assert_equal(r.header.cols[5].description, 'Pericenter position angle (18)')
 
 
+def test_cds_no_whitespace():
+    # Make sure CDS Reader only checks null values when an '=' symbol is present,
+    # and read description text even if there is no whitespace after '?'.
+    readme = 'data/cds/null/ReadMe1'
+    data = 'data/cds/null/table.dat'
+    r = ascii.Cds(readme)
+    r.read(data)
+    assert_equal(r.header.cols[6].description, 'Temperature class codified (10)')
+    assert_equal(r.header.cols[6].null, '')
+    assert_equal(r.header.cols[7].description, 'Equivalent width (in mA)')
+    assert_equal(r.header.cols[7].null, '-9.9')
+    assert_equal(r.header.cols[10].description,
+                 'DAOSPEC quality parameter Q(large values are bad)')
+    assert_equal(r.header.cols[10].null, '-9.999')
+
+
+def test_cds_order():
+    # Make sure CDS Reader does not ignore order specifier that maybe present after
+    # the null specifier '?'
+    readme = 'data/cds/null/ReadMe1'
+    data = 'data/cds/null/table.dat'
+    r = ascii.Cds(readme)
+    r.read(data)
+    assert_equal(r.header.cols[5].description, 'Catalogue Identification Number')
+    assert_equal(r.header.cols[8].description, 'Equivalent width (in mA)')
+    assert_equal(r.header.cols[9].description, 'Luminosity class codified (11)')
+
+
 if __name__ == "__main__":  # run from main directory; not from test/
     test_header_from_readme()
     test_multi_header()
@@ -203,3 +231,5 @@ if __name__ == "__main__":  # run from main directory; not from test/
     test_description()
     test_cds_units()
     test_cds_ignore_nullable()
+    test_cds_no_whitespace()
+    test_cds_order()

@@ -1,0 +1,4 @@
+Made sure that the CDS reader does not ignore an order specifier that
+may be present after the null specifier '?'. Also made sure that it
+checks null values only when an '=' symbol is present and reads
+description text even if there is no whitespace after '?'.
