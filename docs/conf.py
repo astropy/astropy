@@ -141,6 +141,7 @@ rst_epilog += rf"""
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Unit| replace:: :class:`~astropy.units.UnitBase`
 .. |Masked| replace:: :class:`~astropy.utils.masked.Masked`
+.. |PhysicalType| replace:: :class:`~astropy.units.PhysicalType`
 
 .. ------------------------------------------------------------------
 .. KNOWN PROJECTS
