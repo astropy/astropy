@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-representations:
 
 Using and Designing Coordinate Representations
@@ -617,7 +615,7 @@ must be defined:
 
 Once you do this, you will then automatically be able to call ``represent_as``
 to convert other representations to/from your representation class. Your
-representation will also be available for use in |skycoord| and all frame
+representation will also be available for use in |SkyCoord| and all frame
 classes.
 
 A representation class may also have a ``_unit_representation`` attribute

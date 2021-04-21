@@ -1,15 +1,12 @@
 Plotting Astropy objects in Matplotlib
 **************************************
 
-.. |quantity| replace:: :class:`~astropy.units.Quantity`
-.. |time| replace:: :class:`~astropy.time.Time`
-
 .. _plotting-quantities:
 
 Plotting quantities
 ===================
 
-|quantity| objects can be conveniently plotted using matplotlib.  This
+|Quantity| objects can be conveniently plotted using matplotlib.  This
 feature needs to be explicitly turned on:
 
 .. doctest-requires:: matplotlib
@@ -18,7 +15,7 @@ feature needs to be explicitly turned on:
     >>> quantity_support()  # doctest: +IGNORE_OUTPUT
     <astropy.visualization.units.MplQuantityConverter ...>
 
-Then |quantity| objects can be passed to matplotlib plotting
+Then |Quantity| objects can be passed to matplotlib plotting
 functions.  The axis labels are automatically labeled with the unit of
 the quantity:
 
@@ -75,9 +72,9 @@ be explicitly turned on:
     >>> time_support()  # doctest: +IGNORE_OUTPUT
     <astropy.visualization.units.MplTimeConverter ...>
 
-Once this is enabled, |time| objects can be passed to matplotlib plotting
+Once this is enabled, |Time| objects can be passed to matplotlib plotting
 functions. The axis labels are then automatically labeled with times formatted
-using the |time| class:
+using the |Time| class:
 
 .. plot::
    :include-source:

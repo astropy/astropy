@@ -1,5 +1,3 @@
-.. |Quantity| replace:: :class:`~astropy.units.Quantity`
-
 .. _logarithmic_units:
 
 Magnitudes and Other Logarithmic Units

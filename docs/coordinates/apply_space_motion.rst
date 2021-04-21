@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _astropy-coordinates-apply-space-motion:
 
 Accounting for Space Motion

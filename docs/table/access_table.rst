@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _access_table:
 
 Accessing a Table
@@ -178,7 +176,7 @@ Accessing Properties
 
 The code below shows accessing the table columns as a |TableColumns| object,
 getting the column names, table metadata, and number of table rows. The table
-metadata is an ordered dictionary (OrderedDict_) by default.
+metadata is an ordered dictionary (`~collections.OrderedDict`) by default.
 ::
 
   >>> t.columns

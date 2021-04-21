@@ -99,6 +99,15 @@ def_unit(['R', 'Rayleigh', 'rayleigh'],
 
 
 ###########################################################################
+# EVENTS
+
+def_unit((['ct', 'count'], ['count']),
+         format={'fits': 'count', 'ogip': 'count', 'vounit': 'count'},
+         namespace=_ns, prefixes=True, exclude_prefixes=['p'])
+def_unit(['adu'], namespace=_ns, prefixes=True)
+def_unit(['DN', 'dn'], namespace=_ns, prefixes=False)
+
+###########################################################################
 # MISCELLANEOUS
 
 # Some of these are very FITS-specific and perhaps considered a mistake.
@@ -106,21 +115,8 @@ def_unit(['R', 'Rayleigh', 'rayleigh'],
 # TODO: This is defined by the FITS standard as "relative to the sun".
 # Is that mass, volume, what?
 def_unit(['Sun'], namespace=_ns)
-
-
-###########################################################################
-# EVENTS
-
-def_unit((['ct', 'count'], ['count']),
-         format={'fits': 'count', 'ogip': 'count', 'vounit': 'count'},
-         namespace=_ns, prefixes=True, exclude_prefixes=['p'])
-
-###########################################################################
-# MISCELLANEOUS
-
 def_unit(['chan'], namespace=_ns, prefixes=True)
 def_unit(['bin'], namespace=_ns, prefixes=True)
-def_unit(['adu'], namespace=_ns, prefixes=True)
 def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,
          format={'latex': r'e^{-}', 'unicode': 'e⁻'})

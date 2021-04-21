@@ -1,5 +1,3 @@
-.. include:: references.txt
-
 .. _masking_and_missing_values:
 
 Masking and Missing Values
