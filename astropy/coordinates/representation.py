@@ -361,9 +361,9 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        args : tuple
+        *args : tuple
             Any positional arguments for ``method``.
-        kwargs : dict
+        **kwargs : dict
             Any keyword arguments for ``method``.
         """
         if callable(method):
@@ -994,9 +994,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        args : tuple
+        *args : tuple
             Any positional arguments for ``method``.
-        kwargs : dict
+        **kwargs : dict
             Any keyword arguments for ``method``.
 
         """
@@ -2465,8 +2465,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         Parameters
         ----------
         base : instance of ``self.base_representation``
-             The points for which the differentials are to be converted: each of
-             the components is multiplied by its unit vectors and scale factors.
+            The points for which the differentials are to be converted: each of
+            the components is multiplied by its unit vectors and scale factors.
 
         Returns
         -------
@@ -2486,12 +2486,12 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         Parameters
         ----------
-        other :
+        other
             The object to convert into this differential.
         base : `BaseRepresentation`
-             The points for which the differentials are to be converted: each of
-             the components is multiplied by its unit vectors and scale factors.
-             Will be converted to ``cls.base_representation`` if needed.
+            The points for which the differentials are to be converted: each of
+            the components is multiplied by its unit vectors and scale factors.
+            Will be converted to ``cls.base_representation`` if needed.
 
         Returns
         -------
