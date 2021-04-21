@@ -183,12 +183,12 @@ def calc_moon(t):
     date range CE 1950-2050.
 
     Parameters
-    -----------
+    ----------
     t : `~astropy.time.Time`
         Time of observation.
 
     Returns
-    --------
+    -------
     skycoord : `~astropy.coordinates.SkyCoord`
         ICRS Coordinate for the body
     """

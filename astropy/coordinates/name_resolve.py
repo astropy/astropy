@@ -106,7 +106,7 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     ----------
     name : str
         The name of the object to get coordinates for, e.g. ``'M42'``.
-    parse: bool
+    parse : bool
         Whether to attempt extracting the coordinates from the name by
         parsing with a regex. For objects catalog names that have
         J-coordinates embedded in their names eg:

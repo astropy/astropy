@@ -30,7 +30,7 @@ def eccentricity(jd):
     jd : scalar or array-like
         Julian date at which to compute the eccentricity
 
-    returns
+    Returns
     -------
     eccentricity : scalar or array
         The eccentricity (or array of eccentricities)
@@ -57,7 +57,7 @@ def mean_lon_of_perigee(jd):
     jd : scalar or array-like
         Julian date at which to compute the mean longitude of perigee
 
-    returns
+    Returns
     -------
     mean_lon_of_perigee : scalar or array
         Mean longitude of perigee in degrees (or array of mean longitudes)
@@ -90,7 +90,7 @@ def obliquity(jd, algorithm=2006):
         precession models, and a description of the 1980 algorithm can be found
         in the Explanatory Supplement to the Astronomical Almanac.
 
-    returns
+    Returns
     -------
     obliquity : scalar or array
         Mean obliquity in degrees (or array of obliquities)

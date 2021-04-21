@@ -78,8 +78,8 @@ def horoscope(birthday, corrected=True, chinese=False):
     Enter your birthday as an `astropy.time.Time` object and
     receive a mystical horoscope about things to come.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     birthday : `astropy.time.Time` or str
         Your birthday as a `datetime.datetime` or `astropy.time.Time` object
         or "YYYY-MM-DD"string.
