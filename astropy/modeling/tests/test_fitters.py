@@ -468,6 +468,57 @@ class TestNonLinearFitters:
         assert_allclose(model.parameters, slsqp_model.parameters,
                         rtol=10 ** (-4))
 
+    def test_LevMar_with_weights(self):
+        """
+        Tests that issue #11581 has been solved.
+        """
+
+        np.random.seed(42)
+        norder = 2
+
+        fitter1 = LevMarLSQFitter()
+        fitter2 = LinearLSQFitter()
+
+        model = models.Polynomial1D(norder)
+        npts = 10000
+        c = [2.0, -10.0, 7.0]
+        tw = np.random.uniform(0.0, 10.0, npts)
+        tx = np.random.uniform(0.0, 10.0, npts)
+        ty = c[0] + c[1] * tx + c[2] * (tx ** 2)
+        ty += np.random.normal(0.0, 1.5, npts)
+
+        with pytest.warns(AstropyUserWarning, match=r'Model is linear in parameters'):
+            tf1 = fitter1(model, tx, ty, weights=tw)
+        tf2 = fitter2(model, tx, ty, weights=tw)
+
+        assert_allclose(tf1.parameters, tf2.parameters,
+                        atol=10 ** (-16))
+        assert_allclose(tf1.parameters, c,
+                        rtol=10 ** (-2), atol=10 ** (-2))
+
+        model = models.Gaussian1D()
+        fitter1(model, tx, ty, weights=tw)
+
+        model = models.Polynomial2D(norder)
+        nxpts = 100
+        nypts = 150
+        npts = nxpts * nypts
+        c = [1.0, 4.0, 7.0, -8.0, -9.0, -3.0]
+        tw = np.random.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
+        tx = np.random.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
+        ty = np.random.uniform(0.0, 10.0, npts).reshape(nxpts, nypts)
+        tz = c[0] + c[1] * tx + c[2] * (tx ** 2) + c[3] * ty + c[4] * (ty ** 2) + c[5] * tx * ty
+        tz += np.random.normal(0.0, 1.5, npts).reshape(nxpts, nypts)
+
+        with pytest.warns(AstropyUserWarning, match=r'Model is linear in parameters'):
+            tf1 = fitter1(model, tx, ty, tz, weights=tw)
+        tf2 = fitter2(model, tx, ty, tz, weights=tw)
+
+        assert_allclose(tf1.parameters, tf2.parameters,
+                        atol=10 ** (-16))
+        assert_allclose(tf1.parameters, c,
+                        rtol=10 ** (-2), atol=10 ** (-2))
+
     def test_simplex_lsq_fitter(self):
         """A basic test for the `SimplexLSQ` fitter."""
 
