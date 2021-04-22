@@ -1093,7 +1093,7 @@ def _try_url_open(source_url, timeout=None, http_headers=None, ftp_tls=False,
         reason = exc.reason
         if (isinstance(reason, ssl.SSLError)
                 and reason.reason == 'CERTIFICATE_VERIFY_FAILED'):
-            msg = (f'verification of TLS/SSL certificate at {source_url} '
+            msg = (f'Verification of TLS/SSL certificate at {source_url} '
                    f'failed: this can mean either the server is '
                    f'misconfigured or your local root CA certificates are '
                    f'out-of-date; in the latter case this can usually be '
@@ -1106,6 +1106,7 @@ def _try_url_open(source_url, timeout=None, http_headers=None, ftp_tls=False,
                         f'was: {reason}')
                 raise urllib.error.URLError(msg)
             else:
+                msg += '. Re-trying with allow_insecure=True.'
                 warn(msg, AstropyWarning)
                 # Try again with a new urlopener allowing insecure connections
                 urlopener = _build_urlopener(ftp_tls=ftp_tls,
