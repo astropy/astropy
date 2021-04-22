@@ -1282,9 +1282,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         downloading from HTTPS or TLS+FTP sources.  This can be used provide
         alternative paths to root CA certificates.  Additionally, if the key
         ``'certfile'`` and optionally ``'keyfile'`` and ``'password'`` are
-        included, they are passed to passed to a call to
-        `ssl.SSLContext.load_cert_chain`.  This can be used for performing
-        SSL/TLS client certificate authentication.
+        included, they are passed to `ssl.SSLContext.load_cert_chain`.  This
+        can be used for performing SSL/TLS client certificate authentication
+        for servers that require it.
 
     allow_insecure : bool, optional
         Allow downloading files over a TLS/SSL connection even when the server
