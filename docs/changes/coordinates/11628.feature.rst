@@ -1,0 +1,2 @@
+Added a new module, `astropy.coordinates.angle_generators`, with functions for
+generating points on or in spherical surfaces, either randomly or on a grid.
