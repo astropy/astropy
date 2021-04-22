@@ -79,7 +79,6 @@ conveniently with the ``get_pkg_data_*`` functions::
    # these are all mappings from the name in sites.json (which is ASCII-only) to the "true" unicode names
    TUBITAK->TÜBİTAK
 
-
 .. note::
 
     Sometimes when downloading files from internet resources secured with
@@ -93,7 +92,8 @@ conveniently with the ``get_pkg_data_*`` functions::
     with expired certificates).  In this case, you may pass the
     ``allow_insecure=True`` argument to
     :func:`~astropy.utils.data.download_file` to allow the download with a
-    warning instead.
+    warning instead (not recommended unless you understand the `potential
+    risks <https://en.wikipedia.org/wiki/Man-in-the-middle_attack>`_).
 
 
 Usage From Outside Astropy

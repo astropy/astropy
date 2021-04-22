@@ -650,7 +650,7 @@ def test_download_certificate_verification_failed():
     # certificate verification error; we simulate this by passing a bogus
     # CA directory to the ssl_context argument
     ssl_context = {'cafile': None, 'capath': '/does/not/exist'}
-    msg = f'verification of TLS/SSL certificate at {TESTURL_SSL} failed'
+    msg = f'Verification of TLS/SSL certificate at {TESTURL_SSL} failed'
     with pytest.raises(urllib.error.URLError, match=msg):
         download_file(TESTURL_SSL, cache=False, ssl_context=ssl_context)
 
