@@ -2,7 +2,6 @@
 
 """Defines the physical types that correspond to different units."""
 
-import io
 import numbers
 
 from . import core
@@ -532,25 +531,23 @@ for unit, physical_type in _units_and_physical_types:
 # This generates a docstring addition for this module that describes all of the
 # standard physical types defined here.
 if __doc__ is not None:
-    docstring = io.StringIO()
+    doclines = [
+        ".. list-table:: Defined Physical Types",
+        "    :header-rows: 1",
+        "    :widths: 30 10 50",
+        "",
+        "    * - Physical type",
+        "      - Unit",
+        "      - Other physical type(s) with same unit"]
 
-    docstring.write("""
+    for name in sorted(_name_physical_mapping.keys()):
+        physical_type = _name_physical_mapping[name]
+        doclines.extend([
+            f"    * - {name}",
+            f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
+            f"      - {', '.join([n for n in physical_type if n != name])}"])
 
-.. list-table:: Units with known Physical Type
-   :header-rows: 1
-   :widths: 20 60
-
-   * - Unit
-     - Physical Type(s)
-""")
-
-    for physical_type in _physical_unit_mapping.values():
-        docstring.write(f"""
-   * - :math:`{physical_type._unit.to_string('latex')[1:-1]}`
-     - {physical_type}
-""")
-
-    __doc__ += docstring.getvalue()
+    __doc__ += '\n\n' + '\n'.join(doclines)
 
 
 del unit, physical_type
