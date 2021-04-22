@@ -67,16 +67,16 @@ def uniform_spherical_random_surface(size=1, rng=None):
     return UnitSphericalRepresentation(lon, lat)
 
 
-@u.quantity_input(distance_scale=u.pc)
-def uniform_spherical_random_volume(size=1, distance_scale=1*u.pc, rng=None):
+@u.quantity_input(distance_scale=(u.dimensionless_unscaled, u.pc))
+def uniform_spherical_random_volume(size=1, distance_scale=1, rng=None):
     """Generate a random sampling of points in a spherical volume.
 
     Parameters
     ----------
     size : int
         The number of points to generate.
-    distance_scale : `~astropy.units.Quantity`, optional
-        A unit-ful factor to scale the random distances.
+    distance_scale : numeric, `~astropy.units.Quantity`, optional
+        A dimensionless or unit-ful factor to scale the random distances.
     rng : `numpy.random.Generator`, optional
         A random number generator instance.
 
