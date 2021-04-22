@@ -35,14 +35,13 @@ properties::
 
     >>> from astropy.coordinates import SkyCoord, EarthLocation
     >>> from astropy import coordinates as coord
-    >>> from astropy.coordinates.tests.utils import randomly_sample_sphere
+    >>> from astropy.coordinates.angle_generators import golden_spiral_grid
     >>> from astropy.time import Time
     >>> from astropy import units as u
     >>> import numpy as np
 
-    >>> # 1000 random locations on the sky
-    >>> ra, dec, _ = randomly_sample_sphere(1000)
-    >>> coos = SkyCoord(ra, dec)
+    >>> # 1000 locations in a grid on the sky
+    >>> coos = SkyCoord(golden_spiral_grid(size=1000))
 
     >>> # 300 times over the space of 10 hours
     >>> times = Time.now() + np.linspace(-5, 5, 300)*u.hour
