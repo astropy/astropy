@@ -15,14 +15,14 @@ from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import EarthLocation
 from astropy.coordinates import SkyCoord
 from astropy.utils import iers
-from .utils import randomly_sample_sphere
+from astropy.coordinates.angle_generators import golden_spiral_grid
 
 
 # These fixtures are used in test_iau_fullstack
 @pytest.fixture(scope="function")
 def fullstack_icrs():
-    ra, dec, _ = randomly_sample_sphere(1000)
-    return ICRS(ra=ra, dec=dec)
+    rep = golden_spiral_grid(size=1000)
+    return ICRS(rep)
 
 
 @pytest.fixture(scope="function")

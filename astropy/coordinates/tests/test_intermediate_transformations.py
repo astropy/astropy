@@ -21,7 +21,7 @@ from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
 
-from astropy.coordinates.tests.utils import randomly_sample_sphere
+from astropy.coordinates.angle_generators import golden_spiral_grid
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
     get_location_gcrs, tete_to_itrs_mat, gcrs_to_cirs_mat, cirs_to_itrs_mat)
 from astropy.coordinates.builtin_frames.utils import get_jd12
@@ -38,9 +38,10 @@ def test_icrs_cirs():
     Also includes the CIRS<->CIRS transforms at different times, as those go
     through ICRS
     """
-    ra, dec, dist = randomly_sample_sphere(200)
-    inod = ICRS(ra=ra, dec=dec)
-    iwd = ICRS(ra=ra, dec=dec, distance=dist*u.pc)
+    usph = golden_spiral_grid(200)
+    dist = np.linspace(0., 1, len(usph)) * u.pc
+    inod = ICRS(usph)
+    iwd = ICRS(ra=usph.lon, dec=usph.lat, distance=dist)
 
     cframe1 = CIRS()
     cirsnod = inod.transform_to(cframe1)  # uses the default time
@@ -76,8 +77,9 @@ def test_icrs_cirs():
     assert_allclose(cirsnod.dec, cirsnod5.dec)
 
 
-ra, dec, dist = randomly_sample_sphere(200)
-icrs_coords = [ICRS(ra=ra, dec=dec), ICRS(ra=ra, dec=dec, distance=dist*u.pc)]
+usph = golden_spiral_grid(200)
+dist = np.linspace(0.5, 1, len(usph)) * u.pc
+icrs_coords = [ICRS(usph), ICRS(usph.lon, usph.lat, distance=dist)]
 gcrs_frames = [GCRS(), GCRS(obstime=Time('J2005'))]
 
 
@@ -146,9 +148,10 @@ def test_cirs_to_altaz():
     """
     from astropy.coordinates import EarthLocation
 
-    ra, dec, dist = randomly_sample_sphere(200)
-    cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
-    crepr = SphericalRepresentation(lon=ra, lat=dec, distance=dist)
+    usph = golden_spiral_grid(200)
+    dist = np.linspace(0.5, 1, len(usph)) * u.pc
+    cirs = CIRS(usph, obstime='J2000')
+    crepr = SphericalRepresentation(lon=usph.lon, lat=usph.lat, distance=dist)
     cirscart = CIRS(crepr, obstime=cirs.obstime, representation_type=CartesianRepresentation)
 
     loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
@@ -168,23 +171,24 @@ def test_gcrs_itrs():
     """
     Check basic GCRS<->ITRS transforms for round-tripping.
     """
-    ra, dec, _ = randomly_sample_sphere(200)
-    gcrs = GCRS(ra=ra, dec=dec, obstime='J2000')
-    gcrs6 = GCRS(ra=ra, dec=dec, obstime='J2006')
+    usph = golden_spiral_grid(200)
+    gcrs = GCRS(usph, obstime='J2000')
+    gcrs6 = GCRS(usph, obstime='J2006')
 
     gcrs2 = gcrs.transform_to(ITRS()).transform_to(gcrs)
     gcrs6_2 = gcrs6.transform_to(ITRS()).transform_to(gcrs)
 
     assert_allclose(gcrs.ra, gcrs2.ra)
     assert_allclose(gcrs.dec, gcrs2.dec)
-    assert not allclose(gcrs.ra, gcrs6_2.ra)
-    assert not allclose(gcrs.dec, gcrs6_2.dec)
+    # these should be different:
+    assert not allclose(gcrs.ra, gcrs6_2.ra, rtol=1e-8)
+    assert not allclose(gcrs.dec, gcrs6_2.dec, rtol=1e-8)
 
     # also try with the cartesian representation
     gcrsc = gcrs.realize_frame(gcrs.data)
     gcrsc.representation_type = CartesianRepresentation
     gcrsc2 = gcrsc.transform_to(ITRS()).transform_to(gcrsc)
-    assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
+    assert_allclose(gcrsc.spherical.lon, gcrsc2.ra)
     assert_allclose(gcrsc.spherical.lat, gcrsc2.dec)
 
 
@@ -192,9 +196,9 @@ def test_cirs_itrs():
     """
     Check basic CIRS<->ITRS transforms for round-tripping.
     """
-    ra, dec, _ = randomly_sample_sphere(200)
-    cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
-    cirs6 = CIRS(ra=ra, dec=dec, obstime='J2006')
+    usph = golden_spiral_grid(200)
+    cirs = CIRS(usph, obstime='J2000')
+    cirs6 = CIRS(usph, obstime='J2006')
 
     cirs2 = cirs.transform_to(ITRS()).transform_to(cirs)
     cirs6_2 = cirs6.transform_to(ITRS()).transform_to(cirs)  # different obstime
@@ -211,17 +215,18 @@ def test_gcrs_cirs():
     Check GCRS<->CIRS transforms for round-tripping.  More complicated than the
     above two because it's multi-hop
     """
-    ra, dec, _ = randomly_sample_sphere(200)
-    gcrs = GCRS(ra=ra, dec=dec, obstime='J2000')
-    gcrs6 = GCRS(ra=ra, dec=dec, obstime='J2006')
+    usph = golden_spiral_grid(200)
+    gcrs = GCRS(usph, obstime='J2000')
+    gcrs6 = GCRS(usph, obstime='J2006')
 
     gcrs2 = gcrs.transform_to(CIRS()).transform_to(gcrs)
     gcrs6_2 = gcrs6.transform_to(CIRS()).transform_to(gcrs)
 
     assert_allclose(gcrs.ra, gcrs2.ra)
     assert_allclose(gcrs.dec, gcrs2.dec)
-    assert not allclose(gcrs.ra, gcrs6_2.ra)
-    assert not allclose(gcrs.dec, gcrs6_2.dec)
+    # these should be different:
+    assert not allclose(gcrs.ra, gcrs6_2.ra, rtol=1e-8)
+    assert not allclose(gcrs.dec, gcrs6_2.dec, rtol=1e-8)
 
     # now try explicit intermediate pathways and ensure they're all consistent
     gcrs3 = gcrs.transform_to(ITRS()).transform_to(CIRS()).transform_to(ITRS()).transform_to(gcrs)
@@ -239,12 +244,12 @@ def test_gcrs_altaz():
     """
     from astropy.coordinates import EarthLocation
 
-    ra, dec, _ = randomly_sample_sphere(1)
-    gcrs = GCRS(ra=ra[0], dec=dec[0], obstime='J2000')
+    usph = golden_spiral_grid(128)
+    gcrs = GCRS(usph, obstime='J2000')[None]  # broadcast with times below
 
     # check array times sure N-d arrays work
     times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day,
-                 format='jd')
+                 format='jd')[:, None]
 
     loc = EarthLocation(lon=10 * u.deg, lat=80. * u.deg)
     aaframe = AltAz(obstime=times, location=loc)
