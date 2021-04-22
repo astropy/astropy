@@ -89,6 +89,19 @@ def test_initialization_time_bin_start_scalar():
     assert exc.value.args[0] == ("'time_bin_start' is scalar, so 'time_bin_size' is required")
 
 
+def test_initialization_n_bins_invalid_arguments():
+
+    # Make sure an exception is raised when n_bins is passed as an argument while
+    # any of the parameters 'time_bin_start' or 'time_bin_end' is not scalar.
+
+    with pytest.raises(TypeError) as exc:
+        BinnedTimeSeries(time_bin_start=Time([1, 2, 3], format='cxcsec'),
+                         time_bin_size=1*u.s,
+                         n_bins=10)
+    assert exc.value.args[0] == ("'n_bins' cannot be specified if 'time_bin_start' or "
+                                 "'time_bin_size' are not scalar'")
+
+
 def test_initialization_n_bins():
 
     # Make sure things crash with incorrect n_bins
