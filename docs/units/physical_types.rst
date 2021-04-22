@@ -18,7 +18,7 @@ instances, objects that can become quantities (e.g., numbers), and
 
   >>> import astropy.units as u
   >>> u.get_physical_type('speed')  # from the name of a physical type
-  PhysicalType('speed')
+  PhysicalType({'speed', 'velocity'})
   >>> u.get_physical_type(u.meter)  # from a unit
   PhysicalType('length')
   >>> u.get_physical_type(1 * u.barn * u.Mpc)  # from a Quantity
@@ -45,8 +45,8 @@ An equality comparison between a |PhysicalType| and a string will return
 `True` if the string is a name of the |PhysicalType|.
 
   >>> import astropy.units as u
-  >>> speed = u.get_physical_type(u.m / u.s)
-  >>> speed == 'speed'
+  >>> speed = u.get_physical_type(u.m / u.s ** 2)
+  >>> speed == 'acceleration'
   True
 
 Some units may correspond to multiple physical types because compatible
@@ -96,6 +96,6 @@ unit or between a |PhysicalType| and a string with a name of a
   >>> length ** 2 / u.s
   PhysicalType({'diffusivity', 'kinematic viscosity'})
   >>> length / 'time'
-  PhysicalType('speed')
+  PhysicalType({'speed', 'velocity'})
 
 .. EXAMPLE END

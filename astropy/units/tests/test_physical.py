@@ -335,7 +335,7 @@ def test_physical_type_instance_inequality(unit1, unit2):
 
 physical_type_with_expected_str = [
     (length, "length"),
-    (speed, "speed"),
+    (speed, "{'speed', 'velocity'}"),
     (pressure, "{'energy density', 'pressure', 'stress'}"),
     (u.deg_C.physical_type, "temperature"),
     ((u.J / u.K / u.kg).physical_type, "{'specific entropy', 'specific heat capacity'}"),
@@ -343,7 +343,7 @@ physical_type_with_expected_str = [
 
 physical_type_with_expected_repr = [
     (length, "PhysicalType('length')"),
-    (speed, "PhysicalType('speed')"),
+    (speed, "PhysicalType({'speed', 'velocity'})"),
     (pressure, "PhysicalType({'energy density', 'pressure', 'stress'})"),
     (u.deg_C.physical_type, "PhysicalType('temperature')"),
     ((u.J / u.K / u.kg).physical_type,
