@@ -37,11 +37,14 @@ try:
 except ImportError:
     import importlib_metadata
 
+from sphinx.errors import NoUri
+
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
 except ImportError:
     print('ERROR: the documentation requires the sphinx-astropy package to be installed')
     sys.exit(1)
+
 
 plot_rcparams = {}
 plot_rcparams['figure.figsize'] = (6, 6)
@@ -443,6 +446,33 @@ def rstjinja(app, docname, source):
         source[0] = rendered
 
 
+def resolve_astropy_dev_reference(app, env, node, contnode):
+    """
+    Reference targets beginning with ``astropy-dev:`` are a special case.
+
+    If we are building the development docs it is a local ref targetting the
+    label ``astropy-dev:<label>``, but for stable docs it should be an
+    intersphinx resolution to the development docs.
+
+    See https://github.com/astropy/astropy/issues/11366
+    """
+
+    reftarget = node.get('reftarget')
+    if dev and reftarget is not None and reftarget.startswith('astropy-dev:'):
+        reftype = node.get('reftype')
+        refdoc = node.get('refdoc', app.env.docname)
+        reftarget = reftarget.split(':', 1)[1]
+        # Delegate to the ref node's original domain/target (typically :ref:)
+        try:
+            domain = app.env.domains[node['refdomain']]
+            return domain.resolve_xref(app.env, refdoc, app.builder,
+                                       reftype, reftarget, node, contnode)
+        except Exception:
+            pass
+
+        # Otherwise return None which should deletegate to intersphinx
+
+
 def setup(app):
     if sphinx_gallery is None:
         msg = ('The sphinx_gallery extension is not installed, so the '
@@ -459,3 +489,8 @@ def setup(app):
 
     # Generate the page from Jinja template
     app.connect("source-read", rstjinja)
+    # Set this to higher priority than intersphinx; this way when building
+    # dev docs astropy-dev: targets will go to the local docs instead of the
+    # intersphinx mapping
+    app.connect("missing-reference", resolve_astropy_dev_reference,
+                priority=400)
