@@ -47,19 +47,9 @@ this case you may consider using the ``--user`` option to install the package
 into your home directory. You can read more about how to do this in the `pip
 documentation <https://pip.pypa.io/en/stable/user_guide/#user-installs>`_.
 
-{% if is_development %}
-
-Alternatively, if you intend to do development on other software that uses
-``astropy``, such as an affiliated package, consider installing ``astropy``
-into a :ref:`virtualenv <virtual_envs>`.
-
-{%else%}
-
 Alternatively, if you intend to do development on other software that uses
 ``astropy``, such as an affiliated package, consider installing ``astropy``
 into a :ref:`virtualenv <astropy-dev:virtual_envs>`.
-
-{%endif%}
 
 Do **not** install ``astropy`` or other third-party packages using ``sudo``
 unless you are fully aware of the risks.
