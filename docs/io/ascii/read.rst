@@ -16,18 +16,71 @@ list of table lines. The return value (``data`` in this case) is a :ref:`Table
 <astropy-table>` object.
 
 By default, |read| will try to `guess the table format <#guess-table-format>`_
-by trying all of the supported formats. Guessing the file format is often slow
-for large files because the reader tries parsing the file with every
-allowed format until one succeeds. For large files, it is recommended to
-disable guessing with ``guess=False``.
+by trying all of the supported formats.
 
-If guessing does not work, as in the case for unusually formatted tables, then
-you may need to give `astropy.io.ascii` additional hints about the format::
+.. Warning::
+
+   Guessing the file format is often slow for large files because the reader
+   tries parsing the file with every allowed format until one succeeds.
+   For large files it is recommended to disable guessing with ``guess=False``.
+
+..
+  EXAMPLE START
+  Reading ASCII Tables Using astropy.io.ascii
+
+For unusually formatted tables where guessing does not work, give additional
+hints about the format::
+
+   >>> lines = ['objID                   & osrcid            & xsrcid       ',
+   ...          '----------------------- & ----------------- & -------------',
+   ...          '              277955213 & S000.7044P00.7513 & XS04861B6_005',
+   ...          '              889974380 & S002.9051P14.7003 & XS03957B7_004']
+   >>> data = ascii.read(lines, data_start=2, delimiter='&')
+   >>> print(data)
+     objID         osrcid          xsrcid
+   --------- ----------------- -------------
+   277955213 S000.7044P00.7513 XS04861B6_005
+   889974380 S002.9051P14.7003 XS03957B7_004
+
+Other examples are as follows::
 
    >>> data = astropy.io.ascii.read('data/nls1_stackinfo.dbout', data_start=2, delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('data/simple.txt', quotechar="'")  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('data/simple4.txt', format='no_header', delimiter='|')  # doctest: +SKIP
    >>> data = astropy.io.ascii.read('data/tab_and_space.txt', delimiter=r'\s')  # doctest: +SKIP
+
+If the format of a file is known (e.g., it is a fixed-width table or an IPAC
+table), then it is more efficient and reliable to provide a value for the
+``format`` argument from one of the values in the `supported formats`_. For
+example::
+
+   >>> data = ascii.read(lines, format='fixed_width_two_line', delimiter='&')
+
+See the :ref:`guess_formats` section for additional details on format guessing.
+
+..
+  EXAMPLE END
+
+For simpler formats such as CSV, |read| will automatically try reading with the
+Cython/C parsing engine, which is significantly faster than the ordinary Python
+implementation (described in :ref:`fast_ascii_io`). If the fast engine fails,
+|read| will fall back on the Python reader by default. The argument
+``fast_reader`` can be specified to control this behavior. For example, to
+disable the fast engine::
+
+   >>> data = ascii.read(lines, format='csv', fast_reader=False)
+
+For reading very large tables see the section on :ref:`chunk_reading` or
+use `pandas <https://pandas.pydata.org/>`_ (see Note below).
+
+.. Note::
+
+   Reading a table which contains unicode characters is supported with the
+   pure Python readers by specifying the ``encoding`` parameter. The fast
+   C-readers do not support unicode. For large data files containing unicode,
+   we recommend reading the file using `pandas <https://pandas.pydata.org/>`_
+   and converting to a :ref:`Table <astropy-table>` via the :ref:`Table -
+   Pandas interface <pandas>`.
 
 The |read| function accepts a number of parameters that specify the detailed
 table format. Different formats can define different defaults, so the
