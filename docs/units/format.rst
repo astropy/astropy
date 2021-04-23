@@ -188,15 +188,17 @@ following formats:
       2.1798721×10-¹⁸ ─────
                        s²
 
-Unrecognized Units
-==================
+Dealing with Unrecognized Units
+===============================
 
 Since many files found in the wild have unit strings that do not
 correspond to any given standard, `astropy.units` also has a
 consistent way to store and pass around unit strings that did not
-parse.
+parse. In addition, `astropy.units` also provides tools for transforming
+non-standard, legacy or misspelt unit strings into their standardised form,
+preventing the further propagation of these unit strings.
 
-Normally, passing an unrecognized unit string raises an exception::
+By default, passing an unrecognized unit string raises an exception::
 
   >>> # The FITS standard uses 'angstrom', not 'Angstroem'
   >>> u.Unit("Angstroem", format="fits")
@@ -221,10 +223,64 @@ this behavior:
   - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
+By adding additional unit aliases (via `~astropy.units.add_unit_aliases`) for
+the misspelt units (e.g. Angstroms -> Angstrom), and new units via
+`~astropy.units.def_unit` and `~astropy.units.add_enabled_units`, we can use
+``parse_strict='raise'`` to rapidly find issues with the units used, while also
+being able to read in older datasets where the unit usage may have been less
+standard.
+
+.. tip::
+
+    Using `~astropy.units.add_unit_aliases` is the preferred way of handling
+    non-standard unit spellings, as it transparently handles conversion to the
+    correct units within complex unit expressions, but be aware that not all
+    formats currently support its usage. If you are using a unit format that is
+    not supported, you can convert the unit string back into a Python string
+    (via `to_string()`), and reparse the string with the default format::
+
+        >>> u.Unit(bad_unit.to_string())
+
 Examples
 --------
+.. EXAMPLE START: Using `~astropy.units.add_unit_aliases`
 
-.. EXAMPLE START: Handling Unrecognized Units
+To add additional unit aliases, pass `~astropy.units.add_unit_aliases` a
+dictionary mapping the misspelt string to an astropy unit. The following code
+snippet shows how to set up Angstroem -> Angstrom::
+
+    >>> import astropy.units as u
+    >>> u.add_unit_aliases({"Angstroem": u.Angstrom})
+    <astropy.units.core._UnitContext object at 0x7f319d47c040>
+    >>> u.Unit("Angstroem", parse_strict="raise")
+    Unit("Angstrom")
+    >>> u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+    True
+
+You can also set multiple aliases up at once::
+
+    >>> u.add_unit_aliases({"Angstroem": u.Angstrom, "Angstroms": u.Angstrom})
+
+Most usefully, you can use `add_unit_aliases` as a context manager, limiting
+where a particular alias is used::
+
+    >>> import astropy.units as u
+    >>> with u.add_unit_aliases({"Angstroem": u.Angstrom}):
+    >>>     u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+    True
+    >>> u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+    Traceback (most recent call last):
+      ...
+    ValueError: 'Angstroem' did not parse as unit: At col 0, Angstroem is not a
+    valid unit. Did you mean Angstrom or angstrom? If this is meant to be a
+    custom unit, define it with 'u.def_unit'. To have it recognized inside a
+    file reader or other code, enable it with 'u.add_enabled_units'. For
+    details, see
+    https://docs.astropy.org/en/latest/units/combining_and_defining.html
+
+.. EXAMPLE END
+
+.. EXAMPLE START: Using `~astropy.units.UnrecognizedUnit`
 
 To pass an unrecognized unit string::
 
