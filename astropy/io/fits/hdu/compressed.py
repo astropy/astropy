@@ -14,6 +14,7 @@ import numpy as np
 from .base import DELAYED, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
 from .image import ImageHDU
 from .table import BinTableHDU
+from astropy.io.fits import conf
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import Column, ColDefs, TDEF_RE
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
@@ -674,6 +675,47 @@ class CompImageHDU(BinTableHDU):
         self._orig_bscale = self._bscale
         self._orig_bitpix = self._bitpix
 
+    def _remove_unnecessary_default_extnames(self, header):
+        """Remove default EXTNAME values if they are unnecessary.
+
+        Some data files (eg from CFHT) can have the default EXTNAME and
+        an explicit value.  This method removes the default if a more
+        specific header exists. It also removes any duplicate default
+        values.
+        """
+        if 'EXTNAME' in header:
+            indices = header._keyword_indices['EXTNAME']
+            # Only continue if there is more than one found
+            n_extname = len(indices)
+            if n_extname > 1:
+                extnames_to_remove = []
+                for index in indices:
+                    if header[index] == self._default_name:
+                        extnames_to_remove.append(index)
+                if len(extnames_to_remove) == n_extname:
+                    # Keep the first (they are all the same)
+                    extnames_to_remove.pop(0)
+                # Remove them all in reverse order to keep the index unchanged.
+                for index in reversed(sorted(extnames_to_remove)):
+                    del header[index]
+
+    @property
+    def name(self):
+        # Convert the value to a string to be flexible in some pathological
+        # cases (see ticket #96)
+        return str(self.header.get('EXTNAME', self._default_name))
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str):
+            raise TypeError("'name' attribute must be a string")
+        if not conf.extension_name_case_sensitive:
+            value = value.upper()
+        if 'EXTNAME' in self._header:
+            self.header['EXTNAME'] = value
+        else:
+            self.header['EXTNAME'] = (value, 'extension name')
+
     @classmethod
     def match_header(cls, header):
         card = header.cards[0]
@@ -765,6 +807,9 @@ class CompImageHDU(BinTableHDU):
             range 1 to 1000 (inclusive), DITHER_SEED_CLOCK (0; default), or
             DITHER_SEED_CHECKSUM (-1)
         """
+
+        # Clean up EXTNAME duplicates
+        self._remove_unnecessary_default_extnames(self._header)
 
         image_hdu = ImageHDU(data=self.data, header=self._header)
         self._image_header = CompImageHeader(self._header, image_hdu.header)
@@ -1473,6 +1518,10 @@ class CompImageHDU(BinTableHDU):
         # create it from the table header (the _header attribute).
         if hasattr(self, '_image_header'):
             return self._image_header
+
+        # Look ups below use the _header so we need to fix that up before
+        # then.  This requires that header can be updated.
+        self._remove_unnecessary_default_extnames(self._header)
 
         # Start with a copy of the table header.
         image_header = self._header.copy()
