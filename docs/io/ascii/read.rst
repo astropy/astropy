@@ -51,7 +51,7 @@ Other examples are as follows::
 
 If the format of a file is known (e.g., it is a fixed-width table or an IPAC
 table), then it is more efficient and reliable to provide a value for the
-``format`` argument from one of the values in the `supported formats`_. For
+``format`` argument from one of the values in the :ref:`supported_formats`. For
 example::
 
    >>> data = ascii.read(lines, format='fixed_width_two_line', delimiter='&')
