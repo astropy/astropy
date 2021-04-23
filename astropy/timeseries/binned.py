@@ -120,6 +120,11 @@ class BinnedTimeSeries(BaseTimeSeries):
         if isinstance(time_bin_size, TimeDelta):
             time_bin_size = time_bin_size.sec * u.s
 
+        if n_bins is not None and time_bin_size is not None:
+            if not (time_bin_start.isscalar and time_bin_size.isscalar):
+                raise TypeError("'n_bins' cannot be specified if 'time_bin_start' or "
+                                "'time_bin_size' are not scalar'")
+
         if time_bin_start.isscalar:
 
             # We interpret this as meaning that this is the start of the
@@ -327,8 +332,14 @@ class BinnedTimeSeries(BaseTimeSeries):
 
                 time_bin_end = None
 
-            return BinnedTimeSeries(data=table,
+            if time_bin_start.isscalar and time_bin_size.isscalar:
+                return BinnedTimeSeries(data=table,
                                     time_bin_start=time_bin_start,
                                     time_bin_end=time_bin_end,
                                     time_bin_size=time_bin_size,
                                     n_bins=len(table))
+            else:
+                return BinnedTimeSeries(data=table,
+                                    time_bin_start=time_bin_start,
+                                    time_bin_end=time_bin_end,
+                                    time_bin_size=time_bin_size)
