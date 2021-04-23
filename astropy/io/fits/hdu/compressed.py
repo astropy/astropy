@@ -404,6 +404,8 @@ class CompImageHDU(BinTableHDU):
     responsibility).
     """
 
+    _default_name = "COMPRESSED_IMAGE"
+
     def __init__(self, data=None, header=None, name=None,
                  compression_type=DEFAULT_COMPRESSION_TYPE,
                  tile_size=None,
@@ -791,7 +793,7 @@ class CompImageHDU(BinTableHDU):
 
         # Update the extension name in the table header
         if not name and 'EXTNAME' not in self._header:
-            name = 'COMPRESSED_IMAGE'
+            name = self._default_name
 
         if name:
             self._header.set('EXTNAME', name,
@@ -1562,7 +1564,7 @@ class CompImageHDU(BinTableHDU):
         # Remove the EXTNAME card if the value in the table header
         # is the default value of COMPRESSED_IMAGE.
         if ('EXTNAME' in self._header and
-                self._header['EXTNAME'] == 'COMPRESSED_IMAGE'):
+                self._header['EXTNAME'] == self._default_name):
             del image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
