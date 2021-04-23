@@ -188,6 +188,7 @@ following formats:
       2.1798721×10-¹⁸ ─────
                        s²
 
+.. _astropy-units-format-unrecognized:
 Dealing with Unrecognized Units
 ===============================
 
