@@ -50,7 +50,7 @@ maintaining compatibility with most plain CSV readers. It also allows storing
 richer data like `~astropy.coordinates.SkyCoord` or multidimensional or
 variable-length columns. For our simple example::
 
-  >>> data.write('values.ecsv', overwrite=True)
+  >>> data.write('values.ecsv', overwrite=True)  # doctest: +SKIP
 
 The ``.ecsv`` extension is recognized and implies using ECSV (equivalent to
 ``format='ascii.ecsv'``). The ``values.ecsv`` file will then contain::
