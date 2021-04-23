@@ -536,7 +536,7 @@ def test_insert_row_bad_unit():
     t = QTable([[1] * u.m])
     with pytest.raises(ValueError) as exc:
         t.insert_row(0, (2 * u.m / u.s,))
-    assert "'m / s' (speed) and 'm' (length) are not convertible" in str(exc.value)
+    assert "'m / s' (speed, velocity) and 'm' (length) are not convertible" in str(exc.value)
 
 
 def test_convert_np_array(mixin_cols):
