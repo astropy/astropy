@@ -480,7 +480,7 @@ def add_enabled_equivalencies(equivalencies):
 
 def add_unit_aliases(aliases):
     """
-    Context manager for temporarily adding aliases for units (e.g. to handle
+    Context manager for temporarily adding aliases for units (e.g., to handle
     alternate spellings).
 
     This should be preferred over creating a new unit and manually
