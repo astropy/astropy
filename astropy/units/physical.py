@@ -3,6 +3,7 @@
 """Defines the physical types that correspond to different units."""
 
 import numbers
+import warnings
 
 from . import core
 from . import si
@@ -10,6 +11,7 @@ from . import astrophys
 from . import cgs
 from . import misc
 from . import quantity
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
@@ -310,6 +312,19 @@ class PhysicalType:
 
     def __iter__(self):
         yield from self._physical_type_list
+
+    def __getattr__(self, attr):
+        if attr not in dir(self) and attr in dir(str):
+            warning_message = (
+                f"support for accessing str attributes such as {attr} "
+                "from PhysicalType instances will be removed in a "
+                "subsequent release."
+            )
+            warnings.warn(warning_message, AstropyDeprecationWarning)
+            self_str_attr = getattr(str(self), attr, None)
+            return self_str_attr
+        else:
+            super().__getattribute__(attr)
 
     def __eq__(self, other):
         """
