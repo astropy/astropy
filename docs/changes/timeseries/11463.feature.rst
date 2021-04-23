@@ -1,0 +1,3 @@
+An exception is raised when ``n_bins`` is passed as an argument while 
+any of the parameters ``time_bin_start`` or ``time_bin_size`` is not 
+scalar.
