@@ -809,16 +809,15 @@ cols['scalar'] = np.array([1, 2], dtype=np.int16)
 exps['scalar'] = [
     {'datatype': 'int16', 'name': 'scalar'}]
 
-# Array of lists that works as a 2-d variable array
-# Note in this case that everything gets promoted to string subtype because
-# of the one "a" in there.
+# Array of lists that works as a 2-d variable array. This is just treated
+# as an object.
 cols['2-d variable array lists'] = c = np.empty(shape=(2,), dtype=object)
 c[0] = [[1, 2], ["a", 4]]
 c[1] = [[1, 2, 3], [4, 5.25, 6]]
 exps['2-d variable array lists'] = [
     {'datatype': 'string',
      'name': '2-d variable array lists',
-     'subtype': 'string[2,null]'}]
+     'subtype': 'object'}]
 
 # Array of numpy arrays that is a 2-d variable array
 cols['2-d variable array numpy'] = c = np.empty(shape=(2,), dtype=object)
@@ -829,16 +828,16 @@ exps['2-d variable array numpy'] = [
      'name': '2-d variable array numpy',
      'subtype': 'float32[2,null]'}]
 
-np_int_name = np.array(0).dtype.name  # Type for an unspecified Python integer
 cols['1-d variable array lists'] = np.array([[1, 2], [3, 4, 5]], dtype=object)
 exps['1-d variable array lists'] = [
     {'datatype': 'string',
      'name': '1-d variable array lists',
-     'subtype': f'{np_int_name}[null]'}]
+     'subtype': 'object'}]
 
+# Variable-length array
 cols['1-d variable array numpy'] = np.array(
     [np.array([1, 2], dtype=np.uint8),
-     np.array([3, 4, 5], np.uint8)], dtype=object)
+     np.array([3, 4, 5], dtype=np.uint8)], dtype=object)
 exps['1-d variable array numpy'] = [
     {'datatype': 'string',
      'name': '1-d variable array numpy',
@@ -900,12 +899,7 @@ def test_specialized_columns(name, col, exp):
     assert t2.colnames == t.colnames
     for name in t2.colnames:
         assert t2[name].dtype == t[name].dtype
-        if name == '2-d variable array lists':
-            # This one is special because it has mixed object types in the
-            # original (including one string) but after going through ECSV it
-            # comes back with all string.
-            continue
         for val1, val2 in zip(t2[name], t[name]):
-            if isinstance(val1, np.ndarray) and name != '1-d variable array lists':
+            if isinstance(val1, np.ndarray):
                 assert val1.dtype == val2.dtype
             assert np.all(val1 == val2)

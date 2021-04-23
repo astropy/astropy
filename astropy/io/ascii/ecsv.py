@@ -243,7 +243,8 @@ class EcsvOutputter(core.TableOutputter):
                 if col.subtype == 'object':
                     _check_dtype_is_str(col)
                     col_vals = [json.loads(val) for val in col.str_vals]
-                    col.data = np.array(col_vals, dtype=col.subtype)
+                    col.data = np.empty([len(col_vals)] + col.shape, dtype=object)
+                    col.data[...] = col_vals
 
                 # Variable length arrays with shape (n, m, ..., *) for fixed
                 # n, m, .. and variable in last axis. Masked values here are
