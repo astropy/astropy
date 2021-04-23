@@ -1,0 +1,4 @@
+Do not delete ``EXTNAME`` for compressed image header if a default and non-default ``EXTNAME`` are present.
+
+Some data can have the ``COMPRESSED_IMAGE`` default header and a user-specified value.
+Previously if ``COMPRESSED_IMAGE`` was found both ``EXTNAME`` headers would be removed.
