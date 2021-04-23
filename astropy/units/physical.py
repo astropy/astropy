@@ -354,10 +354,7 @@ class PhysicalType:
         return f"PhysicalType({names})"
 
     def __str__(self):
-        if len(self._physical_type) == 1:
-            return self._physical_type_list[0]
-        else:
-            return self._name_string_as_ordered_set()
+        return ", ".join(self._physical_type_list)
 
     @staticmethod
     def _dimensionally_compatible_unit(obj):
