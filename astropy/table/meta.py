@@ -184,57 +184,29 @@ def _get_variable_length_array_shape(col):
     dtype : np.dtype
         Numpy dtype that applies to col
     """
-    import warnings
-    import numpy as np
-
     class ConvertError(ValueError):
         """Local conversion error used below"""
 
-    dtype = col.info.dtype
-    shape = None
+    # Numpy types supported as variable-length arrays
+    np_classes = (np.floating, np.integer, np.bool_, np.unicode_)
 
-    with warnings.catch_warnings():
-        # Turn every numpy warning (from np.array(val) below) into an error. See
-        # also _convert_sequence_data_to_array in table/column.py. Depending on
-        # the numpy version doing something like ``np.array([{'a': 1}])`` may
-        # succeed (with object type) with no warning, raise a warning, or
-        # raise an exception. We need all of those to fail.
-        warnings.simplefilter('error')
-        try:
-            for val in col:
-                # This statement will raise various warnings or an error for
-                # anything but a well-formed N-d list of lists.
-                try:
-                    arr = np.array(val)
-                except Exception:
-                    raise ConvertError
-                if arr.dtype.kind == 'O':
-                    # Couldn't convert to a native type, fail.
-                    raise ConvertError
-                # Last axis is allowed to have variable shape, all others must
-                # stay the same.
-                arr_shape = arr.shape[:-1]
-                if arr_shape != shape:
-                    if shape is None:  # First time through
-                        shape = arr_shape
-                        dtype = arr.dtype
-                    else:
-                        # Shape changed from previous, fail.
-                        raise ConvertError
+    try:
+        if len(col) == 0 or not all(isinstance(val, np.ndarray) for val in col):
+            raise ConvertError
+        dtype = col[0].dtype
+        shape = col[0].shape[:-1]
+        for val in col:
+            if not issubclass(val.dtype.type, np_classes) or val.shape[:-1] != shape:
+                raise ConvertError
+            dtype = np.promote_types(dtype, val.dtype)
+        shape = shape + (None,)
 
-                # Keep track of the running dtype that works for everything
-                dtype = np.promote_types(dtype, arr.dtype)
-
-            # `col` is a variable length array. `shape` tuple needs to end with
-            # with None as a placeholder for the variable dimension.
-            shape = shape + (None,)
-
-        except ConvertError:
-            # `col` is not a variable length array, return shape and dtype to
-            #  the original. Note that this function is only called if
-            #  col.shape[1:] was () and col.info.dtype is object.
-            shape = ()
-            dtype = col.info.dtype
+    except ConvertError:
+        # `col` is not a variable length array, return shape and dtype to
+        #  the original. Note that this function is only called if
+        #  col.shape[1:] was () and col.info.dtype is object.
+        dtype = col.info.dtype
+        shape = ()
 
     return shape, dtype
 
