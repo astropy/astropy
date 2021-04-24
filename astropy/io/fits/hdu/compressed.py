@@ -854,9 +854,6 @@ class CompImageHDU(BinTableHDU):
             self._header.set('EXTNAME', name,
                              'name of this binary table extension',
                              after='TFIELDS')
-            self.name = name
-        else:
-            self.name = self._header['EXTNAME']
 
         # Set the compression type in the table header.
         if compression_type:
