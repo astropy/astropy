@@ -12,7 +12,7 @@ as methods on the coordinate objects.
 In the examples below, we will assume that the following imports have already
 been executed::
 
-    >>> import astropy units as u
+    >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord
 
 Separations
