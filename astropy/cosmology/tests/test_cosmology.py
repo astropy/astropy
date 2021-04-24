@@ -1610,22 +1610,22 @@ def test_z_at_value_bracketed(method):
                                        bracket=bracket), z, rtol=1e-6)
     else:
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                   bracket=(0.3, 1.0)), 0.68127769625288614, rtol=1e-6)
+                                   bracket=(0.3, 1.0)), 0.6812777, rtol=1e-6)
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                   bracket=(2.0, 4.0)), 3.7914908028272083, rtol=1e-6)
+                                   bracket=(2.0, 4.0)), 3.7914908, rtol=1e-6)
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                   bracket=(0.1, 1.5)), 0.68127769625288614, rtol=1e-6)
+                                   bracket=(0.1, 1.5)), 0.6812777, rtol=1e-6)
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                   bracket=(0.1, 1.0, 2.0)), 0.68127769625288614, rtol=1e-6)
+                                   bracket=(0.1, 1.0, 2.0)), 0.6812777, rtol=1e-6)
         with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                       bracket=(0.9, 1.5)), 0.68127769625288614, rtol=1e-6)
+                                       bracket=(0.9, 1.5)), 0.6812777, rtol=1e-6)
             assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                       bracket=(1.6, 2.0)), 3.7914908028272083, rtol=1e-6)
+                                       bracket=(1.6, 2.0)), 3.7914908, rtol=1e-6)
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                   bracket=(1.6, 2.0), zmax=1.6), 0.68127769625288614, rtol=1e-6)
+                                   bracket=(1.6, 2.0), zmax=1.6), 0.6812777, rtol=1e-6)
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
-                                   bracket=(0.9, 1.5), zmin=1.5), 3.7914908028272083, rtol=1e-6)
+                                   bracket=(0.9, 1.5), zmin=1.5), 3.7914908, rtol=1e-6)
 
     with pytest.raises(core.CosmologyError):
         with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):

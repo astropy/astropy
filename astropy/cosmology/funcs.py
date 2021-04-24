@@ -57,11 +57,11 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     method : str or callable, optional
        Type of solver to pass to the minimizer. The built-in options provided by
-       :fun:`scipy.optimize.minimize_scalar` are 'Brent' (default), 'Golden' and
+       :func:`~scipy.optimize.minimize_scalar` are 'Brent' (default), 'Golden' and
        'Bounded' with names case insensitive - see documentation there for details.
        It also accepts a custom solver by passing any user-provided callable object
        that meets the requirements listed under the Notes on "Custom minimizers"
-       therein, and in more detail in :doc:`scipy:reference/tutorial/optimize`;
+       therein, and in more detail in :doc:`~scipy:reference/tutorial/optimize`;
        although their use is currently untested.
 
        .. versionadded:: 4.3
@@ -71,8 +71,9 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
        interval and can either have three items (z1, z2, z3) so that z1 < z2 < z3
        and ``func(z2) < func(z1), func(z3)`` or two items z1 and z3 which are
        assumed to be a starting interval for a downhill bracket search.
-       For bimodal functions such as angular diameter distance this can be
-       used to start the search on the desired side of the maximum.
+       For non-monotone functions such as angular diameter distance this may be
+       used to start the search on the desired side of the maximum, but see
+       Examples below for usage notes.
 
        .. versionadded:: 4.3
 
@@ -129,7 +130,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     The age and lookback time are monotonic with redshift, and so a
     unique solution can be found:
 
-    >>> z_at_value(Planck13.age, 2 * u.Gyr)  # doctest: +FLOAT_CMP
+    >>> z_at_value(Planck13.age, 2 * u.Gyr)                # doctest: +FLOAT_CMP
     3.19812268
 
     The angular diameter is not monotonic however, and there are two
@@ -137,10 +138,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     zmax keywords to find the one you are interested in:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, zmax=1.5)  # doctest: +FLOAT_CMP
+    ...            1500 * u.Mpc, zmax=1.5)                 # doctest: +FLOAT_CMP
     0.68044452
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, zmin=2.5)  # doctest: +FLOAT_CMP
+    ...            1500 * u.Mpc, zmin=2.5)                 # doctest: +FLOAT_CMP
     3.7823268
 
     Alternatively the ``bracket`` option can be used to initialise the
@@ -150,18 +151,18 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     generally return a solution on the same side.
 
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    0.68044452
+    ...            1500 * u.Mpc, bracket=(1.0, 1.2))
+    0.68044452                                             # doctest: +SKIP
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(2.5, 2.9))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    3.7823268
+    ...            1500 * u.Mpc, bracket=(2.0, 2.5))
+    3.7823268                                              # doctest: +SKIP
 
     Be aware though that this does not guarantee the intended result if
     the bracket is chosen too wide and/or too close to the turning point.
     In such cases the 3-parameter variant can be more reliable.
 
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(0.1, 1.5))  # doctest: +FLOAT_CMP
+    ...            1500 * u.Mpc, bracket=(0.1, 1.5))       # doctest: +FLOAT_CMP
     3.7823268
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(0.1, 1.0, 1.5))  # doctest: +FLOAT_CMP
@@ -185,7 +186,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     # fval falling inside the interval of bracketing function values does not guarantee
     # it has a unique solution, but for Standard Cosmological quantities normally should
-    # (being monotonous or having a single extremum).
+    # (being monotonic or having a single extremum).
     # In these cases keep solver from returning solutions outside of bracket.
     fval_zmin, fval_zmax = func((zmin, zmax))
     nobracket = False
