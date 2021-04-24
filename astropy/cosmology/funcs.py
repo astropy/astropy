@@ -120,7 +120,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     Examples
     --------
     >>> import astropy.units as u
-    >>> from astropy.cosmology import Planck13, z_at_value
+    >>> from astropy.cosmology import Planck13, Planck18, z_at_value
 
     The age and lookback time are monotonic with redshift, and so a
     unique solution can be found:
@@ -132,12 +132,12 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     redshifts that give a value of 1500 Mpc. You can Use the zmin and
     zmax keywords to find the one you're interested in:
 
-    >>> z_at_value(Planck13.angular_diameter_distance,
+    >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmax=1.5)  # doctest: +FLOAT_CMP
-    0.6812769577
-    >>> z_at_value(Planck13.angular_diameter_distance,
+    0.680044452
+    >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmin=2.5)  # doctest: +FLOAT_CMP
-    3.7914913242
+    3.782326815
 
     Alternatively the ``bracket`` option can be used to initialise the
     function solver on a desired region. For the example of angular
@@ -145,12 +145,23 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     cosmology, defining a bracket on either side of this maximum will
     generally return a solution on the same side.
 
-    >>> z_at_value(Planck13.angular_diameter_distance,
+    >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    0.6812769577
-    >>> z_at_value(Planck13.angular_diameter_distance,
+    0.680044452
+    >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(2.0, 2.5))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    3.7914913242
+    3.782326815
+
+    Be aware though that this does not guarantee the intended result if
+    the bracket is chosen too wide and/or too close to the turning point.
+    In such cases the 3-parameter variant can be more reliable.
+
+    >>> z_at_value(Planck18.angular_diameter_distance,
+    ...            1500 * u.Mpc, bracket=(0.1, 1.5))  # doctest: +FLOAT_CMP
+    3.782326815
+    >>> z_at_value(Planck18.angular_diameter_distance,
+    ...            1500 * u.Mpc, bracket=(0.1, 1.0, 1.5))  # doctest: +FLOAT_CMP
+    0.680044452
 
     Also note that the luminosity distance and distance modulus (two
     other commonly inverted quantities) are monotonic in flat and open
@@ -160,16 +171,31 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     opt = {'maxiter': maxfun}
     # Assume custom methods support the same options as default; otherwise user will see warnings.
-    if isinstance(method, str) and method.lower() == 'bounded':
+    if str(method).lower() == 'bounded':
         opt['xatol'] = ztol
         if bracket is not None:
             warnings.warn(f"Option 'bracket' is ignored by method {method}.")
+            bracket = None
     else:
         opt['xtol'] = ztol
 
-    fval_zmin = func(zmin)
-    fval_zmax = func(zmax)
+    # fval falling inside the interval of bracketing function values does not guarantee
+    # it has a unique solution, but for Standard Cosmological quantities normally should
+    # (being monotonous or having a single extremum).
+    # In these cases keep solver from returning solutions outside of bracket.
+    fval_zmin, fval_zmax = func((zmin, zmax))
+    nobracket = False
     if np.sign(fval - fval_zmin) != np.sign(fval_zmax - fval):
+        if bracket is None:
+            nobracket = True
+        else:
+            fval_brac = func(bracket)
+            if np.sign(fval - fval_brac[0]) != np.sign(fval_brac[-1] - fval):
+                nobracket = True
+            else:
+                zmin, zmax = bracket[0], bracket[-1]
+                fval_zmin, fval_zmax = fval_brac[[0, -1]]
+    if nobracket:
         warnings.warn(f"fval is not bracketed by func(zmin)={fval_zmin} and func(zmax)="
                       f"{fval_zmax}. This means either there is no solution, or that there is "
                       "more than one solution between zmin and zmax satisfying fval = func(z).")
