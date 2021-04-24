@@ -1501,49 +1501,8 @@ def test_getitem_representation():
     assert sc[0].representation_type is CartesianRepresentation
 
 
-def test_spherical_offsets():
+def test_spherical_offsets_api():
     i00 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='icrs')
-    i01 = SkyCoord(0*u.arcmin, 1*u.arcmin, frame='icrs')
-    i10 = SkyCoord(1*u.arcmin, 0*u.arcmin, frame='icrs')
-    i11 = SkyCoord(1*u.arcmin, 1*u.arcmin, frame='icrs')
-    i22 = SkyCoord(2*u.arcmin, 2*u.arcmin, frame='icrs')
-
-    dra, ddec = i00.spherical_offsets_to(i01)
-    assert_allclose(dra, 0*u.arcmin)
-    assert_allclose(ddec, 1*u.arcmin)
-    i00_back = i01.spherical_offsets_by(-dra, -ddec)
-    assert_allclose(i00_back.ra, i00.ra, atol=1e-13*u.deg)
-    assert_allclose(i00_back.dec, i00.dec, atol=1e-13*u.deg)
-
-    dra, ddec = i00.spherical_offsets_to(i10)
-    assert_allclose(dra, 1*u.arcmin)
-    assert_allclose(ddec, 0*u.arcmin)
-    i00_back = i10.spherical_offsets_by(-dra, -ddec)
-    assert_allclose(i00_back.ra, i00.ra, atol=1e-13*u.deg)
-    assert_allclose(i00_back.dec, i00.dec, atol=1e-13*u.deg)
-
-    dra, ddec = i10.spherical_offsets_to(i01)
-    assert_allclose(dra, -1*u.arcmin)
-    assert_allclose(ddec, 1*u.arcmin)
-    i10_back = i01.spherical_offsets_by(-dra, -ddec)
-    # TODO: this roundtripping accuracy isn't great!
-    assert_allclose(i10_back.ra, i10.ra, atol=1e-9*u.deg)
-    assert_allclose(i10_back.dec, i10.dec, atol=1e-9*u.deg)
-
-    dra, ddec = i11.spherical_offsets_to(i22)
-    assert_allclose(ddec, 1*u.arcmin)
-    assert 0*u.arcmin < dra < 1*u.arcmin
-    i11_back = i22.spherical_offsets_by(-dra, -ddec)
-    # TODO: this roundtripping accuracy isn't great!
-    assert_allclose(i11_back.ra, i11.ra, atol=1e-9*u.deg)
-    assert_allclose(i11_back.dec, i11.dec, atol=1e-9*u.deg)
-
-    # Test roundtripping the other direction:
-    init_c = SkyCoord(40.*u.deg, 40.*u.deg)
-    new_c = init_c.spherical_offsets_by(3.534*u.deg, 2.2134*u.deg)
-    dlon, dlat = new_c.spherical_offsets_to(init_c)
-    back_c = new_c.spherical_offsets_by(dlon, dlat)
-    assert init_c.separation(back_c) < 1e-10*u.deg
 
     fk5 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='fk5')
 
@@ -1566,6 +1525,31 @@ def test_spherical_offsets():
     # spherical_offsets_by only supports scalar frame data:
     with pytest.raises(ValueError):
         i01s.spherical_offsets_by(-dra, -ddec)
+
+
+@pytest.mark.parametrize('frame', ['icrs', 'galactic'])
+@pytest.mark.parametrize('comparison_data', [(0*u.arcmin, 1*u.arcmin),
+                                             (1*u.arcmin, 0*u.arcmin),
+                                             (1*u.arcmin, 1*u.arcmin)])
+def test_spherical_offsets_roundtrip(frame, comparison_data):
+    i00 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame=frame)
+    comparison = SkyCoord(*comparison_data, frame=frame)
+
+    dlon, dlat = i00.spherical_offsets_to(comparison)
+    assert_allclose(dlon, comparison.data.lon)
+    assert_allclose(dlat, comparison.data.lat)
+
+    i00_back = comparison.spherical_offsets_by(-dlon, -dlat)
+    # TODO: this roundtripping accuracy isn't great
+    assert_allclose(i00_back.data.lon, i00.data.lon, atol=1e-9*u.deg)
+    assert_allclose(i00_back.data.lat, i00.data.lat, atol=1e-9*u.deg)
+
+    # Test roundtripping the other direction:
+    init_c = SkyCoord(40.*u.deg, 40.*u.deg, frame=frame)
+    new_c = init_c.spherical_offsets_by(3.534*u.deg, 2.2134*u.deg)
+    dlon, dlat = new_c.spherical_offsets_to(init_c)
+    back_c = new_c.spherical_offsets_by(dlon, dlat)
+    assert init_c.separation(back_c) < 1e-10*u.deg
 
 
 def test_frame_attr_changes():
