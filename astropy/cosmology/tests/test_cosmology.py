@@ -1563,30 +1563,25 @@ def test_z_at_value():
     # and so can be more demanding
     z_at_value = funcs.z_at_value
     cosmo = Planck13
-    d = cosmo.luminosity_distance(3)
-    assert allclose(z_at_value(cosmo.luminosity_distance, d), 3,
-                    rtol=1e-8)
-    assert allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.198122684356,
-                    rtol=1e-6)
-    assert allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
-                    1.3685790653802761, rtol=1e-6)
-    assert allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr),
-                    0.7951983674601507, rtol=1e-6)
-    assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                               zmax=2), 0.68127769625288614, rtol=1e-6)
-    assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                               zmin=2.5), 3.7914908028272083, rtol=1e-6)
-    assert allclose(z_at_value(cosmo.distmod, 46 * u.mag),
-                    1.9913891680278133, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.19812268, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr), 0.795198375, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.distmod, 46 * u.mag), 1.991389168, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc), 1.36857907, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.luminosity_distance, 26.037193804 * u.Gpc, ztol=1e-10),
+                    3, rtol=1e-9)
+    assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=2),
+                    0.681277696, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=2.5),
+                    3.7914908, rtol=1e-6)
 
     # test behavior when the solution is outside z limits (should
     # raise a CosmologyError)
     with pytest.raises(core.CosmologyError):
-        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+        with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmax=0.5)
 
     with pytest.raises(core.CosmologyError):
-        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+        with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
 
@@ -1602,7 +1597,7 @@ def test_z_at_value_bracketed(method):
     cosmo = Planck13
 
     if method == 'Bounded':
-        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+        with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             z = z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method)
         if z > 1.6:
             z = 3.7914908
@@ -1622,7 +1617,7 @@ def test_z_at_value_bracketed(method):
                                    bracket=(0.1, 1.5)), 0.68127769625288614, rtol=1e-6)
         assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
                                    bracket=(0.1, 1.0, 2.0)), 0.68127769625288614, rtol=1e-6)
-        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+        with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
                                        bracket=(0.9, 1.5)), 0.68127769625288614, rtol=1e-6)
             assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
@@ -1633,7 +1628,7 @@ def test_z_at_value_bracketed(method):
                                    bracket=(0.9, 1.5), zmin=1.5), 3.7914908028272083, rtol=1e-6)
 
     with pytest.raises(core.CosmologyError):
-        with pytest.warns(UserWarning, match=r'fval is not bracketed'):
+        with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, method=method,
                        bracket=(3.9, 5.0), zmin=4.)
 
@@ -1668,8 +1663,7 @@ def test_z_at_value_roundtrip():
         # angular_diameter_distance and related methods.
         # Be slightly more generous with rtol than the default 1e-8
         # used in z_at_value
-        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
-                        rtol=2e-8)
+        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
 
     # Test distance functions between two redshifts
     z2 = 2.0
@@ -1680,8 +1674,7 @@ def test_z_at_value_roundtrip():
     ]
     for func in func_z1z2:
         fval = func(z)
-        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
-                        rtol=2e-8)
+        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
