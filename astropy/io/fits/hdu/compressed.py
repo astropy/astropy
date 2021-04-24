@@ -711,7 +711,14 @@ class CompImageHDU(BinTableHDU):
             raise TypeError("'name' attribute must be a string")
         if not conf.extension_name_case_sensitive:
             value = value.upper()
-        if 'EXTNAME' in self._header:
+        if 'EXTNAME' in self.header:
+            # Expectation is that all EXTNAME headers found will be
+            # replaced in both _header and _image_header.
+            # Up to this point _header might be the original header
+            # but now we can call the code to remove unnecessary
+            # COMPRESSED_IMAGE EXTNAME since we know we are setting a
+            # new value.
+            self._remove_unnecessary_default_extnames(self._header)
             self.header['EXTNAME'] = value
         else:
             self.header['EXTNAME'] = (value, 'extension name')
@@ -1519,10 +1526,6 @@ class CompImageHDU(BinTableHDU):
         if hasattr(self, '_image_header'):
             return self._image_header
 
-        # Look ups below use the _header so we need to fix that up before
-        # then.  This requires that header can be updated.
-        self._remove_unnecessary_default_extnames(self._header)
-
         # Start with a copy of the table header.
         image_header = self._header.copy()
 
@@ -1610,10 +1613,14 @@ class CompImageHDU(BinTableHDU):
             image_header.set('DATASUM', self._header['ZDATASUM'],
                              self._header.comments['ZDATASUM'])
 
+        # Clean up any possible doubled EXTNAME keywords that use
+        # the default.
+        self._remove_unnecessary_default_extnames(image_header)
+
         # Remove the EXTNAME card if the value in the table header
         # is the default value of COMPRESSED_IMAGE.
-        if ('EXTNAME' in self._header and
-                self._header['EXTNAME'] == self._default_name):
+        if ('EXTNAME' in image_header and
+                image_header['EXTNAME'] == self._default_name):
             del image_header['EXTNAME']
 
         # Look to see if there are any blank cards in the table
