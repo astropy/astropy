@@ -117,6 +117,17 @@ telescope operator to move from a bright star to a fainter target)::
     >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
     <Angle 10.60510342 arcsec>
 
+The conceptual method to
+:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` is also available as
+a method on any |SkyCoord| object:
+:meth:`~astropy.coordinates.SkyCoord.spherical_offsets_by`, which accepts two
+angular offsets (in longitude and latitude) and returns the coordinates at the
+offset location::
+
+    >>> target_star = SkyCoord(86.75309*u.deg, -31.5633*u.deg, frame='icrs')
+    >>> target_star.spherical_offsets_by(1.3*u.arcmin, -0.7*u.arcmin)  # doctest: +FLOAT_CMP
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (86.77852168, -31.57496415)>
 
 .. _astropy-skyoffset-frames:
 
