@@ -1163,6 +1163,44 @@ class SkyCoord(ShapedLikeNDArray):
         dlat = acoord.spherical.lat.view(Angle)
         return dlon, dlat
 
+    def spherical_offsets_by(self, d_lon, d_lat):
+        """
+        Computes the coordinates at the specified angular offsets from this
+        coordinate.
+
+        Parameters
+        ----------
+        d_lon : angle-like
+            The longitude offset.
+        d_lat : angle-like
+            The latitude offset.
+
+        Returns
+        -------
+        newcoord : `~astropy.coordinates.SkyCoord`
+            The coordinates for the location that corresponds to offsetting by
+            ``d_lat`` in the latitude direction and ``d_lon`` in the longitude
+            direction.
+
+        Notes
+        -----
+        This internally uses `~astropy.coordinates.SkyOffsetFrame` to do the
+        transformation. For a more complete set of transform offsets, use
+        `~astropy.coordinates.SkyOffsetFrame` or `~astropy.wcs.WCS` manually.
+
+        See Also
+        --------
+        spherical_offsets_to : compute the angular offsets to another coordinate
+        directional_offset_by : offset a coordinate by an angle in a direction
+        """
+        if self.shape:
+            raise ValueError(
+                "Computing offset coordinates is only supported for scalar "
+                "coordinate data.")
+
+        return SkyOffsetFrame(d_lon, d_lat,
+                              origin=self).transform_to(self.frame)
+
     def directional_offset_by(self, position_angle, separation):
         """
         Computes coordinates at the given offset from this coordinate.
