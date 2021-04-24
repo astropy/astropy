@@ -1198,8 +1198,8 @@ class SkyCoord(ShapedLikeNDArray):
                 "Computing offset coordinates is only supported for scalar "
                 "coordinate data.")
 
-        return SkyOffsetFrame(d_lon, d_lat,
-                              origin=self).transform_to(self.frame)
+        return SkyCoord(SkyOffsetFrame(d_lon, d_lat,
+                                       origin=self.frame).transform_to(self))
 
     def directional_offset_by(self, position_angle, separation):
         """
