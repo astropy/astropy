@@ -41,7 +41,8 @@ Simple Table
   EXAMPLE START
   Writing Data Tables as ECSV: Simple Table
 
-The following writes a table as a simple space-delimited file::
+The following writes a table as a simple space-delimited file. The
+ECSV format is auto-selected due to ``.ecsv`` suffix::
 
   >>> import numpy as np
   >>> from astropy.table import Table
@@ -49,7 +50,7 @@ The following writes a table as a simple space-delimited file::
   >>> data['a'] = np.array([1, 2], dtype=np.int8)
   >>> data['b'] = np.array([1, 2], dtype=np.float32)
   >>> data['c'] = np.array(['hello', 'world'])
-  >>> data.write('my_data.ecsv')  # ECSV auto-selected due to .ecsv suffix
+  >>> data.write('my_data.ecsv')  # doctest: +SKIP
 
 The contents of ``my_data.ecsv`` are shown below::
 
@@ -86,11 +87,12 @@ The first (default) way uses an empty string as a marker in place of
 masked values. This is a bit more common outside of ``astropy`` and does not
 require any astropy-specific extensions.
 
+  >>> from astropy.table import MaskedColumn
   >>> t = Table()
   >>> t['x'] = MaskedColumn([1.0, 2.0, 3.0], unit='m', dtype='float32')
   >>> t['x'][1] = np.ma.masked
   >>> t['y'] = MaskedColumn([False, True, False], dtype='bool')
-  >>> t['y][0] = np.ma.masked
+  >>> t['y'][0] = np.ma.masked
 
   >>> t.write('my_data.ecsv', format='ascii.ecsv', overwrite=True)  # doctest: +SKIP
 

@@ -103,7 +103,7 @@ function::
   >>> data = Table()
   >>> data['x'] = np.array([1, 2, 3], dtype=np.int32)
   >>> data['y'] = data['x'] ** 2
-  >>> ascii.write(data, 'values.dat', names=['x', 'y'], overwrite=True)
+  >>> ascii.write(data, 'values.dat', overwrite=True)
 
 The ``values.dat`` file will then contain::
 
@@ -132,7 +132,7 @@ example::
 
 To write our simple example table to ECSV we use::
 
-  >>> data.write('values.ecsv', overwrite=True)
+  >>> data.write('values.ecsv', overwrite=True)  # doctest: +SKIP
 
 The ``.ecsv`` extension is recognized and implies using ECSV (equivalent to
 ``format='ascii.ecsv'``). The ``values.ecsv`` file will then contain::
