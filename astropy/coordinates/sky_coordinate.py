@@ -1127,10 +1127,10 @@ class SkyCoord(ShapedLikeNDArray):
         Returns
         -------
         lon_offset : `~astropy.coordinates.Angle`
-            The angular offset in the longitude direction (i.e., RA for
+            The angular offset in the longitude direction (i.e. RA for
             equatorial coordinates).
         lat_offset : `~astropy.coordinates.Angle`
-            The angular offset in the latitude direction (i.e., Dec for
+            The angular offset in the latitude direction (i.e. Dec for
             equatorial coordinates).
 
         Raises
@@ -1171,9 +1171,11 @@ class SkyCoord(ShapedLikeNDArray):
         Parameters
         ----------
         d_lon : angle-like
-            The longitude offset.
+            The angular offset in the longitude direction (i.e. RA for
+            equatorial coordinates).
         d_lat : angle-like
-            The latitude offset.
+            The angular offset in the latitude direction (i.e. Dec for
+            equatorial coordinates).
 
         Returns
         -------
