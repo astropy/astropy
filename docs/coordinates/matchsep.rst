@@ -9,6 +9,12 @@ determining separations between coordinates and those for matching a
 coordinate (or coordinates) to a catalog. These are mainly implemented
 as methods on the coordinate objects.
 
+In the examples below, we will assume that the following imports have already
+been executed::
+
+    >>> import astropy units as u
+    >>> from astropy.coordinates import SkyCoord
+
 Separations
 ===========
 
@@ -17,9 +23,6 @@ The on-sky separation can be computed with the
 :meth:`astropy.coordinates.SkyCoord.separation` methods,
 which computes the great-circle distance (*not* the small-angle approximation)::
 
-    >>> import numpy as np
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', frame='icrs')
     >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', frame='fk5')
     >>> sep = c1.separation(c2)
@@ -50,8 +53,6 @@ In addition to the on-sky separation described above,
 determine the 3D distance between two coordinates that have ``distance``
 defined::
 
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', distance=70*u.kpc, frame='icrs')
     >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s', distance=80*u.kpc, frame='icrs')
     >>> sep = c1.separation_3d(c2)
@@ -74,8 +75,6 @@ computes the position angle between one
 |SkyCoord| instance and another (passed as the argument) following the
 astronomy convention (positive angles East of North)::
 
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
     >>> c2 = SkyCoord(2*u.deg, 2*u.deg, frame='icrs')
     >>> c1.position_angle(c2).to(u.deg)  # doctest: +FLOAT_CMP
@@ -87,8 +86,6 @@ directional offsets. To do the inverse operation — determining the new
 "destination" coordinate given a separation and position angle — the
 :meth:`~astropy.coordinates.SkyCoord.directional_offset_by` method is provided::
 
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
     >>> position_angle = 45 * u.deg
     >>> separation = 1.414 * u.deg
@@ -100,8 +97,6 @@ This technique is also useful for computing the midpoint (or indeed any point)
 between two coordinates in a way that accounts for spherical geometry
 (i.e., instead of averaging the RAs/Decs separately)::
 
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyCoord
     >>> coord1 = SkyCoord(0*u.deg, 0*u.deg, frame='icrs')
     >>> coord2 = SkyCoord(1*u.deg, 1*u.deg, frame='icrs')
     >>> pa = coord1.position_angle(coord2)
@@ -110,14 +105,10 @@ between two coordinates in a way that accounts for spherical geometry
     <SkyCoord (ICRS): (ra, dec) in deg
         (0.49996192, 0.50001904)>
 
-
-
 There is also a :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to`
 method for computing angular offsets (e.g., small shifts like you might give a
 telescope operator to move from a bright star to a fainter target)::
 
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyCoord
     >>> bright_star = SkyCoord('8h50m59.75s', '+11d39m22.15s', frame='icrs')
     >>> faint_galaxy = SkyCoord('8h50m47.92s', '+11d39m32.74s', frame='icrs')
     >>> dra, ddec = bright_star.spherical_offsets_to(faint_galaxy)
@@ -139,8 +130,7 @@ These are known as "sky offset frames," as they are a convenient way to create
 a frame centered on an arbitrary position on the sky suitable for computing
 positional offsets (e.g., for astrometry)::
 
-    >>> from astropy import units as u
-    >>> from astropy.coordinates import SkyOffsetFrame, ICRS, SkyCoord
+    >>> from astropy.coordinates import SkyOffsetFrame, ICRS
     >>> center = ICRS(10*u.deg, 45*u.deg)
     >>> center.transform_to(SkyOffsetFrame(origin=center)) # doctest: +FLOAT_CMP
     <SkyOffsetICRS Coordinate (rotation=0.0 deg, origin=<ICRS Coordinate: (ra, dec) in deg
@@ -222,8 +212,6 @@ of other coordinates. For example, assuming ``ra1``/``dec1`` and
 
 .. doctest-requires:: scipy
 
-    >>> from astropy.coordinates import SkyCoord
-    >>> from astropy import units as u
     >>> c = SkyCoord(ra=ra1*u.degree, dec=dec1*u.degree)
     >>> catalog = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)
     >>> idx, d2d, d3d = c.match_to_catalog_sky(catalog)
