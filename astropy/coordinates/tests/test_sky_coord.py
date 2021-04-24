@@ -1526,7 +1526,7 @@ def test_spherical_offsets():
     assert_allclose(dra, -1*u.arcmin)
     assert_allclose(ddec, 1*u.arcmin)
     i10_back = i01.spherical_offsets_by(-dra, -ddec)
-    # TODO: this roundtripping accuracy is bad!
+    # TODO: this roundtripping accuracy isn't great!
     assert_allclose(i10_back.ra, i10.ra, atol=1e-9*u.deg)
     assert_allclose(i10_back.dec, i10.dec, atol=1e-9*u.deg)
 
@@ -1534,9 +1534,16 @@ def test_spherical_offsets():
     assert_allclose(ddec, 1*u.arcmin)
     assert 0*u.arcmin < dra < 1*u.arcmin
     i11_back = i22.spherical_offsets_by(-dra, -ddec)
-    # TODO: this roundtripping accuracy is bad!
+    # TODO: this roundtripping accuracy isn't great!
     assert_allclose(i11_back.ra, i11.ra, atol=1e-9*u.deg)
     assert_allclose(i11_back.dec, i11.dec, atol=1e-9*u.deg)
+
+    # Test roundtripping the other direction:
+    init_c = SkyCoord(40.*u.deg, 40.*u.deg)
+    new_c = init_c.spherical_offsets_by(3.534*u.deg, 2.2134*u.deg)
+    dlon, dlat = new_c.spherical_offsets_to(init_c)
+    back_c = new_c.spherical_offsets_by(dlon, dlat)
+    assert init_c.separation(back_c) < 1e-10*u.deg
 
     fk5 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='fk5')
 
