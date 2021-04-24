@@ -27,7 +27,7 @@ To write a formatted ASCII table using the |write| function::
   >>> data = Table()
   >>> data['x'] = np.array([1, 2, 3], dtype=np.int32)
   >>> data['y'] = data['x'] ** 2
-  >>> ascii.write(data, 'values.dat', names=['x', 'y'], overwrite=True)
+  >>> ascii.write(data, 'values.dat', overwrite=True)  # doctest: +SKIP
 
 The ``values.dat`` file will then contain::
 
@@ -41,7 +41,7 @@ It is also possible and encouraged to use the write functionality from
 Tables <astropy-table>` package (see :ref:`table_io` for more details). For
 example::
 
-  >>> data.write('values.dat', format='ascii', overwrite=True)
+  >>> data.write('values.dat', format='ascii', overwrite=True)  # doctest: +SKIP
 
 For a more reproducible ASCII version of your table, we recommend using the
 :ref:`ecsv_format`. This stores all the table meta-data (in particular the
