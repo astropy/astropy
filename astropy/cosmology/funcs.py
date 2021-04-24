@@ -6,8 +6,9 @@ Convenience functions for `astropy.cosmology`.
 import warnings
 import numpy as np
 
-from .core import CosmologyError
 from astropy.units import Quantity
+from astropy.utils.exceptions import AstropyUserWarning
+from .core import CosmologyError
 
 __all__ = ['z_at_value']
 
@@ -55,10 +56,13 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
        optimization routine (default 500).
 
     method : str or callable, optional
-       Type of solver to pass to ``~scipy.optimize.minimize_scalar`` -
-       should be one of 'Brent' (default), 'Golden' or 'Bounded'.
-       Can in theory also be a callable object as custom solver,
-       but this is untested.
+       Type of solver to pass to the minimizer. The built-in options provided by
+       :fun:`scipy.optimize.minimize_scalar` are 'Brent' (default), 'Golden' and
+       'Bounded' with names case insensitive - see documentation there for details.
+       It also accepts a custom solver by passing any user-provided callable object
+       that meets the requirements listed under the Notes on "Custom minimizers"
+       therein, and in more detail in :doc:`scipy:reference/tutorial/optimize`;
+       although their use is currently untested.
 
        .. versionadded:: 4.3
 
@@ -91,7 +95,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     cosmology. In this case, it is faster to instead generate an array
     of values at many closely-spaced redshifts that cover the relevant
     redshift range, and then use interpolation to find the redshift at
-    each value you're interested in. For example, to efficiently find
+    each value you are interested in. For example, to efficiently find
     the redshifts corresponding to 10^6 values of the distance modulus
     in a Planck13 cosmology, you could do the following:
 
@@ -129,15 +133,15 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     3.19812268
 
     The angular diameter is not monotonic however, and there are two
-    redshifts that give a value of 1500 Mpc. You can Use the zmin and
-    zmax keywords to find the one you're interested in:
+    redshifts that give a value of 1500 Mpc. You can use the zmin and
+    zmax keywords to find the one you are interested in:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmax=1.5)  # doctest: +FLOAT_CMP
-    0.680044452
+    0.68044452
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmin=2.5)  # doctest: +FLOAT_CMP
-    3.782326815
+    3.7823268
 
     Alternatively the ``bracket`` option can be used to initialise the
     function solver on a desired region. For the example of angular
@@ -147,10 +151,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    0.680044452
+    0.68044452
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(2.0, 2.5))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    3.782326815
+    ...            1500 * u.Mpc, bracket=(2.5, 2.9))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
+    3.7823268
 
     Be aware though that this does not guarantee the intended result if
     the bracket is chosen too wide and/or too close to the turning point.
@@ -158,10 +162,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(0.1, 1.5))  # doctest: +FLOAT_CMP
-    3.782326815
+    3.7823268
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(0.1, 1.0, 1.5))  # doctest: +FLOAT_CMP
-    0.680044452
+    0.68044452
 
     Also note that the luminosity distance and distance modulus (two
     other commonly inverted quantities) are monotonic in flat and open
@@ -198,7 +202,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     if nobracket:
         warnings.warn(f"fval is not bracketed by func(zmin)={fval_zmin} and func(zmax)="
                       f"{fval_zmax}. This means either there is no solution, or that there is "
-                      "more than one solution between zmin and zmax satisfying fval = func(z).")
+                      "more than one solution between zmin and zmax satisfying fval = func(z).",
+                      AstropyUserWarning)
 
     if isinstance(fval_zmin, Quantity):
         val = fval.to_value(fval_zmin.unit)
@@ -211,13 +216,17 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
             return 1.e300 * (1.0 + z - zmax)
         elif z < zmin:
             return 1.e300 * (1.0 + zmin - z)
+        elif isinstance(fval_zmin, Quantity):
+            return abs(func(z).value - val)
         else:
-            return abs(Quantity(func(z)).value - val)
+            return abs(func(z) - val)
 
     res = minimize_scalar(f, method=method, bounds=(zmin, zmax), bracket=bracket, options=opt)
 
+    # Scipy docs state that `OptimizeResult` always has 'status' and 'message' attributes,
+    # but only `_minimize_scalar_bounded()` seems to have really implemented them.
     if not res.success:
-        warnings.warn(f"Solver returned {res.status}: {res.message}\n"
+        warnings.warn(f"Solver returned {res.get('status')}: {res.get('message', 'Unsuccessful')}\n"
                       f"Precision {res.fun} reached after {res.nfev} function calls.")
 
     if verbose:
