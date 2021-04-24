@@ -1511,18 +1511,32 @@ def test_spherical_offsets():
     dra, ddec = i00.spherical_offsets_to(i01)
     assert_allclose(dra, 0*u.arcmin)
     assert_allclose(ddec, 1*u.arcmin)
+    i00_back = i01.spherical_offsets_by(-dra, -ddec)
+    assert_allclose(i00_back.ra, i00.ra, atol=1e-13*u.deg)
+    assert_allclose(i00_back.dec, i00.dec, atol=1e-13*u.deg)
 
     dra, ddec = i00.spherical_offsets_to(i10)
     assert_allclose(dra, 1*u.arcmin)
     assert_allclose(ddec, 0*u.arcmin)
+    i00_back = i10.spherical_offsets_by(-dra, -ddec)
+    assert_allclose(i00_back.ra, i00.ra, atol=1e-13*u.deg)
+    assert_allclose(i00_back.dec, i00.dec, atol=1e-13*u.deg)
 
     dra, ddec = i10.spherical_offsets_to(i01)
     assert_allclose(dra, -1*u.arcmin)
     assert_allclose(ddec, 1*u.arcmin)
+    i10_back = i01.spherical_offsets_by(-dra, -ddec)
+    # TODO: this roundtripping accuracy is bad!
+    assert_allclose(i10_back.ra, i10.ra, atol=1e-9*u.deg)
+    assert_allclose(i10_back.dec, i10.dec, atol=1e-9*u.deg)
 
     dra, ddec = i11.spherical_offsets_to(i22)
     assert_allclose(ddec, 1*u.arcmin)
     assert 0*u.arcmin < dra < 1*u.arcmin
+    i11_back = i22.spherical_offsets_by(-dra, -ddec)
+    # TODO: this roundtripping accuracy is bad!
+    assert_allclose(i11_back.ra, i11.ra, atol=1e-9*u.deg)
+    assert_allclose(i11_back.dec, i11.dec, atol=1e-9*u.deg)
 
     fk5 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='fk5')
 
@@ -1541,6 +1555,10 @@ def test_spherical_offsets():
     dra, ddec = i00s.spherical_offsets_to(i01s)
     assert_allclose(dra, 0*u.arcmin)
     assert_allclose(ddec, np.arange(4)*u.arcmin)
+
+    # spherical_offsets_by only supports scalar frame data:
+    with pytest.raises(ValueError):
+        i01s.spherical_offsets_by(-dra, -ddec)
 
 
 def test_frame_attr_changes():
