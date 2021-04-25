@@ -189,14 +189,15 @@ following formats:
                        s²
 
 .. _astropy-units-format-unrecognized:
+
 Dealing with Unrecognized Units
 ===============================
 
 Since many files found in the wild have unit strings that do not
 correspond to any given standard, `astropy.units` also has a
 consistent way to store and pass around unit strings that did not
-parse. In addition, `astropy.units` also provides tools for transforming
-non-standard, legacy or misspelt unit strings into their standardised form,
+parse.  In addition, it provides tools for transforming non-standard,
+legacy or misspelt unit strings into their standardised form,
 preventing the further propagation of these unit strings.
 
 By default, passing an unrecognized unit string raises an exception::
@@ -224,52 +225,59 @@ this behavior:
   - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
-By adding additional unit aliases (via `~astropy.units.add_unit_aliases`) for
-the misspelt units (e.g. Angstroms -> Angstrom), and new units via
-`~astropy.units.def_unit` and `~astropy.units.add_enabled_units`, we can use
+By adding additional unit aliases  for the misspelt units with
+`~astropy.units.set_enabled_aliases` (e.g. 'Angstroms' for 'Angstrom'), and new units
+via `~astropy.units.def_unit` and `~astropy.units.add_enabled_units`, we can use
 ``parse_strict='raise'`` to rapidly find issues with the units used, while also
 being able to read in older datasets where the unit usage may have been less
 standard.
 
 .. tip::
 
-    Using `~astropy.units.add_unit_aliases` is the preferred way of handling
-    non-standard unit spellings, as it transparently handles conversion to the
-    correct units within complex unit expressions, but be aware that not all
-    formats currently support its usage. If you are using a unit format that is
-    not supported, you can convert the unit string back into a Python string
-    (via `to_string()`), and reparse the string with the default format::
+    Not all formats currently support defining aliases. If you are using a
+    unit format that is not supported, you can convert the unit string back
+    into a Python string, and reparse the string with the default format::
 
-        >>> u.Unit(bad_unit.to_string())
+        >>> u.Unit(str(bad_unit))  # doctest: +SKIP
 
 Examples
 --------
-.. EXAMPLE START: Using `~astropy.units.add_unit_aliases`
 
-To add additional unit aliases, pass `~astropy.units.add_unit_aliases` a
+.. EXAMPLE START: Define Aliases for Units
+
+To set unit aliases, pass `~astropy.units.set_enabled_aliases` a
 dictionary mapping the misspelt string to an astropy unit. The following code
 snippet shows how to set up Angstroem -> Angstrom::
 
-    >>> import astropy.units as u
-    >>> u.add_unit_aliases({"Angstroem": u.Angstrom})
-    <astropy.units.core._UnitContext object at 0x7f319d47c040>
-    >>> u.Unit("Angstroem", parse_strict="raise")
+    >>> u.set_enabled_aliases({"Angstroem": u.Angstrom})
+    <astropy.units.core._UnitContext object at 0x...>
+    >>> u.Unit("Angstroem")
     Unit("Angstrom")
-    >>> u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+    >>> u.Unit("Angstroem") == u.Angstrom
     True
 
-You can also set multiple aliases up at once::
+You can also set multiple aliases up at once or add to existing ones::
 
-    >>> u.add_unit_aliases({"Angstroem": u.Angstrom, "Angstroms": u.Angstrom})
-
-Most usefully, you can use `add_unit_aliases` as a context manager, limiting
-where a particular alias is used::
-
-    >>> import astropy.units as u
-    >>> with u.add_unit_aliases({"Angstroem": u.Angstrom}):
-    >>>     u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+    >>> u.set_enabled_aliases({"Angstroem": u.Angstrom, "Angstroms": u.Angstrom})
+    <astropy.units.core._UnitContext object at 0x...>
+    >>> u.add_enabled_aliases({"angstroem": u.Angstrom})
+    <astropy.units.core._UnitContext object at 0x...>
+    >>> u.Unit("Angstroem") == u.Unit("Angstroms") == u.Unit("angstroem") == u.Angstrom
     True
-    >>> u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+
+The aliases can be reset by passing an empty directory::
+
+    >>> u.set_enabled_aliases({})
+    <astropy.units.core._UnitContext object at 0x...>
+
+You can use both `~astropy.units.set_enabled_aliases` and
+`~astropy.units.add_enabled_aliases` as context manager, limiting where a
+particular alias is used::
+
+    >>> with u.add_enabled_aliases({"Angstroem": u.Angstrom}):
+    ...     print(u.Unit("Angstroem") == u.Angstrom)
+    True
+    >>> u.Unit("Angstroem") == u.Angstrom
     Traceback (most recent call last):
       ...
     ValueError: 'Angstroem' did not parse as unit: At col 0, Angstroem is not a
