@@ -117,7 +117,7 @@ telescope operator to move from a bright star to a fainter target)::
     >>> ddec.to(u.arcsec)  # doctest: +FLOAT_CMP
     <Angle 10.60510342 arcsec>
 
-The conceptual method to
+The conceptual inverse of
 :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_to` is also available as
 a method on any |SkyCoord| object:
 :meth:`~astropy.coordinates.SkyCoord.spherical_offsets_by`, which accepts two

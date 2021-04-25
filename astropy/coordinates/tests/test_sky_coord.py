@@ -1501,11 +1501,10 @@ def test_getitem_representation():
     assert sc[0].representation_type is CartesianRepresentation
 
 
-def test_spherical_offsets_api():
+def test_spherical_offsets_to_api():
     i00 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='icrs')
 
     fk5 = SkyCoord(0*u.arcmin, 0*u.arcmin, frame='fk5')
-
     with pytest.raises(ValueError):
         # different frames should fail
         i00.spherical_offsets_to(fk5)
@@ -1521,10 +1520,6 @@ def test_spherical_offsets_api():
     dra, ddec = i00s.spherical_offsets_to(i01s)
     assert_allclose(dra, 0*u.arcmin)
     assert_allclose(ddec, np.arange(4)*u.arcmin)
-
-    # spherical_offsets_by only supports scalar frame data:
-    with pytest.raises(ValueError):
-        i01s.spherical_offsets_by(-dra, -ddec)
 
 
 @pytest.mark.parametrize('frame', ['icrs', 'galactic'])
