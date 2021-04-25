@@ -1,8 +1,2 @@
-`~astropy.units.add_unit_aliases` has been added, which provides an alternative
-to using `~astropy.units.UnrecognizedUnit` or defining additional units. See
-:ref:`astropy-units-format-unrecognized_` for more details, but the following
-simple example should be enough to get started with::
-
-    >>> import astropy.units as u
-    >>> with u.add_unit_aliases({"Angstroem": u.Angstrom}):
-    >>>     u.Unit("Angstroem", parse_strict="raise") == u.Angstrom
+It is now possible to define aliases for units using ``astropy.units.set_enabled_aliases``.
+This can be used when reading files that have misspelled units.
