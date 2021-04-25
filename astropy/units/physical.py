@@ -314,7 +314,7 @@ class PhysicalType:
         yield from self._physical_type_list
 
     def __getattr__(self, attr):
-        if attr not in dir(self) and attr in dir(str):
+        if attr in dir(str):
             warning_message = (
                 f"support for accessing str attributes such as {attr} "
                 "from PhysicalType instances will be removed in a "
