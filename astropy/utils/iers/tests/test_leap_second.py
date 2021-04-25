@@ -13,6 +13,63 @@ from astropy.time import Time, TimeDelta
 from astropy.utils.iers import iers
 from astropy.utils.data import get_pkg_data_filename
 
+# Import every top-level astropy subpackage as a test that the ERFA leap second
+# table is not updated for normal imports.
+import astropy.config
+import astropy.constants
+import astropy.convolution
+import astropy.coordinates
+import astropy.cosmology
+import astropy.extern
+import astropy.io.fits
+import astropy.io.ascii
+import astropy.io.misc
+import astropy.io.registry
+import astropy.io.tests
+import astropy.io.votable
+import astropy.modeling
+import astropy.nddata
+import astropy.samp
+import astropy.stats
+import astropy.table
+import astropy.tests
+import astropy.time
+import astropy.timeseries
+import astropy.uncertainty
+import astropy.units
+import astropy.utils.argparse
+import astropy.utils.codegen
+import astropy.utils.collections
+import astropy.utils.console
+import astropy.utils.data
+import astropy.utils.data_info
+import astropy.utils.decorators
+import astropy.utils.diff
+import astropy.utils.exceptions
+import astropy.utils.introspection
+import astropy.utils.metadata
+import astropy.utils.misc
+import astropy.utils.parsing
+import astropy.utils.setup_package
+import astropy.utils.shapes
+import astropy.utils.state
+import astropy.visualization
+import astropy.wcs
+
+# Now test that the erfa leap_seconds table has not been udpated. This must be
+# done at the module level, which unfortunately will abort the entire test run
+# if if fails. Running within a normal pytest test will not work because the
+# other tests will end up updating this attribute by virtue of doing Time UTC
+# transformations.
+assert erfa.leap_seconds._expires is None
+
+# Tests in this module assume that the erfa.leap_seconds attribute has been
+# updated from the `erfa` package built-in table to the astropy built-in
+# leap-second table. That has the effect of ensuring that the
+# `erfa.leap_seconds.expires` property is sufficiently in the future.
+iers_table = iers.LeapSeconds.auto_open()
+erfa.leap_seconds.update(iers_table)
+assert erfa.leap_seconds._expires is not None
 
 SYSTEM_FILE = '/usr/share/zoneinfo/leap-seconds.list'
 

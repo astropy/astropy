@@ -881,6 +881,11 @@ class LeapSeconds(QTable):
     ``iers.LEAP_SECONDS_LIST_URL``.  Many systems also store a version
     of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
     systems, ``/usr/share/zoneinfo/leap-seconds.list``).
+
+    To prevent querying internet resources if the available local leap second
+    file(s) are out of date, set ``iers.conf.auto_download = False``. This
+    must be done prior to performing any ``Time`` scale transformations related
+    to UTC (e.g. converting from UTC to TAI).
     """
     # Note: Time instances in this class should use scale='tai' to avoid
     # needing leap seconds in their creation or interpretation.
