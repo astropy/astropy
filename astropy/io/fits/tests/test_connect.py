@@ -140,6 +140,12 @@ class TestSingleTable:
             with pytest.warns(AstropyUserWarning):
                 t3.write(filename, overwrite=True)
 
+        # It should also be possible to read the file in using a unit alias,
+        # even to a unit that may not be the same.
+        with u.set_enabled_aliases({'bandpass_sol_lum': u.Lsun}):
+            t3 = QTable.read(filename)
+            assert t3['l'].unit is u.Lsun
+
     @pytest.mark.parametrize('table_type', (Table, QTable))
     def test_with_format(self, table_type, tmpdir):
         filename = str(tmpdir.join('test_with_format.fits'))
