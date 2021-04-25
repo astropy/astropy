@@ -1763,6 +1763,15 @@ class TestCompressedImage(FitsTestCase):
                 assert len(hdu1._header._keyword_indices['EXTNAME']) == 1
                 assert hdu1.name == 'NEW2'
 
+            # Check that deleting EXTNAME will and setting the name will
+            # work properly.
+            del hdu.header['EXTNAME']
+            hdu.name = 'RE-ADDED'
+            assert hdu.name == 'RE-ADDED'
+
+            with pytest.raises(TypeError):
+                hdu.name = 42
+
     @pytest.mark.parametrize(
         ('keyword', 'dtype', 'expected'),
         [('BSCALE', np.uint8, np.float32), ('BSCALE', np.int16, np.float32),
