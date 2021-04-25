@@ -324,7 +324,8 @@ class PhysicalType:
             self_str_attr = getattr(str(self), attr, None)
             return self_str_attr
         else:
-            super().__getattribute__(attr)
+            raise AttributeError(
+                f"{self.__class__.__name__!r} object has no attribute {attr!r}")
 
     def __eq__(self, other):
         """
