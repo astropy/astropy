@@ -232,7 +232,7 @@ class EcsvOutputter(core.TableOutputter):
     def _convert_vals(self, cols):
         """READ: Convert str_vals in `cols` to final arrays with correct dtypes.
 
-        This is adapted from BaseOutputter._convert_vals. In the case of ECSV
+        This is adapted from ``BaseOutputter._convert_vals``. In the case of ECSV
         there is no guessing and all types are known in advance. A big change
         is handling the possibility of JSON-encoded values, both unstructured
         object data and structured values that may contain masked data.

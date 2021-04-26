@@ -890,6 +890,9 @@ class BaseData:
         formats={} keyword, then ends up calling table.pprint._pformat_col_iter()
         by a circuitous path. That function does the real work of formatting.
         Finally replace anything matching the fill_values.
+        Returns
+        -------
+        values : list of list of str
         """
         self._set_fill_values(self.cols)
         self._set_col_formats()
@@ -899,12 +902,12 @@ class BaseData:
         return [col.str_vals for col in self.cols]
 
     def write(self, lines):
-        """Write ``self.cols`` in place to ``lines``
+        """Write ``self.cols`` in place to ``lines``.
 
         Parameters
         ----------
         lines : list
-            List for collecting output of writing self.cols
+            List for collecting output of writing self.cols.
         """
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
@@ -919,7 +922,7 @@ class BaseData:
             lines.append(self.splitter.join(vals))
 
     def _set_col_formats(self):
-        """WRITE: set column formats"""
+        """WRITE: set column formats."""
         for col in self.cols:
             if col.info.name in self.formats:
                 col.info.format = self.formats[col.info.name]
@@ -1261,8 +1264,8 @@ class BaseReader(metaclass=MetaBaseReader):
         ----------
         table : `~astropy.table.Table`
             Input table.
-        max_ndim : int
-            Max allowed number of dimensions (default=1)
+        max_ndim : int, optional
+            Max allowed number of dimensions (default=1).
         """
         _check_multidim_table(table, max_ndim)
 
