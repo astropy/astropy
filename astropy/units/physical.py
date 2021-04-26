@@ -527,4 +527,27 @@ def get_physical_type(obj):
 for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
 
+
+# This generates a docstring addition for this module that describes all of the
+# standard physical types defined here.
+if __doc__ is not None:
+    doclines = [
+        ".. list-table:: Defined Physical Types",
+        "    :header-rows: 1",
+        "    :widths: 30 10 50",
+        "",
+        "    * - Physical type",
+        "      - Unit",
+        "      - Other physical type(s) with same unit"]
+
+    for name in sorted(_name_physical_mapping.keys()):
+        physical_type = _name_physical_mapping[name]
+        doclines.extend([
+            f"    * - {name}",
+            f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
+            f"      - {', '.join([n for n in physical_type if n != name])}"])
+
+    __doc__ += '\n\n' + '\n'.join(doclines)
+
+
 del unit, physical_type
