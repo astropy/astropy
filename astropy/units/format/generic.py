@@ -438,13 +438,10 @@ class Generic(Base):
         except ValueError as e:
             registry = core.get_current_unit_registry()
             if t.value in registry.aliases:
-                try:
-                    return registry.aliases[t.value]
-                except Exception:
-                    pass
+                return registry.aliases[t.value]
 
             raise ValueError(
-                f"At col {t.lexpos}, {str(e)}") from e
+                f"At col {t.lexpos}, {str(e)}")
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
@@ -545,15 +542,14 @@ class Generic(Base):
             # This is a short circuit for the case where the string
             # is just a single unit name
             return cls._parse_unit(s, detailed_exception=False)
-        except Exception:
-            pass
-
-        try:
-            return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
         except ValueError as e:
-            if not e.args:
-                e.args = (f"Syntax error parsing unit '{s}'",)
-            raise e
+            try:
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
+            except ValueError as e:
+                if str(e):
+                    raise
+                else:
+                    raise ValueError(f"Syntax error parsing unit '{s}'")
 
     @classmethod
     def _get_unit_name(cls, unit):
