@@ -60,8 +60,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
        :func:`~scipy.optimize.minimize_scalar` are 'Brent' (default), 'Golden' and
        'Bounded' with names case insensitive - see documentation there for details.
        It also accepts a custom solver by passing any user-provided callable object
-       that meets the requirements listed under the Notes on "Custom minimizers"
-       therein, and in more detail in :doc:`~scipy:reference/tutorial/optimize`;
+       that meets the requirements listed therein under the Notes on
+       "Custom minimizers" - or in more detail in :doc:`scipy:tutorial/optimize` -
        although their use is currently untested.
 
        .. versionadded:: 4.3
@@ -151,10 +151,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     generally return a solution on the same side.
 
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(1.0, 1.2))
+    ...            1500 * u.Mpc, bracket=(1.0, 1.2))       # doctest: +FLOAT_CMP +IGNORE_WARNINGS
     0.68044452                                             # doctest: +SKIP
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(2.0, 2.5))
+    ...            1500 * u.Mpc, bracket=(2.0, 2.5))       # doctest: +FLOAT_CMP +IGNORE_WARNINGS
     3.7823268                                              # doctest: +SKIP
 
     Be aware though that this does not guarantee the intended result if
