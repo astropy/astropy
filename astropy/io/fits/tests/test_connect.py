@@ -147,6 +147,16 @@ class TestSingleTable:
             assert t3['l'].unit is u.Lsun
 
     @pytest.mark.parametrize('table_type', (Table, QTable))
+    def test_read_with_unit_aliases(self, table_type):
+        hdu = BinTableHDU(self.data)
+        hdu.columns[0].unit = 'Angstroms'
+        hdu.columns[2].unit = 'ergs/(cm.s.Angstroms)'
+        with u.set_enabled_aliases(dict(Angstroms=u.AA, ergs=u.erg)):
+            t = table_type.read(hdu)
+        assert t['a'].unit == u.AA
+        assert t['c'].unit == u.erg/(u.cm*u.s*u.AA)
+
+    @pytest.mark.parametrize('table_type', (Table, QTable))
     def test_with_format(self, table_type, tmpdir):
         filename = str(tmpdir.join('test_with_format.fits'))
         t1 = table_type(self.data)
