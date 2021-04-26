@@ -13,6 +13,7 @@ from . import scalar_inv_efuncs
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils import isiterable
+from astropy.utils.metadata import MetaData
 from astropy.utils.state import ScienceState
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -93,6 +94,8 @@ class Cosmology(metaclass=ABCMeta):
         Arguments into the cosmology; used by subclasses, not this base class.
     name : str or None (optional, keyword-only)
         The name of the cosmology.
+    meta : dict or None (optional, keyword-only)
+        Metadata for the cosmology, e.g. a reference.
     **kwargs
         Arguments into the cosmology; used by subclasses, not this base class.
 
@@ -103,6 +106,8 @@ class Cosmology(metaclass=ABCMeta):
     read only.
 
     """
+
+    meta = MetaData()
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -127,8 +132,9 @@ class Cosmology(metaclass=ABCMeta):
 
         return self
 
-    def __init__(self, *args, name=None, **kwargs):
+    def __init__(self, *args, name=None, meta=None, **kwargs):
         self._name = name
+        self.meta.update(meta or {})
 
     @property
     def name(self):
@@ -229,6 +235,9 @@ class FLRW(Cosmology):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Notes
     -----
     Class instances are static -- you cannot change the values
@@ -237,8 +246,9 @@ class FLRW(Cosmology):
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
-        super().__init__(name=name)
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None,
+                 **metadata):
+        super().__init__(name=name, meta=metadata)
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -1669,6 +1679,9 @@ class LambdaCDM(FLRW):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import LambdaCDM
@@ -1681,9 +1694,10 @@ class LambdaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None, **metadata):
 
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
+                         name=name, **metadata)
 
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
@@ -2197,6 +2211,9 @@ class FlatLambdaCDM(LambdaCDM):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import FlatLambdaCDM
@@ -2209,9 +2226,10 @@ class FlatLambdaCDM(LambdaCDM):
     """
 
     def __init__(self, H0, Om0, Tcmb0=0, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None, **metadata):
 
-        super().__init__(H0, Om0, 0.0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+        super().__init__(H0, Om0, 0.0, Tcmb0, Neff, m_nu, Ob0=Ob0,
+			 name=name, **metadata)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2356,6 +2374,9 @@ class wCDM(FLRW):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import wCDM
@@ -2368,7 +2389,8 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
+                 name=None, **metadata):
 
         super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         self._w0 = float(w0)
@@ -2565,6 +2587,9 @@ class FlatwCDM(wCDM):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import FlatwCDM
@@ -2577,9 +2602,11 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
+                 name=None, **metadata):
 
-        super().__init__(H0, Om0, 0., w0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+        super().__init__(H0, Om0, 0., w0, Tcmb0, Neff, m_nu, Ob0=Ob0,
+                         name=name, **metdata)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2726,6 +2753,9 @@ class w0waCDM(FLRW):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import w0waCDM
@@ -2738,9 +2768,11 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
+                 name=None, **metadata):
 
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
+                         name=name, **metadata)
         self._w0 = float(w0)
         self._wa = float(wa)
 
@@ -2894,6 +2926,9 @@ class Flatw0waCDM(w0waCDM):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import Flatw0waCDM
@@ -2906,10 +2941,11 @@ class Flatw0waCDM(w0waCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None,
+                 **metadata):
 
         super().__init__(H0, Om0, 0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
-                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name)
+                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, **metadata)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -3003,6 +3039,9 @@ class wpwaCDM(FLRW):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import wpwaCDM
@@ -3016,9 +3055,10 @@ class wpwaCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
                  Tcmb0=0, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
-                 Ob0=None, name=None):
+                 Ob0=None, name=None, **metadata):
 
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
+			 name=name, **metadata)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
@@ -3187,6 +3227,9 @@ class w0wzCDM(FLRW):
     name : str or None, optional
         Name for this cosmological object.
 
+    **metadata
+        Metadata for the cosmology, e.g. a reference.
+
     Examples
     --------
     >>> from astropy.cosmology import w0wzCDM
@@ -3200,9 +3243,10 @@ class w0wzCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=0,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
-                 name=None):
+                 name=None, **metadata):
 
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
+                         name=name, **metadata)
         self._w0 = float(w0)
         self._wz = float(wz)
 
