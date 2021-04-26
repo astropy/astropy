@@ -225,7 +225,7 @@ class FLRW(Cosmology):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Notes
@@ -1636,7 +1636,6 @@ class LambdaCDM(FLRW):
 
     Parameters
     ----------
-
     H0 : float or `~astropy.units.Quantity`
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
@@ -1669,7 +1668,7 @@ class LambdaCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -1686,8 +1685,7 @@ class LambdaCDM(FLRW):
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
 
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
@@ -2197,7 +2195,7 @@ class FlatLambdaCDM(LambdaCDM):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -2214,8 +2212,7 @@ class FlatLambdaCDM(LambdaCDM):
     def __init__(self, H0, Om0, Tcmb0=0, Neff=3.04,
                  m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        LambdaCDM.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
-                           Ob0=Ob0)
+        super().__init__(H0, Om0, 0.0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2356,7 +2353,7 @@ class wCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -2373,8 +2370,7 @@ class wCDM(FLRW):
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=0,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         self._w0 = float(w0)
 
         # Please see "Notes about speeding up integrals" for discussion
@@ -2565,7 +2561,7 @@ class FlatwCDM(wCDM):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -2582,8 +2578,7 @@ class FlatwCDM(wCDM):
     def __init__(self, H0, Om0, w0=-1., Tcmb0=0,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        wCDM.__init__(self, H0, Om0, 0.0, w0, Tcmb0, Neff, m_nu,
-                      name=name, Ob0=Ob0)
+        super().__init__(H0, Om0, 0., w0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2726,7 +2721,7 @@ class w0waCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -2743,8 +2738,7 @@ class w0waCDM(FLRW):
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=0,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         self._w0 = float(w0)
         self._wa = float(wa)
 
@@ -2894,7 +2888,7 @@ class Flatw0waCDM(w0waCDM):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -2911,8 +2905,8 @@ class Flatw0waCDM(w0waCDM):
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=0,
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
-        w0waCDM.__init__(self, H0, Om0, 0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
-                         Neff=Neff, m_nu=m_nu, name=name, Ob0=Ob0)
+        super().__init__(H0, Om0, 0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
+                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -3002,7 +2996,7 @@ class wpwaCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -3020,8 +3014,7 @@ class wpwaCDM(FLRW):
                  Tcmb0=0, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
                  Ob0=None, name=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
@@ -3187,7 +3180,7 @@ class w0wzCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str, optional
+    name : str or None, optional
         Name for this cosmological object.
 
     Examples
@@ -3205,8 +3198,7 @@ class w0wzCDM(FLRW):
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
                  name=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=Ob0)
+        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
         self._w0 = float(w0)
         self._wz = float(wz)
 
