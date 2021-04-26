@@ -151,10 +151,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     generally return a solution on the same side.
 
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(1.0, 1.2))       # doctest: +FLOAT_CMP +IGNORE_WARNINGS
+    ...            1500 * u.Mpc, bracket=(1.0, 1.2))       # doctest: +SKIP
     0.68044452                                             # doctest: +SKIP
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(2.0, 2.5))       # doctest: +FLOAT_CMP +IGNORE_WARNINGS
+    ...            1500 * u.Mpc, bracket=(2.0, 2.5))       # doctest: +SKIP
     3.7823268                                              # doctest: +SKIP
 
     Be aware though that this does not guarantee the intended result if
