@@ -480,15 +480,9 @@ class TestDefPhysType:
             )
 
 
-@pytest.mark.parametrize(
-    "method, expected",
-    [
-        ("title", 'Length'),
-        ("isalpha", True),
-        ("isnumeric", False),
-        ("upper", 'LENGTH')
-    ],
-)
+@pytest.mark.parametrize("method, expected", [
+        ("title", 'Length'), ("isalpha", True), ("isnumeric", False), ("upper", 'LENGTH')
+])
 def test_that_str_methods_work_with_physical_types(method, expected):
     """
     Test that str methods work for `PhysicalType` instances while issuing
