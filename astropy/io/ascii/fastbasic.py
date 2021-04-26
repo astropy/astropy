@@ -169,7 +169,8 @@ class FastBasic(metaclass=core.MetaBaseReader):
     def _write(self, table, output, default_kwargs,
                header_output=True, output_types=False):
 
-        core._check_multidim_table(table)
+        # Fast writer supports only 1-d columns
+        core._check_multidim_table(table, max_ndim=1)
 
         write_kwargs = {'delimiter': self.delimiter,
                         'quotechar': self.quotechar,

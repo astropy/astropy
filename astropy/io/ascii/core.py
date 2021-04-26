@@ -39,12 +39,16 @@ FORMAT_CLASSES = {}
 FAST_CLASSES = {}
 
 
-def _check_multidim_table(table, max_ndim=1):
+def _check_multidim_table(table, max_ndim):
     """Check that ``table`` has only columns with ndim <= ``max_ndim``
 
     Currently ECSV is the only built-in format that supports output of arbitrary
     N-d columns, but HTML supports 2-d.
     """
+    # No limit?
+    if max_ndim is None:
+        return
+
     # Check for N-d columns
     nd_names = [col.info.name for col in table.itercols() if len(col.shape) > max_ndim]
     if nd_names:
@@ -1238,6 +1242,10 @@ class BaseReader(metaclass=MetaBaseReader):
     inputter_class = BaseInputter
     outputter_class = TableOutputter
 
+    # Max column dimension that writer supports for this format. Exceptions
+    # include ECSV (no limit) and HTML (max_ndim=2).
+    max_ndim = 1
+
     def __init__(self):
         self.header = self.header_class()
         self.data = self.data_class()
@@ -1255,7 +1263,7 @@ class BaseReader(metaclass=MetaBaseReader):
         self.meta = OrderedDict(table=OrderedDict(),
                                 cols=OrderedDict())
 
-    def _check_multidim_table(self, table, max_ndim=1):
+    def _check_multidim_table(self, table):
         """Check that ``table`` has only 1-d columns.
 
         If a reader class supports N-d columns then override this method.
@@ -1267,7 +1275,7 @@ class BaseReader(metaclass=MetaBaseReader):
         max_ndim : int, optional
             Max allowed number of dimensions (default=1).
         """
-        _check_multidim_table(table, max_ndim)
+        _check_multidim_table(table, self.max_ndim)
 
     def read(self, table):
         """Read the ``table`` and return the results in a format determined by
