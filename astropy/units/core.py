@@ -274,7 +274,7 @@ class _UnitRegistry:
 
     def set_enabled_aliases(self, aliases):
         """
-        Set aliases for units, e.g., to handle alternate spellings.
+        Set aliases for units.
 
         Parameters
         ----------
@@ -286,13 +286,14 @@ class _UnitRegistry:
         ------
         ValueError
             If the alias already defines a different unit.
+
         """
         self._reset_aliases()
         self.add_enabled_aliases(aliases)
 
     def add_enabled_aliases(self, aliases):
         """
-        Add aliases for units, e.g., to handle alternate spellings.
+        Add aliases for units.
 
         Parameters
         ----------
@@ -304,6 +305,7 @@ class _UnitRegistry:
         ------
         ValueError
             If the alias already defines a different unit.
+
         """
         for alias, unit in aliases.items():
             if alias in self._registry and unit != self._registry[alias]:
@@ -501,7 +503,10 @@ def add_enabled_equivalencies(equivalencies):
 
 def set_enabled_aliases(aliases):
     """
-    Set aliases for units, e.g., to handle alternate spellings.
+    Set aliases for units.
+
+    This is useful for handling alternate spellings for units, or
+    misspelled units in files one is trying to read.
 
     Parameters
     ----------
@@ -533,7 +538,10 @@ def set_enabled_aliases(aliases):
 
 def add_enabled_aliases(aliases):
     """
-    Add aliases for units, e.g., to handle alternate spellings.
+    Add aliases for units.
+
+    This is useful for handling alternate spellings for units, or
+    misspelled units in files one is trying to read.
 
     Since no aliases are enabled by default, generally it is recommended
     to use `set_enabled_aliases`.

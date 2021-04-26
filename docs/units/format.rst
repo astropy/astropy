@@ -197,7 +197,7 @@ Since many files found in the wild have unit strings that do not
 correspond to any given standard, `astropy.units` also has a
 consistent way to store and pass around unit strings that did not
 parse.  In addition, it provides tools for transforming non-standard,
-legacy or misspelt unit strings into their standardised form,
+legacy or misspelt unit strings into their standardized form,
 preventing the further propagation of these unit strings.
 
 By default, passing an unrecognized unit string raises an exception::
@@ -225,20 +225,13 @@ this behavior:
   - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
-By adding additional unit aliases  for the misspelt units with
-`~astropy.units.set_enabled_aliases` (e.g. 'Angstroms' for 'Angstrom'), and new units
-via `~astropy.units.def_unit` and `~astropy.units.add_enabled_units`, we can use
-``parse_strict='raise'`` to rapidly find issues with the units used, while also
-being able to read in older datasets where the unit usage may have been less
-standard.
+By either adding additional unit aliases for the misspelt units with
+`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom'; as
+demostrated below), or defining new units via `~astropy.units.def_unit` and
+`~astropy.units.add_enabled_units`, we can use ``parse_strict='raise'`` to
+rapidly find issues with the units used, while also being able to read in
+older datasets where the unit usage may have been less standard.
 
-.. tip::
-
-    Not all formats currently support defining aliases. If you are using a
-    unit format that is not supported, you can convert the unit string back
-    into a Python string, and reparse the string with the default format::
-
-        >>> u.Unit(str(bad_unit))  # doctest: +SKIP
 
 Examples
 --------
