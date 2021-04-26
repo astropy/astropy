@@ -297,12 +297,8 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            # We can't use the u.Quantity constructor as we do above
-            # because it doesn't understand equivalencies
-            if not isinstance(m_nu, u.Quantity):
-                raise ValueError("m_nu must be a Quantity")
-
-            m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
+            with u.set_enabled_equivalencies(u.mass_energy()):
+                m_nu = u.Quantity(m_nu, u.eV)
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
