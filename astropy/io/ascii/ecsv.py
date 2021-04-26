@@ -194,12 +194,10 @@ class EcsvHeader(basic.BasicHeader):
                 col.subtype = subtype[:idx]
                 col.shape = json.loads(subtype[idx:])
 
-            # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
+            # Convert ECSV "string" to numpy "str"
             for attr in ('dtype', 'subtype'):
                 if getattr(col, attr) == 'string':
                     setattr(col, attr, 'str')
-                if (getattr(col, attr) or '').startswith('complex'):
-                    raise TypeError('ecsv reader does not support complex number types')
 
 
 def _check_dtype_is_str(col):
