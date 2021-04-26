@@ -211,6 +211,16 @@ def _get_variable_length_array_shape(col):
     return shape, dtype
 
 
+def _get_datatype_from_dtype(dtype):
+    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
+    datatype = dtype.name
+    if datatype.startswith(('bytes', 'str')):
+        datatype = 'string'
+    if datatype.endswith('_'):
+        datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
+    return datatype
+
+
 def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
@@ -264,16 +274,6 @@ def _get_col_attributes(col):
         attrs['subtype'] += json.dumps(list(shape), separators=(',', ':'))
 
     return attrs
-
-
-def _get_datatype_from_dtype(dtype):
-    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
-    datatype = dtype.name
-    if datatype.startswith(('bytes', 'str')):
-        datatype = 'string'
-    if datatype.endswith('_'):
-        datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
-    return datatype
 
 
 def get_yaml_from_table(table):

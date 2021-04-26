@@ -25,7 +25,7 @@ class NdarrayMixin(np.ndarray):
     """
     Mixin column class to allow storage of arbitrary numpy
     ndarrays within a Table.  This is a subclass of numpy.ndarray
-    and has the same initialization options as ndarray().
+    and has the same initialization options as ``np.array()``.
     """
     __module__ = 'astropy.table.table'
     info = NdarrayMixinInfo()
@@ -50,7 +50,7 @@ class NdarrayMixin(np.ndarray):
             self.info = obj.info
 
     def __reduce__(self):
-        # patch to pickle Quantity objects (ndarray subclasses), see
+        # patch to pickle NdArrayMixin objects (ndarray subclasses), see
         # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
 
         object_state = list(super().__reduce__())
