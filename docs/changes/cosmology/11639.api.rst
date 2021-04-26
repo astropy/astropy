@@ -1,3 +1,0 @@
-Allow ``m_nu`` to be input as any quantity-like -- Quantity, array, float, str,
-etc -- and converted to eV with the existing mass-energy equivalence enabled via
-contextmanager.
