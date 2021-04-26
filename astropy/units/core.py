@@ -144,9 +144,6 @@ class _UnitRegistry:
         self._equivalencies = set()
 
     def _reset_aliases(self):
-        # Remove any existing aliases from the registry.
-        # for name in getattr(self, '_aliases', {}):
-        #     self._registry.pop(name)
         self._aliases = {}
 
     @property
@@ -2035,7 +2032,7 @@ class _UnitMetaClass(type):
                            "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
                            .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
-                        raise ValueError(msg) from e
+                        raise ValueError(msg)
                     elif parse_strict == 'warn':
                         warnings.warn(msg, UnitsWarning)
                     else:
