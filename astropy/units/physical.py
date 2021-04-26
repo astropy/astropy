@@ -317,7 +317,7 @@ class PhysicalType:
         if attr in dir(str):
             warning_message = (
                 f"support for accessing str attributes such as {attr} "
-                "from PhysicalType instances will be removed in a "
+                "from PhysicalType instances is deprecated since 4.3 and will be removed in a "
                 "subsequent release."
             )
             warnings.warn(warning_message, AstropyDeprecationWarning)

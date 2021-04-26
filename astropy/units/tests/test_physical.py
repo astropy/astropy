@@ -494,7 +494,7 @@ def test_that_str_methods_work_with_physical_types(method, expected):
     Test that str methods work for `PhysicalType` instances while issuing
     a deprecation warning.
     """
-    with pytest.warns(AstropyDeprecationWarning):
+    with pytest.warns(AstropyDeprecationWarning, match="PhysicalType instances"):
         result_of_method_call = getattr(length, method)()
     assert result_of_method_call == expected
 
