@@ -822,3 +822,28 @@ def test_validate_write_kwargs():
                        r"\(<class 'bool'>, <class 'str'>\) object, "
                        r"got <class 'int'> instead"):
         ascii.write(t, out, fast_writer=12)
+
+
+@pytest.mark.parametrize("fmt_name_class", fmt_name_classes)
+def test_multidim_column_error(fmt_name_class):
+    """
+    Test that trying to write a multidim column fails in every format except
+    ECSV.
+    """
+    fmt_name, fmt_cls = fmt_name_class
+
+    if not getattr(fmt_cls, '_io_registry_can_write', True):
+        return
+
+    # Skip tests for ecsv or HTML without bs4
+    if ((fmt_name == 'html' and not HAS_BS4)
+            or fmt_name == 'ecsv'):
+        return
+
+    out = StringIO()
+    t = table.Table()
+    t['a'] = np.arange(16).reshape(2, 2, 2, 2)
+    t['b'] = [1, 2]
+    fast = fmt_name in ascii.core.FAST_CLASSES
+    with pytest.raises(ValueError, match=r'column\(s\) with dimension'):
+        ascii.write(t, out, format=fmt_name, fast_writer=fast)

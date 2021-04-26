@@ -48,7 +48,7 @@ def _check_multidim_table(table, max_ndim=1):
     # Check for N-d columns
     nd_names = [col.info.name for col in table.itercols() if len(col.shape) > max_ndim]
     if nd_names:
-        raise ValueError(f'column(s) {",".join(nd_names)} with dimension > {max_ndim} '
+        raise ValueError(f'column(s) with dimension > {max_ndim} '
                          "cannot be be written with this format, try using 'ecsv' "
                          "(Enhanced CSV) format")
 
