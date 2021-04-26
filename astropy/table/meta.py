@@ -217,12 +217,12 @@ def _get_col_attributes(col):
     to fully serialize the column.
 
     Parameters
-    ==========
+    ----------
     col : column-like
         Input Table column
 
     Returns
-    =======
+    -------
     attrs : dict
         Dict of ECSV attributes for ``col``
     """
