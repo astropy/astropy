@@ -1300,7 +1300,8 @@ def test_massivenu_basic():
                     rtol=1e-6)
 
     # Alternative no neutrinos case
-    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0 * u.K, m_nu=0.4)
+    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0 * u.K,
+                              m_nu=str((0.4 * u.eV).to(u.g, u.mass_energy())))
     assert not tcos.has_massive_nu
     assert tcos.m_nu is None
 
