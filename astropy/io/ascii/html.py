@@ -320,6 +320,8 @@ class HTML(core.BaseReader):
     data_class = HTMLData
     inputter_class = HTMLInputter
 
+    max_ndim = 2  # HTML supports writing 2-d columns with shape (n, m)
+
     def __init__(self, htmldict={}):
         """
         Initialize classes for HTML reading and writing.
@@ -345,7 +347,7 @@ class HTML(core.BaseReader):
         Return data in ``table`` converted to HTML as a list of strings.
         """
         # Check that table has only 1-d or 2-d columns. Above that fails.
-        self._check_multidim_table(table, max_ndim=2)
+        self._check_multidim_table(table)
 
         cols = list(table.columns.values())
 

@@ -408,6 +408,8 @@ class Ecsv(basic.Basic):
     data_class = EcsvData
     outputter_class = EcsvOutputter
 
+    max_ndim = None  # No limit on column dimensionality
+
     def update_table_data(self, table):
         """
         Update table columns in place if mixin columns are present.
