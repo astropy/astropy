@@ -663,21 +663,22 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
         assert np.all(t2[name] == t[name])
 
 
-def test_multidim_unknown_subtype():
+@pytest.mark.parametrize('subtype', ['some-user-type', 'complex'])
+def test_multidim_unknown_subtype(subtype):
     """Test an ECSV file with a string type but unknown subtype"""
-    txt = """\
+    txt = f"""\
 # %ECSV 1.0
 # ---
 # datatype:
 # - name: a
 #   datatype: string
-#   subtype: some-user-type
+#   subtype: {subtype}
 # schema: astropy-2.0
 a
 [1,2]
 [3,4]"""
     with pytest.warns(AstropyUserWarning,
-                      match=r"unexpected subtype 'some-user-type' set for column 'a'"):
+                      match=rf"unexpected subtype '{subtype}' set for column 'a'"):
         t = ascii.read(txt, format='ecsv')
 
     assert t['a'].dtype.kind == 'U'
@@ -722,6 +723,22 @@ a
 fail
 [3,4]"""
     match = "column 'a' failed to convert: column value is not valid JSON"
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_complex():
+    """Test an ECSV file with a complex column"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: complex}
+# schema: astropy-2.0
+a
+1+1j
+2+2j"""
+    match = "datatype 'complex' of column 'a' is not in allowed values"
     with pytest.raises(ValueError, match=match):
         Table.read(txt, format='ascii.ecsv')
 
