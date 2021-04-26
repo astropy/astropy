@@ -1,0 +1,2 @@
+Allow ``m_nu`` to be input as any quantity-like, and converted to eV with a
+mass-energy equivalence enabled.

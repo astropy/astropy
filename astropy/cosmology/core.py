@@ -212,7 +212,7 @@ class FLRW(Cosmology):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -297,12 +297,8 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            # We can't use the u.Quantity constructor as we do above
-            # because it doesn't understand equivalencies
-            if not isinstance(m_nu, u.Quantity):
-                raise ValueError("m_nu must be a Quantity")
-
-            m_nu = m_nu.to(u.eV, equivalencies=u.mass_energy())
+            with u.set_enabled_equivalencies(u.mass_energy()):
+                m_nu = u.Quantity(m_nu, u.eV)
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
@@ -1656,7 +1652,7 @@ class LambdaCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -2184,7 +2180,7 @@ class FlatLambdaCDM(LambdaCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -2343,7 +2339,7 @@ class wCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -2552,7 +2548,7 @@ class FlatwCDM(wCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -2713,7 +2709,7 @@ class w0waCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -2881,7 +2877,7 @@ class Flatw0waCDM(w0waCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -2989,7 +2985,7 @@ class wpwaCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
@@ -3174,7 +3170,7 @@ class w0wzCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`, optional
+    m_nu : quantity-like, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
