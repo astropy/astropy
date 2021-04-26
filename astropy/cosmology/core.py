@@ -102,7 +102,7 @@ class Cosmology(metaclass=ABCMeta):
     Notes
     -----
     Class instances are static -- you cannot (and should not) change the values
-    of the parameters.  That is, all of the attributes above are
+    of the parameters.  That is, all of the above attributes (except meta) are
     read only.
 
     """
@@ -118,14 +118,10 @@ class Cosmology(metaclass=ABCMeta):
 
     def __new__(cls, *args, **kwargs):
         # bundle initialization argument
-        if not args:
-            parameters = kwargs
-        else:  # have to merge args and kwargs.
-            # bind any arguments passed
-            ba = cls._init_signature.bind_partial(*args, **kwargs)
-            ba.apply_defaults()  # and fill in the defaults
-            # get dictionary of arguments
-            parameters = ba.arguments
+        ba = cls._init_signature.bind_partial(*args, **kwargs)
+        ba.apply_defaults()  # and fill in the defaults
+        # get dictionary of arguments
+        parameters = ba.arguments
 
         self = super().__new__(cls)
         self._init_arguments = parameters  # store arguments from initialization
@@ -173,7 +169,7 @@ class Cosmology(metaclass=ABCMeta):
                                    if self.name is not None else None))
 
         # Mix kwargs into initial arguments, preferring the former.
-        full_kwargs = {**self._init_arguments, **kwargs}
+        full_kwargs = {**self._init_arguments, "meta": self.meta, **kwargs}
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         try:
@@ -232,23 +228,23 @@ class FLRW(Cosmology):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Notes
     -----
     Class instances are static -- you cannot change the values
-    of the parameters.  That is, all of the attributes above are
+    of the parameters.  That is, all of the above attributes (except meta) are
     read only.
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None,
-                 **metadata):
-        super().__init__(name=name, meta=metadata)
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(name=name, meta=meta)
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -1676,10 +1672,10 @@ class LambdaCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -1694,10 +1690,10 @@ class LambdaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None, **metadata):
-
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
-                         name=name, **metadata)
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
+                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
 
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
@@ -2208,10 +2204,10 @@ class FlatLambdaCDM(LambdaCDM):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -2226,10 +2222,10 @@ class FlatLambdaCDM(LambdaCDM):
     """
 
     def __init__(self, H0, Om0, Tcmb0=0, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None, **metadata):
-
-        super().__init__(H0, Om0, 0.0, Tcmb0, Neff, m_nu, Ob0=Ob0,
-			 name=name, **metadata)
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=0.0, Tcmb0=Tcmb0, Neff=Neff,
+                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2371,10 +2367,10 @@ class wCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -2389,10 +2385,10 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
-                 name=None, **metadata):
-
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0, name=name)
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
+                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self._w0 = float(w0)
 
         # Please see "Notes about speeding up integrals" for discussion
@@ -2584,10 +2580,10 @@ class FlatwCDM(wCDM):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -2602,11 +2598,10 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
-                 name=None, **metadata):
-
-        super().__init__(H0, Om0, 0., w0, Tcmb0, Neff, m_nu, Ob0=Ob0,
-                         name=name, **metdata)
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=0.0, w0=w0, Tcmb0=Tcmb0,
+                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2750,10 +2745,10 @@ class w0waCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -2768,11 +2763,10 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
-                 name=None, **metadata):
-
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
-                         name=name, **metadata)
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
+                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self._w0 = float(w0)
         self._wa = float(wa)
 
@@ -2923,10 +2917,10 @@ class Flatw0waCDM(w0waCDM):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -2941,11 +2935,10 @@ class Flatw0waCDM(w0waCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None,
-                 **metadata):
-
-        super().__init__(H0, Om0, 0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
-                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, **metadata)
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
+                         Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -3036,10 +3029,10 @@ class wpwaCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -3053,12 +3046,11 @@ class wpwaCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
-    def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
-                 Tcmb0=0, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
-                 Ob0=None, name=None, **metadata):
-
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
-			 name=name, **metadata)
+    def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0, Tcmb0=0,
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *, 
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
+                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
@@ -3224,10 +3216,10 @@ class w0wzCDM(FLRW):
         density at z=0.  If this is set to None (the default), any
         computation that requires its value will raise an exception.
 
-    name : str or None, optional
+    name : str or None (optional, keyword-only)
         Name for this cosmological object.
 
-    **metadata
+    meta : Mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g. a reference.
 
     Examples
@@ -3242,11 +3234,10 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=0,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
-                 name=None, **metadata):
-
-        super().__init__(H0, Om0, Ode0, Tcmb0, Neff, m_nu, Ob0=Ob0,
-                         name=name, **metadata)
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, *,
+                 name=None, meta=None):
+        super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
+                         m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self._w0 = float(w0)
         self._wz = float(wz)
 
@@ -3382,3 +3373,11 @@ def inf_like(x):
         return np.inf
     else:
         return np.full_like(x, np.inf, dtype='float')
+
+
+# modified from https://stackoverflow.com/a/33607093
+def _get_subclasses(cls):
+    for subclass in cls.__subclasses__():
+        yield from _get_subclasses(subclass)
+        yield subclass.__qualname__, subclass
+    yield cls.__qualname__, cls

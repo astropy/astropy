@@ -8,53 +8,47 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.state import ScienceState
 
 from . import parameters
-from .core import Cosmology, FlatLambdaCDM, LambdaCDM
+from .core import Cosmology, _get_subclasses
 
 __all__ = ["default_cosmology"] + parameters.available
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a LambdaCDM or FlatLambdaCDM instance
-# with the same name as the parameter set in the current module's namespace.
-
+# parameters module and creates a cosmology instance with the same name as the
+# parameter set in the current module's namespace.
+_subclasses = dict(_get_subclasses(Cosmology))
 for key in parameters.available:
-    par = getattr(parameters, key)
+    params = getattr(parameters, key)
 
-    if par["cosmology"] == "FlatLambdaCDM":
-        cosmo = FlatLambdaCDM(
-            par["H0"],
-            par["Om0"],
-            Tcmb0=par["Tcmb0"],
-            Neff=par["Neff"],
-            m_nu=u.Quantity(par["m_nu"], u.eV),
-            name=key,
-            Ob0=par["Ob0"],
-        )
-        docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
-        cosmo.__doc__ = docstr.format(key, par["reference"])
-    else:
-        warnings.warn("Please open a PR for your added cosmology realization.")
-        # For a non-flat LCDM realization, the following is the code necessary
-        # to create the realization, given the parameters. We comment this out
-        # as there are not currently any such built-in realizations.
-        # cosmo = LambdaCDM(
-        #     par["H0"],
-        #     par["Om0"],
-        #     par["Ode0"],
-        #     Tcmb0=par["Tcmb0"],
-        #     Neff=par["Neff"],
-        #     m_nu=u.Quantity(par["m_nu"], u.eV),
-        #     name=key,
-        #     Ob0=par["Ob0"],
-        # )
-        # docstr = "{} instance of LambdaCDM cosmology\n\n(from {})"
-        # cosmo.__doc__ = docstr.format(key, par["reference"])
+    # TODO! this will need refactoring again when: parameter I/O is JSON/ECSSV
+    cosmo_cls_name = params.pop("cosmology", None)
 
-    setattr(sys.modules[__name__], key, cosmo)
+    if cosmo_cls_name in _subclasses:
+        cosmo_cls = _subclasses[cosmo_cls_name]
+
+        par = dict()
+        meta = params.pop("meta", None) or {}
+        for k, v in params.items():
+            if k not in cosmo_cls._init_signature.parameters:
+                meta.setdefault(k, v)  # merge into meta w/out overwriting
+            elif k == "H0":
+                par["H0"] = u.Quantity(v, u.km / u.s / u.Mpc)
+            elif k == "m_nu":
+                par["m_nu"] = u.Quantity(v, u.eV)
+            else:
+                par[k] = v
+
+        ba = cosmo_cls._init_signature.bind_partial(**par, meta=meta)
+        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        cosmo.__doc__ = (f"{key} instance of {cosmo_cls} cosmology\n\n"
+                         f"(from {meta['reference']})")
+
+        setattr(sys.modules[__name__], key, cosmo)
 
 # don't leave these variables floating around in the namespace
-del key, par, cosmo
+        del cosmo_cls, par, k, v, ba, cosmo
+del key, params, cosmo_cls_name
 
 #########################################################################
 # The science state below contains the current cosmology.

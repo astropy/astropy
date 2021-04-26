@@ -59,7 +59,7 @@ def test_immutability():
 
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
-                               Ob0=0.05)
+                               Ob0=0.05, name="test", meta={"a": "b"})
     assert allclose(cosmo.Om0, 0.27)
     assert allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
     assert allclose(cosmo.Ob0, 0.05)
@@ -78,6 +78,8 @@ def test_basic():
     assert allclose(cosmo.Neff, 3.04)
     assert allclose(cosmo.h, 0.7)
     assert allclose(cosmo.H0, 70.0 * u.km / u.s / u.Mpc)
+    assert cosmo.name == "test"
+    assert cosmo.meta == {"a": "b"}
 
     # Make sure setting them as quantities gives the same results
     H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
@@ -201,7 +203,7 @@ def test_clone():
     """ Test clone operation"""
 
     cosmo = core.FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27,
-                               Tcmb0=3.0 * u.K)
+                               Tcmb0=3.0 * u.K, name="test", meta={"a":"b"})
     z = np.linspace(0.1, 3, 15)
 
     # First, test with no changes, which should return same object
@@ -213,7 +215,7 @@ def test_clone():
     newclone = cosmo.clone(H0=60 * u.km / u.s / u.Mpc)
     assert newclone is not cosmo
     assert newclone.__class__ == cosmo.__class__
-    assert newclone.name == cosmo.name
+    assert newclone.name == cosmo.name + " (modified)"
     assert not allclose(newclone.H0.value, cosmo.H0.value)
     assert allclose(newclone.H0, 60.0 * u.km / u.s / u.Mpc)
     assert allclose(newclone.Om0, cosmo.Om0)
@@ -228,7 +230,7 @@ def test_clone():
     cmp = core.FlatLambdaCDM(H0=60 * u.km / u.s / u.Mpc, Om0=0.27,
                              Tcmb0=3.0 * u.K)
     assert newclone.__class__ == cmp.__class__
-    assert newclone.name == cmp.name
+    assert cmp.name is None
     assert allclose(newclone.H0, cmp.H0)
     assert allclose(newclone.Om0, cmp.Om0)
     assert allclose(newclone.Ode0, cmp.Ode0)
