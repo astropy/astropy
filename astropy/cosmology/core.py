@@ -212,13 +212,14 @@ class FLRW(Cosmology):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -297,7 +298,7 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            with u.set_enabled_equivalencies(u.mass_energy()):
+            with u.add_enabled_equivalencies(u.mass_energy()):
                 m_nu = u.Quantity(m_nu, u.eV)
 
             # Now, figure out if we have massive neutrinos to deal with,
@@ -1652,13 +1653,14 @@ class LambdaCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -2180,13 +2182,14 @@ class FlatLambdaCDM(LambdaCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -2339,13 +2342,14 @@ class wCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -2548,13 +2552,14 @@ class FlatwCDM(wCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -2709,13 +2714,14 @@ class w0waCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -2877,13 +2883,14 @@ class Flatw0waCDM(w0waCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -2985,13 +2992,14 @@ class wpwaCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -3170,13 +3178,14 @@ class w0wzCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like, optional
-        Mass of each neutrino species. If this is a scalar Quantity, then all
-        neutrino species are assumed to have that mass. Otherwise, the mass of
-        each species. The actual number of neutrino species (and hence the
-        number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Typically this means you should provide three neutrino masses
-        unless you are considering something like a sterile neutrino.
+    m_nu : quantity-like or array-like, optional
+        Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
+        If this is a scalar Quantity, then all neutrino species are assumed to
+        have that mass. Otherwise, the mass of each species. The actual number
+        of neutrino species (and hence the number of elements of m_nu if it is
+        not scalar) must be the floor of Neff. Typically this means you should
+        provide three neutrino masses unless you are considering something like
+        a sterile neutrino.
 
     Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
