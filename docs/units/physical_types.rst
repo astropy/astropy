@@ -45,8 +45,8 @@ An equality comparison between a |PhysicalType| and a string will return
 `True` if the string is a name of the |PhysicalType|.
 
   >>> import astropy.units as u
-  >>> speed = u.get_physical_type(u.m / u.s ** 2)
-  >>> speed == 'acceleration'
+  >>> acceleration = u.get_physical_type(u.m / u.s ** 2)
+  >>> acceleration == 'acceleration'
   True
 
 Some units may correspond to multiple physical types because compatible
