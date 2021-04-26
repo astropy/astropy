@@ -28,8 +28,6 @@ def test_init():
         h0bad = u.Quantity([70, 100], u.km / u.s / u.Mpc)
         cosmo = core.FlatLambdaCDM(H0=h0bad, Om0=0.27)
     with pytest.raises(ValueError):
-        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.2, Tcmb0=3, m_nu=0.5)
-    with pytest.raises(ValueError):
         bad_mnu = u.Quantity([-0.3, 0.2, 0.1], u.eV)
         cosmo = core.FlatLambdaCDM(H0=70, Om0=0.2, Tcmb0=3, m_nu=bad_mnu)
     with pytest.raises(ValueError):
@@ -1289,7 +1287,7 @@ def test_absorption_distance():
 def test_massivenu_basic():
     # Test no neutrinos case
     tcos = core.FlatLambdaCDM(70.4, 0.272, Neff=4.05,
-                              Tcmb0=2.725 * u.K, m_nu=u.Quantity(0, u.eV))
+                              Tcmb0=2.725 * u.K, m_nu=0)
     assert allclose(tcos.Neff, 4.05)
     assert not tcos.has_massive_nu
     mnu = tcos.m_nu
@@ -1303,7 +1301,7 @@ def test_massivenu_basic():
 
     # Alternative no neutrinos case
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0 * u.K,
-                              m_nu=u.Quantity(0.4, u.eV))
+                              m_nu=str((0.4 * u.eV).to(u.g, u.mass_energy())))
     assert not tcos.has_massive_nu
     assert tcos.m_nu is None
 
