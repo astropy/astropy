@@ -352,14 +352,6 @@ class OGIP(generic.Generic):
         return parsing.yacc(tabmodule='ogip_parsetab', package='astropy/units')
 
     @classmethod
-    def _get_unit(cls, t):
-        try:
-            return cls._parse_unit(t.value)
-        except ValueError as e:
-            raise ValueError(
-                f"At col {t.lexpos}, '{t.value}': {str(e)}")
-
-    @classmethod
     def _validate_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if detailed_exception:

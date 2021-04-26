@@ -145,8 +145,8 @@ class _UnitRegistry:
 
     def _reset_aliases(self):
         # Remove any existing aliases from the registry.
-        for name in getattr(self, '_aliases', {}):
-            self._registry.pop(name)
+        # for name in getattr(self, '_aliases', {}):
+        #     self._registry.pop(name)
         self._aliases = {}
 
     @property
@@ -272,6 +272,10 @@ class _UnitRegistry:
         equivalencies = _normalize_equivalencies(equivalencies)
         self._equivalencies |= set(equivalencies)
 
+    @property
+    def aliases(self):
+        return self._aliases
+
     def set_enabled_aliases(self, aliases):
         """
         Set aliases for units.
@@ -309,12 +313,17 @@ class _UnitRegistry:
         """
         for alias, unit in aliases.items():
             if alias in self._registry and unit != self._registry[alias]:
-                raise ValueError(f"{alias} already means {self._registry[alias]}, so "
-                                 f"cannot be used as an alias for {unit}.")
+                raise ValueError(
+                    f"{alias} already means {self._registry[alias]}, so "
+                    f"cannot be used as an alias for {unit}.")
+            if alias in self._aliases and unit != self._aliases[alias]:
+                raise ValueError(
+                    f"{alias} already is an alias for {self._aliases[alias]}, so "
+                    f"cannot be used as an alias for {unit} too.")
 
         for alias, unit in aliases.items():
-            if alias not in self._registry:
-                self._aliases[alias] = self._registry[alias] = unit
+            if alias not in self._registry and alias not in self._aliases:
+                self._aliases[alias] = unit
 
 
 class _UnitContext:
@@ -2026,7 +2035,7 @@ class _UnitMetaClass(type):
                            "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
                            .format(s, format_clause, str(e)))
                     if parse_strict == 'raise':
-                        raise ValueError(msg)
+                        raise ValueError(msg) from e
                     elif parse_strict == 'warn':
                         warnings.warn(msg, UnitsWarning)
                     else:
