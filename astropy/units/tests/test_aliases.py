@@ -7,24 +7,26 @@ import astropy.units as u
 
 
 trials = [
-    ({"counts": u.count}, "10**(-6) counts/s", "10**(-6) count/s"),
-    ({"Angstroms": u.AA}, "Angstroms", "Angstrom"),
+    ({"Angstroms": u.AA}, "Angstroms", u.AA),
+    ({"counts": u.count}, "counts/s", u.count / u.s),
     ({"ergs": u.erg, "Angstroms": u.AA},
-     "10^-17 ergs/(s.cm^2.Angstroms)", "10^-17 erg/(s.cm^2.Angstrom)")]
+     "ergs/(s cm**2 Angstroms)", u.erg / (u.s * u.cm**2 * u.AA))]
 
 
 class TestAliases:
     def teardown_method(self):
         u.set_enabled_aliases({})
 
-    def test_set_enabled_aliases(self):
-        for i, (aliases, bad, good) in enumerate(trials):
+    @pytest.mark.parametrize('format_', [None, 'fits', 'ogip', 'vounit'])
+    def test_set_enabled_aliases(self, format_):
+        for i, (aliases, bad, good_unit) in enumerate(trials):
             u.set_enabled_aliases(aliases)
-            assert u.Unit(bad) == u.Unit(good)
+            bad_unit = u.Unit(bad, format=format_)
+            assert bad_unit == good_unit
 
             for _, bad2, good2 in trials:
                 if bad2 == bad or bad2 in aliases:
-                    assert u.Unit(bad2) == u.Unit(good2)
+                    assert u.Unit(bad2, format=format_) == u.Unit(good2, format=format_)
                 else:
                     with pytest.raises(ValueError):
                         u.Unit(bad2)
@@ -63,5 +65,5 @@ class TestAliases:
 
     def test_cannot_alias_existing_alias_to_another_unit(self):
         u.set_enabled_aliases({'counts': u.count})
-        with pytest.raises(ValueError, match='already means'):
+        with pytest.raises(ValueError, match='already is an alias'):
             u.add_enabled_aliases({'counts': u.adu})
