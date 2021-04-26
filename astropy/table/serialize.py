@@ -245,6 +245,9 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
 
     for col in out.itercols():
         if not isinstance(col, Column) and col.__class__ not in exclude_classes:
+            # This catches columns for which info has not been set up right and
+            # therefore were not converted. See the corresponding test in
+            # test_mixin.py for an example.
             raise TypeError(
                 'failed to represent column '
                 f'{col.info.name!r} ({col.__class__.__name__}) as one '
