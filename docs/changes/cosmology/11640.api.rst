@@ -1,0 +1,3 @@
+Allow ``m_nu`` to be input as any quantity-like or array-like -- Quantity,
+array, float, str, etc. Input is passed to the Quantity constructor and
+converted to eV, still with the prior mass-energy equivalence enabled.
