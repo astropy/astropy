@@ -15,6 +15,7 @@ from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree, conf
 from astropy.io.votable.exceptions import VOWarning, W39, E25
 from astropy.table import Column, Table
+from astropy.units import UnrecognizedUnit
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -98,6 +99,13 @@ def test_read_through_table_interface2():
         t = Table.read(fd, format='votable', table_id='last_table')
 
     assert len(t) == 0
+
+
+def test_pass_kwargs_through_table_interface():
+    # Table.read() should pass on keyword arguments meant for parse()
+    filename = get_pkg_data_filename('data/nonstandard_units.xml')
+    t = Table.read(filename, format='votable', unit_format='generic')
+    assert not isinstance(t['Flux1'].unit, UnrecognizedUnit)
 
 
 def test_names_over_ids():
