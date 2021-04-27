@@ -33,9 +33,9 @@ class Distance(u.SpecificTypeQuantity):
 
     Parameters
     ----------
-    value : scalar or `~astropy.units.Quantity`
+    value : scalar or `~astropy.units.Quantity` ['length']
         The value of this distance.
-    unit : `~astropy.units.UnitBase`
+    unit : `~astropy.units.UnitBase` ['length']
         The units for this distance, *if* ``value`` is not a
         `~astropy.units.Quantity`. Must have dimensions of distance.
     z : float

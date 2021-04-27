@@ -22,17 +22,17 @@ doc_components_ecl = """
     lat : `~astropy.coordinates.Angle`, optional, keyword-only
         The ecliptic latitude for this object (``lon`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, keyword-only
+    distance : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The distance for this object from the {0}.
         (``representation`` must be None).
 
-    pm_lon_coslat : `~astropy.coordinates.Angle`, optional, keyword-only
+    pm_lon_coslat : `~astropy.units.Quantity` ['angualar speed'], optional, keyword-only
         The proper motion in the ecliptic longitude (including the ``cos(lat)``
         factor) for this object (``pm_lat`` must also be given).
-    pm_lat : `~astropy.coordinates.Angle`, optional, keyword-only
+    pm_lat : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in the ecliptic latitude for this object
         (``pm_lon_coslat`` must also be given).
-    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
+    radial_velocity : `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The radial velocity of this object.
 """
 

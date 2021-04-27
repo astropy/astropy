@@ -52,7 +52,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the closest match for each ``matchcoord``
         and the ``matchcoord``. Shape matches ``matchcoord``.
-    dist3d : `~astropy.units.Quantity`
+    dist3d : `~astropy.units.Quantity` ['length']
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.
 
@@ -128,7 +128,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the closest match for each
         ``matchcoord`` and the ``matchcoord``. Shape matches ``matchcoord``.
-    dist3d : `~astropy.units.Quantity`
+    dist3d : `~astropy.units.Quantity` ['length']
         The 3D distance between the closest match for each ``matchcoord`` and
         the ``matchcoord``. Shape matches ``matchcoord``.  If either
         ``matchcoord`` or ``catalogcoord`` don't have a distance, this is the 3D
@@ -195,8 +195,8 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
         ``coords1`` within ``seplimit``.  Cannot be a scalar coordinate.
-    distlimit : `~astropy.units.Quantity`
-        The physical radius to search within. Must have distance units.
+    distlimit : `~astropy.units.Quantity` ['length']
+        The physical radius to search within.
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
@@ -213,7 +213,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the coordinates. Shape matches ``idx1``
         and ``idx2``.
-    dist3d : `~astropy.units.Quantity`
+    dist3d : `~astropy.units.Quantity` ['length']
         The 3D distance between the coordinates. Shape matches ``idx1`` and
         ``idx2``. The unit is that of ``coords1``.
 
@@ -298,8 +298,8 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
     coords2 : coordinate-like
         The second set of coordinates, which will be searched for matches from
         ``coords1`` within ``seplimit``. Cannot be a scalar coordinate.
-    seplimit : `~astropy.units.Quantity`
-        The on-sky separation to search within. Must have angular units.
+    seplimit : `~astropy.units.Quantity` ['angle']
+        The on-sky separation to search within.
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
@@ -316,7 +316,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the coordinates. Shape matches ``idx1``
         and ``idx2``.
-    dist3d : `~astropy.units.Quantity`
+    dist3d : `~astropy.units.Quantity` ['length']
         The 3D distance between the coordinates. Shape matches ``idx1``
         and ``idx2``; the unit is that of ``coords1``.
         If either ``coords1`` or ``coords2`` don't have a distance,

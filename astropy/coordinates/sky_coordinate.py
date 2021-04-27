@@ -244,20 +244,20 @@ class SkyCoord(ShapedLikeNDArray):
             RA and Dec for frames where ``ra`` and ``dec`` are keys in the
             frame's ``representation_component_names``, including `ICRS`,
             `FK5`, `FK4`, and `FK4NoETerms`.
-        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity`, optional
+        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity` ['angular speed'], optional
             Proper motion components, in angle per time units.
         l, b : angle-like, optional
             Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the `Galactic` frame.
-        pm_l_cosb, pm_b : `~astropy.units.Quantity`, optional
+        pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
             Proper motion components in the `Galactic` frame, in angle per time
             units.
-        x, y, z : float or `~astropy.units.Quantity`, optional
+        x, y, z : float or `~astropy.units.Quantity` ['length'], optional
             Cartesian coordinates values
-        u, v, w : float or `~astropy.units.Quantity`, optional
+        u, v, w : float or `~astropy.units.Quantity` ['length'], optional
             Cartesian coordinates values for the Galactic frame.
-        radial_velocity : `~astropy.units.Quantity`, optional
+        radial_velocity : `~astropy.units.Quantity` ['speed'], optional
             The component of the velocity along the line-of-sight (i.e., the
             radial direction), in velocity units.
     """
@@ -1242,7 +1242,7 @@ class SkyCoord(ShapedLikeNDArray):
             The on-sky separation between the closest match for each
             element in this object in ``catalogcoord``. Shape matches
             this object.
-        dist3d : `~astropy.units.Quantity`
+        dist3d : `~astropy.units.Quantity` ['length']
             The 3D distance between the closest match for each element
             in this object in ``catalogcoord``. Shape matches this
             object. Unless both this and ``catalogcoord`` have associated
@@ -1307,7 +1307,7 @@ class SkyCoord(ShapedLikeNDArray):
             The on-sky separation between the closest match for each
             element in this object in ``catalogcoord``. Shape matches
             this object.
-        dist3d : `~astropy.units.Quantity`
+        dist3d : `~astropy.units.Quantity` ['length']
             The 3D distance between the closest match for each element
             in this object in ``catalogcoord``. Shape matches this
             object.
@@ -1354,8 +1354,8 @@ class SkyCoord(ShapedLikeNDArray):
             The coordinates to search around to try to find matching points in
             this `SkyCoord`. This should be an object with array coordinates,
             not a scalar coordinate object.
-        seplimit : `~astropy.units.Quantity`
-            The on-sky separation to search within. Must have angular units.
+        seplimit : `~astropy.units.Quantity` ['angle']
+            The on-sky separation to search within.
 
         Returns
         -------
@@ -1370,7 +1370,7 @@ class SkyCoord(ShapedLikeNDArray):
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
-        dist3d : `~astropy.units.Quantity`
+        dist3d : `~astropy.units.Quantity` ['length']
             The 3D distance between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
 
@@ -1413,8 +1413,8 @@ class SkyCoord(ShapedLikeNDArray):
             The coordinates to search around to try to find matching points in
             this `SkyCoord`. This should be an object with array coordinates,
             not a scalar coordinate object.
-        distlimit : `~astropy.units.Quantity`
-            The physical radius to search within. Must have distance units.
+        distlimit : `~astropy.units.Quantity` ['length']
+            The physical radius to search within.
 
         Returns
         -------
@@ -1429,7 +1429,7 @@ class SkyCoord(ShapedLikeNDArray):
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
-        dist3d : `~astropy.units.Quantity`
+        dist3d : `~astropy.units.Quantity` ['length']
             The 3D distance between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
 
@@ -1692,11 +1692,11 @@ class SkyCoord(ShapedLikeNDArray):
 
         Returns
         -------
-        vcorr : `~astropy.units.Quantity`
+        vcorr : `~astropy.units.Quantity` ['speed']
             The  correction with a positive sign.  I.e., *add* this
             to an observed radial velocity to get the barycentric (or
             heliocentric) velocity. If m/s precision or better is needed,
-            see the notes below. Must have physical type of 'speed'.
+            see the notes below.
 
         Notes
         -----

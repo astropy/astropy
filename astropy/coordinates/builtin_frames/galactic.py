@@ -21,16 +21,16 @@ doc_components = """
     b : `~astropy.coordinates.Angle`, optional, keyword-only
         The Galactic latitude for this object (``l`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, keyword-only
+    distance : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The Distance for this object along the line-of-sight.
 
-    pm_l_cosb : `~astropy.units.Quantity`, optional, keyword-only
+    pm_l_cosb : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in Galactic longitude (including the ``cos(b)`` term)
         for this object (``pm_b`` must also be given).
-    pm_b : `~astropy.units.Quantity`, optional, keyword-only
+    pm_b : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in Galactic latitude for this object (``pm_l_cosb``
         must also be given).
-    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
+    radial_velocity : `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The radial velocity of this object.
 """
 

@@ -39,7 +39,7 @@ class SpectralQuantity(SpecificTypeQuantity):
         Spectral axis data values.
     unit : unit-like
         Unit for the given data.
-    doppler_rest : `~astropy.units.Quantity`, optional
+    doppler_rest : `~astropy.units.Quantity` ['speed'], optional
         The rest value to use for conversions from/to velocities
     doppler_convention : str, optional
         The convention to use when converting the spectral data to/from
@@ -110,7 +110,7 @@ class SpectralQuantity(SpecificTypeQuantity):
 
         Returns
         -------
-        `~astropy.units.Quantity`
+        `~astropy.units.Quantity` ['speed']
             Rest value as an astropy `~astropy.units.Quantity` object.
         """
         return self._doppler_rest
@@ -123,7 +123,7 @@ class SpectralQuantity(SpecificTypeQuantity):
 
         Parameters
         ----------
-        value : `~astropy.units.Quantity`
+        value : `~astropy.units.Quantity` ['speed']
             Rest value.
         """
         if self._doppler_rest is not None:
@@ -200,7 +200,7 @@ class SpectralQuantity(SpecificTypeQuantity):
             If not provided or ``[]``, spectral equivalencies will be used.
             If `None`, no equivalencies will be applied at all, not even any
             set globally or within a context.
-        doppler_rest : `~astropy.units.Quantity`, optional
+        doppler_rest : `~astropy.units.Quantity` ['speed'], optional
             The rest value used when converting to/from velocities. This will
             also be set at an attribute on the output
             `~astropy.coordinates.SpectralQuantity`.
