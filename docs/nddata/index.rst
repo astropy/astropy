@@ -55,7 +55,7 @@ additional ``meta`` attributes:
     >>> ndd = NDData(data, mask=mask, unit=unit, uncertainty=uncertainty,
     ...              meta=meta)
     >>> ndd
-    NDData([1, 2, 3, 4])
+    NDData([1, 2, 3, 4], unit='erg / s')
 
 The representation only displays the ``data``; the other attributes need to be
 accessed directly, for example, ``ndd.mask`` to access the mask.
@@ -76,14 +76,14 @@ Instances are created in the same way::
     >>> from astropy.nddata import NDDataRef
     >>> ndd = NDDataRef(ndd)
     >>> ndd
-    NDDataRef([1, 2, 3, 4])
+    NDDataRef([1, 2, 3, 4], unit='erg / s')
 
 But also support arithmetic (:ref:`nddata_arithmetic`) like addition::
 
     >>> import astropy.units as u
     >>> ndd2 = ndd.add([4, -3.5, 3, 2.5] * u.erg / u.s)
     >>> ndd2
-    NDDataRef([ 5. , -1.5,  6. ,  6.5])
+    NDDataRef([ 5. , -1.5,  6. ,  6.5], unit='erg / s')
 
 Because these operations have a wide range of options, these are not available
 using arithmetic operators like ``+``.
@@ -92,9 +92,9 @@ Slicing or indexing (:ref:`nddata_slicing`) is possible (with warnings issued if
 some attribute cannot be sliced)::
 
     >>> ndd2[2:]  # discard the first two elements  # doctest: +FLOAT_CMP
-    NDDataRef([6. , 6.5])
+    NDDataRef([6. , 6.5], unit='erg / s')
     >>> ndd2[1]   # get the second element  # doctest: +FLOAT_CMP
-    NDDataRef(-1.5)
+    NDDataRef(-1.5, unit='erg / s')
 
 
 Working with Two-Dimensional Data Like Images
