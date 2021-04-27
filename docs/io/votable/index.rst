@@ -17,6 +17,16 @@ from ``numpy`` record arrays.
 Getting Started
 ===============
 
+This section provides a quick introduction of using :mod:`astropy.io.votable`. The
+goal is to demonstrate the package's basic features without getting into too
+much detail.
+
+.. note::
+
+    If you want to read or write a single table in VOTable format, the
+    recommended method is via the high-level :ref:`table_io`. In particular
+    see the :ref:`Unified I/O VOTables <table_io_votable>` section.
+
 Reading a VOTable File
 ----------------------
 
@@ -195,6 +205,11 @@ To build a new table from a VOTable file::
 Outputting a VOTable File
 -------------------------
 
+This section describes writing table data in the VOTable format using the
+`~astropy.io.votable` package directly. For some cases, however, the high-level
+:ref:`table_io` will often suffice and is somewhat more convenient to use. See
+the :ref:`Unified I/O VOTable <table_io_votable>` section for details.
+
 To save a VOTable file, call the
 `~astropy.io.votable.tree.VOTableFile.to_xml` method. It accepts
 either a string or Unicode path, or a Python file-like object::
@@ -224,11 +239,13 @@ Standard Compliance
 
 `astropy.io.votable.tree.Table` supports the `VOTable Format Definition
 Version 1.1
-<http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_,
+<https://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_,
 `Version 1.2
-<http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html>`_,
-and the `Version 1.3 proposed recommendation
-<http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_.
+<https://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html>`_,
+`Version 1.3
+<https://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html>`_,
+and `Version 1.4
+<https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_.
 Some flexibility is provided to support the 1.0 draft version and
 other nonstandard usage in the wild. To support these cases, set the
 keyword argument ``pedantic`` to ``False`` when parsing.
@@ -239,7 +256,7 @@ keyword argument ``pedantic`` to ``False`` when parsing.
   is documented in more detail in :ref:`warnings` and
   :ref:`exceptions`.
 
-Output always conforms to the 1.1, 1.2, or 1.3 spec, depending on the
+Output always conforms to the 1.1, 1.2, 1.3, or 1.4 spec, depending on the
 input.
 
 .. _pedantic-mode:
@@ -437,13 +454,16 @@ See Also
 ========
 
 - `VOTable Format Definition Version 1.1
-  <http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_
+  <https://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html>`_
 
 - `VOTable Format Definition Version 1.2
-  <http://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html>`_
+  <https://www.ivoa.net/documents/VOTable/20091130/REC-VOTable-1.2.html>`_
 
-- `VOTable Format Definition Version 1.3, Proposed Recommendation
-  <http://www.ivoa.net/documents/VOTable/20130315/PR-VOTable-1.3-20130315.html>`_
+- `VOTable Format Definition Version 1.3
+  <https://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html>`_
+
+- `VOTable Format Definition Version 1.4
+  <https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do
