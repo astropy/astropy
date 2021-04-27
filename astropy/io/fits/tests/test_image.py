@@ -1772,6 +1772,22 @@ class TestCompressedImage(FitsTestCase):
             with pytest.raises(TypeError):
                 hdu.name = 42
 
+    def test_compressed_header_extname(self):
+        """Test consistent EXTNAME / hdu name interaction."""
+        name = 'FOO'
+        hdu = fits.CompImageHDU(data=np.arange(10), name=name)
+        assert hdu._header['EXTNAME'] == name
+        assert hdu.header['EXTNAME'] == name
+        assert hdu.name == name
+
+        name = 'BAR'
+        hdu.name = name
+        assert hdu._header['EXTNAME'] == name
+        assert hdu.header['EXTNAME'] == name
+        assert hdu.name == name
+
+        assert len(hdu._header._keyword_indices['EXTNAME']) == 1
+
     @pytest.mark.parametrize(
         ('keyword', 'dtype', 'expected'),
         [('BSCALE', np.uint8, np.float32), ('BSCALE', np.int16, np.float32),
