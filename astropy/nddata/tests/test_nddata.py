@@ -422,23 +422,53 @@ def test_nddata_str():
          [[5 6]
           [7 8]]]"""[1:])
 
+    # let's add units!
+    arr = NDData(np.array([1, 2, 3]), unit="km")
+    assert str(arr) == '[1 2 3] km'
+
+    # what if it had these units?
+    arr = NDData(np.array([1, 2, 3]), unit="erg cm^-2 s^-1 A^-1")
+    assert str(arr) == '[1 2 3] erg / (A cm2 s)'
+
 
 def test_nddata_repr():
+    # The big test is eval(repr()) should be equal to the original!
+
     arr1d = NDData(np.array([1, 2, 3]))
-    assert repr(arr1d) == 'NDData([1, 2, 3])'
+    s = repr(arr1d)
+    assert s == 'NDData([1, 2, 3])'
+    got = eval(s)
+    assert np.all(got.data == arr1d.data)
+    assert got.unit == arr1d.unit
 
     arr2d = NDData(np.array([[1, 2], [3, 4]]))
-    assert repr(arr2d) == textwrap.dedent("""
+    s = repr(arr2d)
+    assert s == textwrap.dedent("""
         NDData([[1, 2],
                 [3, 4]])"""[1:])
+    got = eval(s)
+    assert np.all(got.data == arr2d.data)
+    assert got.unit == arr2d.unit
 
     arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    assert repr(arr3d) == textwrap.dedent("""
+    s = repr(arr3d)
+    assert s == textwrap.dedent("""
         NDData([[[1, 2],
                  [3, 4]],
 
                 [[5, 6],
                  [7, 8]]])"""[1:])
+    got = eval(s)
+    assert np.all(got.data == arr3d.data)
+    assert got.unit == arr3d.unit
+
+    # let's add units!
+    arr = NDData(np.array([1, 2, 3]), unit="km")
+    s = repr(arr)
+    assert s == "NDData([1, 2, 3], unit='km')"
+    got = eval(s)
+    assert np.all(got.data == arr.data)
+    assert got.unit == arr.unit
 
 
 # Not supported features
