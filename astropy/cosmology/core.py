@@ -192,7 +192,7 @@ class FLRW(Cosmology):
 
     Parameters
     ----------
-    H0 : float or scalar `~astropy.units.Quantity`
+    H0 : float or scalar `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -204,7 +204,7 @@ class FLRW(Cosmology):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -212,7 +212,7 @@ class FLRW(Cosmology):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -723,7 +723,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        Tcmb : `~astropy.units.Quantity`
+        Tcmb : `~astropy.units.Quantity` ['temperature']
           The temperature of the CMB in K.
         """
 
@@ -741,7 +741,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        Tnu : `~astropy.units.Quantity`
+        Tnu : `~astropy.units.Quantity` ['temperature']
           The temperature of the cosmic neutrino background in K.
         """
 
@@ -1045,7 +1045,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        H : `~astropy.units.Quantity`
+        H : `~astropy.units.Quantity` ['frequency']
           Hubble parameter at each input redshift.
         """
 
@@ -1086,7 +1086,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           Lookback time in Gyr to each input redshift.
 
         See Also
@@ -1108,7 +1108,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           Lookback time in Gyr to each input redshift.
         """
         return self._integral_lookback_time(z)
@@ -1126,7 +1126,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           Lookback time in Gyr to each input redshift.
         """
         from scipy.integrate import quad
@@ -1147,7 +1147,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Lookback distance in Mpc
         """
         return (self.lookback_time(z) * const.c).to(u.Mpc)
@@ -1162,7 +1162,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           The age of the universe in Gyr at each input redshift.
 
         See Also
@@ -1183,7 +1183,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           The age of the universe in Gyr at each input redshift.
         """
         return self._integral_age(z)
@@ -1200,7 +1200,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           The age of the universe in Gyr at each input redshift.
 
         See Also
@@ -1243,7 +1243,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc to each input redshift.
         """
 
@@ -1264,7 +1264,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc between each input redshift.
         """
         return self._integral_comoving_distance_z1z2(z1, z2)
@@ -1284,7 +1284,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc between each input redshift.
         """
 
@@ -1308,7 +1308,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving transverse distance in Mpc at each input redshift.
 
         Notes
@@ -1335,7 +1335,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving transverse distance in Mpc between input redshift.
 
         Notes
@@ -1373,7 +1373,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Angular diameter distance in Mpc at each input redshift.
         """
 
@@ -1396,7 +1396,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Luminosity distance in Mpc at each input redshift.
 
         See Also
@@ -1480,7 +1480,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        distmod : `~astropy.units.Quantity`
+        distmod : `~astropy.units.Quantity` ['length']
           Distance modulus at each input redshift, in magnitudes
 
         See Also
@@ -1564,7 +1564,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           The distance in comoving kpc corresponding to an arcmin at each
           input redshift.
         """
@@ -1582,7 +1582,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           The distance in proper kpc corresponding to an arcmin at each
           input redshift.
         """
@@ -1600,7 +1600,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        theta : `~astropy.units.Quantity`
+        theta : `~astropy.units.Quantity` ['angle']
           The angular separation in arcsec corresponding to a comoving kpc
           at each input redshift.
         """
@@ -1618,7 +1618,7 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        theta : `~astropy.units.Quantity`
+        theta : `~astropy.units.Quantity` ['angle']
           The angular separation in arcsec corresponding to a proper kpc
           at each input redshift.
         """
@@ -1633,7 +1633,7 @@ class LambdaCDM(FLRW):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -1644,7 +1644,7 @@ class LambdaCDM(FLRW):
         Omega dark energy: density of the cosmological constant in units of
         the critical density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -1652,7 +1652,7 @@ class LambdaCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -1802,7 +1802,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc between each input redshift.
         """
         from scipy.special import ellipkinc
@@ -1870,7 +1870,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc between each input redshift.
         """
         try:
@@ -1897,7 +1897,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc between each input redshift.
         """
         try:
@@ -1928,7 +1928,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        d : `~astropy.units.Quantity`
+        d : `~astropy.units.Quantity` ['length']
           Comoving distance in Mpc between each input redshift.
         """
         try:
@@ -1968,7 +1968,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           The age of the universe in Gyr at each input redshift.
         """
         return self._hubble_time * inf_like(z)
@@ -1987,7 +1987,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           The age of the universe in Gyr at each input redshift.
         """
         if isiterable(z):
@@ -2009,7 +2009,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           The age of the universe in Gyr at each input redshift.
         """
         if isiterable(z):
@@ -2040,7 +2040,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           Lookback time in Gyr to each input redshift.
         """
         return self._EdS_age(0) - self._EdS_age(z)
@@ -2063,7 +2063,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           Lookback time in Gyr to each input redshift.
         """
         if isiterable(z):
@@ -2088,7 +2088,7 @@ class LambdaCDM(FLRW):
 
         Returns
         -------
-        t : `~astropy.units.Quantity`
+        t : `~astropy.units.Quantity` ['time']
           Lookback time in Gyr to each input redshift.
         """
         return self._flat_age(0) - self._flat_age(z)
@@ -2165,14 +2165,14 @@ class FlatLambdaCDM(LambdaCDM):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
     Om0 : float
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2180,7 +2180,7 @@ class FlatLambdaCDM(LambdaCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -2315,7 +2315,7 @@ class wCDM(FLRW):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2331,7 +2331,7 @@ class wCDM(FLRW):
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2339,7 +2339,7 @@ class wCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -2528,7 +2528,7 @@ class FlatwCDM(wCDM):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2540,7 +2540,7 @@ class FlatwCDM(wCDM):
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2548,7 +2548,7 @@ class FlatwCDM(wCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -2682,7 +2682,7 @@ class w0waCDM(FLRW):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2701,7 +2701,7 @@ class w0waCDM(FLRW):
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2709,7 +2709,7 @@ class w0waCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -2854,7 +2854,7 @@ class Flatw0waCDM(w0waCDM):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2869,7 +2869,7 @@ class Flatw0waCDM(w0waCDM):
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2877,7 +2877,7 @@ class Flatw0waCDM(w0waCDM):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -2956,7 +2956,7 @@ class wpwaCDM(FLRW):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2978,7 +2978,7 @@ class wpwaCDM(FLRW):
     zp : float, optional
         Pivot redshift -- the redshift where w(z) = wp
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2986,7 +2986,7 @@ class wpwaCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
@@ -3143,8 +3143,7 @@ class w0wzCDM(FLRW):
 
     Parameters
     ----------
-
-    H0 : float or `~astropy.units.Quantity`
+    H0 : float or `~astropy.units.Quantity` ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -3163,7 +3162,7 @@ class w0wzCDM(FLRW):
         Derivative of the dark energy equation of state with respect to z.
         A cosmological constant has w0=-1.0 and wz=0.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -3171,7 +3170,7 @@ class w0wzCDM(FLRW):
     Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : quantity-like or array-like, optional
+    m_nu : quantity-like ['energy', 'mass'] or array-like, optional
         Mass of each neutrino species in [eV] (mass-energy equivalency enabled).
         If this is a scalar Quantity, then all neutrino species are assumed to
         have that mass. Otherwise, the mass of each species. The actual number
