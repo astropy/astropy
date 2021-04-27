@@ -365,8 +365,8 @@ cmp : int, optional
     A bit field controlling the strictness of the comparison.  When 0,
     (the default), all fields must be identical.
 
-    The following constants may be or'ed together to loosen the
-    comparison.
+    The following constants, defined in the `astropy.wcs` module,
+    may be or'ed together to loosen the comparison.
 
     - ``WCSCOMPARE_ANCILLARY``: Ignores ancillary keywords that don't
       change the WCS transformation, such as ``DATE-OBS`` or
