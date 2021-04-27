@@ -688,10 +688,8 @@ class CompImageHDU(BinTableHDU):
             # Only continue if there is more than one found
             n_extname = len(indices)
             if n_extname > 1:
-                extnames_to_remove = []
-                for index in indices:
-                    if header[index] == self._default_name:
-                        extnames_to_remove.append(index)
+                extnames_to_remove = [index for index in indices
+                                      if header[index] == self._default_name]
                 if len(extnames_to_remove) == n_extname:
                     # Keep the first (they are all the same)
                     extnames_to_remove.pop(0)
