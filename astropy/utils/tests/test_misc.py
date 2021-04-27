@@ -3,7 +3,7 @@
 import json
 import locale
 import os
-import socket
+import urllib.error
 from datetime import datetime
 
 import pytest
@@ -29,9 +29,10 @@ def test_signal_number_to_name_no_failure():
 @pytest.mark.remote_data
 def test_api_lookup():
     try:
-        strurl = misc.find_api_page('astropy.utils.misc', 'dev', False, timeout=3)
-        objurl = misc.find_api_page(misc, 'dev', False, timeout=3)
-    except socket.timeout:
+        strurl = misc.find_api_page('astropy.utils.misc', 'dev', False,
+                                    timeout=5)
+        objurl = misc.find_api_page(misc, 'dev', False, timeout=5)
+    except urllib.error.URLError:
         if os.environ.get('CI', False):
             pytest.xfail('Timed out in CI')
         else:

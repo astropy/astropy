@@ -198,8 +198,8 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     """
     import webbrowser
-    import urllib.request
     from zlib import decompress
+    from astropy.utils.data import get_readable_fileobj
 
     if (not isinstance(obj, str) and
             hasattr(obj, '__module__') and
@@ -230,15 +230,10 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
 
     # Custom request headers; see
     # https://github.com/astropy/astropy/issues/8990
-    req = urllib.request.Request(
-        baseurl + 'objects.inv', headers={'User-Agent': f'Astropy/{version}'})
-
-    if timeout is None:
-        uf = urllib.request.urlopen(req)
-    else:
-        uf = urllib.request.urlopen(req, timeout=timeout)
-
-    try:
+    url = baseurl + 'objects.inv'
+    headers = {'User-Agent': f'Astropy/{version}'}
+    with get_readable_fileobj(url, encoding='binary', remote_timeout=timeout,
+                              http_headers=headers) as uf:
         oiread = uf.read()
 
         # need to first read/remove the first four lines, which have info before
@@ -258,8 +253,6 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
                              'has changed?'.format(baseurl + 'objects.inv'))
 
         compressed = oiread[(idx+1):]
-    finally:
-        uf.close()
 
     decompressed = decompress(compressed).decode('utf-8')
 
