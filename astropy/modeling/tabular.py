@@ -208,6 +208,8 @@ class _Tabular(Model):
             Input coordinates. The number of inputs must be equal
             to the dimensions of the lookup table.
         """
+        inputs = np.broadcast_arrays(*inputs)
+
         if isinstance(inputs, u.Quantity):
             inputs = inputs.value
         shape = inputs[0].shape

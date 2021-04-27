@@ -1,0 +1,1 @@
+Fixes ``Model`` crashes when some inputs are scalars and during some types of output reshaping.
