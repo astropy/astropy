@@ -9,6 +9,7 @@ from collections.abc import MutableMapping
 from inspect import signature
 
 import numpy as np
+import warnings
 from astropy.utils.decorators import deprecated
 from astropy.utils import isiterable, check_broadcast
 
@@ -785,3 +786,73 @@ class _ConstraintsDict(UserDict):
         super().__setitem__(key, val)
         param = getattr(self._model, key)
         setattr(param, self.constraint_type, val)
+
+
+class _SpecialOperatorsDict(UserDict):
+    """
+    Wrapper around UserDict to allow for better tracking of the Special
+    Operators for CompoundModels. This dictionary is structured so that
+    one cannot inadvertently overwrite an existing special operator.
+
+    Parameters
+    ----------
+    unique_id: int
+        the last used unique_id for a SPECIAL OPERATOR
+    special_operators: dict
+        a dictionary containing the special_operators
+
+    Notes
+    -----
+    Direct setting of operators (`dict[key] = value`) into the
+    dictionary has been deprecated in favor of the `.add(name, value)`
+    method, so that unique dictionary keys can be generated and tracked
+    consistently.
+    """
+
+    def __init__(self, unique_id=0, special_operators={}):
+        super().__init__(special_operators)
+        self._unique_id = unique_id
+
+    def _set_value(self, key, val):
+        if key in self:
+            raise ValueError(f'Special operator "{key}" already exists')
+        else:
+            super().__setitem__(key, val)
+
+    def __setitem__(self, key, val):
+        self._set_value(key, val)
+        warnings.warn(DeprecationWarning(
+            """
+            Special operator dictionary assignment has been deprecated.
+            Please use `.add` instead, so that you can capture a unique
+            key for your operator.
+            """
+        ))
+
+    def _get_unique_id(self):
+        self._unique_id += 1
+
+        return self._unique_id
+
+    def add(self, operator_name, operator):
+        """
+        Adds a special operator to the dictionary, and then returns the
+        unique key that the operator is stored under for later reference.
+
+        Parameters
+        ----------
+        operator_name: str
+            the name for the operator
+        operator: function
+            the actual operator function which will be used
+
+        Returns
+        -------
+        the unique operator key for the dictionary
+            `(operator_name, unique_id)`
+        """
+        key = (operator_name, self._get_unique_id())
+
+        self._set_value(key, operator)
+
+        return key
