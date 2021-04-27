@@ -6,12 +6,14 @@ import atexit
 import contextlib
 import errno
 import fnmatch
+import functools
 import hashlib
 import os
 import io
 import re
 import shutil
 import socket
+import ssl
 import sys
 import urllib.request
 import urllib.error
@@ -22,11 +24,19 @@ import ftplib
 from tempfile import NamedTemporaryFile, gettempdir, TemporaryDirectory, mkdtemp
 from warnings import warn
 
+try:
+    import certifi
+except ImportError:
+    # certifi support is optional; when available it will be used for TLS/SSL
+    # downloads
+    certifi = None
+
 import astropy.config.paths
 from astropy import config as _config
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
+
 
 # Order here determines order in the autosummary
 __all__ = [
@@ -1024,9 +1034,92 @@ class _FTPTLSHandler(urllib.request.FTPHandler):
                               persistent=False)
 
 
+@functools.lru_cache()
+def _build_urlopener(ftp_tls=False, ssl_context=None, allow_insecure=False):
+    """
+    Helper for building a `urllib.request.build_opener` which handles TLS/SSL.
+    """
+
+    ssl_context = dict(it for it in ssl_context) if ssl_context else {}
+    cert_chain = {}
+    if 'certfile' in ssl_context:
+        cert_chain.update({
+            'certfile': ssl_context.pop('certfile'),
+            'keyfile': ssl_context.pop('keyfile', None),
+            'password': ssl_context.pop('password', None)
+        })
+    elif 'password' in ssl_context or 'keyfile' in ssl_context:
+        raise ValueError(
+            "passing 'keyfile' or 'password' in the ssl_context argument "
+            "requires passing 'certfile' as well")
+
+    if 'cafile' not in ssl_context and certifi is not None:
+        ssl_context['cafile'] = certifi.where()
+
+    ssl_context = ssl.create_default_context(**ssl_context)
+
+    if allow_insecure:
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
+    if cert_chain:
+        ssl_context.load_cert_chain(**cert_chain)
+
+    https_handler = urllib.request.HTTPSHandler(context=ssl_context)
+
+    if ftp_tls:
+        urlopener = urllib.request.build_opener(_FTPTLSHandler(), https_handler)
+    else:
+        urlopener = urllib.request.build_opener(https_handler)
+
+    return urlopener
+
+
+def _try_url_open(source_url, timeout=None, http_headers=None, ftp_tls=False,
+                  ssl_context=None, allow_insecure=False):
+    """Helper for opening a URL while handling TLS/SSL verification issues."""
+
+    # Always try first with a secure connection
+    # _build_urlopener uses lru_cache, so the ssl_context argument must be
+    # converted to a hashshable type (a set of 2-tuples)
+    ssl_context = frozenset(ssl_context.items() if ssl_context else [])
+    urlopener = _build_urlopener(ftp_tls=ftp_tls, ssl_context=ssl_context,
+                                 allow_insecure=False)
+    req = urllib.request.Request(source_url, headers=http_headers)
+
+    try:
+        return urlopener.open(req, timeout=timeout)
+    except urllib.error.URLError as exc:
+        reason = exc.reason
+        if (isinstance(reason, ssl.SSLError)
+                and reason.reason == 'CERTIFICATE_VERIFY_FAILED'):
+            msg = (f'Verification of TLS/SSL certificate at {source_url} '
+                   f'failed: this can mean either the server is '
+                   f'misconfigured or your local root CA certificates are '
+                   f'out-of-date; in the latter case this can usually be '
+                   f'addressed by installing the Python package "certifi" '
+                   f'(see the documentation for astropy.utils.data.download_url)')
+            if not allow_insecure:
+                msg += (f' or in both cases you can work around this by '
+                        f'passing allow_insecure=True, but only if you '
+                        f'understand the implications; the original error '
+                        f'was: {reason}')
+                raise urllib.error.URLError(msg)
+            else:
+                msg += '. Re-trying with allow_insecure=True.'
+                warn(msg, AstropyWarning)
+                # Try again with a new urlopener allowing insecure connections
+                urlopener = _build_urlopener(ftp_tls=ftp_tls,
+                        ssl_context=ssl_context, allow_insecure=True)
+                return urlopener.open(req, timeout=timeout)
+
+        raise
+
+
 def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                remote_url=None, cache=False, pkgname='astropy',
-                               http_headers=None, ftp_tls=None):
+                               http_headers=None, ftp_tls=None,
+                               ssl_context=None, allow_insecure=False):
     from astropy.utils.console import ProgressBarOrSpinner
 
     if timeout == 0:
@@ -1064,13 +1157,10 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                 ftp_tls = True
             else:
                 raise
-    if ftp_tls:
-        urlopener = urllib.request.build_opener(_FTPTLSHandler())
-    else:
-        urlopener = urllib.request.build_opener()
 
-    req = urllib.request.Request(source_url, headers=http_headers)
-    with urlopener.open(req, timeout=timeout) as remote:
+    with _try_url_open(source_url, timeout=timeout, http_headers=http_headers,
+            ftp_tls=ftp_tls, ssl_context=ssl_context,
+            allow_insecure=allow_insecure) as remote:
         info = remote.info()
         try:
             size = int(info['Content-Length'])
@@ -1124,7 +1214,8 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
 
 
 def download_file(remote_url, cache=False, show_progress=True, timeout=None,
-                  sources=None, pkgname='astropy', http_headers=None):
+                  sources=None, pkgname='astropy', http_headers=None,
+                  ssl_context=None, allow_insecure=False):
     """Downloads a URL and optionally caches the result.
 
     It returns the filename of a file containing the URL's contents.
@@ -1185,6 +1276,28 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
         is not a remote HTTP URL.) In the default case (None), the headers are
         ``User-Agent: some_value`` and ``Accept: */*``, where ``some_value``
         is set by ``astropy.utils.data.conf.default_http_user_agent``.
+
+    ssl_context : dict, optional
+        Keyword arguments to pass to `ssl.create_default_context` when
+        downloading from HTTPS or TLS+FTP sources.  This can be used provide
+        alternative paths to root CA certificates.  Additionally, if the key
+        ``'certfile'`` and optionally ``'keyfile'`` and ``'password'`` are
+        included, they are passed to `ssl.SSLContext.load_cert_chain`.  This
+        can be used for performing SSL/TLS client certificate authentication
+        for servers that require it.
+
+    allow_insecure : bool, optional
+        Allow downloading files over a TLS/SSL connection even when the server
+        certificate verification failed.  When set to `True` the potentially
+        insecure download is allowed to proceed, but an
+        `~astropy.utils.exceptions.AstropyWarning` is issued.  If you are
+        frequently getting certificate verification warnings, consider
+        installing or upgrading `certifi`_ package, which provides frequently
+        updated certificates for common root CAs (i.e., a set similar to those
+        used by web browsers).  If installed, Astropy will use it
+        automatically.
+
+        .. _certifi: https://pypi.org/project/certifi/
 
     Returns
     -------
@@ -1248,7 +1361,9 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None,
                     cache=cache,
                     remote_url=remote_url,
                     pkgname=pkgname,
-                    http_headers=http_headers)
+                    http_headers=http_headers,
+                    ssl_context=ssl_context,
+                    allow_insecure=allow_insecure)
             # Success!
             break
 

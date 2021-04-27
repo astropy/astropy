@@ -79,6 +79,23 @@ conveniently with the ``get_pkg_data_*`` functions::
    # these are all mappings from the name in sites.json (which is ASCII-only) to the "true" unicode names
    TUBITAK->TÜBİTAK
 
+.. note::
+
+    Sometimes when downloading files from internet resources secured with
+    TLS/SSL, you may get an exception regarding a certificate verification
+    error.  Typically this indicates that Python could not find an
+    up-to-date collection of `root certificates`_ on your system.  This is
+    especially common on Windows.  This problem can usually be resolved
+    by installing the `certifi`_ package, which Astropy will use if
+    available to verify remote connections.  In rare cases, certificate
+    verification may still fail if the remote server is misconfigured (e.g.,
+    with expired certificates).  In this case, you may pass the
+    ``allow_insecure=True`` argument to
+    :func:`~astropy.utils.data.download_file` to allow the download with a
+    warning instead (not recommended unless you understand the `potential
+    risks <https://en.wikipedia.org/wiki/Man-in-the-middle_attack>`_).
+
+
 Usage From Outside Astropy
 ==========================
 
@@ -130,6 +147,8 @@ will be stored in the cache under the original URL requested::
    |========================================|  65M/ 65M (100.00%)        19s
 
 .. _Astropy data server: https://www.astropy.org/astropy-data/
+.. _root certificates: https://en.wikipedia.org/wiki/Root_certificate
+.. _certifi: https://pypi.org/project/certifi/
 
 Cache Management
 ================

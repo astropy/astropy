@@ -1,0 +1,3 @@
+Added ``ssl_context`` and ``allow_insecure`` options to ``download_file``,
+as well as the ability to optionally use the ``certifi`` package to provide
+root CA certificates when downloading from sites secured with TLS/SSL.
