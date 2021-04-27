@@ -906,13 +906,13 @@ def convolve_models(model, kernel, mode='convolve_fft', **kwargs):
     """
 
     if mode == 'convolve_fft':
-        SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
+        operator = SPECIAL_OPERATORS.add('convolve_fft', partial(convolve_fft, **kwargs))
     elif mode == 'convolve':
-        SPECIAL_OPERATORS['convolve'] = partial(convolve, **kwargs)
+        operator = SPECIAL_OPERATORS.add('convolve', partial(convolve, **kwargs))
     else:
         raise ValueError(f'Mode {mode} is not supported.')
 
-    return CompoundModel(mode, model, kernel)
+    return CompoundModel(operator, model, kernel)
 
 
 def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **kwargs):
@@ -945,6 +945,6 @@ def convolve_models_fft(model, kernel, bounding_box, resolution, cache=True, **k
         Convolved model
     """
 
-    SPECIAL_OPERATORS['convolve_fft'] = partial(convolve_fft, **kwargs)
+    operator = SPECIAL_OPERATORS.add('convolve_fft', partial(convolve_fft, **kwargs))
 
-    return Convolution(model, kernel, bounding_box, resolution, cache)
+    return Convolution(operator, model, kernel, bounding_box, resolution, cache)

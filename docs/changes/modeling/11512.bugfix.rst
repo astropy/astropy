@@ -1,0 +1,1 @@
+Bugfix for how ``SPECIAL_OPERATORS`` are handled.
