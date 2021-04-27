@@ -446,7 +446,7 @@ PyWcsprm_init(
 
     if (colsel != Py_None) {
       colsel_array = (PyArrayObject*) PyArray_ContiguousFromAny(
-        colsel, 1, 1, NPY_INT);
+        colsel, NPY_INT, 1, 1);
       if (colsel_array == NULL) {
         return -1;
       }
@@ -938,7 +938,7 @@ PyWcsprm_cylfix(
 
   if (naxis_obj != NULL && naxis_obj != Py_None) {
     naxis_array = (PyArrayObject*)PyArray_ContiguousFromAny(
-        naxis_obj, 1, 1, NPY_INT);
+        naxis_obj, NPY_INT, 1, 1);
     if (naxis_array == NULL) {
       return NULL;
     }
@@ -1036,7 +1036,7 @@ PyWcsprm_fix(
 
   if (naxis_obj != NULL && naxis_obj != Py_None) {
     naxis_array = (PyArrayObject*)PyArray_ContiguousFromAny(
-        naxis_obj, 1, 1, NPY_INT);
+        naxis_obj, NPY_INT, 1, 1);
     if (naxis_array == NULL) {
       return NULL;
     }
