@@ -543,7 +543,7 @@ if __doc__ is not None:
     for name in sorted(_name_physical_mapping.keys()):
         physical_type = _name_physical_mapping[name]
         doclines.extend([
-            f"    * - {name}",
+            f"    * - _`{name}`",
             f"      - :math:`{physical_type._unit.to_string('latex')[1:-1]}`",
             f"      - {', '.join([n for n in physical_type if n != name])}"])
 
