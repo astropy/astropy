@@ -1,0 +1,1 @@
+Added ``WCSCOMPARE_*`` constants to the list of WCSLIB constants available/exposed through the ``astropy.wcs`` module.
