@@ -848,12 +848,14 @@ class CompImageHDU(BinTableHDU):
 
         # Update the extension name in the table header
         if not name and 'EXTNAME' not in self._header:
-            name = self._default_name
-
-        if name:
-            self._header.set('EXTNAME', name,
+            # Do not sync this with the image header since the default
+            # name is specific to the table header.
+            self._header.set('EXTNAME', self._default_name,
                              'name of this binary table extension',
                              after='TFIELDS')
+        elif name:
+            # Force the name into table and image headers.
+            self.name = name
 
         # Set the compression type in the table header.
         if compression_type:
