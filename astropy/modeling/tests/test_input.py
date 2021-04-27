@@ -895,8 +895,6 @@ broadcast_models = [
 ]
 
 
-@pytest.mark.filterwarnings(
-    r'ignore:Models in math_functions are experimental\.')
 @pytest.mark.parametrize('model', broadcast_models)
 def test_mixed_input(model):
     result = model['model'](*model['inputs'])
