@@ -120,8 +120,8 @@ def circvar(data, axis=None, weights=None):
 
     Returns
     -------
-    circvar : ndarray or `~astropy.units.Quantity`
-        Circular variance. Dimensionless, if Quantity.
+    circvar : ndarray or `~astropy.units.Quantity` ['dimensionless']
+        Circular variance.
 
     Examples
     --------
@@ -187,9 +187,8 @@ def circstd(data, axis=None, weights=None, method='angular'):
 
     Returns
     -------
-    circstd : ndarray or `~astropy.units.Quantity`
+    circstd : ndarray or `~astropy.units.Quantity` ['dimensionless']
         Angular or circular standard deviation.
-        Dimensionless, if Quantity.
 
     Examples
     --------
@@ -311,8 +310,8 @@ def circcorrcoef(alpha, beta, axis=None, weights_alpha=None,
 
     Returns
     -------
-    rho : ndarray or `~astropy.units.Quantity`
-        Circular correlation coefficient. Dimensionless, if Quantity.
+    rho : ndarray or `~astropy.units.Quantity` ['dimensionless']
+        Circular correlation coefficient.
 
     Examples
     --------
@@ -375,8 +374,7 @@ def rayleightest(data, axis=None, weights=None):
 
     Returns
     -------
-    p-value : float or `~astropy.units.Quantity`
-        p-value. Dimensionless, if Quantity.
+    p-value : float or `~astropy.units.Quantity` ['dimensionless']
 
     Examples
     --------
@@ -424,7 +422,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
     data : ndarray or `~astropy.units.Quantity`
         Array of circular (directional) data, which is assumed to be in
         radians whenever ``data`` is ``numpy.ndarray``.
-    mu : float or `~astropy.units.Quantity`, optional
+    mu : float or `~astropy.units.Quantity` ['angle'], optional
         Mean angle. Assumed to be known.
     axis : int, optional
         Axis along which the V test will be performed.
@@ -436,8 +434,7 @@ def vtest(data, mu=0.0, axis=None, weights=None):
 
     Returns
     -------
-    p-value : float or `~astropy.units.Quantity`
-        p-value. Dimensionless, if Quantity.
+    p-value : float or `~astropy.units.Quantity` ['dimensionless']
 
     Examples
     --------
@@ -505,8 +502,8 @@ def vonmisesmle(data, axis=None):
     -------
     mu : float or `~astropy.units.Quantity`
         The mean (aka location parameter).
-    kappa : float or `~astropy.units.Quantity`
-        The concentration parameter. Dimensionless, if Quantity.
+    kappa : float or `~astropy.units.Quantity` ['dimensionless']
+        The concentration parameter.
 
     Examples
     --------
