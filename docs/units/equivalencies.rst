@@ -61,8 +61,8 @@ Angles as Dimensionless Units
 Angles are treated as a physically distinct type, which usually helps to avoid
 mistakes. However, this is not very handy when working with units related to
 rotational energy or the small angle approximation. (Indeed, this
-double-sidedness underlies why radians went from a `supplementary to derived
-unit <https://www.bipm.org/en/CGPM/db/20/8/>`__.) The function
+double-sidedness underlies why radians went from a `supplementary to derived unit
+<https://www.bipm.org/en/committees/cg/cgpm/20-1995/resolution-8>`__.) The function
 :func:`~astropy.units.equivalencies.dimensionless_angles` provides the required
 equivalency list that helps convert between angles and dimensionless units. It
 is somewhat different from all others in that it allows an arbitrary change in
