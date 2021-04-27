@@ -24,10 +24,10 @@ class BlackBody(Fittable1DModel):
 
     Parameters
     ----------
-    temperature : `~astropy.units.Quantity`
+    temperature : `~astropy.units.Quantity` ['temperature']
         Blackbody temperature.
 
-    scale : float or `~astropy.units.Quantity`
+    scale : float or `~astropy.units.Quantity` ['dimensionless']
         Scale factor
 
     Notes
@@ -82,7 +82,7 @@ class BlackBody(Fittable1DModel):
 
         Parameters
         ----------
-        x : float, `~numpy.ndarray`, or `~astropy.units.Quantity`
+        x : float, `~numpy.ndarray`, or `~astropy.units.Quantity` ['frequency']
             Frequency at which to compute the blackbody. If no units are given,
             this defaults to Hz.
 
@@ -90,7 +90,7 @@ class BlackBody(Fittable1DModel):
             Temperature of the blackbody. If no units are given, this defaults
             to Kelvin.
 
-        scale : float, `~numpy.ndarray`, or `~astropy.units.Quantity`
+        scale : float, `~numpy.ndarray`, or `~astropy.units.Quantity` ['dimensionless']
             Desired scale for the blackbody.
 
         Returns
@@ -380,7 +380,7 @@ class NFW(Fittable1DModel):
 
     Parameters
     ----------
-    mass : float or `~astropy.units.Quantity`
+    mass : float or `~astropy.units.Quantity` ['mass']
         Mass of NFW peak within specified overdensity radius.
     concentration : float
         Concentration of the NFW profile.
@@ -463,9 +463,9 @@ class NFW(Fittable1DModel):
 
         Parameters
         ----------
-        r : float or `~astropy.units.Quantity`
+        r : float or `~astropy.units.Quantity` ['length']
             Radial position of density to be calculated for the NFW profile.
-        mass : float or `~astropy.units.Quantity`
+        mass : float or `~astropy.units.Quantity` ['mass']
             Mass of NFW peak within specified overdensity radius.
         concentration : float
             Concentration of the NFW profile.
@@ -474,7 +474,7 @@ class NFW(Fittable1DModel):
 
         Returns
         -------
-        density : float or `~astropy.units.Quantity`
+        density : float or `~astropy.units.Quantity` ['density']
             NFW profile mass density at location ``r``. The density units are:
             [``mass`` / ``r`` ^3]
 
@@ -659,12 +659,12 @@ class NFW(Fittable1DModel):
 
         Parameters
         ----------
-        r : float or `~astropy.units.Quantity`
+        r : float or `~astropy.units.Quantity` ['length']
             Radial position of velocity to be calculated for the NFW profile.
 
         Returns
         -------
-        velocity : float or `~astropy.units.Quantity`
+        velocity : float or `~astropy.units.Quantity` ['speed']
             NFW profile circular velocity at location ``r``. The velocity units are:
             [km / s]
 

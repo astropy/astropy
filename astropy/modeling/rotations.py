@@ -209,7 +209,7 @@ class EulerAngleRotation(_EulerRotation, Model):
 
     Parameters
     ----------
-    phi, theta, psi : float or `~astropy.units.Quantity`
+    phi, theta, psi : float or `~astropy.units.Quantity` ['angle']
         "proper" Euler angles in deg.
         If floats, they should be in deg.
     axes_order : str
@@ -288,11 +288,11 @@ class RotateNative2Celestial(_SkyRotation):
 
     Parameters
     ----------
-    lon : float or `~astropy.units.Quantity`
+    lon : float or `~astropy.units.Quantity` ['angle']
         Celestial longitude of the fiducial point.
-    lat : float or `~astropy.units.Quantity`
+    lat : float or `~astropy.units.Quantity` ['angle']
         Celestial latitude of the fiducial point.
-    lon_pole : float or `~astropy.units.Quantity`
+    lon_pole : float or `~astropy.units.Quantity` ['angle']
         Longitude of the celestial pole in the native system.
 
     Notes
@@ -325,17 +325,17 @@ class RotateNative2Celestial(_SkyRotation):
         """
         Parameters
         ----------
-        phi_N, theta_N : float or `~astropy.units.Quantity`
+        phi_N, theta_N : float or `~astropy.units.Quantity` ['angle']
             Angles in the Native coordinate system.
             it is assumed that numerical only inputs are in degrees.
             If float, assumed in degrees.
-        lon, lat, lon_pole : float or `~astropy.units.Quantity`
+        lon, lat, lon_pole : float or `~astropy.units.Quantity` ['angle']
             Parameter values when the model was initialized.
             If float, assumed in degrees.
 
         Returns
         -------
-        alpha_C, delta_C : float or `~astropy.units.Quantity`
+        alpha_C, delta_C : float or `~astropy.units.Quantity` ['angle']
             Angles on the Celestial sphere.
             If float, in degrees.
         """
@@ -363,11 +363,11 @@ class RotateCelestial2Native(_SkyRotation):
 
     Parameters
     ----------
-    lon : float or `~astropy.units.Quantity`
+    lon : float or `~astropy.units.Quantity` ['angle']
         Celestial longitude of the fiducial point.
-    lat : float or `~astropy.units.Quantity`
+    lat : float or `~astropy.units.Quantity` ['angle']
         Celestial latitude of the fiducial point.
-    lon_pole : float or `~astropy.units.Quantity`
+    lon_pole : float or `~astropy.units.Quantity` ['angle']
         Longitude of the celestial pole in the native system.
 
     Notes
@@ -403,16 +403,16 @@ class RotateCelestial2Native(_SkyRotation):
         """
         Parameters
         ----------
-        alpha_C, delta_C : float or `~astropy.units.Quantity`
+        alpha_C, delta_C : float or `~astropy.units.Quantity` ['angle']
             Angles in the Celestial coordinate frame.
             If float, assumed in degrees.
-        lon, lat, lon_pole : float or `~astropy.units.Quantity`
+        lon, lat, lon_pole : float or `~astropy.units.Quantity` ['angle']
             Parameter values when the model was initialized.
             If float, assumed in degrees.
 
         Returns
         -------
-        phi_N, theta_N : float or `~astropy.units.Quantity`
+        phi_N, theta_N : float or `~astropy.units.Quantity` ['angle']
             Angles on the Native sphere.
             If float, in degrees.
 
@@ -442,7 +442,7 @@ class Rotation2D(Model):
 
     Parameters
     ----------
-    angle : float or `~astropy.units.Quantity`
+    angle : float or `~astropy.units.Quantity` ['angle']
         Angle of rotation (if float it should be in deg).
     """
     n_inputs = 2
@@ -472,7 +472,7 @@ class Rotation2D(Model):
         ----------
         x, y : array-like
             Input quantities
-        angle : float or `~astropy.units.Quantity`
+        angle : float or `~astropy.units.Quantity` ['angle']
             Angle of rotations.
             If float, assumed in degrees.
 
