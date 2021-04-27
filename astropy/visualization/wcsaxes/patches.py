@@ -61,10 +61,10 @@ class SphericalCircle(Polygon):
 
     Parameters
     ----------
-    center : tuple or `~astropy.units.Quantity`
+    center : tuple or `~astropy.units.Quantity` ['angle']
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
         a single `~astropy.units.Quantity` array with two elements.
-    radius : `~astropy.units.Quantity`
+    radius : `~astropy.units.Quantity` ['angle']
         The radius of the circle
     resolution : int, optional
         The number of points that make up the circle - increase this to get a
@@ -115,17 +115,17 @@ class Quadrangle(Polygon):
 
     Parameters
     ----------
-    anchor : tuple or `~astropy.units.Quantity`
+    anchor : tuple or `~astropy.units.Quantity` ['angle']
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
         a single `~astropy.units.Quantity` array with two elements.
-    width : `~astropy.units.Quantity`
+    width : `~astropy.units.Quantity` ['angle']
         The width of the quadrangle in longitude (or, e.g., right ascension)
-    height : `~astropy.units.Quantity`
+    height : `~astropy.units.Quantity` ['angle']
         The height of the quadrangle in latitude (or, e.g., declination)
     resolution : int, optional
         The number of points that make up each side of the quadrangle -
         increase this to get a smoother quadrangle.
-    vertex_unit : `~astropy.units.Unit`
+    vertex_unit : `~astropy.units.Unit` ['angle']
         The units in which the resulting polygon should be defined - this
         should match the unit that the transformation (e.g. the WCS
         transformation) expects as input.
