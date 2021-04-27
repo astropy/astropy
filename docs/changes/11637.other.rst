@@ -1,0 +1,1 @@
+The minimum version of ``pyerfa`` is now 1.7.3.
