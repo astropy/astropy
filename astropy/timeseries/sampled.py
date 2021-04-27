@@ -46,7 +46,7 @@ class TimeSeries(BaseTimeSeries):
     time_start : `~astropy.time.Time` or str
         The time of the first sample in the time series. This is an alternative
         to providing ``time`` and requires that ``time_delta`` is also provided.
-    time_delta : `~astropy.time.TimeDelta` or `~astropy.units.Quantity`
+    time_delta : `~astropy.time.TimeDelta` or `~astropy.units.Quantity` ['time']
         The step size in time for the series. This can either be a scalar if
         the time series is evenly sampled, or an array of values if it is not.
     n_samples : int
@@ -150,18 +150,18 @@ class TimeSeries(BaseTimeSeries):
 
         Parameters
         ----------
-        period : `~astropy.units.Quantity`
+        period : `~astropy.units.Quantity` ['time']
             The period to use for folding
         epoch_time : `~astropy.time.Time`
             The time to use as the reference epoch, at which the relative time
             offset / phase will be ``epoch_phase``. Defaults to the first time
             in the time series.
-        epoch_phase : float or `~astropy.units.Quantity`
+        epoch_phase : float or `~astropy.units.Quantity` ['dimensionless', 'time']
             Phase of ``epoch_time``. If ``normalize_phase`` is `True`, this
             should be a dimensionless value, while if ``normalize_phase`` is
             ``False``, this should be a `~astropy.units.Quantity` with time
             units. Defaults to 0.
-        wrap_phase : float or `~astropy.units.Quantity`
+        wrap_phase : float or `~astropy.units.Quantity` ['dimensionless', 'time']
             The value of the phase above which values are wrapped back by one
             period. If ``normalize_phase`` is `True`, this should be a
             dimensionless value, while if ``normalize_phase`` is ``False``,
