@@ -1514,7 +1514,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    lon, lat : `~astropy.units.Quantity` or str
+    lon, lat : `~astropy.units.Quantity` ['angle'] or str
         The longitude and latitude of the point(s), in angular units. The
         latitude should be between -90 and 90 degrees, and the longitude will
         be wrapped to an angle between 0 and 360 degrees. These can also be
@@ -1683,7 +1683,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         Returns
         -------
-        norm : `~astropy.units.Quantity`
+        norm : `~astropy.units.Quantity` ['dimensionless']
             Dimensionless ones, with the same shape as the representation.
         """
         return u.Quantity(np.ones(self.shape), u.dimensionless_unscaled,
@@ -1759,7 +1759,7 @@ class RadialRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    distance : `~astropy.units.Quantity`
+    distance : `~astropy.units.Quantity` ['length']
         The distance of the point(s) from the origin.
 
     differentials : dict, `~astropy.coordinates.BaseDifferential`, optional
@@ -1821,7 +1821,7 @@ class RadialRepresentation(BaseRepresentation):
 
         Returns
         -------
-        norm : `~astropy.units.Quantity`
+        norm : `~astropy.units.Quantity` ['dimensionless']
             Dimensionless ones, with the same shape as the representation.
         """
         return self.distance
@@ -1849,14 +1849,14 @@ class SphericalRepresentation(BaseRepresentation):
 
     Parameters
     ----------
-    lon, lat : `~astropy.units.Quantity`
+    lon, lat : `~astropy.units.Quantity` ['angle']
         The longitude and latitude of the point(s), in angular units. The
         latitude should be between -90 and 90 degrees, and the longitude will
         be wrapped to an angle between 0 and 360 degrees. These can also be
         instances of `~astropy.coordinates.Angle`,
         `~astropy.coordinates.Longitude`, or `~astropy.coordinates.Latitude`.
 
-    distance : `~astropy.units.Quantity`
+    distance : `~astropy.units.Quantity` ['length']
         The distance to the point(s). If the distance is a length, it is
         passed to the :class:`~astropy.coordinates.Distance` class, otherwise
         it is passed to the :class:`~astropy.units.Quantity` class.
@@ -3234,11 +3234,11 @@ class CylindricalDifferential(BaseDifferential):
 
     Parameters
     ----------
-    d_rho : `~astropy.units.Quantity`
+    d_rho : `~astropy.units.Quantity` ['speed']
         The differential cylindrical radius.
-    d_phi : `~astropy.units.Quantity`
+    d_phi : `~astropy.units.Quantity` ['angular speed']
         The differential azimuth.
-    d_z : `~astropy.units.Quantity`
+    d_z : `~astropy.units.Quantity` ['speed']
         The differential height.
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will

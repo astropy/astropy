@@ -622,17 +622,16 @@ class Longitude(Angle):
 
     Parameters
     ----------
-    angle : array, list, scalar, `~astropy.units.Quantity`,
-        :class:`~astropy.coordinates.Angle` The angle value(s). If a tuple,
-        will be interpreted as ``(h, m s)`` or ``(d, m, s)`` depending
-        on ``unit``. If a string, it will be interpreted following the
-        rules described for :class:`~astropy.coordinates.Angle`.
+    angle : tuple or angle-like
+        The angle value(s). If a tuple, will be interpreted as ``(h, m s)`` or
+        ``(d, m, s)`` depending on ``unit``. If a string, it will be interpreted
+        following the rules described for :class:`~astropy.coordinates.Angle`.
 
         If ``angle`` is a sequence or array of strings, the resulting
         values will be in the given ``unit``, or if `None` is provided,
         the unit will be taken from the first given value.
 
-    unit : unit-like, optional
+    unit : unit-like ['angle'], optional
         The unit of the value specified for the angle.  This may be
         any string that `~astropy.units.Unit` understands, but it is
         better to give an actual unit object.  Must be an angular

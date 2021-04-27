@@ -15,17 +15,17 @@ doc_components = """
     dec : `~astropy.coordinates.Angle`, optional, keyword-only
         The Declination for this object (``ra`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, keyword-only
+    distance : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The Distance for this object along the line-of-sight.
         (``representation`` must be None).
 
-    pm_ra_cosdec : `~astropy.units.Quantity`, optional, keyword-only
+    pm_ra_cosdec : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in Right Ascension (including the ``cos(dec)`` factor)
         for this object (``pm_dec`` must also be given).
-    pm_dec : `~astropy.units.Quantity`, optional, keyword-only
+    pm_dec : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in Declination for this object (``pm_ra_cosdec`` must
         also be given).
-    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
+    radial_velocity : `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The radial velocity of this object.
 """
 

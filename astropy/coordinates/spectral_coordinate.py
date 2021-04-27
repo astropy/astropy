@@ -172,7 +172,7 @@ class SpectralCoord(SpectralQuantity):
         The coordinate (position and velocity) of target. If no velocities
         are present on this object, the target is assumed to be stationary
         relative to the frame origin.
-    radial_velocity : `~astropy.units.Quantity`, optional
+    radial_velocity : `~astropy.units.Quantity` ['speed'], optional
         The radial velocity of the target with respect to the observer. This
         can only be specified if ``redshift`` is not specified.
     redshift : float, optional
@@ -325,7 +325,7 @@ class SpectralCoord(SpectralQuantity):
             The coordinate (position and velocity) of observer.
         target : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`, optional
             The coordinate (position and velocity) of target.
-        radial_velocity : `~astropy.units.Quantity`, optional
+        radial_velocity : `~astropy.units.Quantity` ['speed'], optional
             The radial velocity of the target with respect to the observer.
         redshift : float, optional
             The relativistic redshift of the target with respect to the observer.
@@ -447,7 +447,7 @@ class SpectralCoord(SpectralQuantity):
 
         Returns
         -------
-        `~astropy.units.Quantity`
+        `~astropy.units.Quantity` ['speed']
             Radial velocity of target.
 
         Notes
@@ -495,7 +495,7 @@ class SpectralCoord(SpectralQuantity):
 
         Returns
         -------
-        `~astropy.units.Quantity`
+        `~astropy.units.Quantity` ['speed']
             The radial velocity of the target with respect to the observer.
         """
 
@@ -640,9 +640,9 @@ class SpectralCoord(SpectralQuantity):
 
         Parameters
         ----------
-        target_shift : float or `~astropy.units.Quantity`
+        target_shift : float or `~astropy.units.Quantity` ['speed']
             Shift value to apply to current target.
-        observer_shift : float or `~astropy.units.Quantity`
+        observer_shift : float or `~astropy.units.Quantity` ['speed']
             Shift value to apply to current observer.
 
         Returns

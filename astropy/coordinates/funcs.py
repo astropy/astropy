@@ -57,9 +57,9 @@ def cartesian_to_spherical(x, y, z):
     -------
     r : `~astropy.units.Quantity`
         The radial coordinate (in the same units as the inputs).
-    lat : `~astropy.units.Quantity`
+    lat : `~astropy.units.Quantity` ['angle']
         The latitude in radians
-    lon : `~astropy.units.Quantity`
+    lon : `~astropy.units.Quantity` ['angle']
         The longitude in radians
     """
     if not hasattr(x, 'unit'):
@@ -94,9 +94,9 @@ def spherical_to_cartesian(r, lat, lon):
     ----------
     r : scalar, array-like, or `~astropy.units.Quantity`
         The radial coordinate (in the same units as the inputs).
-    lat : scalar, array-like, or `~astropy.units.Quantity`
+    lat : scalar, array-like, or `~astropy.units.Quantity` ['angle']
         The latitude (in radians if array or scalar)
-    lon : scalar, array-like, or `~astropy.units.Quantity`
+    lon : scalar, array-like, or `~astropy.units.Quantity` ['angle']
         The longitude (in radians if array or scalar)
 
     Returns

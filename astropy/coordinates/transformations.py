@@ -686,7 +686,7 @@ class TransformGraph:
 
         Parameters
         ----------
-        dt : `~astropy.units.Quantity` or callable
+        dt : `~astropy.units.Quantity` ['time'] or callable
             If a quantity, this is the size of the differential used to do the finite difference.
             If a callable, should accept ``(fromcoord, toframe)`` and return the ``dt`` value.
         """
@@ -894,7 +894,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
         attribute, but only one needs to have it. If None, no velocity
         component induced from the frame itself will be included - only the
         re-orientation of any existing differential.
-    finite_difference_dt : `~astropy.units.Quantity` or callable
+    finite_difference_dt : `~astropy.units.Quantity` ['time'] or callable
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
         ``(fromcoord, toframe)`` and return the ``dt`` value.

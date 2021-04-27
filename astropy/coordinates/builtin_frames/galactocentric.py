@@ -360,10 +360,10 @@ doc_footer = """
         The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, keyword-only
         The distance from the sun to the Galactic center.
-    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, optional, keyword-only
+    galcen_v_sun : `~astropy.coordinates.representation.CartesianDifferential`, `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The velocity of the sun *in the Galactocentric frame* as Cartesian
         velocity components.
-    z_sun : `~astropy.units.Quantity`, optional, keyword-only
+    z_sun : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The distance from the sun to the Galactic midplane.
     roll : `~astropy.coordinates.Angle`, optional, keyword-only
         The angle to rotate about the final x-axis, relative to the
