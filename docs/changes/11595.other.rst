@@ -1,0 +1,5 @@
+Sphinx cross-reference link targets are added for every ``PhysicalType``.
+Now in the parameter types in the Parameters, Other Parameters, Returns and
+Yields sections of the docstring, the physical type of a quantity can be
+annotated in square brackets.
+E.g. `` distance : `~astropy.units.Quantity` ['length'] ``
