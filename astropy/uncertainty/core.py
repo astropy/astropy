@@ -210,7 +210,7 @@ class Distribution:
 
         Returns
         -------
-        percentiles : `~astropy.units.Quantity`
+        percentiles : `~astropy.units.Quantity` ['dimensionless']
             The ``fracs`` percentiles of this distribution.
         """
         percentile = u.Quantity(percentile, u.percent).value
