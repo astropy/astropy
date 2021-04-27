@@ -520,6 +520,114 @@ def test_rename_inputs_outputs():
         g2.outputs = ("w", "e")
 
 
+def test_prepare_outputs_mixed_broadcast():
+    """
+    Tests that _prepare_outputs_single_model does not fail when a smaller
+    array is passed as first input, but output is broadcast to larger
+    array.
+    Issue #10170
+    """
+
+    model = models.Gaussian2D(1, 2, 3, 4, 5)
+
+    output = model([1, 2], 3)
+    assert output.shape == (2,)
+    np.testing.assert_array_equal(output, [0.9692332344763441, 1.0])
+
+    output = model(4, [5, 6])
+    assert output.shape == (2,)
+    np.testing.assert_array_equal(output, [0.8146473164114145, 0.7371233743916278])
+
+
+def test_prepare_outputs_complex_reshape():
+    x = np.array([[1,  2,  3,  4,  5],
+                  [6,  7,  8,  9,  10],
+                  [11, 12, 13, 14, 15]])
+    y = np.array([[16, 17, 18, 19, 20],
+                  [21, 22, 23, 24, 25],
+                  [26, 27, 28, 29, 30]])
+
+    m = models.Identity(3) | models.Mapping((2, 1, 0))
+    m.bounding_box = ((0, 100), (0, 200), (0, 50))
+    mf = models.fix_inputs(m, {2: 22})
+    t = mf | models.Mapping((2, 1), n_inputs=3)
+
+    output = mf(1, 2)
+    assert output == (22, 2, 1)
+
+    output = t(1, 2)
+    assert output == (1, 2)
+
+    output = t(x, y)
+    assert len(output) == 2
+    np.testing.assert_array_equal(output[0], x)
+    np.testing.assert_array_equal(output[1], y)
+
+    m = models.Identity(3) | models.Mapping((0, 1, 2))
+    m.bounding_box = ((0, 100), (0, 200), (0, 50))
+    mf = models.fix_inputs(m, {2: 22})
+    t = mf | models.Mapping((0, 1), n_inputs=3)
+
+    output = mf(1, 2)
+    assert output == (1, 2, 22)
+
+    output = t(1, 2)
+    assert output == (1, 2)
+
+    output = t(x, y)
+    assert len(output) == 2
+    np.testing.assert_array_equal(output[0], x)
+    np.testing.assert_array_equal(output[1], y)
+
+
+def test_prepare_outputs_single_entry_vector():
+    """
+    jwst and gwcs both require that single entry vectors produce single entry output vectors, not scalars. This
+    tests for that behavior.
+    """
+
+    model = models.Gaussian2D(1, 2, 3, 4, 5)
+
+    output = model(np.array([1]), np.array([2]))
+    assert output.shape == (1,)
+    np.testing.assert_array_equal(output, [0.9500411305585278])
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.filterwarnings('ignore: Using a non-tuple')
+def test_prepare_outputs_sparse_grid():
+    """
+    Test to show that #11060 has been solved.
+    """
+
+    shape = (3, 3)
+    data = np.arange(np.product(shape)).reshape(shape) * u.m / u.s
+
+    points_unit = u.pix
+    points = [np.arange(size) * points_unit for size in shape]
+
+    kwargs = {
+        'bounds_error': False,
+        'fill_value': np.nan,
+        'method': 'nearest',
+    }
+
+    transform = models.Tabular2D(points, data, **kwargs)
+    truth = np.array([[0., 1., 2.],
+                      [3., 4., 5.],
+                      [6., 7., 8.]]) * u.m / u.s
+
+    points = np.meshgrid(np.arange(3), np.arange(3), indexing='ij', sparse=True)
+    x = points[0] * u.pix
+    y = points[1] * u.pix
+    value = transform(x, y)
+    assert (value == truth).all()
+
+    points = np.meshgrid(np.arange(3), np.arange(3), indexing='ij', sparse=False) * u.pix
+    value = transform(*points)
+    assert (value == truth).all()
+
+
 def test_coerce_units():
     model = models.Polynomial1D(1, c0=1, c1=2)
 
