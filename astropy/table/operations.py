@@ -110,7 +110,7 @@ def join_skycoord(distance, distance_func='search_around_sky'):
 
     Parameters
     ----------
-    distance : `~astropy.units.Quantity`
+    distance : `~astropy.units.Quantity` ['angle', 'length']
         Maximum distance between points to be considered a join match.
         Must have angular or distance units.
     distance_func : str or function
@@ -222,7 +222,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
     Parameters
     ----------
-    distance : float or `~astropy.units.Quantity`
+    distance : float or `~astropy.units.Quantity` ['length']
         Maximum distance between points to be considered a join match
     kdtree_args : dict, None
         Optional extra args for `~scipy.spatial.cKDTree`
