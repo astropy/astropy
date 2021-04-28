@@ -369,8 +369,9 @@ cmp : int, optional
     may be or'ed together to loosen the comparison.
 
     - ``WCSCOMPARE_ANCILLARY``: Ignores ancillary keywords that don't
-      change the WCS transformation, such as ``DATE-OBS`` or
-      ``EQUINOX``.
+      change the WCS transformation, such as ``XPOSURE`` or
+      ``EQUINOX``. Note that this also ignores ``DATE-OBS``, which does
+      change the WCS transformation in some cases.
 
     - ``WCSCOMPARE_TILING``: Ignore integral differences in
       ``CRPIXja``.  This is the 'tiling' condition, where two WCSes
