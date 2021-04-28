@@ -940,12 +940,13 @@ class Spinner:
         next(self._iter)
 
     def update(self, value=None):
-        """
-        Update the spin wheel in the terminal
+        """Update the spin wheel in the terminal.
+
         Parameters
         ----------
-        value : int (optional)
-            The number of iterations for the spin graphic (defaults to one)
+        value : int, optional
+            The number of iterations for the spin graphic (defaults to one).
+
         """
         if value is None:
             value = 1
