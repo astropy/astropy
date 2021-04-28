@@ -354,7 +354,7 @@ class EcsvData(basic.BasicData):
                 col.str_vals = [format_col_item(idx) for idx in range(len(col))]
             except TypeError as exc:
                 raise TypeError(f'could not convert column {col.info.name!r}'
-                                f' to string: {exc}')
+                                f' to string: {exc}') from exc
 
             # Replace every masked value in a 1-d column with an empty string.
             # For multi-dim columns this gets done by JSON via "null".
@@ -429,19 +429,3 @@ class Ecsv(basic.Basic):
         with serialize_context_as('ecsv'):
             out = serialize.represent_mixins_as_columns(table)
         return out
-
-    def _check_multidim_table(self, table, max_ndim=1):
-        """Check that ``table`` has only 1-d columns.
-
-        This is overriding a base method that raises an exception if non-allowed
-        columns (dim > max_ndim) are present. The ECSV reader class supports N-d
-        columns so just pass.
-
-        Parameters
-        ----------
-        table : `~astropy.table.Table` Input table. max_ndim : int Max allowed
-            number of dimensions (default=1)
-        max_ndim : int
-            Max allowed number of dimensions (default=1)
-        """
-        pass
