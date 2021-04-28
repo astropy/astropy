@@ -1,0 +1,4 @@
+When reading VOTables using the Unified File Read/Write Interface (i.e. using
+the ``Table.read()`` or ``QTable.read()`` functions) it is now possible to
+specify all keyword arguments that are valid for
+``astropy.io.votable.table.parse()``.
