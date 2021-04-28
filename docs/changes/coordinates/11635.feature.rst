@@ -1,0 +1,4 @@
+Added a new method to ``SkyCoord``, ``spherical_offsets_by()``, which is the
+conceptual inverse of ``spherical_offsets_to()``: Given angular offsets in
+longitude and latitude, this method returns a new coordinate with the offsets
+applied.
