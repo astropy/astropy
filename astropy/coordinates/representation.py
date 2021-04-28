@@ -3118,6 +3118,36 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
 
         return super().from_representation(representation, base)
 
+    def transform(self, matrix, base):
+        """Transform differential using a 3x3 matrix in a Cartesian basis.
+
+        This returns a new differential and does not modify the original one.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+        base : instance of ``cls.base_representation``
+            Base relative to which the differentials are defined.  If the other
+            class is a differential representation, the base will be converted
+            to its ``base_representation``.
+            ``base`` will also be transformed.
+        """
+        # the transformation matrix does not need to be a rotation matrix,
+        # so the unit-distance is not guaranteed. For speed, we check if the
+        # matrix is in O(3) and preserves lengths.
+        if np.all(is_O3(matrix)):  # remain in unit-rep
+            # TODO! implement without Cartesian intermediate step.
+            diff = super().transform(matrix, base)
+
+        else:  # switch to dimensional representation
+            du = (self.d_lat.unit / u.rad).decompose()  # derivative unit
+            diff = self._dimensional_differential(
+                d_lon=self.d_lon_coslat, d_lat=self.d_lat, d_distance=0 * du
+            ).transform(matrix, base)
+
+        return diff
+
 
 class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     """Differential(s) of points in 3D spherical coordinates.
