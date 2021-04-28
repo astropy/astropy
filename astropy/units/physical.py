@@ -314,7 +314,7 @@ class PhysicalType:
         yield from self._physical_type_list
 
     def __getattr__(self, attr):
-        self_str_attr = getattr(str(self), attr)
+        self_str_attr = getattr(str(self), attr, None)
         if hasattr(str(self), attr):
             warning_message = (
                 f"support for accessing str attributes such as {attr!r} "
