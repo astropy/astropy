@@ -1535,9 +1535,12 @@ def test_spherical_offsets_roundtrip(frame, comparison_data):
     assert_allclose(dlat, comparison.data.lat)
 
     i00_back = comparison.spherical_offsets_by(-dlon, -dlat)
-    # TODO: this roundtripping accuracy isn't great
-    assert_allclose(i00_back.data.lon, i00.data.lon, atol=1e-9*u.deg)
-    assert_allclose(i00_back.data.lat, i00.data.lat, atol=1e-9*u.deg)
+
+    # This reaches machine precision when only one component is changed, but for
+    # the third parametrized case (both lon and lat change), the transformation
+    # will have finite accuracy:
+    assert_allclose(i00_back.data.lon, i00.data.lon, atol=1e-10*u.rad)
+    assert_allclose(i00_back.data.lat, i00.data.lat, atol=1e-10*u.rad)
 
     # Test roundtripping the other direction:
     init_c = SkyCoord(40.*u.deg, 40.*u.deg, frame=frame)
