@@ -1127,10 +1127,12 @@ class SkyCoord(ShapedLikeNDArray):
         Returns
         -------
         lon_offset : `~astropy.coordinates.Angle`
-            The angular offset in the longitude direction (i.e., RA for
+            The angular offset in the longitude direction. The definition of
+            "longitude" depends on this coordinate's frame (e.g., RA for
             equatorial coordinates).
         lat_offset : `~astropy.coordinates.Angle`
-            The angular offset in the latitude direction (i.e., Dec for
+            The angular offset in the latitude direction. The definition of
+            "latitude" depends on this coordinate's frame (e.g., Dec for
             equatorial coordinates).
 
         Raises
@@ -1162,6 +1164,45 @@ class SkyCoord(ShapedLikeNDArray):
         dlon = acoord.spherical.lon.view(Angle)
         dlat = acoord.spherical.lat.view(Angle)
         return dlon, dlat
+
+    def spherical_offsets_by(self, d_lon, d_lat):
+        """
+        Computes the coordinate that is a specified pair of angular offsets away
+        from this coordinate.
+
+        Parameters
+        ----------
+        d_lon : angle-like
+            The angular offset in the longitude direction. The definition of
+            "longitude" depends on this coordinate's frame (e.g., RA for
+            equatorial coordinates).
+        d_lat : angle-like
+            The angular offset in the latitude direction. The definition of
+            "latitude" depends on this coordinate's frame (e.g., Dec for
+            equatorial coordinates).
+
+        Returns
+        -------
+        newcoord : `~astropy.coordinates.SkyCoord`
+            The coordinates for the location that corresponds to offsetting by
+            ``d_lat`` in the latitude direction and ``d_lon`` in the longitude
+            direction.
+
+        Notes
+        -----
+        This internally uses `~astropy.coordinates.SkyOffsetFrame` to do the
+        transformation. For a more complete set of transform offsets, use
+        `~astropy.coordinates.SkyOffsetFrame` or `~astropy.wcs.WCS` manually.
+        This specific method can be reproduced by doing
+        ``SkyCoord(SkyOffsetFrame(d_lon, d_lat, origin=self.frame).transform_to(self))``.
+
+        See Also
+        --------
+        spherical_offsets_to : compute the angular offsets to another coordinate
+        directional_offset_by : offset a coordinate by an angle in a direction
+        """
+        return self.__class__(
+            SkyOffsetFrame(d_lon, d_lat, origin=self.frame).transform_to(self))
 
     def directional_offset_by(self, position_angle, separation):
         """
