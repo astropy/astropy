@@ -36,7 +36,8 @@ __construct_mixin_classes = (
     'astropy.coordinates.distances.Distance',
     'astropy.coordinates.earth.EarthLocation',
     'astropy.coordinates.sky_coordinate.SkyCoord',
-    'astropy.table.table.NdarrayMixin',
+    'astropy.table.ndarray_mixin.NdarrayMixin',
+    'astropy.table.table_helpers.ArrayWrapper',
     'astropy.table.column.MaskedColumn',
     'astropy.coordinates.representation.CartesianRepresentation',
     'astropy.coordinates.representation.UnitSphericalRepresentation',
@@ -116,6 +117,11 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         if nontrivial(col_attr):
             info[attr] = col_attr
 
+    # Find column attributes that have the same length as the column itself.
+    # These will be stored in the table as new columns (aka "data attributes").
+    # Examples include SkyCoord.ra (what is typically considered the data and is
+    # always an array) and Skycoord.obs_time (which can be a scalar or an
+    # array).
     data_attrs = [key for key, value in obj_attrs.items() if
                   getattr(value, 'shape', ())[:1] == col.shape[:1]]
 
@@ -230,12 +236,24 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
                                    exclude_classes=exclude_classes)
 
     # If no metadata was created then just return the original table.
-    if not mixin_cols:
-        return tbl
+    if mixin_cols:
+        meta = deepcopy(tbl.meta)
+        meta['__serialized_columns__'] = mixin_cols
+        out = Table(new_cols, meta=meta, copy=False)
+    else:
+        out = tbl
 
-    meta = deepcopy(tbl.meta)
-    meta['__serialized_columns__'] = mixin_cols
-    out = Table(new_cols, meta=meta, copy=False)
+    for col in out.itercols():
+        if not isinstance(col, Column) and col.__class__ not in exclude_classes:
+            # This catches columns for which info has not been set up right and
+            # therefore were not converted. See the corresponding test in
+            # test_mixin.py for an example.
+            raise TypeError(
+                'failed to represent column '
+                f'{col.info.name!r} ({col.__class__.__name__}) as one '
+                'or more Column subclasses. This looks like a mixin class '
+                'that does not have the correct _represent_as_dict() method '
+                'in the class `info` attribute.')
 
     return out
 

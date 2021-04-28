@@ -1,7 +1,9 @@
+import json
 import textwrap
 import copy
 from collections import OrderedDict
 
+import numpy as np
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
@@ -157,22 +159,107 @@ def _repr_column_dict(dumper, data):
     return dumper.represent_mapping('tag:yaml.org,2002:map', data)
 
 
+def _get_variable_length_array_shape(col):
+    """Check if object-type ``col`` is really a variable length list.
+
+    That is true if the object consists purely of list of nested lists, where
+    the shape of every item can be represented as (m, n, ..., *) where the (m,
+    n, ...) are constant and only the lists in the last axis have variable
+    shape. If so the returned value of shape will be a tuple in the form (m, n,
+    ..., None).
+
+    If ``col`` is a variable length array then the return ``dtype`` corresponds
+    to the type found by numpy for all the individual values. Otherwise it will
+    be ``np.dtype(object)``.
+
+    Parameters
+    ==========
+    col : column-like
+        Input table column, assumed to be object-type
+
+    Returns
+    =======
+    shape : tuple
+        Inferred variable length shape or None
+    dtype : np.dtype
+        Numpy dtype that applies to col
+    """
+    class ConvertError(ValueError):
+        """Local conversion error used below"""
+
+    # Numpy types supported as variable-length arrays
+    np_classes = (np.floating, np.integer, np.bool_, np.unicode_)
+
+    try:
+        if len(col) == 0 or not all(isinstance(val, np.ndarray) for val in col):
+            raise ConvertError
+        dtype = col[0].dtype
+        shape = col[0].shape[:-1]
+        for val in col:
+            if not issubclass(val.dtype.type, np_classes) or val.shape[:-1] != shape:
+                raise ConvertError
+            dtype = np.promote_types(dtype, val.dtype)
+        shape = shape + (None,)
+
+    except ConvertError:
+        # `col` is not a variable length array, return shape and dtype to
+        #  the original. Note that this function is only called if
+        #  col.shape[1:] was () and col.info.dtype is object.
+        dtype = col.info.dtype
+        shape = ()
+
+    return shape, dtype
+
+
+def _get_datatype_from_dtype(dtype):
+    """Return string version of ``dtype`` for writing to ECSV ``datatype``"""
+    datatype = dtype.name
+    if datatype.startswith(('bytes', 'str')):
+        datatype = 'string'
+    if datatype.endswith('_'):
+        datatype = datatype[:-1]  # string_ and bool_ lose the final _ for ECSV
+    return datatype
+
+
 def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
-    """
-    attrs = ColumnDict()
-    attrs['name'] = col.info.name
 
-    type_name = col.info.dtype.type.__name__
-    if type_name.startswith(('bytes', 'str')):
-        type_name = 'string'
-    if type_name.endswith('_'):
-        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-    attrs['datatype'] = type_name
+    Parameters
+    ----------
+    col : column-like
+        Input Table column
+
+    Returns
+    -------
+    attrs : dict
+        Dict of ECSV attributes for ``col``
+    """
+    dtype = col.info.dtype  # Type of column values that get written
+    subtype = None  # Type of data for object columns serialized with JSON
+    shape = col.shape[1:]  # Shape of multidim / variable length columns
+
+    if dtype.name == 'object':
+        if shape == ():
+            # 1-d object type column might be a variable length array
+            dtype = np.dtype(str)
+            shape, subtype = _get_variable_length_array_shape(col)
+        else:
+            # N-d object column is subtype object but serialized as JSON string
+            dtype = np.dtype(str)
+            subtype = np.dtype(object)
+    elif shape:
+        # N-d column which is not object is serialized as JSON string
+        dtype = np.dtype(str)
+        subtype = col.info.dtype
+
+    datatype = _get_datatype_from_dtype(dtype)
 
     # Set the output attributes
+    attrs = ColumnDict()
+    attrs['name'] = col.info.name
+    attrs['datatype'] = datatype
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
                                     ('format', lambda x: x is not None, None),
                                     ('description', lambda x: x is not None, None),
@@ -180,6 +267,11 @@ def _get_col_attributes(col):
         col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
             attrs[attr] = xform(col_attr) if xform else col_attr
+
+    if subtype:
+        attrs['subtype'] = _get_datatype_from_dtype(subtype)
+    if shape:
+        attrs['subtype'] += json.dumps(list(shape), separators=(',', ':'))
 
     return attrs
 

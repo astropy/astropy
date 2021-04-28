@@ -473,6 +473,9 @@ class Ipac(basic.Basic):
 
         core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
+        # Check that table has only 1-d columns.
+        self._check_multidim_table(table)
+
         # Now use altered columns
         new_cols = list(table.columns.values())
         # link information about the columns to the writer object (i.e. self)

@@ -39,6 +39,24 @@ FORMAT_CLASSES = {}
 FAST_CLASSES = {}
 
 
+def _check_multidim_table(table, max_ndim):
+    """Check that ``table`` has only columns with ndim <= ``max_ndim``
+
+    Currently ECSV is the only built-in format that supports output of arbitrary
+    N-d columns, but HTML supports 2-d.
+    """
+    # No limit?
+    if max_ndim is None:
+        return
+
+    # Check for N-d columns
+    nd_names = [col.info.name for col in table.itercols() if len(col.shape) > max_ndim]
+    if nd_names:
+        raise ValueError(f'column(s) with dimension > {max_ndim} '
+                         "cannot be be written with this format, try using 'ecsv' "
+                         "(Enhanced CSV) format")
+
+
 class CsvWriter:
     """
     Internal class to replace the csv writer ``writerow`` and ``writerows``
@@ -257,7 +275,10 @@ class Column:
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
     * **dtype** : numpy dtype (optional, overrides **type** if set)
     * **str_vals** : list of column values as strings
+    * **fill_values** : dict of fill values
+    * **shape** : list of element shape (default [] => scalar)
     * **data** : list of converted column values
+    * **subtype** : actual datatype for columns serialized with JSON
     """
 
     def __init__(self, name):
@@ -266,6 +287,8 @@ class Column:
         self.dtype = None  # Numpy dtype if available
         self.str_vals = []
         self.fill_values = {}
+        self.shape = []
+        self.subtype = None
 
 
 class BaseInputter:
@@ -750,7 +773,7 @@ class BaseData:
 
     def process_lines(self, lines):
         """
-        Strip out comment lines and blank lines from list of ``lines``
+        READ: Strip out comment lines and blank lines from list of ``lines``
 
         Parameters
         ----------
@@ -771,8 +794,8 @@ class BaseData:
             return [x for x in nonblank_lines]
 
     def get_data_lines(self, lines):
-        """Set the ``data_lines`` attribute to the lines slice comprising the
-        table data values."""
+        """READ: Set ``data_lines`` attribute to lines slice comprising table data values.
+        """
         data_lines = self.process_lines(lines)
         start_line = _get_line_index(self.start_line, data_lines)
         end_line = _get_line_index(self.end_line, data_lines)
@@ -788,7 +811,7 @@ class BaseData:
         return self.splitter(self.data_lines)
 
     def masks(self, cols):
-        """Set fill value for each column and then apply that fill value
+        """READ: Set fill value for each column and then apply that fill value
 
         In the first step it is evaluated with value from ``fill_values`` applies to
         which column using ``fill_include_names`` and ``fill_exclude_names``.
@@ -799,7 +822,7 @@ class BaseData:
             self._set_masks(cols)
 
     def _set_fill_values(self, cols):
-        """Set the fill values of the individual cols based on fill_values of BaseData
+        """READ, WRITE: Set fill values of individual cols based on fill_values of BaseData
 
         fill values has the following form:
         <fill_spec> = (<bad_value>, <fill_value>, <optional col_name>...)
@@ -843,7 +866,7 @@ class BaseData:
                     cols[i].fill_values[replacement[0]] = str(replacement[1])
 
     def _set_masks(self, cols):
-        """Replace string values in col.str_vals and set masks"""
+        """READ: Replace string values in col.str_vals and set masks"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 col.mask = numpy.zeros(len(col.str_vals), dtype=bool)
@@ -853,7 +876,7 @@ class BaseData:
                     col.mask[i] = True
 
     def _replace_vals(self, cols):
-        """Replace string values in col.str_vals"""
+        """WRITE: replace string values in col.str_vals"""
         if self.fill_values:
             for col in (col for col in cols if col.fill_values):
                 for i, str_val in ((i, x) for i, x in enumerate(col.str_vals)
@@ -865,7 +888,17 @@ class BaseData:
                         col.str_vals[i] = mask_val
 
     def str_vals(self):
-        '''convert all values in table to a list of lists of strings'''
+        """WRITE: convert all values in table to a list of lists of strings
+
+        This sets the fill values and possibly column formats from the input
+        formats={} keyword, then ends up calling table.pprint._pformat_col_iter()
+        by a circuitous path. That function does the real work of formatting.
+        Finally replace anything matching the fill_values.
+
+        Returns
+        -------
+        values : list of list of str
+        """
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
@@ -874,6 +907,13 @@ class BaseData:
         return [col.str_vals for col in self.cols]
 
     def write(self, lines):
+        """Write ``self.cols`` in place to ``lines``.
+
+        Parameters
+        ----------
+        lines : list
+            List for collecting output of writing self.cols.
+        """
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
         else:
@@ -887,8 +927,7 @@ class BaseData:
             lines.append(self.splitter.join(vals))
 
     def _set_col_formats(self):
-        """
-        """
+        """WRITE: set column formats."""
         for col in self.cols:
             if col.info.name in self.formats:
                 col.info.format = self.formats[col.info.name]
@@ -1204,6 +1243,10 @@ class BaseReader(metaclass=MetaBaseReader):
     inputter_class = BaseInputter
     outputter_class = TableOutputter
 
+    # Max column dimension that writer supports for this format. Exceptions
+    # include ECSV (no limit) and HTML (max_ndim=2).
+    max_ndim = 1
+
     def __init__(self):
         self.header = self.header_class()
         self.data = self.data_class()
@@ -1220,6 +1263,25 @@ class BaseReader(metaclass=MetaBaseReader):
         # depending on the table meta format.
         self.meta = OrderedDict(table=OrderedDict(),
                                 cols=OrderedDict())
+
+    def _check_multidim_table(self, table):
+        """Check that the dimensions of columns in ``table`` are acceptable.
+
+        The reader class attribute ``max_ndim`` defines the maximum dimension of
+        columns that can be written using this format. The base value is ``1``,
+        corresponding to normal scalar columns with just a length.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+            Input table.
+
+        Raises
+        ------
+        ValueError
+            If any column exceeds the number of allowed dimensions
+        """
+        _check_multidim_table(table, self.max_ndim)
 
     def read(self, table):
         """Read the ``table`` and return the results in a format determined by
@@ -1408,6 +1470,10 @@ class BaseReader(metaclass=MetaBaseReader):
         # filtering but before setting up to write the data.  This is currently
         # only used by ECSV and is otherwise just a pass-through.
         table = self.update_table_data(table)
+
+        # Check that table column dimensions are supported by this format class.
+        # Most formats support only 1-d columns, but some like ECSV support N-d.
+        self._check_multidim_table(table)
 
         # Now use altered columns
         new_cols = list(table.columns.values())

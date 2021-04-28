@@ -623,5 +623,6 @@ class QDP(basic.Basic):
                                names=self.names, delimiter=self.delimiter)
 
     def write(self, table):
+        self._check_multidim_table(table)
         lines = _write_table_qdp(table, err_specs=self.err_specs)
         return lines

@@ -60,8 +60,10 @@ def serialize_context_as(context):
     """
     old_context = BaseColumnInfo._serialize_context
     BaseColumnInfo._serialize_context = context
-    yield
-    BaseColumnInfo._serialize_context = old_context
+    try:
+        yield
+    finally:
+        BaseColumnInfo._serialize_context = old_context
 
 
 def dtype_info_name(dtype):
@@ -260,7 +262,8 @@ class DataInfo(metaclass=DataInfoMeta):
     called ``info`` so that the DataInfo() object can be stored in the
     ``instance`` using the ``info`` key.  Because owner_cls.x is a descriptor,
     Python doesn't use __dict__['x'] normally, and the descriptor can safely
-    store stuff there.  Thanks to https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
+    store stuff there.  Thanks to
+    https://nbviewer.jupyter.org/urls/gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb
     for this trick that works for non-hashable classes.
 
     Parameters

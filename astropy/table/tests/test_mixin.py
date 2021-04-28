@@ -9,6 +9,9 @@ from io import StringIO
 import pytest
 import numpy as np
 
+from astropy.table.serialize import represent_mixins_as_columns
+from astropy.utils.data_info import ParentDtypeInfo
+from astropy.table.table_helpers import ArrayWrapper
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from astropy.table import serialize
@@ -849,3 +852,17 @@ def test_ensure_input_info_is_unchanged(table_cls):
     sc = SkyCoord([1, 2], [2, 3], unit='deg')
     t['sc'] = sc
     assert 'info' not in sc.__dict__
+
+
+def test_bad_info_class():
+    """Make a mixin column class that does not trigger the machinery to generate
+    a pure column representation"""
+    class MyArrayWrapper(ArrayWrapper):
+        info = ParentDtypeInfo()
+
+    t = Table()
+    t['tm'] = MyArrayWrapper([0, 1, 2])
+    out = StringIO()
+    match = r"failed to represent column 'tm' \(MyArrayWrapper\) as one or more Column subclasses"
+    with pytest.raises(TypeError, match=match):
+        represent_mixins_as_columns(t)

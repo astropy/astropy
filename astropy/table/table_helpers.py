@@ -137,11 +137,33 @@ def complex_table():
     return table
 
 
+class ArrayWrapperInfo(ParentDtypeInfo):
+    _represent_as_dict_primary_data = 'data'
+
+    def _represent_as_dict(self):
+        """Represent Column as a dict that can be serialized."""
+        col = self._parent
+        out = {'data': col.data}
+        return out
+
+    def _construct_from_dict(self, map):
+        """Construct Column from ``map``."""
+        data = map.pop('data')
+        out = self._parent_cls(data, **map)
+        return out
+
+
 class ArrayWrapper:
     """
     Minimal mixin using a simple wrapper around a numpy array
+
+    TODO: think about the future of this class as it is mostly for demonstration
+    purposes (of the mixin protocol). Consider taking it out of core and putting
+    it into a tutorial. One advantage of having this in core is that it is
+    getting tested in the mixin testing though it doesn't work for multidim
+    data.
     """
-    info = ParentDtypeInfo()
+    info = ArrayWrapperInfo()
 
     def __init__(self, data):
         self.data = np.array(data)
