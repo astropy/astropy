@@ -353,7 +353,7 @@ class PhysicalType:
         return f"PhysicalType({names})"
 
     def __str__(self):
-        return ", ".join(self._physical_type_list)
+        return "/".join(self._physical_type_list)
 
     @staticmethod
     def _dimensionally_compatible_unit(obj):
