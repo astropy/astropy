@@ -23,12 +23,16 @@ from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLoca
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
-from astropy.utils.exceptions import AstropyWarning
+
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
 from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
+
+
+pytestmark = pytest.mark.skipif(not HAS_YAML, reason='YAML required')
 
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',
@@ -52,7 +56,7 @@ for dtype in DTYPES:
 T_DTYPES.meta['comments'] = ['comment1', 'comment2']
 
 # Corresponds to simple_table()
-SIMPLE_LINES = ['# %ECSV 0.9',
+SIMPLE_LINES = ['# %ECSV 1.0',
                 '# ---',
                 '# datatype:',
                 '# - {name: a, datatype: int64}',
@@ -65,7 +69,6 @@ SIMPLE_LINES = ['# %ECSV 0.9',
                 '3 3.0 e']
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_write_simple():
     """
     Write a simple table with common types.  This shows the compact version
@@ -78,13 +81,12 @@ def test_write_simple():
     assert out.getvalue().splitlines() == SIMPLE_LINES
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_write_full():
     """
     Write a full-featured table with common types and explicitly checkout output
     """
     t = T_DTYPES['bool', 'int64', 'float64', 'str']
-    lines = ['# %ECSV 0.9',
+    lines = ['# %ECSV 1.0',
              '# ---',
              '# datatype:',
              '# - name: bool',
@@ -120,7 +122,6 @@ def test_write_full():
     assert out.getvalue().splitlines() == lines
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_write_read_roundtrip():
     """
     Write a full-featured table with all types and see that it round-trips on
@@ -143,7 +144,6 @@ def test_write_read_roundtrip():
                 assert np.all(t[name] == t2[name])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter():
     """
     Passing a delimiter other than space or comma gives an exception
@@ -154,7 +154,6 @@ def test_bad_delimiter():
     assert 'only space and comma are allowed' in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_bad_header_start():
     """
     Bad header without initial # %ECSV x.x
@@ -165,7 +164,6 @@ def test_bad_header_start():
         Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter_input():
     """
     Illegal delimiter in input
@@ -177,24 +175,29 @@ def test_bad_delimiter_input():
     assert 'only space and comma are allowed' in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_multidim_input():
     """
     Multi-dimensional column in input
     """
-    t = Table([np.arange(4).reshape(2, 2), [1, 2]], names=['a', 'b'])
+    t = Table()
+    t['a'] = np.arange(24).reshape(2, 3, 4)
+    t['a'].info.description = 'description'
+    t['a'].info.meta = {1: 2}
+    t['b'] = [1, 2]
+
     out = StringIO()
-    with pytest.raises(ValueError,
-                       match="ECSV format does not support multidimensional column 'a'"):
-        t.write(out, format='ascii.ecsv')
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
 
-    # Now check that the hint works
-    names = [name for name in t.colnames if len(t[name].shape) <= 1]
-    assert names == ['b']
-    ascii.write(t[names], out, format='ecsv')
+    assert np.all(t2['a'] == t['a'])
+    assert t2['a'].shape == t['a'].shape
+    assert t2['a'].dtype == t['a'].dtype
+    assert t2['a'].info.description == t['a'].info.description
+    assert t2['a'].info.meta == t['a'].info.meta
+
+    assert np.all(t2['b'] == t['b'])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_round_trip_empty_table():
     """Test fix in #5010 for issue #5009 (ECSV fails for empty type with bool type)"""
     t = Table(dtype=[bool, 'i', 'f'], names=['a', 'b', 'c'])
@@ -205,7 +208,6 @@ def test_round_trip_empty_table():
     assert len(t2) == 0
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_csv_ecsv_colnames_mismatch():
     """
     Test that mismatch in column names from normal CSV header vs.
@@ -219,7 +221,6 @@ def test_csv_ecsv_colnames_mismatch():
     assert "column names from ECSV header ['a', 'b', 'c']" in str(err.value)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_regression_5604():
     """
     See https://github.com/astropy/astropy/issues/5604 for more.
@@ -239,6 +240,14 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
+    # For a column that is a native astropy Column, ignore the specified
+    # `attrs`. This happens for a mixin like Quantity that is stored in a
+    # `Table` (not QTable).
+    if isinstance(obj1, Column):
+        attrs = []
+
+    assert obj1.shape == obj2.shape
+
     info_attrs = ['info.name', 'info.format', 'info.unit', 'info.description']
     for attr in attrs + info_attrs:
         a1 = obj1
@@ -255,6 +264,13 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             assert quantity_allclose(a1, a2, rtol=1e-10)
         else:
             assert np.all(a1 == a2)
+
+    # For no attrs that means we just compare directly.
+    if not attrs:
+        if isinstance(obj1, np.ndarray) and obj1.dtype.kind == 'f':
+            assert quantity_allclose(obj1, obj2, rtol=1e-10)
+        else:
+            assert np.all(obj1 == obj2)
 
 
 # TODO: unify with the very similar tests in fits/tests/test_connect.py.
@@ -274,6 +290,7 @@ tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=e
 tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
 tm3.info.serialize_method['ecsv'] = 'jd1_jd2'
+obj = Column([{'a': 1}, {'b': [2]}], dtype='object')
 
 # NOTE: in the test below the name of the column "x" for the Quantity is
 # important since it tests the fix for #10215 (namespace clash, where "x"
@@ -299,7 +316,8 @@ mixin_cols = {
     'cr': cr,
     'sd': sd,
     'srd': srd,
-    # 'nd': NdarrayMixin(el)  # not supported yet
+    'nd': NdarrayMixin([1, 2]),
+    'obj': obj
 }
 
 time_attrs = ['value', 'shape', 'format', 'scale', 'precision',
@@ -322,12 +340,13 @@ compare_attrs = {
     'lat': ['value', 'unit'],
     'ang': ['value', 'unit'],
     'el': ['x', 'y', 'z', 'ellipsoid'],
-    'nd': ['x', 'y', 'z'],
+    'nd': ['data'],
     'sr': ['lon', 'lat', 'distance'],
     'cr': ['x', 'y', 'z'],
     'sd': ['d_lon_coslat', 'd_lat', 'd_distance'],
     'srd': ['lon', 'lat', 'distance', 'differentials.s.d_lon_coslat',
             'differentials.s.d_lat', 'differentials.s.d_distance'],
+    'obj': []
 }
 
 
@@ -396,6 +415,8 @@ def test_ecsv_mixins_as_one(table_cls):
                         'el.x', 'el.y', 'el.z',
                         'lat',
                         'lon',
+                        'nd',
+                        'obj',
                         'qdb',
                         'qdex',
                         'qmag',
@@ -428,22 +449,36 @@ def test_ecsv_mixins_as_one(table_cls):
     assert t3.colnames == serialized_names
 
 
+def make_multidim(col, ndim):
+    """Take a col with length=2 and make it N-d by repeating elements.
+
+    For the special case of ndim==1 just return the orignal.
+
+    The output has shape [3] * ndim. By using 3 we can be sure that repeating
+    the two input elements gives an output that is sufficiently unique for
+    the multidim tests.
+    """
+    if ndim > 1:
+        import itertools
+        idxs = [idx for idx, _ in zip(itertools.cycle([0, 1]), range(3 ** ndim))]
+        col = col[idxs].reshape([3] * ndim)
+    return col
+
+
 @pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_ecsv_mixins_per_column(table_cls, name_col):
-    """Test write/read one col at a time and do detailed validation"""
+@pytest.mark.parametrize('ndim', (1, 2, 3))
+def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
+    """Test write/read one col at a time and do detailed validation.
+    This tests every input column type as 1-d, 2-d and 3-d.
+    """
     name, col = name_col
 
-    c = [1.0, 2.0]
+    c = make_multidim(np.array([1.0, 2.0]), ndim)
+    col = make_multidim(col, ndim)
     t = table_cls([c, col, c], names=['c1', name, 'c2'])
     t[name].info.description = 'description'
-
-    if not t.has_mixin_columns:
-        pytest.skip('column is not a mixin (e.g. Quantity subclass in Table)')
-
-    if isinstance(t[name], NdarrayMixin):
-        pytest.xfail('NdarrayMixin not supported')
 
     out = StringIO()
     t.write(out, format="ascii.ecsv")
@@ -452,6 +487,7 @@ def test_ecsv_mixins_per_column(table_cls, name_col):
     assert t.colnames == t2.colnames
 
     for colname in t.colnames:
+        assert len(t2[colname].shape) == ndim
         assert_objects_equal(t[colname], t2[colname], compare_attrs[colname])
 
     # Special case to make sure Column type doesn't leak into Time class data
@@ -460,12 +496,13 @@ def test_ecsv_mixins_per_column(table_cls, name_col):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-@pytest.mark.skipif('HAS_YAML')
-def test_ecsv_but_no_yaml_warning():
+def test_ecsv_but_no_yaml_warning(monkeypatch):
     """
     Test that trying to read an ECSV without PyYAML installed when guessing
     emits a warning, but reading with guess=False gives an exception.
     """
+    monkeypatch.setitem(sys.modules, 'yaml', None)
+
     with pytest.warns(AstropyWarning, match=r'file looks like ECSV format but '
                       'PyYAML is not installed') as w:
         ascii.read(SIMPLE_LINES)
@@ -476,7 +513,6 @@ def test_ecsv_but_no_yaml_warning():
         ascii.read(SIMPLE_LINES, format='ecsv')
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_round_trip_masked_table_default(tmpdir):
     """Test (mostly) round-trip of MaskedColumn through ECSV using default serialization
     that uses an empty string "" to mark NULL values.  Note:
@@ -519,7 +555,7 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
     t['c'][0] = ''  # This would come back as masked for default "" NULL marker
 
     # MaskedColumn with no masked elements. See table the MaskedColumnInfo class
-    # _represent_as_dict() method for info about we test a column with no masked elements.
+    # _represent_as_dict() method for info about how we test a column with no masked elements.
     t['d'] = [1, 2, 3]
 
     t.write(filename, serialize_method='data_mask')
@@ -539,7 +575,7 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
 
 @pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_round_trip_user_defined_unit(table_cls, tmpdir):
+def test_ecsv_round_trip_user_defined_unit(table_cls, tmpdir):
     """Ensure that we can read-back enabled user-defined units."""
     from astropy.utils.compat.context import nullcontext
 
@@ -579,10 +615,9 @@ def test_round_trip_user_defined_unit(table_cls, tmpdir):
         assert np.all(t4['l'] == t['l'])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_read_masked_bool():
     txt = """\
-# %ECSV 0.9
+# %ECSV 1.0
 # ---
 # datatype:
 # - {name: col0, datatype: bool}
@@ -599,3 +634,289 @@ False
     assert isinstance(col, MaskedColumn)
     assert np.all(col.mask == [False, False, False, True, False])
     assert np.all(col == [True, False, True, False, False])
+
+
+@pytest.mark.parametrize('serialize_method', ['null_value', 'data_mask'])
+@pytest.mark.parametrize('dtype', [np.int64, np.float64, bool, str])
+@pytest.mark.parametrize('delimiter', [',', ' '])
+def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
+    # TODO also test empty string with null value
+    t = Table()
+    col = MaskedColumn(np.arange(12).reshape(2, 3, 2), dtype=dtype)
+    if dtype is str:
+        # np does something funny and gives a dtype of U21.
+        col = col.astype('U2')
+    col.mask[0, 0, 0] = True
+    col.mask[1, 1, 1] = True
+    t['a'] = col
+    t['b'] = ['x', 'y']  # Add another column for kicks
+    out = StringIO()
+    t.write(out, format='ascii.ecsv', serialize_method=serialize_method)
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+
+    assert t2.masked is False
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert t2[name].dtype == t[name].dtype
+        if hasattr(t[name], 'mask'):
+            assert np.all(t2[name].mask == t[name].mask)
+        assert np.all(t2[name] == t[name])
+
+
+@pytest.mark.parametrize('subtype', ['some-user-type', 'complex'])
+def test_multidim_unknown_subtype(subtype):
+    """Test an ECSV file with a string type but unknown subtype"""
+    txt = f"""\
+# %ECSV 1.0
+# ---
+# datatype:
+# - name: a
+#   datatype: string
+#   subtype: {subtype}
+# schema: astropy-2.0
+a
+[1,2]
+[3,4]"""
+    with pytest.warns(AstropyUserWarning,
+                      match=rf"unexpected subtype '{subtype}' set for column 'a'"):
+        t = ascii.read(txt, format='ecsv')
+
+    assert t['a'].dtype.kind == 'U'
+    assert t['a'][0] == '[1,2]'
+
+
+def test_multidim_bad_shape():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - name: a
+#   datatype: string
+#   subtype: int64[3]
+# schema: astropy-2.0
+a
+[1,2]
+[3,4]"""
+    with pytest.raises(ValueError, match="column 'a' failed to convert: shape mismatch"):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_write_not_json_serializable():
+    t = Table()
+    t['a'] = np.array([set([1, 2]), 1], dtype=object)
+    match = "could not convert column 'a' to string: Object of type set is not JSON serializable"
+    out = StringIO()
+    with pytest.raises(TypeError, match=match):
+        t.write(out, format='ascii.ecsv')
+
+
+def test_read_not_json_serializable():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: string, subtype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    match = "column 'a' failed to convert: column value is not valid JSON"
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_complex():
+    """Test an ECSV file with a complex column"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: complex}
+# schema: astropy-2.0
+a
+1+1j
+2+2j"""
+    match = "datatype 'complex' of column 'a' is not in allowed values"
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_bad_datatype_for_object_subtype():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: int64, subtype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    match = "column 'a' failed to convert: datatype of column 'a' must be \"string\""
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_read_bad_datatype():
+    """Test a malformed ECSV file"""
+    txt = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: object}
+# schema: astropy-2.0
+a
+fail
+[3,4]"""
+    match = r"column 'a' is not in allowed values \('bool', 'int8', 'int16', 'int32'"
+    with pytest.raises(ValueError, match=match):
+        Table.read(txt, format='ascii.ecsv')
+
+
+def test_full_repr_roundtrip():
+    """Test round-trip of float values to full precision even with format
+    specified"""
+    t = Table()
+    t['a'] = np.array([np.pi, 1/7], dtype=np.float64)
+    t['a'].info.format = '.2f'
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert np.all(t['a'] == t2['a'])
+    assert t2['a'].info.format == '.2f'
+
+
+#############################################################################
+# Define a number of specialized columns for testing and the expected values
+# of `datatype` for each column.
+#############################################################################
+
+# First here is some helper code used to make the expected outputs code.
+def _get_ecsv_header_dict(text):
+    import yaml
+    lines = [line.strip() for line in text.splitlines()]
+    lines = [line[2:] for line in lines if line.startswith('#')]
+    lines = lines[2:]  # Get rid of the header
+    out = yaml.safe_load('\n'.join(lines))
+    return out
+
+
+def _make_expected_values(cols):
+    from pprint import pformat
+    for name, col in cols.items():
+        t = Table()
+        t[name] = col
+        out = StringIO()
+        t.write(out, format='ascii.ecsv')
+        hdr = _get_ecsv_header_dict(out.getvalue())
+        fmt_hdr = pformat(hdr['datatype'])
+        print(f'exps[{name!r}] =', fmt_hdr[:1])
+        print(fmt_hdr[1:])
+        print()
+
+
+# Expected values of `datatype` for each column
+exps = {}
+cols = {}
+
+# Run of the mill scalar for completeness
+cols['scalar'] = np.array([1, 2], dtype=np.int16)
+exps['scalar'] = [
+    {'datatype': 'int16', 'name': 'scalar'}]
+
+# Array of lists that works as a 2-d variable array. This is just treated
+# as an object.
+cols['2-d variable array lists'] = c = np.empty(shape=(2,), dtype=object)
+c[0] = [[1, 2], ["a", 4]]
+c[1] = [[1, 2, 3], [4, 5.25, 6]]
+exps['2-d variable array lists'] = [
+    {'datatype': 'string',
+     'name': '2-d variable array lists',
+     'subtype': 'object'}]
+
+# Array of numpy arrays that is a 2-d variable array
+cols['2-d variable array numpy'] = c = np.empty(shape=(2,), dtype=object)
+c[0] = np.array([[1, 2], [3, 4]], dtype=np.float32)
+c[1] = np.array([[1, 2, 3], [4, 5.5, 6]], dtype=np.float32)
+exps['2-d variable array numpy'] = [
+    {'datatype': 'string',
+     'name': '2-d variable array numpy',
+     'subtype': 'float32[2,null]'}]
+
+cols['1-d variable array lists'] = np.array([[1, 2], [3, 4, 5]], dtype=object)
+exps['1-d variable array lists'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array lists',
+     'subtype': 'object'}]
+
+# Variable-length array
+cols['1-d variable array numpy'] = np.array(
+    [np.array([1, 2], dtype=np.uint8),
+     np.array([3, 4, 5], dtype=np.uint8)], dtype=object)
+exps['1-d variable array numpy'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array numpy',
+     'subtype': 'uint8[null]'}]
+
+cols['1-d variable array numpy str'] = np.array(
+    [np.array(['a', 'b']),
+     np.array(['c', 'd', 'e'])], dtype=object)
+exps['1-d variable array numpy str'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array numpy str',
+     'subtype': 'string[null]'}]
+
+cols['1-d variable array numpy bool'] = np.array(
+    [np.array([True, False]),
+     np.array([True, False, True])], dtype=object)
+exps['1-d variable array numpy bool'] = [
+    {'datatype': 'string',
+     'name': '1-d variable array numpy bool',
+     'subtype': 'bool[null]'}]
+
+cols['1-d regular array'] = np.array([[1, 2], [3, 4]], dtype=np.int8)
+exps['1-d regular array'] = [
+    {'datatype': 'string',
+     'name': '1-d regular array',
+     'subtype': 'int8[2]'}]
+
+cols['2-d regular array'] = np.arange(8, dtype=np.float16).reshape(2, 2, 2)
+exps['2-d regular array'] = [
+    {'datatype': 'string',
+     'name': '2-d regular array',
+     'subtype': 'float16[2,2]'}]
+
+cols['scalar object'] = np.array([{'a': 1}, {'b':2}], dtype=object)
+exps['scalar object'] = [
+    {'datatype': 'string', 'name': 'scalar object', 'subtype': 'object'}]
+
+cols['1-d object'] = np.array(
+    [[{'a': 1}, {'b':2}],
+     [{'a': 1}, {'b':2}]], dtype=object)
+exps['1-d object'] = [
+    {'datatype': 'string',
+     'name': '1-d object',
+     'subtype': 'object[2]'}]
+
+
+@pytest.mark.parametrize('name,col,exp',
+                         list(zip(cols, cols.values(), exps.values())))
+def test_specialized_columns(name, col, exp):
+    """Test variable length lists, multidim columns, object columns.
+    """
+    t = Table()
+    t[name] = col
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    hdr = _get_ecsv_header_dict(out.getvalue())
+    assert hdr['datatype'] == exp
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert t2[name].dtype == t[name].dtype
+        for val1, val2 in zip(t2[name], t[name]):
+            if isinstance(val1, np.ndarray):
+                assert val1.dtype == val2.dtype
+            assert np.all(val1 == val2)

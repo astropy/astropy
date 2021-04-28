@@ -7,16 +7,24 @@ writing all the meta data associated with an astropy Table object.
 import re
 from collections import OrderedDict
 import warnings
+import json
+
+import numpy as np
 
 from . import core, basic
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
+from astropy.io.ascii.core import convert_numpy
 
 __doctest_requires__ = {'Ecsv': ['yaml']}
 
-ECSV_VERSION = '0.9'
+ECSV_VERSION = '1.0'
 DELIMITERS = (' ', ',')
+ECSV_DATATYPES = (
+    'bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16',
+    'uint32', 'uint64', 'float16', 'float32', 'float64',
+    'float128', 'string')
 
 
 class EcsvHeader(basic.BasicHeader):
@@ -43,24 +51,23 @@ class EcsvHeader(basic.BasicHeader):
 
     def write(self, lines):
         """
-        Write header information in the ECSV ASCII format.  This format
-        starts with a delimiter separated list of the column names in order
-        to make this format readable by humans and simple csv-type readers.
-        It then encodes the full table meta and column attributes and meta
-        as YAML and pretty-prints this in the header.  Finally the delimited
-        column names are repeated again, for humans and readers that look
-        for the *last* comment line as defining the column names.
+        Write header information in the ECSV ASCII format.
+
+        This function is called at the point when preprocessing has been done to
+        convert the input table columns to `self.cols` which is a list of
+        `astropy.io.ascii.core.Column` objects. In particular `col.str_vals`
+        is available for each column with the string representation of each
+        column item for output.
+
+        This format starts with a delimiter separated list of the column names
+        in order to make this format readable by humans and simple csv-type
+        readers. It then encodes the full table meta and column attributes and
+        meta as YAML and pretty-prints this in the header.  Finally the
+        delimited column names are repeated again, for humans and readers that
+        look for the *last* comment line as defining the column names.
         """
         if self.splitter.delimiter not in DELIMITERS:
             raise ValueError('only space and comma are allowed for delimiter in ECSV format')
-
-        for col in self.cols:
-            if len(getattr(col, 'shape', ())) > 1:
-                raise ValueError(
-                    f"ECSV format does not support multidimensional column '{col.info.name}'\n"
-                    'One can filter out such columns using:\n'
-                    'names = [name for name in tbl.colnames if len(tbl[name].shape) <= 1]\n'
-                    'tbl[names].write(...)')
 
         # Now assemble the header dict that will be serialized by the YAML dumper
         header = {'cols': self.cols, 'schema': 'astropy-2.0'}
@@ -81,21 +88,21 @@ class EcsvHeader(basic.BasicHeader):
 
     def write_comments(self, lines, meta):
         """
-        Override the default write_comments to do nothing since this is handled
+        WRITE: Override the default write_comments to do nothing since this is handled
         in the custom write method.
         """
         pass
 
     def update_meta(self, lines, meta):
         """
-        Override the default update_meta to do nothing.  This process is done
+        READ: Override the default update_meta to do nothing.  This process is done
         in get_cols() for this reader.
         """
         pass
 
     def get_cols(self, lines):
         """
-        Initialize the header Column objects from the table ``lines``.
+        READ: Initialize the header Column objects from the table ``lines``.
 
         Parameters
         ----------
@@ -170,15 +177,32 @@ class EcsvHeader(basic.BasicHeader):
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
         for col in self.cols:
-            for attr in ('description', 'format', 'unit', 'meta'):
+            for attr in ('description', 'format', 'unit', 'meta', 'subtype'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
+
             col.dtype = header_cols[col.name]['datatype']
-            # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
-            if col.dtype == 'string':
-                col.dtype = 'str'
-            if col.dtype.startswith('complex'):
-                raise TypeError('ecsv reader does not support complex number types')
+            if col.dtype not in ECSV_DATATYPES:
+                raise ValueError(f'datatype {col.dtype!r} of column {col.name!r} '
+                                 f'is not in allowed values {ECSV_DATATYPES}')
+
+            # Subtype is written like "int64[2,null]" and we want to split this
+            # out to "int64" and [2, None].
+            subtype = col.subtype
+            if subtype and '[' in subtype:
+                idx = subtype.index('[')
+                col.subtype = subtype[:idx]
+                col.shape = json.loads(subtype[idx:])
+
+            # Convert ECSV "string" to numpy "str"
+            for attr in ('dtype', 'subtype'):
+                if getattr(col, attr) == 'string':
+                    setattr(col, attr, 'str')
+
+
+def _check_dtype_is_str(col):
+    if col.dtype != 'str':
+        raise ValueError(f'datatype of column {col.name!r} must be "string"')
 
 
 class EcsvOutputter(core.TableOutputter):
@@ -203,10 +227,79 @@ class EcsvOutputter(core.TableOutputter):
 
         return out
 
+    def _convert_vals(self, cols):
+        """READ: Convert str_vals in `cols` to final arrays with correct dtypes.
+
+        This is adapted from ``BaseOutputter._convert_vals``. In the case of ECSV
+        there is no guessing and all types are known in advance. A big change
+        is handling the possibility of JSON-encoded values, both unstructured
+        object data and structured values that may contain masked data.
+        """
+        for col in cols:
+            try:
+                # 1-d or N-d object columns are serialized as JSON.
+                if col.subtype == 'object':
+                    _check_dtype_is_str(col)
+                    col_vals = [json.loads(val) for val in col.str_vals]
+                    col.data = np.empty([len(col_vals)] + col.shape, dtype=object)
+                    col.data[...] = col_vals
+
+                # Variable length arrays with shape (n, m, ..., *) for fixed
+                # n, m, .. and variable in last axis. Masked values here are
+                # not currently supported.
+                elif col.shape and col.shape[-1] is None:
+                    _check_dtype_is_str(col)
+                    # Remake as a 1-d object column of numpy ndarrays using the
+                    # datatype specified in the ECSV file.
+                    col_vals = [np.array(json.loads(val), dtype=col.subtype)
+                                for val in col.str_vals]
+                    col.shape = ()
+                    col.dtype = np.dtype(object)
+                    # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
+                    col.data = np.empty(len(col_vals), dtype=object)
+                    col.data[:] = col_vals
+
+                # Multidim columns with consistent shape (n, m, ...). These
+                # might be masked.
+                elif col.shape:
+                    _check_dtype_is_str(col)
+                    col_vals = [json.loads(val) for val in col.str_vals]
+                    # Make a numpy object array of col_vals to look for None
+                    # (masked values)
+                    data = np.array(col_vals, dtype=object)
+                    mask = (data == None)  # noqa: E711
+                    if not np.any(mask):
+                        # No None's, just convert to required dtype
+                        col.data = data.astype(col.subtype)
+                    else:
+                        # Replace all the None with an appropriate fill value
+                        kind = np.dtype(col.subtype).kind
+                        data[mask] = {'U': '', 'S': b''}.get(kind, 0)
+                        # Finally make a MaskedArray with the filled data + mask
+                        col.data = np.ma.array(data.astype(col.subtype), mask=mask)
+
+                # Regular scalar value column
+                else:
+                    if col.subtype:
+                        warnings.warn(f'unexpected subtype {col.subtype!r} set for column '
+                                      f'{col.name!r}, using dtype={col.dtype!r} instead.',
+                                      category=AstropyUserWarning)
+                    converter_func, _ = convert_numpy(col.dtype)
+                    col.data = converter_func(col.str_vals)
+
+                if col.data.shape[1:] != tuple(col.shape):
+                    raise ValueError('shape mismatch between value and column specifier')
+
+            except json.JSONDecodeError:
+                raise ValueError(f'column {col.name!r} failed to convert: '
+                                 'column value is not valid JSON')
+            except Exception as exc:
+                raise ValueError(f'column {col.name!r} failed to convert: {exc}')
+
 
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
-        """Set the fill values of the individual cols based on fill_values of BaseData
+        """READ: Set the fill values of the individual cols based on fill_values of BaseData
 
         For ECSV handle the corner case of data that has been serialized using
         the serialize_method='data_mask' option, which writes the full data and
@@ -233,6 +326,44 @@ class EcsvData(basic.BasicData):
             if (col.dtype == 'str' and col.name in scs
                     and scs[col.name]['__class__'] == 'astropy.table.column.MaskedColumn'):
                 col.fill_values = {}  # No data value replacement
+
+    def str_vals(self):
+        """WRITE: convert all values in table to a list of lists of strings
+
+        This version considerably simplifies the base method:
+        - No need to set fill values and column formats
+        - No per-item formatting, just use repr()
+        - Use JSON for object-type or multidim values
+        - Only Column or MaskedColumn can end up as cols here.
+        - Only replace masked values with "", not the generalized filling
+        """
+        for col in self.cols:
+            if len(col.shape) > 1 or col.info.dtype.kind == 'O':
+                def format_col_item(idx):
+                    obj = col[idx]
+                    try:
+                        obj = obj.tolist()
+                    except AttributeError:
+                        pass
+                    return json.dumps(obj, separators=(',', ':'))
+            else:
+                def format_col_item(idx):
+                    return str(col[idx])
+
+            try:
+                col.str_vals = [format_col_item(idx) for idx in range(len(col))]
+            except TypeError as exc:
+                raise TypeError(f'could not convert column {col.info.name!r}'
+                                f' to string: {exc}') from exc
+
+            # Replace every masked value in a 1-d column with an empty string.
+            # For multi-dim columns this gets done by JSON via "null".
+            if hasattr(col, 'mask') and col.ndim == 1:
+                for idx in col.mask.nonzero()[0]:
+                    col.str_vals[idx] = ""
+
+        out = [col.str_vals for col in self.cols]
+        return out
 
 
 class Ecsv(basic.Basic):
@@ -274,6 +405,8 @@ class Ecsv(basic.Basic):
     header_class = EcsvHeader
     data_class = EcsvData
     outputter_class = EcsvOutputter
+
+    max_ndim = None  # No limit on column dimensionality
 
     def update_table_data(self, table):
         """
