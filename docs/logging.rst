@@ -2,6 +2,11 @@
 Logging system
 **************
 
+.. note::
+
+    The Astropy logging system is meant for internal ``astropy`` usage. For use
+    in other packages, we recommend implementing your own logger instead.
+
 Overview
 ========
 
@@ -157,4 +162,3 @@ Reference/API
 
 .. automodapi:: astropy.logger
     :no-inheritance-diagram:
-
