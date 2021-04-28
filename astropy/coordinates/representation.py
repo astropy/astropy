@@ -1388,13 +1388,8 @@ class CartesianRepresentation(BaseRepresentation):
         # erfa rxp: Multiply a p-vector by an r-matrix.
         p = erfa_ufunc.rxp(matrix, self.get_xyz(xyz_axis=-1))
         # Handle differentials attached to this representation
-        if self.differentials:
-            # TODO: speed this up going via d.d_xyz.
-            new_diffs = dict(
-                (k, d.from_cartesian(d.to_cartesian().transform(matrix)))
-                for k, d in self.differentials.items())
-        else:
-            new_diffs = None
+        new_diffs = dict((k, d.transform(matrix, base=self))
+                         for k, d in self.differentials.items())
 
         return self.__class__(p, xyz_axis=-1, copy=False, differentials=new_diffs)
 
@@ -2002,17 +1997,15 @@ class SphericalRepresentation(BaseRepresentation):
             A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
 
         """
-        if self.differentials:
-            # TODO! shortcut if there are differentials.
-            # Currently just super, which uses Cartesian backend.
-            rep = super().transform(matrix)
+        xyz = erfa_ufunc.s2c(self.lon, self.lat)
+        p = erfa_ufunc.rxp(matrix, xyz)
+        lon, lat, ur = erfa_ufunc.p2s(p)
 
-        else:
-            xyz = erfa_ufunc.s2c(self.lon, self.lat)
-            p = erfa_ufunc.rxp(matrix, xyz)
-            lon, lat, ur = erfa_ufunc.p2s(p)
-            rep = self.__class__(lon=lon, lat=lat, distance=self.distance * ur)
+        new_diffs = dict((k, d.transform(matrix, base=self))
+                         for k, d in self.differentials.items())
 
+        rep = self.__class__(lon=lon, lat=lat, distance=self.distance * ur,
+                             differentials=new_diffs, copy=False)
         return rep
 
     def norm(self):
@@ -2196,21 +2189,18 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
 
         """
-        if self.differentials:
-            # TODO! shortcut if there are differentials.
-            # Currently just super, which uses Cartesian backend.
-            rep = super().transform(matrix)
+        # apply transformation in unit-spherical coordinates
+        xyz = erfa_ufunc.s2c(self.phi, 90*u.deg-self.theta)
+        p = erfa_ufunc.rxp(matrix, xyz)
+        lon, lat, ur = erfa_ufunc.p2s(p)  # `ur` is transformed unit-`r`
 
-        else:
-            # apply transformation in unit-spherical coordinates
-            xyz = erfa_ufunc.s2c(self.phi, 90*u.deg-self.theta)
-            p = erfa_ufunc.rxp(matrix, xyz)
-            lon, lat, ur = erfa_ufunc.p2s(p)  # `ur` is transformed unit-`r`
+        new_diffs = dict((k, d.transform(matrix, base=self))
+                         for k, d in self.differentials.items())
 
-            # create transformed physics-spherical representation,
-            # reapplying the distance scaling
-            rep = self.__class__(phi=lon, theta=90*u.deg-lat, r=self.r * ur)
-
+        # create transformed physics-spherical representation,
+        # reapplying the distance scaling
+        rep = self.__class__(phi=lon, theta=90*u.deg-lat, r=self.r * ur,
+                             differentials=new_diffs, copy=False)
         return rep
 
     def norm(self):
@@ -2549,6 +2539,29 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         return cls.from_cartesian(cartesian, base)
 
+    def transform(self, matrix, base):
+        """Transform coordinates using a 3x3 matrix in a Cartesian basis.
+
+        This returns a new differential and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+        base : instance of ``cls.base_representation``
+            Base relative to which the differentials are defined.  If the other
+            class is a differential representation, the base will be converted
+            to its ``base_representation``.
+        """
+        # route transformation through Cartesian
+        cdiff = self.represent_as(CartesianDifferential, base=base
+                                  ).transform(matrix)
+        # move back to original representation
+        diff = cdiff.represent_as(self.__class__, base)
+        return diff
+
     def _scale_operation(self, op, *args):
         """Scale all components.
 
@@ -2697,6 +2710,25 @@ class CartesianDifferential(BaseDifferential):
     @classmethod
     def from_cartesian(cls, other, base=None):
         return cls(*[getattr(other, c) for c in other.components])
+
+    def transform(self, matrix, base=None):
+        """Transform coordinates using a 3x3 matrix in a Cartesian basis.
+
+        This returns a new differential and does not modify the original one.
+        Any differentials attached to this representation will also be
+        transformed.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+        base : `~astropy.coordinates.CartesianRepresentation` or None, optional
+            Not used in the Cartesian transformation.
+        """
+        # erfa rxp: Multiply a p-vector by an r-matrix.
+        p = erfa_ufunc.rxp(matrix, self.get_d_xyz(xyz_axis=-1))
+
+        return self.__class__(p, xyz_axis=-1, copy=False)
 
     def get_d_xyz(self, xyz_axis=0):
         """Return a vector array of the x, y, and z coordinates.
