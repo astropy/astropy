@@ -644,7 +644,7 @@ def test_roundtrip_multidim_masked_array(serialize_method, dtype, delimiter):
     t = Table()
     col = MaskedColumn(np.arange(12).reshape(2, 3, 2), dtype=dtype)
     if dtype is str:
-        # np does something funny and gives a dtype of U12.
+        # np does something funny and gives a dtype of U21.
         col = col.astype('U2')
     col.mask[0, 0, 0] = True
     col.mask[1, 1, 1] = True

@@ -894,6 +894,7 @@ class BaseData:
         formats={} keyword, then ends up calling table.pprint._pformat_col_iter()
         by a circuitous path. That function does the real work of formatting.
         Finally replace anything matching the fill_values.
+
         Returns
         -------
         values : list of list of str
@@ -1264,16 +1265,21 @@ class BaseReader(metaclass=MetaBaseReader):
                                 cols=OrderedDict())
 
     def _check_multidim_table(self, table):
-        """Check that ``table`` has only 1-d columns.
+        """Check that the dimensions of columns in ``table`` are acceptable.
 
-        If a reader class supports N-d columns then override this method.
+        The reader class attribute ``max_ndim`` defines the maximum dimension of
+        columns that can be written using this format. The base value is ``1``,
+        corresponding to normal scalar columns with just a length.
 
         Parameters
         ----------
         table : `~astropy.table.Table`
             Input table.
-        max_ndim : int, optional
-            Max allowed number of dimensions (default=1).
+
+        Raises
+        ------
+        ValueError
+            If any column exceeds the number of allowed dimensions
         """
         _check_multidim_table(table, self.max_ndim)
 
@@ -1465,8 +1471,8 @@ class BaseReader(metaclass=MetaBaseReader):
         # only used by ECSV and is otherwise just a pass-through.
         table = self.update_table_data(table)
 
-        # Check that table has only 1-d columns. Classes that support output of
-        # N-d columns can override this method.
+        # Check that table column dimensions are supported by this format class.
+        # Most formats support only 1-d columns, but some like ECSV support N-d.
         self._check_multidim_table(table)
 
         # Now use altered columns

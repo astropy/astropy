@@ -156,6 +156,12 @@ class ArrayWrapperInfo(ParentDtypeInfo):
 class ArrayWrapper:
     """
     Minimal mixin using a simple wrapper around a numpy array
+
+    TODO: think about the future of this class as it is mostly for demonstration
+    purposes (of the mixin protocol). Consider taking it out of core and putting
+    it into a tutorial. One advantage of having this in core is that it is
+    getting tested in the mixin testing though it doesn't work for multidim
+    data.
     """
     info = ArrayWrapperInfo()
 
