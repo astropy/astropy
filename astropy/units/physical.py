@@ -314,17 +314,16 @@ class PhysicalType:
         yield from self._physical_type_list
 
     def __getattr__(self, attr):
-        if attr in dir(str):
+        self_str_attr = getattr(str(self), attr)
+        if hasattr(str(self), attr):
             warning_message = (
-                f"support for accessing str attributes such as {attr} "
-                "from PhysicalType instances is deprecated since 4.3 and will be removed in a "
-                "subsequent release.")
+                f"support for accessing str attributes such as {attr!r} "
+                "from PhysicalType instances is deprecated since 4.3 "
+                "and will be removed in a subsequent release.")
             warnings.warn(warning_message, AstropyDeprecationWarning)
-            self_str_attr = getattr(str(self), attr, None)
             return self_str_attr
         else:
-            raise AttributeError(
-                f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+            super().__getattribute__(attr)  # to get standard error message
 
     def __eq__(self, other):
         """
