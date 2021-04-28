@@ -1638,16 +1638,15 @@ class UnitSphericalRepresentation(BaseRepresentation):
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
-            if self.differentials:
-                # TODO! shortcut if there are differentials.
-                # Currently just super, which uses Cartesian backend.
-                rep = super().transform(matrix)
-            else:
-                xyz = erfa_ufunc.s2c(self.lon, self.lat)
-                p = erfa_ufunc.rxp(matrix, xyz)
-                lon, lat = erfa_ufunc.c2s(p)
-                rep = self.__class__(lon=lon, lat=lat)
-        else:
+            xyz = erfa_ufunc.s2c(self.lon, self.lat)
+            p = erfa_ufunc.rxp(matrix, xyz)
+            lon, lat = erfa_ufunc.c2s(p)
+
+            new_diffs = dict((k, d.transform(matrix, base=self))
+                             for k, d in self.differentials.items())
+
+            rep = self.__class__(lon=lon, lat=lat, differentials=new_diffs)
+        else:  # switch to dimensional representation
             rep = self._dimensional_representation(
                 lon=self.lon, lat=self.lat, distance=1,
                 differentials=self.differentials
@@ -2005,7 +2004,7 @@ class SphericalRepresentation(BaseRepresentation):
                          for k, d in self.differentials.items())
 
         rep = self.__class__(lon=lon, lat=lat, distance=self.distance * ur,
-                             differentials=new_diffs, copy=False)
+                             differentials=new_diffs)
         return rep
 
     def norm(self):
@@ -2200,7 +2199,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         # create transformed physics-spherical representation,
         # reapplying the distance scaling
         rep = self.__class__(phi=lon, theta=90*u.deg-lat, r=self.r * ur,
-                             differentials=new_diffs, copy=False)
+                             differentials=new_diffs)
         return rep
 
     def norm(self):
@@ -2540,11 +2539,9 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         return cls.from_cartesian(cartesian, base)
 
     def transform(self, matrix, base):
-        """Transform coordinates using a 3x3 matrix in a Cartesian basis.
+        """Transform differential using a 3x3 matrix in a Cartesian basis.
 
         This returns a new differential and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
 
         Parameters
         ----------
@@ -2554,12 +2551,14 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             Base relative to which the differentials are defined.  If the other
             class is a differential representation, the base will be converted
             to its ``base_representation``.
+            ``base`` will also be transformed.
         """
+        base = base.without_differentials()
         # route transformation through Cartesian
         cdiff = self.represent_as(CartesianDifferential, base=base
                                   ).transform(matrix)
         # move back to original representation
-        diff = cdiff.represent_as(self.__class__, base)
+        diff = cdiff.represent_as(self.__class__, base.transform(matrix))
         return diff
 
     def _scale_operation(self, op, *args):
@@ -2712,11 +2711,9 @@ class CartesianDifferential(BaseDifferential):
         return cls(*[getattr(other, c) for c in other.components])
 
     def transform(self, matrix, base=None):
-        """Transform coordinates using a 3x3 matrix in a Cartesian basis.
+        """Transform differentials using a 3x3 matrix in a Cartesian basis.
 
         This returns a new differential and does not modify the original one.
-        Any differentials attached to this representation will also be
-        transformed.
 
         Parameters
         ----------
@@ -2881,6 +2878,36 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
             return cls(representation.d_phi, -representation.d_theta)
 
         return super().from_representation(representation, base)
+
+    def transform(self, matrix, base):
+        """Transform differential using a 3x3 matrix in a Cartesian basis.
+
+        This returns a new differential and does not modify the original one.
+
+        Parameters
+        ----------
+        matrix : (3,3) array-like
+            A 3x3 (or stack thereof) matrix, such as a rotation matrix.
+        base : instance of ``cls.base_representation``
+            Base relative to which the differentials are defined.  If the other
+            class is a differential representation, the base will be converted
+            to its ``base_representation``.
+            ``base`` will also be transformed.
+        """
+        # the transformation matrix does not need to be a rotation matrix,
+        # so the unit-distance is not guaranteed. For speed, we check if the
+        # matrix is in O(3) and preserves lengths.
+        if np.all(is_O3(matrix)):  # remain in unit-rep
+            # TODO! implement without Cartesian intermediate step.
+            diff = super().transform(matrix, base)
+
+        else:  # switch to dimensional representation
+            du = (self.d_lon.unit / u.rad).decompose()  # derivative unit
+            diff = self._dimensional_differential(
+                d_lon=self.d_lon, d_lat=self.d_lat, d_distance=0 * du
+            ).transform(matrix, base)
+
+        return diff
 
 
 class SphericalDifferential(BaseSphericalDifferential):
