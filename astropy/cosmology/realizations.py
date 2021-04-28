@@ -10,7 +10,7 @@ from astropy.utils.state import ScienceState
 from . import parameters
 from .core import Cosmology, FlatLambdaCDM, LambdaCDM
 
-__all__ = ["default_cosmology"] + parameters.available
+__all__ = ["default_cosmology"] + list(parameters.available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -31,8 +31,11 @@ for key in parameters.available:
             name=key,
             Ob0=par["Ob0"],
         )
-        docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
-        cosmo.__doc__ = docstr.format(key, par["reference"])
+
+        # set the docs for builtin realizations
+        if key in parameters.AVAILABLE_BUILTIN:
+            docstr = "{} instance of FlatLambdaCDM cosmology\n\n(from {})"
+            cosmo.__doc__ = docstr.format(key, par["reference"])
     else:
         warnings.warn("Please open a PR for your added cosmology realization.")
         # For a non-flat LCDM realization, the following is the code necessary

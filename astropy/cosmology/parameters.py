@@ -25,31 +25,49 @@ Each cosmology has the following parameters defined:
 The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
-Planck 2018 (Planck18) parameters from Planck Collaboration 2020,
- A&A, 641, A6 (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)
+- Planck 2018 (Planck18) parameters from Planck Collaboration 2020,
+  A&A, 641, A6 (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO).
+  Unlike Planck 2015, the paper includes massive neutrinos in Om0, which here
+  are included in m_nu.  Hence, the Om0 value differs slightly from the paper.
 
-Planck 2018 (Planck18_arXiv_v2) parameters from Planck Collaboration 2018,
- arXiv:1807.06209v2 (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO)
+- Planck 2018 (Planck18_arXiv_v2) parameters from Planck Collaboration 2018,
+  arXiv:1807.06209v2 (Paper VI), Table 2 (TT, TE, EE + lowE + lensing + BAO).
+  Identical to Planck18 above.
+  Warning: deprecated and will be removed in future versions.
 
-Planck 2015 (Planck15) parameters from Planck Collaboration 2016, A&A, 594, A13
- (Paper XIII), Table 4 (TT, TE, EE + lowP + lensing + ext)
+- Planck 2015 (Planck15) parameters from Planck Collaboration 2016, A&A, 594,
+  A13 (Paper XIII), Table 4 (TT, TE, EE + lowP + lensing + ext).
+  This is the final column, showing the best fit.
 
-Planck 2013 (Planck13) parameters from Planck Collaboration 2014, A&A, 571, A16
- (Paper XVI), Table 5 (Planck + WP + highL + BAO)
+- Planck 2013 (Planck13) parameters from Planck Collaboration 2014, A&A, 571,
+  A16 (Paper XVI), Table 5 (Planck + WP + highL + BAO).
+  This is the penultimate column (best fit).
 
-WMAP 9 year (WMAP9) parameters from Hinshaw et al. 2013, ApJS, 208, 19,
-doi: 10.1088/0067-0049/208/2/19. Table 4 (WMAP9 + eCMB + BAO + H0)
+- WMAP 9 year (WMAP9) parameters from Hinshaw et al. 2013, ApJS, 208, 19,
+  doi: 10.1088/0067-0049/208/2/19. Table 4 (WMAP9 + eCMB + BAO + H0)
 
-WMAP 7 year (WMAP7) parameters from Komatsu et al. 2011, ApJS, 192, 18,
-doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).
+- WMAP 7 year (WMAP7) parameters from Komatsu et al. 2011, ApJS, 192, 18,
+  doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).
 
-WMAP 5 year (WMAP5) parameters from Komatsu et al. 2009, ApJS, 180, 330,
-doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
+- WMAP 5 year (WMAP5) parameters from Komatsu et al. 2009, ApJS, 180, 330,
+  doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 
 """
 
+import pathlib
+import sys
+from collections.abc import Mapping
+
+import astropy.units as u
+from astropy.config import get_config_dir
+from astropy.table import QTable
+from astropy.utils.compat.optional_deps import HAS_YAML
+
+__all__ = ["available"]
+
 # Note: if you add a new cosmology, please also update the table
 # in the 'Built-in Cosmologies' section of astropy/docs/cosmology/index.rst
+# in addition to the list above.
 # in addition to the list above.  You also need to add them to the 'available'
 # list at the bottom of this file.
 
@@ -198,5 +216,79 @@ WMAP5 = dict(
 )
 
 # If new parameters are added, this list must be updated
-available = ['Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
-             'WMAP9', 'WMAP7', 'WMAP5']
+available = AVAILABLE_BUILTIN = frozenset(
+    ('Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
+     'WMAP9', 'WMAP7', 'WMAP5'))
+
+
+# ======================================================
+# User-Defined Paramaters
+
+AVAILABLE_USER = frozenset()
+
+
+def _load_from_ecsv(fp):
+    # TODO! switch to read method (when implemented) => cosmo._init_arguments
+
+    # Read in user-defined parameter table
+    parameter_table = QTable.read(fp, format="ascii.ecsv")
+    # recombine m_nu into one list  # TODO! deprecate when #11368 is done
+    parameter_table["m_nu"] = u.Quantity([parameter_table["m_nu_1"],
+                                          parameter_table["m_nu_2"],
+                                          parameter_table["m_nu_3"]]).T
+    parameter_table.remove_columns(("m_nu_1", "m_nu_2", "m_nu_3"))
+
+    # get names as set of strings  (this variable is not deleted)
+    user_available = set(parameter_table['name'].astype(str, subok=False))
+
+    # check that all names are unique in the user-table
+    if len(user_available) < len(parameter_table):
+        raise NameError("All cosmology names must be unique.")
+
+    # check that no user names overlap with built-in
+    intersection = available & user_available
+    if intersection:
+        raise NameError(f"Cannot name user-added cosmologies {intersection}.")
+
+    # get each parameter set to this module as a dict.
+    all_cosmo_params = dict()
+    for name, row in zip(user_available, parameter_table):
+        params = dict(row)
+
+        # metadata
+        # TODO! this assumes meta=
+        # params["meta"] = parameter_table.meta.get(name, None)
+        # TODO! the following is assuming **meta
+        meta = parameter_table.meta.get(name, None)
+        if isinstance(meta, Mapping):
+            intersection = set(params.keys()) & meta.keys()
+            if intersection:
+                raise NameError(
+                    f"Cosmology {name} metadata cannot have keys {intersection}"
+                )
+            params.update(meta)
+
+        all_cosmo_params[name] = params
+
+    return user_available, all_cosmo_params
+
+
+if HAS_YAML:
+    # TODO! this is not a robust place to put this
+    drct = pathlib.Path(get_config_dir()).parent.joinpath("cosmology")
+
+    if drct.exists():
+
+        for fp in drct.glob("*.ecsv"):
+            _available, _params = _load_from_ecsv(fp)
+ 
+            AVAILABLE_USER = AVAILABLE_USER | _available
+            # add parameter dictionary (later added to __all__)
+            [setattr(sys.modules[__name__], n, p) for n, p in _params.items()]
+
+        # add all user definitions to "available"
+        available = available | AVAILABLE_USER
+
+# TODO! same for JSON
+
+__all__.extend(available)
