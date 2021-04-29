@@ -11,9 +11,9 @@ from astropy.utils.data import get_pkg_data_filename
 
 
 def test_check_astroyear_fail():
-    with raises(W07):
-        config = {'verify': 'exception'}
-        field = tree.Field(None, name='astroyear', arraysize='1')
+    config = {'verify': 'exception'}
+    field = tree.Field(None, name='astroyear', arraysize='1')
+    with pytest.raises(W07):
         tree.check_astroyear('X2100', field, config)
 
 
