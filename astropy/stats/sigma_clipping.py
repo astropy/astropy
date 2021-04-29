@@ -9,6 +9,7 @@ from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
+from astropy.stats.funcs import mad_std
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 
 if HAS_BOTTLENECK:
@@ -84,6 +85,11 @@ def _nanstd(array, axis=None, ddof=0):
         return bottleneck.nanstd(array, axis=axis, ddof=ddof)
 
 
+def _nanmadstd(array, axis=None):
+    """mad_std function that ignores NaNs by default."""
+    return mad_std(array, axis=axis, ignore_nan=True)
+
+
 class SigmaClip:
     """
     Class to perform sigma clipping.
@@ -154,7 +160,7 @@ class SigmaClip:
 
         .. _bottleneck:  https://github.com/pydata/bottleneck
 
-    stdfunc : {'std'} or callable, optional
+    stdfunc : {'std', 'mad_std'} or callable, optional
         The statistic or callable function/object used to compute the
         standard deviation about the center value.  If set to ``'std'``
         then having the optional `bottleneck`_ package installed will
@@ -265,13 +271,16 @@ class SigmaClip:
 
     def _parse_stdfunc(self, stdfunc):
         if isinstance(stdfunc, str):
-            if stdfunc != 'std':
+            if stdfunc == 'std':
+                if HAS_BOTTLENECK:
+                    stdfunc = _nanstd
+                else:
+                    stdfunc = np.nanstd  # pragma: no cover
+            elif stdfunc == 'mad_std':
+                stdfunc = _nanmadstd
+            else:
                 raise ValueError(f'{stdfunc} is an invalid stdfunc.')
 
-            if HAS_BOTTLENECK:
-                stdfunc = _nanstd
-            else:
-                stdfunc = np.nanstd  # pragma: no cover
 
         return stdfunc
 
@@ -337,7 +346,9 @@ class SigmaClip:
             data_reshaped = data_reshaped.view(np.ndarray)
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
 
-        bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
+        bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask,
+                                              self.cenfunc == 'median',
+                                              self.stdfunc == 'mad_std',
                                               -1 if np.isinf(self.maxiters) else self.maxiters,
                                               self.sigma_lower, self.sigma_upper, axis=axis)
 
@@ -590,7 +601,7 @@ class SigmaClip:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
         # Shortcut for common cases where a fast C implementation can be used.
-        if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and axis is not None and not self.grow:
+        if self.cenfunc in ('mean', 'median') and self.stdfunc in ('std', 'mad_std') and axis is not None and not self.grow:
             return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                         return_bounds=return_bounds,
                                         copy=copy)
@@ -683,7 +694,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
         .. _bottleneck:  https://github.com/pydata/bottleneck
 
-    stdfunc : {'std'} or callable, optional
+    stdfunc : {'std', 'mad_std'} or callable, optional
         The statistic or callable function/object used to compute the
         standard deviation about the center value.  If set to ``'std'``
         then having the optional `bottleneck`_ package installed will
@@ -853,7 +864,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
         .. _bottleneck:  https://github.com/pydata/bottleneck
 
-    stdfunc : {'std'} or callable, optional
+    stdfunc : {'std', 'mad_std'} or callable, optional
         The statistic or callable function/object used to compute the
         standard deviation about the center value.  If set to ``'std'``
         then having the optional `bottleneck`_ package installed will

@@ -1,40 +1,57 @@
 #include "wirth_select.h"
 #include <math.h>
+#include <stdlib.h>
 
 void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
-                                  int maxiters, double sigma_lower,
+                                  int use_mad_std, int maxiters, double sigma_lower,
                                   double sigma_upper, double *lower_bound,
-                                  double *upper_bound) {
+                                  double *upper_bound, double buffer2[]) {
 
-  double mean, std, median;
+  double mean, std, median, cen;
   int i, new_count, iteration = 0;
 
   while (1) {
 
-    mean = 0;
-    for (i = 0; i < count; i++) {
-      mean += buffer[i];
+    if (use_median || use_mad_std) {
+      median = wirth_median(buffer, count);
     }
-    mean /= count;
 
-    std = 0;
-    for (i = 0; i < count; i++) {
-      std += pow(mean - buffer[i], 2);
+    // Note that we don't use an else clause here, because the mean
+    // might be needed even if use_median is used, but use_mad_std is not.
+    if (!use_median || !use_mad_std) {
+      mean = 0;
+      for (i = 0; i < count; i++) {
+        mean += buffer[i];
+      }
+      mean /= count;
     }
-    std = sqrt(std / count);
 
     if (use_median) {
+      cen = median;
+    } else {
+      cen = mean;
+    }
 
-      median = wirth_median(buffer, count);
+    if (use_mad_std) {
 
-      *lower_bound = median - sigma_lower * std;
-      *upper_bound = median + sigma_upper * std;
+      buffer2 = malloc(count * sizeof(double*));
+      for (i = 0; i < count; i++) {
+        buffer2[i] = fabs(buffer[i] - median);
+      }
+      std = wirth_median(buffer2, count) * 1.482602218505602;
 
     } else {
 
-      *lower_bound = mean - sigma_lower * std;
-      *upper_bound = mean + sigma_upper * std;
+      std = 0;
+      for (i = 0; i < count; i++) {
+        std += pow(mean - buffer[i], 2);
+      }
+      std = sqrt(std / count);
+
     }
+
+    *lower_bound = cen - sigma_lower * std;
+    *upper_bound = cen + sigma_upper * std;
 
     // We now exclude values from the buffer using these
     // limits and shift values so that we end up with a
