@@ -281,7 +281,6 @@ class SigmaClip:
             else:
                 raise ValueError(f'{stdfunc} is an invalid stdfunc.')
 
-
         return stdfunc
 
     def _compute_bounds(self, data, axis=None):
