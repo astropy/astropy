@@ -3,6 +3,7 @@
 """Defines the physical types that correspond to different units."""
 
 import numbers
+import warnings
 
 from . import core
 from . import si
@@ -10,6 +11,7 @@ from . import astrophys
 from . import cgs
 from . import misc
 from . import quantity
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
@@ -21,7 +23,7 @@ _units_and_physical_types = [
     (si.s, "time"),
     (si.rad, "angle"),
     (si.sr, "solid angle"),
-    (si.m / si.s, "speed"),
+    (si.m / si.s, {"speed", "velocity"}),
     (si.m / si.s ** 2, "acceleration"),
     (si.Hz, "frequency"),
     (si.g, "mass"),
@@ -99,7 +101,7 @@ _units_and_physical_types = [
     (si.mol / si.s, "catalytic activity"),
     (si.J * si.K ** -1 * si.mol ** -1, "molar heat capacity"),
     (si.mol / si.kg, "molality"),
-    (si.m * si.s, {"absement", "sustained displacement"}),
+    (si.m * si.s, "absement"),
     (si.m * si.s ** 2, "absity"),
     (si.m ** 3 / si.s, "volumetric flow rate"),
     (si.s ** -2, "frequency drift"),
@@ -311,6 +313,18 @@ class PhysicalType:
     def __iter__(self):
         yield from self._physical_type_list
 
+    def __getattr__(self, attr):
+        self_str_attr = getattr(str(self), attr, None)
+        if hasattr(str(self), attr):
+            warning_message = (
+                f"support for accessing str attributes such as {attr!r} "
+                "from PhysicalType instances is deprecated since 4.3 "
+                "and will be removed in a subsequent release.")
+            warnings.warn(warning_message, AstropyDeprecationWarning)
+            return self_str_attr
+        else:
+            super().__getattribute__(attr)  # to get standard error message
+
     def __eq__(self, other):
         """
         Return `True` if ``other`` represents a physical type that is
@@ -339,10 +353,7 @@ class PhysicalType:
         return f"PhysicalType({names})"
 
     def __str__(self):
-        if len(self._physical_type) == 1:
-            return self._physical_type_list[0]
-        else:
-            return self._name_string_as_ordered_set()
+        return "/".join(self._physical_type_list)
 
     @staticmethod
     def _dimensionally_compatible_unit(obj):
