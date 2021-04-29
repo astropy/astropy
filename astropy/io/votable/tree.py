@@ -3404,9 +3404,9 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if version not in ("1.0", "1.1", "1.2", "1.3", "1.4"):
-            raise ValueError("'version' should be one of '1.0', '1.1', "
-                             "'1.2', '1.3', or '1.4'")
+        if (version != '1.0') and (version not in self._version_namespace_map):
+            allowed_from_map = "', '".join(self._version_namespace_map)
+            raise ValueError(f"'version' should be in ('1.0', '{allowed_from_map}').")
 
         self._version = version
 
@@ -3424,10 +3424,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     @version.setter
     def version(self, version):
         version = str(version)
-        if version not in ('1.1', '1.2', '1.3', '1.4'):
+        if version not in self._version_namespace_map:
+            allowed_from_map = "', '".join(self._version_namespace_map)
             raise ValueError(
-                "astropy.io.votable only supports VOTable versions "
-                "1.1, 1.2, 1.3, and 1.4")
+                f"astropy.io.votable only supports VOTable versions '{allowed_from_map}'")
         self._version = version
 
     @property
@@ -3523,6 +3523,45 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             util.version_compare(self.version, '1.4') >= 0
         return config
 
+    # Map VOTable version numbers to namespace URIs and schema information.
+    _version_namespace_map = {
+        # Version 1.0 isn't well-supported, but is allowed on parse (with a warning).
+        # It used DTD rather than schema, so this information would not be useful.
+        # By omitting 1.0 from this dict we can use the keys as the list of versions
+        # that are allowed in various other checks.
+        "1.1": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.1",
+            "schema_location_attr": "xsi:noNamespaceSchemaLocation",
+            "schema_location_value": "http://www.ivoa.net/xml/VOTable/v1.1"
+        },
+        "1.2": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.2",
+            "schema_location_attr": "xsi:noNamespaceSchemaLocation",
+            "schema_location_value": "http://www.ivoa.net/xml/VOTable/v1.2"
+        },
+        # With 1.3 we'll be more explicit with the schema location.
+        # - xsi:schemaLocation uses the namespace name along with the URL
+        #   to reference it.
+        # - For convenience, but somewhat confusingly, the namespace URIs
+        #   are also usable URLs for accessing an applicable schema.
+        #   However to avoid confusion, we'll use the explicit schema URL.
+        "1.3": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value":
+            "http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.3.xsd"
+        },
+        # With 1.4 namespace URIs stopped incrementing with minor version changes
+        # so we use the same URI as with 1.3.  See this IVOA note for more info:
+        # http://www.ivoa.net/documents/Notes/XMLVers/20180529/
+        "1.4": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value":
+            "http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"
+        }
+    }
+
     def parse(self, iterator, config):
         config['_current_table_number'] = 0
 
@@ -3541,25 +3580,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                                 W29, W29, config['version'], config, pos)
                             self._version = config['version'] = \
                                             config['version'][1:]
-                        if config['version'] not in ('1.1', '1.2', '1.3', '1.4'):
+                        if config['version'] not in self._version_namespace_map:
                             vo_warn(W21, config['version'], config, pos)
 
                     if 'xmlns' in data:
-                        # Starting with VOTable 1.3, namespace URIs stop
-                        # incrementing with minor version changes.  See
-                        # this IVOA note for more info:
-                        # http://www.ivoa.net/documents/Notes/XMLVers/20180529/
-                        #
-                        # If this policy is in place for major version 2,
-                        # then this logic will need tweaking.
-                        if config['version'] in ('1.3', '1.4'):
-                            ns_version = '1.3'
-                        else:
-                            ns_version = config['version']
-                        correct_ns = f'http://www.ivoa.net/xml/VOTable/v{ns_version}'
+                        ns_info = self._version_namespace_map.get(config['version'], {})
+                        correct_ns = ns_info.get('namespace_uri')
                         if data['xmlns'] != correct_ns:
-                            vo_warn(
-                                W41, (correct_ns, data['xmlns']), config, pos)
+                            vo_warn(W41, (correct_ns, data['xmlns']), config, pos)
                     else:
                         vo_warn(W42, (), config, pos)
 
@@ -3641,14 +3669,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
      http://www.astropy.org/ -->\n"""
             w.write(xml_header.lstrip().format(**locals()))
 
-            with w.tag('VOTABLE',
-                       {'version': version,
-                        'xmlns:xsi':
-                            "http://www.w3.org/2001/XMLSchema-instance",
-                        'xsi:noNamespaceSchemaLocation':
-                            f"http://www.ivoa.net/xml/VOTable/v{version}",
-                        'xmlns':
-                            f"http://www.ivoa.net/xml/VOTable/v{version}"}):
+            # Build the VOTABLE tag attributes.
+            votable_attr = {
+                'version': version,
+                'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance"
+            }
+            ns_info = self._version_namespace_map.get(version, {})
+            namespace_uri = ns_info.get('namespace_uri')
+            if namespace_uri:
+                votable_attr['xmlns'] = namespace_uri
+            schema_location_attr = ns_info.get('schema_location_attr')
+            schema_location_value = ns_info.get('schema_location_value')
+            if schema_location_attr and schema_location_value:
+                votable_attr[schema_location_attr] = schema_location_value
+
+            with w.tag('VOTABLE', votable_attr):
                 if self.description is not None:
                     w.element("DESCRIPTION", self.description, wrap=True)
                 element_sets = [self.coordinate_systems, self.time_systems,
