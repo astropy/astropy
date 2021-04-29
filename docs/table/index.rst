@@ -260,7 +260,7 @@ a hybrid of a regular `~astropy.table.Column` and the native object type (see
   <QTable length=2>
            time          skycoord
                          deg,deg
-          object          object
+           Time          SkyCoord
   --------------------- ----------
   2000:002:00:00:00.000 10.0,-45.0
   2002:345:00:00:00.000  20.0,40.0

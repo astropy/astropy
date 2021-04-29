@@ -52,7 +52,7 @@ We can convert this to an ``astropy`` |TimeSeries| using
     >>> ts
     <TimeSeries length=3>
                  time               a
-                object            int64
+                 Time             int64
     ----------------------------- -----
     2015-07-04T00:00:00.000000000     1
     2015-07-05T00:00:00.000000000     2
@@ -81,7 +81,7 @@ pandas' NaT object:
     >>> ts
     <TimeSeries length=3>
                  time               a      b
-                object            int64 float64
+                 Time             int64 float64
     ----------------------------- ----- -------
     2015-07-04T00:00:00.000000000     1     1.2
     2015-07-05T00:00:00.000000000     2     3.4
