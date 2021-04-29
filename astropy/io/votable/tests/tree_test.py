@@ -18,8 +18,8 @@ def test_check_astroyear_fail():
 
 
 def test_string_fail():
-    with raises(W08):
-        config = {'verify': 'exception'}
+    config = {'verify': 'exception'}
+    with pytest.raises(W08):
         tree.check_string(42, 'foo', config)
 
 
