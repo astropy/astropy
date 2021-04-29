@@ -7,7 +7,6 @@ from astropy.io.votable.exceptions import W07, W08, W21, W41
 from astropy.io.votable import tree
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import VOTableFile, Resource
-from astropy.tests.helper import raises
 from astropy.utils.data import get_pkg_data_filename
 
 
