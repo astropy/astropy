@@ -12,8 +12,6 @@ from astropy.timeseries.downsample import aggregate_downsample, reduceat
 
 INPUT_TIME = Time(['2016-03-22T12:30:31', '2016-03-22T12:30:32',
                    '2016-03-22T12:30:33', '2016-03-22T12:30:34'])
-ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4]], names=['a'])
-ts_units = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4] * u.count], names=['a'])
 
 
 def test_reduceat():
@@ -41,6 +39,9 @@ def test_timeseries_invalid():
 
 
 def test_downsample():
+    ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4]], names=['a'])
+    ts_units = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4] * u.count], names=['a'])
+
     down_1 = aggregate_downsample(ts, time_bin_size=1*u.second)
     u.isclose(down_1.time_bin_size, [1, 1, 1, 1]*u.second)
     assert_equal(down_1.time_bin_start.isot, Time(['2016-03-22T12:30:31.000', '2016-03-22T12:30:32.000',
