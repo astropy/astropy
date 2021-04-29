@@ -499,7 +499,7 @@ def test_mad_std():
     # And now test with a larger array and compare with Python mad_std function
 
     with NumpyRNGContext(12345):
-        array = np.random.uniform(-1, 2, (300, 400))
+        array = np.random.uniform(-1, 2, (30, 40))
 
     def nan_mad_std(data, axis=None):
         return mad_std(data, axis=axis, ignore_nan=True)
