@@ -666,7 +666,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     frequency : `~astropy.units.Quantity`
         The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
         frequency or wavelength). Must have spectral units.
-    T_cmb :  `~astropy.units.Quantity` or None
+    T_cmb :  `~astropy.units.Quantity` ['temperature'] or None
         The CMB temperature at z=0.  If `None`, the default cosmology will be
         used to get this temperature. Must have units of temperature.
 
