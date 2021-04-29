@@ -1,0 +1,1 @@
+The use of ``version='1.0'`` is now fully deprecated in constructing a ``astropy.io.votable.tree.VOTableFile``.
