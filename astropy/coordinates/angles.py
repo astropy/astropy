@@ -244,7 +244,7 @@ class Angle(u.SpecificTypeQuantity):
                 u.hourangle: 'hms'},
             'latex': {
                 u.degree: [r'^\circ', r'{}^\prime', r'{}^{\prime\prime}'],
-                u.hourangle: [r'^\mathrm{h}', r'^\mathrm{m}', r'^\mathrm{s}']},
+                u.hourangle: [r'^{\mathrm{h}}', r'^{\mathrm{m}}', r'^{\mathrm{s}}']},
             'unicode': {
                 u.degree: '°′″',
                 u.hourangle: 'ʰᵐˢ'}
