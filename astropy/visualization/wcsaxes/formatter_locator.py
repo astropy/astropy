@@ -45,7 +45,7 @@ CUSTOM_UNITS = {
                                  'unicode': '″'}),
     u.hourangle: u.def_unit('custom_hourangle', represents=u.hourangle,
                             format={'generic': 'h',
-                                    'latex': r'^\mathrm{h}',
+                                    'latex': r'^{\mathrm{h}}',
                                     'unicode': r'$\mathregular{^h}$'})}
 
 
