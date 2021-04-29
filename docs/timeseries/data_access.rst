@@ -40,7 +40,7 @@ And rows can be accessed by index::
     <Row index=0>
               time            flux    temp
                                Jy      K
-             object         float64 float64
+              Time          float64 float64
     ----------------------- ------- -------
     2016-03-22T12:30:31.000     1.0    40.0
 
@@ -116,7 +116,7 @@ We can create a new time series with just the ``flux`` column by doing::
    <TimeSeries length=5>
              time            flux
                               Jy
-            object         float64
+             Time          float64
    ----------------------- -------
    2016-03-22T12:30:31.000     1.0
    2016-03-22T12:30:34.000     4.0
@@ -154,7 +154,7 @@ for example::
    <TimeSeries length=2>
              time            flux    temp
                               Jy      K
-            object         float64 float64
+             Time          float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
    2016-03-22T12:30:34.000     4.0    41.0
@@ -177,7 +177,7 @@ all entries for a given timestamp::
    <Row index=0>
              time            flux    temp
                               Jy      K
-            object         float64 float64
+             Time          float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
 
@@ -187,7 +187,7 @@ Or within a time range::
    <TimeSeries length=4>
              time            flux    temp
                               Jy      K
-            object         float64 float64
+             Time          float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
    2016-03-22T12:30:34.000     4.0    41.0
@@ -210,7 +210,7 @@ entries (by time) can be accessed with::
    <TimeSeries length=2>
              time            flux    temp
                               Jy      K
-            object         float64 float64
+             Time          float64 float64
    ----------------------- ------- -------
    2016-03-22T12:30:31.000     1.0    40.0
    2016-03-22T12:30:34.000     4.0    41.0

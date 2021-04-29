@@ -29,7 +29,7 @@ specify the start time, the time interval, and the number of samples::
     >>> ts1
     <TimeSeries length=5>
               time
-             object
+              Time
     -----------------------
     2016-03-22T12:30:31.000
     2016-03-22T12:30:34.000
@@ -59,7 +59,7 @@ pass multiple times to the ``time`` argument::
     >>> ts2
     <TimeSeries length=3>
               time
-             object
+              Time
     -----------------------
     2016-03-22T12:30:31.000
     2016-03-22T12:30:38.000
@@ -72,8 +72,8 @@ argument.::
     >>> TimeSeries(time_start="2011-01-01T00:00:00",
     ...            time_delta=[0.1, 0.2, 0.1, 0.3, 0.2]*u.s)
     <TimeSeries length=5>
-              time
-            object
+             time
+             Time
     -----------------------
     2011-01-01T00:00:00.000
     2011-01-01T00:00:00.100
@@ -109,7 +109,7 @@ to specify a start time as well as a bin size::
     <BinnedTimeSeries length=10>
         time_bin_start     time_bin_size
                                  s
-            object            float64
+              Time             float64
     ----------------------- -------------
     2016-03-22T12:30:31.000           3.0
     2016-03-22T12:30:34.000           3.0
@@ -142,7 +142,7 @@ required)::
     <BinnedTimeSeries length=4>
          time_bin_start     time_bin_size
                                   s
-             object            float64
+              Time             float64
     ----------------------- -------------
     2016-03-22T12:30:31.000           3.0
     2016-03-22T12:30:34.000           3.0
@@ -159,9 +159,9 @@ times as well as a single end time::
     ...                        time_bin_end='2016-03-22T12:30:42')
     >>> ts5  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
-        time_bin_start            time_bin_size
-                                 s
-          object              float64
+         time_bin_start        time_bin_size
+                                    s
+             Time                float64
     ----------------------- -----------------
     2016-03-22T12:30:31.000               3.0
     2016-03-22T12:30:34.000               3.0
@@ -187,7 +187,7 @@ specify an array of start times and bin widths::
     <BinnedTimeSeries length=3>
          time_bin_start     time_bin_size
                                   s
-             object            float64
+              Time             float64
     ----------------------- -------------
     2016-03-22T12:30:31.000           5.0
     2016-03-22T12:30:38.000         100.0
@@ -206,7 +206,7 @@ Or in the most general case, you can also specify multiple times for
     <BinnedTimeSeries length=3>
         time_bin_start        time_bin_size
                                     s
-             object              float64
+              Time               float64
     ----------------------- ------------------
     2016-03-22T12:30:31.000                1.0
     2016-03-22T12:30:33.000                2.0
@@ -237,9 +237,9 @@ object, as for |Table| objects. For instance::
     ...                        data={'flux': [1., 4., 5., 6.] * u.mJy})
     >>> ts8  # doctest: +FLOAT_CMP
     <BinnedTimeSeries length=4>
-           time_bin_start            time_bin_size       flux
-                                    s           mJy
-             object              float64      float64
+          time_bin_start     time_bin_size     flux
+                                   s            mJy
+              Time              float64       float64
     ----------------------- ----------------- -------
     2016-03-22T12:30:31.000               3.0     1.0
     2016-03-22T12:30:34.000               3.0     4.0
@@ -262,7 +262,7 @@ you would for a |Table| object::
     <TimeSeries length=5>
               time            flux
                               mJy
-             object         float64
+              Time          float64
     ----------------------- -------
     2016-03-22T12:30:31.000     1.0
     2016-03-22T12:30:34.000     4.0
@@ -288,7 +288,7 @@ method takes a dictionary where the keys are column names::
     <BinnedTimeSeries length=5>
         time_bin_start       time_bin_size      flux
                                     s           mJy
-             object              float64      float64
+              Time               float64      float64
     ----------------------- ----------------- -------
     2016-03-22T12:30:31.000               3.0     1.0
     2016-03-22T12:30:34.000               3.0     4.0

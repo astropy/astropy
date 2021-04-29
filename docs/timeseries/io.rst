@@ -92,7 +92,7 @@ the time column is called ``Date`` and is an ISO string, you can do::
     >>> ts[:3]
     <TimeSeries length=3>
               time             A       B       C       D       E       F       G
-             object         float64 float64 float64 float64 float64 float64 float64
+              Time          float64 float64 float64 float64 float64 float64 float64
     ----------------------- ------- ------- ------- ------- ------- ------- -------
     2008-03-18 00:00:00.000   24.68  164.93  114.73   26.27   19.21   28.87   63.44
     2008-03-19 00:00:00.000   24.18  164.89  114.75   26.22   19.07   27.76   59.98
@@ -114,7 +114,7 @@ start time and ``bin_size`` giving the size of each bin, you can do::
     <BinnedTimeSeries length=3>
          time_bin_start     time_bin_size ...    E       F
                                   s       ...
-             object            float64    ... float64 float64
+              Time             float64    ... float64 float64
     ----------------------- ------------- ... ------- -------
     2016-03-22T12:30:31.000           3.0 ...   28.87   63.44
     2016-03-22T12:30:34.000           3.0 ...   27.76   59.98
