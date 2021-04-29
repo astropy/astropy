@@ -199,6 +199,10 @@ class EcsvHeader(basic.BasicHeader):
                 if getattr(col, attr) == 'string':
                     setattr(col, attr, 'str')
 
+            # ECSV subtype of 'json' maps to numpy 'object' dtype
+            if col.subtype == 'json':
+                col.subtype = 'object'
+
 
 def _check_dtype_is_str(col):
     if col.dtype != 'str':

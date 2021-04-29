@@ -462,7 +462,7 @@ representation.
   # %ECSV 1.0
   # ---
   # datatype:
-  # - {name: a, datatype: string, subtype: object}
+  # - {name: a, datatype: string, subtype: json}
   # schema: astropy-2.0
   a
   "{""a"":1}"

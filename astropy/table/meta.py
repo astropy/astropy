@@ -270,6 +270,9 @@ def _get_col_attributes(col):
 
     if subtype:
         attrs['subtype'] = _get_datatype_from_dtype(subtype)
+        # Numpy 'object' maps to 'subtype' of 'json' in ECSV
+        if attrs['subtype'] == 'object':
+            attrs['subtype'] = 'json'
     if shape:
         attrs['subtype'] += json.dumps(list(shape), separators=(',', ':'))
 
