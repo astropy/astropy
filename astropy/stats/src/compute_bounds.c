@@ -34,7 +34,6 @@ void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
 
     if (use_mad_std) {
 
-      buffer2 = malloc(count * sizeof(double*));
       for (i = 0; i < count; i++) {
         buffer2[i] = fabs(buffer[i] - median);
       }
