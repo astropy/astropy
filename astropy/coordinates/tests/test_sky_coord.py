@@ -384,15 +384,11 @@ def test_equal():
     assert (sc1[0] != sc2[0]) == False  # noqa
 
 
-def test_equal_exceptions():
+def test_equal_no_equal():
     sc1 = SkyCoord(1*u.deg, 2*u.deg, obstime='B1955')
     sc2 = SkyCoord(1*u.deg, 2*u.deg)
-    with pytest.raises(ValueError, match=r"cannot compare: extra frame "
-                       r"attribute 'obstime' is not equivalent \(perhaps compare the "
-                       r"frames directly to avoid this exception\)"):
-        sc1 == sc2
-    # Note that this exception is the only one raised directly in SkyCoord.
-    # All others come from lower-level classes and are tested in test_frames.py.
+    assert not sc1 == sc2
+    assert not sc1 == 'my_string'
 
 
 def test_attr_inheritance():

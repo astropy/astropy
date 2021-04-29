@@ -364,16 +364,19 @@ class SkyCoord(ShapedLikeNDArray):
         equivalent, extra frame attributes are equivalent, and that the
         representation data are exactly equal.
         """
-        # Make sure that any extra frame attribute names are equivalent.
-        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
-            if not self.frame._frameattr_equiv(getattr(self, attr),
-                                               getattr(value, attr)):
-                raise ValueError(f"cannot compare: extra frame attribute "
-                                 f"'{attr}' is not equivalent "
-                                 f"(perhaps compare the frames directly to avoid "
-                                 f"this exception)")
+        try:
+            # Make sure that any extra frame attribute names are equivalent.
+            for attr in self._extra_frameattr_names | value._extra_frameattr_names:
+                if not self.frame._frameattr_equiv(getattr(self, attr),
+                                                   getattr(value, attr)):
+                    raise ValueError(f"cannot compare: extra frame attribute "
+                                     f"'{attr}' is not equivalent "
+                                     f"(perhaps compare the frames directly to avoid "
+                                     f"this exception)")
 
-        return self._sky_coord_frame == value._sky_coord_frame
+            return self._sky_coord_frame == value._sky_coord_frame
+        except Exception:
+            return False
 
     def __ne__(self, value):
         return np.logical_not(self == value)

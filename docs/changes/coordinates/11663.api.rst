@@ -1,0 +1,2 @@
+``SkyCoord`` equality check now returns ``False`` on invalid check instead
+of throwing exception.
