@@ -717,7 +717,7 @@ def test_read_not_json_serializable():
 # %ECSV 1.0
 # ---
 # datatype:
-# - {name: a, datatype: string, subtype: object}
+# - {name: a, datatype: string, subtype: json}
 # schema: astropy-2.0
 a
 fail
@@ -749,7 +749,7 @@ def test_read_bad_datatype_for_object_subtype():
 # %ECSV 1.0
 # ---
 # datatype:
-# - {name: a, datatype: int64, subtype: object}
+# - {name: a, datatype: int64, subtype: json}
 # schema: astropy-2.0
 a
 fail
@@ -834,7 +834,7 @@ c[1] = [[1, 2, 3], [4, 5.25, 6]]
 exps['2-d variable array lists'] = [
     {'datatype': 'string',
      'name': '2-d variable array lists',
-     'subtype': 'object'}]
+     'subtype': 'json'}]
 
 # Array of numpy arrays that is a 2-d variable array
 cols['2-d variable array numpy'] = c = np.empty(shape=(2,), dtype=object)
@@ -849,7 +849,7 @@ cols['1-d variable array lists'] = np.array([[1, 2], [3, 4, 5]], dtype=object)
 exps['1-d variable array lists'] = [
     {'datatype': 'string',
      'name': '1-d variable array lists',
-     'subtype': 'object'}]
+     'subtype': 'json'}]
 
 # Variable-length array
 cols['1-d variable array numpy'] = np.array(
@@ -890,7 +890,7 @@ exps['2-d regular array'] = [
 
 cols['scalar object'] = np.array([{'a': 1}, {'b':2}], dtype=object)
 exps['scalar object'] = [
-    {'datatype': 'string', 'name': 'scalar object', 'subtype': 'object'}]
+    {'datatype': 'string', 'name': 'scalar object', 'subtype': 'json'}]
 
 cols['1-d object'] = np.array(
     [[{'a': 1}, {'b':2}],
@@ -898,7 +898,7 @@ cols['1-d object'] = np.array(
 exps['1-d object'] = [
     {'datatype': 'string',
      'name': '1-d object',
-     'subtype': 'object[2]'}]
+     'subtype': 'json[2]'}]
 
 
 @pytest.mark.parametrize('name,col,exp',
