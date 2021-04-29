@@ -29,10 +29,11 @@ static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
 MOD_INIT(_fast_sigma_clip) {
     PyObject *m, *d;
     PyUFuncObject *ufunc;
-    static char types[8] = {
+    static char types[9] = {
         NPY_DOUBLE, /* data array */
         NPY_BOOL, /* mask array */
         NPY_BOOL, /* use median */
+        NPY_BOOL, /* use mad_std */
         NPY_INT, /* max iter */
         NPY_DOUBLE, /* sigma low */
         NPY_DOUBLE, /* sigma high */
@@ -54,8 +55,8 @@ MOD_INIT(_fast_sigma_clip) {
     import_umath();
 
     ufunc = (PyUFuncObject *)PyUFunc_FromFuncAndDataAndSignature(
-        funcs, data, types, 1, 6, 2, PyUFunc_None, "_sigma_clip_fast",
-        _sigma_clip_fast_docstring, 0, "(n),(n),(),(),(),()->(),()");
+        funcs, data, types, 1, 7, 2, PyUFunc_None, "_sigma_clip_fast",
+        _sigma_clip_fast_docstring, 0, "(n),(n),(),(),(),(),()->(),()");
     if (ufunc == NULL) {
         goto fail;
     }
@@ -83,6 +84,8 @@ static void _sigma_clip_fast(
     npy_intp s_mask = *steps++;
     char *use_median = *args++;
     npy_intp s_use_median = *steps++;
+    char *use_mad_std = *args++;
+    npy_intp s_use_mad_std = *steps++;
     char *max_iter = *args++;
     npy_intp s_max_iter = *steps++;
     char *sigma_low = *args++;
@@ -100,17 +103,30 @@ static void _sigma_clip_fast(
     npy_intp is_mask = *steps++;
 
     double *buffer = NULL;
+    double *buffer2 = NULL;
 
+    // buffer is used to store the current values being sigma clipped
     buffer = (double *)PyArray_malloc(n_i * sizeof(double));
     if (buffer == NULL) {
         PyErr_NoMemory();
         return;
     }
+
+    // buffer2 is available to be used by compute_sigma_clipped_bounds
+    // for other purposes if needed, such as when computing mad_std.
+    buffer2 = (double *)PyArray_malloc(n_i * sizeof(double));
+    if (buffer2 == NULL) {
+        PyErr_NoMemory();
+        return;
+    }
+
     for (i_o = 0; i_o < n_o;
-         i_o++, array += s_array, mask += s_mask,
-             use_median += s_use_median, max_iter += s_max_iter,
-             sigma_low += s_sigma_low, sigma_high += s_sigma_high,
-             bound_low += s_bound_low, bound_high += s_bound_high) {
+         i_o++, array += s_array,
+                mask += s_mask,
+                use_median += s_use_median, use_mad_std += s_use_mad_std,
+                max_iter += s_max_iter,
+                sigma_low += s_sigma_low, sigma_high += s_sigma_high,
+                bound_low += s_bound_low, bound_high += s_bound_high) {
         /* copy to buffer */
         in_array = array;
         in_mask = mask;
@@ -124,9 +140,10 @@ static void _sigma_clip_fast(
         if (count > 0) {
             compute_sigma_clipped_bounds(
                 buffer, count,
-                (int)(*(npy_bool *)use_median), *(int *)max_iter,
+                (int)(*(npy_bool *)use_median), (int)(*(npy_bool *)use_mad_std),
+                *(int *)max_iter,
                 *(double *)sigma_low, *(double *)sigma_high,
-                (double *)bound_low, (double *)bound_high);
+                (double *)bound_low, (double *)bound_high, buffer2);
         }
         else {
             *(double *)bound_low = NPY_NAN;

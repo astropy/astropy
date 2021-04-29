@@ -5,6 +5,7 @@ import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
 from astropy import units as u
+from astropy.stats import mad_std
 from astropy.stats.sigma_clipping import sigma_clip, SigmaClip, sigma_clipped_stats
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
@@ -463,3 +464,50 @@ def test_sigma_clip_dtypes(dtype):
     actual = sigma_clip(array.astype(dtype), copy=True, masked=False)
 
     assert_equal(reference, actual)
+
+
+def test_mad_std():
+
+    # Test out the stdfunc=mad_std option
+
+    # Choose an array with few elements and a high proportion of outliers since
+    # in this case std and mad_std will be very different.
+    array = np.array([1, 10000, 4, 3, 10000])
+
+    # First check with regular std, which shouldn't remove any values
+    result_std = sigma_clip(array, cenfunc='median', stdfunc='std',
+                            maxiters=1, sigma=5, masked=False)
+    assert_equal(result_std, array)
+
+    # Whereas using mad_std should result in the high values being removed
+    result_mad_std = sigma_clip(array, cenfunc='median', stdfunc='mad_std',
+                                maxiters=1, sigma=5, masked=False)
+    assert_equal(result_mad_std, [1, 4, 3])
+
+    # We now check this again but with the axis= keyword set since at the time
+    # of writing this test this relies on a fast C implementation in which we
+    # have re-inplemented mad_std.
+
+    result_std = sigma_clip(array, cenfunc='median', stdfunc='std',
+                            maxiters=1, sigma=5, masked=False, axis=0)
+    assert_equal(result_std, array)
+
+    result_mad_std = sigma_clip(array, cenfunc='median', stdfunc='mad_std',
+                                maxiters=1, sigma=5, masked=False, axis=0)
+    assert_equal(result_mad_std, [1, np.nan, 4, 3, np.nan])
+
+    # And now test with a larger array and compare with Python mad_std function
+
+    with NumpyRNGContext(12345):
+        array = np.random.uniform(-1, 2, (300, 400))
+
+    def nan_mad_std(data, axis=None):
+        return mad_std(data, axis=axis, ignore_nan=True)
+
+    result1 = sigma_clip(array, sigma=2, maxiters=None,
+                         stdfunc=nan_mad_std, axis=0, masked=False)
+
+    result2 = sigma_clip(array, sigma=2, maxiters=None,
+                         stdfunc='mad_std', axis=0, masked=False)
+
+    assert_allclose(result1, result2)
