@@ -9,6 +9,7 @@ import pytest
 from astropy import units as u
 from astropy.units import physical, imperial
 from astropy.constants import hbar
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 unit_physical_type_pairs = [
@@ -335,15 +336,15 @@ def test_physical_type_instance_inequality(unit1, unit2):
 
 physical_type_with_expected_str = [
     (length, "length"),
-    (speed, "speed"),
-    (pressure, "{'energy density', 'pressure', 'stress'}"),
+    (speed, "speed/velocity"),
+    (pressure, "energy density/pressure/stress"),
     (u.deg_C.physical_type, "temperature"),
-    ((u.J / u.K / u.kg).physical_type, "{'specific entropy', 'specific heat capacity'}"),
+    ((u.J / u.K / u.kg).physical_type, "specific entropy/specific heat capacity"),
 ]
 
 physical_type_with_expected_repr = [
     (length, "PhysicalType('length')"),
-    (speed, "PhysicalType('speed')"),
+    (speed, "PhysicalType({'speed', 'velocity'})"),
     (pressure, "PhysicalType({'energy density', 'pressure', 'stress'})"),
     (u.deg_C.physical_type, "PhysicalType('temperature')"),
     ((u.J / u.K / u.kg).physical_type,
@@ -477,3 +478,28 @@ class TestDefPhysType:
                 f"the physical type for {unit}, which was added for"
                 f"testing, was not deleted."
             )
+
+
+@pytest.mark.parametrize("method, expected", [
+        ("title", 'Length'), ("isalpha", True), ("isnumeric", False), ("upper", 'LENGTH')
+])
+def test_that_str_methods_work_with_physical_types(method, expected):
+    """
+    Test that str methods work for `PhysicalType` instances while issuing
+    a deprecation warning.
+    """
+    with pytest.warns(AstropyDeprecationWarning, match="PhysicalType instances"):
+        result_of_method_call = getattr(length, method)()
+    assert result_of_method_call == expected
+
+
+def test_missing_physical_type_attribute():
+    """
+    Test that a missing attribute raises an `AttributeError`.
+
+    This test should be removed when the deprecated option of calling
+    string methods on PhysicalType instances is removed from
+    `PhysicalType.__getattr__`.
+    """
+    with pytest.raises(AttributeError):
+        length.not_the_name_of_a_str_or_physical_type_attribute
