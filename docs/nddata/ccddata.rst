@@ -41,7 +41,7 @@ A `~astropy.nddata.CCDData` object can also be initialized from a FITS filename
 or URL:
 
     >>> ccd = CCDData.read('my_file.fits', unit="adu")  # doctest: +SKIP
-    >>> ccd = CCDData.read('http://data.astropy.org/tutorials/FITS-images/HorseHead.fits', unit="adu", cache=True)  # doctest: +REMOTE_DATA
+    >>> ccd = CCDData.read('http://data.astropy.org/tutorials/FITS-images/HorseHead.fits', unit="adu", cache=True)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
 
 If there is a unit in the FITS file (in the ``BUNIT`` keyword), that will be
 used, but explicitly providing a unit in ``read`` will override any unit in the
