@@ -8,6 +8,7 @@ from astropy.io.votable import tree
 from astropy.io.votable.table import parse
 from astropy.io.votable.tree import VOTableFile, Resource
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_check_astroyear_fail():
@@ -94,26 +95,21 @@ def test_version():
     """
 
     # Exercise the checks in __init__
-    VOTableFile(version='1.0')
-    VOTableFile(version='1.1')
-    VOTableFile(version='1.2')
-    VOTableFile(version='1.3')
-    VOTableFile(version='1.4')
-    with pytest.raises(ValueError):
-        VOTableFile(version='0.9')
-    with pytest.raises(ValueError, match=r"should be in \('1.0', '1.1', '1.2', '1.3', '1.4'\)."):
-        VOTableFile(version='2.0')
+    with pytest.raises(AstropyDeprecationWarning):
+        VOTableFile(version='1.0')
+    for version in ('1.1', '1.2', '1.3', '1.4'):
+        VOTableFile(version=version)
+    for version in ('0.9', '2.0'):
+        with pytest.raises(ValueError, match=r"should be in \('1.0', '1.1', '1.2', '1.3', '1.4'\)."):
+            VOTableFile(version=version)
 
     # Exercise the checks in the setter
     vot = VOTableFile()
-    vot.version = '1.1'
-    vot.version = '1.2'
-    vot.version = '1.3'
-    vot.version = '1.4'
-    with pytest.raises(ValueError):
-        vot.version = '1.0'
-    with pytest.raises(ValueError, match=r"supports VOTable versions '1.1', '1.2', '1.3', '1.4'$"):
-        vot.version = '2.0'
+    for version in ('1.1', '1.2', '1.3', '1.4'):
+        vot.version = version
+    for version in ('1.0', '2.0'):
+        with pytest.raises(ValueError, match=r"supports VOTable versions '1.1', '1.2', '1.3', '1.4'$"):
+            vot.version = version
 
     # Exercise the checks in the parser.
     begin = b'<?xml version="1.0" encoding="utf-8"?><VOTABLE version="'
@@ -121,16 +117,14 @@ def test_version():
     end = b'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><RESOURCE/></VOTABLE>'
 
     # Valid versions
-    parse(io.BytesIO(begin + b'1.1' + middle + b'1.1' + end), verify='exception')
-    parse(io.BytesIO(begin + b'1.2' + middle + b'1.2' + end), verify='exception')
-    parse(io.BytesIO(begin + b'1.3' + middle + b'1.3' + end), verify='exception')
+    for bversion in (b'1.1', b'1.2', b'1.3'):
+        parse(io.BytesIO(begin + bversion + middle + bversion + end), verify='exception')
     parse(io.BytesIO(begin + b'1.4' + middle + b'1.3' + end), verify='exception')
 
     # Invalid versions
-    with pytest.raises(W21):
-        parse(io.BytesIO(begin + b'1.0' + middle + b'1.0' + end), verify='exception')
-    with pytest.raises(W21):
-        parse(io.BytesIO(begin + b'2.0' + middle + b'1.0' + end), verify='exception')
+    for bversion in (b'1.0', b'2.0'):
+        with pytest.raises(W21):
+            parse(io.BytesIO(begin + bversion + middle + bversion + end), verify='exception')
 
 
 def votable_xml_string(version):
@@ -157,9 +151,9 @@ def test_votable_tag():
     xml = votable_xml_string('1.3')
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
     assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 '
-    assert 'https://www.ivoa.net/xml/VOTable/VOTable-1.3.xsd"' in xml
+    assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.3.xsd"' in xml
 
     xml = votable_xml_string('1.4')
     assert 'xmlns="http://www.ivoa.net/xml/VOTable/v1.3"' in xml
     assert 'xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 '
-    assert 'https://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml
+    assert 'http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd"' in xml

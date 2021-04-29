@@ -8,6 +8,7 @@ import gzip
 import base64
 import codecs
 import urllib.request
+import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -18,6 +19,7 @@ from astropy.io import fits
 from astropy import __version__ as astropy_version
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.xml.writer import XMLWriter
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import converters
 from .exceptions import (warn_or_raise, vo_warn, vo_raise, vo_reraise,
@@ -3404,7 +3406,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         self._groups = HomogeneousList(Group)
 
         version = str(version)
-        if (version != '1.0') and (version not in self._version_namespace_map):
+        if version == '1.0':
+            warnings.warn('VOTable 1.0 support is deprecated in astropy 4.3 and will be '
+                          'removed in a future release', AstropyDeprecationWarning)
+        elif (version != '1.0') and (version not in self._version_namespace_map):
             allowed_from_map = "', '".join(self._version_namespace_map)
             raise ValueError(f"'version' should be in ('1.0', '{allowed_from_map}').")
 
