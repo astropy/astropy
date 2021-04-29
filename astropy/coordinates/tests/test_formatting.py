@@ -65,7 +65,7 @@ def test_to_string_formats():
     assert a.to_string(format='unicode') == '1°06′48.078″'
 
     a = Angle(1.113355, unit=u.hour)
-    assert a.to_string(format='latex') == r'$1^\mathrm{h}06^\mathrm{m}48.078^\mathrm{s}$'
+    assert a.to_string(format='latex') == r'$1^{\mathrm{h}}06^{\mathrm{m}}48.078^{\mathrm{s}}$'
     assert a.to_string(format='unicode') == '1ʰ06ᵐ48.078ˢ'
 
     a = Angle(1.113355, unit=u.radian)
