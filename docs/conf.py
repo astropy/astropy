@@ -37,8 +37,6 @@ try:
 except ImportError:
     import importlib_metadata
 
-from sphinx.errors import NoUri
-
 try:
     from sphinx_astropy.conf.v1 import *  # noqa
 except ImportError:
@@ -470,7 +468,7 @@ def resolve_astropy_dev_reference(app, env, node, contnode):
         except Exception:
             pass
 
-        # Otherwise return None which should deletegate to intersphinx
+        # Otherwise return None which should delegate to intersphinx
 
 
 def setup(app):
