@@ -20,6 +20,7 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-iers-auto-download`
 * :ref:`whatsnew-4.3-ecsv-subtypes`
 * :ref:`whatsnew-4.3-ascii-qdp-format`
+* :ref:`whatsnew-4.3-fits-append-table`
 *
 
 In addition to these major changes, Astropy v4.3 includes a large number of
@@ -114,6 +115,16 @@ The :ref:`io-ascii` subpackage now supports reading and writing tables in the
 QDP (`Quick and Dandy Plotter <https://wwwastro.msfc.nasa.gov/qdp/>`_) format.
 This specialized format is used by some missions such as `Swift
 <https://www.nasa.gov/mission_pages/swift/main>`_.
+
+.. _whatsnew-4.3-fits-append-table:
+
+Append table to existing FITS file
+==================================
+
+It is now easy to append a table to an existing FITS file using a new ``append``
+keyword::
+
+    >>> tbl.write('existing_table.fits', append=True)  # doctest: +SKIP
 
 Full change log
 ===============
