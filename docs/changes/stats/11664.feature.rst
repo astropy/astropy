@@ -1,0 +1,3 @@
+Added the ability to specify stdfunc='mad_std' when doing sigma clipping,
+which will use a built-in function and lead to significant performance
+improvements if cenfunc is 'mean' or 'median'.
