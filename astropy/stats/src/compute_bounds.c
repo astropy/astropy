@@ -2,10 +2,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
+void compute_sigma_clipped_bounds(double data_buffer[], int count, int use_median,
                                   int use_mad_std, int maxiters, double sigma_lower,
                                   double sigma_upper, double *lower_bound,
-                                  double *upper_bound, double buffer2[]) {
+                                  double *upper_bound, double  mad_buffer[]) {
 
   double mean, std, median, cen;
   int i, new_count, iteration = 0;
@@ -13,7 +13,7 @@ void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
   while (1) {
 
     if (use_median || use_mad_std) {
-      median = wirth_median(buffer, count);
+      median = wirth_median(data_buffer, count);
     }
 
     // Note that we don't use an else clause here, because the mean
@@ -21,7 +21,7 @@ void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
     if (!use_median || !use_mad_std) {
       mean = 0;
       for (i = 0; i < count; i++) {
-        mean += buffer[i];
+        mean += data_buffer[i];
       }
       mean /= count;
     }
@@ -35,15 +35,15 @@ void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
     if (use_mad_std) {
 
       for (i = 0; i < count; i++) {
-        buffer2[i] = fabs(buffer[i] - median);
+        mad_buffer[i] = fabs(data_buffer[i] - median);
       }
-      std = wirth_median(buffer2, count) * 1.482602218505602;
+      std = wirth_median(mad_buffer, count) * 1.482602218505602;
 
     } else {
 
       std = 0;
       for (i = 0; i < count; i++) {
-        std += pow(mean - buffer[i], 2);
+        std += pow(mean - data_buffer[i], 2);
       }
       std = sqrt(std / count);
 
@@ -57,8 +57,8 @@ void compute_sigma_clipped_bounds(double buffer[], int count, int use_median,
     // packed array of 'valid' values
     new_count = 0;
     for (i = 0; i < count; i++) {
-      if (buffer[i] >= *lower_bound && buffer[i] <= *upper_bound) {
-        buffer[new_count] = buffer[i];
+      if (data_buffer[i] >= *lower_bound && data_buffer[i] <= *upper_bound) {
+        data_buffer[new_count] = data_buffer[i];
         new_count += 1;
       }
     }
