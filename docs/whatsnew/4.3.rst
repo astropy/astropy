@@ -22,7 +22,7 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-ascii-qdp-format`
 * :ref:`whatsnew-4.3-fits-append-table`
 * :ref:`whatsnew-4.3-masked-class-quantity`
-*
+* :ref:`whatsnew-4.3-configuration-file-optional`
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -133,18 +133,34 @@ General masked class for Quantity and other ndarray subclasses
 ==============================================================
 
 A substantial new class for handling :ref:`Masked Data <utils-masked>` has been
-included as an experimental feature of ``astropy``. The new ``Masked`` class
-allows wrapping NumPy ``ndarray`` subclasses to include a ``mask`` attribute
-and correctly propagate that mask through NumPy operations.
+included as an experimental feature of ``astropy``. The new
+`~astropy.utils.masked.Masked` class allows wrapping NumPy ``ndarray``
+subclasses to include a ``mask`` attribute and correctly propagate that mask
+through NumPy operations.
 
-A primary driver for the ``Masked`` class is to support masked ``Quantity``
-objects. This functionality is implemented and well-tested, and the next steps
-planned for the 5.0 release of ``astropy`` will be application to other astropy
-classes such as ``SkyCoord`` and full integration with ``Table`` functionality
-that requires masking.
+A primary driver for the `~astropy.utils.masked.Masked` class is to support
+masked ``Quantity`` objects. This functionality is implemented and well-tested,
+and the next steps planned for the 5.0 release of ``astropy`` will be
+application to other astropy classes such as `~astropy.coordinates.SkyCoord`
+and full integration with :ref:`Table <astropy-table>` functionality that requires
+masking.
 
 We encourage use and testing of the new class in non-production code, but
 caution that the API may change in the next release.
+
+.. _whatsnew-4.3-configuration-file-optional:
+
+Configuration file improvements
+===============================
+
+The configuration file is no longer created by default when importing astropy
+and its existence is no longer required. This should alleviate a number of
+issues associated with the previous behavior. If necessary the configuration
+file can be written with a new function `~astropy.config.create_config_file`.
+
+Affiliated packages should update their ``__init__.py`` module to remove the
+block using ``update_default_config`` and
+``ConfigurationDefaultMissingWarning``.
 
 Full change log
 ===============
