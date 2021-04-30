@@ -1,0 +1,8 @@
+Change the Time and IERS leap second handling so that the leap second table is
+updated only when a Time transform involving UTC is performed. Previously this
+update check was done the first time a ``Time`` object was created, which in
+practice occured when importing common astropy subpackages like
+``astropy.coordinates``. Now you can prevent querying internet resources (for
+instance on a cluster) by setting ``iers.conf.auto_download = False``. This can
+be done after importing astrpoy but prior to performing any ``Time`` scale
+transformations related to UTC.
