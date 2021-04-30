@@ -161,7 +161,7 @@ There are some additional tools, mostly of use for maintainers, in the
 
 To read the developer documentation, you will need to go to the :ref:`latest
 developer version of the documentation
-<astropy-dev:developer-documentation>`.
+<astropy-dev:developer-docs>`.
 
 .. toctree::
    :maxdepth: 1
