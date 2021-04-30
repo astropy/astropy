@@ -2,21 +2,19 @@
 
 import pytest
 
-from astropy.tests.helper import raises
-
 from astropy.utils import collections
 
 
-@raises(TypeError)
 def test_homogeneous_list():
     l = collections.HomogeneousList(int)
-    l.append(5.0)
+    with pytest.raises(TypeError):
+        l.append(5.0)
 
 
-@raises(TypeError)
 def test_homogeneous_list2():
     l = collections.HomogeneousList(int)
-    l.extend([5.0])
+    with pytest.raises(TypeError):
+        l.extend([5.0])
 
 
 def test_homogeneous_list3():
@@ -31,10 +29,10 @@ def test_homogeneous_list4():
     assert l == [5]
 
 
-@raises(TypeError)
 def test_homogeneous_list5():
     l = collections.HomogeneousList(int, [1, 2, 3])
-    l[1] = 5.0
+    with pytest.raises(TypeError):
+        l[1] = 5.0
 
 
 def test_homogeneous_list_setitem_works():
