@@ -18,7 +18,7 @@ from astropy.tests.tests.test_imports import test_imports
 # table is not updated for normal imports.
 test_imports()
 
-# Now test that the erfa leap_seconds table has not been udpated. This must be
+# Now test that the erfa leap_seconds table has not been updated. This must be
 # done at the module level, which unfortunately will abort the entire test run
 # if if fails. Running within a normal pytest test will not work because the
 # other tests will end up updating this attribute by virtue of doing Time UTC
