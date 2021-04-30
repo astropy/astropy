@@ -12,49 +12,11 @@ import erfa
 from astropy.time import Time, TimeDelta
 from astropy.utils.iers import iers
 from astropy.utils.data import get_pkg_data_filename
+from astropy.tests.tests.test_imports import test_imports
 
-# Import every top-level astropy subpackage as a test that the ERFA leap second
+# Import every top-level astropy module as a test that the ERFA leap second
 # table is not updated for normal imports.
-import astropy.config
-import astropy.constants
-import astropy.convolution
-import astropy.coordinates
-import astropy.cosmology
-import astropy.extern
-import astropy.io.fits
-import astropy.io.ascii
-import astropy.io.misc
-import astropy.io.registry
-import astropy.io.tests
-import astropy.io.votable
-import astropy.modeling
-import astropy.nddata
-import astropy.samp
-import astropy.stats
-import astropy.table
-import astropy.tests
-import astropy.time
-import astropy.timeseries
-import astropy.uncertainty
-import astropy.units
-import astropy.utils.argparse
-import astropy.utils.codegen
-import astropy.utils.collections
-import astropy.utils.console
-import astropy.utils.data
-import astropy.utils.data_info
-import astropy.utils.decorators
-import astropy.utils.diff
-import astropy.utils.exceptions
-import astropy.utils.introspection
-import astropy.utils.metadata
-import astropy.utils.misc
-import astropy.utils.parsing
-import astropy.utils.setup_package
-import astropy.utils.shapes
-import astropy.utils.state
-import astropy.visualization
-import astropy.wcs
+test_imports()
 
 # Now test that the erfa leap_seconds table has not been udpated. This must be
 # done at the module level, which unfortunately will abort the entire test run
