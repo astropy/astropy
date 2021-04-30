@@ -26,7 +26,9 @@ __all__ = [
     'PrefixUnit', 'UnrecognizedUnit', 'def_unit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
-    'dimensionless_unscaled', 'one']
+    'set_enabled_aliases', 'add_enabled_aliases',
+    'dimensionless_unscaled', 'one',
+]
 
 UNITY = 1.0
 
@@ -107,13 +109,14 @@ class _UnitRegistry:
     Manages a registry of the enabled units.
     """
 
-    def __init__(self, init=[], equivalencies=[]):
+    def __init__(self, init=[], equivalencies=[], aliases={}):
 
         if isinstance(init, _UnitRegistry):
             # If passed another registry we don't need to rebuild everything.
             # but because these are mutable types we don't want to create
             # conflicts so everything needs to be copied.
             self._equivalencies = init._equivalencies.copy()
+            self._aliases = init._aliases.copy()
             self._all_units = init._all_units.copy()
             self._registry = init._registry.copy()
             self._non_prefix_units = init._non_prefix_units.copy()
@@ -126,8 +129,10 @@ class _UnitRegistry:
         else:
             self._reset_units()
             self._reset_equivalencies()
+            self._reset_aliases()
             self.add_enabled_units(init)
             self.add_enabled_equivalencies(equivalencies)
+            self.add_enabled_aliases(aliases)
 
     def _reset_units(self):
         self._all_units = set()
@@ -137,6 +142,9 @@ class _UnitRegistry:
 
     def _reset_equivalencies(self):
         self._equivalencies = set()
+
+    def _reset_aliases(self):
+        self._aliases = {}
 
     @property
     def registry(self):
@@ -260,6 +268,59 @@ class _UnitRegistry:
         # pre-normalize list to help catch mistakes
         equivalencies = _normalize_equivalencies(equivalencies)
         self._equivalencies |= set(equivalencies)
+
+    @property
+    def aliases(self):
+        return self._aliases
+
+    def set_enabled_aliases(self, aliases):
+        """
+        Set aliases for units.
+
+        Parameters
+        ----------
+        aliases : dict of str, Unit
+            The aliases to set. The keys must be the string aliases, and values
+            must be the `astropy.units.Unit` that the alias will be mapped to.
+
+        Raises
+        ------
+        ValueError
+            If the alias already defines a different unit.
+
+        """
+        self._reset_aliases()
+        self.add_enabled_aliases(aliases)
+
+    def add_enabled_aliases(self, aliases):
+        """
+        Add aliases for units.
+
+        Parameters
+        ----------
+        aliases : dict of str, Unit
+            The aliases to add. The keys must be the string aliases, and values
+            must be the `astropy.units.Unit` that the alias will be mapped to.
+
+        Raises
+        ------
+        ValueError
+            If the alias already defines a different unit.
+
+        """
+        for alias, unit in aliases.items():
+            if alias in self._registry and unit != self._registry[alias]:
+                raise ValueError(
+                    f"{alias} already means {self._registry[alias]}, so "
+                    f"cannot be used as an alias for {unit}.")
+            if alias in self._aliases and unit != self._aliases[alias]:
+                raise ValueError(
+                    f"{alias} already is an alias for {self._aliases[alias]}, so "
+                    f"cannot be used as an alias for {unit}.")
+
+        for alias, unit in aliases.items():
+            if alias not in self._registry and alias not in self._aliases:
+                self._aliases[alias] = unit
 
 
 class _UnitContext:
@@ -443,6 +504,79 @@ def add_enabled_equivalencies(equivalencies):
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the further equivalencies requested
     get_current_unit_registry().add_enabled_equivalencies(equivalencies)
+    return context
+
+
+def set_enabled_aliases(aliases):
+    """
+    Set aliases for units.
+
+    This is useful for handling alternate spellings for units, or
+    misspelled units in files one is trying to read.
+
+    Parameters
+    ----------
+    aliases : dict of str, Unit
+        The aliases to set. The keys must be the string aliases, and values
+        must be the `astropy.units.Unit` that the alias will be mapped to.
+
+    Raises
+    ------
+    ValueError
+        If the alias already defines a different unit.
+
+    Examples
+    --------
+    To temporarily allow for a misspelled 'Angstroem' unit::
+
+        >>> from astropy import units as u
+        >>> with u.set_enabled_aliases({'Angstroem': u.Angstrom}):
+        ...     print(u.Unit("Angstroem", parse_strict="raise") == u.Angstrom)
+        True
+
+    """
+    # get a context with a new registry, which is a copy of the current one
+    context = _UnitContext(get_current_unit_registry())
+    # in this new current registry, enable the further equivalencies requested
+    get_current_unit_registry().set_enabled_aliases(aliases)
+    return context
+
+
+def add_enabled_aliases(aliases):
+    """
+    Add aliases for units.
+
+    This is useful for handling alternate spellings for units, or
+    misspelled units in files one is trying to read.
+
+    Since no aliases are enabled by default, generally it is recommended
+    to use `set_enabled_aliases`.
+
+    Parameters
+    ----------
+    aliases : dict of str, Unit
+        The aliases to add. The keys must be the string aliases, and values
+        must be the `astropy.units.Unit` that the alias will be mapped to.
+
+    Raises
+    ------
+    ValueError
+        If the alias already defines a different unit.
+
+    Examples
+    --------
+    To temporarily allow for a misspelled 'Angstroem' unit::
+
+        >>> from astropy import units as u
+        >>> with u.add_enabled_aliases({'Angstroem': u.Angstrom}):
+        ...     print(u.Unit("Angstroem", parse_strict="raise") == u.Angstrom)
+        True
+
+    """
+    # get a context with a new registry, which is a copy of the current one
+    context = _UnitContext(get_current_unit_registry())
+    # in this new current registry, enable the further equivalencies requested
+    get_current_unit_registry().add_enabled_aliases(aliases)
     return context
 
 

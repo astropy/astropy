@@ -98,23 +98,30 @@ class VOUnit(generic.Generic):
         return result
 
     @classmethod
+    def _get_unit(cls, t):
+        try:
+            return super()._get_unit(t)
+        except ValueError:
+            if cls._explicit_custom_unit_regex.match(t.value):
+                return cls._def_custom_unit(t.value)
+
+            if cls._custom_unit_regex.match(t.value):
+                warnings.warn(
+                    "Unit {!r} not supported by the VOUnit "
+                    "standard. {}".format(
+                        t.value, utils.did_you_mean_units(
+                            t.value, cls._units, cls._deprecated_units,
+                            cls._to_decomposed_alternative)),
+                    core.UnitsWarning)
+
+                return cls._def_custom_unit(t.value)
+
+            raise
+
+    @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
-            if cls._explicit_custom_unit_regex.match(unit):
-                return cls._def_custom_unit(unit)
-
-            if not cls._custom_unit_regex.match(unit):
-                raise ValueError()
-
-            warnings.warn(
-                "Unit {!r} not supported by the VOUnit "
-                "standard. {}".format(
-                    unit, utils.did_you_mean_units(
-                        unit, cls._units, cls._deprecated_units,
-                        cls._to_decomposed_alternative)),
-                core.UnitsWarning)
-
-            return cls._def_custom_unit(unit)
+            raise ValueError()
 
         if unit in cls._deprecated_units:
             utils.unit_deprecation_warning(

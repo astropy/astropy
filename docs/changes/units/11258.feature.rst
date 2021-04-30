@@ -1,0 +1,2 @@
+It is now possible to define aliases for units using ``astropy.units.set_enabled_aliases``.
+This can be used when reading files that have misspelled units.

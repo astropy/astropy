@@ -436,6 +436,10 @@ class Generic(Base):
         try:
             return cls._parse_unit(t.value)
         except ValueError as e:
+            registry = core.get_current_unit_registry()
+            if t.value in registry.aliases:
+                return registry.aliases[t.value]
+
             raise ValueError(
                 f"At col {t.lexpos}, {str(e)}")
 
