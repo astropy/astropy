@@ -36,7 +36,7 @@ class LombScargle(BasePeriodogram):
 
     Parameters
     ----------
-    t : array-like or `~astropy.units.Quantity`
+    t : array-like or `~astropy.units.Quantity` ['time']
         sequence of observation times
     y : array-like or `~astropy.units.Quantity`
         sequence of observations associated with times t
@@ -223,7 +223,7 @@ class LombScargle(BasePeriodogram):
 
         Returns
         -------
-        frequency : ndarray or `~astropy.units.Quantity`
+        frequency : ndarray or `~astropy.units.Quantity` ['frequency']
             The heuristically-determined optimal frequency bin
         """
         baseline = self._trel.max() - self._trel.min()
@@ -280,11 +280,11 @@ class LombScargle(BasePeriodogram):
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
-        minimum_frequency : float or `~astropy.units.Quantity`, optional
+        minimum_frequency : float or `~astropy.units.Quantity` ['frequency'], optional
             If specified, then use this minimum frequency rather than one
             chosen based on the size of the baseline. Should be `~astropy.units.Quantity`
             if inputs to LombScargle are `~astropy.units.Quantity`.
-        maximum_frequency : float or `~astropy.units.Quantity`, optional
+        maximum_frequency : float or `~astropy.units.Quantity` ['frequency'], optional
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency. Should be `~astropy.units.Quantity`
             if inputs to LombScargle are `~astropy.units.Quantity`.
@@ -310,7 +310,7 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        frequency : array-like or `~astropy.units.Quantity`
+        frequency : array-like or `~astropy.units.Quantity` ['frequency']
             frequencies (not angular frequencies) at which to evaluate the
             periodogram. Note that in order to use method='fast', frequencies
             must be regularly-spaced.
@@ -399,7 +399,7 @@ class LombScargle(BasePeriodogram):
 
         Parameters
         ----------
-        t : array-like or `~astropy.units.Quantity`
+        t : array-like or `~astropy.units.Quantity` ['time']
             Times (length ``n_samples``) at which to compute the model.
         frequency : float
             the frequency for the model

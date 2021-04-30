@@ -40,7 +40,7 @@ def aggregate_downsample(time_series, *, time_bin_size=None, time_bin_start=None
     ----------
     time_series : :class:`~astropy.timeseries.TimeSeries`
         The time series to downsample.
-    time_bin_size : `~astropy.units.Quantity`
+    time_bin_size : `~astropy.units.Quantity` ['time']
         The time interval for the binned time series.
     time_bin_start : `~astropy.time.Time`, optional
         The start time for the binned time series. Defaults to the first

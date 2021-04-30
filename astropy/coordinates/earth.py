@@ -272,7 +272,7 @@ class EarthLocation(u.Quantity):
         lat : `~astropy.coordinates.Latitude` or float
             Earth latitude.  Can be anything that initialises an
             `~astropy.coordinates.Latitude` object (if float, in degrees).
-        height : `~astropy.units.Quantity` or float, optional
+        height : `~astropy.units.Quantity` ['length'] or float, optional
             Height above reference ellipsoid (if float, in meters; default: 0).
         ellipsoid : str, optional
             Name of the reference ellipsoid to use (default: 'WGS84').
@@ -863,7 +863,7 @@ geodetic_base_doc = """{__doc__}
         instances of `~astropy.coordinates.Angle` and either
         `~astropy.coordinates.Longitude` not `~astropy.coordinates.Latitude`,
         depending on the parameter.
-    height : `~astropy.units.Quantity`
+    height : `~astropy.units.Quantity` ['length']
         The height to the point(s).
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will
