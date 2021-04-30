@@ -144,31 +144,38 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     ...            1500 * u.Mpc, zmin=2.5)                 # doctest: +FLOAT_CMP
     3.7823268
 
-    Alternatively the ``bracket`` option can be used to initialise the
-    function solver on a desired region. For the example of angular
-    diameter distance, which has a maximum near a redshift of 1.6 in this
-    cosmology, defining a bracket on either side of this maximum will
-    generally return a solution on the same side.
+    Alternatively the ``bracket`` option may be used to initialize the
+    function solver on a desired region, but one should be aware that this
+    does not guarantee it will remain close to this starting bracket.
+    For the example of angular diameter distance, which has a maximum near
+    a redshift of 1.6 in this cosmology, defining a bracket on either side
+    of this maximum will often return a solution on the same side:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(1.0, 1.2))       # doctest: +FLOAT_CMP +IGNORE_WARNINGS
     0.68044452
 
-    ... doctest:
-        :pyversion: > 3.7
-    >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(2.0, 2.5))       # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    3.7823268
+    But this is not ascertained especially if the bracket is chosen too wide
+    and/or too close to the turning point:
 
-    Be aware though that this does not guarantee the intended result if
-    the bracket is chosen too wide and/or too close to the turning point.
-    In such cases the 3-parameter variant can be more reliable.
-
-    ... doctest:
-        :pyversion: > 3.7
     >>> z_at_value(Planck18.angular_diameter_distance,
-    ...            1500 * u.Mpc, bracket=(0.1, 1.5))       # doctest: +FLOAT_CMP
-    3.7823268
+    ...            1500 * u.Mpc, bracket=(0.1, 1.5))       # doctest: +SKIP
+    3.7823268                                              # doctest: +SKIP
+
+    Likewise, even for the same minimizer and same starting conditions different
+    results can be found depending on architecture or library versions:
+
+    >>> z_at_value(Planck18.angular_diameter_distance,
+    ...            1500 * u.Mpc, bracket=(2.0, 2.5))       # doctest: +SKIP
+    3.7823268                                              # doctest: +SKIP
+
+    >>> z_at_value(Planck18.angular_diameter_distance,
+    ...            1500 * u.Mpc, bracket=(2.0, 2.5))       # doctest: +SKIP
+    0.68044452                                             # doctest: +SKIP
+
+    It is therefore generally safer to use the 3-parameter variant to ensure
+    the solution stays within the bracketing limits:
+
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(0.1, 1.0, 1.5))  # doctest: +FLOAT_CMP
     0.68044452
