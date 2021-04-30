@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-threadsafe`
 * :ref:`whatsnew-4.3-sigma-clipping`
 * :ref:`whatsnew-4.3-iers-auto-download`
+* :ref:`whatsnew-4.3-ecsv-subtypes`
 *
 
 In addition to these major changes, Astropy v4.3 includes a large number of
@@ -81,6 +82,25 @@ instance on a cluster) by setting ``iers.conf.auto_download = False``. This can
 be done after importing astrpoy but prior to performing any ``Time`` scale
 transformations related to UTC.
 
+.. _whatsnew-4.3-ecsv-subtypes:
+
+Support for multidimensional and object columns in ECSV
+=======================================================
+
+Support has been added for reading and writing Tables with three additional data
+subtypes:
+
+- Multidimensional column data (both masked and unmasked) with fixed dimensions
+  in all table cells
+- Multidimensional column data with variable-dimension arrays similar to FITS
+  variable-length arrays.
+- Object-type columns with simple Python objects consisting of
+  ``dict``, ``list``, ``str``, ``int``, ``float``, ``bool`` and ``None``
+  elements.
+
+All of these subtypes use JSON to convert each column cell to a string that is
+stored in the ECSV output. This ``astropy`` update corresponds to an updated
+version 1.0 of the ECSV standard.
 
 Full change log
 ===============
