@@ -17,7 +17,7 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.coordinates import (
-    EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
+    EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz, HADec,
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
     HCRS, HeliocentricMeanEcliptic, TEME, TETE)
@@ -172,6 +172,32 @@ def test_cirs_to_altaz():
     assert_allclose(cirs.dec, cirs3.dec)
 
 
+def test_cirs_to_hadec():
+    """
+    Check the basic CIRS<->HADec transforms.  More thorough checks implicitly
+    happen in `test_iau_fullstack`
+    """
+    from astropy.coordinates import EarthLocation
+
+    usph = golden_spiral_grid(200)
+    dist = np.linspace(0.5, 1, len(usph)) * u.pc
+    cirs = CIRS(usph, obstime='J2000')
+    crepr = SphericalRepresentation(lon=usph.lon, lat=usph.lat, distance=dist)
+    cirscart = CIRS(crepr, obstime=cirs.obstime, representation_type=CartesianRepresentation)
+
+    loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
+    hadecframe = HADec(location=loc, obstime=Time('J2005'))
+
+    cirs2 = cirs.transform_to(hadecframe).transform_to(cirs)
+    cirs3 = cirscart.transform_to(hdecframe).transform_to(cirs)
+
+    # check round-tripping
+    assert_allclose(cirs.ra, cirs2.ra)
+    assert_allclose(cirs.dec, cirs2.dec)
+    assert_allclose(cirs.ra, cirs3.ra)
+    assert_allclose(cirs.dec, cirs3.dec)
+
+
 def test_gcrs_itrs():
     """
     Check basic GCRS<->ITRS transforms for round-tripping.
@@ -268,6 +294,33 @@ def test_gcrs_altaz():
     assert_allclose(aa1.az, aa2.az)
     assert_allclose(aa1.alt, aa3.alt)
     assert_allclose(aa1.az, aa3.az)
+
+
+def test_gcrs_hadec():
+    """
+    Check GCRS<->HADec transforms for round-tripping.  Has multiple paths
+    """
+    from astropy.coordinates import EarthLocation
+
+    usph = golden_spiral_grid(128)
+    gcrs = GCRS(usph, obstime='J2000')  # broadcast with times below
+
+    # check array times sure N-d arrays work
+    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day,
+                 format='jd')[:, np.newaxis]
+
+    loc = EarthLocation(lon=10 * u.deg, lat=80. * u.deg)
+    hdframe = HADec(obstime=times, location=loc)
+
+    hd1 = gcrs.transform_to(hdframe)
+    hd2 = gcrs.transform_to(ICRS()).transform_to(CIRS()).transform_to(hdframe)
+    hd3 = gcrs.transform_to(ITRS()).transform_to(CIRS()).transform_to(hdframe)
+
+    # make sure they're all consistent
+    assert_allclose(hd1.dec, hd2.dec)
+    assert_allclose(hd1.ha, hd2.ha)
+    assert_allclose(hd1.dec, hd3.dec)
+    assert_allclose(hd1.ha, hd3.ha)
 
 
 def test_precessed_geocentric():
