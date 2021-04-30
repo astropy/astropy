@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 
-from astropy.tests.helper import raises
-
-# LOCAL
 from astropy.io.votable import ucd
 
 
@@ -42,16 +40,16 @@ def test_check():
         assert ucd.check_ucd(s, True, True)
 
 
-@raises(ValueError)
 def test_too_many_colons():
-    ucd.parse_ucd("ivoa:stsci:phot", True, True)
+    with pytest.raises(ValueError):
+        ucd.parse_ucd("ivoa:stsci:phot", True, True)
 
 
-@raises(ValueError)
 def test_invalid_namespace():
-    ucd.parse_ucd("_ivoa:phot.mag", True, True)
+    with pytest.raises(ValueError):
+        ucd.parse_ucd("_ivoa:phot.mag", True, True)
 
 
-@raises(ValueError)
 def test_invalid_word():
-    ucd.parse_ucd("-pho")
+    with pytest.raises(ValueError):
+        ucd.parse_ucd("-pho")
