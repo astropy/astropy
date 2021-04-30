@@ -102,20 +102,20 @@ static void _sigma_clip_fast(
     npy_intp is_array = *steps++;
     npy_intp is_mask = *steps++;
 
-    double *buffer = NULL;
-    double *buffer2 = NULL;
+    double *data_buffer = NULL;
+    double *mad_buffer = NULL;
 
-    // buffer is used to store the current values being sigma clipped
-    buffer = (double *)PyArray_malloc(n_i * sizeof(double));
-    if (buffer == NULL) {
+    // data_buffer is used to store the current values being sigma clipped
+    data_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+    if (data_buffer == NULL) {
         PyErr_NoMemory();
         return;
     }
 
-    // buffer2 is available to be used by compute_sigma_clipped_bounds
-    // for other purposes if needed, such as when computing mad_std.
-    buffer2 = (double *)PyArray_malloc(n_i * sizeof(double));
-    if (buffer2 == NULL) {
+    // mad_buffer is available to be used by compute_sigma_clipped_bounds
+    // when computing mad_std.
+    mad_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+    if (mad_buffer == NULL) {
         PyErr_NoMemory();
         return;
     }
@@ -133,22 +133,23 @@ static void _sigma_clip_fast(
         count = 0;
         for (i = 0; i < n_i; i++, in_array += is_array, in_mask += is_mask) {
             if (*(uint8_t *)in_mask == 0) {
-                buffer[count] = *(double *)in_array;
+                data_buffer[count] = *(double *)in_array;
                 count += 1;
             }
         }
         if (count > 0) {
             compute_sigma_clipped_bounds(
-                buffer, count,
+                data_buffer, count,
                 (int)(*(npy_bool *)use_median), (int)(*(npy_bool *)use_mad_std),
                 *(int *)max_iter,
                 *(double *)sigma_low, *(double *)sigma_high,
-                (double *)bound_low, (double *)bound_high, buffer2);
+                (double *)bound_low, (double *)bound_high, mad_buffer);
         }
         else {
             *(double *)bound_low = NPY_NAN;
             *(double *)bound_high = NPY_NAN;
         }
     }
-    PyArray_free((void *)buffer);
+    PyArray_free((void *)data_buffer);
+    PyArray_free((void *)mad_buffer);
 }

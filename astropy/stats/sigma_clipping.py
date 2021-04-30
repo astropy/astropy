@@ -603,7 +603,9 @@ class SigmaClip:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
         # Shortcut for common cases where a fast C implementation can be used.
-        if self.cenfunc in ('mean', 'median') and self.stdfunc in ('std', 'mad_std') and axis is not None and not self.grow:
+        if (self.cenfunc in ('mean', 'median') and
+                self.stdfunc in ('std', 'mad_std') and
+                axis is not None and not self.grow):
             return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                         return_bounds=return_bounds,
                                         copy=copy)
