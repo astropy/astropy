@@ -35,7 +35,7 @@ Astropy Glossary
        The physical type of a quantity can be annotated in square brackets
        following a `~astropy.units.Quantity` (or similar :term:`quantity-like`).
 
-       E.g. `` distance : quantity-like ['length'] ``
+       For example, ``distance : quantity-like ['length']``
 
    angle-like
       :term:`quantity-like`, but interpreted by an angular
