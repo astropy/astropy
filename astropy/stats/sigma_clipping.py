@@ -151,7 +151,7 @@ class SigmaClip:
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
         center value for the clipping. If using a callable function/object and
-        the ``axis`` keyword is used, then it must be callable that can ignore
+        the ``axis`` keyword is used, then it must be able to ignore
         NaNs (e.g., `numpy.nanmean`) and has an ``axis`` keyword to return an
         array with axis dimension(s) removed.  The default is ``'median'``.
 
@@ -159,7 +159,7 @@ class SigmaClip:
         The statistic or callable function/object used to compute the
         standard deviation about the center value. If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -689,7 +689,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
         center value for the clipping. If using a callable function/object and
-        the ``axis`` keyword is used, then it must be callable that can ignore
+        the ``axis`` keyword is used, then it must be able to ignore
         NaNs (e.g., `numpy.nanmean`) and has an ``axis`` keyword to return an
         array with axis dimension(s) removed.  The default is ``'median'``.
 
@@ -697,7 +697,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         The statistic or callable function/object used to compute the
         standard deviation about the center value. If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -862,7 +862,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
         center value for the clipping. If using a callable function/object and
-        the ``axis`` keyword is used, then it must be callable that can ignore
+        the ``axis`` keyword is used, then it must be able to ignore
         NaNs (e.g., `numpy.nanmean`) and has an ``axis`` keyword to return an
         array with axis dimension(s) removed.  The default is ``'median'``.
 
@@ -870,7 +870,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         The statistic or callable function/object used to compute the
         standard deviation about the center value. If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
