@@ -227,7 +227,7 @@ this behavior:
 
 By either adding additional unit aliases for the misspelt units with
 `~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom'; as
-demostrated below), or defining new units via `~astropy.units.def_unit` and
+demonstrated below), or defining new units via `~astropy.units.def_unit` and
 `~astropy.units.add_enabled_units`, we can use ``parse_strict='raise'`` to
 rapidly find issues with the units used, while also being able to read in
 older datasets where the unit usage may have been less standard.
@@ -258,7 +258,7 @@ You can also set multiple aliases up at once or add to existing ones::
     >>> u.Unit("Angstroem") == u.Unit("Angstroms") == u.Unit("angstroem") == u.Angstrom
     True
 
-The aliases can be reset by passing an empty directory::
+The aliases can be reset by passing an empty dictionary::
 
     >>> u.set_enabled_aliases({})
     <astropy.units.core._UnitContext object at 0x...>

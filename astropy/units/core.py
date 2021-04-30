@@ -316,7 +316,7 @@ class _UnitRegistry:
             if alias in self._aliases and unit != self._aliases[alias]:
                 raise ValueError(
                     f"{alias} already is an alias for {self._aliases[alias]}, so "
-                    f"cannot be used as an alias for {unit} too.")
+                    f"cannot be used as an alias for {unit}.")
 
         for alias, unit in aliases.items():
             if alias not in self._registry and alias not in self._aliases:
