@@ -31,6 +31,12 @@ Astropy Glossary
       ``Quantity("180d")`` is 180 **days**, while ``Angle("180d")`` is 180
       **degrees** -- so check the string parses as intended for ``Quantity``.
 
+   ['physical type']
+       The physical type of a quantity can be annotated in square brackets
+       following a `~astropy.units.Quantity` (or similar :term:`quantity-like`).
+
+       For example, ``distance : quantity-like ['length']``
+
    angle-like
       :term:`quantity-like`, but interpreted by an angular
       `~astropy.units.SpecificTypeQuantity`, like `~astropy.coordinates.Angle`

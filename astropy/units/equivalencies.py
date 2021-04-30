@@ -560,7 +560,7 @@ def brightness_temperature(frequency, beam_area=None):
         BACKWARD COMPATIBILITY NOTE: previous versions of the brightness
         temperature equivalency used the keyword ``disp``, which is no longer
         supported.
-    beam_area : `~astropy.units.Quantity`
+    beam_area : `~astropy.units.Quantity` ['solid angle']
         Beam area in angular units, i.e. steradian equivalent
 
     Examples
@@ -666,7 +666,7 @@ def thermodynamic_temperature(frequency, T_cmb=None):
     frequency : `~astropy.units.Quantity`
         The observed `spectral` equivalent `~astropy.units.Unit` (e.g.,
         frequency or wavelength). Must have spectral units.
-    T_cmb :  `~astropy.units.Quantity` or None
+    T_cmb :  `~astropy.units.Quantity` ['temperature'] or None
         The CMB temperature at z=0.  If `None`, the default cosmology will be
         used to get this temperature. Must have units of temperature.
 
@@ -800,7 +800,7 @@ def with_H0(H0=None):
 
     Parameters
     ----------
-    H0 : None or `~astropy.units.Quantity`
+    H0 : None or `~astropy.units.Quantity` ['frequency']
         The value of the Hubble constant to assume. If a `~astropy.units.Quantity`,
         will assume the quantity *is* ``H0``.  If `None` (default), use the
         ``H0`` attribute from the default `astropy.cosmology` cosmology.

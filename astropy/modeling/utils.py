@@ -646,7 +646,7 @@ def ellipse_extent(a, b, theta):
         Major axis.
     b : float or `~astropy.units.Quantity`
         Minor axis.
-    theta : float or `~astropy.units.Quantity`
+    theta : float or `~astropy.units.Quantity` ['angle']
         Rotation angle. If given as a floating-point value, it is assumed to be
         in radians.
 

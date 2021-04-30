@@ -55,7 +55,7 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
 
     Parameters
     ----------
-    frequency : array-like or `~astropy.units.Quantity`
+    frequency : array-like or `~astropy.units.Quantity` ['frequency']
         input frequency grid
     assume_regular_frequency : bool (default = False)
         if True, then do not check whether frequency is a regular grid
