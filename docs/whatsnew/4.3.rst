@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-sigma-clipping`
 * :ref:`whatsnew-4.3-iers-auto-download`
 * :ref:`whatsnew-4.3-ecsv-subtypes`
+* :ref:`whatsnew-4.3-ascii-qdp-format`
 *
 
 In addition to these major changes, Astropy v4.3 includes a large number of
@@ -100,7 +101,19 @@ subtypes:
 
 All of these subtypes use JSON to convert each column cell to a string that is
 stored in the ECSV output. This ``astropy`` update corresponds to an updated
-version 1.0 of the ECSV standard.
+version 1.0 of the `ECSV standard
+<https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_. For details
+see the :ref:`ecsv_format` section.
+
+.. _whatsnew-4.3-ascii-qdp-format:
+
+Support for reading and writing tables to QDP format
+====================================================
+
+The :ref:`io-ascii` subpackage now supports reading and writing tables in the
+QDP (`Quick and Dandy Plotter <https://wwwastro.msfc.nasa.gov/qdp/>`_) format.
+This specialized format is used by some missions such as `Swift
+<https://www.nasa.gov/mission_pages/swift/main>`_.
 
 Full change log
 ===============
