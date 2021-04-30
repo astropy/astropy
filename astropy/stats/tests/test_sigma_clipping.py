@@ -468,7 +468,7 @@ def test_sigma_clip_dtypes(dtype):
 
 def test_mad_std():
 
-    # Test out the stdfunc=mad_std option
+    # Check with a small array where we know how the result should differ from std
 
     # Choose an array with few elements and a high proportion of outliers since
     # in this case std and mad_std will be very different.
@@ -495,6 +495,9 @@ def test_mad_std():
     result_mad_std = sigma_clip(array, cenfunc='median', stdfunc='mad_std',
                                 maxiters=1, sigma=5, masked=False, axis=0)
     assert_equal(result_mad_std, [1, np.nan, 4, 3, np.nan])
+
+
+def test_mad_std_large():
 
     # And now test with a larger array and compare with Python mad_std function
 
