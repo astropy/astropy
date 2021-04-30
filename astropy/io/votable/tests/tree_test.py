@@ -67,7 +67,7 @@ def test_namespace_warning():
           <RESOURCE/>
         </VOTABLE>
     '''
-    with pytest.raises(W41):
+    with pytest.warns(W41):
         parse(io.BytesIO(bad_namespace), verify='exception')
 
     good_namespace_14 = b'''<?xml version="1.0" encoding="utf-8"?>
@@ -95,7 +95,7 @@ def test_version():
     """
 
     # Exercise the checks in __init__
-    with pytest.raises(AstropyDeprecationWarning):
+    with pytest.warns(AstropyDeprecationWarning):
         VOTableFile(version='1.0')
     for version in ('1.1', '1.2', '1.3', '1.4'):
         VOTableFile(version=version)
@@ -123,7 +123,7 @@ def test_version():
 
     # Invalid versions
     for bversion in (b'1.0', b'2.0'):
-        with pytest.raises(W21):
+        with pytest.warns(W21):
             parse(io.BytesIO(begin + bversion + middle + bversion + end), verify='exception')
 
 
