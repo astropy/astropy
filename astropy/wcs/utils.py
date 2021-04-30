@@ -971,7 +971,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     keywords in the input might cause unexpected behavior.
 
     Notes
-    ------
+    -----
     - The fiducial point for the spherical projection can be set to 'center'
       to use the mean position of input sky coordinates, or as an
       `~astropy.coordinates.SkyCoord` object.
@@ -1059,8 +1059,12 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
     if (type(sip_degree) != type(None)) and (type(sip_degree) != int):
         raise ValueError("sip_degree must be None, or integer.")
 
+    # compute bounding box for sources in image coordinates:
+    xpmin, xpmax, ypmin, ypmax = xp.min(), xp.max(), yp.min(), yp.max()
+
     # set pixel_shape to span of input points
-    wcs.pixel_shape = np.clip(np.ceil(np.max(xy, axis=1)).astype(int), 1, None)
+    wcs.pixel_shape = (1 if xpmax <= 0.0 else int(np.ceil(xpmax)),
+                       1 if ypmax <= 0.0 else int(np.ceil(ypmax)))
 
     # determine CRVAL from input
     close = lambda l, p: p[np.argmin(np.abs(l))]
@@ -1071,28 +1075,29 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         sep = sc1.separation(sc2)
         midpoint_sc = sc1.directional_offset_by(pa, sep/2)
         wcs.wcs.crval = ((midpoint_sc.data.lon.deg, midpoint_sc.data.lat.deg))
-        wcs.wcs.crpix = ((xp.max()+xp.min())/2., (yp.max()+yp.min())/2.)
+        wcs.wcs.crpix = ((xpmax + xpmin) / 2., (ypmax + ypmin) / 2.)
     else:  # convert units, initial guess for crpix
         proj_point.transform_to(world_coords)
         wcs.wcs.crval = (proj_point.data.lon.deg, proj_point.data.lat.deg)
-        wcs.wcs.crpix = (close(lon-wcs.wcs.crval[0], xp),
-                         close(lon-wcs.wcs.crval[1], yp))
+        wcs.wcs.crpix = (close(lon - wcs.wcs.crval[0], xp + 1),
+                         close(lon - wcs.wcs.crval[1], yp + 1))
 
     # fit linear terms, assign to wcs
     # use (1, 0, 0, 1) as initial guess, in case input wcs was passed in
     # and cd terms are way off.
     # Use bounds to require that the fit center pixel is on the input image
-    xpmin, xpmax, ypmin, ypmax = xp.min(), xp.max(), yp.min(), yp.max()
     if xpmin == xpmax:
         xpmin, xpmax = xpmin - 0.5, xpmax + 0.5
     if ypmin == ypmax:
         ypmin, ypmax = ypmin - 0.5, ypmax + 0.5
 
     p0 = np.concatenate([wcs.wcs.cd.flatten(), wcs.wcs.crpix.flatten()])
-    fit = least_squares(_linear_wcs_fit, p0,
-                        args=(lon, lat, xp, yp, wcs),
-                        bounds=[[-np.inf, -np.inf, -np.inf, -np.inf, xpmin, ypmin],
-                                [ np.inf, np.inf, np.inf, np.inf, xpmax, ypmax]])
+    fit = least_squares(
+        _linear_wcs_fit, p0,
+        args=(lon, lat, xp, yp, wcs),
+        bounds=[[-np.inf, -np.inf, -np.inf, -np.inf, xpmin + 1, ypmin + 1],
+                [ np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1]]
+    )
     wcs.wcs.crpix = np.array(fit.x[4:6])
     wcs.wcs.cd = np.array(fit.x[0:4].reshape((2, 2)))
 
@@ -1108,10 +1113,12 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         p0 = np.concatenate((np.array(wcs.wcs.crpix), wcs.wcs.cd.flatten(),
                              np.zeros(2*len(coef_names))))
 
-        fit = least_squares(_sip_fit, p0,
-                            args=(lon, lat, xp, yp, wcs, degree, coef_names),
-                            bounds=[[xpmin, ypmin] + [-np.inf]*(4 + 2*len(coef_names)),
-                                    [xpmax, ypmax] + [np.inf]*(4 + 2*len(coef_names))])
+        fit = least_squares(
+            _sip_fit, p0,
+            args=(lon, lat, xp, yp, wcs, degree, coef_names),
+            bounds=[[xpmin + 1, ypmin + 1] + [-np.inf]*(4 + 2*len(coef_names)),
+                    [xpmax + 1, ypmax + 1] + [np.inf]*(4 + 2*len(coef_names))]
+        )
         coef_fit = (list(fit.x[6:6+len(coef_names)]),
                     list(fit.x[6+len(coef_names):]))
 
