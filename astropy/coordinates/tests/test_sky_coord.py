@@ -384,6 +384,13 @@ def test_equal():
     assert (sc1[0] != sc2[0]) == False  # noqa
 
 
+def test_equal_different_type():
+    sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, obstime='B1955')
+    # Test equals and not equals operators against different types
+    assert sc1 != 'a string'
+    assert not (sc1 == 'a string')
+
+
 def test_equal_exceptions():
     sc1 = SkyCoord(1*u.deg, 2*u.deg, obstime='B1955')
     sc2 = SkyCoord(1*u.deg, 2*u.deg)
