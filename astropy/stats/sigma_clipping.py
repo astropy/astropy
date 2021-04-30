@@ -9,6 +9,7 @@ from astropy.units import Quantity
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
+from astropy.stats.funcs import mad_std
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
 
 if HAS_BOTTLENECK:
@@ -84,6 +85,11 @@ def _nanstd(array, axis=None, ddof=0):
         return bottleneck.nanstd(array, axis=axis, ddof=ddof)
 
 
+def _nanmadstd(array, axis=None):
+    """mad_std function that ignores NaNs by default."""
+    return mad_std(array, axis=axis, ignore_nan=True)
+
+
 class SigmaClip:
     """
     Class to perform sigma clipping.
@@ -144,23 +150,16 @@ class SigmaClip:
 
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
-        center value for the clipping.  If set to ``'median'`` or
-        ``'mean'`` then having the optional `bottleneck`_ package
-        installed will result in the best performance.  If using a
-        callable function/object and the ``axis`` keyword is used, then
-        it must be callable that can ignore NaNs (e.g., `numpy.nanmean`)
-        and has an ``axis`` keyword to return an array with axis
-        dimension(s) removed.  The default is ``'median'``.
+        center value for the clipping. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanmean`) and has an ``axis`` keyword to return an
+        array with axis dimension(s) removed.  The default is ``'median'``.
 
-        .. _bottleneck:  https://github.com/pydata/bottleneck
-
-    stdfunc : {'std'} or callable, optional
+    stdfunc : {'std', 'mad_std'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value.  If set to ``'std'``
-        then having the optional `bottleneck`_ package installed will
-        result in the best performance.  If using a callable
+        standard deviation about the center value. If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -170,6 +169,16 @@ class SigmaClip:
         specified). As an example, for a 2D image a value of 1 will mask the
         nearest pixels in a cross pattern around each deviant pixel, while
         1.5 will also reject the nearest diagonal neighbours and so on.
+
+    Notes
+    -----
+
+    The best performance will typically be obtained by setting ``cenfunc`` and
+    ``stdfunc`` to one of the built-in functions specified as as string. If one of
+    the options is set to a string while the other has a custom callable, you may in some
+    cases see better performance if you have the `bottleneck`_ package installed.
+
+    .. _bottleneck:  https://github.com/pydata/bottleneck
 
     See Also
     --------
@@ -265,13 +274,15 @@ class SigmaClip:
 
     def _parse_stdfunc(self, stdfunc):
         if isinstance(stdfunc, str):
-            if stdfunc != 'std':
-                raise ValueError(f'{stdfunc} is an invalid stdfunc.')
-
-            if HAS_BOTTLENECK:
-                stdfunc = _nanstd
+            if stdfunc == 'std':
+                if HAS_BOTTLENECK:
+                    stdfunc = _nanstd
+                else:
+                    stdfunc = np.nanstd  # pragma: no cover
+            elif stdfunc == 'mad_std':
+                stdfunc = _nanmadstd
             else:
-                stdfunc = np.nanstd  # pragma: no cover
+                raise ValueError(f'{stdfunc} is an invalid stdfunc.')
 
         return stdfunc
 
@@ -337,7 +348,9 @@ class SigmaClip:
             data_reshaped = data_reshaped.view(np.ndarray)
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
 
-        bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask, self.cenfunc != 'mean',
+        bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask,
+                                              self.cenfunc == 'median',
+                                              self.stdfunc == 'mad_std',
                                               -1 if np.isinf(self.maxiters) else self.maxiters,
                                               self.sigma_lower, self.sigma_upper, axis=axis)
 
@@ -590,7 +603,9 @@ class SigmaClip:
                 return np.ma.filled(data.astype(float), fill_value=np.nan)
 
         # Shortcut for common cases where a fast C implementation can be used.
-        if self.cenfunc in ('mean', 'median') and self.stdfunc == 'std' and axis is not None and not self.grow:
+        if (self.cenfunc in ('mean', 'median') and
+                self.stdfunc in ('std', 'mad_std') and
+                axis is not None and not self.grow):
             return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                         return_bounds=return_bounds,
                                         copy=copy)
@@ -673,23 +688,16 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
 
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
-        center value for the clipping.  If set to ``'median'`` or
-        ``'mean'`` then having the optional `bottleneck`_ package
-        installed will result in the best performance.  If using a
-        callable function/object and the ``axis`` keyword is used, then
-        it must be callable that can ignore NaNs (e.g., `numpy.nanmean`)
-        and has an ``axis`` keyword to return an array with axis
-        dimension(s) removed.  The default is ``'median'``.
+        center value for the clipping. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanmean`) and has an ``axis`` keyword to return an
+        array with axis dimension(s) removed.  The default is ``'median'``.
 
-        .. _bottleneck:  https://github.com/pydata/bottleneck
-
-    stdfunc : {'std'} or callable, optional
+    stdfunc : {'std', 'mad_std'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value.  If set to ``'std'``
-        then having the optional `bottleneck`_ package installed will
-        result in the best performance.  If using a callable
+        standard deviation about the center value. If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -748,6 +756,16 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         will also contain ``np.nan`` where the input mask was `True`.
         If ``return_bounds=True`` then the returned minimum and maximum
         clipping thresholds will be be `~numpy.ndarray`\\s.
+
+    Notes
+    -----
+
+    The best performance will typically be obtained by setting ``cenfunc`` and
+    ``stdfunc`` to one of the built-in functions specified as as string. If one of
+    the options is set to a string while the other has a custom callable, you may in some
+    cases see better performance if you have the `bottleneck`_ package installed.
+
+    .. _bottleneck:  https://github.com/pydata/bottleneck
 
     See Also
     --------
@@ -843,23 +861,16 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
 
     cenfunc : {'median', 'mean'} or callable, optional
         The statistic or callable function/object used to compute the
-        center value for the clipping.  If set to ``'median'`` or
-        ``'mean'`` then having the optional `bottleneck`_ package
-        installed will result in the best performance.  If using a
-        callable function/object and the ``axis`` keyword is used, then
-        it must be callable that can ignore NaNs (e.g., `numpy.nanmean`)
-        and has an ``axis`` keyword to return an array with axis
-        dimension(s) removed.  The default is ``'median'``.
+        center value for the clipping. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanmean`) and has an ``axis`` keyword to return an
+        array with axis dimension(s) removed.  The default is ``'median'``.
 
-        .. _bottleneck:  https://github.com/pydata/bottleneck
-
-    stdfunc : {'std'} or callable, optional
+    stdfunc : {'std', 'mad_std'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value.  If set to ``'std'``
-        then having the optional `bottleneck`_ package installed will
-        result in the best performance.  If using a callable
+        standard deviation about the center value. If using a callable
         function/object and the ``axis`` keyword is used, then it must
-        be callable that can ignore NaNs (e.g., `numpy.nanstd`) and has
+        be able to ignore NaNs (e.g., `numpy.nanstd`) and has
         an ``axis`` keyword to return an array with axis dimension(s)
         removed.  The default is ``'std'``.
 
@@ -880,6 +891,16 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         specified). As an example, for a 2D image a value of 1 will mask the
         nearest pixels in a cross pattern around each deviant pixel, while
         1.5 will also reject the nearest diagonal neighbours and so on.
+
+    Notes
+    -----
+
+    The best performance will typically be obtained by setting ``cenfunc`` and
+    ``stdfunc`` to one of the built-in functions specified as as string. If one of
+    the options is set to a string while the other has a custom callable, you may in some
+    cases see better performance if you have the `bottleneck`_ package installed.
+
+    .. _bottleneck:  https://github.com/pydata/bottleneck
 
     Returns
     -------
