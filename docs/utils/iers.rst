@@ -1,8 +1,8 @@
 .. _utils-iers:
 
-************************************************
+***************************************
 IERS data access (`astropy.utils.iers`)
-************************************************
+***************************************
 
 Introduction
 ============
@@ -70,8 +70,9 @@ and includes transforms dating back to 1973-01-01.
 Configuration parameters
 ------------------------
 
-There are three configuration parameters that control the behavior
-of the automatic IERS downloading:
+There are a number of IERS configuration parameters in `astropy.utils.iers.Conf`
+that control the behavior of the automatic IERS downloading. Three of the most
+important to consider are the following:
 
   auto_download:
     Enable auto-downloading of the latest IERS data.  If set to ``False`` then
@@ -84,14 +85,9 @@ of the automatic IERS downloading:
     Maximum age of predictive data before auto-downloading (days).  See
     next section for details. (default=30)
 
-  iers_auto_url:
-    URL for auto-downloading IERS file data
-
-  iers_auto_url_mirror:
-    Mirror URL for auto-downloading IERS file data.
-
   remote_timeout:
     Remote timeout downloading IERS file data (seconds)
+
 
 Auto refresh behavior
 ---------------------
