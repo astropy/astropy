@@ -132,6 +132,16 @@ You can easily convert |Table| to |QTable| and vice-versa::
    ordinary `~astropy.table.Table` then it gets converted to an ordinary
    `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
+.. attention::
+
+   When a column of ``int`` ``dtype`` is converted to `~astropy.units.Quantity`,
+   its ``dtype`` is converted to ``float``.
+
+   For example, for a quality flag column of ``int``, if it is
+   assigned with the :ref:`dimensionless unit <doc_dimensionless_unit>`, it will still
+   be converted to ``float``. Therefore such columns typically should not be
+   assigned with any unit.
+
 .. _mixin_attributes:
 
 Mixin Attributes
