@@ -156,7 +156,7 @@ Updating and Maintaining the Changelog
 ======================================
 
 The Astropy "changelog" is managed with
-`towncrier <https://pypi.org/project/towncrier/`_, which is used to generate
+`towncrier <https://pypi.org/project/towncrier/>`_, which is used to generate
 the ``CHANGES.rst`` file at the root of the repository. The changelog fragment
 files should be added with each PR as described in
 `docs/changes/README.rst <https://github.com/astropy/astropy/blob/main/docs/changes/README.rst>`_.
