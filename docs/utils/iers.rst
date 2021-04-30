@@ -1,8 +1,8 @@
 .. _utils-iers:
 
-************************************************
+***************************************
 IERS data access (`astropy.utils.iers`)
-************************************************
+***************************************
 
 Introduction
 ============
@@ -23,9 +23,13 @@ transformations.
 Getting started
 ===============
 
-Starting with astropy 1.2, the latest IERS values (which include approximately
+Started with ``astropy`` 4.3, the latest IERS values will no longer be
+automatically downloaded until a `~astropy.time.Time` transform involving UTC
+is performed.
+
+For older version of ``astropy`` that is 1.2-4.2, the latest IERS values (which include approximately
 one year of predictive values) are automatically downloaded from the IERS
-service when required.  This happens when a time or coordinate transformation
+service when a time or coordinate transformation
 needs a value which is not already available via the download cache.  In most
 cases there is no need for invoking the `~astropy.utils.iers` classes oneself,
 but it is useful to understand the situations when a download will occur
@@ -70,28 +74,9 @@ and includes transforms dating back to 1973-01-01.
 Configuration parameters
 ------------------------
 
-There are three configuration parameters that control the behavior
-of the automatic IERS downloading:
+For configuration parameters that control the behavior of the automatic IERS
+downloading, see the ``[utils.iers.iers]`` section in :ref:`astropy_config_file`.
 
-  auto_download:
-    Enable auto-downloading of the latest IERS data.  If set to ``False`` then
-    the local IERS-B file will be used by default (even if the full IERS file
-    with predictions was already downloaded and cached).  This parameter also
-    controls whether internet resources will be queried to update the leap
-    second table if the installed version is out of date.
-
-  auto_max_age:
-    Maximum age of predictive data before auto-downloading (days).  See
-    next section for details. (default=30)
-
-  iers_auto_url:
-    URL for auto-downloading IERS file data
-
-  iers_auto_url_mirror:
-    Mirror URL for auto-downloading IERS file data.
-
-  remote_timeout:
-    Remote timeout downloading IERS file data (seconds)
 
 Auto refresh behavior
 ---------------------

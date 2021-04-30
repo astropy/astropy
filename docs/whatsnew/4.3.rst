@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-coordinates`
 * :ref:`whatsnew-4.3-threadsafe`
 * :ref:`whatsnew-4.3-sigma-clipping`
+* :ref:`whatsnew-4.3-iers-auto-download`
 *
 
 In addition to these major changes, Astropy v4.3 includes a large number of
@@ -65,6 +66,21 @@ standard deviations are used. The performance gains are especially noticeable
 when using the ``axis`` keyword and different parts of the array being sigma
 clipped require different numbers of iterations. In these cases the performance
 can be 10-20x better or more.
+
+.. _whatsnew-4.3-iers-auto-download:
+
+Changes in the Time and IERS leap second handling
+=================================================
+
+The Time and IERS leap second handling is changed so that the leap second table is
+updated only when a Time transform involving UTC is performed. Previously this
+update check was done the first time a ``Time`` object was created, which in
+practice occured when importing common astropy subpackages like
+``astropy.coordinates``. Now you can prevent querying internet resources (for
+instance on a cluster) by setting ``iers.conf.auto_download = False``. This can
+be done after importing astrpoy but prior to performing any ``Time`` scale
+transformations related to UTC.
+
 
 Full change log
 ===============

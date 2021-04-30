@@ -113,11 +113,15 @@ class Conf(_config.ConfigNamespace):
     auto_download = _config.ConfigItem(
         True,
         'Enable auto-downloading of the latest IERS data.  If set to False '
-        'then the local IERS-B and leap-second files will be used by default. '
-        'Default is True.')
+        'then the local IERS-B file will be used by default (even if the '
+        'full IERS file with predictions was already downloaded and cached). '
+        'This parameter also controls whether internet resources will be '
+        'queried to update the leap second table if the installed version is '
+        'out of date. Default is True.')
     auto_max_age = _config.ConfigItem(
         30.0,
         'Maximum age (days) of predictive data before auto-downloading. '
+        'See "Auto refresh behavior" in astropy.utils.iers documentation for details.'
         'Default is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
