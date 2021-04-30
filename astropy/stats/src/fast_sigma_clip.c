@@ -112,14 +112,6 @@ static void _sigma_clip_fast(
         return;
     }
 
-    // mad_buffer is available to be used by compute_sigma_clipped_bounds
-    // when computing mad_std.
-    mad_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
-    if (mad_buffer == NULL) {
-        PyErr_NoMemory();
-        return;
-    }
-
     for (i_o = 0; i_o < n_o;
          i_o++, array += s_array,
                 mask += s_mask,
@@ -138,6 +130,18 @@ static void _sigma_clip_fast(
             }
         }
         if (count > 0) {
+
+            // If we are using mad_std, we need to prepare an additional buffer
+            // that is used in the calculation. We just need to allocate this once
+            // and can use it in any future loop iteration that needs it.
+            if (((npy_bool *)use_mad_std) && mad_buffer == NULL) {
+                mad_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+                if (mad_buffer == NULL) {
+                    PyErr_NoMemory();
+                    return;
+                }
+            }
+
             compute_sigma_clipped_bounds(
                 data_buffer, count,
                 (int)(*(npy_bool *)use_median), (int)(*(npy_bool *)use_mad_std),
@@ -151,5 +155,7 @@ static void _sigma_clip_fast(
         }
     }
     PyArray_free((void *)data_buffer);
-    PyArray_free((void *)mad_buffer);
+    if (mad_buffer != NULL) {
+        PyArray_free((void *)mad_buffer);
+    }
 }
