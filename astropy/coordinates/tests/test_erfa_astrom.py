@@ -96,7 +96,7 @@ def test_interpolation_nd():
 
 
 def test_interpolation_broadcasting():
-    from astropy.coordinates.angle_generators import golden_spiral_grid
+    from astropy.coordinates.angle_utilities import golden_spiral_grid
     from astropy.coordinates import SkyCoord, EarthLocation, AltAz
     from astropy.time import Time
     import astropy.units as u
