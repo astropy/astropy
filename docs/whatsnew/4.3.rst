@@ -18,7 +18,11 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-threadsafe`
 * :ref:`whatsnew-4.3-sigma-clipping`
 * :ref:`whatsnew-4.3-iers-auto-download`
-*
+* :ref:`whatsnew-4.3-ecsv-subtypes`
+* :ref:`whatsnew-4.3-ascii-qdp-format`
+* :ref:`whatsnew-4.3-fits-append-table`
+* :ref:`whatsnew-4.3-masked-class-quantity`
+* :ref:`whatsnew-4.3-configuration-file-optional`
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
@@ -78,9 +82,85 @@ update check was done the first time a ``Time`` object was created, which in
 practice occured when importing common astropy subpackages like
 ``astropy.coordinates``. Now you can prevent querying internet resources (for
 instance on a cluster) by setting ``iers.conf.auto_download = False``. This can
-be done after importing astrpoy but prior to performing any ``Time`` scale
+be done after importing astropy but prior to performing any ``Time`` scale
 transformations related to UTC.
 
+.. _whatsnew-4.3-ecsv-subtypes:
+
+Support for multidimensional and object columns in ECSV
+=======================================================
+
+Support has been added for reading and writing Tables with three additional data
+subtypes:
+
+- Multidimensional column data (both masked and unmasked) with fixed dimensions
+  in all table cells.
+- Multidimensional column data with variable-dimension arrays similar to FITS
+  variable-length arrays.
+- Object-type columns with simple Python objects consisting of
+  ``dict``, ``list``, ``str``, ``int``, ``float``, ``bool`` and ``None``
+  elements.
+
+All of these subtypes use JSON to convert each column cell to a string that is
+stored in the ECSV output. This ``astropy`` update corresponds to an updated
+version 1.0 of the `ECSV standard
+<https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_. For details
+see the :ref:`ecsv_format` section.
+
+.. _whatsnew-4.3-ascii-qdp-format:
+
+Support for reading and writing tables to QDP format
+====================================================
+
+The :ref:`io-ascii` subpackage now supports reading and writing tables in the
+QDP (`Quick and Dandy Plotter <https://wwwastro.msfc.nasa.gov/qdp/>`_) format.
+This specialized format is used by some missions such as `Swift
+<https://www.nasa.gov/mission_pages/swift/main>`_.
+
+.. _whatsnew-4.3-fits-append-table:
+
+Append table to existing FITS file
+==================================
+
+It is now easy to append a :ref:`Table <astropy-table>` to an existing FITS file
+using a new ``append`` keyword::
+
+    >>> tbl.write('existing_table.fits', append=True)  # doctest: +SKIP
+
+.. _whatsnew-4.3-masked-class-quantity:
+
+General masked class for Quantity and other ndarray subclasses
+==============================================================
+
+A substantial new class for handling :ref:`Masked Data <utils-masked>` has been
+included as an experimental feature of ``astropy``. The new
+`~astropy.utils.masked.Masked` class allows wrapping NumPy ``ndarray``
+subclasses to include a ``mask`` attribute and correctly propagate that mask
+through NumPy operations.
+
+A primary driver for the `~astropy.utils.masked.Masked` class is to support
+masked ``Quantity`` objects. This functionality is implemented and well-tested,
+and the next steps planned for the 5.0 release of ``astropy`` will be
+application to other astropy classes such as `~astropy.coordinates.SkyCoord`
+and full integration with :ref:`Table <astropy-table>` functionality that requires
+masking.
+
+We encourage use and testing of the new class in non-production code, but
+caution that the API may change in the next release.
+
+.. _whatsnew-4.3-configuration-file-optional:
+
+Configuration file improvements
+===============================
+
+The configuration file is no longer created by default when importing astropy
+and its existence is no longer required. This should alleviate a number of
+issues associated with the previous behavior. If necessary the configuration
+file can be written with a new function `~astropy.config.create_config_file`.
+
+Affiliated packages should update their ``__init__.py`` module to remove the
+block using ``update_default_config`` and
+``ConfigurationDefaultMissingWarning``.
 
 Full change log
 ===============
