@@ -25,11 +25,11 @@ def test_uniform_spherical_random_input(func, rng):
 
 
 def test_uniform_spherical_random_volume_input():
-    sph = uniform_spherical_random_volume(size=100, distance_scale=1)
+    sph = uniform_spherical_random_volume(size=100, max_radius=1)
     assert len(sph) == 100
     assert sph.distance.unit == u.dimensionless_unscaled
     assert sph.distance.max() <= 1.
 
-    sph = uniform_spherical_random_volume(size=100, distance_scale=4*u.pc)
+    sph = uniform_spherical_random_volume(size=100, max_radius=4*u.pc)
     assert len(sph) == 100
     assert sph.distance.max() <= 4*u.pc
