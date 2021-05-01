@@ -235,3 +235,21 @@ def uniform_spherical_random_volume(size=1, distance_scale=1, rng=None):
     r = np.cbrt(rng.uniform(size=size)) * distance_scale
     return SphericalRepresentation(
         usph.lon, usph.lat, r)
+
+
+# below here can be deleted in v5.0
+from astropy.utils.decorators import deprecated
+from astropy.coordinates import angle_formats
+__old_angle_utilities_funcs = ['check_hms_ranges', 'degrees_to_dms',
+                               'degrees_to_string', 'dms_to_degrees',
+                               'format_exception', 'hms_to_degrees',
+                               'hms_to_dms', 'hms_to_hours',
+                               'hms_to_radians', 'hours_to_decimal',
+                               'hours_to_hms', 'hours_to_radians',
+                               'hours_to_string', 'parse_angle',
+                               'radians_to_degrees', 'radians_to_dms',
+                               'radians_to_hms', 'radians_to_hours',
+                               'sexagesimal_to_string']
+for funcname in __old_angle_utilities_funcs:
+    vars()[funcname] = deprecated(getattr(angle_formats, funcname),
+                                  since='v4.3', alternative='astropy.coordinates.angle_formats.' + funcname)
