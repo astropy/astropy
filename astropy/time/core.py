@@ -1780,11 +1780,11 @@ class Time(TimeBase):
         ---------------
         theta : Earth rotation angle or Greenwich sidereal time in radians
         longitude : The longitude on the Earth at which to compute the result.
-                
+
         Returns
         -------
-        Either local Earth rotation angle or local sidereal time depending on
-        theta.
+        local_angle : Either local Earth rotation angle or local sidereal time
+        depending on theta.
         """
 
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
@@ -1819,7 +1819,7 @@ class Time(TimeBase):
             observatory (currently, only ``'greenwich'`` is supported,
             equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
             the Time object is used.
-        
+
         Returns
         -------
         eral : `~astropy.coordinates.Longitude`
