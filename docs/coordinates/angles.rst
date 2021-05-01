@@ -301,7 +301,7 @@ Comparing Spherical Point Generation Methods
 
 .. plot::
     :align: center
-    :context: close_figs
+    :context: close-figs
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 6),
                              subplot_kw=dict(projection='3d'),
