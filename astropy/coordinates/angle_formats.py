@@ -664,4 +664,3 @@ def degrees_to_string(d, precision=5, pad=False, sep=':', fields=3):
     d, m, s = degrees_to_dms(d)
     return sexagesimal_to_string((d, m, s), precision=precision, pad=pad,
                                  sep=sep, fields=fields)
-
