@@ -233,7 +233,7 @@ These functions both use standard, random `spherical point picking
 <https://mathworld.wolfram.com/SpherePointPicking.html>`_ to generate angular
 positions that are uniformly distributed on the surface of the unit sphere. To
 retrieve angular values only, use
-`~astropy.coordinates.angle_utilities.uniform_spherical_random_surface`. For
+`~astropy.coordinates.uniform_spherical_random_surface`. For
 example, to generate 4 random angular positions::
 
     >>> from astropy.coordinates import uniform_spherical_random_surface
@@ -245,7 +245,7 @@ example, to generate 4 random angular positions::
 
 To generate three-dimensional positions uniformly within a spherical volume set
 by a maximum radius, instead use the
-`~astropy.coordinates.angle_utilities.uniform_spherical_random_volume`
+`~astropy.coordinates.uniform_spherical_random_volume`
 function. For example, to generate 4 random 3D positions::
 
     >>> from astropy.coordinates import uniform_spherical_random_volume
@@ -283,7 +283,7 @@ with nearly even spacing (for example, `see this page
 One simple and popular method in this context is the `golden spiral method
 <https://stackoverflow.com/a/44164075>`_, which is available in
 `astropy.coordinates` through the utility function
-`~astropy.coordinates.angle_utilities.golden_spiral_grid`. This function accepts
+`~astropy.coordinates.golden_spiral_grid`. This function accepts
 a single argument, ``size``, which specifies the number of points to generate in
 the grid::
 
