@@ -240,7 +240,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # but only `_minimize_scalar_bounded()` seems to have really implemented them.
     if not res.success:
         warnings.warn(f"Solver returned {res.get('status')}: {res.get('message', 'Unsuccessful')}\n"
-                      f"Precision {res.fun} reached after {res.nfev} function calls.")
+                      f"Precision {res.fun} reached after {res.nfev} function calls.",
+                      AstropyUserWarning)
 
     if verbose:
         print(res)
