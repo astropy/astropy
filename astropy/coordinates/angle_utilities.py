@@ -32,7 +32,7 @@ def angular_separation(lon1, lat1, lon2, lat2):
     Returns
     -------
     angular separation : `~astropy.units.Quantity` ['angle'] or float
-        Type depends on input; `Quantity` in angular units, or float in
+        Type depends on input; ``Quantity`` in angular units, or float in
         radians.
 
     Notes
