@@ -15,7 +15,7 @@ from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates import EarthLocation
 from astropy.coordinates import SkyCoord
 from astropy.utils import iers
-from astropy.coordinates.angle_generators import golden_spiral_grid
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 
 
 # These fixtures are used in test_iau_fullstack

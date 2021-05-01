@@ -10,7 +10,7 @@ from astropy.time import Time
 from astropy.coordinates import (
     EarthLocation, ICRS, CIRS, AltAz, SkyCoord)
 
-from astropy.coordinates.angle_generators import golden_spiral_grid
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates import frame_transform_graph
 
 

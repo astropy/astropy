@@ -21,7 +21,7 @@ from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
 
-from astropy.coordinates.angle_generators import golden_spiral_grid
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
     get_location_gcrs, tete_to_itrs_mat, gcrs_to_cirs_mat, cirs_to_itrs_mat)
 from astropy.coordinates.builtin_frames.utils import get_jd12

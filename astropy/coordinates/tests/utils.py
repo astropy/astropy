@@ -14,9 +14,9 @@ from astropy.utils.decorators import deprecated
 @deprecated(since='v4.3',
             message='This function has been deprecated in favor of the '
                     'public-facing utilities in '
-                    'astropy.coordinates.angle_generators',
+                    'astropy.coordinates.angle_utilities',
             alternative='Use uniform_spherical_random_surface() from '
-                        'astropy.coordinates.angle_generators instead.')
+                        'astropy.coordinates.angle_utilities instead.')
 def randomly_sample_sphere(ntosample, randomseed=12345):
     """
     Generates a set of spherical coordinates uniformly distributed over the

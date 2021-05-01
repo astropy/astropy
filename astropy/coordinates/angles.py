@@ -11,7 +11,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from . import angle_utilities as util
+from . import angle_formats as form
 from astropy import units as u
 from astropy.utils import isiterable
 
@@ -119,7 +119,7 @@ class Angle(u.SpecificTypeQuantity):
                 angle = cls._tuple_to_float(angle, unit)
 
             elif isinstance(angle, str):
-                angle, angle_unit = util.parse_angle(angle, unit)
+                angle, angle_unit = form.parse_angle(angle, unit)
                 if angle_unit is None:
                     angle_unit = unit
 
@@ -146,9 +146,9 @@ class Angle(u.SpecificTypeQuantity):
         """
         # TODO: Numpy array of tuples?
         if unit == u.hourangle:
-            return util.hms_to_hours(*angle)
+            return form.hms_to_hours(*angle)
         elif unit == u.degree:
-            return util.dms_to_degrees(*angle)
+            return form.dms_to_degrees(*angle)
         else:
             raise u.UnitsError(f"Can not parse '{angle}' as unit '{unit}'")
 
@@ -172,7 +172,7 @@ class Angle(u.SpecificTypeQuantity):
         The angle's value in hours, as a named tuple with ``(h, m, s)``
         members.  (This is a read-only property.)
         """
-        return hms_tuple(*util.hours_to_hms(self.hourangle))
+        return hms_tuple(*form.hours_to_hms(self.hourangle))
 
     @property
     def dms(self):
@@ -180,7 +180,7 @@ class Angle(u.SpecificTypeQuantity):
         The angle's value in degrees, as a named tuple with ``(d, m, s)``
         members.  (This is a read-only property.)
         """
-        return dms_tuple(*util.degrees_to_dms(self.degree))
+        return dms_tuple(*form.degrees_to_dms(self.degree))
 
     @property
     def signed_dms(self):
@@ -193,7 +193,7 @@ class Angle(u.SpecificTypeQuantity):
         representations of coordinates that are correct for negative angles.
         """
         return signed_dms_tuple(np.sign(self.degree),
-                                *util.degrees_to_dms(np.abs(self.degree)))
+                                *form.degrees_to_dms(np.abs(self.degree)))
 
     def to_string(self, unit=None, decimal=False, sep='fromunit',
                   precision=None, alwayssign=False, pad=False,
@@ -300,7 +300,7 @@ class Angle(u.SpecificTypeQuantity):
                 if sep == 'fromunit':
                     sep = 'dms'
                 values = self.degree
-                func = lambda x: util.degrees_to_string(
+                func = lambda x: form.degrees_to_string(
                     x, precision=precision, sep=sep, pad=pad,
                     fields=fields)
 
@@ -315,7 +315,7 @@ class Angle(u.SpecificTypeQuantity):
                 if sep == 'fromunit':
                     sep = 'hms'
                 values = self.hour
-                func = lambda x: util.hours_to_string(
+                func = lambda x: form.hours_to_string(
                     x, precision=precision, sep=sep, pad=pad,
                     fields=fields)
 
