@@ -82,7 +82,7 @@ update check was done the first time a ``Time`` object was created, which in
 practice occured when importing common astropy subpackages like
 ``astropy.coordinates``. Now you can prevent querying internet resources (for
 instance on a cluster) by setting ``iers.conf.auto_download = False``. This can
-be done after importing astrpoy but prior to performing any ``Time`` scale
+be done after importing astropy but prior to performing any ``Time`` scale
 transformations related to UTC.
 
 .. _whatsnew-4.3-ecsv-subtypes:
@@ -94,7 +94,7 @@ Support has been added for reading and writing Tables with three additional data
 subtypes:
 
 - Multidimensional column data (both masked and unmasked) with fixed dimensions
-  in all table cells
+  in all table cells.
 - Multidimensional column data with variable-dimension arrays similar to FITS
   variable-length arrays.
 - Object-type columns with simple Python objects consisting of
@@ -122,8 +122,8 @@ This specialized format is used by some missions such as `Swift
 Append table to existing FITS file
 ==================================
 
-It is now easy to append a table to an existing FITS file using a new ``append``
-keyword::
+It is now easy to append a :ref:`Table <astropy-table>` to an existing FITS file
+using a new ``append`` keyword::
 
     >>> tbl.write('existing_table.fits', append=True)  # doctest: +SKIP
 
