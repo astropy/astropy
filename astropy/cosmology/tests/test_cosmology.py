@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 
 from astropy.cosmology import core, funcs, realizations
-from astropy.cosmology.realizations import Planck13
+from astropy.cosmology.realizations import Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9
 from astropy.units import allclose
 from astropy import constants as const
 from astropy import units as u
@@ -1634,25 +1634,57 @@ def test_z_at_value_bracketed(method):
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_z_at_value_roundtrip():
+@pytest.mark.parametrize('method', ['Brent', 'Golden', 'Bounded'])
+def test_z_at_value_unconverged(method):
+    """
+    Test warnings on non-converged solution when setting `maxfun` to too small iteration number -
+    only 'Bounded' returns status value and specific message.
+    """
+    z_at_value = funcs.z_at_value
+    cosmo = Planck18
+    ztol = {'Brent': [1e-4, 1e-4], 'Golden': [1e-3, 1e-2], 'Bounded': [1e-3, 1e-1]}
+
+    if method == 'Bounded':
+        status, message = 1, 'Maximum number of function calls reached.'
+    else:
+        status, message = None, 'Unsuccessful'
+    diag = rf'Solver returned {status}: {message}'
+
+    with pytest.warns(AstropyUserWarning, match=diag):
+        z0 = z_at_value(cosmo.angular_diameter_distance, 1*u.Gpc, zmax=2, maxfun=13, method=method)
+    with pytest.warns(AstropyUserWarning, match=diag):
+        z1 = z_at_value(cosmo.angular_diameter_distance, 1*u.Gpc, zmin=2, maxfun=13, method=method)
+
+    assert allclose(z0, 0.32442, rtol=ztol[method][0])
+    assert allclose(z1, 8.18551, rtol=ztol[method][1])
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('cosmo', [Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9,
+                                   core.LambdaCDM, core.FlatLambdaCDM, core.wpwaCDM, core.w0wzCDM,
+                                   core.wCDM, core.FlatwCDM, core.w0waCDM, core.Flatw0waCDM])
+def test_z_at_value_roundtrip(cosmo):
     """
     Calculate values from a known redshift, and then check that
     z_at_value returns the right answer.
     """
     z = 0.5
 
-    # Skip Ok, w, de_density_scale because in the Planck13 cosmology
+    # Skip Ok, w, de_density_scale because in the Planck cosmologies
     # they are redshift independent and hence uninvertable,
     # *_distance_z1z2 methods take multiple arguments, so require
     # special handling
-    # clone isn't a redshift-dependent method
+    # clone is not a redshift-dependent method
+    # nu_relative_density is not redshift-dependent in the WMAP cosmologies
     skip = ('Ok',
             'angular_diameter_distance_z1z2',
             'clone',
             'de_density_scale', 'w')
+    if str(cosmo.name).startswith('WMAP'):
+        skip += ('nu_relative_density', )
 
     import inspect
-    methods = inspect.getmembers(Planck13, predicate=inspect.ismethod)
+    methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
 
     for name, func in methods:
         if name.startswith('_') or name in skip:
@@ -1663,18 +1695,19 @@ def test_z_at_value_roundtrip():
         # angular_diameter_distance and related methods.
         # Be slightly more generous with rtol than the default 1e-8
         # used in z_at_value
-        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
+        assert allclose(z, funcs.z_at_value(func, fval, bracket=[0.3, 1.0], ztol=1e-12), rtol=2e-11)
 
-    # Test distance functions between two redshifts
-    z2 = 2.0
-    func_z1z2 = [
-        lambda z1: Planck13._comoving_distance_z1z2(z1, z2),
-        lambda z1: Planck13._comoving_transverse_distance_z1z2(z1, z2),
-        lambda z1: Planck13.angular_diameter_distance_z1z2(z1, z2)
-    ]
-    for func in func_z1z2:
-        fval = func(z)
-        assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
+    # Test distance functions between two redshifts; only for realizations
+    if isinstance(cosmo.name, str):
+        z2 = 2.0
+        func_z1z2 = [
+            lambda z1: cosmo._comoving_distance_z1z2(z1, z2),
+            lambda z1: cosmo._comoving_transverse_distance_z1z2(z1, z2),
+            lambda z1: cosmo.angular_diameter_distance_z1z2(z1, z2)
+        ]
+        for func in func_z1z2:
+            fval = func(z)
+            assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
