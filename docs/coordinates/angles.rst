@@ -249,7 +249,7 @@ by a maximum radius, instead use the
 function. For example, to generate 4 random 3D positions::
 
     >>> from astropy.coordinates.angle_utilities import uniform_spherical_random_volume
-    >>> pts_3d = uniform_spherical_random_surface(size=4)
+    >>> pts_3d = uniform_spherical_random_volume(size=4)
     >>> pts_3d  # doctest: +SKIP
     <SphericalRepresentation (lon, lat, distance) in (rad, rad, )
         [(4.98504602, -0.74247419, 0.39752416),
@@ -263,7 +263,7 @@ random points within a sphere of a given dimensional radius, for example, 1
 parsec, pass in a |Quantity| object with the ``max_radius`` argument::
 
     >>> import astropy.units as u
-    >>> pts_3d = uniform_spherical_random_surface(size=4, max_radius=2*u.pc)
+    >>> pts_3d = uniform_spherical_random_volume(size=4, max_radius=2*u.pc)
     >>> pts_3d  # doctest: +SKIP
     <SphericalRepresentation (lon, lat, distance) in (rad, rad, pc)
         [(3.36590297, -0.23085809, 1.47210093),
