@@ -204,7 +204,7 @@ def uniform_spherical_random_surface(size=1, rng=None):
         rng = np.random.default_rng()
 
     lon = rng.uniform(0, 2*np.pi, size) * u.rad
-    lat = 90*u.deg - np.arccos(2 * rng.uniform(size=size) - 1) * u.rad
+    lat = np.arcsin(rng.uniform(-1, 1, size=size)) * u.rad
 
     return UnitSphericalRepresentation(lon, lat)
 
@@ -233,8 +233,7 @@ def uniform_spherical_random_volume(size=1, distance_scale=1, rng=None):
     usph = uniform_spherical_random_surface(size=size, rng=rng)
 
     r = np.cbrt(rng.uniform(size=size)) * distance_scale
-    return SphericalRepresentation(
-        usph.lon, usph.lat, r)
+    return SphericalRepresentation(usph.lon, usph.lat, r)
 
 
 # # below here can be deleted in v5.0
