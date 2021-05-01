@@ -236,7 +236,7 @@ retrieve angular values only, use
 `~astropy.coordinates.angle_utilities.uniform_spherical_random_surface`. For
 example, to generate 4 random angular positions::
 
-    >>> from astropy.coordinates.angle_utilities import uniform_spherical_random_surface
+    >>> from astropy.coordinates import uniform_spherical_random_surface
     >>> pts = uniform_spherical_random_surface(size=4)
     >>> pts  # doctest: +SKIP
     <UnitSphericalRepresentation (lon, lat) in rad
@@ -248,7 +248,7 @@ by a maximum radius, instead use the
 `~astropy.coordinates.angle_utilities.uniform_spherical_random_volume`
 function. For example, to generate 4 random 3D positions::
 
-    >>> from astropy.coordinates.angle_utilities import uniform_spherical_random_volume
+    >>> from astropy.coordinates import uniform_spherical_random_volume
     >>> pts_3d = uniform_spherical_random_volume(size=4)
     >>> pts_3d  # doctest: +SKIP
     <SphericalRepresentation (lon, lat, distance) in (rad, rad, )
@@ -287,13 +287,28 @@ One simple and popular method in this context is the `golden spiral method
 a single argument, ``size``, which specifies the number of points to generate in
 the grid::
 
+    >>> from astropy.coordinates import golden_spiral_grid
     >>> golden_pts = golden_spiral_grid(size=32)
     >>> golden_pts  # doctest: +FLOAT_CMP
     <UnitSphericalRepresentation (lon, lat) in rad
-        [(1.94161104,  1.06543582), (5.82483312,  0.67513153),
-         (3.42486989,  0.38439677), (1.02490666,  0.12532783),
-         (4.90812873, -0.12532783), (2.5081655 , -0.38439677),
-         (0.10820227, -0.67513153), (3.99142435, -1.06543582)]>
+        [(1.94161104,  1.32014066), (5.82483312,  1.1343273 ),
+         (3.42486989,  1.004232  ), (1.02490666,  0.89666582),
+         (4.90812873,  0.80200278), (2.5081655 ,  0.71583806),
+         (0.10820227,  0.63571129), (3.99142435,  0.56007531),
+         (1.59146112,  0.48787515), (5.4746832 ,  0.41834639),
+         (3.07471997,  0.35090734), (0.67475674,  0.28509644),
+         (4.55797882,  0.22053326), (2.15801559,  0.15689287),
+         (6.04123767,  0.09388788), (3.64127444,  0.03125509),
+         (1.24131121, -0.03125509), (5.12453328, -0.09388788),
+         (2.72457005, -0.15689287), (0.32460682, -0.22053326),
+         (4.2078289 , -0.28509644), (1.80786567, -0.35090734),
+         (5.69108775, -0.41834639), (3.29112452, -0.48787515),
+         (0.89116129, -0.56007531), (4.77438337, -0.63571129),
+         (2.37442014, -0.71583806), (6.25764222, -0.80200278),
+         (3.85767899, -0.89666582), (1.45771576, -1.004232  ),
+         (5.34093783, -1.1343273 ), (2.9409746 , -1.32014066)]>
+
+
 
 
 Comparing Spherical Point Generation Methods
