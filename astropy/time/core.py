@@ -1771,6 +1771,81 @@ class Time(TimeBase):
         tcor_val = (spos * cpos).sum(axis=-1) / const.c
         return TimeDelta(tcor_val, scale='tdb')
 
+    def to_local(self, theta, longitude):
+        """
+        Adds longitude including the TIO locator rigorously corrected
+        for polar motion.
+
+        Parameters
+        ---------------
+        theta : Earth rotation angle or Greenwich sidereal time in radians
+        longitude : The longitude on the Earth at which to compute the result.
+                
+        Returns
+        -------
+        Either local Earth rotation angle or local sidereal time depending on
+        theta.
+        """
+
+        from astropy.coordinates.builtin_frames.utils import get_polar_motion
+        from astropy.coordinates.matrix_utilities import rotation_matrix
+
+        jd1_tt = getattr(self, 'tt')._time.jd1
+        jd2_tt = getattr(self, 'tt')._time.jd2_filled
+        sp = erfa.sp00(jd1_tt, jd2_tt)
+        xp, yp = get_polar_motion(self._time)
+        # Form the rotation matrix, CIRS to apparent [HA,Dec].
+        r = (rotation_matrix(longitude, 'z', unit=u.radian)
+             @ rotation_matrix(-yp, 'x', unit=u.radian)
+             @ rotation_matrix(-xp, 'y', unit=u.radian)
+             @ rotation_matrix(theta+sp, 'z', unit=u.radian))
+
+        # Solve for local angle.
+        a = r[..., 0, 0]
+        b = r[..., 0, 1]
+        local_angle = np.arctan2(b, a)
+        return local_angle
+
+    def local_earth_rotation_angle(self, longitude=None):
+        """ Calculate local Earth rotation angle.
+
+        Parameters
+        ---------------
+        longitude : `~astropy.units.Quantity`, `str`, or None; optional
+            The longitude on the Earth at which to compute the sidereal time.
+            Can be given as a `~astropy.units.Quantity` with angular units
+            (or an `~astropy.coordinates.Angle` or
+            `~astropy.coordinates.Longitude`), or as a name of an
+            observatory (currently, only ``'greenwich'`` is supported,
+            equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
+            the Time object is used.
+        
+        Returns
+        -------
+        eral : `~astropy.coordinates.Longitude`
+            Local Earth rotation angle as a quantity with units of hourangle
+        """
+
+        from astropy.coordinates import Longitude
+
+        if longitude is None:
+            if self.location is None:
+                raise ValueError('No longitude is given but the location for '
+                                 'the Time object is not set.')
+            longitude = self.location.lon
+        elif longitude == 'greenwich':
+            longitude = Longitude(0., u.degree,
+                                  wrap_angle=180. * u.degree)
+        else:
+            # sanity check on input
+            longitude = Longitude(longitude, u.degree,
+                                  wrap_angle=180. * u.degree)
+
+        jd1_ut1 = getattr(self, 'ut1')._time.jd1
+        jd2_ut1 = getattr(self, 'ut1')._time.jd2_filled
+        era = erfa.era00(jd1_ut1, jd2_ut1)
+        return Longitude(to_local(era, longitude), u.hourangle)
+
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
 
@@ -1831,7 +1906,13 @@ class Time(TimeBase):
                                   wrap_angle=180. * u.degree)
 
         gst = self._erfa_sidereal_time(available_models[model.upper()])
-        return Longitude(gst + longitude, u.hourangle)
+
+        if (model.upper() == 'IAU1982') or (model.upper == 'IAU1994'):
+            # These models are pre-TIO, so just add the longitude
+            return Longitude(gst + longitude, u.hourangle)
+        else:
+            # These models include the TIO.
+            return Longitude(to_local(gst, longitude), u.hourangle)
 
     if isinstance(sidereal_time.__doc__, str):
         sidereal_time.__doc__ = sidereal_time.__doc__.format(
