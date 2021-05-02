@@ -39,7 +39,7 @@ for key in parameters.available:
             else:
                 par[k] = v
 
-        ba = cosmo_cls._init_signature.bind_partial(**par, meta=meta)
+        ba = cosmo_cls._init_signature.bind_partial(**par, name=key, meta=meta)
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
         cosmo.__doc__ = (f"{key} instance of {cosmo_cls} cosmology\n"
                          f"(from {meta['reference']})")

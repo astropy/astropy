@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import sys
 from math import acos, sin, cos, sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
@@ -131,60 +132,76 @@ class Cosmology(metaclass=ABCMeta):
         self._name = name
         self.meta.update(meta or {})
 
-    # make initial signature of cosmology. overwritten in subclasses
+    # Make initial signature of cosmology. Overwritten in subclasses.
+    # (Need to make one here b/c Cosmology is not abstract).
     _init_signature = signature(__init__)
     _init_signature = _init_signature.replace(
         parameters=list(_init_signature.parameters.values())[1:])
 
     @property
     def name(self):
+        """The name of the Cosmology instance."""
         return self._name
 
-    def clone(self, **kwargs):
+    def clone(self, *, meta=None, **kwargs):
         """Returns a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, so ``clone()``
-        cannot be used to change between flat and non-flat cosmologies.  If no
-        modifications are requested, then a reference to this object is
-        returned.
+        cannot be used to change between flat and non-flat cosmologies.
+
+        Parameters
+        ----------
+        meta : Mapping or None (optional, keyword-only)
+            Metadata that will update the current metadata.
+        **kwargs
+            Cosmology parameter (and name) modifications.
+            If any parameter is changed and a new name is not given, the name
+            will be set to "[old name] (modified)".
 
         Returns
         -------
         newcosmo : `~astropy.cosmology.Cosmology` subclass instance
             A new instance of this class with updated parameters as specified.
+            If no modifications are requested, then a reference to this object
+            is returned instead of copy.
 
         Examples
         --------
         To make a copy of the ``Planck13`` cosmology with a different matter
-        density (``Om0``):
-        and a new name:
+        density (``Om0``), and a new name:
 
-        >>> from astropy.cosmology import Planck13
-        >>> newcosmo = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+            >>> from astropy.cosmology import Planck13
+            >>> newcosmo = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+
+        If no name is specified, the new name will note the modification
+            >>> Planck13.clone(Om0=0.35).name
+            'Planck13 (modified)'
+
         """
-        # Quick return check, taking advantage of the
-        # immutability of cosmological objects
-        if len(kwargs) == 0:
+        # Quick return check, taking advantage of the Cosmology immutability.
+        if meta is None and not kwargs:
             return self
 
-        # There are changed parameter values.
+        # There are changed parameter or metadata values.
         # The name needs to be changed accordingly, if it wasn't already.
         kwargs.setdefault("name", (self.name + " (modified)"
                                    if self.name is not None else None))
 
+        # mix new meta into existing, preferring the former.
+        new_meta = {**self.meta, **(meta or {})}
         # Mix kwargs into initial arguments, preferring the former.
-        full_kwargs = {**self._init_arguments, "meta": self.meta, **kwargs}
+        new_init = {**self._init_arguments, "meta": new_meta, **kwargs}
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
         try:
-            ba = self._init_signature.bind_partial(**full_kwargs)
+            ba = self._init_signature.bind_partial(**new_init)
         except TypeError as e:
             # for backward compatibility, map TypeError to AttributeError
             warnings.warn("Starting in Astropy v5.0, passing an unrecognized "
                           "argument will instead raise a TypeError.",
                           category=AstropyDeprecationWarning)
             raise AttributeError(e)
-        # Return new instance
+        # Return new instance, respecting arg vs kwarg.
         return self.__class__(*ba.args, **ba.kwargs)
 
 
@@ -198,7 +215,7 @@ class FLRW(Cosmology):
 
     Parameters
     ----------
-    H0 : float or scalar `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -210,7 +227,7 @@ class FLRW(Cosmology):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -1643,7 +1660,7 @@ class LambdaCDM(FLRW):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -1654,7 +1671,7 @@ class LambdaCDM(FLRW):
         Omega dark energy: density of the cosmological constant in units of
         the critical density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2179,14 +2196,14 @@ class FlatLambdaCDM(LambdaCDM):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0.  If a float, must be in [km/sec/Mpc]
 
     Om0 : float
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2333,7 +2350,7 @@ class wCDM(FLRW):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2349,7 +2366,7 @@ class wCDM(FLRW):
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2550,7 +2567,7 @@ class FlatwCDM(wCDM):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2562,7 +2579,7 @@ class FlatwCDM(wCDM):
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2708,7 +2725,7 @@ class w0waCDM(FLRW):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2727,7 +2744,7 @@ class w0waCDM(FLRW):
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2884,7 +2901,7 @@ class Flatw0waCDM(w0waCDM):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -2899,7 +2916,7 @@ class Flatw0waCDM(w0waCDM):
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -2989,7 +3006,7 @@ class wpwaCDM(FLRW):
     Parameters
     ----------
 
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -3011,7 +3028,7 @@ class wpwaCDM(FLRW):
     zp : float, optional
         Pivot redshift -- the redshift where w(z) = wp
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
@@ -3179,7 +3196,8 @@ class w0wzCDM(FLRW):
 
     Parameters
     ----------
-    H0 : float or `~astropy.units.Quantity` ['frequency']
+
+    H0 : float or scalar quantity-like ['frequency']
         Hubble constant at z = 0. If a float, must be in [km/sec/Mpc]
 
     Om0 : float
@@ -3198,7 +3216,7 @@ class w0wzCDM(FLRW):
         Derivative of the dark energy equation of state with respect to z.
         A cosmological constant has w0=-1.0 and wz=0.0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity` ['temperature'], optional
+    Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K].
         Default: 0 [K]. Setting this to zero will turn off both photons
         and neutrinos (even massive ones).
