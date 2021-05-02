@@ -434,6 +434,6 @@ def get_header_from_yaml(lines):
     try:
         header = yaml.load(header_yaml, Loader=TableLoader)
     except Exception as err:
-        raise YamlParseError(str(err))
+        raise YamlParseError() from err
 
     return header
