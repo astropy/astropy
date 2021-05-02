@@ -1,0 +1,2 @@
+Fix reading variable-length arrays when there is a gap between the data and the
+heap.
