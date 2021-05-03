@@ -3,6 +3,7 @@
 """
 Unit tests for the handling of physical types in `astropy.units`.
 """
+import pickle
 
 import pytest
 
@@ -481,7 +482,7 @@ class TestDefPhysType:
 
 
 @pytest.mark.parametrize("method, expected", [
-        ("title", 'Length'), ("isalpha", True), ("isnumeric", False), ("upper", 'LENGTH')
+    ("title", 'Length'), ("isalpha", True), ("isnumeric", False), ("upper", 'LENGTH')
 ])
 def test_that_str_methods_work_with_physical_types(method, expected):
     """
@@ -503,3 +504,15 @@ def test_missing_physical_type_attribute():
     """
     with pytest.raises(AttributeError):
         length.not_the_name_of_a_str_or_physical_type_attribute
+
+
+@pytest.mark.parametrize('ptype', [
+    u.get_physical_type('length'),
+    u.get_physical_type('speed'),
+    u.get_physical_type('entropy')
+])
+def test_pickling(ptype):
+    # Regression test for #11685
+    pkl = pickle.dumps(ptype)
+    other = pickle.loads(pkl)
+    assert other == ptype
