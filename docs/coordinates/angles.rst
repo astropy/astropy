@@ -335,6 +335,6 @@ Comparing Spherical Point Generation Methods
             xlabel='$x$',
             ylabel='$y$',
             zlabel='$z$')
-        ax.set_title(func.__name__, fontsize=1a4)
+        ax.set_title(func.__name__, fontsize=14)
 
     fig.suptitle('128 points', fontsize=18)
