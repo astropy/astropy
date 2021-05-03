@@ -506,13 +506,10 @@ def test_missing_physical_type_attribute():
         length.not_the_name_of_a_str_or_physical_type_attribute
 
 
-@pytest.mark.parametrize('ptype', [
-    u.get_physical_type('length'),
-    u.get_physical_type('speed'),
-    u.get_physical_type('entropy')
-])
-def test_pickling(ptype):
+@pytest.mark.parametrize('ptype_name', ['length', 'speed', 'entropy'])
+def test_pickling(ptype_name):
     # Regression test for #11685
+    ptype = u.get_physical_type(ptype_name)
     pkl = pickle.dumps(ptype)
     other = pickle.loads(pkl)
     assert other == ptype
