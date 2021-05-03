@@ -314,6 +314,13 @@ class PhysicalType:
         yield from self._physical_type_list
 
     def __getattr__(self, attr):
+        # TODO: remove this whole method when accessing str attributes from
+        # physical types is no longer supported
+
+        # short circuit attribute accessed in __str__ to prevent recursion
+        if attr == '_physical_type_list':
+            super().__getattribute__(attr)
+
         self_str_attr = getattr(str(self), attr, None)
         if hasattr(str(self), attr):
             warning_message = (
