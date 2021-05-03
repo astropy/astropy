@@ -214,3 +214,130 @@ of being bounded so that::
 
 Any attempt to set a value outside of that range will result in a
 `ValueError`.
+
+
+Generating Angle Values
+=======================
+
+Astropy provides utility functions for generating angular or spherical
+positions, either with random sampling or with a grid of values. These functions
+all return `~astropy.coordinates.BaseRepresentation` subclass instances, which
+can be passed directly into coordinate frame classes or |SkyCoord| to create
+random or gridded coordinate objects.
+
+
+With Random Sampling
+--------------------
+
+These functions both use standard, random `spherical point picking
+<https://mathworld.wolfram.com/SpherePointPicking.html>`_ to generate angular
+positions that are uniformly distributed on the surface of the unit sphere. To
+retrieve angular values only, use
+`~astropy.coordinates.uniform_spherical_random_surface`. For
+example, to generate 4 random angular positions::
+
+    >>> from astropy.coordinates import uniform_spherical_random_surface
+    >>> pts = uniform_spherical_random_surface(size=4)
+    >>> pts  # doctest: +SKIP
+    <UnitSphericalRepresentation (lon, lat) in rad
+        [(0.52561028, 0.38712031), (0.29900285, 0.52776066),
+         (0.98199282, 0.34247723), (2.15260367, 1.01499232)]>
+
+To generate three-dimensional positions uniformly within a spherical volume set
+by a maximum radius, instead use the
+`~astropy.coordinates.uniform_spherical_random_volume`
+function. For example, to generate 4 random 3D positions::
+
+    >>> from astropy.coordinates import uniform_spherical_random_volume
+    >>> pts_3d = uniform_spherical_random_volume(size=4)
+    >>> pts_3d  # doctest: +SKIP
+    <SphericalRepresentation (lon, lat, distance) in (rad, rad, )
+        [(4.98504602, -0.74247419, 0.39752416),
+         (5.53281607,  0.89425191, 0.7391255 ),
+         (0.88100456,  0.21080555, 0.5531785 ),
+         (6.00879324,  0.61547168, 0.61746148)]>
+
+By default, the distance values returned are uniformly distributed within the
+unit sphere (i.e., the distance values are dimensionless). To instead generate
+random points within a sphere of a given dimensional radius, for example, 1
+parsec, pass in a |Quantity| object with the ``max_radius`` argument::
+
+    >>> import astropy.units as u
+    >>> pts_3d = uniform_spherical_random_volume(size=4, max_radius=2*u.pc)
+    >>> pts_3d  # doctest: +SKIP
+    <SphericalRepresentation (lon, lat, distance) in (rad, rad, pc)
+        [(3.36590297, -0.23085809, 1.47210093),
+         (6.14591179,  0.06840621, 0.9325143 ),
+         (2.19194797,  0.55099774, 1.19294064),
+         (5.25689272, -1.17703409, 1.63773358)]>
+
+
+On a Grid
+---------
+
+No grid or lattice of points on the sphere can produce equal spacing between all
+grid points, but many approximate algorithms exist for generating angular grids
+with nearly even spacing (for example, `see this page
+<https://bendwavy.org/pack/pack.htm>`_).
+
+One simple and popular method in this context is the `golden spiral method
+<https://stackoverflow.com/a/44164075>`_, which is available in
+`astropy.coordinates` through the utility function
+`~astropy.coordinates.golden_spiral_grid`. This function accepts
+a single argument, ``size``, which specifies the number of points to generate in
+the grid::
+
+    >>> from astropy.coordinates import golden_spiral_grid
+    >>> golden_pts = golden_spiral_grid(size=32)
+    >>> golden_pts  # doctest: +FLOAT_CMP
+    <UnitSphericalRepresentation (lon, lat) in rad
+        [(1.94161104,  1.32014066), (5.82483312,  1.1343273 ),
+         (3.42486989,  1.004232  ), (1.02490666,  0.89666582),
+         (4.90812873,  0.80200278), (2.5081655 ,  0.71583806),
+         (0.10820227,  0.63571129), (3.99142435,  0.56007531),
+         (1.59146112,  0.48787515), (5.4746832 ,  0.41834639),
+         (3.07471997,  0.35090734), (0.67475674,  0.28509644),
+         (4.55797882,  0.22053326), (2.15801559,  0.15689287),
+         (6.04123767,  0.09388788), (3.64127444,  0.03125509),
+         (1.24131121, -0.03125509), (5.12453328, -0.09388788),
+         (2.72457005, -0.15689287), (0.32460682, -0.22053326),
+         (4.2078289 , -0.28509644), (1.80786567, -0.35090734),
+         (5.69108775, -0.41834639), (3.29112452, -0.48787515),
+         (0.89116129, -0.56007531), (4.77438337, -0.63571129),
+         (2.37442014, -0.71583806), (6.25764222, -0.80200278),
+         (3.85767899, -0.89666582), (1.45771576, -1.004232  ),
+         (5.34093783, -1.1343273 ), (2.9409746 , -1.32014066)]>
+
+
+
+
+Comparing Spherical Point Generation Methods
+--------------------------------------------
+
+.. plot::
+    :align: center
+    :context: close-figs
+
+    import matplotlib.pyplot as plt
+    from astropy.coordinates import uniform_spherical_random_surface, golden_spiral_grid
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 6),
+                             subplot_kw=dict(projection='3d'),
+                             constrained_layout=True)
+
+    for func, ax in zip([uniform_spherical_random_surface,
+                         golden_spiral_grid], axes):
+        pts = func(size=128)
+
+        xyz = pts.to_cartesian().xyz
+        ax.plot(*xyz, ls='none')
+
+        ax.set(xlim=(-1, 1),
+            ylim=(-1, 1),
+            zlim=(-1, 1),
+            xlabel='$x$',
+            ylabel='$y$',
+            zlabel='$z$')
+        ax.set_title(func.__name__, fontsize=14)
+
+    fig.suptitle('128 points', fontsize=18)

@@ -1,0 +1,4 @@
+Moved angle formatting and parsing utilities to
+``astropy.coordinates.angle_formats``.
+Added new functionality to ``astropy.coordinates.angle_utilities`` for
+generating points on or in spherical surfaces, either randomly or on a grid.

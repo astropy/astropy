@@ -6,8 +6,17 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils import NumpyRNGContext
+from astropy.utils.decorators import deprecated
 
 
+# TODO: remove this function in v5.0. I think we can have a fairly fast
+# deprecation cycle here because it is not meant to be public API.
+@deprecated(since='v4.3',
+            message='This function has been deprecated in favor of the '
+                    'public-facing utilities in '
+                    'astropy.coordinates.angle_utilities',
+            alternative='Use uniform_spherical_random_surface() from '
+                        'astropy.coordinates.angle_utilities instead.')
 def randomly_sample_sphere(ntosample, randomseed=12345):
     """
     Generates a set of spherical coordinates uniformly distributed over the

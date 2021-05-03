@@ -13,7 +13,7 @@ from astropy.utils.compat import NUMPY_LT_1_19
 
 from astropy.coordinates import (Angle, ICRS, FK4, FK5, Galactic, SkyCoord,
                                  CartesianRepresentation)
-from astropy.coordinates.angle_utilities import dms_to_degrees, hms_to_hours
+from astropy.coordinates.angle_formats import dms_to_degrees, hms_to_hours
 
 
 def test_angle_arrays():
