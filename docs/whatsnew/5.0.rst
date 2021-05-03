@@ -1,0 +1,21 @@
+.. doctest-skip-all
+
+.. _whatsnew-5.0:
+
+**************************
+What's New in Astropy 5.0?
+**************************
+
+Overview
+========
+
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v5.0, including changes in
+API, please see the :ref:`changelog`.
+
+
+Renamed/removed functionality
+=============================

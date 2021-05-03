@@ -11,6 +11,7 @@ functionality highlighted in these pages.
 .. toctree::
    :maxdepth: 1
 
+   5.0
    4.3
    4.2
 
