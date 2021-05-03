@@ -1066,10 +1066,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
         if self.differentials:
             for key, differential in self.differentials.items():
-                diff_c = differential.represent_as(CartesianDifferential, base=self)
-                diff_c_scaled = diff_c._scale_operation(op, *args)
-                diff_result = diff_c_scaled.represent_as(differential.__class__,
-                                                         base=result)
+                diff_result = differential._scale_operation(op, *args, scaled_base=True)
                 result.differentials[key] = diff_result
 
         return result
@@ -2646,7 +2643,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         diff = cdiff.represent_as(self.__class__, transformed_base)
         return diff
 
-    def _scale_operation(self, op, *args):
+    def _scale_operation(self, op, *args, scaled_base=False):
         """Scale all components.
 
         Parameters
@@ -2656,6 +2653,11 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         *args
             Any arguments required for the operator (typically, what is to
             be multiplied with, divided by).
+        scaled_base : bool, optional
+            Whether the base was scaled the same way. This affects whether
+            differential components should be scaled. For instance, a differential
+            in longitude should not be scaled if its spherical base is scaled
+            in radius.
         """
         scaled_attrs = [op(getattr(self, c), *args) for c in self.components]
         return self.__class__(*scaled_attrs, copy=False)
@@ -2998,6 +3000,12 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
 
         return diff
 
+    def _scale_operation(self, op, *args, scaled_base=False):
+        if scaled_base:
+            return self.copy()
+        else:
+            return super()._scale_operation(op, *args)
+
 
 class SphericalDifferential(BaseSphericalDifferential):
     """Differential(s) of points in 3D spherical coordinates.
@@ -3049,6 +3057,12 @@ class SphericalDifferential(BaseSphericalDifferential):
                        representation.d_r)
 
         return super().from_representation(representation, base)
+
+    def _scale_operation(self, op, *args, scaled_base=False):
+        if scaled_base:
+            return self.__class__(self.d_lon, self.d_lat, op(self.d_distance, *args))
+        else:
+            return super()._scale_operation(op, *args)
 
 
 class BaseSphericalCosLatDifferential(BaseDifferential):
@@ -3241,6 +3255,12 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
 
         return diff
 
+    def _scale_operation(self, op, *args, scaled_base=False):
+        if scaled_base:
+            return self.copy()
+        else:
+            return super()._scale_operation(op, *args)
+
 
 class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
     """Differential(s) of points in 3D spherical coordinates.
@@ -3297,6 +3317,12 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
                        representation.d_r)
 
         return super().from_representation(representation, base)
+
+    def _scale_operation(self, op, *args, scaled_base=False):
+        if scaled_base:
+            return self.__class__(self.d_lon_coslat, self.d_lat, op(self.d_distance, *args))
+        else:
+            return super()._scale_operation(op, *args)
 
 
 class RadialDifferential(BaseDifferential):
@@ -3409,6 +3435,12 @@ class PhysicsSphericalDifferential(BaseDifferential):
             return cls(d_phi, -representation.d_lat, representation.d_distance)
 
         return super().from_representation(representation, base)
+
+    def _scale_operation(self, op, *args, scaled_base=False):
+        if scaled_base:
+            return self.__class__(self.d_phi, self.d_theta, op(self.d_r, *args))
+        else:
+            return super()._scale_operation(op, *args)
 
 
 class CylindricalDifferential(BaseDifferential):
