@@ -1241,6 +1241,21 @@ class TestArithmeticWithDifferentials:
         assert_differential_allclose(result_c.differentials['s'],
                                      expected_c.differentials['s'])
 
+    @pytest.mark.parametrize('rep_cls', [
+        SphericalRepresentation,
+        PhysicsSphericalRepresentation,
+        CylindricalRepresentation])
+    def test_operation_cartesian_differential(self, rep_cls, op, args):
+        rep = self.c.represent_as(rep_cls, {'s': CartesianDifferential})
+        result = op(rep, *args)
+
+        expected_c = op(self.c, *args)
+        expected = expected_c.represent_as(rep_cls, {'s': CartesianDifferential})
+        # Check that we match in the representation itself.
+        assert_representation_allclose(result, expected)
+        assert_differential_allclose(result.differentials['s'],
+                                     expected.differentials['s'])
+
     @pytest.mark.parametrize('diff_cls', [
         UnitSphericalDifferential,
         UnitSphericalCosLatDifferential])
@@ -1287,6 +1302,16 @@ class TestArithmeticWithDifferentials:
         assert_representation_allclose(result_c, expected_c)
         assert_differential_allclose(result_c.differentials['s'],
                                      expected_c.differentials['s'])
+
+
+@pytest.mark.parametrize('op,args', [
+    (operator.neg, ()),
+    (operator.mul, (10.,))])
+def test_operation_unitspherical_with_rv_fails(op, args):
+    rep = UnitSphericalRepresentation(
+        0*u.deg, 0*u.deg, differentials={'s': RadialDifferential(10*u.km/u.s)})
+    with pytest.raises(ValueError, match='unit key'):
+        op(rep, *args)
 
 
 @pytest.mark.parametrize('rep,dif', [
