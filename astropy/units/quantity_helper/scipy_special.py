@@ -5,6 +5,7 @@
 Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
+import numpy as np
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from . import UFUNC_HELPERS
@@ -16,12 +17,12 @@ from .helpers import (get_converter,
 
 # ufuncs that require dimensionless input and give dimensionless output.
 dimensionless_to_dimensionless_sps_ufuncs = (
-    'erf','erfc', 'erfcx', 'erfi', 'erfinv', 'erfcinv', 'gamma', 'gammaln',
-    'loggamma', 'gammasgn', 'psi', 'rgamma', 'digamma',
+    'erf', 'erfc', 'erfcx', 'erfi', 'erfinv', 'erfcinv',
+    'gamma', 'gammaln', 'loggamma', 'gammasgn', 'psi', 'rgamma', 'digamma',
     'wofz', 'dawsn', 'entr', 'exprel', 'expm1', 'log1p', 'exp2', 'exp10',
     'j0', 'j1', 'y0', 'y1', 'i0', 'i0e', 'i1', 'i1e',
-    'k0', 'k0e', 'k1', 'k1e', 'itj0y0', 'it2j0y0', 'iti0k0', 'it2i0k0'
-    ,'ndtr', 'ndtri')
+    'k0', 'k0e', 'k1', 'k1e', 'itj0y0', 'it2j0y0', 'iti0k0', 'it2i0k0',
+    'ndtr', 'ndtri')
 
 
 scipy_special_ufuncs = dimensionless_to_dimensionless_sps_ufuncs
@@ -66,8 +67,9 @@ def get_scipy_special_helpers():
     import scipy.special as sps
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
+        # In SCIPY_LT_1_5, erfinv and erfcinv are not ufuncs.
         ufunc = getattr(sps, name, None)
-        if ufunc:
+        if isinstance(ufunc, np.ufunc):
             SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
     for ufunc in degree_to_dimensionless_sps_ufuncs:
