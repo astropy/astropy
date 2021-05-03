@@ -2,7 +2,6 @@
 # returns quantities with the right units, or raises exceptions.
 
 import concurrent.futures
-import sys
 import warnings
 from collections import namedtuple
 
@@ -11,6 +10,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 from erfa import ufunc as erfa_ufunc
 
+from astropy.utils import minversion
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
@@ -1241,19 +1241,26 @@ class TestUfuncOuter:
 if HAS_SCIPY:
     from scipy import special as sps
 
+    erf_like_ufuncs = (
+        sps.erf, sps.erfc, sps.erfcx, sps.erfi,
+        sps.gamma, sps.gammaln, sps.loggamma, sps.gammasgn, sps.psi,
+        sps.rgamma, sps.digamma, sps.wofz, sps.dawsn,
+        sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2, sps.exp10)
+
+    if isinstance(sps.erfinv, np.ufunc):
+        erf_like_ufuncs += (sps.erfinv, sps.erfcinv)
+
     def test_scipy_registration():
         """Check that scipy gets loaded upon first use."""
         assert sps.erf not in qh.UFUNC_HELPERS
         sps.erf(1. * u.percent)
         assert sps.erf in qh.UFUNC_HELPERS
+        if isinstance(sps.erfinv, np.ufunc):
+            assert sps.erfinv in qh.UFUNC_HELPERS
+        else:
+            assert sps.erfinv not in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
-        erf_like_ufuncs = (
-            sps.erf, sps.erfc, sps.erfcx, sps.erfi, sps.erfinv, sps.erfcinv,
-            sps.gamma, sps.gammaln, sps.loggamma, sps.gammasgn, sps.psi,
-            sps.rgamma, sps.digamma, sps.wofz, sps.dawsn,
-            sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2, sps.exp10)
-
         @pytest.mark.parametrize('function', erf_like_ufuncs)
         def test_erf_scalar(self, function):
             TestQuantityMathFuncs.test_exp_scalar(None, function)
