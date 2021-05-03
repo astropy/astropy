@@ -113,22 +113,22 @@ Resampling
 ==========
 
 We provide a :func:`~astropy.timeseries.aggregate_downsample` function
-that can be used to bin values from a time series into bins of equal time, using
-a custom function (mean, median, etc.). This operation returns a
-|BinnedTimeSeries|. Note that this is a basic function in the sense that it
-does not, for example, know how to treat columns with uncertainties differently
-from other values, and it will blindly apply the custom function specified to
-all columns.
+that can be used to bin values from a time series into equal-size or uneven bins,
+and contiguous and non-contiguous bins, using a custom function (mean, median, etc.).
+This operation returns a |BinnedTimeSeries|. Note that this is a basic function in
+the sense that it does not, for example, know how to treat columns with uncertainties
+differently from other values, and it will blindly apply the custom function
+specified to all columns.
 
 Example
 -------
 
-.. EXAMPLE START: Creating a BinnedTimeSeries
+.. EXAMPLE START: Creating a BinnedTimeSeries with even contiguous bins
 
 The following example shows how to use
 :func:`~astropy.timeseries.aggregate_downsample` to bin a light curve from the
-Kepler mission into 20 minute bins using a median function. First, we read in
-the data using:
+Kepler mission into 20 minute contiguous bins using a median function. First,
+we read in the data using:
 
 .. plot::
    :include-source:
@@ -173,6 +173,45 @@ We can take a look at the results:
     plt.ylabel('SAP Flux (e-/s)')
 
 .. EXAMPLE END
+
+.. EXAMPLE START: Creating a BinnedTimeSeries with uneven contiguous bins
+
+The :func:`~astropy.timeseries.aggregate_downsample` can also be used
+to bin the light curve into custom bins. The following example shows
+the case of uneven-size contiguous bins:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    import numpy as np
+    from astropy import units as u
+    import matplotlib.pyplot as plt
+    from astropy.timeseries import TimeSeries
+    from astropy.timeseries import aggregate_downsample
+    from astropy.utils.data import get_pkg_data_filename
+
+    example_data = get_pkg_data_filename('timeseries/kplr010666592-2009131110544_slc.fits')
+    kepler = TimeSeries.read(example_data, format='kepler.fits')
+
+    import warnings
+    warnings.filterwarnings('ignore', message='All-NaN slice encountered')
+
+.. plot::
+   :include-source:
+   :context:
+
+    kepler_binned = aggregate_downsample(kepler, time_bin_size=[1000, 125, 80, 25, 150, 210, 273] * u.min,
+                                         aggregate_func=np.nanmedian)
+
+    plt.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
+    plt.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
+    plt.xlabel('Julian Date')
+    plt.ylabel('SAP Flux (e-/s)')
+
+To learn more about the custom binning functionality in
+:func:`~astropy.timeseries.aggregate_downsample`, see
+:ref:`timeseries-binned-initializing`.
 
 Folding
 =======
