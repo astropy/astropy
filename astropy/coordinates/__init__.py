@@ -23,3 +23,4 @@ from .calculation import *
 from .solar_system import *
 from .spectral_quantity import *
 from .spectral_coordinate import *
+from .angle_utilities import *

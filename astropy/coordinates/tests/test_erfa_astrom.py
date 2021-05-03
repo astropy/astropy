@@ -96,16 +96,17 @@ def test_interpolation_nd():
 
 
 def test_interpolation_broadcasting():
-    from astropy.coordinates.tests.utils import randomly_sample_sphere
+    from astropy.coordinates.angle_utilities import golden_spiral_grid
     from astropy.coordinates import SkyCoord, EarthLocation, AltAz
     from astropy.time import Time
     import astropy.units as u
 
-    from astropy.coordinates.erfa_astrom import erfa_astrom, ErfaAstromInterpolator
+    from astropy.coordinates.erfa_astrom import (erfa_astrom,
+                                                 ErfaAstromInterpolator)
 
-    # 1000 random locations on the sky
-    ra, dec, _ = randomly_sample_sphere(100)
-    coord = SkyCoord(ra, dec)
+    # 1000 gridded locations on the sky
+    rep = golden_spiral_grid(100)
+    coord = SkyCoord(rep)
 
     # 30 times over the space of 1 hours
     times = Time('2020-01-01T20:00') + np.linspace(-0.5, 0.5, 30) * u.hour

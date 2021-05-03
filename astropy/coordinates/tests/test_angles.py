@@ -998,7 +998,7 @@ def test_angle_with_cds_units_enabled():
     """
     from astropy.units import cds
     # the problem is with the parser, so remove it temporarily
-    from astropy.coordinates.angle_utilities import _AngleParser
+    from astropy.coordinates.angle_formats import _AngleParser
     del _AngleParser._thread_local._parser
     with cds.enable():
         Angle('5d')

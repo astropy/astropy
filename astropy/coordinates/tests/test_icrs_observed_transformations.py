@@ -2,14 +2,15 @@
 """Accuracy tests for ICRS transformations, primarily to/from AltAz.
 
 """
+import numpy as np
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.coordinates import (
-    EarthLocation, ICRS,  CIRS, AltAz, SkyCoord)
+    EarthLocation, ICRS, CIRS, AltAz, SkyCoord)
 
-from astropy.coordinates.tests.utils import randomly_sample_sphere
+from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates import frame_transform_graph
 
 
@@ -19,8 +20,9 @@ def test_icrs_consistency():
 
     The latter is extensively tested in test_intermediate_transformations.py
     """
-    ra, dec, dist = randomly_sample_sphere(200)
-    icoo = SkyCoord(ra=ra, dec=dec, distance=dist*u.km*1e5)
+    usph = golden_spiral_grid(200)
+    dist = np.linspace(0.5, 1, len(usph)) * u.km * 1e5
+    icoo = SkyCoord(ra=usph.lon, dec=usph.lat, distance=dist)
 
     observer = EarthLocation(28*u.deg, 23*u.deg, height=2000.*u.km)
     obstime = Time('J2010')
@@ -37,9 +39,9 @@ def test_icrs_consistency():
 
     # check roundtrip
     roundtrip = icoo.transform_to(aa_frame).transform_to(icoo)
-    assert_allclose(roundtrip.separation_3d(icoo),  0*u.mm, atol=1*u.mm)
+    assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
 
     # check there and back via CIRS mish-mash
     roundtrip = icoo.transform_to(aa_frame).transform_to(
         CIRS()).transform_to(icoo)
-    assert_allclose(roundtrip.separation_3d(icoo),  0*u.mm, atol=1*u.mm)
+    assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
