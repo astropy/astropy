@@ -318,6 +318,9 @@ Comparing Spherical Point Generation Methods
     :align: center
     :context: close-figs
 
+    import matplotlib.pyplot as plt
+    from astropy.coordinates import uniform_spherical_random_surface, golden_spiral_grid
+
     fig, axes = plt.subplots(1, 2, figsize=(10, 6),
                              subplot_kw=dict(projection='3d'),
                              constrained_layout=True)
