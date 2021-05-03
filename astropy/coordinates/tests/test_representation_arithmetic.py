@@ -1248,11 +1248,38 @@ class TestArithmeticWithDifferentials:
         rep_cls = diff_cls.base_representation
         rep = self.c.represent_as(rep_cls, {'s': diff_cls})
         result = op(rep, *args)
+
+        if op not in (operator.neg, operator.pos):
+            expected_cls = rep._dimensional_representation
+        else:
+            expected_cls = rep_cls
+
+        assert type(result) is expected_cls
+        assert type(result.differentials['s']) is diff_cls
+
         # Have lost information, so unlike above we convert our initial
         # unit-spherical back to Cartesian, and check that applying
         # the operation on that cartesian representation gives the same result.
         # We do not compare the output directly, since for multiplication
         # and division there will be sign flips in the spherical distance.
+        expected_c = op(rep.represent_as(CartesianRepresentation,
+                                         {'s': CartesianDifferential}), *args)
+        result_c = result.represent_as(CartesianRepresentation,
+                                       {'s': CartesianDifferential})
+        assert_representation_allclose(result_c, expected_c)
+        assert_differential_allclose(result_c.differentials['s'],
+                                     expected_c.differentials['s'])
+
+    @pytest.mark.parametrize('diff_cls', [
+        RadialDifferential,
+        UnitSphericalDifferential,
+        UnitSphericalCosLatDifferential])
+    def test_operation_spherical_with_rv_or_pm(self, diff_cls, op, args):
+        rep = self.c.represent_as(SphericalRepresentation, {'s': diff_cls})
+        result = op(rep, *args)
+        assert type(result) is SphericalRepresentation
+        assert type(result.differentials['s']) is diff_cls
+
         expected_c = op(rep.represent_as(CartesianRepresentation,
                                          {'s': CartesianDifferential}), *args)
         result_c = result.represent_as(CartesianRepresentation,
