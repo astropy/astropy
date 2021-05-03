@@ -83,6 +83,8 @@ argument.::
 
 .. EXAMPLE END
 
+.. _timeseries-binned-initializing:
+
 Initializing a Binned Time Series
 =================================
 
