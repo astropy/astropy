@@ -1064,10 +1064,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         except Exception:
             return NotImplemented
 
-        if self.differentials:
-            for key, differential in self.differentials.items():
-                diff_result = differential._scale_operation(op, *args, scaled_base=True)
-                result.differentials[key] = diff_result
+        for key, differential in self.differentials.items():
+            diff_result = differential._scale_operation(op, *args, scaled_base=True)
+            result.differentials[key] = diff_result
 
         return result
 
@@ -1661,8 +1660,8 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def _scale_operation(self, op, *args):
         return self._dimensional_representation(
-            lon=self.lon, lat=self.lat,
-            distance=1., differentials=self.differentials)._scale_operation(op, *args)
+            lon=self.lon, lat=self.lat, distance=1.,
+            differentials=self.differentials)._scale_operation(op, *args)
 
     def __neg__(self):
         if any(differential.base_representation is not self.__class__
@@ -1819,14 +1818,6 @@ class RadialRepresentation(BaseRepresentation):
         else:
             return super().__mul__(other)
 
-    def _scale_operation(self, op, *args):
-        result = self.__class__(op(self.distance, *args), copy=False)
-        if self.differentials:
-            for key, differential in self.differentials.items():
-                result.differentials[key] = op(differential, *args)
-
-        return result
-
     def norm(self):
         """Vector norm.
 
@@ -1861,7 +1852,6 @@ def _spherical_op_funcs(op, *args):
     if op is operator.neg:
         return lambda x: x+180*u.deg, operator.neg, operator.pos
 
-    assert len(args) == 1
     try:
         scale_sign = np.sign(args[0])
     except Exception:
