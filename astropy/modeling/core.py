@@ -39,7 +39,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
-                    _ConstraintsDict, _SpecialOperatorsDict)
+                    _ConstraintsDict, _SpecialOperatorsDict, ComplexBoundingBox)
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -929,8 +929,8 @@ class Model(metaclass=_ModelMeta):
             # positional arguments to ``__call__``.
 
             # These are the keys that are always present as keyword arguments.
-            keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
-                    'equivalencies', 'inputs_map']
+            keys = ['model_set_axis', 'with_bounding_box','slice_index',
+                    'fill_value', 'equivalencies', 'inputs_map']
 
             new_inputs = {}
             # kwargs contain the names of the new inputs + ``keys``
