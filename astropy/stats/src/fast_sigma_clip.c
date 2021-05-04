@@ -105,14 +105,14 @@ static void _sigma_clip_fast(
     double *data_buffer = NULL;
     double *mad_buffer = NULL;
 
+    NPY_BEGIN_THREADS_DEF
+
     // data_buffer is used to store the current values being sigma clipped
     data_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
     if (data_buffer == NULL) {
         PyErr_NoMemory();
         return;
     }
-
-    Py_BEGIN_ALLOW_THREADS
 
     for (i_o = 0; i_o < n_o;
          i_o++, array += s_array,
@@ -144,20 +144,23 @@ static void _sigma_clip_fast(
                 }
             }
 
+            NPY_BEGIN_THREADS
+
             compute_sigma_clipped_bounds(
                 data_buffer, count,
                 (int)(*(npy_bool *)use_median), (int)(*(npy_bool *)use_mad_std),
                 *(int *)max_iter,
                 *(double *)sigma_low, *(double *)sigma_high,
                 (double *)bound_low, (double *)bound_high, mad_buffer);
+
+            NPY_END_THREADS
+
         }
         else {
             *(double *)bound_low = NPY_NAN;
             *(double *)bound_high = NPY_NAN;
         }
     }
-
-    Py_END_ALLOW_THREADS
 
     PyArray_free((void *)data_buffer);
     if (mad_buffer != NULL) {
