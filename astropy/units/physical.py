@@ -3,6 +3,7 @@
 """Defines the physical types that correspond to different units."""
 
 import numbers
+import sys
 import warnings
 
 from . import core
@@ -542,8 +543,49 @@ def get_physical_type(obj):
         return PhysicalType(unit, "unknown")
 
 
+# ------------------------------------------------------------------------------
+# Script section creating the physical types and the documentation
+
+# define the physical types
 for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
+
+# add physical types to __all__, also making them appear in the units namespace.
+__all__.extend(_name_physical_mapping.keys())
+
+
+# For getting the physical types.
+def __getattr__(name):
+    """Checks for physical types using lazy import.
+
+    This also allows user-defined physical types to be accessible from the
+    :mod:`astropy.units.physical` module.
+    See `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_
+
+    Parameters
+    ----------
+    name : str
+        The name of the attribute in this module. If it is already defined,
+        then this function is not called.
+
+    Returns
+    -------
+    ptype : `~astropy.units.physical.PhysicalType`
+
+    Raises
+    ------
+    AttributeError
+        If the ``name`` does not correspond to a physical type
+    """
+    if name in _name_physical_mapping:
+        return _name_physical_mapping[name]
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    """Return contents directory (__all__ + all physical type names)."""
+    return list(set(__all__) | set(_name_physical_mapping.keys()))
 
 
 # This generates a docstring addition for this module that describes all of the
