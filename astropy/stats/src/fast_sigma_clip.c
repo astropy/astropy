@@ -112,6 +112,8 @@ static void _sigma_clip_fast(
         return;
     }
 
+    Py_BEGIN_ALLOW_THREADS
+
     for (i_o = 0; i_o < n_o;
          i_o++, array += s_array,
                 mask += s_mask,
@@ -154,6 +156,9 @@ static void _sigma_clip_fast(
             *(double *)bound_high = NPY_NAN;
         }
     }
+
+    Py_END_ALLOW_THREADS
+
     PyArray_free((void *)data_buffer);
     if (mad_buffer != NULL) {
         PyArray_free((void *)mad_buffer);
