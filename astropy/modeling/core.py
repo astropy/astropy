@@ -4120,18 +4120,22 @@ def get_bounding_box(self, slice_index=None):
     NotImplementedError
         If ``bounding_box`` is not defined.
     """
-    try:
-        bbox = self.bounding_box
-    except NotImplementedError:
-        return None
 
-    if isinstance(bbox, ComplexBoundingBox):
-        if slice_index in bbox:
-            return bbox[slice_index]
-        else:
-            raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
+    if slice_index is None:
+        return None
     else:
-        return bbox
+        try:
+            bbox = self.bounding_box
+        except NotImplementedError:
+            return None
+
+        if  isinstance(bbox, ComplexBoundingBox):
+            if slice_index in bbox:
+                return bbox[slice_index]
+            else:
+                raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
+        else:
+            return bbox
 
 def generic_call(self, *inputs, **kwargs):
     """ The base ``Model. __call__`` method."""

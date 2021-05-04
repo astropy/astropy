@@ -7,9 +7,10 @@ import pytest
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.modeling.utils import ExpressionTree as ET, ellipse_extent
-from astropy.modeling.models import Ellipse2D
+from astropy.modeling.models import Ellipse2D, Gaussian1D
 
-from astropy.modeling.utils import _SpecialOperatorsDict
+from astropy.modeling.utils import (_SpecialOperatorsDict,
+                                    ComplexBoundingBox, _BoundingBox)
 
 
 def test_traverse_postorder_duplicate_subtrees():
@@ -103,6 +104,29 @@ def test_ellipse_extent():
         s = actual.sum(axis=i)
         diff = np.abs(limits[2 * i] - np.where(s > 0)[0][0])
         assert diff < 1
+
+
+def test_ComplexBoundingBox__init__():
+    bbox = {1: (-1, 0), 2: (0, 1)}
+    bounding_box = ComplexBoundingBox(bbox)
+
+    assert bounding_box == bbox
+    assert bounding_box._model is None
+
+    bounding_box = ComplexBoundingBox(bbox, 5)
+    assert bounding_box == bbox
+    assert bounding_box._model == 5
+
+
+def test_ComplexBoundingBox_validate():
+    bbox = {1: (-1, 0), 2: (0, 1)}
+    model = Gaussian1D()
+    bounding_box = ComplexBoundingBox.validate(model, bbox)
+
+    assert bounding_box == bbox
+    assert bounding_box._model == model
+    for slice_box in bounding_box.values():
+        assert isinstance(slice_box, _BoundingBox)
 
 
 def test__SpecialOperatorsDict__set_value():

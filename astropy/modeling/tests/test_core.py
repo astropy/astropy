@@ -10,9 +10,11 @@ from inspect import signature
 from numpy.testing import assert_allclose
 
 import astropy
-from astropy.modeling.core import Model, custom_model, SPECIAL_OPERATORS, _add_special_operator
+from astropy.modeling.core import (Model, CompoundModel, custom_model,
+    SPECIAL_OPERATORS, _add_special_operator, get_bounding_box)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
+from astropy.modeling.utils import ComplexBoundingBox
 from astropy.convolution import convolve_models
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -727,3 +729,53 @@ def test_print_special_operator_CompoundModel(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == true_out
+
+
+def test_get_bounding_box():
+    model = models.Const1D(2)
+
+    with pytest.raises(NotImplementedError):
+        model.bounding_box
+    assert get_bounding_box(model) is None
+    assert get_bounding_box(model, slice_index=17) is None
+
+    model.bounding_box = (0, 1)
+    assert not isinstance(model.bounding_box, ComplexBoundingBox)
+    assert get_bounding_box(model) == None
+    assert get_bounding_box(model, 15) == (0, 1)
+
+    model.bounding_box = {1: (-1, 0), 2: (0, 1)}
+    assert isinstance(model.bounding_box, ComplexBoundingBox)
+    assert get_bounding_box(model) is None
+    assert get_bounding_box(model, slice_index=1) == (-1, 0)
+    with pytest.raises(RuntimeError):
+        get_bounding_box(model, slice_index=0)
+
+
+def test_complex_bounding_box():
+    model = models.Gaussian1D()
+    truth = models.Gaussian1D()
+
+    model.bounding_box = {1: (-1, 0), 2: (0, 1)}
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=1) == truth(-0.5)
+    assert np.isnan(model(-0.5, with_bounding_box=2))
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=2) == truth(0.5)
+    assert np.isnan(model(0.5, with_bounding_box=1))
+
+    model1 = models.Gaussian1D()
+    truth1 = models.Gaussian1D()
+    model2 = models.Const1D(2)
+    truth2 = models.Const1D(2)
+    model = model1 + model2
+    truth = truth1 + truth2
+    assert isinstance(model, CompoundModel)
+
+    model.bounding_box = {1: (-1, 0), 2: (0, 1)}
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=1) == truth(-0.5)
+    assert np.isnan(model(-0.5, with_bounding_box=2))
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=2) == truth(0.5)
+    assert np.isnan(model(0.5, with_bounding_box=1))
