@@ -16,7 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle
 from .baseframe import BaseCoordinateFrame, GenericFrame, frame_transform_graph
-from .builtin_frames import ICRS, SkyOffsetFrame
+from .builtin_frames import ICRS, OffsetFrame, SkyOffsetFrame
 from .distances import Distance
 from .representation import (
     RadialDifferential, SphericalDifferential, SphericalRepresentation,
@@ -1322,6 +1322,11 @@ class SkyCoord(ShapedLikeNDArray):
 
         return SkyCoord(newlon, newlat, frame=self.frame)
 
+    def offset_by(self):  # TODO!
+        raise NotImplementedError("TODO!")
+    #     return self.__class__(
+    #         OffsetFrame(d_lon, d_lat, origin=self.frame).transform_to(self))
+
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
         Finds the nearest on-sky matches of this coordinate in a set of
@@ -1614,19 +1619,40 @@ class SkyCoord(ShapedLikeNDArray):
         """
         Returns the sky offset frame with this `SkyCoord` at the origin.
 
-        Returns
-        -------
-        astrframe : `~astropy.coordinates.SkyOffsetFrame`
-            A sky offset frame of the same type as this `SkyCoord` (e.g., if
-            this object has an ICRS coordinate, the resulting frame is
-            SkyOffsetICRS, with the origin set to this object)
-        rotation : angle-like
+        Parameters
+        ----------
+        rotation : angle-like or None
             The final rotation of the frame about the ``origin``. The sign of
             the rotation is the left-hand rule. That is, an object at a
             particular position angle in the un-rotated system will be sent to
             the positive latitude (z) direction in the final frame.
+
+        Returns
+        -------
+        `~astropy.coordinates.SkyOffsetFrame`
+            A sky offset frame of the same type as this `SkyCoord` (e.g., if
+            this object has an ICRS coordinate, the resulting frame is
+            SkyOffsetICRS, with the origin set to this object)
         """
         return SkyOffsetFrame(origin=self, rotation=rotation)
+
+    def offset_frame(self, rotation=None):
+        """
+        Returns the offset frame with this `SkyCoord` at the origin.
+
+        Parameters
+        ----------
+        rotation : `~scipy.spatial.transform.Rotation` or (3, 3) ndarray or None
+            Passive rotation matrix.
+
+        Returns
+        -------
+        `~astropy.coordinates.OffsetFrame`
+            An offset frame of the same type as this `SkyCoord` (e.g., if
+            this object has an ICRS coordinate, the resulting frame is
+            OffsetICRS, with the origin set to this object)
+        """
+        return OffsetFrame(origin=self, rotation=rotation)
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
