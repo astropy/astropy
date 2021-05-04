@@ -534,6 +534,20 @@ class _BoundingBox(tuple):
             raise ValueError('Bounding box must have positive dimension')
 
 
+class ComplexBoundingBox(UserDict):
+    def __init__(self, bounding_box,  model=None):
+        super().__init__(bounding_box)
+        self._model = model
+
+    @classmethod
+    def validate(cls, model, bounding_box: dict):
+        new_box = cls({}, model)
+        for slice_index, slice_box in bounding_box.items():
+            new_box[slice_index] = _BoundingBox.validate(model, slice_box)
+
+        return new_box
+
+
 def make_binary_operator_eval(oper, f, g):
     """
     Given a binary operator (as a callable of two arguments) ``oper`` and
