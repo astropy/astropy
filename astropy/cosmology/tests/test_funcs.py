@@ -46,20 +46,23 @@ def test_z_at_value():
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
     # Test the "verbose" flag. Since this uses "print", ned to mod stdout
+    # Windows has issues with reading from opened NamedTemporaryFiles,
+    # so this test is run inside a NamedTemporaryDirectory with normal files.
     original_stdout = sys.stdout
-    with tempfile.NamedTemporaryFile(mode="w") as f:
-        try:  # protect stdout with a "finally"
-            sys.stdout = f # Change the standard output to the tempfile
-        except Exception:  # error normally
-            raise
-        else:
-            resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
-        finally:
-            sys.stdout = original_stdout # reset the standard output
+    with tempfile.TemporaryDirectory() as d:
+        fname = d + "/tempfile.txt"
+        with open(fname, "w") as f:
+            try:  # protect stdout with a "finally"
+                sys.stdout = f # Change the standard output to the tempfile
+            except Exception:  # error normally
+                raise
+            else:
+                resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
+            finally:
+                sys.stdout = original_stdout # reset the standard output
 
-        f.flush()  # move print from buffer to file
-        with open(f.name) as ff:  # read file
-            assert str(resx) in ff.read()  # test that "verbose" prints res
+        with open(fname, "r") as f:  # read file
+            assert str(resx) in f.read()  # test that "verbose" prints res
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
