@@ -1,0 +1,2 @@
+Add quantity support for ``scipy.special`` dimensionless functions
+erfinv, erfcinv, gammaln and loggamma.
