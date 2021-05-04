@@ -1,0 +1,3 @@
+RST links in SkyCoord now use intersphinx for affiliate package convenience.
+Outside the astropy package, subclasses of SkyCoord, with inherited docstrings,
+will now link to the astropy docs instead of raising a warning / error.
