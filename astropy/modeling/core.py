@@ -929,8 +929,8 @@ class Model(metaclass=_ModelMeta):
             # positional arguments to ``__call__``.
 
             # These are the keys that are always present as keyword arguments.
-            keys = ['model_set_axis', 'with_bounding_box','slice_index',
-                    'fill_value', 'equivalencies', 'inputs_map']
+            keys = ['model_set_axis', 'with_bounding_box', 'fill_value',
+                    'equivalencies', 'inputs_map']
 
             new_inputs = {}
             # kwargs contain the names of the new inputs + ``keys``
@@ -4107,7 +4107,7 @@ def check_consistent_shapes(*shapes):
     return rshape
 
 
-def get_bounding_box(self):
+def get_bounding_box(self, slice_index=None):
     """
     Return the ``bounding_box`` of a model.
 
@@ -4119,8 +4119,7 @@ def get_bounding_box(self):
     try:
         bbox = self.bounding_box
     except NotImplementedError:
-        bbox = None
-    return bbox
+        return None
 
     if isinstance(bbox, ComplexBoundingBox):
         if slice_index in bbox:
@@ -4138,11 +4137,14 @@ def generic_call(self, *inputs, **kwargs):
         parameters = ()
     else:
         parameters = self._param_sets(raw=True, units=True)
-    with_bbox = kwargs.pop('with_bounding_box', False)
-    slice_index = kwargs.pop('slice_index', None)
+
+    slice_index = kwargs.pop('with_bounding_box', None)
+    if isinstance(slice_index, bool) and not slice_index:
+        slice_index = None
+
     fill_value = kwargs.pop('fill_value', np.nan)
     bbox = get_bounding_box(self, slice_index=slice_index)
-    if with_bbox and bbox is not None:
+    if (slice_index is not None) and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,
             self.standard_broadcasting)
