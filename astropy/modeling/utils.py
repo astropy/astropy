@@ -550,14 +550,11 @@ class ComplexBoundingBox(UserDict):
 
         return new_box
 
-    def set_slice_arg(self, slice_arg=None):
-        if slice_arg is None:
-            self._slice_arg = None
+    def set_slice_arg(self, slice_arg):
+        if (slice_arg is None) or (slice_arg in self._model.inputs):
+            self._slice_arg = slice_arg
         else:
-            if slice_arg in self._model.inputs:
-                self._slice_arg = slice_arg
-            else:
-                raise ValueError(f'{slice_arg} is not an input of of your model inputs {self._model.inputs}')
+            raise ValueError(f'{slice_arg} is not an input of of your model inputs {self._model.inputs}')
 
     def get_bounding_box(self, inputs, slice_index=True):
         if isinstance(slice_index, bool) and slice:

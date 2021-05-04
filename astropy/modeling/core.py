@@ -4167,6 +4167,7 @@ def get_bounding_box(self, inputs, slice_index=None):
         else:
             return bbox
 
+
 def generic_call(self, *inputs, **kwargs):
     """ The base ``Model. __call__`` method."""
     inputs, format_info = self.prepare_inputs(*inputs, **kwargs)

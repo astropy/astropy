@@ -822,4 +822,3 @@ def test_bind_complex_bounding_box():
     assert model(1, with_bounding_box=True) == truth(1)
     with pytest.raises(RuntimeError):
         model(0.5, with_bounding_box=True)
-
