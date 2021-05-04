@@ -112,21 +112,38 @@ def test_ComplexBoundingBox__init__():
 
     assert bounding_box == bbox
     assert bounding_box._model is None
+    assert bounding_box._slice_arg is None
 
-    bounding_box = ComplexBoundingBox(bbox, 5)
+    bounding_box = ComplexBoundingBox(bbox, 5, 'arg')
     assert bounding_box == bbox
     assert bounding_box._model == 5
+    assert bounding_box._slice_arg == 'arg'
 
 
 def test_ComplexBoundingBox_validate():
     bbox = {1: (-1, 0), 2: (0, 1)}
     model = Gaussian1D()
-    bounding_box = ComplexBoundingBox.validate(model, bbox)
+    bounding_box = ComplexBoundingBox.validate(model, bbox, 'x')
 
     assert bounding_box == bbox
     assert bounding_box._model == model
+    assert bounding_box._slice_arg == 'x'
     for slice_box in bounding_box.values():
         assert isinstance(slice_box, _BoundingBox)
+
+
+def test_set_slice_arg():
+    bbox = {1: (-1, 0), 2: (0, 1)}
+    bounding_box = ComplexBoundingBox(bbox, slice_arg='arg')
+    bounding_box.set_slice_arg(None)
+    assert bounding_box._slice_arg is None
+
+    bounding_box._model = Gaussian1D()
+    with pytest.raises(ValueError):
+        bounding_box.set_slice_arg('arg')
+
+    bounding_box.set_slice_arg('x')
+    assert bounding_box._slice_arg == 'x'
 
 
 def test__SpecialOperatorsDict__set_value():

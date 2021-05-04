@@ -1301,6 +1301,16 @@ class Model(metaclass=_ModelMeta):
 
         self._user_bounding_box = bounding_box
 
+    def set_slice_arg(self, slice_arg):
+        """
+        Assigns the slice arg to complex bounding box
+        """
+
+        if isinstance(self._user_bounding_box, ComplexBoundingBox):
+            self._user_bounding_box.set_slice_arg(slice_arg)
+        else:
+            raise RuntimeError('The bounding_box for this model is not complex.')
+
     @bounding_box.deleter
     def bounding_box(self):
         self._user_bounding_box = None
@@ -2826,7 +2836,7 @@ class CompoundModel(Model):
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment
         # in selecting only valid inputs to pass along to constituent models.
-        bbox = get_bounding_box(self, slice_index=slice_index)
+        bbox = get_bounding_box(self, args, slice_index=slice_index)
         if (slice_index is not None) and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
@@ -3622,6 +3632,29 @@ def fix_inputs(modelinstance, values):
     return CompoundModel('fix_inputs', modelinstance, values)
 
 
+def bind_complex_bounding_box(modelinstance, bbox, slice_arg=None):
+    """
+    This function binds a complex bounding box to a model.
+
+    Parameters
+    ----------
+    modelinstance : `~astropy.modeling.Model` instance
+        This is the model that one or more of the
+        model input values will be fixed to some constant value.
+    bbox : dict
+        A dictionary of bounding boxes which form the complex bounding
+        box.
+    slice_arg : str, optional
+        The input argument string which corresponds to the slicing of
+        the complex bounding box. Note that if not specified,
+        with_bounding_box evaluation argument must be the slice rather
+        than a boolean.
+    """
+
+    modelinstance.bounding_box = bbox
+    modelinstance.set_slice_arg(slice_arg)
+
+
 def custom_model(*args, fit_deriv=None, **kwargs):
     """
     Create a model from a user defined function. The inputs and parameters of
@@ -4111,7 +4144,7 @@ def check_consistent_shapes(*shapes):
     return rshape
 
 
-def get_bounding_box(self, slice_index=None):
+def get_bounding_box(self, inputs, slice_index=None):
     """
     Return the ``bounding_box`` of a model.
 
@@ -4130,10 +4163,7 @@ def get_bounding_box(self, slice_index=None):
             return None
 
         if  isinstance(bbox, ComplexBoundingBox):
-            if slice_index in bbox:
-                return bbox[slice_index]
-            else:
-                raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
+            return bbox.get_bounding_box(inputs, slice_index)
         else:
             return bbox
 
@@ -4151,7 +4181,7 @@ def generic_call(self, *inputs, **kwargs):
         slice_index = None
 
     fill_value = kwargs.pop('fill_value', np.nan)
-    bbox = get_bounding_box(self, slice_index=slice_index)
+    bbox = get_bounding_box(self, inputs, slice_index=slice_index)
     if (slice_index is not None) and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,

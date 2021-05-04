@@ -11,7 +11,8 @@ from numpy.testing import assert_allclose
 
 import astropy
 from astropy.modeling.core import (Model, CompoundModel, custom_model,
-    SPECIAL_OPERATORS, _add_special_operator, get_bounding_box)
+    SPECIAL_OPERATORS, _add_special_operator, get_bounding_box,
+                                   bind_complex_bounding_box)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 from astropy.modeling.utils import ComplexBoundingBox
@@ -736,20 +737,20 @@ def test_get_bounding_box():
 
     with pytest.raises(NotImplementedError):
         model.bounding_box
-    assert get_bounding_box(model) is None
-    assert get_bounding_box(model, slice_index=17) is None
+    assert get_bounding_box(model, []) is None
+    assert get_bounding_box(model, [], slice_index=17) is None
 
     model.bounding_box = (0, 1)
     assert not isinstance(model.bounding_box, ComplexBoundingBox)
-    assert get_bounding_box(model) == None
-    assert get_bounding_box(model, 15) == (0, 1)
+    assert get_bounding_box(model, []) == None
+    assert get_bounding_box(model, [], 15) == (0, 1)
 
     model.bounding_box = {1: (-1, 0), 2: (0, 1)}
     assert isinstance(model.bounding_box, ComplexBoundingBox)
-    assert get_bounding_box(model) is None
-    assert get_bounding_box(model, slice_index=1) == (-1, 0)
+    assert get_bounding_box(model, []) is None
+    assert get_bounding_box(model, [], slice_index=1) == (-1, 0)
     with pytest.raises(RuntimeError):
-        get_bounding_box(model, slice_index=0)
+        get_bounding_box(model, [], slice_index=0)
 
 
 def test_complex_bounding_box():
@@ -763,6 +764,15 @@ def test_complex_bounding_box():
     assert model(0.5) == truth(0.5)
     assert model(0.5, with_bounding_box=2) == truth(0.5)
     assert np.isnan(model(0.5, with_bounding_box=1))
+
+    model.bounding_box = {-0.5: (-1, 0), 0.5: (0, 1)}
+    model.set_slice_arg('x')
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=True) == truth(-0.5)
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=True) == truth(0.5)
+    with pytest.raises(RuntimeError):
+        model(0, with_bounding_box=True)
 
     model1 = models.Gaussian1D()
     truth1 = models.Gaussian1D()
@@ -779,3 +789,37 @@ def test_complex_bounding_box():
     assert model(0.5) == truth(0.5)
     assert model(0.5, with_bounding_box=2) == truth(0.5)
     assert np.isnan(model(0.5, with_bounding_box=1))
+
+    model.bounding_box = {-0.5: (-1, 0), 0.5: (0, 1)}
+    model.set_slice_arg('x')
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=True) == truth(-0.5)
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=True) == truth(0.5)
+    with pytest.raises(RuntimeError):
+        model(0, with_bounding_box=True)
+
+
+def test_bind_complex_bounding_box():
+    model = models.Gaussian1D()
+    truth = models.Gaussian1D()
+
+    bbox = (0, 1)
+    with pytest.raises(RuntimeError):
+        bind_complex_bounding_box(model, bbox, 'x')
+
+    bbox = {0: (-1, 0), 1: (0, 1)}
+    bind_complex_bounding_box(model, bbox, 'x')
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=0) == truth(-0.5)
+    assert np.isnan(model(-0.5, with_bounding_box=1))
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=1) == truth(0.5)
+    assert np.isnan(model(0.5, with_bounding_box=0))
+    assert model(0) == truth(0)
+    assert model(0, with_bounding_box=True) == truth(0)
+    assert model(1) == truth(1)
+    assert model(1, with_bounding_box=True) == truth(1)
+    with pytest.raises(RuntimeError):
+        model(0.5, with_bounding_box=True)
+

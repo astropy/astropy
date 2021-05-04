@@ -535,17 +535,43 @@ class _BoundingBox(tuple):
 
 
 class ComplexBoundingBox(UserDict):
-    def __init__(self, bounding_box,  model=None):
+    def __init__(self, bounding_box,  model=None, slice_arg=None):
         super().__init__(bounding_box)
         self._model = model
+        self._slice_arg = slice_arg
 
     @classmethod
-    def validate(cls, model, bounding_box: dict):
+    def validate(cls, model, bounding_box: dict, slice_arg=None):
         new_box = cls({}, model)
+        new_box.set_slice_arg(slice_arg)
+
         for slice_index, slice_box in bounding_box.items():
             new_box[slice_index] = _BoundingBox.validate(model, slice_box)
 
         return new_box
+
+    def set_slice_arg(self, slice_arg=None):
+        if slice_arg is None:
+            self._slice_arg = None
+        else:
+            if slice_arg in self._model.inputs:
+                self._slice_arg = slice_arg
+            else:
+                raise ValueError(f'{slice_arg} is not an input of of your model inputs {self._model.inputs}')
+
+    def get_bounding_box(self, inputs, slice_index=True):
+        if isinstance(slice_index, bool) and slice:
+            if self._slice_arg is None:
+                return None
+            else:
+                slice_index = inputs[self._model.inputs.index(self._slice_arg)]
+                if isinstance(slice_index, np.ndarray):
+                    slice_index = slice_index.item()
+
+        if slice_index in self:
+            return self[slice_index]
+        else:
+            raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
 
 
 def make_binary_operator_eval(oper, f, g):
