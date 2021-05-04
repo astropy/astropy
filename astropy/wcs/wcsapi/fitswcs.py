@@ -323,7 +323,17 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         return world[0] if self.world_n_dim == 1 else tuple(world)
 
     def world_to_pixel_values(self, *world_arrays):
-        pixel = self.all_world2pix(*world_arrays, 0)
+        # avoid circular import
+        from astropy.wcs.wcs import NoConvergence
+        try:
+            pixel = self.all_world2pix(*world_arrays, 0)
+        except NoConvergence as e:
+            warnings.warn(str(e))
+            # would be better to use e.best_solution here but that would
+            # have to be formatted by wcs._array_converter which feels like
+            # unnecessary code duplication
+            pixel = self.all_world2pix(*world_arrays, 0, quiet=True)
+
         return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
 
     @property
