@@ -1285,6 +1285,8 @@ class Model(metaclass=_ModelMeta):
             # We use this to explicitly set an unimplemented bounding box (as
             # opposed to no user bounding box defined)
             bounding_box = NotImplemented
+        elif (isinstance(bounding_box, ComplexBoundingBox) or isinstance(bounding_box, dict)):
+            cls = ComplexBoundingBox
         elif (isinstance(self._bounding_box, type) and
               issubclass(self._bounding_box, _BoundingBox)):
             cls = self._bounding_box
@@ -4120,6 +4122,13 @@ def get_bounding_box(self):
         bbox = None
     return bbox
 
+    if isinstance(bbox, ComplexBoundingBox):
+        if slice_index in bbox:
+            return bbox[slice_index]
+        else:
+            raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
+    else:
+        return bbox
 
 def generic_call(self, *inputs, **kwargs):
     """ The base ``Model. __call__`` method."""
@@ -4130,8 +4139,9 @@ def generic_call(self, *inputs, **kwargs):
     else:
         parameters = self._param_sets(raw=True, units=True)
     with_bbox = kwargs.pop('with_bounding_box', False)
+    slice_index = kwargs.pop('slice_index', None)
     fill_value = kwargs.pop('fill_value', np.nan)
-    bbox = get_bounding_box(self)
+    bbox = get_bounding_box(self, slice_index=slice_index)
     if with_bbox and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,
