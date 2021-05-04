@@ -2818,12 +2818,16 @@ class CompoundModel(Model):
             # Restructure to be useful for the individual model lookup
             kw['inputs_map'] = [(value[0], (value[1], key)) for
                                 key, value in self.inputs_map().items()]
-        with_bbox = kw.pop('with_bounding_box', False)
+
+        slice_index = kw.pop('with_bounding_box', None)
+        if isinstance(slice_index, bool) and not slice_index:
+            slice_index = None
+
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment
         # in selecting only valid inputs to pass along to constituent models.
-        bbox = get_bounding_box(self)
-        if with_bbox and bbox is not None:
+        bbox = get_bounding_box(self, slice_index=slice_index)
+        if (slice_index is not None) and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
                                                  self.model_set_axis, self.standard_broadcasting)
