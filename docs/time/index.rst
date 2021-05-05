@@ -432,7 +432,7 @@ Examples
 
 .. EXAMPLE START: Reshaping Time Instances Using NumPy Method Analogs
 
-To reshape |Time| instances::
+To reshape |Time| instances:
 
 .. doctest-requires:: numpy>=1.17
 
