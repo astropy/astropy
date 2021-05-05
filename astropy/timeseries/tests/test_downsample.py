@@ -99,44 +99,47 @@ def test_nbins():
     assert_equal(down_nbins.time_bin_start.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000'])
 
 
-@pytest.mark.skipif(sys.maxsize <= 2**32,
-                    reason="Precision problems with floating-point comparisons on 32bit")
 def test_downsample():
     ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=['a'])
     ts_units = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5] * u.count], names=['a'])
 
-    down_1 = aggregate_downsample(ts, time_bin_size=1*u.second)
-    u.isclose(down_1.time_bin_size, [1, 1, 1, 1, 1]*u.second)
+    if sys.maxsize <= 2**32:
+        time_bin_incr = (1 - 1e-6) * u.s
+    else:
+        time_bin_incr = 1 * u.s
+
+    down_1 = aggregate_downsample(ts, time_bin_size=time_bin_incr)
+    u.isclose(down_1.time_bin_size, [1, 1, 1, 1, 1]*time_bin_incr)
     assert_equal(down_1.time_bin_start.isot, Time(['2016-03-22T12:30:31.000', '2016-03-22T12:30:32.000',
                                                    '2016-03-22T12:30:33.000', '2016-03-22T12:30:34.000',
                                                    '2016-03-22T12:30:35.000']))
     assert_equal(down_1["a"].data.data, np.array([1, 2, 3, 4, 5]))
 
-    down_2 = aggregate_downsample(ts, time_bin_size=2*u.second)
-    u.isclose(down_2.time_bin_size, [2, 2, 2]*u.second)
+    down_2 = aggregate_downsample(ts, time_bin_size=2*time_bin_incr)
+    u.isclose(down_2.time_bin_size, [2, 2, 2]*time_bin_incr)
     assert_equal(down_2.time_bin_start.isot, Time(['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000',
                                                    '2016-03-22T12:30:35.000']))
     assert_equal(down_2["a"].data.data, np.array([1, 3, 5]))
 
-    down_3 = aggregate_downsample(ts, time_bin_size=3*u.second)
-    u.isclose(down_3.time_bin_size, [3, 3]*u.second)
+    down_3 = aggregate_downsample(ts, time_bin_size=3*time_bin_incr)
+    u.isclose(down_3.time_bin_size, [3, 3]*time_bin_incr)
     assert_equal(down_3.time_bin_start.isot, Time(['2016-03-22T12:30:31.000', '2016-03-22T12:30:34.000']))
     assert_equal(down_3["a"].data.data, np.array([2, 4]))
 
-    down_4 = aggregate_downsample(ts, time_bin_size=4*u.second)
-    u.isclose(down_4.time_bin_size, [4, 4]*u.second)
+    down_4 = aggregate_downsample(ts, time_bin_size=4*time_bin_incr)
+    u.isclose(down_4.time_bin_size, [4, 4]*time_bin_incr)
     assert_equal(down_4.time_bin_start.isot, Time(['2016-03-22T12:30:31.000', '2016-03-22T12:30:35.000']))
     assert_equal(down_4["a"].data.data, np.array([2, 5]))
 
-    down_units = aggregate_downsample(ts_units, time_bin_size=4*u.second)
-    u.isclose(down_units.time_bin_size, [4, 4]*u.second)
+    down_units = aggregate_downsample(ts_units, time_bin_size=4*time_bin_incr)
+    u.isclose(down_units.time_bin_size, [4, 4]*time_bin_incr)
     assert_equal(down_units.time_bin_start.isot, Time(['2016-03-22T12:30:31.000', '2016-03-22T12:30:35.000']))
     assert down_units["a"].unit.name == 'ct'
     assert_equal(down_units["a"].data, np.array([2.5, 5.0]))
 
     # Contiguous bins with uneven bin sizes: `time_bin_size` is an array
-    down_uneven_bins = aggregate_downsample(ts, time_bin_size=[2, 1, 1]*u.second)
-    u.isclose(down_uneven_bins.time_bin_size, [2, 1, 1]*u.second)
+    down_uneven_bins = aggregate_downsample(ts, time_bin_size=[2, 1, 1]*time_bin_incr)
+    u.isclose(down_uneven_bins.time_bin_size, [2, 1, 1]*time_bin_incr)
     assert_equal(down_uneven_bins.time_bin_start.isot, Time(['2016-03-22T12:30:31.000',
                                                              '2016-03-22T12:30:33.000',
                                                              '2016-03-22T12:30:34.000']))
