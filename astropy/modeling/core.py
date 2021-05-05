@@ -3605,7 +3605,7 @@ for idx, ops in enumerate(_ORDER_OF_OPERATORS):
 del idx, op, ops
 
 
-def fix_inputs(modelinstance, values):
+def fix_inputs(modelinstance, values, bbox=None, slice_args=None):
     """
     This function creates a compound model with one or more of the input
     values of the input model assigned fixed values (scalar or array).
@@ -3629,7 +3629,9 @@ def fix_inputs(modelinstance, values):
 
     Results in a 1D function equivalent to Gaussian2D(1, 2, 3, 4, 5)(x=2.5, y)
     """
-    return CompoundModel('fix_inputs', modelinstance, values)
+    model = CompoundModel('fix_inputs', modelinstance, values)
+    
+    return model
 
 
 def bind_complex_bounding_box(modelinstance, bbox, slice_arg=None):

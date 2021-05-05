@@ -538,7 +538,25 @@ class ComplexBoundingBox(UserDict):
     def __init__(self, bounding_box,  model=None, slice_arg=None):
         super().__init__(bounding_box)
         self._model = model
-        self._slice_arg = slice_arg
+
+        if self._model is None:
+            self._slice_arg = slice_arg
+        else:
+            self.set_slice_arg(slice_arg)
+
+    def _get_arg_index(self, slice_arg):
+        if np.issubdtype(type(slice_arg), np.integer):
+            arg_index = slice_arg
+        else:
+            if slice_arg in self._model.inputs:
+                arg_index = self._model.inputs.index(slice_arg)
+            else:
+                raise ValueError(f'{slice_arg} is not an input of of your model inputs {self._model.inputs}')
+
+        if arg_index < self._model.n_inputs:
+            return arg_index
+        else:
+            raise ValueError(f'{arg_index} is out of model argument bounds')
 
     @classmethod
     def validate(cls, model, bounding_box: dict, slice_arg=None):
@@ -551,19 +569,30 @@ class ComplexBoundingBox(UserDict):
         return new_box
 
     def set_slice_arg(self, slice_arg):
-        if (slice_arg is None) or (slice_arg in self._model.inputs):
+        if slice_arg is None:
             self._slice_arg = slice_arg
+        elif isinstance(slice_arg, tuple):
+            self._slice_arg = tuple([self._get_arg_index(arg) for arg in slice_arg])
         else:
-            raise ValueError(f'{slice_arg} is not an input of of your model inputs {self._model.inputs}')
+            self._slice_arg = self._get_arg_index(slice_arg)
+
+    def _get_slice_index(self, inputs, slice_arg):
+        slice_index = inputs[self._get_arg_index(slice_arg)]
+        if isinstance(slice_index, np.ndarray):
+            slice_index = slice_index.item()
+
+        return slice_index
 
     def get_bounding_box(self, inputs, slice_index=True):
         if isinstance(slice_index, bool) and slice:
             if self._slice_arg is None:
                 return None
             else:
-                slice_index = inputs[self._model.inputs.index(self._slice_arg)]
-                if isinstance(slice_index, np.ndarray):
-                    slice_index = slice_index.item()
+                if isinstance(self._slice_arg, tuple):
+                    slice_index = tuple([self._get_slice_index(inputs, slice_arg)
+                                         for slice_arg in self._slice_arg])
+                else:
+                    slice_index = self._get_slice_index(inputs, self._slice_arg)
 
         if slice_index in self:
             return self[slice_index]
