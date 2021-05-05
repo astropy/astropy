@@ -133,6 +133,7 @@ _name_physical_mapping = {}
 # mapping from a attribute-accessible name (no spaces, etc.) to the actual name.
 _attrname_name_mapping = {}
 
+
 def _physical_type_from_str(name):
     """
     Return the `PhysicalType` instance associated with the name of a
@@ -556,9 +557,6 @@ def get_physical_type(obj):
 # define the physical types
 for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
-
-# add physical types to __all__, also making them appear in the units namespace.
-__all__.extend(_attrname_name_mapping.keys())
 
 
 # For getting the physical types.
