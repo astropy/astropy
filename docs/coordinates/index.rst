@@ -82,7 +82,7 @@ because it will be *much* faster than applying the operation to each
 |SkyCoord| in a ``for`` loop. Like the underlying `~numpy.ndarray` instances
 that contain the data, |SkyCoord| objects can be sliced, reshaped, etc.,
 and, on ``numpy`` version 1.17 and later, can be used with functions like
-`numpy.moveaxis`, etc., that affect the shape::
+`numpy.moveaxis`, etc., that affect the shape:
 
 .. doctest-requires:: numpy>=1.17
 
