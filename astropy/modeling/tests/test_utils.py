@@ -146,6 +146,15 @@ def test_ComplexBoundingBox_validate():
     for slice_box in bounding_box.values():
         assert isinstance(slice_box, _BoundingBox)
 
+    model = Gaussian2D()
+    bounding_box = ComplexBoundingBox.validate(model, bbox, 'x',
+                                               remove_slice_arg=True)
+    assert bounding_box == bbox
+    assert bounding_box._model == model
+    assert bounding_box._slice_arg == 0
+    for slice_box in bounding_box.values():
+        assert isinstance(slice_box, _BoundingBox)
+
 
 def test_ComplexBoundingBox_set_slice_arg():
     bounding_box = ComplexBoundingBox((), slice_arg='arg')

@@ -3647,7 +3647,9 @@ def fix_inputs(modelinstance, values, bbox=None, slice_args=None):
             slice_arg = slice_arg[0]
             slice_index = slice_index[0]
 
-        complex_bbox = ComplexBoundingBox.validate(modelinstance, bbox, slice_arg=slice_arg)
+        complex_bbox = ComplexBoundingBox.validate(modelinstance, bbox,
+                                                   slice_arg=slice_arg,
+                                                   remove_slice_arg=True)
         model.bounding_box = complex_bbox.get_bounding_box(slice_index=slice_index)
 
     return model

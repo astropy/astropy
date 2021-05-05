@@ -564,8 +564,11 @@ class ComplexBoundingBox(UserDict):
             raise ValueError(f'{arg_index} is out of model argument bounds')
 
     @classmethod
-    def validate(cls, model, bounding_box, slice_arg=None):
+    def validate(cls, model, bounding_box, slice_arg=None, remove_slice_arg=False):
         new_box = cls({}, model, slice_arg)
+
+        if not remove_slice_arg:
+            slice_arg = None
 
         for slice_index, slice_box in bounding_box.items():
             new_box[slice_index] = _BoundingBox.validate(model, slice_box, slice_arg)
