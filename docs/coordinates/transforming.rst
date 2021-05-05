@@ -54,7 +54,7 @@ coordinate object into the frame of another::
 Additionally, some coordinate frames (including `~astropy.coordinates.FK5`,
 `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`) support
 "self transformations," meaning the *type* of frame does not change, but the
-frame attributes do. Any example is precessing a coordinate from one equinox
+frame attributes do. An example is precessing a coordinate from one equinox
 to another in an equatorial frame. This is done by passing ``transform_to`` a
 frame class with the relevant attributes, as shown below. Note that these
 frames use a default equinox if you do not specify one::
