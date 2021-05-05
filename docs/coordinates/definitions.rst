@@ -29,7 +29,7 @@ the IAU2000 resolutions on celestial coordinate systems):
   are represented as "differential" classes).
 
 * A "Reference System" is a scheme for orienting points in a space and
-  describing how they transforms to other systems. Examples include the ICRS,
+  describing how they transform to other systems. Examples include the ICRS,
   equatorial coordinates with mean equinox, or the WGS84 geoid for
   latitude/longitude on the Earth.
 
