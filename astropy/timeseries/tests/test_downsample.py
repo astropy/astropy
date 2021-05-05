@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import sys
+
 import pytest
 import numpy as np
 from numpy.testing import assert_equal
@@ -97,7 +99,7 @@ def test_nbins():
     assert_equal(down_nbins.time_bin_start.isot, ['2016-03-22T12:30:31.000', '2016-03-22T12:30:33.000'])
 
 
-@pytest.mark.skipif(np.finfo(float).dtype == np.float32,
+@pytest.mark.skipif(sys.maxsize <= 2**32,
                     reason="Precision problems with floating-point comparisons on 32bit")
 def test_downsample():
     ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=['a'])
