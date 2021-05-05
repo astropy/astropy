@@ -84,8 +84,9 @@ jobs:
       matrix:
         include:
           - arch: aarch64
-          - arch: ppc64le
           - arch: s390x
+          # Uncomment when we ready to fix the failures, see PR 11697
+          #- arch: ppc64le
 
     steps:
       - uses: actions/checkout@v2
