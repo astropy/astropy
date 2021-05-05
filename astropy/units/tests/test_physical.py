@@ -532,9 +532,6 @@ def test_pickling(ptype_name):
 
 
 def test_physical_types_module_access():
-    # all physical type names in __all__
-    assert set(physical.__all__).issuperset(physical._attrname_name_mapping.keys())
-
     # all physical type names in dir
     assert set(dir(physical)).issuperset(physical._attrname_name_mapping.keys())
     assert set(dir(physical)).issuperset(physical.__all__)
