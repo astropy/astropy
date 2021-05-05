@@ -132,7 +132,7 @@ To pass array `~astropy.units.Quantity` objects to representations::
       [(0., 10., 20.), (1., 11., 21.), (2., 12., 22.),
        (3., 13., 23.), (4., 14., 24.), (5., 15., 25.)]>
 
-To manipulate using methods and ``numpy`` functions::
+To manipulate using methods and ``numpy`` functions:
 
 .. doctest-requires:: numpy>=1.17
 
