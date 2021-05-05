@@ -835,9 +835,10 @@ def test_multidim_column_error(fmt_name_class):
     if not getattr(fmt_cls, '_io_registry_can_write', True):
         return
 
-    # Skip tests for ecsv or HTML without bs4
+    # Skip tests for ecsv or HTML without bs4. See the comment in latex.py
+    # Latex class where max_ndim = None is defined regarding latex and aastex.
     if ((fmt_name == 'html' and not HAS_BS4)
-            or fmt_name == 'ecsv'):
+            or fmt_name in ('ecsv', 'latex', 'aastex')):
         return
 
     out = StringIO()

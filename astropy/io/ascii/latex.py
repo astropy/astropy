@@ -310,6 +310,14 @@ class Latex(core.BaseReader):
     data_class = LatexData
     inputter_class = LatexInputter
 
+    # Strictly speaking latex only supports 1-d columns so this should inherit
+    # the base max_ndim = 1. But as reported in #11695 this causes a strange
+    # problem with Jupyter notebook, which displays a table by first calling
+    # _repr_latex_. For a multidimensional table this issues a stack traceback
+    # before moving on to _repr_html_. Here we prioritize fixing the issue with
+    # Jupyter displaying a Table with multidimensional columns.
+    max_ndim = None
+
     def __init__(self,
                  ignore_latex_commands=['hline', 'vspace', 'tableline',
                                         'toprule', 'midrule', 'bottomrule'],
