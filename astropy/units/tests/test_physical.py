@@ -153,7 +153,8 @@ momentum = (u.kg * u.m / u.s).physical_type
         (u.m, "length"),
         ("work", "work"),
         (5 * u.m, "length"),
-        (length, length)
+        (length, length),
+        (u.Pa, "energy_density")  # attribute-accessible name
     ],
 )
 def test_getting_physical_type(physical_type_representation, physical_type_name):
@@ -439,16 +440,31 @@ class TestDefPhysType:
         weird_name = "weird name"
         strange_name = "strange name"
 
-        physical.def_physical_type(self.weird_unit, weird_name)
-        assert (
-            self.weird_unit.physical_type == weird_name
-        ), f"unable to set physical type for {self.weird_unit}"
+        try:
+            physical.def_physical_type(self.weird_unit, weird_name)
+            assert (
+                self.weird_unit.physical_type == weird_name
+            ), f"unable to set physical type for {self.weird_unit}"
+        except Exception:
+            raise
+        finally:  # cleanup added name
+            physical._attrname_name_mapping.pop(weird_name.replace(' ', '_'), None)
+            physical._name_physical_mapping.pop(weird_name, None)
 
-        physical.def_physical_type(self.weird_unit, strange_name)
-        assert set((self.weird_unit).physical_type) == {
-            weird_name,
-            strange_name,
-        }, f"did not correctly append a new physical type name."
+        # add both strange_name and weird_name
+        try:
+            physical.def_physical_type(self.weird_unit, strange_name)
+            assert set((self.weird_unit).physical_type) == {
+                weird_name,
+                strange_name,
+            }, f"did not correctly append a new physical type name."
+        except Exception:
+            raise
+        finally:  # cleanup added names
+            physical._attrname_name_mapping.pop(strange_name.replace(' ', '_'), None)
+            physical._name_physical_mapping.pop(strange_name, None)
+            physical._attrname_name_mapping.pop(weird_name.replace(' ', '_'), None)
+            physical._name_physical_mapping.pop(weird_name, None)
 
     def test_redundant_physical_type(self):
         """
@@ -513,3 +529,22 @@ def test_pickling(ptype_name):
     pkl = pickle.dumps(ptype)
     other = pickle.loads(pkl)
     assert other == ptype
+
+
+def test_physical_types_module_access():
+    # all physical type names in __all__
+    assert set(physical.__all__).issuperset(physical._attrname_name_mapping.keys())
+
+    # all physical type names in dir
+    assert set(dir(physical)).issuperset(physical._attrname_name_mapping.keys())
+    assert set(dir(physical)).issuperset(physical.__all__)
+
+    # all physical type can be accessed by name
+    for pname in physical._attrname_name_mapping.keys():
+        ptype = physical._name_physical_mapping[physical._attrname_name_mapping[pname]]
+        assert hasattr(physical, pname)  # make sure works in lazy load
+        assert getattr(physical, pname) is ptype
+
+    # a failed access
+    with pytest.raises(AttributeError, match="has no attribute"):
+        physical.not_a_valid_physical_type_name
