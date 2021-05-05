@@ -372,6 +372,9 @@ def resolve_astropy_and_dev_reference(app, env, node, contnode):
     # should the node be processed?
     reftarget = node.get('reftarget')  # str or None
     if str(reftarget).startswith('astropy:'):
+        # This allows Astropy to use intersphinx links to itself and have
+        # them resolve to local links. Downstream packages will see intersphinx.
+        # TODO! deprecate this if sphinx-doc/sphinx/issues/9169 is implemented.
         process, replace = True, 'astropy:'
     elif dev and str(reftarget).startswith('astropy-dev:'):
         process, replace = True, 'astropy-dev:'
