@@ -130,7 +130,8 @@ _units_and_physical_types = [
 _physical_unit_mapping = {}
 _unit_physical_mapping = {}
 _name_physical_mapping = {}
-
+# mapping from a attribute-accessible name (no spaces, etc.) to the actual name.
+_attrname_name_mapping = {}
 
 def _physical_type_from_str(name):
     """
@@ -139,6 +140,9 @@ def _physical_type_from_str(name):
     """
     if name == "unknown":
         raise ValueError("cannot uniquely identify an 'unknown' physical type.")
+
+    if name in _attrname_name_mapping:
+        _attrname_name_mapping[name]  # convert attribute-accessible
 
     if name in _name_physical_mapping:
         return _name_physical_mapping[name]
@@ -477,6 +481,9 @@ def def_physical_type(unit, name):
 
     for ptype_name in physical_type_names:
         _name_physical_mapping[ptype_name] = physical_type
+        # attribute-accessible name
+        attr_name = ptype_name.replace(' ', '_').replace('(', '').replace(')', '')
+        _attrname_name_mapping[attr_name] = ptype_name
 
 
 def get_physical_type(obj):
@@ -551,7 +558,7 @@ for unit, physical_type in _units_and_physical_types:
     def_physical_type(unit, physical_type)
 
 # add physical types to __all__, also making them appear in the units namespace.
-__all__.extend(_name_physical_mapping.keys())
+__all__.extend(_attrname_name_mapping.keys())
 
 
 # For getting the physical types.
@@ -577,15 +584,15 @@ def __getattr__(name):
     AttributeError
         If the ``name`` does not correspond to a physical type
     """
-    if name in _name_physical_mapping:
-        return _name_physical_mapping[name]
+    if name in _attrname_name_mapping:
+        return _name_physical_mapping[_attrname_name_mapping[name]]
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def __dir__():
     """Return contents directory (__all__ + all physical type names)."""
-    return list(set(__all__) | set(_name_physical_mapping.keys()))
+    return list(set(__all__) | set(_attrname_name_mapping.keys()))
 
 
 # This generates a docstring addition for this module that describes all of the
