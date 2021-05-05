@@ -457,7 +457,7 @@ class _BoundingBox(tuple):
             "adjustable parameters.")
 
     @classmethod
-    def validate(cls, model, bounding_box):
+    def validate(cls, model, bounding_box, slice_arg=None):
         """
         Validate a given bounding box sequence against the given model (which
         may be either a subclass of `~astropy.modeling.Model` or an instance
@@ -472,6 +472,11 @@ class _BoundingBox(tuple):
         """
 
         nd = model.n_inputs
+        if slice_arg is not None:
+            if isinstance(slice_arg, tuple):
+                nd -= len(slice_arg)
+            else:
+                nd -= 1
 
         if nd == 1:
             MESSAGE = f"""Bounding box for {model.__class__.__name__} model must be a sequence
@@ -559,12 +564,11 @@ class ComplexBoundingBox(UserDict):
             raise ValueError(f'{arg_index} is out of model argument bounds')
 
     @classmethod
-    def validate(cls, model, bounding_box: dict, slice_arg=None):
-        new_box = cls({}, model)
-        new_box.set_slice_arg(slice_arg)
+    def validate(cls, model, bounding_box, slice_arg=None):
+        new_box = cls({}, model, slice_arg)
 
         for slice_index, slice_box in bounding_box.items():
-            new_box[slice_index] = _BoundingBox.validate(model, slice_box)
+            new_box[slice_index] = _BoundingBox.validate(model, slice_box, slice_arg)
 
         return new_box
 
@@ -577,13 +581,16 @@ class ComplexBoundingBox(UserDict):
             self._slice_arg = self._get_arg_index(slice_arg)
 
     def _get_slice_index(self, inputs, slice_arg):
+        if inputs is None:
+            raise RuntimeError('Inputs must not be None in order to lookup slice')
+
         slice_index = inputs[self._get_arg_index(slice_arg)]
         if isinstance(slice_index, np.ndarray):
             slice_index = slice_index.item()
 
         return slice_index
 
-    def get_bounding_box(self, inputs, slice_index=True):
+    def get_bounding_box(self, inputs=None, slice_index=True):
         if isinstance(slice_index, bool) and slice:
             if self._slice_arg is None:
                 return None

@@ -3630,7 +3630,26 @@ def fix_inputs(modelinstance, values, bbox=None, slice_args=None):
     Results in a 1D function equivalent to Gaussian2D(1, 2, 3, 4, 5)(x=2.5, y)
     """
     model = CompoundModel('fix_inputs', modelinstance, values)
-    
+    if bbox is not None:
+        if slice_args is None:
+            slice_arg = tuple(values.keys())
+            slice_index = tuple(values.values())
+        else:
+            if not hasattr(slice_args, '__iter__'):
+                slice_args = tuple([slice_args])
+
+            if all(arg in values for arg in slice_args):
+                slice_arg = tuple(slice_args)
+                slice_index = tuple(values[arg] for arg in slice_args)
+            else:
+                raise ValueError(f"{slice_args} must all be keys of {values}")
+        if len(slice_arg) == 1:
+            slice_arg = slice_arg[0]
+            slice_index = slice_index[0]
+
+        complex_bbox = ComplexBoundingBox.validate(modelinstance, bbox, slice_arg=slice_arg)
+        model.bounding_box = complex_bbox.get_bounding_box(slice_index=slice_index)
+
     return model
 
 

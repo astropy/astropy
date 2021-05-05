@@ -179,10 +179,14 @@ def test_ComplexBoundingBox__get_slice_index():
     inputs = [mk.MagicMock(), mk.MagicMock(), mk.MagicMock()]
     assert bounding_box._get_slice_index(inputs, 'x') == inputs[0]
     assert bounding_box._get_slice_index(inputs, 'y') == inputs[1]
+    with pytest.raises(RuntimeError):
+        bounding_box._get_slice_index(None, 'x')
 
     inputs = [np.array(1), np.array(2), np.array(3)]
     assert bounding_box._get_slice_index(inputs, 'x') == 1
     assert bounding_box._get_slice_index(inputs, 'y') == 2
+    with pytest.raises(RuntimeError):
+        bounding_box._get_slice_index(None, 'x')
 
 
 def test_ComplexBoundingBox_get_bounding_box():
@@ -200,9 +204,21 @@ def test_ComplexBoundingBox_get_bounding_box():
     assert bounding_box.get_bounding_box(inputs, slice_index=(3, 4)) == bbox[(3, 4)]
     with pytest.raises(RuntimeError):
         bounding_box.get_bounding_box([np.array(4), np.array(5)])
+    bounding_box = ComplexBoundingBox(bbox, Gaussian2D(), (0, 1))
+
+    assert bounding_box.get_bounding_box(inputs) == bbox[(1, 2)]
+    assert bounding_box.get_bounding_box(inputs, slice_index=(3, 4)) == bbox[(3, 4)]
+    with pytest.raises(RuntimeError):
+        bounding_box.get_bounding_box([np.array(4), np.array(5)])
 
     bbox = {1: mk.MagicMock(), 2: mk.MagicMock()}
     bounding_box = ComplexBoundingBox(bbox, Gaussian2D(), 'x')
+    assert bounding_box.get_bounding_box(inputs) == bbox[1]
+    assert bounding_box.get_bounding_box(inputs, slice_index=2) == bbox[2]
+    with pytest.raises(RuntimeError):
+        bounding_box.get_bounding_box([np.array(3)])
+
+    bounding_box = ComplexBoundingBox(bbox, Gaussian2D(), 0)
     assert bounding_box.get_bounding_box(inputs) == bbox[1]
     assert bounding_box.get_bounding_box(inputs, slice_index=2) == bbox[2]
     with pytest.raises(RuntimeError):

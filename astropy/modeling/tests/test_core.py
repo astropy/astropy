@@ -12,7 +12,7 @@ from numpy.testing import assert_allclose
 import astropy
 from astropy.modeling.core import (Model, CompoundModel, custom_model,
     SPECIAL_OPERATORS, _add_special_operator, get_bounding_box,
-                                   bind_complex_bounding_box)
+                                   bind_complex_bounding_box, fix_inputs)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 from astropy.modeling.utils import ComplexBoundingBox
@@ -822,3 +822,39 @@ def test_bind_complex_bounding_box():
     assert model(1, with_bounding_box=True) == truth(1)
     with pytest.raises(RuntimeError):
         model(0.5, with_bounding_box=True)
+
+
+def test_fix_inputs_complex_bounding_box():
+    base_model = models.Gaussian2D(1, 2, 3, 4, 5)
+    bbox = {2.5: (-1, 1), 3.14: (-7, 3)}
+
+    model = fix_inputs(base_model, {0: 2.5}, bbox=bbox)
+    assert model.bounding_box == (-1, 1)
+    model = fix_inputs(base_model, {'x': 2.5}, bbox=bbox)
+    assert model.bounding_box == (-1, 1)
+
+    model = fix_inputs(base_model, {0: 2.5}, bbox=bbox, slice_args=0)
+    assert model.bounding_box == (-1, 1)
+    with pytest.raises(ValueError):
+        fix_inputs(base_model, {0: 2.5}, bbox=bbox, slice_args='x')
+    model = fix_inputs(base_model, {'x': 2.5}, bbox=bbox, slice_args='x')
+    assert model.bounding_box == (-1, 1)
+    with pytest.raises(ValueError):
+        fix_inputs(base_model, {'x': 2.5}, bbox=bbox, slice_args=0)
+
+    base_model = models.Identity(4)
+    bbox = {(2.5, 1.3): ((-1, 1), (-3, 3)), (2.5, 2.71): ((-3, 3), (-1, 1))}
+
+    model = fix_inputs(base_model, {0: 2.5, 1: 1.3}, bbox=bbox)
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bbox=bbox)
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+
+    model = fix_inputs(base_model, {0: 2.5, 1: 1.3}, bbox=bbox, slice_args=(0, 1))
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+    with pytest.raises(ValueError):
+        fix_inputs(base_model, {0: 2.5, 1: 1.3}, bbox=bbox, slice_args=('x0', 'x1'))
+    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bbox=bbox, slice_args=('x0', 'x1'))
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+    with pytest.raises(ValueError):
+        fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bbox=bbox, slice_args=(0, 1))
