@@ -154,7 +154,8 @@ momentum = (u.kg * u.m / u.s).physical_type
         ("work", "work"),
         (5 * u.m, "length"),
         (length, length),
-        (u.Pa, "energy_density")  # attribute-accessible name
+        (u.Pa, "energy_density"),  # attribute-accessible name
+        ("energy_density", "energy_density")  # attribute-accessible name
     ],
 )
 def test_getting_physical_type(physical_type_representation, physical_type_name):
@@ -448,7 +449,7 @@ class TestDefPhysType:
         except Exception:
             raise
         finally:  # cleanup added name
-            physical._attrname_name_mapping.pop(weird_name.replace(' ', '_'), None)
+            physical._attrname_physical_mapping.pop(weird_name.replace(' ', '_'), None)
             physical._name_physical_mapping.pop(weird_name, None)
 
         # add both strange_name and weird_name
@@ -461,9 +462,9 @@ class TestDefPhysType:
         except Exception:
             raise
         finally:  # cleanup added names
-            physical._attrname_name_mapping.pop(strange_name.replace(' ', '_'), None)
+            physical._attrname_physical_mapping.pop(strange_name.replace(' ', '_'), None)
             physical._name_physical_mapping.pop(strange_name, None)
-            physical._attrname_name_mapping.pop(weird_name.replace(' ', '_'), None)
+            physical._attrname_physical_mapping.pop(weird_name.replace(' ', '_'), None)
             physical._name_physical_mapping.pop(weird_name, None)
 
     def test_redundant_physical_type(self):
@@ -533,12 +534,12 @@ def test_pickling(ptype_name):
 
 def test_physical_types_module_access():
     # all physical type names in dir
-    assert set(dir(physical)).issuperset(physical._attrname_name_mapping.keys())
+    assert set(dir(physical)).issuperset(physical._attrname_physical_mapping.keys())
     assert set(dir(physical)).issuperset(physical.__all__)
 
     # all physical type can be accessed by name
-    for pname in physical._attrname_name_mapping.keys():
-        ptype = physical._name_physical_mapping[physical._attrname_name_mapping[pname]]
+    for pname in physical._attrname_physical_mapping.keys():
+        ptype = physical._attrname_physical_mapping[pname]
         assert hasattr(physical, pname)  # make sure works in lazy load
         assert getattr(physical, pname) is ptype
 
