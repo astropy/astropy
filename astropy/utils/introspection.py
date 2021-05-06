@@ -2,17 +2,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-
 import inspect
-import re
 import os
 import sys
 import types
-import importlib
+import importlib.metadata
+
+from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
-
 
 __doctest_skip__ = ['find_current_module']
 
@@ -89,10 +88,15 @@ def resolve_name(name, *additional_parts):
     return ret
 
 
+@deprecated_renamed_argument('version_path', None, '5.0')
 def minversion(module, version, inclusive=True, version_path='__version__'):
     """
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
+
+    .. deprecated::
+        ``version_path`` is not used anymore and is deprecated in
+        ``astropy`` 5.0.
 
     Parameters
     ----------
@@ -109,11 +113,6 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
         The specified version meets the requirement inclusively (i.e. ``>=``)
         as opposed to strictly greater than (default: `True`).
 
-    version_path : `str`
-        A dotted attribute path to follow in the module for the version.
-        Defaults to just ``'__version__'``, which should work for most Python
-        modules.
-
     Examples
     --------
 
@@ -121,10 +120,6 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     >>> minversion(astropy, '0.4.4')
     True
     """
-    # import LooseVersion here to avoid conflicts between setuptools and
-    # distutils. See https://github.com/astropy/astropy/pull/10571
-    from distutils.version import LooseVersion
-
     if isinstance(module, types.ModuleType):
         module_name = module.__name__
     elif isinstance(module, str):
@@ -136,30 +131,13 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     else:
         raise ValueError('module argument must be an actual imported '
                          'module, or the import name of the module; '
-                         'got {!r}'.format(module))
+                         f'got {repr(module)}')
 
-    if '.' not in version_path:
-        have_version = getattr(module, version_path)
-    else:
-        have_version = resolve_name(module.__name__, version_path)
-
-    # LooseVersion raises a TypeError when strings like dev, rc1 are part
-    # of the version number. Match the dotted numbers only. Regex taken
-    # from PEP440, https://www.python.org/dev/peps/pep-0440/, Appendix B
-    expr = '^([1-9]\\d*!)?(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*'
-    m = re.match(expr, version)
-    if m:
-        version = m.group(0)
-
-    # have_version can have the same issue as version, so also regex it
-    m = re.match(expr, have_version)
-    if m:
-        have_version = m.group(0)
-
+    module_version = importlib.metadata.version(module_name)
     if inclusive:
-        return LooseVersion(have_version) >= LooseVersion(version)
+        return module_version >= version
     else:
-        return LooseVersion(have_version) > LooseVersion(version)
+        return module_version > version
 
 
 def find_current_module(depth=1, finddiff=False):
