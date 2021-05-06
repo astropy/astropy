@@ -45,18 +45,18 @@ def test_z_at_value():
         with pytest.warns(AstropyUserWarning, match=r'fval is not bracketed'):
             z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc, zmin=4.)
 
-    # Test the "verbose" flag. Since this uses "print", ned to mod stdout
-    original_stdout = sys.stdout
-    try:
-        sys.stdout = io.StringIO()  # redirect the standard output
-    except Exception:
-        raise
-    else:
-        resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
-        assert str(resx) in sys.stdout.getvalue()  # test "verbose" prints res
-        sys.stdout.close()
-    finally:
-        sys.stdout = original_stdout  # reset the standard output
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_z_at_value_verbose(monkeypatch):
+    z_at_value = funcs.z_at_value
+    cosmo = Planck13
+
+    # Test the "verbose" flag. Since this uses "print", need to mod stdout
+    mock_stdout = io.StringIO()
+    monkeypatch.setattr(sys, 'stdout', mock_stdout)
+
+    resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
+    assert str(resx) in mock_stdout.getvalue()  # test "verbose" prints res
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
