@@ -6,6 +6,7 @@ import inspect
 import os
 import sys
 import types
+import importlib
 
 try:
     from importlib import metadata
