@@ -90,7 +90,6 @@ def _next_fast_lengths(shape):
         if "good_size() takes no keyword arguments" not in str(ex):
             raise ex
 
-
     newshape = np.empty(len(np.atleast_1d(shape)), dtype=int)
     for i, j in enumerate(shape):
         scale = 10 ** max(int(np.ceil(np.log10(j))) - _good_range, 0)
