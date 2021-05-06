@@ -6,7 +6,11 @@ import inspect
 import os
 import sys
 import types
-import importlib.metadata
+
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata
 
 from astropy.utils.decorators import deprecated_renamed_argument
 
@@ -133,7 +137,7 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
                          'module, or the import name of the module; '
                          f'got {repr(module)}')
 
-    module_version = importlib.metadata.version(module_name)
+    module_version = metadata.version(module_name)
     if inclusive:
         return module_version >= version
     else:
