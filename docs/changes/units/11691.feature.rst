@@ -1,0 +1,4 @@
+Each physical type is added to ``astropy.units.physical``
+(e.g., ``physical.length`` or ``physical.electrical_charge_ESU``).
+The attribute-accessible names (underscored, without parenthesis) also
+work with ``astropy.units.physical.get_physical_type``.
