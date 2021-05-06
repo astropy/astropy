@@ -85,6 +85,11 @@ def _next_fast_lengths(shape):
         return np.array([scipy.fft.next_fast_len(j, real=False) for j in shape])
     except ImportError:
         pass
+    except TypeError as ex:
+        # this error happens with scipy version <=1.5
+        if "good_size() takes no keyword arguments" not in str(ex):
+            raise ex
+
 
     newshape = np.empty(len(np.atleast_1d(shape)), dtype=int)
     for i, j in enumerate(shape):
