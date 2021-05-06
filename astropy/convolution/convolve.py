@@ -82,7 +82,7 @@ def _next_fast_lengths(shape):
 
     try:
         import scipy.fft
-        return np.array([scipy.fft.next_fast_len(j, real=False) for j in shape])
+        return np.array([scipy.fft.next_fast_len(j) for j in shape])
     except ImportError:
         pass
 
