@@ -130,8 +130,8 @@ _units_and_physical_types = [
 _physical_unit_mapping = {}
 _unit_physical_mapping = {}
 _name_physical_mapping = {}
-# mapping from a attribute-accessible name (no spaces, etc.) to the actual name.
-_attrname_name_mapping = {}
+# mapping from attribute-accessible name (no spaces, etc.) to the actual name.
+_attrname_physical_mapping = {}
 
 
 def _physical_type_from_str(name):
@@ -142,10 +142,9 @@ def _physical_type_from_str(name):
     if name == "unknown":
         raise ValueError("cannot uniquely identify an 'unknown' physical type.")
 
-    if name in _attrname_name_mapping:
-        _attrname_name_mapping[name]  # convert attribute-accessible
-
-    if name in _name_physical_mapping:
+    elif name in _attrname_physical_mapping:
+        return _attrname_physical_mapping[name]  # convert attribute-accessible
+    elif name in _name_physical_mapping:
         return _name_physical_mapping[name]
     else:
         raise ValueError(f"{name!r} is not a known physical type.")
@@ -484,7 +483,7 @@ def def_physical_type(unit, name):
         _name_physical_mapping[ptype_name] = physical_type
         # attribute-accessible name
         attr_name = ptype_name.replace(' ', '_').replace('(', '').replace(')', '')
-        _attrname_name_mapping[attr_name] = ptype_name
+        _attrname_physical_mapping[attr_name] = physical_type
 
 
 def get_physical_type(obj):
@@ -582,15 +581,15 @@ def __getattr__(name):
     AttributeError
         If the ``name`` does not correspond to a physical type
     """
-    if name in _attrname_name_mapping:
-        return _name_physical_mapping[_attrname_name_mapping[name]]
+    if name in _attrname_physical_mapping:
+        return _attrname_physical_mapping[name]
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def __dir__():
     """Return contents directory (__all__ + all physical type names)."""
-    return list(set(__all__) | set(_attrname_name_mapping.keys()))
+    return list(set(__all__) | set(_attrname_physical_mapping.keys()))
 
 
 # This generates a docstring addition for this module that describes all of the
