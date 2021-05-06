@@ -458,7 +458,7 @@ class Shift(Fittable1DModel):
         Offset to add to a coordinate.
     """
 
-    offset = Parameter(default=0, description="Offset to add to an model")
+    offset = Parameter(default=0, description="Offset to add to a model")
     linear = True
 
     _has_inverse_bounding_box = True
