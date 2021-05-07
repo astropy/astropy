@@ -14,7 +14,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from astropy.time import Time
 from astropy import units as u
 from astropy.utils import unbroadcast
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, EarthLocation, ITRS
 from astropy.units import Quantity
 from astropy.io import fits
 
@@ -35,7 +35,8 @@ from astropy.wcs.utils import (proj_plane_pixel_scales,
                                _pixel_to_pixel_correlation_matrix,
                                _pixel_to_world_correlation_matrix,
                                local_partial_pixel_derivatives,
-                               fit_wcs_from_points)
+                               fit_wcs_from_points,
+                               obsgeo_to_frame)
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
@@ -1285,3 +1286,44 @@ def test_pixel_to_world_itrs(x_in, y_in):
 
     np.testing.assert_almost_equal(x, x_in)
     np.testing.assert_almost_equal(y, y_in)
+
+
+def test_obsgeo_cartesian():
+    obstime = Time("2021-05-21T03:00:00")
+    location = EarthLocation.of_site("DKIST")
+    wcs = WCS(naxis=2)
+    wcs.wcs.obsgeo = list(location.to_value(u.m).tolist()) + [0, 0, 0]
+    wcs.wcs.dateobs = obstime.isot
+
+    frame = obsgeo_to_frame(wcs.wcs.obsgeo, obstime)
+
+    assert isinstance(frame, ITRS)
+    assert frame.x == location.x
+    assert frame.y == location.y
+    assert frame.z == location.z
+
+
+
+def test_obsgeo_spherical():
+    obstime = Time("2021-05-21T03:00:00")
+    location = EarthLocation.of_site("DKIST").get_itrs(obstime)
+    loc_sph = location.spherical
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.obsgeo = [0, 0, 0] + [loc_sph.lon.value, loc_sph.lat.value, loc_sph.distance.value]
+    wcs.wcs.dateobs = obstime.isot
+
+    frame = obsgeo_to_frame(wcs.wcs.obsgeo, obstime)
+
+    assert isinstance(frame, ITRS)
+    assert u.allclose(frame.x, location.x)
+    assert u.allclose(frame.y, location.y)
+    assert u.allclose(frame.z, location.z)
+
+
+def test_obsgeo_invalid():
+    wcs = WCS(naxis=2)
+    wcs.wcs.obsgeo = [0, 2, 0, 0, 2, 0]
+
+    with pytest.raises(ValueError):
+        obsgeo_to_frame(wcs.wcs.obsgeo, None)
