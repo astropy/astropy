@@ -20,7 +20,7 @@ from .utils import PIOVER2
 from ..erfa_astrom import erfa_astrom
 
 
-def icrs_to_observed(icrs_coo, observed_frame, coord_type):
+def icrs_to_observed(icrs_coo, observed_frame):
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(icrs_coo.data, UnitSphericalRepresentation) or
                         icrs_coo.cartesian.x.unit == u.one)
@@ -39,11 +39,11 @@ def icrs_to_observed(icrs_coo, observed_frame, coord_type):
     cirs_ra, cirs_dec = atciqz(srepr, astrom)
 
     # now perform observed conversion
-    if coord_type == 'H':
-        _, _, lon, lat, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
-    else:
+    if isinstance(observed_frame, AltAz):
         lon, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
         lat = PIOVER2 - zen
+    else:
+        _, _, lon, lat, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
     if is_unitspherical:
         obs_srepr = UnitSphericalRepresentation(lon << u.radian, lat << u.radian, copy=False)
@@ -52,7 +52,7 @@ def icrs_to_observed(icrs_coo, observed_frame, coord_type):
     return observed_frame.realize_frame(obs_srepr)
 
 
-def observed_to_icrs(observed_coo, icrs_frame, coord_type):
+def observed_to_icrs(observed_coo, icrs_frame):
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(observed_coo.data, UnitSphericalRepresentation) or
                         observed_coo.cartesian.x.unit == u.one)
@@ -61,9 +61,12 @@ def observed_to_icrs(observed_coo, icrs_frame, coord_type):
     lon = usrepr.lon.to_value(u.radian)
     lat = usrepr.lat.to_value(u.radian)
 
-    if coord_type == 'A':
+    if isinstance(observed_coo, AltAz):
         # the 'A' indicates zen/az inputs
+        coord_type = 'A'
         lat = PIOVER2 - lat
+    else:
+        coord_type = 'H'
 
     # first set up the astrometry context for ICRS<->CIRS at the observed_coo time
     astrom = erfa_astrom.get().apco(observed_coo)
@@ -94,19 +97,19 @@ def observed_to_icrs(observed_coo, icrs_frame, coord_type):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, AltAz)
 def icrs_to_altaz(cirs_coo, altaz_frame):
-    return icrs_to_observed(cirs_coo, altaz_frame, 'A')
+    return icrs_to_observed(cirs_coo, altaz_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, ICRS)
 def altaz_to_icrs(altaz_coo, cirs_frame):
-    return observed_to_icrs(altaz_coo, cirs_frame, 'A')
+    return observed_to_icrs(altaz_coo, cirs_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, HADec)
 def icrs_to_hadec(cirs_coo, hadec_frame):
-    return icrs_to_observed(cirs_coo, hadec_frame, 'H')
+    return icrs_to_observed(cirs_coo, hadec_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, ICRS)
 def hadec_to_icrs(hadec_coo, cirs_frame):
-    return observed_to_icrs(hadec_coo, cirs_frame, 'H')
+    return observed_to_icrs(hadec_coo, cirs_frame)

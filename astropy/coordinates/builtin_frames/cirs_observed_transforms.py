@@ -20,7 +20,7 @@ from .utils import PIOVER2
 from ..erfa_astrom import erfa_astrom
 
 
-def cirs_to_observed(cirs_coo, observed_frame, coord_type):
+def cirs_to_observed(cirs_coo, observed_frame):
     if (np.any(observed_frame.location != cirs_coo.location) or
             np.any(cirs_coo.obstime != observed_frame.obstime)):
         cirs_coo = cirs_coo.transform_to(CIRS(obstime=observed_frame.obstime,
@@ -35,14 +35,14 @@ def cirs_to_observed(cirs_coo, observed_frame, coord_type):
     usrepr = cirs_coo.represent_as(UnitSphericalRepresentation)
     cirs_ra = usrepr.lon.to_value(u.radian)
     cirs_dec = usrepr.lat.to_value(u.radian)
-
     # first set up the astrometry context for CIRS<->observed
     astrom = erfa_astrom.get().apio(observed_frame)
-    if coord_type == 'H':
-        _, _, lon, lat, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
-    else:
+
+    if isinstance(observed_frame, AltAz):
         lon, zen, _, _, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
         lat = PIOVER2 - zen
+    else:
+        _, _, lon, lat, _ = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
     if is_unitspherical:
         rep = UnitSphericalRepresentation(lat=u.Quantity(lat, u.radian, copy=False),
@@ -57,14 +57,17 @@ def cirs_to_observed(cirs_coo, observed_frame, coord_type):
     return observed_frame.realize_frame(rep)
 
 
-def observed_to_cirs(observed_coo, cirs_frame, coord_type):
+def observed_to_cirs(observed_coo, cirs_frame):
     usrepr = observed_coo.represent_as(UnitSphericalRepresentation)
     lon = usrepr.lon.to_value(u.radian)
     lat = usrepr.lat.to_value(u.radian)
 
-    if coord_type == 'A':
+    if isinstance(observed_coo, AltAz):
         # the 'A' indicates zen/az inputs
+        coord_type = 'A'
         lat = PIOVER2 - lat
+    else:
+        coord_type = 'H'
 
     # first set up the astrometry context for ICRS<->CIRS at the observed_coo time
     astrom = erfa_astrom.get().apio(observed_coo)
@@ -85,22 +88,22 @@ def observed_to_cirs(observed_coo, cirs_frame, coord_type):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
 def cirs_to_altaz(cirs_coo, altaz_frame):
-    return cirs_to_observed(cirs_coo, altaz_frame, 'A')
+    return cirs_to_observed(cirs_coo, altaz_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, CIRS)
 def altaz_to_cirs(altaz_coo, cirs_frame):
-    return observed_to_cirs(altaz_coo, cirs_frame, 'A')
+    return observed_to_cirs(altaz_coo, cirs_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, HADec)
 def cirs_to_hadec(cirs_coo, hadec_frame):
-    return cirs_to_observed(cirs_coo, hadec_frame, 'H')
+    return cirs_to_observed(cirs_coo, hadec_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, CIRS)
 def hadec_to_cirs(hadec_coo, cirs_frame):
-    return observed_to_cirs(hadec_coo, cirs_frame, 'H')
+    return observed_to_cirs(hadec_coo, cirs_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, AltAz)

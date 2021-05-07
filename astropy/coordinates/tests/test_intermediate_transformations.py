@@ -174,8 +174,7 @@ def test_cirs_to_altaz():
 
 def test_cirs_to_hadec():
     """
-    Check the basic CIRS<->HADec transforms.  More thorough checks implicitly
-    happen in `test_iau_fullstack`
+    Check the basic CIRS<->HADec transforms.
     """
     from astropy.coordinates import EarthLocation
 
@@ -189,7 +188,7 @@ def test_cirs_to_hadec():
     hadecframe = HADec(location=loc, obstime=Time('J2005'))
 
     cirs2 = cirs.transform_to(hadecframe).transform_to(cirs)
-    cirs3 = cirscart.transform_to(hdecframe).transform_to(cirs)
+    cirs3 = cirscart.transform_to(hadecframe).transform_to(cirs)
 
     # check round-tripping
     assert_allclose(cirs.ra, cirs2.ra)
