@@ -39,9 +39,9 @@ class PowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=1)
-    alpha = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Peak value at the reference point")
+    x_0 = Parameter(default=1, description="Reference point")
+    alpha = Parameter(default=1, description="Power law index")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
@@ -106,10 +106,10 @@ class BrokenPowerLaw1D(Fittable1DModel):
                    \\right.
     """
 
-    amplitude = Parameter(default=1)
-    x_break = Parameter(default=1)
-    alpha_1 = Parameter(default=1)
-    alpha_2 = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Peak value at break point")
+    x_break = Parameter(default=1, description="Break point")
+    alpha_1 = Parameter(default=1, description="Power law index before break point")
+    alpha_2 = Parameter(default=1, description="Power law index after break point")
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
@@ -238,11 +238,11 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1, min=0)
-    x_break = Parameter(default=1)
-    alpha_1 = Parameter(default=-2)
-    alpha_2 = Parameter(default=2)
-    delta = Parameter(default=1, min=1.e-3)
+    amplitude = Parameter(default=1, min=0, description="Peak value at break point")
+    x_break = Parameter(default=1, description="Break point")
+    alpha_1 = Parameter(default=-2, description="Power law index before break point")
+    alpha_2 = Parameter(default=2, description="Power law index after break point")
+    delta = Parameter(default=1, min=1.e-3, description="Smoothness Parameter")
 
     @amplitude.validator
     def amplitude(self, value):
@@ -406,10 +406,10 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=1)
-    alpha = Parameter(default=1)
-    x_cutoff = Parameter(default=1)
+    amplitude = Parameter(default=1, description="Peak value of model")
+    x_0 = Parameter(default=1, description="Reference point")
+    alpha = Parameter(default=1, description="Power law index")
+    x_cutoff = Parameter(default=1, description="Cutoff point")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, x_cutoff):
@@ -471,10 +471,10 @@ class LogParabola1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter(default=1)
-    x_0 = Parameter(default=1)
-    alpha = Parameter(default=1)
-    beta = Parameter(default=0)
+    amplitude = Parameter(default=1, description="Peak value of model")
+    x_0 = Parameter(default=1, description="Reference point")
+    alpha = Parameter(default=1, description="Power law index")
+    beta = Parameter(default=0, description="Power law curvature")
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):
