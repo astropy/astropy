@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-
-from astropy import units as u
-from astropy.utils import unbroadcast
 import copy
 
-from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
+import numpy as np
+
+import astropy.units as u
+from astropy.coordinates import CartesianRepresentation, SphericalRepresentation, ITRS
+from astropy.utils import unbroadcast
+
+from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
@@ -49,9 +51,8 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import (FK4, FK4NoETerms, FK5, ICRS, ITRS,
+    from astropy.coordinates import (FK4, FK5, ICRS, ITRS, FK4NoETerms,
                                      Galactic, SphericalRepresentation)
-
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
 
@@ -108,7 +109,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
+    from astropy.coordinates import FK4, FK5, ICRS, ITRS, BaseRADecFrame, FK4NoETerms, Galactic
 
     # Create a 2-dimensional WCS
     wcs = WCS(naxis=2)
@@ -918,7 +919,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
         WCS object
     """
 
-    from ..modeling.models import SIP   # here to avoid circular import
+    from ..modeling.models import SIP  # here to avoid circular import
 
     # unpack params
     crpix = params[0:2]
@@ -1011,10 +1012,12 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         The best-fit WCS to the points given.
     """
 
-    from astropy.coordinates import SkyCoord # here to avoid circular import
-    import astropy.units as u
-    from .wcs import Sip
     from scipy.optimize import least_squares
+
+    import astropy.units as u
+    from astropy.coordinates import SkyCoord  # here to avoid circular import
+
+    from .wcs import Sip
 
     xp, yp = xy
     try:
@@ -1137,3 +1140,45 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
                       np.zeros((degree+1, degree+1)), wcs.wcs.crpix)
 
     return wcs
+
+
+def obsgeo_to_frame(obsgeo, obstime):
+    """
+    Convert a WCS obsgeo property into an ITRS coordinate frame.
+
+    Parameters
+    ----------
+    obsgeo : np.ndarray
+        A shape ``(6, )`` array representing ``OBSGEO-[XYZ], OBSGEO-[BLH]`` as
+        returned by `astropy.wcs.WCS.wcs.obsgeo`.
+
+    obstime : time-like
+        The time assiociated with the coordinate, will be passed to
+        `astropy.coordinates.ITRS` as the obstime keyword.
+
+    Returns
+    -------
+    BaseCoordinateFrame
+        An `~astropy.coordinates.ITRS` coordinate frame representing the coordinates.
+    """
+    invalid_message = (f"Can not parse the obsgeo location ({obsgeo})"
+                       "obsgeo must only be sepecifed in Cartesian or spherical coordinates.")
+
+    if obsgeo is None or np.all(obsgeo == 0) or np.all(~np.isfinite(obsgeo)):
+        raise ValueError(invalid_message)
+
+    data = None
+
+    # If the spherical coords are zero then use the cartesian ones
+    if np.all(obsgeo[3:] == 0):
+        data = CartesianRepresentation(*obsgeo[:3] * u.m)
+
+    # If the cartesian coords are all zero then use the spherical ones
+    elif np.all(obsgeo[:3] == 0):
+        data = SphericalRepresentation(*[comp * unit for comp, unit in zip(obsgeo[3:], (u.deg, u.deg, u.m))])
+
+    # Anything else is undefined
+    else:
+        raise ValueError(invalid_message)
+
+    return ITRS(data, obstime=obstime)
