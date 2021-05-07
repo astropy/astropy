@@ -88,7 +88,7 @@ class HADec(BaseCoordinateFrame):
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'ha'),
+            RepresentationMapping('lon', 'ha', u.hourangle),
             RepresentationMapping('lat', 'dec')
         ]
     }
