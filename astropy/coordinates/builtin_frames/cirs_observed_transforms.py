@@ -20,6 +20,8 @@ from .utils import PIOVER2
 from ..erfa_astrom import erfa_astrom
 
 
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, HADec)
 def cirs_to_observed(cirs_coo, observed_frame):
     if (np.any(observed_frame.location != cirs_coo.location) or
             np.any(cirs_coo.obstime != observed_frame.obstime)):
@@ -57,6 +59,8 @@ def cirs_to_observed(cirs_coo, observed_frame):
     return observed_frame.realize_frame(rep)
 
 
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, CIRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, CIRS)
 def observed_to_cirs(observed_coo, cirs_frame):
     usrepr = observed_coo.represent_as(UnitSphericalRepresentation)
     lon = usrepr.lon.to_value(u.radian)
@@ -86,35 +90,9 @@ def observed_to_cirs(observed_coo, cirs_frame):
     return cirs_at_aa_time.transform_to(cirs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, AltAz)
-def cirs_to_altaz(cirs_coo, altaz_frame):
-    return cirs_to_observed(cirs_coo, altaz_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, CIRS)
-def altaz_to_cirs(altaz_coo, cirs_frame):
-    return observed_to_cirs(altaz_coo, cirs_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, HADec)
-def cirs_to_hadec(cirs_coo, hadec_frame):
-    return cirs_to_observed(cirs_coo, hadec_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, CIRS)
-def hadec_to_cirs(hadec_coo, cirs_frame):
-    return observed_to_cirs(hadec_coo, cirs_frame)
-
-
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, AltAz)
-def altaz_to_altaz(from_coo, to_frame):
-    # for now we just implement this through CIRS to make sure we get everything
-    # covered
-    return from_coo.transform_to(CIRS(obstime=from_coo.obstime)).transform_to(to_frame)
-
-
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, HADec)
-def hadec_to_hadec(from_coo, to_frame):
+def observed_to_observed(from_coo, to_frame):
     # for now we just implement this through CIRS to make sure we get everything
     # covered
     return from_coo.transform_to(CIRS(obstime=from_coo.obstime)).transform_to(to_frame)

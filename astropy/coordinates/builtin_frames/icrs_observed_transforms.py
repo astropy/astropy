@@ -20,6 +20,8 @@ from .utils import PIOVER2
 from ..erfa_astrom import erfa_astrom
 
 
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, AltAz)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, HADec)
 def icrs_to_observed(icrs_coo, observed_frame):
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(icrs_coo.data, UnitSphericalRepresentation) or
@@ -52,6 +54,8 @@ def icrs_to_observed(icrs_coo, observed_frame):
     return observed_frame.realize_frame(obs_srepr)
 
 
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, ICRS)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, ICRS)
 def observed_to_icrs(observed_coo, icrs_frame):
     # if the data are UnitSphericalRepresentation, we can skip the distance calculations
     is_unitspherical = (isinstance(observed_coo.data, UnitSphericalRepresentation) or
@@ -93,23 +97,3 @@ def observed_to_icrs(observed_coo, icrs_frame):
         icrs_srepr = newrepr.represent_as(SphericalRepresentation)
 
     return icrs_frame.realize_frame(icrs_srepr)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, AltAz)
-def icrs_to_altaz(cirs_coo, altaz_frame):
-    return icrs_to_observed(cirs_coo, altaz_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, ICRS)
-def altaz_to_icrs(altaz_coo, cirs_frame):
-    return observed_to_icrs(altaz_coo, cirs_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, HADec)
-def icrs_to_hadec(cirs_coo, hadec_frame):
-    return icrs_to_observed(cirs_coo, hadec_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, ICRS)
-def hadec_to_icrs(hadec_coo, cirs_frame):
-    return observed_to_icrs(hadec_coo, cirs_frame)
