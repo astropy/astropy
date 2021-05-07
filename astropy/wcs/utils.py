@@ -12,13 +12,14 @@ from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
-__all__ = ['add_stokes_axis_to_wcs', 'celestial_frame_to_wcs',
-           'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
-           'proj_plane_pixel_area', 'is_proj_plane_distorted',
-           'non_celestial_pixel_scales', 'skycoord_to_pixel',
-           'pixel_to_skycoord', 'custom_wcs_to_frame_mappings',
-           'custom_frame_to_wcs_mappings', 'pixel_to_pixel',
-           'local_partial_pixel_derivatives', 'fit_wcs_from_points']
+__all__ = ['obsgeo_to_frame', 'add_stokes_axis_to_wcs',
+           'celestial_frame_to_wcs', 'wcs_to_celestial_frame',
+           'proj_plane_pixel_scales', 'proj_plane_pixel_area',
+           'is_proj_plane_distorted', 'non_celestial_pixel_scales',
+           'skycoord_to_pixel', 'pixel_to_skycoord',
+           'custom_wcs_to_frame_mappings', 'custom_frame_to_wcs_mappings',
+           'pixel_to_pixel', 'local_partial_pixel_derivatives',
+           'fit_wcs_from_points']
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
