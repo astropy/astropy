@@ -807,3 +807,15 @@ def test_parameter_inheritance():
     assert b.h == 5
     assert b.f == 3
     assert b.f.fixed == True  # noqa: E712
+
+
+def test_parameter_description():
+
+    model = models.Gaussian1D(1.5, 2.5, 3.5)
+    assert model.amplitude._description == "Amplitude (peak value) of the Gaussian"
+    assert model.mean._description == "Position of peak (Gaussian)"
+
+    model = models.Voigt1D(x_0=5, amplitude_L=10, fwhm_L=0.5, fwhm_G=0.9)
+    assert model.amplitude_L._description == "The Lorentzian amplitude"
+    assert model.fwhm_L._description == "The Lorentzian full width at half maximum"
+    assert model.fwhm_G._description == "The Gaussian full width at half maximum"
