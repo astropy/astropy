@@ -1778,8 +1778,8 @@ class Time(TimeBase):
 
         Parameters
         ---------------
-        theta : float or float array
-            Earth rotation angle or Greenwich sidereal time in radians.
+        theta : `~astropy.coordinates.Longitude`
+            Earth rotation angle or Greenwich sidereal time.
         longitude : `~astropy.coordinates.Longitude`
             The longitude on the Earth at which to compute the result.
 
@@ -1799,13 +1799,13 @@ class Time(TimeBase):
         r = (rotation_matrix(longitude, 'z')
              @ rotation_matrix(-yp, 'x', unit=u.radian)
              @ rotation_matrix(-xp, 'y', unit=u.radian)
-             @ rotation_matrix(theta+sp, 'z', unit=u.radian))
+             @ rotation_matrix(theta.to_value(u.radian)+sp, 'z', unit=u.radian))
 
         # Solve for local angle.
         a = r[..., 0, 0]
         b = r[..., 0, 1]
         local_angle = np.arctan2(b, a)
-        return local_angle
+        return local_angle << u.radian
 
     def local_earth_rotation_angle(self, longitude=None):
         """ Calculate local Earth rotation angle.
@@ -1843,7 +1843,7 @@ class Time(TimeBase):
             longitude = Longitude(longitude, u.degree,
                                   wrap_angle=180. * u.degree)
 
-        era = erfa.era00(*get_jd12(self, 'ut1'))
+        era = erfa.era00(*get_jd12(self, 'ut1')) << u.radian
         return Longitude(self._to_local(era, longitude), u.hourangle)
 
     def sidereal_time(self, kind, longitude=None, model=None):
