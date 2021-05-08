@@ -1,2 +1,2 @@
-Adds Local Earth Rotation Angle and adjusts Local Sidereal Time for ``TIO``
-where appropriate.
+Adds a new method ``earth_rotation_angle`` to calculate the Local Earth Rotation Angle.
+Also adjusts Local Sidereal Time for ``TIO`` where appropriate.
