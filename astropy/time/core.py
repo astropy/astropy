@@ -90,12 +90,14 @@ SIDEREAL_TIME_MODELS = {
     'mean': {
         'IAU2006': {'function': erfa.gmst06, 'scales': ('ut1', 'tt')},
         'IAU2000': {'function': erfa.gmst00, 'scales': ('ut1', 'tt')},
-        'IAU1982': {'function': erfa.gmst82, 'scales': ('ut1',)}},
+        'IAU1982': {'function': erfa.gmst82, 'scales': ('ut1',), 'include_tio': False}
+    },
     'apparent': {
         'IAU2006A': {'function': erfa.gst06a, 'scales': ('ut1', 'tt')},
         'IAU2000A': {'function': erfa.gst00a, 'scales': ('ut1', 'tt')},
         'IAU2000B': {'function': erfa.gst00b, 'scales': ('ut1',)},
-        'IAU1994': {'function': erfa.gst94, 'scales': ('ut1',)}}}
+        'IAU1994': {'function': erfa.gst94, 'scales': ('ut1',), 'include_tio': False}
+    }}
 
 
 class _LeapSecondsCheck(enum.Enum):
@@ -1780,8 +1782,8 @@ class Time(TimeBase):
             The longitude on the Earth at which to compute the Earth rotation
             angle (taken from a location as needed).  If `None` (default), taken
             from the ``location`` attribute of the Time instance. If the special
-            string 'tio', will be relative to the Terrestrial Intermediate Origin
-            (i.e., the output of `~erfa.era00`).
+            string 'tio', the result will be relative to the Terrestrial
+            Intermediate Origin (i.e., the output of `~erfa.era00`).
 
         Returns
         -------
@@ -1795,17 +1797,24 @@ class Time(TimeBase):
         Notes
         -----
         The difference between apparent sidereal time and Earth rotation angle
-        is the equation of the origins which is the angle between the equinox
-        and the CIO. Applying apparent sidereal time to the hour angle yields
+        is the equation of the origins which is the angle between the CIO and
+        the equinox. Applying apparent sidereal time to the hour angle yields
         the true apparent Right Ascension with respect to the equinox, while
         applying the Earth rotation angle yields the intermediate Right
         Ascension with respect to the CIO.
 
-        The result includes the TIO locator rigorously corrected for polar motion.
+        The result includes the TIO locator rigorously corrected for polar motion
+        (except when ``longitude='tio'``).
 
         """
+        if isinstance(longitude, str) and longitude == 'tio':
+            longitude = 0
+            include_tio = False
+        else:
+            include_tio = True
+
         return self._st_or_era(longitude=longitude, function=erfa.era00,
-                               scales=('ut1',))
+                               scales=('ut1',), include_tio=include_tio)
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
@@ -1819,8 +1828,9 @@ class Time(TimeBase):
             The longitude on the Earth at which to compute the Earth rotation
             angle (taken from a location as needed).  If `None` (default), taken
             from the ``location`` attribute of the Time instance. If the special
-            strings 'tio' or 'greenwich', will be relative to the Terrestrial
-            Intermediate Origin (i.e., the output of the relevant ERFA function
+            string  'greenwich' or 'tio', the result will be relative to longitude
+            0 for models before 2000, and relative to the Terrestrial Intermediate
+            Origin for later ones (i.e., the output of the relevant ERFA function
             that calculates greenwich sidereal time).
         model : str or None; optional
             Precession (and nutation) model to use.  The available ones are:
@@ -1841,14 +1851,15 @@ class Time(TimeBase):
         Notes
         -----
         The difference between apparent sidereal time and Earth rotation angle
-        is the equation of the origins which is the angle between the equinox
-        and the CIO. Applying apparent sidereal time to the hour angle yields
+        is the equation of the origins which is the angle between the CIO and
+        the equinox. Applying apparent sidereal time to the hour angle yields
         the true apparent Right Ascension with respect to the equinox, while
         applying the Earth rotation angle yields the intermediate Right
         Ascension with respect to the CIO.
 
         For the IAU precession models from 2000 onwards, the result includes
-        the TIO locator rigorously corrected for polar motion.
+        the TIO locator rigorously corrected for polar motion (except when
+        ``longitude='tio'`` or ``'greenwich'``).
 
         """  # docstring is formatted below
 
@@ -1866,9 +1877,14 @@ class Time(TimeBase):
                 'available models are {}'
                 .format(model, kind, sorted(available_models.keys())))
 
-        return self._st_or_era(longitude=longitude,
-                               include_tio=not model.upper().startswith('IAU19'),
-                               **available_models[model.upper()])
+        model_kwargs = available_models[model.upper()]
+
+        if isinstance(longitude, str) and longitude in ('tio', 'greenwich'):
+            longitude = 0
+            model_kwargs = model_kwargs.copy()
+            model_kwargs['include_tio'] = False
+
+        return self._st_or_era(longitude=longitude, **model_kwargs)
 
     if isinstance(sidereal_time.__doc__, str):
         sidereal_time.__doc__ = sidereal_time.__doc__.format(
@@ -1883,9 +1899,7 @@ class Time(TimeBase):
         longitude : `~astropy.units.Quantity`, `~astropy.coordinates.EarthLocation`, str, or None; optional
             The longitude on the Earth at which to compute the Earth rotation
             angle (taken from a location as needed).  If `None` (default), taken
-            from the ``location`` attribute of the Time instance. If the special
-            strings 'tio' or 'greenwich', will be relative to the Terrestrial
-            Intermediate Origin (i.e., the output of the relevant ERFA function).
+            from the ``location`` attribute of the Time instance.
         function : callable
             The ERFA function to use.
         scales : tuple of str
@@ -1893,7 +1907,6 @@ class Time(TimeBase):
         include_tio : bool, optional
             Whether to includes the TIO locator corrected for polar motion.
             Should be `False` for pre-2000 IAU models.  Default: `True`.
-            Ignored if ``longitude`` is 'tio' or 'greenwich'.
 
         Returns
         -------
@@ -1912,9 +1925,6 @@ class Time(TimeBase):
             longitude = self.location.lon
         elif isinstance(longitude, EarthLocation):
             longitude = longitude.lon
-        elif longitude in ('tio', 'greenwich'):
-            longitude = 0 * u.radian
-            include_tio = False
         else:
             # Sanity check on input; default unit is degree.
             longitude = Longitude(longitude, u.degree, copy=False)
@@ -1926,15 +1936,18 @@ class Time(TimeBase):
             # maybe posisble to factor out to one or the other.
             sp = self._call_erfa(erfa.sp00, ('tt',))
             xp, yp = get_polar_motion(self)
-            # Form the rotation matrix, CIRS to apparent [HA,Dec] at longitude 0.
-            r = (rotation_matrix(-yp, 'x', unit=u.radian)
+            # Form the rotation matrix, CIRS to apparent [HA,Dec].
+            r = (rotation_matrix(longitude, 'z')
+                 @ rotation_matrix(-yp, 'x', unit=u.radian)
                  @ rotation_matrix(-xp, 'y', unit=u.radian)
                  @ rotation_matrix(theta+sp, 'z', unit=u.radian))
-
             # Solve for angle.
-            theta = np.arctan2(r[..., 0, 1], r[..., 0, 0])
+            angle = np.arctan2(r[..., 0, 1], r[..., 0, 0]) << u.radian
 
-        return Longitude(longitude + (theta << u.radian), u.hourangle)
+        else:
+            angle = longitude + (theta << u.radian)
+
+        return Longitude(angle, u.hourangle)
 
     def _call_erfa(self, function, scales):
         # TODO: allow erfa functions to be used on Time with __array_ufunc__.
