@@ -1772,18 +1772,16 @@ class Time(TimeBase):
         return TimeDelta(tcor_val, scale='tdb')
 
     def earth_rotation_angle(self, longitude=None):
-        """Calculate Earth rotation angle.
+        """Calculate local Earth rotation angle.
 
         Parameters
         ---------------
-        longitude : `~astropy.units.Quantity`, `str`, or None; optional
+        longitude : `~astropy.units.Quantity`, `~astropy.coordinates.EarthLocation`, str, or None; optional
             The longitude on the Earth at which to compute the Earth rotation
-            angle. Can be given as a `~astropy.units.Quantity` with angular
-            units (or an `~astropy.coordinates.Angle` or
-            `~astropy.coordinates.Longitude`), or as a name of an
-            observatory (currently, only ``'greenwich'`` is supported,
-            equivalent to 0 deg).  If `None` (default), the ``lon`` attribute
-            of the Time object is used.
+            angle (taken from a location as needed).  If `None` (default), taken
+            from the ``location`` attribute of the Time instance. If the special
+            string 'tio', will be relative to the Terrestrial Intermediate Origin
+            (i.e., the output of `~erfa.era00`).
 
         Returns
         -------
@@ -1807,7 +1805,7 @@ class Time(TimeBase):
 
         """
         return self._st_or_era(longitude=longitude, function=erfa.era00,
-                               scales=('ut1',), include_tio=True)
+                               scales=('ut1',))
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
@@ -1817,14 +1815,13 @@ class Time(TimeBase):
         kind : str
             ``'mean'`` or ``'apparent'``, i.e., accounting for precession
             only, or also for nutation.
-        longitude : `~astropy.units.Quantity`, `str`, or None; optional
-            The longitude on the Earth at which to compute the sidereal time.
-            Can be given as a `~astropy.units.Quantity` with angular units
-            (or an `~astropy.coordinates.Angle` or
-            `~astropy.coordinates.Longitude`), or as a name of an
-            observatory (currently, only ``'greenwich'`` is supported,
-            equivalent to 0 deg).  If `None` (default), the ``lon`` attribute of
-            the Time object is used.
+        longitude : `~astropy.units.Quantity`, `~astropy.coordinates.EarthLocation`, str, or None; optional
+            The longitude on the Earth at which to compute the Earth rotation
+            angle (taken from a location as needed).  If `None` (default), taken
+            from the ``location`` attribute of the Time instance. If the special
+            strings 'tio' or 'greenwich', will be relative to the Terrestrial
+            Intermediate Origin (i.e., the output of the relevant ERFA function
+            that calculates greenwich sidereal time).
         model : str or None; optional
             Precession (and nutation) model to use.  The available ones are:
             - {0}: {1}
@@ -1850,8 +1847,8 @@ class Time(TimeBase):
         applying the Earth rotation angle yields the intermediate Right
         Ascension with respect to the CIO.
 
-        For the recent IAU precession models, the result includes the TIO
-        locator rigorously corrected for polar motion.
+        For the IAU precession models from 2000 onwards, the result includes
+        the TIO locator rigorously corrected for polar motion.
 
         """  # docstring is formatted below
 
@@ -1883,15 +1880,20 @@ class Time(TimeBase):
 
         Parameters
         ----------
-        longitude : `~astropy.units.Quantity`, `str`, or None; optional
-            The longitude on the Earth at which to compute the sidereal time.
+        longitude : `~astropy.units.Quantity`, `~astropy.coordinates.EarthLocation`, str, or None; optional
+            The longitude on the Earth at which to compute the Earth rotation
+            angle (taken from a location as needed).  If `None` (default), taken
+            from the ``location`` attribute of the Time instance. If the special
+            strings 'tio' or 'greenwich', will be relative to the Terrestrial
+            Intermediate Origin (i.e., the output of the relevant ERFA function).
         function : callable
             The ERFA function to use.
         scales : tuple of str
             The time scales that the function requires on input.
         include_tio : bool, optional
             Whether to includes the TIO locator corrected for polar motion.
-            Should not be done for pre-2000 IAU models.  Default: `True`.
+            Should be `False` for pre-2000 IAU models.  Default: `True`.
+            Ignored if ``longitude`` is 'tio' or 'greenwich'.
 
         Returns
         -------
@@ -1899,7 +1901,7 @@ class Time(TimeBase):
             Local sidereal time or Earth rotation angle, with units of hourangle.
 
         """
-        from astropy.coordinates import Longitude
+        from astropy.coordinates import Longitude, EarthLocation
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
         from astropy.coordinates.matrix_utilities import rotation_matrix
 
@@ -1908,13 +1910,14 @@ class Time(TimeBase):
                 raise ValueError('No longitude is given but the location for '
                                  'the Time object is not set.')
             longitude = self.location.lon
-        elif longitude == 'greenwich':
-            longitude = Longitude(0., u.degree,
-                                  wrap_angle=180. * u.degree)
+        elif isinstance(longitude, EarthLocation):
+            longitude = longitude.lon
+        elif longitude in ('tio', 'greenwich'):
+            longitude = 0 * u.radian
+            include_tio = False
         else:
-            # sanity check on input
-            longitude = Longitude(longitude, u.degree,
-                                  wrap_angle=180. * u.degree)
+            # Sanity check on input; default unit is degree.
+            longitude = Longitude(longitude, u.degree, copy=False)
 
         theta = self._call_erfa(function, scales)
 
