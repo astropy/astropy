@@ -125,8 +125,14 @@ class TestST:
         iers_table = iers.earth_orientation_table.get()
         xp, yp = [c.to_value(u.rad) for c in iers_table.pm_xy(t)]
         r = erfa.rx(-yp, erfa.ry(-xp, erfa.rz(sp, np.eye(3))))
-        expected += np.arctan2(r[0, 1], r[0, 0]) << u.radian
-        assert np.abs(era - expected) < 1e-12 * u.radian
+        expected1 = expected + (np.arctan2(r[0, 1], r[0, 0]) << u.radian)
+        assert np.abs(era - expected1) < 1e-12 * u.radian
+        # Now try at a longitude different from 0.
+        t2 = Time(2400000.5, 54388.0, format='jd', location=(45, 0), scale='ut1')
+        era2 = t2.earth_rotation_angle()
+        r2 = erfa.rz(np.deg2rad(45), r)
+        expected2 = expected + (np.arctan2(r2[0, 1], r2[0, 0]) << u.radian)
+        assert np.abs(era2 - expected2) < 1e-12 * u.radian
 
     def test_gmst_gst_close(self):
         """Check that Mean and Apparent are within a few seconds."""
