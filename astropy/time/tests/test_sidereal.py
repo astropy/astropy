@@ -26,18 +26,23 @@ def test_doc_string_contains_models():
 
 class TestERFATestCases:
     """Test that we reproduce the test cases given in erfa/src/t_erfa_c.c"""
-    # all tests use the following JD inputs
-    time_ut1 = Time(2400000.5, 53736.0, scale='ut1', format='jd')
-    time_tt = Time(2400000.5, 53736.0, scale='tt', format='jd')
-    # but tt!=ut1 at these dates, unlike what is assumed, so we cannot
-    # reproduce this exactly. Now it does not really matter,
-    # but may as well fake this (and avoid IERS table lookup here)
-    time_ut1.delta_ut1_utc = 0.
-    time_ut1.delta_ut1_utc = 24 * 3600 * (
-        (time_ut1.tt.jd1 - time_tt.jd1) + (time_ut1.tt.jd2 - time_tt.jd2))
-    assert np.allclose((time_ut1.tt.jd1 - time_tt.jd1)
-                       + (time_ut1.tt.jd2 - time_tt.jd2),
-                       0., atol=1.e-14)
+
+    def setup_class(cls):
+        # Sidereal time tests use the following JD inputs.
+        cls.time_ut1 = Time(2400000.5, 53736.0, scale='ut1', format='jd')
+        cls.time_tt = Time(2400000.5, 53736.0, scale='tt', format='jd')
+        # but tt!=ut1 at these dates, unlike what is assumed, so we cannot
+        # reproduce this exactly. Now it does not really matter,
+        # but may as well fake this (and avoid IERS table lookup here)
+        cls.time_ut1.delta_ut1_utc = 0.
+        cls.time_ut1.delta_ut1_utc = 24 * 3600 * (
+            (cls.time_ut1.tt.jd1 - cls.time_tt.jd1)
+            + (cls.time_ut1.tt.jd2 - cls.time_tt.jd2))
+
+    def test_setup(self):
+        assert np.allclose((self.time_ut1.tt.jd1 - self.time_tt.jd1)
+                           + (self.time_ut1.tt.jd2 - self.time_tt.jd2),
+                           0., atol=1.e-14)
 
     @pytest.mark.parametrize('erfa_test_input',
                              ((1.754174972210740592, 1e-12, "eraGmst00"),
@@ -59,10 +64,6 @@ class TestERFATestCases:
         assert kind in SIDEREAL_TIME_MODELS.keys()
         assert model_name in SIDEREAL_TIME_MODELS[kind]
 
-        model = SIDEREAL_TIME_MODELS[kind][model_name]
-        gst_erfa = self.time_ut1._call_erfa(**model)
-        assert np.allclose(gst_erfa, result, rtol=1., atol=precision)
-
         gst = self.time_ut1.sidereal_time(kind, 'greenwich', model_name)
         assert np.allclose(gst.to_value('radian'), result,
                            rtol=1., atol=precision)
@@ -70,9 +71,9 @@ class TestERFATestCases:
     def test_era(self):
         # Separate since it does not use the same time.
         time_ut1 = Time(2400000.5, 54388.0, format='jd', scale='ut1')
-        era = time_ut1._call_erfa(erfa.era00, scales=('ut1',))
+        era = time_ut1.earth_rotation_angle('tio')
         expected = 0.4022837240028158102
-        assert np.abs(era - expected) < 1e-12
+        assert np.abs(era.to_value(u.radian) - expected) < 1e-12
 
 
 class TestST:
@@ -134,9 +135,9 @@ class TestST:
         assert within_2_seconds(gst.value, gmst.value)
 
     def test_gmst_era_close(self):
-        """Check that Mean and Apparent are within a few seconds."""
+        """Check that mean sidereal time and earth rotation angle are close."""
         gmst = self.t1.sidereal_time('mean', 'greenwich')
-        era = self.t1.earth_rotation_angle('greenwich')
+        era = self.t1.earth_rotation_angle('tio')
         assert within_2_seconds(era.value, gmst.value)
 
     def test_gmst_independent_of_self_location(self):
@@ -144,6 +145,13 @@ class TestST:
         gmst1 = self.t1.sidereal_time('mean', 'greenwich')
         gmst2 = self.t2.sidereal_time('mean', 'greenwich')
         assert allclose_hours(gmst1.value, gmst2.value)
+
+    def test_gmst_vs_lmst(self):
+        """Check that Greenwich and local sidereal time differ."""
+        gmst = self.t1.sidereal_time('mean', 'greenwich')
+        lmst = self.t1.sidereal_time('mean', 0)
+        assert allclose_hours(lmst.value, gmst.value)
+        assert np.all(np.abs(lmst-gmst) > 1e-10 * u.hourangle)
 
     @pytest.mark.parametrize('kind', ('mean', 'apparent'))
     def test_lst(self, kind):
@@ -177,13 +185,14 @@ class TestST:
         lera_compare = np.array([14.586176631122177, 2.618751847545134,
                                  2.6190303858265067, 2.619308924107852,
                                  14.652162695594276])
-        gera2 = self.t2.earth_rotation_angle('greenwich')
+        gera2 = self.t2.earth_rotation_angle('tio')
         lera2 = self.t2.earth_rotation_angle()
         assert allclose_hours(lera2.value, lera_compare)
         assert allclose_hours((lera2 - gera2).wrap_at('12h').value,
                               self.t2.location.lon.to_value('hourangle'))
-        # Check it also works when one gives longitude explicitly.
-        lera1 = self.t1.earth_rotation_angle(self.t2.location.lon)
+        # Check it also works when one gives location explicitly.
+        # This also verifies input of a location generally.
+        lera1 = self.t1.earth_rotation_angle(self.t2.location)
         assert allclose_hours(lera1.value, lera_compare)
 
 
