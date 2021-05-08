@@ -60,20 +60,19 @@ class TestERFATestCases:
         assert model_name in SIDEREAL_TIME_MODELS[kind]
 
         model = SIDEREAL_TIME_MODELS[kind][model_name]
-        gst_erfa = self.time_ut1._erfa_sidereal_time(model)
-        assert np.allclose(gst_erfa.to_value('radian'), result,
-                           rtol=1., atol=precision)
+        gst_erfa = self.time_ut1._call_erfa(**model)
+        assert np.allclose(gst_erfa, result, rtol=1., atol=precision)
 
         gst = self.time_ut1.sidereal_time(kind, 'greenwich', model_name)
         assert np.allclose(gst.to_value('radian'), result,
                            rtol=1., atol=precision)
 
     def test_era(self):
+        # Separate since it does not use the same time.
         time_ut1 = Time(2400000.5, 54388.0, format='jd', scale='ut1')
-        model = dict(function=erfa.era00, scales=('ut1',))
-        era = time_ut1._erfa_sidereal_time(model)
-        expected = 0.4022837240028158102 * u.radian
-        assert np.abs(era - expected) < 1e-12 * u.radian
+        era = time_ut1._call_erfa(erfa.era00, scales=('ut1',))
+        expected = 0.4022837240028158102
+        assert np.abs(era - expected) < 1e-12
 
 
 class TestST:
@@ -113,11 +112,32 @@ class TestST:
         gst = self.t1.sidereal_time('apparent', 'greenwich')
         assert allclose_hours(gst.value, gst_compare)
 
+    def test_era(self):
+        """Comare ERA relative to erfa.era00 test case."""
+        t = Time(2400000.5, 54388.0, format='jd', location=(0, 0), scale='ut1')
+        era = t.earth_rotation_angle()
+        expected = 0.4022837240028158102 * u.radian
+        # Without the TIO locator/polar motion, this should be close already.
+        assert np.abs(era - expected) < 1e-10 * u.radian
+        # And with it, one should reach full precision.
+        sp = erfa.sp00(t.tt.jd1, t.tt.jd2)
+        iers_table = iers.earth_orientation_table.get()
+        xp, yp = [c.to_value(u.rad) for c in iers_table.pm_xy(t)]
+        r = erfa.rx(-yp, erfa.ry(-xp, erfa.rz(sp, np.eye(3))))
+        expected += np.arctan2(r[0, 1], r[0, 0]) << u.radian
+        assert np.abs(era - expected) < 1e-12 * u.radian
+
     def test_gmst_gst_close(self):
         """Check that Mean and Apparent are within a few seconds."""
         gmst = self.t1.sidereal_time('mean', 'greenwich')
         gst = self.t1.sidereal_time('apparent', 'greenwich')
         assert within_2_seconds(gst.value, gmst.value)
+
+    def test_gmst_era_close(self):
+        """Check that Mean and Apparent are within a few seconds."""
+        gmst = self.t1.sidereal_time('mean', 'greenwich')
+        era = self.t1.earth_rotation_angle('greenwich')
+        assert within_2_seconds(era.value, gmst.value)
 
     def test_gmst_independent_of_self_location(self):
         """Check that Greenwich time does not depend on self.location"""
@@ -153,33 +173,18 @@ class TestST:
         with pytest.raises(ValueError):
             self.t1.sidereal_time('mean', None)
 
-
-class TestERA:
-    """Test Earth Rotation Angle."""
-
-    @classmethod
-    def setup_class(cls):
-        cls.orig_auto_download = iers.conf.auto_download
-        iers.conf.auto_download = False
-
-    @classmethod
-    def teardown_class(cls):
-        iers.conf.auto_download = cls.orig_auto_download
-
-    def test_era(self):
-        """Test calculation relative to erfa.era00 test case."""
-        t = Time(2400000.5, 54388.0, format='jd', location=(0, 0), scale='ut1')
-        era = t.local_earth_rotation_angle()
-        expected = 0.4022837240028158102 * u.radian
-        # Without the TIO locator/polar motion, this should be close already.
-        assert np.abs(era - expected) < 1e-10 * u.radian
-        # And with it, one should reach full precision.
-        sp = erfa.sp00(t.tt.jd1, t.tt.jd2)
-        iers_table = iers.earth_orientation_table.get()
-        xp, yp = [c.to_value(u.rad) for c in iers_table.pm_xy(t)]
-        r = erfa.rx(-yp, erfa.ry(-xp, erfa.rz(sp, np.eye(3))))
-        expected += np.arctan2(r[0, 1], r[0, 0]) << u.radian
-        assert np.abs(era - expected) < 1e-12 * u.radian
+    def test_lera(self):
+        lera_compare = np.array([14.586176631122177, 2.618751847545134,
+                                 2.6190303858265067, 2.619308924107852,
+                                 14.652162695594276])
+        gera2 = self.t2.earth_rotation_angle('greenwich')
+        lera2 = self.t2.earth_rotation_angle()
+        assert allclose_hours(lera2.value, lera_compare)
+        assert allclose_hours((lera2 - gera2).wrap_at('12h').value,
+                              self.t2.location.lon.to_value('hourangle'))
+        # Check it also works when one gives longitude explicitly.
+        lera1 = self.t1.earth_rotation_angle(self.t2.location.lon)
+        assert allclose_hours(lera1.value, lera_compare)
 
 
 class TestModelInterpretation:
