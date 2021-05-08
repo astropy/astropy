@@ -4,7 +4,9 @@ import itertools
 
 import pytest
 import numpy as np
+import erfa
 
+from astropy import units as u
 from astropy.time import Time
 from astropy.time.core import SIDEREAL_TIME_MODELS
 from astropy.utils import iers
@@ -65,6 +67,13 @@ class TestERFATestCases:
         gst = self.time_ut1.sidereal_time(kind, 'greenwich', model_name)
         assert np.allclose(gst.to_value('radian'), result,
                            rtol=1., atol=precision)
+
+    def test_era(self):
+        time_ut1 = Time(2400000.5, 54388.0, format='jd', scale='ut1')
+        model = dict(function=erfa.era00, scales=('ut1',))
+        era = time_ut1._erfa_sidereal_time(model)
+        expected = 0.4022837240028158102 * u.radian
+        assert np.abs(era - expected) < 1e-12 * u.radian
 
 
 class TestST:
@@ -143,6 +152,34 @@ class TestST:
             self.t1.sidereal_time('mean')
         with pytest.raises(ValueError):
             self.t1.sidereal_time('mean', None)
+
+
+class TestERA:
+    """Test Earth Rotation Angle."""
+
+    @classmethod
+    def setup_class(cls):
+        cls.orig_auto_download = iers.conf.auto_download
+        iers.conf.auto_download = False
+
+    @classmethod
+    def teardown_class(cls):
+        iers.conf.auto_download = cls.orig_auto_download
+
+    def test_era(self):
+        """Test calculation relative to erfa.era00 test case."""
+        t = Time(2400000.5, 54388.0, format='jd', location=(0, 0), scale='ut1')
+        era = t.local_earth_rotation_angle()
+        expected = 0.4022837240028158102 * u.radian
+        # Without the TIO locator/polar motion, this should be close already.
+        assert np.abs(era - expected) < 1e-10 * u.radian
+        # And with it, one should reach full precision.
+        sp = erfa.sp00(t.tt.jd1, t.tt.jd2)
+        iers_table = iers.earth_orientation_table.get()
+        xp, yp = [c.to_value(u.rad) for c in iers_table.pm_xy(t)]
+        r = erfa.rx(-yp, erfa.ry(-xp, erfa.rz(sp, np.eye(3))))
+        expected += np.arctan2(r[0, 1], r[0, 0]) << u.radian
+        assert np.abs(era - expected) < 1e-12 * u.radian
 
 
 class TestModelInterpretation:
