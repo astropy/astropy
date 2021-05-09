@@ -21,16 +21,16 @@ doc_components = """
     dec : `~astropy.coordinates.Angle`, optional, keyword-only
         The Declination for this object (``ha`` must also be given and
         ``representation`` must be None).
-    distance : `~astropy.units.Quantity`, optional, keyword-only
+    distance : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The Distance for this object along the line-of-sight.
 
-    pm_ha_cosdec : `~astropy.units.Quantity`, optional, keyword-only
+    pm_ha_cosdec : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in hour angle (including the ``cos(dec)`` factor) for
         this object (``pm_dec`` must also be given).
-    pm_dec : `~astropy.units.Quantity`, optional, keyword-only
+    pm_dec : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in declination for this object (``pm_ha_cosdec`` must
         also be given).
-    radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
+    radial_velocity : `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The radial velocity of this object."""
 
 doc_footer = """
@@ -43,18 +43,18 @@ doc_footer = """
         The location on the Earth.  This can be specified either as an
         `~astropy.coordinates.EarthLocation` object or as anything that can be
         transformed to an `~astropy.coordinates.ITRS` frame.
-    pressure : `~astropy.units.Quantity`
+    pressure : `~astropy.units.Quantity` ['pressure']
         The atmospheric pressure as an `~astropy.units.Quantity` with pressure
         units.  This is necessary for performing refraction corrections.
         Setting this to 0 (the default) will disable refraction calculations
         when transforming to/from this frame.
-    temperature : `~astropy.units.Quantity`
+    temperature : `~astropy.units.Quantity` ['temperature']
         The ground-level temperature as an `~astropy.units.Quantity` in
         deg C.  This is necessary for performing refraction corrections.
-    relative_humidity : `~astropy.units.Quantity` or number.
+    relative_humidity : `~astropy.units.Quantity` ['dimensionless'] or number.
         The relative humidity as a dimensionless quantity between 0 to 1.
         This is necessary for performing refraction corrections.
-    obswl : `~astropy.units.Quantity`
+    obswl : `~astropy.units.Quantity` ['length']
         The average wavelength of observations as an `~astropy.units.Quantity`
          with length units.  This is necessary for performing refraction
          corrections.

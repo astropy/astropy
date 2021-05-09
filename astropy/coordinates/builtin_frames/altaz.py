@@ -26,7 +26,7 @@ doc_components = """
     distance : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The Distance for this object along the line-of-sight.
 
-    pm_az_cosalt : `~astropy.units.Quantity` ['anglular speed'], optional, keyword-only
+    pm_az_cosalt : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in azimuth (including the ``cos(alt)`` factor) for
         this object (``pm_alt`` must also be given).
     pm_alt : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
