@@ -132,7 +132,7 @@ class Header:
             return True
         try:
             self._cardindex(keyword)
-        except (KeyError, IndexError):
+        except (KeyError, IndexError, ValueError):
             return False
         return True
 
