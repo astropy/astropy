@@ -15,6 +15,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.tests.helper import catch_warnings
+from astropy.utils.compat.context import nullcontext
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
@@ -31,6 +32,8 @@ FREETYPE_261 = ft_version == Version("2.6.1")
 TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+
+MATPLOTLIB_GT_3_4_2 = Version(matplotlib.__version__) > Version('3.4.2')
 
 
 def teardown_function(function):
@@ -88,7 +91,12 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     ax.imshow(np.zeros((100, 200)))
     ax.coords.grid(color='white', grid_type=grid_type)
 
-    with catch_warnings(RuntimeWarning) as ws:
+    if MATPLOTLIB_GT_3_4_2 and grid_type == 'contours':
+        ctx = pytest.raises(AttributeError, match='dpi')
+    else:
+        ctx = nullcontext()
+
+    with catch_warnings(RuntimeWarning) as ws, ctx:
         plt.savefig(tmpdir.join('test.png').strpath)
 
     # For debugging
