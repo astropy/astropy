@@ -227,6 +227,10 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert self.pv_unit.is_equivalent(('AU', 'AU/day'))
         assert not self.pv_unit.is_equivalent('m')
         assert not self.pv_unit.is_equivalent(('AU', 'AU'))
+        # Names should be ignored.
+        pv_alt = StructuredUnit('m,m/s', names=('q', 'w'))
+        assert pv_alt.dtype.names != self.pv_unit.dtype.names
+        assert self.pv_unit.is_equivalent(pv_alt)
 
     def test_conversion(self):
         pv1 = self.pv_unit.to(('AU', 'AU/day'), self.pv)
