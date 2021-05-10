@@ -146,7 +146,7 @@ epoch provided by the TGAS catalog (J2015.0 in Barycentric Coordinate Time)::
     ...              pm_ra_cosdec=result_tgas['pmra'] * u.mas/u.yr,
     ...              pm_dec=result_tgas['pmdec'] * u.mas/u.yr,
     ...              obstime=Time(result_tgas['ref_epoch'], format='jyear',
-                                  scale='tcb'))
+    ...                           scale='tcb'))
 
 We next create a |SkyCoord| object with the sky positions from the 2MASS
 catalog, and an `~astropy.time.Time` object for the date of the 2MASS
