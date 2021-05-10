@@ -31,6 +31,7 @@ from astropy.io import ascii
 from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
+from .common import TEST_DIR
 
 pytestmark = pytest.mark.skipif(not HAS_YAML, reason='YAML required')
 
@@ -920,3 +921,85 @@ def test_specialized_columns(name, col, exp):
             if isinstance(val1, np.ndarray):
                 assert val1.dtype == val2.dtype
             assert np.all(val1 == val2)
+
+
+def test_full_subtypes():
+    """Read ECSV file created by M. Taylor that includes scalar, fixed array,
+    variable array for all datatypes. This file has missing values for all
+    columns as both per-value null and blank entries for the entire column
+    value.
+
+    Note: original file was modified to include blank values in f_float and
+    f_double columns.
+    """
+    t = Table.read(os.path.join(TEST_DIR, 'data', 'subtypes.ecsv'))
+    colnames = ('i_index,'
+                's_byte,s_short,s_int,s_long,s_float,s_double,s_string,s_boolean,'
+                'f_byte,f_short,f_int,f_long,f_float,f_double,f_string,f_boolean,'
+                'v_byte,v_short,v_int,v_long,v_float,v_double,v_string,v_boolean,'
+                'm_int,m_double').split(',')
+    assert t.colnames == colnames
+
+    type_map = {'byte': 'int8',
+                'short': 'int16',
+                'int': 'int32',
+                'long': 'int64',
+                'float': 'float32',
+                'double': 'float64',
+                'string': 'str',
+                'boolean': 'bool'}
+
+    for col in t.itercols():
+        info = col.info
+        if info.name == 'i_index':
+            continue
+
+        assert isinstance(col, MaskedColumn)
+
+        type_name = info.name[2:]  # short, int, etc
+        subtype = info.name[:1]
+
+        if subtype == 's':  # Scalar
+            assert col.shape == (16,)
+
+        if subtype == 'f':  # Fixed array
+            assert col.shape == (16, 3)
+
+        if subtype == 'v':  # Variable array
+            assert col.shape == (16,)
+            assert info.dtype.name == 'object'
+            for val in col:
+                assert isinstance(val, np.ndarray)
+                assert val.dtype.name.startswith(type_map[type_name])
+                assert len(val) in [0, 1, 2, 3]
+        else:
+            assert info.dtype.name.startswith(type_map[type_name])
+
+
+def test_masked_empty_subtypes():
+    """Test blank field in subtypes. Similar to previous test but with explicit
+    checks of values"""
+    txt = """
+    # %ECSV 1.0
+    # ---
+    # datatype:
+    # - {name: o, datatype: string, subtype: json}
+    # - {name: f, datatype: string, subtype: 'int64[2]'}
+    # - {name: v, datatype: string, subtype: 'int64[null]'}
+    # schema: astropy-2.0
+    o f v
+    null [0,1] [1]
+    "" "" ""
+    [1,2] [2,3] [2,3]
+    """
+    t = Table.read(txt, format='ascii.ecsv')
+    assert np.all(t['o'] == np.array([None, -1, [1, 2]], dtype=object))
+    assert np.all(t['o'].mask == [False, True, False])
+
+    exp = np.ma.array([[0, 1], [-1, -1], [2, 3]], mask=[[0, 0], [1, 1], [0, 0]])
+    assert np.all(t['f'] == exp)
+    assert np.all(t['f'].mask == exp.mask)
+
+    assert np.all(t['v'][0] == [1])
+    assert np.all(t['v'][2] == [2, 3])
+    assert np.all(t['v'].mask == [False, True, False])
