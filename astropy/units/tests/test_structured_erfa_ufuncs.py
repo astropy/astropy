@@ -6,6 +6,7 @@ Test Structured units and quantities specifically with the ERFA ufuncs.
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
+import erfa
 from erfa import ufunc as erfa_ufunc
 
 from astropy import units as u
@@ -213,3 +214,46 @@ class TestPVUfuncs:
                                                   r.T, self.pv['p']))
         assert_array_equal(result['v'], np.einsum('...ij,...j->...i',
                                                   r.T, self.pv['v']))
+
+
+class TestLDBODYUfuncs:
+    def setup_class(self):
+        self.ldbody_unit = u.Unit('Msun,radian,(AU,AU/day)')
+        # From test_ldn in t_erfa_c.c
+        self.ldbody_value = np.array(
+            [(0.00028574, 3e-10, ([-7.81014427, -5.60956681, -1.98079819],
+                                  [0.0030723249, -0.00406995477, -0.00181335842])),
+             (0.00095435, 3e-9, ([0.738098796, 4.63658692, 1.9693136],
+                                 [-0.00755816922, 0.00126913722, 0.000727999001])),
+             (1.0, 6e-6, ([-0.000712174377, -0.00230478303, -0.00105865966],
+                          [6.29235213e-6, -3.30888387e-7, -2.96486623e-7]))],
+            dtype=erfa_ufunc.dt_eraLDBODY)
+        self.ldbody = self.ldbody_value << self.ldbody_unit
+        self.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
+        self.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
+
+    @pytest.mark.xfail(erfa.__version__ < '1.7.3.1',
+                       reason='dt_eraLDBODY incorrectly defined')
+    def test_basic(self):
+        sn = erfa_ufunc.ldn(self.ldbody, self.ob, self.sc)
+        assert_quantity_allclose(sn, [-0.7632762579693333866,
+                                      -0.6086337636093002660,
+                                      -0.2167355420646328159] * u.one,
+                                 atol=1e-12, rtol=0)
+
+    def test_in_other_unit(self):
+        ldbody = self.ldbody.to('kg,rad,(m,m/s)')
+        ob = self.ob.to('m')
+        sn = erfa_ufunc.ldn(ldbody, ob, self.sc)
+        assert_quantity_allclose(sn, [-0.7632762579693333866,
+                                      -0.6086337636093002660,
+                                      -0.2167355420646328159] * u.one,
+                                 atol=1e-12, rtol=0)
+
+    @pytest.mark.xfail(reason='StructuredQuantity.si does not work yet')
+    def test_in_SI(self):
+        sn = erfa_ufunc.ldn(self.ldbody.si, self.ob.si, self.sc)
+        assert_quantity_allclose(sn, [-0.7632762579693333866,
+                                      -0.6086337636093002660,
+                                      -0.2167355420646328159] * u.one,
+                                 atol=1e-12, rtol=0)
