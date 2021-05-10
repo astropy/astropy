@@ -135,7 +135,7 @@ The 2MASS data for all sources within 1 arcminute around the above position
 
 We will first create a |SkyCoord| object from the information provided in the
 TGAS catalog. Note that we set the ``obstime`` of the object to the reference
-epoch provided by the TGAS catalog (J2015.0)::
+epoch provided by the TGAS catalog (J2015.0 in Barycentric Coordinate Time)::
 
     >>> import astropy.units as u
     >>> from astropy.coordinates import SkyCoord, Distance
@@ -145,7 +145,8 @@ epoch provided by the TGAS catalog (J2015.0)::
     ...              distance=Distance(parallax=result_tgas['parallax'] * u.mas),
     ...              pm_ra_cosdec=result_tgas['pmra'] * u.mas/u.yr,
     ...              pm_dec=result_tgas['pmdec'] * u.mas/u.yr,
-    ...              obstime=Time(result_tgas['ref_epoch'], format='jyear'))
+    ...              obstime=Time(result_tgas['ref_epoch'], format='jyear',
+                                  scale='tcb'))
 
 We next create a |SkyCoord| object with the sky positions from the 2MASS
 catalog, and an `~astropy.time.Time` object for the date of the 2MASS
