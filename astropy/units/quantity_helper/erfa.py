@@ -14,7 +14,7 @@ from .helpers import (get_converter, helper_invariant, helper_multiplication,
 erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
                'cpv', 'p2pv', 'pv2p', 'pv2s', 'pvdpv', 'pvm', 'pvmpv', 'pvppv',
                'pvstar', 'pvtob', 'pvu', 'pvup', 'pvxpv', 'rxpv', 's2pv', 's2xpv',
-               'starpv', 'sxpv', 'trxpv', 'gd2gc', 'gc2gd')
+               'starpv', 'sxpv', 'trxpv', 'gd2gc', 'gc2gd', 'ldn')
 
 
 def helper_s2c(f, unit1, unit2):
@@ -195,6 +195,19 @@ def helper_s2xpv(f, unit1, unit2, unit_pv):
         raise UnitTypeError("pv vector should have a structured unit.") from exc
 
 
+def helper_ldn(f, unit1, unit2, unit3):
+    from astropy.units.si import day, radian
+    from astropy.units.astrophys import Msun, AU
+    from astropy.units.structured import StructuredUnit
+    try:
+        return [get_converter(unit1, StructuredUnit((Msun, radian, (AU, AU/day)))),
+                get_converter(unit2, AU),
+                get_converter(_d(unit3), dimensionless_unscaled)], dimensionless_unscaled
+    except Exception as exc:
+        raise UnitTypeError("lds requires units equivalent to "
+                            "(Msun, rad, (AU,AU/day)), AU, dimensionless.") from exc
+
+
 def get_erfa_helpers():
     ERFA_HELPERS = {}
     ERFA_HELPERS[erfa_ufunc.s2c] = helper_s2c
@@ -226,6 +239,7 @@ def get_erfa_helpers():
     ERFA_HELPERS[erfa_ufunc.trxpv] = helper_multiplication
     ERFA_HELPERS[erfa_ufunc.gc2gd] = helper_gc2gd
     ERFA_HELPERS[erfa_ufunc.gd2gc] = helper_gd2gc
+    ERFA_HELPERS[erfa_ufunc.ldn] = helper_ldn
     return ERFA_HELPERS
 
 
