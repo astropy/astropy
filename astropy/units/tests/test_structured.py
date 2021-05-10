@@ -58,7 +58,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert su4['p'] == u.AU
         assert su4['v'] == u.AU / u.day
         su5 = StructuredUnit(('AU', 'AU/day'))
-        assert su5.dtype.names == ('f0', 'f1')
+        assert su5.names == ('f0', 'f1')
         assert su5['f0'] == u.AU
         assert su5['f1'] == u.AU / u.day
 
@@ -117,6 +117,15 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert isinstance(su, StructuredUnit)
         assert isinstance(su['f0'], UnitBase)
         assert su['f0'] == u.AU
+
+    def test_equality(self):
+        su = StructuredUnit(('AU', 'AU/d'), self.pv_dtype)
+        assert su == StructuredUnit(('AU', 'AU/d'), self.pv_dtype)
+        assert su != StructuredUnit(('m', 'AU/d'), self.pv_dtype)
+        # Names should be ignored.
+        assert su == StructuredUnit(('AU', 'AU/d'))
+        assert su == StructuredUnit(('AU', 'AU/d'), names=('q', 'w'))
+        assert su != StructuredUnit(('m', 'm/s'))
 
     def test_parsing(self):
         su = Unit('AU, AU/d')
@@ -189,25 +198,30 @@ class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
         assert 'v' in self.pv_unit
         assert 't' not in self.pv_unit
 
+    def test_setitem_fails(self):
+        with pytest.raises(TypeError, match='item assignment'):
+            self.pv_t_unit['t'] = u.Gyr
+
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
         pv_ptid = self.pv_unit._get_physical_type_id()
         expected = np.array((self.pv_unit['p']._get_physical_type_id(),
                              self.pv_unit['v']._get_physical_type_id()),
-                            self.pv_unit.dtype)[()]
-        assert (pv_ptid == expected)
+                            [('p', 'O'), ('v', 'O')])
+        assert pv_ptid == expected
         pv_t_ptid = self.pv_t_unit._get_physical_type_id()
         expected2 = np.array((self.pv_unit._get_physical_type_id(),
                               self.t_unit._get_physical_type_id()),
-                             self.pv_t_unit.dtype)[()]
-        assert (pv_t_ptid == expected2)
+                             [('pv', 'O'), ('t', 'O')])
+        assert pv_t_ptid == expected2
 
     def test_physical_type(self):
         pv_pt = self.pv_unit.physical_type
-        assert pv_pt == np.array(('length', 'speed'), self.pv_unit.dtype)[()]
+        assert pv_pt == np.array(('length', 'speed'), [('p', 'O'), ('v', 'O')])
+
         pv_t_pt = self.pv_t_unit.physical_type
-        assert pv_t_pt == np.array((pv_pt, 'time'), self.pv_t_unit.dtype)[()]
+        assert pv_t_pt == np.array((pv_pt, 'time'), [('pv', 'O'), ('t', 'O')])
 
     def test_si(self):
         pv_t_si = self.pv_t_unit.si
@@ -229,7 +243,7 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert not self.pv_unit.is_equivalent(('AU', 'AU'))
         # Names should be ignored.
         pv_alt = StructuredUnit('m,m/s', names=('q', 'w'))
-        assert pv_alt.dtype.names != self.pv_unit.dtype.names
+        assert pv_alt.names != self.pv_unit.names
         assert self.pv_unit.is_equivalent(pv_alt)
 
     def test_conversion(self):
@@ -271,7 +285,7 @@ class TestStructuredUnitArithmatic(StructuredTestBaseWithUnits):
     def test_multiplication(self):
         pv_times_au = self.pv_unit * u.au
         assert isinstance(pv_times_au, StructuredUnit)
-        assert pv_times_au.dtype.names == ('p', 'v')
+        assert pv_times_au.names == ('p', 'v')
         assert pv_times_au['p'] == self.p_unit * u.AU
         assert pv_times_au['v'] == self.v_unit * u.AU
         au_times_pv = u.au * self.pv_unit
@@ -288,7 +302,7 @@ class TestStructuredUnitArithmatic(StructuredTestBaseWithUnits):
     def test_division(self):
         pv_by_s = self.pv_unit / u.s
         assert isinstance(pv_by_s, StructuredUnit)
-        assert pv_by_s.dtype.names == ('p', 'v')
+        assert pv_by_s.names == ('p', 'v')
         assert pv_by_s['p'] == self.p_unit / u.s
         assert pv_by_s['v'] == self.v_unit / u.s
         pv_by_s2 = self.pv_unit / 's'

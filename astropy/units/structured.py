@@ -32,7 +32,7 @@ def _normalize_tuples(names):
          if isinstance(name, tuple) else name) for name in names)
 
 
-class StructuredUnit(np.void):
+class StructuredUnit:
     """Container for units for a Structured Quantity.
 
     Parameters
@@ -46,6 +46,7 @@ class StructuredUnit(np.void):
         names to avoid this.  Not all levels have to be given, except when
         a `~numpy.dtype` is passed in.
     """
+
     def __new__(cls, units, names=None):
         allow_default_names = True
         if names is not None:
@@ -68,7 +69,7 @@ class StructuredUnit(np.void):
                     return units
 
                 # Otherwise, turn (the upper level) into a tuple.
-                units = units.item()
+                units = units.values()
             else:
                 # Single regular unit: make a tuple for iteration below.
                 units = (units,)
@@ -103,8 +104,9 @@ class StructuredUnit(np.void):
             converted.append(unit)
             dtype.append((name, 'O'))
 
-        dtype = np.dtype((cls, dtype))
-        self = np.array(tuple(converted), dtype)[()]
+        self = super().__new__(cls)
+        dtype = np.dtype(dtype)
+        self._units = np.array(tuple(converted), dtype)
         return self
 
     @property
@@ -120,36 +122,40 @@ class StructuredUnit(np.void):
 
     # Allow StructuredUnit to be treated as an (ordered) mapping.
     def __len__(self):
-        return len(self.dtype.names)
+        return len(self._units.dtype.names)
+
+    def __getitem__(self, item):
+        return self._units[item].item()
 
     def values(self):
-        return self.item()
+        return self._units.item()
 
     def keys(self):
-        return self.dtype.names
+        return self._units.dtype.names
 
     def items(self):
-        return zip(self.dtype.names, self.item())
+        return zip(self._units.dtype.names, self._units.item())
 
     def __iter__(self):
-        yield from self.dtype.names
+        yield from self._units.dtype.names
 
     # Helpers for methods below.
-    def _recursively_apply(self, func, cls=None):
+    def _recursively_apply(self, func, as_void=False):
         """Apply func recursively, storing the results in an instance of cls"""
-        if cls is None:
-            dtype = self.dtype
-        else:
-            dtype = np.dtype((cls, self.dtype))
+        results = np.array(tuple([func(part) for part in self.values()]),
+                           self._units.dtype)
+        if as_void:
+            return results[()]
 
-        results = tuple([func(part) for part in self.values()])
-
-        return np.array(results, dtype)[()]
+        # Short-cut; no need to interpret names, etc.
+        result = super().__new__(self.__class__)
+        result._units = results
+        return result
 
     def _recursively_get_dtype(self, value):
         """Get structured dtype according to value, using our names."""
         # Helper for _create_array below.
-        if not isinstance(value, tuple) or len(self.dtype.names) != len(value):
+        if not isinstance(value, tuple) or len(self) != len(value):
             raise ValueError("cannot interpret value for unit {}"
                              .format(self))
         new_dtype = []
@@ -191,13 +197,13 @@ class StructuredUnit(np.void):
     # Needed to pass through Unit initializer, so might as well use it.
     def _get_physical_type_id(self):
         return self._recursively_apply(
-            operator.methodcaller('_get_physical_type_id'), np.void)
+            operator.methodcaller('_get_physical_type_id'), as_void=True)
 
     @property
     def physical_type(self):
         """Physical types of all the fields."""
         return self._recursively_apply(
-            operator.attrgetter('physical_type'), np.void)
+            operator.attrgetter('physical_type'), as_void=True)
 
     def decompose(self, bases=set()):
         """Return a StructuredUnit object composed of only irreducible units.
@@ -370,6 +376,19 @@ class StructuredUnit(np.void):
 
     def __repr__(self):
         return 'Unit("{}")'.format(self.to_string())
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            try:
+                other = self.__class__(other, self.names)
+            except Exception:
+                return NotImplemented
+
+        return self.values() == other.values()
+
+    def __ne__(self, other):
+        eq = self.__eq__(other)
+        return eq if eq is NotImplemented else not eq
 
 
 class StructuredQuantity(Quantity):
