@@ -241,7 +241,7 @@ class StructuredUnit(np.void):
             except Exception:
                 return False
 
-        if self.dtype != other.dtype:
+        if len(self) != len(other):
             return False
 
         for self_part, other_part in zip(self.values(), other.values()):
