@@ -1,0 +1,6 @@
+Added support for reading and writing multidimensional column data (masked and
+unmasked) to ECSV. Also added formal support for reading and writing object-type
+column data which can contain items consisting of lists, dicts, and basic scalar
+types. This can be used to store columns of variable-length arrays. Both of
+these features use JSON to convert the object to a string that is stored in the
+ECSV output.
