@@ -185,7 +185,7 @@ class StructuredUnit(np.void):
 
     @property
     def cgs(self):
-        """The `StructuredUnit` instance in SI units."""
+        """The `StructuredUnit` instance in cgs units."""
         return self._recursively_apply(operator.attrgetter('cgs'))
 
     # Needed to pass through Unit initializer, so might as well use it.
@@ -499,6 +499,27 @@ class StructuredQuantity(Quantity):
         # above will have failed already if units did not match).
         other_value.dtype.names = self.dtype.names
         return other_value
+
+    def _recursively_apply(self, func):
+        """Apply function recursively to every field, a copy with the result."""
+        result = np.empty_like(self)
+        result_value = result.view(np.ndarray)
+        result_unit = ()
+        for name in self.dtype.names:
+            part = func(self[name])
+            result_value[name] = part.value
+            result_unit += (part.unit,)
+
+        result._set_unit(result_unit)
+        return result
+
+    @property
+    def si(self):
+        return self._recursively_apply(operator.attrgetter('si'))
+
+    @property
+    def cgs(self):
+        return self._recursively_apply(operator.attrgetter('cgs'))
 
     def __eq__(self, other):
         try:

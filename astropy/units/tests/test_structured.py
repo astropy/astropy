@@ -443,6 +443,16 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['pv']['v'] == q_pv_t['pv']['v'].to(u.kpc/u.Myr))
         assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
 
+    def test_si(self):
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t_si = q_pv_t.si
+        assert_array_equal(q_pv_t_si, q_pv_t.to('(m,m/s),s'))
+
+    def test_cgs(self):
+        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t_cgs = q_pv_t.cgs
+        assert_array_equal(q_pv_t_cgs, q_pv_t.to('(cm,cm/s),s'))
+
     def test_equality(self):
         q_pv = StructuredQuantity(self.pv, self.pv_unit)
         equal = q_pv == q_pv

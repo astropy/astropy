@@ -216,6 +216,8 @@ class TestPVUfuncs:
                                                   r.T, self.pv['v']))
 
 
+@pytest.mark.xfail(erfa.__version__ < '1.7.3.1',
+                   reason='dt_eraLDBODY incorrectly defined', scope='class')
 class TestLDBODYUfuncs:
     def setup_class(self):
         self.ldbody_unit = u.Unit('Msun,radian,(AU,AU/day)')
@@ -232,8 +234,6 @@ class TestLDBODYUfuncs:
         self.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
         self.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
 
-    @pytest.mark.xfail(erfa.__version__ < '1.7.3.1',
-                       reason='dt_eraLDBODY incorrectly defined')
     def test_basic(self):
         sn = erfa_ufunc.ldn(self.ldbody, self.ob, self.sc)
         assert_quantity_allclose(sn, [-0.7632762579693333866,
@@ -250,7 +250,6 @@ class TestLDBODYUfuncs:
                                       -0.2167355420646328159] * u.one,
                                  atol=1e-12, rtol=0)
 
-    @pytest.mark.xfail(reason='StructuredQuantity.si does not work yet')
     def test_in_SI(self):
         sn = erfa_ufunc.ldn(self.ldbody.si, self.ob.si, self.sc)
         assert_quantity_allclose(sn, [-0.7632762579693333866,
