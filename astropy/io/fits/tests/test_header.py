@@ -669,6 +669,18 @@ class TestHeaderFunctions(FitsTestCase):
         with pytest.raises(KeyError, match=r"Keyword 'NAXIS' not found."):
             header['NAXIS']
 
+    def test_header_contains_key(self):
+        """Regression test for
+        https://github.com/astropy/astropy/pull/11729
+
+        Assures that the `in` operator acting on a header behaves dict-like.
+        """
+        header = fits.Header()
+        assert isinstance("NAXIS" in header, bool)
+        assert isinstance(("NAXIS", 0) in header, bool)
+        assert isinstance(0 in header, bool)
+        assert isinstance(None in header, bool)
+
     def test_hierarch_card_lookup(self):
         header = fits.Header()
         header['hierarch abcdefghi'] = 10
