@@ -261,10 +261,26 @@ class EcsvOutputter(core.TableOutputter):
                         for idx in np.nonzero(col.mask)[0]:
                             col.str_vals[idx] = '[]'
 
-                    # Remake as a 1-d object column of numpy ndarrays using the
-                    # datatype specified in the ECSV file.
-                    col_vals = [np.array(json.loads(val), dtype=col.subtype)
-                                for val in col.str_vals]
+                    # Remake as a 1-d object column of numpy ndarrays or
+                    # MaskedArray using the datatype specified in the ECSV file.
+                    col_vals = []
+                    for str_val in col.str_vals:
+                        obj_val = json.loads(str_val)  # list or nested lists
+                        try:
+                            arr_val = np.array(obj_val, dtype=col.subtype)
+                        except TypeError:
+                            # obj_val has entries that are inconsistent with
+                            # dtype. For a valid ECSV file the only possibility
+                            # is None values (indicating missing values).
+                            data = np.array(obj_val, dtype=object)
+                            # Replace all the None with an appropriate fill value
+                            mask = (data == None)  # noqa: E711
+                            kind = np.dtype(col.subtype).kind
+                            data[mask] = {'U': '', 'S': b''}.get(kind, 0)
+                            arr_val = np.ma.array(data.astype(col.subtype), mask=mask)
+
+                        col_vals.append(arr_val)
+
                     col.shape = ()
                     col.dtype = np.dtype(object)
                     # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
