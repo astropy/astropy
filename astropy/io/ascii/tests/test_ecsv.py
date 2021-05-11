@@ -1003,3 +1003,40 @@ def test_masked_empty_subtypes():
     assert np.all(t['v'][0] == [1])
     assert np.all(t['v'][2] == [2, 3])
     assert np.all(t['v'].mask == [False, True, False])
+
+
+def test_masked_vals_in_array_subtypes():
+    """Test null values in fixed and variable array subtypes."""
+    t = Table()
+    t['f'] = np.ma.array([[1, 2], [3, 4]], mask=[[0, 1], [1, 0]], dtype=np.int64)
+    t['v'] = np.empty(2, dtype=object)
+    t['v'][0] = np.ma.array([1, 2], mask=[0, 1], dtype=np.int64)
+    t['v'][1] = np.ma.array([3, 4, 5], mask=[1, 0, 0], dtype=np.int64)
+
+    out = StringIO()
+    t.write(out, format='ascii.ecsv')
+    txt = """
+    # %ECSV 1.0
+    # ---
+    # datatype:
+    # - {name: f, datatype: string, subtype: 'int64[2]'}
+    # - {name: v, datatype: string, subtype: 'int64[null]'}
+    # schema: astropy-2.0
+    f v
+    [1,null] [1,null]
+    [null,4] [null,4,5]
+    """
+    hdr = _get_ecsv_header_dict(out.getvalue())
+    hdr_exp = _get_ecsv_header_dict(txt)
+    assert hdr == hdr_exp
+    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
+    assert t2.colnames == t.colnames
+    for name in t2.colnames:
+        assert t2[name].dtype == t[name].dtype
+        assert type(t2[name]) is type(t[name])
+        for val1, val2 in zip(t2[name], t[name]):
+            if isinstance(val1, np.ndarray):
+                assert val1.dtype == val2.dtype
+            if isinstance(val1, np.ma.MaskedArray):
+                assert np.all(val1.mask == val2.mask)
+            assert np.all(val1 == val2)
