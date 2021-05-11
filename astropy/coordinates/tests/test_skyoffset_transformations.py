@@ -335,3 +335,27 @@ def test_skyoffset_velocity_rotation(rotation, expectedpmlonlat):
     c_skyoffset0 = sc.transform_to(sc.skyoffset_frame(rotation=rotation))
     assert_allclose(c_skyoffset0.pm_lon_coslat, expectedpmlonlat[0])
     assert_allclose(c_skyoffset0.pm_lat, expectedpmlonlat[1])
+
+
+def test_skyoffset_two_frames_interfering():
+    """Regression test for gh-11277, where it turned out that the
+    origin argument validation from one SkyOffsetFrame could interfere
+    with that of another.
+
+    Note that this example brought out a different bug than that at the
+    top of gh-11277, viz., that an attempt was made to set origin on a SkyCoord
+    when it should just be stay as part of the SkyOffsetFrame.
+    """
+    # Example adapted from @bmerry's minimal example at
+    # https://github.com/astropy/astropy/issues/11277#issuecomment-825492335
+    altaz_frame = AltAz(obstime=Time('2020-04-22T13:00:00Z'),
+                        location=EarthLocation(18, -30))
+    target = SkyCoord(alt=70*u.deg, az=150*u.deg, frame=altaz_frame)
+    dirs_altaz_offset = SkyCoord(lon=[-0.02, 0.01, 0.0, 0.0, 0.0] * u.rad,
+                                 lat=[0.0, 0.2, 0.0, -0.3, 0.1] * u.rad,
+                                 frame=target.skyoffset_frame())
+    dirs_altaz = dirs_altaz_offset.transform_to(altaz_frame)
+    dirs_icrs = dirs_altaz.transform_to(ICRS())
+    target_icrs = target.transform_to(ICRS())
+    # The line below was almost guaranteed to fail.
+    dirs_icrs.transform_to(target_icrs.skyoffset_frame())
