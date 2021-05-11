@@ -1,5 +1,5 @@
-4.2.1 (2021-4-1)
-================
+4.2.1 (2021-04-01)
+==================
 
 Bug Fixes
 ---------
@@ -767,93 +767,8 @@ Other Changes and Additions
 
 - Removed dependency on scikit-image. [#10214]
 
-
-4.0.6 (unreleased)
+4.0.5 (2021-03-26)
 ==================
-
-Bug Fixes
----------
-
-astropy.config
-^^^^^^^^^^^^^^
-
-astropy.constants
-^^^^^^^^^^^^^^^^^
-
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-astropy.coordinates
-^^^^^^^^^^^^^^^^^^^
-
-astropy.cosmology
-^^^^^^^^^^^^^^^^^
-
-astropy.extern
-^^^^^^^^^^^^^^
-
-astropy.io.ascii
-^^^^^^^^^^^^^^^^
-
-astropy.io.fits
-^^^^^^^^^^^^^^^
-
-astropy.io.misc
-^^^^^^^^^^^^^^^
-
-astropy.io.registry
-^^^^^^^^^^^^^^^^^^^
-
-astropy.io.votable
-^^^^^^^^^^^^^^^^^^
-
-astropy.modeling
-^^^^^^^^^^^^^^^^
-
-astropy.nddata
-^^^^^^^^^^^^^^
-
-astropy.samp
-^^^^^^^^^^^^
-
-astropy.stats
-^^^^^^^^^^^^^
-
-astropy.table
-^^^^^^^^^^^^^
-
-astropy.tests
-^^^^^^^^^^^^^
-
-astropy.time
-^^^^^^^^^^^^
-
-astropy.timeseries
-^^^^^^^^^^^^^^^^^^
-
-astropy.uncertainty
-^^^^^^^^^^^^^^^^^^^
-
-astropy.units
-^^^^^^^^^^^^^
-
-astropy.utils
-^^^^^^^^^^^^^
-
-astropy.visualization
-^^^^^^^^^^^^^^^^^^^^^
-
-astropy.wcs
-^^^^^^^^^^^
-
-
-Other Changes and Additions
----------------------------
-
-
-
-4.0.5 (2021-3-26)
-=================
 
 Bug Fixes
 ---------
