@@ -1040,3 +1040,20 @@ def test_masked_vals_in_array_subtypes():
             if isinstance(val1, np.ma.MaskedArray):
                 assert np.all(val1.mask == val2.mask)
             assert np.all(val1 == val2)
+
+
+def test_guess_ecsv_with_one_column():
+    """Except for ECSV, guessing always requires at least 2 columns"""
+    txt = """
+    # %ECSV 1.0
+    # ---
+    # datatype:
+    # - {name: col, datatype: string, description: hello}
+    # schema: astropy-2.0
+    col
+    1
+    2
+    """
+    t = ascii.read(txt)
+    assert t['col'].dtype.kind == 'U'  # would be int with basic format
+    assert t['col'].description == 'hello'
