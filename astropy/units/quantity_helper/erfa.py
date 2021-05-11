@@ -14,7 +14,8 @@ from .helpers import (get_converter, helper_invariant, helper_multiplication,
 erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
                'cpv', 'p2pv', 'pv2p', 'pv2s', 'pvdpv', 'pvm', 'pvmpv', 'pvppv',
                'pvstar', 'pvtob', 'pvu', 'pvup', 'pvxpv', 'rxpv', 's2pv', 's2xpv',
-               'starpv', 'sxpv', 'trxpv', 'gd2gc', 'gc2gd', 'ldn')
+               'starpv', 'sxpv', 'trxpv', 'gd2gc', 'gc2gd', 'ldn', 'aper',
+               'apio', 'atciq', 'atciqn', 'atciqz', 'aticq', 'atioq', 'atoiq')
 
 
 def helper_s2c(f, unit1, unit2):
@@ -195,17 +196,123 @@ def helper_s2xpv(f, unit1, unit2, unit_pv):
         raise UnitTypeError("pv vector should have a structured unit.") from exc
 
 
-def helper_ldn(f, unit1, unit2, unit3):
+def ldbody_unit():
     from astropy.units.si import day, radian
     from astropy.units.astrophys import Msun, AU
     from astropy.units.structured import StructuredUnit
+
+    return StructuredUnit((Msun, radian, (AU, AU/day)),
+                          erfa_ufunc.dt_eraLDBODY)
+
+
+def astrom_unit():
+    from astropy.units.structured import StructuredUnit
+    from astropy.units.si import rad, year
+    from astropy.units.astrophys import AU
+    one = rel2c = dimensionless_unscaled
+
+    return StructuredUnit((year, AU, one, AU, rel2c, one, one, rad, rad, rad, rad,
+                           one, one, rel2c, rad, rad, rad),
+                          erfa_ufunc.dt_eraASTROM)
+
+
+def helper_ldn(f, unit_b, unit_ob, unit_sc):
+    from astropy.units.astrophys import AU
     try:
-        return [get_converter(unit1, StructuredUnit((Msun, radian, (AU, AU/day)))),
-                get_converter(unit2, AU),
-                get_converter(_d(unit3), dimensionless_unscaled)], dimensionless_unscaled
+        return [get_converter(unit_b, ldbody_unit()),
+                get_converter(unit_ob, AU),
+                get_converter(_d(unit_sc), dimensionless_unscaled)], dimensionless_unscaled
     except Exception as exc:
         raise UnitTypeError("lds requires units equivalent to "
                             "(Msun, rad, (AU,AU/day)), AU, dimensionless.") from exc
+
+
+def helper_aper(f, unit_theta, unit_astrom):
+    try:
+        unit_along = unit_astrom['along']
+    except Exception as exc:
+        raise UnitTypeError("astrom should have a structured unit.") from exc
+
+    result_unit = unit_astrom
+    if unit_astrom['eral'] == unit_along:
+        result_unit = unit_astrom
+    else:
+        result_unit = dict(unit_astrom)
+        result_unit['eral'] = unit_along
+        result_unit = unit_astrom.__class__(tuple(result_unit.values()),
+                                            unit_astrom.names)
+    return [get_converter(unit_theta, unit_along), None], result_unit
+
+
+def helper_apio(f, unit_sp, unit_theta, unit_elong, unit_phi, unit_hm,
+                unit_xp, unit_yp, unit_refa, unit_refb):
+    from astropy.units.si import radian, m
+    return [get_converter(unit_sp, radian),
+            get_converter(unit_theta, radian),
+            get_converter(unit_elong, radian),
+            get_converter(unit_phi, radian),
+            get_converter(unit_hm, m),
+            get_converter(unit_xp, radian),
+            get_converter(unit_xp, radian),
+            get_converter(unit_xp, radian),
+            get_converter(unit_xp, radian)], astrom_unit()
+
+
+def helper_atciq(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom):
+    from astropy.units.si import radian, arcsec, year, km, s
+    return [get_converter(unit_rc, radian),
+            get_converter(unit_dc, radian),
+            get_converter(unit_pr, radian / year),
+            get_converter(unit_pd, radian / year),
+            get_converter(unit_px, arcsec),
+            get_converter(unit_rv, km / s),
+            get_converter(unit_astrom, astrom_unit())], (radian, radian)
+
+
+def helper_atciqn(f, unit_rc, unit_dc, unit_pr, unit_pd, unit_px, unit_rv, unit_astrom,
+                  unit_b):
+    from astropy.units.si import radian, arcsec, year, km, s
+    return [get_converter(unit_rc, radian),
+            get_converter(unit_dc, radian),
+            get_converter(unit_pr, radian / year),
+            get_converter(unit_pd, radian / year),
+            get_converter(unit_px, arcsec),
+            get_converter(unit_rv, km / s),
+            get_converter(unit_astrom, astrom_unit()),
+            get_converter(unit_b, ldbody_unit())], (radian, radian)
+
+
+def helper_atciqz_aticq(f, unit_rc, unit_dc, unit_astrom):
+    from astropy.units.si import radian
+    return [get_converter(unit_rc, radian),
+            get_converter(unit_dc, radian),
+            get_converter(unit_astrom, astrom_unit())], (radian, radian)
+
+
+def helper_aticqn(f, unit_rc, unit_dc, unit_astrom, unit_b):
+    from astropy.units.si import radian
+    return [get_converter(unit_rc, radian),
+            get_converter(unit_dc, radian),
+            get_converter(unit_astrom, astrom_unit()),
+            get_converter(unit_b, ldbody_unit())], (radian, radian)
+
+
+def helper_atioq(f, unit_rc, unit_dc, unit_astrom):
+    from astropy.units.si import radian
+    return [get_converter(unit_rc, radian),
+            get_converter(unit_dc, radian),
+            get_converter(unit_astrom, astrom_unit())], (radian,)*5
+
+
+def helper_atoiq(f, unit_type, unit_ri, unit_di, unit_astrom):
+    from astropy.units.si import radian
+    if unit_type is not None:
+        raise UnitTypeError("argument 'type' should not have a unit")
+
+    return [None,
+            get_converter(unit_ri, radian),
+            get_converter(unit_di, radian),
+            get_converter(unit_astrom, astrom_unit())], (radian, radian)
 
 
 def get_erfa_helpers():
@@ -240,6 +347,15 @@ def get_erfa_helpers():
     ERFA_HELPERS[erfa_ufunc.gc2gd] = helper_gc2gd
     ERFA_HELPERS[erfa_ufunc.gd2gc] = helper_gd2gc
     ERFA_HELPERS[erfa_ufunc.ldn] = helper_ldn
+    ERFA_HELPERS[erfa_ufunc.aper] = helper_aper
+    ERFA_HELPERS[erfa_ufunc.apio] = helper_apio
+    ERFA_HELPERS[erfa_ufunc.atciq] = helper_atciq
+    ERFA_HELPERS[erfa_ufunc.atciqn] = helper_atciqn
+    ERFA_HELPERS[erfa_ufunc.atciqz] = helper_atciqz_aticq
+    ERFA_HELPERS[erfa_ufunc.aticq] = helper_atciqz_aticq
+    ERFA_HELPERS[erfa_ufunc.aticqn] = helper_aticqn
+    ERFA_HELPERS[erfa_ufunc.atioq] = helper_atioq
+    ERFA_HELPERS[erfa_ufunc.atoiq] = helper_atoiq
     return ERFA_HELPERS
 
 

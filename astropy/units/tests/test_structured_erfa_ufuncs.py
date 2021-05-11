@@ -218,11 +218,10 @@ class TestPVUfuncs:
 
 @pytest.mark.xfail(erfa.__version__ < '1.7.3.1',
                    reason='dt_eraLDBODY incorrectly defined', scope='class')
-class TestLDBODYUfuncs:
+class TestEraStructUfuncs:
     def setup_class(self):
-        self.ldbody_unit = u.Unit('Msun,radian,(AU,AU/day)')
-        # From test_ldn in t_erfa_c.c
-        self.ldbody_value = np.array(
+        # From t_ldn in t_erfa_c.c
+        ldbody = np.array(
             [(0.00028574, 3e-10, ([-7.81014427, -5.60956681, -1.98079819],
                                   [0.0030723249, -0.00406995477, -0.00181335842])),
              (0.00095435, 3e-9, ([0.738098796, 4.63658692, 1.9693136],
@@ -230,18 +229,32 @@ class TestLDBODYUfuncs:
              (1.0, 6e-6, ([-0.000712174377, -0.00230478303, -0.00105865966],
                           [6.29235213e-6, -3.30888387e-7, -2.96486623e-7]))],
             dtype=erfa_ufunc.dt_eraLDBODY)
-        self.ldbody = self.ldbody_value << self.ldbody_unit
+        ldbody_unit = u.StructuredUnit('Msun,radian,(AU,AU/day)', ldbody.dtype)
+        self.ldbody = ldbody << ldbody_unit
         self.ob = [-0.974170437, -0.2115201, -0.0917583114] << u.AU
         self.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
 
-    def test_basic(self):
+        # From t_atciq in t_erfa_c.c
+        astrom, eo = erfa_ufunc.apci13(2456165.5, 0.401182685)
+        self.astrom_unit = u.StructuredUnit(
+            'yr,AU,1,AU,1,1,1,rad,rad,rad,rad,1,1,1,rad,rad,rad',
+            astrom.dtype)
+        self.astrom = astrom << self.astrom_unit
+        self.rc = 2.71 * u.rad
+        self.dc = 0.174 * u.rad
+        self.pr = 1e-5 * u.rad/u.year
+        self.pd = 5e-6 * u.rad/u.year
+        self.px = 0.1 * u.arcsec
+        self.rv = 55.0 * u.km/u.s
+
+    def test_ldn_basic(self):
         sn = erfa_ufunc.ldn(self.ldbody, self.ob, self.sc)
         assert_quantity_allclose(sn, [-0.7632762579693333866,
                                       -0.6086337636093002660,
                                       -0.2167355420646328159] * u.one,
                                  atol=1e-12, rtol=0)
 
-    def test_in_other_unit(self):
+    def test_ldn_in_other_unit(self):
         ldbody = self.ldbody.to('kg,rad,(m,m/s)')
         ob = self.ob.to('m')
         sn = erfa_ufunc.ldn(ldbody, ob, self.sc)
@@ -250,9 +263,115 @@ class TestLDBODYUfuncs:
                                       -0.2167355420646328159] * u.one,
                                  atol=1e-12, rtol=0)
 
-    def test_in_SI(self):
+    def test_ldn_in_SI(self):
         sn = erfa_ufunc.ldn(self.ldbody.si, self.ob.si, self.sc)
         assert_quantity_allclose(sn, [-0.7632762579693333866,
                                       -0.6086337636093002660,
                                       -0.2167355420646328159] * u.one,
                                  atol=1e-12, rtol=0)
+
+    def test_aper(self):
+        along = self.astrom['along']
+        astrom2 = erfa_ufunc.aper(10*u.deg, self.astrom)
+        assert astrom2['eral'].unit == u.radian
+        assert astrom2['eral'] == along+10*u.deg
+        astrom3 = self.astrom.to('s,km,1,km,1,1,1,deg,deg,deg,deg,1,1,1,rad,rad,rad')
+        astrom4 = erfa_ufunc.aper(10*u.deg, astrom3)
+        assert astrom3['eral'].unit == u.rad
+        assert astrom4['eral'].unit == u.deg
+        assert astrom4.unit == 's,km,1,km,1,1,1,deg,deg,deg,deg,1,1,1,deg,rad,rad'
+        assert astrom4['eral'] == along+10*u.deg
+
+    def test_atciq_basic(self):
+        ri, di = erfa_ufunc.atciq(self.rc, self.dc, self.pr, self.pd,
+                                  self.px, self.rv, self.astrom)
+        assert_quantity_allclose(ri, 2.710121572968696744*u.rad)
+        assert_quantity_allclose(di, 0.1729371367219539137*u.rad)
+
+    def test_atciq_in_other_unit(self):
+        astrom = self.astrom.to('s,km,1,km,1,1,1,deg,deg,deg,deg,1,1,1,deg,deg,deg')
+        ri, di = erfa_ufunc.atciq(self.rc.to(u.deg), self.dc.to(u.deg),
+                                  self.pr.to(u.mas/u.yr), self.pd.to(u.mas/u.yr),
+                                  self.px, self.rv.to(u.m/u.s), astrom)
+        assert_quantity_allclose(ri, 2.710121572968696744*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(di, 0.1729371367219539137*u.rad, atol=1e-12*u.rad)
+
+    def test_atciqn(self):
+        ri, di = erfa_ufunc.atciqn(self.rc.to(u.deg), self.dc.to(u.deg),
+                                   self.pr.to(u.mas/u.yr), self.pd.to(u.mas/u.yr),
+                                   self.px, self.rv.to(u.m/u.s), self.astrom.si,
+                                   self.ldbody.si)
+        assert_quantity_allclose(ri, 2.710122008104983335*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(di, 0.1729371916492767821*u.rad, atol=1e-12*u.rad)
+
+    def test_atciqz(self):
+        ri, di = erfa_ufunc.atciqz(self.rc.to(u.deg), self.dc.to(u.deg),
+                                   self.astrom.si)
+        assert_quantity_allclose(ri, 2.709994899247256984*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(di, 0.1728740720984931891*u.rad, atol=1e-12*u.rad)
+
+    def test_aticq(self):
+        ri = 2.710121572969038991 * u.rad
+        di = 0.1729371367218230438 * u.rad
+        rc, dc = erfa_ufunc.aticq(ri.to(u.deg), di.to(u.deg), self.astrom.si)
+        assert_quantity_allclose(rc, 2.710126504531716819*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(dc, 0.1740632537627034482*u.rad, atol=1e-12*u.rad)
+
+    def test_aticqn(self):
+        ri = 2.709994899247599271 * u.rad
+        di = 0.1728740720983623469 * u.rad
+        rc, dc = erfa_ufunc.aticqn(ri.to(u.deg), di.to(u.deg), self.astrom.si,
+                                   self.ldbody.si)
+        assert_quantity_allclose(rc, 2.709999575033027333*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(dc, 0.1739999656316469990*u.rad, atol=1e-12*u.rad)
+
+    def test_atioq_atoiq(self):
+        astrom, _ = erfa_ufunc.apio13(2456384.5, 0.969254051, 0.1550675,
+                                      -0.527800806, -1.2345856, 2738.0,
+                                      2.47230737e-7, 1.82640464e-6,
+                                      731.0, 12.8, 0.59, 0.55)
+        astrom = astrom << self.astrom_unit
+
+        ri = 2.710121572969038991 * u.rad
+        di = 0.1729371367218230438 * u.rad
+        aob, zob, hob, dob, rob = erfa_ufunc.atioq(ri.to(u.deg), di.to(u.deg),
+                                                   astrom.si)
+        assert_quantity_allclose(aob, 0.9233952224895122499e-1*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(zob, 1.407758704513549991*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(hob, -0.9247619879881698140e-1*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(dob, 0.1717653435756234676*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(rob, 2.710085107988480746*u.rad, atol=1e-12*u.rad)
+
+        # Sadly does not just use the values from above.
+        ob1 = 2.710085107986886201 * u.rad
+        ob2 = 0.1717653435758265198 * u.rad
+        ri2, di2 = erfa_ufunc.atoiq("R", ob1.to(u.deg), ob2.to(u.deg), astrom.si)
+        assert_quantity_allclose(ri2, 2.710121574447540810*u.rad, atol=1e-12*u.rad)
+        assert_quantity_allclose(di2, 0.17293718391166087785*u.rad, atol=1e-12*u.rad)
+
+    @pytest.mark.xfail(erfa.__version__ < '2.0.0', reason='comparisons changed')
+    def test_apio(self):
+        sp = -3.01974337e-11 * u.rad
+        theta = 3.14540971 * u.rad
+        elong = -0.527800806 * u.rad
+        phi = -1.2345856 * u.rad
+        hm = 2738.0 * u.m
+        xp = 2.47230737e-7 * u.rad
+        yp = 1.82640464e-6 * u.rad
+        refa = 0.000201418779 * u.rad
+        refb = -2.36140831e-7 * u.rad
+        astrom = erfa_ufunc.apio(sp.to(u.deg), theta, elong, phi, hm.to(u.km),
+                                 xp, yp, refa, refb)
+        assert astrom.unit == self.astrom_unit
+        for name, value in [
+                ('along', -0.5278008060295995734),
+                ('xpl', 0.1133427418130752958e-5),
+                ('ypl', 0.1453347595780646207e-5),
+                ('sphi', -0.9440115679003211329),
+                ('cphi', 0.3299123514971474711),
+                ('diurab', 0.5135843661699913529e-6),
+                ('eral', 2.617608903970400427),
+                ('refa', 0.2014187790000000000e-3),
+                ('refb', -0.2361408310000000000e-6)]:
+            assert_quantity_allclose(astrom[name], value * self.astrom_unit[name],
+                                     rtol=1e-12, atol=0*self.astrom_unit[name])
