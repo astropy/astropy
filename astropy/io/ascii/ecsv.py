@@ -253,10 +253,34 @@ class EcsvOutputter(core.TableOutputter):
                 # not currently supported.
                 elif col.shape and col.shape[-1] is None:
                     _check_dtype_is_str(col)
-                    # Remake as a 1-d object column of numpy ndarrays using the
-                    # datatype specified in the ECSV file.
-                    col_vals = [np.array(json.loads(val), dtype=col.subtype)
-                                for val in col.str_vals]
+
+                    # Empty (blank) values in original ECSV are changed to "0"
+                    # in str_vals with corresponding col.mask being created and
+                    # set accordingly. Instead use an empty list here.
+                    if hasattr(col, 'mask'):
+                        for idx in np.nonzero(col.mask)[0]:
+                            col.str_vals[idx] = '[]'
+
+                    # Remake as a 1-d object column of numpy ndarrays or
+                    # MaskedArray using the datatype specified in the ECSV file.
+                    col_vals = []
+                    for str_val in col.str_vals:
+                        obj_val = json.loads(str_val)  # list or nested lists
+                        try:
+                            arr_val = np.array(obj_val, dtype=col.subtype)
+                        except TypeError:
+                            # obj_val has entries that are inconsistent with
+                            # dtype. For a valid ECSV file the only possibility
+                            # is None values (indicating missing values).
+                            data = np.array(obj_val, dtype=object)
+                            # Replace all the None with an appropriate fill value
+                            mask = (data == None)  # noqa: E711
+                            kind = np.dtype(col.subtype).kind
+                            data[mask] = {'U': '', 'S': b''}.get(kind, 0)
+                            arr_val = np.ma.array(data.astype(col.subtype), mask=mask)
+
+                        col_vals.append(arr_val)
+
                     col.shape = ()
                     col.dtype = np.dtype(object)
                     # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
@@ -267,6 +291,19 @@ class EcsvOutputter(core.TableOutputter):
                 # might be masked.
                 elif col.shape:
                     _check_dtype_is_str(col)
+
+                    # Change empty (blank) values in original ECSV to something
+                    # like "[[null, null],[null,null]]" so subsequent JSON
+                    # decoding works. Delete `col.mask` so that later code in
+                    # core TableOutputter.__call__() that deals with col.mask
+                    # does not run (since handling is done here already).
+                    if hasattr(col, 'mask'):
+                        all_none_arr = np.full(shape=col.shape, fill_value=None, dtype=object)
+                        all_none_json = json.dumps(all_none_arr.tolist())
+                        for idx in np.nonzero(col.mask)[0]:
+                            col.str_vals[idx] = all_none_json
+                        del col.mask
+
                     col_vals = [json.loads(val) for val in col.str_vals]
                     # Make a numpy object array of col_vals to look for None
                     # (masked values)
