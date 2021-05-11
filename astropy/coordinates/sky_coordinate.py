@@ -663,6 +663,13 @@ class SkyCoord(ShapedLikeNDArray):
                      set(frame_kwargs.keys())):
             frame_kwargs.pop(attr)
 
+        # Always remove the origin frame attribute, as that attribute only makes
+        # sense with a SkyOffsetFrame (in which case it will be stored on the frame).
+        # See gh-11277.
+        # TODO: Should it be a property of the frame attribute that it can
+        # or cannot be stored on a SkyCoord?
+        frame_kwargs.pop('origin', None)
+
         return self.__class__(new_coord, **frame_kwargs)
 
     def apply_space_motion(self, new_obstime=None, dt=None):
