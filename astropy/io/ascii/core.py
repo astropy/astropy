@@ -733,8 +733,9 @@ class BaseHeader:
                         or name[0] in bads or name[-1] in bads):
                     raise InconsistentTableError(
                         f'Column name {name!r} does not meet strict name requirements')
-        # When guessing require at least two columns
-        if guessing and len(self.colnames) <= 1:
+        # When guessing require at least two columns, except for ECSV which can
+        # reliably be guessed from the header requirements.
+        if guessing and len(self.colnames) <= 1 and self.__class__.__name__ != 'EcsvHeader':
             raise ValueError('Table format guessing requires at least two columns, got {}'
                              .format(list(self.colnames)))
 
