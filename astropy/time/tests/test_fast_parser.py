@@ -5,7 +5,7 @@ import re
 import numpy as np
 import pytest
 
-from astropy.time import Time, conf, TimeYearDayTime
+from astropy.time import Time, conf, TimeYearDayTime, TIME_FORMATS, _parse_times
 
 iso_times = ['2000-02-29', '1981-12-31 12:13', '1981-12-31 12:13:14', '2020-12-31 12:13:14.56']
 isot_times = [re.sub(' ', 'T', tm) for tm in iso_times]
@@ -116,3 +116,42 @@ def test_fast_subclass():
                 Time('2000:0601', format='yday_subclass')
     finally:
         del TimeYearDayTimeSubClass._registry['yday_subclass']
+
+
+class TestAllowUserDefinedFastParser:
+    def setup_class(self):
+        self.old_formats = set(TIME_FORMATS)
+
+        parse_yday = _parse_times.create_parser(
+                [('', 0, 3, False),  # year
+                 ('', -1, -1, False),  # no month
+                 (':', 4, 7, False),  # day of year
+                 (':', 8, 10, True),  # hour
+                 (':', 11, 13, False),  # minute
+                 (':', 14, 16, True),  # integer second
+                 ('.', 17, -1, True)])  # fractional second
+
+        class TimeMyYearDayTime(TimeYearDayTime):
+            name = 'myyday'
+
+            _fast_parser = parse_yday
+
+        self.parse_yday = parse_yday
+        self.TimeMyYearDayTime = TimeMyYearDayTime
+
+    def teardown_class(self):
+        TIME_FORMATS.pop('myyday')
+
+        assert set(TIME_FORMATS) == self.old_formats
+
+    def test_setup(self):
+        assert self.TimeMyYearDayTime._fast_parser is self.parse_yday
+
+    def test_parser(self):
+        parsed = self.parse_yday(np.array([b'2020:001']).view('u1'))
+        assert parsed == (2020, 1, 1, 0, 0, 0.)
+
+    def test_fast_parser(self):
+        with conf.set_temp('use_fast_parser', 'force'):
+            t = Time('2020:150:12:13:14.', format='myyday')
+        assert t == Time('2020:150:12:13:14.', format='yday')

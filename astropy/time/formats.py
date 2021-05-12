@@ -1261,15 +1261,13 @@ class TimeString(TimeUnique):
     def __init_subclass__(cls, **kwargs):
         if 'fast_parser_pars' in cls.__dict__:
             fpp = cls.fast_parser_pars
-            if isinstance(fpp, dict):  # Parameters given as dict.
-                has_day_of_year = fpp['has_day_of_year']
-                fpp = np.array(list(zip([chr(delim) for delim in fpp['delims']],
-                                        fpp['starts'],
-                                        fpp['stops'],
-                                        fpp['break_allowed'])),
-                               _parse_times.dt_pars)
-                if has_day_of_year:
-                    fpp['start'][1] = fpp['stop'][1] = -1
+            fpp = np.array(list(zip(map(chr, fpp['delims']),
+                                    fpp['starts'],
+                                    fpp['stops'],
+                                    fpp['break_allowed'])),
+                           _parse_times.dt_pars)
+            if cls.fast_parser_pars['has_day_of_year']:
+                fpp['start'][1] = fpp['stop'][1] = -1
             cls._fast_parser = _parse_times.create_parser(fpp)
 
         super().__init_subclass__(**kwargs)
