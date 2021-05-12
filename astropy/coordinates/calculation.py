@@ -159,8 +159,8 @@ def horoscope(birthday, corrected=True, chinese=False):
         with urlopen(res) as f:
             try:
                 doc = BeautifulSoup(f, 'html.parser')
-                item = doc.find('span', {'class': 'date'})
-                desc = item.parent.getText()
+                item = doc.find('div', {'id': 'content'})
+                desc = item.getText()
             except Exception:
                 raise CelestialError(err_msg)
 
