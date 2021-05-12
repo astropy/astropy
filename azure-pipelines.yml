@@ -40,6 +40,7 @@ schedules:
 variables:
   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
   CIBW_MANYLINUX_I686_IMAGE: manylinux2010
+  CIBW_ARCHS_LINUX: "auto, aarch64"
   CI: true
 
 jobs:
@@ -81,6 +82,9 @@ jobs:
       - wheels_cp38*win_amd64
       - wheels_cp39*win32
       - wheels_cp39*win_amd64
+      # aarch64 is slowest, so do one python version per build
+      - wheels_cp38-manylinux_aarch64
+      - wheels_cp39-manylinux_aarch64
 
 # We always need to specify a job, so always run a do nothing.
 - job: skipping
