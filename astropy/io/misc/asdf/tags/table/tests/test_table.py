@@ -3,6 +3,7 @@
 
 import pytest
 import numpy as np
+from packaging.version import Version
 
 import astropy.units as u
 from astropy import table
@@ -97,8 +98,14 @@ def test_table_inline(tmpdir):
     def check(ff):
         assert len(list(ff.blocks.internal_blocks)) == 0
 
-    helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
-                                  write_options={'auto_inline': 64})
+    if Version(asdf.__version__) >= Version('2.8.0'):
+        # The auto_inline argument is deprecated as of asdf 2.8.0.
+        with asdf.config_context() as config:
+            config.array_inline_threshold = 64
+            helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check)
+    else:
+        helpers.assert_roundtrip_tree({'table': t}, tmpdir, asdf_check_func=check,
+                                      write_options={'auto_inline': 64})
 
 
 def test_mismatched_columns():
