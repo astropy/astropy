@@ -1162,24 +1162,21 @@ def obsgeo_to_frame(obsgeo, obstime):
     BaseCoordinateFrame
         An `~astropy.coordinates.ITRS` coordinate frame representing the coordinates.
     """
-    invalid_message = (f"Can not parse the obsgeo location ({obsgeo})"
-                       "obsgeo must only be sepecifed in Cartesian or spherical coordinates.")
 
-    if obsgeo is None or np.all(obsgeo == 0) or np.all(~np.isfinite(obsgeo)):
-        raise ValueError(invalid_message)
+    if (obsgeo is None or np.all(obsgeo == 0) or np.all(~np.isfinite(obsgeo))
+        or not (np.all(obsgeo[3:] == 0) or np.all(obsgeo[3:] == 0)):
+        raise ValueError(
+            f"Can not parse the 'obsgeo' location ({obsgeo}). 'obsgeo' must only "
+            "be specified in Cartesian or spherical coordinates."
+        )
 
-    data = None
 
     # If the spherical coords are zero then use the cartesian ones
     if np.all(obsgeo[3:] == 0):
         data = CartesianRepresentation(*obsgeo[:3] * u.m)
 
     # If the cartesian coords are all zero then use the spherical ones
-    elif np.all(obsgeo[:3] == 0):
+    else np.all(obsgeo[:3] == 0):
         data = SphericalRepresentation(*[comp * unit for comp, unit in zip(obsgeo[3:], (u.deg, u.deg, u.m))])
-
-    # Anything else is undefined
-    else:
-        raise ValueError(invalid_message)
 
     return ITRS(data, obstime=obstime)
