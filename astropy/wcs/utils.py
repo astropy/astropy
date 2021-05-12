@@ -1163,20 +1163,25 @@ def obsgeo_to_frame(obsgeo, obstime):
         An `~astropy.coordinates.ITRS` coordinate frame representing the coordinates.
     """
 
-    if (obsgeo is None or np.all(obsgeo == 0) or np.all(~np.isfinite(obsgeo))
-        or not (np.all(obsgeo[3:] == 0) or np.all(obsgeo[3:] == 0)):
-        raise ValueError(
-            f"Can not parse the 'obsgeo' location ({obsgeo}). 'obsgeo' must only "
-            "be specified in Cartesian or spherical coordinates."
-        )
+    if (obsgeo is None
+        or np.all(obsgeo == 0)
+        or np.all(~np.isfinite(obsgeo))
+    ):
+        raise ValueError(f"Can not parse the 'obsgeo' location ({obsgeo}). "
+                         "obsgeo should be non-zero, finite and not None."
+                         )
 
-
-    # If the spherical coords are zero then use the cartesian ones
-    if np.all(obsgeo[3:] == 0):
+    # If the cartesian coords are not zero (should only be false if .set() hasn't been called.
+    if np.all(obsgeo[:3] != 0):
         data = CartesianRepresentation(*obsgeo[:3] * u.m)
 
     # If the cartesian coords are all zero then use the spherical ones
-    else np.all(obsgeo[:3] == 0):
+    elif np.all(obsgeo[3:] != 0):
         data = SphericalRepresentation(*[comp * unit for comp, unit in zip(obsgeo[3:], (u.deg, u.deg, u.m))])
+
+    else:
+        raise ValueError(f"Could not parse a valid set of coordinates from the obsgeo struct {obsgeo} "
+                         "All of either the XYZ or LBH values should be non-zero. "
+                         "Have you tried running `wcs.set()`?")
 
     return ITRS(data, obstime=obstime)

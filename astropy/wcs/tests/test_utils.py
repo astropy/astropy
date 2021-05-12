@@ -1288,6 +1288,7 @@ def test_pixel_to_world_itrs(x_in, y_in):
     np.testing.assert_almost_equal(y, y_in)
 
 
+@pytest.mark.remote_data
 def test_obsgeo_cartesian():
     obstime = Time("2021-05-21T03:00:00")
     location = EarthLocation.of_site("DKIST")
@@ -1303,7 +1304,7 @@ def test_obsgeo_cartesian():
     assert frame.z == location.z
 
 
-
+@pytest.mark.remote_data
 def test_obsgeo_spherical():
     obstime = Time("2021-05-21T03:00:00")
     location = EarthLocation.of_site("DKIST").get_itrs(obstime)
