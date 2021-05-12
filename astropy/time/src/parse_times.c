@@ -34,16 +34,6 @@ struct pars_struct_t {
     npy_bool break_allowed;
 };
 
-// Distutils on Windows automatically exports ``PyInit__parse_times``,
-// create dummy to prevent linker complaining about missing symbol.
-// Based on convolution/src/convolve.c.
-#if defined(_MSC_VER)
-void PyInit__parse_times(void)
-{
-    return;
-}
-#endif
-
 int parse_int_from_char_array(char *chars, int str_len,
                               char delim, int idx0, int idx1,
                               int *val)
@@ -245,7 +235,8 @@ parser_loop(char **args, npy_intp *dimensions, npy_intp *steps, void *data)
     struct pars_struct_t *pars = (struct pars_struct_t *)PyArray_DATA((PyArrayObject *)data);
     npy_bool has_day_of_year = pars[1].start < 0;
 
-    npy_intp ii, i, str_len, status;
+    npy_intp ii;
+    int i, str_len, status;
 
     static char *msgs[5] = {
         "time string ends at beginning of component where break is not allowed",
@@ -388,7 +379,7 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
      * it should be deallocated when the ufunc is deleted. Use ->obj for this
      * (also used in frompyfunc).
      */
-    gufunc->obj = pars_array;
+    gufunc->obj = (PyObject *)pars_array;
     gufunc->data = &gufunc->obj;
     return (PyObject *)gufunc;
 
