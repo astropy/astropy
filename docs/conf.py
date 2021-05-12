@@ -114,7 +114,8 @@ copyright = u'2011–{0}, '.format(datetime.utcnow().year) + author
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = get_distribution(project).version
+#release = get_distribution(project).version
+release = '4.2.1'  # Temporary hack until next release
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
