@@ -1149,7 +1149,7 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     Parameters
     ----------
-    obsgeo : np.ndarray
+    obsgeo : array-like
         A shape ``(6, )`` array representing ``OBSGEO-[XYZ], OBSGEO-[BLH]`` as
         returned by `astropy.wcs.WCS.wcs.obsgeo`.
 
@@ -1159,8 +1159,25 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     Returns
     -------
-    BaseCoordinateFrame
+    `.ITRS`
         An `~astropy.coordinates.ITRS` coordinate frame representing the coordinates.
+
+    Notes
+    -----
+
+    The obsgeo array as accessed on a `.WCS` object is a length 6 numpy array
+    where the first three elements are the coordinate in a cartesian
+    representation and the second 3 are the coordinate in a spherical
+    representation.
+
+    This function priorities reading the cartesian coordinates, and will only
+    read the spherical coordinates if the cartesian coordinates are either all
+    zero or any of the cartesian coordinates are non-finite.
+
+    In the case where both the spherical and cartesian coordinates have some
+    non-finite values the spherical coordinates will be returned with the
+    non-finite values included.
+
     """
     if (obsgeo is None
         or len(obsgeo) != 6
