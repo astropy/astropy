@@ -1168,8 +1168,7 @@ def obsgeo_to_frame(obsgeo, obstime):
         or np.all(~np.isfinite(obsgeo))
     ):
         raise ValueError(f"Can not parse the 'obsgeo' location ({obsgeo}). "
-                         "obsgeo should be non-zero, finite and not None."
-                         )
+                         "obsgeo should be non-zero, finite and not None.")
 
     # If the cartesian coords are not zero (should only be false if .set() hasn't been called.
     if np.all(obsgeo[:3] != 0):
@@ -1177,11 +1176,11 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     # If the cartesian coords are all zero then use the spherical ones
     elif np.all(obsgeo[3:] != 0):
-        data = SphericalRepresentation(*[comp * unit for comp, unit in zip(obsgeo[3:], (u.deg, u.deg, u.m))])
+        data = SphericalRepresentation(*(obsgeo[3:] * (u.deg, u.deg, u.m)))
 
     else:
         raise ValueError(f"Could not parse a valid set of coordinates from the obsgeo struct {obsgeo} "
                          "All of either the XYZ or LBH values should be non-zero. "
-                         "Have you tried running `wcs.set()`?")
+                         "Have you tried running wcs.set()?")
 
     return ITRS(data, obstime=obstime)
