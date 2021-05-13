@@ -1322,9 +1322,27 @@ def test_obsgeo_spherical():
     assert u.allclose(frame.z, location.z)
 
 
-def test_obsgeo_invalid():
+@pytest.mark.remote_data
+def test_obsgeo_infinite():
+    obstime = Time("2021-05-21T03:00:00")
+    location = EarthLocation.of_site("DKIST").get_itrs(obstime)
+    loc_sph = location.spherical
+
     wcs = WCS(naxis=2)
-    wcs.wcs.obsgeo = [0, 2, 0, 0, 2, 0]
+    wcs.wcs.obsgeo = [1, 1, np.nan] + [loc_sph.lon.value, loc_sph.lat.value, loc_sph.distance.value]
+    wcs.wcs.dateobs = obstime.isot
+    wcs.wcs.set()
+
+    frame = obsgeo_to_frame(wcs.wcs.obsgeo, obstime)
+
+    assert isinstance(frame, ITRS)
+    assert u.allclose(frame.x, location.x)
+    assert u.allclose(frame.y, location.y)
+    assert u.allclose(frame.z, location.z)
+
+
+@pytest.mark.parametrize("obsgeo", ([np.nan] * 6, None, [0] * 6, [54] * 5))
+def test_obsgeo_invalid(obsgeo):
 
     with pytest.raises(ValueError):
-        obsgeo_to_frame(wcs.wcs.obsgeo, None)
+        obsgeo_to_frame(obsgeo, None)
