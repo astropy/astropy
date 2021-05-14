@@ -539,21 +539,3 @@ class StructuredQuantity(Quantity):
     @property
     def cgs(self):
         return self._recursively_apply(operator.attrgetter('cgs'))
-
-    def __eq__(self, other):
-        try:
-            other_value = self._to_own_unit(other)
-        except UnitsError:
-            return False
-        except Exception:
-            return NotImplemented
-        return self.value.__eq__(other_value)
-
-    def __ne__(self, other):
-        try:
-            other_value = self._to_own_unit(other)
-        except UnitsError:
-            return True
-        except Exception:
-            return NotImplemented
-        return self.value.__ne__(other_value)
