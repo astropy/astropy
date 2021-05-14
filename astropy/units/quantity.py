@@ -890,30 +890,25 @@ class Quantity(np.ndarray):
             return value
 
     # Equality needs to be handled explicitly as ndarray.__eq__ gives
-    # DeprecationWarnings on any error, which is distracting.  On the other
-    # hand, for structured arrays, the ufunc does not work, so we do use
-    # __eq__ and live with the warnings.
+    # DeprecationWarnings on any error, which is distracting, and does not
+    # deal well with structured arrays (nor does the ufunc).
     def __eq__(self, other):
         try:
-            if self.dtype.kind == 'V':
-                return super().__eq__(other)
-            else:
-                return np.equal(self, other)
+            other_value = self._to_own_unit(other)
         except UnitsError:
             return False
-        except TypeError:
+        except Exception:
             return NotImplemented
+        return self.value.__eq__(other_value)
 
     def __ne__(self, other):
         try:
-            if self.dtype.kind == 'V':
-                return super().__ne__(other)
-            else:
-                return np.not_equal(self, other)
+            other_value = self._to_own_unit(other)
         except UnitsError:
             return True
-        except TypeError:
+        except Exception:
             return NotImplemented
+        return self.value.__ne__(other_value)
 
     # Unit conversion operator (<<).
     def __lshift__(self, other):
