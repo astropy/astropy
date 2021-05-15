@@ -535,3 +535,32 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         assert z.unit == self.pv_unit
         assert z.shape == self.pv.shape
         assert_array_equal(z, func(self.pv) << self.pv_unit)
+
+
+class TestStructuredLogUnit:
+    def setup_class(self):
+        self.mag_time_dtype = np.dtype([('mag', 'f8'), ('t', 'f8')])
+        self.mag_time = np.array([(20., 10.), (25., 100.)], self.mag_time_dtype)
+
+    def test_unit_initialization(self):
+        mag_time_unit = StructuredUnit((u.STmag, u.s), self.mag_time_dtype)
+        assert mag_time_unit['mag'] == u.STmag
+        assert mag_time_unit['t'] == u.s
+
+        mag_time_unit2 = u.Unit('mag(ST),s')
+        assert mag_time_unit2 == mag_time_unit
+
+    def test_quantity_initialization(self):
+        su = u.Unit('mag(ST),s')
+        mag_time = self.mag_time << su
+        assert isinstance(mag_time['mag'], u.Magnitude)
+        assert isinstance(mag_time['t'], u.Quantity)
+        assert mag_time.unit == su
+        assert_array_equal(mag_time['mag'], self.mag_time['mag'] << u.STmag)
+        assert_array_equal(mag_time['t'], self.mag_time['t'] << u.s)
+
+    def test_quantity_si(self):
+        mag_time = self.mag_time << u.Unit('mag(ST),yr')
+        mag_time_si = mag_time.si
+        assert_array_equal(mag_time_si['mag'], mag_time['mag'].si)
+        assert_array_equal(mag_time_si['t'], mag_time['t'].si)
