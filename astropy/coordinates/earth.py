@@ -70,9 +70,9 @@ def _get_json_result(url, err_str, use_google):
         # This catches a timeout error, see:
         #   http://stackoverflow.com/questions/2712524/handling-urllib2s-timeout-python
         if isinstance(e.reason, socket.timeout):
-            raise NameResolveError(err_str.format(msg="connection timed out"))
+            raise NameResolveError(err_str.format(msg="connection timed out")) from e
         else:
-            raise NameResolveError(err_str.format(msg=e.reason))
+            raise NameResolveError(err_str.format(msg=e.reason)) from e
 
     except socket.timeout:
         # There are some cases where urllib2 does not catch socket.timeout
@@ -236,9 +236,9 @@ class EarthLocation(u.Quantity):
         if unit is None:
             try:
                 unit = x.unit
-            except AttributeError:
+            except AttributeError as err:
                 raise TypeError("Geocentric coordinates should be Quantities "
-                                "unless an explicit unit is given.")
+                                "unless an explicit unit is given.") from None
         else:
             unit = u.Unit(unit)
 
@@ -367,7 +367,7 @@ class EarthLocation(u.Quantity):
             el = registry[site_name]
         except UnknownSiteException as e:
             raise UnknownSiteException(e.site, 'EarthLocation.get_site_names',
-                                       close_names=e.close_names)
+                                       close_names=e.close_names) from e
 
         if cls is el.__class__:
             return el
@@ -788,11 +788,11 @@ class EarthLocation(u.Quantity):
         for body in bodies:
             try:
                 GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
-            except KeyError:
-                raise KeyError(f'body "{body}" does not have a mass!')
+            except KeyError as err:
+                raise KeyError(f'Body "{body}" does not have a mass.') from err
             except u.UnitsError as exc:
                 exc.args += ('"masses" argument values must be masses or '
-                             'gravitational parameters',)
+                             'gravitational parameters.',)
                 raise
 
         positions = [get_body_barycentric(name, obstime) for name in bodies]
