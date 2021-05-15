@@ -333,9 +333,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
                 if len(shapes) > 1:
                     try:
                         self._no_data_shape = check_broadcast(*shapes.values())
-                    except ValueError:
+                    except ValueError as err:
                         raise ValueError(
-                            f"non-scalar attributes with inconsistent shapes: {shapes}")
+                            f"non-scalar attributes with inconsistent shapes: {shapes}") from err
 
                     # Above, we checked that it is possible to broadcast all
                     # shapes.  By getting and thus validating the attributes,

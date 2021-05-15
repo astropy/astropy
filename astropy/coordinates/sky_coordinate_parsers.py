@@ -349,9 +349,9 @@ def _get_representation_component_units(args, kwargs):
             units.extend(None for x in range(3 - len(units)))
             if len(units) > 3:
                 raise ValueError()
-        except Exception:
+        except Exception as err:
             raise ValueError('Unit keyword must have one to three unit values as '
-                             'tuple or comma-separated string')
+                             'tuple or comma-separated string.') from err
 
     return units
 
@@ -522,12 +522,13 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # lengths the same
             try:
                 n_coords = sorted(set(len(x) for x in vals))
-            except Exception:
-                raise ValueError('One or more elements of input sequence does not have a length')
+            except Exception as err:
+                raise ValueError('One or more elements of input sequence '
+                                 'does not have a length.') from err
 
             if len(n_coords) > 1:
-                raise ValueError('Input coordinate values must have same number of elements, found {}'
-                                 .format(n_coords))
+                raise ValueError('Input coordinate values must have '
+                                 'same number of elements, found {}'.format(n_coords))
             n_coords = n_coords[0]
 
             # Must have no more coord inputs than representation attributes
@@ -559,7 +560,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                                                           copy=False)
     except Exception as err:
         raise ValueError('Cannot parse first argument data "{}" for attribute '
-                         '{}'.format(value, frame_attr_name), err)
+                         '{}'.format(value, frame_attr_name)) from err
     return skycoord_kwargs, components
 
 
