@@ -927,7 +927,7 @@ class Quantity(np.ndarray):
 
         try:
             factor = self.unit._to(other)
-        except UnitConversionError:
+        except Exception:
             # Maybe via equivalencies?  Now we do make a temporary copy.
             try:
                 value = self._to_value(other)

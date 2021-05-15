@@ -9,7 +9,7 @@ import operator
 
 import numpy as np
 
-from .core import Unit, UnitBase, UnitsError, UnitTypeError, UnitConversionError
+from .core import Unit, UnitBase
 from .quantity import Quantity
 
 
@@ -493,24 +493,6 @@ class StructuredQuantity(Quantity):
     --------
     to_value : Get the numerical value in a given unit.
     """)
-
-    def __ilshift__(self, other):
-        # Override definition in Quantity, since we can never simplify to
-        # multiplying with a single factor.
-        # TODO: implement simplifying with multiple factors.
-        try:
-            other = Unit(other, parse_strict='silent')
-        except UnitTypeError:
-            return NotImplemented
-
-        try:
-            value = self._to_value(other)
-        except UnitConversionError:
-            return NotImplemented
-
-        self.view(np.ndarray)[...] = value
-        self._set_unit(other)
-        return self
 
     def _to_own_unit(self, other, check_precision=False):
         other_value = super()._to_own_unit(other, check_precision)
