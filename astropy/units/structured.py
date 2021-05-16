@@ -451,7 +451,7 @@ class StructuredQuantity(Quantity):
         unit = StructuredUnit(unit, self.dtype)
         self._unit = unit
 
-    def to(self, unit, equivalencies=[]):
+    def to(self, unit, equivalencies=[], copy=True):
         """Convert to the specific structured unit.
 
         Parameters
@@ -462,10 +462,17 @@ class StructuredQuantity(Quantity):
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             These will apply to all elements in the structured quantity.
+        copy : bool, optional
+            If `True` (default), then the value is copied.  Otherwise, a copy
+            will only be made if necessary.
+
+        See also
+        --------
+        to_value : get the numerical value in a given unit.
         """
         if not isinstance(unit, StructuredUnit):
             unit = StructuredUnit(unit, self.dtype)
-        return self._new_view(self._to_value(unit, equivalencies), unit)
+        return super().to(unit, equivalencies=equivalencies, copy=copy)
 
     def to_value(self, unit=None, equivalencies=[]):
         """The numerical value, possibly in a different unit.
@@ -478,7 +485,19 @@ class StructuredQuantity(Quantity):
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             These will apply to all elements in the structured quantity.
+
+        Returns
+        -------
+        value : ndarray or scalar
+            The value in the units specified. For arrays, this will be a view
+            of the data if no unit conversion was necessary.
+
+        See also
+        --------
+        to : Get a new instance in a different unit.
         """
+        # Overriding just to avoid the attempt at a shortcut.
+        # TODO: move that short-cut from Quantity to Unit?
         if unit is None or unit is self.unit:
             result = self.view(np.ndarray)
         else:
