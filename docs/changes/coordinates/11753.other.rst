@@ -1,0 +1,5 @@
+Positions for the Moon using the 'builtin' ephemeris now use the new
+``erfa.moon98`` function instead of our own implementation of the Meeus
+algorithm. As this also corrects a misunderstanding of the frame returned by
+the Meeus, this improves the agreement with the JPL ephemeris from about 30 to
+about 6 km rms.
