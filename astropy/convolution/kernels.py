@@ -392,7 +392,7 @@ class Ring2DKernel(Kernel2D):
     See Also
     --------
     Gaussian2DKernel, Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel,
-    Ring2DKernel, AiryDisk2DKernel, Moffat2DKernel
+    TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
@@ -727,7 +727,7 @@ class AiryDisk2DKernel(Kernel2D):
     See Also
     --------
     Gaussian2DKernel, Box2DKernel, Tophat2DKernel, RickerWavelet2DKernel,
-    Ring2DKernel, TrapezoidDisk2DKernel, AiryDisk2DKernel, Moffat2DKernel
+    Ring2DKernel, TrapezoidDisk2DKernel, Moffat2DKernel
 
     Examples
     --------
