@@ -43,7 +43,13 @@ the standard Astropy docstring format.
 
 * All documentation should be written using the `Sphinx`_
   documentation tool.
-  
+
+  + cross-reference links (``:ref:``, ``:doc:``, etc.), **including internal
+    Astropy links**, should use the `intersphinx format
+    <https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html>`_.
+    Note that in Astropy these internal links are to the current build, while
+    for affiliate packages these links resolve to the stable version.
+
 * ReST substitutions are centralized in ``docs/conf.py::rst_epilog`` for
   consistency across the documentation and docstrings. These should be used over
   custom redefinitions; and new substitutions should probably be placed there.
