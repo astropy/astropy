@@ -921,7 +921,7 @@ class UnitBase:
 
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
             `set_enabled_equivalencies`.
             Use `None` to turn off all equivalencies.
@@ -1104,7 +1104,7 @@ class UnitBase:
 
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
             `set_enabled_equivalencies`.
             Use `None` to turn off all equivalencies.
@@ -1286,7 +1286,7 @@ class UnitBase:
         ----------
         equivalencies : list of tuple
             A list of equivalence pairs to also list.  See
-            :ref:`unit_equivalencies`.
+            :ref:`astropy:unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
             `set_enabled_equivalencies`.
             Use `None` to turn off all equivalencies.
@@ -1521,7 +1521,7 @@ class UnitBase:
         ----------
         equivalencies : list of tuple
             A list of equivalence pairs to also pull options from.
-            See :ref:`unit_equivalencies`.  It must already be
+            See :ref:`astropy:unit_equivalencies`.  It must already be
             normalized using `_normalize_equivalencies`.
         """
         unit_registry = get_current_unit_registry()
@@ -1617,7 +1617,7 @@ class UnitBase:
         ----------
         equivalencies : list of tuple
             A list of equivalence pairs to also list.  See
-            :ref:`unit_equivalencies`.
+            :ref:`astropy:unit_equivalencies`.
             Any list given, including an empty one, supersedes global defaults
             that may be in effect (as set by `set_enabled_equivalencies`)
 

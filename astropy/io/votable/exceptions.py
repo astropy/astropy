@@ -267,7 +267,7 @@ class W01(VOTableSpecWarning):
 
     Many VOTable files in the wild use commas as a separator instead,
     and ``astropy.io.votable`` supports this convention when not in
-    :ref:`pedantic-mode`.
+    :ref:`astropy:pedantic-mode`.
 
     ``astropy.io.votable`` always outputs files using only spaces, regardless of
     how they were input.

@@ -992,7 +992,7 @@ class Model(metaclass=_ModelMeta):
         that pertains to which model a parameter value pertains to--as
         specified when the model was initialized.
 
-        See the documentation on :ref:`modeling-model-sets`
+        See the documentation on :ref:`astropy:modeling-model-sets`
         for more details.
         """
 
@@ -1199,7 +1199,7 @@ class Model(metaclass=_ModelMeta):
         this property just raises `NotImplementedError` by default (but may be
         assigned a custom value by a user).  ``bounding_box`` can be set
         manually to an array-like object of shape ``(model.n_inputs, 2)``. For
-        further usage, see :ref:`bounding-boxes`
+        further usage, see :ref:`astropy:bounding-boxes`
 
         The limits are ordered according to the `numpy` indexing
         convention, and are the reverse of the model input order,
@@ -1531,7 +1531,7 @@ class Model(metaclass=_ModelMeta):
 
         Examples
         --------
-        :ref:`bounding-boxes`
+        :ref:`astropy:bounding-boxes`
         """
 
         try:
@@ -3397,7 +3397,7 @@ class CompoundModel(Model):
 
         Examples
         --------
-        :ref:`bounding-boxes`
+        :ref:`astropy:bounding-boxes`
         """
 
         try:
@@ -3792,7 +3792,7 @@ def render_model(model, arr=None, coords=None):
 
     Examples
     --------
-    :ref:`bounding-boxes`
+    :ref:`astropy:bounding-boxes`
     """
 
     bbox = model.bounding_box

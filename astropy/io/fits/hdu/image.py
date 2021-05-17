@@ -194,8 +194,8 @@ class _ImageBaseHDU(_ValidHDU):
 
         Sections are mostly obsoleted by memmap support, but should still be
         used to deal with very large scaled images.  See the
-        :ref:`data-sections` section of the Astropy documentation for more
-        details.
+        :ref:`astropy:data-sections` section of the Astropy documentation for
+        more details.
         """
 
         return Section(self)
@@ -932,8 +932,8 @@ class Section:
     Section slices cannot be assigned to, and modifications to a section are
     not saved back to the underlying file.
 
-    See the :ref:`data-sections` section of the Astropy documentation for more
-    details.
+    See the :ref:`astropy:data-sections` section of the Astropy documentation
+    for more details.
     """
 
     def __init__(self, hdu):
