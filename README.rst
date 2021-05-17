@@ -2,7 +2,7 @@
 Astropy
 =======
 
-|Actions Status| |CircleCI Status| |Azure Status| |Coverage Status| |PyPI Status| |Documentation Status|
+|Actions Status| |CircleCI Status| |Azure Status| |Coverage Status| |PyPI Status| |Documentation Status| |Zenodo|
 
 The Astropy Project (http://astropy.org/) is a community effort to develop a
 single core package for Astronomy in Python and foster interoperability between
@@ -67,6 +67,10 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |PyPI Status| image:: https://img.shields.io/pypi/v/astropy.svg
     :target: https://pypi.org/project/astropy
     :alt: Astropy's PyPI Status
+
+.. |Zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4670728.svg
+   :target: https://doi.org/10.5281/zenodo.4670728
+   :alt: Zenodo DOI
 
 .. |Documentation Status| image:: https://img.shields.io/readthedocs/astropy/latest.svg?logo=read%20the%20docs&logoColor=white&label=Docs&version=stable
     :target: https://docs.astropy.org/en/stable/?badge=stable
