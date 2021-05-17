@@ -18,7 +18,6 @@ from astropy.utils import indent
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from .representation import CartesianRepresentation, CartesianDifferential
-from .orbital_elements import calc_moon
 from .builtin_frames import GCRS, ICRS, ITRS, TETE
 from .builtin_frames.utils import get_jd12
 
@@ -205,8 +204,6 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
 
     Notes
     -----
-    No velocity can be calculated with the built-in ephemeris for the Moon.
-
     Whether or not velocities are calculated makes little difference for the
     built-in ephemerides, but for most JPL ephemeris files, the execution time
     roughly doubles.
@@ -228,11 +225,11 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None,
             body_pv_bary = earth_pv_bary
 
         elif body == 'moon':
-            if get_velocity:
-                raise KeyError("the Moon's velocity cannot be calculated with "
-                               "the '{}' ephemeris.".format(ephemeris))
-            return calc_moon(time).cartesian
-
+            # The moon98 documentation notes that it takes TT, but that TDB leads
+            # to errors smaller than the uncertainties in the algorithm.
+            # moon98 returns the astrometric position relative to the Earth.
+            moon_pv_geo = erfa.moon98(jd1, jd2)
+            body_pv_bary = erfa.pvppv(moon_pv_geo, earth_pv_bary)
         else:
             sun_pv_bary = erfa.pvmpv(earth_pv_bary, earth_pv_helio)
             if body == 'sun':
@@ -331,9 +328,6 @@ def get_body_barycentric_posvel(body, time, ephemeris=None):
 
     Notes
     -----
-    The velocity cannot be calculated for the Moon.  To just get the position,
-    use :func:`~astropy.coordinates.get_body_barycentric`.
-
     {_EPHEMERIS_NOTE}
     """
     return _get_body_barycentric_posvel(body, time, ephemeris)
@@ -401,11 +395,6 @@ def _get_apparent_body_position(body, time, ephemeris, obsgeoloc=None):
     """
     if ephemeris is None:
         ephemeris = solar_system_ephemeris.get()
-    # builtin ephemeris and moon is a special case, with no need to account for
-    # light travel time, since this is already included in the Meeus algorithm
-    # used.
-    if ephemeris == 'builtin' and body.lower() == 'moon':
-        return get_body_barycentric(body, time, ephemeris)
 
     # Calculate position given approximate light travel time.
     delta_light_travel_time = 20. * u.s
