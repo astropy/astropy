@@ -1,6 +1,7 @@
 ---
 name: Bug report
 about: Create a report describing unexpected or incorrect behavior in astropy.
+labels: Bug
 ---
 
 <!-- This comments are hidden when you submit the issue,
@@ -53,6 +54,7 @@ Please run the following snippet and paste the output below:
 import platform; print(platform.platform())
 import sys; print("Python", sys.version)
 import numpy; print("Numpy", numpy.__version__)
+import erfa; print("pyerfa", erfa.__version__)
 import astropy; print("astropy", astropy.__version__)
 import scipy; print("Scipy", scipy.__version__)
 import matplotlib; print("Matplotlib", matplotlib.__version__)
