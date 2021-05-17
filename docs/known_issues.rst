@@ -210,14 +210,6 @@ If one cannot upgrade to numpy 1.17 or later, one solution is::
     >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
     False
 
-Quantities in np.linspace Failure on NumPy 1.10
------------------------------------------------
-
-`~numpy.linspace` does not work correctly with quantities when using NumPy
-1.10.0 to 1.10.5 due to a bug in NumPy. The solution is to upgrade to NumPy
-1.10.6 or later, in which the bug was fixed.
-
-
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
