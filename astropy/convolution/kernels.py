@@ -697,7 +697,7 @@ class AiryDisk2DKernel(Kernel2D):
     2D Airy disk kernel.
 
     This kernel models the diffraction pattern of a circular aperture. This
-    kernel is normalized to a peak value of 1.
+    kernel is normalized so that it sums to 1.
 
     Parameters
     ----------
