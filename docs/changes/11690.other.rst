@@ -1,0 +1,5 @@
+In docstrings, Sphinx cross-reference targets now use intersphinx, even if the
+target is an internal link (``link`` is now ``'astropy:link``).
+When built in Astropy these links are interpreted as internal links. When built
+in affiliate packages, the link target is set by the key 'astropy' in the
+intersphinx mapping.
