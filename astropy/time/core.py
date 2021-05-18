@@ -478,7 +478,7 @@ class TimeBase(ShapedLikeNDArray):
           >>> list(Time.FORMATS)
           ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
            'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-           'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+           'fits', 'byear', 'jyear', 'byear_str', 'jyear_str', 'ccsds_cds']
         """
         return self._format
 
@@ -1446,7 +1446,7 @@ class Time(TimeBase):
       >>> list(Time.FORMATS)
       ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
        'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-       'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+       'fits', 'byear', 'jyear', 'byear_str', 'jyear_str', 'ccsds_cds']
 
     See also: http://docs.astropy.org/en/stable/time/
 

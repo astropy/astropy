@@ -16,7 +16,7 @@ from erfa import ErfaWarning
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils import isiterable, iers
 from astropy.time import (Time, TimeDelta, ScaleValueError, STANDARD_TIME_SCALES,
-                          TimeString, TimezoneInfo, TIME_FORMATS)
+                          TimeString, TimezoneInfo, TIME_FORMATS, CCSDS_CDS)
 from astropy.coordinates import EarthLocation
 from astropy import units as u
 from astropy.table import Column, Table
@@ -2317,3 +2317,120 @@ def test_location_init_fail():
     with pytest.raises(ValueError,
                        match='cannot concatenate times unless all locations'):
         Time([tm, tm2])
+
+
+class Test_CCSDS():
+    def test_roundtripCCSDS(self):
+        now = Time.now()
+        t = now.ccsds_cds
+        test = Time(t)
+        np.testing.assert_allclose(now.mjd, test.mjd)
+
+    def test_simpleCCSDS(self):
+        # Two years later, no leap year
+        now = Time("1960-01-01T00:00:00")
+        c = now.ccsds_cds
+        np.testing.assert_equal(c.days, 365 * 2)
+        np.testing.assert_equal(c.milliseconds, 0)
+        np.testing.assert_equal(c.microseconds, 0)
+        np.testing.assert_equal(repr(c), "CCSDS_CDS(days=730, milliseconds=0, microseconds=0)")
+
+    def test_simpleLeapCCSDS(self):
+        # Three years later, no leap year
+        now = Time("1961-01-01T00:00:00")
+        c = now.ccsds_cds
+        np.testing.assert_equal(c.days, 365 * 3 + 1)
+        np.testing.assert_equal(c.milliseconds, 0)
+        np.testing.assert_equal(c.microseconds, 0)
+
+    def test_leapSecondCCSDS(self):
+        now = Time("2016-12-31T23:59:59")
+        leap = now + 1 * u.s  # Into the leap second "2016-12-31T23:59:60"
+        edge = leap + 1 * u.s - 1 * u.us  # Right before the roll over
+        newyear = leap + 1 * u.s  # "2017-01-01T00:00:00"
+        # 59 years to New Years Day, 15 are leap years (2000 is divisibile by 400)
+        # New Years Eve is the day before
+        np.testing.assert_equal(now.ccsds_cds.days, 59 * 365 + 15 - 1)
+        np.testing.assert_equal(leap.ccsds_cds.days, 59 * 365 + 15 - 1)
+        np.testing.assert_equal(edge.ccsds_cds.days, 59 * 365 + 15 - 1)
+        np.testing.assert_equal(newyear.ccsds_cds.days, 59 * 365 + 15)
+
+        # There's 1000*60*60*24 86,400,000 milliseconds in a "normal" day
+        np.testing.assert_equal(now.ccsds_cds.milliseconds, 86_399_000)
+        np.testing.assert_equal(leap.ccsds_cds.milliseconds, 86_400_000)
+        np.testing.assert_equal(edge.ccsds_cds.milliseconds, 86_400_999)
+        np.testing.assert_equal(newyear.ccsds_cds.milliseconds, 0)
+
+        np.testing.assert_equal(now.ccsds_cds.microseconds, 0)
+        np.testing.assert_equal(leap.ccsds_cds.microseconds, 0)
+        np.testing.assert_equal(edge.ccsds_cds.microseconds, 999)
+        np.testing.assert_equal(newyear.ccsds_cds.microseconds, 0)
+
+        # datetime doesn't support leapseconds, so these should fail
+        with pytest.raises(ValueError) as context:
+            leap.datetime
+            assert "leap second" in context.exception
+        with pytest.raises(ValueError) as context:
+            edge.datetime
+            assert "leap second" in context.exception
+        np.testing.assert_equal(now.datetime.year, 2016)
+        np.testing.assert_equal(newyear.datetime.year, 2017)
+
+    def test_normalYearCCSDS(self):
+        now = Time("2017-12-31T23:59:59")
+        newyear = now + 1 * u.s  # Into the leap second "2018-01-01T00:00:00"
+        # 60 years to New Years Day, 15 are leap years (2000 is divisibile by 400)
+        # New Years Eve is the day before
+        np.testing.assert_equal(now.ccsds_cds.days, 60 * 365 + 15 - 1)
+        np.testing.assert_equal(newyear.ccsds_cds.days, 60 * 365 + 15)
+
+        # There's 1000*60*60*24 86,400,000 milliseconds in a "normal" day
+        np.testing.assert_equal(now.ccsds_cds.milliseconds, 86_399_000)
+        np.testing.assert_equal(newyear.ccsds_cds.milliseconds, 0)
+
+        np.testing.assert_equal(now.ccsds_cds.microseconds, 0)
+        np.testing.assert_equal(newyear.ccsds_cds.microseconds, 0)
+
+        np.testing.assert_equal(now.datetime.year, 2017)
+        np.testing.assert_equal(newyear.datetime.year, 2018)
+
+    def test_leapSecondBulkCCSDS(self):
+        now = Time("1979-12-31T23:59:59") + np.arange(10) * u.s
+        # 22 years to New Years Day, 5 are leap years
+        # New Years Eve is the day before
+        truth_days = [22 * 365 + 5 - 1] * 2 + [22 * 365 + 5] * 8
+        truth_millis = [86_399_000, 86_400_000] + list(range(0, 8000, 1000))
+        truth_micros = [0] * 10
+        for test, d, m, μ in zip(now.ccsds_cds, truth_days, truth_millis, truth_micros):
+            np.testing.assert_equal(test.days, d)
+            np.testing.assert_equal(test.milliseconds, m)
+            np.testing.assert_equal(test.microseconds, μ)
+
+    def test_bulkConversionCCSDS(self):
+        truth = [CCSDS_CDS(15_340, 1000 * x + 123, 456) for x in range(10)]
+        test = Time(truth)
+        offset = Time("2000-01-01T00:00:00")
+        np.testing.assert_allclose((test - offset).sec, np.arange(10) + 0.123456)
+
+    def test_leapSecondBulkNotUTCCCSDS(self):
+        now = Time("1979-12-31T23:59:59") + np.arange(10) * u.s
+        # 22 years to New Years Day, 5 are leap years
+        # New Years Eve is the day before
+        truth_days = [22 * 365 + 5 - 1] * 2 + [22 * 365 + 5] * 8
+        truth_millis = [86_399_000, 86_400_000] + list(range(0, 8000, 1000))
+        truth_micros = [0] * 10
+        for test, d, m, μ in zip(
+            now.tai.ccsds_cds, truth_days, truth_millis, truth_micros
+        ):
+            np.testing.assert_equal(test.days, d)
+            np.testing.assert_equal(test.milliseconds, m)
+            np.testing.assert_equal(test.microseconds, μ)
+
+    @pytest.mark.xfail
+    def test_twovalues_CCSDS(self):
+        Time(CCSDS_CDS(730,0,0),CCSDS_CDS(731,13,3),format='ccsds_cds')
+
+    @pytest.mark.xfail
+    def test_badsubformat_CCSDS(self):
+        t = Time('J2000')
+        t.to_value('ccsds_cds',subfmt='str')

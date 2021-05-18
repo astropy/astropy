@@ -1,0 +1,2 @@
+`ccsds_cds` is a new time format available for Time.
+To create one, write ``Time(CCSDS_CDS(days, seconds, microseconds))``.

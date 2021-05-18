@@ -29,7 +29,7 @@ __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeEpochDateString', 'TimeBesselianEpochString',
            'TimeJulianEpochString', 'TIME_FORMATS', 'TIME_DELTA_FORMATS',
            'TimezoneInfo', 'TimeDeltaDatetime', 'TimeDatetime64', 'TimeYMDHMS',
-           'TimeNumeric', 'TimeDeltaNumeric']
+           'TimeNumeric', 'TimeDeltaNumeric', 'TimeCCSDS_CDS', 'CCSDS_CDS']
 
 __doctest_skip__ = ['TimePlotDate']
 
@@ -1914,6 +1914,176 @@ class TimeDeltaDatetime(TimeDeltaFormat, TimeUnique):
                                           microseconds=jd2_ * 86400 * 1e6)
 
         return self.mask_if_needed(iterator.operands[-1])
+
+
+class CCSDS_CDS:
+    """
+    Container for the CCSDS_CDS timecode
+    https://public.ccsds.org/Pubs/301x0b4e1.pdf
+    Section 3.3
+    """
+
+    def __init__(self, days, ms, us):
+        self.days = int(days)
+        self.milliseconds = int(ms)
+        self.microseconds = int(us)
+
+    def __repr__(self):
+        return "CCSDS_CDS(days={}, milliseconds={}, microseconds={})".format(
+            self.days, self.milliseconds, self.microseconds
+        )
+
+
+class TimeCCSDS_CDS(TimeUnique):
+    """
+    Implements the CCSDS_CDS timecode
+    https://public.ccsds.org/Pubs/301x0b4e1.pdf
+    Section 3.3
+    """
+
+    name = "ccsds_cds"
+    epoch_val = '1958-01-01 00:00:00'  # Moment UTC and TAI were same
+    epoch_val2 = None
+    epoch_scale = 'tai'
+    epoch_format = 'iso'
+
+    @classproperty(lazy=True)
+    def _epoch(cls):
+        # Ideally we would use `def epoch(cls)` here and not have the instance
+        # property below. However, this breaks the sphinx API docs generation
+        # in a way that was not resolved. See #10406 for details.
+        return Time(cls.epoch_val, cls.epoch_val2, scale=cls.epoch_scale,
+                    format=cls.epoch_format)
+
+    @property
+    def epoch(self):
+        """Reference epoch time from which the time interval is measured"""
+        return self._epoch
+
+    def _check_val_type(self, val1, val2):
+        if not all(isinstance(val, CCSDS_CDS) for val in val1.flat):
+            raise TypeError(
+                "Input values for {} class must be "
+                "CCSDS_CDS objects".format(self.name)
+            )
+        if val2 is not None:
+            raise ValueError(
+                f"{self.name} objects do not accept a val2 but you provided {val2}"
+            )
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        """Convert CCSDS_CDS object contained in val1 to jd1, jd2"""
+        # Iterate through the CCSDS_CDS objects, getting day, millis, micros
+
+        iterator = np.nditer(
+            [val1, None, None],
+            flags=["refs_ok", "zerosize_ok"],
+            op_dtypes=[None] + [np.intc] + [np.double],
+        )
+        for val, d1, d2 in iterator:
+            ccsds = val.item()
+            # Deal with partial days from CCSDS
+            more_days, frac = quantity_day_frac(
+                ccsds.milliseconds * u.ms, ccsds.microseconds * u.us
+            )
+            # Add partial days from the epoch
+            last_days, jd2 = day_frac(frac, self.epoch.jd2)
+            # These should be whole days
+            jd1 = ccsds.days + self.epoch.jd1 + more_days + last_days
+            # At this point, we have a "quasi" jd1 and jd2
+            # So, let's convert to tai, which is the scale of the epoch
+            d1[...], d2[...] = erfa.utctai(jd1, jd2)
+
+        try:
+            tm = getattr(
+                Time(
+                    iterator.operands[1],
+                    iterator.operands[2],
+                    scale=self.epoch_scale,
+                    format="jd",
+                ),
+                self.scale,  # and then convert to the requested scale
+            )
+        except Exception as err:
+            raise ScaleValueError(
+                "Cannot convert from '{}' epoch scale '{}'"
+                "to specified scale '{}', got error:\n{}".format(
+                    self.name, self.epoch_scale, self.scale, err
+                )
+            ) from err
+
+        self.jd1, self.jd2 = day_frac(tm._time.jd1, tm._time.jd2)
+
+    def to_value(self, parent=None, out_subfmt=None):
+        """
+        Convert to `~CCSDS_CDS` object.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        `~CCSDS_CDS`
+        """
+        if out_subfmt is not None:
+            # out_subfmt not allowed for this format, raise the standard
+            # exception by validating the value
+            self._select_subfmts(out_subfmt)
+
+        if parent is None:
+            raise ValueError("cannot compute value without parent Time object")
+        try:
+            tm = getattr(parent, "utc")
+        except Exception as err:
+            raise ScaleValueError(
+                "Cannot convert from '{}' epoch scale '{}'"
+                "to specified scale '{}', got error:\n{}".format(
+                    self.name, self.epoch_scale, "utc", err
+                )
+            ) from err
+
+        scale = tm.scale.upper().encode("ascii")
+        iys, ims, ids, ihmsfs = erfa.d2dtf(
+            scale,
+            # 6 precison means microseconds (6 digits of precision)
+            6,
+            tm.jd1,
+            tm.jd2,
+        )
+        ihrs = ihmsfs["h"]
+        imins = ihmsfs["m"]
+        isecs = ihmsfs["s"]
+        ifracs = ihmsfs["f"]
+
+        iterator = np.nditer(
+            [iys, ims, ids, ihrs, imins, isecs, ifracs, None],
+            flags=["refs_ok", "zerosize_ok"],
+            op_dtypes=7 * [None] + [CCSDS_CDS],
+        )
+        for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
+            if isec >= 60:
+                # datetime doesn't handle leap seconds properly,
+                # so we need to save them off until we're in a format that does
+                offset = isec - 59
+            else:
+                offset = 0
+            # this is why I'm abusing datetime, it has the infrastructure to do
+            # gregorian calendar subtraction.  Calendar subtraction is not for
+            # the weak of heart (astronomers, rightfully refuse :) )
+            delta = (
+                datetime.datetime(iy, im, id, ihr, imin, isec - offset, ifracsec)
+                - self.epoch.datetime
+            )
+
+            milli = delta.microseconds // 1000
+            micros = delta.microseconds - milli * 1000
+            out[...] = CCSDS_CDS(
+                delta.days, (delta.seconds + offset) * 1000 + milli, micros
+            )
+        return self.mask_if_needed(iterator.operands[-1])
+
+    value = property(to_value)
 
 
 def _validate_jd_for_storage(jd):

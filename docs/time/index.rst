@@ -189,6 +189,7 @@ unix_tai     :class:`~astropy.time.TimeUnixTai`                 946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 ymdhms       :class:`~astropy.time.TimeYMDHMS`                  {'year': 2010, 'month': 3, 'day': 1}
 datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
+ccsds_cds    :class:`~astropy.time.TimeCCSDS_CDS`               CCSDS_CDS(15340,123,456)
 ===========  =================================================  =====================================
 
 .. note:: The :class:`~astropy.time.TimeFITS` format implements most
@@ -198,6 +199,9 @@ datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2
    any specific realization information, such as ``UT(NIST)`` is stored only as
    long as the time scale is not changed.
 .. [#] `Rots et al. 2015, A&A 574:A36 <https://ui.adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
+.. note:: The :class:`astropy.time.TimeCCSDS_CDS` format implements the Day Segmented (CDS)
+   portion of the CCSDS Time Code Format standard [#]_
+.. [#] `CCSDS 301.0-B-4 Time Code Format  <https://public.ccsds.org/Pubs/301x0b4e1.pdf>`
 
 Changing Format
 """""""""""""""
