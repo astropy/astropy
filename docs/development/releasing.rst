@@ -210,22 +210,15 @@ Post-Release procedures
    in the ``ci-helpers`` repository once the ``conda`` packages became
    available.
 
-#. Upload the release to Zenodo. This has to be done manually since the
-   Zenodo/GitHub integration relies on making releases on GitHub, which we
-   don't do. So for the Astropy core package, log in to
-   Zenodo using the Astropy team credentials, then go to the `existing
-   record <https://zenodo.org/record/1461593>`_. Click on **New version** - note
-   that it's important to do this rather than upload the release as a completely
-   new record. You should now see a pre-filled deposit form with the details from
-   the previous release. Start off by removing the existing file under the
-   **Files** section, then click on **Choose Files** and select the ``tar.gz``
-   release file for the core package release you are uploading, and click
-   **Start upload**. Before you publish this, there are a few fields to update
-   in the form: the **Publication date** should be set to the date the tar
-   file was uploaded to PyPI, the **Title** should be updated to include the
-   new version number, and the **Version** should be updated to include the
-   version number (with no ``v`` prefix). Once you are happy with the changes,
-   click **Save**, then **Publish**.
+#. Upload the release to Zenodo by creating a GitHub Release off the GitHub tag.
+   Click on the tag in https://github.com/astropy/astropy/tags and then click on
+   the "Edit tag" button on the upper right. The release title is the same as the
+   tag. In the description, you can copy and paste a description from the previous
+   release, as it should be a one-liner that points to ``CHANGES.rst``. When you
+   are ready, click "Publish release" (the green button on bottom left).
+   A webhook to Zenodo will be activated and the release will appear under
+   https://doi.org/10.5281/zenodo.4670728 . If you encounter problems during this
+   step, please contact the Astropy Coordination Committee.
 
 #. Once the release(s) are available on the default ``conda`` channels,
    prepare the public announcement. Use the previous announcement as a
