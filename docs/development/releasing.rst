@@ -214,7 +214,7 @@ Post-Release procedures
    Click on the tag in https://github.com/astropy/astropy/tags and then click on
    the "Edit tag" button on the upper right. The release title is the same as the
    tag. In the description, you can copy and paste a description from the previous
-   release, as it should be a one-liner that points to `CHANGES.rst`. When you
+   release, as it should be a one-liner that points to ``CHANGES.rst``. When you
    are ready, click "Publish release" (the green button on bottom left).
    A webhook to Zenodo will be activated and the release will appear under
    https://doi.org/10.5281/zenodo.4670728 . If you encounter problems during this
