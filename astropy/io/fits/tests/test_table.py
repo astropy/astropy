@@ -2867,6 +2867,13 @@ class TestVLATables(FitsTestCase):
             for idx in range(1, 3):
                 assert comparerecords(new_hdul[idx].data, t2.data)
 
+    def test_vla_with_gap(self):
+        hdul = fits.open(self.data('theap-gap.fits'))
+        data = hdul[1].data
+        assert data.shape == (500,)
+        assert data['i'][497] == 497
+        assert np.array_equal(data['arr'][497], [0, 1, 2, 3, 4])
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
