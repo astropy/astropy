@@ -165,8 +165,9 @@ class _TableLikeHDU(_ValidHDU):
             # We have a heap; include it in the raw_data
             raw_data = self._get_raw_data(self._data_size, np.uint8,
                                           self._data_offset)
-            data = raw_data[:self._theap].view(dtype=columns.dtype,
-                                               type=np.rec.recarray)
+            tbsize = self._header['NAXIS1'] * self._header['NAXIS2']
+            data = raw_data[:tbsize].view(dtype=columns.dtype,
+                                          type=np.rec.recarray)
         else:
             raw_data = self._get_raw_data(self._nrows, columns.dtype,
                                           self._data_offset)
