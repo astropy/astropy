@@ -1,0 +1,25 @@
+name: On Issue Labeled
+
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  # The label here needs to be the same as that set for actions/stale (stalebot)
+  # job in ci_cron_daily.yml
+  stalebot:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'Close?')
+    steps:
+    - name: Stale issue message
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: 'This issue was labeled as **Close?**. Remove **Close?** label or this will be closed after 7 days. (This is currently a dry-run.)'
+          })
