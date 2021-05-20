@@ -1,22 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-
-from astropy import units as u
-from astropy.utils import unbroadcast
 import copy
 
-from .wcs import WCS, WCSSUB_LONGITUDE, WCSSUB_LATITUDE
+import numpy as np
+
+import astropy.units as u
+from astropy.coordinates import CartesianRepresentation, SphericalRepresentation, ITRS
+from astropy.utils import unbroadcast
+
+from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ['wcs_to_celestial_frame', 'celestial_frame_to_wcs']
 
-__all__ = ['add_stokes_axis_to_wcs', 'celestial_frame_to_wcs',
-           'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
-           'proj_plane_pixel_area', 'is_proj_plane_distorted',
-           'non_celestial_pixel_scales', 'skycoord_to_pixel',
-           'pixel_to_skycoord', 'custom_wcs_to_frame_mappings',
-           'custom_frame_to_wcs_mappings', 'pixel_to_pixel',
-           'local_partial_pixel_derivatives', 'fit_wcs_from_points']
+__all__ = ['obsgeo_to_frame', 'add_stokes_axis_to_wcs',
+           'celestial_frame_to_wcs', 'wcs_to_celestial_frame',
+           'proj_plane_pixel_scales', 'proj_plane_pixel_area',
+           'is_proj_plane_distorted', 'non_celestial_pixel_scales',
+           'skycoord_to_pixel', 'pixel_to_skycoord',
+           'custom_wcs_to_frame_mappings', 'custom_frame_to_wcs_mappings',
+           'pixel_to_pixel', 'local_partial_pixel_derivatives',
+           'fit_wcs_from_points']
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -49,9 +52,8 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
 def _wcs_to_celestial_frame_builtin(wcs):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import (FK4, FK4NoETerms, FK5, ICRS, ITRS,
+    from astropy.coordinates import (FK4, FK5, ICRS, ITRS, FK4NoETerms,
                                      Galactic, SphericalRepresentation)
-
     # Import astropy.time here otherwise setup.py fails before extensions are compiled
     from astropy.time import Time
 
@@ -108,7 +110,7 @@ def _wcs_to_celestial_frame_builtin(wcs):
 def _celestial_frame_to_wcs_builtin(frame, projection='TAN'):
 
     # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import BaseRADecFrame, FK4, FK4NoETerms, FK5, ICRS, ITRS, Galactic
+    from astropy.coordinates import FK4, FK5, ICRS, ITRS, BaseRADecFrame, FK4NoETerms, Galactic
 
     # Create a 2-dimensional WCS
     wcs = WCS(naxis=2)
@@ -918,7 +920,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
         WCS object
     """
 
-    from ..modeling.models import SIP   # here to avoid circular import
+    from ..modeling.models import SIP  # here to avoid circular import
 
     # unpack params
     crpix = params[0:2]
@@ -1011,10 +1013,12 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         The best-fit WCS to the points given.
     """
 
-    from astropy.coordinates import SkyCoord # here to avoid circular import
-    import astropy.units as u
-    from .wcs import Sip
     from scipy.optimize import least_squares
+
+    import astropy.units as u
+    from astropy.coordinates import SkyCoord  # here to avoid circular import
+
+    from .wcs import Sip
 
     xp, yp = xy
     try:
@@ -1137,3 +1141,59 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
                       np.zeros((degree+1, degree+1)), wcs.wcs.crpix)
 
     return wcs
+
+
+def obsgeo_to_frame(obsgeo, obstime):
+    """
+    Convert a WCS obsgeo property into an `~.builtin_frames.ITRS` coordinate frame.
+
+    Parameters
+    ----------
+    obsgeo : array-like
+        A shape ``(6, )`` array representing ``OBSGEO-[XYZ], OBSGEO-[BLH]`` as
+        returned by ``WCS.wcs.obsgeo``.
+
+    obstime : time-like
+        The time assiociated with the coordinate, will be passed to
+        `~.builtin_frames.ITRS` as the obstime keyword.
+
+    Returns
+    -------
+    `~.builtin_frames.ITRS`
+        An `~.builtin_frames.ITRS` coordinate frame
+        representing the coordinates.
+
+    Notes
+    -----
+
+    The obsgeo array as accessed on a `.WCS` object is a length 6 numpy array
+    where the first three elements are the coordinate in a cartesian
+    representation and the second 3 are the coordinate in a spherical
+    representation.
+
+    This function priorities reading the cartesian coordinates, and will only
+    read the spherical coordinates if the cartesian coordinates are either all
+    zero or any of the cartesian coordinates are non-finite.
+
+    In the case where both the spherical and cartesian coordinates have some
+    non-finite values the spherical coordinates will be returned with the
+    non-finite values included.
+
+    """
+    if (obsgeo is None
+        or len(obsgeo) != 6
+        or np.all(np.array(obsgeo) == 0)
+        or np.all(~np.isfinite(obsgeo))
+    ):
+        raise ValueError(f"Can not parse the 'obsgeo' location ({obsgeo}). "
+                         "obsgeo should be a length 6 non-zero, finite numpy array")
+
+    # If the cartesian coords are zero or have NaNs in them use the spherical ones
+    if np.all(obsgeo[:3] == 0) or np.any(~np.isfinite(obsgeo[:3])):
+        data = SphericalRepresentation(*(obsgeo[3:] * (u.deg, u.deg, u.m)))
+
+    # Otherwise we assume the cartesian ones are valid
+    else:
+        data = CartesianRepresentation(*obsgeo[:3] * u.m)
+
+    return ITRS(data, obstime=obstime)
