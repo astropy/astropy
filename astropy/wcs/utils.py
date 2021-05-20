@@ -1145,7 +1145,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
 def obsgeo_to_frame(obsgeo, obstime):
     """
-    Convert a WCS obsgeo property into an `~builtin_frames.ITRS` coordinate frame.
+    Convert a WCS obsgeo property into an `~.builtin_frames.ITRS` coordinate frame.
 
     Parameters
     ----------
