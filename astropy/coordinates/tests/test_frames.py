@@ -32,6 +32,7 @@ from astropy.coordinates.baseframe import (
 )
 from astropy.coordinates.builtin_frames import (
     AltAz,
+    HADec,
     FK4,
     FK5,
     Galactic,
@@ -750,6 +751,24 @@ def test_altaz_attributes():
 
     aa3 = AltAz(1*u.deg, 2*u.deg, location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
     assert isinstance(aa3.location, EarthLocation)
+
+
+def test_hadec_attributes():
+    hd = HADec(1*u.hourangle, 2*u.deg)
+    assert hd.ha == 1.*u.hourangle
+    assert hd.dec == 2*u.deg
+    assert hd.obstime is None
+    assert hd.location is None
+
+    hd2 = HADec(23*u.hourangle, -2*u.deg, obstime='J2000',
+                location=EarthLocation(0*u.deg, 0*u.deg, 0*u.m))
+    assert_allclose(hd2.ha, -1*u.hourangle)
+    assert hd2.dec == -2*u.deg
+    assert hd2.obstime == Time('J2000')
+    assert isinstance(hd2.location, EarthLocation)
+
+    sr = hd2.represent_as(r.SphericalRepresentation)
+    assert_allclose(sr.lon, -1*u.hourangle)
 
 
 def test_representation():

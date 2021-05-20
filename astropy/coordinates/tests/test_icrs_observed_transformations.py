@@ -57,22 +57,22 @@ def test_icrs_hadec_consistency():
 
     observer = EarthLocation(28*u.deg, 23*u.deg, height=2000.*u.km)
     obstime = Time('J2010')
-    aa_frame = HADec(obstime=obstime, location=observer)
+    hd_frame = HADec(obstime=obstime, location=observer)
 
     # check we are going direct!
     trans = frame_transform_graph.get_transform(ICRS, HADec).transforms
     assert(len(trans) == 1)
 
     # check that ICRS-HADec and ICRS->CIRS->HADec are consistent
-    aa1 = icoo.transform_to(aa_frame)
-    aa2 = icoo.transform_to(CIRS()).transform_to(aa_frame)
+    aa1 = icoo.transform_to(hd_frame)
+    aa2 = icoo.transform_to(CIRS()).transform_to(hd_frame)
     assert_allclose(aa1.separation_3d(aa2), 0*u.mm, atol=1*u.mm)
 
     # check roundtrip
-    roundtrip = icoo.transform_to(aa_frame).transform_to(icoo)
+    roundtrip = icoo.transform_to(hd_frame).transform_to(icoo)
     assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
 
     # check there and back via CIRS mish-mash
-    roundtrip = icoo.transform_to(aa_frame).transform_to(
+    roundtrip = icoo.transform_to(hd_frame).transform_to(
         CIRS()).transform_to(icoo)
     assert_allclose(roundtrip.separation_3d(icoo), 0*u.mm, atol=1*u.mm)
