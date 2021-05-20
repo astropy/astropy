@@ -72,7 +72,7 @@ jobs:
         days-before-pr-stale: 150
         days-before-pr-close: 30
         remove-pr-stale-when-updated: false
-        stale-pr-message: 'This pull request is stale because it has been open 150 days with no activity. Remove **Close?**, comment, or push, or this will be closed in 30 days.'
+        stale-pr-message: 'This pull request is stale because it has been open 150 days with no activity. Remove **Close?** or this will be closed in 30 days. Apply **keep-open** if you want to keep it open indefinitely.'
         close-pr-message: 'I am going to close this pull request as per my previous message, but if you feel that this PR should stay open, then feel free to re-open, remove **Close?** and **closed-by-bot** labels, and apply **keep-open** label.'
         stale-pr-label: 'Close?'
         close-pr-label: 'closed-by-bot'
