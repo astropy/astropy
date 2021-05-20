@@ -1783,7 +1783,7 @@ class Time(TimeBase):
             angle (taken from a location as needed).  If `None` (default), taken
             from the ``location`` attribute of the Time instance. If the special
             string 'tio', the result will be relative to the Terrestrial
-            Intermediate Origin (i.e., the output of `~erfa.era00`).
+            Intermediate Origin (TIO) (i.e., the output of `~erfa.era00`).
 
         Returns
         -------
@@ -1794,16 +1794,23 @@ class Time(TimeBase):
         --------
         astropy.time.Time.sidereal_time
 
+        Reference
+        ---------
+        IAU 2006 NFA Glossary
+        (currently located at: https://syrte.obspm.fr/iauWGnfa/NFA_Glossary.html)
+
         Notes
         -----
         The difference between apparent sidereal time and Earth rotation angle
-        is the equation of the origins which is the angle between the CIO and
-        the equinox. Applying apparent sidereal time to the hour angle yields
-        the true apparent Right Ascension with respect to the equinox, while
-        applying the Earth rotation angle yields the intermediate Right
-        Ascension with respect to the CIO.
+        is the equation of the origins which is the angle between the Celestial
+        Intermediate Origin (CIO) and the equinox. Applying apparent sidereal
+        time to the hour angle yields the true apparent Right Ascension with
+        respect to the equinox, while applying the Earth rotation angle yields
+        the intermediate (CIRS) Right Ascension with respect to the CIO.
 
-        The result includes the TIO locator rigorously corrected for polar motion
+        The result includes the TIO locator (s'), which positions the Terrestrial
+        Intermediate Origin on the equator of the Celestial Intermediate Pole (CIP)
+        and is rigorously corrected for polar motion.
         (except when ``longitude='tio'``).
 
         """
@@ -1813,8 +1820,9 @@ class Time(TimeBase):
         else:
             include_tio = True
 
-        return self._st_or_era(longitude=longitude, function=erfa.era00,
-                               scales=('ut1',), include_tio=include_tio)
+        return self._sid_time_or_earth_rot_ang(longitude=longitude,
+                                               function=erfa.era00, scales=('ut1',),
+                                               include_tio=include_tio)
 
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
@@ -1830,8 +1838,8 @@ class Time(TimeBase):
             from the ``location`` attribute of the Time instance. If the special
             string  'greenwich' or 'tio', the result will be relative to longitude
             0 for models before 2000, and relative to the Terrestrial Intermediate
-            Origin for later ones (i.e., the output of the relevant ERFA function
-            that calculates greenwich sidereal time).
+            Origin (TIO) for later ones (i.e., the output of the relevant ERFA
+            function that calculates greenwich sidereal time).
         model : str or None; optional
             Precession (and nutation) model to use.  The available ones are:
             - {0}: {1}
@@ -1848,18 +1856,24 @@ class Time(TimeBase):
         --------
         astropy.time.Time.earth_rotation_angle
 
+        Reference
+        ---------
+        IAU 2006 NFA Glossary
+        (currently located at: https://syrte.obspm.fr/iauWGnfa/NFA_Glossary.html)
+
         Notes
         -----
         The difference between apparent sidereal time and Earth rotation angle
-        is the equation of the origins which is the angle between the CIO and
-        the equinox. Applying apparent sidereal time to the hour angle yields
-        the true apparent Right Ascension with respect to the equinox, while
-        applying the Earth rotation angle yields the intermediate Right
-        Ascension with respect to the CIO.
+        is the equation of the origins which is the angle between the Celestial
+        Intermediate Origin (CIO) and the equinox. Applying apparent sidereal
+        time to the hour angle yields the true apparent Right Ascension with
+        respect to the equinox, while applying the Earth rotation angle yields
+        the intermediate (CIRS) Right Ascension with respect to the CIO.
 
-        For the IAU precession models from 2000 onwards, the result includes
-        the TIO locator rigorously corrected for polar motion (except when
-        ``longitude='tio'`` or ``'greenwich'``).
+        For the IAU precession models from 2000 onwards, the result includes the
+        TIO locator (s'), which positions the Terrestrial Intermediate Origin on
+        the equator of the Celestial Intermediate Pole (CIP) and is rigorously
+        corrected for polar motion (except when ``longitude='tio'`` or ``'greenwich'``).
 
         """  # docstring is formatted below
 
@@ -1884,14 +1898,14 @@ class Time(TimeBase):
             model_kwargs = model_kwargs.copy()
             model_kwargs['include_tio'] = False
 
-        return self._st_or_era(longitude=longitude, **model_kwargs)
+        return self._sid_time_or_earth_rot_ang(longitude=longitude, **model_kwargs)
 
     if isinstance(sidereal_time.__doc__, str):
         sidereal_time.__doc__ = sidereal_time.__doc__.format(
             'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
             'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
 
-    def _st_or_era(self, longitude, function, scales, include_tio=True):
+    def _sid_time_or_earth_rot_ang(self, longitude, function, scales, include_tio=True):
         """Calculate a local sidereal time or Earth rotation angle.
 
         Parameters
