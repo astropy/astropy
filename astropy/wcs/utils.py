@@ -1145,22 +1145,23 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
 
 def obsgeo_to_frame(obsgeo, obstime):
     """
-    Convert a WCS obsgeo property into an ITRS coordinate frame.
+    Convert a WCS obsgeo property into an `~builtin_frames.ITRS` coordinate frame.
 
     Parameters
     ----------
     obsgeo : array-like
         A shape ``(6, )`` array representing ``OBSGEO-[XYZ], OBSGEO-[BLH]`` as
-        returned by `astropy.wcs.WCS.wcs.obsgeo`.
+        returned by ``WCS.wcs.obsgeo``.
 
     obstime : time-like
         The time assiociated with the coordinate, will be passed to
-        `astropy.coordinates.ITRS` as the obstime keyword.
+        `~.builtin_frames.ITRS` as the obstime keyword.
 
     Returns
     -------
-    `.ITRS`
-        An `~astropy.coordinates.ITRS` coordinate frame representing the coordinates.
+    `~.builtin_frames.ITRS`
+        An `~.builtin_frames.ITRS` coordinate frame
+        representing the coordinates.
 
     Notes
     -----
