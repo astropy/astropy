@@ -1,0 +1,1 @@
+``astropy.wcs.utils.obsgeo_to_frame`` has been added to convert the obsgeo coordinate array on ``astropy.wcs.WCS`` objects to an ``ITRS`` coordinate frame instance.
