@@ -105,6 +105,23 @@ class HADec(BaseCoordinateFrame):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.has_data:
+            self._set_data_lon_wrap_angle(self.data)
+
+    @staticmethod
+    def _set_data_lon_wrap_angle(data):
+        if hasattr(data, 'lon'):
+            data.lon.wrap_angle = 180. * u.deg
+        return data
+
+    def represent_as(self, base, s='base', in_frame_units=False):
+        """
+        Ensure the wrap angle for any spherical
+        representations.
+        """
+        data = super().represent_as(base, s, in_frame_units=in_frame_units)
+        self._set_data_lon_wrap_angle(data)
+        return data
 
 
 # self-transform defined in cirs_observed_transforms.py

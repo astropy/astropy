@@ -797,8 +797,7 @@ def test_aa_hd_high_precision():
                          lat.to_value(u.radian))
     ha = u.Quantity(ha, u.radian, copy=False)
     dec = u.Quantity(dec, u.radian, copy=False)
-    assert_allclose(Angle(moon_hd.ha - ha).wrap_at(180*u.deg),
-                    0*u.deg, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_hd.ha, ha, atol=0.1*u.uas, rtol=0)
     assert_allclose(moon_hd.dec, dec, atol=0.1*u.uas, rtol=0)
 
 
