@@ -242,7 +242,7 @@ supported in the basic Python command-line interpreter on Windows.
 
 Python's ``int()`` goes through ``__index__``
 while ``numpy.int64`` or ``numpy.int_`` do not go through ``__index__``. This
-means that an upstream fix in ``numpy` is required in order for
+means that an upstream fix in NumPy is required in order for
 ``astropy.units`` to control decomposing the input in these functions::
 
     >>> np.int64((15 * u.km) / (15 * u.imperial.foot))
