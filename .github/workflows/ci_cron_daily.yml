@@ -47,6 +47,7 @@ jobs:
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
 
   # TODO: Remove debug-only when ready for production.
+  # NOTE: remove-pr-stale-when-updated includes comments/milestones, resulting in false negative.
   stalebot:
     runs-on: ubuntu-latest
     if: github.repository == 'astropy/astropy' && github.event_name == 'schedule'
@@ -57,19 +58,20 @@ jobs:
 
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         operations-per-run: 50
-        ascending: true
+        ascending: false
 
         days-before-issue-stale: -1
         days-before-issue-close: 7
         remove-issue-stale-when-updated: false
         close-issue-message: 'I am going to close this issue because it was marked with **Close?**, but if you feel that this issue should stay open, then feel free to re-open, remove **Close?** and **closed-by-bot** labels, and apply **keep-open** label.'
+        stale-issue-label: 'Close?'
         close-issue-label: 'closed-by-bot'
         exempt-issue-labels: 'keep-open'
         any-of-issue-labels: 'Close?'
 
         days-before-pr-stale: 150
         days-before-pr-close: 30
-        remove-pr-stale-when-updated: true
+        remove-pr-stale-when-updated: false
         stale-pr-message: 'This pull request is stale because it has been open 150 days with no activity. Remove **Close?**, comment, or push, or this will be closed in 30 days.'
         close-pr-message: 'I am going to close this pull request as per my previous message, but if you feel that this PR should stay open, then feel free to re-open, remove **Close?** and **closed-by-bot** labels, and apply **keep-open** label.'
         stale-pr-label: 'Close?'
