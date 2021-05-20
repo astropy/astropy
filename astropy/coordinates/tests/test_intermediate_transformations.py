@@ -20,7 +20,7 @@ from astropy.coordinates import (
     EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz, HADec,
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
-    HCRS, HeliocentricMeanEcliptic, TEME, TETE)
+    HCRS, HeliocentricMeanEcliptic, TEME, TETE, Angle)
 from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates, get_body
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
@@ -731,8 +731,14 @@ def test_straight_overhead():
     topocentric_cirs_frame = CIRS(obstime=t, location=home)
     cirs_topo = topocentric_cirs_frame.realize_frame(cirs_repr)
 
+    # Check AltAz (though Azimuth can be anything so is not tested).
     aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
-    assert_allclose(aa.alt, 90*u.deg)
+    assert_allclose(aa.alt, 90*u.deg, atol=1*u.uas, rtol=0)
+
+    # Check HADec.
+    hd = cirs_topo.transform_to(HADec(obstime=t, location=home))
+    assert_allclose(hd.ha, 0*u.hourangle, atol=1*u.uas, rtol=0)
+    assert_allclose(hd.dec, 52*u.deg, atol=1*u.uas, rtol=0)
 
 
 def jplephem_ge(minversion):
@@ -748,7 +754,7 @@ def jplephem_ge(minversion):
 
 @pytest.mark.remote_data
 @pytest.mark.skipif(not jplephem_ge('2.15'), reason='requires jplephem >= 2.15')
-def test_aa_high_precision():
+def test_aa_hd_high_precision():
     """These tests are provided by @mkbrewer - see issue #10356.
 
     The code that produces them agrees very well (<0.5 mas) with SkyField once Polar motion
@@ -763,7 +769,7 @@ def test_aa_high_precision():
 
     NOTE: the agreement reflects consistency in approach between two codes,
     not necessarily absolute precision.  If this test starts failing, the
-    tolerance can and shouls be weakened *if* it is clear that the change is
+    tolerance can and should be weakened *if* it is clear that the change is
     due to an improvement (e.g., a new IAU precession model).
 
     """
@@ -777,6 +783,7 @@ def test_aa_high_precision():
     with solar_system_ephemeris.set('de430'):
         moon = get_body('moon', t, loc)
         moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
+        moon_hd = moon.transform_to(HADec(obstime=t, location=loc))
 
     # Numbers from
     # https://github.com/astropy/astropy/pull/11073#issuecomment-735486271
@@ -786,6 +793,13 @@ def test_aa_high_precision():
     assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1*u.uas, rtol=0)
     assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1*u.uas, rtol=0)
     assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1*u.mm, rtol=0)
+    ha, dec = erfa.ae2hd(moon_aa.az.to_value(u.radian), moon_aa.alt.to_value(u.radian),
+                         lat.to_value(u.radian))
+    ha = u.Quantity(ha, u.radian, copy=False)
+    dec = u.Quantity(dec, u.radian, copy=False)
+    assert_allclose(Angle(moon_hd.ha - ha).wrap_at(180*u.deg),
+                    0*u.deg, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_hd.dec, dec, atol=0.1*u.uas, rtol=0)
 
 
 def test_aa_high_precision_nodata():
