@@ -1139,7 +1139,9 @@ Terrestrial Time, the Earth rotation angle is referred to the Celestial
 Intermediate Origin (CIO) and is a linear function of UT1 alone.
 
 For the recent IAU precession models, as well as for the Earth rotation angle,
-the longitude includes the TIO locator rigorously corrected for polar motion.
+the result includes the TIO locator (s'), which positions the Terrestrial
+Intermediate Origin on the equator of the Celestial Intermediate Pole (CIP)
+and is rigorously corrected for polar motion.
 
 Example
 ^^^^^^^
