@@ -1288,27 +1288,29 @@ def test_pixel_to_world_itrs(x_in, y_in):
     np.testing.assert_almost_equal(y, y_in)
 
 
-@pytest.mark.remote_data
-def test_obsgeo_cartesian():
+@pytest.fixture
+def dkist_location():
+    return EarthLocation(*(-5466045.25695494, -2404388.73741278, 2242133.88769004) * u.m)
+
+
+def test_obsgeo_cartesian(dkist_location):
     obstime = Time("2021-05-21T03:00:00")
-    location = EarthLocation.of_site("DKIST")
     wcs = WCS(naxis=2)
-    wcs.wcs.obsgeo = list(location.to_value(u.m).tolist()) + [0, 0, 0]
+    wcs.wcs.obsgeo = list(dkist_location.to_value(u.m).tolist()) + [0, 0, 0]
     wcs.wcs.dateobs = obstime.isot
 
     frame = obsgeo_to_frame(wcs.wcs.obsgeo, obstime)
 
     assert isinstance(frame, ITRS)
-    assert frame.x == location.x
-    assert frame.y == location.y
-    assert frame.z == location.z
+    assert frame.x == dkist_location.x
+    assert frame.y == dkist_location.y
+    assert frame.z == dkist_location.z
 
 
-@pytest.mark.remote_data
-def test_obsgeo_spherical():
+def test_obsgeo_spherical(dkist_location):
     obstime = Time("2021-05-21T03:00:00")
-    location = EarthLocation.of_site("DKIST").get_itrs(obstime)
-    loc_sph = location.spherical
+    dkist_location = dkist_location.get_itrs(obstime)
+    loc_sph = dkist_location.spherical
 
     wcs = WCS(naxis=2)
     wcs.wcs.obsgeo = [0, 0, 0] + [loc_sph.lon.value, loc_sph.lat.value, loc_sph.distance.value]
@@ -1317,16 +1319,15 @@ def test_obsgeo_spherical():
     frame = obsgeo_to_frame(wcs.wcs.obsgeo, obstime)
 
     assert isinstance(frame, ITRS)
-    assert u.allclose(frame.x, location.x)
-    assert u.allclose(frame.y, location.y)
-    assert u.allclose(frame.z, location.z)
+    assert u.allclose(frame.x, dkist_location.x)
+    assert u.allclose(frame.y, dkist_location.y)
+    assert u.allclose(frame.z, dkist_location.z)
 
 
-@pytest.mark.remote_data
-def test_obsgeo_infinite():
+def test_obsgeo_infinite(dkist_location):
     obstime = Time("2021-05-21T03:00:00")
-    location = EarthLocation.of_site("DKIST").get_itrs(obstime)
-    loc_sph = location.spherical
+    dkist_location = dkist_location.get_itrs(obstime)
+    loc_sph = dkist_location.spherical
 
     wcs = WCS(naxis=2)
     wcs.wcs.obsgeo = [1, 1, np.nan] + [loc_sph.lon.value, loc_sph.lat.value, loc_sph.distance.value]
@@ -1336,9 +1337,9 @@ def test_obsgeo_infinite():
     frame = obsgeo_to_frame(wcs.wcs.obsgeo, obstime)
 
     assert isinstance(frame, ITRS)
-    assert u.allclose(frame.x, location.x)
-    assert u.allclose(frame.y, location.y)
-    assert u.allclose(frame.z, location.z)
+    assert u.allclose(frame.x, dkist_location.x)
+    assert u.allclose(frame.y, dkist_location.y)
+    assert u.allclose(frame.z, dkist_location.z)
 
 
 @pytest.mark.parametrize("obsgeo", ([np.nan] * 6, None, [0] * 6, [54] * 5))
