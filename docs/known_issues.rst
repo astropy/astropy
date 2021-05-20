@@ -210,14 +210,6 @@ If one cannot upgrade to numpy 1.17 or later, one solution is::
     >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
     False
 
-Quantities in np.linspace Failure on NumPy 1.10
------------------------------------------------
-
-`~numpy.linspace` does not work correctly with quantities when using NumPy
-1.10.0 to 1.10.5 due to a bug in NumPy. The solution is to upgrade to NumPy
-1.10.6 or later, in which the bug was fixed.
-
-
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
@@ -250,7 +242,7 @@ supported in the basic Python command-line interpreter on Windows.
 
 Python's ``int()`` goes through ``__index__``
 while ``numpy.int64`` or ``numpy.int_`` do not go through ``__index__``. This
-means that an upstream fix in ``numpy` is required in order for
+means that an upstream fix in NumPy is required in order for
 ``astropy.units`` to control decomposing the input in these functions::
 
     >>> np.int64((15 * u.km) / (15 * u.imperial.foot))
@@ -348,34 +340,6 @@ not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
 
-
-Some Docstrings Can Not Be Displayed in IPython < 0.13.2
---------------------------------------------------------
-
-Displaying long docstrings that contain Unicode characters may fail on
-some platforms in the IPython console (prior to IPython version
-0.13.2)::
-
-    In [1]: import astropy.units as u
-
-    In [2]: u.Angstrom?
-    Out[2]: ERROR: UnicodeEncodeError: 'ascii' codec can't encode character u'\xe5' in
-    position 184: ordinal not in range(128) [IPython.core.page]
-
-This can be worked around by changing the default encoding to ``utf-8``
-by adding the following to your ``sitecustomize.py`` file::
-
-    import sys
-    sys.setdefaultencoding('utf-8')
-
-Note that in general, `this is not recommended
-<https://stackoverflow.com/questions/3828723/why-should-we-not-use-sys-setdefaultencodingutf-8-in-a-py-script>`_,
-because it can hide other Unicode encoding bugs in your application.
-However, if your application does not deal with text
-processing and you just want docstrings to work, this may be
-acceptable.
-
-The IPython issue: https://github.com/ipython/ipython/pull/2738
 
 Compatibility Issues with pytest 3.7 and later
 ----------------------------------------------
