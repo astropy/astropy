@@ -27,22 +27,6 @@
 const char char_zero = 48;
 const char char_nine = 57;
 
-struct time_struct_t {
-    int year;
-    int month;
-    int day;
-    int hour;
-    int minute;
-    double second;
-};
-
-struct pars_struct_t {
-    char delim;
-    int start;
-    int stop;
-    npy_bool break_allowed;
-};
-
 int parse_int_from_char_array(char *chars, int str_len,
                               char delim, int idx0, int idx1,
                               int *val)
@@ -238,18 +222,47 @@ int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int 
 static void
 parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void *data)
 {
+    // Interpret gufunc loop arguments.
+    // Number of input strings to convert.
     npy_intp n = dimensions[0];
+    // Maximum number of characters (from gufunc signature '(max_str_len)->()').
     npy_intp max_str_len = dimensions[1];
+    // Pointer to start of input array (always char, as needed in this case).
     char *time = args[0];
+    // Pointer to start of output array (as char, recast to time_struct_t later).
     char *tm_ptr = args[1];
-    npy_intp i_time=steps[0];
-    npy_intp i_tm=steps[1];
+    // Step size for input (max_str_len if contiguous).
+    npy_intp i_time = steps[0];
+    // Step size for output (sizeof(time_struct_t) if contiguous).
+    npy_intp i_tm = steps[1];
+    // Parser information: a 7-element struct with for each of year, month,
+    // day, hour, minute, second_int, and second_frac, the delimiter (if any)
+    // that starts it, start and stop index of the relevant part of the
+    // string, and whether a break is allowed before this item.
+    // E.g., for ISO times "2000-01-12 13:14:15.678"
+    //                      01234567890123456789012
+    // the fourth entry for minutes will have pars[4].delim = ':',
+    // pars[4].start=13, pars[4].stop=15, and pars[4].break_allowed = True.
+    struct pars_struct_t {
+        char delim;
+        int start;
+        int stop;
+        npy_bool break_allowed;
+    };
+    struct pars_struct_t *fast_parser_pars = (struct pars_struct_t *)data;
+    npy_bool has_day_of_year = fast_parser_pars[1].start < 0;
 
-    struct pars_struct_t *pars;
-    npy_intp ii;
-    struct time_struct_t *tm;
-    npy_bool has_day_of_year;
-    int i, str_len, status;
+    // Output time information, in a struct that matches the output dtype.
+    // The results of parsing each of the pieces will be stored here,
+    // except that integer and fraction of seconds are added together.
+    struct time_struct_t {
+        int year;
+        int month;
+        int day;
+        int hour;
+        int minute;
+        double second;
+    };
 
     static char *msgs[5] = {
         "time string ends at beginning of component where break is not allowed",
@@ -258,24 +271,30 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
         "non-digit found where digit (0-9) required",
         "bad day of year (1 <= doy <= 365 or 366 for leap year"};
 
+    npy_intp ii;
+    int status;
+
+    // Loop over strings, updating pointers to next input and output element.
     for (ii = 0; ii < n; ii++, time+=i_time, tm_ptr+=i_tm)
     {
+        // Cast pointer to current output from char to the actual pointer
+        // type, of time struct.
+        struct time_struct_t *tm = (struct time_struct_t *)tm_ptr;
         int second_int = 0;
         double second_frac = 0.;
 
-        // Initialize default values
-        tm = (struct time_struct_t *)tm_ptr;
+        // Copy pointer so we can increment as we go.
+        struct pars_struct_t *pars = fast_parser_pars;
+        int i, str_len;
+
+        // Initialize default values.
         tm->month = 1;
         tm->day = 1;
         tm->hour = 0;
         tm->minute = 0;
         tm->second = 0.0;
 
-        // Parse "2000-01-12 13:14:15.678"
-        //        01234567890123456789012
-
-        // Check for null termination before max_str_len. If called using a contiguous
-        // numpy 2-d array of chars there may or may not be null terminations.
+        // Check for null termination before max_str_len.
         str_len = max_str_len;
         for (i = 0; i < max_str_len; i++) {
             if (time[i] == 0) {
@@ -284,8 +303,7 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
             }
         }
 
-        // Get each time component year, month, day, hour, minute, isec, frac
-        pars = (struct pars_struct_t *)data;
+        // Get each time component: year, month, day, hour, minute, isec, frac
         status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->year);
         if (status) {
             if (status == 1 && pars->break_allowed) { continue; }
@@ -293,7 +311,6 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
         }
 
         pars++;
-        has_day_of_year = pars->start < 0;
         // Optionally parse month
         if (!has_day_of_year) {
             status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->month);
@@ -332,6 +349,7 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
         }
 
         pars++;
+        // second comes in integer and fractional part.
         status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &second_int);
         if (status) {
             if (status == 1 && pars->break_allowed) { continue; }
