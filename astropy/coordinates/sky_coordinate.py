@@ -1035,7 +1035,7 @@ class SkyCoord(ShapedLikeNDArray):
             not give the same answer in this case.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`/coordinates/matchsep`.
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -1081,7 +1081,7 @@ class SkyCoord(ShapedLikeNDArray):
         and another.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`/coordinates/matchsep`.
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -1259,7 +1259,7 @@ class SkyCoord(ShapedLikeNDArray):
         catalog coordinates.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`/coordinates/matchsep`.
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -1324,7 +1324,7 @@ class SkyCoord(ShapedLikeNDArray):
         ``catalogcoord`` object.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`/coordinates/matchsep`.
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -1389,7 +1389,7 @@ class SkyCoord(ShapedLikeNDArray):
         `~astropy.coordinates.SkyCoord.separation`.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`/coordinates/matchsep`.
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -1448,7 +1448,7 @@ class SkyCoord(ShapedLikeNDArray):
         `~astropy.coordinates.SkyCoord.separation_3d`.
 
         For more on how to use this (and related) functionality, see the
-        examples in :doc:`/coordinates/matchsep`.
+        examples in :doc:`astropy:/coordinates/matchsep`.
 
         Parameters
         ----------

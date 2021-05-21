@@ -196,7 +196,8 @@ class SpectralQuantity(SpecificTypeQuantity):
             by the `~astropy.units` package, and should be a spectral unit.
         equivalencies : list of `~astropy.units.equivalencies.Equivalency`, optional
             A list of equivalence pairs to try if the units are not
-            directly convertible (along with spectral).  See :ref:`unit_equivalencies`.
+            directly convertible (along with spectral).
+            See :ref:`astropy:unit_equivalencies`.
             If not provided or ``[]``, spectral equivalencies will be used.
             If `None`, no equivalencies will be applied at all, not even any
             set globally or within a context.

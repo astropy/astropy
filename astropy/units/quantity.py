@@ -682,7 +682,7 @@ class Quantity(np.ndarray):
 
         equivalencies : list of tuple
             A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
             If not provided or ``[]``, class default equivalencies will be used
             (none for `~astropy.units.Quantity`, but may be set for subclasses)
             If `None`, no equivalencies will be applied at all, not even any
@@ -720,8 +720,8 @@ class Quantity(np.ndarray):
 
         equivalencies : list of tuple, optional
             A list of equivalence pairs to try if the units are not directly
-            convertible (see :ref:`unit_equivalencies`). If not provided or
-            ``[]``, class default equivalencies will be used (none for
+            convertible (see :ref:`astropy:unit_equivalencies`). If not provided
+            or ``[]``, class default equivalencies will be used (none for
             `~astropy.units.Quantity`, but may be set for subclasses).
             If `None`, no equivalencies will be applied at all, not even any
             set globally or within a context.

@@ -189,7 +189,7 @@ class OrthoPolynomialBase(PolynomialBase):
     The polynomials implemented here require a maximum degree in x and y.
 
     For explanation of ``x_domain``, ``y_domain``, ```x_window`` and ```y_window``
-    see :ref:`Notes regarding usage of domain and window <domain-window-note>`.
+    see :ref:`Notes regarding usage of domain and window <astropy:domain-window-note>`.
 
 
     Parameters

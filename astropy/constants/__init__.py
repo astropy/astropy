@@ -57,7 +57,7 @@ def set_enabled_constants(modname):
     """
     Context manager to temporarily set values in the ``constants``
     namespace to an older version.
-    See :ref:`astropy-constants-prior` for usage.
+    See :ref:`astropy:astropy-constants-prior` for usage.
 
     Parameters
     ----------

@@ -355,22 +355,42 @@ def rstjinja(app, docname, source):
         source[0] = rendered
 
 
-def resolve_astropy_dev_reference(app, env, node, contnode):
+def resolve_astropy_and_dev_reference(app, env, node, contnode):
     """
-    Reference targets beginning with ``astropy-dev:`` are a special case.
+    Reference targets for ``astropy:`` and ``astropy-dev:`` are special cases.
 
-    If we are building the development docs it is a local ref targetting the
+    Documentation links in astropy can be set up as intersphinx links so that
+    affiliate packages do not have to override the docstrings when building
+    the docs.
+
+    If we are building the development docs it is a local ref targeting the
     label ``astropy-dev:<label>``, but for stable docs it should be an
     intersphinx resolution to the development docs.
 
     See https://github.com/astropy/astropy/issues/11366
     """
+    # should the node be processed?
+    reftarget = node.get('reftarget')  # str or None
+    if str(reftarget).startswith('astropy:'):
+        # This allows Astropy to use intersphinx links to itself and have
+        # them resolve to local links. Downstream packages will see intersphinx.
+        # TODO! deprecate this if sphinx-doc/sphinx/issues/9169 is implemented.
+        process, replace = True, 'astropy:'
+    elif dev and str(reftarget).startswith('astropy-dev:'):
+        process, replace = True, 'astropy-dev:'
+    else:
+        process, replace = False, ''
 
-    reftarget = node.get('reftarget')
-    if dev and reftarget is not None and reftarget.startswith('astropy-dev:'):
+    # make link local
+    if process:
         reftype = node.get('reftype')
         refdoc = node.get('refdoc', app.env.docname)
-        reftarget = reftarget.split(':', 1)[1]
+        # convert astropy intersphinx targets to local links.
+        # there are a few types of intersphinx link patters, as described in
+        # https://docs.readthedocs.io/en/stable/guides/intersphinx.html
+        reftarget = reftarget.replace(replace, '')
+        if reftype == "doc":  # also need to replace the doc link
+            node.replace_attr("reftarget", reftarget)
         # Delegate to the ref node's original domain/target (typically :ref:)
         try:
             domain = app.env.domains[node['refdomain']]
@@ -401,5 +421,5 @@ def setup(app):
     # Set this to higher priority than intersphinx; this way when building
     # dev docs astropy-dev: targets will go to the local docs instead of the
     # intersphinx mapping
-    app.connect("missing-reference", resolve_astropy_dev_reference,
+    app.connect("missing-reference", resolve_astropy_and_dev_reference,
                 priority=400)
