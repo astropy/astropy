@@ -3,17 +3,16 @@
 Transforming between Systems
 ****************************
 
-`astropy.coordinates` supports a rich system for transforming
-coordinates from one frame to another. While common astronomy frames
-are built into Astropy, the transformation infrastructure is dynamic.
-This means it allows users to define new coordinate frames and their
-transformations. The topic of writing your own coordinate frame or
-transforms is detailed in :ref:`astropy-coordinates-design`, and this
-section is focused on how to *use* transformations.
+`astropy.coordinates` supports a rich system for transforming coordinates from
+one frame to another. While common astronomy frames are built into Astropy, the
+transformation infrastructure is dynamic. This means it allows users to define
+new coordinate frames and their transformations. The topic of writing your own
+coordinate frame or transforms is detailed in :ref:`coordinates-design`, and
+this section is focused on how to *use* transformations.
 
-The full list of built-in coordinate frames, the included transformations,
-and the frame names are shown as a (clickable) graph in the
-`~astropy.coordinates` API documentation.
+The full list of built-in coordinate frames, the included transformations, and
+the frame names are shown as a (clickable) graph in the `~astropy.coordinates`
+API documentation.
 
 Examples
 --------

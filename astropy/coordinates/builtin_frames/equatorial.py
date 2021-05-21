@@ -64,10 +64,10 @@ class TETE(BaseRADecFrame):
     with local apparent sidereal time to calculate the apparent (TIRS) hour angle.
 
     For more background on TETE, see the references provided in the
-    :ref:`astropy:astropy-coordinates-seealso` section of the documentation.
-    Of particular note are Sections 5 and 6 of
-    `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_) and
-    especially the diagram at the top of page 57.
+    :ref:`astropy:coordinates-seealso` section of the documentation.
+    Of particular note are Sections 5 and 6 of `USNO Circular 179
+    <https://arxiv.org/abs/astro-ph/0602086>`_) and especially the diagram at
+    the top of page 57.
 
     This frame also includes frames that are defined *relative* to the center of the Earth,
     but that are offset (in both position and velocity) from the center of the Earth. You
@@ -96,7 +96,7 @@ class TEME(BaseCoordinateFrame):
     conventions and relations to other frames that are set out in Vallado et al (2006).
 
     For more background on TEME, see the references provided in the
-    :ref:`astropy:astropy-coordinates-seealso` section of the documentation.
+    :ref:`astropy:coordinates-seealso` section of the documentation.
     """
 
     default_representation = CartesianRepresentation

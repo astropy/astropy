@@ -1,4 +1,4 @@
-.. _astropy-visualization-rgb:
+.. _visualization-rgb:
 
 *************************
 Creating color RGB images

@@ -82,7 +82,7 @@ cannot be used in expressions without specifying a system::
 ..
   EXAMPLE END
 
-.. _astropy-constants-prior:
+.. _constants-prior:
 
 Collections of Constants (and Prior Versions)
 =============================================

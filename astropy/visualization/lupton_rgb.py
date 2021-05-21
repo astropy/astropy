@@ -334,7 +334,7 @@ def make_lupton_rgb(image_r, image_g, image_b, minimum=0, stretch=5, Q=8,
     The input images can be int or float, and in any range or bit-depth.
 
     For a more detailed look at the use of this method, see the document
-    :ref:`astropy:astropy-visualization-rgb`.
+    :ref:`astropy:visualization-rgb`.
 
     Parameters
     ----------

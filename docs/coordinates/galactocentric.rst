@@ -16,10 +16,9 @@ velocity relative to the Galactic center, the solar height above the Galactic
 midplane, etc. Below, `we describe our generalized definition of the
 transformation <astropy-coordinates-galactocentric-transformation>`_ from the
 ICRS to/from Galactocentric coordinates, and `describe how to customize the
-default Galactocentric parameters
-<astropy-coordinates-galactocentric-defaults>`_ that are used when the
-`~astropy.coordinates.Galactocentric` frame is initialized without explicitly
-passing in parameter values.
+default Galactocentric parameters <coordinates-galactocentric-defaults>`_ that
+are used when the `~astropy.coordinates.Galactocentric` frame is initialized
+without explicitly passing in parameter values.
 
 
 .. _astropy-coordinates-galactocentric-transformation:
@@ -145,7 +144,7 @@ The full transformation is then:
     :ref:`sphx_glr_generated_examples_coordinates_plot_galactocentric-frame.py`.
 
 
-.. _astropy-coordinates-galactocentric-defaults:
+.. _coordinates-galactocentric-defaults:
 
 Controlling the Default Frame Parameters
 ========================================

@@ -129,7 +129,7 @@ offset location::
     <SkyCoord (ICRS): (ra, dec) in deg
         (86.77852168, -31.57496415)>
 
-.. _astropy-skyoffset-frames:
+.. _skyoffset-frames:
 
 "Sky Offset" Frames
 -------------------

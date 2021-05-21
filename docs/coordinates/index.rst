@@ -521,7 +521,7 @@ source code, or typing the following in an IPython session::
    do that
 .. include:: performance.inc.rst
 
-.. _astropy-coordinates-seealso:
+.. _coordinates-seealso:
 
 See Also
 ========

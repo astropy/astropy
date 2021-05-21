@@ -88,8 +88,7 @@ class galactocentric_frame_defaults(ScienceState):
     :meth:`~galactocentric_frame_defaults.get_from_registry` since
     it ensures the immutability of the registry.
 
-    See :ref:`astropy:astropy-coordinates-galactocentric-defaults` for more
-    information.
+    See :ref:`astropy:coordinates-galactocentric-defaults` for more information.
 
     Examples
     --------

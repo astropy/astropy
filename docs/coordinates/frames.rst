@@ -306,7 +306,7 @@ manipulate transformations, see the `~astropy.coordinates.TransformGraph`
 documentation.
 
 
-.. _astropy-coordinates-design:
+.. _coordinates-design:
 
 Defining a New Frame
 ====================
@@ -362,8 +362,8 @@ subclasses.
 Customizing Frame Component Names
 ---------------------------------
 
-First, as mentioned in the point (1) :ref:`above <astropy-coordinates-design>`,
-some frame classes have special names for their components. For example, the
+First, as mentioned in the point (1) :ref:`above <coordinates-design>`, some
+frame classes have special names for their components. For example, the
 `~astropy.coordinates.ICRS` frame and other equatorial frame classes often use
 "Right Ascension" or "RA" in place of longitude, and "Declination" or "Dec." in
 place of latitude. These component name overrides, which change the frame
@@ -429,7 +429,7 @@ Defining Frame Attributes
 -------------------------
 
 Second, as indicated by the point (2) in the :ref:`introduction above
-<astropy-coordinates-design>`, it is often useful for coordinate frames to allow
+<coordinates-design>`, it is often useful for coordinate frames to allow
 specifying frame "attributes" that may specify additional data or parameters
 needed in order to fully specify transformations between a given frame and some
 other frame. For example, the `~astropy.coordinates.FK5` frame allows specifying
@@ -544,7 +544,7 @@ Defining Transformations between Frames
 ---------------------------------------
 
 As indicated by the point (3) in the :ref:`introduction above
-<astropy-coordinates-design>`, a frame class on its own is likely not very
+<coordinates-design>`, a frame class on its own is likely not very
 useful until transformations are defined between it and other coordinate frame
 classes. The key concept for defining transformations in ``astropy.coordinates``
 is the "frame transform graph" (in the "graph theory" sense, not "plot"), which
@@ -630,7 +630,7 @@ Supporting Velocity Data in Frames
 ----------------------------------
 
 As alluded to by point (4) in the :ref:`introduction above
-<astropy-coordinates-design>`, the examples we have seen above mostly deal with
+<coordinates-design>`, the examples we have seen above mostly deal with
 customizing frame behavior for positional information. (For some context about
 how velocities are handled in ``astropy.coordinates``, it may be useful to read
 the overview: :ref:`astropy-coordinate-custom-frame-with-velocities`.)
