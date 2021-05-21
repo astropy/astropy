@@ -17,10 +17,10 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.coordinates import (
-    EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz,
+    EarthLocation, get_sun, ICRS, GCRS, CIRS, ITRS, AltAz, HADec,
     PrecessedGeocentric, CartesianRepresentation, SkyCoord,
     CartesianDifferential, SphericalRepresentation, UnitSphericalRepresentation,
-    HCRS, HeliocentricMeanEcliptic, TEME, TETE)
+    HCRS, HeliocentricMeanEcliptic, TEME, TETE, Angle)
 from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates, get_body
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
@@ -172,6 +172,31 @@ def test_cirs_to_altaz():
     assert_allclose(cirs.dec, cirs3.dec)
 
 
+def test_cirs_to_hadec():
+    """
+    Check the basic CIRS<->HADec transforms.
+    """
+    from astropy.coordinates import EarthLocation
+
+    usph = golden_spiral_grid(200)
+    dist = np.linspace(0.5, 1, len(usph)) * u.pc
+    cirs = CIRS(usph, obstime='J2000')
+    crepr = SphericalRepresentation(lon=usph.lon, lat=usph.lat, distance=dist)
+    cirscart = CIRS(crepr, obstime=cirs.obstime, representation_type=CartesianRepresentation)
+
+    loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
+    hadecframe = HADec(location=loc, obstime=Time('J2005'))
+
+    cirs2 = cirs.transform_to(hadecframe).transform_to(cirs)
+    cirs3 = cirscart.transform_to(hadecframe).transform_to(cirs)
+
+    # check round-tripping
+    assert_allclose(cirs.ra, cirs2.ra)
+    assert_allclose(cirs.dec, cirs2.dec)
+    assert_allclose(cirs.ra, cirs3.ra)
+    assert_allclose(cirs.dec, cirs3.dec)
+
+
 def test_gcrs_itrs():
     """
     Check basic GCRS<->ITRS transforms for round-tripping.
@@ -268,6 +293,33 @@ def test_gcrs_altaz():
     assert_allclose(aa1.az, aa2.az)
     assert_allclose(aa1.alt, aa3.alt)
     assert_allclose(aa1.az, aa3.az)
+
+
+def test_gcrs_hadec():
+    """
+    Check GCRS<->HADec transforms for round-tripping.  Has multiple paths
+    """
+    from astropy.coordinates import EarthLocation
+
+    usph = golden_spiral_grid(128)
+    gcrs = GCRS(usph, obstime='J2000')  # broadcast with times below
+
+    # check array times sure N-d arrays work
+    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day,
+                 format='jd')[:, np.newaxis]
+
+    loc = EarthLocation(lon=10 * u.deg, lat=80. * u.deg)
+    hdframe = HADec(obstime=times, location=loc)
+
+    hd1 = gcrs.transform_to(hdframe)
+    hd2 = gcrs.transform_to(ICRS()).transform_to(CIRS()).transform_to(hdframe)
+    hd3 = gcrs.transform_to(ITRS()).transform_to(CIRS()).transform_to(hdframe)
+
+    # make sure they're all consistent
+    assert_allclose(hd1.dec, hd2.dec)
+    assert_allclose(hd1.ha, hd2.ha)
+    assert_allclose(hd1.dec, hd3.dec)
+    assert_allclose(hd1.ha, hd3.ha)
 
 
 def test_precessed_geocentric():
@@ -679,8 +731,14 @@ def test_straight_overhead():
     topocentric_cirs_frame = CIRS(obstime=t, location=home)
     cirs_topo = topocentric_cirs_frame.realize_frame(cirs_repr)
 
+    # Check AltAz (though Azimuth can be anything so is not tested).
     aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
-    assert_allclose(aa.alt, 90*u.deg)
+    assert_allclose(aa.alt, 90*u.deg, atol=1*u.uas, rtol=0)
+
+    # Check HADec.
+    hd = cirs_topo.transform_to(HADec(obstime=t, location=home))
+    assert_allclose(hd.ha, 0*u.hourangle, atol=1*u.uas, rtol=0)
+    assert_allclose(hd.dec, 52*u.deg, atol=1*u.uas, rtol=0)
 
 
 def jplephem_ge(minversion):
@@ -696,7 +754,7 @@ def jplephem_ge(minversion):
 
 @pytest.mark.remote_data
 @pytest.mark.skipif(not jplephem_ge('2.15'), reason='requires jplephem >= 2.15')
-def test_aa_high_precision():
+def test_aa_hd_high_precision():
     """These tests are provided by @mkbrewer - see issue #10356.
 
     The code that produces them agrees very well (<0.5 mas) with SkyField once Polar motion
@@ -711,7 +769,7 @@ def test_aa_high_precision():
 
     NOTE: the agreement reflects consistency in approach between two codes,
     not necessarily absolute precision.  If this test starts failing, the
-    tolerance can and shouls be weakened *if* it is clear that the change is
+    tolerance can and should be weakened *if* it is clear that the change is
     due to an improvement (e.g., a new IAU precession model).
 
     """
@@ -725,6 +783,7 @@ def test_aa_high_precision():
     with solar_system_ephemeris.set('de430'):
         moon = get_body('moon', t, loc)
         moon_aa = moon.transform_to(AltAz(obstime=t, location=loc))
+        moon_hd = moon.transform_to(HADec(obstime=t, location=loc))
 
     # Numbers from
     # https://github.com/astropy/astropy/pull/11073#issuecomment-735486271
@@ -734,6 +793,12 @@ def test_aa_high_precision():
     assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1*u.uas, rtol=0)
     assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1*u.uas, rtol=0)
     assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1*u.mm, rtol=0)
+    ha, dec = erfa.ae2hd(moon_aa.az.to_value(u.radian), moon_aa.alt.to_value(u.radian),
+                         lat.to_value(u.radian))
+    ha = u.Quantity(ha, u.radian, copy=False)
+    dec = u.Quantity(dec, u.radian, copy=False)
+    assert_allclose(moon_hd.ha, ha, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_hd.dec, dec, atol=0.1*u.uas, rtol=0)
 
 
 def test_aa_high_precision_nodata():

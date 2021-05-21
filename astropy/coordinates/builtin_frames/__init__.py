@@ -32,6 +32,7 @@ from .galactic import Galactic
 from .galactocentric import Galactocentric, galactocentric_frame_defaults
 from .supergalactic import Supergalactic
 from .altaz import AltAz
+from .hadec import HADec
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
@@ -61,8 +62,8 @@ from astropy.coordinates.baseframe import frame_transform_graph
 # get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
            'galactocentric_frame_defaults',
-           'Supergalactic', 'AltAz', 'GCRS', 'CIRS', 'ITRS', 'HCRS', 'TEME',
-           'TETE', 'PrecessedGeocentric', 'GeocentricMeanEcliptic',
+           'Supergalactic', 'AltAz', 'HADec', 'GCRS', 'CIRS', 'ITRS', 'HCRS',
+           'TEME', 'TETE', 'PrecessedGeocentric', 'GeocentricMeanEcliptic',
            'BarycentricMeanEcliptic', 'HeliocentricMeanEcliptic',
            'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
            'HeliocentricTrueEcliptic',

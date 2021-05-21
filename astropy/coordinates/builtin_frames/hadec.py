@@ -11,26 +11,24 @@ from astropy.coordinates.attributes import (TimeAttribute,
                                             QuantityAttribute,
                                             EarthLocationAttribute)
 
-__all__ = ['AltAz']
+__all__ = ['HADec']
 
-
-_90DEG = 90*u.deg
 
 doc_components = """
-    az : `~astropy.coordinates.Angle`, optional, keyword-only
-        The Azimuth for this object (``alt`` must also be given and
+    ha : `~astropy.coordinates.Angle`, optional, keyword-only
+        The Hour Angle for this object (``dec`` must also be given and
         ``representation`` must be None).
-    alt : `~astropy.coordinates.Angle`, optional, keyword-only
-        The Altitude for this object (``az`` must also be given and
+    dec : `~astropy.coordinates.Angle`, optional, keyword-only
+        The Declination for this object (``ha`` must also be given and
         ``representation`` must be None).
     distance : `~astropy.units.Quantity` ['length'], optional, keyword-only
         The Distance for this object along the line-of-sight.
 
-    pm_az_cosalt : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
-        The proper motion in azimuth (including the ``cos(alt)`` factor) for
-        this object (``pm_alt`` must also be given).
-    pm_alt : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
-        The proper motion in altitude for this object (``pm_az_cosalt`` must
+    pm_ha_cosdec : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
+        The proper motion in hour angle (including the ``cos(dec)`` factor) for
+        this object (``pm_dec`` must also be given).
+    pm_dec : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
+        The proper motion in declination for this object (``pm_ha_cosdec`` must
         also be given).
     radial_velocity : `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The radial velocity of this object."""
@@ -53,7 +51,7 @@ doc_footer = """
     temperature : `~astropy.units.Quantity` ['temperature']
         The ground-level temperature as an `~astropy.units.Quantity` in
         deg C.  This is necessary for performing refraction corrections.
-    relative_humidity : `~astropy.units.Quantity` ['dimensionless'] or number
+    relative_humidity : `~astropy.units.Quantity` ['dimensionless'] or number.
         The relative humidity as a dimensionless quantity between 0 to 1.
         This is necessary for performing refraction corrections.
     obswl : `~astropy.units.Quantity` ['length']
@@ -66,32 +64,32 @@ doc_footer = """
     The refraction model is based on that implemented in ERFA, which is fast
     but becomes inaccurate for altitudes below about 5 degrees.  Near and below
     altitudes of 0, it can even give meaningless answers, and in this case
-    transforming to AltAz and back to another frame can give highly discrepant
+    transforming to HADec and back to another frame can give highly discrepant
     results.  For much better numerical stability, leave the ``pressure`` at
     ``0`` (the default), thereby disabling the refraction correction and
-    yielding "topocentric" horizontal coordinates.
+    yielding "topocentric" equatorial coordinates.
     """
 
 
 @format_doc(base_doc, components=doc_components, footer=doc_footer)
-class AltAz(BaseCoordinateFrame):
+class HADec(BaseCoordinateFrame):
     """
-    A coordinate or frame in the Altitude-Azimuth system (Horizontal
-    coordinates) with respect to the WGS84 ellipsoid.  Azimuth is oriented
-    East of North (i.e., N=0, E=90 degrees).  Altitude is also known as
-    elevation angle, so this frame is also in the Azimuth-Elevation system.
+    A coordinate or frame in the Hour Angle-Declination system (Equatorial
+    coordinates) with respect to the WGS84 ellipsoid.  Hour Angle is oriented
+    with respect to upper culmination such that the hour angle is negative to
+    the East and positive to the West.
 
     This frame is assumed to *include* refraction effects if the ``pressure``
     frame attribute is non-zero.
 
     The frame attributes are listed under **Other Parameters**, which are
-    necessary for transforming from AltAz to some other system.
+    necessary for transforming from HADec to some other system.
     """
 
     frame_specific_representation_info = {
         r.SphericalRepresentation: [
-            RepresentationMapping('lon', 'az'),
-            RepresentationMapping('lat', 'alt')
+            RepresentationMapping('lon', 'ha', u.hourangle),
+            RepresentationMapping('lat', 'dec')
         ]
     }
 
@@ -107,21 +105,23 @@ class AltAz(BaseCoordinateFrame):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.has_data:
+            self._set_data_lon_wrap_angle(self.data)
 
-    @property
-    def secz(self):
-        """
-        Secant of the zenith angle for this coordinate, a common estimate of
-        the airmass.
-        """
-        return 1/np.sin(self.alt)
+    @staticmethod
+    def _set_data_lon_wrap_angle(data):
+        if hasattr(data, 'lon'):
+            data.lon.wrap_angle = 180. * u.deg
+        return data
 
-    @property
-    def zen(self):
+    def represent_as(self, base, s='base', in_frame_units=False):
         """
-        The zenith angle (or zenith distance / co-altitude) for this coordinate.
+        Ensure the wrap angle for any spherical
+        representations.
         """
-        return _90DEG.to(self.alt.unit) - self.alt
+        data = super().represent_as(base, s, in_frame_units=in_frame_units)
+        self._set_data_lon_wrap_angle(data)
+        return data
 
 
 # self-transform defined in cirs_observed_transforms.py
