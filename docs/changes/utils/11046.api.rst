@@ -1,3 +1,0 @@
-Updated ``utils.console.Spinner`` to better resemble the API of
-``utils.console.ProgressBar``, including an ``update()`` method and
-iterator support.
