@@ -378,10 +378,12 @@ def test_earth_barycentric_velocity_multi_d():
 @pytest.mark.parametrize(('body', 'pos_tol', 'vel_tol'),
                          (('mercury', 1000.*u.km, 1.*u.km/u.s),
                           ('jupiter', 100000.*u.km, 2.*u.km/u.s),
-                          ('earth', 10*u.km, 10*u.mm/u.s)))
+                          ('earth', 10*u.km, 10*u.mm/u.s),
+                          ('moon', 18*u.km, 50*u.mm/u.s)))
 def test_barycentric_velocity_consistency(body, pos_tol, vel_tol):
     # Tolerances are about 1.5 times the rms listed for plan94 and epv00,
-    # except for Mercury (which nominally is 334 km rms)
+    # except for Mercury (which nominally is 334 km rms), and the Moon
+    # (which nominally is 6 km rms).
     t = Time('2016-03-20T12:30:00')
     ep, ev = get_body_barycentric_posvel(body, t, ephemeris='builtin')
     dp, dv = get_body_barycentric_posvel(body, t, ephemeris='de432s')

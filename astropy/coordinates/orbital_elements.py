@@ -9,6 +9,8 @@ import numpy as np
 from numpy.polynomial.polynomial import polyval
 import erfa
 
+from astropy.utils import deprecated
+
 from astropy import units as u
 from . import ICRS, SkyCoord, GeocentricTrueEcliptic
 from .builtin_frames.utils import get_jd12
@@ -171,6 +173,13 @@ _coA3 = (313.45, 481266.484)
 _coE = (1.0, -0.002516, -0.0000074)
 
 
+@deprecated(since="5.0",
+            alternative="astropy.coordinates.get_moon",
+            message=("The private calc_moon function has been deprecated, "
+                     "as its functionality is now available in ERFA. "
+                     "Note that the coordinate system was not interpreted "
+                     "quite correctly, leading to small inaccuracies. Please "
+                     "use the public get_moon or get_body functions instead."))
 def calc_moon(t):
     """
     Lunar position model ELP2000-82 of (Chapront-Touze' and Chapront, 1983, 124, 50)

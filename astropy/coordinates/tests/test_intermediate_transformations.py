@@ -809,7 +809,8 @@ def test_aa_high_precision_nodata():
     with a version of the code that passes the tests above, but for the internal solar system
     ephemerides to avoid the use of remote data.
     """
-    TARGET_AZ, TARGET_EL = 15.0321908*u.deg, 50.30263625*u.deg
+    # Last updated when switching to erfa 2.0.0 and its moon98 function.
+    TARGET_AZ, TARGET_EL = 15.03231495*u.deg, 50.3027193*u.deg
     lat = -22.959748*u.deg
     lon = -67.787260*u.deg
     elev = 5186*u.m
