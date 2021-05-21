@@ -253,8 +253,8 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     """
     FITS Random Groups HDU class.
 
-    See the :ref:`random-groups` section in the Astropy documentation for more
-    details on working with this type of HDU.
+    See the :ref:`astropy:random-groups` section in the Astropy documentation
+    for more details on working with this type of HDU.
     """
 
     _bitpix2tform = {8: 'B', 16: 'I', 32: 'J', 64: 'K', -32: 'E', -64: 'D'}

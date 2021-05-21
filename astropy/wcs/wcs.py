@@ -266,7 +266,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
           published WCS standard.
 
         - `int`: a bit field selecting specific extensions to accept.
-          See :ref:`relaxread` for details.
+          See :ref:`astropy:relaxread` for details.
 
     naxis : int or sequence, optional
         Extracts specific coordinate axes using
@@ -2551,7 +2551,7 @@ reduce these to 2 dimensions using the naxis kwarg.
               WCS standard.
 
             - `int`: a bit field selecting specific extensions to
-              write.  See :ref:`relaxwrite` for details.
+              write.  See :ref:`astropy:relaxwrite` for details.
 
         key : str
             The name of a particular WCS transform to use.  This may be
@@ -2598,7 +2598,7 @@ reduce these to 2 dimensions using the naxis kwarg.
               WCS standard.
 
             - `int`: a bit field selecting specific extensions to
-              write.  See :ref:`relaxwrite` for details.
+              write.  See :ref:`astropy:relaxwrite` for details.
 
             If the ``relax`` keyword argument is not given and any
             keywords were omitted from the output, an
@@ -3303,7 +3303,7 @@ def find_all_wcs(header, relax=True, keysel=None, fix=True,
           published WCS standard.
 
         - `int`: a bit field selecting specific extensions to accept.
-          See :ref:`relaxread` for details.
+          See :ref:`astropy:relaxread` for details.
 
     keysel : sequence of str, optional
         A list of flags used to select the keyword types considered by

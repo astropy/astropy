@@ -138,7 +138,7 @@ class Parameter:
 
 
 
-    See :ref:`modeling-parameters` for more details.
+    See :ref:`astropy:modeling-parameters` for more details.
 
     Parameters
     ----------

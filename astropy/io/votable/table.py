@@ -203,7 +203,7 @@ def writeto(table, file, tabledata_format=None):
         one of ``tabledata`` (text representation), ``binary`` or
         ``binary2``.  By default, use the format that was specified in
         each ``table`` object as it was created or read in.  See
-        :ref:`votable-serialization`.
+        :ref:`astropy:astropy:votable-serialization`.
     """
     from astropy.table import Table
     if isinstance(table, Table):
