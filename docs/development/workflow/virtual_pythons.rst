@@ -215,7 +215,7 @@ addition to activating new ones.
 
       conda activate ENV
 
-* `pipenv`_: Activate the environment by ``cd``-ing into the project
+* `pipenv`_: Activate the environment by changing into the project
   directory (i.e. the copy of the Astropy repository on your computer) and
   running::
 
