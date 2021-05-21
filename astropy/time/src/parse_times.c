@@ -33,8 +33,7 @@ struct time_struct_t {
     int day;
     int hour;
     int minute;
-    int second_int;
-    double second_frac;
+    double second;
 };
 
 struct pars_struct_t {
@@ -261,14 +260,16 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
 
     for (ii = 0; ii < n; ii++, time+=i_time, tm_ptr+=i_tm)
     {
+        int second_int = 0;
+        double second_frac = 0.;
+
         // Initialize default values
         tm = (struct time_struct_t *)tm_ptr;
         tm->month = 1;
         tm->day = 1;
         tm->hour = 0;
         tm->minute = 0;
-        tm->second_int = 0;
-        tm->second_frac = 0.0;
+        tm->second = 0.0;
 
         // Parse "2000-01-12 13:14:15.678"
         //        01234567890123456789012
@@ -331,17 +332,18 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
         }
 
         pars++;
-        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->second_int);
+        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &second_int);
         if (status) {
             if (status == 1 && pars->break_allowed) { continue; }
             else { goto error; }
         }
 
         pars++;
-        status = parse_frac_from_char_array(time, str_len, pars->delim, pars->start, &tm->second_frac);
-        if (status) {
-            if (status != 1 || !pars->break_allowed) { goto error; }
+        status = parse_frac_from_char_array(time, str_len, pars->delim, pars->start, &second_frac);
+        if (status && (status != 1 || !pars->break_allowed)) {
+            goto error;
         }
+        tm->second = (double)second_int + second_frac;
 
     }
     return;
@@ -439,7 +441,7 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
     PyObject *m;
     PyObject *d;
     PyObject *dtype_def;
-    PyArray_Descr *dt_u1 = NULL, *dt_ymdhmsf = NULL;
+    PyArray_Descr *dt_u1 = NULL, *dt_ymdhms = NULL;
 
     m = PyModule_Create(&moduledef);
     if (m == NULL) {
@@ -465,25 +467,24 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
     Py_DECREF(dtype_def);
 
     dtype_def = Py_BuildValue(
-        "[(s, s), (s, s), (s, s), (s, s), (s, s), (s, s), (s, s)]",
+        "[(s, s), (s, s), (s, s), (s, s), (s, s), (s, s)]",
         "year", "i4",
         "month", "i4",
         "day", "i4",
         "hour", "i4",
         "minute", "i4",
-        "second_int", "i4",
-        "second_frac", "f8");
-    PyArray_DescrAlignConverter(dtype_def, &dt_ymdhmsf);
+        "second", "f8");
+    PyArray_DescrAlignConverter(dtype_def, &dt_ymdhms);
     Py_DECREF(dtype_def);
-    if (dt_pars == NULL || dt_u1 == NULL || dt_ymdhmsf == NULL) {
+    if (dt_pars == NULL || dt_u1 == NULL || dt_ymdhms == NULL) {
         goto fail;
     }
     PyDict_SetItemString(d, "dt_pars", (PyObject *)dt_pars);
     PyDict_SetItemString(d, "dt_u1", (PyObject *)dt_u1);
-    PyDict_SetItemString(d, "dt_ymdhmsf", (PyObject *)dt_ymdhmsf);
+    PyDict_SetItemString(d, "dt_ymdhms", (PyObject *)dt_ymdhms);
 
     gufunc_dtypes[0] = dt_u1;
-    gufunc_dtypes[1] = dt_ymdhmsf;
+    gufunc_dtypes[1] = dt_ymdhms;
 
     goto decref;
 
@@ -494,6 +495,6 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
   decref:
     Py_XDECREF(dt_pars);
     Py_XDECREF(dt_u1);
-    Py_XDECREF(dt_ymdhmsf);
+    Py_XDECREF(dt_ymdhms);
     return m;
 }
