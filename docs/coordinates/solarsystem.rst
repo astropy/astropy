@@ -68,7 +68,7 @@ ephemeris is set):
       (165.51854528, 2.32861794, 407229.55638763)>
   >>> get_body_barycentric('moon', t) # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
-      (  1.50107535e+08, -866789.11996916, -418963.55218495)>
+      (1.50107535e+08, -866789.11996916, -418963.55218495)>
 
 For one-off calculations with a given ephemeris, you can also pass it directly
 to the various functions:
@@ -78,11 +78,11 @@ to the various functions:
   >>> get_body_barycentric('moon', t, ephemeris='de432s')
   ... # doctest: +REMOTE_DATA, +FLOAT_CMP
   <CartesianRepresentation (x, y, z) in km
-      (  1.50107535e+08, -866789.11996916, -418963.55218495)>
+      (1.50107535e+08, -866789.11996916, -418963.55218495)>
   >>> get_body_barycentric('moon', t, ephemeris='builtin')
   ... # doctest: +FLOAT_CMP
-  <CartesianRepresentation (x, y, z) in km
-      (  1.50107516e+08, -866828.92702829, -418980.15907332)>
+  <CartesianRepresentation (x, y, z) in AU
+      (1.00340683, -0.00579417, -0.00280064)>
 
 ..
   EXAMPLE END
