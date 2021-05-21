@@ -1368,11 +1368,14 @@ class TimeString(TimeUnique):
 
     def get_jds_fast(self, val1, val2):
         """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
-        # Handle bytes or str input and convert to uint8.
+        # Handle bytes or str input and convert to uint8.  We need to the
+        # dtype _parse_times.dt_u1 instead of uint8, since otherwise it is
+        # not possible to create a gufunc with structured dtype output.
+        # See note about ufunc type resolver in pyerfa/erfa/ufunc.c.templ.
         if val1.dtype.kind == 'U':
-            val1_str_len = val1.dtype.itemsize // 4
-            val1_uint32 = val1.view((np.uint32, val1_str_len))
-            # Check that this is pure ASCII.
+            # Note: val1.astype('S') is *very* slow, so we check ourselves
+            # that the input is pure ASCII.
+            val1_uint32 = val1.view((np.uint32, val1.dtype.itemsize // 4))
             if np.any(val1_uint32 > 127):
                 raise ValueError('input is not pure ASCII')
 
@@ -1381,8 +1384,7 @@ class TimeString(TimeUnique):
             chars = val1_uint32.astype(_parse_times.dt_u1)
 
         else:
-            val1_str_len = val1.dtype.itemsize
-            chars = val1.view((_parse_times.dt_u1, val1_str_len))
+            chars = val1.view((_parse_times.dt_u1, val1.dtype.itemsize))
 
         # Call the fast parsing ufunc.
         time_struct = self._fast_parser(chars)
@@ -1392,7 +1394,7 @@ class TimeString(TimeUnique):
                               time_struct['day'],
                               time_struct['hour'],
                               time_struct['minute'],
-                              time_struct['second_int'] + time_struct['second_frac'])
+                              time_struct['second'])
         return day_frac(jd1, jd2)
 
     def str_kwargs(self):
