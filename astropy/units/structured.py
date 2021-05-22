@@ -105,7 +105,8 @@ class StructuredUnit:
 
         self = super().__new__(cls)
         dtype = np.dtype(dtype)
-        self._units = np.array(tuple(converted), dtype)
+        # Decay array to void so we can access by field name and number.
+        self._units = np.array(tuple(converted), dtype)[()]
         return self
 
     @property
@@ -120,7 +121,7 @@ class StructuredUnit:
         return len(self._units.dtype.names)
 
     def __getitem__(self, item):
-        return self._units[item].item()
+        return self._units[item]
 
     def values(self):
         return self._units.item()
@@ -136,11 +137,14 @@ class StructuredUnit:
 
     # Helpers for methods below.
     def _recursively_apply(self, func, as_void=False):
-        """Apply func recursively, storing the results in an instance of cls"""
+        """Apply func recursively.
+
+        The result is stored in an instance of cls or a void.
+        """
         results = np.array(tuple([func(part) for part in self.values()]),
-                           self._units.dtype)
+                           self._units.dtype)[()]
         if as_void:
-            return results[()]
+            return results
 
         # Short-cut; no need to interpret names, etc.
         result = super().__new__(self.__class__)
