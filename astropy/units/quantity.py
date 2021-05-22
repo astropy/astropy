@@ -1092,16 +1092,8 @@ class Quantity(np.ndarray):
         return quantity_iter()
 
     def __getitem__(self, key):
-        if isinstance(self.unit, StructuredUnit):
-            out_value = self.value[key]
-            if out_value.dtype is self.dtype:
-                out_unit = self.unit
-            else:
-                # item caused dtype change -> indexed with string-like.
-                # Index unit as well.
-                out_unit = self.unit[key]
-
-            return self._new_view(out_value, out_unit)
+        if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
+            return self._new_view(self.view(np.ndarray)[key], self.unit[key])
 
         try:
             out = super().__getitem__(key)
@@ -1121,13 +1113,11 @@ class Quantity(np.ndarray):
         return out
 
     def __setitem__(self, i, value):
-        if isinstance(self.unit, StructuredUnit):
-            out_item = self[i]
-            if out_item.dtype is not self.dtype:
-                # item caused dtype change -> indexed with string-like, so we
-                # have a different unit; try again.
-                out_item[...] = value
-                return
+        if isinstance(i, str) and isinstance(self.unit, StructuredUnit):
+            # Indexing will cause a different unit, so by doing this in
+            # two steps we effectively try with the right unit.
+            self[i][...] = value
+            return
 
         # update indices in info if the info property has been accessed
         # (in which case 'info' in self.__dict__ is True; this is guaranteed
