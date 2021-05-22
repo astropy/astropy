@@ -181,6 +181,11 @@ class TestST:
         lmst1 = self.t1.sidereal_time(kind, self.t2.location.lon)
         assert allclose_hours(lmst1.value, lst_compare[kind])
 
+    def test_lst_string_longitude(self):
+        lmst1 = self.t1.sidereal_time('mean', longitude='120d')
+        lmst2 = self.t2.sidereal_time('mean')
+        assert allclose_hours(lmst1.value, lmst2.value)
+
     def test_lst_needs_location(self):
         with pytest.raises(ValueError):
             self.t1.sidereal_time('mean')
