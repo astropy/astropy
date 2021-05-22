@@ -147,37 +147,34 @@ class StructuredUnit:
         result._units = results
         return result
 
-    def _recursively_get_dtype(self, value):
-        """Get structured dtype according to value, using our names."""
-        # Helper for _create_array below.
+    def _recursively_get_dtype(self, value, enter_lists=True):
+        """Get structured dtype according to value, using our names.
+
+        This is useful since ``np.array(value)`` would treat tuples as lower
+        levels of the array, rather than as elements of a structured array.
+        The routine does presume that the type of the first tuple is
+        representative of the rest.
+
+        """
+        # Used in _get_converter below.
+        if enter_lists:
+            while isinstance(value, list):
+                value = value[0]
         if not isinstance(value, tuple) or len(self) != len(value):
             raise ValueError("cannot interpret value for unit {}"
                              .format(self))
         new_dtype = []
         for (name, unit), part in zip(self.items(), value):
             if isinstance(unit, type(self)):
-                new_dtype.append((name, unit._recursively_get_dtype(part)))
+                new_dtype.append(
+                    (name, unit._recursively_get_dtype(part, enter_lists=False)))
             else:
-                value_part = np.array(part)
-                new_dtype.append((name, value_part.dtype, value_part.shape))
+                part = np.array(part)
+                part_dtype = part.dtype
+                if part_dtype.kind in 'iu':
+                    part_dtype = np.dtype(float)
+                new_dtype.append((name, part_dtype, part.shape))
         return np.dtype(new_dtype)
-
-    def _create_array(self, value):
-        """Turn a (nested) list of properly nested tuples into an array.
-
-        This routine is needed since ``np.array(value)`` would treat the
-        tuples as lower levels of the array, rather than as elements
-        of a structured array.  The routine does presume that the type
-        of the first tuple is representative of the rest.
-        """
-        # Get inner tuple.
-        tmp = value
-        while isinstance(tmp, list):
-            tmp = tmp[0]
-        # Get correct dtype using first element.
-        dtype = self._recursively_get_dtype(tmp)
-        # Use that for second conversion.
-        return np.array(value, dtype)
 
     @property
     def si(self):
@@ -263,7 +260,7 @@ class StructuredUnit:
 
         def converter(value):
             if not hasattr(value, 'dtype'):
-                value = self._create_array(value)
+                value = np.array(value, self._recursively_get_dtype(value))
             result = np.empty(value.shape, value.dtype)
             for name, converter_ in zip(result.dtype.names, converters):
                 result[name] = converter_(value[name])

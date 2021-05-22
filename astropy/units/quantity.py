@@ -366,17 +366,20 @@ class Quantity(np.ndarray):
                     if unit is None:
                         unit = value_unit  # signal no conversion needed below.
 
-            elif (dtype is None and not hasattr(value, 'dtype')
-                  and isinstance(unit, StructuredUnit)):
-                value = unit._create_array(value)
-                value_unit = unit
-            elif (isiterable(value) and len(value) > 0 and
-                  all(isinstance(v, Quantity) for v in value)):
-                # Convert all quantities to the same unit.
-                if unit is None:
-                    unit = value[0].unit
-                value = [q.to_value(unit) for q in value]
-                value_unit = unit  # signal below that conversion has been done
+            elif isiterable(value) and len(value) > 0:
+                if all(isinstance(v, Quantity) for v in value):
+                    # Convert all quantities to the same unit.
+                    if unit is None:
+                        unit = value[0].unit
+                    value = [q.to_value(unit) for q in value]
+                    value_unit = unit  # signal below that conversion has been done
+                elif (dtype is None and not hasattr(value, 'dtype')
+                      and isinstance(unit, StructuredUnit)):
+                    # ``np.array(value, dtype=None)`` would treat tuples as lower
+                    # levels of the array, rather than as elements of a structured
+                    # array, so we use the structure of the unit to help infer the
+                    # structured dtype of the value.
+                    dtype = unit._recursively_get_dtype(value)
 
         if value_unit is None:
             # If the value has a `unit` attribute and if not None
