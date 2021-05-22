@@ -8,8 +8,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
-from astropy.units import (StructuredUnit, StructuredQuantity,
-                           Unit, UnitBase, Quantity)
+from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
 
 
 class StructuredTestBase:
@@ -315,7 +314,7 @@ class TestStructuredUnitArithmatic(StructuredTestBaseWithUnits):
 
 class TestStructuredQuantity(StructuredTestBaseWithUnits):
     def test_initialization_and_keying(self):
-        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv = Quantity(self.pv, self.pv_unit)
         q_p = q_pv['p']
         assert isinstance(q_p, Quantity)
         assert isinstance(q_p.unit, UnitBase)
@@ -324,24 +323,24 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert isinstance(q_v, Quantity)
         assert isinstance(q_v.unit, UnitBase)
         assert np.all(q_v == self.pv['v'] * self.pv_unit['v'])
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q_t = q_pv_t['t']
         assert np.all(q_t == self.pv_t['t'] * self.pv_t_unit['t'])
         q_pv2 = q_pv_t['pv']
-        assert isinstance(q_pv2, StructuredQuantity)
+        assert isinstance(q_pv2, Quantity)
         assert q_pv2.unit == self.pv_unit
         with pytest.raises(ValueError):
-            StructuredQuantity(self.pv, self.pv_t_unit)
+            Quantity(self.pv, self.pv_t_unit)
         with pytest.raises(ValueError):
-            StructuredQuantity(self.pv_t, self.pv_unit)
+            Quantity(self.pv_t, self.pv_unit)
 
     def test_initialization_with_unit_tuples(self):
-        q_pv_t = StructuredQuantity(self.pv_t, (('km', 'km/s'), 's'))
+        q_pv_t = Quantity(self.pv_t, (('km', 'km/s'), 's'))
         assert isinstance(q_pv_t.unit, StructuredUnit)
         assert q_pv_t.unit == self.pv_t_unit
 
     def test_initialization_with_string(self):
-        q_pv_t = StructuredQuantity(self.pv_t, '(km, km/s), s')
+        q_pv_t = Quantity(self.pv_t, '(km, km/s), s')
         assert isinstance(q_pv_t.unit, StructuredUnit)
         assert q_pv_t.unit == self.pv_t_unit
 
@@ -352,7 +351,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert not np.may_share_memory(q_pv_t, self.pv_t)
         q_pv_t2 = self.pv_t_unit * self.pv_t
         assert q_pv_t.unit is self.pv_t_unit
-        # Not testing equality of StructuredQuantity here.
+        # Not testing equality of structured Quantity here.
         assert np.all(q_pv_t2.value == q_pv_t.value)
 
     def test_initialization_by_shifting_to_unit(self):
@@ -362,19 +361,19 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.may_share_memory(q_pv_t, self.pv_t)
 
     def test_getitem(self):
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q_pv_t01 = q_pv_t[:2]
-        assert isinstance(q_pv_t01, StructuredQuantity)
+        assert isinstance(q_pv_t01, Quantity)
         assert q_pv_t01.unit == q_pv_t.unit
         assert np.all(q_pv_t01['t'] == q_pv_t['t'][:2])
         q_pv_t1 = q_pv_t[1]
-        assert isinstance(q_pv_t1, StructuredQuantity)
+        assert isinstance(q_pv_t1, Quantity)
         assert q_pv_t1.unit == q_pv_t.unit
         assert q_pv_t1.shape == ()
         assert q_pv_t1['t'] == q_pv_t['t'][1]
 
     def test_value(self):
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         value = q_pv_t.value
         assert type(value) is np.ndarray
         assert np.all(value == self.pv_t)
@@ -383,9 +382,9 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(value1 == self.pv_t[1])
 
     def test_conversion(self):
-        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv = Quantity(self.pv, self.pv_unit)
         q1 = q_pv.to(('AU', 'AU/day'))
-        assert isinstance(q1, StructuredQuantity)
+        assert isinstance(q1, Quantity)
         assert q1['p'].unit == u.AU
         assert q1['v'].unit == u.AU / u.day
         assert np.all(q1['p'] == q_pv['p'].to(u.AU))
@@ -403,7 +402,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         pv11 = q_pv[1].to_value(('AU', 'AU/day'))
         assert type(pv11) is np.void
         assert pv11 == pv1[1]
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q2 = q_pv_t.to((('kpc', 'kpc/Myr'), 'Myr'))
         assert q2['pv']['p'].unit == u.kpc
         assert q2['pv']['v'].unit == u.kpc / u.Myr
@@ -413,9 +412,9 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
 
     def test_conversion_via_lshift(self):
-        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv = Quantity(self.pv, self.pv_unit)
         q1 = q_pv << StructuredUnit(('AU', 'AU/day'))
-        assert isinstance(q1, StructuredQuantity)
+        assert isinstance(q1, Quantity)
         assert q1['p'].unit == u.AU
         assert q1['v'].unit == u.AU / u.day
         assert np.all(q1['p'] == q_pv['p'].to(u.AU))
@@ -426,7 +425,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['p'].value == self.pv['p'])
         assert np.all(q2['v'].value == self.pv['v'])
         assert np.may_share_memory(q2, q_pv)
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q2 = q_pv_t << '(kpc,kpc/Myr),Myr'
         assert q2['pv']['p'].unit == u.kpc
         assert q2['pv']['v'].unit == u.kpc / u.Myr
@@ -436,7 +435,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
 
     def test_inplace_conversion(self):
-        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv = Quantity(self.pv, self.pv_unit)
         q1 = q_pv.copy()
         q_link = q1
         q1 <<= StructuredUnit(('AU', 'AU/day'))
@@ -445,7 +444,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert q1['v'].unit == u.AU / u.day
         assert np.all(q1['p'] == q_pv['p'].to(u.AU))
         assert np.all(q1['v'] == q_pv['v'].to(u.AU/u.day))
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q2 = q_pv_t.copy()
         q_link = q2
         q2 <<= '(kpc,kpc/Myr),Myr'
@@ -458,17 +457,17 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert np.all(q2['t'] == q_pv_t['t'].to(u.Myr))
 
     def test_si(self):
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q_pv_t_si = q_pv_t.si
         assert_array_equal(q_pv_t_si, q_pv_t.to('(m,m/s),s'))
 
     def test_cgs(self):
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q_pv_t_cgs = q_pv_t.cgs
         assert_array_equal(q_pv_t_cgs, q_pv_t.to('(cm,cm/s),s'))
 
     def test_equality(self):
-        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv = Quantity(self.pv, self.pv_unit)
         equal = q_pv == q_pv
         not_equal = q_pv != q_pv
         assert np.all(equal)
@@ -486,14 +485,14 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
         assert not np.any(q1.value * u.Unit('AU, AU/day') != q_pv)
         assert (q_pv == 'b') is False
         assert ('b' != q_pv) is True
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         assert np.all((q_pv_t[2] == q_pv_t) == [False, False, True])
         assert np.all((q_pv_t[2] != q_pv_t) != [False, False, True])
         assert (q_pv == q_pv_t) is False
         assert (q_pv_t != q_pv) is True
 
     def test_setitem(self):
-        q_pv = StructuredQuantity(self.pv, self.pv_unit)
+        q_pv = Quantity(self.pv, self.pv_unit)
         q_pv[1] = (2., 2.) * self.pv_unit
         assert q_pv[1].value == np.array((2., 2.), self.pv_dtype)
         q_pv[1:2] = (1., 0.5) * u.Unit('AU, AU/day')
@@ -505,7 +504,7 @@ class TestStructuredQuantity(StructuredTestBaseWithUnits):
             q_pv[1] = (1., 1.) * u.Unit('AU, AU')
         with pytest.raises(u.UnitsError):
             q_pv['v'] = 1. * u.km
-        q_pv_t = StructuredQuantity(self.pv_t, self.pv_t_unit)
+        q_pv_t = Quantity(self.pv_t, self.pv_t_unit)
         q_pv_t[1] = ((2., 2.), 3.) * self.pv_t_unit
         assert q_pv_t[1].value == np.array(((2., 2.), 3.), self.pv_t_dtype)
         q_pv_t[1:2] = ((1., 0.5), 5.) * u.Unit('(AU, AU/day), yr')

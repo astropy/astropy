@@ -10,10 +10,9 @@ import operator
 import numpy as np
 
 from .core import Unit, UnitBase
-from .quantity import Quantity
 
 
-__all__ = ['StructuredUnit', 'StructuredQuantity']
+__all__ = ['StructuredUnit']
 
 
 def _names_from_dtype(dtype):
@@ -108,10 +107,6 @@ class StructuredUnit:
         dtype = np.dtype(dtype)
         self._units = np.array(tuple(converted), dtype)
         return self
-
-    @property
-    def _quantity_class(self):
-        return StructuredQuantity
 
     @property
     def names(self):
@@ -346,7 +341,8 @@ class StructuredUnit:
 
         # Anything not like a unit, try initialising as a structured quantity.
         try:
-            return self._quantity_class(other, unit=self)
+            from .quantity import Quantity
+            return Quantity(other, unit=self)
         except Exception:
             return NotImplemented
 
@@ -367,7 +363,8 @@ class StructuredUnit:
 
     def __rlshift__(self, m):
         try:
-            return StructuredQuantity(m, self, copy=False, subok=True)
+            from .quantity import Quantity
+            return Quantity(m, self, copy=False, subok=True)
         except Exception:
             return NotImplemented
 
@@ -389,154 +386,3 @@ class StructuredUnit:
     def __ne__(self, other):
         eq = self.__eq__(other)
         return eq if eq is NotImplemented else not eq
-
-
-class StructuredQuantity(Quantity):
-    """Structured array with associated units.
-
-    Parameters
-    ----------
-    value : structured `~numpy.ndarray` or (nested) tuple
-        Numerical values of the various elements of the structure.
-    unit : `~astropy.units.StructuredUnit` or (nested) tuple of units or str
-        Associated units.
-    dtype : `~numpy.dtype`, optional
-        If not given, inferred from ``value``
-    *args, **kwargs
-        All other arguments are passed on to the `~numpy.array` constructor.
-    """
-    def __new__(cls, value, unit, dtype=None, *args, **kwargs):
-        # TODO: special-case StructuredQuantity input.
-        # Tuples of tuples get interpreted as an array rather than
-        # as a structured void, so avoid that.
-        if (dtype is None and not hasattr(value, 'dtype') and
-                isinstance(unit, StructuredUnit)):
-            value = unit._create_array(value)
-        else:
-            value = np.array(value, dtype, *args, **kwargs)
-        if not value.dtype.fields:
-            raise TypeError("Values should be structured.")
-        if not isinstance(value, cls):
-            value = value.view(cls)
-        value._set_unit(unit)
-        return value
-
-    def __quantity_subclass__(self, unit):
-        if isinstance(unit, StructuredUnit):
-            return type(self), True
-        else:
-            return super().__quantity_subclass__(unit)[0], False
-
-    def __getitem__(self, item):
-        out_value = self.value[item]
-        if out_value.dtype is self.dtype:
-            out_unit = self.unit
-        else:
-            # item caused dtype change -> indexed with string-like.
-            # Index unit as well.
-            out_unit = self.unit[item]
-
-        return self._new_view(out_value, out_unit)
-
-    def __setitem__(self, item, value):
-        out_item = self[item]
-        if out_item.dtype is self.dtype:
-            super(StructuredQuantity, out_item).__setitem__(Ellipsis, value)
-        else:
-            # item caused dtype change -> indexed with string-like, so we
-            # have a different unit (and may well be a Quantity); try again.
-            out_item[...] = value
-
-    def _set_unit(self, unit):
-        unit = StructuredUnit(unit, self.dtype)
-        self._unit = unit
-
-    def to(self, unit, equivalencies=[], copy=True):
-        """Convert to the specific structured unit.
-
-        Parameters
-        ----------
-        unit : `~astropy.units.StructuredUnit`, or what can initialize one
-            Will be converted if necessary.
-        equivalencies : list of equivalence pairs, optional
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
-            These will apply to all elements in the structured quantity.
-        copy : bool, optional
-            If `True` (default), then the value is copied.  Otherwise, a copy
-            will only be made if necessary.
-
-        See also
-        --------
-        to_value : get the numerical value in a given unit.
-        """
-        if not isinstance(unit, StructuredUnit):
-            unit = StructuredUnit(unit, self.dtype)
-        return super().to(unit, equivalencies=equivalencies, copy=copy)
-
-    def to_value(self, unit=None, equivalencies=[]):
-        """The numerical value, possibly in a different unit.
-
-        Parameters
-        ----------
-        unit : `~astropy.units.StructuredUnit` or (nested) tuple of units
-            Will be converted if necessary.
-        equivalencies : list of equivalence pairs, optional
-            A list of equivalence pairs to try if the units are not
-            directly convertible.  See :ref:`unit_equivalencies`.
-            These will apply to all elements in the structured quantity.
-
-        Returns
-        -------
-        value : ndarray or scalar
-            The value in the units specified. For arrays, this will be a view
-            of the data if no unit conversion was necessary.
-
-        See also
-        --------
-        to : Get a new instance in a different unit.
-        """
-        # Overriding just to avoid the attempt at a shortcut.
-        # TODO: move that short-cut from Quantity to Unit?
-        if unit is None or unit is self.unit:
-            result = self.view(np.ndarray)
-        else:
-            result = self._to_value(unit, equivalencies)
-        # [()] to return a void rather than a tuple.
-        return result if result.shape else result[()]
-
-    value = property(to_value,
-                     doc="""The numerical value of this instance.
-
-    See also
-    --------
-    to_value : Get the numerical value in a given unit.
-    """)
-
-    def _to_own_unit(self, other, check_precision=False):
-        other_value = super()._to_own_unit(other, check_precision)
-        # Setting names to ensure things like equality work (note that
-        # above will have failed already if units did not match).
-        other_value.dtype.names = self.dtype.names
-        return other_value
-
-    def _recursively_apply(self, func):
-        """Apply function recursively to every field, a copy with the result."""
-        result = np.empty_like(self)
-        result_value = result.view(np.ndarray)
-        result_unit = ()
-        for name in self.dtype.names:
-            part = func(self[name])
-            result_value[name] = part.value
-            result_unit += (part.unit,)
-
-        result._set_unit(result_unit)
-        return result
-
-    @property
-    def si(self):
-        return self._recursively_apply(operator.attrgetter('si'))
-
-    @property
-    def cgs(self):
-        return self._recursively_apply(operator.attrgetter('cgs'))
