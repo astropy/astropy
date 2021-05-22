@@ -36,9 +36,10 @@ class StructuredUnit:
 
     Parameters
     ----------
-    units : nested tuple of units, or str
+    units : tuple of unit-like
         Tuple elements should contain items that can initialize regular units.
-    names : nested tuple of str or `~numpy.dtype`, optional
+        They can be nested tuples.
+    names : tuple of str, or `~numpy.dtype`, optional
         For nested tuples, by default the name of the upper entry will just
         be the concatenation of the names of the lower levels.  One can
         pass in a list with the upper-level name and a tuple of lower-level
@@ -215,7 +216,7 @@ class StructuredUnit:
 
         Returns
         -------
-        unit : New `~astropy.units.StructuredUnit` instance
+        `~astropy.units.StructuredUnit`
             With the unit for each field containing only irreducible units.
         """
         return self._recursively_apply(
@@ -226,9 +227,9 @@ class StructuredUnit:
 
         Parameters
         ----------
-        other : `~astropy.units.StructuredUnit`, or what can initialize one
-            The structured unit to compare with.
-        equivalencies : list of equivalence pairs, optional
+        other : `~astropy.units.StructuredUnit`
+            The structured unit to compare with, or what can initialize one.
+        equivalencies : list of tuple, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             The list will be applied to all fields.
@@ -277,15 +278,15 @@ class StructuredUnit:
 
         Parameters
         ----------
-        other : `~astropy.units.StructuredUnit`, or what can initialize one
+        other : `~astropy.units.StructuredUnit`
             The unit to convert to.  If necessary, will be converted to
             a Structured Unit using the dtype of ``value``.
-        value : scalar void or array, or sequence convertible to array.
+        value : array-like
             Value(s) in the current unit to be converted to the
             specified unit.  If a sequence, the first element must have
             entries of the correct type to represent all elements (i.e.,
-            not have, e.g., an ``int`` where other elements have ``float``).
-        equivalencies : list of equivalence pairs, optional
+            not have, e.g., a ``float`` where other elements have ``complex``).
+        equivalencies : list of tuple, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
             This list is in addition to possible global defaults set by, e.g.,
