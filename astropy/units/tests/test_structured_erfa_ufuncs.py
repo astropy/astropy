@@ -115,7 +115,7 @@ class TestPVUfuncs:
                                                    self.pv['p'], self.pv['p']))
         assert_array_equal(pvdpv['pdv'], 2*np.einsum('...i,...i->...',
                                                      self.pv['p'], self.pv['v']))
-        z_axis = u.StructuredQuantity(
+        z_axis = u.Quantity(
             np.array(([0, 0, 1], [0, 0, 0]), erfa_ufunc.dt_pv),
             '1,1/s')
         pvdpv2 = erfa_ufunc.pvdpv(self.pv, z_axis)
@@ -130,7 +130,7 @@ class TestPVUfuncs:
         assert pvxpv['v'].unit == self.pv.unit['p'] * self.pv.unit['v']
         assert_array_equal(pvxpv['p'].value, np.zeros(self.pv['p'].shape))
         assert_array_equal(pvxpv['v'].value, np.zeros(self.pv['v'].shape))
-        z_axis = u.StructuredQuantity(
+        z_axis = u.Quantity(
             np.array(([0, 0, 1], [0, 0, 0]), erfa_ufunc.dt_pv),
             '1,1/s')
         pvxpv2 = erfa_ufunc.pvxpv(self.pv, z_axis)

@@ -2052,6 +2052,10 @@ class _UnitMetaClass(type):
         elif isinstance(s, (int, float, np.floating, np.integer)):
             return CompositeUnit(s, [], [], _error_check=False)
 
+        elif isinstance(s, tuple):
+            from .structured import StructuredUnit
+            return StructuredUnit(s)
+
         elif s is None:
             raise TypeError("None is not a valid Unit")
 
