@@ -48,6 +48,7 @@
 .. |PhysicalType| replace:: :class:`~astropy.units.PhysicalType`
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Unit| replace:: :class:`~astropy.units.UnitBase`
+.. |StructuredUnit| replace:: :class:`~astropy.units.StructuredUnit`
 
 .. Utils
 .. |Masked| replace:: :class:`~astropy.utils.masked.Masked`

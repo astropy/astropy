@@ -181,6 +181,7 @@ Using `astropy.units`
    combining_and_defining
    decomposing_and_composing
    logarithmic_units
+   structured_units
    format
    equivalencies
    physical_types
