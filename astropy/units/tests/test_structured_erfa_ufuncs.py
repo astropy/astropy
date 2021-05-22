@@ -63,6 +63,42 @@ class TestPVUfuncs:
         assert rd.unit == u.AU/u.day
         assert_array_equal(rd.value, np.zeros(self.pv.shape))
 
+    def test_pv2s_non_standard_units(self):
+        pv = self.pv_value << u.Unit('Pa,Pa/m')
+        theta, phi, r, td, pd, rd = erfa_ufunc.pv2s(pv)
+        assert theta.unit == u.radian
+        assert_quantity_allclose(theta, [0, 90] * u.deg)  # longitude
+        assert phi.unit == u.radian
+        assert_array_equal(phi.value, np.zeros(pv.shape))  # latitude
+        assert r.unit == u.Pa
+        assert_array_equal(r.value, np.ones(pv.shape))
+        assert td.unit == u.radian/u.m
+        assert_array_equal(td.value, np.array([0.0125]*2))
+        assert pd.unit == u.radian/u.m
+        assert_array_equal(pd.value, np.zeros(pv.shape))
+        assert rd.unit == u.Pa/u.m
+        assert_array_equal(rd.value, np.zeros(pv.shape))
+
+    @pytest.mark.xfail(reason=(
+        'erfa ufuncs cannot take different names; it is not yet clear whether '
+        'this is changeable; see https://github.com/liberfa/pyerfa/issues/77'))
+    def test_pv2s_non_standard_names_and_units(self):
+        pv_value = np.array(self.pv_value, dtype=[('pos', 'f8'), ('vel', 'f8')])
+        pv = pv_value << u.Unit('Pa,Pa/m')
+        theta, phi, r, td, pd, rd = erfa_ufunc.pv2s(pv)
+        assert theta.unit == u.radian
+        assert_quantity_allclose(theta, [0, 90] * u.deg)  # longitude
+        assert phi.unit == u.radian
+        assert_array_equal(phi.value, np.zeros(pv.shape))  # latitude
+        assert r.unit == u.Pa
+        assert_array_equal(r.value, np.ones(pv.shape))
+        assert td.unit == u.radian/u.m
+        assert_array_equal(td.value, np.array([0.0125]*2))
+        assert pd.unit == u.radian/u.m
+        assert_array_equal(pd.value, np.zeros(pv.shape))
+        assert rd.unit == u.Pa/u.m
+        assert_array_equal(rd.value, np.zeros(pv.shape))
+
     def test_s2pv(self):
         theta, phi, r, td, pd, rd = erfa_ufunc.pv2s(self.pv)
         # On purpose change some of the units away from expected by s2pv.

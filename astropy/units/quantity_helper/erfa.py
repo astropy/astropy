@@ -3,7 +3,7 @@
 """Quantity helpers for the ERFA ufuncs."""
 # Tests for these are in coordinates, not in units.
 
-from erfa import ufunc as erfa_ufunc
+from erfa import ufunc as erfa_ufunc, dt_pv, dt_eraLDBODY, dt_eraASTROM
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
 from . import UFUNC_HELPERS
@@ -16,6 +16,26 @@ erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
                'pvstar', 'pvtob', 'pvu', 'pvup', 'pvxpv', 'rxpv', 's2pv', 's2xpv',
                'starpv', 'sxpv', 'trxpv', 'gd2gc', 'gc2gd', 'ldn', 'aper',
                'apio', 'atciq', 'atciqn', 'atciqz', 'aticq', 'atioq', 'atoiq')
+
+
+def has_matching_structure(unit, dtype):
+    from astropy.units import StructuredUnit
+    dtype_fields = dtype.fields
+    if dtype_fields:
+        return (isinstance(unit, StructuredUnit)
+                and len(unit) == len(dtype_fields)
+                and all(has_matching_structure(u, df_v[0])
+                        for (u, df_v) in zip(unit.values(), dtype_fields.values())))
+    else:
+        return not isinstance(unit, StructuredUnit)
+
+
+def check_structured_unit(unit, dtype):
+    if not has_matching_structure(unit, dtype):
+        msg = {dt_pv: 'pv',
+               dt_eraLDBODY: 'ldbody',
+               dt_eraASTROM: 'astrom'}.get(dtype, 'function')
+        raise UnitTypeError(f'{msg} input needs unit matching {dtype=}.')
 
 
 def helper_s2c(f, unit1, unit2):
@@ -79,28 +99,22 @@ def helper_gd2gc(f, nounit, unit1, unit2, unit3):
 
 def helper_p2pv(f, unit1):
     from astropy.units.structured import StructuredUnit
-    from astropy.units.si import m, s
+    from astropy.units.si import s
     if isinstance(unit1, StructuredUnit):
         raise UnitTypeError("p vector unit cannot be a structured unit.")
-    return [None], StructuredUnit((unit1, m / s))
+    return [None], StructuredUnit((unit1, unit1 / s))
 
 
 def helper_pv2p(f, unit1):
-    try:
-        return [None], unit1['p']
-    except Exception as exc:
-        raise UnitTypeError("pv vector should have a structured unit.") from exc
+    check_structured_unit(unit1, dt_pv)
+    return [None], unit1[0]
 
 
-def helper_pv2s(f, unit1):
+def helper_pv2s(f, unit_pv):
     from astropy.units.si import radian
-    try:
-        p_unit, v_unit = unit1['p'], unit1['v']
-    except Exception as exc:
-        raise UnitTypeError("pv vector should have a structured unit.") from exc
-    else:
-        ang_unit = radian * v_unit / p_unit
-        return [None], (radian, radian, p_unit, ang_unit, ang_unit, v_unit)
+    check_structured_unit(unit_pv, dt_pv)
+    ang_unit = radian * unit_pv[1] / unit_pv[0]
+    return [None], (radian, radian, unit_pv[0], ang_unit, ang_unit, unit_pv[1])
 
 
 def helper_s2pv(f, unit_theta, unit_phi, unit_r, unit_td, unit_pd, unit_rd):
@@ -117,21 +131,17 @@ def helper_s2pv(f, unit_theta, unit_phi, unit_r, unit_td, unit_pd, unit_rd):
 
 def helper_pv_multiplication(f, unit1, unit2):
     from astropy.units.structured import StructuredUnit
-    try:
-        result_unit = StructuredUnit((unit1['p'] * unit2['p'],
-                                      unit1['v'] * unit2['p']))
-    except Exception as exc:
-        raise UnitTypeError("pv vectors should have a structured unit.") from exc
+    check_structured_unit(unit1, dt_pv)
+    check_structured_unit(unit2, dt_pv)
+    result_unit = StructuredUnit((unit1[0] * unit2[0], unit1[1] * unit2[0]))
     converter = get_converter(unit2, StructuredUnit(
-        (unit2['p'], unit1['v'] * unit2['p'] / unit1['p'])))
+        (unit2[0], unit1[1] * unit2[0] / unit1[0])))
     return [None, converter], result_unit
 
 
 def helper_pvm(f, unit1):
-    try:
-        return [None], (unit1['p'], unit1['v'])
-    except Exception as exc:
-        raise UnitTypeError("pv vector should have a structured unit.") from exc
+    check_structured_unit(unit1, dt_pv)
+    return [None], (unit1[0], unit1[1])
 
 
 def helper_pvstar(f, unit1):
@@ -172,28 +182,20 @@ def helper_pvtob(f, unit_elong, unit_phi, unit_hm,
 
 
 def helper_pvu(f, unit_t, unit_pv):
-    try:
-        unit_p, unit_v = unit_pv['p'], unit_pv['v']
-    except Exception as exc:
-        raise UnitTypeError("pv vector should have a structured unit.") from exc
-    return [get_converter(unit_t, unit_p/unit_v), None], unit_pv
+    check_structured_unit(unit_pv, dt_pv)
+    return [get_converter(unit_t, unit_pv[0]/unit_pv[1]), None], unit_pv
 
 
 def helper_pvup(f, unit_t, unit_pv):
-    try:
-        unit_p, unit_v = unit_pv['p'], unit_pv['v']
-    except Exception as exc:
-        raise UnitTypeError("pv vector should have a structured unit.") from exc
-    return [get_converter(unit_t, unit_p/unit_v), None], unit_p
+    check_structured_unit(unit_pv, dt_pv)
+    return [get_converter(unit_t, unit_pv[0]/unit_pv[1]), None], unit_pv[0]
 
 
 def helper_s2xpv(f, unit1, unit2, unit_pv):
     from astropy.units.structured import StructuredUnit
-    try:
-        return [None, None, None], StructuredUnit((_d(unit1) * unit_pv['p'],
-                                                   _d(unit2) * unit_pv['v']))
-    except Exception as exc:
-        raise UnitTypeError("pv vector should have a structured unit.") from exc
+    check_structured_unit(unit_pv, dt_pv)
+    return [None, None, None], StructuredUnit((_d(unit1) * unit_pv[0],
+                                               _d(unit2) * unit_pv[1]))
 
 
 def ldbody_unit():
@@ -218,29 +220,21 @@ def astrom_unit():
 
 def helper_ldn(f, unit_b, unit_ob, unit_sc):
     from astropy.units.astrophys import AU
-    try:
-        return [get_converter(unit_b, ldbody_unit()),
-                get_converter(unit_ob, AU),
-                get_converter(_d(unit_sc), dimensionless_unscaled)], dimensionless_unscaled
-    except Exception as exc:
-        raise UnitTypeError("lds requires units equivalent to "
-                            "(Msun, rad, (AU,AU/day)), AU, dimensionless.") from exc
+    return [get_converter(unit_b, ldbody_unit()),
+            get_converter(unit_ob, AU),
+            get_converter(_d(unit_sc), dimensionless_unscaled)], dimensionless_unscaled
 
 
 def helper_aper(f, unit_theta, unit_astrom):
-    try:
-        unit_along = unit_astrom['along']
-    except Exception as exc:
-        raise UnitTypeError("astrom should have a structured unit.") from exc
+    check_structured_unit(unit_astrom, dt_eraASTROM)
+    unit_along = unit_astrom[7]  # along
 
-    result_unit = unit_astrom
-    if unit_astrom['eral'] == unit_along:
+    if unit_astrom[14] is unit_along:  # eral
         result_unit = unit_astrom
     else:
-        result_unit = dict(unit_astrom)
-        result_unit['eral'] = unit_along
-        result_unit = unit_astrom.__class__(tuple(result_unit.values()),
-                                            unit_astrom.names)
+        result_units = tuple((unit_along if i == 14 else v)
+                             for i, v in enumerate(unit_astrom.values()))
+        result_unit = unit_astrom.__class__(result_units, unit_astrom.names)
     return [get_converter(unit_theta, unit_along), None], result_unit
 
 
