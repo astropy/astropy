@@ -1802,7 +1802,7 @@ class Time(TimeBase):
         Notes
         -----
         The difference between apparent sidereal time and Earth rotation angle
-        is the equation of the origins which is the angle between the Celestial
+        is the equation of the origins, which is the angle between the Celestial
         Intermediate Origin (CIO) and the equinox. Applying apparent sidereal
         time to the hour angle yields the true apparent Right Ascension with
         respect to the equinox, while applying the Earth rotation angle yields
@@ -1864,7 +1864,7 @@ class Time(TimeBase):
         Notes
         -----
         The difference between apparent sidereal time and Earth rotation angle
-        is the equation of the origins which is the angle between the Celestial
+        is the equation of the origins, which is the angle between the Celestial
         Intermediate Origin (CIO) and the equinox. Applying apparent sidereal
         time to the hour angle yields the true apparent Right Ascension with
         respect to the equinox, while applying the Earth rotation angle yields
