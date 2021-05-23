@@ -225,7 +225,7 @@ def helper_aper(f, unit_theta, unit_astrom):
     else:
         result_units = tuple((unit_along if i == 14 else v)
                              for i, v in enumerate(unit_astrom.values()))
-        result_unit = unit_astrom.__class__(result_units, unit_astrom.field_names)
+        result_unit = unit_astrom.__class__(result_units, names=unit_astrom)
     return [get_converter(unit_theta, unit_along), None], result_unit
 
 
