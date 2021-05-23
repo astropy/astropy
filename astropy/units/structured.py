@@ -16,7 +16,7 @@ __all__ = ['StructuredUnit']
 
 
 def _names_from_dtype(dtype):
-    """Recursively extract names from a dtype."""
+    """Recursively extract field names from a dtype."""
     names = []
     for field, (subdtype, offset) in dtype.fields.items():
         if subdtype.fields:
@@ -27,11 +27,11 @@ def _names_from_dtype(dtype):
 
 
 def _normalize_tuples(names):
-    """Infer upper level names from unadorned tuples.
+    """Infer upper level field names from unadorned tuples.
 
-    Generally, we want the names to be organized like dtypes, as in
+    Generally, we want the field names to be organized like dtypes, as in
     ``(['pv', ('p', 'v')], 't')``.  But we automatically infer upper
-    names if the list is absent from items like ``(('p', 'v'), 't')``,
+    field names if the list is absent from items like ``(('p', 'v'), 't')``,
     by concatenating the names inside the tuple.
     """
     result = []
@@ -60,10 +60,10 @@ class StructuredUnit:
 
     Parameters
     ----------
-    units : tuple of unit-like
+    units : tuple of unit-like, or str
         Tuple elements should contain items that can initialize regular units.
         They can be nested tuples.
-    names : tuple of str, or `~numpy.dtype`, optional
+    names : tuple of str, tuple or list, or `~numpy.dtype`, optional
         For nested tuples, by default the name of the upper entry will just
         be the concatenation of the names of the lower levels.  One can
         pass in a list with the upper-level name and a tuple of lower-level
@@ -76,7 +76,7 @@ class StructuredUnit:
         if names is not None:
             if isinstance(names, np.dtype):
                 if not names.names:
-                    raise ValueError('dtype should be structured, with names.')
+                    raise ValueError('dtype should be structured, with fields.')
                 names = _names_from_dtype(names)
                 allow_default_names = False
             else:
@@ -87,9 +87,9 @@ class StructuredUnit:
         if not isinstance(units, tuple):
             units = Unit(units)
             if isinstance(units, StructuredUnit):
-                # Avoid constructing a new StructuredUnit if no names
-                # are given, or if all names are the same already anyway.
-                if names is None or units.names == names:
+                # Avoid constructing a new StructuredUnit if no field names
+                # are given, or if all field names are the same already anyway.
+                if names is None or units.field_names == names:
                     return units
 
                 # Otherwise, turn (the upper level) into a tuple.
@@ -102,7 +102,7 @@ class StructuredUnit:
             names = tuple(f'f{i}' for i in range(len(units)))
 
         elif len(units) != len(names):
-            raise ValueError("lengths of units and names must match.")
+            raise ValueError("lengths of units and field names must match.")
 
         dtype = []
         converted = []
@@ -118,7 +118,7 @@ class StructuredUnit:
                 unit = Unit(unit)
                 if not allow_default_names and isinstance(unit,
                                                           StructuredUnit):
-                    raise ValueError('units and names from dtype do not '
+                    raise ValueError('units and field names from dtype do not '
                                      'match in depth.')
 
             converted.append(unit)
@@ -131,11 +131,11 @@ class StructuredUnit:
         return self
 
     @property
-    def names(self):
-        """Possibly nested tuple of the names of the parts."""
-        return tuple(([name, part.names]
-                      if isinstance(part, StructuredUnit) else name)
-                     for name, part in self.items())
+    def field_names(self):
+        """Possibly nested tuple of the field names of the parts."""
+        return tuple(([name, unit.field_names]
+                      if isinstance(unit, StructuredUnit) else name)
+                     for name, unit in self.items())
 
     # Allow StructuredUnit to be treated as an (ordered) mapping.
     def __len__(self):
@@ -167,13 +167,13 @@ class StructuredUnit:
         if as_void:
             return results
 
-        # Short-cut; no need to interpret names, etc.
+        # Short-cut; no need to interpret field names, etc.
         result = super().__new__(self.__class__)
         result._units = results
         return result
 
     def _recursively_get_dtype(self, value, enter_lists=True):
-        """Get structured dtype according to value, using our names.
+        """Get structured dtype according to value, using our field names.
 
         This is useful since ``np.array(value)`` would treat tuples as lower
         levels of the array, rather than as elements of a structured array.
@@ -190,9 +190,10 @@ class StructuredUnit:
                              .format(self))
         new_dtype = []
         for (name, unit), part in zip(self.items(), value):
-            if isinstance(unit, type(self)):
+            if isinstance(unit, StructuredUnit):
                 new_dtype.append(
-                    (name, unit._recursively_get_dtype(part, enter_lists=False)))
+                    (name,
+                     unit._recursively_get_dtype(part, enter_lists=False)))
             else:
                 part = np.array(part)
                 part_dtype = part.dtype
@@ -260,7 +261,7 @@ class StructuredUnit:
         """
         if not isinstance(other, type(self)):
             try:
-                other = self.__class__(other, self.names)
+                other = self.__class__(other, self.field_names)
             except Exception:
                 return False
 
@@ -276,7 +277,7 @@ class StructuredUnit:
 
     def _get_converter(self, other, equivalencies=[]):
         if not isinstance(other, type(self)):
-            other = self.__class__(other, self.names)
+            other = self.__class__(other, self.field_names)
 
         converters = [self_part._get_converter(other_part,
                                                equivalencies=equivalencies)
@@ -357,7 +358,7 @@ class StructuredUnit:
                 return NotImplemented
         if isinstance(other, UnitBase):
             new_units = tuple(part * other for part in self.values())
-            return self.__class__(new_units, self.names)
+            return self.__class__(new_units, self.field_names)
         if isinstance(other, StructuredUnit):
             return NotImplemented
 
@@ -380,7 +381,7 @@ class StructuredUnit:
 
         if isinstance(other, UnitBase):
             new_units = tuple(part / other for part in self.values())
-            return self.__class__(new_units, self.names)
+            return self.__class__(new_units, self.field_names)
         return NotImplemented
 
     def __rlshift__(self, m):
@@ -399,7 +400,7 @@ class StructuredUnit:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             try:
-                other = self.__class__(other, self.names)
+                other = self.__class__(other, self.field_names)
             except Exception:
                 return NotImplemented
 

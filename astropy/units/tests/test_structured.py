@@ -58,7 +58,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert su4['p'] == u.AU
         assert su4['v'] == u.AU / u.day
         su5 = StructuredUnit(('AU', 'AU/day'))
-        assert su5.names == ('f0', 'f1')
+        assert su5.field_names == ('f0', 'f1')
         assert su5['f0'] == u.AU
         assert su5['f1'] == u.AU / u.day
 
@@ -90,10 +90,12 @@ class TestStructuredUnitBasics(StructuredTestBase):
     def test_extreme_recursive_initialization(self):
         su = StructuredUnit('(yr,(AU,AU/day,(km,(day,day))),m)',
                             ('t', ('p', 'v', ('h', ('d1', 'd2'))), 'l'))
-        assert su.names == ('t', ['pvhd1d2',
-                                  ('p', 'v',
-                                   ['hd1d2', ('h',
-                                              ['d1d2', ('d1', 'd2')])])], 'l')
+        assert su.field_names == ('t', ['pvhd1d2',
+                                        ('p', 'v',
+                                         ['hd1d2',
+                                          ('h',
+                                           ['d1d2',
+                                            ('d1', 'd2')])])], 'l')
 
     @pytest.mark.parametrize('names, invalid', [
         [('t', ['p', 'v']), "['p', 'v']"],
@@ -104,7 +106,7 @@ class TestStructuredUnitBasics(StructuredTestBase):
         [('t', ['pv', ('p', '')]), "''"]])
     def test_initialization_names_invalid_list_errors(self, names, invalid):
         with pytest.raises(ValueError) as exc:
-            StructuredUnit('(yr,(AU,AU/day)', names=names)
+            StructuredUnit('(yr,(AU,AU/day)', names)
         assert f'invalid entry {invalid}' in str(exc)
 
     def test_looks_like_unit(self):
@@ -198,10 +200,10 @@ class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
         values = self.pv_t_unit.values()
         assert values == (self.pv_unit, self.t_unit)
 
-    def test_names(self):
-        names = self.pv_t_unit.names
-        assert isinstance(names, tuple)
-        assert names == (['pv', ('p', 'v')], 't')
+    def test_field_names(self):
+        field_names = self.pv_t_unit.field_names
+        assert isinstance(field_names, tuple)
+        assert field_names == (['pv', ('p', 'v')], 't')
 
     @pytest.mark.parametrize('iterable', [list, set])
     def test_as_iterable(self, iterable):
@@ -263,7 +265,7 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         assert not self.pv_unit.is_equivalent(('AU', 'AU'))
         # Names should be ignored.
         pv_alt = StructuredUnit('m,m/s', names=('q', 'w'))
-        assert pv_alt.names != self.pv_unit.names
+        assert pv_alt.field_names != self.pv_unit.field_names
         assert self.pv_unit.is_equivalent(pv_alt)
 
     def test_conversion(self):
@@ -305,7 +307,7 @@ class TestStructuredUnitArithmatic(StructuredTestBaseWithUnits):
     def test_multiplication(self):
         pv_times_au = self.pv_unit * u.au
         assert isinstance(pv_times_au, StructuredUnit)
-        assert pv_times_au.names == ('p', 'v')
+        assert pv_times_au.field_names == ('p', 'v')
         assert pv_times_au['p'] == self.p_unit * u.AU
         assert pv_times_au['v'] == self.v_unit * u.AU
         au_times_pv = u.au * self.pv_unit
@@ -322,7 +324,7 @@ class TestStructuredUnitArithmatic(StructuredTestBaseWithUnits):
     def test_division(self):
         pv_by_s = self.pv_unit / u.s
         assert isinstance(pv_by_s, StructuredUnit)
-        assert pv_by_s.names == ('p', 'v')
+        assert pv_by_s.field_names == ('p', 'v')
         assert pv_by_s['p'] == self.p_unit / u.s
         assert pv_by_s['v'] == self.v_unit / u.s
         pv_by_s2 = self.pv_unit / 's'
