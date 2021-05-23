@@ -785,6 +785,8 @@ class Quantity(np.ndarray):
         if unit is None or unit is self.unit:
             value = self.view(np.ndarray)
         elif not self.dtype.names:
+            # For non-structured, we attempt a short-cut, where we just get
+            # the scale.  If that is 1, we do not have to do anything.
             unit = Unit(unit)
             # We want a view if the unit does not change.  One could check
             # with "==", but that calculates the scale that we need anyway.
@@ -800,6 +802,7 @@ class Quantity(np.ndarray):
                     # not in-place!
                     value = value * scale
         else:
+            # For structured arrays, we go the default route.
             value = self._to_value(unit, equivalencies)
 
         # Index with empty tuple to decay array scalars in to numpy scalars.
