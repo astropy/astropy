@@ -16,6 +16,7 @@ __all__ = ['StructuredUnit']
 
 
 def _names_from_dtype(dtype):
+    """Recursively extract names from a dtype."""
     names = []
     for field, (subdtype, offset) in dtype.fields.items():
         if subdtype.fields:
@@ -26,9 +27,32 @@ def _names_from_dtype(dtype):
 
 
 def _normalize_tuples(names):
-    return tuple(
-        ([''.join(name), _normalize_tuples(name)]
-         if isinstance(name, tuple) else name) for name in names)
+    """Infer upper level names from unadorned tuples.
+
+    Generally, we want the names to be organized like dtypes, as in
+    ``(['pv', ('p', 'v')], 't')``.  But we automatically infer upper
+    names if the list is absent from items like ``(('p', 'v'), 't')``,
+    by concatenating the names inside the tuple.
+    """
+    result = []
+    for name in names:
+        if isinstance(name, str) and len(name) > 0:
+            result.append(name)
+        elif (isinstance(name, list)
+              and len(name) == 2
+              and isinstance(name[0], str) and len(name[0]) > 0
+              and isinstance(name[1], tuple) and len(name[1]) > 0):
+            result.append([name[0], _normalize_tuples(name[1])])
+        elif isinstance(name, tuple) and len(name) > 0:
+            new_tuple = _normalize_tuples(name)
+            result.append([''.join([(i[0] if isinstance(i, list) else i)
+                                    for i in new_tuple]), new_tuple])
+        else:
+            raise ValueError(f'invalid entry {name!r}. Should be a name, '
+                             'tuple of names, or 2-element list of the '
+                             'form [name, tuple of names].')
+
+    return tuple(result)
 
 
 class StructuredUnit:
@@ -75,7 +99,7 @@ class StructuredUnit:
                 units = (units,)
 
         if names is None:
-            names = tuple('f{}'.format(i) for i in range(len(units)))
+            names = tuple(f'f{i}' for i in range(len(units)))
 
         elif len(units) != len(names):
             raise ValueError("lengths of units and names must match.")
@@ -91,11 +115,7 @@ class StructuredUnit:
                 name = name[0]
             else:
                 # We are at the lowest level.  Check unit.
-                if isinstance(unit, str):
-                    unit = Unit(unit)
-                elif isinstance(unit, tuple):
-                    unit = cls(unit)
-
+                unit = Unit(unit)
                 if not allow_default_names and isinstance(unit,
                                                           StructuredUnit):
                     raise ValueError('units and names from dtype do not '

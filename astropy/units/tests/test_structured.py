@@ -86,6 +86,26 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert su4['pv']['v'] == u.AU / u.day
         assert su4['t'] == u.yr
 
+    def test_extreme_recursive_initialization(self):
+        su = StructuredUnit('(yr,(AU,AU/day,(km,(day,day))),m)',
+                            ('t', ('p', 'v', ('h', ('d1', 'd2'))), 'l'))
+        assert su.names == ('t', ['pvhd1d2',
+                                  ('p', 'v',
+                                   ['hd1d2', ('h',
+                                              ['d1d2', ('d1', 'd2')])])], 'l')
+
+    @pytest.mark.parametrize('names, invalid', [
+        [('t', ['p', 'v']), "['p', 'v']"],
+        [('t', ['pv', 'p', 'v']), "['pv', 'p', 'v']"],
+        [('t', ['pv', ['p', 'v']]), "['pv', ['p', 'v']"],
+        [('t', ()), "()"],
+        [('t', ('p', None)), "None"],
+        [('t', ['pv', ('p', '')]), "''"]])
+    def test_initialization_names_invalid_list_errors(self, names, invalid):
+        with pytest.raises(ValueError) as exc:
+            StructuredUnit('(yr,(AU,AU/day)', names=names)
+        assert f'invalid entry {invalid}' in str(exc)
+
     def test_looks_like_unit(self):
         su = StructuredUnit((self.p_unit, self.v_unit), ('p', 'v'))
         assert Unit(su) is su
