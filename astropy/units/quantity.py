@@ -700,8 +700,20 @@ class Quantity(np.ndarray):
         """Helper method for to and to_value."""
         if equivalencies == []:
             equivalencies = self._equivalencies
-        return self.unit.to(unit, self.view(np.ndarray),
-                            equivalencies=equivalencies)
+        if not self.dtype.names or isinstance(self.unit, StructuredUnit):
+            # Standard path, let unit to do work.
+            return self.unit.to(unit, self.view(np.ndarray),
+                                equivalencies=equivalencies)
+
+        else:
+            # The .to() method of a simple unit cannot convert a structured
+            # dtype, so we work around it, by recursing.
+            # TODO: deprecate this?
+            # Convert simple to Structured on initialization?
+            result = np.empty_like(self.view(np.ndarray))
+            for name in self.dtype.names:
+                result[name] = self[name]._to_value(unit, equivalencies)
+            return result
 
     def to(self, unit, equivalencies=[], copy=True):
         """
@@ -1113,7 +1125,7 @@ class Quantity(np.ndarray):
         return out
 
     def __setitem__(self, i, value):
-        if isinstance(i, str) and isinstance(self.unit, StructuredUnit):
+        if isinstance(i, str):
             # Indexing will cause a different unit, so by doing this in
             # two steps we effectively try with the right unit.
             self[i][...] = value

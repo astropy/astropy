@@ -286,7 +286,7 @@ class StructuredUnit:
         def converter(value):
             if not hasattr(value, 'dtype'):
                 value = np.array(value, self._recursively_get_dtype(value))
-            result = np.empty(value.shape, value.dtype)
+            result = np.empty_like(value)
             for name, converter_ in zip(result.dtype.names, converters):
                 result[name] = converter_(value[name])
             return result

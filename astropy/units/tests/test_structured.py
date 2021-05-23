@@ -9,6 +9,7 @@ from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.units import StructuredUnit, Unit, UnitBase, Quantity
+from astropy.utils.masked import Masked
 
 
 class StructuredTestBase:
@@ -583,3 +584,43 @@ class TestStructuredLogUnit:
         mag_time_si = mag_time.si
         assert_array_equal(mag_time_si['mag'], mag_time['mag'].si)
         assert_array_equal(mag_time_si['t'], mag_time['t'].si)
+
+
+class TestStructuredMaskedQuantity(StructuredTestBaseWithUnits):
+    """Somewhat minimal tests.  Conversion is most stringent."""
+    def setup_class(self):
+        super().setup_class()
+        self.qpv = self.pv << self.pv_unit
+        self.pv_mask = np.array([(True, False),
+                                 (False, False),
+                                 (False, True)], [('p', bool), ('v', bool)])
+        self.mpv = Masked(self.qpv, mask=self.pv_mask)
+
+    def test_init(self):
+        assert isinstance(self.mpv, Masked)
+        assert isinstance(self.mpv, Quantity)
+        assert_array_equal(self.mpv.unmasked, self.qpv)
+        assert_array_equal(self.mpv.mask, self.pv_mask)
+
+    def test_slicing(self):
+        mp = self.mpv['p']
+        assert isinstance(mp, Masked)
+        assert isinstance(mp, Quantity)
+        assert_array_equal(mp.unmasked, self.qpv['p'])
+        assert_array_equal(mp.mask, self.pv_mask['p'])
+
+    def test_conversion(self):
+        mpv = self.mpv.to('AU,AU/day')
+        assert isinstance(mpv, Masked)
+        assert isinstance(mpv, Quantity)
+        assert_array_equal(mpv.unmasked, self.qpv.to('AU,AU/day'))
+        assert_array_equal(mpv.mask, self.pv_mask)
+        assert np.all(mpv == self.mpv)
+
+    def test_si(self):
+        mpv = self.mpv.si
+        assert isinstance(mpv, Masked)
+        assert isinstance(mpv, Quantity)
+        assert_array_equal(mpv.unmasked, self.qpv.si)
+        assert_array_equal(mpv.mask, self.pv_mask)
+        assert np.all(mpv == self.mpv)
