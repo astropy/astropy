@@ -35,7 +35,7 @@ def check_structured_unit(unit, dtype):
         msg = {dt_pv: 'pv',
                dt_eraLDBODY: 'ldbody',
                dt_eraASTROM: 'astrom'}.get(dtype, 'function')
-        raise UnitTypeError(f'{msg} input needs unit matching {dtype=}.')
+        raise UnitTypeError(f'{msg} input needs unit matching dtype={dtype}.')
 
 
 def helper_s2c(f, unit1, unit2):
