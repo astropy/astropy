@@ -5,8 +5,9 @@ Structured Units
 
 Numpy arrays can be :doc:`structured arrays <numpy:user/basics.rec>`, where
 each elements consists of multiple fields. These can be used with |Quantity|
-using a |StructuredUnit|, which provides a |Unit| for each field. This can be
-handy in particular if using the PyERFA_ wrappers around the ERFA_ routines.
+using a |StructuredUnit|, which provides a |Unit| for each field. For example,
+this allows the PyERFA_ wrappers around the ERFA_ routines to support having
+units on the position-velocity functions.
 
 Creating Structured Quantities
 ==============================
