@@ -6,10 +6,11 @@
 from erfa import ufunc as erfa_ufunc, dt_pv, dt_eraLDBODY, dt_eraASTROM
 
 from astropy.units.core import UnitsError, UnitTypeError, dimensionless_unscaled
+from astropy.units.structured import StructuredUnit
 from . import UFUNC_HELPERS
 from .helpers import (get_converter, helper_invariant, helper_multiplication,
                       helper_twoarg_invariant, _d)
-# TODO: cannot import StructuredUnit here; maybe try to rewrite so that is possible?
+
 
 erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
                'cpv', 'p2pv', 'pv2p', 'pv2s', 'pvdpv', 'pvm', 'pvmpv', 'pvppv',
@@ -19,7 +20,6 @@ erfa_ufuncs = ('s2c', 's2p', 'c2s', 'p2s', 'pm', 'pdp', 'pxp', 'rxp',
 
 
 def has_matching_structure(unit, dtype):
-    from astropy.units import StructuredUnit
     dtype_fields = dtype.fields
     if dtype_fields:
         return (isinstance(unit, StructuredUnit)
@@ -98,7 +98,6 @@ def helper_gd2gc(f, nounit, unit1, unit2, unit3):
 
 
 def helper_p2pv(f, unit1):
-    from astropy.units.structured import StructuredUnit
     from astropy.units.si import s
     if isinstance(unit1, StructuredUnit):
         raise UnitTypeError("p vector unit cannot be a structured unit.")
@@ -119,7 +118,6 @@ def helper_pv2s(f, unit_pv):
 
 def helper_s2pv(f, unit_theta, unit_phi, unit_r, unit_td, unit_pd, unit_rd):
     from astropy.units.si import radian
-    from astropy.units.structured import StructuredUnit
     time_unit = unit_r / unit_rd
     return [get_converter(unit_theta, radian),
             get_converter(unit_phi, radian),
@@ -130,7 +128,6 @@ def helper_s2pv(f, unit_theta, unit_phi, unit_r, unit_td, unit_pd, unit_rd):
 
 
 def helper_pv_multiplication(f, unit1, unit2):
-    from astropy.units.structured import StructuredUnit
     check_structured_unit(unit1, dt_pv)
     check_structured_unit(unit2, dt_pv)
     result_unit = StructuredUnit((unit1[0] * unit2[0], unit1[1] * unit2[0]))
@@ -145,7 +142,6 @@ def helper_pvm(f, unit1):
 
 
 def helper_pvstar(f, unit1):
-    from astropy.units.structured import StructuredUnit
     from astropy.units.astrophys import AU
     from astropy.units.si import km, s, radian, day, year, arcsec
 
@@ -155,7 +151,6 @@ def helper_pvstar(f, unit1):
 
 def helper_starpv(f, unit_ra, unit_dec, unit_pmr, unit_pmd,
                   unit_px, unit_rv):
-    from astropy.units.structured import StructuredUnit
     from astropy.units.si import km, s, day, year, radian, arcsec
     from astropy.units.astrophys import AU
 
@@ -169,7 +164,6 @@ def helper_starpv(f, unit_ra, unit_dec, unit_pmr, unit_pmd,
 
 def helper_pvtob(f, unit_elong, unit_phi, unit_hm,
                  unit_xp, unit_yp, unit_sp, unit_theta):
-    from astropy.units.structured import StructuredUnit
     from astropy.units.si import m, s, radian
 
     return [get_converter(unit_elong, radian),
@@ -192,7 +186,6 @@ def helper_pvup(f, unit_t, unit_pv):
 
 
 def helper_s2xpv(f, unit1, unit2, unit_pv):
-    from astropy.units.structured import StructuredUnit
     check_structured_unit(unit_pv, dt_pv)
     return [None, None, None], StructuredUnit((_d(unit1) * unit_pv[0],
                                                _d(unit2) * unit_pv[1]))
@@ -201,14 +194,12 @@ def helper_s2xpv(f, unit1, unit2, unit_pv):
 def ldbody_unit():
     from astropy.units.si import day, radian
     from astropy.units.astrophys import Msun, AU
-    from astropy.units.structured import StructuredUnit
 
     return StructuredUnit((Msun, radian, (AU, AU/day)),
                           erfa_ufunc.dt_eraLDBODY)
 
 
 def astrom_unit():
-    from astropy.units.structured import StructuredUnit
     from astropy.units.si import rad, year
     from astropy.units.astrophys import AU
     one = rel2c = dimensionless_unscaled
