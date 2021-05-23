@@ -130,6 +130,13 @@ class TestStructuredUnitBasics(StructuredTestBase):
         assert isinstance(su['t'], UnitBase)
         assert su['pv']['v'] == u.km / u.s
 
+    def test_initialize_with_structured_unit_for_names(self):
+        su = StructuredUnit(('AU', 'AU/d'), names=('p', 'v'))
+        su2 = StructuredUnit(('km', 'km/s'), names=su)
+        assert su2.field_names == ('p', 'v')
+        assert su2['p'] == u.km
+        assert su2['v'] == u.km / u.s
+
     def test_initialize_single_field(self):
         su = StructuredUnit('AU', 'p')
         assert isinstance(su, StructuredUnit)
