@@ -1,0 +1,3 @@
+It is now possible to have quantities based on structured arrays in
+which the unit has matching structure, giving each field its own unit,
+using units constructed like ``Unit('AU,AU/day')``.
