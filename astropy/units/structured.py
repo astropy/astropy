@@ -173,15 +173,22 @@ class StructuredUnit:
         yield from self._units.dtype.names
 
     # Helpers for methods below.
-    def _recursively_apply(self, func, as_void=False):
+    def _recursively_apply(self, func, cls=None):
         """Apply func recursively.
 
-        The result is stored in an instance of cls or a void.
+        Parameters
+        ----------
+        func : callable
+            Function to apply to all parts of the structured unit,
+            recursing as needed.
+        cls : type, optional
+            If given, should be a subclass of `~numpy.void`. By default,
+            will return a new `~astropy.units.StructuredUnit` instance.
         """
         results = np.array(tuple([func(part) for part in self.values()]),
                            self._units.dtype)[()]
-        if as_void:
-            return results
+        if cls is not None:
+            return results.view((cls, results.dtype))
 
         # Short-cut; no need to interpret field names, etc.
         result = super().__new__(self.__class__)
@@ -230,13 +237,13 @@ class StructuredUnit:
     # Needed to pass through Unit initializer, so might as well use it.
     def _get_physical_type_id(self):
         return self._recursively_apply(
-            operator.methodcaller('_get_physical_type_id'), as_void=True)
+            operator.methodcaller('_get_physical_type_id'), cls=Structure)
 
     @property
     def physical_type(self):
         """Physical types of all the fields."""
         return self._recursively_apply(
-            operator.attrgetter('physical_type'), as_void=True)
+            operator.attrgetter('physical_type'), cls=Structure)
 
     def decompose(self, bases=set()):
         """The `StructuredUnit` composed of only irreducible units.
@@ -429,3 +436,30 @@ class StructuredUnit:
                 return NotImplemented
 
         return self.values() != other.values()
+
+
+class Structure(np.void):
+    """Single element structure for physical type IDs, etc.
+
+    Behaves like a `~numpy.void` and thus mostly like a tuple which can also
+    be indexed with field names, but overrides ``__eq__`` and ``__ne__`` to
+    compare only the contents, not the field names are ignored.  Furthermore,
+    this way no `FutureWarning` about comparisons is given.
+
+    """
+    # Note that it is important that it is important for physical type IDs to
+    # not be stored in a tuple, since then the physical types would be treated
+    # as alternatives in :meth:`~astropy.units.UnitBase.is_equivalent`.
+    # (Of course, in that case, they could also not be indexed by name.)
+
+    def __eq__(self, other):
+        if isinstance(other, np.void):
+            other = other.item()
+
+        return self.item() == other
+
+    def __ne__(self, other):
+        if isinstance(other, np.void):
+            other = other.item()
+
+        return self.item() != other
