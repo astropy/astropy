@@ -437,7 +437,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         for attr in frame_transform_graph.frame_attributes:
             value = getattr(coords, attr, None)
             use_value = (isinstance(coords, SkyCoord) or
-                         attr not in coords._attr_names_with_defaults)
+                         attr not in coords.get_frame_attr_names())
             if use_value and value is not None:
                 skycoord_kwargs[attr] = value
 

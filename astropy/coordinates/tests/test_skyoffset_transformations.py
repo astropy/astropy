@@ -12,6 +12,32 @@ from astropy.time import Time
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 
 
+def test_altaz_attribute_transforms():
+    """Test transforms between AltAz frames with different attributes."""
+    el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+    origin1 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T12:00:00"),
+                    location=el1)
+    frame1 = SkyOffsetFrame(origin=origin1)
+    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
+
+    el2 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
+    origin2 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T11:00:00"),
+                    location=el2)
+    frame2 = SkyOffsetFrame(origin=origin2)
+    coo2 = coo1.transform_to(frame2)
+    coo2_expected = [1.22522446, 0.70624298] * u.deg
+    assert_allclose([coo2.lon.wrap_at(180*u.deg), coo2.lat],
+                    coo2_expected, atol=convert_precision)
+
+    el3 = EarthLocation(0*u.deg, 90*u.deg, 0*u.m)
+    origin3 = AltAz(0 * u.deg, 90*u.deg, obstime=Time("2000-01-01T12:00:00"),
+                    location=el3)
+    frame3 = SkyOffsetFrame(origin=origin3)
+    coo3 = coo2.transform_to(frame3)
+    assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],
+                    [1*u.deg, 1*u.deg], atol=convert_precision)
+
+
 @pytest.mark.parametrize("inradec,expectedlatlon, tolsep", [
     ((45, 45)*u.deg, (0, 0)*u.deg, .001*u.arcsec),
     ((45, 0)*u.deg, (0, -45)*u.deg, .001*u.arcsec),
@@ -30,15 +56,8 @@ def test_skyoffset(inradec, expectedlatlon, tolsep, originradec=(45, 45)*u.deg):
 
     assert skycoord_inaf.separation(expected) < tolsep
     # Check we can also transform back (regression test for gh-11254).
-    try:
-        roundtrip = skycoord_inaf.transform_to(ICRS())
-    except AttributeError as err:
-        if 'to_geodetic' in str(err):
-            pytest.xfail('See Issue 11277')
-        else:
-            raise
-    else:
-        assert roundtrip.separation(skycoord) < 1*u.uas
+    roundtrip = skycoord_inaf.transform_to(ICRS())
+    assert roundtrip.separation(skycoord) < 1*u.uas
 
 
 def test_skyoffset_functional_ra():
@@ -217,32 +236,6 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
                     [1.0*u.deg, 1.0*u.deg], atol=convert_precision)
 
 
-def test_altaz_attribute_transforms():
-    """Test transforms between AltAz frames with different attributes."""
-    el1 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
-    origin1 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T12:00:00"),
-                    location=el1)
-    frame1 = SkyOffsetFrame(origin=origin1)
-    coo1 = SkyCoord(1 * u.deg, 1 * u.deg, frame=frame1)
-
-    el2 = EarthLocation(0*u.deg, 0*u.deg, 0*u.m)
-    origin2 = AltAz(0 * u.deg, 0*u.deg, obstime=Time("2000-01-01T11:00:00"),
-                    location=el2)
-    frame2 = SkyOffsetFrame(origin=origin2)
-    coo2 = coo1.transform_to(frame2)
-    coo2_expected = [1.22522446, 0.70624298] * u.deg
-    assert_allclose([coo2.lon.wrap_at(180*u.deg), coo2.lat],
-                    coo2_expected, atol=convert_precision)
-
-    el3 = EarthLocation(0*u.deg, 90*u.deg, 0*u.m)
-    origin3 = AltAz(0 * u.deg, 90*u.deg, obstime=Time("2000-01-01T12:00:00"),
-                    location=el3)
-    frame3 = SkyOffsetFrame(origin=origin3)
-    coo3 = coo2.transform_to(frame3)
-    assert_allclose([coo3.lon.wrap_at(180*u.deg), coo3.lat],
-                    [1*u.deg, 1*u.deg], atol=convert_precision)
-
-
 @pytest.mark.parametrize("rotation, expectedlatlon", [
     (0*u.deg, [0, 1]*u.deg),
     (180*u.deg, [0, -1]*u.deg),
@@ -335,3 +328,27 @@ def test_skyoffset_velocity_rotation(rotation, expectedpmlonlat):
     c_skyoffset0 = sc.transform_to(sc.skyoffset_frame(rotation=rotation))
     assert_allclose(c_skyoffset0.pm_lon_coslat, expectedpmlonlat[0])
     assert_allclose(c_skyoffset0.pm_lat, expectedpmlonlat[1])
+
+
+def test_skyoffset_two_frames_interfering():
+    """Regression test for gh-11277, where it turned out that the
+    origin argument validation from one SkyOffsetFrame could interfere
+    with that of another.
+
+    Note that this example brought out a different bug than that at the
+    top of gh-11277, viz., that an attempt was made to set origin on a SkyCoord
+    when it should just be stay as part of the SkyOffsetFrame.
+    """
+    # Example adapted from @bmerry's minimal example at
+    # https://github.com/astropy/astropy/issues/11277#issuecomment-825492335
+    altaz_frame = AltAz(obstime=Time('2020-04-22T13:00:00Z'),
+                        location=EarthLocation(18, -30))
+    target = SkyCoord(alt=70*u.deg, az=150*u.deg, frame=altaz_frame)
+    dirs_altaz_offset = SkyCoord(lon=[-0.02, 0.01, 0.0, 0.0, 0.0] * u.rad,
+                                 lat=[0.0, 0.2, 0.0, -0.3, 0.1] * u.rad,
+                                 frame=target.skyoffset_frame())
+    dirs_altaz = dirs_altaz_offset.transform_to(altaz_frame)
+    dirs_icrs = dirs_altaz.transform_to(ICRS())
+    target_icrs = target.transform_to(ICRS())
+    # The line below was almost guaranteed to fail.
+    dirs_icrs.transform_to(target_icrs.skyoffset_frame())

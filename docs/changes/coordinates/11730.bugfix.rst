@@ -1,0 +1,5 @@
+Different ``SkyOffsetFrame`` classes no longer interfere with each other,
+causing difficult to debug problems with the ``origin`` attribute. The
+``origin`` attribute now no longer is propagated, so while it remains
+available on a ``SkyCoord`` that is an offset, it no longer is available once
+that coordinate is transformed to another frame. [#11730]
