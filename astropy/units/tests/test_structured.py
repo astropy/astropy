@@ -235,22 +235,34 @@ class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
         pv_ptid = self.pv_unit._get_physical_type_id()
-        expected = np.array((self.pv_unit['p']._get_physical_type_id(),
-                             self.pv_unit['v']._get_physical_type_id()),
-                            [('p', 'O'), ('v', 'O')])
+        assert len(pv_ptid) == 2
+        assert pv_ptid.dtype.names == ('p', 'v')
+        p_ptid = self.pv_unit['p']._get_physical_type_id()
+        v_ptid = self.pv_unit['v']._get_physical_type_id()
+        # Expected should be (subclass of) void, with structured object dtype.
+        expected = np.array((p_ptid, v_ptid), [('p', 'O'), ('v', 'O')])[()]
         assert pv_ptid == expected
+        # Names should be ignored in comparison.
+        assert pv_ptid == np.array((p_ptid, v_ptid), 'O,O')[()]
+        # Should be possible to address by field and by number.
+        assert pv_ptid['p'] == p_ptid
+        assert pv_ptid['v'] == v_ptid
+        assert pv_ptid[0] == p_ptid
+        assert pv_ptid[1] == v_ptid
+        # More complicated version.
         pv_t_ptid = self.pv_t_unit._get_physical_type_id()
-        expected2 = np.array((self.pv_unit._get_physical_type_id(),
-                              self.t_unit._get_physical_type_id()),
-                             [('pv', 'O'), ('t', 'O')])
-        assert pv_t_ptid == expected2
+        t_ptid = self.t_unit._get_physical_type_id()
+        assert pv_t_ptid == np.array((pv_ptid, t_ptid), 'O,O')[()]
+        assert pv_t_ptid['pv'] == pv_ptid
+        assert pv_t_ptid['t'] == t_ptid
+        assert pv_t_ptid['pv'][1] == v_ptid
 
     def test_physical_type(self):
         pv_pt = self.pv_unit.physical_type
-        assert pv_pt == np.array(('length', 'speed'), [('p', 'O'), ('v', 'O')])
+        assert pv_pt == np.array(('length', 'speed'), 'O,O')[()]
 
         pv_t_pt = self.pv_t_unit.physical_type
-        assert pv_t_pt == np.array((pv_pt, 'time'), [('pv', 'O'), ('t', 'O')])
+        assert pv_t_pt == np.array((pv_pt, 'time'), 'O,O')[()]
 
     def test_si(self):
         pv_t_si = self.pv_t_unit.si
@@ -274,6 +286,8 @@ class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
         pv_alt = StructuredUnit('m,m/s', names=('q', 'w'))
         assert pv_alt.field_names != self.pv_unit.field_names
         assert self.pv_unit.is_equivalent(pv_alt)
+        # Regular units should work too.
+        assert not u.m.is_equivalent(self.pv_unit)
 
     def test_conversion(self):
         pv1 = self.pv_unit.to(('AU', 'AU/day'), self.pv)
@@ -564,6 +578,31 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         assert z.unit == self.pv_unit
         assert z.shape == self.pv.shape
         assert_array_equal(z, func(self.pv) << self.pv_unit)
+
+
+class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
+    def setup_class(self):
+        super().setup_class()
+
+        class PositionVelocity(u.SpecificTypeQuantity):
+            _equivalent_unit = self.pv_unit
+
+        self.PositionVelocity = PositionVelocity
+
+    def test_init(self):
+        pv = self.PositionVelocity(self.pv, self.pv_unit)
+        assert isinstance(pv, self.PositionVelocity)
+        assert type(pv['p']) is u.Quantity
+        assert_array_equal(pv['p'], self.pv['p'] << self.pv_unit['p'])
+
+        pv2 = self.PositionVelocity(self.pv, 'AU,AU/day')
+        assert_array_equal(pv2['p'], self.pv['p'] << u.AU)
+
+    def test_error_on_non_equivalent_unit(self):
+        with pytest.raises(u.UnitsError):
+            self.PositionVelocity(self.pv, 'AU')
+        with pytest.raises(u.UnitsError):
+            self.PositionVelocity(self.pv, 'AU,yr')
 
 
 class TestStructuredLogUnit:
