@@ -53,9 +53,12 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 # `astropy.coordinates.SkyCoord.from_name` uses Simbad to resolve object
 # names and retrieve coordinates.
 #
-# Get the coordinates of M33:
+# You can use the following code to get the coordinates of M33:
+# m33 = SkyCoord.from_name('M33')
+#
+# However, in this script, we hardcode the location of M33 to avoid network hit:
 
-m33 = SkyCoord.from_name('M33')
+m33 = SkyCoord(23.4621, 30.65994167, unit='deg', frame='icrs')
 
 ##############################################################################
 # Use `astropy.coordinates.EarthLocation` to provide the location of Bear
