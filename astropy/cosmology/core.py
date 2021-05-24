@@ -95,7 +95,7 @@ class Cosmology(metaclass=ABCMeta):
     name : str or None (optional, keyword-only)
         The name of the cosmology.
     meta : dict or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
     **kwargs
         Arguments into the cosmology; used by subclasses, not this base class.
 
@@ -253,7 +253,7 @@ class FLRW(Cosmology):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Notes
     -----
@@ -1697,7 +1697,7 @@ class LambdaCDM(FLRW):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -2229,7 +2229,7 @@ class FlatLambdaCDM(LambdaCDM):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -2392,7 +2392,7 @@ class wCDM(FLRW):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -2605,7 +2605,7 @@ class FlatwCDM(wCDM):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -2770,7 +2770,7 @@ class w0waCDM(FLRW):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -2942,7 +2942,7 @@ class Flatw0waCDM(w0waCDM):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -3054,7 +3054,7 @@ class wpwaCDM(FLRW):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------
@@ -3242,7 +3242,7 @@ class w0wzCDM(FLRW):
         Name for this cosmological object.
 
     meta : mapping or None (optional, keyword-only)
-        Metadata for the cosmology, e.g. a reference.
+        Metadata for the cosmology, e.g., a reference.
 
     Examples
     --------

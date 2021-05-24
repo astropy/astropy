@@ -14,12 +14,14 @@ __all__ = ["default_cosmology"] + parameters.available
 
 __doctest_requires__ = {"*": ["scipy"]}
 
+
 def _all_subclasses(cls):
     """Yield a (qualname, cls) of all subclasses (inclusive)."""
     # modified from https://stackoverflow.com/a/33607093
     yield cls.__qualname__, cls
     for subclass in cls.__subclasses__():
         yield from _all_subclasses(subclass)  # recursion in subclass
+
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a cosmology instance with the same name as the
