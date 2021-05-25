@@ -1,0 +1,2 @@
+Cosmologies now store metadata in a mutable parameter ``meta``.
+The initialization arguments ``name`` and ``meta`` are keyword-only.
