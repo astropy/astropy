@@ -1,0 +1,2 @@
+Remove deprecation warning and error remapping in ``Cosmology.clone``.
+Now unknown arguments will raise a ``TypeError``, not an ``AttributeError``.

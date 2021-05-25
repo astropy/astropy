@@ -301,9 +301,8 @@ def test_clone():
     assert allclose(newclone.wa, 0.2)
 
     # Now test exception if user passes non-parameter
-    with pytest.raises(AttributeError):
-        with pytest.warns(AstropyDeprecationWarning, match="Astropy v5.0"):
-            newclone = cosmo.clone(not_an_arg=4)
+    with pytest.raises(TypeError, match="unexpected keyword argument"):
+        newclone = cosmo.clone(not_an_arg=4)
 
 
 def test_xtfuncs():
