@@ -18,6 +18,7 @@ from collections.abc import Mapping, Sequence
 import numpy as np
 
 from astropy.utils import metadata
+from astropy.utils.masked import Masked
 from .table import Table, QTable, Row, Column, MaskedColumn
 from astropy.units import Quantity
 
@@ -1190,6 +1191,9 @@ def _join(left, right, keys=None, join_type='inner',
             if isinstance(col, Column) and not isinstance(col, MaskedColumn):
                 col = out.MaskedColumn(col, copy=False)
 
+            if isinstance(col, Quantity) and not isinstance(col, Masked):
+                col = Masked(col, copy=False)
+
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
@@ -1320,6 +1324,9 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
                     col = out.MaskedColumn(col, copy=False)
 
+                if isinstance(col, Quantity) and not isinstance(col, Masked):
+                    col = Masked(col, copy=False)
+
                 try:
                     col[idx0:idx1] = col.info.mask_val
                 except Exception:
@@ -1419,6 +1426,9 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
                 # because masking is required.
                 if isinstance(col, Column) and not isinstance(col, MaskedColumn):
                     col = out.MaskedColumn(col, copy=False)
+
+                if isinstance(col, Quantity) and not isinstance(col, Masked):
+                    col = Masked(col, copy=False)
 
                 try:
                     col[arr_len:] = col.info.mask_val
