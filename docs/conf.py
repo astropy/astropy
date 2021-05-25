@@ -156,10 +156,7 @@ numpydoc_xref_aliases.update({
     "BaseHDU": ":doc:`HDU </io/fits/api/hdus>`"
 })
 # Add from sphinx-astropy 1) glossary aliases 2) physical types.
-# need to strip the intersphinx links meant for affiliate packages.
-numpydoc_xref_aliases.update(
-    {k: v.replace("astropy:", "").replace(":ref: ", "")
-     for k, v in numpydoc_xref_astropy_aliases.items()})
+numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
 
 # -- Project information ------------------------------------------------------
