@@ -343,6 +343,10 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
         assert_allclose_quantity(s2.lat, s1.lat)
         assert_allclose_quantity(s2.distance, s1.distance)
+        # check differentials. they shouldn't have changed.
+        assert_allclose_quantity(ds2.d_lon, ds1.d_lon)
+        assert_allclose_quantity(ds2.d_lat, ds1.d_lat)
+        assert_allclose_quantity(ds2.d_distance, ds1.d_distance)
         assert_allclose_quantity(ds2.d_lon, dexpected.d_lon)
         assert_allclose_quantity(ds2.d_lat, dexpected.d_lat)
         assert_allclose_quantity(ds2.d_distance, dexpected.d_distance)
@@ -393,6 +397,11 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(ds2.d_lon, dexpected.d_lon)
         assert_allclose_quantity(ds2.d_lat, dexpected.d_lat)
         assert_allclose_quantity(ds2.d_distance, dexpected.d_distance)
+        # the 2nd component is NaN since the 2nd distance is NaN
+        # TODO! this will change when ``.transform`` skips Cartesian
+        assert_array_equal(np.isnan(ds2.d_lon), (False, True))
+        assert_array_equal(np.isnan(ds2.d_lat), (False, True))
+        assert_array_equal(np.isnan(ds2.d_distance), (False, True))
 
         # now with a non rotation matrix
         matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -586,8 +595,12 @@ class TestUnitSphericalRepresentation:
 
         assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
         assert_allclose_quantity(s2.lat, s1.lat)
+        # compare differentials. they should be unchanged (ds1).
+        assert_allclose_quantity(ds2.d_lon, ds1.d_lon)
+        assert_allclose_quantity(ds2.d_lat, ds1.d_lat)
         assert_allclose_quantity(ds2.d_lon, dexpected.d_lon)
         assert_allclose_quantity(ds2.d_lat, dexpected.d_lat)
+        assert not hasattr(ds2, "d_distance")
 
         # now with a non rotation matrix
         # note that the result will be a Spherical, not UnitSpherical
@@ -795,6 +808,10 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
         assert_allclose_quantity(s2.theta, s1.theta)
         assert_allclose_quantity(s2.r, s1.r)
+        # compare differentials. should be unchanged (ds1).
+        assert_allclose_quantity(ds2.d_phi, ds1.d_phi)
+        assert_allclose_quantity(ds2.d_theta, ds1.d_theta)
+        assert_allclose_quantity(ds2.d_r, ds1.d_r)
         assert_allclose_quantity(ds2.d_phi, dexpected.d_phi)
         assert_allclose_quantity(ds2.d_theta, dexpected.d_theta)
         assert_allclose_quantity(ds2.d_r, dexpected.d_r)
@@ -1131,6 +1148,11 @@ class TestCartesianRepresentation:
         dexpected = CartesianDifferential.from_cartesian(
             ds1.to_cartesian(base=s1).transform(matrix), base=s2)
 
+        assert_allclose_quantity(ds2.d_x, dexpected.d_x)
+        assert_allclose_quantity(ds2.d_y, dexpected.d_y)
+        assert_allclose_quantity(ds2.d_z, dexpected.d_z)
+
+        # also explicitly calculate, since we can
         assert_allclose(s2.x.value, [1 * 1 + 2 * 3 + 3 * 5, 1 * 2 + 2 * 4 + 3 * 6])
         assert_allclose(s2.y.value, [4 * 1 + 5 * 3 + 6 * 5, 4 * 2 + 5 * 4 + 6 * 6])
         assert_allclose(s2.z.value, [7 * 1 + 8 * 3 + 9 * 5, 7 * 2 + 8 * 4 + 9 * 6])

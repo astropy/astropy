@@ -1389,7 +1389,7 @@ class CartesianRepresentation(BaseRepresentation):
         # transformed representation
         rep = self.__class__(p, xyz_axis=-1, copy=False)
         # Handle differentials attached to this representation
-        new_diffs = dict((k, d.transform(matrix, base=self, _xbase=rep))
+        new_diffs = dict((k, d.transform(matrix, self, rep))
                          for k, d in self.differentials.items())
         return rep.with_differentials(new_diffs)
 
@@ -1643,7 +1643,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
             lon, lat = erfa_ufunc.c2s(p)
             rep = self.__class__(lon=lon, lat=lat)
             # handle differentials
-            new_diffs = dict((k, d.transform(matrix, base=self))
+            new_diffs = dict((k, d.transform(matrix, self, rep))
                              for k, d in self.differentials.items())
             rep = rep.with_differentials(new_diffs)
 
@@ -2003,7 +2003,7 @@ class SphericalRepresentation(BaseRepresentation):
         rep = self.__class__(lon=lon, lat=lat, distance=self.distance * ur)
 
         # handle differentials
-        new_diffs = dict((k, d.transform(matrix, base=self))
+        new_diffs = dict((k, d.transform(matrix, self, rep))
                          for k, d in self.differentials.items())
         return rep.with_differentials(new_diffs)
 
@@ -2196,7 +2196,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         # reapplying the distance scaling
         rep = self.__class__(phi=lon, theta=90*u.deg-lat, r=self.r * ur)
 
-        new_diffs = dict((k, d.transform(matrix, base=self))
+        new_diffs = dict((k, d.transform(matrix, self, rep))
                          for k, d in self.differentials.items())
         return rep.with_differentials(new_diffs)
 
@@ -2536,7 +2536,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
 
         return cls.from_cartesian(cartesian, base)
 
-    def transform(self, matrix, base, _xbase=None):
+    def transform(self, matrix, base, transformed_base):
         """Transform differential using a 3x3 matrix in a Cartesian basis.
 
         This returns a new differential and does not modify the original one.
@@ -2549,15 +2549,16 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             Base relative to which the differentials are defined.  If the other
             class is a differential representation, the base will be converted
             to its ``base_representation``.
-            ``base`` will also be transformed.
+        transformed_base : instance of ``cls.base_representation``
+            Base relative to which the transformed differentials are defined.
+            If the other class is a differential representation, the base will
+            be converted to its ``base_representation``.
         """
-        base = base.without_differentials()
         # route transformation through Cartesian
         cdiff = self.represent_as(CartesianDifferential, base=base
                                   ).transform(matrix)
         # move back to original representation
-        xbase = base.transform(matrix) if _xbase is None else _xbase
-        diff = cdiff.represent_as(self.__class__, xbase)
+        diff = cdiff.represent_as(self.__class__, transformed_base)
         return diff
 
     def _scale_operation(self, op, *args):
@@ -2709,7 +2710,7 @@ class CartesianDifferential(BaseDifferential):
     def from_cartesian(cls, other, base=None):
         return cls(*[getattr(other, c) for c in other.components])
 
-    def transform(self, matrix, base=None, _xbase=None):
+    def transform(self, matrix, base=None, transformed_base=None):
         """Transform differentials using a 3x3 matrix in a Cartesian basis.
 
         This returns a new differential and does not modify the original one.
@@ -2718,7 +2719,7 @@ class CartesianDifferential(BaseDifferential):
         ----------
         matrix : (3,3) array-like
             A 3x3 (or stack thereof) matrix, such as a rotation matrix.
-        base : `~astropy.coordinates.CartesianRepresentation` or None, optional
+        base, transformed_base : `~astropy.coordinates.CartesianRepresentation` or None, optional
             Not used in the Cartesian transformation.
         """
         # erfa rxp: Multiply a p-vector by an r-matrix.
@@ -2878,7 +2879,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
 
         return super().from_representation(representation, base)
 
-    def transform(self, matrix, base, _xbase=None):
+    def transform(self, matrix, base, transformed_base):
         """Transform differential using a 3x3 matrix in a Cartesian basis.
 
         This returns a new differential and does not modify the original one.
@@ -2891,20 +2892,24 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
             Base relative to which the differentials are defined.  If the other
             class is a differential representation, the base will be converted
             to its ``base_representation``.
-            ``base`` will also be transformed.
+        transformed_base : instance of ``cls.base_representation``
+            Base relative to which the transformed differentials are defined.
+            If the other class is a differential representation, the base will
+            be converted to its ``base_representation``.
         """
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
-            diff = super().transform(matrix, base, _xbase=_xbase)
+            # some of this can be moved to the parent class.
+            diff = super().transform(matrix, base, transformed_base)
 
         else:  # switch to dimensional representation
-            du = (self.d_lon.unit / u.rad).decompose()  # derivative unit
+            du = (self.d_lon.unit / base.lon.unit).decompose()  # deriv unit
             diff = self._dimensional_differential(
                 d_lon=self.d_lon, d_lat=self.d_lat, d_distance=0 * du
-            ).transform(matrix, base, _xbase=_xbase)
+            ).transform(matrix, base, transformed_base)
 
         return diff
 
@@ -3117,7 +3122,7 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
 
         return super().from_representation(representation, base)
 
-    def transform(self, matrix, base, _xbase=None):
+    def transform(self, matrix, base, transformed_base):
         """Transform differential using a 3x3 matrix in a Cartesian basis.
 
         This returns a new differential and does not modify the original one.
@@ -3130,20 +3135,23 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             Base relative to which the differentials are defined.  If the other
             class is a differential representation, the base will be converted
             to its ``base_representation``.
-            ``base`` will also be transformed.
+        transformed_base : instance of ``cls.base_representation``
+            Base relative to which the transformed differentials are defined.
+            If the other class is a differential representation, the base will
+            be converted to its ``base_representation``.
         """
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
         # matrix is in O(3) and preserves lengths.
         if np.all(is_O3(matrix)):  # remain in unit-rep
             # TODO! implement without Cartesian intermediate step.
-            diff = super().transform(matrix, base, _xbase=_xbase)
+            diff = super().transform(matrix, base, transformed_base)
 
         else:  # switch to dimensional representation
             du = (self.d_lat.unit / u.rad).decompose()  # derivative unit
             diff = self._dimensional_differential(
                 d_lon=self.d_lon_coslat, d_lat=self.d_lat, d_distance=0 * du
-            ).transform(matrix, base, _xbase=_xbase)
+            ).transform(matrix, base, transformed_base)
 
         return diff
 
