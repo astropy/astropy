@@ -30,7 +30,7 @@ plt.style.use(astropy_mpl_style)
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io import fits
 
-image_file = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits')
+image_file = get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits', show_progress=False)
 
 ##############################################################################
 # Use `astropy.io.fits.info()` to display the structure of the file:

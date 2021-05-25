@@ -32,7 +32,7 @@ from astropy.io import fits
 ##############################################################################
 # Download a FITS file
 
-event_filename = get_pkg_data_filename('tutorials/FITS-tables/chandra_events.fits')
+event_filename = get_pkg_data_filename('tutorials/FITS-tables/chandra_events.fits', show_progress=False)
 
 ##############################################################################
 # Display information about the contents of the FITS file.
