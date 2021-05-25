@@ -176,7 +176,10 @@ for _, ptypes in _units_and_physical_types:
         val = f":ref:`'{ptype}' <{ptype}>`"
         numpydoc_xref_physical_type_aliases[key] = val
 
-numpydoc_xref_aliases.update(numpydoc_xref_physical_type_aliases)
+# need to strip the intersphinx links meant for affiliate packages.
+numpydoc_xref_aliases.update(
+    {k: v.replace("astropy:", "").replace(":ref: ", "")
+     for k, v in numpydoc_xref_astropy_aliases.items()})
 
 
 # -- Project information ------------------------------------------------------
