@@ -137,33 +137,25 @@ numpydoc_xref_ignore.update({
 # and a base set comes from sphinx-astropy.
 # so here we mostly need to define Astropy-specific x-refs
 numpydoc_xref_aliases.update({
-    # ultra-general
-    "-like": ":term:`-like`",
     # python & adjacent
     "file-like": ":term:`python:file-like object`",
     "file": ":term:`python:file object`",
     "path-like": ":term:`python:path-like object`",
     "module": ":term:`python:module`",
     "buffer-like": ":term:buffer-like",
+    "hashable": ":term:`python:hashable`",
     # for matplotlib
     "color": ":term:`color`",
     # for numpy
     "ints": ":class:`python:int`",
     # for astropy
-    "unit-like": ":term:`unit-like`",
-    "quantity-like": ":term:`quantity-like`",
-    "angle-like": ":term:`angle-like`",
-    "table-like": ":term:`table-like`",
-    "time-like": ":term:`time-like`",
-    "frame-like": ":term:`frame-like`",
-    "coordinate-like": ":term:`coordinate-like`",
     "number": ":term:`number`",
     "Representation": ":class:`~astropy.coordinates.BaseRepresentation`",
     "writable": ":term:`writable file-like object`",
     "readable": ":term:`readable file-like object`",
     "BaseHDU": ":doc:`HDU </io/fits/api/hdus>`"
 })
-# Add Astropy physical type x-ref aliases from sphinx-astropy.
+# Add from sphinx-astropy 1) glossary aliases 2) physical types.
 # need to strip the intersphinx links meant for affiliate packages.
 numpydoc_xref_aliases.update(
     {k: v.replace("astropy:", "").replace(":ref: ", "")
