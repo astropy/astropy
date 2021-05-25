@@ -147,6 +147,7 @@ numpydoc_xref_aliases = {
     "module": ":term:`python:module`",
     "buffer-like": ":term:buffer-like",
     "function": ":term:`python:function`",
+    "mapping": ":term:`python:mapping`",
     # for matplotlib
     "color": ":term:`color`",
     # for numpy

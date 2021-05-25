@@ -321,7 +321,7 @@ are available in the docstring for each object::
   >>> print(WMAP7.__doc__)
   WMAP7 instance of FlatLambdaCDM cosmology
   (from Komatsu et al. 2011, ApJS, 192, 18, doi: 10.1088/0067-0049/192/2/18.
-  Table 1 (WMAP + BAO + H0 ML).)
+   Table 1 (WMAP + BAO + H0 ML).)
 
 
 Specifying a Dark Energy Model

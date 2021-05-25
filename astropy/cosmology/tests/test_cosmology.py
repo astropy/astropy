@@ -56,10 +56,15 @@ def test_immutability():
     with pytest.raises(AttributeError):
         cosmo.name = "new name"
 
+    # The metadata is NOT immutable
+    assert "a" not in cosmo.meta
+    cosmo.meta["a"] = 1
+    assert "a" in cosmo.meta
+
 
 def test_basic():
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
-                               Ob0=0.05)
+                               Ob0=0.05, name="test", meta={"a": "b"})
     assert allclose(cosmo.Om0, 0.27)
     assert allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
     assert allclose(cosmo.Ob0, 0.05)
@@ -78,6 +83,8 @@ def test_basic():
     assert allclose(cosmo.Neff, 3.04)
     assert allclose(cosmo.h, 0.7)
     assert allclose(cosmo.H0, 70.0 * u.km / u.s / u.Mpc)
+    assert cosmo.name == "test"
+    assert cosmo.meta == {"a": "b"}
 
     # Make sure setting them as quantities gives the same results
     H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
@@ -198,10 +205,9 @@ def test_distance_broadcast():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_clone():
-    """ Test clone operation"""
-
+    """Test clone operation."""
     cosmo = core.FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27,
-                               Tcmb0=3.0 * u.K)
+                               Tcmb0=3.0 * u.K, name="test", meta={"a":"b"})
     z = np.linspace(0.1, 3, 15)
 
     # First, test with no changes, which should return same object
@@ -213,7 +219,7 @@ def test_clone():
     newclone = cosmo.clone(H0=60 * u.km / u.s / u.Mpc)
     assert newclone is not cosmo
     assert newclone.__class__ == cosmo.__class__
-    assert newclone.name == cosmo.name
+    assert newclone.name == cosmo.name + " (modified)"
     assert not allclose(newclone.H0.value, cosmo.H0.value)
     assert allclose(newclone.H0, 60.0 * u.km / u.s / u.Mpc)
     assert allclose(newclone.Om0, cosmo.Om0)
@@ -228,7 +234,7 @@ def test_clone():
     cmp = core.FlatLambdaCDM(H0=60 * u.km / u.s / u.Mpc, Om0=0.27,
                              Tcmb0=3.0 * u.K)
     assert newclone.__class__ == cmp.__class__
-    assert newclone.name == cmp.name
+    assert cmp.name is None
     assert allclose(newclone.H0, cmp.H0)
     assert allclose(newclone.Om0, cmp.Om0)
     assert allclose(newclone.Ode0, cmp.Ode0)
@@ -245,7 +251,7 @@ def test_clone():
 
     # Now try changing multiple things
     newclone = cosmo.clone(name="New name", H0=65 * u.km / u.s / u.Mpc,
-                           Tcmb0=2.8 * u.K)
+                           Tcmb0=2.8 * u.K, meta=dict(zz="tops"))
     assert newclone.__class__ == cosmo.__class__
     assert not newclone.name == cosmo.name
     assert not allclose(newclone.H0.value, cosmo.H0.value)
@@ -258,6 +264,7 @@ def test_clone():
     assert allclose(newclone.Tcmb0, 2.8 * u.K)
     assert allclose(newclone.m_nu, cosmo.m_nu)
     assert allclose(newclone.Neff, cosmo.Neff)
+    assert newclone.meta == dict(a="b", zz="tops")
 
     # And direct comparison
     cmp = core.FlatLambdaCDM(name="New name", H0=65 * u.km / u.s / u.Mpc,
