@@ -364,9 +364,13 @@ class StructuredUnit:
         re-read only with 'generic'.
 
         """
-        out = '({})'.format(', '.join([part.to_string(format)
-                                       for part in self.values()]))
-        return out if len(self) > 1 else out[:-1] + ',)'
+        parts = [part.to_string(format) for part in self.values()]
+        out_fmt = '({})' if len(self) > 1 else '({},)'
+        if format == 'latex':
+            # Strip $ from parts and add them on the outside.
+            parts = [part[1:-1] for part in parts]
+            out_fmt = '$' + out_fmt + '$'
+        return out_fmt.format(', '.join(parts))
 
     def _repr_latex_(self):
         return self.to_string('latex')
