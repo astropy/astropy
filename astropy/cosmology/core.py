@@ -18,6 +18,7 @@ from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                       AstropyUserWarning)
 from astropy.utils.metadata import MetaData
 from astropy.utils.state import ScienceState
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
@@ -193,15 +194,8 @@ class Cosmology(metaclass=ABCMeta):
         new_init = {**self._init_arguments, "meta": new_meta, **kwargs}
         # Create BoundArgument to handle args versus kwargs.
         # This also handles all errors from mismatched arguments
-        try:
-            ba = self._init_signature.bind_partial(**new_init)
-        except TypeError as e:
-            # for backward compatibility, map TypeError to AttributeError
-            warnings.warn("Starting in Astropy v5.0, passing an unrecognized "
-                          "argument will instead raise a TypeError.",
-                          category=AstropyDeprecationWarning)
-            raise AttributeError(e)
-        # Return new instance, respecting arg vs kwarg.
+        ba = self._init_signature.bind_partial(**new_init)
+        # Return new instance, respecting args vs kwargs
         return self.__class__(*ba.args, **ba.kwargs)
 
 
