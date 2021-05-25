@@ -9,7 +9,7 @@ import operator
 
 import numpy as np
 
-from .core import Unit, UnitBase
+from .core import Unit, UnitBase, UNITY
 
 
 __all__ = ['StructuredUnit']
@@ -167,7 +167,7 @@ class StructuredUnit:
         return self._units.dtype.names
 
     def items(self):
-        return zip(self._units.dtype.names, self._units.item())
+        return tuple(zip(self._units.dtype.names, self._units.item()))
 
     def __iter__(self):
         yield from self._units.dtype.names
@@ -203,11 +203,16 @@ class StructuredUnit:
         The routine does presume that the type of the first tuple is
         representative of the rest.  Used in ``_get_converter``.
 
+        For the special value of ``UNITY``, all fields are assumed to be 1.0,
+        and hence this will return an all-float dtype.
+
         """
         if enter_lists:
             while isinstance(value, list):
                 value = value[0]
-        if not isinstance(value, tuple) or len(self) != len(value):
+        if value is UNITY:
+            value = (UNITY,) * len(self)
+        elif not isinstance(value, tuple) or len(self) != len(value):
             raise ValueError(f"cannot interpret value {value} for unit {self}.")
         descr = []
         for (name, unit), part in zip(self.items(), value):
@@ -311,11 +316,12 @@ class StructuredUnit:
             result = np.empty_like(value)
             for name, converter_ in zip(result.dtype.names, converters):
                 result[name] = converter_(value[name])
-            return result
+            # Index with empty tuple to decay array scalars to numpy void.
+            return result if result.shape else result[()]
 
         return converter
 
-    def to(self, other, value, equivalencies=[]):
+    def to(self, other, value=np._NoValue, equivalencies=[]):
         """Return values converted to the specified unit.
 
         Parameters
@@ -323,11 +329,12 @@ class StructuredUnit:
         other : `~astropy.units.StructuredUnit`
             The unit to convert to.  If necessary, will be converted to
             a `~astropy.units.StructuredUnit` using the dtype of ``value``.
-        value : array-like
+        value : array-like, optional
             Value(s) in the current unit to be converted to the
             specified unit.  If a sequence, the first element must have
             entries of the correct type to represent all elements (i.e.,
             not have, e.g., a ``float`` where other elements have ``complex``).
+            If not given, assumed to have 1. in all fields.
         equivalencies : list of tuple, optional
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`unit_equivalencies`.
@@ -345,6 +352,10 @@ class StructuredUnit:
         UnitsError
             If units are inconsistent
         """
+        if value is np._NoValue:
+            # We do not have UNITY as a default, since then the docstring
+            # would list 1.0 as default, yet one could not pass that in.
+            value = UNITY
         return self._get_converter(other, equivalencies=equivalencies)(value)
 
     def to_string(self, format='generic'):
