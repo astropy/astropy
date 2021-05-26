@@ -104,8 +104,6 @@ class EarthLocationInfo(QuantityInfoBase):
     """
     _represent_as_dict_attrs = ('x', 'y', 'z', 'ellipsoid')
 
-    mask_val = np.ma.masked
-
     def _construct_from_dict(self, map):
         # Need to pop ellipsoid off and update post-instantiation.  This is
         # on the to-fix list in #4261.
