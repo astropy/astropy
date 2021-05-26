@@ -8,7 +8,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from astropy.modeling import models
+from astropy.modeling import custom_model, models
 from astropy.modeling.models import Mapping
 from astropy.modeling.separable import (_coord_matrix, is_separable, _cdot,
                                         _cstack, _arith_oper, separability_matrix)
@@ -119,3 +119,18 @@ def test_arith_oper():
 def test_separable(compound_model, result):
     assert_allclose(is_separable(compound_model), result[0])
     assert_allclose(separability_matrix(compound_model), result[1])
+
+
+def test_custom_model_separable():
+    @custom_model
+    def model_a(x):
+        return x
+
+    assert model_a().separable
+
+    @custom_model
+    def model_c(x, y):
+        return x + y
+
+    assert not model_c().separable
+    assert np.all(separability_matrix(model_c()) == [True, True])

@@ -3624,6 +3624,8 @@ def custom_model(*args, fit_deriv=None, **kwargs):
     This can be used either as a function or as a decorator.  See below for
     examples of both usages.
 
+    The model is separable only if there is a single input.
+
     .. note::
 
         All model parameters have to be defined as keyword arguments with
@@ -3763,7 +3765,9 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
     members.update(params)
 
-    return type(model_name, (FittableModel,), members)
+    cls = type(model_name, (FittableModel,), members)
+    cls._separable = True if (len(inputs) == 1) else False
+    return cls
 
 
 def render_model(model, arr=None, coords=None):
