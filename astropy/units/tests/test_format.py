@@ -5,6 +5,7 @@
 Regression tests for the units.format package
 """
 
+from contextlib import nullcontext
 from fractions import Fraction
 
 import pytest
@@ -16,7 +17,6 @@ from astropy.constants import si
 from astropy.units import core, dex, UnitsWarning
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
-from astropy.utils.compat.context import nullcontext
 
 
 @pytest.mark.parametrize('strings, unit', [

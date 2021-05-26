@@ -4,6 +4,7 @@ import os
 from copy import copy
 from io import StringIO
 from collections import Counter
+from contextlib import nullcontext
 
 import pytest
 import numpy as np
@@ -11,7 +12,6 @@ import numpy as np
 from astropy.io.registry import _readers, _writers, _identifiers
 from astropy.io import registry as io_registry
 from astropy.table import Table
-from astropy.utils.compat.context import nullcontext
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_YAML

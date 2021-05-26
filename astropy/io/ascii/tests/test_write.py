@@ -2,6 +2,7 @@
 
 import os
 import copy
+from contextlib import nullcontext
 from io import StringIO
 from itertools import chain
 
@@ -11,7 +12,6 @@ import numpy as np
 from astropy.io import ascii
 from astropy import table
 from astropy.table.table_helpers import simple_table
-from astropy.utils.compat.context import nullcontext
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy import units as u

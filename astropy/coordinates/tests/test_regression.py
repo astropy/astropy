@@ -10,6 +10,7 @@ import io
 import copy
 import pytest
 import numpy as np
+from contextlib import nullcontext
 from erfa import ErfaWarning
 
 from astropy import units as u
@@ -202,7 +203,6 @@ def test_regression_futuretimes_4302():
 
     Relevant comment: https://github.com/astropy/astropy/pull/4302#discussion_r44836531
     """
-    from astropy.utils.compat.context import nullcontext
     from astropy.utils.exceptions import AstropyWarning
 
     # this is an ugly hack to get the warning to show up even if it has already
