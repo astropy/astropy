@@ -1,3 +1,5 @@
+from contextlib import nullcontext
+
 import astropy.units as u
 import numpy as np
 from numpy.testing import assert_allclose
@@ -16,7 +18,6 @@ from astropy.coordinates import (SkyCoord, EarthLocation, ICRS, GCRS, Galactic,
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.compat.context import nullcontext
 
 from astropy.coordinates.spectral_coordinate import SpectralCoord, _apply_relativistic_doppler_shift
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES as FITSWCS_VELOCITY_FRAMES
