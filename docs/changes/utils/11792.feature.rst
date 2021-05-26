@@ -1,0 +1,5 @@
+``astropy.utils.masked`` provides a new ``Masked`` class/factory that can be
+used to represent masked ``ndarray`` and all its subclasses, including
+``Quantity`` and its subclasses.  These classes can be used inside
+coordinates, but the mask is not yet exposed.  Generally, the interface should
+be considered experimental.

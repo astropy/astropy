@@ -1,12 +1,13 @@
 # coding: utf-8
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from astropy.units.quantity import Quantity
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 
 from astropy import units as u
-from astropy.table import QTable, hstack, vstack
+from astropy.table import QTable, hstack, vstack, join
 
 from astropy.utils.masked import Masked
 from astropy.utils.compat.optional_deps import HAS_YAML, HAS_H5PY
@@ -126,3 +127,33 @@ class TestMaskedQuantityTable(TestMaskedArrayTable):
         #  —— 2.0
         assert np.all(t12['ma'].mask == [True, False, False, True, True])
         assert np.all(t12['ma2'].mask == [True, True, True, False, False])
+
+    def test_table_operations_requiring_masking_auto_promote(self):
+        MaskedQuantity = Masked(u.Quantity)
+        t1 = QTable({'ma1': [1, 2] * u.m})
+        t2 = QTable({'ma2': [3, 4, 5] * u.m})
+        t12 = hstack([t1, t2], join_type='outer')
+        assert isinstance(t12['ma1'], MaskedQuantity)
+        assert np.all(t12['ma1'].mask == [False, False, True])
+        assert np.all(t12['ma1'] == [1, 2, 0] * u.m)
+        assert not isinstance(t12['ma2'], MaskedQuantity)
+        assert isinstance(t12['ma2'], u.Quantity)
+        assert np.all(t12['ma2'] == [3, 4, 5] * u.m)
+
+        t12 = hstack([t1, t2], join_type='inner')
+        assert isinstance(t12['ma1'], u.Quantity)
+        assert not isinstance(t12['ma1'], MaskedQuantity)
+        assert isinstance(t12['ma2'], u.Quantity)
+        assert not isinstance(t12['ma2'], MaskedQuantity)
+
+        # Vstack tables with different column names. In this case we get masked
+        # values
+        t12 = vstack([t1, t2], join_type='outer')
+        assert np.all(t12['ma1'].mask == [False, False, True, True, True])
+        assert np.all(t12['ma2'].mask == [True, True, False, False, False])
+
+        t1['a'] = [1, 2]
+        t2['a'] = [1, 3, 4]
+        t12 = join(t1, t2, join_type='outer')
+        assert np.all(t12['ma1'].mask == [False, False, True, True])
+        assert np.all(t12['ma2'].mask == [False, True, False, False])
