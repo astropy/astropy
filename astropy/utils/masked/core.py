@@ -353,6 +353,8 @@ class MaskedArraySubclassInfo:
     # This is used below in __init_subclass__.
     # TODO: Find some way to ensure that 'serialize_method' of MaskedNDArray
     # is also accessible.
+    mask_val = np.ma.masked
+
     def _represent_as_dict(self):
         # Use the data_cls as the class name for serialization,
         # so that we do not have to store all possible masked classes
