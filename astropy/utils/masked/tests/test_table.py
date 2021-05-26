@@ -128,7 +128,6 @@ class TestMaskedQuantityTable(TestMaskedArrayTable):
         assert np.all(t12['ma'].mask == [True, False, False, True, True])
         assert np.all(t12['ma2'].mask == [True, True, True, False, False])
 
-
     def test_table_operations_requiring_masking_auto_promote(self):
         MaskedQuantity = Masked(u.Quantity)
         t1 = QTable({'ma1': [1, 2] * u.m})
