@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal
 import pytest
 
 from astropy import units as u
-from astropy.table import QTable
+from astropy.table import QTable, hstack, vstack
 
 from astropy.utils.masked import Masked
 from astropy.utils.compat.optional_deps import HAS_YAML, HAS_H5PY
@@ -100,3 +100,29 @@ class TestMaskedQuantityTable(TestMaskedArrayTable):
     def setup_arrays(self):
         self.a = np.array([3., 5., 0.]) << u.m
         self.mask_a = np.array([True, False, False])
+
+    def test_table_operations_requiring_masking(self):
+        t1 = self.t
+        t2 = QTable({'ma2': Masked([1, 2] * u.m)})
+        t12 = hstack([t1, t2], join_type='outer')
+        assert np.all(t12['ma'].mask == [True, False, False])
+        # 'ma2' is shorter by one so we expect one True from hstack so length matches
+        assert np.all(t12['ma2'].mask == [False, False, True])
+
+        t12 = hstack([t1, t2], join_type='inner')
+        assert np.all(t12['ma'].mask == [True, False])
+        assert np.all(t12['ma2'].mask == [False, False])
+
+        # Vstack tables with different column names. In this case we get masked
+        # values
+        t12 = vstack([t1, t2], join_type='outer')
+        #  ma ma2
+        #  m   m
+        # --- ---
+        #  ——  ——
+        # 5.0  ——
+        # 0.0  ——
+        #  —— 1.0
+        #  —— 2.0
+        assert np.all(t12['ma'].mask == [True, False, False, True, True])
+        assert np.all(t12['ma2'].mask == [True, True, True, False, False])
