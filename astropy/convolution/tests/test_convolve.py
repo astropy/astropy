@@ -3,12 +3,12 @@
 import pytest
 import numpy as np
 import numpy.ma as ma
+from contextlib import nullcontext
 
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.kernels import Gaussian2DKernel
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
-from astropy.utils.compat.context import nullcontext
 from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_PANDAS  # noqa
 
 from numpy.testing import (assert_array_almost_equal_nulp,

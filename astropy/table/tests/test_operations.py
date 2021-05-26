@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from collections import OrderedDict
+from contextlib import nullcontext
 
 import pytest
 import numpy as np
@@ -10,7 +11,6 @@ from astropy.table.operations import _get_out_class, join_skycoord, join_distanc
 from astropy import units as u
 from astropy.utils import metadata
 from astropy.utils.metadata import MergeConflictError
-from astropy.utils.compat.context import nullcontext
 from astropy import table
 from astropy.time import Time
 from astropy.coordinates import (SkyCoord, SphericalRepresentation,
