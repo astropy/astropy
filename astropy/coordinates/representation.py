@@ -2906,7 +2906,7 @@ class UnitSphericalDifferential(BaseSphericalDifferential):
             diff = super().transform(matrix, base, transformed_base)
 
         else:  # switch to dimensional representation
-            du = (self.d_lon.unit / base.lon.unit).decompose()  # deriv unit
+            du = self.d_lon.unit / base.lon.unit  # derivative unit
             diff = self._dimensional_differential(
                 d_lon=self.d_lon, d_lat=self.d_lat, d_distance=0 * du
             ).transform(matrix, base, transformed_base)
@@ -3148,9 +3148,10 @@ class UnitSphericalCosLatDifferential(BaseSphericalCosLatDifferential):
             diff = super().transform(matrix, base, transformed_base)
 
         else:  # switch to dimensional representation
-            du = (self.d_lat.unit / u.rad).decompose()  # derivative unit
+            du = self.d_lat.unit / base.lat.unit  # derivative unit
             diff = self._dimensional_differential(
-                d_lon=self.d_lon_coslat, d_lat=self.d_lat, d_distance=0 * du
+                d_lon_coslat=self.d_lon_coslat, d_lat=self.d_lat,
+                d_distance=0 * du
             ).transform(matrix, base, transformed_base)
 
         return diff

@@ -25,6 +25,13 @@ from astropy.coordinates.representation import (
     UnitSphericalCosLatDifferential)
 
 
+# create matrices for use in testing ``.transform()`` methods
+matrices = {
+    "rotation": rotation_matrix(-10, "z", u.deg),
+    "general": np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+}
+
+
 # Preserve the original REPRESENTATION_CLASSES dict so that importing
 #   the test file doesn't add a persistent test subclass (LogDRepresentation)
 def setup_function(func):
@@ -323,7 +330,7 @@ class TestSphericalRepresentation:
         assert representation_equal_up_to_angular_type(got, expected)
 
     def test_transform(self):
-        """Test ``.transform()`` on rotation and general transform matrices."""
+        """Test ``.transform()`` on rotation and general matrices."""
         # set up representation
         ds1 = SphericalDifferential(
             d_lon=[1, 2] * u.mas / u.yr, d_lat=[3, 4] * u.mas / u.yr,
@@ -331,14 +338,12 @@ class TestSphericalRepresentation:
         s1 = SphericalRepresentation(lon=[1, 2] * u.deg, lat=[3, 4] * u.deg,
                                      distance=[5, 6] * u.kpc, differentials=ds1)
 
-        matrix = rotation_matrix(-10, "z", u.deg)
-
         # transform representation & get comparison (thru CartesianRep)
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["rotation"])
         ds2 =  s2.differentials["s"]
 
         dexpected = SphericalDifferential.from_cartesian(
-            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+            ds1.to_cartesian(base=s1).transform(matrices["rotation"]), base=s2)
 
         assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
         assert_allclose_quantity(s2.lat, s1.lat)
@@ -352,15 +357,13 @@ class TestSphericalRepresentation:
         assert_allclose_quantity(ds2.d_distance, dexpected.d_distance)
 
         # now with a non rotation matrix
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
         # transform representation & get comparison (thru CartesianRep)
-        s3 = s1.transform(matrix)
+        s3 = s1.transform(matrices["general"])
         ds3 = s3.differentials["s"]
 
         expected = (s1.represent_as(CartesianRepresentation,
                                     CartesianDifferential)
-                    .transform(matrix)
+                    .transform(matrices["general"])
                     .represent_as(SphericalRepresentation,
                                   SphericalDifferential))
         dexpected = expected.differentials["s"]
@@ -382,14 +385,12 @@ class TestSphericalRepresentation:
                                      distance=[5, np.nan] * u.kpc,
                                      differentials=ds1)
 
-        matrix = rotation_matrix(-10, "z", u.deg)
-
         # transform representation & get comparison (thru CartesianRep)
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["rotation"])
         ds2 =  s2.differentials["s"]
 
         dexpected = SphericalDifferential.from_cartesian(
-            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+            ds1.to_cartesian(base=s1).transform(matrices["rotation"]), base=s2)
 
         assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
         assert_allclose_quantity(s2.lat, s1.lat)
@@ -404,14 +405,12 @@ class TestSphericalRepresentation:
         assert_array_equal(np.isnan(ds2.d_distance), (False, True))
 
         # now with a non rotation matrix
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-        s3 = s1.transform(matrix)
+        s3 = s1.transform(matrices["general"])
         ds3 = s3.differentials["s"]
 
         thruC = (s1.represent_as(CartesianRepresentation,
                                 CartesianDifferential)
-                    .transform(matrix)
+                    .transform(matrices["general"])
                     .represent_as(SphericalRepresentation,
                               differential_class=SphericalDifferential))
         dthruC = thruC.differentials["s"]
@@ -577,21 +576,19 @@ class TestUnitSphericalRepresentation:
         assert representation_equal_up_to_angular_type(got, expected)
 
     def test_transform(self):
-
+        """Test ``.transform()`` on rotation and general matrices."""
         # set up representation
         ds1 = UnitSphericalDifferential(d_lon=[1, 2] * u.mas / u.yr,
                                         d_lat=[3, 4] * u.mas / u.yr,)
         s1 = UnitSphericalRepresentation(lon=[1, 2] * u.deg, lat=[3, 4] * u.deg,
                                          differentials=ds1)
 
-        matrix = rotation_matrix(-10, "z", u.deg)
-
         # transform representation & get comparison (thru CartesianRep)
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["rotation"])
         ds2 =  s2.differentials["s"]
 
         dexpected = UnitSphericalDifferential.from_cartesian(
-            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+            ds1.to_cartesian(base=s1).transform(matrices["rotation"]), base=s2)
 
         assert_allclose_quantity(s2.lon, s1.lon + 10 * u.deg)
         assert_allclose_quantity(s2.lat, s1.lat)
@@ -604,14 +601,12 @@ class TestUnitSphericalRepresentation:
 
         # now with a non rotation matrix
         # note that the result will be a Spherical, not UnitSpherical
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-        s3 = s1.transform(matrix)
+        s3 = s1.transform(matrices["general"])
         ds3 = s3.differentials["s"]
 
         expected = (s1.represent_as(CartesianRepresentation,
                                     CartesianDifferential)
-                    .transform(matrix)
+                    .transform(matrices["general"])
                     .represent_as(SphericalRepresentation,
                                   differential_class=SphericalDifferential))
         dexpected = expected.differentials["s"]
@@ -796,14 +791,12 @@ class TestPhysicsSphericalRepresentation:
             phi=[1, 2] * u.deg, theta=[3, 4] * u.deg, r=[5, 6] * u.kpc,
             differentials=ds1)
 
-        matrix = rotation_matrix(-10, "z", u.deg)
-
         # transform representation & get comparison (thru CartesianRep)
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["rotation"])
         ds2 = s2.differentials["s"]
 
         dexpected = PhysicsSphericalDifferential.from_cartesian(
-            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+            ds1.to_cartesian(base=s1).transform(matrices["rotation"]), base=s2)
 
         assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
         assert_allclose_quantity(s2.theta, s1.theta)
@@ -817,15 +810,13 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(ds2.d_r, dexpected.d_r)
 
         # now with a non rotation matrix
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
         # transform representation & get comparison (thru CartesianRep)
-        s3 = s1.transform(matrix)
+        s3 = s1.transform(matrices["general"])
         ds3 = s3.differentials["s"]
 
         expected = (s1.represent_as(CartesianRepresentation,
                                     CartesianDifferential)
-                    .transform(matrix)
+                    .transform(matrices["general"])
                     .represent_as(PhysicsSphericalRepresentation,
                                   PhysicsSphericalDifferential))
         dexpected = expected.differentials["s"]
@@ -847,14 +838,12 @@ class TestPhysicsSphericalRepresentation:
             phi=[1, 2] * u.deg, theta=[3, 4] * u.deg, r=[5, np.nan] * u.kpc,
             differentials=ds1)
 
-        matrix = rotation_matrix(-10, "z", u.deg)
-
         # transform representation & get comparison (thru CartesianRep)
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["rotation"])
         ds2 =  s2.differentials["s"]
 
         dexpected = PhysicsSphericalDifferential.from_cartesian(
-            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+            ds1.to_cartesian(base=s1).transform(matrices["rotation"]), base=s2)
 
         assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
         assert_allclose_quantity(s2.theta, s1.theta)
@@ -864,14 +853,12 @@ class TestPhysicsSphericalRepresentation:
         assert_allclose_quantity(ds2.d_r, dexpected.d_r)
 
         # now with a non rotation matrix
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-        s3 = s1.transform(matrix)
+        s3 = s1.transform(matrices["general"])
         ds3 = s3.differentials["s"]
 
         thruC = (s1.represent_as(CartesianRepresentation,
                                  CartesianDifferential)
-                    .transform(matrix)
+                    .transform(matrices["general"])
                     .represent_as(PhysicsSphericalRepresentation,
                                   PhysicsSphericalDifferential))
         dthruC = thruC.differentials["s"]
@@ -1139,14 +1126,12 @@ class TestCartesianRepresentation:
         s1 = CartesianRepresentation(x=[1, 2] * u.kpc, y=[3, 4] * u.kpc,
                                      z=[5, 6] * u.kpc, differentials=ds1)
 
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
         # transform representation & get comparison (thru CartesianRep)
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["general"])
         ds2 =  s2.differentials["s"]
 
         dexpected = CartesianDifferential.from_cartesian(
-            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+            ds1.to_cartesian(base=s1).transform(matrices["general"]), base=s2)
 
         assert_allclose_quantity(ds2.d_x, dexpected.d_x)
         assert_allclose_quantity(ds2.d_y, dexpected.d_y)
@@ -1306,9 +1291,7 @@ class TestCylindricalRepresentation:
         s1 = CylindricalRepresentation(phi=[1, 2] * u.deg, z=[3, 4] * u.pc,
                                        rho=[5, 6] * u.kpc)
 
-        matrix = rotation_matrix(-10, "z", u.deg)
-
-        s2 = s1.transform(matrix)
+        s2 = s1.transform(matrices["rotation"])
 
         assert_allclose_quantity(s2.phi, s1.phi + 10 * u.deg)
         assert_allclose_quantity(s2.z, s1.z)
@@ -1319,14 +1302,34 @@ class TestCylindricalRepresentation:
         assert s2.rho.unit is u.kpc
 
         # now with a non rotation matrix
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-        s3 = s1.transform(matrix)
-        expected = s1.to_cartesian().transform(matrix).represent_as(CylindricalRepresentation)
+        s3 = s1.transform(matrices["general"])
+        expected = (s1.to_cartesian().transform(matrices["general"])
+                    ).represent_as(CylindricalRepresentation)
 
         assert_allclose_quantity(s3.phi, expected.phi)
         assert_allclose_quantity(s3.z, expected.z)
         assert_allclose_quantity(s3.rho, expected.rho)
+
+
+class TestUnitSphericalCosLatDifferential:
+
+    @pytest.mark.parametrize("matrix", list(matrices.values()))
+    def test_transform(self, matrix):
+        """Test ``.transform()`` on rotation and general matrices."""
+        # set up representation
+        ds1 = UnitSphericalCosLatDifferential(d_lon_coslat=[1, 2] * u.mas / u.yr,
+                                              d_lat=[3, 4] * u.mas / u.yr,)
+        s1 = UnitSphericalRepresentation(lon=[1, 2] * u.deg, lat=[3, 4] * u.deg)
+
+        # transform representation & get comparison (thru CartesianRep)
+        s2 = s1.transform(matrix)
+        ds2 = ds1.transform(matrix, s1, s2)
+
+        dexpected = UnitSphericalCosLatDifferential.from_cartesian(
+            ds1.to_cartesian(base=s1).transform(matrix), base=s2)
+
+        assert_allclose_quantity(ds2.d_lon_coslat, dexpected.d_lon_coslat)
+        assert_allclose_quantity(ds2.d_lat, dexpected.d_lat)
 
 
 def test_cartesian_spherical_roundtrip():
@@ -1883,9 +1886,7 @@ class TestCartesianRepresentationWithDifferential:
                                      z=[5, 6] * u.kpc,
                                      differentials=d1)
 
-        matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-        r2 = r1.transform(matrix)
+        r2 = r1.transform(matrices["general"])
         d2 = r2.differentials['s']
         assert_allclose_quantity(d2.d_x, [22., 28]*u.km/u.s)
         assert_allclose_quantity(d2.d_y, [49, 64]*u.km/u.s)
