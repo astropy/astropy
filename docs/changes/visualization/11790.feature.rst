@@ -1,0 +1,1 @@
+Added a feature so that SphericalCircle will accept center parameter as an object.

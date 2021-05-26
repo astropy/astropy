@@ -300,7 +300,7 @@ image to plot the contours for:
 Spherical patches
 *****************
 
-In the case where you are making a plot of a celestial image, and want to plot a circle that represents the area within a certain angle of a longitude/latitude, the `~matplotlib.patches.Circle` patch is not appropriate, since it will result in a distorted shape (because longitude is not the same as the angle on the sky). For this use case, you can instead use `~astropy.visualization.wcsaxes.SphericalCircle`, which takes a tuple of `~astropy.units.Quantity` as the input, and a `~astropy.units.Quantity` as the radius:
+In the case where you are making a plot of a celestial image, and want to plot a circle that represents the area within a certain angle of a longitude/latitude, the `~matplotlib.patches.Circle` patch is not appropriate, since it will result in a distorted shape (because longitude is not the same as the angle on the sky). For this use case, you can instead use `~astropy.visualization.wcsaxes.SphericalCircle`, which takes a tuple of `~astropy.units.Quantity` or a `~astropy.coordinates.SkyCoord` object as the input, and a `~astropy.units.Quantity` as the radius:
 
 .. plot::
    :context: reset
@@ -326,9 +326,20 @@ In the case where you are making a plot of a celestial image, and want to plot a
    :align: center
 
     from astropy import units as u
+    from astropy.coordinates import SkyCoord
     from astropy.visualization.wcsaxes import SphericalCircle
+
 
     r = SphericalCircle((266.4 * u.deg, -29.1 * u.deg), 0.15 * u.degree,
                          edgecolor='yellow', facecolor='none',
                          transform=ax.get_transform('fk5'))
+
     ax.add_patch(r)
+
+    #The following lines show the usage of a SkyCoord object as the input.
+    skycoord_object = SkyCoord(266.4 * u.deg, -28.7 * u.deg)
+    s = SphericalCircle(skycoord_object, 0.15 * u.degree,
+                        edgecolor='white', facecolor='none',
+                        transform=ax.get_transform('fk5'))
+
+    ax.add_patch(s)
