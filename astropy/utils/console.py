@@ -945,14 +945,11 @@ class Spinner:
         Parameters
         ----------
         value : int, optional
-            The number of iterations for the spin graphic (defaults to one).
+            Ignored (present just for compatibility with `ProgressBar.update`).
 
         """
-        if value is None:
-            value = 1
 
-        for _ in range(value):
-            next(self)
+        next(self)
 
     def _silent_iterator(self):
         color_print(self._msg, self._color, file=self._file, end='')
@@ -1020,7 +1017,6 @@ class ProgressBarOrSpinner:
             self._obj = ProgressBar(total, file=file)
 
     def __enter__(self):
-        self._iter = self._obj.__enter__()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
