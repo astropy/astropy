@@ -11,6 +11,7 @@ import os
 import copy
 import sys
 from io import StringIO
+from contextlib import nullcontext
 
 import pytest
 import numpy as np
@@ -578,7 +579,6 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_ecsv_round_trip_user_defined_unit(table_cls, tmpdir):
     """Ensure that we can read-back enabled user-defined units."""
-    from astropy.utils.compat.context import nullcontext
 
     # Test adapted from #8897, where it was noted that this works
     # but was not tested.

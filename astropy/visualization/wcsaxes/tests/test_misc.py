@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from contextlib import nullcontext
 from matplotlib.contour import QuadContourSet
 
 from astropy import units as u
@@ -12,7 +13,6 @@ from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
-from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import get_pkg_data_filename
 
 from astropy.visualization.wcsaxes.core import WCSAxes

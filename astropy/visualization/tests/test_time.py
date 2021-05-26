@@ -7,11 +7,11 @@ pytest.importorskip('matplotlib')  # noqa
 
 import matplotlib.pyplot as plt
 import matplotlib.dates
+from contextlib import nullcontext
 from erfa import ErfaWarning
 
 from astropy.time import Time
 from astropy.visualization.time import time_support
-from astropy.utils.compat.context import nullcontext
 
 # Matplotlib 3.3 added a settable epoch for plot dates and changed the default
 # from 0000-12-31 to 1970-01-01. This can be checked by the existence of
