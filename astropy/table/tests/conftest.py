@@ -135,6 +135,7 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
                                                  wrap_angle=180. * u.deg),
               'latitude': coordinates.Latitude([5., 6., 10., 11.] * u.deg),
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
+              'timedelta': time.TimeDelta([1, 2, 3, 4], format='jd'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
               'sphericalrep': coordinates.SphericalRepresentation(

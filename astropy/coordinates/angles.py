@@ -584,7 +584,8 @@ class Latitude(Angle):
         if isinstance(value, Longitude):
             raise TypeError("A Longitude angle cannot be assigned to a Latitude angle")
         # first check bounds
-        self._validate_angles(value)
+        if value is not np.ma.masked:
+            self._validate_angles(value)
         super().__setitem__(item, value)
 
     # Any calculation should drop to Angle
