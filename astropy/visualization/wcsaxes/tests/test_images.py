@@ -664,13 +664,21 @@ class TestBasic(BaseImageTests):
                    edgecolor='red', facecolor='none')
 
         # World coordinates (should not be distorted)
-        r = SphericalCircle((266.4 * u.deg, -29.1 * u.deg), 0.15 * u.degree,
-                            edgecolor='purple', facecolor='none',
-                            transform=ax.get_transform('fk5'))
-        ax.add_patch(r)
+        r1 = SphericalCircle((266.4 * u.deg, -29.1 * u.deg), 0.15 * u.degree,
+                             edgecolor='purple', facecolor='none',
+                             transform=ax.get_transform('fk5'))
+        ax.add_patch(r1)
+
+        r2 = SphericalCircle(SkyCoord(266.4 * u.deg, -29.1 * u.deg), 0.15 * u.degree,
+                             edgecolor='purple', facecolor='none',
+                             transform=ax.get_transform('fk5'))
 
         ax.coords[0].set_ticklabel_visible(False)
         ax.coords[1].set_ticklabel_visible(False)
+
+        # Test to verify that SphericalCircle works irrespective of whether
+        # the input(center) is a tuple or a SkyCoord object.
+        assert (r1.get_xy() == r2.get_xy()).all()
 
         return fig
 

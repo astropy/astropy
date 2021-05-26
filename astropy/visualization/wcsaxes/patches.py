@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib.patches import Polygon
 
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.coordinates.representation import UnitSphericalRepresentation
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
 
@@ -63,7 +64,8 @@ class SphericalCircle(Polygon):
     ----------
     center : tuple or `~astropy.units.Quantity` ['angle']
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
-        a single `~astropy.units.Quantity` array with two elements.
+        a single `~astropy.units.Quantity` array with two elements
+        or a `~astropy.coordinates.SkyCoord` object.
     radius : `~astropy.units.Quantity` ['angle']
         The radius of the circle
     resolution : int, optional
@@ -81,9 +83,15 @@ class SphericalCircle(Polygon):
 
     def __init__(self, center, radius, resolution=100, vertex_unit=u.degree, **kwargs):
 
-        # Extract longitude/latitude, either from a tuple of two quantities, or
-        # a single 2-element Quantity.
-        longitude, latitude = center
+        # Extract longitude/latitude, either from a SkyCoord object, or
+        # from a tuple of two quantities or a single 2-element Quantity.
+        if isinstance(center, SkyCoord):
+            if center.frame.name == 'galactic':
+                longitude, latitude = center.l, center.b
+            else:
+                longitude, latitude = center.ra, center.dec
+        else:
+            longitude, latitude = center
 
         # Start off by generating the circle around the North pole
         lon = np.linspace(0., 2 * np.pi, resolution + 1)[:-1] * u.radian
