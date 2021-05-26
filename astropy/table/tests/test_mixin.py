@@ -41,7 +41,7 @@ def test_attributes(mixin_cols):
     assert m.info.description == 'a'
 
     # Cannot set unit for these classes
-    if isinstance(m, (u.Quantity, coordinates.SkyCoord, time.Time,
+    if isinstance(m, (u.Quantity, coordinates.SkyCoord, time.Time, time.TimeDelta,
                       coordinates.BaseRepresentationOrDifferential)):
         with pytest.raises(AttributeError):
             m.info.unit = u.m
@@ -515,7 +515,7 @@ def test_insert_row(mixin_cols):
     t0 = t.copy()
     t['m'].info.description = 'd'
     idxs = [0, -1, 1, 2, 3]
-    if isinstance(t['m'], (u.Quantity, Column, time.Time, coordinates.SkyCoord)):
+    if isinstance(t['m'], (u.Quantity, Column, time.Time, time.TimeDelta, coordinates.SkyCoord)):
         t.insert_row(1, t[-1])
 
         for name in t.colnames:
