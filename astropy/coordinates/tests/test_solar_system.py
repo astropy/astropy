@@ -437,9 +437,14 @@ def test_file_ephemeris_wrong_input():
     # Try loading a non-existing file:
     with pytest.raises(ValueError):
         get_body('earth', time, ephemeris='/path/to/nonexisting/file.bsp')
+
+    # NOTE: This test currently leaves the file open (ResourceWarning).
+    # To fix this issue, an upstream fix is required in jplephem
+    # package.
     # Try loading a file that does exist, but is not an ephemeris file:
-    with pytest.raises(ValueError):
-        get_body('earth', time, ephemeris=__file__)
+    with pytest.warns(ResourceWarning):
+        with pytest.raises(ValueError):
+            get_body('earth', time, ephemeris=__file__)
 
 
 def test_regression_10271():
