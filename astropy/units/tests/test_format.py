@@ -606,6 +606,7 @@ def test_powers(power, expected):
     ('\N{ANGSTROM SIGN} \N{OHM SIGN}', u.Angstrom * u.Ohm),
     ('\N{LATIN CAPITAL LETTER A WITH RING ABOVE}', u.Angstrom),
     ('\N{LATIN CAPITAL LETTER A}\N{COMBINING RING ABOVE}', u.Angstrom),
+    ('m\N{ANGSTROM SIGN}', u.milliAngstrom),
     ('°C', u.deg_C),
     ('°', u.deg),
 ])
@@ -620,7 +621,7 @@ def test_unicode(string, unit):
     'm\N{SUPERSCRIPT MINUS}1',
     'm+\N{SUPERSCRIPT ONE}',
     'm\N{MINUS SIGN}\N{SUPERSCRIPT ONE}',
-    'm\N{ANGSTROM SIGN}',
+    'k\N{ANGSTROM SIGN}',
 ])
 def test_unicode_failures(string):
     with pytest.raises(ValueError):
