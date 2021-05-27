@@ -2,15 +2,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Test initalization and other aspects of Angle and subclasses"""
 
-import pytest
-import numpy as np
-from numpy.testing import assert_allclose, assert_array_equal
 import threading
+import warnings
 
+import numpy as np
+import pytest
+from numpy.testing import assert_allclose, assert_array_equal
+
+import astropy.units as u
 from astropy.coordinates.angles import Longitude, Latitude, Angle
-from astropy import units as u
-from astropy.coordinates.errors import (IllegalSecondError, IllegalMinuteError, IllegalHourError,
-                      IllegalSecondWarning, IllegalMinuteWarning)
+from astropy.coordinates.errors import (
+    IllegalSecondError, IllegalMinuteError, IllegalHourError,
+    IllegalSecondWarning, IllegalMinuteWarning)
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_create_angles():
@@ -787,6 +791,17 @@ def test_longitude():
     # but not if we explicitly set it
     lon3 = Longitude(lon, wrap_angle='180d')
     assert lon3.wrap_angle == 180 * u.deg
+
+    # check that wrap_angle is always an Angle
+    lon = Longitude(lon, wrap_angle=Longitude(180 * u.deg))
+    assert lon.wrap_angle == 180 * u.deg
+    assert lon.wrap_angle.__class__ is Angle
+
+    # check that wrap_angle is not copied
+    wrap_angle=180 * u.deg
+    lon = Longitude(lon, wrap_angle=wrap_angle)
+    assert lon.wrap_angle == 180 * u.deg
+    assert np.may_share_memory(lon.wrap_angle, wrap_angle)
 
     # check for problem reported in #2037 about Longitude initializing to -0
     lon = Longitude(0, u.deg)
