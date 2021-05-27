@@ -73,6 +73,9 @@ class TestQuantityArrayCopy:
         assert q_flat[8] == -1. * u.km / u.s
         assert q[2, 2] == -1. * u.km / u.s
 
+        # also check q_flat copies properly
+        assert all(q_flat.copy() == q.flatten())
+
 
 class TestQuantityReshapeFuncs:
     """Test different ndarray methods that alter the array shape
@@ -121,6 +124,22 @@ class TestQuantityReshapeFuncs:
         assert isinstance(q_swapaxes, u.Quantity)
         assert q_swapaxes.unit == q.unit
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
+
+    def test_flat(self):
+        """While ``flat`` doesn't make a copy, it changes the shape."""
+        q = np.arange(6.).reshape(3, 1, 2) * u.m
+        qf = q.flat
+        # see TestQuantityArrayCopy.test_flat for tests of iteration
+        # and slicing and setting. Here we test the properties and methods to
+        # match `numpy.ndarray.flatiter` 
+        assert qf.base is q
+        # testing the indices -- flat and full -- into the array
+        assert qf.coords == (0, 0, 0)  # to start
+        assert qf.index == 0
+        # now consume the iterator
+        endindices = [(qf.index, qf.coords) for x in qf][-2]  # next() oversteps
+        assert endindices[0] == 5
+        assert endindices[1] == (2, 0, 1)  # shape of q - 1
 
 
 class TestQuantityStatsFuncs:
