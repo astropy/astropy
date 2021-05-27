@@ -31,19 +31,40 @@ import configparser
 from datetime import datetime
 
 from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
 
 try:
     import importlib.metadata as importlib_metadata
 except ImportError:
     import importlib_metadata
 
-try:
-    from sphinx_astropy.conf.v1 import *  # noqa
-except ImportError:
-    print('ERROR: the documentation requires the sphinx-astropy package to be installed')
+# -- Check for missing dependencies -------------------------------------------
+missing_requirements = {}
+for line in importlib_metadata.requires('astropy'):
+    if 'extra == "docs"' in line:
+        req = Requirement(line.split(';')[0])
+        req_package = req.name.lower()
+        req_specifier = str(req.specifier)
+
+        try:
+            version = importlib_metadata.version(req_package)
+        except importlib_metadata.PackageNotFoundError:
+            missing_requirements[req_package] = req_specifier
+
+        if version not in SpecifierSet(req_specifier):
+            missing_requirements[req_package] = req_specifier
+
+if missing_requirements:
+    print('The following packages could not be found and are required to '
+          'build the documentation:')
+    for key, val in missing_requirements.items():
+        print(f'    * {key} {val}')
+    print('Please install the "docs" requirements.')
     sys.exit(1)
 
+from sphinx_astropy.conf.v1 import *  # noqa
 
+# -- Plot configuration -------------------------------------------------------
 plot_rcparams = {}
 plot_rcparams['figure.figsize'] = (6, 6)
 plot_rcparams['savefig.facecolor'] = 'none'
