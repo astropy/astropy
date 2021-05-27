@@ -62,6 +62,16 @@ __all__ = [
 _dataurls_to_alias = {}
 
 
+class _NonClosingTextIOWrapper(io.TextIOWrapper):
+    def __del__(self):
+        try:
+            # NOTE: self.stream will not be closed, but left in the state
+            # it was in at detactment
+            self.detach()
+        except Exception:
+            pass
+
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.utils.data`.
@@ -370,7 +380,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 close_fds.append(fileobj)
 
         fileobj = io.BufferedReader(fileobj)
-        fileobj = io.TextIOWrapper(fileobj, encoding=encoding)
+        fileobj = _NonClosingTextIOWrapper(fileobj, encoding=encoding)
 
         # Ensure that file is at the start - io.FileIO will for
         # example not always be at the start:
