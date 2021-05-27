@@ -131,7 +131,7 @@ class TestQuantityReshapeFuncs:
         qf = q.flat
         # see TestQuantityArrayCopy.test_flat for tests of iteration
         # and slicing and setting. Here we test the properties and methods to
-        # match `numpy.ndarray.flatiter` 
+        # match `numpy.ndarray.flatiter`
         assert qf.base is q
         # testing the indices -- flat and full -- into the array
         assert qf.coords == (0, 0, 0)  # to start
