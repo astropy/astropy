@@ -468,6 +468,7 @@ attribute::
     >>> fits_table_filename = fits.util.get_testdata_filepath('tb.fits')
     >>> hdul = fits.open(fits_table_filename)
     >>> data = hdul[1].data # assuming the first extension is a table
+    >>> hdul.close()
 
 If you are familiar with ``numpy`` `~numpy.recarray` (record array) objects, you
 will find the table data is basically a record array with some extra
@@ -612,6 +613,10 @@ file opened with update mode:
         hdul.flush()  # changes are written back to original.fits
 
     # closing the file will also flush any changes and prevent further writing
+
+Here we explicitly close the ``hdulist`` opened earlier::
+
+    >>> hdul.close()
 
 
 Creating a New FITS File

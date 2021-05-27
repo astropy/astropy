@@ -77,6 +77,7 @@ with default values, converting from pixel to world coordinates::
     >>> print(sky)  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (5.52844243, -72.05207809)>
+    >>> f.close()
 
 Similarly, another use of the high-level API is to use the
 `~astropy.wcs.wcs.WCS.world_to_pixel` to yield another simple WCS, while
@@ -91,6 +92,7 @@ converting from world to pixel coordinates::
     >>> x, y = w.world_to_pixel(sky)
     >>> print(x, y)  # doctest: +FLOAT_CMP
     30.00000214673885 39.999999958235094
+    >>> f.close()
 
 Using `astropy.wcs`
 ===================
