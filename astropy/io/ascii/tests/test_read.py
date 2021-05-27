@@ -1047,8 +1047,10 @@ def test_guessing_file_object():
     """
     Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
     """
-    t = ascii.read(open('data/ipac.dat.bz2', 'rb'))
+    fd = open('data/ipac.dat.bz2', 'rb')
+    t = ascii.read(fd)
     assert t.colnames == ['ra', 'dec', 'sai', 'v2', 'sptype']
+    fd.close()
 
 
 def test_pformat_roundtrip():
@@ -1412,7 +1414,10 @@ def test_read_chunks_input_types():
     fpath = 'data/test5.dat'
     t1 = ascii.read(fpath, header_start=1, data_start=3, )
 
-    for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
+    fd1 = open(fpath, 'r')
+    fd2 = open(fpath, 'r')
+
+    for fp in (fpath, fd1, fd2.read()):
         t_gen = ascii.read(fp, header_start=1, data_start=3,
                            guess=False, format='fast_basic',
                            fast_reader={'chunk_size': 400, 'chunk_generator': True})
@@ -1426,11 +1431,19 @@ def test_read_chunks_input_types():
         t2 = table.vstack(ts)
         assert np.all(t1 == t2)
 
-    for fp in (fpath, open(fpath, 'r'), open(fpath, 'r').read()):
+    fd1.close()
+    fd2.close()
+
+    fd1 = open(fpath, 'r')
+    fd2 = open(fpath, 'r')
+    for fp in (fpath, fd1, fd2.read()):
         # Now read the full table in chunks
         t3 = ascii.read(fp, header_start=1, data_start=3,
                         fast_reader={'chunk_size': 300})
         assert np.all(t1 == t3)
+
+    fd1.close()
+    fd2.close()
 
 
 @pytest.mark.parametrize('masked', [True, False])
