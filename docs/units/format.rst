@@ -273,11 +273,11 @@ particular alias is used::
     >>> u.Unit("Angstroem") == u.Angstrom
     Traceback (most recent call last):
       ...
-    ValueError: 'Angstroem' did not parse as unit: At col 0, Angstroem is not a
-    valid unit. Did you mean Angstrom or angstrom? If this is meant to be a
-    custom unit, define it with 'u.def_unit'. To have it recognized inside a
-    file reader or other code, enable it with 'u.add_enabled_units'. For
-    details, see
+    ValueError: 'Angstroem' did not parse as unit: At col 0, Angstroem is not
+    a valid unit. Did you mean Angstrom, angstrom, mAngstrom or mangstrom? If
+    this is meant to be a custom unit, define it with 'u.def_unit'. To have it
+    recognized inside a file reader or other code, enable it with
+    'u.add_enabled_units'. For details, see
     https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
 .. EXAMPLE END
