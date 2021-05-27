@@ -62,6 +62,16 @@ __all__ = [
 _dataurls_to_alias = {}
 
 
+class _NonClosingBufferedReader(io.BufferedReader):
+    def __del__(self):
+        try:
+            # NOTE: self.raw will not be closed, but left in the state
+            # it was in at detactment
+            self.detach()
+        except Exception:
+            pass
+
+
 class _NonClosingTextIOWrapper(io.TextIOWrapper):
     def __del__(self):
         try:
@@ -379,7 +389,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 fileobj = io.FileIO(tmp.name, 'r')
                 close_fds.append(fileobj)
 
-        fileobj = io.BufferedReader(fileobj)
+        fileobj = _NonClosingBufferedReader(fileobj)
         fileobj = _NonClosingTextIOWrapper(fileobj, encoding=encoding)
 
         # Ensure that file is at the start - io.FileIO will for
