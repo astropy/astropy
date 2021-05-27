@@ -10,6 +10,9 @@ from astropy.time import Time, conf, TimeYearDayTime
 iso_times = ['2000-02-29', '1981-12-31 12:13', '1981-12-31 12:13:14', '2020-12-31 12:13:14.56']
 isot_times = [re.sub(' ', 'T', tm) for tm in iso_times]
 yday_times = ['2000:060', '1981:365:12:13:14', '1981:365:12:13', '2020:366:12:13:14.56']
+# Transpose the array to check that strides are dealt with correctly.
+yday_array = np.array([['2000:060', '1981:365:12:13:14'],
+                       ['1981:365:12:13', '2020:366:12:13:14.56']]).T
 
 
 def test_fast_conf():
@@ -44,7 +47,8 @@ def test_fast_conf():
 
 @pytest.mark.parametrize('times,format', [(iso_times, 'iso'),
                                           (isot_times, 'isot'),
-                                          (yday_times, 'yday')])
+                                          (yday_times, 'yday'),
+                                          (yday_array, 'yday')])
 @pytest.mark.parametrize('variant', [0, 1, 2])
 def test_fast_matches_python(times, format, variant):
     if variant == 0:

@@ -11,7 +11,7 @@
     "standard time strings."
 #define CREATE_PARSER_DOCSTRING \
     "create_parser()\n\n" \
-    "Create a gufunc that parsers according to the passed in parameters.\n\n" \
+    "Create a gufunc that helps parse strings according to the given parameters.\n\n" \
     "Parameters\n" \
     "----------\n" \
     "pars : ~numpy.ndarray\n" \
@@ -20,7 +20,7 @@
     "Returns\n" \
     "-------\n" \
     "parser : `~numpy.ufunc`\n" \
-    "    Will parse bytes or unicode."
+    "    Suitable for use by `~astropy.time.TimeString` formats."
 
 
 // ASCII codes for '0' and '9'
