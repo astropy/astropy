@@ -868,7 +868,6 @@ class TestImageFunctions(FitsTestCase):
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[0].data == orig_data).all()
-        hdul = fits.open(self.temp('test_new.fits'))
         hdul.close()
 
     def test_image_update_header(self):
@@ -1351,7 +1350,6 @@ class TestCompressedImage(FitsTestCase):
         hdul.close()
         hdul = fits.open(self.temp('test_new.fits'))
         assert (hdul[1].data == orig_data).all()
-        hdul = fits.open(self.temp('test_new.fits'))
         hdul.close()
 
     def test_scale_back_compressed(self):
