@@ -1913,6 +1913,7 @@ class TestHeaderFunctions(FitsTestCase):
         # something to think about...
         msg = str(w[3].message)
         assert "(invalid value string: '5.0022221e-07')" in msg
+        hdul.close()
 
     def test_leading_zeros(self):
         """

@@ -34,3 +34,4 @@ class TestDivisionFunctions(FitsTestCase):
         # section testing
         fs = fits.open(self.data('arange.fits'))
         assert np.all(fs[0].section[3, 2, 5] == np.array([357]))
+        fs.close()
