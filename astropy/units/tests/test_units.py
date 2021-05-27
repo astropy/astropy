@@ -639,7 +639,7 @@ def test_suggestions():
             ('metre', 'meter'),
             ('angstroms', 'Angstrom or angstrom'),
             ('milimeter', 'millimeter'),
-            ('ångström', 'Angstrom or angstrom'),
+            ('ångström', 'Angstrom, angstrom, mAngstrom or mangstrom'),
             ('kev', 'EV, eV, kV or keV')]:
         with pytest.raises(ValueError, match=f'Did you mean {matches}'):
             u.Unit(search)
