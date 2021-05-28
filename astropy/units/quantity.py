@@ -110,6 +110,27 @@ class QuantityIterator:
 
     next = __next__
 
+    #### properties and methods to match `numpy.ndarray.flatiter` ####
+
+    @property
+    def base(self):
+        """A reference to the array that is iterated over."""
+        return self._quantity
+
+    @property
+    def coords(self):
+        """An N-dimensional tuple of current coordinates."""
+        return self._dataiter.coords
+
+    @property
+    def index(self):
+        """Current flat index into the array."""
+        return self._dataiter.index
+
+    def copy(self):
+        """Get a copy of the iterator as a 1-D array."""
+        return self._quantity.flatten()
+
 
 class QuantityInfoBase(ParentDtypeInfo):
     # This is on a base class rather than QuantityInfo directly, so that
