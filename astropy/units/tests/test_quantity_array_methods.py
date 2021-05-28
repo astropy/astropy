@@ -73,9 +73,6 @@ class TestQuantityArrayCopy:
         assert q_flat[8] == -1. * u.km / u.s
         assert q[2, 2] == -1. * u.km / u.s
 
-        # also check q_flat copies properly
-        assert all(q_flat.copy() == q.flatten())
-
 
 class TestQuantityReshapeFuncs:
     """Test different ndarray methods that alter the array shape
@@ -125,7 +122,7 @@ class TestQuantityReshapeFuncs:
         assert q_swapaxes.unit == q.unit
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
-    def test_flat(self):
+    def test_flat_attributes(self):
         """While ``flat`` doesn't make a copy, it changes the shape."""
         q = np.arange(6.).reshape(3, 1, 2) * u.m
         qf = q.flat
@@ -140,6 +137,12 @@ class TestQuantityReshapeFuncs:
         endindices = [(qf.index, qf.coords) for x in qf][-2]  # next() oversteps
         assert endindices[0] == 5
         assert endindices[1] == (2, 0, 1)  # shape of q - 1
+
+        # also check q_flat copies properly
+        q_flat_copy = qf.copy()
+        assert all(q_flat_copy == q.flatten())
+        assert isinstance(q_flat_copy, u.Quantity)
+        assert not np.may_share_memory(q_flat_copy, q)
 
 
 class TestQuantityStatsFuncs:
