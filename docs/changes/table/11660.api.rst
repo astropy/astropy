@@ -1,0 +1,3 @@
+Printing a ``Table`` now shows the qualified class name of mixin columns in the
+dtype header row  instead of "object". This applies to all the ``Table`` formatted output
+methods whenever ``show_dtype=True`` is selected.

@@ -33,7 +33,7 @@ series cannot be combined with binned time series and vice versa)::
     <TimeSeries length=10>
               time            flux
                               mJy
-             object         float64
+              Time          float64
     ----------------------- -------
     2016-03-22T12:30:31.000     1.0
     2016-03-22T12:30:34.000     4.0
@@ -64,7 +64,7 @@ time series (as having multiple time columns would be confusing)::
     <TimeSeries length=5>
               time            flux  temperature
                               mJy          K
-             object         float64    float64
+              Time          float64    float64
     ----------------------- ------- -----------
     2016-03-22T12:30:31.000     1.0        40.0
     2016-03-22T12:30:34.000     4.0        41.0
@@ -88,7 +88,7 @@ Sorting time series in place can be done using the
     >>> ts
     <TimeSeries length=5>
               time            flux
-             object         float64
+              Time          float64
     ----------------------- -------
     2016-03-22T12:30:31.000     1.0
     2016-03-22T12:30:34.000     4.0
@@ -99,7 +99,7 @@ Sorting time series in place can be done using the
     >>> ts
     <TimeSeries length=5>
               time            flux
-             object         float64
+              Time          float64
     ----------------------- -------
     2016-03-22T12:30:31.000     1.0
     2016-03-22T12:30:43.000     2.0

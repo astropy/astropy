@@ -32,7 +32,7 @@ As you can see, some of the values are negative. We can mask these using::
     >>> ts
     <TimeSeries masked=True length=5>
               time            flux
-             object         float64
+              Time          float64
     ----------------------- -------
     2016-03-22T12:30:31.000     1.0
     2016-03-22T12:30:34.000      --

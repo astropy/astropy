@@ -58,7 +58,7 @@ Time series are specialized kinds of |Table| objects::
     <TimeSeries length=14280>
               time             timecorr   ...   pos_corr1      pos_corr2
                                   d       ...      pix            pix
-             object            float32    ...    float32        float32
+              Time             float32    ...    float32        float32
     ----------------------- ------------- ... -------------- --------------
     2009-05-02T00:41:40.338  6.630610e-04 ...  1.5822421e-03 -1.4463664e-03
     2009-05-02T00:42:39.188  6.630857e-04 ...  1.5743829e-03 -1.4540013e-03
@@ -96,7 +96,7 @@ In the same way as for |Table| objects, the various columns and rows of
     <TimeSeries length=14280>
               time             sap_flux
                              electron / s
-             object            float32
+              Time             float32
     ----------------------- --------------
     2009-05-02T00:41:40.338  1.0270451e+06
     2009-05-02T00:42:39.188  1.0271844e+06
@@ -123,7 +123,7 @@ In the same way as for |Table| objects, the various columns and rows of
     <TimeSeries length=4>
               time             timecorr   ...   pos_corr1      pos_corr2
                                   d       ...      pix            pix
-             object            float32    ...    float32        float32
+              Time             float32    ...    float32        float32
     ----------------------- ------------- ... -------------- --------------
     2009-05-02T00:41:40.338  6.630610e-04 ...  1.5822421e-03 -1.4463664e-03
     2009-05-02T00:42:39.188  6.630857e-04 ...  1.5743829e-03 -1.4540013e-03
@@ -273,7 +273,7 @@ time — this returns a |BinnedTimeSeries|::
     <BinnedTimeSeries length=74>
        time_bin_start     time_bin_size    ...   sap_flux_norm
                                 s          ...
-           object            float64       ...       float64
+         TimeDelta            float64       ...       float64
     ------------------- ------------------ ... ------------------
     -1.1022116370482966             2592.0 ... 0.9998741745948792
     -1.0722116370482966             2592.0 ... 0.9999074339866638
