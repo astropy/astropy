@@ -3,12 +3,10 @@
 import fnmatch
 import time
 import re
-import sys
 import datetime
 import warnings
 from decimal import Decimal
 from collections import OrderedDict, defaultdict
-from pathlib import Path
 
 import numpy as np
 import erfa
@@ -17,6 +15,7 @@ from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy import units as u
 
+from . import _parse_times
 from . import utils
 from .utils import day_frac, quantity_day_frac, two_sum, two_product
 from . import conf
@@ -1259,43 +1258,19 @@ class TimeString(TimeUnique):
       day-of-year
     """
 
-    @classproperty(lazy=True)
-    def time_struct_dtype(cls):
-        return np.dtype([('year', np.intc),
-                         ('month', np.intc),
-                         ('day', np.intc),
-                         ('hour', np.intc),
-                         ('minute', np.intc),
-                         ('second_int', np.intc),
-                         ('second_frac', np.double)])
+    def __init_subclass__(cls, **kwargs):
+        if 'fast_parser_pars' in cls.__dict__:
+            fpp = cls.fast_parser_pars
+            fpp = np.array(list(zip(map(chr, fpp['delims']),
+                                    fpp['starts'],
+                                    fpp['stops'],
+                                    fpp['break_allowed'])),
+                           _parse_times.dt_pars)
+            if cls.fast_parser_pars['has_day_of_year']:
+                fpp['start'][1] = fpp['stop'][1] = -1
+            cls._fast_parser = _parse_times.create_parser(fpp)
 
-    @classproperty(lazy=True)
-    def lib_parse_time(cls):
-        """Class property for ctypes library for fast C parsing of string times."""
-        import numpy.ctypeslib as npct
-        from ctypes import c_int
-
-        # Input types in the parse_times.c code
-        array_1d_char = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
-        array_1d_int = npct.ndpointer(dtype=np.intc, ndim=1, flags='C_CONTIGUOUS')
-
-        array_1d_time_struct = npct.ndpointer(dtype=cls.time_struct_dtype,
-                                              ndim=1, flags='C_CONTIGUOUS')
-
-        # load the library, using numpy mechanisms
-        libpt = npct.load_library("_parse_times", Path(__file__).parent)
-
-        # Set up the return types and argument types for parse_ymdhms_times()
-        # int parse_ymdhms_times(char *times, int n_times, int max_str_len,
-        #                    char *delims, int *starts, int *stops, int *break_allowed,
-        #                    int *years, int *months, int *days, int *hours,
-        #                    int *minutes, double *seconds)
-        libpt.parse_ymdhms_times.restype = c_int
-        libpt.parse_ymdhms_times.argtypes = [array_1d_char, c_int, c_int, c_int,
-                                             array_1d_char, array_1d_int, array_1d_int,
-                                             array_1d_int, array_1d_time_struct]
-
-        return libpt
+        super().__init_subclass__(**kwargs)
 
     def _check_val_type(self, val1, val2):
         if val1.dtype.kind not in ('S', 'U') and val1.size:
@@ -1352,7 +1327,7 @@ class TimeString(TimeUnique):
         # if the fast parser is entirely disabled. Note that `use_fast_parser`
         # is ignored for format classes that don't have a fast parser.
         if (self.in_subfmt != '*'
-                or 'fast_parser_pars' not in self.__class__.__dict__
+                or '_fast_parser' not in self.__class__.__dict__
                 or conf.use_fast_parser == 'False'):
             jd1, jd2 = self.get_jds_python(val1, val2)
         else:
@@ -1393,61 +1368,34 @@ class TimeString(TimeUnique):
 
     def get_jds_fast(self, val1, val2):
         """Use fast C parser to parse time strings in val1 and get jd1, jd2"""
-        # Handle bytes or str input and flatten down to a single array of uint8.
+        # Handle bytes or str input and convert to uint8.  We need to the
+        # dtype _parse_times.dt_u1 instead of uint8, since otherwise it is
+        # not possible to create a gufunc with structured dtype output.
+        # See note about ufunc type resolver in pyerfa/erfa/ufunc.c.templ.
         if val1.dtype.kind == 'U':
-            val1_str_len = val1.dtype.itemsize // 4
-            # Check that this is pure ASCII.
-            if np.any(val1.view((np.uint32, val1_str_len)) > 127):
+            # Note: val1.astype('S') is *very* slow, so we check ourselves
+            # that the input is pure ASCII.
+            val1_uint32 = val1.view((np.uint32, val1.dtype.itemsize // 4))
+            if np.any(val1_uint32 > 127):
                 raise ValueError('input is not pure ASCII')
 
-            # It might be possible to avoid having ravel() make a copy with
+            # It might be possible to avoid making a copy via astype with
             # cleverness in parse_times.c but leave that for another day.
-            if sys.byteorder == 'big':  # pragma: no cover
-                chars = val1.view((np.uint8, 4*val1_str_len))[..., 3::4].ravel()
-            else:
-                chars = val1.view((np.uint8, 4*val1_str_len))[..., ::4].ravel()
+            chars = val1_uint32.astype(_parse_times.dt_u1)
 
         else:
-            val1_str_len = val1.dtype.itemsize
-            chars = val1.view((np.uint8, val1_str_len)).ravel()
+            chars = val1.view((_parse_times.dt_u1, val1.dtype.itemsize))
 
-        # Pre-allocate output components
-        n_times = val1.size
-        time_struct = np.empty(n_times, dtype=self.time_struct_dtype)
-
-        # Set up parser parameters as numpy arrays for passing to C parser
-        pars = self.fast_parser_pars
-        delims = np.array(pars['delims'], dtype=np.uint8)
-        starts = np.array(pars['starts'], dtype=np.intc)
-        stops = np.array(pars['stops'], dtype=np.intc)
-        break_allowed = np.array(pars['break_allowed'], dtype=np.intc)
-
-        # Call C parser
-        status = self.lib_parse_time.parse_ymdhms_times(
-            chars, n_times, val1_str_len, pars['has_day_of_year'],
-            delims, starts, stops, break_allowed, time_struct)
-
-        if status == 0:
-            # All went well, finish the job
-            jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
-                                  time_struct['year'],
-                                  time_struct['month'],
-                                  time_struct['day'],
-                                  time_struct['hour'],
-                                  time_struct['minute'],
-                                  time_struct['second_int'] + time_struct['second_frac'])
-            jd1.shape = val1.shape
-            jd2.shape = val1.shape
-            jd1, jd2 = day_frac(jd1, jd2)
-        else:
-            msgs = {1: 'time string ends at beginning of component where break is not allowed',
-                    2: 'time string ends in middle of component',
-                    3: 'required delimiter character not found',
-                    4: 'non-digit found where digit (0-9) required',
-                    5: 'bad day of year (1 <= doy <= 365 or 366 for leap year'}
-            raise ValueError(f'fast C time string parser failed: {msgs[status]}')
-
-        return jd1, jd2
+        # Call the fast parsing ufunc.
+        time_struct = self._fast_parser(chars)
+        jd1, jd2 = erfa.dtf2d(self.scale.upper().encode('ascii'),
+                              time_struct['year'],
+                              time_struct['month'],
+                              time_struct['day'],
+                              time_struct['hour'],
+                              time_struct['minute'],
+                              time_struct['second'])
+        return day_frac(jd1, jd2)
 
     def str_kwargs(self):
         """
