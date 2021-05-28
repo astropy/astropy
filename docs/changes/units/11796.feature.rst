@@ -1,0 +1,2 @@
+Added attributes ``base``, ``coords``, and ``index`` and method ``copy()`` to
+``QuantityIterator`` to match ``numpy.ndarray.flatiter``.
