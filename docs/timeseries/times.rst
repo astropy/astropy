@@ -64,7 +64,7 @@ To change the display of the time series::
     >>> ts
     <TimeSeries length=5>
               time            flux
-             object         float64
+              Time          float64
     ----------------------- -------
     2016-03-22T12:30:31.000     1.0
     2016-03-22T12:30:34.000     3.0
@@ -75,7 +75,7 @@ To change the display of the time series::
     >>> ts  # doctest: +FLOAT_CMP
     <TimeSeries length=5>
         time       flux
-       object    float64
+        Time     float64
     ------------ -------
     1458649831.0     1.0
     1458649834.0     3.0
@@ -103,7 +103,7 @@ To use a relative rather than an absolute time::
     >>> ts_rel  # doctest: +FLOAT_CMP
     <TimeSeries length=5>
              time
-            object
+           TimeDelta
     ----------------------
                        0.0
      3.472222222222765e-05

@@ -394,7 +394,7 @@ class TableFormatter:
             try:
                 dtype = dtype_info_name(col.dtype)
             except AttributeError:
-                dtype = 'object'
+                dtype = col.__class__.__qualname__ or 'object'
             yield str(dtype)
         if show_unit or show_name or show_dtype:
             i_dashes = n_header
