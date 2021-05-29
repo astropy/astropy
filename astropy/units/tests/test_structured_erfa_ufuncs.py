@@ -11,6 +11,10 @@ from erfa import ufunc as erfa_ufunc
 
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.introspection import minversion
+
+
+ERFA_LE_2_0_0 = not minversion(erfa, '2.0.0.1')
 
 
 class TestPVUfuncs:
@@ -31,7 +35,8 @@ class TestPVUfuncs:
         assert_array_equal(p2pv['p'], self.pv['p'])
         assert_array_equal(p2pv['v'], np.zeros(self.pv.shape+(3,), float) << u.m/u.s)
 
-    @pytest.mark.xfail(reason='erfa bug; https://github.com/liberfa/pyerfa/issues/70)')
+    @pytest.mark.xfail(erfa.__version__ <= '2.0.0',
+                       reason='erfa bug; https://github.com/liberfa/pyerfa/issues/70)')
     def test_p2pv_inplace(self):
         # TODO: fix np.zeros_like.
         out = np.zeros_like(self.pv_value) << self.pv_unit
