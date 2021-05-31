@@ -8,17 +8,13 @@ from astropy.cosmology import Cosmology
 __all__ = ["from_mapping", "to_mapping", "from_table", "to_table"]
 
 
-def from_mapping(mapping, key=None, *, move_to_meta=False):
+def from_mapping(mapping, *, move_to_meta=False):
     """Load `~astropy.cosmology.Cosmology` from mapping object.
 
     Parameters
     ----------
     mapping : mapping
         Must have field "cosmology".
-    key : hashable or None (optional)
-        Any valid key into `mapping`.
-        If not None, this is used to select a cosmology if mapping is a
-        set of cosmologies.
 
     move_to_meta : bool (optional, keyword-only)
         Whether to move arguments not in the initialization signature to the
@@ -60,9 +56,7 @@ def from_mapping(mapping, key=None, *, move_to_meta=False):
             }
         }
     """
-    # get params subset from mapping
-    params = mapping[key] if key is not None else mapping
-    params = copy.deepcopy(params)  # so can pop
+    params = copy.deepcopy(mapping)  # so can pop
 
     cosmology = params.pop("cosmology")
     if isinstance(cosmology, str):

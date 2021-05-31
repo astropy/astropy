@@ -121,12 +121,6 @@ def test_round_trip_of_mapping_instance(instance):
     assert got.name == expected.name
     # assert got == expected  # FIXME! no __eq__ on cosmo
 
-    # an also test multi-dict
-    m = dict(key1=expected.write.to_mapping(), key2="something else")
-    got = Cosmology.read.from_mapping(m, key="key1")
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
-
 
 @pytest.mark.parametrize("instance", cosmo_instances)
 class Test_round_trip_of_table_instance:

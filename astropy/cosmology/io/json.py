@@ -22,7 +22,6 @@ def read_json(filename, key=None, **kwargs):
     key : str or None, optional
         If the JSON is for many cosmologies, ``key`` is needed to select
         the specific cosmology.
-        See ``from_mapping``.
     **kwargs
         Not used.
 
@@ -35,8 +34,10 @@ def read_json(filename, key=None, **kwargs):
         data = filename.read()
 
     mapping = json.loads(data)  # parse json mappable to dict
+    if key is not None:
+        mapping = mapping[key]
 
-    return from_mapping(mapping, key=key)
+    return from_mapping(mapping)
 
 
 def write_json(cosmology, file, overwrite=False, **kwargs):

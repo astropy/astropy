@@ -57,20 +57,13 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     Notes
     -----
     The cosmology class must be specified by name in the metadata (if a Table)
-    or as a field titled ``cosmology``.
-
-    ``read`` may only be called from `~astropy.cosmology.Cosmology`.
-
-    The other parameters are passed to the initialization signature. Parameters
-    not in the signature will be moved to the metadata, except if the key is
-    already present, in which case a `TypeError` will be raised.
-
+    or as a field titled ``cosmology`` if a mapping.
     Metadata can be included on the Table or as a key "meta" for a JSON.
 
     Raises
     ------
     TypeError
-        If read is called not from the Cosmology base class.
+        If ``read()`` is not called from the Cosmology base class.
     """
 
     def __init__(self, instance, cls):
@@ -83,21 +76,21 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
                           "``Cosmology`` base class.",
                           category=AstropyUserWarning)
 
-    def __call__(self, *args, index=None, **kwargs):
+    def __call__(self, *args, **kwargs):
         from astropy.cosmology.core import Cosmology
 
         if self._cls is not Cosmology:
             raise TypeError("``Cosmology.read()`` must be called from the "
                             "``Cosmology`` base class.")
 
-        cosmo = io_registry.read(self._cls, *args, index=index, **kwargs)
+        cosmo = io_registry.read(self._cls, *args, **kwargs)
         return cosmo
 
     @staticmethod
-    def from_mapping(mapping, key=None, *, move_to_meta=False):
+    def from_mapping(mapping, *, move_to_meta=False):
         from astropy.cosmology.io import from_mapping
 
-        return from_mapping(mapping, key=key, move_to_meta=move_to_meta)
+        return from_mapping(mapping, move_to_meta=move_to_meta)
 
     @staticmethod
     def from_table(table, index=None, *, move_to_meta=False):
