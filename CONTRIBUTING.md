@@ -107,11 +107,11 @@ include the following:
 Checklist for Contributed Code
 ------------------------------
 
-Before being merged, a pull request for a new feature will be reviewed to see if 
+Before being merged, a pull request for a new feature will be reviewed to see if
 it meets the following requirements. If you are unsure about how to meet all of these
 requirements, please submit the PR and ask for help and/or guidance. An Astropy
-maintainer will collaborate with you to make sure that the pull request meets the 
-requirements for inclusion in the package.
+maintainer will collaborate with you to make sure that the pull request meets the
+requirements for inclusion in the package:
 
 **Scientific Quality** (when applicable)
   * Is the submission relevant to astronomy?
@@ -193,4 +193,3 @@ Other Tips
       $ git commit -m "Fixed typo [ci skip]"
 
 - ``[ci skip]`` and ``[skip ci]`` are the same and can be used interchangeably.
-
