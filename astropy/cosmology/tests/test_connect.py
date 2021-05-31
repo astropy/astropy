@@ -30,10 +30,20 @@ def cosmo_dir(tmpdir_factory):
 # -----------------------------------------------------------------------------
 
 
-class TestWriteCosmology:
+class TestReadWriteCosmology:
+
+    def test_instantiate_read(self):
+        # no error on base class
+        assert isinstance(Cosmology.read, CosmologyRead)
+
+        # Error on calling from subclasses. Warns when initiated.
+        with pytest.warns(AstropyUserWarning):
+            with pytest.raises(TypeError, match="``Cosmology`` base class"):
+                cosmology.realizations.Planck18.read()
+
     @pytest.mark.parametrize("format", save_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_write_file(self, cosmo_dir, instance, format):
+    def test_write_then_read_file(self, cosmo_dir, instance, format):
         """Read tests happen later."""
         cosmo = getattr(cosmology.realizations, instance)
         fname = cosmo_dir / f"{instance}.{format}"
@@ -48,8 +58,14 @@ class TestWriteCosmology:
         assert os.path.exists(str(fname))  # overwrite file existing file
         cosmo.write(str(fname), format=format, overwrite=True)
 
+        # Read back
+        got = Cosmology.read(cosmo_dir / f"{instance}.{format}", format=format)
+
+        assert got.name == cosmo.name
+        # assert got == expected  # FIXME! no __eq__ on cosmo
+
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_mapping_instance(self, instance):
+    def test_to_mapping_instance(self, instance):
         instance = getattr(cosmology.realizations, instance)
         m = instance.write.to_mapping()
 
@@ -57,35 +73,15 @@ class TestWriteCosmology:
         assert "cosmology" in m
 
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_table_instance(self, instance):
+    def test_to_table_instance(self, instance):
         instance = getattr(cosmology.realizations, instance)
         t = instance.write.to_table()
 
         assert isinstance(t, table.QTable)
         assert "cosmology" in t.meta
 
-
-class TestReadCosmology:
-    def test_instantiate(self):
-        # no error on base class
-        assert isinstance(Cosmology.read, CosmologyRead)
-
-        # Error on calling from subclasses. Warns when initiated.
-        with pytest.warns(AstropyUserWarning):
-            with pytest.raises(TypeError, match="``Cosmology`` base class"):
-                cosmology.realizations.Planck18.read()
-
-    @pytest.mark.parametrize("format", save_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_read_file(self, cosmo_dir, instance, format):
-        expected = getattr(cosmology.realizations, instance)
-        got = Cosmology.read(cosmo_dir / f"{instance}.{format}", format=format)
-
-        assert got.name == expected.name
-        # assert got == expected  # FIXME! no __eq__ on cosmo
-
-    @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_mapping_instance(self, instance):
+    def test_from_mapping_instance(self, instance):
         expected = getattr(cosmology.realizations, instance)
         params = getattr(cosmology.parameters, instance)
 
@@ -100,7 +96,7 @@ class TestReadCosmology:
 
     @pytest.mark.parametrize("format", save_formats[1:])  # skip json
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_table_instance(self, cosmo_dir, instance, format):
+    def test_from_table_instance(self, cosmo_dir, instance, format):
         expected = getattr(cosmology.realizations, instance)
 
         tbl = table.QTable.read(cosmo_dir / f"{instance}.{format}", format=format)
