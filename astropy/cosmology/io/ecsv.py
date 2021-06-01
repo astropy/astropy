@@ -1,5 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""Reader and Writer for `~astropy.cosmology.Cosmology` in the ECSV format.
+
+This module is NOT considered public API.
+
+"""
+
 import inspect
 import os
 
@@ -14,7 +20,7 @@ __all__ = ["read_ecsv", "write_ecsv", "ecsv_identify"]
 
 
 def read_ecsv(*args, index=None, **kwargs):
-    """Read a cosmology from ECSV file.
+    """Read a cosmology from :class:`~astropy.io.ascii.Ecsv` file.
 
     Parameters
     ----------
@@ -40,7 +46,7 @@ def read_ecsv(*args, index=None, **kwargs):
 
 
 def write_ecsv(cosmology, *args, **kwargs):
-    """Write a cosmology to a file in an ECSV format.
+    """Write a cosmology to a file in an :class:`~astropy.io.ascii.Ecsv` format.
 
     Parameters
     ----------
@@ -61,7 +67,7 @@ def write_ecsv(cosmology, *args, **kwargs):
 
 
 def ecsv_identify(origin, filepath, fileobj, *args, **kwargs):
-    """Identify if object uses the ECSV format."""
+    """Identify if object uses the :class:`~astropy.io.ascii.Ecsv` format."""
     return filepath is not None and filepath.endswith(".ecsv")
 
 

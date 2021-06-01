@@ -4,6 +4,12 @@
 Cosmological Calculations (`astropy.cosmology`)
 ***********************************************
 
+.. toctree::
+   :hidden:
+
+   io
+
+
 Introduction
 ============
 
@@ -19,12 +25,6 @@ see :ref:`read_write_cosmologies`.
 
 Getting Started
 ===============
-
-.. toctree::
-   :maxdepth: 1
-
-   io
-
 
 Cosmological quantities are calculated using methods of a
 :class:`~astropy.cosmology.Cosmology` object.

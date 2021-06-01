@@ -27,20 +27,36 @@ def from_mapping(mapping, *, move_to_meta=False):
 
     Examples
     --------
-    The following is an example JSON serialization of a cosmology.
+    To see loading a `~astropy.cosmology.Cosmology` from a dictionary with
+    ``from_mapping``, we will first make a mapping using
+    :func:`~astropy.cosmology.io.to_mapping`.
 
-    .. code-block:: json
+        >>> from astropy.cosmology import io, Planck18
+        >>> cm = io.to_mapping(Planck18); cm
+        {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
+         'name': 'Planck18',
+         'H0': 67.66,
+         'Om0': 0.30966,
+         'Tcmb0': 2.7255,
+         'Neff': 3.046,
+         'm_nu': [0.0, 0.0, 0.06],
+         'Ob0': 0.04897,
+         'meta': ...
 
-        {
-          "cosmology": "FlatLambdaCDM",
-          "H0": 67.66,
-          "Om0": 0.30966,
-          "name": "Example",
-          "meta": {
-            "z_reion": 7.82
-          }
-        }
+    Now this dict can be used to load a new cosmological instance identical
+    to the ``Planck18`` cosmology from which it was generated.
 
+        >>> cosmo = io.from_mapping(cm)
+        >>> cosmo
+        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
+                      Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+
+    See Also
+    --------
+    astropy.cosmology.io.to_mapping : Represent as dictionary.
+    astropy.cosmology.io.from_table : Load Cosmology from |QTable|.
+    astropy.cosmology.io.to_table : Represent as |QTable|.
+    astropy.cosmology.Cosmology.read : Has a ``from_mapping`` convenience method.
     """
     params = copy.deepcopy(mapping)  # so can pop
 
@@ -85,12 +101,37 @@ def to_mapping(cosmology):
         - 'cosmology' : the class
         - 'meta' : the contents of the cosmology's metadata attribute
 
+    Examples
+    --------
+    A Cosmology as a mapping will have the cosmology's name and
+    parameters as items, and the metadata as nested dictionary.
+
+        >>> from astropy.cosmology import io, Planck18
+        >>> io.to_mapping(Planck18)
+        {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
+         'name': 'Planck18',
+         'H0': 67.66,
+         'Om0': 0.30966,
+         'Tcmb0': 2.7255,
+         'Neff': 3.046,
+         'm_nu': [0.0, 0.0, 0.06],
+         'Ob0': 0.04897,
+         'meta': ...
+
+    See Also
+    --------
+    astropy.cosmology.io.from_mapping : Load Cosmology from dictionary.
+    astropy.cosmology.io.from_table : Load Cosmology from |QTable|.
+    astropy.cosmology.io.to_table : Represent as |QTable|.
+    astropy.cosmology.Cosmology.write : Has a ``to_mapping`` convenience method.
     """
     m = {}
-    # start with the cosmology class
+    # start with the cosmology class & name
     m["cosmology"] = cosmology.__class__
+    m["name"] = cosmology.name
     # get all the immutable inputs
-    m.update({k: v for k, v in cosmology._init_arguments.items() if k != "meta"})
+    m.update({k: v for k, v in cosmology._init_arguments.items()
+              if k not in ("meta", "name")})
     # add the mutable metadata
     m["meta"] = copy.deepcopy(cosmology.meta)
 
@@ -105,7 +146,10 @@ def from_table(table, index=None, *, move_to_meta=False):
     cosmology : `~astropy.cosmology.Cosmology` class
     table : `~astropy.table.QTable`
     index : int or None, optional
-        The row from table.
+        Needed to select the row in tables with multiple rows. ``index`` can be
+        an integer for the row number or, if the table is indexed by a column,
+        the value of that column. If the table is not indexed and ``indexed``
+        is a string, the "name" column is used as the indexing column.
 
     Returns
     -------
@@ -113,16 +157,35 @@ def from_table(table, index=None, *, move_to_meta=False):
 
     Examples
     --------
-    The following is an example table serialization of a cosmology.
-    .. code-block::
+    To see loading a `~astropy.cosmology.Cosmology` from a Table with
+    ``from_table``, we will first make a |QTable| using
+    :func:`~astropy.cosmology.io.to_table`.
 
+        >>> from astropy.cosmology import io, Planck18
+        >>> ct = io.to_table(Planck18); ct
         <QTable length=1>
           name      H0     Om0    Tcmb0    Neff    m_nu [3]    Ob0
           str8   float64 float64 float64 float64   float64   float64
         -------- ------- ------- ------- ------- ----------- -------
         Planck18   67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
-    An example when ``index`` is needed.
+    Now this table can be used to load a new cosmological instance identical
+    to the ``Planck18`` cosmology from which it was generated.
+
+        >>> cosmo = io.from_table(ct)
+        >>> cosmo
+        FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
+                      Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+
+    For tables with multiple rows of cosmological parameters, the ``index``
+    argument is needed to select the correct row. The index can be an integer
+    for the row number or, if the table is indexed by a column, the value of
+    that column. If the table is not indexed and ``indexed``
+    is a string, the "name" column is used as the indexing column.
+
+    Here is an example where ``index`` is needed and can be either an integer
+    (for the row number) or the name of one of the cosmologies, e.g. 'Planck15'.
+
     .. code-block::
 
         <QTable length=3>
@@ -132,6 +195,13 @@ def from_table(table, index=None, *, move_to_meta=False):
         Planck13   67.77 0.30712  2.7255   3.046 0.0 .. 0.06 0.048252
         Planck15   67.74  0.3075  2.7255   3.046 0.0 .. 0.06 0.048600
         Planck18   67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.048970
+
+    See Also
+    --------
+    astropy.cosmology.io.to_table : Represent as |QTable|.
+    astropy.cosmology.io.from_mapping : Load Cosmology from dictionary.
+    astropy.cosmology.io.to_mapping : Represent as dictionary.
+    astropy.cosmology.Cosmology.read : Has a ``from_table`` convenience method.
     """
     if isinstance(index, str):  # convert to row index
         if not table.indices:  # no indices, need to make
@@ -176,6 +246,32 @@ def to_table(cosmology):
     `~astropy.table.QTable`
         With columns for the cosmology parameters, and metadata and
         cosmology class name in the Table's ``meta`` attribute
+
+    Examples
+    --------
+    A Cosmology as a `~astropy.table.QTable` will have the cosmology's name and
+    parameters as columns.
+
+        >>> from astropy.cosmology import io, Planck18
+        >>> ct = io.to_table(Planck18); ct
+        <QTable length=1>
+          name      H0     Om0    Tcmb0    Neff    m_nu [3]    Ob0
+          str8   float64 float64 float64 float64   float64   float64
+        -------- ------- ------- ------- ------- ----------- -------
+        Planck18   67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+    The cosmological class and other metadata, e.g. a paper reference, are in
+    the Table's metadata.
+
+        >>> ct.meta
+        OrderedDict([..., ('cosmology', 'FlatLambdaCDM')])
+
+    See Also
+    --------
+    astropy.cosmology.io.from_table : Load Cosmology from |QTable|.
+    astropy.cosmology.io.from_mapping : Load Cosmology from dictionary.
+    astropy.cosmology.io.to_mapping : Represent as dictionary.
+    astropy.cosmology.Cosmology.write : Has a ``to_table`` convenience method.
     """
     p = to_mapping(cosmology)
 

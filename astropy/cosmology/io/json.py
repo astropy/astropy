@@ -1,5 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""Reader and Writer for `~astropy.cosmology.Cosmology` in the JSON format.
+
+This module is NOT considered public API.
+
+"""
+
 import json
 import os
 

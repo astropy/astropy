@@ -36,7 +36,7 @@ the file format, for instance
 For certain file formats, the format can be automatically detected, for
 example from the filename extension::
 
-    >>> cosmo = Cosmology.read('Lightbird.json')
+    >>> cosmo = Cosmology.read('lightbird.json')
 
 Similarly, for writing, the format can be explicitly specified::
 
@@ -62,12 +62,10 @@ article.
 The simplest way to access mapping and Table Cosmology I/O is with convenience
 methods on :meth:`~astropy.cosmology.Cosmology.read` and
 :meth:`~astropy.cosmology.Cosmology.write`. For reading from a mapping or Table
-instance use :meth:`~astropy.cosmology.Cosmology.read.from_mapping` or
-:meth:`~astropy.cosmology.Cosmology.read.from_table`. These only work when
-called from the :class:`~astropy.cosmology.Cosmology` base class.
-For representing a Cosmology instance as a mapping or Table use
-:meth:`~astropy.cosmology.Cosmology.write.to_mapping` or
-:meth:`~astropy.cosmology.Cosmology.write.to_table`. 
+instance use ``Cosmology.read.from_mapping`` or ``Cosmology.read.from_table``.
+These only work when called from the :class:`~astropy.cosmology.Cosmology` base
+class. For representing a Cosmology instance as a mapping or Table use
+``Cosmology.write.to_mapping`` or ``Cosmology.write.to_table``.
 
 .. EXAMPLE START: Planck18 to Table
 
@@ -83,7 +81,7 @@ For representing a Cosmology instance as a mapping or Table use
 .. EXAMPLE END
 
 Equivalent functions to the above methods are also available in
-:mod:`~astropy.cosmology.io`.
+:ref:`cosmology.io <built_in_cosmology_readers_writers>`.
 
 - :func:`~astropy.cosmology.io.from_mapping`
 - :func:`~astropy.cosmology.io.to_mapping`

@@ -1,9 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Read/Write methods for :mod:`astropy.cosmology`."""
+"""Read/Write methods for :mod:`astropy.cosmology`.
 
-from . import core, ecsv, json
+This module's namespace is flattened so that all public API functions are
+here. No sub-module (e.g. ``ecsv`` or ``json``) are considered public API.
+
+"""
+
+from . import core
 from .core import *
-from .ecsv import *
-from .json import *
 
-__all__ = core.__all__ + ecsv.__all__ + json.__all__
+# Import the readers and writers to register them into the io registry.
+# This is NOT public API
+from . import ecsv, json  # noqa: F403
+
+__all__ = core.__all__
