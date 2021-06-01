@@ -14,12 +14,16 @@ def from_mapping(mapping, *, move_to_meta=False):
     Parameters
     ----------
     mapping : mapping
-        Must have field "cosmology".
+        Must have field "cosmology" which can be either the string name of the
+        cosmology class (e.g. "FlatLambdaCDM") or the class itself.
+        The remaining fields are arguments into the class --
+        like "name" or "meta".
 
     move_to_meta : bool (optional, keyword-only)
         Whether to move arguments not in the initialization signature to the
-        metadata. This will only have an effect if there is not variable
-        keyword-only argument.
+        metadata. This will only have an effect if there is not a variable
+        keyword-only argument (e.g. ``**kwargs``). Metadata set in the field
+        "meta" has priority and will not be overwritten.
 
     Returns
     -------
@@ -34,13 +38,8 @@ def from_mapping(mapping, *, move_to_meta=False):
         >>> from astropy.cosmology import io, Planck18
         >>> cm = io.to_mapping(Planck18); cm
         {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
-         'name': 'Planck18',
-         'H0': 67.66,
-         'Om0': 0.30966,
-         'Tcmb0': 2.7255,
-         'Neff': 3.046,
-         'm_nu': [0.0, 0.0, 0.06],
-         'Ob0': 0.04897,
+         'name': 'Planck18', 'H0': 67.66, 'Om0': 0.30966, 'Tcmb0': 2.7255,
+         'Neff': 3.046, 'm_nu': [0.0, 0.0, 0.06], 'Ob0': 0.04897,
          'meta': ...
 
     Now this dict can be used to load a new cosmological instance identical
@@ -82,6 +81,7 @@ def from_mapping(mapping, *, move_to_meta=False):
         ba.arguments["meta"] = {**params, **meta}
     elif bool(params):
         raise TypeError(f"There are unused parameters {params}.")
+    # else: pass  # no kwargs, no move-to-meta, and all the params are used
 
     return cosmology(*ba.args, **ba.kwargs)
 
@@ -109,13 +109,8 @@ def to_mapping(cosmology):
         >>> from astropy.cosmology import io, Planck18
         >>> io.to_mapping(Planck18)
         {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
-         'name': 'Planck18',
-         'H0': 67.66,
-         'Om0': 0.30966,
-         'Tcmb0': 2.7255,
-         'Neff': 3.046,
-         'm_nu': [0.0, 0.0, 0.06],
-         'Ob0': 0.04897,
+         'name': 'Planck18', 'H0': 67.66, 'Om0': 0.30966, 'Tcmb0': 2.7255,
+         'Neff': 3.046, 'm_nu': [0.0, 0.0, 0.06], 'Ob0': 0.04897,
          'meta': ...
 
     See Also
@@ -128,7 +123,7 @@ def to_mapping(cosmology):
     m = {}
     # start with the cosmology class & name
     m["cosmology"] = cosmology.__class__
-    m["name"] = cosmology.name
+    m["name"] = cosmology.name  # here only for dict ordering
     # get all the immutable inputs
     m.update({k: v for k, v in cosmology._init_arguments.items()
               if k not in ("meta", "name")})
@@ -203,18 +198,20 @@ def from_table(table, index=None, *, move_to_meta=False):
     astropy.cosmology.io.to_mapping : Represent as dictionary.
     astropy.cosmology.Cosmology.read : Has a ``from_table`` convenience method.
     """
-    if isinstance(index, str):  # convert to row index
-        if not table.indices:  # no indices, need to make
-            table = table.copy()
+    # string index uses the indexed column on the table to find the row index.
+    if isinstance(index, str):
+        if not table.indices:  # no indexing column, need to make
+            table = table.copy()  # unfortunately, need to copy.
             table.add_index('name')
-        index = table.loc_indices[index]
+        index = table.loc_indices[index]  # need to convert to row index (int)
 
+    # no index is needed for a 1D table. For an N-D table...
     if index is None:
         if len(table) != 1:  # N-D table and no index
             raise ValueError(f"Need to specify a row index for N-D table.")
         else:
             index = 0
-    row = table[index]
+    row = table[index]  # index is now the row index (int)
 
     # special values
     name = row.columns.get("name", [None])[index]  # get name from column
@@ -273,6 +270,7 @@ def to_table(cosmology):
     astropy.cosmology.io.to_mapping : Represent as dictionary.
     astropy.cosmology.Cosmology.write : Has a ``to_table`` convenience method.
     """
+    # start by getting a map representation. This requires minimal repackaging.
     p = to_mapping(cosmology)
 
     # create metadata from mapping

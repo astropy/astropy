@@ -64,7 +64,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     Warns
     -----
     `~astropy.utils.exceptions.AstropyUserWarning`
-        If ``read`` is examined not called from the Cosmology base class.
+        If ``read`` is examined not from the Cosmology base class.
 
     Raises
     ------
@@ -164,9 +164,9 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     Get help on the available writers for ``Cosmology`` using the``help()``
     method::
 
-      >>> Table.write.help()  # Get help writing Table and list supported formats
-      >>> Table.write.help('JSON')  # Get detailed help on Cosmology JSON writer
-      >>> Table.write.list_formats()  # Print list of available formats
+      >>> Cosmology.write.help()  # Get help writing and list supported formats
+      >>> Cosmology.write.help('JSON')  # Get detailed help on Cosmology JSON writer
+      >>> Cosmology.write.list_formats()  # Print list of available formats
 
     Parameters
     ----------

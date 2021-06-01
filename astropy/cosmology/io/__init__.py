@@ -2,7 +2,7 @@
 """Read/Write methods for :mod:`astropy.cosmology`.
 
 This module's namespace is flattened so that all public API functions are
-here. No sub-module (e.g. ``ecsv`` or ``json``) are considered public API.
+here. No sub-module (e.g. ``ecsv`` or ``json``) is considered public API.
 
 """
 
