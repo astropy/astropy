@@ -19,8 +19,11 @@ from .angles import Angle
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
                         GenericFrame)
 from .builtin_frames import ICRS, SkyOffsetFrame
-from .representation import (SphericalRepresentation,
-                             UnitSphericalRepresentation, SphericalDifferential)
+from .representation import (RadialDifferential, SphericalDifferential,
+                             SphericalRepresentation,
+                             UnitSphericalCosLatDifferential,
+                             UnitSphericalDifferential,
+                             UnitSphericalRepresentation)
 from .sky_coordinate_parsers import (_get_frame_class, _get_frame_without_data,
                                      _parse_coordinate_data)
 
@@ -65,19 +68,32 @@ class SkyCoordInfo(MixinInfo):
         return repr_data
 
     def _represent_as_dict(self):
-        obj = self._parent
-        attrs = (list(obj.representation_component_names) +
-                 list(frame_transform_graph.frame_attributes.keys()))
+        sc = self._parent
+        attrs = list(sc.representation_component_names)
 
-        # Don't output distance if it is all unitless 1.0
-        if 'distance' in attrs and np.all(obj.distance == 1.0):
-            attrs.remove('distance')
+        # Don't output distance unless it's actually distance.
+        if isinstance(sc.data, UnitSphericalRepresentation):
+            attrs = attrs[:-1]
+
+        diff = sc.data.differentials.get('s')
+        if diff is not None:
+            diff_attrs = list(sc.get_representation_component_names('s'))
+            # Don't output proper motions if they haven't been specified.
+            if isinstance(diff, RadialDifferential):
+                diff_attrs = diff_attrs[2:]
+            # Don't output radial velocity unless it's actually velocity.
+            elif isinstance(diff, (UnitSphericalDifferential,
+                                   UnitSphericalCosLatDifferential)):
+                diff_attrs = diff_attrs[:-1]
+            attrs.extend(diff_attrs)
+
+        attrs.extend(frame_transform_graph.frame_attributes.keys())
 
         out = super()._represent_as_dict(attrs)
 
-        out['representation_type'] = obj.representation_type.get_name()
-        out['frame'] = obj.frame.name
-        # Note that obj.info.unit is a fake composite unit (e.g. 'deg,deg,None'
+        out['representation_type'] = sc.representation_type.get_name()
+        out['frame'] = sc.frame.name
+        # Note that sc.info.unit is a fake composite unit (e.g. 'deg,deg,None'
         # or None,None,m) and is not stored.  The individual attributes have
         # units.
 
