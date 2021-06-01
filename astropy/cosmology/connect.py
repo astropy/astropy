@@ -17,6 +17,9 @@ _read_msg = ("``Cosmology.read()`` must be called from the "
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
+    This can *only* be called from `~astropy.cosmology.Cosmology`,
+    not any subclasses.
+
     This function provides the Cosmology interface to the Astropy unified I/O
     layer. This allows easily reading a file in supported data formats using
     syntax such as::
@@ -65,29 +68,28 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -----
     `~astropy.utils.exceptions.AstropyUserWarning`
         If ``read`` is examined not from the Cosmology base class.
-
-    Raises
-    ------
-    TypeError
-        If ``read()`` is not called from the Cosmology base class.
     """
 
-    def __init__(self, instance, cls):
+    def __new__(cls, instance, cosmo_cls):
         from astropy.cosmology.core import Cosmology
 
-        super().__init__(instance, cls, "read")
-        if cls is not Cosmology:
+        # warn that ``read`` can only be called from the base class.
+        # and return None to prevent usage.
+        if cosmo_cls is not Cosmology:
             warnings.warn(_read_msg, category=AstropyUserWarning)
+            return None  # cannot use .read on subclasses, only `Cosmology`.
+
+        return super().__new__(cls)
+
+    def __init__(self, instance, cosmo_cls):
+        super().__init__(instance, cosmo_cls, "read")
 
     def __call__(self, *args, **kwargs):
-        from astropy.cosmology.core import Cosmology
-
-        if self._cls is not Cosmology:
-            raise TypeError(_read_msg)
         cosmo = io_registry.read(self._cls, *args, **kwargs)
         return cosmo
 
-    def from_mapping(self, mapping, *, move_to_meta=False):
+    @staticmethod
+    def from_mapping(mapping, *, move_to_meta=False):
         """Load `~astropy.cosmology.Cosmology` from mapping object.
 
         Parameters
@@ -114,13 +116,11 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         astropy.cosmology.io.from_mapping
         """
         from astropy.cosmology.io import from_mapping
-        from astropy.cosmology.core import Cosmology
 
-        if self._cls is not Cosmology:
-            raise TypeError(_read_msg)
         return from_mapping(mapping, move_to_meta=move_to_meta)
 
-    def from_table(self, table, index=None, *, move_to_meta=False):
+    @staticmethod
+    def from_table(table, index=None, *, move_to_meta=False):
         """Instantiate a `~astropy.cosmology.Cosmology` from a |QTable|.
 
         Parameters
@@ -144,10 +144,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         astropy.cosmology.io.from_table
         """
         from astropy.cosmology.io import from_table
-        from astropy.cosmology.core import Cosmology
 
-        if self._cls is not Cosmology:
-            raise TypeError(_read_msg)
         return from_table(table, index=index, move_to_meta=move_to_meta)
 
 

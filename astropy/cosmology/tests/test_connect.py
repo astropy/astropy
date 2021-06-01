@@ -36,10 +36,9 @@ class TestReadWriteCosmology:
         # no error on base class
         assert isinstance(Cosmology.read, CosmologyRead)
 
-        # Error on calling from subclasses. Warns when initiated.
+        # Warns when initialized. Cannot be used.
         with pytest.warns(AstropyUserWarning):
-            with pytest.raises(TypeError, match="``Cosmology`` base class"):
-                cosmology.realizations.Planck18.read()
+            assert cosmology.realizations.Planck18.read is None
 
     @pytest.mark.parametrize("format", save_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
