@@ -668,6 +668,16 @@ def test_regression_10092():
                              atol=1.0e-5*u.mas/u.yr)
 
 
+def test_regression_10226():
+    # Dictionary representation of SkyCoord should contain differentials.
+    sc = SkyCoord([270, 280]*u.deg, [30, 35]*u.deg, [10, 11]*u.pc,
+                  radial_velocity=[20, -20]*u.km/u.s)
+    sc_as_dict = sc.info._represent_as_dict()
+    assert 'radial_velocity' in sc_as_dict
+    # But only the components that have been specified.
+    assert 'pm_dec' not in sc_as_dict
+
+
 @pytest.mark.parametrize('mjd', (
     52000, [52000], [[52000]], [52001, 52002], [[52001], [52002]]))
 def test_regression_10422(mjd):

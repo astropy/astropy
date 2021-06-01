@@ -270,12 +270,13 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
     # For no attrs that means we just compare directly.
     if not attrs:
         if isinstance(obj1, np.ndarray) and obj1.dtype.kind == 'f':
-            assert quantity_allclose(obj1, obj2, rtol=1e-10)
+            assert quantity_allclose(obj1, obj2, rtol=1e-15)
         else:
             assert np.all(obj1 == obj2)
 
 
-# TODO: unify with the very similar tests in fits/tests/test_connect.py.
+# TODO: unify with the very similar tests in fits/tests/test_connect.py
+# and misc/tests/test_hd5f.py.
 el = EarthLocation(x=[1, 2] * u.km, y=[3, 4] * u.km, z=[5, 6] * u.km)
 sr = SphericalRepresentation(
     [0, 1]*u.deg, [2, 3]*u.deg, 1*u.kpc)
@@ -286,8 +287,17 @@ sd = SphericalCosLatDifferential(
 srd = SphericalRepresentation(sr, differentials=sd)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
               obstime='J1990.5')
-scc = sc.copy()
-scc.representation_type = 'cartesian'
+scd = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+               obstime=['J1990.5'] * 2)
+scdc = scd.copy()
+scdc.representation_type = 'cartesian'
+scpm = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,pc',
+                pm_ra_cosdec=[7, 8]*u.mas/u.yr, pm_dec=[9, 10]*u.mas/u.yr)
+scpmrv = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,pc',
+                  pm_ra_cosdec=[7, 8]*u.mas/u.yr, pm_dec=[9, 10]*u.mas/u.yr,
+                  radial_velocity=[11, 12]*u.km/u.s)
+scrv = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,pc',
+                radial_velocity=[11, 12]*u.km/u.s)
 tm = Time([51000.5, 51001.5], format='mjd', scale='tai', precision=5, location=el[0])
 tm2 = Time(tm, format='iso')
 tm3 = Time(tm, location=el)
@@ -303,9 +313,11 @@ mixin_cols = {
     'tm3': tm3,
     'dt': TimeDelta([1, 2] * u.day),
     'sc': sc,
-    'scc': scc,
-    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
-                    obstime=['J1990.5'] * 2),
+    'scd': scd,
+    'scdc': scdc,
+    'scpm': scpm,
+    'scpmrv': scpmrv,
+    'scrv': scrv,
     'x': [1, 2] * u.m,
     'qdb': [10, 20] * u.dB(u.mW),
     'qdex': [4.5, 5.5] * u.dex(u.cm / u.s**2),
@@ -332,8 +344,14 @@ compare_attrs = {
     'tm3': time_attrs,
     'dt': ['shape', 'value', 'format', 'scale'],
     'sc': ['ra', 'dec', 'representation_type', 'frame.name'],
-    'scc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
     'scd': ['ra', 'dec', 'distance', 'representation_type', 'frame.name'],
+    'scdc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
+    'scpm': ['ra', 'dec', 'distance', 'pm_ra_cosdec', 'pm_dec',
+             'representation_type', 'frame.name'],
+    'scpmrv': ['ra', 'dec', 'distance', 'pm_ra_cosdec', 'pm_dec',
+               'radial_velocity', 'representation_type', 'frame.name'],
+    'scrv': ['ra', 'dec', 'distance', 'radial_velocity', 'representation_type',
+             'frame.name'],
     'x': ['value', 'unit'],
     'qdb': ['value', 'unit'],
     'qdex': ['value', 'unit'],
@@ -423,9 +441,17 @@ def test_ecsv_mixins_as_one(table_cls):
                         'qdex',
                         'qmag',
                         'sc.ra', 'sc.dec',
-                        'scc.x', 'scc.y', 'scc.z',
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime',
+                        'scdc.x', 'scdc.y', 'scdc.z',
+                        'scdc.obstime',
+                        'scpm.ra', 'scpm.dec', 'scpm.distance',
+                        'scpm.pm_ra_cosdec', 'scpm.pm_dec',
+                        'scpmrv.ra', 'scpmrv.dec', 'scpmrv.distance',
+                        'scpmrv.pm_ra_cosdec', 'scpmrv.pm_dec',
+                        'scpmrv.radial_velocity',
+                        'scrv.ra', 'scrv.dec', 'scrv.distance',
+                        'scrv.radial_velocity',
                         'sd.d_lon_coslat', 'sd.d_lat', 'sd.d_distance',
                         'sr.lon', 'sr.lat', 'sr.distance',
                         'srd.lon', 'srd.lat', 'srd.distance',
