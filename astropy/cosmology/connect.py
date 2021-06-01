@@ -10,12 +10,16 @@ __all__ = ["CosmologyRead", "CosmologyWrite"]
 __doctest_skip__ = ["CosmologyRead", "CosmologyWrite"]
 
 
+_read_msg = ("``Cosmology.read()`` must be called from the "
+             "``Cosmology`` base class.")
+
+
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
     This function provides the Cosmology interface to the Astropy unified I/O
-    layer. This allows easily reading a file in many supported data formats
-    using syntax such as::
+    layer. This allows easily reading a file in supported data formats using
+    syntax such as::
 
         >>> from astropy.cosmology import Cosmology
         >>> cosmo1 = Cosmology.read('cosmo1.ecsv')
@@ -34,7 +38,6 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     *args : (optional)
         Positional arguments passed through to data reader. If supplied the
         first argument is typically the input filename.
-        If the first argument is a Mapping all other arguments are ignored.
     format : str (optional, keyword-only)
         File format specifier.
     **kwargs
@@ -44,8 +47,6 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -------
     out : `~astropy.cosmology.Cosmology` subclass instance
         `~astropy.cosmology.Cosmology` corresponding to file contents.
-        If the table in the file holds multiple rows, the row index must be
-        specified.
 
     Methods
     -------
@@ -56,9 +57,14 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
 
     Notes
     -----
-    The cosmology class must be specified by name in the metadata (if a Table)
+    The cosmology class must be specified by name in the metadata (if a |Table|)
     or as a field titled ``cosmology`` if a mapping.
-    Metadata can be included on the Table or as a key "meta" for a JSON.
+    Metadata can be included on the |Table| or as a key "meta" for a JSON.
+
+    Warns
+    -----
+    `~astropy.utils.exceptions.AstropyUserWarning`
+        If ``read`` is examined not called from the Cosmology base class.
 
     Raises
     ------
@@ -67,35 +73,81 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, "read")
-
         from astropy.cosmology.core import Cosmology
 
+        super().__init__(instance, cls, "read")
         if cls is not Cosmology:
-            warnings.warn("``Cosmology.read()`` must be called from the "
-                          "``Cosmology`` base class.",
-                          category=AstropyUserWarning)
+            warnings.warn(_read_msg, category=AstropyUserWarning)
 
     def __call__(self, *args, **kwargs):
         from astropy.cosmology.core import Cosmology
 
         if self._cls is not Cosmology:
-            raise TypeError("``Cosmology.read()`` must be called from the "
-                            "``Cosmology`` base class.")
-
+            raise TypeError(_read_msg)
         cosmo = io_registry.read(self._cls, *args, **kwargs)
         return cosmo
 
-    @staticmethod
-    def from_mapping(mapping, *, move_to_meta=False):
-        from astropy.cosmology.io import from_mapping
+    def from_mapping(self, mapping, *, move_to_meta=False):
+        """Load `~astropy.cosmology.Cosmology` from mapping object.
 
+        Parameters
+        ----------
+        mapping : mapping
+            Must have field "cosmology".
+
+        move_to_meta : bool (optional, keyword-only)
+            Whether to move arguments not in the initialization signature to the
+            metadata. This will only have an effect if there is not variable
+            keyword-only argument.
+
+        Returns
+        -------
+        `~astropy.cosmology.Cosmology` subclass instance
+
+        Raises
+        ------
+        TypeError
+            If not called from the Cosmology base class.
+
+        See Also
+        --------
+        astropy.cosmology.io.from_mapping
+        """
+        from astropy.cosmology.io import from_mapping
+        from astropy.cosmology.core import Cosmology
+
+        if self._cls is not Cosmology:
+            raise TypeError(_read_msg)
         return from_mapping(mapping, move_to_meta=move_to_meta)
 
-    @staticmethod
-    def from_table(table, index=None, *, move_to_meta=False):
-        from astropy.cosmology.io import from_table
+    def from_table(self, table, index=None, *, move_to_meta=False):
+        """Instantiate a `~astropy.cosmology.Cosmology` from a |QTable|.
 
+        Parameters
+        ----------
+        cosmology : `~astropy.cosmology.Cosmology` class
+        table : `~astropy.QTable`
+        index : int or None, optional
+            The row from table.
+
+        Returns
+        -------
+        `~astropy.cosmology.Cosmology` subclass instance
+
+        Raises
+        ------
+        TypeError
+            If not called from the Cosmology base class.
+
+        See Also
+        --------
+        astropy.cosmology.io.from_table
+        """
+        from astropy.cosmology.io import from_table
+        from astropy.cosmology.core import Cosmology
+
+        if self._cls is not Cosmology:
+            raise TypeError(_read_msg)
         return from_table(table, index=index, move_to_meta=move_to_meta)
 
 
@@ -103,12 +155,11 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     """Write this Cosmology object out in the specified format.
 
     This function provides the Table interface to the astropy unified I/O
-    layer.  This allows easily writing a file in many supported data formats
+    layer.  This allows easily writing a file in supported data formats
     using syntax such as::
 
-      >>> from astropy.table import Table
-      >>> dat = Table(dict(cosmology="FlatLambdaCDM"], H0=[67], Om0=[0.3]))
-      >>> dat.write('table.ecsv', format='ascii.ecsv')
+      >>> from astropy.cosmology import Planck18
+      >>> Planck18.write('table.ecsv', format='ascii.ecsv')
 
     Get help on the available writers for ``Cosmology`` using the``help()``
     method::
@@ -136,11 +187,37 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
         io_registry.write(self._instance, *args, **kwargs)
 
     def to_mapping(self):
+        """Serialize the Cosmology class, inputs, and metadata into a dict.
+
+        Returns
+        -------
+        dict
+            with key-values for the cosmology parameters and also:
+
+            - 'cosmology' : the class
+            - 'meta' : the contents of the cosmology's metadata attribute
+
+        See Also
+        --------
+        astropy.cosmology.io.to_mapping
+        """
         from astropy.cosmology.io import to_mapping
 
         return to_mapping(self._instance)
 
     def to_table(self):
+        """Serialize the Cosmology into a `~astropy.table.QTable`.
+
+        Returns
+        -------
+        `~astropy.table.QTable`
+            with columns for the cosmology parameters, and metadata and
+            cosmology class name in the Table's ``meta`` attribute
+
+        See Also
+        --------
+        astropy.cosmology.io.to_table
+        """
         from astropy.cosmology.io import to_table
 
         return to_table(self._instance)

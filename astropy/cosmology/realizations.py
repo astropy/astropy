@@ -9,7 +9,7 @@ from astropy.utils.state import ScienceState
 
 from . import parameters
 from .core import Cosmology
-from astropy.cosmology.io.common import from_mapping
+from astropy.cosmology.io import from_mapping
 
 __all__ = ["default_cosmology"] + parameters.available
 

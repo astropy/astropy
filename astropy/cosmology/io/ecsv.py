@@ -7,23 +7,32 @@ from astropy.io import registry as io_registry
 from astropy.cosmology import Cosmology
 from astropy.table import QTable
 
-from .common import from_table, to_table
+from .core import from_table, to_table
 
 
 __all__ = ["read_ecsv", "write_ecsv", "ecsv_identify"]
 
 
 def read_ecsv(*args, index=None, **kwargs):
-    """Read from ECSV file.
+    """Read a cosmology from ECSV file.
 
     Parameters
     ----------
     *args
-    key : str or None, optional
-        If the JSON is for many cosmologies, ``key`` is needed to select
-        the specific cosmology.
-        See ``from_mapping``.
+        Positional arguments passed through to `~astropy.table.QTable` reader.
+    index : int, str, or None (optional, keyword-only)
+        The row index in the `~astropy.table.QTable`. Required for multi-row
+        tables.
+    **kwargs
+        Keyword arguments passed through to `~astropy.table.QTable` reader.
 
+    Returns
+    -------
+    `~astropy.cosmology.Cosmology` subclass instance
+
+    See Also
+    --------
+    astropy.cosmology.io.from_table
     """
     table = QTable.read(*args, format="ascii.ecsv", **kwargs)
     cosmo = from_table(table, index=index)
@@ -31,26 +40,28 @@ def read_ecsv(*args, index=None, **kwargs):
 
 
 def write_ecsv(cosmology, *args, **kwargs):
-    """Write to ECSV file.
+    """Write a cosmology to a file in an ECSV format.
 
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology` subclass instance
-    file : path-like or file-like
-    overwrite : bool, optional
-        Whether to overwrite the file. Applies only if "file" is path-like.
-
+    *args
+        Positional arguments passed through to `~astropy.table.QTable` writer.
+    **kwargs
+        Keyword arguments passed through to `~astropy.table.QTable` writer.
     """
     table = to_table(cosmology)
 
+    # force ascii.ecsv format
     sig = inspect.signature(table.write)
     ba = sig.bind(*args, **kwargs)
-    ba.arguments["format"] = "ascii.ecsv"  # force ascii.ecsv
+    ba.arguments["format"] = "ascii.ecsv"
 
     table.write(*ba.args, **ba.kwargs)
 
 
 def ecsv_identify(origin, filepath, fileobj, *args, **kwargs):
+    """Identify if object uses the ECSV format."""
     return filepath is not None and filepath.endswith(".ecsv")
 
 

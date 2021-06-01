@@ -23,38 +23,24 @@ def from_mapping(mapping, *, move_to_meta=False):
 
     Returns
     -------
-    `~astropy.cosmology.Cosmology`
+    `~astropy.cosmology.Cosmology` subclass instance
 
     Examples
     --------
     The following is an example JSON serialization of a cosmology.
+
     .. code-block:: json
 
         {
-            "cosmology": "FlatLambdaCDM",
-            "H0": 67.66,
-            "Om0": 0.30966,
-            "name": "Example",
-            "meta": {"z_reion": 7.82}
+          "cosmology": "FlatLambdaCDM",
+          "H0": 67.66,
+          "Om0": 0.30966,
+          "name": "Example",
+          "meta": {
+            "z_reion": 7.82
+          }
         }
 
-    An example when ``key`` is needed.
-    .. code-block:: json
-
-        {
-            "key1": {
-                "cosmology": "FlatLambdaCDM",
-                "H0": 67.66,
-                "Om0": 0.30966,
-                "name": "Example1"
-            },
-            "key2": {
-                "cosmology": "FlatLambdaCDM",
-                "H0": 67.66,
-                "Om0": 0.30966,
-                "name": "Example2"
-            }
-        }
     """
     params = copy.deepcopy(mapping)  # so can pop
 
@@ -76,7 +62,8 @@ def from_mapping(mapping, *, move_to_meta=False):
     if lastp.kind == 4:  # variable keyword-only
         ba.arguments[lastp.name] = params
     elif move_to_meta:  # prefers current meta, which was explicitly set
-        ba.arguments["meta"] = {**params, **(ba.arguments["meta"] or {})}
+        meta = ba.arguments["meta"] or {}  # (None -> dict)
+        ba.arguments["meta"] = {**params, **meta}
     elif bool(params):
         raise TypeError(f"There are unused parameters {params}.")
 
@@ -84,12 +71,19 @@ def from_mapping(mapping, *, move_to_meta=False):
 
 
 def to_mapping(cosmology):
-    """Return the Cosmology class, inputs, and metadata as a dict.
+    """Return the cosmology class, inputs, and metadata as a dict.
 
-    Has key-values:
-    - 'cosmology' : the cosmology's class
-    - 'meta' : the contents of the cosmology's metadata attribute
-    - keys : values from initialization
+    Parameters
+    ----------
+    cosmology : `~astropy.cosmology.Cosmology` subclass instance
+
+    Returns
+    -------
+    dict
+        with key-values for the cosmology parameters and also:
+
+        - 'cosmology' : the class
+        - 'meta' : the contents of the cosmology's metadata attribute
 
     """
     m = {}
@@ -109,13 +103,13 @@ def from_table(table, index=None, *, move_to_meta=False):
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology` class
-    table : `~astropy.QTable`
+    table : `~astropy.table.QTable`
     index : int or None, optional
         The row from table.
 
     Returns
     -------
-    `~astropy.cosmology.Cosmology`
+    `~astropy.cosmology.Cosmology` subclass instance
 
     Examples
     --------
@@ -160,9 +154,10 @@ def from_table(table, index=None, *, move_to_meta=False):
     cosmology = meta.pop("cosmology", None)
 
     # turn row into mapping (dict of the arguments)
-    mapping = {k: v for k, v in zip(row.colnames, row.values())}
+    mapping = {}
     mapping["cosmology"] = cosmology
-    mapping["name"] = name
+    mapping["name"] = name  # do before below to ensure order in dict
+    mapping.update({k: v for k, v in zip(row.colnames, row.values())})
     mapping["meta"] = meta
 
     # build cosmology from map
@@ -170,18 +165,25 @@ def from_table(table, index=None, *, move_to_meta=False):
 
 
 def to_table(cosmology):
-    """Return the Cosmology as a `~astropy.table.QTable`.
+    """Serialize the cosmology into a `~astropy.table.QTable`.
 
-    Has metadata
-    Has columns
+    Parameters
+    ----------
+    cosmology : `~astropy.cosmology.Cosmology` subclass instance
 
+    Returns
+    -------
+    `~astropy.table.QTable`
+        With columns for the cosmology parameters, and metadata and
+        cosmology class name in the Table's ``meta`` attribute
     """
     p = to_mapping(cosmology)
 
+    # create metadata from mapping
     meta = p.pop("meta")
     meta["cosmology"] = p.pop("cosmology").__name__
 
-    params = {}
+    # package parameters into lists for Table parsing
     params = {k: [v] for k, v in p.items()}
 
     return QTable(params, meta=meta)

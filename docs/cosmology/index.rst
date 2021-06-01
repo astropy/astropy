@@ -7,16 +7,24 @@ Cosmological Calculations (`astropy.cosmology`)
 Introduction
 ============
 
-The `astropy.cosmology` sub-package contains classes for representing
+The :mod:`astropy.cosmology` sub-package contains classes for representing
 cosmologies and utility functions for calculating commonly used
 quantities that depend on a cosmological model. This includes
 distances, ages, and lookback times corresponding to a measured
 redshift or the transverse separation corresponding to a measured
 angular separation.
 
+For details on reading and writing cosmologies,
+see :ref:`read_write_cosmologies`.
 
 Getting Started
 ===============
+
+.. toctree::
+   :maxdepth: 1
+
+   io
+
 
 Cosmological quantities are calculated using methods of a
 :class:`~astropy.cosmology.Cosmology` object.

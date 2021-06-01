@@ -133,6 +133,10 @@ class Test_round_trip_of_table_instance:
         t = table.vstack([expected.write.to_table(), expected.write.to_table()])
         t["name"][1] = "Other"
 
+        # error for no index
+        with pytest.raises(ValueError, match="row index for N-D"):
+            Cosmology.read.from_table(t)
+
         got = Cosmology.read.from_table(t, index=0)
         assert got.name == expected.name
         # assert got == expected  # FIXME! no __eq__ on cosmo
