@@ -352,3 +352,56 @@ and a |Quantity| as the radius:
                         transform=ax.get_transform('fk5'))
 
     ax.add_patch(s)
+
+Beam shape and scale bar
+************************
+
+Adding an ellipse that represents the shape of the beam on a celestial
+image can be done with the
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.add_beam` method:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+    ax = plt.subplot(projection=wcs)
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
+
+    ax.set_autoscale_on(False)
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    from astropy import units as u
+   
+    ax.add_beam(major=1.2 * u.arcmin, minor=1.2 * u.arcmin, angle=0, frame=True)
+
+To add a segment that shows a physical scale, you can use the
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.add_scalebar` method:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+	   
+    # Compute the angle corresponding to 10 pc at the distance of the galactic center
+    gc_distance = 8.2 * u.kpc
+    scalebar_lenght = 10 * u.pc
+    scalebar_angle = (scalebar_lenght / gc_distance).to(
+        u.deg, equivalencies=u.dimensionless_angles()
+    )
+
+    # Add a scale bar
+    ax.add_scalebar(scalebar_angle, label="10 pc", color="white")
+
