@@ -56,7 +56,8 @@ simple image with two celestial axes (Right Ascension and Declination)::
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> from astropy.io import fits
     >>> filename = get_pkg_data_filename('galactic_center/gc_2mass_k.fits')  # doctest: +REMOTE_DATA
-    >>> hdu = fits.open(filename)[0]  # doctest: +REMOTE_DATA
+    >>> hdulist = fits.open(filename)  # doctest: +REMOTE_DATA
+    >>> hdu = hdulist[0]  # doctest: +REMOTE_DATA
     >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
@@ -131,6 +132,7 @@ the nearest integer values::
     (357, 357)
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
     563.7532
+    >>> hdulist.close()  # doctest: +REMOTE_DATA
 
 Advanced usage
 ^^^^^^^^^^^^^^
@@ -139,7 +141,8 @@ Let's now take a look at a WCS for a spectral cube (two celestial axes and one
 spectral axis)::
 
     >>> filename = get_pkg_data_filename('l1448/l1448_13co.fits')  # doctest: +REMOTE_DATA
-    >>> hdu = fits.open(filename)[0]  # doctest: +REMOTE_DATA
+    >>> hdulist = fits.open(filename)  # doctest: +REMOTE_DATA
+    >>> hdu = hdulist[0]  # doctest: +REMOTE_DATA
     >>> wcs = WCS(hdu.header)  # doctest: +REMOTE_DATA
     >>> wcs  # doctest: +REMOTE_DATA
     WCS Keywords
@@ -197,6 +200,7 @@ And as before we can index array values using::
     (7, 71, 8)
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
     0.22262384
+    >>> hdulist.close()  # doctest: +REMOTE_DATA
 
 If you are interested in converting to/from world values as simple Python scalars
 or Numpy arrays without using high-level astropy objects, there are methods
