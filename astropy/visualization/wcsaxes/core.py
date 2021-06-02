@@ -412,13 +412,13 @@ class WCSAxes(Axes):
         ----------
         header : :class:`~astropy.io.fits.Header`, optional
             Header containing the beam parameters.
-        major : float, :class:`~astropy.units.Quantity` or :class:`~astropy.units.Unit`, optional
+        major : float or :class:`~astropy.units.Quantity`, optional
             Major axis of the beam in degrees or an angular quantity (overrides
             ``BMAJ`` if present in header).
-        minor : float, :class:`~astropy.units.Quantity` or :class:`~astropy.units.Unit`, optional
+        minor : float, or :class:`~astropy.units.Quantity`, optional
             Minor axis of the beam in degrees or an angular quantity (overrides
             ``BMIN`` if present in header).
-        angle : float, :class:`~astropy.units.Quantity` or :class:`~astropy.units.Unit`, optional
+        angle : float or :class:`~astropy.units.Quantity`, optional
             Position angle of the beam on the sky in degrees or an angular
             quantity (overrides ``BPA`` if present in header) in the anticlockwise
             direction.
@@ -443,18 +443,12 @@ class WCSAxes(Axes):
 
         if isinstance(major, u.Quantity):
             major = major.to(u.degree).value
-        elif isinstance(major, u.Unit):
-            major = major.to(u.degree)
 
         if isinstance(minor, u.Quantity):
             minor = minor.to(u.degree).value
-        elif isinstance(minor, u.Unit):
-            minor = minor.to(u.degree)
 
         if isinstance(angle, u.Quantity):
             angle = angle.to(u.degree).value
-        elif isinstance(angle, u.Unit):
-            angle = angle.to(u.degree)
 
         if self.wcs.is_celestial:
             pix_scale = proj_plane_pixel_scales(self.wcs)
@@ -498,7 +492,7 @@ class WCSAxes(Axes):
         Parameters
         ----------
         length : float or :class:`~astropy.units.Quantity`
-            The lenght of the scalebar in degrees, an angular quantity or angular unit
+            The lenght of the scalebar in degrees or an angular quantity
         label : str, optional
             Label to place below the scale bar
         corner : str, optional
@@ -518,8 +512,6 @@ class WCSAxes(Axes):
 
         if isinstance(length, u.Quantity):
             length = length.to(u.degree).value
-        elif isinstance(length, u.Unit):
-            length = length.to(u.degree)
 
         if self.wcs.is_celestial:
             pix_scale = proj_plane_pixel_scales(self.wcs)
