@@ -404,40 +404,36 @@ class WCSAxes(Axes):
         """
         Display the beam shape and size
 
-        By default, this method will search for the BMAJ, BMIN, and BPA
+        By default, this method will search for the ``BMAJ``, ``BMIN``, and ``BPA``
         keywords in the FITS header to set the major and minor axes and the
         position angle on the sky.
 
         Parameters
         ----------
-
-        header : :class:`astropy.io.fits.Header`, optional
-            Header containing the beam parameters
-
-        major : float, quantity or unit, optional
+        header : :class:`~astropy.io.fits.Header`, optional
+            Header containing the beam parameters.
+        major : float, :class:`~astropy.units.Quantity` or :class:`~astropy.units.Unit`, optional
             Major axis of the beam in degrees or an angular quantity (overrides
-            BMAJ if present in header)
-
-        minor : float, quantity or unit, optional
+            ``BMAJ`` if present in header).
+        minor : float, :class:`~astropy.units.Quantity` or :class:`~astropy.units.Unit`, optional
             Minor axis of the beam in degrees or an angular quantity (overrides
-            BMIN if present in header)
-
-        angle : float, quantity or unit, optional
+            ``BMIN`` if present in header).
+        angle : float, :class:`~astropy.units.Quantity` or :class:`~astropy.units.Unit`, optional
             Position angle of the beam on the sky in degrees or an angular
-            quantity (overrides BPA if present in header) in the anticlockwise
+            quantity (overrides ``BPA`` if present in header) in the anticlockwise
             direction.
-
         corner : str, optional
-            The beam location. Acceptable values are 'left', 'right',
-            'top', 'bottom', 'top left', 'top right', 'bottom left'
-            (default), and 'bottom right'.
-
-        frame : str, optional
-            Whether to display a frame behind the beam (default is False)
-
+            The beam location. Acceptable values are ``'left'``, ``'right'``,
+            ``'top'``, 'bottom', ``'top left'``, ``'top right'``, ``'bottom left'``
+            (default), and ``'bottom right'``.
+        frame : bool, optional
+            Whether to display a frame behind the beam (default is ``False``).
+        borderpad : float, optional
+            Border padding, in fraction of the font size. Default is 0.4.
+        pad : float, optional
+            Padding around the beam, in fraction of the font size. Default is 0.5.
         kwargs
-            Additional arguments are passed to the matplotlib Ellipse class.
-            See the matplotlib documentation for more details.
+            Additional arguments are passed to :class:`matplotlib.patches.Ellipse`.
         """
 
         if header:
@@ -501,25 +497,22 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-
-        length : float, or quantity
+        length : float or :class:`~astropy.units.Quantity`
             The lenght of the scalebar in degrees, an angular quantity or angular unit
-
-        label: str, optional
-            Label to place below the scalebar
-
+        label : str, optional
+            Label to place below the scale bar
         corner : str, optional
-            Where to place the scalebar. Acceptable values are:, 'left',
-            'right', 'top', 'bottom', 'top left', 'top right', 'bottom
-            left', 'bottom right (default)'
-
-        frame : str, optional
-            Whether to display a frame behind the scalebar (default is False)
-
+            Where to place the scale bar. Acceptable values are:, ``'left'``,
+            ``'right'``, ``'top'``, ``'bottom'``, ``'top left'``, ``'top right'``,
+            ``'bottom left'`` and ``'bottom right'`` (default)
+        frame : bool, optional
+            Whether to display a frame behind the scale bar (default is ``False``)
+        borderpad : float, optional
+            Border padding, in fraction of the font size. Default is 0.4.
+        pad : float, optional
+            Padding around the scale bar, in fraction of the font size. Default is 0.5.
         kwargs
-            Additional arguments are passed to the matplotlib AnchoredSizeBar
-            class. See the matplotlib documentation for
-            more details.
+            Additional arguments are passed to :class:`mpl_toolkits.axes_grid1.anchored_artists.AnchoredSizeBar`.
 
         """
 
