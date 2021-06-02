@@ -1,0 +1,1 @@
+Fixed a bug in ``get_readable_fileobj`` that prevented the unified file read interface from closing ASCII files.
