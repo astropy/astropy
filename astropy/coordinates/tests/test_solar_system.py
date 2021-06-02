@@ -99,6 +99,7 @@ def test_positions_skyfield(tmpdir):
             skyfield_angular_separation_tolerance)
     assert (mercury_astropy.separation_3d(skyfield_mercury) <
             skyfield_separation_tolerance)
+    planets.close()
 
 
 class TestPositionsGeocentric:
