@@ -388,6 +388,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     try:
         yield fileobj
     finally:
+        if needs_textio_wrapper:
+            fileobj.buffer.detach()
         for fd in close_fds:
             fd.close()
         for fd in delete_fds:
