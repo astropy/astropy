@@ -595,6 +595,11 @@ class Table:
 
     # Unified I/O read and write methods from .connect
     read = UnifiedReadWriteMethod(TableRead)
+    """
+    Read and parse a data table and return as a Table.
+    """
+
+    #: Write this Table object out in the specified format.
     write = UnifiedReadWriteMethod(TableWrite)
 
     pprint_exclude_names = PprintIncludeExclude()
