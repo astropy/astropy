@@ -217,14 +217,15 @@ def from_table(table, index=None, *, move_to_meta=False):
     name = row.columns.get("name", [None])[index]  # get name from column
     meta = copy.deepcopy(row.meta)
     # NOTE: there will be a method for row-specific metadata
-    # the cosmology class is in the table's metadata
-    cosmology = meta.pop("cosmology", None)
+    # the cosmology class must be in the table's metadata
+    cosmology = meta.pop("cosmology")
 
     # turn row into mapping (dict of the arguments)
     mapping = {}
     mapping["cosmology"] = cosmology
     mapping["name"] = name  # do before below to ensure order in dict
-    mapping.update({k: v for k, v in zip(row.colnames, row.values())})
+    mapping.update({k: v for k, v in zip(row.colnames, row.values())
+                    if k != "name"})
     mapping["meta"] = meta
 
     # build cosmology from map

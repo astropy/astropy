@@ -6,10 +6,9 @@ import pytest
 
 from astropy import cosmology
 from astropy.cosmology import Cosmology
-from astropy import table
-from astropy.io.registry import get_formats
+from astropy.table import QTable, vstack
 from astropy.utils.compat import optional_deps
-from astropy.cosmology.connect import CosmologyRead, CosmologyWrite
+from astropy.cosmology.connect import CosmologyRead
 from astropy.utils.exceptions import AstropyUserWarning
 
 cosmo_instances = cosmology.parameters.available
@@ -76,7 +75,7 @@ class TestReadWriteCosmology:
         instance = getattr(cosmology.realizations, instance)
         t = instance.write.to_table()
 
-        assert isinstance(t, table.QTable)
+        assert isinstance(t, QTable)
         assert "cosmology" in t.meta
 
     @pytest.mark.parametrize("instance", cosmo_instances)
@@ -98,7 +97,7 @@ class TestReadWriteCosmology:
     def test_from_table_instance(self, cosmo_dir, instance, format):
         expected = getattr(cosmology.realizations, instance)
 
-        tbl = table.QTable.read(cosmo_dir / f"{instance}.{format}", format=format)
+        tbl = QTable.read(cosmo_dir / f"{instance}.{format}", format=format)
         got = Cosmology.read.from_table(tbl)
 
         assert got.name == expected.name
@@ -129,7 +128,7 @@ class Test_round_trip_of_table_instance:
 
     def test_ND(self, instance):
         expected = getattr(cosmology.realizations, instance)
-        t = table.vstack([expected.write.to_table(), expected.write.to_table()])
+        t = vstack([expected.write.to_table(), expected.write.to_table()])
         t["name"][1] = "Other"
 
         # error for no index

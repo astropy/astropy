@@ -19,7 +19,7 @@ from .core import from_table, to_table
 __all__ = ["read_ecsv", "write_ecsv", "ecsv_identify"]
 
 
-def read_ecsv(*args, index=None, **kwargs):
+def read_ecsv(*args, index=None, move_to_meta=False, **kwargs):
     """Read a cosmology from :class:`~astropy.io.ascii.Ecsv` file.
 
     Parameters
@@ -41,7 +41,7 @@ def read_ecsv(*args, index=None, **kwargs):
     astropy.cosmology.io.from_table
     """
     table = QTable.read(*args, format="ascii.ecsv", **kwargs)
-    cosmo = from_table(table, index=index)
+    cosmo = from_table(table, index=index, move_to_meta=move_to_meta)
     return cosmo
 
 
