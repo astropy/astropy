@@ -443,9 +443,8 @@ def test_file_ephemeris_wrong_input():
     # To fix this issue, an upstream fix is required in jplephem
     # package.
     # Try loading a file that does exist, but is not an ephemeris file:
-    with pytest.warns(ResourceWarning):
-        with pytest.raises(ValueError):
-            get_body('earth', time, ephemeris=__file__)
+    with pytest.warns(ResourceWarning), pytest.raises(ValueError):
+        get_body('earth', time, ephemeris=__file__)
 
 
 def test_regression_10271():

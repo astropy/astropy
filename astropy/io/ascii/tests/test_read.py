@@ -1047,10 +1047,9 @@ def test_guessing_file_object():
     """
     Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
     """
-    fd = open('data/ipac.dat.bz2', 'rb')
-    t = ascii.read(fd)
+    with open('data/ipac.dat.bz2', 'rb') as fd:
+        t = ascii.read(fd)
     assert t.colnames == ['ra', 'dec', 'sai', 'v2', 'sptype']
-    fd.close()
 
 
 def test_pformat_roundtrip():
@@ -1414,36 +1413,27 @@ def test_read_chunks_input_types():
     fpath = 'data/test5.dat'
     t1 = ascii.read(fpath, header_start=1, data_start=3, )
 
-    fd1 = open(fpath, 'r')
-    fd2 = open(fpath, 'r')
+    with open(fpath, 'r') as fd1, open(fpath, 'r') as fd2:
+        for fp in (fpath, fd1, fd2.read()):
+            t_gen = ascii.read(fp, header_start=1, data_start=3,
+                               guess=False, format='fast_basic',
+                               fast_reader={'chunk_size': 400, 'chunk_generator': True})
+            ts = list(t_gen)
+            for t in ts:
+                for col, col1 in zip(t.columns.values(), t1.columns.values()):
+                    assert col.name == col1.name
+                    assert col.dtype.kind == col1.dtype.kind
 
-    for fp in (fpath, fd1, fd2.read()):
-        t_gen = ascii.read(fp, header_start=1, data_start=3,
-                           guess=False, format='fast_basic',
-                           fast_reader={'chunk_size': 400, 'chunk_generator': True})
-        ts = list(t_gen)
-        for t in ts:
-            for col, col1 in zip(t.columns.values(), t1.columns.values()):
-                assert col.name == col1.name
-                assert col.dtype.kind == col1.dtype.kind
+            assert len(ts) == 4
+            t2 = table.vstack(ts)
+            assert np.all(t1 == t2)
 
-        assert len(ts) == 4
-        t2 = table.vstack(ts)
-        assert np.all(t1 == t2)
-
-    fd1.close()
-    fd2.close()
-
-    fd1 = open(fpath, 'r')
-    fd2 = open(fpath, 'r')
-    for fp in (fpath, fd1, fd2.read()):
-        # Now read the full table in chunks
-        t3 = ascii.read(fp, header_start=1, data_start=3,
-                        fast_reader={'chunk_size': 300})
-        assert np.all(t1 == t3)
-
-    fd1.close()
-    fd2.close()
+    with open(fpath, 'r') as fd1, open(fpath, 'r') as fd2:
+        for fp in (fpath, fd1, fd2.read()):
+            # Now read the full table in chunks
+            t3 = ascii.read(fp, header_start=1, data_start=3,
+                            fast_reader={'chunk_size': 300})
+            assert np.all(t1 == t3)
 
 
 @pytest.mark.parametrize('masked', [True, False])
