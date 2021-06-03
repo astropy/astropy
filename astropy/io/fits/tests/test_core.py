@@ -115,7 +115,6 @@ class TestCore(FitsTestCase):
         p.del_col('FOO')
         assert p.names == ['BAR']
 
-    @pytest.mark.filterwarnings('ignore::ResourceWarning')
     def test_add_del_columns2(self):
         hdulist = fits.open(self.data('tb.fits'))
         table = hdulist[1]
@@ -134,7 +133,7 @@ class TestCore(FitsTestCase):
         assert table.columns.names == ['c2', 'c4', 'foo']
 
         hdulist.writeto(self.temp('test.fits'), overwrite=True)
-
+        hdulist.close()
         # NOTE: If you see a warning, might be related to
         # https://github.com/spacetelescope/PyFITS/issues/44
         with fits.open(self.temp('test.fits')) as hdulist:
