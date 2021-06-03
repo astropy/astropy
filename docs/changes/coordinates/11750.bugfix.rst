@@ -1,0 +1,3 @@
+If a ``Table`` containing a ``SkyCoord`` object as a column is written to a
+FITS, ECSV or HDF5 file then any velocity information that might be present
+will be retained.

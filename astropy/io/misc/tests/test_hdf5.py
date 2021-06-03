@@ -12,6 +12,7 @@ from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLoca
                                  SphericalRepresentation, CartesianRepresentation,
                                  SphericalCosLatDifferential)
 from astropy.time import Time, TimeDelta
+from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
@@ -652,10 +653,14 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             if a2 is None:
                 a2 = {}
 
-        assert np.all(a1 == a2)
+        if isinstance(a1, np.ndarray) and a1.dtype.kind == 'f':
+            assert quantity_allclose(a1, a2, rtol=1e-15)
+        else:
+            assert np.all(a1 == a2)
 
 # Testing HDF5 table read/write with mixins.  This is mostly
 # copied from FITS mixin testing, and it might be good to unify it.
+# Analogous tests also exist for ECSV.
 
 
 el = EarthLocation(x=1 * u.km, y=3 * u.km, z=5 * u.km)
@@ -669,8 +674,17 @@ sd = SphericalCosLatDifferential(
 srd = SphericalRepresentation(sr, differentials=sd)
 sc = SkyCoord([1, 2], [3, 4], unit='deg,deg', frame='fk4',
               obstime='J1990.5')
-scc = sc.copy()
-scc.representation_type = 'cartesian'
+scd = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
+               obstime=['J1990.5', 'J1991.5'])
+scdc = scd.copy()
+scdc.representation_type = 'cartesian'
+scpm = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,pc',
+                pm_ra_cosdec=[7, 8]*u.mas/u.yr, pm_dec=[9, 10]*u.mas/u.yr)
+scpmrv = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,pc',
+                  pm_ra_cosdec=[7, 8]*u.mas/u.yr, pm_dec=[9, 10]*u.mas/u.yr,
+                  radial_velocity=[11, 12]*u.km/u.s)
+scrv = SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,pc',
+                radial_velocity=[11, 12]*u.km/u.s)
 tm = Time([2450814.5, 2450815.5], format='jd', scale='tai', location=el)
 
 # NOTE: in the test below the name of the column "x" for the Quantity is
@@ -680,9 +694,11 @@ mixin_cols = {
     'tm': tm,
     'dt': TimeDelta([1, 2] * u.day),
     'sc': sc,
-    'scc': scc,
-    'scd': SkyCoord([1, 2], [3, 4], [5, 6], unit='deg,deg,m', frame='fk4',
-                    obstime=['J1990.5', 'J1991.5']),
+    'scd': scd,
+    'scdc': scdc,
+    'scpm': scpm,
+    'scpmrv': scpmrv,
+    'scrv': scrv,
     'x': [1, 2] * u.m,
     'qdb': [10, 20] * u.dB(u.mW),
     'qdex': [4.5, 5.5] * u.dex(u.cm/u.s**2),
@@ -704,8 +720,14 @@ compare_attrs = {
     'tm': time_attrs,
     'dt': ['shape', 'value', 'format', 'scale'],
     'sc': ['ra', 'dec', 'representation_type', 'frame.name'],
-    'scc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
     'scd': ['ra', 'dec', 'distance', 'representation_type', 'frame.name'],
+    'scdc': ['x', 'y', 'z', 'representation_type', 'frame.name'],
+    'scpm': ['ra', 'dec', 'distance', 'pm_ra_cosdec', 'pm_dec',
+             'representation_type', 'frame.name'],
+    'scpmrv': ['ra', 'dec', 'distance', 'pm_ra_cosdec', 'pm_dec',
+               'radial_velocity', 'representation_type', 'frame.name'],
+    'scrv': ['ra', 'dec', 'distance', 'radial_velocity', 'representation_type',
+             'frame.name'],
     'x': ['value', 'unit'],
     'qdb': ['value', 'unit'],
     'qdex': ['value', 'unit'],
@@ -778,9 +800,17 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
                         'qdex',
                         'qmag',
                         'sc.ra', 'sc.dec',
-                        'scc.x', 'scc.y', 'scc.z',
                         'scd.ra', 'scd.dec', 'scd.distance',
                         'scd.obstime.jd1', 'scd.obstime.jd2',
+                        'scdc.x', 'scdc.y', 'scdc.z',
+                        'scdc.obstime.jd1', 'scdc.obstime.jd2',
+                        'scpm.ra', 'scpm.dec', 'scpm.distance',
+                        'scpm.pm_ra_cosdec', 'scpm.pm_dec',
+                        'scpmrv.ra', 'scpmrv.dec', 'scpmrv.distance',
+                        'scpmrv.pm_ra_cosdec', 'scpmrv.pm_dec',
+                        'scpmrv.radial_velocity',
+                        'scrv.ra', 'scrv.dec', 'scrv.distance',
+                        'scrv.radial_velocity',
                         'sd.d_lon_coslat', 'sd.d_lat', 'sd.d_distance',
                         'sr.lon', 'sr.lat', 'sr.distance',
                         'srd.lon', 'srd.lat', 'srd.distance',
