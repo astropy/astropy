@@ -32,6 +32,5 @@ class TestDivisionFunctions(FitsTestCase):
 
     def test_section(self, capsys):
         # section testing
-        fs = fits.open(self.data('arange.fits'))
-        assert np.all(fs[0].section[3, 2, 5] == np.array([357]))
-        fs.close()
+        with fits.open(self.data('arange.fits')) as fs:
+            assert np.all(fs[0].section[3, 2, 5] == np.array([357]))
