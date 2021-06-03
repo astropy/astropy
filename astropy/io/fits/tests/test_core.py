@@ -824,7 +824,8 @@ class TestFileFunctions(FitsTestCase):
         """Test detection of a zip file when the extension is not .zip."""
 
         zf = self._make_zip_file(filename='test0.fz')
-        assert len(fits.open(zf)) == 5
+        with fits.open(zf) as fits_handle:
+            assert len(fits_handle) == 5
 
     def test_open_zipped_writeable(self):
         """Opening zipped files in a writeable mode should fail."""
