@@ -739,7 +739,7 @@ class UnifiedReadWrite:
         return out
 
 
-class UnifiedReadWriteMethod:
+class UnifiedReadWriteMethod(property):
     """Descriptor class for creating read() and write() methods in unified I/O.
 
     The canonical example is in the ``Table`` class, where the ``connect.py``
@@ -757,8 +757,12 @@ class UnifiedReadWriteMethod:
         Class that defines read or write functionality
 
     """
-    def __init__(self, func):
-        self.func = func
-
+    # We subclass property to ensure that __set__ is defined and that,
+    # therefore, we are a data descriptor, which cannot be overridden.
+    # This also means we automatically inherit the __doc__ of fget (which will
+    # be a UnifiedReadWrite subclass), and that this docstring gets recognized
+    # and properly typeset by sphinx (which was previously an issue; see
+    # gh-11554).
+    # We override __get__ to pass both instance and class to UnifiedReadWrite.
     def __get__(self, instance, owner_cls):
-        return self.func(instance, owner_cls)
+        return self.fget(instance, owner_cls)

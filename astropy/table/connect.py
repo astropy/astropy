@@ -43,7 +43,7 @@ class TableRead(registry.UnifiedReadWrite):
 
     Returns
     -------
-    out : `Table`
+    out : `~astropy.table.Table`
         Table corresponding to file contents
 
     Notes
