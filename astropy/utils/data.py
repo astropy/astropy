@@ -157,7 +157,7 @@ def _is_inside(path, parent_path):
 @contextlib.contextmanager
 def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                          show_progress=True, remote_timeout=None,
-                         sources=None, http_headers=None):
+                         sources=None, http_headers=None, pkgname='astropy'):
     """Yield a readable, seekable file-like object from a file or URL.
 
     This supports passing filenames, URLs, and readable file-like objects,
@@ -258,7 +258,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             name_or_obj = download_file(
                 name_or_obj, cache=cache, show_progress=show_progress,
                 timeout=remote_timeout, sources=sources,
-                http_headers=http_headers)
+                http_headers=http_headers, pkgname=pkgname)
         fileobj = io.FileIO(name_or_obj, 'r')
         if is_url and not cache:
             delete_fds.append(fileobj)

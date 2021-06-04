@@ -1,0 +1,2 @@
+``astropy.utils.data.get_readable_fileobj`` now accepts the ``pkgname``
+keyword to specify the download cache that should be used.
