@@ -2863,3 +2863,12 @@ def test_items():
 
     for i in list(t.items()):
         assert isinstance(i, tuple)
+
+
+def test_read_write_not_replaceable():
+    t = table.Table()
+    with pytest.raises(AttributeError):
+        t.read = 'fake_read'
+
+    with pytest.raises(AttributeError):
+        t.write = 'fake_write'
