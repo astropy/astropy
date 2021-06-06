@@ -305,6 +305,27 @@ def test_clone():
         newclone = cosmo.clone(not_an_arg=4)
 
 
+def test_equality():
+    """Test equality and equivalence."""
+    # Equality
+    assert Planck18 == Planck18
+    assert Planck13 != Planck18
+
+    # just wrong
+    assert Planck18 != 2
+    assert 2 != Planck18
+
+    # mismatched signatures, both directions.
+    newcosmo = core.w0waCDM(**Planck18._init_arguments, Ode0=0.6)
+    assert newcosmo != Planck18
+    assert Planck18 != newcosmo
+
+    # different arguments
+    newcosmo = Planck18.clone(name="modified")
+    assert Planck18 != newcosmo  # the name was changed!
+    assert newcosmo != Planck18  # double check directions.
+
+
 def test_xtfuncs():
     """ Test of absorption and lookback integrand"""
     cosmo = core.LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
