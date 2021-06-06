@@ -1,0 +1,13 @@
+Add equality operator for comparing Cosmology instances. Comparison is done on
+all immutable fields (this excluded 'meta').
+
+Now the following will work:
+
+.. code-block:: python
+
+    >>> from astropy.cosmology import Planck13, Planck18
+    >>> Planck13 == Planck18
+    False
+
+    >>> Planck18 == Planck18
+    True
