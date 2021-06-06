@@ -198,6 +198,37 @@ class Cosmology(metaclass=ABCMeta):
         # Return new instance, respecting args vs kwargs
         return self.__class__(*ba.args, **ba.kwargs)
 
+    # -----------------------------------------------------
+
+    def __eq__(self, other):
+        """Check equality on all immutable fields (i.e. not "meta").
+
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object in which to compare.
+
+        Returns
+        -------
+        bool
+            True if all immutable fields are equal, False otherwise.
+
+        """
+        if not isinstance(other, Cosmology):
+            return False
+
+        sias, oias = self._init_arguments, other._init_arguments
+
+        # check if the cosmologies have identical signatures.
+        # this protects against one cosmology having a superset of input
+        # parameters to another cosmology.
+        if (sias.keys() ^ oias.keys()) - {'meta'}:
+            return False
+
+        # are all the non-excluded immutable arguments equal?
+        return all((np.all(oias[k] == v) for k, v in sias.items()
+                    if k != "meta"))
+
 
 class FLRW(Cosmology):
     """ A class describing an isotropic and homogeneous
