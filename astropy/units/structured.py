@@ -458,14 +458,14 @@ class Structure(np.void):
 
     Behaves like a `~numpy.void` and thus mostly like a tuple which can also
     be indexed with field names, but overrides ``__eq__`` and ``__ne__`` to
-    compare only the contents, not the field names are ignored.  Furthermore,
-    this way no `FutureWarning` about comparisons is given.
+    compare only the contents, not the field names.  Furthermore, this way no
+    `FutureWarning` about comparisons is given.
 
     """
-    # Note that it is important that it is important for physical type IDs to
-    # not be stored in a tuple, since then the physical types would be treated
-    # as alternatives in :meth:`~astropy.units.UnitBase.is_equivalent`.
-    # (Of course, in that case, they could also not be indexed by name.)
+    # Note that it is important for physical type IDs to not be stored in a
+    # tuple, since then the physical types would be treated as alternatives in
+    # :meth:`~astropy.units.UnitBase.is_equivalent`.  (Of course, in that
+    # case, they could also not be indexed by name.)
 
     def __eq__(self, other):
         if isinstance(other, np.void):

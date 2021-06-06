@@ -187,8 +187,10 @@ def invariant_x_helper(x, *args, **kwargs):
 # respect, it is a bit of an odd function for Quantity. On the other hand, it
 # matches the idea that a unit is the same as the quantity with that unit and
 # value of 1. Also, it used to work without __array_function__.
-# zeros_like does work by default for regular quantities, but not for structured
-# dtype, so we include it here too.
+# zeros_like does work by default for regular quantities, because numpy first
+# creates an empty array with the unit and then fills it with 0 (which can have
+# any unit), but for structured dtype this fails (0 cannot have an arbitrary
+# structured unit), so we include it here too.
 @function_helper(helps={np.ones_like, np.zeros_like})
 def like_helper(a, *args, **kwargs):
     subok = args[2] if len(args) > 2 else kwargs.pop('subok', True)

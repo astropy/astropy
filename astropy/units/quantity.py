@@ -367,14 +367,17 @@ class Quantity(np.ndarray):
                         unit = value_unit  # signal no conversion needed below.
 
             elif isiterable(value) and len(value) > 0:
+                # Iterables like lists and tuples.
                 if all(isinstance(v, Quantity) for v in value):
-                    # Convert all quantities to the same unit.
+                    # If a list/tuple containing only quantities, convert all
+                    # to the same unit.
                     if unit is None:
                         unit = value[0].unit
                     value = [q.to_value(unit) for q in value]
                     value_unit = unit  # signal below that conversion has been done
                 elif (dtype is None and not hasattr(value, 'dtype')
                       and isinstance(unit, StructuredUnit)):
+                    # Special case for list/tuple of values and a structured unit:
                     # ``np.array(value, dtype=None)`` would treat tuples as lower
                     # levels of the array, rather than as elements of a structured
                     # array, so we use the structure of the unit to help infer the
