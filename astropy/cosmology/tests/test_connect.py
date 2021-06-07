@@ -7,7 +7,7 @@ import pytest
 from astropy import cosmology
 from astropy.cosmology import Cosmology
 from astropy.table import QTable, vstack
-from astropy.utils.compat import optional_deps
+from astropy.utils.compat.optional_deps import HAS_YAML
 from astropy.cosmology.connect import CosmologyRead
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -15,7 +15,7 @@ cosmo_instances = cosmology.parameters.available
 save_formats = ["json", "ascii.ecsv"]
 
 # TODO! remove in astropy v5.0
-if not getattr(optional_deps, "HAS_YAML"):
+if not HAS_YAML:
     save_formats.remove("ascii.ecsv")
 
 

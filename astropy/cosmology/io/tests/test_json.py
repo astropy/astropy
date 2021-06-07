@@ -6,19 +6,12 @@ import os
 import pytest
 
 from astropy import cosmology
-from astropy.cosmology import Cosmology
 from astropy.cosmology.io.json import read_json, write_json, json_identify
-from astropy.table import QTable, vstack
-from astropy.utils.compat import optional_deps
 from astropy.utils.exceptions import AstropyUserWarning
 
 cosmo_instances = [
     getattr(cosmology.realizations, name) for name in cosmology.parameters.available
 ]
-
-# TODO! remove in astropy v5.0
-if not getattr(optional_deps, "HAS_YAML"):
-    save_formats.remove("ascii.json")
 
 
 # make a common directory for reading / writing cosmologies
