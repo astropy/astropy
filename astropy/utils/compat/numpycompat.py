@@ -5,7 +5,7 @@ earlier versions of Numpy.
 """
 from astropy.utils import minversion
 
-__all__ = ['NUMPY_LT_1_18', 'NUMPY_LT_1_19', 'NUMPY_LT_1_20']
+__all__ = ['NUMPY_LT_1_18', 'NUMPY_LT_1_19', 'NUMPY_LT_1_20', 'NUMPY_LT_1_22']
 
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
@@ -13,3 +13,4 @@ __all__ = ['NUMPY_LT_1_18', 'NUMPY_LT_1_19', 'NUMPY_LT_1_20']
 NUMPY_LT_1_18 = not minversion('numpy', '1.18')
 NUMPY_LT_1_19 = not minversion('numpy', '1.19')
 NUMPY_LT_1_20 = not minversion('numpy', '1.20')
+NUMPY_LT_1_22 = not minversion('numpy', '1.22')
