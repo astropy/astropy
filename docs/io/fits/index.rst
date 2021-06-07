@@ -614,10 +614,6 @@ file opened with update mode:
 
     # closing the file will also flush any changes and prevent further writing
 
-Here we explicitly close the ``hdulist`` opened earlier::
-
-    >>> hdul.close()
-
 
 Creating a New FITS File
 ------------------------
