@@ -42,7 +42,7 @@ def test_write_then_read_file(cosmo_dir, cosmo):
     got = read_json(fname)
     assert got.__class__ is cosmo.__class__
     assert got.name == cosmo.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == cosmo
 
 
 @pytest.mark.parametrize("cosmo", cosmo_instances)
@@ -66,9 +66,9 @@ def test_ND(cosmo_dir, cosmo):
     got = read_json(fname, key=cosmo.name)
     assert got.__class__ == cosmo.__class__
     assert got.name == cosmo.name
-    # assert got == cosmo  # FIXME! no __eq__ on cosmo
+    assert got == cosmo
 
     got = read_json(fname, key="Other")
     assert got.__class__ == cosmo.__class__
     assert got.name == cosmo.name
-    # assert got == cosmo  # FIXME! no __eq__ on cosmo
+    assert got == cosmo

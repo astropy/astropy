@@ -44,15 +44,15 @@ def test_write_then_read_file(cosmo_dir, cosmo):
     # Read back
     got = read_ecsv(fname)
     assert got.__class__ is cosmo.__class__
-    assert got.name == cosmo.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == cosmo
+    assert got.meta == cosmo.meta  # == doesn't check meta
 
 
 @pytest.mark.parametrize("cosmo", cosmo_instances)
 def test_ND(cosmo_dir, cosmo):
     """Read tests happen later."""
-    t = vstack([cosmo.write.to_table(), cosmo.write.to_table()])
-    t["name"][1] = "Other"
+    cosmo1 = cosmo.clone(name="Other")
+    t = vstack([cosmo.write.to_table(), cosmo1.write.to_table()])
 
     fname = cosmo_dir / f"{cosmo.name}_ND.ecsv"
     t.write(fname, overwrite=True)
@@ -63,14 +63,17 @@ def test_ND(cosmo_dir, cosmo):
 
     got = read_ecsv(fname, index=0)
     assert got.name == cosmo.name
-    # assert got == cosmo  # FIXME! no __eq__ on cosmo
+    assert got == cosmo
+    assert got.meta == cosmo.meta  # == doesn't check meta
 
     got = read_ecsv(fname, index=1)
     assert got.name == "Other"
-    # assert got == cosmo  # FIXME! no __eq__ on cosmo
+    assert got == cosmo1
+    assert got.meta == cosmo1.meta  # == doesn't check meta
 
     # Now test index is string
     # the table is not indexed, so this also tests adding an index column
     got = read_ecsv(fname, index="Other")
     assert got.name == "Other"
-    # assert got == cosmo  # FIXME! no __eq__ on cosmo
+    assert got == cosmo1
+    assert got.meta == cosmo1.meta  # == doesn't check meta

@@ -60,7 +60,7 @@ class TestReadWriteCosmology:
         got = Cosmology.read(cosmo_dir / f"{instance}.{format}", format=format)
 
         assert got.name == cosmo.name
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == cosmo
 
     @pytest.mark.parametrize("instance", cosmo_instances)
     def test_to_mapping_instance(self, instance):
@@ -89,8 +89,7 @@ class TestReadWriteCosmology:
 
         # unless mismatched are moved to meta
         got = Cosmology.read.from_mapping(params, move_to_meta=True)
-        assert got.name == expected.name
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == expected
 
     @pytest.mark.parametrize("format", save_formats[1:])  # skip json
     @pytest.mark.parametrize("instance", cosmo_instances)
@@ -99,9 +98,7 @@ class TestReadWriteCosmology:
 
         tbl = QTable.read(cosmo_dir / f"{instance}.{format}", format=format)
         got = Cosmology.read.from_table(tbl)
-
-        assert got.name == expected.name
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == expected
 
 
 # -----------------------------------------------------------------------------
@@ -112,8 +109,7 @@ def test_round_trip_of_mapping_instance(instance):
     expected = getattr(cosmology.realizations, instance)
 
     got = Cosmology.read.from_mapping(expected.write.to_mapping())
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == expected
 
 
 @pytest.mark.parametrize("instance", cosmo_instances)
@@ -123,27 +119,23 @@ class Test_round_trip_of_table_instance:
         expected = getattr(cosmology.realizations, instance)
 
         got = Cosmology.read.from_table(expected.write.to_table())
-        assert got.name == expected.name
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == expected
 
     def test_ND(self, instance):
         expected = getattr(cosmology.realizations, instance)
-        t = vstack([expected.write.to_table(), expected.write.to_table()])
-        t["name"][1] = "Other"
+        expected1 = expected.clone(name="Other")
+        t = vstack([expected.write.to_table(), expected1.write.to_table()])
 
         # error for no index
         with pytest.raises(ValueError, match="row index for N-D"):
             Cosmology.read.from_table(t)
 
         got = Cosmology.read.from_table(t, index=0)
-        assert got.name == expected.name
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == expected
 
         got = Cosmology.read.from_table(t, index=1)
-        assert got.name == "Other"
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == expected1
 
         # Now test index is string
         got = Cosmology.read.from_table(t, index="Other")
-        assert got.name == "Other"
-        # assert got == expected  # FIXME! no __eq__ on cosmo
+        assert got == expected1

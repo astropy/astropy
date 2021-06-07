@@ -11,8 +11,8 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 
 class CosmologyWithKwargs(Cosmology):
-    def __init__(self, name="cosmology with kwargs", **kwargs):
-        super().__init__(name=name, **kwargs)
+    def __init__(self, name="cosmology with kwargs", meta=None, **kwargs):
+        super().__init__(name=name, meta=meta, **kwargs)
 
 
 cosmo_instances = [
@@ -32,7 +32,6 @@ def test_to_from_mapping_instance(expected):
     assert isinstance(params, dict)
     assert params["cosmology"] is expected.__class__
     assert params["name"] == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
 
     # ------------
     # From Mapping
@@ -55,23 +54,20 @@ def test_to_from_mapping_instance(expected):
     # unless mismatched are moved to meta
     got = io.from_mapping(params, move_to_meta=True)
     assert got.__class__ == expected.__class__
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == expected
     assert got.meta["mismatching"] == "will error"
 
     # it won't error if everything matches up
     params.pop("mismatching")
     got = io.from_mapping(params)
     assert got.__class__ == expected.__class__
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == expected
 
     # and it will also work if the cosmology is a string
     params["cosmology"] = params["cosmology"].__name__
     got = io.from_mapping(params)
     assert got.__class__ == expected.__class__
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == expected
 
 
 @pytest.mark.parametrize("expected", cosmo_instances)
@@ -92,29 +88,27 @@ def test_to_from_table_instance(expected):
     # Now test index is string
     # the table is not indexed, so this also tests adding an index column
     got = io.from_table(t, index=expected.name)
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == expected
 
 
 @pytest.mark.parametrize("expected", cosmo_instances)
 def test_ND_table(expected):
-    t = vstack([expected.write.to_table(), expected.write.to_table()])
-    t["name"][1] = "Other"
+    expected1 = expected.clone(name="Other")
+    t = vstack([expected.write.to_table(), expected1.write.to_table()])
 
     # error for no index
     with pytest.raises(ValueError, match="row index for N-D"):
         io.from_table(t)
 
     got = io.from_table(t, index=0)
-    assert got.name == expected.name
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    assert got == expected
 
     got = io.from_table(t, index=1)
     assert got.name == "Other"
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    # assert got == expected  # FIXME! problem in cloning where nests "kwargs"
 
     # Now test index is string
     # the table is not indexed, so this also tests adding an index column
     got = io.from_table(t, index="Other")
     assert got.name == "Other"
-    # assert got == expected  # FIXME! no __eq__ on cosmo
+    # assert got == expected  # FIXME! problem in cloning where nests "kwargs"
