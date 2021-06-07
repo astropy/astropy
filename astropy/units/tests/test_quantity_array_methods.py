@@ -1,11 +1,15 @@
 # The purpose of these tests are to ensure that calling quantities using
 # array methods returns quantities with the right units, or raises exceptions.
+import os
 
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
+from astropy.utils.compat import NUMPY_LT_1_22
+
+IS_S390X = os.environ.get('ARCH_ON_CI', 'normal') == 's390x'
 
 
 class TestQuantityArrayCopy:
@@ -122,6 +126,7 @@ class TestQuantityReshapeFuncs:
         assert q_swapaxes.unit == q.unit
         assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
 
+    @pytest.mark.xfail(IS_S390X and NUMPY_LT_1_22, reason="Numpy GitHub Issue 19153")
     def test_flat_attributes(self):
         """While ``flat`` doesn't make a copy, it changes the shape."""
         q = np.arange(6.).reshape(3, 1, 2) * u.m
