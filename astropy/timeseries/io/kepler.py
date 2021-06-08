@@ -91,6 +91,8 @@ def kepler_fits_reader(filename):
     # Remove original time column
     tab.remove_column('time')
 
+    hdulist.close()
+
     return TimeSeries(time=time, data=tab)
 
 

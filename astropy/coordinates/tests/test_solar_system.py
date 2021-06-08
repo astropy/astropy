@@ -99,6 +99,7 @@ def test_positions_skyfield(tmpdir):
             skyfield_angular_separation_tolerance)
     assert (mercury_astropy.separation_3d(skyfield_mercury) <
             skyfield_separation_tolerance)
+    planets.close()
 
 
 class TestPositionsGeocentric:
@@ -437,8 +438,12 @@ def test_file_ephemeris_wrong_input():
     # Try loading a non-existing file:
     with pytest.raises(ValueError):
         get_body('earth', time, ephemeris='/path/to/nonexisting/file.bsp')
+
+    # NOTE: This test currently leaves the file open (ResourceWarning).
+    # To fix this issue, an upstream fix is required in jplephem
+    # package.
     # Try loading a file that does exist, but is not an ephemeris file:
-    with pytest.raises(ValueError):
+    with pytest.warns(ResourceWarning), pytest.raises(ValueError):
         get_body('earth', time, ephemeris=__file__)
 
 
