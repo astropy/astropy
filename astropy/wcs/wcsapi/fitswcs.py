@@ -491,6 +491,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             if ctype == 'ZOPT':
 
                 def spectralcoord_from_redshift(redshift):
+                    if isinstance(redshift, SpectralCoord):
+                        return redshift
                     return SpectralCoord((redshift + 1) * self.wcs.restwav,
                                          unit=u.m, observer=observer, target=target)
 
@@ -510,6 +512,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             elif ctype == 'BETA':
 
                 def spectralcoord_from_beta(beta):
+                    if isinstance(beta, SpectralCoord):
+                        return beta
                     return SpectralCoord(beta * C_SI,
                                          unit=u.m / u.s,
                                          doppler_convention='relativistic',
