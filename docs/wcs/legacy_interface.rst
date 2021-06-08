@@ -34,6 +34,7 @@ one of the methods below::
     >>> fn = get_pkg_data_filename('data/j94f05bgq_flt.fits', package='astropy.wcs.tests')
     >>> f = fits.open(fn)
     >>> wcsobj = wcs.WCS(f[1].header)
+    >>> f.close()
 
 Optionally, if the FITS file uses any deprecated or non-standard features, you may need
 to call one of the `~astropy.wcs.wcs.WCS.fix` methods on the object.

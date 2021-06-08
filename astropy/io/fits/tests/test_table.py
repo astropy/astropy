@@ -2949,6 +2949,7 @@ class TestVLATables(FitsTestCase):
         assert data.shape == (500,)
         assert data['i'][497] == 497
         assert np.array_equal(data['arr'][497], [0, 1, 2, 3, 4])
+        hdul.close()
 
 
 # These are tests that solely test the Column and ColDefs interfaces and
