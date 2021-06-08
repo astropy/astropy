@@ -1,0 +1,1 @@
+Fix a bug that caused APE 14 WCS transformations for FITS WCS with ZOPT, BETA, VELO, VOPT, or VRAD CTYPE to not work correctly.

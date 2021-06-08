@@ -1059,7 +1059,6 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
     skycoord, spectralcoord = wcs.pixel_to_world(0, 0, 31)
 
     assert isinstance(spectralcoord, SpectralCoord)
-    print(spectralcoord)
 
     if observer:
         pix = wcs.world_to_pixel(skycoord, spectralcoord)
