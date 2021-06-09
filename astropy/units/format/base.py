@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-
-
 class _FormatterMeta(type):
     registry = {}
 
@@ -37,7 +34,7 @@ class Base(metaclass=_FormatterMeta):
         """
 
         raise NotImplementedError(
-            f"Can not parse {cls.__name__}")
+            f"Can not parse with {cls.__name__} format")
 
     @classmethod
     def to_string(cls, u):
