@@ -1,0 +1,2 @@
+Give a more informative ``NotImplementedError`` when trying to parse a unit
+using an output-only format such as 'unicode' or 'latex'.
