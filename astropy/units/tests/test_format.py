@@ -632,3 +632,8 @@ def test_unicode_failures(string):
 def test_parse_error_message_for_output_only_format(format_):
     with pytest.raises(NotImplementedError, match='not parse'):
         u.Unit('m', format=format_)
+
+
+def test_unknown_parser():
+    with pytest.raises(ValueError, match=r"Unknown.*unicode'\] for output only"):
+        u.Unit('m', format='foo')
