@@ -343,7 +343,7 @@ Here are a few Columns using various combinations of the optional arguments::
     >>> names = np.array(['NGC1', 'NGC2', 'NGC3', 'NGC4'])
     >>> values = np.arange(2*2*4).reshape(4, 2, 2)
     >>> col1 = fits.Column(name='target', format='10A', array=names)
-    >>> col2 = fits.Column(name='counts', format='J', unit='DN', array=counts)
+    >>> col2 = fits.Column(name='counts', format='J', unit='count', array=counts)
     >>> col3 = fits.Column(name='notes', format='A10')
     >>> col4 = fits.Column(name='spectrum', format='10E')
     >>> col5 = fits.Column(name='flag', format='L', array=[True, False, True, True])
@@ -373,7 +373,7 @@ column definition object::
     >>> coldefs
     ColDefs(
         name = 'target'; format = '10A'
-        name = 'counts'; format = 'J'; unit = 'DN'
+        name = 'counts'; format = 'J'; unit = 'count'
         name = 'notes'; format = '10A'
         name = 'spectrum'; format = '10E'
         name = 'flag'; format = 'L'
@@ -386,7 +386,7 @@ or directly use the :meth:`BinTableHDU.from_columns` method::
     >>> hdu.columns
     ColDefs(
         name = 'target'; format = '10A'
-        name = 'counts'; format = 'J'; unit = 'DN'
+        name = 'counts'; format = 'J'; unit = 'count'
         name = 'notes'; format = '10A'
         name = 'spectrum'; format = '10E'
         name = 'flag'; format = 'L'
@@ -417,7 +417,7 @@ properly populated::
     TFORM1  = '10A     '
     TTYPE2  = 'counts  '
     TFORM2  = 'J       '
-    TUNIT2  = 'DN      '
+    TUNIT2  = 'count   '
     TTYPE3  = 'notes   '
     TFORM3  = '10A     '
     TTYPE4  = 'spectrum'
