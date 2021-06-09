@@ -14,10 +14,8 @@
 Handles a "generic" string format for units
 """
 
-import os
 import re
 import warnings
-import sys
 from fractions import Fraction
 import unicodedata
 
@@ -25,17 +23,6 @@ from . import core, utils
 from .base import Base
 from astropy.utils import classproperty, parsing
 from astropy.utils.misc import did_you_mean
-
-
-def _is_ascii(s):
-    if sys.version_info >= (3, 7, 0):
-        return s.isascii()
-    else:
-        try:
-            s.encode('ascii')
-            return True
-        except UnicodeEncodeError:
-            return False
 
 
 def _to_string(cls, unit):
@@ -449,7 +436,7 @@ class Generic(Base):
         if s == '%':
             return registry['percent']
 
-        if not _is_ascii(s):
+        if not s.isascii():
             if s[0] == '\N{MICRO SIGN}':
                 s = 'u' + s[1:]
             if s[-1] == '\N{GREEK CAPITAL LETTER OMEGA}':
@@ -509,7 +496,7 @@ class Generic(Base):
     def parse(cls, s, debug=False):
         if not isinstance(s, str):
             s = s.decode('ascii')
-        elif not _is_ascii(s):
+        elif not s.isascii():
             # common normalization of unicode strings to avoid
             # having to deal with multiple representations of
             # the same character. This normalizes to "composed" form
