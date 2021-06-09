@@ -2013,6 +2013,8 @@ class _UnitMetaClass(type):
 
             try:
                 return f.parse(s)
+            except NotImplementedError:
+                raise
             except Exception as e:
                 if parse_strict == 'silent':
                     pass

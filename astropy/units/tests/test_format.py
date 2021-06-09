@@ -626,3 +626,9 @@ def test_unicode(string, unit):
 def test_unicode_failures(string):
     with pytest.raises(ValueError):
         u.Unit(string)
+
+
+@pytest.mark.parametrize('format_', ('unicode', 'latex', 'latex_inline'))
+def test_parse_error_message_for_output_only_format(format_):
+    with pytest.raises(NotImplementedError, match='not parse'):
+        u.Unit('m', format=format_)
