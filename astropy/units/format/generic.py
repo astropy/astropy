@@ -433,16 +433,18 @@ class Generic(Base):
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
         registry = core.get_current_unit_registry().registry
-        if s == '%':
-            return registry['percent']
+        if s in cls._unit_symbols:
+            s = cls._unit_symbols[s]
 
-        if not s.isascii():
+        elif not s.isascii():
             if s[0] == '\N{MICRO SIGN}':
                 s = 'u' + s[1:]
-            if s[-1] == '\N{GREEK CAPITAL LETTER OMEGA}':
-                s = s[:-1] + 'Ohm'
-            elif s[-1] == '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}':
-                s = s[:-1] + 'Angstrom'
+            if s[-1] in cls._prefixable_unit_symbols:
+                s = s[:-1] + cls._prefixable_unit_symbols[s[-1]]
+            elif len(s) > 1 and s[-1] in cls._unit_suffix_symbols:
+                s = s[:-1] + cls._unit_suffix_symbols[s[-1]]
+            elif s.endswith('R\N{INFINITY}'):
+                s = s[:-2] + 'Ry'
 
         if s in registry:
             return registry[s]
@@ -452,6 +454,30 @@ class Generic(Base):
                 f'{s} is not a valid unit. {did_you_mean(s, registry)}')
         else:
             raise ValueError()
+
+    _unit_symbols = {
+        '%': 'percent',
+        '\N{PRIME}': 'arcmin',
+        '\N{DOUBLE PRIME}': 'arcsec',
+        '\N{MODIFIER LETTER SMALL H}': 'hourangle',
+        'e\N{SUPERSCRIPT MINUS}': 'electron',
+    }
+
+    _prefixable_unit_symbols = {
+        '\N{GREEK CAPITAL LETTER OMEGA}': 'Ohm',
+        '\N{LATIN CAPITAL LETTER A WITH RING ABOVE}': 'Angstrom',
+        '\N{SCRIPT SMALL L}': 'l',
+    }
+
+    _unit_suffix_symbols = {
+        '\N{CIRCLED DOT OPERATOR}': 'sun',
+        '\N{SUN}': 'sun',
+        '\N{CIRCLED PLUS}': 'earth',
+        '\N{EARTH}': 'earth',
+        '\N{JUPITER}': 'jupiter',
+        '\N{LATIN SUBSCRIPT SMALL LETTER E}': '_e',
+        '\N{LATIN SUBSCRIPT SMALL LETTER P}': '_p',
+    }
 
     _translations = str.maketrans({
         '\N{GREEK SMALL LETTER MU}': '\N{MICRO SIGN}',
@@ -479,7 +505,7 @@ class Generic(Base):
     )
 
     _superscript_translations = str.maketrans(_superscripts, '-+0123456789')
-    _regex_superscript = re.compile(f'[{_superscripts}]+')
+    _regex_superscript = re.compile(f'[{_superscripts}]?[{_superscripts[2:]}]+')
     _regex_deg = re.compile('°([CF])?')
 
     @classmethod

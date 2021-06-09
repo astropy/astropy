@@ -181,9 +181,11 @@ def test_ogip_grammar_fail(string):
 class RoundtripBase:
     deprecated_units = set()
 
-    def check_roundtrip(self, unit):
+    def check_roundtrip(self, unit, output_format=None):
+        if output_format is None:
+            output_format = self.format_
         with pytest.warns(None) as w:
-            s = unit.to_string(self.format_)
+            s = unit.to_string(output_format)
             a = core.Unit(s, format=self.format_)
 
         if s in self.deprecated_units:
@@ -213,6 +215,7 @@ class TestRoundtripGeneric(RoundtripBase):
             not isinstance(unit, core.PrefixUnit))])
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
+        self.check_roundtrip(unit, output_format='unicode')
         self.check_roundtrip_decompose(unit)
 
 
@@ -609,6 +612,14 @@ def test_powers(power, expected):
     ('m\N{ANGSTROM SIGN}', u.milliAngstrom),
     ('°C', u.deg_C),
     ('°', u.deg),
+    ('M⊙', u.Msun),  # \N{CIRCLED DOT OPERATOR}
+    ('L☉', u.Lsun),  # \N{SUN}
+    ('M⊕', u.Mearth),  # normal earth symbol = \N{CIRCLED PLUS}
+    ('M♁', u.Mearth),  # be generous with \N{EARTH}
+    ('R♃', u.Rjup),  # \N{JUPITER}
+    ('′', u.arcmin),  # \N{PRIME}
+    ('R∞', u.Ry),
+    ('Mₚ', u.M_p),
 ])
 def test_unicode(string, unit):
     assert u_format.Generic.parse(string) == unit
