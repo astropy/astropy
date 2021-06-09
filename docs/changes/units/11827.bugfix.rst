@@ -1,0 +1,2 @@
+Units initialization with unicode has been expanded to include strings such as
+'M☉' and 'e⁻'.
