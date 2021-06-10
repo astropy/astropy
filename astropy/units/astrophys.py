@@ -31,11 +31,11 @@ def_unit(['pc', 'parsec'], _si.pc, namespace=_ns, prefixes=True,
 
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun, namespace=_ns,
          doc="Solar radius", prefixes=False,
-         format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
+         format={'latex': r'R_{\odot}', 'unicode': 'R\N{SUN}'})
 def_unit(['jupiterRad', 'R_jup', 'Rjup', 'R_jupiter', 'Rjupiter'],
          _si.R_jup, namespace=_ns, prefixes=False, doc="Jupiter radius",
          # LaTeX jupiter symbol requires wasysym
-         format={'latex': r'R_{\rm J}', 'unicode': 'R♃'})
+         format={'latex': r'R_{\rm J}', 'unicode': 'R\N{JUPITER}'})
 def_unit(['earthRad', 'R_earth', 'Rearth'], _si.R_earth, namespace=_ns,
          prefixes=False, doc="Earth radius",
          # LaTeX earth symbol requires wasysym
@@ -50,11 +50,11 @@ def_unit(['lyr', 'lightyear'], (_si.c * si.yr).to(si.m),
 
 def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun, namespace=_ns,
          prefixes=False, doc="Solar mass",
-         format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
+         format={'latex': r'M_{\odot}', 'unicode': 'M\N{SUN}'})
 def_unit(['jupiterMass', 'M_jup', 'Mjup', 'M_jupiter', 'Mjupiter'],
          _si.M_jup, namespace=_ns, prefixes=False, doc="Jupiter mass",
          # LaTeX jupiter symbol requires wasysym
-         format={'latex': r'M_{\rm J}', 'unicode': 'M♃'})
+         format={'latex': r'M_{\rm J}', 'unicode': 'M\N{JUPITER}'})
 def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth, namespace=_ns,
          prefixes=False, doc="Earth mass",
          # LaTeX earth symbol requires wasysym
@@ -79,7 +79,7 @@ def_unit(['Ry', 'rydberg'],
 
 def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun, namespace=_ns,
          prefixes=False, doc="Solar luminance",
-         format={'latex': r'L_{\odot}', 'unicode': 'L⊙'})
+         format={'latex': r'L_{\odot}', 'unicode': 'L\N{SUN}'})
 
 
 ###########################################################################
