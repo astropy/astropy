@@ -382,6 +382,16 @@ def test_flexible_float():
     assert u.min._represents.to_string('latex') == r'$\mathrm{60\,s}$'
 
 
+def test_fits_to_string_function_error():
+    """Test function raises TypeError on bad input.
+
+    This instead of returning None, see gh-11825.
+    """
+
+    with pytest.raises(TypeError, match='unit argument must be'):
+        u_format.Fits.to_string(None)
+
+
 def test_fraction_repr():
     area = u.cm ** 2.0
     assert '.' not in area.to_string('latex')
