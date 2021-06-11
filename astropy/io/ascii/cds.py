@@ -214,7 +214,8 @@ class CdsData(core.BaseData):
         return lines[i_sections[-1]+1:]  # noqa
 
     def write(self, lines):
-        print("This is me!")
+        print(lines)
+        core.BaseData.write(self, lines)
 
 
 class Cds(core.BaseReader):
