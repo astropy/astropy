@@ -213,6 +213,9 @@ class CdsData(core.BaseData):
             raise core.InconsistentTableError('No CDS section delimiter found')
         return lines[i_sections[-1]+1:]  # noqa
 
+    def write(self, lines):
+        core.BaseData.write(self, lines)
+
 
 class CdsInputter(core.BaseInputter):
     
@@ -348,8 +351,11 @@ class Cds(core.BaseReader):
         name = 'table'
         description = 'this is a table'
         cdsTable = CDSAstropyTable(table, name, description)
-        self.data = cdsTable.returnLines()
-        return core.BaseReader.write(self, table=cdsTable)
+        #self.data.header = self.header
+        #self.header.data = cdsTable.returnLines()
+        lines = cdsTable.returnLines()
+        #print(lines)
+        return self.data_class.write(lines)
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
