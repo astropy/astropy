@@ -214,6 +214,7 @@ class CdsData(core.BaseData):
         return lines[i_sections[-1]+1:]  # noqa
 
     def write(self, lines):
+        print(self.header.data)
         core.BaseData.write(self, lines)
 
 
@@ -348,14 +349,25 @@ class Cds(core.BaseReader):
         #tablemaker.addTable(table, name='astropyTable')
         #CdsTable = tablemaker.returnTable()
         #return core.BaseReader.write(self, table=CdsTable)
+
         name = 'table'
         description = 'this is a table'
         cdsTable = CDSAstropyTable(table, name, description)
+        cdsTable.makeCDSTable()
+
         #self.data.header = self.header
         #self.header.data = cdsTable.returnLines()
-        lines = cdsTable.returnLines()
+        lines = cdsTable.returnLines()  #--this is done correctly!
         #print(lines)
-        return self.data_class.write(lines)
+
+        lines = self.inputter.get_lines(cdsTable.table)   #--doesn't work.
+        print(lines)
+        """
+        self.header.start_line = None
+        self.data.start_line = None
+        return core.BaseData.write(self, lines)
+        """
+        return core.BaseReader.write(self, table)
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
