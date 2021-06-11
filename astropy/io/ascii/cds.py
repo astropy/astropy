@@ -214,6 +214,13 @@ class CdsData(core.BaseData):
         return lines[i_sections[-1]+1:]  # noqa
 
 
+class CdsInputter(core.BaseInputter):
+    
+    def process_lines(self, lines):
+        print(lines)
+        return lines
+
+
 class Cds(core.BaseReader):
     """CDS format table.
 
@@ -326,7 +333,7 @@ class Cds(core.BaseReader):
 
     data_class = CdsData
     header_class = CdsHeader
-    #inputter_class = CdsInputter
+    inputter_class = CdsInputter
 
     def __init__(self, readme=None):
         super().__init__()
@@ -340,8 +347,8 @@ class Cds(core.BaseReader):
         #return core.BaseReader.write(self, table=CdsTable)
         name = 'table'
         description = 'this is a table'
-        cdsTable = CDSAstropyTable(table, name, description).table
-        print(cdsTable)
+        cdsTable = CDSAstropyTable(table, name, description)
+        self.data = cdsTable.returnLines()
         return core.BaseReader.write(self, table=cdsTable)
 
     def read(self, table):
@@ -398,6 +405,7 @@ class CDSTable:
         self.nlines = None
         self.nullvalue = None
         self.init_meta_columns()
+        #self.columns = self.table.columns
 
     def get_column(self, name=None):
         """Get CDS meta columns
@@ -429,6 +437,22 @@ class CDSTable:
             for i in range(1, col_length):
                 fo.write(" " + self.__cds_columns[i].value(nrec))
             fo.write("\n")
+
+    def returnLines(self):
+        for col in self.__cds_columns:
+            col.parse()
+            if self.nullvalue:
+                col.set_null_value(self.nullvalue)
+
+        col_length = len(self.__cds_columns)
+
+        lines = []
+        for nrec in range(len(self.table)):
+            lines.append(self.__cds_columns[0].value(nrec))
+            for i in range(1, col_length):
+                lines.append(" " + self.__cds_columns[i].value(nrec))
+            lines.append("\n")
+        return lines
 
     def makeCDSTable(self, fd=None):
         """Make the standardized table in ASCII aligned format.
