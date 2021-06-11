@@ -1456,18 +1456,17 @@ int unscramble(
   } else if (type == 2) {
     char (*cval)[72] = (char (*)[72])vptr;
 
-    int row_size = 72 * sizeof(char);
     char *ctmp;
-    if ((ctmp = (char *)malloc(n * row_size)) == 0x0) {
+    if ((ctmp = (char *)malloc(n * 72 * sizeof(char))) == 0x0) {
       return 1;
     }
 
     for (int i = 0; i < n; i++) {
-      memcpy(ctmp + row_size * mapto[i], cval[i], 72);
+      memcpy(ctmp + 72 * mapto[i], cval[i], 72);
     }
 
     for (int i = 0; i < n; i++) {
-      memcpy(cval[i], ctmp + row_size * i, 72);
+      memcpy(cval[i], ctmp + 72 * i, 72);
     }
 
     free(ctmp);
