@@ -326,6 +326,7 @@ class Cds(core.BaseReader):
 
     data_class = CdsData
     header_class = CdsHeader
+    inputter_class = CdsInputter
 
     def __init__(self, readme=None):
         super().__init__()
@@ -334,7 +335,9 @@ class Cds(core.BaseReader):
     def write(self, table=None):
         """Not available for the Cds class (raises NotImplementedError)"""
         tablemaker = CDSTablesMaker()
-        return print('Hello, how are you!')
+        tablemaker.addTable(table, name='astropyTable')
+        CdsTable = tablemaker.returnTable()
+        return core.BaseReader.write(self, table=CdsTable)
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
@@ -558,10 +561,6 @@ class CDSTablesMaker:
                 cdstable.description = description
         elif isinstance(table, Table):
             cdstable = CDSAstropyTable(table, name, description)
-        elif isinstance(table, str):
-            cdstable = CDSFileTable(table, name, description)
-        elif isinstance(table, np.ndarray):
-            cdstable = CDSNumpyTable(table, name, description)
         else:
             raise CDSException("type " + type(table) + " is not accepted (only String or astropy.Table)")
 
@@ -572,9 +571,9 @@ class CDSTablesMaker:
         return cdstable
 
     def returnTable(self):
-        """yields the table"""
+        """returns the first table"""
         for table in self.__tables:
-            yield table
+            return table.table
 
     def writeCDSTables(self):
         """Write tables in ASCII format
