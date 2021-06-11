@@ -185,11 +185,8 @@ class LatexData(core.BaseData):
             return None
 
     def write(self, lines):
-        print(lines)
         add_dictval_to_list(self.latex, 'data_start', lines)
-        print(lines)
         core.BaseData.write(self, lines)
-        print(lines)
         add_dictval_to_list(self.latex, 'data_end', lines)
         lines.append(self.data_end)
         add_dictval_to_list(self.latex, 'tablefoot', lines)

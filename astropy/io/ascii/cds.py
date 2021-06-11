@@ -213,10 +213,6 @@ class CdsData(core.BaseData):
             raise core.InconsistentTableError('No CDS section delimiter found')
         return lines[i_sections[-1]+1:]  # noqa
 
-    def write(self, lines):
-        print(lines)
-        core.BaseData.write(self, lines)
-
 
 class Cds(core.BaseReader):
     """CDS format table.
@@ -533,7 +529,7 @@ class CDSTablesMaker:
         """
         self.__dir = os.path.dirname(os.path.realpath(__file__))
         self.__tables = []
-        self.__ReadMetemplate = self.__dir + "/ReadMe.template"
+        self.__ReadMetemplate = self.__dir + "/src/ReadMe.template"
 
         if out != None:
             sys.stdout = open(out, 'w')
