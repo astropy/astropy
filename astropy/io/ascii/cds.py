@@ -342,9 +342,9 @@ class Cds(core.BaseReader):
     def __init__(self, readme=None):
         super().__init__()
         self.header.readme = readme
+        self.cdsdicts = cdsdicts
 
     def write(self, table=None):
-        """Not available for the Cds class (raises NotImplementedError)"""
         #tablemaker = CDSTablesMaker()
         #tablemaker.addTable(table, name='astropyTable')
         #CdsTable = tablemaker.returnTable()
@@ -359,15 +359,12 @@ class Cds(core.BaseReader):
         #self.header.data = cdsTable.returnLines()
         lines = cdsTable.returnLines()  #--this is done correctly!
         #print(lines)
-
-        lines = self.inputter.get_lines(cdsTable.table)   #--doesn't work.
-        print(lines)
         """
         self.header.start_line = None
         self.data.start_line = None
         return core.BaseData.write(self, lines)
         """
-        return core.BaseReader.write(self, table)
+        return lines
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
