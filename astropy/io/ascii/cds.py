@@ -353,12 +353,11 @@ class Cds(core.BaseReader):
         name = 'table'
         description = 'this is a table'
         cdsTable = CDSAstropyTable(table, name, description)
-        cdsTable.makeCDSTable()
+        #cdsTable.makeCDSTable()
 
         #self.data.header = self.header
         #self.header.data = cdsTable.returnLines()
         lines = cdsTable.returnLines()  #--this is done correctly!
-        #print(lines)
         """
         self.header.start_line = None
         self.data.start_line = None
@@ -463,10 +462,11 @@ class CDSTable:
 
         lines = []
         for nrec in range(len(self.table)):
-            lines.append(self.__cds_columns[0].value(nrec))
+            line = []
+            line.append(self.__cds_columns[0].value(nrec))
             for i in range(1, col_length):
-                lines.append(" " + self.__cds_columns[i].value(nrec))
-            lines.append("\n")
+                line.append(" " + self.__cds_columns[i].value(nrec))
+            lines.append(''.join(line))
         return lines
 
     def makeCDSTable(self, fd=None):
