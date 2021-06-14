@@ -4,9 +4,9 @@ on:
   push:
     branches:
     - v4.3.x
-    tags:
-    - '*'
   pull_request:
+    branches:
+    - v4.3.x
 
 env:
   ARCH_ON_CI: "normal"
