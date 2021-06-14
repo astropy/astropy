@@ -18,7 +18,7 @@ except ImportError:
 
 from astropy.io import fits
 from astropy.table import Table
-from astropy.units import UnitsWarning
+from astropy.units import UnitsWarning, Unit, UnrecognizedUnit
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from astropy.io.fits.column import Delayed, NUMPY2FITS
@@ -3515,3 +3515,28 @@ def test_invalid_file(tmp_path):
     hdu.writeto(testfile, output_verify='ignore')
     with fits.open(testfile) as hdul:
         assert hdul[1].data is not None
+
+
+def test_unit_parse_strict(tmp_path):
+    path = tmp_path / 'invalid_unit.fits'
+
+    # this is a unit parseable by the generic format but invalid for FITS
+    invalid_unit = '1 / (MeV sr s)'
+    unit = Unit(invalid_unit)
+
+    t = Table({'a': [1, 2, 3]})
+    t.write(path)
+    with fits.open(path, mode='update') as hdul:
+        hdul[1].header['TUNIT1'] = invalid_unit
+
+    t = Table.read(path)
+    assert isinstance(t['a'].unit, UnrecognizedUnit)
+
+    t = Table.read(path, unit_parse_strict='silent')
+    assert isinstance(t['a'].unit, UnrecognizedUnit)
+
+    with pytest.raises(ValueError):
+        Table.read(path, unit_parse_strict='raise')
+
+    with pytest.warns(UnitsWarning):
+        Table.read(path, unit_parse_strict='warn')

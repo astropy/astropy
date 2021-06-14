@@ -112,7 +112,7 @@ def _decode_mixins(tbl):
 
 
 def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
-                    character_as_bytes=True):
+                    character_as_bytes=True, unit_parse_strict='silent'):
     """
     Read a Table object from an FITS file
 
@@ -152,6 +152,12 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         ``U``) internally, you should set this to `False`, but note that this
         will use more memory. If set to `False`, string columns will not be
         memory-mapped even if ``memmap`` is `True`.
+    unit_parse_strict: str, optional
+        Behaviour when encountering invalid column units in the FITS header.
+        Default is "silent", which will create a
+        :class:`~astropy.units.core.UnrecognizedUnit`.
+        Values are the ones allowed by the ``parse_strict`` argument of
+        :class:`~astropy.units.core.Unit`.
     """
 
     if isinstance(input, HDUList):
@@ -211,8 +217,11 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
                             memmap=memmap)
 
         try:
-            return read_table_fits(hdulist, hdu=hdu,
-                                   astropy_native=astropy_native)
+            return read_table_fits(
+                hdulist, hdu=hdu,
+                astropy_native=astropy_native,
+                unit_parse_strict=unit_parse_strict,
+            )
         finally:
             hdulist.close()
 
@@ -249,7 +258,7 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
 
         # Copy over units
         if col.unit is not None:
-            column.unit = u.Unit(col.unit, format='fits', parse_strict='silent')
+            column.unit = u.Unit(col.unit, format='fits', parse_strict=unit_parse_strict)
 
         # Copy over display format
         if col.disp is not None:
