@@ -51,7 +51,7 @@ for line in importlib_metadata.requires('astropy'):
         except importlib_metadata.PackageNotFoundError:
             missing_requirements[req_package] = req_specifier
 
-        if version not in SpecifierSet(req_specifier):
+        if version not in SpecifierSet(req_specifier, prereleases=True):
             missing_requirements[req_package] = req_specifier
 
 if missing_requirements:
