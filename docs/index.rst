@@ -131,31 +131,8 @@ as well as coding, documentation, and testing guidelines.
 
 {% if is_development %}
 
-For the guiding vision of this process and the project
-as a whole, see :doc:`development/vision`.
-
-.. toctree::
-   :maxdepth: 1
-
-   development/workflow/development_workflow
-   development/workflow/get_devel_version
-   development/when_to_rebase
-   development/codeguide
-   development/docguide
-   development/style-guide
-   development/testguide
-   testhelpers
-   development/scripts
-   development/building
-   development/ccython
-   development/releasing
-   development/workflow/maintainer_workflow
-   development/astropy-package-template
-   changelog
-
-There are some additional tools, mostly of use for maintainers, in the
-`astropy/astropy-procedures repository
-<https://github.com/astropy/astropy-procedures>`__.
+The developer/contributor documentation has been moved to its own page at
+:doc:`development/index`.
 
 {%else%}
 
