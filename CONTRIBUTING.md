@@ -177,10 +177,6 @@ Other Tips
 
         $ git commit --amend
 
-- Unfortunately, GitHub Actions ignores ``[ci skip]`` for a PR, so we recommend
-  you only push your commits to GitHub when you are ready for the CI to run.
-  Please do not push a lot of commits for every small WIP changes.
-
 - If your commit makes substantial changes to the documentation but none of
   those changes include code snippets, then you can use ``[ci skip]``,
   which will skip all CI except RTD, where the documentation is built.
