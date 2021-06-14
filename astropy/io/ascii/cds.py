@@ -194,7 +194,7 @@ class CdsHeader(core.BaseHeader):
         self.cols = cols
 
 
-class CdsData(core.BaseData):
+class CdsData(fixedwidth.FixedWidthData):   #core.BaseData):
     """CDS table data reader
     """
     splitter_class = fixedwidth.FixedWidthSplitter
@@ -214,8 +214,10 @@ class CdsData(core.BaseData):
         return lines[i_sections[-1]+1:]  # noqa
 
     def write(self, lines):
-        print(self.header.data)
-        core.BaseData.write(self, lines)
+        #print(lines)
+        #print(self.cols)
+        self.splitter.delimiter = ' '
+        fixedwidth.FixedWidthData.write(self, lines)
 
 
 class CdsInputter(core.BaseInputter):
@@ -343,6 +345,7 @@ class Cds(core.BaseReader):
         super().__init__()
         self.header.readme = readme
         self.cdsdicts = cdsdicts
+        self.header.position_line = None
 
     def write(self, table=None):
         #tablemaker = CDSTablesMaker()
@@ -355,7 +358,7 @@ class Cds(core.BaseReader):
         cdsTable = CDSAstropyTable(table, name, description)
         #cdsTable.makeCDSTable()
 
-        #self.data.header = self.header
+        self.data.header = self.header
         #self.header.data = cdsTable.returnLines()
         lines = cdsTable.returnLines()  #--this is done correctly!
         """
@@ -363,7 +366,7 @@ class Cds(core.BaseReader):
         self.data.start_line = None
         return core.BaseData.write(self, lines)
         """
-        return lines
+        return core.BaseReader.write(self, table=table)
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
