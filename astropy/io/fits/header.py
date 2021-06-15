@@ -16,6 +16,7 @@ from ._utils import parse_header
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.units import Quantity
 
 
 BLOCK_SIZE = 2880  # the FITS block size
@@ -897,6 +898,18 @@ class Header:
         except (KeyError, IndexError):
             return default
 
+    def quantity(self, key):
+        """Returns `~astropy.units.Quantity` stored in `key`
+
+        Parameters
+        ----------
+        key : str
+            Keyword found in the header
+
+        """
+
+        return self[key]*self.cards[key].unit
+
     def set(self, keyword, value=None, comment=None, before=None, after=None):
         """
         Set the value and/or comment and/or position of a specified keyword.
@@ -1683,6 +1696,15 @@ class Header:
             if comment is not None:
                 # '' should be used to explicitly blank a comment
                 existing_card.comment = comment
+            # Copy code from Card.__init__
+            if isinstance(value, Quantity):
+                if existing_card.unit and existing_card.unit != value.unit:
+                    warnings.warn(
+                        f'Units of value ({value.unit}) disagree with units '
+                        f'decoded from comment string ({existing_card.unit}).  '
+                        'Preferring those of value.', VerifyWarning)
+                existing_card.unit = value.unit
+
             if existing_card._modified:
                 self._modified = True
         elif keyword in Card._commentary_keywords:

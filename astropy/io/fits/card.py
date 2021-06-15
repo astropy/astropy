@@ -7,6 +7,8 @@ import numpy as np
 
 from .util import _str_to_num, _is_int, translate, _words_group
 from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
+import astropy.units as u
+from astropy.units import Quantity
 
 from . import conf
 from astropy.utils.exceptions import AstropyUserWarning
@@ -154,6 +156,23 @@ class Card(_Verify):
     # (namely HIERARCH cards)
     _value_indicator = VALUE_INDICATOR
 
+    # --> This could eventually be a conf item
+    return_key_as_quantity = 'never'
+    # --> These could be conf items or standardized
+    # STYLE (1):
+    #### COMMENT (<unit>)
+    unit_str_position = 'end'
+    unit_str_start = ' '
+    unit_str_delimiters = '()'
+    unit_str_end = ''
+    # STYLE (2):
+    #### [<unit>] COMMENT
+    #unit_str_position = 'start'
+    #unit_str_start = ''
+    #unit_str_delimiters = '[]'
+    #unit_str_end = ' '
+
+
     def __init__(self, keyword=None, value=None, comment=None, **kwargs):
         # For backwards compatibility, support the 'key' keyword argument:
         if keyword is None and 'key' in kwargs:
@@ -162,6 +181,7 @@ class Card(_Verify):
         self._keyword = None
         self._value = None
         self._comment = None
+        self._unit = None
         self._valuestring = None
         self._image = None
 
@@ -194,8 +214,18 @@ class Card(_Verify):
                 self.value = value
 
         if comment is not None:
+            # This sets the unit from the comment string (if any), but
+            # we prefer the unit in value, addressed next
             self.comment = comment
 
+        if isinstance(value, Quantity):
+            if self.unit and self.unit != value.unit:
+                warnings.warn(
+                    f'Units of value ({value.unit}) disagree with units '
+                    f'decoded from comment string ({self.unit}).  '
+                    'Preferring those of value.', VerifyWarning)
+            self.unit = value.unit
+            
         self._modified = False
         self._valuemodified = False
 
@@ -293,6 +323,22 @@ class Card(_Verify):
         if conf.strip_header_whitespace and isinstance(value, str):
             value = value.rstrip()
 
+        rkaq = self.return_key_as_quantity.lower()
+        if rkaq == 'never':
+            pass
+        elif rkaq == 'recognized':
+            if self.unit is None:
+                pass
+            else:
+                value *= self.unit
+        elif rkaq == 'always':
+            if self.unit is None:
+                value *= u.dimensionless_unscaled
+            else:
+                value *= self.unit
+        else:
+            raise ValueError(f'Unrecognized value for "return_key_as_quantity": {rkaq}')
+
         return value
 
     @value.setter
@@ -314,6 +360,12 @@ class Card(_Verify):
 
         if oldvalue is None:
             oldvalue = UNDEFINED
+
+        if isinstance(value, Quantity):
+            self.unit = value.unit
+            value = value.value
+        else:
+            del self.unit
 
         if not isinstance(value,
                           (str, int, float, complex, bool, Undefined,
@@ -366,6 +418,7 @@ class Card(_Verify):
 
         if not self.field_specifier:
             self.value = ''
+            del self.unit
         else:
             raise AttributeError('Values cannot be deleted from record-valued '
                                  'keyword cards')
@@ -443,6 +496,27 @@ class Card(_Verify):
             oldcomment = ''
         if comment != oldcomment:
             self._comment = comment
+            oldunit = self.unit
+            newunit = self._get_comment_unit(comment)
+            if newunit != oldunit:
+                # Change the card unit, but raise warning -- input via
+                # Quantity should be preferred
+                self._unit = newunit
+                if oldunit:
+                    oldunit_str = oldunit.to_string()
+                else:
+                    oldunit_str = 'None'
+                if newunit:
+                    newunit_str = newunit.to_string()
+                else:
+                    newunit_str = 'None'
+                if oldunit:
+                    warnings.warn(
+                        f'Changing unit of card from {oldunit_str} to '
+                        f'{newunit_str}.  It is recommended instead '
+                        ' to set the unit by assigning a Quantity to '
+                        'Card.value or by setting Card.unit directly.',
+                        VerifyWarning)
             self._modified = True
 
     @comment.deleter
@@ -453,6 +527,25 @@ class Card(_Verify):
                 'Either delete this card from the header or replace it.')
 
         self.comment = ''
+        self._unit = None
+
+    @property
+    def unit(self):
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit):
+        self._unit = unit
+        self._comment = self._set_comment_unit(self.comment, unit)
+
+    @unit.deleter
+    def unit(self):
+        if self._invalid:
+            raise ValueError(
+                'The comment of invalid/unparseable cards cannot deleted.  '
+                'Either delete this card from the header or replace it.')
+        self._unit = None
+        self.comment = re.sub(self._full_unit_regexp, '', self.comment)
 
     @property
     def field_specifier(self):
@@ -770,7 +863,7 @@ class Card(_Verify):
         return value
 
     def _parse_comment(self):
-        """Extract the keyword value from the card image."""
+        """Extract the comment from the card image."""
 
         # for commentary cards, no need to parse further
         # likewise for invalid/unparseable cards
@@ -791,6 +884,8 @@ class Card(_Verify):
             # this case the best we can do is guess that everything after the
             # first / was meant to be the comment
             comment = valuecomment.split('/', 1)[1].strip()
+
+        self._unit = self._get_comment_unit(comment)
 
         return comment
 
@@ -959,7 +1054,98 @@ class Card(_Verify):
         else:
             return f' / {self._comment}'
 
-    def _format_image(self):
+    @property
+    def _full_unit_regexp(self):
+        s = re.escape(self.unit_str_start)
+        l = re.escape(self.unit_str_delimiters[0])
+        r = re.escape(self.unit_str_delimiters[1])
+        e = re.escape(self.unit_str_end)
+        unit_str_position = self.unit_str_position.lower()
+        if unit_str_position in ['start', 'beginning']:
+            ms = '^'
+            me = ''
+        elif unit_str_position == 'end':
+            ms = ''
+            me = '$'
+        else:
+            raise ValueError(f'Unknown unit string position {self.unit_str_position}.  Expecting "start" or "end"')
+        return f'{ms}{s}{l}.*{r}{e}{me}'
+
+    def _get_comment_unit(self, comment):
+        """Returns `~astropy.units.Unit` found in comment, if defined, else ``None``"""
+        # Extract unit together with lead-in and delimiter
+        # https://stackoverflow.com/questions/8569201/get-the-string-within-brackets-in-python
+        m = re.search(self._full_unit_regexp, comment)
+        if m is None:
+            #log.debug(f'no unit matching "{self._full_unit_regexp}" in "{comment}"')
+            return None
+        # Strip off delemeters
+        punit_str = m.group(0)
+        s = re.escape(self.unit_str_start)
+        l = re.escape(self.unit_str_delimiters[0])
+        r = re.escape(self.unit_str_delimiters[1])
+        e = re.escape(self.unit_str_end)
+        unit_str = re.sub(f'[{s}{l}{r}{e}]', '', punit_str)
+        try:
+            unit = u.Unit(unit_str)
+        except ValueError as e:
+            warnings.warn(
+                f'Unit not assigned to {self.keyword} keyword because of '
+                f'Unit conversion error in comment '
+                f"'{comment}': {e}", AstropyUserWarning)
+            return None
+        return unit
+
+    def _full_unit_str(self, unit):
+        unit_str = unit.to_string()
+        s = self.unit_str_start
+        l = self.unit_str_delimiters[0]
+        r = self.unit_str_delimiters[1]
+        e = self.unit_str_end
+        return f'{s}{l}{unit_str}{r}{e}'
+
+    def _set_comment_unit(self, comment, unit):
+        """put unit str into comment"""
+        # Start from a clean slate
+        comment = re.sub(self._full_unit_regexp, '', comment)
+        if unit is None:
+            return comment
+        fus = self._full_unit_str(unit)
+        p = self.unit_str_position 
+        if p.lower() in ['start', 'beginning']:
+            comment = f'{fus}{comment}'
+        elif p.lower() in ['end']:
+            comment = f'{comment}{fus}'
+        else:
+            raise ValueError(f'unrecognized unit string position {p}')
+        return comment
+
+    def _format_image(self, card_length=None):
+        if card_length is None and self._unit is None:
+            # Nominal case of card with no unit
+            card_length = self.length
+        elif card_length is None:
+            # Unit string plus card comment may be too long.  Call
+            # ourselves recursively with an appropriately shortened
+            # card_length to reserve space for the unit string.  This
+            # makes it possible to have the unit string at the end of
+            # the comment
+            unit = self._unit
+            fus = self._full_unit_str(unit)
+            uroom = len(fus)
+            card_length = self.length - uroom
+            self._comment = re.sub(self._full_unit_regexp, '', self.comment)
+            self._image = self._format_image(card_length)
+            # Extract possibly shortened comment from self._image and
+            # add unit string directly to it.  This call to
+            # self._parse_comment resets self.unit to None, hence it
+            # needs to be reset
+            comment = self._parse_comment()
+            self._comment = self._set_comment_unit(comment, unit)
+            self._unit = unit
+            # Reset card_length to normal value for code below
+            card_length = self.length
+
         keyword = self._format_keyword()
 
         value = self._format_value()
@@ -993,19 +1179,19 @@ class Card(_Verify):
                 raise ValueError('The header keyword {!r} with its value is '
                                  'too long'.format(self.keyword))
 
-        if len(output) <= self.length:
-            output = f'{output:80}'
+        if len(output) <= card_length:
+            output = ('{0:' + str(card_length) + '}').format(output)
         else:
             # longstring case (CONTINUE card)
             # try not to use CONTINUE if the string value can fit in one line.
             # Instead, just truncate the comment
             if (isinstance(self.value, str) and
-                    len(value) > (self.length - 10)):
+                    len(value) > (card_length - 10)):
                 output = self._format_long_image()
             else:
                 warnings.warn('Card is too long, comment will be truncated.',
                               VerifyWarning)
-                output = output[:Card.length]
+                output = output[:card_length]
         return output
 
     def _format_long_image(self):
