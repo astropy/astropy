@@ -2659,7 +2659,7 @@ class KingProjectedAnalytic1D(Fittable1DModel):
 
     References
     ----------
-    .. [1] http://articles.adsabs.harvard.edu/pdf/1962AJ.....67..471K
+    .. [1] https://ui.adsabs.harvard.edu/abs/1962AJ.....67..471K
     """
 
     amplitude = Parameter(default=1, bounds=(FLOAT_EPSILON, None), description="Amplitude or scaling factor")
