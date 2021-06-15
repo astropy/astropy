@@ -172,7 +172,6 @@ class Card(_Verify):
     #unit_str_delimiters = '[]'
     #unit_str_end = ' '
 
-
     def __init__(self, keyword=None, value=None, comment=None, **kwargs):
         # For backwards compatibility, support the 'key' keyword argument:
         if keyword is None and 'key' in kwargs:
@@ -225,7 +224,7 @@ class Card(_Verify):
                     f'decoded from comment string ({self.unit}).  '
                     'Preferring those of value.', VerifyWarning)
             self.unit = value.unit
-            
+
         self._modified = False
         self._valuemodified = False
 
@@ -1111,7 +1110,7 @@ class Card(_Verify):
         if unit is None:
             return comment
         fus = self._full_unit_str(unit)
-        p = self.unit_str_position 
+        p = self.unit_str_position
         if p.lower() in ['start', 'beginning']:
             comment = f'{fus}{comment}'
         elif p.lower() in ['end']:
