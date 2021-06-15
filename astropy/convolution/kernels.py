@@ -32,6 +32,8 @@ class Gaussian1DKernel(Kernel1D):
     The Gaussian filter is a filter with great smoothing properties. It is
     isotropic and does not produce artifacts.
 
+    The generated kernel is normalized so that it integrates to 1.
+
     Parameters
     ----------
     stddev : number
@@ -94,6 +96,8 @@ class Gaussian2DKernel(Kernel2D):
 
     The Gaussian filter is a filter with great smoothing properties. It is
     isotropic and does not produce artifacts.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     Parameters
     ----------
@@ -168,7 +172,9 @@ class Box1DKernel(Kernel1D):
     1D Box filter kernel.
 
     The Box filter or running mean is a smoothing filter. It is not isotropic
-    and can produce artifacts, when applied repeatedly to the same data.
+    and can produce artifacts when applied repeatedly to the same data.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     By default the Box kernel uses the ``linear_interp`` discretization mode,
     which allows non-shifting, even-sized kernels.  This is achieved by
@@ -236,7 +242,9 @@ class Box2DKernel(Kernel2D):
     2D Box filter kernel.
 
     The Box filter or running mean is a smoothing filter. It is not isotropic
-    and can produce artifact, when applied repeatedly to the same data.
+    and can produce artifacts when applied repeatedly to the same data.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     By default the Box kernel uses the ``linear_interp`` discretization mode,
     which allows non-shifting, even-sized kernels.  This is achieved by
@@ -308,6 +316,8 @@ class Tophat2DKernel(Kernel2D):
     The Tophat filter is an isotropic smoothing filter. It can produce
     artifacts when applied repeatedly on the same data.
 
+    The generated kernel is normalized so that it integrates to 1.
+
     Parameters
     ----------
     radius : int
@@ -366,6 +376,8 @@ class Ring2DKernel(Kernel2D):
     The Ring filter kernel is the difference between two Tophat kernels of
     different width. This kernel is useful for, e.g., background estimation.
 
+    The generated kernel is normalized so that it integrates to 1.
+
     Parameters
     ----------
     radius_in : number
@@ -422,6 +434,8 @@ class Ring2DKernel(Kernel2D):
 class Trapezoid1DKernel(Kernel1D):
     """
     1D trapezoid kernel.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     Parameters
     ----------
@@ -480,6 +494,8 @@ class Trapezoid1DKernel(Kernel1D):
 class TrapezoidDisk2DKernel(Kernel2D):
     """
     2D trapezoid kernel.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     Parameters
     ----------
@@ -696,8 +712,9 @@ class AiryDisk2DKernel(Kernel2D):
     """
     2D Airy disk kernel.
 
-    This kernel models the diffraction pattern of a circular aperture. This
-    kernel is normalized so that it sums to 1.
+    This kernel models the diffraction pattern of a circular aperture.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     Parameters
     ----------
@@ -760,6 +777,8 @@ class Moffat2DKernel(Kernel2D):
     2D Moffat kernel.
 
     This kernel is a typical model for a seeing limited PSF.
+
+    The generated kernel is normalized so that it integrates to 1.
 
     Parameters
     ----------
