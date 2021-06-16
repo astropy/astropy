@@ -7,19 +7,28 @@
 Python virtual environments
 ***************************
 
-If you plan to do regular work on astropy you should do your development in
+If you plan to do regular work on Astropy you should do your development in
 a Python virtual environment. Conceptually a virtual environment is a
-duplicate of the Python environment you normally work in with as many (or as
-few) of the packages from your default environment included in that virtual
-environment. It is sandboxed from your default Python environment in the
-sense that packages installed in the virtual environment do not affect your
-normal environment in any way.
+duplicate of the Python environment you normally work in, but sandboxed from
+your default Python environment in the sense that packages installed in the
+virtual environment do not affect your normal working environment in any way.
+This allows you to install, for example, a development version of Astropy
+and its dependencies without it conflicting with your day-to-day work with
+Astropy and other Python packages.
 
 .. note::
 
-    "Default Python environment" means whatever Python you are using when
-    you log in; i.e. the default Python installation on your system, which
-    is not in a Conda environment or virtualenv.
+    "Default Python environment" here means whatever Python you are using
+    when you log in; i.e. the default Python installation on your system,
+    which is not in a Conda environment or virtualenv.
+
+    More specifically, in UNIX-like platforms it creates a parallel root
+    "prefix" with its own ``bin/``, ``lib/``, etc. directories.  When you
+    :ref:`activate <activate_env>` the virtual environment it places this
+    ``bin/`` at the head of your ``$PATH`` environment variable.
+
+    This works similarly on Windows but the details depend on how you
+    installed Python and whether or not you're using Anaconda.
 
 There are a few options for using virtual environments; the choice of method
 is dictated by the Python distribution you use:
@@ -158,7 +167,7 @@ environment.
 
     + Your command-line prompt will contain ``ENV`` in parentheses by default.
 
-    + If astropy is installed in your ``ENV`` environment, you may need to uninstall it
+    + If Astropy is installed in your ``ENV`` environment, you may need to uninstall it
       in order for the development version to install properly. You can do this
       with the following command::
 
@@ -198,11 +207,12 @@ To use a new virtual environment you may need to activate it;
 when you create it. Activation does two things (either of which you could do
 manually, though it would be inconvenient):
 
-* Put the ``bin`` directory for the virtual environment at the front of your
+* Puts the ``bin`` directory for the virtual environment at the front of your
   ``$PATH``.
-* Add the name of the virtual environment to your command prompt. If you have
-  successfully switched to a new environment called ``ENV`` your prompt should
-  look something like this: ``(ENV)[~] $``
+
+* Adds the name of the virtual environment to your command prompt. If you
+  have successfully switched to a new environment called ``ENV`` your prompt
+  should look something like this: ``(ENV)[~] $``
 
 The commands below allow you to switch between virtual environments in
 addition to activating new ones.
