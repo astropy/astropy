@@ -158,6 +158,7 @@ Project details
 
    stability
    whatsnew/index
+   changelog
    known_issues
    credits
    license

@@ -35,7 +35,6 @@ as a whole, see :doc:`development/vision`.
    releasing
    workflow/maintainer_workflow
    astropy-package-template
-   ../changelog
 
 There are some additional tools, mostly of use for maintainers, in the
 `astropy/astropy-procedures repository
