@@ -2836,12 +2836,12 @@ class CompoundModel(Model):
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment
         # in selecting only valid inputs to pass along to constituent models.
-        bbox = get_bounding_box(self, args, slice_index=slice_index)
+        bbox, slice_arg = get_bounding_box(self, args, slice_index=slice_index)
         if (slice_index is not None) and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
                                                  self.model_set_axis, self.standard_broadcasting)
-            vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox)
+            vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox, slice_arg)
             if not allout:
                 valid_result = self._evaluate(*vinputs, **kw)
                 if self.n_outputs == 1:
@@ -4177,18 +4177,25 @@ def get_bounding_box(self, inputs, slice_index=None):
         If ``bounding_box`` is not defined.
     """
 
+    slice_arg = []
+
     if slice_index is None:
-        return None
+        return None, slice_arg
     else:
         try:
             bbox = self.bounding_box
         except NotImplementedError:
-            return None
+            return None, slice_arg
 
-        if  isinstance(bbox, ComplexBoundingBox):
-            return bbox.get_bounding_box(inputs, slice_index)
+        if isinstance(bbox, ComplexBoundingBox):
+            if bbox.remove_slice_arg:
+                if isiterable(bbox.slice_arg):
+                    slice_arg = bbox.slice_arg
+                else:
+                    slice_arg = [bbox.slice_arg]
+            return bbox.get_bounding_box(inputs, slice_index), slice_arg
         else:
-            return bbox
+            return bbox, slice_arg
 
 
 def generic_call(self, *inputs, **kwargs):
@@ -4205,13 +4212,14 @@ def generic_call(self, *inputs, **kwargs):
         slice_index = None
 
     fill_value = kwargs.pop('fill_value', np.nan)
-    bbox = get_bounding_box(self, inputs, slice_index=slice_index)
+    bbox, slice_arg = get_bounding_box(self, inputs, slice_index=slice_index)
+    print(bbox, slice_arg)
     if (slice_index is not None) and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,
             self.standard_broadcasting)
         vinputs, valid_ind, allout = prepare_bounding_box_inputs(
-            self, input_shape, inputs, bbox)
+            self, input_shape, inputs, bbox, slice_arg)
         valid_result_unit = None
         if not allout:
             valid_result = self.evaluate(*chain(vinputs, parameters))
@@ -4237,7 +4245,7 @@ def generic_call(self, *inputs, **kwargs):
     return outputs
 
 
-def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
+def prepare_bounding_box_inputs(self, input_shape, inputs, bbox, slice_index):
     """
     Assign a value of ``np.nan`` to indices outside the bounding box.
     """
@@ -4252,7 +4260,10 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
     # have a value of 1 in ``nan_ind``
     nan_ind = np.zeros(input_shape, dtype=bool)
     for ind, inp in enumerate(inputs):
+        if ind in slice_index:
+            continue
         inp = np.asanyarray(inp)
+        print(f"Preparing inputs for bounding_box: {ind}, {inp}, {bbox[ind][0]}, {bbox[ind][1]}")
         outside = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1])
         if inp.shape:
             nan_ind[outside] = True
@@ -4260,6 +4271,7 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
             nan_ind |= outside
             if nan_ind:
                 allout = True
+        print(f"Prepare inputs results: {ind}, {inp}, {outside}, {allout}, {nan_ind}")
     # get an array with indices of valid inputs
     valid_ind = np.atleast_1d(np.logical_not(nan_ind)).nonzero()
     if len(valid_ind[0]) == 0:

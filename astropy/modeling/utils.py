@@ -471,6 +471,9 @@ class _BoundingBox(tuple):
         ensure it is always an N-tuple (even for the 1-D case).
         """
 
+        if isinstance(bounding_box, dict) or isinstance(bounding_box, ComplexBoundingBox):
+            return ComplexBoundingBox.validate(model, bounding_box, slice_arg=slice_arg)
+
         nd = model.n_inputs
         if slice_arg is not None:
             if isinstance(slice_arg, tuple):
@@ -538,9 +541,14 @@ class _BoundingBox(tuple):
         else:
             raise ValueError('Bounding box must have positive dimension')
 
+    def reverse(self, axes_ind):
+        bbox = [self[ind] for ind in axes_ind][::-1]
+
+        return _BoundingBox(bbox, self._model)
+
 
 class ComplexBoundingBox(UserDict):
-    def __init__(self, bounding_box,  model=None, slice_arg=None):
+    def __init__(self, bounding_box,  model=None, slice_arg=None, remove_slice_arg=False):
         super().__init__(bounding_box)
         self._model = model
 
@@ -548,6 +556,16 @@ class ComplexBoundingBox(UserDict):
             self._slice_arg = slice_arg
         else:
             self.set_slice_arg(slice_arg)
+
+        self._remove_slice_arg = remove_slice_arg
+
+    @property
+    def slice_arg(self):
+        return self._slice_arg
+
+    @property
+    def remove_slice_arg(self):
+        return self._remove_slice_arg
 
     def _get_arg_index(self, slice_arg):
         if np.issubdtype(type(slice_arg), np.integer):
@@ -564,8 +582,17 @@ class ComplexBoundingBox(UserDict):
             raise ValueError(f'{arg_index} is out of model argument bounds')
 
     @classmethod
-    def validate(cls, model, bounding_box, slice_arg=None, remove_slice_arg=False):
-        new_box = cls({}, model, slice_arg)
+    def validate(cls, model, bounding_box, slice_arg=None, remove_slice_arg=None):
+        if isinstance(bounding_box, ComplexBoundingBox) and slice_arg is None:
+            slice_arg = bounding_box.slice_arg
+
+        if remove_slice_arg is None:
+            if isinstance(bounding_box, ComplexBoundingBox):
+                remove_slice_arg = bounding_box.remove_slice_arg
+            else:
+                remove_slice_arg = False
+
+        new_box = cls({}, model, slice_arg, remove_slice_arg)
 
         if not remove_slice_arg:
             slice_arg = None
@@ -608,6 +635,22 @@ class ComplexBoundingBox(UserDict):
             return self[slice_index]
         else:
             raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
+
+    def reverse(self, axes_ind):
+        # bbox = {slice_index: slice_box.reverse(axes_ind)
+        #         for slice_index, slice_box in self.items()}
+        bbox = {}
+        for slice_index, slice_box in self.items():
+            bbox[slice_index] = [slice_box[ind] for ind in axes_ind][::-1]
+
+        return ComplexBoundingBox(bbox, self._model, self._slice_arg, self._remove_slice_arg)
+
+    def py_order(self, axes_order):
+        bbox = {}
+        for slice_index, slice_box in self.items():
+            bbox[slice_index] = tuple(slice_box[::-1][i] for i in axes_order)
+
+        return ComplexBoundingBox(bbox, self._model, self._slice_arg, self._remove_slice_arg)
 
 
 def make_binary_operator_eval(oper, f, g):
