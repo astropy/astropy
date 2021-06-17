@@ -39,7 +39,8 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
-                    _ConstraintsDict, _SpecialOperatorsDict, ComplexBoundingBox)
+                    _ConstraintsDict, _SpecialOperatorsDict)
+from .bounding_box import CompoundBoundingBox
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -1285,8 +1286,8 @@ class Model(metaclass=_ModelMeta):
             # We use this to explicitly set an unimplemented bounding box (as
             # opposed to no user bounding box defined)
             bounding_box = NotImplemented
-        elif (isinstance(bounding_box, ComplexBoundingBox) or isinstance(bounding_box, dict)):
-            cls = ComplexBoundingBox
+        elif (isinstance(bounding_box, CompoundBoundingBox) or isinstance(bounding_box, dict)):
+            cls = CompoundBoundingBox
         elif (isinstance(self._bounding_box, type) and
               issubclass(self._bounding_box, _BoundingBox)):
             cls = self._bounding_box
@@ -1306,7 +1307,7 @@ class Model(metaclass=_ModelMeta):
         Assigns the slice arg to complex bounding box
         """
 
-        if isinstance(self._user_bounding_box, ComplexBoundingBox):
+        if isinstance(self._user_bounding_box, CompoundBoundingBox):
             self._user_bounding_box.set_slice_arg(slice_arg)
         else:
             raise RuntimeError('The bounding_box for this model is not complex.')
@@ -3647,7 +3648,7 @@ def fix_inputs(modelinstance, values, bbox=None, slice_args=None):
             slice_arg = slice_arg[0]
             slice_index = slice_index[0]
 
-        complex_bbox = ComplexBoundingBox.validate(modelinstance, bbox,
+        complex_bbox = CompoundBoundingBox.validate(modelinstance, bbox,
                                                    slice_arg=slice_arg,
                                                    remove_slice_arg=True)
         model.bounding_box = complex_bbox.get_bounding_box(slice_index=slice_index)
@@ -4187,7 +4188,7 @@ def get_bounding_box(self, inputs, slice_index=None):
         except NotImplementedError:
             return None, slice_arg
 
-        if isinstance(bbox, ComplexBoundingBox):
+        if isinstance(bbox, CompoundBoundingBox):
             if bbox.remove_slice_arg:
                 if isiterable(bbox.slice_arg):
                     slice_arg = bbox.slice_arg
@@ -4213,7 +4214,6 @@ def generic_call(self, *inputs, **kwargs):
 
     fill_value = kwargs.pop('fill_value', np.nan)
     bbox, slice_arg = get_bounding_box(self, inputs, slice_index=slice_index)
-    print(bbox, slice_arg)
     if (slice_index is not None) and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,
@@ -4263,7 +4263,6 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox, slice_index):
         if ind in slice_index:
             continue
         inp = np.asanyarray(inp)
-        print(f"Preparing inputs for bounding_box: {ind}, {inp}, {bbox[ind][0]}, {bbox[ind][1]}")
         outside = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1])
         if inp.shape:
             nan_ind[outside] = True
@@ -4271,7 +4270,6 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox, slice_index):
             nan_ind |= outside
             if nan_ind:
                 allout = True
-        print(f"Prepare inputs results: {ind}, {inp}, {outside}, {allout}, {nan_ind}")
     # get an array with indices of valid inputs
     valid_ind = np.atleast_1d(np.logical_not(nan_ind)).nonzero()
     if len(valid_ind[0]) == 0:

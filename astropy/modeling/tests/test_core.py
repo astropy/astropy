@@ -15,7 +15,7 @@ from astropy.modeling.core import (Model, CompoundModel, custom_model,
                                    bind_complex_bounding_box, fix_inputs)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
-from astropy.modeling.utils import ComplexBoundingBox
+from astropy.modeling.bounding_box import CompoundBoundingBox
 from astropy.convolution import convolve_models
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
@@ -741,18 +741,18 @@ def test_get_bounding_box():
     assert get_bounding_box(model, [], slice_index=17) == (None, [])
 
     model.bounding_box = (0, 1)
-    assert not isinstance(model.bounding_box, ComplexBoundingBox)
+    assert not isinstance(model.bounding_box, CompoundBoundingBox)
     assert get_bounding_box(model, []) == (None, [])
     assert get_bounding_box(model, [], 15) == ((0, 1), [])
 
     model.bounding_box = {1: (-1, 0), 2: (0, 1)}
-    assert isinstance(model.bounding_box, ComplexBoundingBox)
+    assert isinstance(model.bounding_box, CompoundBoundingBox)
     assert get_bounding_box(model, []) == (None, [])
     assert get_bounding_box(model, [], slice_index=1) == ((-1, 0), [])
     with pytest.raises(RuntimeError):
         get_bounding_box(model, [], slice_index=0)
 
-    bounding_box = ComplexBoundingBox({1: (-1, 0), 2: (0, 1)},
+    bounding_box = CompoundBoundingBox({1: (-1, 0), 2: (0, 1)},
                                       slice_arg=4, remove_slice_arg=True)
     model._user_bounding_box = bounding_box
     assert get_bounding_box(model, []) == (None, [])
