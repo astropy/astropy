@@ -1,1 +1,0 @@
-Enable the use of ``os.PathLike`` objects when dealing with (mainly FITS) files.

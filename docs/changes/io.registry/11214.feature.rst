@@ -1,2 +1,0 @@
-Readers and writers can now set a priority, to assist with resolving which
-format to use.

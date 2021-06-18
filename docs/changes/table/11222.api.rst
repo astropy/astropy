@@ -1,3 +1,0 @@
-In reading from a FITS tables, the standard mask values of ``NaN`` for float
-and null string for string are properly recognized, leading to a
-``MaskedColumn`` with appropriately set mask.
