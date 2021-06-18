@@ -1,1 +1,0 @@
-Added ``append`` keyword to append table objects to an existing FITS file

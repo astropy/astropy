@@ -1,1 +1,0 @@
-Fixed bug in ``LevMarLSQFitter`` when using weights and vector inputs.
