@@ -1,3 +1,6 @@
 Add read and write methods to ``Cosmology``, using the astropy Unified I/O
-framework, so any registered ``Table`` format can be used.
-JSON files are also added as a read and write option.
+framework. Currently ECSV and JSON are supported for reading and writing.
+Also a submodule ``cosmology/io`` is added with ``to/from_Table/mapping``
+functions to enable representing a cosmology instance as a Table or dictionary,
+and creating a cosmology instance from the same.
+A docs section is added in the cosmology docs illustrating the new features.
