@@ -98,8 +98,14 @@ def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
     df = tbl.to_pandas()
     write_method = getattr(df, 'to_' + pandas_fmt)
 
-    if os.path.exists(filespec) and overwrite is not True:
-        raise OSError(f"{filespec} already exists")
+    if not overwrite:
+        try:  # filespec is not always a path-like
+            exists = os.path.exists(filespec)
+        except TypeError:  # skip invalid arguments
+            pass
+        else:
+            if exists:  # only error if file already exists
+                raise OSError(f"{filespec} already exists")
 
     return write_method(filespec, **write_kwargs)
 
