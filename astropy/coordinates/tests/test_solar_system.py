@@ -279,6 +279,7 @@ class TestPositionKittPeak:
 
 
 @pytest.mark.remote_data
+@pytest.mark.skipif('not HAS_JPLEPHEM')
 def test_horizons_consistency_with_precision():
     """
     A test to compare at high precision against output of JPL horizons.
