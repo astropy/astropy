@@ -533,10 +533,10 @@ class CDSTable:
         return True
 
 
-
 class CDSAstropyTable(CDSTable):
     """Manage astropy table
     """
+
     def __init__(self, table, name=None, description=None):
         """Constructor
         :param table: astropy table

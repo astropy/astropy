@@ -10,6 +10,7 @@ import math
 UNDEFINED_UNIT = "---"
 DEFAULT_STRING_SIZE = 50
 
+
 class SexaMeta:
     """Sexa metadata"""
 
@@ -336,7 +337,7 @@ class CDSColumn:
                 formater.size = int(mo.group(2))
                 formater.format = "%"+f
                 formater.out_format = "{0:"+f+"}"
- 
+
         formater.none_format = "{0:"+str(formater.size)+"}"
         self.__force_format = formater
 
