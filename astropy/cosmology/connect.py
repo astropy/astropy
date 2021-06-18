@@ -10,10 +10,6 @@ __all__ = ["CosmologyRead", "CosmologyWrite"]
 __doctest_skip__ = ["CosmologyRead", "CosmologyWrite"]
 
 
-_read_msg = ("``Cosmology.read()`` must be called from the "
-             "``Cosmology`` base class.")
-
-
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
@@ -76,7 +72,9 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         # warn that ``read`` can only be called from the base class.
         # and return None to prevent usage.
         if cosmo_cls is not Cosmology:
-            warnings.warn(_read_msg, category=AstropyUserWarning)
+            warnings.warn(("``Cosmology.read()`` must be called from the "
+                           "``Cosmology`` base class."),
+                           category=AstropyUserWarning)
             return None  # cannot use .read on subclasses, only `Cosmology`.
 
         return super().__new__(cls)
