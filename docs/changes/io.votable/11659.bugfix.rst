@@ -1,1 +1,0 @@
-VOTables are now written with the correct namespace and schema location attributes.

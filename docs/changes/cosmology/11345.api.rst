@@ -1,2 +1,0 @@
-Split cosmology realizations from core classes, moving the former to new file
-``realizations``.

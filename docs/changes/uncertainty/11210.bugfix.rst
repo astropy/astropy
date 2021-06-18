@@ -1,3 +1,0 @@
-``Distribution`` instances can now be used as input to ``Quantity`` to
-initialize ``QuantityDistribution``.  Hence, ``distribution * unit``
-and ``distribution << unit`` will work too.
