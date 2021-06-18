@@ -50,6 +50,29 @@ cdsdicts = {'title': 'Title ?',
             }
 
 
+class CdsSplitter(fixedwidth.FixedWidthSplitter):
+    """
+    Contains the join function to left align the CDS columns
+    when writing to a file.
+    """
+    delimiter_pad = ''
+    bookend = False
+    delimiter = ' '
+
+    def join(self, vals, widths):
+        pad = self.delimiter_pad or ''
+        delimiter = self.delimiter or ''
+        padded_delim = pad + delimiter + pad
+        if self.bookend:
+            bookend_left = delimiter + pad
+            bookend_right = pad + delimiter
+        else:
+            bookend_left = ''
+            bookend_right = ''
+        vals = [val + ' ' * (width - len(val)) for val, width in zip(vals, widths)]
+        return bookend_left + padded_delim.join(vals) + bookend_right
+
+
 class CdsHeader(core.BaseHeader):
     col_type_map = {'e': core.FloatType,
                     'f': core.FloatType,
@@ -194,10 +217,10 @@ class CdsHeader(core.BaseHeader):
         self.cols = cols
 
 
-class CdsData(fixedwidth.FixedWidthData):   #core.BaseData):
+class CdsData(fixedwidth.FixedWidthData):
     """CDS table data reader
     """
-    splitter_class = fixedwidth.FixedWidthSplitter
+    splitter_class = CdsSplitter
 
     def process_lines(self, lines):
         """Skip over CDS header by finding the last section delimiter"""
@@ -214,17 +237,7 @@ class CdsData(fixedwidth.FixedWidthData):   #core.BaseData):
         return lines[i_sections[-1]+1:]  # noqa
 
     def write(self, lines):
-        #print(lines)
-        #print(self.cols)
-        self.splitter.delimiter = ' '
         fixedwidth.FixedWidthData.write(self, lines)
-
-
-class CdsInputter(core.BaseInputter):
-    
-    def process_lines(self, lines):
-        print(lines)
-        return lines
 
 
 class Cds(core.BaseReader):
@@ -339,33 +352,18 @@ class Cds(core.BaseReader):
 
     data_class = CdsData
     header_class = CdsHeader
-    inputter_class = CdsInputter
 
     def __init__(self, readme=None):
         super().__init__()
         self.header.readme = readme
         self.cdsdicts = cdsdicts
-        self.header.position_line = None
 
     def write(self, table=None):
-        #tablemaker = CDSTablesMaker()
-        #tablemaker.addTable(table, name='astropyTable')
-        #CdsTable = tablemaker.returnTable()
-        #return core.BaseReader.write(self, table=CdsTable)
-
-        name = 'table'
-        description = 'this is a table'
-        cdsTable = CDSAstropyTable(table, name, description)
-        #cdsTable.makeCDSTable()
-
         self.data.header = self.header
         #self.header.data = cdsTable.returnLines()
-        lines = cdsTable.returnLines()  #--this is done correctly!
-        """
+        self.header.position_line = None
         self.header.start_line = None
         self.data.start_line = None
-        return core.BaseData.write(self, lines)
-        """
         return core.BaseReader.write(self, table=table)
 
     def read(self, table):
@@ -539,7 +537,6 @@ class CDSTable:
 class CDSAstropyTable(CDSTable):
     """Manage astropy table
     """
-
     def __init__(self, table, name=None, description=None):
         """Constructor
         :param table: astropy table
