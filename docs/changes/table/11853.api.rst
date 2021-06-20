@@ -1,0 +1,2 @@
+The 'overwrite' argument has been added to the jsviewer table writer.
+Overwriting an existing file requires 'overwrite' to be True.
