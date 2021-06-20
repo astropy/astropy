@@ -106,6 +106,22 @@ def test_write_jsviewer_default(tmpdir):
         assert f.read().strip() == ref.strip()
 
 
+def test_write_jsviewer_overwrite(tmpdir):
+    t = Table()
+    t['a'] = [1, 2, 3, 4, 5]
+    t['b'] = ['a', 'b', 'c', 'd', 'e']
+    t['a'].unit = 'm'
+    tmpfile = tmpdir.join('test.html').strpath
+
+    # normal write
+    t.write(tmpfile, format='jsviewer')
+    # errors on overwrite
+    with pytest.raises(OSError, match="exists"):
+        t.write(tmpfile, format='jsviewer')
+    # unless specified
+    t.write(tmpfile, format='jsviewer', overwrite=True)
+
+
 @pytest.mark.parametrize('mixin', [
     Time(['J2000', 'J2001']),
     Time([50000., 50001.0001], format='mjd'),
