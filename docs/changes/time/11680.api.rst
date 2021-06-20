@@ -1,0 +1,2 @@
+Along with the new method ``earth_rotation_angle``, ``sidereal_time`` now accepts
+an ``EarthLocation`` as the ``longitude`` argument.

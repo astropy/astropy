@@ -1,0 +1,6 @@
+Adds a new method ``earth_rotation_angle`` to calculate the Local Earth Rotation Angle.
+Also adjusts Local Sidereal Time for the Terrestrial Intermediate Origin (``TIO``)
+and adds a rigorous correction for polar motion. The ``TIO`` adjustment is approximately
+3 microseconds per century from ``J2000`` and the polar motion correction is at most
+about +/-50 nanoseconds. For models ``IAU1982`` and ``IAU1994``, no such adjustments are
+made.
