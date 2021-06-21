@@ -68,7 +68,7 @@ from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
 try:
@@ -186,22 +186,40 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
         If the optional keyword ``header`` is set to `True`, this
         function will return a (``data``, ``header``) tuple.
+
+    Raises
+    ------
+    ValueError
+        If HDU has no data.
     """
 
     mode, closed = _get_file_mode(filename)
+
+    ext = kwargs.get('ext')
+    extname = kwargs.get('extname')
+    extver = kwargs.get('extver')
+    no_user_ext = (len(args) == 0 and ext is None and
+                   extname is None and extver is None)
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
         hdu = hdulist[extidx]
         data = hdu.data
-        if data is None and extidx == 0:
+        if data is None and no_user_ext:
+            # deprecated fallback to the first non-primary extension
             try:
                 hdu = hdulist[1]
                 data = hdu.data
+                warnings.warn(
+                    """Fallback to the first extension when primary has no
+                    data is deprecated. In the future this will raise a
+                    ValueError.
+                    """, AstropyDeprecationWarning
+                )
             except IndexError:
-                raise IndexError('No data in this HDU.')
+                pass
         if data is None:
-            raise IndexError('No data in this HDU.')
+            raise ValueError('No data in this HDU.')
         if header:
             hdr = hdu.header
     finally:
