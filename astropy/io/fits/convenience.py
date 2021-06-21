@@ -211,10 +211,9 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
                 hdu = hdulist[1]
                 data = hdu.data
                 warnings.warn(
-                    """Fallback to the first extension when primary has no
-                    data is deprecated. In the future this will raise a
-                    ValueError.
-                    """, AstropyDeprecationWarning
+                    'Fallback to the first extension when primary has no '
+                    'data is deprecated. In the future this will raise a '
+                    'ValueError.', AstropyDeprecationWarning
                 )
             except IndexError:
                 pass
