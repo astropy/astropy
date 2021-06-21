@@ -659,6 +659,14 @@ These variables should exist for all of Astropy's optional dependencies; a
 complete list of supported flags can be found in
 ``astropy.utils.compat.optional_deps``.
 
+Any new optional dependencies should be added to that file, as well as to
+relevant entries in ``setup.cfg`` under ``options.extras_require``:
+typically, under ``all`` for dependencies used in user-facing code
+(e.g., ``h5py``, which is used to write tables to HDF5 format),
+and in ``test_all`` for dependencies only used in tests (e.g.,
+``skyfield``, which is used to cross-check the accuracy of coordinate
+transforms).
+
 Using pytest helper functions
 =============================
 
