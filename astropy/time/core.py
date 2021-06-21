@@ -1794,8 +1794,8 @@ class Time(TimeBase):
         --------
         astropy.time.Time.sidereal_time
 
-        Reference
-        ---------
+        References
+        ----------
         IAU 2006 NFA Glossary
         (currently located at: https://syrte.obspm.fr/iauWGnfa/NFA_Glossary.html)
 
@@ -1856,8 +1856,8 @@ class Time(TimeBase):
         --------
         astropy.time.Time.earth_rotation_angle
 
-        Reference
-        ---------
+        References
+        ----------
         IAU 2006 NFA Glossary
         (currently located at: https://syrte.obspm.fr/iauWGnfa/NFA_Glossary.html)
 
