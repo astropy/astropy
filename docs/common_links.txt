@@ -104,6 +104,9 @@
 .. pip
 .. _pip: https://pip.pypa.io
 
+.. pipenv
+.. _pipenv: https://pipenv.pypa.io/en/latest/
+
 .. virtualenv
 .. _virtualenv: https://pypi.org/project/virtualenv
 .. _virtualenvwrapper: https://pypi.org/project/virtualenvwrapper
