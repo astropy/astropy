@@ -4,10 +4,6 @@ import os
 import sys
 
 if __name__ == '__main__':
-    astropy_path = sys.argv[-1]
-    sys.argv = sys.argv[:-1]
-    sys.path.insert(0, astropy_path)
-
     from setuptools import setup, Extension
 
     import numpy as np
