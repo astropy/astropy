@@ -44,7 +44,7 @@ _units_and_physical_types = [
     (si.m ** 3 / si.mol, "molar volume"),
     (si.kg * si.m / si.s, {"momentum", "impulse"}),
     (si.kg * si.m ** 2 / si.s, {"angular momentum", "action"}),
-    (si.rad / si.s, "angular speed"),
+    (si.rad / si.s, {"angular speed", "angular velocity", "angular frequency"}),
     (si.rad / si.s ** 2, "angular acceleration"),
     (si.rad / si.m, "plate scale"),
     (si.g / (si.m * si.s), "dynamic viscosity"),
