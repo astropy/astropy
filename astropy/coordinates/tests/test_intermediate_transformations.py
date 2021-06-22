@@ -3,6 +3,11 @@
 
 """
 import os
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata
+
 
 import pytest
 import numpy as np
@@ -19,7 +24,7 @@ from astropy.coordinates import (
 from astropy.coordinates.solar_system import _apparent_position_in_true_coordinates, get_body
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
-from astropy.utils.compat.optional_deps import HAS_JPLEPHEM  # noqa
+from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 
 from astropy.coordinates.angle_utilities import golden_spiral_grid
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
@@ -564,7 +569,7 @@ def test_earth_orientation_table(monkeypatch):
 
 
 @pytest.mark.remote_data
-@pytest.mark.skipif('not HAS_JPLEPHEM')
+@pytest.mark.skipif(not HAS_JPLEPHEM, reason='requires jplephem')
 def test_ephemerides():
     """
     We test that using different ephemerides gives very similar results
@@ -678,7 +683,19 @@ def test_straight_overhead():
     assert_allclose(aa.alt, 90*u.deg)
 
 
+def jplephem_ge(minversion):
+    """Check if jplephem is installed and has version >= minversion."""
+    # This is a separate routine since somehow with pyinstaller the stanza
+    # not HAS_JPLEPHEM or metadata.version('jplephem') < '2.15'
+    # leads to a module not found error.
+    try:
+        return HAS_JPLEPHEM and metadata.version('jplephem') >= minversion
+    except Exception:
+        return False
+
+
 @pytest.mark.remote_data
+@pytest.mark.skipif(not jplephem_ge('2.15'), reason='requires jplephem >= 2.15')
 def test_aa_high_precision():
     """These tests are provided by @mkbrewer - see issue #10356.
 
@@ -711,12 +728,12 @@ def test_aa_high_precision():
 
     # Numbers from
     # https://github.com/astropy/astropy/pull/11073#issuecomment-735486271
-    TARGET_AZ, TARGET_EL = 15.032673509886*u.deg, 50.303110133928*u.deg
+    # updated in https://github.com/astropy/astropy/issues/11683
+    TARGET_AZ, TARGET_EL = 15.032673509956*u.deg, 50.303110133923*u.deg
     TARGET_DISTANCE = 376252883.247239*u.m
-
-    assert_allclose(moon_aa.az, TARGET_AZ, atol=19.62*u.uas, rtol=0)
-    assert_allclose(moon_aa.alt, TARGET_EL, atol=0.85*u.uas, rtol=0)
-    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=38.87*u.mm, rtol=0)
+    assert_allclose(moon_aa.az, TARGET_AZ, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_aa.alt, TARGET_EL, atol=0.1*u.uas, rtol=0)
+    assert_allclose(moon_aa.distance, TARGET_DISTANCE, atol=0.1*u.mm, rtol=0)
 
 
 def test_aa_high_precision_nodata():
