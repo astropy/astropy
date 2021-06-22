@@ -81,10 +81,8 @@ catalog), this is a better choice than a list of |SkyCoord| objects,
 because it will be *much* faster than applying the operation to each
 |SkyCoord| in a ``for`` loop. Like the underlying `~numpy.ndarray` instances
 that contain the data, |SkyCoord| objects can be sliced, reshaped, etc.,
-and, on ``numpy`` version 1.17 and later, can be used with functions like
-`numpy.moveaxis`, etc., that affect the shape:
-
-.. doctest-requires:: numpy>=1.17
+and can be used with functions like `numpy.moveaxis`, etc., that affect the
+shape::
 
     >>> import numpy as np
     >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
