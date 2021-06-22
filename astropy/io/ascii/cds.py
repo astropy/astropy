@@ -278,6 +278,7 @@ class CdsHeader(core.BaseHeader):
             else:
                 nullflag = ""
 
+            # add col limit values to col description
             borne = ""
             if column.min and column.max:
                 if column.formatter.fortran_format[0] == 'I':
@@ -296,6 +297,8 @@ class CdsHeader(core.BaseHeader):
                                     self.__strFmt(column.unit),
                                     self.__strFmt(column.name),
                                     description)
+            print(fmtb)
+            print(newline)
 
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ("\n").join(wrap(newline,
