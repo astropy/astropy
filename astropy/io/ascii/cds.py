@@ -50,6 +50,13 @@ cdsdicts = {'title': 'Title ?',
             'keywords': ''
             }
 
+ByteByByteTemplate = ["Byte-by-byte Description of file: $file",
+"--------------------------------------------------------------------------------",
+" Bytes Format Units  Label     Explanations",
+"--------------------------------------------------------------------------------",
+"$bytebybyte",
+"--------------------------------------------------------------------------------"]
+
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
     """
@@ -229,7 +236,7 @@ class CdsHeader(core.BaseHeader):
         else:
             return string
 
-    def writeByteByByte(self, lines):
+    def writeByteByByte(self):
         """Write byte-by-byte
         :param table: `astropy.table.Table` object.
         :param outBuffer: true to get buffer, else write on output (default: False)
@@ -314,12 +321,13 @@ class CdsHeader(core.BaseHeader):
                 buff += line + "\n"
             buff += "-" * 80 + "\n"
 
-        #if outBuffer: return buff
-        #sys.stdout.write(buff)
-        lines.append(buff)
+        return buff
 
     def write(self, lines):
-        self.writeByteByByte(lines)
+        bbb = Template('\n'.join(ByteByByteTemplate))
+        ByteByByte = bbb.substitute({'file': 'table.dat',
+                                     'bytebybyte': self.writeByteByByte()})
+        lines.append(ByteByByte)
 
 
 class CdsData(fixedwidth.FixedWidthData):
