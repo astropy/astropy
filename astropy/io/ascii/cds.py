@@ -68,12 +68,8 @@ class CdsSplitter(fixedwidth.FixedWidthSplitter):
         pad = self.delimiter_pad or ''
         delimiter = self.delimiter or ''
         padded_delim = pad + delimiter + pad
-        if self.bookend:
-            bookend_left = delimiter + pad
-            bookend_right = pad + delimiter
-        else:
-            bookend_left = ''
-            bookend_right = ''
+        bookend_left = ''
+        bookend_right = ''
         vals = [val + ' ' * (width - len(val)) for val, width in zip(vals, widths)]
         return bookend_left + padded_delim.join(vals) + bookend_right
 
@@ -221,7 +217,6 @@ class CdsHeader(core.BaseHeader):
 
         self.cols = cols
 
-
     def init_CDSColumns(self):
         """Initialize list of CDSColumns  (self.__cds_columns)"""
         self.__cds_columns = []
@@ -237,7 +232,8 @@ class CdsHeader(core.BaseHeader):
             return string
 
     def writeByteByByte(self):
-        """Write byte-by-byte
+        """
+        Writes byte-by-byte description of the table.
         :param table: `astropy.table.Table` object.
         :param outBuffer: true to get buffer, else write on output (default: False)
         """
@@ -317,7 +313,7 @@ class CdsHeader(core.BaseHeader):
         notes = self.cdsdicts.get('notes', None)
         if notes is not None:
             buff += "-" * 80 + "\n"
-            for line in notes: 
+            for line in notes:
                 buff += line + "\n"
             buff += "-" * 80 + "\n"
 
