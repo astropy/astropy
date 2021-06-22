@@ -176,9 +176,6 @@ to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
 and ``&``, each of which is discussed in the following sections.
 
-
-.. warning:: Creating compound models by combining classes was removed in v4.0.
-
 The result of combining two models is a model instance::
 
     >>> two_gaussians = Gaussian1D(1.1, 0.1, 0.2) + Gaussian1D(2.5, 0.5, 0.1)

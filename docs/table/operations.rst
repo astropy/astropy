@@ -1084,7 +1084,7 @@ coordinate columns, these can be joined using cross-matching of the coordinates
 with a specified distance threshold. This is a special case of a more general
 problem of "fuzzy" matching of key column values, where instead of an exact match
 we require only an approximate match. This is supported using the ``join_funcs``
-argument (introduced in version 4.1).
+argument.
 
 Example
 ~~~~~~~
