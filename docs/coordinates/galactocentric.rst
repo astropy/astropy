@@ -247,16 +247,16 @@ Just as in the previous examples, the new parameter set can be get / set::
 ..
   EXAMPLE END
 
-Starting with Astropy v4.1, unless set with the
-`~astropy.coordinates.galactocentric_frame_defaults` class, the default
-parameter values for the `~astropy.coordinates.Galactocentric` frame are now set
-to ``'latest'``, meaning that the default parameter values may change if you
-update Astropy. If you use the `~astropy.coordinates.Galactocentric` frame
-without specifying all parameter values explicitly, we therefore suggest
-manually setting the frame default set manually in any science code that depends
-sensitively on the choice of, e.g., solar motion or the other frame parameters.
-For example, in such code, we recommend adding something like this to your
-import block (here using ``'v4.0'`` as an example)::
+Unless set with the `~astropy.coordinates.galactocentric_frame_defaults` class,
+the default parameter values for the `~astropy.coordinates.Galactocentric`
+frame are set to ``'latest'``, meaning that the default parameter values may
+change if you update Astropy. If you use the
+`~astropy.coordinates.Galactocentric` frame without specifying all parameter
+values explicitly, we therefore suggest manually setting the frame default set
+manually in any science code that depends sensitively on the choice of, e.g.,
+solar motion or the other frame parameters.  For example, in such code, we
+recommend adding something like this to your import block (here using
+``'v4.0'`` as an example)::
 
     >>> import astropy.coordinates as coord
     >>> coord.galactocentric_frame_defaults.set('v4.0') # doctest: +SKIP
