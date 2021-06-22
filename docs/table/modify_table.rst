@@ -265,11 +265,11 @@ There are a couple of ways this could be handled. It could update the existing
 array values in-place (truncating to integer), or it could replace the entire
 column with a new column based on the supplied data values.
 
-The answer for ``astropy`` (since version 1.3) is that the operation shown above
-does a *complete replacement* of the column object. In this case it makes a new
-column object with float values by internally calling ``t.replace_column('a',
-[10.5, 20.5, 30.5])``. In general this behavior is more consistent with Python
-and Pandas behavior.
+The answer for ``astropy`` is that the operation shown above does a *complete
+replacement* of the column object. In this case it makes a new column object
+with float values by internally calling ``t.replace_column('a', [10.5, 20.5,
+30.5])``. In general this behavior is more consistent with Python and Pandas
+behavior.
 
 **Forcing in-place update**
 
