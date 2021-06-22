@@ -108,10 +108,10 @@ Array Values and NumPy Array Method Analogs
 ===========================================
 
 Array `~astropy.units.Quantity` objects can also be passed to representations,
-and such representations can be sliced, reshaped, etc., using the same
-methods as are available to `~numpy.ndarray`. Similarly, on ``numpy`` version
-1.17 and later, corresponding functions as well as others that affect the shape,
-such as `~numpy.atleast_1d` and `~numpy.rollaxis`, work as expected.
+and such representations can be sliced, reshaped, etc., using the same methods
+as are available to `~numpy.ndarray`. Corresponding functions, as well as
+others that affect the shape, such as `~numpy.atleast_1d` and
+`~numpy.rollaxis`, work as expected.
 
 Example
 -------
@@ -132,9 +132,7 @@ To pass array `~astropy.units.Quantity` objects to representations::
       [(0., 10., 20.), (1., 11., 21.), (2., 12., 22.),
        (3., 13., 23.), (4., 14., 24.), (5., 15., 25.)]>
 
-To manipulate using methods and ``numpy`` functions:
-
-.. doctest-requires:: numpy>=1.17
+To manipulate using methods and ``numpy`` functions::
 
   >>> car_array.reshape(3, 2)
   <CartesianRepresentation (x, y, z) in m

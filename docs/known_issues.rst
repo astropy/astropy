@@ -33,19 +33,10 @@ Quantities are subclassed from NumPy's `~numpy.ndarray` and in some NumPy
 operations (and in SciPy operations using NumPy internally) the subclass is
 ignored, which means that either a plain array is returned, or a
 `~astropy.units.quantity.Quantity` without units.
-E.g., prior to astropy 4.0 and numpy 1.17::
+E.g.,::
 
     >>> import astropy.units as u
     >>> import numpy as np
-    >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q) # doctest: +SKIP
-    285.0
-    >>> np.hstack((q,q)) # doctest: +SKIP
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
-               6., 7., 8., 9.] (Unit not initialised)>
-
-And for all versions::
-
     >>> ratio = (3600 * u.s) / (1 * u.h)
     >>> ratio # doctest: +FLOAT_CMP
     <Quantity 3600. s / h>
@@ -56,29 +47,13 @@ And for all versions::
 
 Workarounds are available for some cases. For the above::
 
-    >>> q.dot(q) # doctest: +FLOAT_CMP
-    <Quantity 285. m2>
-
     >>> np.array(ratio.to(u.dimensionless_unscaled)) # doctest: +FLOAT_CMP
     array(1.)
 
+    >>> q = u.Quantity(np.arange(10.), u.m)
     >>> u.Quantity([q, q]).flatten() # doctest: +FLOAT_CMP
     <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
                6., 7., 8., 9.] m>
-
-An incomplete list of specific functions which are known to exhibit
-this behavior (prior to astropy 4.0 and numpy 1.17) follows:
-
-* `numpy.dot`
-* `numpy.hstack`, `numpy.vstack`, ``numpy.c_``, ``numpy.r_``, `numpy.append`
-* `numpy.where`
-* `numpy.choose`
-* `numpy.vectorize`
-* pandas DataFrame(s)
-
-
-See: https://github.com/astropy/astropy/issues/1274
-
 
 Care must be taken when setting array slices using Quantities::
 
@@ -184,31 +159,6 @@ This is analogous to the case of passing a Quantity to `~numpy.array`::
    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.] m>
 
 See: https://github.com/astropy/astropy/issues/7832
-
-Quantities Float Comparison with np.isclose Fails
--------------------------------------------------
-
-Comparing Quantities floats using the NumPy function `~numpy.isclose` fails on
-NumPy versions before 1.17 as the comparison between ``a`` and ``b``
-is made using the formula
-
-.. math::
-
-    |a - b| \le (a_\textrm{tol} + r_\textrm{tol} \times |b|)
-
-This will result in the following traceback when using this with Quantities::
-
-    >>> from astropy import units as u, constants as const
-    >>> import numpy as np
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)  # doctest: +SKIP
-    Traceback (most recent call last):
-    ...
-    UnitConversionError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
-
-If one cannot upgrade to numpy 1.17 or later, one solution is::
-
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
-    False
 
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------

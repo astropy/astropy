@@ -330,13 +330,11 @@ To store arrays of coordinates in a |SkyCoord| object::
 
 In addition to vectorized transformations, you can do the usual array slicing,
 dicing, and selection using the same methods and attributes that you use for
-`~numpy.ndarray` instances.  Similarly, on ``numpy`` version 1.17 or later,
-corresponding functions as well as others that affect the shape, such as
-`~numpy.atleast_1d` and `~numpy.rollaxis`, work as expected.  (The relevant
-functions have to be explicitly enabled in ``astropy`` source code; let us
-know if a ``numpy`` function is not supported that you think should work.):
-
-.. doctest-requires:: numpy>=1.17
+`~numpy.ndarray` instances. Corresponding functions, as well as others that
+affect the shape, such as `~numpy.atleast_1d` and `~numpy.rollaxis`, work as
+expected. (The relevant functions have to be explicitly enabled in ``astropy``
+source code; let us know if a ``numpy`` function is not supported that you
+think should work.)::
 
   >>> north_mask = sc.dec > 0
   >>> sc_north = sc[north_mask]

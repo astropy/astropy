@@ -420,21 +420,18 @@ reshape |Time| instances and take specific parts using
 :meth:`~astropy.time.Time.flatten`, :attr:`~astropy.time.Time.T`,
 :meth:`~astropy.time.Time.transpose`, :meth:`~astropy.time.Time.swapaxes`,
 :meth:`~astropy.time.Time.diagonal`, :meth:`~astropy.time.Time.squeeze`, or
-:meth:`~astropy.time.Time.take`. Similarly, on ``numpy`` version 1.17
-and later
-corresponding functions as well as others that affect the shape, such as
-`~numpy.atleast_1d` and `~numpy.rollaxis`, work as expected.  (The relevant
-functions have to be explicitly enabled in ``astropy`` source code; let us
-know if a ``numpy`` function is not supported that you think should work.)
+:meth:`~astropy.time.Time.take`. Corresponding functions, as well as others
+that affect the shape, such as `~numpy.atleast_1d` and `~numpy.rollaxis`, work
+as expected. (The relevant functions have to be explicitly enabled in
+``astropy`` source code; let us know if a ``numpy`` function is not supported
+that you think should work.)
 
 Examples
 """"""""
 
 .. EXAMPLE START: Reshaping Time Instances Using NumPy Method Analogs
 
-To reshape |Time| instances:
-
-.. doctest-requires:: numpy>=1.17
+To reshape |Time| instances::
 
   >>> t.reshape(2, 3)
   <Time object: scale='utc' format='mjd' value=[[50000.  50000.5 50001. ]
