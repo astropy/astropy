@@ -155,7 +155,7 @@ def test_name_resolve_cache(tmpdir):
 
         urls = get_cached_urls()
         assert len(urls) == 1
-        assert 'http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/' in urls[0]
+        assert urls[0].rstrip('A?castor') in sesame_url.get()
 
         # Try reloading coordinates, now should just reload cached data:
         with no_internet():
