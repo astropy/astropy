@@ -24,6 +24,7 @@ from astropy.units import Unit
 
 from astropy.io import ascii
 from astropy.table import Table
+from astropy.table import Column, MaskedColumn
 from .CDSColumn import CDSColumn
 import numpy as np
 import sys
@@ -213,19 +214,47 @@ class CdsHeader(core.BaseHeader):
 
         self.cols = cols
 
-    def writeByteByByte(self, table, outBuffer=False):
+
+    def init_CDSColumns(self):
+        """Initialize list of CDSColumns  (self.__cds_columns)"""
+        self.__cds_columns = []
+        for col in self.cols:
+            cdsCol = CDSColumn(col)
+            self.__cds_columns.append(cdsCol)
+
+    def __strFmt(self, string):
+        """Return argument formatted as string."""
+        if string is None:
+            return ""
+        else:
+            return string
+
+    def writeByteByByte(self, lines):
         """Write byte-by-byte
         :param table: `astropy.table.Table` object.
         :param outBuffer: true to get buffer, else write on output (default: False)
         """
-        columns = table.get_column()
+        # get column widths.
+        vals_list = []
+        col_str_iters = self.data.str_vals()
+        for vals in zip(*col_str_iters):
+            vals_list.append(vals)
+
+        for i, col in enumerate(self.cols):
+            col.width = max([len(vals[i]) for vals in vals_list])
+            if self.start_line is not None:
+                col.width = max(col.width, len(col.info.name))
+        widths = [col.width for col in self.cols]
+
+        self.init_CDSColumns()  # get CDSColumn objects.
+
+        columns = self.__cds_columns
         startb = 1
         sz = [0, 0, 1, 7]
-        l = len(str(table.getlinewidth()))
+        l = sum(widths)
         if l > sz[0]:
             sz[0] = l
             sz[1] = l
-        self.logger.debug("size sz=" + str(sz))
         fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
         for column in columns:
             if len(column.name) > sz[3]:
@@ -235,53 +264,61 @@ class CdsHeader(core.BaseHeader):
         nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
 
         for column in columns:
+            column.parse()  # set CDSColumn type, size and format.
+
             endb = column.size + startb - 1
-            if column.formatter.fortran_format[0] == 'R':
+            """ if column.formatter.fortran_format[0] == 'R':
                 buff += self.__strFmtRa(column, fmtb, startb) + "\n"
             elif column.formatter.fortran_format[0] == 'D':
                 buff += self.__strFmtDe(column, fmtb, startb) + "\n"
+            else: """
+            description = column.description
+            if column.hasNull:
+                nullflag = "?"
             else:
-                description = column.description
-                if column.hasNull:
-                    nullflag = "?"
-                else:
-                    nullflag = ""
+                nullflag = ""
 
-                borne = ""
-                if column.min and column.max:
-                    if column.formatter.fortran_format[0] == 'I':
-                        if abs(column.min) < MAX_COL_INTLIMIT and abs(column.max) < MAX_COL_INTLIMIT:
-                            if column.min == column.max:
-                                borne = "[{0}]".format(column.min)
-                            else:
-                                borne = "[{0}/{1}]".format(column.min, column.max)
-                    elif column.formatter.fortran_format[0] in ('E','F'):
-                        borne = "[{0}/{1}]".format(math.floor(column.min*100)/100.,
-                                                   math.ceil(column.max*100)/100.)
+            borne = ""
+            if column.min and column.max:
+                if column.formatter.fortran_format[0] == 'I':
+                    if abs(column.min) < MAX_COL_INTLIMIT and abs(column.max) < MAX_COL_INTLIMIT:
+                        if column.min == column.max:
+                            borne = "[{0}]".format(column.min)
+                        else:
+                            borne = "[{0}/{1}]".format(column.min, column.max)
+                elif column.formatter.fortran_format[0] in ('E','F'):
+                    borne = "[{0}/{1}]".format(math.floor(column.min*100)/100.,
+                                                math.ceil(column.max*100)/100.)
 
-                description = "{0}{1} {2}".format(borne, nullflag, description)
-                newline = fmtb.format(startb, endb, "",
-                                      self.__strFmt(column.formatter.fortran_format),
-                                      self.__strFmt(column.unit),
-                                      self.__strFmt(column.name),
-                                      description)
+            description = "{0}{1} {2}".format(borne, nullflag, description)
+            newline = fmtb.format(startb, endb, "",
+                                    self.__strFmt(column.formatter.fortran_format),
+                                    self.__strFmt(column.unit),
+                                    self.__strFmt(column.name),
+                                    description)
 
-                if len(newline) > MAX_SIZE_README_LINE:
-                    buff += ("\n").join(wrap(newline,
-                                             subsequent_indent=" " * nsplit,
-                                             width=MAX_SIZE_README_LINE))
-                    buff += "\n"
-                else:
-                    buff += newline + "\n"
+            if len(newline) > MAX_SIZE_README_LINE:
+                buff += ("\n").join(wrap(newline,
+                                            subsequent_indent=" " * nsplit,
+                                            width=MAX_SIZE_README_LINE))
+                buff += "\n"
+            else:
+                buff += newline + "\n"
             startb = endb + 2
 
-        if table.notes != None:
+        notes = self.cdsdicts.get('notes', None)
+        if notes is not None:
             buff += "-" * 80 + "\n"
-            for line in table.notes: buff += line + "\n"
+            for line in notes: 
+                buff += line + "\n"
             buff += "-" * 80 + "\n"
 
-        if outBuffer: return buff
-        sys.stdout.write(buff)
+        #if outBuffer: return buff
+        #sys.stdout.write(buff)
+        lines.append(buff)
+
+    def write(self, lines):
+        self.writeByteByByte(lines)
 
 
 class CdsData(fixedwidth.FixedWidthData):
@@ -425,6 +462,8 @@ class Cds(core.BaseReader):
         super().__init__()
         self.header.readme = readme
         self.cdsdicts = cdsdicts
+        self.header.cdsdicts = self.cdsdicts
+        self.data.cdsdicts = self.cdsdicts
 
     def write(self, table=None):
         self.data.header = self.header
