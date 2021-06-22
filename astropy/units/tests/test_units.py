@@ -519,6 +519,7 @@ def test_pickling():
     # Test pickling of this unregistered unit.
     p = pickle.dumps(new_unit)
     new_unit_copy = pickle.loads(p)
+    assert new_unit_copy is not new_unit
     assert new_unit_copy.names == ['foo']
     assert new_unit_copy.get_format_name('baz') == 'bar'
     # It should still not be registered.
@@ -528,17 +529,70 @@ def test_pickling():
     with u.add_enabled_units([new_unit]):
         p = pickle.dumps(new_unit)
         assert 'foo' in u.get_current_unit_registry().registry
+        new_unit_copy = pickle.loads(p)
+        assert new_unit_copy is new_unit
 
     # Check that a registered unit can be loaded and that it gets re-enabled.
     with u.add_enabled_units([]):
         assert 'foo' not in u.get_current_unit_registry().registry
         new_unit_copy = pickle.loads(p)
+        assert new_unit_copy is not new_unit
         assert new_unit_copy.names == ['foo']
         assert new_unit_copy.get_format_name('baz') == 'bar'
         assert 'foo' in u.get_current_unit_registry().registry
 
     # And just to be sure, that it gets removed outside of the context.
     assert 'foo' not in u.get_current_unit_registry().registry
+
+
+def test_pickle_between_sessions():
+    """We cannot really test between sessions easily, so fake it.
+
+    This test can be changed if the pickle protocol or the code
+    changes enough that it no longer works.
+
+    """
+    hash_m = hash(u.m)
+    unit = pickle.loads(
+        b'\x80\x04\x95\xd6\x00\x00\x00\x00\x00\x00\x00\x8c\x12'
+        b'astropy.units.core\x94\x8c\x1a_recreate_irreducible_unit'
+        b'\x94\x93\x94h\x00\x8c\x0fIrreducibleUnit\x94\x93\x94]\x94'
+        b'(\x8c\x01m\x94\x8c\x05meter\x94e\x88\x87\x94R\x94}\x94(\x8c\x06'
+        b'_names\x94]\x94(h\x06h\x07e\x8c\x0c_short_names'
+        b'\x94]\x94h\x06a\x8c\x0b_long_names\x94]\x94h\x07a\x8c\x07'
+        b'_format\x94}\x94\x8c\x07__doc__\x94\x8c '
+        b'meter: base unit of length in SI\x94ub.')
+    assert unit is u.m
+    assert hash(u.m) == hash_m
+
+
+@pytest.mark.parametrize('unit', [
+    u.IrreducibleUnit(['foo'], format={'baz': 'bar'}),
+    u.Unit('m_per_s', u.m/u.s)])
+def test_pickle_does_not_keep_memoized_hash(unit):
+    """
+    Tests private attribute since the problem with _hash being pickled
+    and restored only appeared if the unpickling was done in another
+    session, for which the hash no longer was valid, and it is difficult
+    to mimic separate sessions in a simple test. See gh-11872.
+    """
+    unit_hash = hash(unit)
+    assert unit._hash is not None
+    unit_copy = pickle.loads(pickle.dumps(unit))
+    # unit is not registered so we get a copy.
+    assert unit_copy is not unit
+    assert unit_copy._hash is None
+    assert hash(unit_copy) == unit_hash
+    with u.add_enabled_units([unit]):
+        # unit is registered, so we get a reference.
+        unit_ref = pickle.loads(pickle.dumps(unit))
+        if isinstance(unit, u.IrreducibleUnit):
+            assert unit_ref is unit
+        else:
+            assert unit_ref is not unit
+        # pickle.load used to override the hash, although in this case
+        # it would be the same anyway, so not clear this tests much.
+        assert hash(unit) == unit_hash
 
 
 def test_pickle_unrecognized_unit():
