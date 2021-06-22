@@ -251,7 +251,7 @@ class CdsHeader(core.BaseHeader):
         columns = self.__cds_columns
         startb = 1
         sz = [0, 0, 1, 7]
-        l = sum(widths)
+        l = len(str(sum(widths)))
         if l > sz[0]:
             sz[0] = l
             sz[1] = l
@@ -263,7 +263,7 @@ class CdsHeader(core.BaseHeader):
         buff = ""
         nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
 
-        for column in columns:
+        for i, column in enumerate(columns):
             column.parse()  # set CDSColumn type, size and format.
 
             endb = column.size + startb - 1
@@ -297,8 +297,6 @@ class CdsHeader(core.BaseHeader):
                                     self.__strFmt(column.unit),
                                     self.__strFmt(column.name),
                                     description)
-            print(fmtb)
-            print(newline)
 
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ("\n").join(wrap(newline,
