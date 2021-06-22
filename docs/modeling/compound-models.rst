@@ -158,8 +158,7 @@ few terms where there have been points of confusion:
 - A *compound model* can be created by combining two or more existing model instances
   which can be models that come with Astropy, :doc:`user defined models <new-model>`, or
   other compound models--using Python expressions consisting of one or more of the
-  supported binary operators. The combination of model classes is deprecated and will
-  be removed in version 4.0.
+  supported binary operators.
 
 - In some places the term *composite model* is used interchangeably with
   *compound model*. However, this document uses the

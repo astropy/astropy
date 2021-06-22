@@ -146,10 +146,7 @@ file as ``-32768``, along with the header keyword ``BZERO = 32768``.
 
 ``astropy`` recognizes and applies this convention by default, so that all data
 that looks like it should be interpreted as unsigned integers is automatically
-converted (this applies to both images and tables). In ``astropy`` versions
-prior to v1.1.0 this was *not* applied automatically, and it is necessary to
-pass the argument ``uint=True`` to :func:`open`. In v1.1.0 or later this is the
-default.
+converted (this applies to both images and tables).
 
 Even with ``uint=False``, the ``BZERO`` shift is still applied, but the
 returned array is of "float64" type. To disable scaling/shifting entirely, use
