@@ -373,7 +373,7 @@ class CDSColumn:
             if self.__column.unit is not None:
                 try:
                     self.unit = self.__column.unit.to_string("cds")
-                except:
+                except AttributeError:
                     self.unit = self.__column.unit
             else:
                 self.unit = self.__get_unit()

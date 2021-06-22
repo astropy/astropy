@@ -55,9 +55,6 @@ class CdsSplitter(fixedwidth.FixedWidthSplitter):
     Contains the join function to left align the CDS columns
     when writing to a file.
     """
-    delimiter_pad = ''
-    bookend = False
-    delimiter = ' '
 
     def join(self, vals, widths):
         pad = self.delimiter_pad or ''
@@ -216,6 +213,76 @@ class CdsHeader(core.BaseHeader):
 
         self.cols = cols
 
+    def writeByteByByte(self, table, outBuffer=False):
+        """Write byte-by-byte
+        :param table: `astropy.table.Table` object.
+        :param outBuffer: true to get buffer, else write on output (default: False)
+        """
+        columns = table.get_column()
+        startb = 1
+        sz = [0, 0, 1, 7]
+        l = len(str(table.getlinewidth()))
+        if l > sz[0]:
+            sz[0] = l
+            sz[1] = l
+        self.logger.debug("size sz=" + str(sz))
+        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
+        for column in columns:
+            if len(column.name) > sz[3]:
+                sz[3] = len(column.name)
+        fmtb += " {3:6s} {4:6s} {5:" + str(sz[3]) + "s} {6:s}"
+        buff = ""
+        nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
+
+        for column in columns:
+            endb = column.size + startb - 1
+            if column.formatter.fortran_format[0] == 'R':
+                buff += self.__strFmtRa(column, fmtb, startb) + "\n"
+            elif column.formatter.fortran_format[0] == 'D':
+                buff += self.__strFmtDe(column, fmtb, startb) + "\n"
+            else:
+                description = column.description
+                if column.hasNull:
+                    nullflag = "?"
+                else:
+                    nullflag = ""
+
+                borne = ""
+                if column.min and column.max:
+                    if column.formatter.fortran_format[0] == 'I':
+                        if abs(column.min) < MAX_COL_INTLIMIT and abs(column.max) < MAX_COL_INTLIMIT:
+                            if column.min == column.max:
+                                borne = "[{0}]".format(column.min)
+                            else:
+                                borne = "[{0}/{1}]".format(column.min, column.max)
+                    elif column.formatter.fortran_format[0] in ('E','F'):
+                        borne = "[{0}/{1}]".format(math.floor(column.min*100)/100.,
+                                                   math.ceil(column.max*100)/100.)
+
+                description = "{0}{1} {2}".format(borne, nullflag, description)
+                newline = fmtb.format(startb, endb, "",
+                                      self.__strFmt(column.formatter.fortran_format),
+                                      self.__strFmt(column.unit),
+                                      self.__strFmt(column.name),
+                                      description)
+
+                if len(newline) > MAX_SIZE_README_LINE:
+                    buff += ("\n").join(wrap(newline,
+                                             subsequent_indent=" " * nsplit,
+                                             width=MAX_SIZE_README_LINE))
+                    buff += "\n"
+                else:
+                    buff += newline + "\n"
+            startb = endb + 2
+
+        if table.notes != None:
+            buff += "-" * 80 + "\n"
+            for line in table.notes: buff += line + "\n"
+            buff += "-" * 80 + "\n"
+
+        if outBuffer: return buff
+        sys.stdout.write(buff)
+
 
 class CdsData(fixedwidth.FixedWidthData):
     """CDS table data reader
@@ -237,6 +304,7 @@ class CdsData(fixedwidth.FixedWidthData):
         return lines[i_sections[-1]+1:]  # noqa
 
     def write(self, lines):
+        self.splitter.delimiter = ' '
         fixedwidth.FixedWidthData.write(self, lines)
 
 
