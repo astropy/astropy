@@ -142,62 +142,42 @@ numpydoc_xref_param_type = True
 
 # Words not to cross-reference. Most likely, these are common words used in
 # parameter type descriptions that may be confused for classes of the same
-# name.
-numpydoc_xref_ignore = {
-    'type', 'optional', 'default', 'or', 'of', 'method', 'instance', "like",
-    "class", 'subclass', "keyword-only", "default", "thereof", "mixin",
+# name. The base set comes from sphinx-astropy. We add more here.
+numpydoc_xref_ignore.update({
+    "mixin",
     # needed in subclassing numpy  # TODO! revisit
     "Arguments", "Path",
     # TODO! not need to ignore.
     "flag", "bits",
-}
+})
 
 # Mappings to fully qualified paths (or correct ReST references) for the
 # aliases/shortcuts used when specifying the types of parameters.
 # Numpy provides some defaults
 # https://github.com/numpy/numpydoc/blob/b352cd7635f2ea7748722f410a31f937d92545cc/numpydoc/xref.py#L62-L94
-# so we only need to define Astropy-specific x-refs
-numpydoc_xref_aliases = {
-    # ultra-general
-    "-like": ":term:`-like`",
+# and a base set comes from sphinx-astropy.
+# so here we mostly need to define Astropy-specific x-refs
+numpydoc_xref_aliases.update({
     # python & adjacent
     "file-like": ":term:`python:file-like object`",
     "file": ":term:`python:file object`",
-    "iterator": ":term:`python:iterator`",
     "path-like": ":term:`python:path-like object`",
     "module": ":term:`python:module`",
     "buffer-like": ":term:buffer-like",
-    "function": ":term:`python:function`",
-    "mapping": ":term:`python:mapping`",
+    "hashable": ":term:`python:hashable`",
     # for matplotlib
     "color": ":term:`color`",
     # for numpy
     "ints": ":class:`python:int`",
     # for astropy
-    "unit-like": ":term:`unit-like`",
-    "quantity-like": ":term:`quantity-like`",
-    "angle-like": ":term:`angle-like`",
-    "table-like": ":term:`table-like`",
-    "time-like": ":term:`time-like`",
-    "frame-like": ":term:`frame-like`",
-    "coordinate-like": ":term:`coordinate-like`",
     "number": ":term:`number`",
     "Representation": ":class:`~astropy.coordinates.BaseRepresentation`",
     "writable": ":term:`writable file-like object`",
     "readable": ":term:`readable file-like object`",
     "BaseHDU": ":doc:`HDU </io/fits/api/hdus>`"
-}
-# Astropy units physical types
-from astropy.units.physical import _units_and_physical_types
-numpydoc_xref_physical_type_aliases = {}
-for _, ptypes in _units_and_physical_types:
-    ptypes = {ptypes} if isinstance(ptypes, str) else ptypes
-    for ptype in ptypes:
-        key = f"'{ptype}'"
-        val = f":ref:`'{ptype}' <{ptype}>`"
-        numpydoc_xref_physical_type_aliases[key] = val
-
-numpydoc_xref_aliases.update(numpydoc_xref_physical_type_aliases)
+})
+# Add from sphinx-astropy 1) glossary aliases 2) physical types.
+numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 
 
 # -- Project information ------------------------------------------------------
