@@ -19,8 +19,6 @@ from astropy.coordinates.builtin_frames.baseradec import BaseRADecFrame, doc_com
 from astropy.coordinates.attributes import TimeAttribute, EarthLocationAttribute
 from .utils import DEFAULT_OBSTIME, EARTH_CENTER
 
-__all__ = ['TEME', 'TETE']
-
 doc_footer_teme = """
     Other parameters
     ----------------

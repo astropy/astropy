@@ -8,13 +8,6 @@ from astropy.coordinates.baseframe import BaseCoordinateFrame, base_doc
 from astropy.coordinates.attributes import TimeAttribute, QuantityAttribute
 from .utils import EQUINOX_J2000, DEFAULT_OBSTIME
 
-__all__ = ['GeocentricMeanEcliptic', 'BarycentricMeanEcliptic',
-           'HeliocentricMeanEcliptic', 'BaseEclipticFrame',
-           'GeocentricTrueEcliptic', 'BarycentricTrueEcliptic',
-           'HeliocentricTrueEcliptic',
-           'HeliocentricEclipticIAU76', 'CustomBarycentricEcliptic']
-
-
 doc_components_ecl = """
     lon : `~astropy.coordinates.Angle`, optional, keyword-only
         The ecliptic longitude for this object (``lat`` must also be given and

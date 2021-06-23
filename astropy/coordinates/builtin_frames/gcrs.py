@@ -9,8 +9,6 @@ from .utils import DEFAULT_OBSTIME, EQUINOX_J2000
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
-__all__ = ['GCRS', 'PrecessedGeocentric']
-
 
 doc_footer_gcrs = """
     Other parameters

@@ -10,8 +10,6 @@ from astropy.coordinates import earth_orientation as earth
 from .baseradec import BaseRADecFrame, doc_components
 from .utils import EQUINOX_J2000
 
-__all__ = ['FK5']
-
 
 doc_footer = """
     Other parameters

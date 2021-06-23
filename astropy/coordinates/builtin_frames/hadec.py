@@ -11,8 +11,6 @@ from astropy.coordinates.attributes import (TimeAttribute,
                                             QuantityAttribute,
                                             EarthLocationAttribute)
 
-__all__ = ['HADec']
-
 
 doc_components = """
     ha : `~astropy.coordinates.Angle`, optional, keyword-only

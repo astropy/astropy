@@ -8,8 +8,6 @@ from astropy.coordinates.baseframe import base_doc
 from .baseradec import doc_components, BaseRADecFrame
 from .utils import DEFAULT_OBSTIME, EARTH_CENTER
 
-__all__ = ['CIRS']
-
 
 doc_footer = """
     Other parameters

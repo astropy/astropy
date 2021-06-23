@@ -7,8 +7,6 @@ from .utils import DEFAULT_OBSTIME
 from astropy.coordinates.baseframe import base_doc
 from .baseradec import BaseRADecFrame, doc_components
 
-__all__ = ['HCRS']
-
 
 doc_footer = """
     Other parameters

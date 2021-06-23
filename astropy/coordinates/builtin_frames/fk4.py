@@ -16,8 +16,6 @@ from astropy.coordinates import earth_orientation as earth
 from .utils import EQUINOX_B1950
 from .baseradec import doc_components, BaseRADecFrame
 
-__all__ = ['FK4', 'FK4NoETerms']
-
 
 doc_footer_fk4 = """
     Other parameters

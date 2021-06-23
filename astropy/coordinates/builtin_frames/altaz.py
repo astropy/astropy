@@ -11,8 +11,6 @@ from astropy.coordinates.attributes import (TimeAttribute,
                                             QuantityAttribute,
                                             EarthLocationAttribute)
 
-__all__ = ['AltAz']
-
 
 _90DEG = 90*u.deg
 
