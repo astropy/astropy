@@ -2,6 +2,7 @@
 # This file connects the readers/writers to the astropy.table.Table class
 
 import functools
+import os.path
 
 from astropy.table import Table
 import astropy.io.registry as io_registry
@@ -84,7 +85,7 @@ def _pandas_read(fmt, filespec, **kwargs):
     return Table.from_pandas(df)
 
 
-def _pandas_write(fmt, tbl, filespec, **kwargs):
+def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
     """Provide io Table connector to write table using pandas.
 
     """
@@ -96,6 +97,15 @@ def _pandas_write(fmt, tbl, filespec, **kwargs):
 
     df = tbl.to_pandas()
     write_method = getattr(df, 'to_' + pandas_fmt)
+
+    if not overwrite:
+        try:  # filespec is not always a path-like
+            exists = os.path.exists(filespec)
+        except TypeError:  # skip invalid arguments
+            pass
+        else:
+            if exists:  # only error if file already exists
+                raise OSError(f"{filespec} already exists")
 
     return write_method(filespec, **write_kwargs)
 
