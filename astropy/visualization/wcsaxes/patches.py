@@ -2,11 +2,14 @@
 
 
 import numpy as np
+import warnings
 from matplotlib.patches import Polygon
 
 from astropy import units as u
-from astropy.coordinates.representation import UnitSphericalRepresentation
+from astropy.coordinates import SkyCoord
+from astropy.coordinates.representation import UnitSphericalRepresentation, SphericalRepresentation
 from astropy.coordinates.matrix_utilities import rotation_matrix, matrix_product
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['Quadrangle', 'SphericalCircle']
@@ -63,7 +66,8 @@ class SphericalCircle(Polygon):
     ----------
     center : tuple or `~astropy.units.Quantity` ['angle']
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
-        a single `~astropy.units.Quantity` array with two elements.
+        a single `~astropy.units.Quantity` array with two elements
+        or a `~astropy.coordinates.SkyCoord` object.
     radius : `~astropy.units.Quantity` ['angle']
         The radius of the circle
     resolution : int, optional
@@ -81,9 +85,19 @@ class SphericalCircle(Polygon):
 
     def __init__(self, center, radius, resolution=100, vertex_unit=u.degree, **kwargs):
 
-        # Extract longitude/latitude, either from a tuple of two quantities, or
-        # a single 2-element Quantity.
-        longitude, latitude = center
+        # Extract longitude/latitude, either from a SkyCoord object, or
+        # from a tuple of two quantities or a single 2-element Quantity.
+        # The SkyCoord is converted to SphericalRepresentation, if not already.
+        if isinstance(center, SkyCoord):
+            rep_type = center.representation_type
+            if not issubclass(rep_type, (SphericalRepresentation,
+                                         UnitSphericalRepresentation)):
+                warnings.warn(f'Received `center` of representation type {rep_type} '
+                              'will be converted to SphericalRepresentation ',
+                              AstropyUserWarning)
+            longitude, latitude = center.spherical.lon, center.spherical.lat
+        else:
+            longitude, latitude = center
 
         # Start off by generating the circle around the North pole
         lon = np.linspace(0., 2 * np.pi, resolution + 1)[:-1] * u.radian
