@@ -1,0 +1,3 @@
+Ensure that unpickling quantities and units in new sessions does not change
+hashes and thus cause problems with (de)composition such as getting different
+answers from the ``.si`` attribute.
