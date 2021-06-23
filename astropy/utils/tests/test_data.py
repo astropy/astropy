@@ -2189,7 +2189,8 @@ def test_download_ftp_file_properly_handles_socket_error():
     possible_msgs = ['Name or service not known',
                      'nodename nor servname provided, or not known',
                      'getaddrinfo failed',
-                     'Temporary failure in name resolution']
+                     'Temporary failure in name resolution',
+                     'No address associated with hostname']
     for cur_msg in possible_msgs:
         if cur_msg in errmsg:
             found_msg = True
