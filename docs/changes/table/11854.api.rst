@@ -1,0 +1,2 @@
+The 'overwrite' argument has been added to the pandas table writers.
+Overwriting an existing file requires 'overwrite' to be True.
