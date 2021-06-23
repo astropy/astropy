@@ -346,14 +346,11 @@ redshift by `~astropy.cosmology.wpwaCDM`: :math:`w(z) = w_{p} + w_{a}
 
 Users can specify their own equation of state by subclassing
 `~astropy.cosmology.FLRW`. See the provided subclasses for
-examples. It is recommended, but not required, that all arguments to the
-constructor of a new subclass be available as properties, since the
-``clone`` method assumes this is the case. It is also advisable
-to stick to subclassing `~astropy.cosmology.FLRW` rather than one of
-its subclasses, since some of them use internal optimizations that
-also need to be propagated to any subclasses. Users wishing to
-use similar tricks (which can make distance calculations much faster)
-should consult the cosmology module source code for details.
+examples. It is advisable to stick to subclassing `~astropy.cosmology.FLRW`
+rather than one of its subclasses, since some of them use internal optimizations
+that also need to be propagated to any subclasses. Users wishing to use similar
+tricks (which can make distance calculations much faster) should consult the
+cosmology module source code for details.
 
 Photons and Neutrinos
 ---------------------
