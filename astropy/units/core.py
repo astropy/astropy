@@ -870,6 +870,13 @@ class UnitBase:
             self._hash = hash(tuple(parts))
         return self._hash
 
+    def __getstate__(self):
+        # If we get pickled, we should *not* store the memoized hash since
+        # hashes of strings vary between sessions.
+        state = self.__dict__.copy()
+        state.pop('_hash', None)
+        return state
+
     def __eq__(self, other):
         if self is other:
             return True
@@ -1856,7 +1863,7 @@ class IrreducibleUnit(NamedUnit):
         registry = get_current_unit_registry().registry
         return (_recreate_irreducible_unit,
                 (self.__class__, list(self.names), self.name in registry),
-                self.__dict__)
+                self.__getstate__())
 
     @property
     def represents(self):
