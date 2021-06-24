@@ -253,6 +253,14 @@ Fast ASCII Engine
 
    fast_ascii_io
 
+Strategies to solve reading and writing problems
+------------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   _io_ascii_how_to_examples
+
 Base Class Elements
 -------------------
 
