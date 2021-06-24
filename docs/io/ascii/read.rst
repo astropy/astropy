@@ -640,6 +640,8 @@ All values and exponent characters in the input data are
 case-insensitive; any value other than the default ``'E'`` implies the
 automatic setting of ``'use_fast_converter': True``.
 
+.. _advanced_customization:
+
 Advanced Customization
 ======================
 
