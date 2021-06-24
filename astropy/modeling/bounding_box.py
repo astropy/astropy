@@ -81,11 +81,15 @@ class ModelArgument(_BaseModelArgument):
         else:
             return cls(name, remove, valid_index)
 
-    def get_slice(self, **kwargs):
+    def get_slice_value(self, *args, **kwargs):
         if self.name in kwargs:
             return kwargs[self.name]
+        elif self.index < len(args):
+            return args[self.index]
         else:
-            raise ValueError(f"Cannot find a valid input corresponding to {self.name} in: {kwargs}.")
+            raise ValueError("Cannot find a valid input corresponding to"
+                             f" key: {self.name} in: {kwargs} or"
+                             f" index: {self.index} in: {args}.")
 
     @staticmethod
     def _removed_bounding_box():
@@ -141,6 +145,10 @@ class ModelArguments(object):
     def removed(self):
         return [arg for arg in self._arguments if arg.remove]
 
+    @property
+    def removed_index(self):
+        return [arg.index for arg in self._arguments if arg.remove]
+
     @staticmethod
     def _validate_argument(model, arg):
         if isinstance(arg, list) or isinstance(arg, tuple):
@@ -166,8 +174,8 @@ class ModelArguments(object):
         else:
             return False
 
-    def get_slice(self, **kwargs) -> tuple:
-        slice_tuple = tuple([arg.get_slice(**kwargs) for arg in self._arguments])
+    def get_slice_index(self, *args, **kwargs) -> tuple:
+        slice_tuple = tuple([arg.get_slice_value(*args, **kwargs) for arg in self._arguments])
 
         if len(slice_tuple) == 1:
             return slice_tuple[0]
@@ -184,11 +192,21 @@ class ModelArguments(object):
             axes_ind = argument.add_removed_axis(axes_ind)
         return axes_ind
 
+    def _add_argument(self, *args, model: "Model" = None):
+        self._arguments.append(ModelArgument.validate(model, *args))
+
+    def add_arguments(self, *args, model: "Model" = None):
+        for arg in args:
+            self._add_argument(*arg, model=model)
+
+    def reset_arguments(self):
+        self._arguments = []
+
 
 class CompoundBoundingBox(UserDict):
     def __init__(self, bounding_box: Dict[Any, BoundingBox],
-                 model: "Model"=None, slice_args: ModelArguments=None,
-                 create_slice: Callable=None):
+                 model: "Model" = None, slice_args: ModelArguments = None,
+                 create_slice: Callable = None):
         super().__init__(bounding_box)
         self._model = model
         self._slice_args = ModelArguments.validate(model, slice_args)
@@ -221,7 +239,10 @@ class CompoundBoundingBox(UserDict):
 
         return new_box
 
-    def _get_slice(self, slice_index) -> BoundingBox:
+    def get_slice(self, slice_index) -> BoundingBox:
+        if isiterable(slice_index) and len(slice_index) == 1:
+            slice_index = slice_index[0]
+
         if slice_index in self:
             bbox = self[slice_index]
         elif self._create_slice is not None:
@@ -232,122 +253,21 @@ class CompoundBoundingBox(UserDict):
 
         return bbox
 
-    def _get_bounding_box(self, **kwargs) -> BoundingBox:
-        slice_index = self._slice_args.get_slice(**kwargs)
-
-        return self._get_slice(slice_index)
+    def _get_slice(self, *args, **kwargs) -> BoundingBox:
+        return self.get_slice(self._slice_args.get_slice_index(*args, **kwargs))
 
     def _add_bounding_box(self, bounding_box: BoundingBox):
         return self._slice_args.sorted.add_bounding_box(bounding_box)
 
-    def get_bounding_box(self, **kwargs):
-        return self._add_bounding_box(self._get_bounding_box(**kwargs))
+    def get_bounding_box(self, *args, **kwargs):
+        if kwargs.pop('add_removed', False):
+            return self._add_bounding_box(self._get_slice(*args, **kwargs))
+        else:
+            return self._get_slice(*args, **kwargs)
 
     def add_removed_axes(self, axes_ind: np.ndarray):
         return np.argsort(self._slice_args.add_removed_axes(axes_ind))
 
-
-# class CompoundBoundingBox(UserDict):
-#     def __init__(self, bounding_box,  model=None, slice_arg=None, remove_slice_arg=False):
-#         super().__init__(bounding_box)
-#         self._model = model
-
-#         if self._model is None:
-#             self._slice_arg = slice_arg
-#         else:
-#             self.set_slice_arg(slice_arg)
-
-#         self._remove_slice_arg = remove_slice_arg
-
-#     @property
-#     def slice_arg(self):
-#         return self._slice_arg
-
-#     @property
-#     def remove_slice_arg(self):
-#         return self._remove_slice_arg
-
-#     def _get_arg_index(self, slice_arg):
-#         if np.issubdtype(type(slice_arg), np.integer):
-#             arg_index = slice_arg
-#         else:
-#             if slice_arg in self._model.inputs:
-#                 arg_index = self._model.inputs.index(slice_arg)
-#             else:
-#                 raise ValueError(f'{slice_arg} is not an input of of your model inputs {self._model.inputs}')
-
-#         if arg_index < self._model.n_inputs:
-#             return arg_index
-#         else:
-#             raise ValueError(f'{arg_index} is out of model argument bounds')
-
-#     @classmethod
-#     def validate(cls, model, bounding_box, slice_arg=None, remove_slice_arg=None):
-#         if isinstance(bounding_box, CompoundBoundingBox) and slice_arg is None:
-#             slice_arg = bounding_box.slice_arg
-
-#         if remove_slice_arg is None:
-#             if isinstance(bounding_box, CompoundBoundingBox):
-#                 remove_slice_arg = bounding_box.remove_slice_arg
-#             else:
-#                 remove_slice_arg = False
-
-#         new_box = cls({}, model, slice_arg, remove_slice_arg)
-
-#         if not remove_slice_arg:
-#             slice_arg = None
-
-#         for slice_index, slice_box in bounding_box.items():
-#             new_box[slice_index] = BoundingBox.validate(model, slice_box, slice_arg)
-
-#         return new_box
-
-#     def set_slice_arg(self, slice_arg):
-#         if slice_arg is None:
-#             self._slice_arg = slice_arg
-#         elif isinstance(slice_arg, tuple):
-#             self._slice_arg = tuple([self._get_arg_index(arg) for arg in slice_arg])
-#         else:
-#             self._slice_arg = self._get_arg_index(slice_arg)
-
-#     def _get_slice_index(self, inputs, slice_arg):
-#         if inputs is None:
-#             raise RuntimeError('Inputs must not be None in order to lookup slice')
-
-#         slice_index = inputs[self._get_arg_index(slice_arg)]
-#         if isinstance(slice_index, np.ndarray):
-#             slice_index = slice_index.item()
-
-#         return slice_index
-
-#     def get_bounding_box(self, inputs=None, slice_index=True):
-#         if isinstance(slice_index, bool) and slice:
-#             if self._slice_arg is None:
-#                 return None
-#             else:
-#                 if isinstance(self._slice_arg, tuple):
-#                     slice_index = tuple([self._get_slice_index(inputs, slice_arg)
-#                                          for slice_arg in self._slice_arg])
-#                 else:
-#                     slice_index = self._get_slice_index(inputs, self._slice_arg)
-
-#         if slice_index in self:
-#             return self[slice_index]
-#         else:
-#             raise RuntimeError(f"No bounding_box is defined for slice: {slice_index}!")
-
-#     def reverse(self, axes_ind):
-#         # bbox = {slice_index: slice_box.reverse(axes_ind)
-#         #         for slice_index, slice_box in self.items()}
-#         bbox = {}
-#         for slice_index, slice_box in self.items():
-#             bbox[slice_index] = [slice_box[ind] for ind in axes_ind][::-1]
-
-#         return CompoundBoundingBox(bbox, self._model, self._slice_arg, self._remove_slice_arg)
-
-#     def py_order(self, axes_order):
-#         bbox = {}
-#         for slice_index, slice_box in self.items():
-#             bbox[slice_index] = tuple(slice_box[::-1][i] for i in axes_order)
-
-#         return CompoundBoundingBox(bbox, self._model, self._slice_arg, self._remove_slice_arg)
+    def set_slice_args(self, *args):
+        self._slice_args.reset_arguments()
+        self._slice_args.add_arguments(*args, model=self._model)

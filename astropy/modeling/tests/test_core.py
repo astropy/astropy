@@ -8,11 +8,12 @@ import pytest
 import numpy as np
 from inspect import signature
 from numpy.testing import assert_allclose
+import unittest.mock as mk
 
 import astropy
 from astropy.modeling.core import (Model, CompoundModel, custom_model,
     SPECIAL_OPERATORS, _add_special_operator, get_bounding_box,
-                                   bind_complex_bounding_box, fix_inputs)
+                                   bind_compound_bounding_box, fix_inputs)
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 from astropy.modeling.bounding_box import CompoundBoundingBox
@@ -733,39 +734,68 @@ def test_print_special_operator_CompoundModel(capsys):
 
 
 def test_get_bounding_box():
-    model = models.Const1D(2)
+    model = models.Const2D(2)
 
+    # No with_bbox
+    assert get_bounding_box(model, mk.MagicMock(), False) == (None, [])
+
+    # No bounding_box
     with pytest.raises(NotImplementedError):
         model.bounding_box
-    assert get_bounding_box(model, []) == (None, [])
-    assert get_bounding_box(model, [], slice_index=17) == (None, [])
+    assert get_bounding_box(model, mk.MagicMock(), True) == (None, [])
 
-    model.bounding_box = (0, 1)
+    # Normal bounding_box
+    model.bounding_box = ((0, 1), (0, 1))
     assert not isinstance(model.bounding_box, CompoundBoundingBox)
-    assert get_bounding_box(model, []) == (None, [])
-    assert get_bounding_box(model, [], 15) == ((0, 1), [])
+    assert get_bounding_box(model, mk.MagicMock(), True) == (((0, 1), (0, 1)), [])
 
-    model.bounding_box = {1: (-1, 0), 2: (0, 1)}
+    # CompoundBoundingBox with no removal
+    bbox = CompoundBoundingBox.validate({1: ((-1, 0), (-1, 0)), 2: ((0, 1), (0, 1))},
+                                        model=model, slice_args=[('y', False)])
+    model.bounding_box = bbox
     assert isinstance(model.bounding_box, CompoundBoundingBox)
-    assert get_bounding_box(model, []) == (None, [])
-    assert get_bounding_box(model, [], slice_index=1) == ((-1, 0), [])
-    with pytest.raises(RuntimeError):
-        get_bounding_box(model, [], slice_index=0)
+    # Get using argument not with_bbox
+    assert get_bounding_box(model, [0, 1], True) == (((-1, 0), (-1, 0)), [])
+    assert get_bounding_box(model, [1, 2], True) == (((0, 1), (0, 1)), [])
+    # Get using with_bbox not argument
+    assert get_bounding_box(model, mk.MagicMock(), 1) == (((-1, 0), (-1, 0)), [])
+    assert get_bounding_box(model, mk.MagicMock(), 2) == (((0, 1), (0, 1)), [])
+    # Get using with_bbox not argument fail
+    with_bbox = mk.MagicMock()
+    with pytest.raises(RuntimeError) as err:
+        get_bounding_box(model, mk.MagicMock(), with_bbox)
+    assert str(err.value) == \
+        f"{with_bbox} is not one of bounding_box keys: [1, 2]"
 
-    bounding_box = CompoundBoundingBox({1: (-1, 0), 2: (0, 1)},
-                                      slice_arg=4, remove_slice_arg=True)
-    model._user_bounding_box = bounding_box
-    assert get_bounding_box(model, []) == (None, [])
-    assert get_bounding_box(model, [], slice_index=1) == ((-1, 0), [4])
-    with pytest.raises(RuntimeError):
-        get_bounding_box(model, [], slice_index=0)
+    # CompoundBoundingBox with removal
+    bbox = CompoundBoundingBox.validate({1: (-1, 0), 2: (0, 1)},
+                                        model=model, slice_args=[('y', True)])
+    model.bounding_box = bbox
+    assert isinstance(model.bounding_box, CompoundBoundingBox)
+    # Get using argument not with_bbox
+    assert get_bounding_box(model, [0, 1], True) == ((-1, 0), [1])
+    assert get_bounding_box(model, [1, 2], True) == ((0, 1), [1])
+    # Get using with_bbox not argument
+    assert get_bounding_box(model, mk.MagicMock(), 1) == ((-1, 0), [1])
+    assert get_bounding_box(model, mk.MagicMock(), 2) == ((0, 1), [1])
+    # Get using with_bbox not argument fail
+    with_bbox = mk.MagicMock()
+    with pytest.raises(RuntimeError) as err:
+        get_bounding_box(model, mk.MagicMock(), with_bbox)
+    assert str(err.value) == \
+        f"{with_bbox} is not one of bounding_box keys: [1, 2]"
 
 
 def test_complex_bounding_box():
     model = models.Gaussian1D()
     truth = models.Gaussian1D()
+    bbox1 = CompoundBoundingBox.validate({1: (-1, 0), 2: (0, 1)},
+                                        model=model, slice_args=[('x', False)])
+    bbox2 = CompoundBoundingBox.validate({-0.5: (-1, 0), 0.5: (0, 1)},
+                                        model=model, slice_args=[('x', False)])
 
-    model.bounding_box = {1: (-1, 0), 2: (0, 1)}
+    # Using with_bounding_box to pass a slice
+    model.bounding_box = bbox1
     assert model(-0.5) == truth(-0.5)
     assert model(-0.5, with_bounding_box=1) == truth(-0.5)
     assert np.isnan(model(-0.5, with_bounding_box=2))
@@ -773,8 +803,8 @@ def test_complex_bounding_box():
     assert model(0.5, with_bounding_box=2) == truth(0.5)
     assert np.isnan(model(0.5, with_bounding_box=1))
 
-    model.bounding_box = {-0.5: (-1, 0), 0.5: (0, 1)}
-    model.set_slice_arg('x')
+    # Using argument value to pass bounding_box
+    model.bounding_box = bbox2
     assert model(-0.5) == truth(-0.5)
     assert model(-0.5, with_bounding_box=True) == truth(-0.5)
     assert model(0.5) == truth(0.5)
@@ -790,7 +820,7 @@ def test_complex_bounding_box():
     truth = truth1 + truth2
     assert isinstance(model, CompoundModel)
 
-    model.bounding_box = {1: (-1, 0), 2: (0, 1)}
+    model.bounding_box = bbox1
     assert model(-0.5) == truth(-0.5)
     assert model(-0.5, with_bounding_box=1) == truth(-0.5)
     assert np.isnan(model(-0.5, with_bounding_box=2))
@@ -798,8 +828,7 @@ def test_complex_bounding_box():
     assert model(0.5, with_bounding_box=2) == truth(0.5)
     assert np.isnan(model(0.5, with_bounding_box=1))
 
-    model.bounding_box = {-0.5: (-1, 0), 0.5: (0, 1)}
-    model.set_slice_arg('x')
+    model.bounding_box = bbox2
     assert model(-0.5) == truth(-0.5)
     assert model(-0.5, with_bounding_box=True) == truth(-0.5)
     assert model(0.5) == truth(0.5)
@@ -808,16 +837,16 @@ def test_complex_bounding_box():
         model(0, with_bounding_box=True)
 
 
-def test_bind_complex_bounding_box():
+def test_bind_compound_bounding_box():
     model = models.Gaussian1D()
     truth = models.Gaussian1D()
 
     bbox = (0, 1)
     with pytest.raises(RuntimeError):
-        bind_complex_bounding_box(model, bbox, 'x')
+        bind_compound_bounding_box(model, bbox, 'x')
 
     bbox = {0: (-1, 0), 1: (0, 1)}
-    bind_complex_bounding_box(model, bbox, 'x')
+    bind_compound_bounding_box(model, bbox, 'x')
     assert model(-0.5) == truth(-0.5)
     assert model(-0.5, with_bounding_box=0) == truth(-0.5)
     assert np.isnan(model(-0.5, with_bounding_box=1))
@@ -832,16 +861,16 @@ def test_bind_complex_bounding_box():
         model(0.5, with_bounding_box=True)
 
 
-def test_fix_inputs_complex_bounding_box():
+def test_fix_inputs_compound_bounding_box():
     base_model = models.Gaussian2D(1, 2, 3, 4, 5)
     bbox = {2.5: (-1, 1), 3.14: (-7, 3)}
 
-    model = fix_inputs(base_model, {0: 2.5}, bbox=bbox)
+    model = fix_inputs(base_model, {'y': 2.5}, bbox=bbox)
     assert model.bounding_box == (-1, 1)
     model = fix_inputs(base_model, {'x': 2.5}, bbox=bbox)
     assert model.bounding_box == (-1, 1)
 
-    model = fix_inputs(base_model, {0: 2.5}, bbox=bbox, slice_args=0)
+    model = fix_inputs(base_model, {'y': 2.5}, bbox=bbox, slice_args='y')
     assert model.bounding_box == (-1, 1)
     with pytest.raises(ValueError):
         fix_inputs(base_model, {0: 2.5}, bbox=bbox, slice_args='x')
@@ -853,15 +882,9 @@ def test_fix_inputs_complex_bounding_box():
     base_model = models.Identity(4)
     bbox = {(2.5, 1.3): ((-1, 1), (-3, 3)), (2.5, 2.71): ((-3, 3), (-1, 1))}
 
-    model = fix_inputs(base_model, {0: 2.5, 1: 1.3}, bbox=bbox)
-    assert model.bounding_box == ((-1, 1), (-3, 3))
     model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bbox=bbox)
     assert model.bounding_box == ((-1, 1), (-3, 3))
 
-    model = fix_inputs(base_model, {0: 2.5, 1: 1.3}, bbox=bbox, slice_args=(0, 1))
-    assert model.bounding_box == ((-1, 1), (-3, 3))
-    with pytest.raises(ValueError):
-        fix_inputs(base_model, {0: 2.5, 1: 1.3}, bbox=bbox, slice_args=('x0', 'x1'))
     model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bbox=bbox, slice_args=('x0', 'x1'))
     assert model.bounding_box == ((-1, 1), (-3, 3))
     with pytest.raises(ValueError):

@@ -86,21 +86,28 @@ class TestModelArgument:
         assert str(err.value) == \
             "Enough information must be given so that both name and index can be determined."
 
-    def test_get_slice(self):
+    def test_get_slice_value(self):
         argument = ModelArgument('test', True, 7)
-        value_kwarg = mk.MagicMock()
-        kwargs = {'test': value_kwarg, 'other': mk.MagicMock()}
+        arg_value = mk.MagicMock()
+        args = [mk.MagicMock for _ in range(10)]
+        args[7] = arg_value
+        args = tuple(args)
+        kwarg_value = mk.MagicMock()
+        kwargs = {'test': kwarg_value, 'other': mk.MagicMock()}
 
-        # Test success
-        kwargs = {'test': value_kwarg, 'other': mk.MagicMock()}
-        assert argument.get_slice(**kwargs) == value_kwarg
+        # Test success in kwarg
+        assert argument.get_slice_value(*args, **kwargs) == kwarg_value
+
+        # Test success in args
+        kwargs = {'thing': kwarg_value, 'other': mk.MagicMock()}
+        assert argument.get_slice_value(*args, **kwargs) == arg_value
 
         # Test fail
-        kwargs = {'thing': value_kwarg, 'other': mk.MagicMock()}
+        args = tuple([mk.MagicMock for _ in range(3)])
         with pytest.raises(ValueError) as err:
-            argument.get_slice(**kwargs)
+            argument.get_slice_value(*args, **kwargs)
         assert str(err.value) == \
-            f"Cannot find a valid input corresponding to test in: {kwargs}."
+            f"Cannot find a valid input corresponding to key: test in: {kwargs} or index: 7 in: {args}."
 
     def test__removed_bounding_box(self):
         argument = ModelArgument('test', True, 7)
@@ -207,6 +214,17 @@ class TestModelArguments:
 
         assert arguments.removed == [arg2, arg0]
 
+    def test_removed_index(self):
+        arg0 = ModelArgument(mk.MagicMock(), True, 0)
+        arg1 = ModelArgument(mk.MagicMock(), False, 1)
+        arg2 = ModelArgument(mk.MagicMock(), True, 2)
+        arg3 = ModelArgument(mk.MagicMock(), False, 3)
+
+        args = [arg2, arg0, arg3, arg1]
+        arguments = ModelArguments(args)
+
+        assert arguments.removed_index == [2, 0]
+
     def test_validate(self):
         names = [f"name{idx}" for idx in range(3)]
         model = mk.MagicMock()
@@ -271,18 +289,26 @@ class TestModelArguments:
         # Not equal do to different type
         assert not arguments0 == mk.MagicMock()
 
-    def test_get_slice(self):
-        args = [ModelArgument(f"name{idx}", mk.MagicMock(), idx)
-                for idx in range(3)]
-        kwargs = {arg.name: mk.MagicMock() for arg in args}
+    def test_get_slice_index(self):
+        model_args = [ModelArgument(f"name{idx}", mk.MagicMock(), idx)
+                      for idx in range(3)]
+        args = tuple([mk.MagicMock() for _ in range(7)])
 
-        # Full tuple
-        arguments = ModelArguments(args)
-        assert arguments.get_slice(**kwargs) == tuple(kwargs.values())
+        # Full tuple from kwargs
+        kwargs = {arg.name: mk.MagicMock() for arg in model_args}
+        arguments = ModelArguments(model_args)
+        assert arguments.get_slice_index(*args, **kwargs) == tuple(kwargs.values())
+        # Single argument from kwargs
+        arguments = ModelArguments([model_args[1]])
+        assert arguments.get_slice_index(*args, **kwargs) == kwargs[model_args[1].name]
 
-        # Single argument
-        arguments = ModelArguments([args[1]])
-        assert arguments.get_slice(**kwargs) == kwargs[args[1].name]
+        # Full tuple from args
+        kwargs = {f"thing{idx}": mk.MagicMock() for idx in range(3)}
+        arguments = ModelArguments(model_args)
+        assert arguments.get_slice_index(*args, **kwargs) == tuple(args[:3])
+        # Single argument from args
+        arguments = ModelArguments([model_args[1]])
+        assert arguments.get_slice_index(*args, **kwargs) == args[1]
 
     def test_add_bounding_box(self):
         args = [ModelArgument(f"name{idx}", idx, mk.MagicMock())
@@ -315,6 +341,60 @@ class TestModelArguments:
                 mk.call(args[1], new_axes_ind[0]),
                 mk.call(args[2], new_axes_ind[1]),
             ]
+
+    def test__add_argument(self):
+        args = [ModelArgument(f"name{idx}", idx, mk.MagicMock())
+                for idx in range(3)]
+        arguments = ModelArguments(args)
+        assert len(arguments.arguments) == 3
+
+        # Add with name and model
+        arguments._add_argument('x', model=Gaussian1D())
+        assert len(arguments.arguments) == 4
+        assert arguments.arguments[-1] == ('x', False, 0)
+
+        # Add with name and remove and model
+        arguments._add_argument('x', True, model=Gaussian1D())
+        assert len(arguments.arguments) == 5
+        assert arguments.arguments[-1] == ('x', True, 0)
+
+        # Add with no model
+        arguments._add_argument('x', 33, 5)
+        assert len(arguments.arguments) == 6
+        assert arguments.arguments[-1] == ('x', 33, 5)
+
+    def test_add_arguments(self):
+        args = [ModelArgument(f"name{idx}", idx, mk.MagicMock())
+                for idx in range(3)]
+        arguments = ModelArguments(args)
+        assert len(arguments.arguments) == 3
+
+        # Add with names and model
+        arguments.add_arguments(*['x', 'y'], model=Gaussian2D())
+        assert len(arguments.arguments) == 5
+        assert arguments.arguments[-2] == ('x', False, 0)
+        assert arguments.arguments[-1] == ('y', False, 1)
+
+        # Add with names and remove, and model
+        arguments.add_arguments(*[('x', True), ('y', True)], model=Gaussian2D())
+        assert len(arguments.arguments) == 7
+        assert arguments.arguments[-2] == ('x', True, 0)
+        assert arguments.arguments[-1] == ('y', True, 1)
+
+        # Add with no model
+        arguments.add_arguments(*[('x', 11, 41), ('y', 17, 4)])
+        assert len(arguments.arguments) == 9
+        assert arguments.arguments[-2] == ('x', 11, 41)
+        assert arguments.arguments[-1] == ('y', 17, 4)
+
+    def test_reset_arguments(self):
+        args = [ModelArgument(f"name{idx}", idx, mk.MagicMock())
+                for idx in range(3)]
+        arguments = ModelArguments(args.copy())
+        assert arguments.arguments == args
+
+        arguments.reset_arguments()
+        assert arguments.arguments == [] != args
 
 
 class TestCompoundBoundingBox:
@@ -384,17 +464,17 @@ class TestCompoundBoundingBox:
         assert (bounding_box._model.parameters == Gaussian2D().parameters).all()
         assert bounding_box._slice_args == ModelArguments([ModelArgument('y', True, 1)])
 
-    def test__get_slice(self):
+    def test_get_slice(self):
         bbox = {1: (-1, 0), 2: (0, 1)}
         bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), slice_args=['x', 'y'])
 
         # Normal Get
-        assert bounding_box._get_slice(1) == (-1, 0)
-        assert bounding_box._get_slice(2) == (0, 1)
+        assert bounding_box.get_slice(1) == (-1, 0)
+        assert bounding_box.get_slice(2) == (0, 1)
 
         # Error
         with pytest.raises(RuntimeError) as err:
-            bounding_box._get_slice(3)
+            bounding_box.get_slice(3)
         assert str(err.value) == \
             "No bounding_box is defined for slice: 3!"
 
@@ -404,18 +484,23 @@ class TestCompoundBoundingBox:
         bounding_box._model = model
         bounding_box._create_slice = create
         assert 3 not in bounding_box
-        assert bounding_box._get_slice(3) == create.return_value
+        assert bounding_box.get_slice(3) == create.return_value
         assert 3 in bounding_box
         assert bounding_box[3] == create.return_value
 
         assert create.call_args_list == [mk.call(model, 3)]
 
-    def test__get_bounding_box(self):
+    def test__get_slice(self):
         bbox = {1: (-1, 0), 2: (0, 1)}
         bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), slice_args=['y'])
 
-        assert bounding_box._get_bounding_box(y=1) == (-1, 0)
-        assert bounding_box._get_bounding_box(y=2) == (0, 1)
+        # Using **kwarg
+        assert bounding_box._get_slice(y=1) == (-1, 0)
+        assert bounding_box._get_slice(y=2) == (0, 1)
+
+        # Using *arg
+        assert bounding_box._get_slice(0, 1) == (-1, 0)
+        assert bounding_box._get_slice(1, 2) == (0, 1)
 
     def test__add_bounding_box(self):
         origin_bbox = BoundingBox((1, 2))
@@ -442,15 +527,31 @@ class TestCompoundBoundingBox:
     def test_get_bounding_box(self):
         bbox = {1: (-1, 0), 2: (0, 1)}
         bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), slice_args=['y'])
+        args = tuple([mk.MagicMock() for _ in range(3)])
         kwargs = {'test': mk.MagicMock()}
 
         with mk.patch.object(CompoundBoundingBox, '_add_bounding_box',
                              autospec=True) as mkAdd:
-            with mk.patch.object(CompoundBoundingBox, '_get_bounding_box',
+            with mk.patch.object(CompoundBoundingBox, '_get_slice',
                                  autospec=True) as mkGet:
-                assert bounding_box.get_bounding_box(**kwargs) == mkAdd.return_value
+                # Default
+                assert bounding_box.get_bounding_box(*args, **kwargs) == mkGet.return_value
+                assert mkAdd.call_args_list == []
+                assert mkGet.call_args_list == [mk.call(bounding_box, *args, **kwargs)]
+                mkGet.reset_mock()
+
+                # Don't add removed bounding_box
+                kwargs['add_removed'] = False
+                assert bounding_box.get_bounding_box(*args, **kwargs) == mkGet.return_value
+                assert mkAdd.call_args_list == []
+                assert mkGet.call_args_list == [mk.call(bounding_box, *args, test=kwargs['test'])]
+                mkGet.reset_mock()
+
+                # Add removed bounding_box
+                kwargs['add_removed'] = True
+                assert bounding_box.get_bounding_box(*args, **kwargs) == mkAdd.return_value
                 assert mkAdd.call_args_list == [mk.call(bounding_box, mkGet.return_value)]
-                assert mkGet.call_args_list == [mk.call(bounding_box, **kwargs)]
+                assert mkGet.call_args_list == [mk.call(bounding_box, *args, test=kwargs['test'])]
 
     def test_add_removed_axes(self):
         bbox = {1: (-1, 0), 2: (0, 1)}
@@ -464,129 +565,24 @@ class TestCompoundBoundingBox:
                 assert mkSort.call_args_list == [mk.call(mkAdd.return_value)]
                 assert mkAdd.call_args_list == [mk.call(bounding_box.slice_args, axes_ind)]
 
+    def test_set_slice_args(self):
+        bbox = {1: (-1, 0), 2: (0, 1)}
+        model = mk.MagicMock()
+        slice_args = ModelArguments([])
+        bounding_box = CompoundBoundingBox(bbox, model=model, slice_args=slice_args)
 
-# def test_CompoundBoundingBox__init__():
-#     bbox = {1: (-1, 0), 2: (0, 1)}
-#     bounding_box = CompoundBoundingBox(bbox)
+        args = tuple([mk.MagicMock() for _ in range(3)])
 
-#     assert bounding_box == bbox
-#     assert bounding_box._model is None
-#     assert bounding_box._slice_arg is None
+        with mk.patch.object(ModelArguments, 'reset_arguments',
+                             autospec=True) as mkReset:
+            with mk.patch.object(ModelArguments, 'add_arguments',
+                                 autospec=True) as mkAdd:
+                main = mk.MagicMock()
+                main.attach_mock(mkReset, 'reset')
+                main.attach_mock(mkAdd, 'add')
 
-#     bounding_box = CompoundBoundingBox(bbox, Gaussian1D(), 'x')
-#     assert bounding_box == bbox
-#     assert (bounding_box._model.parameters == Gaussian1D().parameters).all()
-#     assert bounding_box._slice_arg == 0
-
-
-# def test_CompoundBoundingBox__get_arg_index():
-#     bounding_box = CompoundBoundingBox({}, Gaussian2D())
-
-#     assert bounding_box._get_arg_index(0) == 0
-#     assert bounding_box._get_arg_index(1) == 1
-#     with pytest.raises(ValueError):
-#         bounding_box._get_arg_index(2)
-
-#     assert bounding_box._get_arg_index('x') == 0
-#     assert bounding_box._get_arg_index('y') == 1
-#     with pytest.raises(ValueError):
-#         bounding_box._get_arg_index('z')
-
-
-# def test_CompoundBoundingBox_validate():
-#     bbox = {1: (-1, 0), 2: (0, 1)}
-#     model = Gaussian1D()
-#     bounding_box = CompoundBoundingBox.validate(model, bbox, 'x')
-
-#     assert bounding_box == bbox
-#     assert bounding_box._model == model
-#     assert bounding_box._slice_arg == 0
-#     for slice_box in bounding_box.values():
-#         assert isinstance(slice_box, BoundingBox)
-
-#     model = Gaussian2D()
-#     bounding_box = CompoundBoundingBox.validate(model, bbox, 'x',
-#                                                remove_slice_arg=True)
-#     assert bounding_box == bbox
-#     assert bounding_box._model == model
-#     assert bounding_box._slice_arg == 0
-#     for slice_box in bounding_box.values():
-#         assert isinstance(slice_box, BoundingBox)
-
-
-# def test_CompoundBoundingBox_set_slice_arg():
-#     bounding_box = CompoundBoundingBox((), slice_arg='arg')
-#     assert bounding_box._slice_arg == 'arg'
-
-#     bounding_box.set_slice_arg(None)
-#     assert bounding_box._slice_arg is None
-
-#     bounding_box._model = Gaussian1D()
-#     with pytest.raises(ValueError):
-#         bounding_box.set_slice_arg('arg')
-
-#     with pytest.raises(ValueError):
-#         bounding_box.set_slice_arg(('x', 'y'))
-
-#     bounding_box.set_slice_arg('x')
-#     assert bounding_box._slice_arg == 0
-#     bounding_box.set_slice_arg(0)
-#     assert bounding_box._slice_arg == 0
-
-#     bounding_box._model = Gaussian2D()
-#     bounding_box.set_slice_arg(('x', 'y'))
-#     assert bounding_box._slice_arg == (0, 1)
-#     bounding_box.set_slice_arg((0, 1))
-#     assert bounding_box._slice_arg == (0, 1)
-
-
-# def test_CompoundBoundingBox__get_slice_index():
-#     bounding_box = CompoundBoundingBox({}, Gaussian2D())
-
-#     inputs = [mk.MagicMock(), mk.MagicMock(), mk.MagicMock()]
-#     assert bounding_box._get_slice_index(inputs, 'x') == inputs[0]
-#     assert bounding_box._get_slice_index(inputs, 'y') == inputs[1]
-#     with pytest.raises(RuntimeError):
-#         bounding_box._get_slice_index(None, 'x')
-
-#     inputs = [np.array(1), np.array(2), np.array(3)]
-#     assert bounding_box._get_slice_index(inputs, 'x') == 1
-#     assert bounding_box._get_slice_index(inputs, 'y') == 2
-#     with pytest.raises(RuntimeError):
-#         bounding_box._get_slice_index(None, 'x')
-
-
-# def test_CompoundBoundingBox_get_bounding_box():
-#     inputs = [np.array(1), np.array(2), np.array(3)]
-
-#     bounding_box = CompoundBoundingBox({}, Gaussian2D())
-#     assert bounding_box._slice_arg is None
-#     assert bounding_box.get_bounding_box(inputs) is None
-#     with pytest.raises(RuntimeError):
-#         bounding_box.get_bounding_box(inputs, slice_index=mk.MagicMock())
-
-#     bbox = {(1, 2): mk.MagicMock(), (3, 4): mk.MagicMock()}
-#     bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), ('x', 'y'))
-#     assert bounding_box.get_bounding_box(inputs) == bbox[(1, 2)]
-#     assert bounding_box.get_bounding_box(inputs, slice_index=(3, 4)) == bbox[(3, 4)]
-#     with pytest.raises(RuntimeError):
-#         bounding_box.get_bounding_box([np.array(4), np.array(5)])
-#     bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), (0, 1))
-
-#     assert bounding_box.get_bounding_box(inputs) == bbox[(1, 2)]
-#     assert bounding_box.get_bounding_box(inputs, slice_index=(3, 4)) == bbox[(3, 4)]
-#     with pytest.raises(RuntimeError):
-#         bounding_box.get_bounding_box([np.array(4), np.array(5)])
-
-#     bbox = {1: mk.MagicMock(), 2: mk.MagicMock()}
-#     bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), 'x')
-#     assert bounding_box.get_bounding_box(inputs) == bbox[1]
-#     assert bounding_box.get_bounding_box(inputs, slice_index=2) == bbox[2]
-#     with pytest.raises(RuntimeError):
-#         bounding_box.get_bounding_box([np.array(3)])
-
-#     bounding_box = CompoundBoundingBox(bbox, Gaussian2D(), 0)
-#     assert bounding_box.get_bounding_box(inputs) == bbox[1]
-#     assert bounding_box.get_bounding_box(inputs, slice_index=2) == bbox[2]
-#     with pytest.raises(RuntimeError):
-#         bounding_box.get_bounding_box([np.array(3)])
+                bounding_box.set_slice_args(*args)
+                main.mock_calls == [
+                    mk.call.reset(slice_args),
+                    mk.call.add(slice_args, *args, model=model)
+                ]

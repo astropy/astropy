@@ -1296,19 +1296,20 @@ class Model(metaclass=_ModelMeta):
 
         if cls is not None:
             try:
-                bounding_box = cls.validate(self, bounding_box)
+                bounding_box = cls.validate(model=self,
+                                            bounding_box=bounding_box)
             except ValueError as exc:
                 raise ValueError(exc.args[0])
 
         self._user_bounding_box = bounding_box
 
-    def set_slice_arg(self, slice_arg):
+    def set_slice_args(self, *args):
         """
         Assigns the slice arg to complex bounding box
         """
 
         if isinstance(self._user_bounding_box, CompoundBoundingBox):
-            self._user_bounding_box.set_slice_arg(slice_arg)
+            self._user_bounding_box.set_slice_args(*args)
         else:
             raise RuntimeError('The bounding_box for this model is not complex.')
 
@@ -2829,20 +2830,21 @@ class CompoundModel(Model):
             # Restructure to be useful for the individual model lookup
             kw['inputs_map'] = [(value[0], (value[1], key)) for
                                 key, value in self.inputs_map().items()]
-
-        slice_index = kw.pop('with_bounding_box', None)
-        if isinstance(slice_index, bool) and not slice_index:
-            slice_index = None
+        with_bbox = kw.pop('with_bounding_box', False)
+        if not isinstance(with_bbox, bool):
+            enforce_bbox = True
+        else:
+            enforce_bbox = with_bbox
 
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment
         # in selecting only valid inputs to pass along to constituent models.
-        bbox, slice_arg = get_bounding_box(self, args, slice_index=slice_index)
-        if (slice_index is not None) and bbox is not None:
+        bbox, slice_indicies = get_bounding_box(self, args, with_bbox)
+        if enforce_bbox and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
                                                  self.model_set_axis, self.standard_broadcasting)
-            vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox, slice_arg)
+            vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox, slice_indicies)
             if not allout:
                 valid_result = self._evaluate(*vinputs, **kw)
                 if self.n_outputs == 1:
@@ -3633,32 +3635,31 @@ def fix_inputs(modelinstance, values, bbox=None, slice_args=None):
     model = CompoundModel('fix_inputs', modelinstance, values)
     if bbox is not None:
         if slice_args is None:
-            slice_arg = tuple(values.keys())
+            names = tuple(values.keys())
             slice_index = tuple(values.values())
         else:
-            if not hasattr(slice_args, '__iter__'):
+            if not isiterable(slice_args):
                 slice_args = tuple([slice_args])
 
             if all(arg in values for arg in slice_args):
-                slice_arg = tuple(slice_args)
+                names = tuple(slice_args)
                 slice_index = tuple(values[arg] for arg in slice_args)
             else:
                 raise ValueError(f"{slice_args} must all be keys of {values}")
-        if len(slice_arg) == 1:
-            slice_arg = slice_arg[0]
-            slice_index = slice_index[0]
 
-        complex_bbox = CompoundBoundingBox.validate(modelinstance, bbox,
-                                                   slice_arg=slice_arg,
-                                                   remove_slice_arg=True)
-        model.bounding_box = complex_bbox.get_bounding_box(slice_index=slice_index)
+        names = [(name, True) for name in names]
 
+        compound_bounding_box = CompoundBoundingBox.validate(bbox,
+                                                             slice_args=names,
+                                                             model=modelinstance)
+
+        model.bounding_box = compound_bounding_box.get_slice(slice_index)
     return model
 
 
-def bind_complex_bounding_box(modelinstance, bbox, slice_arg=None):
+def bind_compound_bounding_box(modelinstance, bbox, slice_args=None):
     """
-    This function binds a complex bounding box to a model.
+    This function binds a compound bounding box to a model.
 
     Parameters
     ----------
@@ -3676,7 +3677,7 @@ def bind_complex_bounding_box(modelinstance, bbox, slice_arg=None):
     """
 
     modelinstance.bounding_box = bbox
-    modelinstance.set_slice_arg(slice_arg)
+    modelinstance.set_slice_args(*slice_args)
 
 
 def custom_model(*args, fit_deriv=None, **kwargs):
@@ -4168,35 +4169,32 @@ def check_consistent_shapes(*shapes):
     return rshape
 
 
-def get_bounding_box(self, inputs, slice_index=None):
+def get_bounding_box(self, inputs, with_bbox):
     """
     Return the ``bounding_box`` of a model.
-
-    Raises
-    ------
-    NotImplementedError
-        If ``bounding_box`` is not defined.
     """
 
-    slice_arg = []
+    slice_index = []
 
-    if slice_index is None:
-        return None, slice_arg
-    else:
+    if not isinstance(with_bbox, bool) or with_bbox:
         try:
             bbox = self.bounding_box
         except NotImplementedError:
-            return None, slice_arg
+            bbox = None
 
         if isinstance(bbox, CompoundBoundingBox):
-            if bbox.remove_slice_arg:
-                if isiterable(bbox.slice_arg):
-                    slice_arg = bbox.slice_arg
+            slice_index = bbox.slice_args.removed_index
+            if isinstance(with_bbox, bool):
+                bbox = bbox.get_bounding_box(*inputs)
+            else:
+                if with_bbox in bbox:
+                    bbox = bbox.get_slice(with_bbox)
                 else:
-                    slice_arg = [bbox.slice_arg]
-            return bbox.get_bounding_box(inputs, slice_index), slice_arg
-        else:
-            return bbox, slice_arg
+                    raise RuntimeError(f"{with_bbox} is not one of bounding_box keys: {list(bbox.keys())}")
+    else:
+        bbox = None
+
+    return bbox, slice_index
 
 
 def generic_call(self, *inputs, **kwargs):
@@ -4208,18 +4206,20 @@ def generic_call(self, *inputs, **kwargs):
     else:
         parameters = self._param_sets(raw=True, units=True)
 
-    slice_index = kwargs.pop('with_bounding_box', None)
-    if isinstance(slice_index, bool) and not slice_index:
-        slice_index = None
+    with_bbox = kwargs.pop('with_bounding_box', False)
+    if not isinstance(with_bbox, bool):
+        enforce_bbox = True
+    else:
+        enforce_bbox = with_bbox
 
     fill_value = kwargs.pop('fill_value', np.nan)
-    bbox, slice_arg = get_bounding_box(self, inputs, slice_index=slice_index)
-    if (slice_index is not None) and bbox is not None:
+    bbox, slice_indicies = get_bounding_box(self, inputs, with_bbox)
+    if enforce_bbox and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,
             self.standard_broadcasting)
         vinputs, valid_ind, allout = prepare_bounding_box_inputs(
-            self, input_shape, inputs, bbox, slice_arg)
+            self, input_shape, inputs, bbox, slice_indicies)
         valid_result_unit = None
         if not allout:
             valid_result = self.evaluate(*chain(vinputs, parameters))
@@ -4245,7 +4245,7 @@ def generic_call(self, *inputs, **kwargs):
     return outputs
 
 
-def prepare_bounding_box_inputs(self, input_shape, inputs, bbox, slice_index):
+def prepare_bounding_box_inputs(self, input_shape, inputs, bbox, slice_indicies):
     """
     Assign a value of ``np.nan`` to indices outside the bounding box.
     """
@@ -4259,11 +4259,13 @@ def prepare_bounding_box_inputs(self, input_shape, inputs, bbox, slice_index):
     # indices where input is outside the bbox
     # have a value of 1 in ``nan_ind``
     nan_ind = np.zeros(input_shape, dtype=bool)
+    bbox_index = -1
     for ind, inp in enumerate(inputs):
-        if ind in slice_index:
+        bbox_index += 1
+        if ind in slice_indicies:
             continue
         inp = np.asanyarray(inp)
-        outside = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1])
+        outside = np.logical_or(inp < bbox[bbox_index][0], inp > bbox[bbox_index][1])
         if inp.shape:
             nan_ind[outside] = True
         else:
