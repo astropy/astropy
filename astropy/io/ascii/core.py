@@ -1042,7 +1042,10 @@ class BaseOutputter:
                                   else self.default_converters)
 
             # If the user supplied a specific convert then that takes precedence over defaults
-            converters = self.converters.get(col.name, default_converters)
+            try:
+                converters = self.converters[col.name]
+            except KeyError:
+                converters = default_converters
 
             col.converters = self._validate_and_copy(col, converters)
 

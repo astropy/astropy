@@ -1,0 +1,1 @@
+Readers can now accept a defaultdict for format converters.

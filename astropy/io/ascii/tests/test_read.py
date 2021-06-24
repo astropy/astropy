@@ -4,7 +4,7 @@
 from astropy.io.ascii.core import convert_numpy
 import re
 from io import BytesIO, open
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import locale
 import platform
 from io import StringIO
@@ -1640,3 +1640,13 @@ False   5
     assert col.dtype.kind == 'b'
     assert np.all(col.mask == [False, False, False, True, False])
     assert np.all(col == [True, False, True, False, False])
+
+
+def test_converter_default_dict():
+    '''Check if input convertes can be default dicts.
+
+    Regression test for https://github.com/astropy/astropy/issues/4934
+    '''
+    converters = defaultdict(lambda: [ascii.convert_numpy(np.float)])
+    tab = ascii.read(['1 2'], converters=converters, format='no_header')
+    assert np.issubdtype(tab['col1'].dtype, np.floating)
