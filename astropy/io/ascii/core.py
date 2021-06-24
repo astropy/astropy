@@ -1042,6 +1042,10 @@ class BaseOutputter:
                                   else self.default_converters)
 
             # If the user supplied a specific convert then that takes precedence over defaults
+            # The try-except block is here to make this work if the converters
+            # passed in are a default dict.
+            # `col.name in self.converters` would give False in this case
+            # Thus, we really need to try `self.converters[col.name]`
             try:
                 converters = self.converters[col.name]
             except KeyError:

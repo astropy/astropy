@@ -1647,6 +1647,6 @@ def test_converter_default_dict():
 
     Regression test for https://github.com/astropy/astropy/issues/4934
     '''
-    converters = defaultdict(lambda: [ascii.convert_numpy(np.float)])
+    converters = defaultdict(lambda: [ascii.convert_numpy(np.float32)])
     tab = ascii.read(['1 2'], converters=converters, format='no_header')
-    assert np.issubdtype(tab['col1'].dtype, np.floating)
+    assert np.issubdtype(tab['col1'].dtype, np.float32)
