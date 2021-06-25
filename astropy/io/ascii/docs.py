@@ -39,7 +39,9 @@ READ_DOCSTRING = """
         Line index for the end of data not counting comment or blank lines.
         This value can be negative to count from the end.
     converters : dict
-        Dictionary of converters
+        Dictionary of converters. Keys in the dictionary are columns names,
+        values are converter functions. In addition to single column names
+        you can use wildcards via `fnmatch` to select multiple columns.
     data_Splitter : `~astropy.io.ascii.BaseSplitter`
         Splitter class to split data columns
     header_Splitter : `~astropy.io.ascii.BaseSplitter`

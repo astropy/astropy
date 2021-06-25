@@ -577,6 +577,15 @@ The default converters for each column can be overridden with the
   ...               'col2': [ascii.convert_numpy(np.float32)]}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
+In addition to single column names you can use wildcards via `fnmatch` to
+select multiple columns. For example, we can set the format for all columns
+where the column name starts with i to `np.unit` while applying default
+converters to all other columns in the table::
+
+  >>> import numpy as np
+  >>> converters = {'i*': [ascii.convert_numpy(np.uint)]}
+  >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
+
 
 .. _fortran_style_exponents:
 
