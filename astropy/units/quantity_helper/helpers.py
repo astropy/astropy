@@ -26,6 +26,10 @@ def _d(unit):
         return unit
 
 
+def _I(x):  # identity function
+    return x
+
+
 def get_converter(from_unit, to_unit):
     """Like Unit._get_converter, except returns None if no scaling is needed,
     i.e., if the inferred scale is unity."""
@@ -318,6 +322,16 @@ def helper_clip(f, unit1, unit2, unit3):
                 converters.append(converter)
 
     return converters, result_unit
+
+
+# HELPER NARGS
+def make_helper_nargs(nin, nout, outunits):
+    # TODO! is there any way to (more) automatically handle units?
+    converters = [_I] * nout  # don't convert -- use the identity function
+
+    def helper_nargs(f, *units):
+        return converters, outunits  # no conversion, prespecified units
+    return helper_nargs
 
 
 # list of ufuncs:

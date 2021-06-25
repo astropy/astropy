@@ -6,8 +6,10 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
+import inspect
 import io
 import re
+from collections.abc import Sequence
 from fractions import Fraction
 
 import numpy as np
@@ -293,3 +295,31 @@ def quantity_asanyarray(a, dtype=None):
         return Quantity(a, dtype=dtype)
     else:
         return np.asanyarray(a, dtype=dtype)
+
+
+# ------------------------------------------------------------------------------
+
+def quantity_frompyfunc(func, nin, nout, ounits=None, *, identity=None):
+    # This function is dangerous b/c ounits is the final word on
+    # output units
+    from .core import UnitBase
+
+    if ounits is None:
+        ra = inspect.signature(func).return_annotation
+        # TODO! more intelligent detection of unit returns
+        if (
+            isinstance(ra, UnitBase) or
+            (isinstance(ra, Sequence) and all(isinstance(x, UnitBase) for x in ra))
+        ):
+            ounits = ra
+
+    # make ufunc
+    ufunc = np.frompyfunc(func, nin, nout, identity=identity)
+
+    # register ufunc with Quantity
+    from astropy.units.quantity_helper.converters import UFUNC_HELPERS
+    from astropy.units.quantity_helper.helpers import make_helper_nargs
+
+    UFUNC_HELPERS[ufunc] = make_helper_nargs(nin, nout, ounits)
+
+    return ufunc
