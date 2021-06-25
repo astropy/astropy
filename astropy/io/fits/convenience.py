@@ -68,7 +68,7 @@ from .hdu.image import PrimaryHDU, ImageHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import fileobj_closed, fileobj_name, fileobj_mode, _is_int
-from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.decorators import deprecated_renamed_argument
 
 try:
@@ -206,15 +206,10 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
         hdu = hdulist[extidx]
         data = hdu.data
         if data is None and no_user_ext:
-            # deprecated fallback to the first non-primary extension
+            # fallback to the first non-primary extension
             try:
                 hdu = hdulist[1]
                 data = hdu.data
-                warnings.warn(
-                    'Fallback to the first extension when primary has no '
-                    'data is deprecated. In the future this will raise a '
-                    'ValueError.', AstropyDeprecationWarning
-                )
             except IndexError:
                 pass
         if data is None:
