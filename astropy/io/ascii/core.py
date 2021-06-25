@@ -18,6 +18,7 @@ import os
 import re
 import warnings
 import inspect
+import fnmatch
 
 from collections import OrderedDict
 from contextlib import suppress
@@ -1036,13 +1037,14 @@ class BaseOutputter:
 
     def _convert_vals(self, cols):
         for col in cols:
-            # If a specific dtype was specified for a column, then use that
-            # to set the defaults, otherwise use the generic defaults.
-            default_converters = ([convert_numpy(col.dtype)] if col.dtype
-                                  else self.default_converters)
-
-            # If the user supplied a specific convert then that takes precedence over defaults
-            converters = self.converters.get(col.name, default_converters)
+            if col.dtype is not None:
+                converters = [convert_numpy(col.dtype)]
+            else:
+                for key, converters in self.converters.items():
+                    if fnmatch.fnmatch(col.name, key):
+                        break
+                else:
+                    converters = self.default_converters
 
             col.converters = self._validate_and_copy(col, converters)
 
