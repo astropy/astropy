@@ -21,7 +21,7 @@ from . import fixedwidth
 
 from astropy.units import Unit
 
-from .CDSColumn import CDSColumn
+from astropy.table import Column, MaskedColumn
 import sys
 from string import Template
 from textwrap import wrap, fill
@@ -210,25 +210,113 @@ class CdsHeader(core.BaseHeader):
 
         self.cols = cols
 
-    def init_CDSColumns(self):
-        """Initialize list of CDSColumns  (self.__cds_columns)"""
-        self.__cds_columns = []
-        for col in self.cols:
-            cdsCol = CDSColumn(col)
-            self.__cds_columns.append(cdsCol)
-
     def __strFmt(self, string):
         """Return argument formatted as string."""
         if string is None:
             return ""
         else:
-            return string
+            return string  
+            
+    def __get_type(self, col):
+        """Return column type."""
+        if col.dtype.name.startswith("i"):
+            return int
+        elif col.dtype.name.startswith("f"):
+            return float
+        elif col.dtype.name.startswith("u"):
+            return int
+        elif col.dtype.name.startswith("s"):
+            return str
+
+    def __splitFloatFormat(self, regfloat, value, fmt):
+        """ get float format
+        value (IN) the float value
+        regfloat (IN) float format string
+        fmt (out) [size, prec, dec, ent, sign]
+        return True has scientific notation
+        """
+        mo = regfloat.match(value)
+
+        if mo is None: 
+            raise Exception(value + " is not a float number")
+
+        fmt[0] = len(value)
+        if mo.group(1) != "":
+            fmt[4] = True
+        else:
+            fmt[4] = False
+        fmt[2] = len(mo.group(2))
+        fmt[3] = len(mo.group(4))
+        fmt[1] = fmt[2] + fmt[3]
+
+        if mo.group(5) != "":
+            # scientific notation
+            return True
+        return False
+
+    def columnFloatFormatter(self, col):
+        """
+        String formatter for a column containing Float values.
+        """
+        if col.hasNull: # optimized (2x more speed)
+            mcol = col
+            mcol.fill_value = -999999
+            col.max = max(mcol.filled())
+            if col.max == -999999: col.max = None
+            mcol.fill_value = +999999
+            col.min = min(mcol.filled())
+            if col.min == 999999: col.min = None
+        else:
+            col.max = max(col)
+            col.min = min(col)
+        
+        regfloat = re.compile("([+-]*)([^eE.]+)([.]*)([0-9]*)([eE]*-*)[0-9]*")
+
+        maxSize, maxprec, maxDec, maxEnt = 1, 0, 0, 1
+        sign = False
+        fformat = 'F'
+        fmt = [0, 0, 0, 0, False]
+
+        # find max sized value in the col
+        for rec in col:
+            # skip null values
+            if rec is None:
+                continue
+            s = str(rec)
+
+            if self.__splitFloatFormat(regfloat, s, fmt) is True:
+                if fformat == 'F':
+                    maxSize, maxprec, maxDec = 1, 0, 0
+                # scientific notation
+                fformat = 'E'
+            else:
+                if fformat == 'E': continue
+
+            if maxprec < fmt[1]: maxprec = fmt[1]
+            if maxDec < fmt[3]: maxDec = fmt[3]
+            if maxEnt < fmt[2]: maxEnt = fmt[2]
+            if maxSize < fmt[0]: maxSize = fmt[0]
+            if fmt[4]: sign = True
+
+        if fformat == 'E':
+            col.meta.size = maxSize
+            if sign: col.meta.size += 1
+            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
+            col.format = str(col.meta.size) + "." + str(maxDec) + "e"
+        else:
+            col.meta.size = maxEnt + maxDec + 1
+            if sign: col.meta.size += 1
+            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxDec)
+            col.format = col.fortran_format[1:] + "f"
+
+        col.out_format = "{0:" + col.format + "}"
+        col.none_format = "{0:" + str(col.meta.size)+"s}"
+
 
     def writeByteByByte(self):
         """
         Writes byte-by-byte description of the table.
         :param table: `astropy.table.Table` object.
-        :param outBuffer: true to get buffer, else write on output (default: False)
         """
         # get column widths.
         vals_list = []
@@ -242,9 +330,6 @@ class CdsHeader(core.BaseHeader):
                 col.width = max(col.width, len(col.info.name))
         widths = [col.width for col in self.cols]
 
-        self.init_CDSColumns()  # get CDSColumn objects.
-
-        columns = self.__cds_columns
         startb = 1
         sz = [0, 0, 1, 7]
         l = len(str(sum(widths)))
@@ -252,46 +337,102 @@ class CdsHeader(core.BaseHeader):
             sz[0] = l
             sz[1] = l
         fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
-        for column in columns:
+        for column in self.cols:
             if len(column.name) > sz[3]:
                 sz[3] = len(column.name)
         fmtb += " {3:6s} {4:6s} {5:" + str(sz[3]) + "s} {6:s}"
         buff = ""
         nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
 
-        for i, column in enumerate(columns):
-            column.parse()  # set CDSColumn type, size and format.
+        for i, col in enumerate(self.cols):
+            # check if column is MaskedColumn
+            if isinstance(col, MaskedColumn):
+                col.hasNull = True
+            else:
+                col.hasNull = False
 
-            endb = column.size + startb - 1
-            """ if column.formatter.fortran_format[0] == 'R':
-                buff += self.__strFmtRa(column, fmtb, startb) + "\n"
-            elif column.formatter.fortran_format[0] == 'D':
-                buff += self.__strFmtDe(column, fmtb, startb) + "\n"
-            else: """
-            description = column.description
-            if column.hasNull:
+            # set CDSColumn type, size and format.
+            coltype = self.__get_type(col)
+            if coltype is int:
+                # integer formatter
+                if col.hasNull:
+                    mcol = col
+                    mcol.fill_value = -999999
+                    col.max = max(mcol.filled())
+                    if col.max == -999999: col.max = None
+                    mcol.fill_value = +999999
+                    col.min = min(mcol.filled())
+                    if col.min == 999999: col.min = None
+                else:
+                    col.max = max(col)
+                    col.min = min(col)
+                col.meta.size = len(str(col.max))
+                l = len(str(col.min))
+                if col.meta.size < l: col.meta.size = l
+                col.fortran_format = "I" + str(col.meta.size)
+                col.format = ">" + col.fortran_format[1:]
+
+                col.out_format = "{0:" + col.format + "}"
+                col.none_format = "{0:" + str(col.meta.size) + "s}"
+
+            elif coltype is float:
+                # float formatter
+                self.columnFloatFormatter(col)
+
+            else:
+                # string formatter
+                if col.hasNull:
+                    mcol = col
+                    mcol.fill_value = ""
+                    coltmp = Column(mcol.filled(), dtype=str)
+                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', coltmp.dtype.str))
+                else:
+                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', col.dtype.str))
+                col.fortran_format = "A" + str(col.meta.size)
+                col.format = str(col.meta.size) + "s"
+                col.out_format = "{0:" + str(col.meta.size) + "s}"
+                col.none_format = col.out_format
+
+            endb = col.meta.size + startb - 1
+
+            # set column description
+            if col.description is not None:
+                description = col.description
+            else:
+                description = "Description of " + col.name
+
+            # set null flag in column description
+            if col.hasNull:
                 nullflag = "?"
             else:
                 nullflag = ""
 
+            # set column unit
+            if col.unit is not None:
+                col.meta.unit = col.unit.to_string("cds")
+            else:
+                col.meta.unit = '---'
+
             # add col limit values to col description
             borne = ""
-            if column.min and column.max:
-                if column.formatter.fortran_format[0] == 'I':
-                    if abs(column.min) < MAX_COL_INTLIMIT and abs(column.max) < MAX_COL_INTLIMIT:
-                        if column.min == column.max:
-                            borne = "[{0}]".format(column.min)
+            if col.min and col.max:
+                if col.fortran_format[0] == 'I':
+                    if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
+                        if col.min == col.max:
+                            borne = "[{0}]".format(col.min)
                         else:
-                            borne = "[{0}/{1}]".format(column.min, column.max)
-                elif column.formatter.fortran_format[0] in ('E','F'):
-                    borne = "[{0}/{1}]".format(math.floor(column.min*100)/100.,
-                                                math.ceil(column.max*100)/100.)
+                            borne = "[{0}/{1}]".format(col.min, col.max)
+                elif col.fortran_format[0] in ('E','F'):
+                    borne = "[{0}/{1}]".format(math.floor(col.min*100)/100.,
+                                                math.ceil(col.max*100)/100.)
 
             description = "{0}{1} {2}".format(borne, nullflag, description)
+
+            # get ByteByByte row
             newline = fmtb.format(startb, endb, "",
-                                    self.__strFmt(column.formatter.fortran_format),
-                                    self.__strFmt(column.unit),
-                                    self.__strFmt(column.name),
+                                    self.__strFmt(col.fortran_format),
+                                    self.__strFmt(col.meta.unit),
+                                    self.__strFmt(col.name),
                                     description)
 
             if len(newline) > MAX_SIZE_README_LINE:
@@ -303,6 +444,7 @@ class CdsHeader(core.BaseHeader):
                 buff += newline + "\n"
             startb = endb + 2
 
+        # add column notes to ByteByByte
         notes = self.cdsdicts.get('notes', None)
         if notes is not None:
             buff += "-" * 80 + "\n"
