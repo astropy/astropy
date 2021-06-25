@@ -281,9 +281,6 @@ column use:
      >>> dat = ascii.read('file.dat', format='daophot')
      >>> dat = Table.read('file.dat', format='ascii.daophot')
 
-   The following format values are also allowed in ``Table.read()``:
-   ``daophot``, ``ipac``, ``html``, ``latex``, and ``rdb``.
-
 .. attention:: **ECSV is recommended**
 
    For writing and reading tables to ASCII in a way that fully reproduces the
