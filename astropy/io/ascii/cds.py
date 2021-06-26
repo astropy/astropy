@@ -21,8 +21,9 @@ from . import fixedwidth
 
 from astropy.units import Unit
 
+from io import StringIO
+from astropy.table import Table
 from astropy.table import Column, MaskedColumn
-import sys
 from string import Template
 from textwrap import wrap, fill
 import math
@@ -215,8 +216,8 @@ class CdsHeader(core.BaseHeader):
         if string is None:
             return ""
         else:
-            return string  
-            
+            return string
+
     def __get_type(self, col):
         """Return column type."""
         if col.dtype.name.startswith("i"):
@@ -228,28 +229,37 @@ class CdsHeader(core.BaseHeader):
         elif col.dtype.name.startswith("s"):
             return str
 
-    def __splitFloatFormat(self, regfloat, value, fmt):
+    def __splitFloatFormat(self, value, fmt):
         """ get float format
         value (IN) the float value
-        regfloat (IN) float format string
-        fmt (out) [size, prec, dec, ent, sign]
+        fmt (out) [size: length of string containing the float value,
+                   prec: precision of the column values, sum of dec and ent,
+                   dec: number of digits places after decimal point,
+                   ent: number of digits places before decimal point,
+                   sign: bool, is float value signed]
         return True has scientific notation
         """
+        regfloat = re.compile(r"""(?P<sign> [+-]*)
+                                  (?P<int> [^eE.]+)
+                                  (?P<deciPt> [.]*)
+                                  (?P<decimals> [0-9]*)
+                                  (?P<exp> [eE]*-*)[0-9]*""",
+                             re.VERBOSE)
         mo = regfloat.match(value)
 
-        if mo is None: 
+        if mo is None:
             raise Exception(value + " is not a float number")
 
         fmt[0] = len(value)
-        if mo.group(1) != "":
+        if mo.group('sign') != "":
             fmt[4] = True
         else:
             fmt[4] = False
-        fmt[2] = len(mo.group(2))
-        fmt[3] = len(mo.group(4))
+        fmt[2] = len(mo.group('int'))
+        fmt[3] = len(mo.group('decimals'))
         fmt[1] = fmt[2] + fmt[3]
 
-        if mo.group(5) != "":
+        if mo.group('exp') != "":
             # scientific notation
             return True
         return False
@@ -269,9 +279,11 @@ class CdsHeader(core.BaseHeader):
         else:
             col.max = max(col)
             col.min = min(col)
-        
-        regfloat = re.compile("([+-]*)([^eE.]+)([.]*)([0-9]*)([eE]*-*)[0-9]*")
 
+        # maxSize: maximum length of string containing the float value.
+        # maxPrec: maximum precision of the column values, sum of maxDec and maxEnt.
+        # maxDec: maximum number of digits places after decimal point.
+        # maxEnt: maximum number of digits places before decimal point.
         maxSize, maxprec, maxDec, maxEnt = 1, 0, 0, 1
         sign = False
         fformat = 'F'
@@ -284,7 +296,7 @@ class CdsHeader(core.BaseHeader):
                 continue
             s = str(rec)
 
-            if self.__splitFloatFormat(regfloat, s, fmt) is True:
+            if self.__splitFloatFormat(s, fmt) is True:
                 if fformat == 'F':
                     maxSize, maxprec, maxDec = 1, 0, 0
                 # scientific notation
@@ -309,10 +321,6 @@ class CdsHeader(core.BaseHeader):
             col.fortran_format = fformat + str(col.meta.size) + "." + str(maxDec)
             col.format = col.fortran_format[1:] + "f"
 
-        col.out_format = "{0:" + col.format + "}"
-        col.none_format = "{0:" + str(col.meta.size)+"s}"
-
-
     def writeByteByByte(self):
         """
         Writes byte-by-byte description of the table.
@@ -331,18 +339,25 @@ class CdsHeader(core.BaseHeader):
         widths = [col.width for col in self.cols]
 
         startb = 1
+        # set default width of Start Byte, End Byte, Format and
+        # Label columns in the ByteByByte table.
         sz = [0, 0, 1, 7]
         l = len(str(sum(widths)))
         if l > sz[0]:
             sz[0] = l
             sz[1] = l
-        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
         for column in self.cols:
             if len(column.name) > sz[3]:
                 sz[3] = len(column.name)
-        fmtb += " {3:6s} {4:6s} {5:" + str(sz[3]) + "s} {6:s}"
+
         buff = ""
+        maxDescripSize = 16
         nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
+        # format string for Start Byte and End Byte
+        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
+
+        bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
+                    dtype=[str]*5)
 
         for i, col in enumerate(self.cols):
             # check if column is MaskedColumn
@@ -372,9 +387,6 @@ class CdsHeader(core.BaseHeader):
                 col.fortran_format = "I" + str(col.meta.size)
                 col.format = ">" + col.fortran_format[1:]
 
-                col.out_format = "{0:" + col.format + "}"
-                col.none_format = "{0:" + str(col.meta.size) + "s}"
-
             elif coltype is float:
                 # float formatter
                 self.columnFloatFormatter(col)
@@ -390,8 +402,6 @@ class CdsHeader(core.BaseHeader):
                     col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', col.dtype.str))
                 col.fortran_format = "A" + str(col.meta.size)
                 col.format = str(col.meta.size) + "s"
-                col.out_format = "{0:" + str(col.meta.size) + "s}"
-                col.none_format = col.out_format
 
             endb = col.meta.size + startb - 1
 
@@ -410,31 +420,58 @@ class CdsHeader(core.BaseHeader):
             # set column unit
             if col.unit is not None:
                 col.meta.unit = col.unit.to_string("cds")
+            elif col.name.lower().find("magnitude") > -1:
+                # ``col.unit`` will still be ``None``, if the unit of column values
+                # is ``Magnitude``, because ``astropy.units.Magnitude`` is actually a class.
+                # Unlike other units which are instances of ``astropy.units.Unit``,
+                # application of the ``Magnitude`` unit calculates the logarithm
+                # of the values. Thus, the only way to check for if the column values
+                # have ``Magnitude`` unit is to check the column name.
+                col.meta.unit = "mag"
             else:
-                col.meta.unit = '---'
+                col.meta.unit = "---"
 
             # add col limit values to col description
-            borne = ""
+            limVals = ""
             if col.min and col.max:
                 if col.fortran_format[0] == 'I':
                     if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
                         if col.min == col.max:
-                            borne = "[{0}]".format(col.min)
+                            limVals = "[{0}]".format(col.min)
                         else:
-                            borne = "[{0}/{1}]".format(col.min, col.max)
+                            limVals = "[{0}/{1}]".format(col.min, col.max)
                 elif col.fortran_format[0] in ('E','F'):
-                    borne = "[{0}/{1}]".format(math.floor(col.min*100)/100.,
-                                                math.ceil(col.max*100)/100.)
+                    limVals = "[{0}/{1}]".format(math.floor(col.min*100)/100.,
+                                                 math.ceil(col.max*100)/100.)
 
-            description = "{0}{1} {2}".format(borne, nullflag, description)
+            description = "{0}{1} {2}".format(limVals, nullflag, description)
 
-            # get ByteByByte row
-            newline = fmtb.format(startb, endb, "",
-                                    self.__strFmt(col.fortran_format),
-                                    self.__strFmt(col.meta.unit),
-                                    self.__strFmt(col.name),
-                                    description)
+            # find max description length
+            if len(description) > maxDescripSize:
+                maxDescripSize = len(description)
 
+            # add ByteByByte row to bbb table
+            bbb.add_row([fmtb.format(startb, endb, ""),
+                            self.__strFmt(col.fortran_format),
+                            self.__strFmt(col.meta.unit),
+                            self.__strFmt(col.name),
+                            description])
+            startb = endb + 2
+
+        # properly format bbb columns
+        bbbLines = StringIO()
+        bbb.write(bbbLines, format='ascii.fixed_width_no_header',
+                    delimiter=' ', bookend=False, delimiter_pad=None,
+                    formats={'Format':'<6s',
+                             'Units':'<6s',
+                             'Label':'<'+str(sz[3])+'s',
+                             'Explanations':''+str(maxDescripSize)+'s'})
+
+        # get formatted bbb lines
+        bbbLines = bbbLines.getvalue().splitlines()
+
+        # wrap line if it is too long
+        for newline in bbbLines:
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ("\n").join(wrap(newline,
                                             subsequent_indent=" " * nsplit,
@@ -442,7 +479,6 @@ class CdsHeader(core.BaseHeader):
                 buff += "\n"
             else:
                 buff += newline + "\n"
-            startb = endb + 2
 
         # add column notes to ByteByByte
         notes = self.cdsdicts.get('notes', None)
@@ -451,13 +487,17 @@ class CdsHeader(core.BaseHeader):
             for line in notes:
                 buff += line + "\n"
             buff += "-" * 80 + "\n"
-
         return buff
 
     def write(self, lines):
-        bbb = Template('\n'.join(ByteByByteTemplate))
-        ByteByByte = bbb.substitute({'file': 'table.dat',
-                                     'bytebybyte': self.writeByteByByte()})
+        """
+        Writes the Header of the CDS table, aka ReadMe, which
+        also contains the ByteByByte description of the table.
+        """
+        # get ByteByByte description and fill the template
+        bbbTemplate = Template('\n'.join(ByteByByteTemplate))
+        ByteByByte = bbbTemplate.substitute({'file': 'table.dat',
+                                    'bytebybyte': self.writeByteByByte()})
         lines.append(ByteByByte)
 
 
@@ -610,7 +650,7 @@ class Cds(core.BaseReader):
         self.header.position_line = None
         self.header.start_line = None
         self.data.start_line = None
-        return core.BaseReader.write(self, table=table)
+        return super().write(table)
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
