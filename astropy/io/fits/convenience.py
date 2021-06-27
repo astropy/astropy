@@ -136,6 +136,11 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
             getdata('in.fits')
 
+        .. note::
+            Exclusive to ``getdata``: if extension is not specified 
+            and primary header contains no data, ``getdata`` attempts
+            to retrieve data from first extension. 
+
         By extension number::
 
             getdata('in.fits', 0)      # the primary header
@@ -189,8 +194,8 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
     Raises
     ------
-    ValueError
-        If HDU has no data.
+    IndexError
+        If no data is found in searched extensions.
     """
 
     mode, closed = _get_file_mode(filename)
@@ -198,22 +203,29 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
     ext = kwargs.get('ext')
     extname = kwargs.get('extname')
     extver = kwargs.get('extver')
-    no_user_ext = (len(args) == 0 and ext is None and
-                   extname is None and extver is None)
+    ext_given = not (len(args) == 0 and ext is None and
+                     extname is None and extver is None)
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
         hdu = hdulist[extidx]
         data = hdu.data
-        if data is None and no_user_ext:
-            # fallback to the first non-primary extension
-            try:
-                hdu = hdulist[1]
-                data = hdu.data
-            except IndexError:
-                pass
         if data is None:
-            raise ValueError('No data in this HDU.')
+            if ext_given:
+                raise IndexError(f"No data in HDU #{extidx}.")
+ 
+            # fallback to the first non-primary extension
+            if len(hdulist) == 1:
+                raise IndexError(
+                    "No data in Primary HDU and no extension HDU found."
+                    )
+            hdu = hdulist[1]
+            data = hdu.data                   
+            if data is None:
+                raise IndexError(
+                    "No data in either Primary or first extension HDUs."
+                    )
+
         if header:
             hdr = hdu.header
     finally:
