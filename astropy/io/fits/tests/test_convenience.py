@@ -372,7 +372,7 @@ class TestConvenience(FitsTestCase):
 
         with pytest.raises(IndexError):
             fits.getdata(buf)
-   
+
     def test_getdata_ext_not_given_nodata_noext(self):
         # tests exception raised when there is no data in the
         # Primary HDU and there are no extension HDUs
@@ -384,4 +384,3 @@ class TestConvenience(FitsTestCase):
 
         with pytest.raises(IndexError):
             fits.getdata(buf)
-   
