@@ -1037,12 +1037,12 @@ class BaseOutputter:
 
     def _convert_vals(self, cols):
         for col in cols:
-            if col.dtype is not None:
-                converters = [convert_numpy(col.dtype)]
+            for key, converters in self.converters.items():
+                if fnmatch.fnmatch(col.name, key):
+                    break
             else:
-                for key, converters in self.converters.items():
-                    if fnmatch.fnmatch(col.name, key):
-                        break
+                if col.dtype is not None:
+                    converters = [convert_numpy(col.dtype)]
                 else:
                     converters = self.default_converters
 
