@@ -5,7 +5,8 @@ cds.py:
   Classes to read CDS / Vizier table format
 
 :Copyright: Smithsonian Astrophysical Observatory (2011)
-:Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
+:Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu), \
+         Suyog Garg (suyog7130@gmail.com)
 """
 
 
@@ -20,8 +21,45 @@ from . import fixedwidth
 
 from astropy.units import Unit
 
+from io import StringIO
+from astropy.table import Table
+from astropy.table import Column, MaskedColumn
+from string import Template
+from textwrap import wrap, fill
+import math
+
+MAX_SIZE_README_LINE = 80
+MAX_COL_INTLIMIT = 10000000
+
 
 __doctest_skip__ = ['*']
+
+cdsdicts = {'title': 'Title ?',
+            'author': '1st author ?',
+            'catalogue': '',
+            'date': 'Date ?',
+            'abstract': 'Abstract ?',
+            'authors': 'Authors ?',
+            'bibcode': 'ref ?',
+            'keywords': ''
+            }
+
+
+
+class CdsSplitter(fixedwidth.FixedWidthSplitter):
+    """
+    Contains the join function to left align the CDS columns
+    when writing to a file.
+    """
+
+    def join(self, vals, widths):
+        pad = self.delimiter_pad or ''
+        delimiter = self.delimiter or ''
+        padded_delim = pad + delimiter + pad
+        bookend_left = ''
+        bookend_right = ''
+        vals = [val + ' ' * (width - len(val)) for val, width in zip(vals, widths)]
+        return bookend_left + padded_delim.join(vals) + bookend_right
 
 
 class CdsHeader(core.BaseHeader):
@@ -168,10 +206,10 @@ class CdsHeader(core.BaseHeader):
         self.cols = cols
 
 
-class CdsData(core.BaseData):
+class CdsData(fixedwidth.FixedWidthData):
     """CDS table data reader
     """
-    splitter_class = fixedwidth.FixedWidthSplitter
+    splitter_class = CdsSplitter
 
     def process_lines(self, lines):
         """Skip over CDS header by finding the last section delimiter"""
@@ -186,6 +224,10 @@ class CdsData(core.BaseData):
         if not i_sections:
             raise core.InconsistentTableError('No CDS section delimiter found')
         return lines[i_sections[-1]+1:]  # noqa
+
+    def write(self, lines):
+        self.splitter.delimiter = ' '
+        fixedwidth.FixedWidthData.write(self, lines)
 
 
 class Cds(core.BaseReader):
@@ -295,7 +337,7 @@ class Cds(core.BaseReader):
     """
     _format_name = 'cds'
     _io_registry_format_aliases = ['cds']
-    _io_registry_can_write = False
+    #_io_registry_can_write = False
     _description = 'CDS format table'
 
     data_class = CdsData
@@ -304,10 +346,16 @@ class Cds(core.BaseReader):
     def __init__(self, readme=None):
         super().__init__()
         self.header.readme = readme
+        self.cdsdicts = cdsdicts
+        self.header.cdsdicts = self.cdsdicts
+        self.data.cdsdicts = self.cdsdicts
 
     def write(self, table=None):
-        """Not available for the Cds class (raises NotImplementedError)"""
-        raise NotImplementedError
+        self.data.header = self.header
+        self.header.position_line = None
+        self.header.start_line = None
+        self.data.start_line = None
+        return super().write(table)
 
     def read(self, table):
         # If the read kwarg `data_start` is 'guess' then the table may have extraneous
