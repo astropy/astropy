@@ -137,9 +137,9 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
             getdata('in.fits')
 
         .. note::
-            Exclusive to ``getdata``: if extension is not specified 
+            Exclusive to ``getdata``: if extension is not specified
             and primary header contains no data, ``getdata`` attempts
-            to retrieve data from first extension. 
+            to retrieve data from first extension.
 
         By extension number::
 
@@ -213,14 +213,14 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
         if data is None:
             if ext_given:
                 raise IndexError(f"No data in HDU #{extidx}.")
- 
+
             # fallback to the first non-primary extension
             if len(hdulist) == 1:
                 raise IndexError(
                     "No data in Primary HDU and no extension HDU found."
                     )
             hdu = hdulist[1]
-            data = hdu.data                   
+            data = hdu.data
             if data is None:
                 raise IndexError(
                     "No data in either Primary or first extension HDUs."
