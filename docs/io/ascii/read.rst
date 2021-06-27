@@ -579,11 +579,11 @@ The default converters for each column can be overridden with the
 
 In addition to single column names you can use wildcards via `fnmatch` to
 select multiple columns. For example, we can set the format for all columns
-where the column name starts with i to `np.unit` while applying default
+where the column name starts with "col" to `np.uint` while applying default
 converters to all other columns in the table::
 
   >>> import numpy as np
-  >>> converters = {'i*': [ascii.convert_numpy(np.uint)]}
+  >>> converters = {'col*': [ascii.convert_numpy(np.uint)]}
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
 
