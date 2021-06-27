@@ -44,6 +44,12 @@ cdsdicts = {'title': 'Title ?',
             'keywords': ''
             }
 
+ByteByByteTemplate = ["Byte-by-byte Description of file: $file",
+"--------------------------------------------------------------------------------",
+" Bytes Format Units  Label     Explanations",
+"--------------------------------------------------------------------------------",
+"$bytebybyte",
+"--------------------------------------------------------------------------------"]
 
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
@@ -202,8 +208,186 @@ class CdsHeader(core.BaseHeader):
                     raise ValueError(f'Line "{line}" not parsable as CDS header')
 
         self.names = [x.name for x in cols]
-
         self.cols = cols
+        
+    def writeByteByByte(self):
+        """
+        Writes byte-by-byte description of the table.
+        :param table: `astropy.table.Table` object.
+        """
+        # get column widths.
+        vals_list = []
+        col_str_iters = self.data.str_vals()
+        for vals in zip(*col_str_iters):
+            vals_list.append(vals)
+
+        for i, col in enumerate(self.cols):
+            col.width = max([len(vals[i]) for vals in vals_list])
+            if self.start_line is not None:
+                col.width = max(col.width, len(col.info.name))
+        widths = [col.width for col in self.cols]
+
+        startb = 1
+        # set default width of Start Byte, End Byte, Format and
+        # Label columns in the ByteByByte table.
+        sz = [0, 0, 1, 7]
+        l = len(str(sum(widths)))
+        if l > sz[0]:
+            sz[0] = l
+            sz[1] = l
+        for column in self.cols:
+            if len(column.name) > sz[3]:
+                sz[3] = len(column.name)
+
+        buff = ""
+        maxDescripSize = 16
+        nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
+        # format string for Start Byte and End Byte
+        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
+
+        bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
+                    dtype=[str]*5)
+
+        for i, col in enumerate(self.cols):
+            # check if column is MaskedColumn
+            if isinstance(col, MaskedColumn):
+                col.hasNull = True
+            else:
+                col.hasNull = False
+
+            # set CDSColumn type, size and format.
+            coltype = self.__get_type(col)
+            if coltype is int:
+                # integer formatter
+                if col.hasNull:
+                    mcol = col
+                    mcol.fill_value = -999999
+                    col.max = max(mcol.filled())
+                    if col.max == -999999: col.max = None
+                    mcol.fill_value = +999999
+                    col.min = min(mcol.filled())
+                    if col.min == 999999: col.min = None
+                else:
+                    col.max = max(col)
+                    col.min = min(col)
+                col.meta.size = len(str(col.max))
+                l = len(str(col.min))
+                if col.meta.size < l: col.meta.size = l
+                col.fortran_format = "I" + str(col.meta.size)
+                col.format = ">" + col.fortran_format[1:]
+
+            elif coltype is float:
+                # float formatter
+                self.columnFloatFormatter(col)
+
+            else:
+                # string formatter
+                if col.hasNull:
+                    mcol = col
+                    mcol.fill_value = ""
+                    coltmp = Column(mcol.filled(), dtype=str)
+                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', coltmp.dtype.str))
+                else:
+                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', col.dtype.str))
+                col.fortran_format = "A" + str(col.meta.size)
+                col.format = str(col.meta.size) + "s"
+
+            endb = col.meta.size + startb - 1
+
+            # set column description
+            if col.description is not None:
+                description = col.description
+            else:
+                description = "Description of " + col.name
+
+            # set null flag in column description
+            if col.hasNull:
+                nullflag = "?"
+            else:
+                nullflag = ""
+
+            # set column unit
+            if col.unit is not None:
+                col.meta.unit = col.unit.to_string("cds")
+            elif col.name.lower().find("magnitude") > -1:
+                # ``col.unit`` will still be ``None``, if the unit of column values
+                # is ``Magnitude``, because ``astropy.units.Magnitude`` is actually a class.
+                # Unlike other units which are instances of ``astropy.units.Unit``,
+                # application of the ``Magnitude`` unit calculates the logarithm
+                # of the values. Thus, the only way to check for if the column values
+                # have ``Magnitude`` unit is to check the column name.
+                col.meta.unit = "mag"
+            else:
+                col.meta.unit = "---"
+
+            # add col limit values to col description
+            limVals = ""
+            if col.min and col.max:
+                if col.fortran_format[0] == 'I':
+                    if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
+                        if col.min == col.max:
+                            limVals = "[{0}]".format(col.min)
+                        else:
+                            limVals = "[{0}/{1}]".format(col.min, col.max)
+                elif col.fortran_format[0] in ('E','F'):
+                    limVals = "[{0}/{1}]".format(math.floor(col.min*100)/100.,
+                                                 math.ceil(col.max*100)/100.)
+
+            description = "{0}{1} {2}".format(limVals, nullflag, description)
+
+            # find max description length
+            if len(description) > maxDescripSize:
+                maxDescripSize = len(description)
+
+            # add ByteByByte row to bbb table
+            bbb.add_row([fmtb.format(startb, endb, ""),
+                            self.__strFmt(col.fortran_format),
+                            self.__strFmt(col.meta.unit),
+                            self.__strFmt(col.name),
+                            description])
+            startb = endb + 2
+
+        # properly format bbb columns
+        bbbLines = StringIO()
+        bbb.write(bbbLines, format='ascii.fixed_width_no_header',
+                    delimiter=' ', bookend=False, delimiter_pad=None,
+                    formats={'Format':'<6s',
+                             'Units':'<6s',
+                             'Label':'<'+str(sz[3])+'s',
+                             'Explanations':''+str(maxDescripSize)+'s'})
+
+        # get formatted bbb lines
+        bbbLines = bbbLines.getvalue().splitlines()
+
+        # wrap line if it is too long
+        for newline in bbbLines:
+            if len(newline) > MAX_SIZE_README_LINE:
+                buff += ("\n").join(wrap(newline,
+                                            subsequent_indent=" " * nsplit,
+                                            width=MAX_SIZE_README_LINE))
+                buff += "\n"
+            else:
+                buff += newline + "\n"
+
+        # add column notes to ByteByByte
+        notes = self.cdsdicts.get('notes', None)
+        if notes is not None:
+            buff += "-" * 80 + "\n"
+            for line in notes:
+                buff += line + "\n"
+            buff += "-" * 80 + "\n"
+        return buff
+
+    def write(self, lines):
+        """
+        Writes the Header of the CDS table, aka ReadMe, which
+        also contains the ByteByByte description of the table.
+        """
+        # get ByteByByte description and fill the template
+        bbbTemplate = Template('\n'.join(ByteByByteTemplate))
+        ByteByByte = bbbTemplate.substitute({'file': 'table.dat',
+                                    'bytebybyte': self.writeByteByByte()})
+        lines.append(ByteByByte)
 
 
 class CdsData(fixedwidth.FixedWidthData):
