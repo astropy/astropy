@@ -209,7 +209,117 @@ class CdsHeader(core.BaseHeader):
 
         self.names = [x.name for x in cols]
         self.cols = cols
-        
+
+    def __strFmt(self, string):
+        """Return argument formatted as string."""
+        if string is None:
+            return ""
+        else:
+            return string
+
+    def __get_type(self, col):
+        """Return column type."""
+        if col.dtype.name.startswith("i"):
+            return int
+        elif col.dtype.name.startswith("f"):
+            return float
+        elif col.dtype.name.startswith("u"):
+            return int
+        elif col.dtype.name.startswith("s"):
+            return str
+
+    def __splitFloatFormat(self, value, fmt):
+        """ get float format
+        value (IN) the float value
+        fmt (out) [size: length of string containing the float value,
+                   prec: precision of the column values, sum of dec and ent,
+                   dec: number of digits places after decimal point,
+                   ent: number of digits places before decimal point,
+                   sign: bool, is float value signed]
+        return True has scientific notation
+        """
+        regfloat = re.compile(r"""(?P<sign> [+-]*)
+                                  (?P<int> [^eE.]+)
+                                  (?P<deciPt> [.]*)
+                                  (?P<decimals> [0-9]*)
+                                  (?P<exp> [eE]*-*)[0-9]*""",
+                             re.VERBOSE)
+        mo = regfloat.match(value)
+
+        if mo is None:
+            raise Exception(value + " is not a float number")
+
+        fmt[0] = len(value)
+        if mo.group('sign') != "":
+            fmt[4] = True
+        else:
+            fmt[4] = False
+        fmt[2] = len(mo.group('int'))
+        fmt[3] = len(mo.group('decimals'))
+        fmt[1] = fmt[2] + fmt[3]
+
+        if mo.group('exp') != "":
+            # scientific notation
+            return True
+        return False
+
+    def columnFloatFormatter(self, col):
+        """
+        String formatter for a column containing Float values.
+        """
+        if col.hasNull: # optimized (2x more speed)
+            mcol = col
+            mcol.fill_value = -999999
+            col.max = max(mcol.filled())
+            if col.max == -999999: col.max = None
+            mcol.fill_value = +999999
+            col.min = min(mcol.filled())
+            if col.min == 999999: col.min = None
+        else:
+            col.max = max(col)
+            col.min = min(col)
+
+        # maxSize: maximum length of string containing the float value.
+        # maxPrec: maximum precision of the column values, sum of maxDec and maxEnt.
+        # maxDec: maximum number of digits places after decimal point.
+        # maxEnt: maximum number of digits places before decimal point.
+        maxSize, maxprec, maxDec, maxEnt = 1, 0, 0, 1
+        sign = False
+        fformat = 'F'
+        fmt = [0, 0, 0, 0, False]
+
+        # find max sized value in the col
+        for rec in col:
+            # skip null values
+            if rec is None:
+                continue
+            s = str(rec)
+
+            if self.__splitFloatFormat(s, fmt) is True:
+                if fformat == 'F':
+                    maxSize, maxprec, maxDec = 1, 0, 0
+                # scientific notation
+                fformat = 'E'
+            else:
+                if fformat == 'E': continue
+
+            if maxprec < fmt[1]: maxprec = fmt[1]
+            if maxDec < fmt[3]: maxDec = fmt[3]
+            if maxEnt < fmt[2]: maxEnt = fmt[2]
+            if maxSize < fmt[0]: maxSize = fmt[0]
+            if fmt[4]: sign = True
+
+        if fformat == 'E':
+            col.meta.size = maxSize
+            if sign: col.meta.size += 1
+            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
+            col.format = str(col.meta.size) + "." + str(maxDec) + "e"
+        else:
+            col.meta.size = maxEnt + maxDec + 1
+            if sign: col.meta.size += 1
+            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxDec)
+            col.format = col.fortran_format[1:] + "f"
+
     def writeByteByByte(self):
         """
         Writes byte-by-byte description of the table.
