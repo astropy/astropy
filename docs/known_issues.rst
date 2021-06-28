@@ -29,34 +29,15 @@ Known Deficiencies
 Quantities Lose Their Units with Some Operations
 ------------------------------------------------
 
-Quantities are subclassed from NumPy's `~numpy.ndarray` and in some NumPy
-operations (and in SciPy operations using NumPy internally) the subclass is
-ignored, which means that either a plain array is returned, or a
-`~astropy.units.quantity.Quantity` without units.
-E.g.,::
+Quantities are subclassed from ``numpy``'s `~numpy.ndarray` and while we have
+ensured that ``numpy`` functions will work well with them, they do not always
+work in functions from ``scipy`` or other packages that use ``numpy``
+internally, but ignore the subclass. Furthermore, at a few places in ``numpy``
+itself we cannot control the behaviour. For instance, care must be taken when
+setting array slices using Quantities::
 
     >>> import astropy.units as u
     >>> import numpy as np
-    >>> ratio = (3600 * u.s) / (1 * u.h)
-    >>> ratio # doctest: +FLOAT_CMP
-    <Quantity 3600. s / h>
-    >>> np.array(ratio) # doctest: +FLOAT_CMP
-    array(3600.)
-    >>> np.array([ratio]) # doctest: +FLOAT_CMP
-    array([1.])
-
-Workarounds are available for some cases. For the above::
-
-    >>> np.array(ratio.to(u.dimensionless_unscaled)) # doctest: +FLOAT_CMP
-    array(1.)
-
-    >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> u.Quantity([q, q]).flatten() # doctest: +FLOAT_CMP
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
-               6., 7., 8., 9.] m>
-
-Care must be taken when setting array slices using Quantities::
-
     >>> a = np.ones(4)
     >>> a[2:3] = 2*u.kg
     >>> a # doctest: +FLOAT_CMP
