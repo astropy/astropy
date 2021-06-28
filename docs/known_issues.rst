@@ -152,15 +152,6 @@ result in a warning (and mmap will be disabled on the file automatically).
 See: https://github.com/astropy/astropy/issues/968
 
 
-Bug with Unicode Endianness in ``io.fits`` for Big Endian Processors
---------------------------------------------------------------------
-
-On big endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
-files may not be correctly read when using the ``Table.read`` interface. This
-will be fixed in a subsequent bug fix release of ``astropy`` (see `bug report here
-<https://github.com/astropy/astropy/issues/3415>`_).
-
-
 Color Printing on Windows
 -------------------------
 
