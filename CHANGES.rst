@@ -5549,8 +5549,10 @@ astropy.convolution
   ``nan_treatment`` argument. ``astropy.convolution.convolve`` also no longer
   double-interpolates interpolates over NaNs, although that is now available
   as a separate ``astropy.convolution.interpolate_replace_nans`` function. See
-  :ref:`the backwards compatibility note <astropy_convolve_compat>` for more
-  on how to get the old behavior (and why you probably don't want to.) [#5782]
+  `the backwards compatibility note
+  <https://docs.astropy.org/en/v2.0.16/convolution/index.html#a-note-on-backward-compatibility-pre-v2-0>`_
+  for more on how to get the old behavior (and why you probably don't want to.)
+  [#5782]
 
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
