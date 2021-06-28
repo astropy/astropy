@@ -418,31 +418,6 @@ eye.
 ..
   EXAMPLE END
 
-.. _astropy_convolve_compat:
-
-A Note on Backward Compatibility (pre v2.0)
--------------------------------------------
-
-The behavior of ``astropy``'s direct convolution
-(:func:`~astropy.convolution.convolve`) changed in version 2.0. Generally, the
-old version is undesirable. However, to recover the behavior of the old
-(``astropy`` version <2.0) direct convolution function, you can interpolate and
-then convolve, for example:
-
-.. code-block:: python
-
-    from astropy.convolution import interpolate_replace_nans, convolve
-    interped_result = interpolate_replace_nans(image, kernel)
-    result = convolve(interped_image, kernel)
-
-Note that the default behavior of both `~astropy.convolution.convolve` and
-`~astropy.convolution.convolve_fft` is to perform *normalized convolution* and
-interpolate NaNs during that process. The example given in this note, and what
-was previously done only in direct convolution in old versions of ``astropy``
-now does a two-step process: first, it replaces the NaNs with their
-interpolated values while leaving all non-NaN values unchanged, then it
-convolves the resulting image with the specified kernel.
-
 Using `astropy.convolution`
 ===========================
 

@@ -117,16 +117,15 @@ You can get the data in a different representation if needed::
 
 .. note::
 
-    In previous versions of Astropy, both the frame attribute and the argument
-    to frame classes that are now named ``representation_type`` used to be
-    simply ``representation``. The name of this attribute/argument is confusing
-    as it points to the representation *class*, not the object containing the
-    underlying frame data (which is accessed via the frame attribute ``.data``).
-    To clarify, we have renamed ``representation`` to ``representation_type``.
-    In this version 3.0, we have only changed the references to this attribute
-    in the documentation. In the next major version, we will issue a deprecation
-    warning. In two major versions, we will remove the ``.representation``
-    attribute and ``representation=`` argument.
+    Before v3.0, both the frame attribute and the argument to frame classes
+    that are now named ``representation_type`` used to be simply
+    ``representation``. The name of this attribute/argument was confusing as it
+    points to the representation *class*, not the object containing the
+    underlying frame data (which is accessed via the frame attribute
+    ``.data``). To clarify, we have renamed ``representation`` to
+    ``representation_type``. In the current version we will issue a deprecation
+    warning if the old names are used. In v5.0 we will remove the
+    ``.representation`` attribute and ``representation=`` argument.
 
 The representation of the coordinate object can also be changed directly, as
 shown below. This does *nothing* to the object internal data which stores the
