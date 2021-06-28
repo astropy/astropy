@@ -156,7 +156,7 @@ coordinate frames). Documentation of the individual schemas defined by
 Not all ``astropy`` types are currently serializable by ASDF. Attempting to
 write unsupported types to an ASDF file will lead to a ``RepresenterError``. In
 order to support new types, new tags and schemas must be created. See `Writing
-ASDF Extensions <https://asdf.readthedocs.io/en/latest/asdf/extensions.html>`_
+ASDF Extensions <https://asdf.readthedocs.io/en/latest/asdf/extending/legacy.html>`_
 for additional details, as well as the following example.
 
 Example: Adding a New Object to the Astropy ASDF Extension
@@ -185,7 +185,7 @@ model would look like::
       Example new model.
 
     description: >
-      Example new model, which describes the distribution of ABC. 
+      Example new model, which describes the distribution of ABC.
 
     allOf:
       - $ref: "transform-1.2.0"
@@ -262,4 +262,3 @@ can be found below.
    :maxdepth: 2
 
    asdf-schemas
-
