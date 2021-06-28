@@ -281,10 +281,6 @@ column use:
      >>> dat = ascii.read('file.dat', format='daophot')
      >>> dat = Table.read('file.dat', format='ascii.daophot')
 
-   For compatibility with ``astropy`` version 0.2 and earlier, the following
-   format values are also allowed in ``Table.read()``: ``daophot``, ``ipac``,
-   ``html``, ``latex``, and ``rdb``.
-
 .. attention:: **ECSV is recommended**
 
    For writing and reading tables to ASCII in a way that fully reproduces the
@@ -361,12 +357,11 @@ Alternatively, you can use the convenience function
 binary table HDU and insert or append that to an existing
 :class:`~astropy.io.fits.HDUList`.
 
-As of ``astropy`` version 3.0 there is support for writing a table which
-contains :ref:`mixin_columns` such as `~astropy.time.Time` or
-`~astropy.coordinates.SkyCoord`. This uses FITS ``COMMENT`` cards to capture
-additional information needed order to fully reconstruct the mixin columns when
-reading back from FITS. The information is a Python `dict` structure which is
-serialized using YAML.
+There is support for writing a table which contains :ref:`mixin_columns` such
+as `~astropy.time.Time` or `~astropy.coordinates.SkyCoord`. This uses FITS
+``COMMENT`` cards to capture additional information needed order to fully
+reconstruct the mixin columns when reading back from FITS. The information is a
+Python `dict` structure which is serialized using YAML.
 
 Keywords
 ^^^^^^^^

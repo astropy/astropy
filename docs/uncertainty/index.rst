@@ -4,13 +4,6 @@
 Uncertainties and Distributions (`astropy.uncertainty`)
 *******************************************************
 
-.. note::
-
-    `astropy.uncertainty` is relatively new (``astropy`` v3.1), and thus it is
-    possible there will be API changes in upcoming versions of ``astropy``. If
-    you have specific ideas for how it might be improved, please let us know on
-    the `astropy-dev mailing list`_ or at http://feedback.astropy.org.
-
 Introduction
 ============
 

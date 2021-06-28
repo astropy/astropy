@@ -258,13 +258,7 @@ Or dimensionless quantities:
 
 See `Dimensionless Quantities`_ below for more details.
 
-.. note:: With ``numpy`` versions older than 1.17, a number of mostly
-          non-arithmetic functions have :ref:`known issues <quantity_issues>`,
-          either ignoring the unit (e.g., ``np.dot``) or not reinitializing it
-          properly (e.g., ``np.hstack``). This propagates to more complex
-          functions such as ``np.linalg.norm``.
-
-          Support for functions from other packages, such as ``scipy``, is
+.. note:: Support for functions from other packages, such as ``scipy``, is
           more incomplete (contributions to improve this welcomed!).
 
 Dimensionless Quantities

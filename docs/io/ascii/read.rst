@@ -260,14 +260,6 @@ slicing convention where to select data rows 5 and 6 you would do
 count backward from the end, so ``data_end=-1`` (like ``rows[5:-1]``) would
 work in this case.
 
-.. note::
-
-   Prior to ``astropy`` v1.1, there was a bug in which a blank line that had
-   one or more whitespace characters was mistakenly counted for
-   ``header_start`` but was (correctly) not counted for ``data_start`` and
-   ``data_end``. If you have code that depends on the incorrect pre-1.1
-   behavior then it needs to be modified.
-
 ..
   EXAMPLE END
 

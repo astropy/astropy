@@ -29,59 +29,15 @@ Known Deficiencies
 Quantities Lose Their Units with Some Operations
 ------------------------------------------------
 
-Quantities are subclassed from NumPy's `~numpy.ndarray` and in some NumPy
-operations (and in SciPy operations using NumPy internally) the subclass is
-ignored, which means that either a plain array is returned, or a
-`~astropy.units.quantity.Quantity` without units.
-E.g., prior to astropy 4.0 and numpy 1.17::
+Quantities are subclassed from ``numpy``'s `~numpy.ndarray` and while we have
+ensured that ``numpy`` functions will work well with them, they do not always
+work in functions from ``scipy`` or other packages that use ``numpy``
+internally, but ignore the subclass. Furthermore, at a few places in ``numpy``
+itself we cannot control the behaviour. For instance, care must be taken when
+setting array slices using Quantities::
 
     >>> import astropy.units as u
     >>> import numpy as np
-    >>> q = u.Quantity(np.arange(10.), u.m)
-    >>> np.dot(q,q) # doctest: +SKIP
-    285.0
-    >>> np.hstack((q,q)) # doctest: +SKIP
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
-               6., 7., 8., 9.] (Unit not initialised)>
-
-And for all versions::
-
-    >>> ratio = (3600 * u.s) / (1 * u.h)
-    >>> ratio # doctest: +FLOAT_CMP
-    <Quantity 3600. s / h>
-    >>> np.array(ratio) # doctest: +FLOAT_CMP
-    array(3600.)
-    >>> np.array([ratio]) # doctest: +FLOAT_CMP
-    array([1.])
-
-Workarounds are available for some cases. For the above::
-
-    >>> q.dot(q) # doctest: +FLOAT_CMP
-    <Quantity 285. m2>
-
-    >>> np.array(ratio.to(u.dimensionless_unscaled)) # doctest: +FLOAT_CMP
-    array(1.)
-
-    >>> u.Quantity([q, q]).flatten() # doctest: +FLOAT_CMP
-    <Quantity [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4., 5.,
-               6., 7., 8., 9.] m>
-
-An incomplete list of specific functions which are known to exhibit
-this behavior (prior to astropy 4.0 and numpy 1.17) follows:
-
-* `numpy.dot`
-* `numpy.hstack`, `numpy.vstack`, ``numpy.c_``, ``numpy.r_``, `numpy.append`
-* `numpy.where`
-* `numpy.choose`
-* `numpy.vectorize`
-* pandas DataFrame(s)
-
-
-See: https://github.com/astropy/astropy/issues/1274
-
-
-Care must be taken when setting array slices using Quantities::
-
     >>> a = np.ones(4)
     >>> a[2:3] = 2*u.kg
     >>> a # doctest: +FLOAT_CMP
@@ -185,31 +141,6 @@ This is analogous to the case of passing a Quantity to `~numpy.array`::
 
 See: https://github.com/astropy/astropy/issues/7832
 
-Quantities Float Comparison with np.isclose Fails
--------------------------------------------------
-
-Comparing Quantities floats using the NumPy function `~numpy.isclose` fails on
-NumPy versions before 1.17 as the comparison between ``a`` and ``b``
-is made using the formula
-
-.. math::
-
-    |a - b| \le (a_\textrm{tol} + r_\textrm{tol} \times |b|)
-
-This will result in the following traceback when using this with Quantities::
-
-    >>> from astropy import units as u, constants as const
-    >>> import numpy as np
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s)  # doctest: +SKIP
-    Traceback (most recent call last):
-    ...
-    UnitConversionError: Can only apply 'add' function to dimensionless quantities when other argument is not a quantity (unless the latter is all zero/infinity/nan)
-
-If one cannot upgrade to numpy 1.17 or later, one solution is::
-
-    >>> np.isclose(500 * u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
-    False
-
 mmap Support for ``astropy.io.fits`` on GNU Hurd
 ------------------------------------------------
 
@@ -219,15 +150,6 @@ thus disabled. Attempting to open a FITS file in writeable mode with mmap will
 result in a warning (and mmap will be disabled on the file automatically).
 
 See: https://github.com/astropy/astropy/issues/968
-
-
-Bug with Unicode Endianness in ``io.fits`` for Big Endian Processors
---------------------------------------------------------------------
-
-On big endian processors (e.g. SPARC, PowerPC, MIPS), string columns in FITS
-files may not be correctly read when using the ``Table.read`` interface. This
-will be fixed in a subsequent bug fix release of ``astropy`` (see `bug report here
-<https://github.com/astropy/astropy/issues/3415>`_).
 
 
 Color Printing on Windows
@@ -339,28 +261,3 @@ This is due to mutually incompatible behaviors in IPython and pytest, and is
 not due to a problem with the test itself or the feature being tested.
 
 See: https://github.com/astropy/astropy/issues/717
-
-
-Compatibility Issues with pytest 3.7 and later
-----------------------------------------------
-
-Due to a bug in `pytest`_ related to test collection, the tests for the core
-``astropy`` package for version 2.0.x (LTS), and for packages using the core
-package's test infrastructure and being tested against 2.0.x (LTS), will not be
-executed correctly with pytest 3.7, 3.8, or 3.9. The symptom of this bug is that
-no tests or only tests in RST files are collected. In addition, ``astropy``
-2.0.x (LTS) is not compatible with pytest 4.0 and above, as in this case
-deprecation errors from pytest can cause tests to fail. Therefore, when testing
-against ``astropy`` v2.0.x (LTS), pytest 3.6 or earlier versions should be used.
-These issues do not occur in version 3.0.x and above of the core package.
-
-There is an unrelated issue that also affects more recent versions of
-``astropy`` when testing with pytest 4.0 and later, which can
-cause issues when collecting tests — in this case, the symptom is that the
-test collection hangs and/or appears to run the tests recursively. If you are
-maintaining a package that was created using the Astropy
-`package template <https://github.com/astropy/package-template>`_, then
-this can be fixed by updating to the latest version of the ``_astropy_init.py``
-file. The root cause of this issue is that pytest now tries to pick up the
-top-level ``test()`` function as a test, so we need to make sure that we set a
-``test.__test__`` attribute on the function to ``False``.

@@ -81,10 +81,8 @@ catalog), this is a better choice than a list of |SkyCoord| objects,
 because it will be *much* faster than applying the operation to each
 |SkyCoord| in a ``for`` loop. Like the underlying `~numpy.ndarray` instances
 that contain the data, |SkyCoord| objects can be sliced, reshaped, etc.,
-and, on ``numpy`` version 1.17 and later, can be used with functions like
-`numpy.moveaxis`, etc., that affect the shape:
-
-.. doctest-requires:: numpy>=1.17
+and can be used with functions like `numpy.moveaxis`, etc., that affect the
+shape::
 
     >>> import numpy as np
     >>> c = SkyCoord(ra=[10, 11, 12, 13]*u.degree, dec=[41, -5, 42, 0]*u.degree)
@@ -422,8 +420,7 @@ Velocities (Proper Motions and Radial Velocities)
 
 In addition to positional coordinates, `~astropy.coordinates` supports storing
 and transforming velocities. These are available both via the lower-level
-:doc:`coordinate frame classes <frames>`, and (new in v3.0) via  |SkyCoord|
-objects::
+:doc:`coordinate frame classes <frames>`, and via |SkyCoord| objects::
 
     >>> sc = SkyCoord(1*u.deg, 2*u.deg, radial_velocity=20*u.km/u.s)
     >>> sc  # doctest: +FLOAT_CMP
@@ -441,9 +438,9 @@ Overview of `astropy.coordinates` Concepts
 ==========================================
 
 .. note ::
-    The `~astropy.coordinates` package from v0.4 onward builds from
-    previous versions of  the package, and more detailed information and
-    justification of the design is available in `APE (Astropy Proposal for Enhancement) 5 <https://github.com/astropy/astropy-APEs/blob/main/APE5.rst>`_.
+    More detailed information and justification of the design is available in
+    `APE (Astropy Proposal for Enhancement) 5
+    <https://github.com/astropy/astropy-APEs/blob/main/APE5.rst>`_.
 
 Here we provide an overview of the package and associated framework.
 This background information is not necessary for using `~astropy.coordinates`,

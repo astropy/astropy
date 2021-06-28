@@ -16,13 +16,6 @@ Different fitting algorithms can be used with any model.  For those fitters
 with the capabilities fitting can be done using uncertainties, parameters with
 bounds, and priors.
 
-.. note::
-
-    A number of significant changes have been made to the internals that have been
-    documented in more detail in :doc:`changes_for_4`. The main change is that
-    combining model classes no longer is supported. (Combining model
-    instances is still very much supported!)
-
 .. _modeling-using:
 
 Using Modeling
@@ -36,7 +29,6 @@ Using Modeling
    Model Parameters <parameters.rst>
    Fitting <fitting.rst>
    Using Units with Models and Fitting <units.rst>
-   Changes in v4.0 <changes_for_4.rst>
 
 
 .. _getting-started-example:
