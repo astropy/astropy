@@ -2,6 +2,7 @@
 
 
 from io import StringIO
+import numpy as np
 
 from astropy.io import ascii
 
@@ -49,3 +50,30 @@ def test_ipac_read_types():
              ascii.StrType]
     for (col, expected_type) in zip(reader.cols, types):
         assert_equal(col.type, expected_type)
+
+
+def test_col_dtype_in_custom_class():
+    """Test code in BaseOutputter._convert_vals to handle Column.dtype
+    attribute. See discussion in #11895."""
+    dtypes = [np.float32, np.int8, np.int16]
+
+    class TestDtypeHeader(ascii.BasicHeader):
+        def get_cols(self, lines):
+            super().get_cols(lines)
+            for col, dtype in zip(self.cols, dtypes):
+                col.dtype = dtype
+
+    class TestDtype(ascii.Basic):
+        """
+        Basic table Data Reader with data type alternating float32, int8
+        """
+        header_class = TestDtypeHeader
+
+    txt = """
+    a b c
+    1 2 3
+    """
+    reader = ascii.get_reader(TestDtype)
+    t = reader.read(txt)
+    for col, dtype in zip(t.itercols(), dtypes):
+        assert col.dtype.type is dtype
