@@ -1640,3 +1640,13 @@ False   5
     assert col.dtype.kind == 'b'
     assert np.all(col.mask == [False, False, False, True, False])
     assert np.all(col == [True, False, True, False, False])
+
+
+def test_read_converters_wildcard():
+    '''Test converters where the column name is specified with
+    a wildcard.
+    '''
+    converters = {'F*': [ascii.convert_numpy(np.float32)]}
+    t = ascii.read(['Fabc Iabc', '1 2'], converters=converters)
+    assert np.issubdtype(t['Fabc'].dtype, np.float32)
+    assert not np.issubdtype(t['Iabc'].dtype, np.float32)
