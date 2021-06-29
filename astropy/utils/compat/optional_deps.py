@@ -3,6 +3,7 @@
 `PEP 562 <https://www.python.org/dev/peps/pep-0562/>`_.
 """
 import importlib
+import warnings
 
 # First, the top-level packages:
 # TODO: This list is a duplicate of the dependencies in setup.cfg "all", but
@@ -24,6 +25,12 @@ __all__ = [f"HAS_{pkg}" for pkg in _deps]
 def __getattr__(name):
     if name in __all__:
         module_name = name[4:]
+
+        if module_name == "YAML":
+            warnings.warn(
+                "PyYaml is now a strict dependency. HAS_YAML is deprecated as "
+                "of v5.0 and will be removed in a subsequent version.",
+                category=AstropyDeprecationWarning)
 
         try:
             importlib.import_module(_deps[module_name])
