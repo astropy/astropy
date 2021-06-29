@@ -30,10 +30,17 @@ def read_ecsv(*args, index=None, move_to_meta=False, **kwargs):
     index : int, str, or None (optional, keyword-only)
         The row index in the `~astropy.table.QTable`. Required for multi-row
         tables.
+    move_to_meta : bool (optional, keyword-only)
+        Whether to move keyword arguments that are not in the Cosmology class'
+        signature to the Cosmology's metadata. This will only be applied if the
+        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``). 
+        Arguments moved to the metadata will be merged with existing metadata,
+        preferring specified metadata in the case of a merge conflict
+        (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``
+        will be ``{'key': 10}``).
     **kwargs
         Keyword arguments passed through to `~astropy.table.QTable` reader.
-        'format' cannot a keyword argument since it is used internally to
-        ensure that the file format is 'ascii.ecsv'.
+        If 'format' is a kwarg, it must be 'ascii.ecsv'.
 
     Returns
     -------
@@ -43,6 +50,11 @@ def read_ecsv(*args, index=None, move_to_meta=False, **kwargs):
     --------
     astropy.cosmology.io.from_table
     """
+    # check 'format' correctness
+    format = kwargs.pop("format", "ascii.ecsv")
+    if format != "ascii.ecsv":  # check that if specified, it's ECSV
+        raise ValueError(f"'format', if specified, must be 'ascii.ecsv' not {format}")
+
     table = QTable.read(*args, format="ascii.ecsv", **kwargs)
     cosmo = from_table(table, index=index, move_to_meta=move_to_meta)
     return cosmo
@@ -58,8 +70,7 @@ def write_ecsv(cosmology, *args, **kwargs):
         Positional arguments passed through to `~astropy.table.QTable` writer.
     **kwargs
         Keyword arguments passed through to `~astropy.table.QTable` writer.
-        'format' cannot a keyword argument since it is used internally to
-        ensure that the file format is 'ascii.ecsv'.
+        If 'format' is a kwarg, it must be 'ascii.ecsv'.
     """
     table = to_table(cosmology)
 

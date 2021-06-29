@@ -45,10 +45,10 @@ def test_to_from_mapping_instance(expected):
         assert got.name == expected.name
         assert "mismatching" not in got.meta
 
-        return  # don't continue teesting
+        return  # don't continue testing
 
     # read with mismatching parameters errors
-    with pytest.raises(TypeError, match="There are unused parameters"):
+    with pytest.raises(TypeError, match="there are unused parameters"):
         io.from_mapping(params)
 
     # unless mismatched are moved to meta

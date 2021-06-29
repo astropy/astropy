@@ -82,6 +82,9 @@ a_B_c2 = 4e-3 * const.sigma_sb.value / const.c.value ** 3
 kB_evK = const.k_B.to(u.eV / u.K)
 
 
+_COSMOLOGY_REGISTRY = dict()
+
+
 class CosmologyError(Exception):
     pass
 
@@ -115,23 +118,16 @@ class Cosmology(metaclass=ABCMeta):
     read = UnifiedReadWriteMethod(CosmologyRead)
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
-    @classmethod
-    def __subclasses__(cls, deep=False):
-        """Return a list of subclasses. Immediate if not 'deep'."""
-        if not deep:  # just the immediate subclasses
-            subclasses = type.__subclasses__(cls)  # essentially `super`
-        else:  # all subclasses (inclusive)
-            subclasses = [cls]  # so inclusive
-            for c in type.__subclasses__(cls):  # recursion in subclasses
-                subclasses.extend(c.__subclasses__(deep=True))
-        return subclasses
-
     def __init_subclass__(cls):
         super().__init_subclass__()
+
         # get signature, dropping "self" by taking arguments [1:]
         sig = signature(cls.__init__)
         sig = sig.replace(parameters=list(sig.parameters.values())[1:])
         cls._init_signature = sig  # store (immutable) initialization signature
+
+        # add class to registry
+        _COSMOLOGY_REGISTRY[cls.__name__] = cls
 
     def __new__(cls, *args, **kwargs):
         # bundle initialization argument

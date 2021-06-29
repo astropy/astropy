@@ -3,7 +3,7 @@
 import copy
 
 from astropy.table import QTable
-from astropy.cosmology import Cosmology
+from astropy.cosmology import Cosmology, _COSMOLOGY_REGISTRY
 
 __all__ = ["from_mapping", "to_mapping", "from_table", "to_table"]
 
@@ -20,10 +20,13 @@ def from_mapping(mapping, *, move_to_meta=False):
         like "name" or "meta".
 
     move_to_meta : bool (optional, keyword-only)
-        Whether to move arguments not in the initialization signature to the
-        metadata. This will only have an effect if there is not a variable
-        keyword-only argument (e.g. ``**kwargs``). Metadata set in the field
-        "meta" has priority and will not be overwritten.
+        Whether to move keyword arguments that are not in the Cosmology class'
+        signature to the Cosmology's metadata. This will only be applied if the
+        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``). 
+        Arguments moved to the metadata will be merged with existing metadata,
+        preferring specified metadata in the case of a merge conflict
+        (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``
+        will be ``{'key': 10}``).
 
     Returns
     -------
@@ -62,8 +65,7 @@ def from_mapping(mapping, *, move_to_meta=False):
     # get cosmology. if string, parse to class
     cosmology = params.pop("cosmology")
     if isinstance(cosmology, str):
-        subclasses = {c.__name__: c for c in Cosmology.__subclasses__(deep=True)}
-        cosmology = subclasses[cosmology]
+        cosmology = _COSMOLOGY_REGISTRY[cosmology]
 
     # select arguments from mapping that are in the cosmo's signature.
     ba = cosmology._init_signature.bind_partial()  # blank set of args
@@ -81,7 +83,7 @@ def from_mapping(mapping, *, move_to_meta=False):
         meta = ba.arguments["meta"] or {}  # (None -> dict)
         ba.arguments["meta"] = {**params, **meta}
     elif bool(params):
-        raise TypeError(f"There are unused parameters {params}.")
+        raise TypeError(f"there are unused parameters {params}.")
     # else: pass  # no kwargs, no move-to-meta, and all the params are used
 
     return cosmology(*ba.args, **ba.kwargs)
@@ -139,12 +141,11 @@ def from_table(table, index=None, *, move_to_meta=False):
 
     Parameters
     ----------
-    cosmology : `~astropy.cosmology.Cosmology` class
     table : `~astropy.table.QTable`
     index : int or None, optional
         Needed to select the row in tables with multiple rows. ``index`` can be
         an integer for the row number or, if the table is indexed by a column,
-        the value of that column. If the table is not indexed and ``indexed``
+        the value of that column. If the table is not indexed and ``index``
         is a string, the "name" column is used as the indexing column.
 
     Returns
@@ -176,8 +177,8 @@ def from_table(table, index=None, *, move_to_meta=False):
     For tables with multiple rows of cosmological parameters, the ``index``
     argument is needed to select the correct row. The index can be an integer
     for the row number or, if the table is indexed by a column, the value of
-    that column. If the table is not indexed and ``indexed``
-    is a string, the "name" column is used as the indexing column.
+    that column. If the table is not indexed and ``index`` is a string, the
+    "name" column is used as the indexing column.
 
     Here is an example where ``index`` is needed and can be either an integer
     (for the row number) or the name of one of the cosmologies, e.g. 'Planck15'.
@@ -204,15 +205,17 @@ def from_table(table, index=None, *, move_to_meta=False):
 
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
-        if not table.indices:  # no indexing column, need to make
-            table = table.copy()  # unfortunately, need to copy.
-            table.add_index('name')
-        index = table.loc_indices[index]  # need to convert to row index (int)
+        if not table.indices:  # no indexing column, find by string match
+            index = np.where(table['name'] == name)[0][0]
+            # TODO! error if no match
+        else:
+            index = table.loc_indices[index]  # need to convert to row index (int)
 
-    # no index is needed for a 1D table. For an N-D table...
+    # no index is needed for a 1-row table. For a multi-row table...
     if index is None:
-        if len(table) != 1:  # N-D table and no index
-            raise ValueError(f"Need to specify a row index for N-D table.")
+        if len(table) != 1:  # multi-row table and no index
+            raise ValueError("need to select a specific row (e.g. index=1) when
+                             "constructing a Cosmology from a multi-row table.")
         else:
             index = 0
     row = table[index]  # index is now the row index (int)
@@ -221,7 +224,7 @@ def from_table(table, index=None, *, move_to_meta=False):
     # parse row to cosmo
 
     # special values
-    name = row.columns.get("name", [None])[index]  # get name from column
+    name = row['name'] if 'name' in row else None  # get name from column
     meta = copy.deepcopy(row.meta)
     # NOTE: there will be a method for row-specific metadata
     # the cosmology class must be in the table's metadata

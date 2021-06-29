@@ -13,8 +13,8 @@ __doctest_skip__ = ["CosmologyRead", "CosmologyWrite"]
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
-    This can *only* be called from `~astropy.cosmology.Cosmology`,
-    not any subclasses.
+    This is (currently) *only* implemented on `~astropy.cosmology.Cosmology`,
+    not any subclass.
 
     This function provides the Cosmology interface to the Astropy unified I/O
     layer. This allows easily reading a file in supported data formats using
@@ -58,7 +58,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -----
     The cosmology class must be specified by name in the metadata (if a |Table|)
     or as a field titled ``cosmology`` if a mapping.
-    Metadata can be included on the |Table| or as a key "meta" for a JSON.
+    Metadata can be included on the |Table| or as a key "meta" for a JSON file.
 
     Warns
     -----
@@ -69,13 +69,12 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     def __new__(cls, instance, cosmo_cls):
         from astropy.cosmology.core import Cosmology
 
-        # warn that ``read`` can only be called from the base class.
-        # and return None to prevent usage.
+        # warn that ``read`` is not (yet) implemented for subclasses
         if cosmo_cls is not Cosmology:
-            warnings.warn(("``Cosmology.read()`` must be called from the "
-                           "``Cosmology`` base class."),
+            warnings.warn(("``Cosmology.read()`` is not (yet) implemented for "
+                           "``Cosmology`` subclasses."),
                            category=AstropyUserWarning)
-            return None  # cannot use .read on subclasses, only `Cosmology`.
+            return NotImplemented  # TODO! implement for subclasses.
 
         return super().__new__(cls)
 
@@ -149,18 +148,18 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
 class CosmologyWrite(io_registry.UnifiedReadWrite):
     """Write this Cosmology object out in the specified format.
 
-    This function provides the Table interface to the astropy unified I/O
+    This function provides the Cosmology interface to the astropy unified I/O
     layer.  This allows easily writing a file in supported data formats
     using syntax such as::
 
       >>> from astropy.cosmology import Planck18
-      >>> Planck18.write('table.ecsv', format='ascii.ecsv')
+      >>> Planck18.write('planck18.ecsv')
 
     Get help on the available writers for ``Cosmology`` using the``help()``
     method::
 
       >>> Cosmology.write.help()  # Get help writing and list supported formats
-      >>> Cosmology.write.help('JSON')  # Get detailed help on Cosmology JSON writer
+      >>> Cosmology.write.help('JSON')  # Get details on Cosmology JSON writer
       >>> Cosmology.write.list_formats()  # Print list of available formats
 
     Parameters
