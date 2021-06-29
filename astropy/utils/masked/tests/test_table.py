@@ -10,7 +10,7 @@ from astropy import units as u
 from astropy.table import QTable, hstack, vstack, join
 
 from astropy.utils.masked import Masked
-from astropy.utils.compat.optional_deps import HAS_YAML, HAS_H5PY
+from astropy.utils.compat.optional_deps import HAS_H5PY
 
 from .test_masked import assert_masked_equal
 
@@ -43,7 +43,6 @@ class TestMaskedArrayTable(MaskedArrayTableSetup):
             '    5.0',
             '    0.0']
 
-    @pytest.mark.skipif(not HAS_YAML, reason='serialization needs yaml')
     @pytest.mark.parametrize('file_format', FILE_FORMATS)
     def test_table_write(self, file_format, tmpdir):
         name = str(tmpdir.join(f"a.{file_format}"))
@@ -64,7 +63,6 @@ class TestMaskedArrayTable(MaskedArrayTableSetup):
             assert t2['ma'].info.format == self.t['ma'].info.format
 
 
-@pytest.mark.skipif(not HAS_YAML, reason='serialization needs yaml')
 class TestSerializationMethods(MaskedArrayTableSetup):
     # TODO: ensure this works for MaskedQuantity, etc., as well.
     # Needs to somehow pass on serialize_method; see MaskedArraySubclassInfo.

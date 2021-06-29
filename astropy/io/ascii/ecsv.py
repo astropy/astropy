@@ -17,8 +17,6 @@ from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.io.ascii.core import convert_numpy
 
-__doctest_requires__ = {'Ecsv': ['yaml']}
-
 ECSV_VERSION = '1.0'
 DELIMITERS = (' ', ',')
 ECSV_DATATYPES = (
@@ -135,13 +133,6 @@ class EcsvHeader(basic.BasicHeader):
 
         try:
             header = meta.get_header_from_yaml(lines)
-        except ImportError as exc:
-            if 'PyYAML package is required' in str(exc):
-                warnings.warn("file looks like ECSV format but PyYAML is not installed "
-                              "so it cannot be parsed as ECSV",
-                              AstropyWarning)
-            raise core.InconsistentTableError('unable to parse yaml in meta header'
-                                              ' (PyYAML package is required)')
         except meta.YamlParseError:
             raise core.InconsistentTableError('unable to parse yaml in meta header')
 

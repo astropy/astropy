@@ -3,8 +3,6 @@
 """
 This module tests some of the methods related to the ``ECSV``
 reader/writer.
-
-Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 from astropy.table.column import MaskedColumn
 import os
@@ -30,11 +28,8 @@ from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii
 from astropy import units as u
-from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 from .common import TEST_DIR
-
-pytestmark = pytest.mark.skipif(not HAS_YAML, reason='YAML required')
 
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',
@@ -370,7 +365,6 @@ compare_attrs = {
 }
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_ecsv_mixins_ascii_read_class():
     """Ensure that ascii.read(ecsv_file) returns the correct class
     (QTable if any Quantity subclasses, Table otherwise).
@@ -392,7 +386,6 @@ def test_ecsv_mixins_ascii_read_class():
     assert type(t2) is QTable
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_ecsv_mixins_qtable_to_table():
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
@@ -423,7 +416,6 @@ def test_ecsv_mixins_qtable_to_table():
         assert_objects_equal(col, col2, attrs, compare_class)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_ecsv_mixins_as_one(table_cls):
     """Test write/read all cols at once and validate intermediate column names"""
@@ -493,7 +485,6 @@ def make_multidim(col, ndim):
     return col
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 @pytest.mark.parametrize('ndim', (1, 2, 3))
@@ -522,23 +513,6 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim):
     if name.startswith('tm'):
         assert t2[name]._time.jd1.__class__ is np.ndarray
         assert t2[name]._time.jd2.__class__ is np.ndarray
-
-
-def test_ecsv_but_no_yaml_warning(monkeypatch):
-    """
-    Test that trying to read an ECSV without PyYAML installed when guessing
-    emits a warning, but reading with guess=False gives an exception.
-    """
-    monkeypatch.setitem(sys.modules, 'yaml', None)
-
-    with pytest.warns(AstropyWarning, match=r'file looks like ECSV format but '
-                      'PyYAML is not installed') as w:
-        ascii.read(SIMPLE_LINES)
-    assert len(w) == 1
-
-    with pytest.raises(ascii.InconsistentTableError, match='unable to parse yaml'), \
-            pytest.warns(AstropyWarning, match=r'PyYAML is not installed'):
-        ascii.read(SIMPLE_LINES, format='ecsv')
 
 
 def test_round_trip_masked_table_default(tmpdir):
@@ -574,7 +548,6 @@ def test_round_trip_masked_table_default(tmpdir):
         assert not np.all(t2[name] == t[name])  # Expected diff
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_round_trip_masked_table_serialize_mask(tmpdir):
     """Same as prev but set the serialize_method to 'data_mask' so mask is written out"""
     filename = str(tmpdir.join('test.ecsv'))
@@ -601,7 +574,6 @@ def test_round_trip_masked_table_serialize_mask(tmpdir):
         assert np.all(t2[name] == t[name])
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_ecsv_round_trip_user_defined_unit(table_cls, tmpdir):
     """Ensure that we can read-back enabled user-defined units."""

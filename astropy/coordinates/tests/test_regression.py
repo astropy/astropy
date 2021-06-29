@@ -29,7 +29,7 @@ from astropy.utils import iers
 from astropy.table import Table
 
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_YAML  # noqa
+from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 from astropy.units import allclose as quantity_allclose
 
 
@@ -519,7 +519,6 @@ def test_gcrs_itrs_cartesian_repr():
     gcrs.transform_to(ITRS())
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_regression_6446():
     # this succeeds even before 6446:
     sc1 = SkyCoord([1, 2], [3, 4], unit='deg')
@@ -536,23 +535,6 @@ def test_regression_6446():
     t2.write(sio2, format='ascii.ecsv')
 
     assert sio1.getvalue() == sio2.getvalue()
-
-
-def test_regression_6448():
-    """
-    This tests the more narrow problem reported in 6446 that 6448 is meant to
-    fix. `test_regression_6446` also covers this, but this test is provided
-    so that this is still tested even if YAML isn't installed.
-    """
-    sc1 = SkyCoord([1, 2], [3, 4], unit='deg')
-    # this should always succeed even prior to 6448
-    assert sc1.galcen_v_sun is None
-
-    c1 = SkyCoord(1, 3, unit='deg')
-    c2 = SkyCoord(2, 4, unit='deg')
-    sc2 = SkyCoord([c1, c2])
-    # without 6448 this fails
-    assert sc2.galcen_v_sun is None
 
 
 def test_regression_6597():

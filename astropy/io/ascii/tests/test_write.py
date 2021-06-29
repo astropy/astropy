@@ -748,7 +748,7 @@ def test_roundtrip_masked(fmt_name_class):
     fast = fmt_name in ascii.core.FAST_CLASSES
     try:
         ascii.write(t, out, format=fmt_name, fast_writer=fast)
-    except ImportError:  # Some failed dependency, e.g. PyYAML, skip test
+    except ImportError:  # Some failed dependency, skip test
         return
 
     # No-header formats need to be told the column names
