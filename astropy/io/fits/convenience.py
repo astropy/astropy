@@ -551,10 +551,9 @@ def table_to_hdu(table, character_as_bytes=False):
                         "though one has to enable the unit before reading.")
                 else:
                     warning += (
-                        "and cannot be recovered in reading. Using pyyaml it "
-                        "can roundtrip within astropy by using QTable both to "
-                        "write and read back, though one has to enable the "
-                        "unit before reading.")
+                        "and cannot be recovered in reading. It can roundtrip "
+                        "within astropy by using QTable both to write and read "
+                        "back, though one has to enable the unit before reading.")
                 warnings.warn(warning, AstropyUserWarning)
 
             else:

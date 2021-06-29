@@ -505,11 +505,8 @@ class TestSubclass:
         mt['a'].format = '.4f'
         mt['a'].description = 'hello'
 
-        ctx = nullcontext()
-
         testfile = str(tmpdir.join('junk.fits'))
-        with ctx:
-            mt.write(testfile, overwrite=True)
+        mt.write(testfile, overwrite=True)
 
         t = MTable.read(testfile)
         assert np.all(mt == t)
