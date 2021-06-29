@@ -12,7 +12,6 @@ import os
 from astropy.io import registry as io_registry
 from astropy.cosmology import Cosmology
 from astropy.table import QTable
-from astropy.utils.compat.optional_deps import HAS_YAML
 
 from .core import from_table, to_table
 
@@ -93,9 +92,6 @@ def ecsv_identify(origin, filepath, fileobj, *args, **kwargs):
         True if ``pyyaml`` is installed and the 'filepath' suffix is '.ecsv',
         False otherwise.
     """
-    if not HAS_YAML:
-        return False
-
     return filepath is not None and filepath.endswith(".ecsv")
 
 

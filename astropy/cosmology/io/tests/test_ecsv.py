@@ -7,10 +7,7 @@ import pytest
 from astropy import cosmology
 from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv, ecsv_identify
 from astropy.table import QTable, vstack
-from astropy.utils.compat.optional_deps import HAS_YAML
 
-
-pytestmark = pytest.mark.skipif(not HAS_YAML, reason="Needs PyYAML")
 
 cosmo_instances = [
     getattr(cosmology.realizations, name) for name in cosmology.parameters.available
