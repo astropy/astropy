@@ -196,7 +196,6 @@ def _encode_mixins(tbl):
     from astropy.table.table import has_info_class
     from astropy import units as u
     from astropy.utils.data_info import MixinInfo, serialize_context_as
-    import yaml  # noqa
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.

@@ -142,7 +142,7 @@ Requirements
 - `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
 
 ``astropy`` also depends on a number of other packages for optional features.
-The following three are particularly recommended:
+The following are particularly recommended:
 
 - `scipy`_ |minimum_scipy_version| or later: To power a variety of features
   in several modules.
