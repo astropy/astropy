@@ -92,12 +92,12 @@ def test_to_from_table_instance(expected):
 
 
 @pytest.mark.parametrize("expected", cosmo_instances)
-def test_ND_table(expected):
+def test_multirow_table(expected):
     expected1 = expected.clone(name="Other")
     t = vstack([expected.write.to_table(), expected1.write.to_table()])
 
     # error for no index
-    with pytest.raises(ValueError, match="row index for N-D"):
+    with pytest.raises(ValueError, match="multi-row"):
         io.from_table(t)
 
     got = io.from_table(t, index=0)

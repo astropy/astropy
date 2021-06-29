@@ -49,7 +49,7 @@ def test_write_then_read_file(cosmo_dir, cosmo):
 
 
 @pytest.mark.parametrize("cosmo", cosmo_instances)
-def test_ND(cosmo_dir, cosmo):
+def test_multirow(cosmo_dir, cosmo):
     """Read tests happen later."""
     cosmo1 = cosmo.clone(name="Other")
     t = vstack([cosmo.write.to_table(), cosmo1.write.to_table()])
@@ -58,7 +58,7 @@ def test_ND(cosmo_dir, cosmo):
     t.write(fname, overwrite=True)
 
     # error for no index
-    with pytest.raises(ValueError, match="row index for N-D"):
+    with pytest.raises(ValueError, match="multi-row"):
         read_ecsv(fname)
 
     got = read_ecsv(fname, index=0)

@@ -6,11 +6,11 @@ here. No sub-module (e.g. ``ecsv`` or ``json``) is considered public API.
 
 """
 
-from . import core
-from .core import *
+from astropy.cosmology.io import core
+from astropy.cosmology.io.core import *
 
 # Import the readers and writers to register them into the io registry.
 # This is NOT public API
-from . import ecsv, json  # noqa: F403
+from astropy.cosmology.io import ecsv, json  # noqa: F403
 
 __all__ = core.__all__

@@ -159,7 +159,7 @@ def test_z_at_value_roundtrip(cosmo):
         skip += ('nu_relative_density', )
 
     # get methods, ignoring warning from ".read"
-    with pytest.warns(AstropyUserWarning, match=r'`Cosmology`` base class'):
+    with pytest.warns(AstropyUserWarning, match=r'``Cosmology`` subclasses'):
         methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
 
     for name, func in methods:

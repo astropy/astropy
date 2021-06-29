@@ -37,7 +37,7 @@ class TestReadWriteCosmology:
 
         # Warns when initialized. Cannot be used.
         with pytest.warns(AstropyUserWarning):
-            assert cosmology.realizations.Planck18.read is None
+            assert cosmology.realizations.Planck18.read is NotImplemented
 
     @pytest.mark.parametrize("format", save_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
@@ -84,7 +84,7 @@ class TestReadWriteCosmology:
         params = getattr(cosmology.parameters, instance)
 
         # read with mismatching parameters errors
-        with pytest.raises(TypeError, match="There are unused parameters"):
+        with pytest.raises(TypeError, match="there are unused parameters"):
             Cosmology.read.from_mapping(params)
 
         # unless mismatched are moved to meta
@@ -121,13 +121,13 @@ class Test_round_trip_of_table_instance:
         got = Cosmology.read.from_table(expected.write.to_table())
         assert got == expected
 
-    def test_ND(self, instance):
+    def test_multirow(self, instance):
         expected = getattr(cosmology.realizations, instance)
         expected1 = expected.clone(name="Other")
         t = vstack([expected.write.to_table(), expected1.write.to_table()])
 
         # error for no index
-        with pytest.raises(ValueError, match="row index for N-D"):
+        with pytest.raises(ValueError, match="multi-row"):
             Cosmology.read.from_table(t)
 
         got = Cosmology.read.from_table(t, index=0)

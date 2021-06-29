@@ -34,7 +34,7 @@ def read_json(filename, key=None, move_to_meta=False, **kwargs):
     move_to_meta : bool (optional, keyword-only)
         Whether to move keyword arguments that are not in the Cosmology class'
         signature to the Cosmology's metadata. This will only be applied if the
-        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``). 
+        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``).
         Arguments moved to the metadata will be merged with existing metadata,
         preferring specified metadata in the case of a merge conflict
         (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``

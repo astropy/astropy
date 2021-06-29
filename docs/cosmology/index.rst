@@ -4,12 +4,6 @@
 Cosmological Calculations (`astropy.cosmology`)
 ***********************************************
 
-.. toctree::
-   :hidden:
-
-   io
-
-
 Introduction
 ============
 
@@ -20,8 +14,8 @@ distances, ages, and lookback times corresponding to a measured
 redshift or the transverse separation corresponding to a measured
 angular separation.
 
-For details on reading and writing cosmologies,
-see :ref:`read_write_cosmologies`.
+For details on reading and writing cosmologies from files, dictionaries, and
+:class:`~astropy.table.Table`s, see :ref:`read_write_cosmologies`.
 
 Getting Started
 ===============
@@ -96,6 +90,14 @@ access the floating point or array values::
 
 Using `astropy.cosmology`
 =========================
+
+More detailed information on using the package is provided on separate pages,
+listed below.
+
+.. toctree::
+   :maxdepth: 1
+
+   io
 
 Most of the functionality is enabled by the `~astropy.cosmology.FLRW`
 object. This represents a homogeneous and isotropic cosmology

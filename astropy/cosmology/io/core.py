@@ -2,6 +2,8 @@
 
 import copy
 
+import numpy as np
+
 from astropy.table import QTable
 from astropy.cosmology import Cosmology, _COSMOLOGY_REGISTRY
 
@@ -22,7 +24,7 @@ def from_mapping(mapping, *, move_to_meta=False):
     move_to_meta : bool (optional, keyword-only)
         Whether to move keyword arguments that are not in the Cosmology class'
         signature to the Cosmology's metadata. This will only be applied if the
-        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``). 
+        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``).
         Arguments moved to the metadata will be merged with existing metadata,
         preferring specified metadata in the case of a merge conflict
         (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``
@@ -142,11 +144,19 @@ def from_table(table, index=None, *, move_to_meta=False):
     Parameters
     ----------
     table : `~astropy.table.QTable`
-    index : int or None, optional
+    index : int, str, or None, optional
         Needed to select the row in tables with multiple rows. ``index`` can be
         an integer for the row number or, if the table is indexed by a column,
         the value of that column. If the table is not indexed and ``index``
         is a string, the "name" column is used as the indexing column.
+    move_to_meta : bool (optional, keyword-only)
+        Whether to move keyword arguments that are not in the Cosmology class'
+        signature to the Cosmology's metadata. This will only be applied if the
+        Cosmology does NOT have a keyword-only argument (e.g. ``**kwargs``).
+        Arguments moved to the metadata will be merged with existing metadata,
+        preferring specified metadata in the case of a merge conflict
+        (e.g. for ``Cosmology(meta={'key':10}, key=42)``, the ``Cosmology.meta``
+        will be ``{'key': 10}``).
 
     Returns
     -------
@@ -193,6 +203,8 @@ def from_table(table, index=None, *, move_to_meta=False):
         Planck15   67.74  0.3075  2.7255   3.046 0.0 .. 0.06 0.048600
         Planck18   67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.048970
 
+    For further examples, see :doc:`astropy:cosmology/io`
+
     See Also
     --------
     astropy.cosmology.io.to_table : Represent as |QTable|.
@@ -206,7 +218,7 @@ def from_table(table, index=None, *, move_to_meta=False):
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
         if not table.indices:  # no indexing column, find by string match
-            index = np.where(table['name'] == name)[0][0]
+            index = np.where(table['name'] == index)[0][0]
             # TODO! error if no match
         else:
             index = table.loc_indices[index]  # need to convert to row index (int)
@@ -214,7 +226,7 @@ def from_table(table, index=None, *, move_to_meta=False):
     # no index is needed for a 1-row table. For a multi-row table...
     if index is None:
         if len(table) != 1:  # multi-row table and no index
-            raise ValueError("need to select a specific row (e.g. index=1) when
+            raise ValueError("need to select a specific row (e.g. index=1) when "
                              "constructing a Cosmology from a multi-row table.")
         else:
             index = 0
@@ -224,7 +236,7 @@ def from_table(table, index=None, *, move_to_meta=False):
     # parse row to cosmo
 
     # special values
-    name = row['name'] if 'name' in row else None  # get name from column
+    name = row['name'] if 'name' in row.columns else None  # get name from column
     meta = copy.deepcopy(row.meta)
     # NOTE: there will be a method for row-specific metadata
     # the cosmology class must be in the table's metadata

@@ -9,9 +9,10 @@ detailed usage examples and references.
 """
 
 from . import core, funcs
+from .core import _COSMOLOGY_REGISTRY
 from .core import *
 from .funcs import *
-from .realizations import *
 from . import realizations  # needs to be last b/c circular imports
+from .realizations import *
 
 __all__ = core.__all__ + realizations.__all__ + funcs.__all__
