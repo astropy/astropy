@@ -579,7 +579,7 @@ The default converters for each column can be overridden with the
 
 In addition to single column names you can use wildcards via `fnmatch` to
 select multiple columns. For example, we can set the format for all columns
-where the column name starts with "col" to `np.uint` while applying default
+with a name starting with "col" to an unsigned integer while applying default
 converters to all other columns in the table::
 
   >>> import numpy as np
