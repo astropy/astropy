@@ -5,7 +5,7 @@ from astropy.table import Table, Column
 
 from astropy.table.table_helpers import simple_table
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.compat.optional_deps import HAS_BS4, HAS_YAML  # noqa
+from astropy.utils.compat.optional_deps import HAS_BS4  # noqa
 
 import numpy as np
 
@@ -136,7 +136,6 @@ def test_write_csv(tmpdir):
     t.write(path)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_auto_identify_ecsv(tmpdir):
     tbl = simple_table()
     tmpfile = str(tmpdir.join('/tmpFile.ecsv'))

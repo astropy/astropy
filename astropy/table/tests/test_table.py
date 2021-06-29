@@ -26,7 +26,7 @@ from astropy import units as u
 from astropy.time import Time, TimeDelta
 from .conftest import MaskedTable, MIXIN_COLS
 
-from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_YAML  # noqa
+from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
 
 
 class SetupData:
@@ -2560,7 +2560,6 @@ def test_table_attribute():
     assert '__attributes__' not in t.meta
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_table_attribute_ecsv():
     # Table attribute round-trip through ECSV
     t = MyTable([[1, 2]], bar=[2.0], baz='baz')

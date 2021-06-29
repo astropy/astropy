@@ -323,12 +323,7 @@ def get_yaml_from_header(header):
     lines : list
         List of text lines with YAML header content
     """
-    try:
-        import yaml
-    except ImportError:
-        raise ImportError('`import yaml` failed, PyYAML package is '
-                          'required for serializing mixin columns')
-
+    import yaml
     from astropy.io.misc.yaml import AstropyDumper
 
     class TableDumper(AstropyDumper):
@@ -413,12 +408,7 @@ def get_header_from_yaml(lines):
 
     """
 
-    try:
-        import yaml
-    except ImportError:
-        raise ImportError('`import yaml` failed, PyYAML package '
-                          'is required for serializing mixin columns')
-
+    import yaml
     from astropy.io.misc.yaml import AstropyLoader
 
     class TableLoader(AstropyLoader):

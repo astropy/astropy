@@ -11,8 +11,9 @@ import importlib
 _optional_deps = ['bleach', 'bottleneck', 'bs4', 'bz2', 'h5py', 'html5lib',
                   'IPython', 'jplephem', 'lxml', 'matplotlib', 'mpmath',
                   'pandas', 'PIL', 'pytz', 'scipy', 'skyfield',
-                  'sortedcontainers', 'lzma', 'yaml']
-_deps = {k.upper(): k for k in _optional_deps}
+                  'sortedcontainers', 'lzma']
+_formerly_optional_deps = ['yaml']  # for backward compatibility
+_deps = {k.upper(): k for k in _optional_deps + _formerly_optional_deps}
 
 # Any subpackages that have different import behavior:
 _deps['PLT'] = 'matplotlib.pyplot'
