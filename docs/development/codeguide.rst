@@ -36,7 +36,9 @@ Interface and Dependencies
   methods, the optional dependency should use a normal ``import``
   statement, which will raise an ``ImportError`` if the dependency is
   not available. In the astropy core package, such optional dependencies should
-  be recorded in the ``setup.cfg`` file in the ``extras_require`` entry.
+  be recorded in the ``setup.cfg`` file in the ``extras_require``
+  entry, under ``all`` (or ``test_all`` if the dependency is only
+  needed for testing).
 
   At the module level, one can subclass a class from an optional dependency
   like so::
