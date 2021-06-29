@@ -13,6 +13,7 @@ from contextlib import nullcontext
 
 import pytest
 import numpy as np
+import yaml
 
 from astropy.table import Table, Column, QTable, NdarrayMixin
 from astropy.table.table_helpers import simple_table
@@ -794,7 +795,6 @@ def test_full_repr_roundtrip():
 
 # First here is some helper code used to make the expected outputs code.
 def _get_ecsv_header_dict(text):
-    import yaml
     lines = [line.strip() for line in text.splitlines()]
     lines = [line[2:] for line in lines if line.startswith('#')]
     lines = lines[2:]  # Get rid of the header
