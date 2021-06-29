@@ -7,16 +7,18 @@ import sys
 
 import pytest
 
+import astropy
+
 
 def test_wcsapi_extension(tmpdir):
     # Test that we can build a simple C extension with the astropy.wcs C API
 
     build_dir = tmpdir.mkdir('build').strpath
     install_dir = tmpdir.mkdir('install').strpath
+    record_file = os.path.join(build_dir, 'record.txt')
 
     setup_path = os.path.dirname(__file__)
-    astropy_path = os.path.abspath(
-        os.path.join(setup_path, '..', '..', '..', '..'))
+    astropy_path = os.path.dirname(astropy.__path__[0])
 
     env = os.environ.copy()
     paths = [install_dir, astropy_path]
@@ -30,10 +32,18 @@ def test_wcsapi_extension(tmpdir):
     # *unless* the output is redirected.  This bug also did not occur in an
     # interactive session, so it likely had something to do with pytest's
     # output capture
+    #
+    # --single-version-externally-managed --record is essentially equivalent to
+    # what pip does; otherwise setuptools' `setup.py install` will try to build
+    # and install an egg (deprecated behavior, but still the default for
+    # backwards-compat).
+    # In the future we might change this to just run pip.
     p = subprocess.Popen([sys.executable, 'setup.py', 'build',
                           f'--build-base={build_dir}', 'install',
                           f'--install-lib={install_dir}',
-                          astropy_path], cwd=setup_path, env=env,
+                          '--single-version-externally-managed',
+                          f'--record={record_file}'],
+                          cwd=setup_path, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Whether the process fails or not this isn't likely to produce a great
