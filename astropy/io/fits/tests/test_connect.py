@@ -1,5 +1,4 @@
 import gc
-import sys
 import pathlib
 import warnings
 
@@ -28,7 +27,6 @@ from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLoca
                                  SphericalCosLatDifferential)
 from astropy.time import Time, TimeDelta
 from astropy.units.quantity import QuantityInfo
-from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 
 def equal_data(a, b):
@@ -110,7 +108,6 @@ class TestSingleTable:
         assert t2['a'].unit == u.m
         assert t2['c'].unit == u.km / u.s
 
-    @pytest.mark.skipif('not HAS_YAML')
     def test_with_custom_units_qtable(self, tmpdir):
         # Test only for QTable - for Table's Column, new units are dropped
         # (as is checked in test_write_drop_nonstandard_units).
@@ -236,9 +233,8 @@ class TestSingleTable:
         with pytest.warns(AstropyUserWarning, match='spam') as w:
             t.write(filename)
         assert len(w) == 1
-        if table_type is Table or not HAS_YAML:
-            assert ('cannot be recovered in reading. '
-                    'If pyyaml is installed') in str(w[0].message)
+        if table_type is Table:
+            assert ('cannot be recovered in reading. ') in str(w[0].message)
         else:
             assert 'lost to non-astropy fits readers' in str(w[0].message)
 
@@ -772,7 +768,6 @@ compare_attrs = {
 }
 
 
-@pytest.mark.skipif('not HAS_YAML')
 def test_fits_mixins_qtable_to_table(tmpdir):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
@@ -810,7 +805,6 @@ def test_fits_mixins_qtable_to_table(tmpdir):
         assert_objects_equal(col, col2, attrs, compare_class)
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_fits_mixins_as_one(table_cls, tmpdir):
     """Test write/read all cols at once and validate intermediate column names"""
@@ -864,7 +858,6 @@ def test_fits_mixins_as_one(table_cls, tmpdir):
         assert hdus[1].columns.names == serialized_names
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
@@ -897,31 +890,6 @@ def test_fits_mixins_per_column(table_cls, name_col, tmpdir):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-def test_warn_for_dropped_info_attributes(tmpdir, monkeypatch):
-    # make sure that yaml cannot be imported if it is available
-    monkeypatch.setitem(sys.modules, 'yaml', None)
-
-    filename = str(tmpdir.join('test.fits'))
-    t = Table([[1, 2]])
-    t['col0'].info.description = 'hello'
-    with pytest.warns(AstropyUserWarning, match=r"table contains column\(s\) "
-                      "with defined 'format'") as warns:
-        t.write(filename, overwrite=True)
-    assert len(warns) == 1
-
-
-def test_error_for_mixins_but_no_yaml(tmpdir, monkeypatch):
-    # make sure that yaml cannot be imported if it is available
-    monkeypatch.setitem(sys.modules, 'yaml', None)
-
-    filename = str(tmpdir.join('test.fits'))
-    t = Table([mixin_cols['sc']])
-    with pytest.raises(TypeError) as err:
-        t.write(filename)
-    assert "cannot write type SkyCoord column 'col0' to FITS without PyYAML" in str(err.value)
-
-
-@pytest.mark.skipif('not HAS_YAML')
 def test_info_attributes_with_no_mixins(tmpdir):
     """Even if there are no mixin columns, if there is metadata that would be lost it still
     gets serialized
@@ -939,7 +907,6 @@ def test_info_attributes_with_no_mixins(tmpdir):
     assert t2['col0'].meta['a'] == {'b': 'c'}
 
 
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.parametrize('method', ['set_cols', 'names', 'class'])
 def test_round_trip_masked_table_serialize_mask(tmpdir, method):
     """
@@ -977,21 +944,6 @@ def test_round_trip_masked_table_serialize_mask(tmpdir, method):
         assert np.all(t2[name] == t[name])
 
 
-@pytest.mark.skipif('not HAS_YAML')
-def test_read_serialized_without_yaml(tmpdir, monkeypatch):
-    filename = str(tmpdir.join('test.fits'))
-    t = Table([mixin_cols['sc']])
-    t.write(filename)
-
-    monkeypatch.setitem(sys.modules, 'yaml', None)
-    with pytest.warns(AstropyUserWarning):
-        t2 = Table.read(filename)
-
-    assert t2.colnames == ['col0.ra', 'col0.dec']
-    assert len(t2) == 2
-
-
-@pytest.mark.skipif('not HAS_YAML')
 def test_meta_not_modified(tmpdir):
     filename = str(tmpdir.join('test.fits'))
     t = Table(data=[Column([1, 2], 'a', description='spam')])

@@ -9,7 +9,7 @@ from astropy import units as u
 from astropy.utils import iers
 from astropy.time import Time
 from astropy.table import Table
-from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_YAML
+from astropy.utils.compat.optional_deps import HAS_H5PY
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
@@ -166,8 +166,7 @@ def test_serialize_fits_masked(tmpdir):
     assert np.all(t2['col0'].value == t['col0'].value)
 
 
-@pytest.mark.skipif(not HAS_YAML or not HAS_H5PY,
-                    reason='Need both h5py and yaml')
+@pytest.mark.skipif(not HAS_H5PY, reason='Needs h5py')
 def test_serialize_hdf5_masked(tmpdir):
     tm = Time([1, 2, 3], format='cxcsec')
     tm[1] = np.ma.masked
@@ -183,7 +182,6 @@ def test_serialize_hdf5_masked(tmpdir):
 
 
 # Ignore warning in MIPS https://github.com/astropy/astropy/issues/9750
-@pytest.mark.skipif('not HAS_YAML')
 @pytest.mark.filterwarnings('ignore:invalid value encountered')
 @pytest.mark.parametrize('serialize_method', ['jd1_jd2', 'formatted_value'])
 def test_serialize_ecsv_masked(serialize_method, tmpdir):
