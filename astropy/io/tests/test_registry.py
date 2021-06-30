@@ -4,7 +4,6 @@ import os
 from copy import copy
 from io import StringIO
 from collections import Counter
-from contextlib import nullcontext
 
 import pytest
 import numpy as np
@@ -12,7 +11,6 @@ import numpy as np
 from astropy.io.registry import _readers, _writers, _identifiers
 from astropy.io import registry as io_registry
 from astropy.table import Table
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
 
 # Since we reset the readers/writers below, we need to also import any

@@ -14,7 +14,7 @@ import numpy as np
 from . import core, basic
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
-from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyUserWarning
 from astropy.io.ascii.core import convert_numpy
 
 ECSV_VERSION = '1.0'

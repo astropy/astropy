@@ -11,9 +11,8 @@ import numpy as np
 from astropy.io import registry as io_registry
 from astropy import units as u
 from astropy.table import Table, serialize, meta, Column, MaskedColumn
-from astropy.table.table import has_info_class
 from astropy.time import Time
-from astropy.utils.data_info import MixinInfo, serialize_context_as
+from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import (AstropyUserWarning,
                                       AstropyDeprecationWarning)
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU, append as fits_append
