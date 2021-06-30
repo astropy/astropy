@@ -1197,6 +1197,47 @@ example::
   >>> FK4() == FK4(obstime='2020-01-01')
   False
 
+.. _skycoord-table-conversion:
+
+Converting a SkyCoord to a Table
+================================
+
+A |SkyCoord| object can be converted to a |QTable| using its
+:meth:`~astropy.coordinates.SkyCoord.to_table` method. The attributes of the
+|SkyCoord| are converted to columns of the table or added to its metadata
+depending on whether or not they have the same length as the |SkyCoord|. This
+means that attributes such as ``obstime`` can become columns or metadata::
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> from astropy.time import Time
+  >>> sc = SkyCoord(ra=[15, 30], dec=[-70, -50], unit=u.deg,
+  ...               obstime=Time([2000, 2010], format='jyear'))
+  >>> t = sc.to_table()
+  >>> t
+  <QTable length=2>
+     ra     dec   obstime
+    deg     deg
+  float64 float64   Time
+  ------- ------- -------
+     15.0   -70.0  2000.0
+     30.0   -50.0  2010.0
+  >>> t.meta
+  {'representation_type': 'spherical', 'frame': 'icrs'}
+
+  >>> sc = SkyCoord(l=[0, 20], b=[20, 0], unit=u.deg, frame='galactic',
+  ...               obstime=Time(2000, format='jyear'))
+  >>> t = sc.to_table()
+  >>> t
+  <QTable length=2>
+     l       b
+    deg     deg
+  float64 float64
+  ------- -------
+      0.0    20.0
+     20.0     0.0
+  >>> t.meta
+  {'obstime': <Time object: scale='tt' format='jyear' value=2000.0>,
+   'representation_type': 'spherical', 'frame': 'galactic'}
 
 Convenience Methods
 ===================
