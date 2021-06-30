@@ -193,24 +193,8 @@ def _encode_mixins(tbl):
     astropy Columns + appropriate meta-data to allow subsequent decoding.
     """
     from astropy.table import serialize
-    from astropy.table.table import has_info_class
     from astropy import units as u
-    from astropy.utils.data_info import MixinInfo, serialize_context_as
-
-    # If PyYAML is not available then check to see if there are any mixin cols
-    # that *require* YAML serialization.  HDF5 already has support for
-    # Quantity, so if those are the only mixins the proceed without doing the
-    # YAML bit, for backward compatibility (i.e. not requiring YAML to write
-    # Quantity).
-    try:
-        import yaml  # noqa
-    except ImportError:
-        for col in tbl.itercols():
-            if (has_info_class(col, MixinInfo) and
-                    col.__class__ is not u.Quantity):
-                raise TypeError("cannot write type {} column '{}' "
-                                "to HDF5 without PyYAML installed."
-                                .format(col.__class__.__name__, col.info.name))
+    from astropy.utils.data_info import serialize_context_as
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.

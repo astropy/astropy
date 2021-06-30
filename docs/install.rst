@@ -80,11 +80,11 @@ for the list of available versions with ``conda search astropy``.
 If you want to install ``astropy`` along with recommended or all of the
 available optional :ref:`dependencies <astropy-main-req>`, you can do::
 
-    conda install -c astropy -c defaults scipy pyyaml matplotlib
+    conda install -c astropy -c defaults scipy matplotlib
 
 or::
 
-    conda install -c astropy -c defaults scipy pyyaml matplotlib \
+    conda install -c astropy -c defaults scipy matplotlib \
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
       pytz setuptools mpmath bottleneck jplephem asdf
 
@@ -139,19 +139,16 @@ Requirements
 
 - `PyERFA`_ |minimum_pyerfa_version| or later
 
+- `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
+
 ``astropy`` also depends on a number of other packages for optional features.
-The following three are particularly recommended:
+The following are particularly recommended:
 
 - `scipy`_ |minimum_scipy_version| or later: To power a variety of features
   in several modules.
 
 - `matplotlib <https://matplotlib.org/>`_ |minimum_matplotlib_version| or later: To provide plotting
   functionality that `astropy.visualization` enhances.
-
-- `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later: To read/write
-  :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table
-  format and to serialize mixins such as |Time| and |SkyCoord| for FITS, HDF5,
-  and other formats.
 
 The further dependencies provide more specific features:
 

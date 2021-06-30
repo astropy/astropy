@@ -2,14 +2,13 @@
 
 """
 This module tests some of the methods related to YAML serialization.
-
-Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 
 from io import StringIO
 
 import pytest
 import numpy as np
+import yaml
 
 from astropy.coordinates import (SkyCoord, EarthLocation, Angle, Longitude, Latitude,
                                  SphericalRepresentation, UnitSphericalRepresentation,
@@ -19,8 +18,6 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.table import QTable, SerializedColumn
 from astropy.coordinates.tests.test_representation import representation_equal
-
-yaml = pytest.importorskip('yaml', minversion='3.12')
 
 from astropy.io.misc.yaml import load, load_all, dump  # noqa
 

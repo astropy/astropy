@@ -4,7 +4,6 @@ import os
 from copy import copy
 from io import StringIO
 from collections import Counter
-from contextlib import nullcontext
 
 import pytest
 import numpy as np
@@ -12,9 +11,7 @@ import numpy as np
 from astropy.io.registry import _readers, _writers, _identifiers
 from astropy.io import registry as io_registry
 from astropy.table import Table
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy import units as u
-from astropy.utils.compat.optional_deps import HAS_YAML
 
 # Since we reset the readers/writers below, we need to also import any
 # sub-package that defines readers/writers first
@@ -506,16 +503,8 @@ class TestSubclass:
         mt['a'].format = '.4f'
         mt['a'].description = 'hello'
 
-        if HAS_YAML:
-            ctx = nullcontext()
-        else:
-            ctx = pytest.warns(
-                AstropyUserWarning,
-                match="These will be dropped unless you install PyYAML")
-
         testfile = str(tmpdir.join('junk.fits'))
-        with ctx:
-            mt.write(testfile, overwrite=True)
+        mt.write(testfile, overwrite=True)
 
         t = MTable.read(testfile)
         assert np.all(mt == t)
@@ -523,10 +512,7 @@ class TestSubclass:
         assert type(t) is MTable
         assert t['a'].unit == u.m
         assert t['a'].format == '{:13.4f}'
-        if HAS_YAML:
-            assert t['a'].description == 'hello'
-        else:
-            assert t['a'].description is None
+        assert t['a'].description == 'hello'
 
 
 def test_directory(tmpdir):

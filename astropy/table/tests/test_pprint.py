@@ -12,7 +12,6 @@ from astropy.table import Table, QTable
 from astropy.table.table_helpers import simple_table
 from astropy import units as u
 from astropy.utils import console
-from astropy.utils.compat.optional_deps import HAS_YAML  # noqa
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
 SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
@@ -837,7 +836,6 @@ class TestColumnsShowHide:
         del t['a']
         assert t_hide_show() == ('b',)
 
-    @pytest.mark.skipif('not HAS_YAML')
     def test_serialization(self):
         # Serialization works for ECSV. Currently fails for FITS, works with
         # HDF5.

@@ -17,7 +17,7 @@ from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
 from astropy.io.misc.hdf5 import meta_path
-from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_YAML  # noqa
+from astropy.utils.compat.optional_deps import HAS_H5PY  # noqa
 if HAS_H5PY:
     import h5py
 
@@ -430,7 +430,7 @@ def test_preserve_meta(tmpdir):
         assert np.all(t1.meta[key] == t2.meta[key])
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_preserve_serialized(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
@@ -459,7 +459,7 @@ def test_preserve_serialized(tmpdir):
     assert meta_lines.dtype.kind == 'S'
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_preserve_serialized_old_meta_format(tmpdir):
     """Test the old meta format
 
@@ -485,7 +485,7 @@ def test_preserve_serialized_old_meta_format(tmpdir):
     assert t1.meta == t2.meta
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_preserve_serialized_in_complicated_path(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
@@ -510,7 +510,7 @@ def test_preserve_serialized_in_complicated_path(tmpdir):
     assert t1.meta == t2.meta
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_metadata_very_large(tmpdir):
     """Test that very large datasets work, now!"""
     test_file = str(tmpdir.join('test.hdf5'))
@@ -558,7 +558,7 @@ def test_skip_meta(tmpdir):
     assert len(w) == 1
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_fail_meta_serialize(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
@@ -745,7 +745,7 @@ compare_attrs = {
 }
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_hdf5_mixins_qtable_to_table(tmpdir):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
@@ -783,7 +783,7 @@ def test_hdf5_mixins_qtable_to_table(tmpdir):
         assert_objects_equal(col, col2, attrs, compare_class)
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_hdf5_mixins_as_one(table_cls, tmpdir):
     """Test write/read all cols at once and validate intermediate column names"""
@@ -841,7 +841,7 @@ def test_hdf5_mixins_as_one(table_cls, tmpdir):
     h5.close()
 
 
-@pytest.mark.skipif('not HAS_H5PY or not HAS_YAML')
+@pytest.mark.skipif('not HAS_H5PY')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_hdf5_mixins_per_column(table_cls, name_col, tmpdir):
@@ -874,27 +874,7 @@ def test_hdf5_mixins_per_column(table_cls, name_col, tmpdir):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-@pytest.mark.skipif('HAS_YAML or not HAS_H5PY')
-def test_warn_for_dropped_info_attributes(tmpdir):
-    filename = str(tmpdir.join('test.hdf5'))
-    t = Table([[1, 2]])
-    t['col0'].info.description = 'hello'
-    with pytest.warns(AstropyUserWarning, match=r"table contains column\(s\) "
-                      r"with defined 'unit'") as warns:
-        t.write(filename, path='root', serialize_meta=False)
-    assert len(warns) == 1
-
-
-@pytest.mark.skipif('HAS_YAML or not HAS_H5PY')
-def test_error_for_mixins_but_no_yaml(tmpdir):
-    filename = str(tmpdir.join('test.hdf5'))
-    t = Table([mixin_cols['sc']])
-    with pytest.raises(TypeError) as err:
-        t.write(filename, path='root', serialize_meta=True)
-    assert "cannot write type SkyCoord column 'col0' to HDF5 without PyYAML" in str(err.value)
-
-
-@pytest.mark.skipif('not HAS_YAML or not HAS_H5PY')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_round_trip_masked_table_default(tmpdir):
     """Test round-trip of MaskedColumn through HDF5 using default serialization
     that writes a separate mask column.  Note:
@@ -928,7 +908,7 @@ def test_round_trip_masked_table_default(tmpdir):
         assert np.all(t2[name] == t[name])
 
 
-@pytest.mark.skipif('not HAS_YAML or not HAS_H5PY')
+@pytest.mark.skipif('not HAS_H5PY')
 def test_overwrite_serialized_meta():
     # This used to cause an error because the meta data table
     # was not removed from the existing file.

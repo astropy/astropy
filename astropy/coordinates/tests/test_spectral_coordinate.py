@@ -840,9 +840,6 @@ EXPECTED_VELOCITY_FRAMES = {'geocent': 'gcrs',
 @pytest.mark.parametrize('specsys', list(EXPECTED_VELOCITY_FRAMES))
 def test_spectralcoord_accuracy(specsys):
 
-    # PyYAML is needed to read in the ecsv table
-    pytest.importorskip('yaml')
-
     # This is a test to check the numerical results of transformations between
     # different velocity frames in SpectralCoord. This compares the velocity
     # shifts determined with SpectralCoord to those determined from the rv

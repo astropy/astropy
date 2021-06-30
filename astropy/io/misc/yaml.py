@@ -19,8 +19,6 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.EarthLocation`
 - `astropy.table.SerializedColumn`
 
-.. note:: This module requires PyYaml version 3.13 or later.
-
 Example
 =======
 ::
@@ -61,24 +59,15 @@ Example
 import base64
 
 import numpy as np
+import yaml
 
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy import coordinates as coords
-from astropy.utils import minversion
 from astropy.table import SerializedColumn
-
-try:
-    import yaml
-except ImportError:
-    raise ImportError('The PyYAML package is required for astropy.io.misc.yaml and must be 3.13 or later')
-else:
-    if not minversion(yaml, '3.13'):
-        raise ImportError('The PyYAML package is required for astropy.io.misc.yaml and must be 3.13 or later')
 
 
 __all__ = ['AstropyLoader', 'AstropyDumper', 'load', 'load_all', 'dump']
-__doctest_requires__ = {'*': ['yaml']}
 
 
 def _unit_representer(dumper, obj):

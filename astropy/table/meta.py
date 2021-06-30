@@ -4,6 +4,7 @@ import copy
 from collections import OrderedDict
 
 import numpy as np
+import yaml
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
@@ -75,8 +76,6 @@ def _construct_odict(load, node):
       >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')  # doctest: +SKIP
       OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
-    import yaml
-
     omap = OrderedDict()
     yield omap
     if not isinstance(node, yaml.SequenceNode):
@@ -112,8 +111,6 @@ def _repr_pairs(dump, tag, sequence, flow_style=None):
     Source: https://gist.github.com/weaver/317164
     License: Unspecified
     """
-    import yaml
-
     value = []
     node = yaml.SequenceNode(tag, value, flow_style=flow_style)
     if dump.alias_key is not None:
@@ -323,12 +320,6 @@ def get_yaml_from_header(header):
     lines : list
         List of text lines with YAML header content
     """
-    try:
-        import yaml
-    except ImportError:
-        raise ImportError('`import yaml` failed, PyYAML package is '
-                          'required for serializing mixin columns')
-
     from astropy.io.misc.yaml import AstropyDumper
 
     class TableDumper(AstropyDumper):
@@ -412,13 +403,6 @@ def get_header_from_yaml(lines):
         Dictionary describing table and column meta
 
     """
-
-    try:
-        import yaml
-    except ImportError:
-        raise ImportError('`import yaml` failed, PyYAML package '
-                          'is required for serializing mixin columns')
-
     from astropy.io.misc.yaml import AstropyLoader
 
     class TableLoader(AstropyLoader):
