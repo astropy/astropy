@@ -1,0 +1,2 @@
+``SkyCoord`` objects now have a ``to_table()`` method, which allows them to be
+converted to a ``QTable``.
