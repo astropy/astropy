@@ -33,17 +33,15 @@ the file format, for instance
 
 .. EXAMPLE END
 
-For certain file formats, the format can be automatically detected, for
-example from the filename extension::
+For both the JSON and ECSV formats, the format can be automatically detected
+from the filename extension so providing the ``format`` keyword is not required::
 
     >>> cosmo = Cosmology.read('lightbird.json')
 
-Similarly, for writing, the format can be explicitly specified::
+Similarly, for writing, the ``format`` is optional if the file name extension is
+either ``.json`` or ``.ecsv``, but it can be provided for code clarity::
 
-    >>> cosmo.write(filename, format='json')
-
-As for the :meth:`~astropy.cosmology.Cosmology.read` method, the format may be
-automatically identified in some cases.
+    >>> cosmo.write(filename, format='json', overwrite=True)
 
 Any additional arguments specified will depend on the format. For examples of
 this see the section :ref:`built_in_cosmology_readers_writers`. This section

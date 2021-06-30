@@ -13,6 +13,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 cosmo_instances = cosmology.parameters.available
 save_formats = ["json", "ascii.ecsv"]
 
+
 # make a common directory for reading / writing cosmologies
 @pytest.fixture(scope="session")
 def cosmo_dir(tmpdir_factory):
