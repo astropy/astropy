@@ -24,7 +24,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units import QuantityInfo
 
-from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
+from astropy.utils.exceptions import AstropyUserWarning
 
 from astropy.io.ascii.ecsv import DELIMITERS
 from astropy.io import ascii

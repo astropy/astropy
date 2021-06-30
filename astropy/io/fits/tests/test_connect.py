@@ -1,5 +1,4 @@
 import gc
-import sys
 import pathlib
 import warnings
 

@@ -64,7 +64,6 @@ import yaml
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy import coordinates as coords
-from astropy.utils import minversion
 from astropy.table import SerializedColumn
 
 
