@@ -331,7 +331,7 @@ class TestConvenience(FitsTestCase):
         hdulist.writeto(buf)
         buf.seek(0)
 
-        with pytest.raises(IndexError):
+        with pytest.raises(IndexError, match="No data in HDU #2."):
             fits.getdata(buf, ext=2)
 
     def test_getdata_ext_not_given_with_data_in_primary(self):
@@ -370,7 +370,10 @@ class TestConvenience(FitsTestCase):
         hdulist.writeto(buf)
         buf.seek(0)
 
-        with pytest.raises(IndexError):
+        with pytest.raises(
+            IndexError,
+            match="No data in either Primary or first extension HDUs."
+        ):
             fits.getdata(buf)
 
     def test_getdata_ext_not_given_nodata_noext(self):
@@ -382,5 +385,8 @@ class TestConvenience(FitsTestCase):
         hdulist.writeto(buf)
         buf.seek(0)
 
-        with pytest.raises(IndexError):
+        with pytest.raises(
+            IndexError,
+            match="No data in Primary HDU and no extension HDU found."
+        ):
             fits.getdata(buf)
