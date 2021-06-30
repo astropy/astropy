@@ -355,6 +355,9 @@ reference with ``c = col[3:5]`` followed by ``c.info``.""")
                 # _attrs, so speed matters up by not accessing defaults.
                 # Doing this before difference in for loop helps speed.
                 attr_names = attr_names & set(value._attrs)  # NOT in-place!
+            else:
+                # For different classes, copy over the attributes in common.
+                attr_names = attr_names & (value.attr_names - value._attrs_no_copy)
 
             for attr in attr_names - info.attrs_from_parent - info._attrs_no_copy:
                 info._attrs[attr] = deepcopy(getattr(value, attr))

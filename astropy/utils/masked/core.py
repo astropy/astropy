@@ -275,7 +275,11 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        return self.from_unmasked(data, mask, copy=False)
+        result = self.from_unmasked(data, mask, copy=False)
+        if 'info' in self.__dict__:
+            result.info = self.info
+
+        return result
 
     def __setitem__(self, item, value):
         value, mask = self._get_data_and_mask(value, allow_ma_masked=True)
@@ -284,7 +288,23 @@ class Masked(NDArrayShapeMethods):
         self.mask[item] = mask
 
 
-class MaskedNDArrayInfo(ParentDtypeInfo):
+class MaskedInfoBase:
+    mask_val = np.ma.masked
+
+    def __init__(self, bound=False):
+        super().__init__(bound)
+
+        # If bound to a data object instance then create the dict of attributes
+        # which stores the info attribute values.
+        if bound:
+            # Specify how to serialize this object depending on context.
+            self.serialize_method = {'fits': 'null_value',
+                                     'ecsv': 'null_value',
+                                     'hdf5': 'data_mask',
+                                     None: 'null_value'}
+
+
+class MaskedNDArrayInfo(MaskedInfoBase, ParentDtypeInfo):
     """
     Container for meta information like name, description, format.
     """
@@ -302,20 +322,6 @@ class MaskedNDArrayInfo(ParentDtypeInfo):
     # as separate columns, use column names <name> and <name>.mask (instead
     # of default encoding as <name>.data and <name>.mask).
     _represent_as_dict_primary_data = 'data'
-
-    mask_val = np.ma.masked
-
-    def __init__(self, bound=False):
-        super().__init__(bound)
-
-        # If bound to a data object instance then create the dict of attributes
-        # which stores the info attribute values.
-        if bound:
-            # Specify how to serialize this object depending on context.
-            self.serialize_method = {'fits': 'null_value',
-                                     'ecsv': 'null_value',
-                                     'hdf5': 'data_mask',
-                                     None: 'null_value'}
 
     def _represent_as_dict(self):
         out = super()._represent_as_dict()
@@ -348,12 +354,10 @@ class MaskedNDArrayInfo(ParentDtypeInfo):
         return Masked(map.pop('data').data, mask=map.pop('mask', None))
 
 
-class MaskedArraySubclassInfo:
+class MaskedArraySubclassInfo(MaskedInfoBase):
     """Mixin class to create a subclasses such as MaskedQuantityInfo."""
-    # This is used below in __init_subclass__.
-    # TODO: Find some way to ensure that 'serialize_method' of MaskedNDArray
-    # is also accessible.
-    mask_val = np.ma.masked
+    # This is used below in __init_subclass__, which also inserts a
+    # 'serialize_method' attribute in attr_names.
 
     def _represent_as_dict(self):
         # Use the data_cls as the class name for serialization,
@@ -471,9 +475,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             cls.__new__ = __new__
 
         if 'info' not in cls.__dict__ and hasattr(cls._data_cls, 'info'):
+            data_info = cls._data_cls.info
+            attr_names = data_info.attr_names | {'serialize_method'}
             new_info = type(cls.__name__+'Info',
-                            (MaskedArraySubclassInfo,
-                             cls._data_cls.info.__class__), {})
+                            (MaskedArraySubclassInfo, data_info.__class__),
+                            dict(attr_names=attr_names))
             cls.info = new_info()
 
     # The two pieces typically overridden.
@@ -534,8 +540,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return super().view(dtype, self._get_masked_cls(type))
 
     def __array_finalize__(self, obj):
-        if obj is None:
-            return None
+        # If we're a new object or viewing an ndarray, nothing has to be done.
+        if obj is None or obj.__class__ is np.ndarray:
+            return
 
         # Logically, this should come from ndarray and hence be None, but
         # just in case someone creates a new mixin, we check.
@@ -547,6 +554,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # Got here after, e.g., a view of another masked class.
             # Get its mask, or initialize ours.
             self._set_mask(getattr(obj, '_mask', False))
+
+        if 'info' in obj.__dict__:
+            self.info = obj.info
 
     @property
     def shape(self):
