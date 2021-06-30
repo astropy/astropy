@@ -17,8 +17,9 @@ Getting Started
 The :class:`~astropy.cosmology.Cosmology` class includes two methods,
 :meth:`~astropy.cosmology.Cosmology.read` and
 :meth:`~astropy.cosmology.Cosmology.write`, that make it possible to read from
-and write to files. Two file formats are automatically supported: 'json' and
-'ascii.ecsv'.
+and write to files. Two file formats are automatically supported:
+`'JSON' <https://www.json.org/json-en.html>`_ and
+`'ECSV' <https://zenodo.org/record/4792325>`_.
 
 .. EXAMPLE START: Reading and Writing Cosmology Objects
 
