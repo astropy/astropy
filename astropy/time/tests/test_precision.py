@@ -498,6 +498,28 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
         raise
 
 
+@given(scale=sampled_from(STANDARD_TIME_SCALES),
+       jds=reasonable_jd(),
+       delta=floats(-3*tiny, 3*tiny))
+@example(scale='tai', jds=(0.0, 3.5762786865234384), delta=2.220446049250313e-16)
+def test_time_argminmaxsort(scale, jds, delta):
+    jd1, jd2 = jds
+    t = Time(jd1, jd2+np.array([0, delta]), scale=scale, format="jd")
+    imin = t.argmin()
+    imax = t.argmax()
+    isort = t.argsort()
+    diff = (t.jd1[1]-t.jd1[0]) + (t.jd2[1]-t.jd2[0])
+    if diff < 0:  # item 1 smaller
+        assert delta < 0
+        assert imin == 1 and imax == 0 and np.all(isort == [1, 0])
+    elif diff == 0:  # identical within precision
+        assert abs(delta) <= tiny
+        assert imin == 0 and imax == 0 and np.all(isort == [0, 1])
+    else:
+        assert delta > 0
+        assert imin == 0 and imax == 1 and np.all(isort == [0, 1])
+
+
 @given(sampled_from(STANDARD_TIME_SCALES), unreasonable_jd(), unreasonable_jd())
 @example(scale='utc',
          jds_a=(2455000.0, 0.0),
