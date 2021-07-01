@@ -18,6 +18,9 @@ from .core import from_mapping, to_mapping
 __all__ = ["read_json", "write_json", "json_identify"]
 
 
+_all_pathlike = (str, bytes, os.PathLike)  # all recognized path-like types
+
+
 def read_json(filename, key=None, **kwargs):
     """Read a cosmology from ECSV file.
 
@@ -36,14 +39,14 @@ def read_json(filename, key=None, **kwargs):
     `~astropy.cosmology.Cosmology` subclass instance
     """
     # read file, from path-like or file-like
-    if isinstance(filename, (str, bytes, os.PathLike)):  # pathlike
+    if isinstance(filename, _all_pathlike):  # pathlike
         with open(filename, "r") as file:
             data = file.read()
     else:  # file-like : this also handles errors in dumping
         data = filename.read()
 
     mapping = json.loads(data)  # parse json mappable to dict
-    if key is not None:
+    if key is not None:  # select from dict. Enables nested storage of cosmos
         mapping = mapping[key]
 
     return from_mapping(mapping)
@@ -65,7 +68,7 @@ def write_json(cosmology, file, *, overwrite=False, **kwargs):
     data = to_mapping(cosmology)  # start by turning into dict
     data["cosmology"] = data["cosmology"].__name__  # change class field to str
 
-    if isinstance(file, (str, bytes, os.PathLike)):  # pathlike
+    if isinstance(file, _all_pathlike):  # pathlike
         # check that file exists and whether to overwrite.
         if os.path.exists(file) and not overwrite:
             raise IOError(f"{file} exists. Set 'overwrite' to write over.")
@@ -76,7 +79,13 @@ def write_json(cosmology, file, *, overwrite=False, **kwargs):
 
 
 def json_identify(origin, filepath, fileobj, *args, **kwargs):
-    """Identify if object uses the JSON format."""
+    """Identify if object uses the JSON format.
+
+    Returns
+    -------
+    bool
+        True if the 'filepath' suffix is '.json', False otherwise.
+    """
     return filepath is not None and filepath.endswith(".json")
 
 

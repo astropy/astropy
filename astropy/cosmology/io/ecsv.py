@@ -12,6 +12,7 @@ import os
 from astropy.io import registry as io_registry
 from astropy.cosmology import Cosmology
 from astropy.table import QTable
+from astropy.utils.compat.optional_deps import HAS_YAML
 
 from .core import from_table, to_table
 
@@ -31,6 +32,8 @@ def read_ecsv(*args, index=None, move_to_meta=False, **kwargs):
         tables.
     **kwargs
         Keyword arguments passed through to `~astropy.table.QTable` reader.
+        'format' cannot a keyword argument since it is used internally to
+        ensure that the file format is 'ascii.ecsv'.
 
     Returns
     -------
@@ -55,19 +58,33 @@ def write_ecsv(cosmology, *args, **kwargs):
         Positional arguments passed through to `~astropy.table.QTable` writer.
     **kwargs
         Keyword arguments passed through to `~astropy.table.QTable` writer.
+        'format' cannot a keyword argument since it is used internally to
+        ensure that the file format is 'ascii.ecsv'.
     """
     table = to_table(cosmology)
 
     # force ascii.ecsv format
     sig = inspect.signature(table.write)
     ba = sig.bind(*args, **kwargs)
-    ba.arguments["format"] = "ascii.ecsv"
+    format = ba.arguments.setdefault("format", "ascii.ecsv")
+    if format != "ascii.ecsv":  # check that if specified, it's ECSV
+        raise ValueError("'format', if an argument, must be 'ascii.ecsv'")
 
     table.write(*ba.args, **ba.kwargs)
 
 
 def ecsv_identify(origin, filepath, fileobj, *args, **kwargs):
-    """Identify if object uses the :class:`~astropy.io.ascii.Ecsv` format."""
+    """Identify if object uses the :class:`~astropy.io.ascii.Ecsv` format.
+
+    Returns
+    -------
+    bool
+        True if ``pyyaml`` is installed and the 'filepath' suffix is '.ecsv',
+        False otherwise.
+    """
+    if not HAS_YAML:
+        return False
+
     return filepath is not None and filepath.endswith(".ecsv")
 
 

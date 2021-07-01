@@ -109,17 +109,19 @@ class Cosmology(metaclass=ABCMeta):
     """
 
     meta = MetaData()
-    # Unified I/O read and write methods from .io
+
+    # Unified I/O read and write methods from ``astropy.cosmology.io``
+    # The 'read' method is None in subclasses.
     read = UnifiedReadWriteMethod(CosmologyRead)
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
     @classmethod
     def __subclasses__(cls, deep=False):
-        """Return a list of subclasses. Immediate if not deep."""
+        """Return a list of subclasses. Immediate if not 'deep'."""
         if not deep:  # just the immediate subclasses
-            subclasses = type.__subclasses__(cls)
-        else:
-            subclasses = [cls]
+            subclasses = type.__subclasses__(cls)  # essentially `super`
+        else:  # all subclasses (inclusive)
+            subclasses = [cls]  # so inclusive
             for c in type.__subclasses__(cls):  # recursion in subclasses
                 subclasses.extend(c.__subclasses__(deep=True))
         return subclasses

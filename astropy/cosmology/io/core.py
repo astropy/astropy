@@ -59,6 +59,7 @@ def from_mapping(mapping, *, move_to_meta=False):
     """
     params = copy.deepcopy(mapping)  # so can pop
 
+    # get cosmology. if string, parse to class
     cosmology = params.pop("cosmology")
     if isinstance(cosmology, str):
         subclasses = {c.__name__: c for c in Cosmology.__subclasses__(deep=True)}
@@ -198,6 +199,9 @@ def from_table(table, index=None, *, move_to_meta=False):
     astropy.cosmology.io.to_mapping : Represent as dictionary.
     astropy.cosmology.Cosmology.read : Has a ``from_table`` convenience method.
     """
+    # ------------------
+    # Get row from table
+
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
         if not table.indices:  # no indexing column, need to make
@@ -212,6 +216,9 @@ def from_table(table, index=None, *, move_to_meta=False):
         else:
             index = 0
     row = table[index]  # index is now the row index (int)
+
+    # ------------------
+    # parse row to cosmo
 
     # special values
     name = row.columns.get("name", [None])[index]  # get name from column
@@ -276,7 +283,7 @@ def to_table(cosmology):
 
     # create metadata from mapping
     meta = p.pop("meta")
-    meta["cosmology"] = p.pop("cosmology").__name__
+    meta["cosmology"] = p.pop("cosmology").__name__  # move class to Table meta
 
     # package parameters into lists for Table parsing
     params = {k: [v] for k, v in p.items()}
