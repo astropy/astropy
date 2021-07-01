@@ -2,17 +2,19 @@
 
 import copy
 import sys
+import warnings
 from math import acos, sin, cos, sqrt, pi, exp, log, floor
 from abc import ABCMeta, abstractmethod
 from inspect import signature
-import warnings
 
 import numpy as np
 
 from . import scalar_inv_efuncs
+from .io import CosmologyRead, CosmologyWrite
 
 from astropy import constants as const
 from astropy import units as u
+from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils import isiterable
 from astropy.utils.exceptions import (AstropyDeprecationWarning,
                                       AstropyUserWarning)
@@ -109,6 +111,20 @@ class Cosmology(metaclass=ABCMeta):
     """
 
     meta = MetaData()
+    # Unified I/O read and write methods from .io
+    read = UnifiedReadWriteMethod(CosmologyRead)
+    write = UnifiedReadWriteMethod(CosmologyWrite)
+
+    @classmethod
+    def __subclasses__(cls, deep=False):
+        """Return a list of subclasses. Immediate if not deep."""
+        if not deep:  # just the immediate subclasses
+            subclasses = type.__subclasses__(cls)
+        else:
+            subclasses = [cls]
+            for c in type.__subclasses__(cls):  # recursion in subclasses
+                subclasses.extend(c.__subclasses__(deep=True))
+        return subclasses
 
     def __init_subclass__(cls):
         super().__init_subclass__()

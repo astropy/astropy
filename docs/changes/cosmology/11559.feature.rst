@@ -1,0 +1,3 @@
+Add read and write methods to ``Cosmology``, using the astropy Unified I/O
+framework, so any registered ``Table`` format can be used.
+JSON files are also added as a read and write option.
