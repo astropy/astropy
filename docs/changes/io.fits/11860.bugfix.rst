@@ -1,0 +1,2 @@
+In ``fits.io.getdata`` do not fall back to first non-primary extension when
+user explicitly specifies an extension.

@@ -3,6 +3,7 @@
 import os
 import pathlib
 import warnings
+import io
 
 import pytest
 import numpy as np
@@ -307,3 +308,85 @@ class TestConvenience(FitsTestCase):
 
         with fits.open(testfile) as hdul:
             np.testing.assert_array_equal(hdul[0].data, data)
+
+    def test_getdata_ext_given(self):
+        prihdu = fits.PrimaryHDU(data=np.zeros((5, 5), dtype=int))
+        exthdu1 = fits.ImageHDU(data=np.ones((5, 5), dtype=int))
+        exthdu2 = fits.ImageHDU(data=2 * np.ones((5, 5), dtype=int))
+        hdulist = fits.HDUList([prihdu, exthdu1, exthdu2])
+        buf = io.BytesIO()
+        hdulist.writeto(buf)
+
+        for ext in [0, 1, 2]:
+            buf.seek(0)
+            data = fits.getdata(buf, ext=ext)
+            assert data[0, 0] == ext
+
+    def test_getdata_ext_given_nodata(self):
+        prihdu = fits.PrimaryHDU(data=np.zeros((5, 5), dtype=int))
+        exthdu1 = fits.ImageHDU(data=np.ones((5, 5), dtype=int))
+        exthdu2 = fits.ImageHDU(data=None)
+        hdulist = fits.HDUList([prihdu, exthdu1, exthdu2])
+        buf = io.BytesIO()
+        hdulist.writeto(buf)
+        buf.seek(0)
+
+        with pytest.raises(IndexError, match="No data in HDU #2."):
+            fits.getdata(buf, ext=2)
+
+    def test_getdata_ext_not_given_with_data_in_primary(self):
+        prihdu = fits.PrimaryHDU(data=np.zeros((5, 5), dtype=int))
+        exthdu1 = fits.ImageHDU(data=None)
+        exthdu2 = fits.ImageHDU(data=None)
+        hdulist = fits.HDUList([prihdu, exthdu1, exthdu2])
+        buf = io.BytesIO()
+        hdulist.writeto(buf)
+        buf.seek(0)
+
+        data = fits.getdata(buf)
+        assert data[0, 0] == 0
+
+    def test_getdata_ext_not_given_with_data_in_ext(self):
+        # tests fallback mechanism
+        prihdu = fits.PrimaryHDU(data=None)
+        exthdu1 = fits.ImageHDU(data=np.ones((5, 5), dtype=int))
+        exthdu2 = fits.ImageHDU(data=None)
+        hdulist = fits.HDUList([prihdu, exthdu1, exthdu2])
+        buf = io.BytesIO()
+        hdulist.writeto(buf)
+        buf.seek(0)
+
+        data = fits.getdata(buf)
+        assert data[0, 0] == 1
+
+    def test_getdata_ext_not_given_nodata_any(self):
+        # tests exception raised when there is no data in either
+        # Primary HDU or first extension HDU
+        prihdu = fits.PrimaryHDU(data=None)
+        exthdu1 = fits.ImageHDU(data=None)
+        exthdu2 = fits.ImageHDU(data=np.ones((5, 5), dtype=int))
+        hdulist = fits.HDUList([prihdu, exthdu1, exthdu2])
+        buf = io.BytesIO()
+        hdulist.writeto(buf)
+        buf.seek(0)
+
+        with pytest.raises(
+            IndexError,
+            match="No data in either Primary or first extension HDUs."
+        ):
+            fits.getdata(buf)
+
+    def test_getdata_ext_not_given_nodata_noext(self):
+        # tests exception raised when there is no data in the
+        # Primary HDU and there are no extension HDUs
+        prihdu = fits.PrimaryHDU(data=None)
+        hdulist = fits.HDUList([prihdu])
+        buf = io.BytesIO()
+        hdulist.writeto(buf)
+        buf.seek(0)
+
+        with pytest.raises(
+            IndexError,
+            match="No data in Primary HDU and no extension HDU found."
+        ):
+            fits.getdata(buf)
