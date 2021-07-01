@@ -10,7 +10,7 @@ from . import Header, Card
 
 from astropy import units as u
 from astropy.coordinates import EarthLocation
-from astropy.table import Column
+from astropy.table import Column, MaskedColumn
 from astropy.table.column import col_copy
 from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
@@ -550,20 +550,17 @@ def time_to_fits(table):
         # By default, Time objects are written in full precision, i.e. we store both
         # jd1 and jd2 (serialize_method['fits'] = 'jd1_jd2'). Formatted values for
         # Time can be stored if the user explicitly chooses to do so.
+        col_cls = MaskedColumn if col.masked else Column
         if col.info.serialize_method['fits'] == 'formatted_value':
-            newtable.replace_column(col.info.name, Column(col.value))
+            newtable.replace_column(col.info.name, col_cls(col.value))
             continue
 
         # The following is necessary to deal with multi-dimensional ``Time`` objects
         # (i.e. where Time.shape is non-trivial).
-        jd12 = np.array([col.jd1, col.jd2])
+        jd12 = np.stack([col.jd1, col.jd2], axis=-1)
         # Roll the 0th (innermost) axis backwards, until it lies in the last position
         # (jd12.ndim)
-        jd12 = np.rollaxis(jd12, 0, jd12.ndim)
-        newtable.replace_column(col.info.name, Column(jd12, unit='d'))
-
-        # Get column position(index); FIXME: unused ?
-        # n = table.colnames.index(col.info.name) + 1
+        newtable.replace_column(col.info.name, col_cls(jd12, unit='d'))
 
         # Time column-specific override keywords
         coord_meta[col.info.name]['coord_type'] = col.scale.upper()
@@ -597,7 +594,7 @@ def time_to_fits(table):
                 else:
                     hdr.extend([Card(keyword=f'OBSGEO-{dim.upper()}',
                                      value=getattr(location, dim).to_value(u.m))
-                            for dim in ('x', 'y', 'z')])
+                                for dim in ('x', 'y', 'z')])
             elif location != col.location:
                 raise ValueError('Multiple Time Columns with different geocentric '
                                  'observatory locations ({}, {}) encountered.'
