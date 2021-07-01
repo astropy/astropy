@@ -136,6 +136,11 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
             getdata('in.fits')
 
+        .. note::
+            Exclusive to ``getdata``: if extension is not specified
+            and primary header contains no data, ``getdata`` attempts
+            to retrieve data from first extension.
+
         By extension number::
 
             getdata('in.fits', 0)      # the primary header
@@ -186,22 +191,41 @@ def getdata(filename, *args, header=None, lower=None, upper=None, view=None,
 
         If the optional keyword ``header`` is set to `True`, this
         function will return a (``data``, ``header``) tuple.
+
+    Raises
+    ------
+    IndexError
+        If no data is found in searched extensions.
     """
 
     mode, closed = _get_file_mode(filename)
+
+    ext = kwargs.get('ext')
+    extname = kwargs.get('extname')
+    extver = kwargs.get('extver')
+    ext_given = not (len(args) == 0 and ext is None and
+                     extname is None and extver is None)
 
     hdulist, extidx = _getext(filename, mode, *args, **kwargs)
     try:
         hdu = hdulist[extidx]
         data = hdu.data
-        if data is None and extidx == 0:
-            try:
-                hdu = hdulist[1]
-                data = hdu.data
-            except IndexError:
-                raise IndexError('No data in this HDU.')
         if data is None:
-            raise IndexError('No data in this HDU.')
+            if ext_given:
+                raise IndexError(f"No data in HDU #{extidx}.")
+
+            # fallback to the first non-primary extension
+            if len(hdulist) == 1:
+                raise IndexError(
+                    "No data in Primary HDU and no extension HDU found."
+                    )
+            hdu = hdulist[1]
+            data = hdu.data
+            if data is None:
+                raise IndexError(
+                    "No data in either Primary or first extension HDUs."
+                    )
+
         if header:
             hdr = hdu.header
     finally:
