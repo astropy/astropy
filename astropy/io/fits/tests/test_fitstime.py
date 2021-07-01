@@ -8,7 +8,7 @@ from . import FitsTestCase
 from astropy.io.fits.fitstime import GLOBAL_TIME_INFO, time_to_fits, is_time_column_keyword
 from astropy.coordinates import EarthLocation
 from astropy.io import fits
-from astropy.table import Table, QTable
+from astropy.table import Table, QTable, Column
 from astropy.time import Time, TimeDelta
 from astropy.time.core import BARYCENTRIC_SCALES
 from astropy.time.formats import FITS_DEPRECATED_SCALES
@@ -132,6 +132,32 @@ class TestFitsTime(FitsTestCase):
                               astropy_native=True)
 
         assert tm['a'].location == t['a'].location
+
+    @pytest.mark.parametrize('mask', (False, [True, False]))
+    @pytest.mark.parametrize('serialize_method', ('jd1_jd2', 'formatted_value'))
+    def test_time_to_fits_serialize_method(self, serialize_method, mask):
+        """
+        Test the data returned by ``time_to_fits`` for masked values.
+        """
+        a = Time(np.ma.MaskedArray(self.time, mask=mask))
+        b = Time(np.ma.MaskedArray([[1, 2], [3, 4]], mask=np.broadcast_to(mask, (2, 2))),
+                 format='cxcsec')
+        assert b.masked is a.masked is (mask is not False)
+        t = QTable([a, b], names=['a', 'b'])
+        t.write(self.temp('time.fits'), format='fits', overwrite=True,
+                serialize_method=serialize_method)
+        tm = QTable.read(self.temp('time.fits'), format='fits', astropy_native=True)
+        if mask is not False:
+            assert np.all(tm['a'].mask == a.mask)
+            assert np.all(tm['b'].mask == b.mask)
+        if serialize_method == 'jd1_jd2':
+            assert isinstance(tm['a'], Time) and np.all(tm['a'] == a)
+            assert isinstance(tm['b'], Time) and np.all(tm['b'] == b)
+        else:
+            # TODO: Should 'formatted_value' not become a Time too,
+            # at least if read with astropy_native=True?
+            assert isinstance(tm['a'], Column) and np.all(tm['a'] == a.value)
+            assert isinstance(tm['b'], Column) and np.all(tm['b'] == b.value)
 
     @pytest.mark.parametrize('table_types', (Table, QTable))
     def test_time_to_fits_header(self, table_types):
