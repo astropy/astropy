@@ -1,0 +1,1 @@
+Ensure multidimensional masked columns round-trip properly to FITS.
