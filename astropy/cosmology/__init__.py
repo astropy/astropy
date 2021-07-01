@@ -12,7 +12,8 @@ from . import core, funcs
 from .core import _COSMOLOGY_REGISTRY
 from .core import *
 from .funcs import *
-from . import realizations  # needs to be last b/c circular imports
+from . import _io  # needs to precede 'realizations' to register methods
+from . import realizations
 from .realizations import *
 
 __all__ = core.__all__ + realizations.__all__ + funcs.__all__

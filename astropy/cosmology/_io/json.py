@@ -12,7 +12,7 @@ import os
 from astropy.io import registry as io_registry
 from astropy.cosmology import Cosmology
 
-from .core import from_mapping, to_mapping
+from .mapping import from_mapping, to_mapping
 
 
 __all__ = ["read_json", "write_json", "json_identify"]
@@ -102,6 +102,9 @@ def json_identify(origin, filepath, fileobj, *args, **kwargs):
     """
     return filepath is not None and filepath.endswith(".json")
 
+
+# ===================================================================
+# Register
 
 io_registry.register_reader("json", Cosmology, read_json)
 io_registry.register_writer("json", Cosmology, write_json)

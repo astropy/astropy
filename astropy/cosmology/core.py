@@ -10,7 +10,7 @@ from inspect import signature
 import numpy as np
 
 from . import scalar_inv_efuncs
-from .connect import CosmologyRead, CosmologyWrite
+from .connect import CosmologyRead, CosmologyWrite, CosmologyFrom, CosmologyTo
 
 from astropy import constants as const
 from astropy import units as u
@@ -113,7 +113,12 @@ class Cosmology(metaclass=ABCMeta):
 
     meta = MetaData()
 
-    # Unified I/O read and write methods from ``astropy.cosmology.io``
+    # Unified I/O object transformation methods from ``astropy.cosmology._io``
+    # The 'from_' method is None in subclasses.
+    from_ = UnifiedReadWriteMethod(CosmologyFrom)
+    to_ = UnifiedReadWriteMethod(CosmologyTo)
+
+    # Unified I/O read and write methods from ``astropy.cosmology._io``
     # The 'read' method is None in subclasses.
     read = UnifiedReadWriteMethod(CosmologyRead)
     write = UnifiedReadWriteMethod(CosmologyWrite)

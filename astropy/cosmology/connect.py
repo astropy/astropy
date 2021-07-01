@@ -6,9 +6,12 @@ import warnings
 from astropy.io import registry as io_registry
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["CosmologyRead", "CosmologyWrite"]
-__doctest_skip__ = ["CosmologyRead", "CosmologyWrite"]
+__all__ = ["CosmologyRead", "CosmologyWrite", "CosmologyFrom", "CosmologyTo"]
+__doctest_skip__ = __all__
 
+
+# ==============================================================================
+# Read / Write
 
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
@@ -85,65 +88,6 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         cosmo = io_registry.read(self._cls, *args, **kwargs)
         return cosmo
 
-    @staticmethod
-    def from_mapping(mapping, *, move_to_meta=False):
-        """Load `~astropy.cosmology.Cosmology` from mapping object.
-
-        Parameters
-        ----------
-        mapping : mapping
-            Must have field "cosmology".
-
-        move_to_meta : bool (optional, keyword-only)
-            Whether to move arguments not in the initialization signature to the
-            metadata. This will only have an effect if there is not variable
-            keyword-only argument.
-
-        Returns
-        -------
-        `~astropy.cosmology.Cosmology` subclass instance
-
-        Raises
-        ------
-        TypeError
-            If not called from the Cosmology base class.
-
-        See Also
-        --------
-        astropy.cosmology.io.from_mapping
-        """
-        from astropy.cosmology.io import from_mapping
-
-        return from_mapping(mapping, move_to_meta=move_to_meta)
-
-    @staticmethod
-    def from_table(table, index=None, *, move_to_meta=False):
-        """Instantiate a `~astropy.cosmology.Cosmology` from a |QTable|.
-
-        Parameters
-        ----------
-        cosmology : `~astropy.cosmology.Cosmology` class
-        table : `~astropy.QTable`
-        index : int or None, optional
-            The row from table.
-
-        Returns
-        -------
-        `~astropy.cosmology.Cosmology` subclass instance
-
-        Raises
-        ------
-        TypeError
-            If not called from the Cosmology base class.
-
-        See Also
-        --------
-        astropy.cosmology.io.from_table
-        """
-        from astropy.cosmology.io import from_table
-
-        return from_table(table, index=index, move_to_meta=move_to_meta)
-
 
 class CosmologyWrite(io_registry.UnifiedReadWrite):
     """Write this Cosmology object out in the specified format.
@@ -180,38 +124,39 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     def __call__(self, *args, **kwargs):
         io_registry.write(self._instance, *args, **kwargs)
 
-    def to_mapping(self):
-        """Serialize the Cosmology class, inputs, and metadata into a dict.
 
-        Returns
-        -------
-        dict
-            with key-values for the cosmology parameters and also:
+# ==============================================================================
+# Convert Between Instances
 
-            - 'cosmology' : the class
-            - 'meta' : the contents of the cosmology's metadata attribute
+class CosmologyFrom(io_registry.UnifiedReadWrite):
+    """Transform object to a `~astropy.cosmology.Cosmology`."""
 
-        See Also
-        --------
-        astropy.cosmology.io.to_mapping
-        """
-        from astropy.cosmology.io import to_mapping
+    def __new__(cls, instance, cosmo_cls):
+        from astropy.cosmology.core import Cosmology
 
-        return to_mapping(self._instance)
+        # warn that ``read`` is not (yet) implemented for subclasses
+        if cosmo_cls is not Cosmology:
+            warnings.warn(("``Cosmology.read()`` is not (yet) implemented for "
+                           "``Cosmology`` subclasses."),
+                           category=AstropyUserWarning)
+            return NotImplemented  # TODO! implement for subclasses.
 
-    def to_table(self):
-        """Serialize the Cosmology into a `~astropy.table.QTable`.
+        return super().__new__(cls)
 
-        Returns
-        -------
-        `~astropy.table.QTable`
-            with columns for the cosmology parameters, and metadata and
-            cosmology class name in the Table's ``meta`` attribute
+    def __init__(self, instance, cosmo_cls):
+        super().__init__(instance, cosmo_cls, "read")
 
-        See Also
-        --------
-        astropy.cosmology.io.to_table
-        """
-        from astropy.cosmology.io import to_table
+    def __call__(self, *args, **kwargs):
+        cosmo = io_registry.read(self._cls, *args, **kwargs)
+        return cosmo
 
-        return to_table(self._instance)
+
+class CosmologyTo(io_registry.UnifiedReadWrite):
+    """Convert this Cosmology object to another thing.
+    """
+
+    def __init__(self, instance, cls):
+        super().__init__(instance, cls, "write")
+
+    def __call__(self, *args, **kwargs):
+        return io_registry.write(self._instance, *args, **kwargs)

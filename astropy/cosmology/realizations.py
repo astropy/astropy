@@ -9,7 +9,6 @@ from astropy.utils.state import ScienceState
 
 from . import parameters
 from .core import Cosmology
-from astropy.cosmology.io import from_mapping
 
 __all__ = ["default_cosmology"] + parameters.available
 
@@ -20,16 +19,16 @@ __doctest_requires__ = {"*": ["scipy"]}
 # parameters module and creates a cosmology instance with the same name as the
 # parameter set in the current module's namespace.
 for key in parameters.available:
-    mapping = getattr(parameters, key)
-    mapping["name"] = key
-    cosmo = from_mapping(mapping, move_to_meta=True)
+    map = getattr(parameters, key)
+    map["name"] = key
+    cosmo = Cosmology.from_(map, format="mapping", move_to_meta=True)
     cosmo.__doc__ = (f"{key} instance of {cosmo.__class__.__name__} cosmology\n"
                      f"(from {cosmo.meta['reference']})")
 
     setattr(sys.modules[__name__], key, cosmo)
 
 # don't leave these variables floating around in the namespace
-del key, cosmo, mapping, from_mapping
+del key, cosmo, map
 
 #########################################################################
 # The science state below contains the current cosmology.

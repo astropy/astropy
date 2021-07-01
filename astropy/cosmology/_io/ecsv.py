@@ -13,7 +13,7 @@ from astropy.io import registry as io_registry
 from astropy.cosmology import Cosmology
 from astropy.table import QTable
 
-from .core import from_table, to_table
+from .table import from_table, to_table
 
 
 __all__ = ["read_ecsv", "write_ecsv", "ecsv_identify"]
@@ -94,6 +94,9 @@ def ecsv_identify(origin, filepath, fileobj, *args, **kwargs):
     """
     return filepath is not None and filepath.endswith(".ecsv")
 
+
+# ===================================================================
+# Register
 
 io_registry.register_reader("ascii.ecsv", Cosmology, read_ecsv)
 io_registry.register_writer("ascii.ecsv", Cosmology, write_ecsv)
