@@ -848,3 +848,20 @@ def test_multidim_column_error(fmt_name_class):
     fast = fmt_name in ascii.core.FAST_CLASSES
     with pytest.raises(ValueError, match=r'column\(s\) with dimension'):
         ascii.write(t, out, format=fmt_name, fast_writer=fast)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_as_columns(fast_writer):
+    """
+    Test that writing a set of columns also roundtrips (as long as the
+    table does not have metadata, etc.)
+    """
+    # Use masked in case that makes it more difficult.
+    data = ascii.read(tab_to_fill)
+    data = table.Table(data, masked=True)
+    data['a'].mask = [True, False]
+    data['c'].mask = [False, True]
+    data = list(data.columns.values())
+
+    for test_def in test_def_masked_fill_value:
+        check_write_table(test_def, data, fast_writer)
