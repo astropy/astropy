@@ -807,19 +807,9 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
     if isinstance(table, Table):
         # While we are only going to read data from columns, we may need to
         # to adjust info attributes such as format, so we make a shallow copy.
-        new_tbl = table.__class__(table, names=names, copy=False)
-
-        # This makes a copy of the table columns.  This is subject to a
-        # corner-case problem if writing a table with masked columns to ECSV
-        # where serialize_method is set to 'data_mask'.  In this case that
-        # attribute gets dropped in the copy, so do the copy here.  This
-        # should be removed when `info` really contains all the attributes
-        # (#6720).
-        for new_col, col in zip(new_tbl.itercols(), table.itercols()):
-            if isinstance(col, MaskedColumn):
-                new_col.info.serialize_method = col.info.serialize_method
-        table = new_tbl
+        table = table.__class__(table, names=names, copy=False)
     else:
+        # Otherwise, create a table from the input.
         table = Table(table, names=names, copy=False)
 
     table0 = table[:0].copy()
