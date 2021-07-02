@@ -106,6 +106,7 @@ above, we can write a custom writer::
 
    def my_table_writer(table, filename, overwrite=False):
        ...  # Write the table out to a file
+       return ...  # generally None, but other values are not forbidden.
 
 Writer functions should take a dataset object (either an instance of the
 :class:`~astropy.table.Table` or :class:`~astropy.nddata.NDData`

@@ -567,7 +567,7 @@ def write(data, *args, format=None, **kwargs):
             'write', data.__class__, path, fileobj, args, kwargs)
 
     writer = get_writer(format, data.__class__)
-    writer(data, *args, **kwargs)
+    return writer(data, *args, **kwargs)
 
 
 def _is_best_match(class1, class2, format_classes):
