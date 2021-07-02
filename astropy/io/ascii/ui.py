@@ -805,10 +805,9 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
     # Ensure that `table` is a Table subclass.
     names = kwargs.get('names')
     if isinstance(table, Table):
-        # Note that making a copy of the table here is inefficient but
-        # without this copy a number of tests break (e.g. in test_fixedwidth).
-        # See #7605.
-        new_tbl = table.__class__(table, names=names)
+        # While we are only going to read data from columns, we may need to
+        # to adjust info attributes such as format, so we make a shallow copy.
+        new_tbl = table.__class__(table, names=names, copy=False)
 
         # This makes a copy of the table columns.  This is subject to a
         # corner-case problem if writing a table with masked columns to ECSV
@@ -821,7 +820,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
                 new_col.info.serialize_method = col.info.serialize_method
         table = new_tbl
     else:
-        table = Table(table, names=names)
+        table = Table(table, names=names, copy=False)
 
     table0 = table[:0].copy()
     core._apply_include_exclude_names(table0, kwargs.get('names'),
