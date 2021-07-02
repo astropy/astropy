@@ -536,6 +536,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if not hasattr(self, 'indices'):  # may have been copied in __new__
             self.indices = []
         self._copy_attrs(obj)
+        if 'info' in getattr(obj, '__dict__', {}):
+            self.info = obj.info
 
     def __array_wrap__(self, out_arr, context=None):
         """
@@ -1393,6 +1395,10 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                                unit=unit, format=format, description=description,
                                meta=meta, copy=copy, copy_indices=copy_indices)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
+        # The above process preserves info relevant for Column, but this does not
+        # include serialize_method relevant for MaskedColumn.
+        if isinstance(data, MaskedColumn) and 'info' in getattr(data, '__dict__', {}):
+            self.info.serialize_method = data.info.serialize_method
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
