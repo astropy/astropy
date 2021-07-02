@@ -401,6 +401,13 @@ def test_read_valid_return():
     assert isinstance(t, TestData)
 
 
+def test_write_return():
+    """Most writers will return None, but other values are not forbidden."""
+    io_registry.register_writer('test', TestData, lambda *args: True)
+    res = TestData.write(TestData(), format="test")
+    assert res is True
+
+
 def test_non_existing_unknown_ext():
     """Raise the correct error when attempting to read a non-existing
     file with an unknown extension."""

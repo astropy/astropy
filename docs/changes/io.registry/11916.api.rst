@@ -1,0 +1,3 @@
+The ``write`` function now is allowed to return possible content results, which
+means that custom writers could, for example, create and return an instance of
+some container class rather than a file on disk.
