@@ -321,7 +321,10 @@ class Card(_Verify):
                            np.bool_)):
             raise ValueError(f'Illegal value: {value!r}.')
 
-        if isinstance(value, float) and (np.isnan(value) or np.isinf(value)):
+        if isinstance(value, (float, np.float32)) and (np.isnan(value) or
+                                                       np.isinf(value)):
+            # value is checked for both float and np.float32 instances
+            # since np.float32 is not considered a Python float.
             raise ValueError("Floating point {!r} values are not allowed "
                              "in FITS headers.".format(value))
 
