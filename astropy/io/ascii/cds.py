@@ -41,7 +41,8 @@ cdsdicts = {'title': 'Title ?',
             'abstract': 'Abstract ?',
             'authors': 'Authors ?',
             'bibcode': 'ref ?',
-            'keywords': ''
+            'keywords': '',
+            'tableDescription': ''
             }
 
 ByteByByteTemplate = ["Byte-by-byte Description of file: $file",
@@ -50,6 +51,8 @@ ByteByByteTemplate = ["Byte-by-byte Description of file: $file",
 "--------------------------------------------------------------------------------",
 "$bytebybyte",
 "--------------------------------------------------------------------------------"]
+
+ReadMeTemplate = "src/ReadMe.template"
 
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
@@ -479,6 +482,9 @@ class CdsHeader(core.BaseHeader):
             else:
                 buff += newline + "\n"
 
+        # last value of ``endb`` is the max column width after formatting.
+        self.linewidth = endb
+
         # add column notes to ByteByByte
         notes = self.cdsdicts.get('notes', None)
         if notes is not None:
@@ -498,6 +504,37 @@ class CdsHeader(core.BaseHeader):
         ByteByByte = bbbTemplate.substitute({'file': 'table.dat',
                                     'bytebybyte': self.writeByteByByte()})
         lines.append(ByteByByte)
+
+        #-- get index of files --#
+        sz = [14, 0, 8]
+        l = len(str(self.linewidth))
+        if l > sz[1]:
+            sz[1] = l
+        fIndexRows = (["ReadMe",
+                       MAX_SIZE_README_LINE,
+                       ".",
+                       "this file"],
+                      ['table',
+                       self.linewidth,
+                       str(len(self.cols[0])),
+                       self.cdsdicts['tableDescription']])
+        indexfmt = "{0:" + str(sz[0]) + "s} {1:" + str(sz[1]) + "d} {2:>" + str(sz[2]) + "d} {3:s}"
+        filesIndex = Table(names=['FileName', 'Lrecl', 'Records', 'Explanations'],
+                           rows=fIndexRows)
+        fIndexLines = StringIO()
+        filesIndex.write(fIndexLines, format='ascii.fixed_width_no_header',
+                            delimiter=' ', bookend=False, delimiter_pad=None,
+                            formats={'FileName': str(sz[0])+'s',
+                                     'Lrecl': ''+str(sz[1])+'d',
+                                     'Records': '>8s',
+                                     'Explanations': 's'})
+        fIndexLines = fIndexLines.getvalue().splitlines()
+
+        # fill up the full ReadMe
+        rmTemplate = Template(ReadMeTemplate)
+        print(self.cdsdicts)
+        ReadMe = rmTemplate.substitute({})
+        print(rmTemplate)
 
 
 class CdsData(fixedwidth.FixedWidthData):
