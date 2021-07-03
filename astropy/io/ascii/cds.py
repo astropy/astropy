@@ -42,7 +42,8 @@ cdsdicts = {'title': 'Title ?',
             'authors': 'Authors ?',
             'bibcode': 'ref ?',
             'keywords': '',
-            'tableDescription': ''
+            'tableDescription': '',
+            'seealso': ''
             }
 
 ByteByByteTemplate = ["Byte-by-byte Description of file: $file",
@@ -52,7 +53,7 @@ ByteByByteTemplate = ["Byte-by-byte Description of file: $file",
 "$bytebybyte",
 "--------------------------------------------------------------------------------"]
 
-ReadMeTemplate = "src/ReadMe.template"
+ReadMeTemplate = os.path.dirname(os.path.realpath(__file__)) + "/src/ReadMe.template"
 
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
@@ -488,10 +489,10 @@ class CdsHeader(core.BaseHeader):
         # add column notes to ByteByByte
         notes = self.cdsdicts.get('notes', None)
         if notes is not None:
-            buff += "-" * 80 + "\n"
+            buff += "-" * MAX_SIZE_README_LINE + "\n"
             for line in notes:
                 buff += line + "\n"
-            buff += "-" * 80 + "\n"
+            buff += "-" * MAX_SIZE_README_LINE + "\n"
         return buff
 
     def write(self, lines):
@@ -503,13 +504,15 @@ class CdsHeader(core.BaseHeader):
         bbbTemplate = Template('\n'.join(ByteByByteTemplate))
         ByteByByte = bbbTemplate.substitute({'file': 'table.dat',
                                     'bytebybyte': self.writeByteByByte()})
-        lines.append(ByteByByte)
 
         #-- get index of files --#
-        sz = [14, 0, 8]
+        # set width of FileName and Lrecl columns
+        sz = [14, 0]
         l = len(str(self.linewidth))
         if l > sz[1]:
             sz[1] = l
+
+        # create the File Index table
         fIndexRows = (["ReadMe",
                        MAX_SIZE_README_LINE,
                        ".",
@@ -518,9 +521,10 @@ class CdsHeader(core.BaseHeader):
                        self.linewidth,
                        str(len(self.cols[0])),
                        self.cdsdicts['tableDescription']])
-        indexfmt = "{0:" + str(sz[0]) + "s} {1:" + str(sz[1]) + "d} {2:>" + str(sz[2]) + "d} {3:s}"
         filesIndex = Table(names=['FileName', 'Lrecl', 'Records', 'Explanations'],
                            rows=fIndexRows)
+
+        # get File Index table rows as formatted lines
         fIndexLines = StringIO()
         filesIndex.write(fIndexLines, format='ascii.fixed_width_no_header',
                             delimiter=' ', bookend=False, delimiter_pad=None,
@@ -528,13 +532,17 @@ class CdsHeader(core.BaseHeader):
                                      'Lrecl': ''+str(sz[1])+'d',
                                      'Records': '>8s',
                                      'Explanations': 's'})
-        fIndexLines = fIndexLines.getvalue().splitlines()
+        fIndexLines = fIndexLines.getvalue()
 
         # fill up the full ReadMe
-        rmTemplate = Template(ReadMeTemplate)
-        print(self.cdsdicts)
-        ReadMe = rmTemplate.substitute({})
-        print(rmTemplate)
+        with open(ReadMeTemplate) as rmf:
+            rmTemplate = Template(rmf.read())
+        rmTempVals = self.cdsdicts
+        rmTempVals.update({'tablesIndex': fIndexLines,
+                           'bytebybyte': ByteByByte})
+        ReadMe = rmTemplate.substitute(rmTempVals)
+        ReadMe += "-" * MAX_SIZE_README_LINE
+        lines.append(ReadMe)
 
 
 class CdsData(fixedwidth.FixedWidthData):
@@ -674,12 +682,16 @@ class Cds(core.BaseReader):
     data_class = CdsData
     header_class = CdsHeader
 
-    def __init__(self, readme=None):
+    def __init__(self, readme=None, cdsdict={}):
         super().__init__()
         self.header.readme = readme
+
+        # The cds dict contains the default values for table meta info
+        # required to fill up the ReadMe template.
         self.cdsdicts = cdsdicts
+        self.cdsdicts.update(cdsdict)
         self.header.cdsdicts = self.cdsdicts
-        self.data.cdsdicts = self.cdsdicts
+        #self.data.cdsdicts = self.cdsdicts
 
     def write(self, table=None):
         self.data.header = self.header

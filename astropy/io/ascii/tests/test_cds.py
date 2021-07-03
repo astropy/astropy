@@ -29,9 +29,11 @@ def test_write_data():
     lines = lines[i_secs[-1]+1:]
     assert lines == output
 
+
 test_dat = ['names e d s i',
             'HD81809 1E-7 22.25608 +2 67',
             'HD103095 -31.6e5 +27.2500 -9E34 -30']
+
 
 def test_write_ByteByByte_units():
     t = ascii.read(test_dat)
@@ -46,9 +48,3 @@ def test_write_ByteByByte_units():
     # read written table.
     tRead = ascii.read(out.getvalue(), format='cds')
     assert [tRead[col].unit for col in tRead.columns] == colUnits
-
-
-if __name__=="__main__":
-    #test_write_data()
-    #test_write_data_basic()
-    test_write_ByteByByte_units()
