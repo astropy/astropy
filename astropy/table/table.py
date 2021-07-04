@@ -3682,7 +3682,13 @@ class Table:
                 if isinstance(v, Series):
                     v.index = idx
 
-        return DataFrame(out, **kwargs)
+        df = DataFrame(out, **kwargs)
+        if index:
+            # Explicitly set the pandas DataFrame index to the original table
+            # index name.
+            df.index.name = idx.info.name
+
+        return df
 
     @classmethod
     def from_pandas(cls, dataframe, index=False, units=None):

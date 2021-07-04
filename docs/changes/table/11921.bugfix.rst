@@ -1,0 +1,5 @@
+Fix an issue in ``Table.to_pandas(index=<colname>)`` where the index column name
+was not being set properly for the ``DataFrame`` index. This was introduced by
+an API change in pandas version 1.3.0. Previously when creating a ``DataFrame``
+with the index set to an astropy ``Column``, the ``DataFrame`` index name was
+automatically set to the column name.
