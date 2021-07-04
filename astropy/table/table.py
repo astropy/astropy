@@ -3310,7 +3310,13 @@ class Table:
 
         kwargs = {'index': out.pop(index)} if index else {}
 
-        return DataFrame(out, **kwargs)
+        df = DataFrame(out, **kwargs)
+        if index:
+            # Explicitly set the pandas DataFrame index to the original table
+            # index name.
+            df.index.name = kwargs['index'].info.name
+
+        return df
 
     @classmethod
     def from_pandas(cls, dataframe, index=False):
