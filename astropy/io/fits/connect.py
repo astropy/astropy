@@ -225,15 +225,19 @@ def read_table_fits(input, hdu=None, astropy_native=False, memmap=False,
         # presence of FITS mask values. For integer columns, this is simply
         # the null header, for float and complex, the presence of NaN, and for
         # string, empty strings.
+        # Since Multi-element columns with dtypes such as '2f8' have a subdtype,
+        # we should look up the type of column on that.
         masked = mask = False
+        coltype = (col.dtype.subdtype[0].type if col.dtype.subdtype
+                   else col.dtype.type)
         if col.null is not None:
             mask = data[col.name] == col.null
             # Return a MaskedColumn even if no elements are masked so
             # we roundtrip better.
             masked = True
-        elif issubclass(col.dtype.type, np.inexact):
+        elif issubclass(coltype, np.inexact):
             mask = np.isnan(data[col.name])
-        elif issubclass(col.dtype.type, np.character):
+        elif issubclass(coltype, np.character):
             mask = col.array == b''
 
         if masked or np.any(mask):
