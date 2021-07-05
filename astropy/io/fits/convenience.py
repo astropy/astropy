@@ -507,11 +507,15 @@ def table_to_hdu(table, character_as_bytes=False):
         default_fill_value = np.ma.default_fill_value(tarray.dtype)
         for colname, (coldtype, _) in tarray.dtype.fields.items():
             if np.all(tarray.fill_value[colname] == default_fill_value[colname]):
-                if issubclass(coldtype.type, np.complexfloating):
+                # Since multi-element columns with dtypes such as '2f8' have
+                # a subdtype, we should look up the type of column on that.
+                coltype = (coldtype.subdtype[0].type
+                           if coldtype.subdtype else coldtype.type)
+                if issubclass(coltype, np.complexfloating):
                     tarray.fill_value[colname] = complex(np.nan, np.nan)
-                elif issubclass(coldtype.type, np.inexact):
+                elif issubclass(coltype, np.inexact):
                     tarray.fill_value[colname] = np.nan
-                elif issubclass(coldtype.type, np.character):
+                elif issubclass(coltype, np.character):
                     tarray.fill_value[colname] = ''
 
         # TODO: it might be better to construct the FITS table directly from
