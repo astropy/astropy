@@ -14,6 +14,8 @@ import fnmatch
 import itertools
 import re
 import os
+import math
+import numpy as np
 from contextlib import suppress
 
 from . import core
@@ -26,10 +28,9 @@ from astropy.table import Table
 from astropy.table import Column, MaskedColumn
 from string import Template
 from textwrap import wrap, fill
-import math
 
 MAX_SIZE_README_LINE = 80
-MAX_COL_INTLIMIT = 10000000
+MAX_COL_INTLIMIT = 100000
 
 
 __doctest_skip__ = ['*']
@@ -61,15 +62,9 @@ class CdsSplitter(fixedwidth.FixedWidthSplitter):
     Contains the join function to left align the CDS columns
     when writing to a file.
     """
-
     def join(self, vals, widths):
-        pad = self.delimiter_pad or ''
-        delimiter = self.delimiter or ''
-        padded_delim = pad + delimiter + pad
-        bookend_left = ''
-        bookend_right = ''
         vals = [val + ' ' * (width - len(val)) for val, width in zip(vals, widths)]
-        return bookend_left + padded_delim.join(vals) + bookend_right
+        return self.delimiter.join(vals)
 
 
 class CdsHeader(core.BaseHeader):
@@ -214,36 +209,29 @@ class CdsHeader(core.BaseHeader):
         self.names = [x.name for x in cols]
         self.cols = cols
 
-    def __strFmt(self, string):
-        """Return argument formatted as string."""
-        if string is None:
-            return ""
-        else:
-            return string
+    def __splitFloatFormat(self, value):
+        """
+        Splits a Float string into different parts to find number
+        of digits after decimal and check if the value is in Scientific
+        notation.
 
-    def __get_type(self, col):
-        """Return column type."""
-        if col.dtype.name.startswith("i"):
-            return int
-        elif col.dtype.name.startswith("f"):
-            return float
-        elif col.dtype.name.startswith("u"):
-            return int
-        elif col.dtype.name.startswith("s"):
-            return str
+        Parameters
+        ----------
+        value : the float value
 
-    def __splitFloatFormat(self, value, fmt):
-        """ get float format
-        value (IN) the float value
-        fmt (out) [size: length of string containing the float value,
-                   prec: precision of the column values, sum of dec and ent,
-                   dec: number of digits places after decimal point,
-                   ent: number of digits places before decimal point,
-                   sign: bool, is float value signed]
-        return True has scientific notation
+        Returns
+        -------
+        fmt: (int, int, int, bool, bool)
+            List of values describing the Float sting.
+            (size, dec, ent, sign, exp)
+            size, length of the given string.
+            ent, number of digits before decimal point.
+            dec, number of digits after decimal point.
+            sign, whether or not given value signed.
+            exp, is value in Scientific notation?
         """
         regfloat = re.compile(r"""(?P<sign> [+-]*)
-                                  (?P<int> [^eE.]+)
+                                  (?P<ent> [^eE.]+)
                                   (?P<deciPt> [.]*)
                                   (?P<decimals> [0-9]*)
                                   (?P<exp> [eE]*-*)[0-9]*""",
@@ -252,71 +240,74 @@ class CdsHeader(core.BaseHeader):
 
         if mo is None:
             raise Exception(value + " is not a float number")
+        return (len(value),
+                len(mo.group('ent')),
+                len(mo.group('decimals')),
+                mo.group('sign') != "",
+                mo.group('exp') != "")
 
-        fmt[0] = len(value)
-        if mo.group('sign') != "":
-            fmt[4] = True
-        else:
-            fmt[4] = False
-        fmt[2] = len(mo.group('int'))
-        fmt[3] = len(mo.group('decimals'))
-        fmt[1] = fmt[2] + fmt[3]
-
-        if mo.group('exp') != "":
-            # scientific notation
-            return True
-        return False
+    def __set_column_val_limits(self, col):
+        """
+        Sets the `col.min` and `col.max` column attributes,
+        taking into account columns with Null values.
+        """
+        col.max = max(col)
+        col.min = min(col)
+        if col.max is np.ma.core.MaskedConstant:
+            col.max = None
+        if col.min is np.ma.core.MaskedConstant:
+            col.min = None
 
     def columnFloatFormatter(self, col):
         """
         String formatter for a column containing Float values.
         """
-        if col.hasNull: # optimized (2x more speed)
-            mcol = col
-            mcol.fill_value = -999999
-            col.max = max(mcol.filled())
-            if col.max == -999999: col.max = None
-            mcol.fill_value = +999999
-            col.min = min(mcol.filled())
-            if col.min == 999999: col.min = None
-        else:
-            col.max = max(col)
-            col.min = min(col)
-
         # maxSize: maximum length of string containing the float value.
-        # maxPrec: maximum precision of the column values, sum of maxDec and maxEnt.
-        # maxDec: maximum number of digits places after decimal point.
         # maxEnt: maximum number of digits places before decimal point.
-        maxSize, maxprec, maxDec, maxEnt = 1, 0, 0, 1
+        # maxDec: maximum number of digits places after decimal point.
+        # maxPrec: maximum precision of the column values, sum of maxEnt and maxDec.
+        maxSize, maxPrec, maxEnt, maxDec = 1, 0, 1, 0
         sign = False
         fformat = 'F'
-        fmt = [0, 0, 0, 0, False]
+        #fmt = [0, 0, 0, 0, False]
 
         # find max sized value in the col
         for rec in col:
             # skip null values
             if rec is None:
                 continue
-            s = str(rec)
 
-            if self.__splitFloatFormat(s, fmt) is True:
+            # find format of the Float string
+            fmt = self.__splitFloatFormat(str(rec))
+
+            # if value is in Scientific notation
+            if fmt[4] is True:
+                # if the previous column value was in normal Float format
+                # set maxSize, maxPrec and maxDec to default.
                 if fformat == 'F':
-                    maxSize, maxprec, maxDec = 1, 0, 0
-                # scientific notation
+                    maxSize, maxPrec, maxDec = 1, 0, 0
+                # designate the column to be in Scientific notation
                 fformat = 'E'
             else:
+                # move to next column value if
+                # current value is not in Scientific notation
+                # but the column is designated as such because
+                # one of the previous values was.
                 if fformat == 'E': continue
 
-            if maxprec < fmt[1]: maxprec = fmt[1]
-            if maxDec < fmt[3]: maxDec = fmt[3]
-            if maxEnt < fmt[2]: maxEnt = fmt[2]
             if maxSize < fmt[0]: maxSize = fmt[0]
-            if fmt[4]: sign = True
+            if maxEnt < fmt[1]: maxEnt = fmt[1]
+            if maxDec < fmt[2]: maxDec = fmt[2]
+            if fmt[3]: sign = True
+
+            if maxPrec < fmt[1] + fmt[2]: maxPrec = fmt[1] + fmt[2]
 
         if fformat == 'E':
             col.meta.size = maxSize
             if sign: col.meta.size += 1
-            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
+            # number of digits after decimal is replaced by the precision
+            # for values in Scientific notation, when writing they Format.
+            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxPrec)
             col.format = str(col.meta.size) + "." + str(maxDec) + "e"
         else:
             col.meta.size = maxEnt + maxDec + 1
@@ -326,8 +317,26 @@ class CdsHeader(core.BaseHeader):
 
     def writeByteByByte(self):
         """
-        Writes byte-by-byte description of the table.
-        :param table: `astropy.table.Table` object.
+        Writes the Byte-By-Byte description of the table.
+
+        See: http://vizier.u-strasbg.fr/doc/catstd-3.1.htx
+
+        Example::
+
+            --------------------------------------------------------------------------------
+            Byte-by-byte Description of file: table.dat
+            --------------------------------------------------------------------------------
+             Bytes Format Units  Label     Explanations
+            --------------------------------------------------------------------------------
+             1- 8   A8     ---    names    Description of names
+            10-14   E5.1   ---    e       [0.0/0.01]? Description of e
+            16-18   F3.0   ---    d       ? Description of d
+            20-26   E7.1   ---    s       [-9e+34/2.0] Description of s
+            28-30   I3     ---    i       [-30/67] Description of i
+            32-34   F3.1   ---    sameF   [5.0/5.0] Description of sameF
+            36-37   I2     ---    sameI   [20] Description of sameI
+
+            --------------------------------------------------------------------------------
         """
         # get column widths.
         vals_list = []
@@ -355,7 +364,7 @@ class CdsHeader(core.BaseHeader):
 
         buff = ""
         maxDescripSize = 16
-        nsplit = sz[0] + sz[1] + sz[2] + sz[3] + 16
+        nsplit = sum(sz) + 16
         # format string for Start Byte and End Byte
         fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
 
@@ -364,34 +373,21 @@ class CdsHeader(core.BaseHeader):
 
         for i, col in enumerate(self.cols):
             # check if column is MaskedColumn
-            if isinstance(col, MaskedColumn):
-                col.hasNull = True
-            else:
-                col.hasNull = False
+            col.hasNull = isinstance(col, MaskedColumn)
 
             # set CDSColumn type, size and format.
-            coltype = self.__get_type(col)
-            if coltype is int:
+            if np.issubdtype(col.dtype, np.int):
                 # integer formatter
-                if col.hasNull:
-                    mcol = col
-                    mcol.fill_value = -999999
-                    col.max = max(mcol.filled())
-                    if col.max == -999999: col.max = None
-                    mcol.fill_value = +999999
-                    col.min = min(mcol.filled())
-                    if col.min == 999999: col.min = None
-                else:
-                    col.max = max(col)
-                    col.min = min(col)
+                self.__set_column_val_limits(col)
                 col.meta.size = len(str(col.max))
                 l = len(str(col.min))
                 if col.meta.size < l: col.meta.size = l
                 col.fortran_format = "I" + str(col.meta.size)
                 col.format = ">" + col.fortran_format[1:]
 
-            elif coltype is float:
+            elif np.issubdtype(col.dtype, np.float):
                 # float formatter
+                self.__set_column_val_limits(col)
                 self.columnFloatFormatter(col)
 
             else:
@@ -455,10 +451,10 @@ class CdsHeader(core.BaseHeader):
 
             # add ByteByByte row to bbb table
             bbb.add_row([fmtb.format(startb, endb, ""),
-                            self.__strFmt(col.fortran_format),
-                            self.__strFmt(col.meta.unit),
-                            self.__strFmt(col.name),
-                            description])
+                         "" if col.fortran_format is None else col.fortran_format,
+                         "" if col.meta.unit is None else col.meta.unit,
+                         "" if col.name is None else col.name,
+                         description])
             startb = endb + 2
 
         # properly format bbb columns
