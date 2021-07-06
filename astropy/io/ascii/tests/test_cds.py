@@ -11,6 +11,7 @@ from astropy.table import Table
 from astropy.io import ascii
 from astropy import units as u
 
+# flake8: noqa: E291
 
 test_dat = ['names e d s i',
             'HD81809 1E-7 22.25608 +2 67',

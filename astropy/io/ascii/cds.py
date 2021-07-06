@@ -10,6 +10,8 @@ cds.py:
 """
 
 
+from io import StringIO
+
 import fnmatch
 import itertools
 import re
@@ -23,7 +25,6 @@ from . import fixedwidth
 
 from astropy.units import Unit
 
-from io import StringIO
 from astropy.table import Table
 from astropy.table import Column, MaskedColumn
 from string import Template
@@ -235,7 +236,7 @@ class CdsHeader(core.BaseHeader):
                                   (?P<deciPt> [.]*)
                                   (?P<decimals> [0-9]*)
                                   (?P<exp> [eE]*-*)[0-9]*""",
-                             re.VERBOSE)
+                              re.VERBOSE)
         mo = regfloat.match(value)
 
         if mo is None:
@@ -269,27 +270,26 @@ class CdsHeader(core.BaseHeader):
         maxSize, maxPrec, maxEnt, maxDec = 1, 0, 1, 0
         sign = False
         fformat = 'F'
-        #fmt = [0, 0, 0, 0, False]
 
-        # find max sized value in the col
+        # Find maximum sized value in the col
         for rec in col:
-            # skip null values
+            # Skip null values
             if rec is None:
                 continue
 
-            # find format of the Float string
+            # Find format of the Float string
             fmt = self.__splitFloatFormat(str(rec))
 
-            # if value is in Scientific notation
+            # If value is in Scientific notation
             if fmt[4] is True:
                 # if the previous column value was in normal Float format
                 # set maxSize, maxPrec and maxDec to default.
                 if fformat == 'F':
                     maxSize, maxPrec, maxDec = 1, 0, 0
-                # designate the column to be in Scientific notation
+                # Designate the column to be in Scientific notation.
                 fformat = 'E'
             else:
-                # move to next column value if
+                # Move to next column value if
                 # current value is not in Scientific notation
                 # but the column is designated as such because
                 # one of the previous values was.
@@ -305,7 +305,7 @@ class CdsHeader(core.BaseHeader):
         if fformat == 'E':
             col.meta.size = maxSize
             if sign: col.meta.size += 1
-            # number of digits after decimal is replaced by the precision
+            # Number of digits after decimal is replaced by the precision
             # for values in Scientific notation, when writing they Format.
             col.fortran_format = fformat + str(col.meta.size) + "." + str(maxPrec)
             col.format = str(col.meta.size) + "." + str(maxDec) + "e"
@@ -338,7 +338,7 @@ class CdsHeader(core.BaseHeader):
 
             --------------------------------------------------------------------------------
         """
-        # get column widths.
+        # Get column widths
         vals_list = []
         col_str_iters = self.data.str_vals()
         for vals in zip(*col_str_iters):
@@ -351,8 +351,8 @@ class CdsHeader(core.BaseHeader):
         widths = [col.width for col in self.cols]
 
         startb = 1
-        # set default width of Start Byte, End Byte, Format and
-        # Label columns in the ByteByByte table.
+        # Set default width of Start Byte, End Byte, Format and
+        # label columns in the ByteByByte table.
         sz = [0, 0, 1, 7]
         l = len(str(sum(widths)))
         if l > sz[0]:
@@ -365,19 +365,19 @@ class CdsHeader(core.BaseHeader):
         buff = ""
         maxDescripSize = 16
         nsplit = sum(sz) + 16
-        # format string for Start Byte and End Byte
+        # Format string for Start Byte and End Byte
         fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
 
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
                     dtype=[str]*5)
 
         for i, col in enumerate(self.cols):
-            # check if column is MaskedColumn
+            # Check if column is MaskedColumn
             col.hasNull = isinstance(col, MaskedColumn)
 
-            # set CDSColumn type, size and format.
+            # Set CDSColumn type, size and format.
             if np.issubdtype(col.dtype, np.int):
-                # integer formatter
+                # Integer formatter
                 self.__set_column_val_limits(col)
                 col.meta.size = len(str(col.max))
                 l = len(str(col.min))
@@ -386,12 +386,12 @@ class CdsHeader(core.BaseHeader):
                 col.format = ">" + col.fortran_format[1:]
 
             elif np.issubdtype(col.dtype, np.float):
-                # float formatter
+                # Float formatter
                 self.__set_column_val_limits(col)
                 self.columnFloatFormatter(col)
 
             else:
-                # string formatter
+                # String formatter
                 if col.hasNull:
                     mcol = col
                     mcol.fill_value = ""
@@ -404,19 +404,18 @@ class CdsHeader(core.BaseHeader):
 
             endb = col.meta.size + startb - 1
 
-            # set column description
+            # Set column description
             if col.description is not None:
                 description = col.description
             else:
                 description = "Description of " + col.name
 
-            # set null flag in column description
+            # Set null flag in column description
+            nullflag = ""
             if col.hasNull:
                 nullflag = "?"
-            else:
-                nullflag = ""
 
-            # set column unit
+            # Set column unit
             if col.unit is not None:
                 col.meta.unit = col.unit.to_string("cds")
             elif col.name.lower().find("magnitude") > -1:
@@ -430,7 +429,7 @@ class CdsHeader(core.BaseHeader):
             else:
                 col.meta.unit = "---"
 
-            # add col limit values to col description
+            # Add col limit values to col description
             limVals = ""
             if col.min and col.max:
                 if col.fortran_format[0] == 'I':
@@ -445,11 +444,11 @@ class CdsHeader(core.BaseHeader):
 
             description = "{0}{1} {2}".format(limVals, nullflag, description)
 
-            # find max description length
+            # Find max description length
             if len(description) > maxDescripSize:
                 maxDescripSize = len(description)
 
-            # add ByteByByte row to bbb table
+            # Add ByteByByte row to bbb table
             bbb.add_row([fmtb.format(startb, endb, ""),
                          "" if col.fortran_format is None else col.fortran_format,
                          "" if col.meta.unit is None else col.meta.unit,
@@ -457,7 +456,7 @@ class CdsHeader(core.BaseHeader):
                          description])
             startb = endb + 2
 
-        # properly format bbb columns
+        # Properly format bbb columns
         bbbLines = StringIO()
         bbb.write(bbbLines, format='ascii.fixed_width_no_header',
                     delimiter=' ', bookend=False, delimiter_pad=None,
@@ -466,10 +465,10 @@ class CdsHeader(core.BaseHeader):
                              'Label':'<'+str(sz[3])+'s',
                              'Explanations':''+str(maxDescripSize)+'s'})
 
-        # get formatted bbb lines
+        # Get formatted bbb lines
         bbbLines = bbbLines.getvalue().splitlines()
 
-        # wrap line if it is too long
+        # Wrap line if it is too long
         for newline in bbbLines:
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ("\n").join(wrap(newline,
@@ -479,10 +478,10 @@ class CdsHeader(core.BaseHeader):
             else:
                 buff += newline + "\n"
 
-        # last value of ``endb`` is the max column width after formatting.
+        # Last value of ``endb`` is the max column width after formatting.
         self.linewidth = endb
 
-        # add column notes to ByteByByte
+        # Add column notes to ByteByByte
         notes = self.cdsdicts.get('notes', None)
         if notes is not None:
             buff += "-" * MAX_SIZE_README_LINE + "\n"
@@ -496,19 +495,19 @@ class CdsHeader(core.BaseHeader):
         Writes the Header of the CDS table, aka ReadMe, which
         also contains the ByteByByte description of the table.
         """
-        # get ByteByByte description and fill the template
+        # Get ByteByByte description and fill the template
         bbbTemplate = Template('\n'.join(ByteByByteTemplate))
         ByteByByte = bbbTemplate.substitute({'file': 'table.dat',
                                     'bytebybyte': self.writeByteByByte()})
 
-        #-- get index of files --#
-        # set width of FileName and Lrecl columns
+        #-- Get index of files --#
+        # Set width of FileName and Lrecl columns
         sz = [14, 0]
         l = len(str(self.linewidth))
         if l > sz[1]:
             sz[1] = l
 
-        # create the File Index table
+        # Create the File Index table
         fIndexRows = (["ReadMe",
                        MAX_SIZE_README_LINE,
                        ".",
@@ -520,7 +519,7 @@ class CdsHeader(core.BaseHeader):
         filesIndex = Table(names=['FileName', 'Lrecl', 'Records', 'Explanations'],
                            rows=fIndexRows)
 
-        # get File Index table rows as formatted lines
+        # Get File Index table rows as formatted lines
         fIndexLines = StringIO()
         filesIndex.write(fIndexLines, format='ascii.fixed_width_no_header',
                             delimiter=' ', bookend=False, delimiter_pad=None,
@@ -530,7 +529,7 @@ class CdsHeader(core.BaseHeader):
                                      'Explanations': 's'})
         fIndexLines = fIndexLines.getvalue()
 
-        # fill up the full ReadMe
+        # Fill up the full ReadMe
         with open(ReadMeTemplate) as rmf:
             rmTemplate = Template(rmf.read())
         rmTempVals = self.cdsdicts
@@ -672,7 +671,6 @@ class Cds(core.BaseReader):
     """
     _format_name = 'cds'
     _io_registry_format_aliases = ['cds']
-    #_io_registry_can_write = False
     _description = 'CDS format table'
 
     data_class = CdsData
@@ -687,7 +685,6 @@ class Cds(core.BaseReader):
         self.cdsdicts = cdsdicts
         self.cdsdicts.update(cdsdict)
         self.header.cdsdicts = self.cdsdicts
-        #self.data.cdsdicts = self.cdsdicts
 
     def write(self, table=None):
         self.data.header = self.header
