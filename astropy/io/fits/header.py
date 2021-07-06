@@ -2140,10 +2140,6 @@ class _CardAccessor:
         return False
 
 
-collections.abc.Mapping.register(_CardAccessor)
-collections.abc.Sequence.register(_CardAccessor)
-
-
 class _HeaderComments(_CardAccessor):
     """
     A class used internally by the Header class for the Header.comments
