@@ -1,0 +1,4 @@
+When writing, the input data are no longer copied, improving performance.
+Metadata that might be changed, such as format and serialization
+information, is copied, hence users can continue on there being no
+changes to the input data.
