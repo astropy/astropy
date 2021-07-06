@@ -82,6 +82,10 @@ a_B_c2 = 4e-3 * const.sigma_sb.value / const.c.value ** 3
 kB_evK = const.k_B.to(u.eV / u.K)
 
 
+# registry of cosmology classes with {key=name : value=class}
+_COSMOLOGY_CLASSES = dict()
+
+
 class CosmologyError(Exception):
     pass
 
@@ -105,7 +109,6 @@ class Cosmology(metaclass=ABCMeta):
     Class instances are static -- you cannot (and should not) change the values
     of the parameters.  That is, all of the above attributes (except meta) are
     read only.
-
     """
 
     meta = MetaData()
@@ -116,6 +119,8 @@ class Cosmology(metaclass=ABCMeta):
         sig = signature(cls.__init__)
         sig = sig.replace(parameters=list(sig.parameters.values())[1:])
         cls._init_signature = sig  # store (immutable) initialization signature
+
+        _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
     def __new__(cls, *args, **kwargs):
         # bundle initialization argument
