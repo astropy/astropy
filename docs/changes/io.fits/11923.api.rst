@@ -1,0 +1,2 @@
+The internal class _CardAccessor is no longer registered as a subclass of
+the Sequence or Mapping ABCs.
