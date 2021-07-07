@@ -325,13 +325,17 @@ def helper_clip(f, unit1, unit2, unit3):
 
 
 # HELPER NARGS
-def make_helper_nargs(nin, nout, outunits):
-    # TODO! is there any way to (more) automatically handle units?
-    converters = [_I] * nout  # don't convert -- use the identity function
+def register_ufunc(ufunc, nin, nout, inunits, outunits):
+    from astropy.units import UnitBase, FunctionUnitBase
+
+    if isinstance(inunits, (UnitBase, FunctionUnitBase)):  # scalar -> list
+        inunits = [inunits]
 
     def helper_nargs(f, *units):
-        return converters, outunits  # no conversion, prespecified units
-    return helper_nargs
+        converters = [get_converter(frm or to, to) for frm, to in zip(units, inunits)]
+        return converters, outunits
+
+    UFUNC_HELPERS[ufunc] = helper_nargs
 
 
 # list of ufuncs:

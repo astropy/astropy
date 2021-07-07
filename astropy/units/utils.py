@@ -299,27 +299,38 @@ def quantity_asanyarray(a, dtype=None):
 
 # ------------------------------------------------------------------------------
 
-def quantity_frompyfunc(func, nin, nout, ounits=None, *, identity=None):
+def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None, *, identity=None):
     # This function is dangerous b/c ounits is the final word on
     # output units
-    from .core import UnitBase
+    from astropy.units import UnitBase, FunctionUnitBase
+
+    sig = inspect.signature(func)
+
+    def is_unitlike(annotation):
+        is_unit = isinstance(annotation, (UnitBase, FunctionUnitBase))
+        is_unit_sequence = (
+            isinstance(annotation, Sequence) and
+            all(isinstance(x, (UnitBase, FunctionUnitBase)) for x in annotation))
+        if is_unit or is_unit_sequence:
+            return True
+
+    if inunits is None:
+        svals = tuple(sig.parameters.values())
+
+        inunits = [p.annotation if is_unitlike(p.annotation) else None
+                   for p in svals]
 
     if ounits is None:
-        ra = inspect.signature(func).return_annotation
+        ra = sig.return_annotation
         # TODO! more intelligent detection of unit returns
-        if (
-            isinstance(ra, UnitBase) or
-            (isinstance(ra, Sequence) and all(isinstance(x, UnitBase) for x in ra))
-        ):
+        if is_unitlike(ra):
             ounits = ra
 
     # make ufunc
     ufunc = np.frompyfunc(func, nin, nout, identity=identity)
 
     # register ufunc with Quantity
-    from astropy.units.quantity_helper.converters import UFUNC_HELPERS
-    from astropy.units.quantity_helper.helpers import make_helper_nargs
-
-    UFUNC_HELPERS[ufunc] = make_helper_nargs(nin, nout, ounits)
+    from astropy.units.quantity_helper.helpers import register_ufunc
+    register_ufunc(ufunc, nin, nout, inunits, ounits)
 
     return ufunc
