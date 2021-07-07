@@ -104,8 +104,7 @@ class SigmaClip:
     :func:`sigma_clip`.
 
     .. note::
-        `scipy.stats.sigmaclip
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        `scipy.stats.sigmaclip`
         provides a subset of the functionality in this class.  Also, its
         input data cannot be a masked array and it does not handle data
         that contains invalid values (i.e., NaN or inf).  Also note that
@@ -501,8 +500,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
     :class:`SigmaClip`.
 
     .. note::
-        `scipy.stats.sigmaclip
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.sigmaclip.html>`_
+        `scipy.stats.sigmaclip`
         provides a subset of the functionality in this class.  Also, its
         input data cannot be a masked array and it does not handle data
         that contains invalid values (i.e., NaN or inf).  Also note that
