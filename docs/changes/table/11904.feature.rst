@@ -1,0 +1,2 @@
+Added a new method ``Table.update()`` which does a dictionary-style update of a
+``Table`` by adding or replacing columns.
