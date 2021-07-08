@@ -2248,6 +2248,7 @@ class TestHeaderFunctions(FitsTestCase):
         h = fits.Header()
         pytest.raises(ValueError, h.set, 'TEST', float('nan'))
         pytest.raises(ValueError, h.set, 'TEST', np.nan)
+        pytest.raises(ValueError, h.set, 'TEST', np.float32('nan'))
         pytest.raises(ValueError, h.set, 'TEST', float('inf'))
         pytest.raises(ValueError, h.set, 'TEST', np.inf)
 
