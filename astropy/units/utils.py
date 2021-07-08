@@ -299,38 +299,81 @@ def quantity_asanyarray(a, dtype=None):
 
 # ------------------------------------------------------------------------------
 
-def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None, *, identity=None):
-    # This function is dangerous b/c ounits is the final word on
-    # output units
-    from astropy.units import UnitBase, FunctionUnitBase
+def _is_seq_ulike(annotation):
+    from astropy.units import UnitBase
+
+    is_unit = isinstance(annotation, UnitBase)
+    is_unit_sequence = (isinstance(annotation, Sequence) and
+                        all(isinstance(x, UnitBase) for x in annotation))
+    return True if (is_unit or is_unit_sequence) else False
+
+
+def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
+                        *, identity=None):
+    """Quantity-aware `~numpy.frompyfunc`.
+
+    `~numpy.ufunc`s operate on only recognized `~numpy.dtype`s (e.g. float32),
+    so units must be removed beforehand and replaced afterwards. Therefore units
+    MUST BE KNOWN a priori, as they will not be propagated by the astropy
+    machinery.
+
+    Parameters
+    ----------
+    func : callable
+    nin, nout : int
+        Number of ufunc's inputs and outputs
+    inunits, ounits : sequence[unit-like] (optional)
+        Sequence of the input and output units, respectively.
+
+        .. warning::
+            Inputs will be converted to these units before being passed to the
+            returned `~numpy.ufunc`. Outputs will be assigned these units.
+            Make sure these are the correct units.
+
+    identity : object (optional, keyword-only)
+        The value to use for the `~numpy.ufunc.identity` attribute of the
+        resulting object. If specified, this is equivalent to setting the
+        underlying C ``identity`` field to ``PyUFunc_IdentityValue``.
+        If omitted, the identity is set to ``PyUFunc_None``. Note that this is
+        _not_ equivalent to setting the identity to ``None``, which implies the
+        operation is reorderable.
+
+    Returns
+    -------
+    `~numpy.ufunc`
+
+    """
+    from astropy.units import Unit
+
+    # -------------------------
+    # determine units by introspection
 
     sig = inspect.signature(func)
 
-    def is_unitlike(annotation):
-        is_unit = isinstance(annotation, (UnitBase, FunctionUnitBase))
-        is_unit_sequence = (
-            isinstance(annotation, Sequence) and
-            all(isinstance(x, (UnitBase, FunctionUnitBase)) for x in annotation))
-        if is_unit or is_unit_sequence:
-            return True
-
-    if inunits is None:
+    # input units
+    if inunits is not None:
+        inunits = [Unit(iu) for iu in inunits]  # seq[unit-like] -> seq[unit]
+    else:
         svals = tuple(sig.parameters.values())
-
-        inunits = [p.annotation if is_unitlike(p.annotation) else None
+        # TODO! more robust. what if no annotations?
+        inunits = [Unit(p.annotation) if _is_seq_ulike(p.annotation) else None
                    for p in svals]
 
-    if ounits is None:
+    # output units
+    if ounits is not None:
+        ounits = [Unit(ou) for ou in ounits]
+    else:
         ra = sig.return_annotation
-        # TODO! more intelligent detection of unit returns
-        if is_unitlike(ra):
+        if _is_seq_ulike(ra):
             ounits = ra
 
+    # -------------------------
     # make ufunc
+
     ufunc = np.frompyfunc(func, nin, nout, identity=identity)
 
-    # register ufunc with Quantity
+    # register ufunc with Quantity machinery
     from astropy.units.quantity_helper.helpers import register_ufunc
-    register_ufunc(ufunc, nin, nout, inunits, ounits)
+    register_ufunc(ufunc, nin=nin, nout=nout, inunits=inunits, ounits=ounits)
 
     return ufunc

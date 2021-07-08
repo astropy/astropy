@@ -26,10 +26,6 @@ def _d(unit):
         return unit
 
 
-def _I(x):  # identity function
-    return x
-
-
 def get_converter(from_unit, to_unit):
     """Like Unit._get_converter, except returns None if no scaling is needed,
     i.e., if the inferred scale is unity."""
@@ -325,15 +321,50 @@ def helper_clip(f, unit1, unit2, unit3):
 
 
 # HELPER NARGS
-def register_ufunc(ufunc, nin, nout, inunits, outunits):
-    from astropy.units import UnitBase, FunctionUnitBase
+def register_ufunc(ufunc, nin, nout, inunits, ounits):
+    """
+    Register `~numpy.ufunc` in ``UFUNC_HELPERS``, along with the conversion
+    functions necessary to strip input units and assign output units. ufuncs
+    operate on only recognized `~numpy.dtype`s (e.g. int, float32), so units
+    must be removed beforehand and replaced afterwards. Therefore units MUST
+    BE KNOWN a priori, as they will not be propagated by the astropy machinery.
 
-    if isinstance(inunits, (UnitBase, FunctionUnitBase)):  # scalar -> list
-        inunits = [inunits]
+    Parameters
+    ----------
+    ufunc : `~numpy.ufunc`
+    nin, nout : int
+        Number of ufunc's inputs and outputs
+    inunits, ounits : sequence[unit-like]
+        Sequence of the input and output units, respectively.
+
+    """
+    from astropy.units import Unit
+
+    # process sequence[unit-like] -> sequence[unit]
+    inunits = [Unit(iu) for iu in inunits]
+    ounits = [Unit(ou) for ou in ounits]
 
     def helper_nargs(f, *units):
-        converters = [get_converter(frm or to, to) for frm, to in zip(units, inunits)]
-        return converters, outunits
+        """Helper function to convert input units and assign output units.
+
+        Parameters
+        ----------
+        f : callable
+        *units : `~astropy.units.UnitBase` or None
+            The units of the inputs. If None (a unitless input) the unit is
+            assumed to be the one specified in
+            `~astropy.units.quantity_helper.helpers.register_ufunc`
+
+        Returns
+        -------
+        converters : sequence[callable]
+        ounits : sequence[unit-like]
+
+        """
+        # no units assumed to be in inunits
+        converters = [get_converter(frm or to, to)
+                      for frm, to in zip(units, inunits)]
+        return converters, ounits
 
     UFUNC_HELPERS[ufunc] = helper_nargs
 
