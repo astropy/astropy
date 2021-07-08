@@ -2192,6 +2192,100 @@ class Test__Astropy_Table__():
         assert '__init__() got unexpected keyword argument' in str(err.value)
 
 
+class TestUpdate():
+
+    def _setup(self):
+        self.a = Column((1, 2, 3), name='a')
+        self.b = Column((4, 5, 6), name='b')
+        self.c = Column((7, 8, 9), name='c')
+        self.d = Column((10, 11, 12), name='d')
+
+    def test_different_lengths(self):
+        self._setup()
+        t1 = Table([self.a])
+        t2 = Table([self.b[:-1]])
+        msg = 'Inconsistent data column lengths'
+        with pytest.raises(ValueError, match=msg):
+            t1.update(t2)
+        # If update didn't succeed then t1 and t2 should not have changed.
+        assert t1.colnames == ['a']
+        assert np.all(t1['a'] == self.a)
+        assert t2.colnames == ['b']
+        assert np.all(t2['b'] == self.b[:-1])
+
+    def test_invalid_inputs(self):
+        # If input is invalid then nothing should be modified.
+        self._setup()
+        t = Table([self.a])
+        d = {'b': self.b, 'c': [0]}
+        msg = 'Inconsistent data column lengths: {1, 3}'
+        with pytest.raises(ValueError, match=msg):
+            t.update(d)
+        assert t.colnames == ['a']
+        assert np.all(t['a'] == self.a)
+        assert d == {'b': self.b, 'c': [0]}
+
+    def test_metadata_conflict(self):
+        self._setup()
+        t1 = Table([self.a], meta={'a': 0, 'b': [0], 'c': True})
+        t2 = Table([self.b], meta={'a': 1, 'b': [1]})
+        t2meta = copy.deepcopy(t2.meta)
+        t1.update(t2)
+        assert t1.meta == {'a': 1, 'b': [0, 1], 'c': True}
+        # t2 metadata should not have changed.
+        assert t2.meta == t2meta
+
+    def test_update(self):
+        self._setup()
+        t1 = Table([self.a, self.b])
+        t2 = Table([self.b, self.c])
+        t2['b'] += 1
+        t1.update(t2)
+        assert t1.colnames == ['a', 'b', 'c']
+        assert np.all(t1['a'] == self.a)
+        assert np.all(t1['b'] == self.b+1)
+        assert np.all(t1['c'] == self.c)
+        # t2 should not have changed.
+        assert t2.colnames == ['b', 'c']
+        assert np.all(t2['b'] == self.b+1)
+        assert np.all(t2['c'] == self.c)
+
+        d = {'b': list(self.b), 'd': list(self.d)}
+        dc = copy.deepcopy(d)
+        t2.update(d)
+        assert t2.colnames == ['b', 'c', 'd']
+        assert np.all(t2['b'] == self.b)
+        assert np.all(t2['c'] == self.c)
+        assert np.all(t2['d'] == self.d)
+        # d should not have changed.
+        assert d == dc
+
+        # Columns were copied, so changing t2 shouldn't have affected t1.
+        assert t1.colnames == ['a', 'b', 'c']
+        assert np.all(t1['a'] == self.a)
+        assert np.all(t1['b'] == self.b+1)
+        assert np.all(t1['c'] == self.c)
+
+    def test_update_without_copy(self):
+        self._setup()
+        t1 = Table([self.a, self.b])
+        t2 = Table([self.b, self.c])
+        t1.update(t2, copy=False)
+        t2['b'] -= 1
+        assert t1.colnames == ['a', 'b', 'c']
+        assert np.all(t1['a'] == self.a)
+        assert np.all(t1['b'] == self.b-1)
+        assert np.all(t1['c'] == self.c)
+
+        d = {'b': np.array(self.b), 'd': np.array(self.d)}
+        t2.update(d, copy=False)
+        d['b'] *= 2
+        assert t2.colnames == ['b', 'c', 'd']
+        assert np.all(t2['b'] == 2*self.b)
+        assert np.all(t2['c'] == self.c)
+        assert np.all(t2['d'] == self.d)
+
+
 def test_table_meta_copy():
     """
     Test no copy vs light (key) copy vs deep copy of table meta for different

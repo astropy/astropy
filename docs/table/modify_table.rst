@@ -138,6 +138,31 @@ using broadcasting will be done, for example::
 
 .. EXAMPLE END
 
+**Perform a dictionary-style update**
+
+It is possible to perform a dictionary-style update, which adds new columns to
+the table and replaces existing ones::
+
+  >>> t1 = Table({'name': ['foo', 'bar'], 'val': [0., 0.]}, meta={'n': 2})
+  >>> t2 = Table({'val': [1., 2.], 'val2': [10., 10.]}, meta={'id': 0})
+  >>> t1.update(t2)
+  >>> t1
+  <Table length=2>
+  name   val     val2
+  str3 float64 float64
+  ---- ------- -------
+   foo     1.0    10.0
+   bar     2.0    10.0
+
+:meth:`~astropy.table.Table.update` also takes care of silently :ref:`merging_metadata`::
+
+  >>> t1.meta
+  {'n': 2, 'id': 0}
+
+The input of :meth:`~astropy.table.Table.update` does not have to be a |Table|,
+it can be anything that can be used for :ref:`construct_table` with a
+compatible number of rows.
+
 **Rename columns**
 
 .. EXAMPLE START: Renaming Columns in Tables

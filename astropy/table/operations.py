@@ -684,6 +684,10 @@ def hstack(tables, join_type='outer',
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
 
+    See Also
+    --------
+    Table.add_columns, Table.replace_column, Table.update
+
     Examples
     --------
     To stack two tables horizontally (along columns) do::
