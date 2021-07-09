@@ -922,7 +922,7 @@ def test_column_value_access():
 
 
 def test_masked_column_serialize_method_propagation():
-    mc = table.MaskedColumn([1., 2.], mask=[True, False])
+    mc = table.MaskedColumn([1., 2., 3.], mask=[True, False, True])
     assert mc.info.serialize_method['ecsv'] == 'null_value'
     mc.info.serialize_method['ecsv'] = 'data_mask'
     assert mc.info.serialize_method['ecsv'] == 'data_mask'
@@ -932,3 +932,5 @@ def test_masked_column_serialize_method_propagation():
     assert mc3.info.serialize_method['ecsv'] == 'data_mask'
     mc4 = mc.view(table.MaskedColumn)
     assert mc4.info.serialize_method['ecsv'] == 'data_mask'
+    mc5 = mc[1:]
+    assert mc5.info.serialize_method['ecsv'] == 'data_mask'
