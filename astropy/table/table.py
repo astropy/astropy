@@ -2238,6 +2238,9 @@ class Table:
             Uniquify new column names if they duplicate the existing ones.
             Default is False.
 
+        See Also
+        --------
+        astropy.table.hstack, update, replace_column
 
         Examples
         --------
@@ -2383,6 +2386,10 @@ class Table:
             New column object to replace the existing column.
         copy : bool
             Make copy of the input ``col``, default=True
+
+        See Also
+        --------
+        add_columns, astropy.table.hstack, update
 
         Examples
         --------
@@ -3076,6 +3083,67 @@ class Table:
                 new_col.info.indices.append(index)
 
         self.columns = columns
+
+    def update(self, other, copy=True):
+        """
+        Perform a dictionary-style update and merge metadata.
+
+        The argument ``other`` must be a |Table|, or something that can be used
+        to initialize a table. Columns from (possibly converted) ``other`` are
+        added to this table. In case of matching column names the column from
+        this table is replaced with the one from ``other``.
+
+        Parameters
+        ----------
+        other : table-like
+            Data to update this table with.
+        copy : bool
+            Whether the updated columns should be copies of or references to
+            the originals.
+
+        See Also
+        --------
+        add_columns, astropy.table.hstack, replace_column
+
+        Examples
+        --------
+        Update a table with another table::
+
+            >>> t1 = Table({'a': ['foo', 'bar'], 'b': [0., 0.]}, meta={'i': 0})
+            >>> t2 = Table({'b': [1., 2.], 'c': [7., 11.]}, meta={'n': 2})
+            >>> t1.update(t2)
+            >>> t1
+            <Table length=2>
+             a      b       c
+            str3 float64 float64
+            ---- ------- -------
+             foo     1.0     7.0
+             bar     2.0    11.0
+            >>> t1.meta
+            {'i': 0, 'n': 2}
+
+        Update a table with a dictionary::
+
+            >>> t = Table({'a': ['foo', 'bar'], 'b': [0., 0.]})
+            >>> t.update({'b': [1., 2.]})
+            >>> t
+            <Table length=2>
+             a      b
+            str3 float64
+            ---- -------
+             foo     1.0
+             bar     2.0
+        """
+        from .operations import _merge_table_meta
+        if not isinstance(other, Table):
+            other = self.__class__(other, copy=copy)
+        common_cols = set(self.colnames).intersection(other.colnames)
+        for name, col in other.items():
+            if name in common_cols:
+                self.replace_column(name, col, copy=copy)
+            else:
+                self.add_column(col, name=name, copy=copy)
+        _merge_table_meta(self, [self, other], metadata_conflicts='silent')
 
     def argsort(self, keys=None, kind=None, reverse=False):
         """
