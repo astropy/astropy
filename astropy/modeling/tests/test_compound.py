@@ -521,7 +521,6 @@ def test_compound_custom_inverse():
         (model1 & poly).inverse
 
 
-@pytest.mark.skipif(str("sys.version_info < (2, 7, 3)"))
 def test_pickle_compound():
     """
     Regression test for
