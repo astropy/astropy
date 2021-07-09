@@ -1,0 +1,1 @@
+Minimum supported version for ``scipy`` is now 1.2.
