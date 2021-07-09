@@ -804,10 +804,8 @@ class ProgressBar:
                         bar.update(i)
             else:
                 ctx = multiprocessing.get_context(multiprocessing_start_method)
-                if sys.version_info >= (3, 7):
-                    kwargs = dict(mp_context=ctx)
-                else:
-                    kwargs = {}
+                kwargs = dict(mp_context=ctx)
+
                 with ProcessPoolExecutor(
                         max_workers=(int(multiprocess)
                                      if multiprocess is not True
