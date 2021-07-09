@@ -42,7 +42,7 @@ import numpy as np
 
 from astropy.units.core import (
     UnitsError, UnitTypeError, dimensionless_unscaled)
-from astropy.utils.compat import NUMPY_LT_1_18, NUMPY_LT_1_20
+from astropy.utils.compat import NUMPY_LT_1_20
 from astropy.utils import isiterable
 
 # In 1.17, overrides are enabled by default, but it is still possible to
@@ -91,9 +91,6 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.apply_along_axis, np.take_along_axis, np.put_along_axis,
     np.linalg.cond, np.linalg.multi_dot}
 
-if NUMPY_LT_1_18:
-    SUBCLASS_SAFE_FUNCTIONS |= {np.alen}
-
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
 # currently return NotImplementedError.
@@ -116,7 +113,7 @@ UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
 # test_quantity_non_ufuncs.py)
 IGNORED_FUNCTIONS = {
     # Deprecated
-    np.asscalar,
+    np.asscalar, np.alen,
     # I/O - useless for Quantity, since no way to store the unit.
     np.save, np.savez, np.savetxt, np.savez_compressed,
     # Polynomials
@@ -127,10 +124,6 @@ if NUMPY_LT_1_20:
     IGNORED_FUNCTIONS |= {np.fv, np.ipmt, np.irr, np.mirr, np.nper,
                           np.npv, np.pmt, np.ppmt, np.pv, np.rate}
 
-if NUMPY_LT_1_18:
-    IGNORED_FUNCTIONS |= {np.rank}
-else:
-    IGNORED_FUNCTIONS |= {np.alen}
 UNSUPPORTED_FUNCTIONS |= IGNORED_FUNCTIONS
 
 

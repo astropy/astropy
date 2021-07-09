@@ -18,7 +18,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from astropy.utils.compat import NUMPY_LT_1_18, NUMPY_LT_1_19, NUMPY_LT_1_20
+from astropy.utils.compat import NUMPY_LT_1_19, NUMPY_LT_1_20
 from astropy.units.tests.test_quantity_non_ufuncs import (
     get_wrapped_functions)
 
@@ -71,11 +71,6 @@ class InvariantMaskTestSetup(MaskedArraySetup):
 
 
 class TestShapeInformation(BasicTestSetup):
-    # alen is deprecated in Numpy 1.8
-    if NUMPY_LT_1_18:
-        def test_alen(self):
-            assert np.alen(self.ma) == 2
-
     def test_shape(self):
         assert np.shape(self.ma) == (2, 3)
 
@@ -1240,8 +1235,6 @@ deprecated_functions = {
     np.asscalar,
     np.alen,
     }
-if NUMPY_LT_1_18:
-    deprecated_functions |= {np.rank}
 
 untested_functions |= deprecated_functions
 io_functions = {np.save, np.savez, np.savetxt, np.savez_compressed}
