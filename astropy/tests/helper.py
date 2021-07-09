@@ -269,17 +269,6 @@ def treat_deprecations_as_exceptions():
             for s in _warnings_to_ignore_by_pyver[v]:
                 warnings.filterwarnings("ignore", s[0], s[1])
 
-    # If using Matplotlib < 3, we should ignore the following warning since
-    # this is beyond our control
-    try:
-        import matplotlib
-    except ImportError:
-        pass
-    else:
-        if matplotlib.__version__[0] < '3':
-            warnings.filterwarnings('ignore', category=DeprecationWarning,
-                                    module='numpy.lib.type_check')
-
 
 # TODO: Plan a roadmap of deprecation as pytest.warns has matured over the years.
 # See https://github.com/astropy/astropy/issues/6761
