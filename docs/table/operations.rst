@@ -999,6 +999,8 @@ in the |join| example defined previously::
    M31       2012-01-02  17.0  16.0    1999-01-05  43.1
    M82       2012-10-29  16.2  15.2    2012-10-29  45.0
 
+.. _merging_metadata:
+
 Merging Metadata
 ^^^^^^^^^^^^^^^^
 
