@@ -273,7 +273,7 @@ time — this returns a |BinnedTimeSeries|::
     <BinnedTimeSeries length=74>
        time_bin_start   time_bin_size ...        pos_corr2          sap_flux_norm
                               d       ...           pix
-           object          float64    ...         float64              float64
+         TimeDelta         float64    ...         float64              float64
     ------------------- ------------- ... ----------------------- ------------------
     -1.1022116370482966          0.03 ...  0.00031207725987769663 0.9998741745948792
     -1.0722116370482966          0.03 ...  0.00041217938996851444 0.9999074339866638
