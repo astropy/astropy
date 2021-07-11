@@ -953,7 +953,7 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
         Gain of the CCD. In units of electrons per DN.
 
     Returns
-    ----------
+    -------
     SNR : float or numpy.ndarray
         Signal to noise ratio calculated from the inputs
     """
