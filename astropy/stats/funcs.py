@@ -19,9 +19,10 @@ from . import _stats
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
            'binom_conf_interval', 'binned_binom_proportion',
            'poisson_conf_interval', 'median_absolute_deviation', 'mad_std',
-           'signal_to_noise_oir_ccd', 'bootstrap', 'kuiper', 'kuiper_two',
-           'kuiper_false_positive_probability', 'cdf_from_intervals',
-           'interval_overlap_length', 'histogram_intervals', 'fold_intervals']
+           'signal_to_noise_oir_ccd', 'exptime_oir_ccd', 'bootstrap', 'kuiper',
+           'kuiper_two', 'kuiper_false_positive_probability',
+           'cdf_from_intervals', 'interval_overlap_length',
+           'histogram_intervals', 'fold_intervals']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy'],
@@ -956,11 +957,66 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
     ----------
     SNR : float or numpy.ndarray
         Signal to noise ratio calculated from the inputs
+
+    See also
+    --------
+    exptime_oir_ccd
     """
     signal = t * source_eps * gain
     noise = np.sqrt(t * (source_eps * gain + npix *
                          (sky_eps * gain + dark_eps)) + npix * rd ** 2)
     return signal / noise
+
+
+def exptime_oir_ccd(signal_to_noise, source_eps, sky_eps, dark_eps, rd, npix,
+                    gain=1.0):
+    """Computes the exposure time for a given signal to noise ratio for source
+    being observed in the optical/IR using a CCD.
+
+    Parameters
+    ----------
+    signal_to_noise : float or numpy.ndarray
+        Desired signal to noise ratio
+    source_eps : float
+        Number of electrons (photons) or DN per second in the aperture from the
+        source. Note that this should already have been scaled by the filter
+        transmission and the quantum efficiency of the CCD. If the input is in
+        DN, then be sure to set the gain to the proper value for the CCD.
+        If the input is in electrons per second, then keep the gain as its
+        default of 1.0.
+    sky_eps : float
+        Number of electrons (photons) or DN per second per pixel from the sky
+        background. Should already be scaled by filter transmission and QE.
+        This must be in the same units as source_eps for the calculation to
+        make sense.
+    dark_eps : float
+        Number of thermal electrons per second per pixel. If this is given in
+        DN or ADU, then multiply by the gain to get the value in electrons.
+    rd : float
+        Read noise of the CCD in electrons. If this is given in
+        DN or ADU, then multiply by the gain to get the value in electrons.
+    npix : float
+        Size of the aperture in pixels
+    gain : float, optional
+        Gain of the CCD. In units of electrons per DN.
+
+    Returns
+    -------
+    t : float or numpy.ndarray
+        CCD integration time in seconds
+
+    See also
+    --------
+    signal_to_noise_oir_ccd
+    """
+    snr2 = np.square(signal_to_noise)
+    signal_rate = source_eps * gain
+    noise_rate = signal_rate + npix * (sky_eps * gain + dark_eps)
+    noise_const = npix * rd ** 2
+    a = np.square(signal_rate)
+    b = -snr2 * noise_rate
+    c = -snr2 * noise_const
+    return (-b + np.sqrt(np.square(b) - 4 * a * c)) / (2 * a)
 
 
 def bootstrap(data, bootnum=100, samples=None, bootfunc=None):

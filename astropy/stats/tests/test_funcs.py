@@ -2,6 +2,8 @@
 
 import pytest
 
+from hypothesis import given
+from hypothesis.strategies import floats
 import numpy as np
 from numpy.testing import assert_equal, assert_allclose
 
@@ -257,6 +259,21 @@ def test_signal_to_noise_oir_ccd():
     # make sure snr increases with time
     result = funcs.signal_to_noise_oir_ccd(2, 25, 0, 0, 0, 1)
     assert result > 5.0
+
+
+@given(t=floats(min_value=1, max_value=1e9),
+       source_eps=floats(min_value=1, max_value=1e9),
+       sky_eps=floats(min_value=0, max_value=1e9),
+       dark_eps=floats(min_value=0, max_value=1e9),
+       rd=floats(min_value=0, max_value=1e9),
+       npix=floats(min_value=0, max_value=1e9),
+       gain=floats(min_value=1, max_value=1e9))
+def test_exptime_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix, gain):
+    snr = funcs.signal_to_noise_oir_ccd(
+        t, source_eps, sky_eps, dark_eps, rd, npix, gain=gain)
+    t_result = funcs.exptime_oir_ccd(
+        snr, source_eps, sky_eps, dark_eps, rd, npix, gain=gain)
+    assert t_result == pytest.approx(t)
 
 
 def test_bootstrap():
