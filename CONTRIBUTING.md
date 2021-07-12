@@ -148,7 +148,7 @@ package.
   * Are the [coding guidelines](https://docs.astropy.org/en/latest/development/codeguide.html) followed?
   * Is the code compatible with Python >=3.7?
   * Are there dependencies other than the `astropy` core, the Python Standard
-    Library, and NumPy 1.17.0 or later?
+    Library, and NumPy 1.18.0 or later?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependencies handled appropriately?
     * Do functions that require additional dependencies raise an `ImportError`
