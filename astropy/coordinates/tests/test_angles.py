@@ -1046,3 +1046,21 @@ def test_angle_multithreading():
         Angle(angles, unit='hour')
     for i in range(10):
         threading.Thread(target=parse_test, args=(i,)).start()
+
+def test_print_longitude_nan():
+    """
+    Regression test for issue #11473
+    """
+    print(Longitude(np.nan * u.deg))
+
+def test_print_latitude_nan():
+    """
+    Regression test for issue #11473
+    """
+    print(Latitude(np.nan * u.deg))
+
+def test_print_angle_nan():
+    """
+    Regression test for issue #11473
+    """
+    print(Angle(np.nan * u.deg))
