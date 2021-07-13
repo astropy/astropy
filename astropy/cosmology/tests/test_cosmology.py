@@ -3,16 +3,16 @@
 from io import StringIO
 
 import pytest
+
 import numpy as np
 
+import astropy.constants as const
+import astropy.units as u
 from astropy.cosmology import core, funcs, realizations
-from astropy.cosmology.realizations import Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9
+from astropy.cosmology.realizations import WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18
 from astropy.units import allclose
-from astropy import constants as const
-from astropy import units as u
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyUserWarning)
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 def test_init():
