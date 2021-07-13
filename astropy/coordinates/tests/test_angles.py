@@ -1047,20 +1047,47 @@ def test_angle_multithreading():
     for i in range(10):
         threading.Thread(target=parse_test, args=(i,)).start()
 
-def test_print_longitude_nan():
+
+def test_print_longitude_nan(capsys):
     """
     Regression test for issue #11473
     """
     print(Longitude(np.nan * u.deg))
+    output, err = capsys.readouterr()
+    assert output == "nan deg\n"
+    print(Longitude(np.nan * u.rad))
+    output, err = capsys.readouterr()
+    assert output == "nan rad\n"
+    print(Longitude(np.nan * u.hour))
+    output, err = capsys.readouterr()
+    assert output == "nan hourangle\n"
 
-def test_print_latitude_nan():
+
+def test_print_latitude_nan(capsys):
     """
     Regression test for issue #11473
     """
     print(Latitude(np.nan * u.deg))
+    output, err = capsys.readouterr()
+    assert output == "nan deg\n"
+    print(Latitude(np.nan * u.rad))
+    output, err = capsys.readouterr()
+    assert output == "nan rad\n"
+    print(Latitude(np.nan * u.hour))
+    output, err = capsys.readouterr()
+    assert output == "nan hourangle\n"
 
-def test_print_angle_nan():
+
+def test_print_angle_nan(capsys):
     """
     Regression test for issue #11473
     """
     print(Angle(np.nan * u.deg))
+    output, err = capsys.readouterr()
+    assert output == "nan deg\n"
+    print(Angle(np.nan * u.rad))
+    output, err = capsys.readouterr()
+    assert output == "nan rad\n"
+    print(Angle(np.nan * u.hour))
+    output, err = capsys.readouterr()
+    assert output == "nan hourangle\n"
