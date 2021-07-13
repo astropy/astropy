@@ -1,0 +1,1 @@
+NaN values are now printed for Angle, Latitude and Longitude in degrees.
