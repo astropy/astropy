@@ -3341,11 +3341,13 @@ class CompoundModel(Model):
         This also presumes that the list of input indices to remove (i.e.,
         input_ind has already been put in reverse sorted order).
         """
-        bounding_box = list(self.left.bounding_box)
+        bounding_box = list(self.left.bounding_box)[::-1]
         for ind in input_ind:
             del bounding_box[ind]
         if self.n_inputs == 1:
             bounding_box = bounding_box[0]
+        else:
+            bounding_box = bounding_box[::-1]
         self.bounding_box = bounding_box
 
     @property
