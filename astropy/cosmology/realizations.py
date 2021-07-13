@@ -8,33 +8,24 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.state import ScienceState
 
 from . import parameters
-from .core import Cosmology
+from .core import Cosmology, _COSMOLOGY_CLASSES
 
 __all__ = ["default_cosmology"] + parameters.available
 
 __doctest_requires__ = {"*": ["scipy"]}
 
 
-def _all_subclasses(cls):
-    """Yield a (qualname, cls) of all subclasses (inclusive)."""
-    # modified from https://stackoverflow.com/a/33607093
-    yield cls.__qualname__, cls
-    for subclass in cls.__subclasses__():
-        yield from _all_subclasses(subclass)  # recursion in subclass
-
-
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a cosmology instance with the same name as the
 # parameter set in the current module's namespace.
-_subclasses = dict(_all_subclasses(Cosmology))
 for key in parameters.available:
     params = getattr(parameters, key)
 
     # TODO! this will need refactoring again when: parameter I/O is JSON/ECSSV
     cosmo_cls_name = params.pop("cosmology", None)
 
-    if cosmo_cls_name in _subclasses:
-        cosmo_cls = _subclasses[cosmo_cls_name]
+    if cosmo_cls_name in _COSMOLOGY_CLASSES:
+        cosmo_cls = _COSMOLOGY_CLASSES[cosmo_cls_name]
 
         par = dict()
         meta = params.pop("meta", None) or {}
@@ -50,8 +41,8 @@ for key in parameters.available:
 
         ba = cosmo_cls._init_signature.bind_partial(**par, name=key, meta=meta)
         cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        cosmo.__doc__ = (f"{key} instance of {cosmo_cls.__name__} cosmology\n"
-                         f"(from {meta['reference']})")
+        cosmo.__doc__ = (f"{key} instance of {cosmo_cls.__qualname__} cosmology"
+                         f"\n(from {meta['reference']})")
 
         setattr(sys.modules[__name__], key, cosmo)
 
