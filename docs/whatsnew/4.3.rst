@@ -201,7 +201,7 @@ The people who have contributed to the code for this release are:
 -  Brigitta Sipőcz
 -  Bruce Merry
 -  Chiara Marmo  *
--  DanRyanIrish  *
+-  Dan Ryan  *
 -  David Stansby
 -  Derek Homeier
 -  E. Madison Bray
@@ -247,7 +247,7 @@ The people who have contributed to the code for this release are:
 -  Richard R  *
 -  Rik van Lieshout  *
 -  Sam Lee   *
--  Sashank Mishra  *
+-  Sashank Mishra
 -  Shankar Kulumani  *
 -  Simon Conseil
 -  Steve Guest  *
