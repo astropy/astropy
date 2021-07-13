@@ -9,7 +9,7 @@ What's New in Astropy 4.3?
 Overview
 ========
 
-Astropy 4.3 is a major release that ...  since
+Astropy 4.3 is a major release that adds significant new functionality since
 the 4.2.x series of releases.
 
 In particular, this release includes:
@@ -24,15 +24,14 @@ In particular, this release includes:
 * :ref:`whatsnew-4.3-masked-class-quantity`
 * :ref:`whatsnew-4.3-configuration-file-optional`
 * :ref:`whatsnew-4.3-cosmology`
-*
 
 In addition to these major changes, Astropy v4.3 includes a large number of
 smaller improvements and bug fixes, which are described in the
 :ref:`changelog`. By the numbers:
 
-* xxx issues have been closed since v4.2
-* xxx pull requests have been merged since v4.2
-* xxx distinct people have contributed code
+* 309 issues have been closed since v4.2
+* 145 pull requests have been merged since v4.2
+* 72 distinct people have contributed code
 
 .. _whatsnew-4.3-coordinates:
 
@@ -186,6 +185,84 @@ Full change log
 To see a detailed list of all changes in version v4.3, including changes in
 API, please see the :ref:`changelog`.
 
+Contributors to the v4.3 release
+================================
 
-Renamed/removed functionality
-=============================
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+-  Adrian Price-Whelan
+-  Albert Y. Shih
+-  Andrej Rode  *
+-  Bhavya Khandelwal  *
+-  Brian Soto
+-  Brigitta Sipőcz
+-  Bruce Merry
+-  Chiara Marmo  *
+-  DanRyanIrish  *
+-  David Stansby
+-  Derek Homeier
+-  E. Madison Bray
+-  Ed Slavich
+-  Eero Vaher  *
+-  Erik Tollerud
+-  Gabriel Perren
+-  Geert Barentsen
+-  Gyanendra Shukla  *
+-  Hans Moritz Günther
+-  Ilya Kamenshchikov  *
+-  Jakob Maljaars  *
+-  James Davies
+-  James Tocknell  *
+-  James Turner
+-  Jane Rigby
+-  Jose Sabater  *
+-  Juan Luis Cano Rodríguez
+-  Julien Woillez
+-  Karl Wessel  *
+-  Larry Bradley
+-  Laura Hayes  *
+-  Leo Singer
+-  Ludwig Schwardt
+-  Léni Gauffier  *
+-  Maik Nijhuis  *
+-  Marten van Kerkwijk
+-  Matteo Bachetti
+-  Matthias Bussonnier  *
+-  Maximilian Nöthe
+-  Mihai Cara
+-  Nadia Dencheva
+-  Nathaniel Starkman
+-  Nicholas Earl
+-  Nick Murphy
+-  Nikita Tewary  *
+-  Ole Streicher
+-  Param Patidar  *
+-  Perry Greenfield
+-  Pey Lian Lim
+-  Pushkar Kopparla  *
+-  Ricardo Fonseca
+-  Richard R  *
+-  Rik van Lieshout  *
+-  Sam Lee   *
+-  Sashank Mishra  *
+-  Shankar Kulumani  *
+-  Simon Conseil
+-  Steve Guest  *
+-  Steven Bamford
+-  Stuart Littlefair
+-  Stuart Mumford
+-  Suyog Garg  *
+-  Thomas Robitaille
+-  Tim Gates  *
+-  Tim Jenness
+-  Tom Aldcroft
+-  Tom Donaldson
+-  William Jamieson  *
+-  homeboy445  *
+-  maggiesam  *
+
+Where a * indicates that this release contains their first contribution to
+Astropy.
