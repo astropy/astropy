@@ -24,9 +24,11 @@ from . import core
 from . import fixedwidth
 
 from astropy.units import Unit
+from astropy import units as u
 
 from astropy.table import Table
 from astropy.table import Column, MaskedColumn
+from astropy.coordinates import SkyCoord
 from string import Template
 from textwrap import wrap, fill
 
@@ -293,7 +295,8 @@ class CdsHeader(core.BaseHeader):
                 # current value is not in Scientific notation
                 # but the column is designated as such because
                 # one of the previous values was.
-                if fformat == 'E': continue
+                if fformat == 'E':
+                    continue
 
             if maxsize < fmt[0]:
                 maxsize = fmt[0]
@@ -345,6 +348,64 @@ class CdsHeader(core.BaseHeader):
 
             --------------------------------------------------------------------------------
         """
+        # For columns that are instances of ``SkyCoord`` and ``TimeSeries`` classes,
+        # or whose values are objects of these classes.
+        for i, col in enumerate(self.cols):
+            # If col is a ``Column`` object but its values are ``SkyCoord`` objects,
+            # convert the whole column to ``SkyCoord`` object, which helps in method
+            # applications.
+            if not isinstance(col, SkyCoord) and isinstance(col[0], SkyCoord):
+                col = SkyCoord(col)
+
+            # Replace single ``SkyCoord`` column by its coordinate components.
+            if isinstance(col, SkyCoord):
+                # If coordinates are given in RA/DEC, divide each them into hour/deg,
+                # minute/arcminute, second/arcsecond columns.
+                if 'ra' in col.representation_component_names.keys():
+                    ra_col, dec_col = col.ra.hms, col.dec.dms
+                    coords = [ra_col.h, ra_col.m, ra_col.s,
+                              dec_col.d, dec_col.m, dec_col.s]
+                    names = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
+                    coord_units = [u.h, u.min, u.second,
+                                   u.deg, u.arcmin, u.arcsec]
+                    coord_descrip = ['Right Ascension (hour)', 'Right Ascension (minute)',
+                                     'Right Ascension (second)', 'Declination (degree)',
+                                     'Declination (arcmin)', 'Declination (arcsec)']
+                    for coord, name, coord_unit, descrip in zip(
+                        coords, names, coord_units, coord_descrip):
+                            # Have Sign of Declination only in the DEd column.
+                            if name in ['DEm', 'DEs']:
+                                coord_col = Column(list(np.abs(coord)), name=name,
+                                                   unit=coord_unit, description=descrip)
+                            else:
+                                coord_col = Column(list(coord), name=name, unit=coord_unit,
+                                                   description=descrip)
+                            self.cols.append(coord_col)
+
+                # For all other coordinate types, simply divide into two columns
+                # for latitude and longitude resp. with the unit used been as it is.
+                else:
+                    # Galactic coordinates.
+                    if col.name == 'galactic':
+                        lon_col = Column(col.l, name='GLON',
+                                         description='Galactic Longitude',
+                                         unit=col.representation_component_units['l'])
+                        lat_col = Column(col.b, name='GLAT',
+                                         description='Galactic Latitude',
+                                         unit=col.representation_component_units['b'])
+                    # Ecliptic coordinates, can be any of various available.
+                    else:
+                        lon_col = Column(col.lon, name='ELON',
+                                         description = 'Ecliptic Longitude (' + col.name + ')',
+                                         unit=col.representation_component_units['lon'])
+                        lat_col = Column(col.lat, name='ELAT',
+                                         description = 'Ecliptic Latitude (' + col.name + ')',
+                                         unit=col.representation_component_units['lat'])
+                    self.cols.append(lon_col)
+                    self.cols.append(lat_col)
+
+                self.cols.pop(i)  # Delete original ``SkyCoord`` column.
+
         # Get column widths
         vals_list = []
         col_str_iters = self.data.str_vals()
@@ -373,11 +434,12 @@ class CdsHeader(core.BaseHeader):
         max_descrip_size = 16
         nsplit = sum(sz) + 16
         # Format string for Start Byte and End Byte
-        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d} {2:" + str(sz[2]) + "s}"
+        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d}  " # {2:" + str(sz[2]) + "s}"
 
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
                     dtype=[str]*5)
 
+        # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
             # Check if column is MaskedColumn
             col.has_null = isinstance(col, MaskedColumn)
@@ -398,7 +460,7 @@ class CdsHeader(core.BaseHeader):
                 self._set_column_val_limits(col)
                 self.column_float_formatter(col)
 
-            else:
+            elif np.issubdtype(col.dtype, np.str):
                 # String formatter
                 if col.has_null:
                     mcol = col
@@ -439,7 +501,9 @@ class CdsHeader(core.BaseHeader):
 
             # Add col limit values to col description
             lim_vals = ""
-            if col.min and col.max:
+            if (col.min and col.max and
+                not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT'])):
+                # No col limit values for coordinate columns.
                 if col.fortran_format[0] == 'I':
                     if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
                         if col.min == col.max:
@@ -456,10 +520,18 @@ class CdsHeader(core.BaseHeader):
             if len(description) > max_descrip_size:
                 max_descrip_size = len(description)
 
+            # Add a row for the Sign of Declination in the bbb table
+            singlebfmt = "{:" + str(sz[1]) + "d}  "
+            if col.name == 'DEd' and col[0] < 0.0:
+                bbb.add_row([singlebfmt.format(startb),
+                             "A1", "---", "DE-",
+                             "Sign of Declination"])
+                startb += 1
+
             # Add Byte-By-Byte row to bbb table
-            bbb.add_row([fmtb.format(startb, endb, ""),
+            bbb.add_row([fmtb.format(startb, endb),
                          "" if col.fortran_format is None else col.fortran_format,
-                         "" if col.meta.unit is None else col.meta.unit,
+                         col.meta.unit,
                          "" if col.name is None else col.name,
                          description])
             startb = endb + 2
