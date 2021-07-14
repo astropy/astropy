@@ -19,40 +19,40 @@ test_dat = ['names e d s i',
 
 
 def test_write_data():
-    expOutput = ['S08-229 4625 1.23 1.23 -1.50      ',
-                 'S05-10  4342 0.91 1.82 -2.11  0.14',
-                 'S05-47  4654 1.28 1.74 -1.64  0.16']
+    exp_output = ['S08-229 4625 1.23 1.23 -1.50      ',
+                  'S05-10  4342 0.91 1.82 -2.11  0.14',
+                  'S05-47  4654 1.28 1.74 -1.64  0.16']
 
     dat = 'data/cdsFunctional2.dat'
     t = Table.read(dat, format='ascii.cds')
 
     out = StringIO()
     t.write(out, format='ascii.cds')
-    # get the last section of table which will be the data.
+    # Get the last section of table which will be the data.
     lines = out.getvalue().splitlines()
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
     lines = lines[i_secs[-1]+1:]
-    assert lines == expOutput
+    assert lines == exp_output
 
 
-def test_write_ByteByByte_units():
+def test_write_byte_by_byte_units():
     t = ascii.read(test_dat)
-    colUnits = [None, u.C, u.kg, None, u.year]
-    t._set_column_attribute('unit', colUnits)
-    # add a column with magnitude units.
-    # note that magnitude has to be assigned for each value explicitly.
+    col_units = [None, u.C, u.kg, None, u.year]
+    t._set_column_attribute('unit', col_units)
+    # Add a column with magnitude units.
+    # Note that magnitude has to be assigned for each value explicitly.
     t['magnitude'] = [u.Magnitude(25), u.Magnitude(-9)]
-    colUnits.append(u.mag)
+    col_units.append(u.mag)
     out = StringIO()
     t.write(out, format='ascii.cds')
-    # read written table.
+    # Read written table.
     tRead = ascii.read(out.getvalue(), format='cds')
-    assert [tRead[col].unit for col in tRead.columns] == colUnits
+    assert [tRead[col].unit for col in tRead.columns] == col_units
 
 
 def test_write_readme_with_default_options():
-    expOutput = '''\
+    exp_output = '''\
                                                       (1st author ?, Date ?)
 ================================================================================
 Title ?
@@ -105,7 +105,7 @@ HD103095 -3e+06 27.25000  -9e+34 -30
     t = ascii.read(test_dat)
     out = StringIO()
     t.write(out, format='ascii.cds')
-    assert out.getvalue() == expOutput
+    assert out.getvalue() == exp_output
 
 
 def test_write_empty_table():
@@ -116,9 +116,9 @@ def test_write_empty_table():
 
 
 def test_write_null_data_values():
-    expOutput = ['HD81809  1e-07   22.25608  2.0e+00  67',
-                 'HD103095 -3e+06  27.25000 -9.0e+34 -30',
-                 'Sun                        5.3e+27    ']
+    exp_output = ['HD81809  1e-07   22.25608  2.0e+00  67',
+                  'HD103095 -3e+06  27.25000 -9.0e+34 -30',
+                  'Sun                        5.3e+27    ']
     t = ascii.read(test_dat)
     t.add_row(['Sun', '3.25', '0', '5.3e27', '2'],
                 mask=[False, True, True, False, True])
@@ -128,17 +128,17 @@ def test_write_null_data_values():
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
     lines = lines[i_secs[-1]+1:]
-    assert lines == expOutput
+    assert lines == exp_output
 
 
-def test_write_ByteByByte_for_masked_column():
+def test_write_byte_by_byte_for_masked_column():
     """
     This test differs from the ``test_write_null_data_values``
-    above in that it tests the column value limits in the ByteByByte
+    above in that it tests the column value limits in the Byte-By-Byte
     description section for columns whose values are masked.
     It also checks the description for columns with same values.
     """
-    expOutput = '''\
+    exp_output = '''\
 --------------------------------------------------------------------------------
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
@@ -178,4 +178,4 @@ HD103095         -9e+34 -30 5.0 20
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
     lines = lines[i_secs[-6]:]
-    assert lines == expOutput.splitlines()
+    assert lines == exp_output.splitlines()
