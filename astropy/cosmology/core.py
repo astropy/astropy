@@ -12,9 +12,9 @@ import numpy as np
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils import isiterable
+from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.metadata import MetaData
-from astropy.utils.state import ScienceState
 
 from . import scalar_inv_efuncs
 
@@ -112,10 +112,6 @@ class Cosmology(metaclass=ABCMeta):
 
     def __init_subclass__(cls):
         super().__init_subclass__()
-        # get signature, dropping "self" by taking arguments [1:]
-        sig = signature(cls.__init__)
-        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
-        cls._init_signature = sig  # store (immutable) initialization signature
 
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
@@ -135,11 +131,13 @@ class Cosmology(metaclass=ABCMeta):
         self._name = name
         self.meta.update(meta or {})
 
-    # Make initial signature of cosmology. Overwritten in subclasses.
-    # (Need to make one here b/c Cosmology is not abstract).
-    _init_signature = signature(__init__)
-    _init_signature = _init_signature.replace(
-        parameters=list(_init_signature.parameters.values())[1:])
+    @classproperty(lazy=True)
+    def _init_signature(cls):
+        """Initialization signature (without 'self')."""
+        # get signature, dropping "self" by taking arguments [1:]
+        sig = signature(cls.__init__)
+        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
+        return sig
 
     @property
     def name(self):
