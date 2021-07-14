@@ -1,17 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import sys
 import io
+import sys
 
 import pytest
+
 import numpy as np
 
-from astropy.cosmology import core, funcs, realizations
-from astropy.cosmology.realizations import Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9
-from astropy.units import allclose
 from astropy import units as u
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.cosmology import core, funcs, realizations
+from astropy.cosmology.realizations import WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18
+from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
