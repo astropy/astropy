@@ -2,10 +2,10 @@
 
 import pytest
 
-from astropy.tests.helper import pickle_protocol, check_pickling_recovery
-from astropy import cosmology as cosm
+from astropy.cosmology import FLRW
+from astropy.tests.helper import check_pickling_recovery, pickle_protocol
 
-originals = [cosm.FLRW]
+originals = [FLRW]
 xfails = [False]
 
 

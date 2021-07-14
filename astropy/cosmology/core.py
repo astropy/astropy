@@ -2,24 +2,21 @@
 
 import copy
 import sys
-from math import acos, sin, cos, sqrt, pi, exp, log, floor
+import warnings
 from abc import ABCMeta, abstractmethod
 from inspect import signature
-import warnings
+from math import acos, cos, exp, floor, log, pi, sin, sqrt
 
 import numpy as np
-
-from . import scalar_inv_efuncs
 
 from astropy import constants as const
 from astropy import units as u
 from astropy.utils import isiterable
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyUserWarning)
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.metadata import MetaData
 from astropy.utils.state import ScienceState
-from astropy.utils.exceptions import AstropyUserWarning
 
+from . import scalar_inv_efuncs
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban

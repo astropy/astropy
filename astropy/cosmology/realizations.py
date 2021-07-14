@@ -8,7 +8,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.state import ScienceState
 
 from . import parameters
-from .core import Cosmology, _COSMOLOGY_CLASSES
+from .core import _COSMOLOGY_CLASSES, Cosmology
 
 __all__ = ["default_cosmology"] + parameters.available
 

@@ -4,10 +4,12 @@ Convenience functions for `astropy.cosmology`.
 """
 
 import warnings
+
 import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
+
 from .core import CosmologyError
 
 __all__ = ['z_at_value']
