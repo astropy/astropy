@@ -6,6 +6,7 @@ import warnings
 from abc import ABCMeta, abstractmethod
 from inspect import signature
 from math import acos, cos, exp, floor, log, pi, sin, sqrt
+from types import MappingProxyType
 
 import numpy as np
 
@@ -120,14 +121,12 @@ class Cosmology(metaclass=ABCMeta):
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
     def __new__(cls, *args, **kwargs):
-        # bundle initialization argument
+        self = super().__new__(cls)
+
+        # bundle and store initialization arguments on the instance
         ba = cls._init_signature.bind_partial(*args, **kwargs)
         ba.apply_defaults()  # and fill in the defaults
-        # get dictionary of arguments
-        parameters = ba.arguments
-
-        self = super().__new__(cls)
-        self._init_arguments = parameters  # store arguments from initialization
+        self._init_arguments = MappingProxyType(ba.arguments)
 
         return self
 
