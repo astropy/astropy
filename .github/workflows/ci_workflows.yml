@@ -39,6 +39,14 @@ jobs:
             core.info(`PR opened correctly against ${allowed_basebranch}`);
           }
 
+  pre-commit:
+    name: Code style checks
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - uses: pre-commit/action@v2.0.3
+
   tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -47,11 +55,6 @@ jobs:
       fail-fast: true
       matrix:
         include:
-
-          - name: Code style checks
-            os: ubuntu-latest
-            python: 3.x
-            toxenv: codestyle
 
           # NOTE: this 2nd coverage test is needed for tests and code that
           #       run only with minimal dependencies.
