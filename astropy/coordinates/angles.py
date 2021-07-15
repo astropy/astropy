@@ -350,11 +350,16 @@ class Angle(u.SpecificTypeQuantity):
                 "The unit value provided is not an angular unit.")
 
         def do_format(val):
-            s = func(float(val))
-            if alwayssign and not s.startswith('-'):
-                s = '+' + s
-            if format == 'latex':
-                s = f'${s}$'
+            # Check if value is not nan to avoid ValueErrors when turning it into
+            # a hexagesimal string.
+            if not np.isnan(val):
+                s = func(float(val))
+                if alwayssign and not s.startswith('-'):
+                    s = '+' + s
+                if format == 'latex':
+                    s = f'${s}$'
+                return s
+            s = f"{val}"
             return s
 
         format_ufunc = np.vectorize(do_format, otypes=['U'])
