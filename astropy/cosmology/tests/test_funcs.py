@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
 import sys
 from io import StringIO
 
@@ -233,8 +234,9 @@ def test_z_at_value_roundtrip(cosmo):
     if str(cosmo.name).startswith('WMAP'):
         skip += ('nu_relative_density', )
 
-    import inspect
-    methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
+    # get methods, ignoring warning from ".read"
+    with pytest.warns(AstropyUserWarning, match=r'``Cosmology`` subclasses'):
+        methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
 
     for name, func in methods:
         if name.startswith('_') or name in skip:
