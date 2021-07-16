@@ -1,0 +1,5 @@
+Move complex logic from ``HighLevelWCSMixin.pixel_to_world`` and
+``HighLevelWCSMixin.world_to_pixel`` into the helper functions
+``astropy.wcs.wcsapi.high_level_api.high_level_objects_to_values`` and
+``astropy.wcs.wcsapi.high_level_api.values_to_high_level_objects`` to allow
+reuse in other places.
