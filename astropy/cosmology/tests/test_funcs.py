@@ -1,14 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import io
 import sys
+from io import StringIO
 
 import pytest
 
 import numpy as np
 
 from astropy import units as u
-from astropy.cosmology import core, funcs, realizations
+from astropy.cosmology import core
+from astropy.cosmology.funcs import z_at_value, _z_at_scalar_value
 from astropy.cosmology.realizations import WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
@@ -16,14 +17,13 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_z_at_value():
+def test_z_at_value_scalar():
     # These are tests of expected values, and hence have less precision
     # than the roundtrip tests below (test_z_at_value_roundtrip);
     # here we have to worry about the cosmological calculations
     # giving slightly different values on different architectures,
     # there we are checking internal consistency on the same architecture
     # and so can be more demanding
-    z_at_value = funcs.z_at_value
     cosmo = Planck13
     assert allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.19812268, rtol=1e-6)
     assert allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr), 0.795198375, rtol=1e-6)
@@ -48,12 +48,89 @@ def test_z_at_value():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
+class Test_ZatValue:
+
+    def setup_class(self):
+        self.cosmo = Planck13
+
+    def test_broadcast_arguments(self):
+        """Test broadcast of arguments."""
+        # broadcasting main argument
+        assert allclose(
+            z_at_value(self.cosmo.age, [2, 7] * u.Gyr),
+            [3.1981206134773115, 0.7562044333305182], rtol=1e-6)
+
+        # basic broadcast of secondary arguments
+        assert allclose(
+            z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
+                       zmin=[0, 2.5], zmax=[2, 4]),
+            [0.681277696, 3.7914908], rtol=1e-6)
+
+        # more interesting broadcast
+        assert allclose(
+            z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
+                       zmin=[[0, 2.5]], zmax=[2, 4]),
+            [[0.681277696, 3.7914908]], rtol=1e-6)
+
+    def test_broadcast_bracket(self):
+        """`bracket` has special requirements."""
+        # start with an easy one
+        assert allclose(
+            z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=None),
+            3.1981206134773115, rtol=1e-6)
+
+        # now actually have a bracket
+        assert allclose(
+            z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=[0, 4]),
+            3.1981206134773115, rtol=1e-6)
+
+        # now a bad length
+        with pytest.raises(ValueError, match="sequence"):
+            z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=[0, 4, 4, 5])
+
+        # now the wrong dtype : an ndarray, but not an object array
+        with pytest.raises(TypeError, match="dtype"):
+            z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=np.array([0, 4]))
+
+        # now an object array of brackets
+        bracket=np.array([[0, 4], [0, 3, 4]], dtype=object)
+        assert allclose(
+            z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=bracket),
+            [3.1981206134773115, 3.1981206134773115], rtol=1e-6)
+
+    def test_bad_broadcast(self):
+        """Shapes mismatch as expected"""
+        with pytest.raises(ValueError, match="broadcast"):
+            z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
+                       zmin=[0, 2.5, 0.1], zmax=[2, 4])
+
+    def test_scalar_input_to_output(self):
+        """Test scalar input returns a scalar."""
+        assert isinstance(
+            z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
+                       zmin=0, zmax=2),
+            np.float64)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_z_at_value_numpyvectorize():
+    """Test that numpy vectorize fails on Quantities.
+
+    If this test starts failing then numpy vectorize can be used instead of
+    the home-brewed vectorization. Please submit a PR making the change.
+    """
+    z_at_value = np.vectorize(_z_at_scalar_value,
+                              excluded=["func", "method", "verbose"])
+    with pytest.raises(u.UnitConversionError, match="dimensionless quantities"):
+        z_at_value(Planck15.age, 10*u.Gyr)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_z_at_value_verbose(monkeypatch):
-    z_at_value = funcs.z_at_value
     cosmo = Planck13
 
     # Test the "verbose" flag. Since this uses "print", need to mod stdout
-    mock_stdout = io.StringIO()
+    mock_stdout = StringIO()
     monkeypatch.setattr(sys, 'stdout', mock_stdout)
 
     resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
@@ -68,7 +145,6 @@ def test_z_at_value_bracketed(method):
     but setting `bracket` on the appropriate side of the turning point z.
     Setting zmin / zmax should override `bracket`.
     """
-    z_at_value = funcs.z_at_value
     cosmo = Planck13
 
     if method == 'Bounded':
@@ -115,7 +191,6 @@ def test_z_at_value_unconverged(method):
     Test warnings on non-converged solution when setting `maxfun` to too small iteration number -
     only 'Bounded' returns status value and specific message.
     """
-    z_at_value = funcs.z_at_value
     cosmo = Planck18
     ztol = {'Brent': [1e-4, 1e-4], 'Golden': [1e-3, 1e-2], 'Bounded': [1e-3, 1e-1]}
 
@@ -170,7 +245,7 @@ def test_z_at_value_roundtrip(cosmo):
         # angular_diameter_distance and related methods.
         # Be slightly more generous with rtol than the default 1e-8
         # used in z_at_value
-        assert allclose(z, funcs.z_at_value(func, fval, bracket=[0.3, 1.0], ztol=1e-12), rtol=2e-11)
+        assert allclose(z, z_at_value(func, fval, bracket=[0.3, 1.0], ztol=1e-12), rtol=2e-11)
 
     # Test distance functions between two redshifts; only for realizations
     if isinstance(cosmo.name, str):
@@ -182,4 +257,4 @@ def test_z_at_value_roundtrip(cosmo):
         ]
         for func in func_z1z2:
             fval = func(z)
-            assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
+            assert allclose(z, z_at_value(func, fval, zmax=1.5, ztol=1e-12), rtol=2e-11)
