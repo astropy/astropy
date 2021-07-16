@@ -229,10 +229,9 @@ details.
     astropy.io.ascii.write(table, sys.stdout, formats={'XCENTER': '%12.1f',
                                                  'YCENTER': lambda x: round(x, 1)},
 
-**names**: list of names corresponding to each data column
-  Define the complete list of names for each data column. This will override
-  names determined from the data table (if available). If not supplied then
-  use names from the data table or auto-generated names.
+**names**: list of output column names
+  Define the complete list of output column names to write for the data table,
+  overriding the existing column names.
 
 **include_names**: list of names to include in output
   From the list of column names found from the data table or the ``names``
