@@ -26,7 +26,8 @@ from . import scalar_inv_efuncs
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["Cosmology", "FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM",
-           "FlatwCDM", "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
+           "FlatwCDM", "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM",
+           "CosmologyError"]
 
 __doctest_requires__ = {'*': ['scipy']}
 
