@@ -22,7 +22,7 @@ An easy way to serialize and deserialize a Cosmology object is using the
    >>> cosmo
 
 However this method has all the attendant drawbacks of :mod:`pickle` — security
-and non-human-readable files.
+vulnerabilities and non-human-readable files.
 
 Solving both these issues, ``astropy`` provides a unified interface for reading
 and writing data in different formats.
@@ -36,7 +36,7 @@ The :class:`~astropy.cosmology.Cosmology` class includes two methods,
 :meth:`~astropy.cosmology.Cosmology.write`, that make it possible to read from
 and write to files.
 
-There are currently no built-in Cosmology readers not writers, but custom
+There are currently no built-in Cosmology readers nor writers, but custom
 ``read`` / ``write`` formats may be registered into the Astropy Cosmology I/O
 framework.
 

@@ -62,7 +62,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
                            category=AstropyUserWarning)
             return NotImplemented
             # TODO! implement for non-abstract subclasses, using that class as
-            # the assumed Cosmology type. 
+            # the assumed Cosmology type.
 
         return super().__new__(cls)
 
