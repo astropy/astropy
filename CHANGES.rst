@@ -55,7 +55,8 @@ astropy.coordinates
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
-- Added support for reading and writing ASCII tables in QDP (Quick and Dandy Plotter) format. [#11256]
+- Added support for reading and writing ASCII tables in QDP (Quick and Dandy
+ Plotter) format. [#11256]
 
 - Added support for reading and writing multidimensional column data (masked and
   unmasked) to ECSV. Also added formal support for reading and writing object-type
@@ -389,6 +390,7 @@ astropy.io.fits
 
 
   Previously if a compressed image header was assigned a value using a key of ``HIERARCH X Y Z`` a warning would be issued suggesting that ``HIERARCH`` should be used. [#11404]
+- Prevent warnings about ``HIERARCH`` with ``CompImageHeader`` class. [#11404]
 
 - Fixed regression introduced in Astropy 4.0.5 and 4.2.1 with verification of
   FITS headers with HISTORY or COMMENT cards with long (> 72 characters)
