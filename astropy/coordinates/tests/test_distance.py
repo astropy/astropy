@@ -126,6 +126,10 @@ def test_distances_scipy():
     with pytest.raises(ValueError):
         Distance()
 
+    # vectors!  regression test for #11949
+    d4 = Distance(z=[0.23, 0.45])  # as of writing, Planck18
+    npt.assert_allclose(d4.z, [0.23, 0.45], rtol=1e-8)
+
 
 def test_distance_change():
 

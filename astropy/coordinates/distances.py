@@ -212,6 +212,21 @@ class Distance(u.SpecificTypeQuantity):
         -------
         z : float
             The redshift of this distance given the provided ``cosmology``.
+
+        Warnings
+        --------
+        This method can be slow for large arrays.
+        The redshift is determined using :func:`astropy.cosmology.z_at_value`,
+        which handles vector inputs (e.g. an array of distances) by
+        element-wise calling of :func:`scipy.optimize.minimize_scalar`.
+        For faster results consider using an interpolation table;
+        :func:`astropy.cosmology.z_at_value` provides details.
+
+        See Also
+        --------
+        :func:`astropy.cosmology.z_at_value`
+            Find the redshift corresponding to a
+            :meth:`astropy.cosmology.FLRW.luminosity_distance`.
         """
 
         if cosmology is None:
