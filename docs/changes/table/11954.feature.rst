@@ -1,0 +1,5 @@
+Added new keyword arguments ``keys_left`` and ``keys_right`` to the table ``join``
+function to support joining tables on key columns with different names. In
+addition the new keywords can accept a list of column-like objects which are
+used as the match keys. This allows joining on arbitrary data which are not part
+of the tables being joined.
