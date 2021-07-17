@@ -1,0 +1,3 @@
+The table ``join`` function now accepts only the first four arguments ``left``,
+``right``, ``keys``, and ``join_type`` as positional arguments. All other
+arguments must be supplied as keyword arguments.
