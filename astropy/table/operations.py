@@ -336,7 +336,8 @@ def join_distance(distance, kdtree_args=None, query_args=None):
     return join_func
 
 
-def join(left, right, keys=None, join_type='inner',
+def join(left, right, keys=None, join_type='inner', *,
+         keys_left=None, keys_right=None,
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'], metadata_conflicts='warn',
          join_funcs=None):
@@ -354,6 +355,12 @@ def join(left, right, keys=None, join_type='inner',
         Default is to use all columns which are common to both tables.
     join_type : str
         Join type ('inner' | 'outer' | 'left' | 'right' | 'cartesian'), default is 'inner'
+    keys_left : str or list of str of list of column-like, optional
+        Left column(s) used to match rows instead of ``keys`` arg. This can be
+        be a single left table column name or list of column names, or a list of
+        column-like values with the same lengths as the left table.
+    keys_right : str or list of str or list of column-like, optional
+        Same as ``keys_left``, but for the right side of the join.
     uniq_col_name : str or None
         String generate a unique output column name in case of a conflict.
         The default is '{col_name}_{table_name}'.
@@ -384,7 +391,8 @@ def join(left, right, keys=None, join_type='inner',
     col_name_map = OrderedDict()
     out = _join(left, right, keys, join_type,
                 uniq_col_name, table_names, col_name_map, metadata_conflicts,
-                join_funcs)
+                join_funcs,
+                keys_left=keys_left, keys_right=keys_right)
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
@@ -1047,7 +1055,8 @@ def _join(left, right, keys=None, join_type='inner',
           uniq_col_name='{col_name}_{table_name}',
           table_names=['1', '2'],
           col_name_map=None, metadata_conflicts='warn',
-          join_funcs=None):
+          join_funcs=None,
+          keys_left=None, keys_right=None):
     """
     Perform a join of the left and right Tables on specified keys.
 
@@ -1112,6 +1121,17 @@ def _join(left, right, keys=None, join_type='inner',
         right[cartesian_index_name] = np.uint8(0)
         keys = (cartesian_index_name, )
 
+    # Handle the case of join key columns that are different between left and
+    # right via keys_left/keys_right args. This is done by saving the original
+    # input tables and making new left and right tables that contain only the
+    # key cols but with common column names ['0', '1', etc]. This sets `keys` to
+    # those fake key names in the left and right tables
+    if keys_left is not None or keys_right is not None:
+        left_orig = left
+        right_orig = right
+        left, right, keys = _join_keys_left_right(
+            left, right, keys, keys_left, keys_right, join_funcs)
+
     # If we have a single key, put it in a tuple
     if keys is None:
         keys = tuple(name for name in left.colnames if name in right.colnames)
@@ -1141,14 +1161,23 @@ def _join(left, right, keys=None, join_type='inner',
     if len_left == 0 or len_right == 0:
         raise ValueError('input tables for join must both have at least one row')
 
-    # Joined array dtype as a list of descr (name, type_str, shape) tuples
-    col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
-    out_descrs = get_descrs([left, right], col_name_map)
-
     try:
         idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
     except NotImplementedError:
         raise TypeError('one or more key columns are not sortable')
+
+    # Now that we have idxs and idx_sort, revert to the original table args to
+    # carry on with making the output joined table. `keys` is set to to an empty
+    # list so that all original left and right columns are included in the
+    # output table.
+    if keys_left is not None or keys_right is not None:
+        keys = []
+        left = left_orig
+        right = right_orig
+
+    # Joined array dtype as a list of descr (name, type_str, shape) tuples
+    col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
+    out_descrs = get_descrs([left, right], col_name_map)
 
     # Main inner loop in Cython to compute the cartesian product
     # indices for the given join type
@@ -1222,6 +1251,58 @@ def _join(left, right, keys=None, join_type='inner',
         _col_name_map.update(col_name_map)
 
     return out
+
+
+def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
+    """Do processing to handle keys_left / keys_right args for join.
+
+    This takes the keys_left/right inputs and turns them into a list of left/right
+    columns corresponding to those inputs (which can be column names or column
+    data values). It also generates the list of fake key column names (strings
+    of "1", "2", etc.) that correspond to the input keys.
+    """
+    def _keys_to_cols(keys, table, label):
+        # Process input `keys`, which is a str or list of str column names in
+        # `table` or a list of column-like objects. The `label` is just for
+        # error reporting.
+        if isinstance(keys, str):
+            keys = [keys]
+        cols = []
+        for key in keys:
+            if isinstance(key, str):
+                try:
+                    cols.append(table[key])
+                except KeyError:
+                    raise ValueError(f'{label} table does not have key column {key!r}')
+            else:
+                if len(key) != len(table):
+                    raise ValueError(f'{label} table has different length from key {key}')
+                cols.append(key)
+        return cols
+
+    if join_funcs is not None:
+        raise ValueError('cannot supply join_funcs arg and keys_left / keys_right')
+
+    if keys_left is None or keys_right is None:
+        raise ValueError('keys_left and keys_right must both be provided')
+
+    if keys is not None:
+        raise ValueError('keys arg must be None if keys_left and keys_right are supplied')
+
+    cols_left = _keys_to_cols(keys_left, left, 'left')
+    cols_right = _keys_to_cols(keys_right, right, 'right')
+
+    if len(cols_left) != len(cols_right):
+        raise ValueError('keys_left and keys_right args must have same length')
+
+    # Make two new temp tables for the join with only the join columns and
+    # key columns in common.
+    keys = [f'{ii}' for ii in range(len(cols_left))]
+
+    left = left.__class__(cols_left, names=keys, copy=False)
+    right = right.__class__(cols_right, names=keys, copy=False)
+
+    return left, right, keys
 
 
 def _check_join_type(join_type, func_name):
