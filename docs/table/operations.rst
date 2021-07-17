@@ -863,15 +863,19 @@ has a ``'name'`` column while the other has an ``'obj_id'`` column::
   ...                         M31     2012-01-02  17.0   16.0
   ...                         M82     2012-10-29  16.2   15.2
   ...                         M101    2012-10-31  15.1   15.5""", format='ascii')
-  >>> xray = Table.read("""   obj_id    obs_date    logLx
-  ...                         NGC3516 2011-11-11  42.1
-  ...                         M31     1999-01-05  43.1
-  ...                         M82     2012-10-29  45.0""", format='ascii')
+  >>> xray_1 = Table.read("""obj_id    obs_date    logLx
+  ...                        NGC3516 2011-11-11  42.1
+  ...                        M31     1999-01-05  43.1
+  ...                        M82     2012-10-29  45.0""", format='ascii')
 
 In order to perform a match based on the names of the objects, do the
 following::
 
-  >>> print(join(optical, xray, keys_left='name', keys_right='obj_id'))
+  >>> print(join(optical, xray_1, keys_left='name', keys_right='obj_id'))
+  name obs_date_1 mag_b mag_v obj_id obs_date_2 logLx
+  ---- ---------- ----- ----- ------ ---------- -----
+   M31 2012-01-02  17.0  16.0    M31 1999-01-05  43.1
+   M82 2012-10-29  16.2  15.2    M82 2012-10-29  45.0
 
 The ``keys_left`` and ``keys_right`` arguments can also take a list of column
 names or even a list of column-like objects. The latter case allows specifying
