@@ -315,7 +315,7 @@ class CdsHeader(core.BaseHeader):
             if sign:
                 col.meta.size += 1
             # Number of digits after decimal is replaced by the precision
-            # for values in Scientific notation, when writing they Format.
+            # for values in Scientific notation, when writing that Format.
             col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
             col.format = str(col.meta.size) + "." + str(maxdec) + "e"
         else:
@@ -329,24 +329,37 @@ class CdsHeader(core.BaseHeader):
         """
         Writes the Byte-By-Byte description of the table.
 
+        Columns that are `astropy.coordinates.SkyCoord` or `astropy.time.TimeSeries`
+        objects or columns with values that are such objects are recognized as such,
+        and some predefined labels and description is used for them.
+        See the Vizier CDS Standard documentation in the link below for more details
+        on these. An example Byte-By-Byte table is shown here.
+
         See: http://vizier.u-strasbg.fr/doc/catstd-3.1.htx
 
         Example::
 
-            --------------------------------------------------------------------------------
-            Byte-by-byte Description of file: table.dat
-            --------------------------------------------------------------------------------
-             Bytes Format Units  Label     Explanations
-            --------------------------------------------------------------------------------
-             1- 8   A8     ---    names    Description of names
-            10-14   E5.1   ---    e       [0.0/0.01]? Description of e
-            16-18   F3.0   ---    d       ? Description of d
-            20-26   E7.1   ---    s       [-9e+34/2.0] Description of s
-            28-30   I3     ---    i       [-30/67] Description of i
-            32-34   F3.1   ---    sameF   [5.0/5.0] Description of sameF
-            36-37   I2     ---    sameI   [20] Description of sameI
+        --------------------------------------------------------------------------------
+        Byte-by-byte Description of file: table.dat
+        --------------------------------------------------------------------------------
+        Bytes Format Units  Label     Explanations
+        --------------------------------------------------------------------------------
+         1- 8   A8     ---    names    Description of names
+        10-14   E5.1   ---    e       [-3160000.0/0.01] Description of e
+        16-23   F8.5   ---    d       [22.25/27.25] Description of d
+        25-31   E7.1   ---    s       [-9e+34/2.0] Description of s
+        33-35   I3     ---    i       [-30/67] Description of i
+        37-39   F3.1   ---    sameF   [5.0/5.0] Description of sameF
+        41-42   I2     ---    sameI   [20] Description of sameI
+        44-47   F4.1   h      RAh      Right Ascension (hour)
+        49-51   F3.1   min    RAm      Right Ascension (minute)
+        53-70   F18.15 s      RAs      Right Ascension (second)
+           72   A1     ---    DE-     Sign of Declination
+        73-76   F5.1   deg    DEd      Declination (degree)
+        78-81   F4.1   arcmin DEm      Declination (arcmin)
+        83-98   F16.13 arcsec DEs      Declination (arcsec)
 
-            --------------------------------------------------------------------------------
+        --------------------------------------------------------------------------------
         """
         # For columns that are instances of ``SkyCoord`` and ``TimeSeries`` classes,
         # or whose values are objects of these classes.
@@ -418,23 +431,26 @@ class CdsHeader(core.BaseHeader):
                 col.width = max(col.width, len(col.info.name))
         widths = [col.width for col in self.cols]
 
-        startb = 1
-        # Set default width of Start Byte, End Byte, Format and
-        # label columns in the Byte-By-Byte table.
-        sz = [0, 0, 1, 7]
-        maxwidth = len(str(sum(widths)))
-        if maxwidth > sz[0]:
-            sz[0] = maxwidth
-            sz[1] = maxwidth
-        for column in self.cols:
-            if len(column.name) > sz[3]:
-                sz[3] = len(column.name)
+        startb = 1  # Byte count starts at 1.
 
-        buff = ""
-        max_descrip_size = 16
-        nsplit = sum(sz) + 16
+        # Set default width of the Bytes count column of the Byte-By-Byte table.
+        # This ``byte_count_width`` value helps align byte counts with respect
+        # to the hyphen using a format string.
+        byte_count_width = len(str( sum(widths) + len(self.cols) - 1 ))
+
         # Format string for Start Byte and End Byte
-        fmtb = "{0:" + str(sz[0]) + "d}-{1:" + str(sz[1]) + "d}  " # {2:" + str(sz[2]) + "s}"
+        singlebfmt = "{:" + str(byte_count_width) + "d}"
+        fmtb = singlebfmt + "-" + singlebfmt
+        # Add trailing single whitespaces to Bytes column for better visibility.
+        singlebfmt += " "
+        fmtb += " "
+
+        # Set default width of Label and Description Byte-By-Byte columns.
+        max_label_width, max_descrip_size = 7, 16
+
+        # ``nsplit`` is the number of whitespaces to prefix to long description
+        # lines in order to wrap them.
+        nsplit = byte_count_width*2 + 1 + max_label_width + max_descrip_size
 
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
                     dtype=[str]*5)
@@ -489,7 +505,7 @@ class CdsHeader(core.BaseHeader):
             if col.unit is not None:
                 col.meta.unit = col.unit.to_string("cds")
             elif col.name.lower().find("magnitude") > -1:
-                # ``col.unit`` will still be ``None``, if the unit of column values
+                # ``col.unit`` can still be ``None``, if the unit of column values
                 # is ``Magnitude``, because ``astropy.units.Magnitude`` is actually a class.
                 # Unlike other units which are instances of ``astropy.units.Unit``,
                 # application of the ``Magnitude`` unit calculates the logarithm
@@ -514,14 +530,16 @@ class CdsHeader(core.BaseHeader):
                     lim_vals = "[{0}/{1}]".format(math.floor(col.min*100)/100.,
                                                   math.ceil(col.max*100)/100.)
 
-            description = "{0}{1} {2}".format(lim_vals, nullflag, description)
+            if lim_vals != '' or nullflag != '':
+                description = "{0}{1} {2}".format(lim_vals, nullflag, description)
 
-            # Find max description length
+            # Find the maximum label and description column widths.
+            if len(col.name) > max_label_width:
+                max_label_width = len(col.name)
             if len(description) > max_descrip_size:
                 max_descrip_size = len(description)
 
             # Add a row for the Sign of Declination in the bbb table
-            singlebfmt = "{:" + str(sz[1]) + "d}  "
             if col.name == 'DEd' and col[0] < 0.0:
                 bbb.add_row([singlebfmt.format(startb),
                              "A1", "---", "DE-",
@@ -529,7 +547,8 @@ class CdsHeader(core.BaseHeader):
                 startb += 1
 
             # Add Byte-By-Byte row to bbb table
-            bbb.add_row([fmtb.format(startb, endb),
+            bbb.add_row([singlebfmt.format(startb) if startb == endb
+                            else fmtb.format(startb, endb),
                          "" if col.fortran_format is None else col.fortran_format,
                          col.meta.unit,
                          "" if col.name is None else col.name,
@@ -540,15 +559,16 @@ class CdsHeader(core.BaseHeader):
         bbblines = StringIO()
         bbb.write(bbblines, format='ascii.fixed_width_no_header',
                     delimiter=' ', bookend=False, delimiter_pad=None,
-                    formats={'Format':'<6s',
-                             'Units':'<6s',
-                             'Label':'<'+str(sz[3])+'s',
-                             'Explanations':''+str(max_descrip_size)+'s'})
+                    formats={'Format': '<6s',
+                             'Units': '<6s',
+                             'Label': '<'+str(max_label_width)+'s',
+                             'Explanations': ''+str(max_descrip_size)+'s'})
 
         # Get formatted bbb lines
         bbblines = bbblines.getvalue().splitlines()
 
         # Wrap line if it is too long
+        buff = ""
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ("\n").join(wrap(newline,
@@ -558,7 +578,7 @@ class CdsHeader(core.BaseHeader):
             else:
                 buff += newline + "\n"
 
-        # Last value of ``endb`` is the max column width after formatting.
+        # Last value of ``endb`` is the sum of column widths after formatting.
         self.linewidth = endb
 
         # Add column notes to Byte-By-Byte
@@ -581,11 +601,8 @@ class CdsHeader(core.BaseHeader):
                                     'bytebybyte': self.write_byte_by_byte()})
 
         #-- Get index of files --#
-        # Set width of FileName and Lrecl columns
-        sz = [14, 0]
-        maxwidth = len(str(self.linewidth))
-        if maxwidth > sz[1]:
-            sz[1] = maxwidth
+        # Set width Lrecl column
+        lrec_col_width = len(str(self.linewidth))
 
         # Create the File Index table
         file_index_rows = (["ReadMe",
@@ -603,8 +620,8 @@ class CdsHeader(core.BaseHeader):
         file_index_lines = StringIO()
         file_row.write(file_index_lines, format='ascii.fixed_width_no_header',
                             delimiter=' ', bookend=False, delimiter_pad=None,
-                            formats={'FileName': str(sz[0])+'s',
-                                        'Lrecl': ''+str(sz[1])+'d',
+                            formats={'FileName': '14s',
+                                        'Lrecl': ''+str(lrec_col_width)+'d',
                                         'Records': '>8s',
                                         'Explanations': 's'})
         file_index_lines = file_index_lines.getvalue()

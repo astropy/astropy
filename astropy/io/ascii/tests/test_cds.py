@@ -82,11 +82,11 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
- 1- 8   A8     ---    names    Description of names             
-10-14   E5.1   ---    e       [-3160000.0/0.01] Description of e
-16-23   F8.5   ---    d       [22.25/27.25] Description of d    
-25-31   E7.1   ---    s       [-9e+34/2.0] Description of s     
-33-35   I3     ---    i       [-30/67] Description of i         
+ 1- 8  A8     ---    names   Description of names              
+10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+16-23  F8.5   ---    d       [22.25/27.25] Description of d    
+25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+33-35  I3     ---    i       [-30/67] Description of i         
 
 --------------------------------------------------------------------------------
 
@@ -144,13 +144,13 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
- 1- 8   A8     ---    names    Description of names         
-10-14   E5.1   ---    e       [0.0/0.01]? Description of e  
-16-18   F3.0   ---    d       ? Description of d            
-20-26   E7.1   ---    s       [-9e+34/2.0] Description of s 
-28-30   I3     ---    i       [-30/67] Description of i     
-32-34   F3.1   ---    sameF   [5.0/5.0] Description of sameF
-36-37   I2     ---    sameI   [20] Description of sameI     
+ 1- 8  A8     ---    names   Description of names          
+10-14  E5.1   ---    e       [0.0/0.01]? Description of e  
+16-18  F3.0   ---    d       ? Description of d            
+20-26  E7.1   ---    s       [-9e+34/2.0] Description of s 
+28-30  I3     ---    i       [-30/67] Description of i     
+32-34  F3.1   ---    sameF   [5.0/5.0] Description of sameF
+36-37  I2     ---    sameI   [20] Description of sameI     
 
 --------------------------------------------------------------------------------
 
