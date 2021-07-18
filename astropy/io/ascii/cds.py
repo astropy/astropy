@@ -784,6 +784,9 @@ class Cds(core.BaseReader):
         self.header.cdsdicts = self.cdsdicts
 
     def write(self, table=None):
+        # Construct for writing empty table is yet done.
+        if len(table) == 0:
+            raise NotImplementedError
         self.data.header = self.header
         self.header.position_line = None
         self.header.start_line = None
