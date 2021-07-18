@@ -111,7 +111,7 @@ HD103095 -3e+06 27.25000  -9e+34 -30
 def test_write_empty_table():
     out = StringIO()
     import pytest
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         Table().write(out, format='ascii.cds')
 
 
