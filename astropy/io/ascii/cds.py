@@ -448,10 +448,6 @@ class CdsHeader(core.BaseHeader):
         # Set default width of Label and Description Byte-By-Byte columns.
         max_label_width, max_descrip_size = 7, 16
 
-        # ``nsplit`` is the number of whitespaces to prefix to long description
-        # lines in order to wrap them.
-        nsplit = byte_count_width*2 + 1 + max_label_width + max_descrip_size
-
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
                     dtype=[str]*5)
 
@@ -566,6 +562,12 @@ class CdsHeader(core.BaseHeader):
 
         # Get formatted bbb lines
         bbblines = bbblines.getvalue().splitlines()
+
+        # ``nsplit`` is the number of whitespaces to prefix to long description
+        # lines in order to wrap them. It is the sum of the widths of the
+        # previous 4 columns plus the number of single spacing between them.
+        # The hyphen in the Bytes column is also counted.
+        nsplit = byte_count_width*2 + 1 + 12 + max_label_width + 4
 
         # Wrap line if it is too long
         buff = ""
