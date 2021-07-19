@@ -18,9 +18,10 @@ from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import (
     REPRESENTATION_CLASSES, DIFFERENTIAL_CLASSES, DUPLICATE_REPRESENTATIONS,
     BaseRepresentation, SphericalRepresentation, UnitSphericalRepresentation,
-    SphericalCosLatDifferential, CartesianRepresentation, RadialDifferential,
-    CylindricalRepresentation, PhysicsSphericalRepresentation,
-    CartesianDifferential, SphericalDifferential, CylindricalDifferential,
+    SphericalCosLatDifferential, CartesianRepresentation, RadialRepresentation,
+    RadialDifferential, CylindricalRepresentation,
+    PhysicsSphericalRepresentation, CartesianDifferential,
+    SphericalDifferential, CylindricalDifferential,
     PhysicsSphericalDifferential, UnitSphericalDifferential,
     UnitSphericalCosLatDifferential)
 
@@ -92,6 +93,31 @@ def representation_equal_up_to_angular_type(rep1, rep2):
         return False
 
     return result & components_allclose(rep1, rep2)
+
+
+class TestRadialRepresentation:
+
+    def test_transform(self):
+        """Test the ``transform`` method. Only multiplication matrices pass."""
+        rep = RadialRepresentation(distance=10 * u.kpc)
+
+        # a rotation matrix does not work
+        matrix = rotation_matrix(10 * u.deg)
+        with pytest.raises(ValueError, match="scaled identity matrix"):
+            rep.transform(matrix)
+
+        # only a scaled identity matrix
+        matrix = 3 * np.identity(3)
+        newrep = rep.transform(matrix)
+        assert newrep.distance == 30 * u.kpc
+
+        # let's also check with differentials
+        dif = RadialDifferential(d_distance=-3 * u.km / u.s)
+        rep = rep.with_differentials(dict(s=dif))
+
+        newrep = rep.transform(matrix)
+        assert newrep.distance == 30 * u.kpc
+        assert newrep.differentials["s"].d_distance == -9 * u.km / u.s
 
 
 class TestSphericalRepresentation:
