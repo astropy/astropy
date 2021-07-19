@@ -721,6 +721,73 @@ class TestJoin():
                '     5   -- .. --  0.5 .. 0.0']
         assert str(t12).splitlines() == exp
 
+    def test_keys_left_right_basic(self):
+        """Test using the keys_left and keys_right args to specify different
+        join keys. This takes the standard test case but renames column 'a'
+        to 'x' and 'y' respectively for tables 1 and 2. Then it compares the
+        normal join on 'a' to the new join on 'x' and 'y'."""
+        self._setup()
+
+        for join_type in ('inner', 'left', 'right', 'outer'):
+            t1 = self.t1.copy()
+            t2 = self.t2.copy()
+            # Expected is same as joining on 'a' but with names 'x', 'y' instead
+            t12_exp = table.join(t1, t2, keys='a', join_type=join_type)
+            t12_exp.add_column(t12_exp['a'], name='x', index=1)
+            t12_exp.add_column(t12_exp['a'], name='y', index=len(t1.colnames) + 1)
+            del t12_exp['a']
+
+            # Different key names
+            t1.rename_column('a', 'x')
+            t2.rename_column('a', 'y')
+            keys_left_list = ['x']  # Test string key name
+            keys_right_list = [['y']]  # Test list of string key names
+            if join_type == 'outer':
+                # Just do this for the outer join (others are the same)
+                keys_left_list.append([t1['x'].tolist()])  # Test list key column
+                keys_right_list.append([t2['y']])  # Test Column key column
+
+            for keys_left, keys_right in zip(keys_left_list, keys_right_list):
+                t12 = table.join(t1, t2, keys_left=keys_left, keys_right=keys_right,
+                                 join_type=join_type)
+
+                assert t12.colnames == t12_exp.colnames
+                for col in t12.values_equal(t12_exp).itercols():
+                    assert np.all(col)
+                assert t12_exp.meta == t12.meta
+
+    def test_keys_left_right_exceptions(self):
+        """Test exceptions using the keys_left and keys_right args to specify
+        different join keys.
+        """
+        self._setup()
+        t1 = self.t1
+        t2 = self.t2
+
+        msg = r"left table does not have key column 'z'"
+        with pytest.raises(ValueError, match=msg):
+            table.join(t1, t2, keys_left='z', keys_right=['a'])
+
+        msg = r"left table has different length from key \[1, 2\]"
+        with pytest.raises(ValueError, match=msg):
+            table.join(t1, t2, keys_left=[[1, 2]], keys_right=['a'])
+
+        msg = r"keys arg must be None if keys_left and keys_right are supplied"
+        with pytest.raises(ValueError, match=msg):
+            table.join(t1, t2, keys_left='z', keys_right=['a'], keys='a')
+
+        msg = r"keys_left and keys_right args must have same length"
+        with pytest.raises(ValueError, match=msg):
+            table.join(t1, t2, keys_left=['a', 'b'], keys_right=['a'])
+
+        msg = r"keys_left and keys_right must both be provided"
+        with pytest.raises(ValueError, match=msg):
+            table.join(t1, t2, keys_left=['a', 'b'])
+
+        msg = r"cannot supply join_funcs arg and keys_left / keys_right"
+        with pytest.raises(ValueError, match=msg):
+            table.join(t1, t2, keys_left=['a'], keys_right=['a'], join_funcs={})
+
 
 class TestSetdiff():
 
