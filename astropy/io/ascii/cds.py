@@ -344,20 +344,20 @@ class CdsHeader(core.BaseHeader):
         --------------------------------------------------------------------------------
         Bytes Format Units  Label     Explanations
         --------------------------------------------------------------------------------
-         1- 8   A8     ---    names    Description of names
-        10-14   E5.1   ---    e       [-3160000.0/0.01] Description of e
-        16-23   F8.5   ---    d       [22.25/27.25] Description of d
-        25-31   E7.1   ---    s       [-9e+34/2.0] Description of s
-        33-35   I3     ---    i       [-30/67] Description of i
-        37-39   F3.1   ---    sameF   [5.0/5.0] Description of sameF
-        41-42   I2     ---    sameI   [20] Description of sameI
-        44-47   F4.1   h      RAh      Right Ascension (hour)
-        49-51   F3.1   min    RAm      Right Ascension (minute)
-        53-70   F18.15 s      RAs      Right Ascension (second)
-           72   A1     ---    DE-     Sign of Declination
-        73-76   F5.1   deg    DEd      Declination (degree)
-        78-81   F4.1   arcmin DEm      Declination (arcmin)
-        83-98   F16.13 arcsec DEs      Declination (arcsec)
+         1-  8  A8     ---    names   Description of names
+        10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+        16- 23  F8.5   ---    d       [22.25/27.25] Description of d
+        25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s
+        33- 35  I3     ---    i       [-30/67] Description of i
+        37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF
+        41- 42  I2     ---    sameI   [20] Description of sameI
+        44- 47  F4.1   h      RAh     Right Ascension (hour)
+        49- 51  F3.1   min    RAm     Right Ascension (minute)
+        53- 70  F18.15 s      RAs     Right Ascension (second)
+            72  A1     ---    DE-     Sign of Declination
+        73- 76  F5.1   deg    DEd     Declination (degree)
+        78- 81  F4.1   arcmin DEm     Declination (arcmin)
+        83- 98  F16.13 arcsec DEs     Declination (arcsec)
 
         --------------------------------------------------------------------------------
         """
@@ -365,8 +365,8 @@ class CdsHeader(core.BaseHeader):
         # or whose values are objects of these classes.
         for i, col in enumerate(self.cols):
             # If col is a ``Column`` object but its values are ``SkyCoord`` objects,
-            # convert the whole column to ``SkyCoord`` object, which helps in method
-            # applications.
+            # convert the whole column to ``SkyCoord`` object, which helps in applying
+            # SkyCoord methods directly.
             if not isinstance(col, SkyCoord) and isinstance(col[0], SkyCoord):
                 col = SkyCoord(col)
 
@@ -526,9 +526,9 @@ class CdsHeader(core.BaseHeader):
                             lim_vals = "[{0}]".format(col.min)
                         else:
                             lim_vals = "[{0}/{1}]".format(col.min, col.max)
-                elif col.fortran_format[0] in ('E','F'):
-                    lim_vals = "[{0}/{1}]".format(math.floor(col.min*100)/100.,
-                                                  math.ceil(col.max*100)/100.)
+                elif col.fortran_format[0] in ('E', 'F'):
+                    lim_vals = "[{0}/{1}]".format(math.floor(col.min * 100) / 100.,
+                                                  math.ceil(col.max * 100) / 100.)
 
             if lim_vals != '' or nullflag != '':
                 description = "{0}{1} {2}".format(lim_vals, nullflag, description)
@@ -558,11 +558,11 @@ class CdsHeader(core.BaseHeader):
         # Properly format bbb columns
         bbblines = StringIO()
         bbb.write(bbblines, format='ascii.fixed_width_no_header',
-                    delimiter=' ', bookend=False, delimiter_pad=None,
-                    formats={'Format': '<6s',
-                             'Units': '<6s',
-                             'Label': '<'+str(max_label_width)+'s',
-                             'Explanations': ''+str(max_descrip_size)+'s'})
+                  delimiter=' ', bookend=False, delimiter_pad=None,
+                  formats={'Format': '<6s',
+                           'Units': '<6s',
+                           'Label': '<'+str(max_label_width)+'s',
+                           'Explanations': ''+str(max_descrip_size)+'s'})
 
         # Get formatted bbb lines
         bbblines = bbblines.getvalue().splitlines()
@@ -600,7 +600,7 @@ class CdsHeader(core.BaseHeader):
         byte_by_byte = bbb_template.substitute({'file': 'table.dat',
                                     'bytebybyte': self.write_byte_by_byte()})
 
-        #-- Get index of files --#
+        # Get index of files #
         # Set width Lrecl column
         lrec_col_width = len(str(self.linewidth))
 
