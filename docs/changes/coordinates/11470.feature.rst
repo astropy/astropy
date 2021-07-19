@@ -1,0 +1,7 @@
+Allow negation, multiplication and division also of representations that
+include a differential (e.g., ``SphericalRepresentation`` with a
+``SphericalCosLatDifferential``).  For all operations, the outcome is
+equivalent to transforming the representation and differential to cartesian,
+then operating on those, and transforming back to the original representation
+(except for ``UnitSphericalRepresentation``, which will return a
+``SphericalRepresentation`` if there is a scale change).
