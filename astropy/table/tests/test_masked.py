@@ -4,6 +4,7 @@
 import numpy as np
 import numpy.ma as ma
 import pytest
+from numpy.testing import assert_array_equal
 
 import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table
@@ -595,6 +596,16 @@ def test_masked_column_with_unit_in_qtable():
     t["c"] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
     assert isinstance(t["c"], MaskedQuantity)
     assert np.all(t["c"].mask == [True, False])
+    # Regular Column is still converted to regular Quantity
+    t["d"] = Column([1, 2], unit=u.cm)
+    assert not isinstance(t["d"], MaskedQuantity)
+    assert isinstance(t["d"], u.Quantity)
+    # But not if the table is masked.
+    t2 = QTable(t, masked=True)
+    assert isinstance(t2["d"], MaskedQuantity)
+    t2["e"] = Column([1, 2], unit=u.cm)
+    assert isinstance(t2["e"], MaskedQuantity)
+    assert not np.any(t2["e"].mask)
 
 
 def test_masked_quantity_in_table():
@@ -607,6 +618,11 @@ def test_masked_quantity_in_table():
     t["c"] = MaskedQuantity([1, 2], unit=u.m, mask=[True, False])
     assert isinstance(t["c"], MaskedColumn)
     assert np.all(t["c"].mask == [True, False])
+
+    t2 = Table(t, masked=True)
+    t2["d"] = u.Quantity([1, 2], unit=u.cm)
+    assert isinstance(t2["d"], MaskedColumn)
+    assert not np.any(t2["d"].mask)
 
 
 def test_masked_column_data_attribute_is_plain_masked_array():
@@ -658,3 +674,15 @@ def test_set_masked_bytes_column():
     mc = MaskedColumn([b"a", b"b", b"c"], mask=mask)
     mc[:] = mc
     assert (mc.mask == mask).all()
+
+
+def test_qtable_masked_true_basics():
+    # Explicit regression test for gh-16495.
+    tab = QTable([[1, 1] * u.mJy], names=["test"], masked=True)
+    assert isinstance(tab["test"], Masked)
+    assert isinstance(tab["test"], u.Quantity)
+    assert not np.any(tab["test"].mask)
+    tab["test"].mask[0] = True
+    assert_array_equal(tab["test"].mask, [True, False])
+    tab["test"].mask |= [True, True]
+    assert_array_equal(tab["test"].mask, [True, True])
