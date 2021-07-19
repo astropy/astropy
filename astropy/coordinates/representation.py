@@ -1836,15 +1836,28 @@ class RadialRepresentation(BaseRepresentation):
     def transform(self, matrix):
         """Radial representations cannot be transformed by a Cartesian matrix.
 
+        Parameters
+        ----------
+        matrix : array-like
+            The transformation matrix in a Cartesian basis.
+            Must be a multiplication: a diagonal matrix with identical elements.
+            Must have shape (..., 3, 3), where the last 2 indices are for the
+            matrix on each other axis. Make sure that the matrix shape is
+            compatible with the shape of this representation.
+
         Raises
         ------
-        NotImplementedError
+        ValueError
+            If the matrix is not a multiplication.
 
         """
-        raise NotImplementedError(
-            "Radial representations cannot be transformed "
-            "by a Cartesian matrix."
-        )
+        scl = matrix[..., 0, 0]
+        # check that the matrix is a scaled identity matrix on the last 2 axes.
+        if np.any(matrix != scl[..., np.newaxis, np.newaxis] * np.identity(3)):
+            raise ValueError("Radial representations can only be "
+                             "transformed by a scaled identity matrix")
+
+        return self * scl
 
 
 def _spherical_op_funcs(op, *args):
