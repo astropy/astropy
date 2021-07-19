@@ -1,18 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import functools
+import operator
 
 import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import (PhysicsSphericalRepresentation, CartesianRepresentation,
-                CylindricalRepresentation, SphericalRepresentation,
-                UnitSphericalRepresentation, SphericalDifferential,
-                CartesianDifferential, UnitSphericalDifferential,
-                SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
-                PhysicsSphericalDifferential, CylindricalDifferential,
-                RadialRepresentation, RadialDifferential, Longitude, Latitude)
+from astropy.coordinates import (
+    PhysicsSphericalRepresentation, CartesianRepresentation,
+    CylindricalRepresentation, SphericalRepresentation,
+    UnitSphericalRepresentation, SphericalDifferential,
+    CartesianDifferential, UnitSphericalDifferential,
+    SphericalCosLatDifferential, UnitSphericalCosLatDifferential,
+    PhysicsSphericalDifferential, CylindricalDifferential,
+    RadialRepresentation, RadialDifferential, Longitude, Latitude)
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
 from astropy.coordinates.angle_utilities import angular_separation
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
@@ -150,7 +152,8 @@ class TestArithmetic():
         assert_quantity_allclose(r2.norm(),
                                  self.distance * np.array([[1.], [2.]]))
         r3 = -in_rep
-        assert np.all(representation_equal(r3, in_rep * -1.))
+        assert_representation_allclose(r3.to_cartesian(),
+                                       (in_rep * -1.).to_cartesian(), atol=1e-5*u.pc)
         with pytest.raises(TypeError):
             in_rep * in_rep
         with pytest.raises(TypeError):
@@ -670,16 +673,16 @@ class TestSphericalDifferential():
             self.SD_cls(1.*u.arcsec, 0., 0.)
         with pytest.raises(TypeError):
             self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                                  False, False)
+                        False, False)
         with pytest.raises(TypeError):
             self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                            copy=False, d_lat=0.*u.arcsec)
+                        copy=False, d_lat=0.*u.arcsec)
         with pytest.raises(TypeError):
             self.SD_cls(1.*u.arcsec, 0.*u.arcsec, 0.*u.kpc,
-                            copy=False, flying='circus')
+                        copy=False, flying='circus')
         with pytest.raises(ValueError):
             self.SD_cls(np.ones(2)*u.arcsec,
-                            np.zeros(3)*u.arcsec, np.zeros(2)*u.kpc)
+                        np.zeros(3)*u.arcsec, np.zeros(2)*u.kpc)
         with pytest.raises(u.UnitsError):
             self.SD_cls(1.*u.arcsec, 1.*u.s, 0.*u.kpc)
         with pytest.raises(u.UnitsError):
@@ -1191,6 +1194,127 @@ class TestDifferentialConversion():
         assert_representation_allclose(self.s + (uo+ro), self.s+so1)
 
 
+@pytest.mark.parametrize('op,args', [
+    (operator.neg, ()),
+    (operator.pos, ()),
+    (operator.mul, (-8.,)),
+    (operator.truediv, ([4., 8.]*u.s,))], scope='class')
+class TestArithmeticWithDifferentials:
+    def setup_class(self):
+        self.cr = CartesianRepresentation([1, 2, 3]*u.kpc)
+        self.cd = CartesianDifferential([.1, -.2, .3]*u.km/u.s)
+        self.c = self.cr.with_differentials(self.cd)
+
+    def test_operation_cartesian(self, op, args):
+        ncr = op(self.c, *args)
+        expected = (op(self.cr, *args)).with_differentials(op(self.cd, *args))
+        assert np.all(ncr == expected)
+
+    def test_operation_radial(self, op, args):
+        rep = self.c.represent_as(RadialRepresentation, {'s': RadialDifferential})
+        result = op(rep, *args)
+        expected_distance = op(self.cr.norm(), *args)
+        expected_rv = op((self.cr/self.cr.norm()).dot(self.cd), *args)
+        assert u.allclose(result.distance, expected_distance)
+        assert u.allclose(result.differentials['s'].d_distance, expected_rv)
+
+    @pytest.mark.parametrize('diff_cls', [
+        SphericalDifferential,
+        SphericalCosLatDifferential,
+        PhysicsSphericalDifferential,
+        CylindricalDifferential])
+    def test_operation_other(self, diff_cls, op, args):
+        rep_cls = diff_cls.base_representation
+        rep = self.c.represent_as(rep_cls, {'s': diff_cls})
+        result = op(rep, *args)
+
+        expected_c = op(self.c, *args)
+        expected = expected_c.represent_as(rep_cls, {'s': diff_cls})
+        # Check that we match in the representation itself.
+        assert_representation_allclose(result, expected)
+        assert_differential_allclose(result.differentials['s'],
+                                     expected.differentials['s'])
+
+        # Check that we compare correctly in cartesian as well, just to be sure.
+        result_c = result.represent_as(CartesianRepresentation,
+                                       {'s': CartesianDifferential})
+        assert_representation_allclose(result_c, expected_c)
+        assert_differential_allclose(result_c.differentials['s'],
+                                     expected_c.differentials['s'])
+
+    @pytest.mark.parametrize('rep_cls', [
+        SphericalRepresentation,
+        PhysicsSphericalRepresentation,
+        CylindricalRepresentation])
+    def test_operation_cartesian_differential(self, rep_cls, op, args):
+        rep = self.c.represent_as(rep_cls, {'s': CartesianDifferential})
+        result = op(rep, *args)
+
+        expected_c = op(self.c, *args)
+        expected = expected_c.represent_as(rep_cls, {'s': CartesianDifferential})
+        # Check that we match in the representation itself.
+        assert_representation_allclose(result, expected)
+        assert_differential_allclose(result.differentials['s'],
+                                     expected.differentials['s'])
+
+    @pytest.mark.parametrize('diff_cls', [
+        UnitSphericalDifferential,
+        UnitSphericalCosLatDifferential])
+    def test_operation_unit_spherical(self, diff_cls, op, args):
+        rep_cls = diff_cls.base_representation
+        rep = self.c.represent_as(rep_cls, {'s': diff_cls})
+        result = op(rep, *args)
+
+        if op not in (operator.neg, operator.pos):
+            expected_cls = rep._dimensional_representation
+        else:
+            expected_cls = rep_cls
+
+        assert type(result) is expected_cls
+        assert type(result.differentials['s']) is diff_cls
+
+        # Have lost information, so unlike above we convert our initial
+        # unit-spherical back to Cartesian, and check that applying
+        # the operation on that cartesian representation gives the same result.
+        # We do not compare the output directly, since for multiplication
+        # and division there will be sign flips in the spherical distance.
+        expected_c = op(rep.represent_as(CartesianRepresentation,
+                                         {'s': CartesianDifferential}), *args)
+        result_c = result.represent_as(CartesianRepresentation,
+                                       {'s': CartesianDifferential})
+        assert_representation_allclose(result_c, expected_c)
+        assert_differential_allclose(result_c.differentials['s'],
+                                     expected_c.differentials['s'])
+
+    @pytest.mark.parametrize('diff_cls', [
+        RadialDifferential,
+        UnitSphericalDifferential,
+        UnitSphericalCosLatDifferential])
+    def test_operation_spherical_with_rv_or_pm(self, diff_cls, op, args):
+        rep = self.c.represent_as(SphericalRepresentation, {'s': diff_cls})
+        result = op(rep, *args)
+        assert type(result) is SphericalRepresentation
+        assert type(result.differentials['s']) is diff_cls
+
+        expected_c = op(rep.represent_as(CartesianRepresentation,
+                                         {'s': CartesianDifferential}), *args)
+        result_c = result.represent_as(CartesianRepresentation,
+                                       {'s': CartesianDifferential})
+        assert_representation_allclose(result_c, expected_c)
+        assert_differential_allclose(result_c.differentials['s'],
+                                     expected_c.differentials['s'])
+
+
+@pytest.mark.parametrize('op,args', [
+    (operator.neg, ()),
+    (operator.mul, (10.,))])
+def test_operation_unitspherical_with_rv_fails(op, args):
+    rep = UnitSphericalRepresentation(
+        0*u.deg, 0*u.deg, differentials={'s': RadialDifferential(10*u.km/u.s)})
+    with pytest.raises(ValueError, match='unit key'):
+        op(rep, *args)
+
+
 @pytest.mark.parametrize('rep,dif', [
     [CartesianRepresentation([1, 2, 3]*u.kpc),
      CartesianDifferential([.1, .2, .3]*u.km/u.s)],
@@ -1212,12 +1336,3 @@ def test_arithmetic_with_differentials_fail(rep, dif):
 
     with pytest.raises(TypeError):
         rep / rep
-
-    with pytest.raises(TypeError):
-        10. * rep
-
-    with pytest.raises(TypeError):
-        rep / 10.
-
-    with pytest.raises(TypeError):
-        -rep
