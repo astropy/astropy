@@ -539,7 +539,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
 
     The "right" confidence interval to use for Poisson data is a
     matter of debate. The CDF working group `recommends
-    <https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
+    <https://web.archive.org/web/20210222093249/https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_
     using root-n throughout, largely in the interest of
     comprehensibility, but discusses other possibilities. The ATLAS
     group also `discusses
@@ -569,7 +569,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
 
     **3. 'pearson'** This is an only-slightly-more-complicated rule
     based on Pearson's chi-squared rule (as `explained
-    <https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_ by
+    <https://web.archive.org/web/20210222093249/https://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt>`_ by
     the CDF working group). It also has the nice feature that if your
     theory curve touches an endpoint of the interval, then your data
     point is indeed one sigma away. The interval is

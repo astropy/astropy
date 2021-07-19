@@ -33,7 +33,7 @@ def jackknife_resampling(data):
     References
     ----------
     .. [1] McIntosh, Avery. "The Jackknife Estimation Method".
-        <http://people.bu.edu/aimcinto/jackknife.pdf>
+        <https://arxiv.org/abs/1606.00497>
 
     .. [2] Efron, Bradley. "The Jackknife, the Bootstrap, and other
         Resampling Plans". Technical Report No. 63, Division of Biostatistics,
