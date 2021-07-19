@@ -97,7 +97,7 @@ Acknowledgements:
 
 References:
 ================================================================================
-     (prepared by author  / pyreadme )
+     (prepared by 1st author ?  / astropy.io.ascii )
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67
 HD103095 -3e+06 27.25000  -9e+34 -30
@@ -127,7 +127,7 @@ def test_write_null_data_values():
     lines = out.getvalue().splitlines()
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
-    lines = lines[i_secs[-1]+1:]
+    lines = lines[i_secs[-1]+1:]  # Last section is the data.
     assert lines == exp_output
 
 
@@ -161,7 +161,7 @@ Acknowledgements:
 
 References:
 ================================================================================
-     (prepared by author  / pyreadme )
+     (prepared by 1st author ?  / astropy.io.ascii )
 --------------------------------------------------------------------------------
 HD81809  1e-07    2e+00  67 5.0 20
 HD103095         -9e+34 -30 5.0 20
@@ -177,5 +177,173 @@ HD103095         -9e+34 -30 5.0 20
     lines = out.getvalue().splitlines()
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
-    lines = lines[i_secs[-6]:]
+    lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
     assert lines == exp_output.splitlines()
+
+
+exp_coord_cols_output = dict(generic = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+  1-  8  A8     ---    names   Description of names              
+ 10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+ 16- 23  F8.5   ---    d       [22.25/27.25] Description of d    
+ 25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+ 33- 35  I3     ---    i       [-30/67] Description of i         
+ 37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
+ 41- 42  I2     ---    sameI   [20] Description of sameI         
+ 44- 47  F4.1   h      RAh     Right Ascension (hour)            
+ 49- 51  F3.1   min    RAm     Right Ascension (minute)          
+ 53- 70  F18.15 s      RAs     Right Ascension (second)          
+     72  A1     ---    DE-     Sign of Declination               
+ 73- 76  F5.1   deg    DEd     Declination (degree)              
+ 78- 81  F4.1   arcmin DEm     Declination (arcmin)              
+ 83- 98  F16.13 arcsec DEs     Declination (arcsec)              
+
+--------------------------------------------------------------------------------
+
+See also:
+
+
+Acknowledgements:
+
+References:
+================================================================================
+     (prepared by 1st author ?  / astropy.io.ascii )
+--------------------------------------------------------------------------------
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+''',
+
+positive_de = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+  1-  8  A8     ---    names   Description of names              
+ 10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+ 16- 23  F8.5   ---    d       [22.25/27.25] Description of d    
+ 25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+ 33- 35  I3     ---    i       [-30/67] Description of i         
+ 37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
+ 41- 42  I2     ---    sameI   [20] Description of sameI         
+ 44- 47  F4.1   h      RAh     Right Ascension (hour)            
+ 49- 52  F4.1   min    RAm     Right Ascension (minute)          
+ 54- 70  F17.14 s      RAs     Right Ascension (second)          
+ 72- 75  F4.1   deg    DEd     Declination (degree)              
+ 77- 80  F4.1   arcmin DEm     Declination (arcmin)              
+ 82- 99  F18.15 arcsec DEs     Declination (arcsec)              
+
+--------------------------------------------------------------------------------
+
+See also:
+
+
+Acknowledgements:
+
+References:
+================================================================================
+     (prepared by 1st author ?  / astropy.io.ascii )
+--------------------------------------------------------------------------------
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
+''',
+
+galactic = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names              
+10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+16-23  F8.5   ---    d       [22.25/27.25] Description of d    
+25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+33-35  I3     ---    i       [-30/67] Description of i         
+37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
+41-42  I2     ---    sameI   [20] Description of sameI         
+44-60  F17.13 deg    GLON    Galactic Longitude                
+62-79  F18.14 deg    GLAT    Galactic Latitude                 
+
+--------------------------------------------------------------------------------
+
+See also:
+
+
+Acknowledgements:
+
+References:
+================================================================================
+     (prepared by 1st author ?  / astropy.io.ascii )
+--------------------------------------------------------------------------------
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.0716395916897 -45.54808048460931
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.0716395916897 -45.54808048460931
+''',
+
+ecliptic = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names                       
+10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e         
+16-23  F8.5   ---    d       [22.25/27.25] Description of d             
+25-31  E7.1   ---    s       [-9e+34/2.0] Description of s              
+33-35  I3     ---    i       [-30/67] Description of i                  
+37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF             
+41-42  I2     ---    sameI   [20] Description of sameI                  
+44-60  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
+62-79  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
+
+--------------------------------------------------------------------------------
+
+See also:
+
+
+Acknowledgements:
+
+References:
+================================================================================
+     (prepared by 1st author ?  / astropy.io.ascii )
+--------------------------------------------------------------------------------
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.2242086500961 -45.62178985082456
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.2242086500961 -45.62178985082456
+'''
+)
+
+def test_write_coord_cols():
+    """ 
+    There can only be one such coordinate column in a single table,
+    because division of columns into individual component columns requires
+    iterating over the table columns, which will have to be done again
+    if additional such coordinate columns are present.
+    """
+    from astropy.table import Column
+    from astropy.coordinates import SkyCoord
+    t = ascii.read(test_dat)
+    t.add_column([5.0, 5.0], name='sameF')
+    t.add_column([20, 20], name='sameI')
+
+    coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+    coordp = SkyCoord(192.06343503, 17.77402684, unit=u.deg)
+    cols = [Column([coord]), # Generic coordinate column
+            coordp,          # Coordinate column with positive DEC
+            coord.galactic,  # Galactic coordinates
+            coord.geocentrictrueecliptic  # Ecliptic coordinates
+            ]
+
+    # Loop through different types of coordinate columns.
+    for col, exp_output in zip(cols, exp_coord_cols_output.values()):
+        t['coord'] = col
+        out = StringIO()
+        t.write(out, format='ascii.cds')
+        lines = out.getvalue().splitlines()
+        i_secs = [i for i, s in enumerate(lines)
+                if s.startswith(('------', '======='))]
+        lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
+        assert lines == exp_output.splitlines()
+
