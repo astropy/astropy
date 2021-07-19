@@ -1195,10 +1195,9 @@ class TimeBase(ShapedLikeNDArray):
         that the full precision given by the two doubles ``jd1`` and ``jd2``
         is used.  See :func:`~numpy.argmin` for detailed documentation.
         """
-        # first get the minimum at normal precision.
-        jd = self.jd1 + self.jd2
-
-        approx = np.min(jd, axis, keepdims=True)
+        # First get the minimum at normal precision.
+        jd1, jd2 = self.jd1, self.jd2
+        approx = np.min(jd1 + jd2, axis, keepdims=True)
 
         # Approx is very close to the true minimum, and by subtracting it at
         # full precision, all numbers near 0 can be represented correctly,
@@ -1208,7 +1207,7 @@ class TimeBase(ShapedLikeNDArray):
         # which translates to:
         # approx_jd1, approx_jd2 = day_frac(approx, 0.)
         # dt = (self.jd1 - approx_jd1) + (self.jd2 - approx_jd2)
-        dt = (self.jd1 - approx) + self.jd2
+        dt = (jd1 - approx) + jd2
 
         return dt.argmin(axis, out)
 
@@ -1220,11 +1219,10 @@ class TimeBase(ShapedLikeNDArray):
         is used.  See :func:`~numpy.argmax` for detailed documentation.
         """
         # For procedure, see comment on argmin.
-        jd = self.jd1 + self.jd2
+        jd1, jd2 = self.jd1, self.jd2
+        approx = np.max(jd1 + jd2, axis, keepdims=True)
 
-        approx = np.max(jd, axis, keepdims=True)
-
-        dt = (self.jd1 - approx) + self.jd2
+        dt = (jd1 - approx) + jd2
 
         return dt.argmax(axis, out)
 
@@ -1236,12 +1234,15 @@ class TimeBase(ShapedLikeNDArray):
         is used, and that corresponding attributes are copied.  Internally,
         it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
         """
-        jd_approx = self.jd
-        jd_remainder = (self - self.__class__(jd_approx, format='jd', scale=self.scale)).jd
+        # For procedure, see comment on argmin.
+        jd1, jd2 = self.jd1, self.jd2
+        approx = jd1 + jd2
+        remainder = (jd1 - approx) + jd2
+
         if axis is None:
-            return np.lexsort((jd_remainder.ravel(), jd_approx.ravel()))
+            return np.lexsort((remainder.ravel(), approx.ravel()))
         else:
-            return np.lexsort(keys=(jd_remainder, jd_approx), axis=axis)
+            return np.lexsort(keys=(remainder, approx), axis=axis)
 
     def min(self, axis=None, out=None, keepdims=False):
         """Minimum along a given axis.
