@@ -328,7 +328,9 @@ def test_write_coord_cols():
     t.add_column([5.0, 5.0], name='sameF')
     t.add_column([20, 20], name='sameI')
 
+    # Coordinates of ASASSN-15lh
     coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+    # Coordinates of ASASSN-14li
     coordp = SkyCoord(192.06343503, 17.77402684, unit=u.deg)
     cols = [Column([coord]), # Generic coordinate column
             coordp,          # Coordinate column with positive DEC
@@ -343,7 +345,114 @@ def test_write_coord_cols():
         t.write(out, format='ascii.cds')
         lines = out.getvalue().splitlines()
         i_secs = [i for i, s in enumerate(lines)
-                if s.startswith(('------', '======='))]
+                  if s.startswith(('------', '======='))]
         lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
         assert lines == exp_output.splitlines()
+
+
+def test_write_byte_by_byte_bytes_col_format():
+    """
+    Tests the alignment of Byte counts with respect to hyphen
+    in the Bytes column of Byte-By-Byte. The whitespace around the
+    hyphen is govered by the number of digits in the total Byte
+    count. Single Byte columns should have a single Byte count
+    without the hyphen.
+    """
+    exp_output = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+  1-  8  A8     ---    names         Description of names              
+ 10- 14  E5.1   ---    e             [-3160000.0/0.01] Description of e
+ 16- 23  F8.5   ---    d             [22.25/27.25] Description of d    
+ 25- 31  E7.1   ---    s             [-9e+34/2.0] Description of s     
+ 33- 35  I3     ---    i             [-30/67] Description of i         
+ 37- 39  F3.1   ---    sameF         [5.0/5.0] Description of sameF    
+ 41- 42  I2     ---    sameI         [20] Description of sameI         
+     44  I1     ---    singleByteCol [2] Description of singleByteCol  
+ 46- 49  F4.1   h      RAh           Right Ascension (hour)            
+ 51- 53  F3.1   min    RAm           Right Ascension (minute)          
+ 55- 72  F18.15 s      RAs           Right Ascension (second)          
+     74  A1     ---    DE-           Sign of Declination               
+ 75- 78  F5.1   deg    DEd           Declination (degree)              
+ 80- 83  F4.1   arcmin DEm           Declination (arcmin)              
+ 85-100  F16.13 arcsec DEs           Declination (arcsec)              
+
+--------------------------------------------------------------------------------
+'''
+    from astropy.coordinates import SkyCoord
+    t = ascii.read(test_dat)
+    t.add_column([5.0, 5.0], name='sameF')
+    t.add_column([20, 20], name='sameI')
+    t['coord'] = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+    t['singleByteCol'] = [2, 2]
+    out = StringIO()
+    t.write(out, format='ascii.cds')
+    lines = out.getvalue().splitlines()
+    i_secs = [i for i, s in enumerate(lines)
+              if s.startswith(('------', '======='))]
+    # Select only the Byte-By-Byte section.
+    lines = lines[i_secs[-6]:i_secs[-3]]
+    lines.append(lines[0])   # Append a separator line.
+    assert lines == exp_output.splitlines()
+
+
+def test_write_byte_by_byte_wrapping():
+    """
+    Test line wrapping in the description column of the
+    Byte-By-Byte section of the ReadMe.
+    """
+    exp_output = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    thisIsALongColumnLabel This is a tediously long
+                                           description. But they do sometimes
+                                           have them. Better to put extra
+                                           details in the notes. This is a
+                                           tediously long description. But they
+                                           do sometimes have them. Better to put
+                                           extra details in the notes.
+10-14  E5.1   ---    e                      [-3160000.0/0.01] This is a
+                                           tediously long description. But they
+                                           do sometimes have them. Better to put
+                                           extra details in the notes. This is a
+                                           tediously long description. But they
+                                           do sometimes have them. Better to put
+                                           extra details in the notes.
+16-23  F8.5   ---    d                      [22.25/27.25] This is a tediously
+                                           long description. But they do
+                                           sometimes have them. Better to put
+                                           extra details in the notes. This is a
+                                           tediously long description. But they
+                                           do sometimes have them. Better to put
+                                           extra details in the notes.
+
+--------------------------------------------------------------------------------
+'''
+    t = ascii.read(test_dat)
+    t.remove_columns(['s', 'i'])
+    description = 'This is a tediously long description.' \
+                  + ' But they do sometimes have them.' \
+                  + ' Better to put extra details in the notes. '
+    for col in t.columns:
+        t[col].description = description * 2
+    t['names'].name = 'thisIsALongColumnLabel'
+    out = StringIO()
+    t.write(out, format='ascii.cds')
+    lines = out.getvalue().splitlines()
+    print(lines)
+    i_secs = [i for i, s in enumerate(lines)
+              if s.startswith(('------', '======='))]
+    # Select only the Byte-By-Byte section.
+    lines = lines[i_secs[-6]:i_secs[-3]]
+    lines.append(lines[0])   # Append a separator line.
+    for l, ll in zip(lines, exp_output.splitlines()):
+        print(l)
+        print(ll)
+    assert lines == exp_output.splitlines()
 
