@@ -210,9 +210,9 @@ def ignore_sigint(func):
     def wrapped(*args, **kwargs):
         # Get the name of the current thread and determine if this is a single
         # threaded application
-        curr_thread = threading.currentThread()
-        single_thread = (threading.activeCount() == 1 and
-                         curr_thread.getName() == 'MainThread')
+        curr_thread = threading.current_thread()
+        single_thread = (threading.active_count() == 1 and
+                         curr_thread.name == 'MainThread')
 
         class SigintHandler:
             def __init__(self):
