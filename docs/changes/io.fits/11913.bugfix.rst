@@ -1,1 +1,1 @@
-Ensure masked times round-trip to fits, even if multi-dimensional.
+Ensure masked times round-trip to FITS, even if multi-dimensional.
