@@ -355,7 +355,7 @@ def join(left, right, keys=None, join_type='inner', *,
         Default is to use all columns which are common to both tables.
     join_type : str
         Join type ('inner' | 'outer' | 'left' | 'right' | 'cartesian'), default is 'inner'
-    keys_left : str or list of str of list of column-like, optional
+    keys_left : str or list of str or list of column-like, optional
         Left column(s) used to match rows instead of ``keys`` arg. This can be
         be a single left table column name or list of column names, or a list of
         column-like values with the same lengths as the left table.
@@ -1132,12 +1132,12 @@ def _join(left, right, keys=None, join_type='inner',
         left, right, keys = _join_keys_left_right(
             left, right, keys, keys_left, keys_right, join_funcs)
 
-    # If we have a single key, put it in a tuple
     if keys is None:
         keys = tuple(name for name in left.colnames if name in right.colnames)
         if len(keys) == 0:
             raise TableMergeError('No keys in common between left and right tables')
     elif isinstance(keys, str):
+        # If we have a single key, put it in a tuple
         keys = (keys,)
 
     # Check the key columns
