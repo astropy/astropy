@@ -19,7 +19,7 @@ def test_imports():
 
     for imper, nm, ispkg in pkgutil.walk_packages(['astropy'], 'astropy.',
                                                   onerror=onerror):
-        imper.find_module(nm)
+        imper.find_spec(nm)
 
 
 def test_toplevel_namespace():
