@@ -59,6 +59,13 @@ BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
 
 README_TEMPLATE = os.path.dirname(os.path.realpath(__file__)) + "/src/ReadMe.template"
 
+MRT_TEMPLATE = ["Title: (title to be filled by user)",
+"Authors: (authors to be filled by user)",
+"Table: (caption to be filled by user)",
+"================================================================================",
+"$bytebybyte",
+"--------------------------------------------------------------------------------"]
+
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
     """
@@ -623,9 +630,9 @@ class CdsHeader(core.BaseHeader):
         file_row.write(file_index_lines, format='ascii.fixed_width_no_header',
                             delimiter=' ', bookend=False, delimiter_pad=None,
                             formats={'FileName': '14s',
-                                        'Lrecl': ''+str(lrec_col_width)+'d',
-                                        'Records': '>8s',
-                                        'Explanations': 's'})
+                                     'Lrecl': ''+str(lrec_col_width)+'d',
+                                     'Records': '>8s',
+                                     'Explanations': 's'})
         file_index_lines = file_index_lines.getvalue()
 
         # Fill up the full ReadMe
@@ -779,6 +786,11 @@ class Cds(core.BaseReader):
         super().__init__()
         self.header.readme = readme
 
+        # ``CdsData`` class inherits from ``FixedWidthData`` which has the
+        # default ``start_line`` at 1. For CDS format writing start line
+        # should be at 0.
+        self.data.start_line = None
+
         # The cds dict contains the default values for table meta info
         # required to fill up the ReadMe template.
         self.cdsdicts = cdsdicts
@@ -792,7 +804,6 @@ class Cds(core.BaseReader):
         self.data.header = self.header
         self.header.position_line = None
         self.header.start_line = None
-        self.data.start_line = None
         return super().write(table)
 
     def read(self, table):

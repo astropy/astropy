@@ -11,7 +11,6 @@ from astropy.table import Table
 from astropy.io import ascii
 from astropy import units as u
 
-# flake8: noqa: E291
 
 test_dat = ['names e d s i',
             'HD81809 1E-7 22.25608 +2 67',
@@ -19,7 +18,8 @@ test_dat = ['names e d s i',
 
 
 def test_write_data():
-    exp_output = ['S08-229 4625 1.23 1.23 -1.50      ',
+    exp_output = ['S05-5   4337 0.77 1.80 -2.07      ',
+                  'S08-229 4625 1.23 1.23 -1.50      ',
                   'S05-10  4342 0.91 1.82 -2.11  0.14',
                   'S05-47  4654 1.28 1.74 -1.64  0.16']
 
@@ -38,7 +38,7 @@ def test_write_data():
 
 def test_write_byte_by_byte_units():
     t = ascii.read(test_dat)
-    col_units = [None, u.C, u.kg, None, u.year]
+    col_units = [None, u.C, u.kg, u.m/u.s, u.year]
     t._set_column_attribute('unit', col_units)
     # Add a column with magnitude units.
     # Note that magnitude has to be assigned for each value explicitly.
@@ -101,7 +101,7 @@ References:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67
 HD103095 -3e+06 27.25000  -9e+34 -30
-'''
+''' # noqa: W291
     t = ascii.read(test_dat)
     out = StringIO()
     t.write(out, format='ascii.cds')
@@ -165,7 +165,7 @@ References:
 --------------------------------------------------------------------------------
 HD81809  1e-07    2e+00  67 5.0 20
 HD103095         -9e+34 -30 5.0 20
-'''
+''' # noqa: W291
     from astropy.table import MaskedColumn
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
@@ -215,7 +215,7 @@ References:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
-''',
+''',  # noqa: W291
 
 positive_de = '''\
 --------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ References:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
-''',
+''',  # noqa: W291
 
 galactic = '''\
 --------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ References:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.0716395916897 -45.54808048460931
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.0716395916897 -45.54808048460931
-''',
+''',  # noqa: W291
 
 ecliptic = '''\
 --------------------------------------------------------------------------------
@@ -312,11 +312,12 @@ References:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.2242086500961 -45.62178985082456
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.2242086500961 -45.62178985082456
-'''
+'''  # noqa: W291
 )
 
+
 def test_write_coord_cols():
-    """ 
+    """
     There can only be one such coordinate column in a single table,
     because division of columns into individual component columns requires
     iterating over the table columns, which will have to be done again
@@ -381,7 +382,7 @@ Byte-by-byte Description of file: table.dat
  85-100  F16.13 arcsec DEs           Declination (arcsec)              
 
 --------------------------------------------------------------------------------
-'''
+''' # noqa: W291
     from astropy.coordinates import SkyCoord
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
@@ -417,42 +418,24 @@ Byte-by-byte Description of file: table.dat
                                            tediously long description. But they
                                            do sometimes have them. Better to put
                                            extra details in the notes.
-10-14  E5.1   ---    e                      [-3160000.0/0.01] This is a
-                                           tediously long description. But they
-                                           do sometimes have them. Better to put
-                                           extra details in the notes. This is a
-                                           tediously long description. But they
-                                           do sometimes have them. Better to put
-                                           extra details in the notes.
-16-23  F8.5   ---    d                      [22.25/27.25] This is a tediously
-                                           long description. But they do
-                                           sometimes have them. Better to put
-                                           extra details in the notes. This is a
-                                           tediously long description. But they
-                                           do sometimes have them. Better to put
-                                           extra details in the notes.
+10-14  E5.1   ---    e                      [-3160000.0/0.01] Description of e
+16-23  F8.5   ---    d                      [22.25/27.25] Description of d
 
 --------------------------------------------------------------------------------
-'''
+''' # noqa: W291
     t = ascii.read(test_dat)
     t.remove_columns(['s', 'i'])
     description = 'This is a tediously long description.' \
                   + ' But they do sometimes have them.' \
                   + ' Better to put extra details in the notes. '
-    for col in t.columns:
-        t[col].description = description * 2
+    t['names'].description = description * 2
     t['names'].name = 'thisIsALongColumnLabel'
     out = StringIO()
     t.write(out, format='ascii.cds')
     lines = out.getvalue().splitlines()
-    print(lines)
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
     # Select only the Byte-By-Byte section.
     lines = lines[i_secs[-6]:i_secs[-3]]
     lines.append(lines[0])   # Append a separator line.
-    for l, ll in zip(lines, exp_output.splitlines()):
-        print(l)
-        print(ll)
     assert lines == exp_output.splitlines()
-
