@@ -58,6 +58,11 @@ jobs:
             python: 3.9
             toxenv: py39-test
 
+          - name: Python 3.10 with minimal dependencies
+            os: ubuntu-latest
+            python: 3.10.0-beta.4
+            toxenv: py39-test
+
           # NOTE: In the build below we also check that tests do not open and
           # leave open any files. This has a performance impact on running the
           # tests, hence why it is not enabled by default.
