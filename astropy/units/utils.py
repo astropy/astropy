@@ -299,18 +299,25 @@ def quantity_asanyarray(a, dtype=None):
 
 # ------------------------------------------------------------------------------
 
+def _is_ulike(unit):
+    """Check if is unit-like."""
+    from astropy.units import Unit
+
+    try:
+        Unit(unit)  # TODO! worry about structured units
+    except TypeError:
+        return False
+    else:
+        return True
+
+
 def _is_seq_ulike(seq):
     """Check if a sequence is unit-like."""
-    from astropy.units import UnitBase
-
-    is_unit = isinstance(seq, UnitBase)
-    is_unit_sequence = (isinstance(seq, Sequence) and
-                        all(isinstance(x, UnitBase) for x in seq))
-    return True if (is_unit or is_unit_sequence) else False
+    return isinstance(seq, Sequence) and all(_is_ulike(x) for x in seq)
 
 
 def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
-                        *, identity=None):
+                        *, identity=None, assume_correct_units=False):
     """Quantity-aware `~numpy.frompyfunc`.
 
     `~numpy.ufunc`s operate on only recognized `~numpy.dtype`s (e.g. float32),
@@ -350,27 +357,31 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
 
     # -------------------------
     # determine units by introspection
-    # and ensure seq[unit-like] -> seq[unit]
 
     sig = inspect.signature(func)
 
     # input units
     if inunits is None:
-        svals = tuple(sig.parameters.values())
-        # TODO! more robust. what if no annotations?
+        svals = tuple(sig.parameters.values())  # sequence[Parameter]
         inunits = [Unit(p.annotation) if _is_seq_ulike(p.annotation) else None
                    for p in svals]
 
     # output units
     if ounits is None:
         ra = sig.return_annotation
-        if _is_seq_ulike(ra):
-            ounits = ra
+        ra = [ra] if _is_ulike(ra) else ra  # now a sequence, if unit-like
+        ounits = ra if _is_seq_ulike(ra) else [None]
+
+        if ounits != [None] and len(ounits) != nout:
+            raise ValueError(
+                "function annotation is a sequence of unit-like, but "
+                f"its length ({len(ra)}) does not equal `nout` ({nout})")
 
     # -------------------------
     # make and register ufunc
 
     ufunc = np.frompyfunc(func, nin, nout, identity=identity)
-    register_ufunc(ufunc, inunits=inunits, ounits=ounits)
+    register_ufunc(ufunc, inunits=inunits, ounits=ounits,
+                   assume_correct_units=assume_correct_units)
 
     return ufunc

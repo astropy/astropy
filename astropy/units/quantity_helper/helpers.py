@@ -322,13 +322,15 @@ def helper_clip(f, unit1, unit2, unit3):
 
 
 # HELPER NARGS
-def register_ufunc(ufunc, inunits, ounits, assume_correct_units=False):
+def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
     """
     Register `~numpy.ufunc` in ``UFUNC_HELPERS``, along with the conversion
     functions necessary to strip input units and assign output units. ufuncs
     operate on only recognized `~numpy.dtype`s (e.g. int, float32), so units
     must be removed beforehand and replaced afterwards. Therefore units MUST
     BE KNOWN a priori, as they will not be propagated by the astropy machinery.
+
+    Note that ufuncs always return an object array.
 
     Parameters
     ----------
@@ -351,10 +353,11 @@ def register_ufunc(ufunc, inunits, ounits, assume_correct_units=False):
     from astropy.units import Unit, dimensionless_unscaled
 
     # process sequence[unit-like] -> sequence[unit]
-    if isiterable(inunits):
-        inunits = [(Unit(iu) if iu is not None else iu) for iu in inunits]
-    if isiterable(ounits):
-        ounits = [(Unit(ou) if ou is not None else ou) for ou in ounits]
+    inunits = [(Unit(iu) if iu is not None else None) for iu in inunits]
+
+    ounits = [(Unit(ou) if ou is not None else None) for ou in ounits]
+    ounits = ounits[0] if len(ounits) == 1 else ounits
+
     # backup units for interpreting array (no units) input
     fallbackinunits = (inunits if assume_correct_units
                        else [dimensionless_unscaled] * len(inunits))
@@ -376,8 +379,7 @@ def register_ufunc(ufunc, inunits, ounits, assume_correct_units=False):
         ounits : sequence[unit-like]
 
         """
-        # unit converters
-        # no units assumed to be in fallback units
+        # unit converters. No units = assumed to be in fallback units.
         # if None in 'inunits', skip conversion
         converters = [(get_converter(frm or fb, to) if to is not None else None)
                       for frm, to, fb in zip(units, inunits, fallbackinunits)]
