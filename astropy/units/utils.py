@@ -299,12 +299,13 @@ def quantity_asanyarray(a, dtype=None):
 
 # ------------------------------------------------------------------------------
 
-def _is_seq_ulike(annotation):
+def _is_seq_ulike(seq):
+    """Check if a sequence is unit-like."""
     from astropy.units import UnitBase
 
-    is_unit = isinstance(annotation, UnitBase)
-    is_unit_sequence = (isinstance(annotation, Sequence) and
-                        all(isinstance(x, UnitBase) for x in annotation))
+    is_unit = isinstance(seq, UnitBase)
+    is_unit_sequence = (isinstance(seq, Sequence) and
+                        all(isinstance(x, UnitBase) for x in seq))
     return True if (is_unit or is_unit_sequence) else False
 
 
@@ -341,39 +342,35 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
     Returns
     -------
     `~numpy.ufunc`
+        registered into `astropy.units.Quantity` `numpy.ufunc` registry.
 
     """
     from astropy.units import Unit
+    from astropy.units.quantity_helper.helpers import register_ufunc
 
     # -------------------------
     # determine units by introspection
+    # and ensure seq[unit-like] -> seq[unit]
 
     sig = inspect.signature(func)
 
     # input units
-    if inunits is not None:
-        inunits = [Unit(iu) for iu in inunits]  # seq[unit-like] -> seq[unit]
-    else:
+    if inunits is None:
         svals = tuple(sig.parameters.values())
         # TODO! more robust. what if no annotations?
         inunits = [Unit(p.annotation) if _is_seq_ulike(p.annotation) else None
                    for p in svals]
 
     # output units
-    if ounits is not None:
-        ounits = [Unit(ou) for ou in ounits]
-    else:
+    if ounits is None:
         ra = sig.return_annotation
         if _is_seq_ulike(ra):
             ounits = ra
 
     # -------------------------
-    # make ufunc
+    # make and register ufunc
 
     ufunc = np.frompyfunc(func, nin, nout, identity=identity)
-
-    # register ufunc with Quantity machinery
-    from astropy.units.quantity_helper.helpers import register_ufunc
-    register_ufunc(ufunc, nin=nin, nout=nout, inunits=inunits, ounits=ounits)
+    register_ufunc(ufunc, inunits=inunits, ounits=ounits)
 
     return ufunc

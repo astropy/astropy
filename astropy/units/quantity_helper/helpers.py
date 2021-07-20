@@ -17,6 +17,7 @@ from astropy.units.core import (
     UnitsError, UnitConversionError, UnitTypeError,
     dimensionless_unscaled, get_current_unit_registry,
     unit_scale_converter)
+from astropy.utils import isiterable
 
 
 def _d(unit):
@@ -321,7 +322,7 @@ def helper_clip(f, unit1, unit2, unit3):
 
 
 # HELPER NARGS
-def register_ufunc(ufunc, nin, nout, inunits, ounits):
+def register_ufunc(ufunc, inunits, ounits, assume_correct_units=False):
     """
     Register `~numpy.ufunc` in ``UFUNC_HELPERS``, along with the conversion
     functions necessary to strip input units and assign output units. ufuncs
@@ -332,17 +333,31 @@ def register_ufunc(ufunc, nin, nout, inunits, ounits):
     Parameters
     ----------
     ufunc : `~numpy.ufunc`
-    nin, nout : int
-        Number of ufunc's inputs and outputs
     inunits, ounits : sequence[unit-like]
-        Sequence of the input and output units, respectively.
+        Sequence of the correct input and output units, respectively.
+    assume_correct_units : bool, optional
+        When input arrays are given without units, but the ufunc has 'inunits',
+        whether the array is assumed to have dimensionless units (default) or
+        have 'inunits'.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> func = lambda x: x**2
+    >>> ufunc = np.frompyfunc(func)
+    >>> register_ufunc(ufunc, )
 
     """
-    from astropy.units import Unit
+    from astropy.units import Unit, dimensionless_unscaled
 
     # process sequence[unit-like] -> sequence[unit]
-    inunits = [Unit(iu) for iu in inunits]
-    ounits = [Unit(ou) for ou in ounits]
+    if isiterable(inunits):
+        inunits = [(Unit(iu) if iu is not None else iu) for iu in inunits]
+    if isiterable(ounits):
+        ounits = [(Unit(ou) if ou is not None else ou) for ou in ounits]
+    # backup units for interpreting array (no units) input
+    fallbackinunits = (inunits if assume_correct_units
+                       else [dimensionless_unscaled] * len(inunits))
 
     def helper_nargs(f, *units):
         """Helper function to convert input units and assign output units.
@@ -361,9 +376,11 @@ def register_ufunc(ufunc, nin, nout, inunits, ounits):
         ounits : sequence[unit-like]
 
         """
-        # no units assumed to be in inunits
-        converters = [get_converter(frm or to, to)
-                      for frm, to in zip(units, inunits)]
+        # unit converters
+        # no units assumed to be in fallback units
+        # if None in 'inunits', skip conversion
+        converters = [(get_converter(frm or fb, to) if to is not None else None)
+                      for frm, to, fb in zip(units, inunits, fallbackinunits)]
         return converters, ounits
 
     UFUNC_HELPERS[ufunc] = helper_nargs
