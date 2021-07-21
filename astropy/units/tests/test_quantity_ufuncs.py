@@ -14,9 +14,10 @@ from erfa import ufunc as erfa_ufunc
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import quantity_helper as qh
-from astropy.units.utils import quantity_frompyfunc, _is_ulike
+from astropy.units.utils import quantity_frompyfunc
 from astropy.units.quantity_helper.converters import UfuncHelpers
-from astropy.units.quantity_helper.helpers import helper_sqrt, register_ufunc
+from astropy.units.quantity_helper.helpers import (
+    helper_sqrt, register_ufunc, _is_ulike)
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 
@@ -1418,13 +1419,19 @@ class TestRegisterUfunc:
                            ounits=[u.km] * ufunc.nout,
                            assume_correct_units=True)
 
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
-    def test_raw_ufunc(self, func, inp, res):
-        """In this case, the output will also not have units."""
-        got = self.ufunc_registry[func](*inp)
+    # -------------------
+    # variety of funcs
+
+    @pytest.mark.parametrize("func, inp, res", ufunc_list[:7])
+    def test_raw_func(self, func, inp, res):
+        """
+        In this case, the output will also not have units.
+        This test is only run on the scalar inputs.
+        """
+        got = func(*inp)
         # need to convert from an object array to float array, for comparison
         # also, for multiple output, need to make array, before type casting
-        got = np.array(got).astype(float) if isinstance(got, (np.ndarray, tuple)) else got
+        # got = np.array(got).astype(float) if isinstance(got, (np.ndarray, tuple)) else got
         assert_allclose(got, res)
 
     @pytest.mark.parametrize("func, inp, res", ufunc_list)
@@ -1477,6 +1484,19 @@ class TestRegisterUfunc:
         with pytest.raises(u.UnitConversionError, match="'deg'"):
             got = getattr(self, registry)[func](*inp)
 
+    # -------------------
+    # specific func tests
+
+    def test_returns_quantity_object_array(self):
+        """Test when func returns a Quantity."""
+        def badfunc(x):
+            return x << u.km
+
+        badufunc = np.frompyfunc(badfunc, 1, 1)
+        register_ufunc(badufunc, [u.Celsius], None)
+        assert badufunc([0, 10, 20] * u.Celsius).dtype == object
+        assert badufunc([0, 10, 20] * u.Celsius)[0].unit == u.km
+
 
 class TestQuantityFromPyFunc:
 
@@ -1500,18 +1520,8 @@ class TestQuantityFromPyFunc:
             self.ufunc_introspect_assume_registry[func] = quantity_frompyfunc(
                 func, nin, nout, assume_correct_units=True)
 
-    @pytest.mark.parametrize(
-        "registry",
-        ["ufunc_registry", "ufunc_assume_registry",
-         "ufunc_introspect_registry", "ufunc_introspect_assume_registry"])
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
-    def test_raw_ufunc(self, registry, func, inp, res):
-        """In this case, the output will also not have units."""
-        got = getattr(self, registry)[func](*inp)
-        # need to convert from an object array to float array, for comparison
-        # also, for multiple output, need to make array, before type casting
-        got = np.array(got).astype(float) if isinstance(got, (np.ndarray, tuple)) else got
-        assert_allclose(got, res)
+    # -------------------
+    # variety of funcs
 
     @pytest.mark.parametrize(
         "registry",
@@ -1567,7 +1577,7 @@ class TestQuantityFromPyFunc:
             got = [(u.Quantity(g, dtype=float).value if
                     isinstance(g, np.ndarray) else g)
                     for g in got]
-        elif u.utils._is_ulike(ra):  # 1 unit-like output annotation
+        elif _is_ulike(ra):  # 1 unit-like output annotation
             assert got.unit == u.Unit(ra)
 
         got = u.Quantity(got, dtype=float).value
@@ -1584,6 +1594,9 @@ class TestQuantityFromPyFunc:
         with pytest.raises(u.UnitConversionError, match="'deg'"):
             got = getattr(self, registry)[func](*inp)
 
+    # -------------------
+    # specific func tests
+
     def test_annotation_mismatch_nout(self):
         """Test expected error when annotation doesn't match `nout`."""
         def func(x: "km", y) -> ("km", "km"):
@@ -1591,3 +1604,20 @@ class TestQuantityFromPyFunc:
 
         with pytest.raises(ValueError, match="not equal `nout`"):
             quantity_frompyfunc(func, 2, 1)
+
+    def test_returns_quantity_object_array(self):
+        """Test when func returns a Quantity."""
+        def badfunc(x: u.Celsius):
+            return x << u.km
+
+        badufunc = quantity_frompyfunc(badfunc, 1, 1)
+        assert badufunc([0, 10, 20] * u.Celsius).dtype == object
+        assert badufunc([0, 10, 20] * u.Celsius)[0].unit == u.km
+
+    def test_dropin_replacement_for_frompyfunc(self):
+        """Test when func returns a Quantity."""
+        def func(x):
+            return x
+
+        ufunc = quantity_frompyfunc(func, 1, 1)
+        assert all(ufunc([0, 10, 20]) == np.array([0., 10., 20.], dtype=object))

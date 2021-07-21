@@ -8,6 +8,7 @@ In particular, this implements the logic that determines scaling and result
 units for a given ufunc, given input units.
 """
 
+from collections.abc import Sequence
 from fractions import Fraction
 
 import numpy as np
@@ -404,7 +405,7 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
 
         >>> ufunc(36 * u.Celsius)
         <Quantity 96.8 deg_F>
-        >>> ufunc(np.array([0, 10, 20]) * u.Celsius)
+        >>> ufunc([0, 10, 20] * u.Celsius)
         <Quantity [32.0, 50.0, 68.0] deg_F>
 
 
@@ -426,7 +427,7 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
        >>> def badc2f(x): return (9./5. * x + 32) << Fahrenheit
        >>> badufunc = np.frompyfunc(badc2f, 1, 1)
        >>> register_ufunc(badufunc, [u.Celsius], [Fahrenheit])
-       >>> badufunc(np.array([0, 10, 20]) * u.Celsius)
+       >>> badufunc([0, 10, 20] * u.Celsius)
        <Quantity [<Quantity 32. deg_F>, <Quantity 50. deg_F>,
                   <Quantity 68. deg_F>] deg_F>
 
@@ -450,11 +451,11 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
     from astropy.units import Unit, dimensionless_unscaled
 
     # process sequence[unit-like] -> sequence[unit]
-    inunits = [inunits] if _is_ulike(inunits) else inunits
+    inunits = [inunits] if (inunits is None or _is_ulike(inunits)) else inunits
     inunits = [(Unit(iu) if iu is not None else None) for iu in inunits]
 
     # process sequence[unit-like] -> sequence[unit]
-    ounits = [ounits] if _is_ulike(ounits) else ounits
+    ounits = [ounits] if (ounits is None or _is_ulike(ounits)) else ounits
     ounits = [(Unit(ou) if ou is not None else None) for ou in ounits]
     ounits = ounits[0] if len(ounits) == 1 else ounits
 

@@ -9,7 +9,6 @@ package.
 import inspect
 import io
 import re
-from collections.abc import Sequence
 from fractions import Fraction
 
 import numpy as np
@@ -374,7 +373,7 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
 
         >>> ufunc(36 * u.Celsius)
         <Quantity 96.8 deg_F>
-        >>> ufunc(np.array([0, 10, 20]) * u.Celsius)
+        >>> ufunc([0, 10, 20] * u.Celsius)
         <Quantity [32.0, 50.0, 68.0] deg_F>
 
 
@@ -395,7 +394,7 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
 
        >>> def badc2f(x): return (9./5. * x + 32) << Fahrenheit
        >>> badufunc = quantity_frompyfunc(badc2f, 1, 1, u.Celsius, Fahrenheit)
-       >>> badufunc(np.array([0, 10, 20]) * u.Celsius)
+       >>> badufunc([0, 10, 20] * u.Celsius)
        <Quantity [<Quantity 32. deg_F>, <Quantity 50. deg_F>,
                   <Quantity 68. deg_F>] deg_F>
 
