@@ -3,9 +3,10 @@
 
 from asdf.versioning import AsdfVersion
 
+from astropy.modeling.bounding_box import BoundingBox
 from astropy.modeling import mappings
 from astropy.modeling import functional_models
-from astropy.modeling.core import CompoundModel
+from astropy.modeling.core import CompoundModel, get_bounding_box
 from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 from . import _parameter_to_value
 
@@ -71,11 +72,14 @@ class TransformType(AstropyAsdfType):
         except NotImplementedError:
             bb = None
 
+        if isinstance(bb, BoundingBox):
+            bb = bb.bounding_box(order='C')
+
         if bb is not None:
             if model.n_inputs == 1:
                 bb = list(bb)
             else:
-                bb = [list(item) for item in model.bounding_box]
+                bb = [list(item) for item in bb]
             node['bounding_box'] = bb
         if type(model.__class__.inputs) != property:
             node['inputs'] = model.inputs
@@ -106,6 +110,8 @@ class TransformType(AstropyAsdfType):
         # TODO: If models become comparable themselves, remove this.
         assert a.name == b.name
         # TODO: Assert inverses are the same
+        # assert the bounding_boxes are the same
+        assert get_bounding_box(a) == get_bounding_box(b)
 
 
 class IdentityType(TransformType):

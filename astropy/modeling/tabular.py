@@ -186,17 +186,30 @@ class _Tabular(Model):
         >>> from astropy.modeling.models import Tabular1D, Tabular2D
         >>> t1 = Tabular1D(points=[1, 2, 3], lookup_table=[10, 20, 30])
         >>> t1.bounding_box
-        (1, 3)
+        BoundingBox(
+            intervals={
+                x: Interval(lower=1, upper=3)
+            }
+            model=Tabular1D(inputs=('x',))
+            order='C'
+        )
         >>> t2 = Tabular2D(points=[[1, 2, 3], [2, 3, 4]],
         ...                lookup_table=[[10, 20, 30], [20, 30, 40]])
         >>> t2.bounding_box
-        ((2, 4), (1, 3))
+        BoundingBox(
+            intervals={
+                x: Interval(lower=1, upper=3)
+                y: Interval(lower=2, upper=4)
+            }
+            model=Tabular2D(inputs=('x', 'y'))
+            order='C'
+        )
 
         """
         bbox = [(min(p), max(p)) for p in self.points][::-1]
         if len(bbox) == 1:
             bbox = bbox[0]
-        return tuple(bbox)
+        return bbox
 
     def evaluate(self, *inputs):
         """

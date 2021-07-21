@@ -13,6 +13,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.models import Gaussian2D
+from astropy.modeling.bounding_box import BoundingBox
 from astropy.modeling.core import FittableModel
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.polynomial import PolynomialBase
@@ -114,7 +115,7 @@ def test_custom_model_bounding_box():
     model = Ellipsoid3D()
     bbox = model.bounding_box
 
-    zlim, ylim, xlim = bbox
+    zlim, ylim, xlim = bbox.bounding_box()
     dz, dy, dx = np.diff(bbox) / 2
     z1, y1, x1 = np.mgrid[slice(zlim[0], zlim[1] + 1),
                           slice(ylim[0], ylim[1] + 1),
@@ -123,11 +124,11 @@ def test_custom_model_bounding_box():
                           slice(ylim[0] - dy, ylim[1] + dy + 1),
                           slice(xlim[0] - dx, xlim[1] + dx + 1)]
 
-    arr = model(x2, y2, z2)
-    sub_arr = model(x1, y1, z1)
+    arr = model(x2, y2, z2, with_bounding_box=True)
+    sub_arr = model(x1, y1, z1, with_bounding_box=True)
 
     # check for flux agreement
-    assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
+    assert abs(np.nansum(arr) - np.nansum(sub_arr)) < np.nansum(arr) * 1e-7
 
 
 class Fittable2DModelTester:
@@ -416,6 +417,9 @@ class Fittable1DModelTester:
         else:
             rtol = 1e-7
             ddx = 1
+
+        if isinstance(bbox, BoundingBox):
+            bbox = bbox.bounding_box()
 
         dx = np.diff(bbox) / 2
         x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]

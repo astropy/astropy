@@ -14,7 +14,7 @@ from astropy.modeling.core import _ModelMeta
 
 def test_gaussian1d_bounding_box():
     g = Gaussian1D(mean=3 * u.m, stddev=3 * u.cm, amplitude=3 * u.Jy)
-    bbox = g.bounding_box
+    bbox = g.bounding_box.bounding_box()
     assert_quantity_allclose(bbox[0], 2.835 * u.m)
     assert_quantity_allclose(bbox[1], 3.165 * u.m)
 
