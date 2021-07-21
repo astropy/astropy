@@ -1,0 +1,4 @@
+Added ``read/write`` methods to Cosmology using the Unified I/O registry.
+Now custom file format readers, writers, and format-identifier functions
+can be registered to read, write, and identify, respectively, Cosmology
+objects. Details are discussed in an addition to the docs.
