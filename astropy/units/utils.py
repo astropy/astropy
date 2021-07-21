@@ -299,22 +299,6 @@ def quantity_asanyarray(a, dtype=None):
 
 # ------------------------------------------------------------------------------
 
-def _is_ulike(unit):
-    """Check if is unit-like."""
-    from astropy.units import Unit
-
-    try:
-        Unit(unit)  # TODO! worry about structured units
-    except TypeError:
-        return False
-    else:
-        return True
-
-
-def _is_seq_ulike(seq):
-    """Check if a sequence is unit-like."""
-    return isinstance(seq, Sequence) and all(_is_ulike(x) for x in seq)
-
 
 def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
                         *, identity=None, assume_correct_units=False):
@@ -329,8 +313,8 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
     ----------
     func : callable
     nin, nout : int
-        Number of ufunc's inputs and outputs
-    inunits, ounits : sequence[unit-like] (optional)
+        Number of ufunc's inputs and outputs.
+    inunits, ounits : unit-like or sequence thereof (optional)
         Sequence of the input and output units, respectively.
 
         .. warning::
@@ -346,14 +330,103 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
         _not_ equivalent to setting the identity to ``None``, which implies the
         operation is reorderable.
 
+    assume_correct_units : bool (optional, keyword-only)
+        When input arrays are given without units, but the ufunc has 'inunits',
+        whether the array is assumed to have dimensionless units (default) or
+        have 'inunits'.
+
     Returns
     -------
     `~numpy.ufunc`
-        registered into `astropy.units.Quantity` `numpy.ufunc` registry.
+        Registered into `astropy.units.Quantity` `numpy.ufunc` registry.
+
+    See Also
+    --------
+    `astropy.units.quantity_helper.helpers.register_ufunc`
+
+    Examples
+    --------
+    We first need to import relevant packages:
+
+        >>> import numpy as np
+        >>> import astropy.units as u
+        >>> from astropy.units.imperial import Fahrenheit
+
+    Now we can define a python function. For this example we will define the
+    conversion between Celsius and Fahrenheit.
+
+        >>> def c2f(x): return 9./5. * x + 32
+
+    With numpy this function can be turned into a `numpy.ufunc`. This is useful
+    if the python function works only on scalars, but we want to be able to
+    pass in arrays. One of the limitations of a `numpy.ufunc` is that it cannot
+    work with `~astropy.units.Quantity`. This is a partially solved problem as
+    numpy allows for `numpy.ufunc` evaluation to be overridden. We register
+    this ``ufunc`` and provide the input and output units. The internal
+    calculation will be done on the unitless arrays (by converting to the input
+    units) and then the output units will be assigned.
+    ``c2f`` will work on Quantities, but pretending it didn't...
+
+        >>> ufunc = quantity_frompyfunc(c2f, nin=1, nout=1,
+        ...                             inunits=u.Celsius, ounits=Fahrenheit)
+        >>> ufunc
+        <ufunc 'c2f (vectorized)'>
+
+        >>> ufunc(36 * u.Celsius)
+        <Quantity 96.8 deg_F>
+        >>> ufunc(np.array([0, 10, 20]) * u.Celsius)
+        <Quantity [32.0, 50.0, 68.0] deg_F>
+
+
+    **There are two caveats to note**:
+
+    1. The `numpy.ufunc` overrides only work when at least one argument
+       is a `~astropy.units.Quantity`. In the above example ``c2f`` takes only
+       one argument, so if a scalar or `~numpy.ndarray` were passed instead of
+       a Quantity, the output will also be an ndarray.
+
+        >>> ufunc(36)
+        96.8
+        >>> ufunc(np.array([0, 10, 20]))  # note dtype is an object
+        array([32.0, 50.0, 68.0], dtype=object)
+
+    2. The function cannot return a Quantity with units. If so, an object array
+       of Quantity will be returned instead of a Quantity array.
+
+       >>> def badc2f(x): return (9./5. * x + 32) << Fahrenheit
+       >>> badufunc = quantity_frompyfunc(badc2f, 1, 1, u.Celsius, Fahrenheit)
+       >>> badufunc(np.array([0, 10, 20]) * u.Celsius)
+       <Quantity [<Quantity 32. deg_F>, <Quantity 50. deg_F>,
+                  <Quantity 68. deg_F>] deg_F>
+
+
+    **Extra features**:
+
+    As a convenience, ``quantity_frompyfunc`` can also introspect function
+    annotations and use these to determine the input and output units,
+    obviating the need for arguments ``inunits`` and ``ounits``.
+
+        >>> def c2f(x: u.Celsius) -> Fahrenheit: return 9./5. * x + 32
+        >>> ufunc = quantity_frompyfunc(c2f, 1, 1)
+
+        >>> ufunc(-40 * u.Celsius)
+        <Quantity -40. deg_F>
+
+    When a ufunc has at least 2 inputs, if one of the arguments does not have
+    units it is assumed to be `~astropy.units.dimensionless_unscaled`. However,
+    ``quantity_frompyfunc`` takes the keyword argument "assume_correct_units",
+    in which case the ufunc will instead interpret a unitless argument as
+    having units 'inunits' -- i.e. the correct units.
+
+        >>> def exf(x: u.km, y: u.s) -> u.km**2/u.s: return x ** 2 / y
+        >>> exufunc = quantity_frompyfunc(exf, 2, 1, assume_correct_units=True)
+        >>> exufunc(3 * u.km, 2)
+        <Quantity 4.5 km2 / s>
 
     """
     from astropy.units import Unit
-    from astropy.units.quantity_helper.helpers import register_ufunc
+    from astropy.units.quantity_helper.helpers import (
+        _is_ulike, _is_seq_ulike, register_ufunc)
 
     # -------------------------
     # determine units by introspection
