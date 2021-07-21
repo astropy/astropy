@@ -1583,3 +1583,11 @@ class TestQuantityFromPyFunc:
 
         with pytest.raises(u.UnitConversionError, match="'deg'"):
             got = getattr(self, registry)[func](*inp)
+
+    def test_annotation_mismatch_nout(self):
+        """Test expected error when annotation doesn't match `nout`."""
+        def func(x: "km", y) -> ("km", "km"):
+            pass
+
+        with pytest.raises(ValueError, match="not equal `nout`"):
+            quantity_frompyfunc(func, 2, 1)
