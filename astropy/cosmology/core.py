@@ -10,14 +10,16 @@ from types import MappingProxyType
 
 import numpy as np
 
-from astropy import constants as const
-from astropy import units as u
+import astropy.constants as const
+import astropy.units as u
+from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.utils import isiterable
 from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.metadata import MetaData
 
 from . import scalar_inv_efuncs
+from .connect import CosmologyRead, CosmologyWrite
 from .utils import _float_or_none, inf_like, vectorize_if_needed
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
@@ -112,6 +114,11 @@ class Cosmology(metaclass=ABCMeta):
     """
 
     meta = MetaData()
+
+    # Unified I/O read and write methods
+    # The 'read' method in subclasses is NotImplemented.
+    read = UnifiedReadWriteMethod(CosmologyRead)
+    write = UnifiedReadWriteMethod(CosmologyWrite)
 
     def __init_subclass__(cls):
         super().__init_subclass__()
