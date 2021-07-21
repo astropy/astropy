@@ -36,8 +36,9 @@ from astropy.utils import (sharedmethod, find_current_module,
 from astropy.utils.codegen import make_function_with_signature
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
-                    get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
+                    get_inputs_and_params, _combine_equivalency_dict,
                     _ConstraintsDict, _SpecialOperatorsDict)
+from .bounding_box import BoundingBox
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -284,7 +285,7 @@ class _ModelMeta(abc.ABCMeta):
             # See if it's a hard-coded bounding_box (as a sequence) and
             # normalize it
             try:
-                bounding_box = _BoundingBox.validate(cls, bounding_box)
+                bounding_box = BoundingBox.validate(cls, bounding_box)
             except ValueError as exc:
                 raise ModelDefinitionError(exc.args[0])
         else:
@@ -306,7 +307,7 @@ class _ModelMeta(abc.ABCMeta):
     def _create_bounding_box_subclass(cls, func, sig):
         """
         For Models that take optional arguments for defining their bounding
-        box, we create a subclass of _BoundingBox with a ``__call__`` method
+        box, we create a subclass of BoundingBox with a ``__call__`` method
         that supports those additional arguments.
 
         Takes the function's Signature as an argument since that is already
@@ -347,7 +348,7 @@ class _ModelMeta(abc.ABCMeta):
 
         __call__.__signature__ = sig
 
-        return type(f'_{cls.name}BoundingBox', (_BoundingBox,),
+        return type(f'{cls.name}BoundingBox', (BoundingBox,),
                     {'__call__': __call__})
 
     def _handle_special_methods(cls, members, pdict):
@@ -1258,20 +1259,20 @@ class Model(metaclass=_ModelMeta):
         elif self._bounding_box is None:
             raise NotImplementedError(
                 "No bounding box is defined for this model.")
-        elif isinstance(self._bounding_box, _BoundingBox):
+        elif isinstance(self._bounding_box, BoundingBox):
             # This typically implies a hard-coded bounding box.  This will
             # probably be rare, but it is an option
             return self._bounding_box
         elif isinstance(self._bounding_box, types.MethodType):
-            return self._bounding_box()
+            return BoundingBox.validate(self, self._bounding_box())
         else:
-            # The only other allowed possibility is that it's a _BoundingBox
+            # The only other allowed possibility is that it's a BoundingBox
             # subclass, so we call it with its default arguments and return an
             # instance of it (that can be called to recompute the bounding box
             # with any optional parameters)
             # (In other words, in this case self._bounding_box is a *class*)
-            bounding_box = self._bounding_box((), _model=self)()
-            return self._bounding_box(bounding_box, _model=self)
+            bounding_box = self._bounding_box((), model=self)()
+            return self._bounding_box(bounding_box, model=self)
 
     @bounding_box.setter
     def bounding_box(self, bounding_box):
@@ -1285,10 +1286,10 @@ class Model(metaclass=_ModelMeta):
             # opposed to no user bounding box defined)
             bounding_box = NotImplemented
         elif (isinstance(self._bounding_box, type) and
-              issubclass(self._bounding_box, _BoundingBox)):
+              issubclass(self._bounding_box, BoundingBox)):
             cls = self._bounding_box
         else:
-            cls = _BoundingBox
+            cls = BoundingBox
 
         if cls is not None:
             try:
@@ -1537,6 +1538,9 @@ class Model(metaclass=_ModelMeta):
             bbox = self.bounding_box
         except NotImplementedError:
             bbox = None
+
+        if isinstance(bbox, BoundingBox):
+            bbox = bbox.bounding_box()
 
         ndim = self.n_inputs
 
@@ -2618,8 +2622,8 @@ class CompoundModel(Model):
             # If so, remove the appropriate dimensions and set it for this
             # instance.
             try:
-                bounding_box = self.left.bounding_box
-                self._fix_input_bounding_box(input_ind)
+                self.bounding_box = \
+                    self.left.bounding_box.fix_inputs(self, input_ind)
             except NotImplementedError:
                 pass
 
@@ -2793,20 +2797,20 @@ class CompoundModel(Model):
         fill_value = kw.pop('fill_value', np.nan)
         # Use of bounding box for compound models requires special treatment
         # in selecting only valid inputs to pass along to constituent models.
-        bbox = get_bounding_box(self)
+        if with_bbox:
+            bbox = get_bounding_box(self)
+        else:
+            bbox = None
         if with_bbox and bbox is not None:
             # first check inputs are consistent in shape
             input_shape = _validate_input_shapes(args, (), self._n_models,
                                                  self.model_set_axis, self.standard_broadcasting)
-            vinputs, valid_ind, allout = prepare_bounding_box_inputs(self, input_shape, args, bbox)
-            if not allout:
-                valid_result = self._evaluate(*vinputs, **kw)
-                if self.n_outputs == 1:
-                    valid_result = [valid_result]
-                outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
-                                                       input_shape, fill_value)
+            valid_inputs, valid_index, all_out = bbox.prepare_inputs(input_shape, args)
+            if not all_out:
+                valid_outputs = self._evaluate(*valid_inputs, **kw)
+                outputs = bbox.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
             else:
-                outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
+                outputs = [np.zeros(input_shape) + fill_value for _ in range(self.n_outputs)]
             if self.n_outputs == 1:
                 return outputs[0]
             return outputs
@@ -3305,23 +3309,6 @@ class CompoundModel(Model):
                 else:
                     outputs_map[out] = self.left, out
         return outputs_map
-
-    def _fix_input_bounding_box(self, input_ind):
-        """
-        If the ``fix_inputs`` operator is used and the model it is applied to
-        has a bounding box definition, delete the corresponding inputs from
-        that bounding box. This method presumes the bounding_box is not None.
-        This also presumes that the list of input indices to remove (i.e.,
-        input_ind has already been put in reverse sorted order).
-        """
-        bounding_box = list(self.left.bounding_box)[::-1]
-        for ind in input_ind:
-            del bounding_box[ind]
-        if self.n_inputs == 1:
-            bounding_box = bounding_box[0]
-        else:
-            bounding_box = bounding_box[::-1]
-        self.bounding_box = bounding_box
 
     @property
     def has_user_bounding_box(self):
@@ -4144,25 +4131,24 @@ def generic_call(self, *inputs, **kwargs):
         parameters = self._param_sets(raw=True, units=True)
     with_bbox = kwargs.pop('with_bounding_box', False)
     fill_value = kwargs.pop('fill_value', np.nan)
-    bbox = get_bounding_box(self)
+    if with_bbox:
+        bbox = get_bounding_box(self)
+    else:
+        bbox = None
     if with_bbox and bbox is not None:
         input_shape = _validate_input_shapes(
             inputs, self.inputs, self._n_models, self.model_set_axis,
             self.standard_broadcasting)
-        vinputs, valid_ind, allout = prepare_bounding_box_inputs(
-            self, input_shape, inputs, bbox)
-        valid_result_unit = None
-        if not allout:
-            valid_result = self.evaluate(*chain(vinputs, parameters))
-            valid_result_unit = getattr(valid_result, 'unit', None)
-            if self.n_outputs == 1:
-                valid_result = [valid_result]
-            outputs = prepare_bounding_box_outputs(valid_result, valid_ind,
-                                                   input_shape, fill_value)
+        valid_inputs, valid_index, all_out = bbox.prepare_inputs(input_shape, inputs)
+        valid_outputs_unit = None
+        if not all_out:
+            valid_outputs = self.evaluate(*chain(valid_inputs, parameters))
+            valid_outputs_unit = getattr(valid_outputs, 'unit', None)
+            outputs = bbox.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
         else:
-            outputs = [np.zeros(input_shape) + fill_value for i in range(self.n_outputs)]
-        if valid_result_unit is not None:
-            outputs = Quantity(outputs, valid_result_unit, copy=False)
+            outputs = [np.zeros(input_shape) + fill_value for _ in range(self.n_outputs)]
+        if valid_outputs_unit is not None:
+            outputs = Quantity(outputs, valid_outputs_unit, copy=False)
     else:
         outputs = self.evaluate(*chain(inputs, parameters))
         if self.n_outputs == 1:
@@ -4174,58 +4160,6 @@ def generic_call(self, *inputs, **kwargs):
     if self.n_outputs == 1:
         return outputs[0]
     return outputs
-
-
-def prepare_bounding_box_inputs(self, input_shape, inputs, bbox):
-    """
-    Assign a value of ``np.nan`` to indices outside the bounding box.
-    """
-    allout = False
-    if self.n_inputs > 1:
-        # bounding_box is in python order -
-        # convert it to the order of the inputs
-        bbox = bbox[::-1]
-    if self.n_inputs == 1:
-        bbox = [bbox]
-    # indices where input is outside the bbox
-    # have a value of 1 in ``nan_ind``
-    nan_ind = np.zeros(input_shape, dtype=bool)
-    for ind, inp in enumerate(inputs):
-        inp = np.asanyarray(inp)
-        outside = np.logical_or(inp < bbox[ind][0], inp > bbox[ind][1])
-        if inp.shape:
-            nan_ind[outside] = True
-        else:
-            nan_ind |= outside
-            if nan_ind:
-                allout = True
-    # get an array with indices of valid inputs
-    valid_ind = np.atleast_1d(np.logical_not(nan_ind)).nonzero()
-    if len(valid_ind[0]) == 0:
-        allout = True
-    # inputs holds only inputs within the bbox
-    args = []
-    if not allout:
-        for inp in inputs:
-            if input_shape:
-                args.append(np.array(inp)[valid_ind])
-            else:
-                args.append(inp)
-    return args, valid_ind, allout
-
-
-def prepare_bounding_box_outputs(valid_result, valid_ind, input_shape, fill_value):
-    """
-    Populate the output arrays with ``fill_value``.
-    """
-    result = [np.zeros(input_shape) + fill_value
-              for vr in valid_result]
-    for ind, r in enumerate(valid_result):
-        if not result[ind].shape:
-            result[ind] = np.array(r)
-        else:
-            result[ind][valid_ind] = r
-    return result
 
 
 def _strip_ones(intup):
