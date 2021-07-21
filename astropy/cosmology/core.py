@@ -14,9 +14,9 @@ from astropy import units as u
 from astropy.utils import isiterable
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.metadata import MetaData
-from astropy.utils.state import ScienceState
 
 from . import scalar_inv_efuncs
+from .utils import _float_or_none, inf_like, vectorize_if_needed
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
 # and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
@@ -3377,40 +3377,3 @@ class w0wzCDM(FLRW):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
                              self._Neff, self.m_nu, _float_or_none(self._Ob0))
-
-
-def _float_or_none(x, digits=3):
-    """ Helper function to format a variable that can be a float or None"""
-    if x is None:
-        return str(x)
-    fmtstr = "{0:.{digits}g}".format(x, digits=digits)
-    return fmtstr.format(x)
-
-
-def vectorize_if_needed(func, *x):
-    """ Helper function to vectorize functions on array inputs"""
-    if any(map(isiterable, x)):
-        return np.vectorize(func)(*x)
-    else:
-        return func(*x)
-
-
-def inf_like(x):
-    """Return the shape of x with value infinity and dtype='float'.
-
-    Preserves 'shape' for both array and scalar inputs.
-    But always returns a float array, even if x is of integer type.
-
-    >>> inf_like(0.)  # float scalar
-    inf
-    >>> inf_like(1)  # integer scalar should give float output
-    inf
-    >>> inf_like([0., 1., 2., 3.])  # float list
-    array([inf, inf, inf, inf])
-    >>> inf_like([0, 1, 2, 3])  # integer list should give float output
-    array([inf, inf, inf, inf])
-    """
-    if np.isscalar(x):
-        return np.inf
-    else:
-        return np.full_like(x, np.inf, dtype='float')

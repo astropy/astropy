@@ -8,9 +8,10 @@ detailed usage examples and references.
 
 """
 
-from . import core, funcs, realizations
+from . import core, funcs, realizations, utils
 from .core import *
 from .funcs import *
 from .realizations import *
+from .utils import *
 
-__all__ = core.__all__ + realizations.__all__ + funcs.__all__
+__all__ = core.__all__ + realizations.__all__ + funcs.__all__ + utils.__all__
