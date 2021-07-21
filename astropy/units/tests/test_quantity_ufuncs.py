@@ -2,6 +2,7 @@
 # returns quantities with the right units, or raises exceptions.
 
 import concurrent.futures
+import copy
 import inspect
 import warnings
 from collections import namedtuple
@@ -67,6 +68,9 @@ class TestUfuncHelpers:
                         set(qh.UFUNC_HELPERS.keys()))
         # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
+
+        # check that every narg ufunc is covered.
+        assert qh.REGISTERED_NARG_UFUNCS - all_q_ufuncs == set()
 
         # Check that all ufuncs we cover come from numpy or erfa or are
         # registered with ``register_ufunc``
@@ -1407,6 +1411,13 @@ class TestRegisterUfunc:
             func: np.frompyfunc(func, *map(int, func.__name__.split("_")[1:]))
             for func in ufunc_list[:, 0]}
 
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        # start by saving a copy of REGISTERED_NARG_UFUNCS
+        # TODO! when py3.8+ use copy.deepcopy
+        ORIGINAL_REGISTERED_NARG_UFUNCS = {k for k in qh.REGISTERED_NARG_UFUNCS}
+        ORIGINAL_UFUNC_HELPERS = {k: v for k, v in qh.UFUNC_HELPERS.items()}
+
         # register as quantity-ufuncs
         # NOTE! output units are "u.km" even though the functions are squaring
         # or cubing the input. `register_ufunc` must be told the units since it
@@ -1421,6 +1432,17 @@ class TestRegisterUfunc:
             register_ufunc(ufunc, inunits=[u.km] * ufunc.nin,
                            ounits=[u.km] * ufunc.nout,
                            assume_correct_units=True)
+
+        yield  # go to function
+
+        # restore states
+        ADDED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS - qh.REGISTERED_NARG_UFUNCS
+
+        qh.REGISTERED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS
+        qh.UFUNC_HELPERS = ORIGINAL_UFUNC_HELPERS
+        
+        for k in ADDED_NARG_UFUNCS:  # double extra make sure it's clean
+            qh.UFUNC_HELPERS.pop(k, None)
 
     # -------------------
     # variety of funcs
@@ -1504,7 +1526,13 @@ class TestRegisterUfunc:
 class TestQuantityFromPyFunc:
     """Test `astropy.units.utils.frompyfunc`."""
 
-    def setup_class(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        # start by saving a copy of REGISTERED_NARG_UFUNCS
+        # TODO! when py3.8+ use copy.deepcopy
+        ORIGINAL_REGISTERED_NARG_UFUNCS = {k for k in qh.REGISTERED_NARG_UFUNCS}
+        ORIGINAL_UFUNC_HELPERS = {k: v for k, v in qh.UFUNC_HELPERS.items()}
+
         # registry of ufuncs
         self.ufunc_registry = {}
         self.ufunc_assume_registry = {}
@@ -1523,6 +1551,17 @@ class TestQuantityFromPyFunc:
                 func, nin, nout)
             self.ufunc_introspect_assume_registry[func] = frompyfunc(
                 func, nin, nout, assume_correct_units=True)
+
+        yield  # go to function
+
+        # restore states
+        ADDED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS - qh.REGISTERED_NARG_UFUNCS
+
+        qh.REGISTERED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS
+        qh.UFUNC_HELPERS = ORIGINAL_UFUNC_HELPERS
+
+        for k in ADDED_NARG_UFUNCS:  # double extra make sure it's clean
+            qh.UFUNC_HELPERS.pop(k, None)
 
     # -------------------
     # variety of funcs

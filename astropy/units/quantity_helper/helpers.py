@@ -394,7 +394,8 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
     if the python function works only on scalars, but we want to be able to
     pass in arrays. ``c2f`` will work on arrays, but pretending it didn't...
 
-        >>> ufunc = np.frompyfunc(c2f, 1, 1); ufunc
+        >>> ufunc = np.frompyfunc(c2f, 1, 1)
+        >>> ufunc  # doctest: +SKIP
         <ufunc 'c2f (vectorized)'>
 
     One of the limitations of a `numpy.ufunc` is that it cannot work with

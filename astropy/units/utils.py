@@ -368,7 +368,7 @@ def frompyfunc(func, nin, nout, inunits=None, ounits=None,
 
         >>> ufunc = frompyfunc(c2f, nin=1, nout=1,
         ...                             inunits=u.Celsius, ounits=Fahrenheit)
-        >>> ufunc
+        >>> ufunc  # doctest: +SKIP
         <ufunc 'c2f (vectorized)'>
 
         >>> ufunc(36 * u.Celsius)
