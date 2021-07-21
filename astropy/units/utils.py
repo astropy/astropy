@@ -299,9 +299,9 @@ def quantity_asanyarray(a, dtype=None):
 # ------------------------------------------------------------------------------
 
 
-def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
-                        *, identity=None, assume_correct_units=False):
-    """Quantity-aware `~numpy.frompyfunc`.
+def frompyfunc(func, nin, nout, inunits=None, ounits=None,
+               *, identity=None, assume_correct_units=False):
+    """Quantity-aware `numpy.frompyfunc`. Works as a drop-in replacement.
 
     `~numpy.ufunc`s operate on only recognized `~numpy.dtype`s (e.g. float32),
     so units must be removed beforehand and replaced afterwards. Therefore units
@@ -313,7 +313,7 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
     func : callable
     nin, nout : int
         Number of ufunc's inputs and outputs.
-    inunits, ounits : unit-like or sequence thereof (optional)
+    inunits, ounits : unit-like or sequence thereof or None (optional)
         Sequence of the input and output units, respectively.
 
         .. warning::
@@ -366,7 +366,7 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
     units) and then the output units will be assigned.
     ``c2f`` will work on Quantities, but pretending it didn't...
 
-        >>> ufunc = quantity_frompyfunc(c2f, nin=1, nout=1,
+        >>> ufunc = frompyfunc(c2f, nin=1, nout=1,
         ...                             inunits=u.Celsius, ounits=Fahrenheit)
         >>> ufunc
         <ufunc 'c2f (vectorized)'>
@@ -393,7 +393,7 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
        of Quantity will be returned instead of a Quantity array.
 
        >>> def badc2f(x): return (9./5. * x + 32) << Fahrenheit
-       >>> badufunc = quantity_frompyfunc(badc2f, 1, 1, u.Celsius, Fahrenheit)
+       >>> badufunc = frompyfunc(badc2f, 1, 1, u.Celsius, Fahrenheit)
        >>> badufunc([0, 10, 20] * u.Celsius)
        <Quantity [<Quantity 32. deg_F>, <Quantity 50. deg_F>,
                   <Quantity 68. deg_F>] deg_F>
@@ -401,24 +401,24 @@ def quantity_frompyfunc(func, nin, nout, inunits=None, ounits=None,
 
     **Extra features**:
 
-    As a convenience, ``quantity_frompyfunc`` can also introspect function
+    As a convenience, ``frompyfunc`` can also introspect function
     annotations and use these to determine the input and output units,
     obviating the need for arguments ``inunits`` and ``ounits``.
 
         >>> def c2f(x: u.Celsius) -> Fahrenheit: return 9./5. * x + 32
-        >>> ufunc = quantity_frompyfunc(c2f, 1, 1)
+        >>> ufunc = frompyfunc(c2f, 1, 1)
 
         >>> ufunc(-40 * u.Celsius)
         <Quantity -40. deg_F>
 
     When a ufunc has at least 2 inputs, if one of the arguments does not have
     units it is assumed to be `~astropy.units.dimensionless_unscaled`. However,
-    ``quantity_frompyfunc`` takes the keyword argument "assume_correct_units",
+    ``frompyfunc`` takes the keyword argument "assume_correct_units",
     in which case the ufunc will instead interpret a unitless argument as
     having units 'inunits' -- i.e. the correct units.
 
         >>> def exf(x: u.km, y: u.s) -> u.km**2/u.s: return x ** 2 / y
-        >>> exufunc = quantity_frompyfunc(exf, 2, 1, assume_correct_units=True)
+        >>> exufunc = frompyfunc(exf, 2, 1, assume_correct_units=True)
         >>> exufunc(3 * u.km, 2)
         <Quantity 4.5 km2 / s>
 

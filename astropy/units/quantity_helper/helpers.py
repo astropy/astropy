@@ -323,6 +323,9 @@ def helper_clip(f, unit1, unit2, unit3):
 
 
 # HELPER NARGS
+REGISTERED_NARG_UFUNCS = set()
+
+
 def _is_ulike(unit, allow_structured=False):  # TODO! make a public-scoped function for this
     """Check if is unit-like."""
     from astropy.units import Unit, StructuredUnit
@@ -361,7 +364,7 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
     Parameters
     ----------
     ufunc : `~numpy.ufunc`
-    inunits, ounits : unit-like or sequence thereof
+    inunits, ounits : unit-like or sequence thereof or None
         Sequence of the correct input and output units, respectively.
 
         .. warning::
@@ -487,6 +490,7 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
         return converters, ounits
 
     UFUNC_HELPERS[ufunc] = helper_nargs
+    REGISTERED_NARG_UFUNCS.add(ufunc)
 
 
 # list of ufuncs:

@@ -8,6 +8,7 @@ from .converters import *
 # By importing helpers, all the unit conversion functions needed for
 # numpy ufuncs and functions are defined.
 from . import helpers, function_helpers
+from .helpers import REGISTERED_NARG_UFUNCS
 # For scipy.special and erfa, importing the helper modules ensures
 # the definitions are added as modules to UFUNC_HELPERS, to be loaded
 # on demand.

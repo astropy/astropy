@@ -14,7 +14,7 @@ from erfa import ufunc as erfa_ufunc
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import quantity_helper as qh
-from astropy.units.utils import quantity_frompyfunc
+from astropy.units.utils import frompyfunc
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import (
     helper_sqrt, register_ufunc, _is_ulike)
@@ -67,12 +67,15 @@ class TestUfuncHelpers:
                         set(qh.UFUNC_HELPERS.keys()))
         # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
-        # Check that all ufuncs we cover come from numpy or erfa.
+
+        # Check that all ufuncs we cover come from numpy or erfa or are
+        # registered with ``register_ufunc``
         # (Since coverage for erfa is incomplete, we do not check
         # this the other way).
         all_erfa_ufuncs = set([ufunc for ufunc in erfa_ufunc.__dict__.values()
                                if isinstance(ufunc, np.ufunc)])
-        assert (all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set())
+        assert ((all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs
+                 - qh.REGISTERED_NARG_UFUNCS) == set())
 
     def test_scipy_registered(self):
         # Should be registered as existing even if scipy is not available.
@@ -1499,6 +1502,7 @@ class TestRegisterUfunc:
 
 
 class TestQuantityFromPyFunc:
+    """Test `astropy.units.utils.frompyfunc`."""
 
     def setup_class(self):
         # registry of ufuncs
@@ -1509,15 +1513,15 @@ class TestQuantityFromPyFunc:
         for func in ufunc_list[:, 0]:
             nin, nout = map(int, func.__name__.split("_")[1:])
 
-            self.ufunc_registry[func] = quantity_frompyfunc(
+            self.ufunc_registry[func] = frompyfunc(
                 func, nin, nout, inunits=[u.km] * nin, ounits=[u.km] * nout)
-            self.ufunc_assume_registry[func] = quantity_frompyfunc(
+            self.ufunc_assume_registry[func] = frompyfunc(
                 func, nin, nout, inunits=[u.km] * nin, ounits=[u.km] * nout,
                 assume_correct_units=True)
             # introspect for units
-            self.ufunc_introspect_registry[func] = quantity_frompyfunc(
+            self.ufunc_introspect_registry[func] = frompyfunc(
                 func, nin, nout)
-            self.ufunc_introspect_assume_registry[func] = quantity_frompyfunc(
+            self.ufunc_introspect_assume_registry[func] = frompyfunc(
                 func, nin, nout, assume_correct_units=True)
 
     # -------------------
@@ -1603,14 +1607,14 @@ class TestQuantityFromPyFunc:
             pass
 
         with pytest.raises(ValueError, match="not equal `nout`"):
-            quantity_frompyfunc(func, 2, 1)
+            frompyfunc(func, 2, 1)
 
     def test_returns_quantity_object_array(self):
         """Test when func returns a Quantity."""
         def badfunc(x: u.Celsius):
             return x << u.km
 
-        badufunc = quantity_frompyfunc(badfunc, 1, 1)
+        badufunc = frompyfunc(badfunc, 1, 1)
         assert badufunc([0, 10, 20] * u.Celsius).dtype == object
         assert badufunc([0, 10, 20] * u.Celsius)[0].unit == u.km
 
@@ -1619,5 +1623,5 @@ class TestQuantityFromPyFunc:
         def func(x):
             return x
 
-        ufunc = quantity_frompyfunc(func, 1, 1)
+        ufunc = frompyfunc(func, 1, 1)
         assert all(ufunc([0, 10, 20]) == np.array([0., 10., 20.], dtype=object))
