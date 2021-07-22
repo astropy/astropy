@@ -190,7 +190,7 @@ detection.
                       ascii    Yes          ASCII table in any supported format (uses guessing)
                ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
                 ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
-                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
+                  ascii.cds    Yes          :class:`~astropy.io.ascii.Cds`: CDS format table
      ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
                   ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
               ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table

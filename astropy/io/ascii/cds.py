@@ -742,6 +742,18 @@ class Cds(core.BaseReader):
     call to the ``ascii.read()`` function.  You should verify that the output
     data table matches expectation based on the input CDS file.
 
+    **Writing**
+
+    Use ``ascii.write(format='cds')`` to  write tables to Machine Readable Table (MRT)
+    format, which is currently supported. MRT format differs slightly from the CDS
+    format in table description sections of the ReadMe. It also has both the data and
+    the ReadMe in a single file.
+
+    Note that the metadata of the table, apart from units, column names and description,
+    will not be written. These have to be filled in by hand later.
+
+    See also: :ref:`cds_mrt_format`
+
     **Using a reader object**
 
     When ``Cds`` reader object is created with a ``readme`` parameter
