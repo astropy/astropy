@@ -19,7 +19,7 @@ The following shows a few of the ASCII formats that are available, while the
 section on `Supported formats`_ contains the full list.
 
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
-* :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ machine readable tables)
+* :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ `Machine Readable Tables (MRT) <https://journals.aas.org/mrt-standards/>`_)
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
 * :class:`~astropy.io.ascii.Ecsv`: :ref:`ecsv_format` for lossless round-trip of data tables (**recommended**)
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
@@ -166,7 +166,7 @@ are compatible with the fast Cython/C engine for reading and writing.
 ========================= ===== ==== ============================================================================================
 ``aastex``                  Yes      :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
 ``basic``                   Yes  Yes :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
-``cds``                              :class:`~astropy.io.ascii.Cds`: CDS format table
+``cds``                     Yes      :class:`~astropy.io.ascii.Cds`: CDS format table
 ``commented_header``        Yes  Yes :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
 ``csv``                     Yes  Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
 ``daophot``                          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table

@@ -230,3 +230,181 @@ details.
   words, Reader classes can also write, but for historical reasons they are
   often called Reader classes.
 
+.. _cds_mrt_format:
+
+CDS/MRT Format
+----------
+
+Both `CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ and
+`Machine Readable Table (MRT) <https://journals.aas.org/mrt-standards/>`_ formats consist
+of a table description and the table data itself. MRT differs slightly from the CDS
+format in table description sections. CDS format includes more detailed description
+in the form of ``Abstract``, ``Notes``, ``References`` fields etc. and often has it in a
+separate file called ``ReadMe`` file. On the other hand, MRT format includes just the
+table ``Title``, ``Authors``, Table Caption and ``Notes`` and always has the ``ReadMe`` section
+together with the data.
+
+The :class:`~astropy.io.ascii.Cds` writer currently supports writing tables to MRT format.
+
+.. note::
+
+    The metadata of the table, apart from columns units, labels and description,
+    will not be written in the output file. This also includes CDS/MRT format specific
+    ``ReadMe`` fields. They have to be filled in by hand later.
+
+Examples
+""""""""
+
+..
+  EXAMPLE START
+  Writing CDS/MRT Format Tables Using astropy.io.ascii
+
+The following writes a simple ``astropy`` `~astropy.table.Table` to MRT format.
+
+  >>> from astropy.io import ascii
+  >>> from astropy.table import Table
+  >>> data = ['names e d s i',
+  ...         'HD81809 1E-7 22.25608 +2 67',
+  ...         'HD103095 -31.6e5 +27.2500 -9E34 -30']
+  >>> table = ascii.read(data)
+  >>> table.write('simple_table.dat', format='ascii.cds')  # doctest: +SKIP
+
+The file ``simple_table.dat`` will then be as given below. Notice how ``---`` and
+``===`` are used to divide the table into different sections::
+
+  Title:
+  Authors:
+  Table:
+  ================================================================================
+  Byte-by-byte Description of file: simple_table.dat
+  --------------------------------------------------------------------------------
+   Bytes Format Units  Label     Explanations
+  --------------------------------------------------------------------------------
+   1- 8  A8     ---    names   Description of names              
+  10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+  16-23  F8.5   ---    d       [22.25/27.25] Description of d    
+  25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+  33-35  I3     ---    i       [-30/67] Description of i         
+  --------------------------------------------------------------------------------
+  Notes:
+  --------------------------------------------------------------------------------
+  HD81809  1e-07  22.25608   2e+00  67
+  HD103095 -3e+06 27.25000  -9e+34 -30
+
+When the table columns do not contain any units, ``---`` is put in the Byte-By-Byte
+description for that column. The unit names are tabulated for columns that do have
+a ``Unit`` attribute. Also, a ``?`` is prefixed to the column description in the
+Byte-By-Byte for ``Masked`` columns or columns that have null values, indicating
+them as such. The example below writes the data containing these attributes, using
+the option to send the output to ``sys.stdout`` instead of a file::
+
+  >>> from astropy import units as u
+  >>> from astropy.table import MaskedColumn
+  >>> table.add_column([5.0, 5.0], name='sameF')
+  >>> table.add_column([20, 20], name='sameI')
+  >>> col_units = [None, u.C, u.kg, u.m/u.s, u.year, None, None]
+  >>> table._set_column_attribute('unit', col_units)
+  >>> table.add_row(['Sun', '3.25', '0', '5.3e27', '2', '5.0', '20'],
+  ...               mask=[False, True, True, False, True, False, False])
+  >>> table['e'] = MaskedColumn(table['e'], mask=[False, True, False])
+  >>> table['d'] = MaskedColumn(table['d'], mask=[True, True, False])
+  >>> table['magnitude'] = [u.Magnitude(25), u.Magnitude(-9), u.Magnitude(1)]
+
+  >>> ascii.write(table, format='ascii.cds')  # doctest: +SKIP
+  Title:
+  Authors:
+  Table:
+  ================================================================================
+  Byte-by-byte Description of file: table.dat
+  --------------------------------------------------------------------------------
+   Bytes Format Units  Label     Explanations
+  --------------------------------------------------------------------------------
+   1- 8  A8     ---    names     Description of names                  
+  10-14  E5.1   C      e         [0.0/3.25]? Description of e          
+  16-19  F4.1   kg     d         ? Description of d                    
+  21-28  E8.2   m.s-1  s         [-9e+34/5.3e+27] Description of s     
+  30-32  I3     yr     i         [-30/67]? Description of i            
+  34-36  F3.1   ---    sameF     [5.0/5.0] Description of sameF        
+  38-39  I2     ---    sameI     [20] Description of sameI             
+  41-45  E5.1   mag    magnitude [0.0/3981.08] Description of magnitude
+  --------------------------------------------------------------------------------
+  Notes:
+  --------------------------------------------------------------------------------
+  HD81809  1e-07       2.0e+00  67 5.0 20 1e-10
+  HD103095            -9.0e+34 -30 5.0 20 4e+03
+  Sun      3e+00  0.0  5.3e+27     5.0 20 4e-01
+
+Columns that are `~astropy.coordinates.SkyCoord` objects or columns with
+values that are such objects are recognized as such, and some predefined labels and
+description is used for them. Coordinate columns that have `~astropy.coordinates.SphericalRepresentation` are additionally
+sub-divided into their coordinate component columns. Representations that have ``ra``
+and ``dec`` components are divided into their ``hour``-``min``-``sec``
+and ``deg``-``arcmin``-``arcsec`` components respectively. Whereas, columns with
+``SkyCoord`` objects in the ``Galactic`` or any of the ``Ecliptic`` frames are divided
+into their latitude(``ELAT``/``GLAT``) and longitude components (``ELON``/``GLAT``) only.
+The following example illustrates this.
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> table = Table()
+  >>> table['object'] = ['ASASSN-15lh']
+  >>> table['coord'] = SkyCoord.from_name('ASASSN-15lh')  # doctest: +REMOTE_DATA
+  >>> table.write('coord_cols.dat', format='ascii.cds')   # doctest: +SKIP
+  >>> table['coord'] = table['coord'].geocentrictrueecliptic  # doctest: +REMOTE_DATA
+  >>> table.write('ecliptic_cols.dat', format='ascii.cds')    # doctest: +SKIP
+
+The original table remains accessible as such, while the file is written from a
+modified copy of the table. Thus, the contents of ``coords_cols.dat`` will be::
+
+  Title:
+  Authors:
+  Table:
+  ================================================================================
+  Byte-by-byte Description of file: coords_cols.dat
+  --------------------------------------------------------------------------------
+   Bytes Format Units  Label     Explanations
+  --------------------------------------------------------------------------------
+   1-11  A11    ---    obj     Description of obj  
+  13-16  F4.1   h      RAh     Right Ascension (hour)  
+  18-20  F3.1   min    RAm     Right Ascension (minute)
+  22-39  F18.15 s      RAs     Right Ascension (second)
+     41  A1     ---    DE-     Sign of Declination     
+  42-45  F5.1   deg    DEd     Declination (degree)    
+  47-50  F4.1   arcmin DEm     Declination (arcmin)    
+  52-67  F16.13 arcsec DEs     Declination (arcsec)    
+  --------------------------------------------------------------------------------
+  Notes:
+  --------------------------------------------------------------------------------
+  ASASSN-15lh 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+
+And the file ``ecliptic_cols.dat`` will look like::
+
+  Title:
+  Authors:
+  Table:
+  ================================================================================
+  Byte-by-byte Description of file: ecliptic_cols.dat
+  --------------------------------------------------------------------------------
+   Bytes Format Units  Label     Explanations
+  --------------------------------------------------------------------------------
+   1-11  A11    ---    obj     Description of obj                         
+  13-29  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
+  31-48  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
+  --------------------------------------------------------------------------------
+  Notes:
+  --------------------------------------------------------------------------------
+  ASASSN-15lh 306.2242086500961 -45.62178985082456
+
+..
+  EXAMPLE END
+
+.. attention::
+
+    The CDS writer currently supports automatically writing coordinate component
+    columns only for tables with a single coordinate column. For tables with more
+    than one coordinate columns, only the first found coordinate column will be
+    converted to its component columns and the rest of the coordinate columns will
+    be converted to string columns. Thus, it should be taken care that the additional
+    coordinate columns are dealt with beforehand using ``SkyCoord`` methods.
+
+    Also note that no internal conversion/modification takes place for columns with
+    `~astropy.time.Time` values. They are treated as regular ``float`` columns.
