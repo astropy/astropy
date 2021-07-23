@@ -87,7 +87,6 @@ Byte-by-byte Description of file: table.dat
 16-23  F8.5   ---    d       [22.25/27.25] Description of d    
 25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
 33-35  I3     ---    i       [-30/67] Description of i         
-
 --------------------------------------------------------------------------------
 
 See also:
@@ -151,7 +150,6 @@ Byte-by-byte Description of file: table.dat
 28-30  I3     ---    i       [-30/67] Description of i     
 32-34  F3.1   ---    sameF   [5.0/5.0] Description of sameF
 36-37  I2     ---    sameI   [20] Description of sameI     
-
 --------------------------------------------------------------------------------
 
 See also:
@@ -195,13 +193,12 @@ Byte-by-byte Description of file: table.dat
  37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
  41- 42  I2     ---    sameI   [20] Description of sameI         
  44- 47  F4.1   h      RAh     Right Ascension (hour)            
- 49- 51  F3.1   min    RAm     Right Ascension (minute)          
- 53- 70  F18.15 s      RAs     Right Ascension (second)          
-     72  A1     ---    DE-     Sign of Declination               
- 73- 76  F5.1   deg    DEd     Declination (degree)              
- 78- 81  F4.1   arcmin DEm     Declination (arcmin)              
- 83- 98  F16.13 arcsec DEs     Declination (arcsec)              
-
+ 49- 52  F4.1   min    RAm     Right Ascension (minute)          
+ 54- 71  F18.15 s      RAs     Right Ascension (second)          
+     73  A1     ---    DE-     Sign of Declination               
+ 74- 77  F5.1   deg    DEd     Declination (degree)              
+ 79- 82  F4.1   arcmin DEm     Declination (arcmin)              
+ 84-101  F18.15 arcsec DEs     Declination (arcsec)              
 --------------------------------------------------------------------------------
 
 See also:
@@ -213,8 +210,8 @@ References:
 ================================================================================
      (prepared by 1st author ?  / astropy.io.ascii )
 --------------------------------------------------------------------------------
-HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
-HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0  2.0 15.450000000007265 -61.0 39.0 34.599996000000601
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200004890  17.0 46.0 26.496624000004374
 ''',  # noqa: W291
 
 positive_de = '''\
@@ -236,7 +233,6 @@ Byte-by-byte Description of file: table.dat
  72- 75  F4.1   deg    DEd     Declination (degree)              
  77- 80  F4.1   arcmin DEm     Declination (arcmin)              
  82- 99  F18.15 arcsec DEs     Declination (arcsec)              
-
 --------------------------------------------------------------------------------
 
 See also:
@@ -267,7 +263,6 @@ Byte-by-byte Description of file: table.dat
 41-42  I2     ---    sameI   [20] Description of sameI         
 44-60  F17.13 deg    GLON    Galactic Longitude                
 62-79  F18.14 deg    GLAT    Galactic Latitude                 
-
 --------------------------------------------------------------------------------
 
 See also:
@@ -298,7 +293,6 @@ Byte-by-byte Description of file: table.dat
 41-42  I2     ---    sameI   [20] Description of sameI                  
 44-60  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
 62-79  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
-
 --------------------------------------------------------------------------------
 
 See also:
@@ -333,7 +327,7 @@ def test_write_coord_cols():
     coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
     # Coordinates of ASASSN-14li
     coordp = SkyCoord(192.06343503, 17.77402684, unit=u.deg)
-    cols = [Column([coord]), # Generic coordinate column
+    cols = [Column([coord, coordp]), # Generic coordinate column
             coordp,          # Coordinate column with positive DEC
             coord.galactic,  # Galactic coordinates
             coord.geocentrictrueecliptic  # Ecliptic coordinates
@@ -348,7 +342,11 @@ def test_write_coord_cols():
         i_secs = [i for i, s in enumerate(lines)
                   if s.startswith(('------', '======='))]
         lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
+        # Check the written table.
         assert lines == exp_output.splitlines()
+
+        # Check if the original table columns remains unmodified.
+        assert t.colnames == ['names', 'e', 'd', 's', 'i', 'sameF', 'sameI', 'coord']
 
 
 def test_write_byte_by_byte_bytes_col_format():
@@ -380,7 +378,6 @@ Byte-by-byte Description of file: table.dat
  75- 78  F5.1   deg    DEd           Declination (degree)              
  80- 83  F4.1   arcmin DEm           Declination (arcmin)              
  85-100  F16.13 arcsec DEs           Declination (arcsec)              
-
 --------------------------------------------------------------------------------
 ''' # noqa: W291
     from astropy.coordinates import SkyCoord
@@ -420,7 +417,6 @@ Byte-by-byte Description of file: table.dat
                                            extra details in the notes.
 10-14  E5.1   ---    e                      [-3160000.0/0.01] Description of e
 16-23  F8.5   ---    d                      [22.25/27.25] Description of d
-
 --------------------------------------------------------------------------------
 ''' # noqa: W291
     t = ascii.read(test_dat)
