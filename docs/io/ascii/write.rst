@@ -236,13 +236,13 @@ CDS/MRT Format
 ----------
 
 Both `CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ and
-`Machine Readable Table (MRT) <https://journals.aas.org/mrt-standards/>`_ formats consist
-of a table description and the table data itself. MRT differs slightly from the CDS
-format in table description sections. CDS format includes more detailed description
-in the form of ``Abstract``, ``Notes``, ``References`` fields etc. and often has it in a
-separate file called ``ReadMe`` file. On the other hand, MRT format includes just the
-table ``Title``, ``Authors``  Table Caption and ``Notes`` and always has the ``ReadMe``
-section together with the data.
+`Machine Readable Table (MRT) <https://journals.aas.org/mrt-standards/>`_ formats
+consist of a table description (``ReadMe``) and the table data itself. MRT differs
+slightly from the CDS format in table description sections. CDS format includes more
+detailed description in the form of ``Abstract``, ``Notes``, ``References`` fields etc.
+and often has it in a separate file called ``ReadMe``. On the other hand, MRT format
+includes just the table ``Title``, ``Authors``, Table Caption and ``Notes`` and always
+has the ``ReadMe`` section together with the data.
 
 The :class:`~astropy.io.ascii.Cds` writer currently supports writing tables to MRT format.
 
@@ -250,7 +250,8 @@ The :class:`~astropy.io.ascii.Cds` writer currently supports writing tables to M
 
     The metadata of the table, apart from column ``unit``, ``name`` and ``description``,
     will not be written in the output file. This also includes CDS/MRT format specific
-    ``ReadMe`` fields. They have to be filled in by hand later.
+    ``ReadMe`` fields. The table lines where these fields can be filled in by
+    hand later, are however left empty.
 
 Examples
 """"""""
@@ -259,80 +260,42 @@ Examples
   EXAMPLE START
   Writing CDS/MRT Format Tables Using astropy.io.ascii
 
-The following writes a simple ``astropy`` `~astropy.table.Table` to MRT format.
+The command ``ascii.write(format='cds')`` writes an ``astropy`` `~astropy.table.Table`
+to the MRT format. Section dividers ``---`` and ``===`` are used to divide the table
+into different sections, with the last section always been the actual data.
+
+For columns that have a ``Unit`` attribute, the unit names are tabulated in the Byte-By-Byte
+description of the column. When columns do not contain any units, ``---`` is put instead.
+Also, a ``?`` is prefixed to the column description in the Byte-By-Byte for ``Masked``
+columns or columns that have null values, indicating them as such.
+
+The example below initializes a table with columns that have a ``Unit`` attribute and
+has masked values.
 
   >>> from astropy.io import ascii
-  >>> from astropy.table import Table
-  >>> data = ['names e d s i',
-  ...         'HD81809 1E-7 22.25608 +2 67',
-  ...         'HD103095 -31.6e5 +27.2500 -9E34 -30']
-  >>> table = ascii.read(data)
-  >>> table.write('simple_table.dat', format='ascii.cds')  # doctest: +SKIP
-
-The file ``simple_table.dat`` will then be as given below. Notice how ``---`` and
-``===`` are used to divide the table into different sections::
-
-  Title:
-  Authors:
-  Table:
-  ================================================================================
-  Byte-by-byte Description of file: simple_table.dat
-  --------------------------------------------------------------------------------
-   Bytes Format Units  Label     Explanations
-  --------------------------------------------------------------------------------
-   1- 8  A8     ---    names   Description of names              
-  10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
-  16-23  F8.5   ---    d       [22.25/27.25] Description of d    
-  25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
-  33-35  I3     ---    i       [-30/67] Description of i         
-  --------------------------------------------------------------------------------
-  Notes:
-  --------------------------------------------------------------------------------
-  HD81809  1e-07  22.25608   2e+00  67
-  HD103095 -3e+06 27.25000  -9e+34 -30
-
-When the table columns do not contain any units, ``---`` is put in the Byte-By-Byte
-description for that column. The unit names are tabulated for columns that do have
-a ``Unit`` attribute. Also, a ``?`` is prefixed to the column description in the
-Byte-By-Byte for ``Masked`` columns or columns that have null values, indicating
-them as such. The example below writes the data containing these attributes, using
-the option to send the output to ``sys.stdout`` instead of a file::
-
+  >>> from astropy.table import Table, Column, MaskedColumn
   >>> from astropy import units as u
-  >>> from astropy.table import MaskedColumn
-  >>> table.add_column([5.0, 5.0], name='sameF')
-  >>> table.add_column([20, 20], name='sameI')
-  >>> col_units = [None, u.C, u.kg, u.m/u.s, u.year, None, None]
-  >>> table._set_column_attribute('unit', col_units)
-  >>> table.add_row(['Sun', '3.25', '0', '5.3e27', '2', '5.0', '20'],
-  ...               mask=[False, True, True, False, True, False, False])
-  >>> table['e'] = MaskedColumn(table['e'], mask=[False, True, False])
-  >>> table['d'] = MaskedColumn(table['d'], mask=[True, True, False])
-  >>> table['magnitude'] = [u.Magnitude(25), u.Magnitude(-9), u.Magnitude(1)]
+  >>> table = Table()
+  >>> table['Name'] = ['ASASSN-15lh', 'ASASSN-14li']
+  >>> # MRT Standard requires all quantities in SI units.
+  >>> table['Temperature'] = ([0.0334, 0.297] * u.K).to(u.keV,
+  ...                                                   equivalencies=u.temperature_energy())
+  >>> table['nH'] = Column([0.025, 0.0188], unit=u.Unit(10**22))
+  >>> table['Flux'] = ([2.044 * 10**-11] * u.erg * u.cm**-2).to(u.Jy * u.Unit(10**12))
+  >>> table['Flux'] = MaskedColumn(table['Flux'], mask=[True, False])
+  >>> table['magnitude'] = [u.Magnitude(25), u.Magnitude(-9)]
 
-  >>> ascii.write(table, format='ascii.cds')  # doctest: +SKIP
-  Title:
-  Authors:
-  Table:
-  ================================================================================
-  Byte-by-byte Description of file: table.dat
-  --------------------------------------------------------------------------------
-   Bytes Format Units  Label     Explanations
-  --------------------------------------------------------------------------------
-   1- 8  A8     ---    names     Description of names                  
-  10-14  E5.1   C      e         [0.0/3.25]? Description of e          
-  16-19  F4.1   kg     d         ? Description of d                    
-  21-28  E8.2   m.s-1  s         [-9e+34/5.3e+27] Description of s     
-  30-32  I3     yr     i         [-30/67]? Description of i            
-  34-36  F3.1   ---    sameF     [5.0/5.0] Description of sameF        
-  38-39  I2     ---    sameI     [20] Description of sameI             
-  41-45  E5.1   mag    magnitude [0.0/3981.08] Description of magnitude
-  --------------------------------------------------------------------------------
-  Notes:
-  --------------------------------------------------------------------------------
-  HD81809  1e-07       2.0e+00  67 5.0 20 1e-10
-  HD103095            -9.0e+34 -30 5.0 20 4e+03
-  Sun      3e+00  0.0  5.3e+27     5.0 20 4e-01
+Note that for columns with `~astropy.time.Time`, `~astropy.time.TimeDelta` and related values,
+the writer does not do any internal conversion or modification. These columns should be
+converted to regular columns with proper ``unit`` and ``name`` attribute before writing
+the table. Thus::
+
+  >>> from astropy.time import Time, TimeDelta
+  >>> from astropy.timeseries import TimeSeries
+  >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
+  >>> table['Obs'] = Column(ts.time.decimalyear, unit=u.year)
+  >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
+  ...                           unit=u.s)
 
 Columns that are `~astropy.coordinates.SkyCoord` objects or columns with
 values that are such objects are recognized as such, and some predefined labels and
@@ -342,18 +305,20 @@ and ``dec`` components are divided into their ``hour``-``min``-``sec``
 and ``deg``-``arcmin``-``arcsec`` components respectively. Whereas, columns with
 ``SkyCoord`` objects in the ``Galactic`` or any of the ``Ecliptic`` frames are divided
 into their latitude(``ELAT``/``GLAT``) and longitude components (``ELON``/``GLAT``) only.
-The following example illustrates this.
+The original table remains accessible as such, while the file is written from a
+modified copy of the table. The new coordinate component columns are added at the end
+of the table.
+
+The following code illustrates this.
 
   >>> from astropy.coordinates import SkyCoord
-  >>> table = Table()
-  >>> table['Name'] = ['ASASSN-15lh']
-  >>> table['coord'] = SkyCoord.from_name('ASASSN-15lh')  # doctest: +REMOTE_DATA
-  >>> table.write('coord_cols.dat', format='ascii.cds')   # doctest: +SKIP
+  >>> table['coord'] = [SkyCoord.from_name('ASASSN-15lh'),
+  ...                   SkyCoord.from_name('ASASSN-14li')]  # doctest: +REMOTE_DATA
+  >>> table.write('coord_cols.dat', format='ascii.cds')     # doctest: +SKIP
   >>> table['coord'] = table['coord'].geocentrictrueecliptic  # doctest: +REMOTE_DATA
   >>> table.write('ecliptic_cols.dat', format='ascii.cds')    # doctest: +SKIP
 
-The original table remains accessible as such, while the file is written from a
-modified copy of the table. Thus, the contents of ``coords_cols.dat`` will be::
+After execution, the contents of ``coords_cols.dat`` will be::
 
   Title:
   Authors:
@@ -363,18 +328,25 @@ modified copy of the table. Thus, the contents of ``coords_cols.dat`` will be::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-   1-11  A11    ---    Name    Description of Name     
-  13-16  F4.1   h      RAh     Right Ascension (hour)  
-  18-20  F3.1   min    RAm     Right Ascension (minute)
-  22-39  F18.15 s      RAs     Right Ascension (second)
-     41  A1     ---    DE-     Sign of Declination     
-  42-45  F5.1   deg    DEd     Declination (degree)    
-  47-50  F4.1   arcmin DEm     Declination (arcmin)    
-  52-67  F16.13 arcsec DEs     Declination (arcsec)    
+    1- 11  A11     ---    Name        Description of Name                   
+   13- 34  E22.17  keV    Temperature [0.0/0.01] Description of Temperature 
+   36- 41  F6.4    10+22  nH          [0.01/0.03] Description of nH         
+   43- 48  F6.3   10+12Jy Flux        ? Description of Flux                 
+   50- 54  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+   56- 61  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation   
+   63- 65  I3      s      Cadence     [100] Description of Cadence          
+   67- 70  F4.1    h      RAh         Right Ascension (hour)                
+   72- 75  F4.1    min    RAm         Right Ascension (minute)              
+   77- 94  F18.15  s      RAs         Right Ascension (second)              
+       96  A1      ---    DE-         Sign of Declination                   
+   97-100  F5.1    deg    DEd         Declination (degree)                  
+  102-105  F4.1    arcmin DEm         Declination (arcmin)                  
+  107-124  F18.15  arcsec DEs         Declination (arcsec)                  
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+  ASASSN-15lh 2.8781893095564897e-09 0.0250        1e-10 2019.0 100 22.0  2.0 15.450000000007265 -61.0 39.0 34.599996000000601
+  ASASSN-14li 2.5593479788571177e-08 0.0188  2.044 4e+03 2019.0 100 12.0 48.0 15.224407200004890  17.0 46.0 26.496624000004374
 
 And the file ``ecliptic_cols.dat`` will look like::
 
@@ -386,44 +358,61 @@ And the file ``ecliptic_cols.dat`` will look like::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-   1-11  A11    ---    Name    Description of Name                        
-  13-29  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
-  31-48  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
+    1- 11  A11     ---    Name        Description of Name                        
+   13- 34  E22.17  keV    Temperature [0.0/0.01] Description of Temperature      
+   36- 41  F6.4    10+22  nH          [0.01/0.03] Description of nH              
+   43- 48  F6.3   10+12Jy Flux        ? Description of Flux                      
+   50- 54  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
+   56- 61  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
+   63- 65  I3      s      Cadence     [100] Description of Cadence               
+   67- 84  F18.14  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   86-104  F19.15  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 306.2242086500961 -45.62178985082456
+  ASASSN-15lh 2.8781893095564897e-09 0.0250        1e-10 2019.0 100 306.22420865009610 -45.621789850824563
+  ASASSN-14li 2.5593479788571177e-08 0.0188  2.044 4e+03 2019.0 100 183.75498009924348  21.051410763026894
 
-Also note that no internal conversion or modification takes place for columns with
-`~astropy.time.Time` and related values. They should be converted to regular columns
-with proper ``unit`` and ``name`` attribute before writing the table. Thus::
+Finally, MRT and CDS have some specific naming conventions for columns
+(`<https://journals.aas.org/mrt-labels/#reflab>`_). For example, if a column contains
+the mean error for the data in a column named ``label``, then this column should be named ``e_label``. These kind of relative column naming cannot be enforced by the CDS/MRT writer
+because it does not know what the column data means and thus, the relation between the
+columns cannot be figured out. Therefore, it is up to the user to use ``Table.rename_colums``
+to appropriately rename any columns before writing the table to MRT/CDS format.
+The following example shows a similar situation, using the option to send the output to
+``sys.stdout`` instead of a file::
 
-  >>> from astropy.table import Column
-  >>> from astropy.time import Time, TimeDelta
-  >>> from astropy.timeseries import TimeSeries
-  >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
-  >>> table['time'] = Column(ts.time.decimalyear, unit=u.year)
-  >>> table['timeDelta'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
-                                  unit=u.s)
-
-  >>> ascii.write(table, format='ascii.cds')  # doctest: +SKIP
+  >>> table['error'] = [1e4, 450] * u.Jy  # Error in the Flux values.
+  >>> outtab = table.copy()  # So that changes don't affect the original table.
+  >>> outtab.rename_column('error', 'e_flux')
+  >>> # re-order so that related columns are placed next to eachother.
+  >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
+  ...                 'Temperature', 'Flux', 'e_flux']  # doctest: +REMOTE_DATA
+  
+  >>> ascii.write(outtab, format='cds')  # doctest: +SKIP
   Title:
   Authors:
   Table:
   ================================================================================
-  Byte-by-byte Description of file: ecliptic_cols.dat
+  Byte-by-byte Description of file: table.dat
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-   1-11  A11    ---    Name      Description of Name                        
-  13-18  F6.1   yr     time      [2019.0/2019.0] Description of time        
-  20-22  I3     s      timeDelta [100] Description of timeDelta             
-  24-40  F17.13 deg    ELON      Ecliptic Longitude (geocentrictrueecliptic)
-  42-59  F18.14 deg    ELAT      Ecliptic Latitude (geocentrictrueecliptic) 
+    1- 11  A11     ---    Name        Description of Name                        
+   13- 18  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
+   20- 22  I3      s      Cadence     [100] Description of Cadence               
+   24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
+   31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
+   37- 58  E22.17  keV    Temperature [0.0/0.01] Description of Temperature      
+   60- 65  F6.3   10+12Jy Flux        ? Description of Flux                      
+   67- 73  F7.1    Jy     e_flux      [450.0/10000.0] Description of e_flux      
+   75- 92  F18.14  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   94-112  F19.15  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2019.0 100 306.2242086500961 -45.62178985082456
+  ASASSN-15lh 2019.0 100 0.0250 1e-10 2.8781893095564897e-09        10000.0 306.22420865009610 -45.621789850824563
+  ASASSN-14li 2019.0 100 0.0188 4e+03 2.5593479788571177e-08  2.044   450.0 183.75498009924348  21.051410763026894
 
 ..
   EXAMPLE END
@@ -435,4 +424,4 @@ with proper ``unit`` and ``name`` attribute before writing the table. Thus::
     than one coordinate columns, only the first found coordinate column will be
     converted to its component columns and the rest of the coordinate columns will
     be converted to string columns. Thus, it should be taken care that the additional
-    coordinate columns are dealt with beforehand using ``SkyCoord`` methods.
+    coordinate columns are dealt with before using ``SkyCoord`` methods.
