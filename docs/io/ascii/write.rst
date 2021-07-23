@@ -278,8 +278,8 @@ has masked values.
   >>> table = Table()
   >>> table['Name'] = ['ASASSN-15lh', 'ASASSN-14li']
   >>> # MRT Standard requires all quantities in SI units.
-  >>> table['Temperature'] = ([0.0334, 0.297] * u.K).to(u.keV,
-  ...                                                   equivalencies=u.temperature_energy())
+  >>> temperature = [0.0334, 0.297] * u.K
+  >>> table['Temperature'] = temperature.to(u.keV, equivalencies=u.temperature_energy())
   >>> table['nH'] = Column([0.025, 0.0188], unit=u.Unit(10**22))
   >>> table['Flux'] = ([2.044 * 10**-11] * u.erg * u.cm**-2).to(u.Jy * u.Unit(10**12))
   >>> table['Flux'] = MaskedColumn(table['Flux'], mask=[True, False])
