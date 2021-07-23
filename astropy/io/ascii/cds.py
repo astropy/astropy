@@ -368,64 +368,6 @@ class CdsHeader(core.BaseHeader):
 
         --------------------------------------------------------------------------------
         """
-        # For columns that are instances of ``SkyCoord`` and ``TimeSeries`` classes,
-        # or whose values are objects of these classes.
-        for i, col in enumerate(self.cols):
-            # If col is a ``Column`` object but its values are ``SkyCoord`` objects,
-            # convert the whole column to ``SkyCoord`` object, which helps in applying
-            # SkyCoord methods directly.
-            if not isinstance(col, SkyCoord) and isinstance(col[0], SkyCoord):
-                col = SkyCoord(col)
-
-            # Replace single ``SkyCoord`` column by its coordinate components.
-            if isinstance(col, SkyCoord):
-                # If coordinates are given in RA/DEC, divide each them into hour/deg,
-                # minute/arcminute, second/arcsecond columns.
-                if 'ra' in col.representation_component_names.keys():
-                    ra_col, dec_col = col.ra.hms, col.dec.dms
-                    coords = [ra_col.h, ra_col.m, ra_col.s,
-                              dec_col.d, dec_col.m, dec_col.s]
-                    names = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
-                    coord_units = [u.h, u.min, u.second,
-                                   u.deg, u.arcmin, u.arcsec]
-                    coord_descrip = ['Right Ascension (hour)', 'Right Ascension (minute)',
-                                     'Right Ascension (second)', 'Declination (degree)',
-                                     'Declination (arcmin)', 'Declination (arcsec)']
-                    for coord, name, coord_unit, descrip in zip(
-                        coords, names, coord_units, coord_descrip):
-                            # Have Sign of Declination only in the DEd column.
-                            if name in ['DEm', 'DEs']:
-                                coord_col = Column(list(np.abs(coord)), name=name,
-                                                   unit=coord_unit, description=descrip)
-                            else:
-                                coord_col = Column(list(coord), name=name, unit=coord_unit,
-                                                   description=descrip)
-                            self.cols.append(coord_col)
-
-                # For all other coordinate types, simply divide into two columns
-                # for latitude and longitude resp. with the unit used been as it is.
-                else:
-                    # Galactic coordinates.
-                    if col.name == 'galactic':
-                        lon_col = Column(col.l, name='GLON',
-                                         description='Galactic Longitude',
-                                         unit=col.representation_component_units['l'])
-                        lat_col = Column(col.b, name='GLAT',
-                                         description='Galactic Latitude',
-                                         unit=col.representation_component_units['b'])
-                    # Ecliptic coordinates, can be any of various available.
-                    else:
-                        lon_col = Column(col.lon, name='ELON',
-                                         description = 'Ecliptic Longitude (' + col.name + ')',
-                                         unit=col.representation_component_units['lon'])
-                        lat_col = Column(col.lat, name='ELAT',
-                                         description = 'Ecliptic Latitude (' + col.name + ')',
-                                         unit=col.representation_component_units['lat'])
-                    self.cols.append(lon_col)
-                    self.cols.append(lat_col)
-
-                self.cols.pop(i)  # Delete original ``SkyCoord`` column.
-
         # Get column widths
         vals_list = []
         col_str_iters = self.data.str_vals()
@@ -479,8 +421,8 @@ class CdsHeader(core.BaseHeader):
                 self._set_column_val_limits(col)
                 self.column_float_formatter(col)
 
-            elif np.issubdtype(col.dtype, np.str):
-                # String formatter
+            else:
+                # String formatter, ``np.issubdtype(col.dtype, np.str)`` is ``True``.
                 if col.has_null:
                     mcol = col
                     mcol.fill_value = ""
@@ -493,7 +435,14 @@ class CdsHeader(core.BaseHeader):
 
             endb = col.meta.size + startb - 1
 
-            # Set column description
+            # ``mixin`` columns converted to string valued columns will not have a name
+            # attribute. In those cases, a ``Unknown`` column label is put, indicating that
+            # such columns can be better formatted with some manipulation before calling
+            # the CDS/MRT writer.
+            if col.name is None:
+                col.name = "Unknown"
+
+            # Set column description.
             if col.description is not None:
                 description = col.description
             else:
@@ -607,6 +556,91 @@ class CdsHeader(core.BaseHeader):
         Writes the Header of the CDS table, aka ReadMe, which
         also contains the Byte-By-Byte description of the table.
         """
+        # For columns that are instances of ``SkyCoord`` and other ``mixin`` columns
+        # or whose values are objects of these classes.
+        for i, col in enumerate(self.cols):
+            # If col is a ``Column`` object but its values are ``SkyCoord`` objects,
+            # convert the whole column to ``SkyCoord`` object, which helps in applying
+            # SkyCoord methods directly.
+            if not isinstance(col, SkyCoord) and isinstance(col[0], SkyCoord):
+                try:
+                    col = SkyCoord(col)
+                except (ValueError, TypeError):
+                    # If only the first value of the column is a ``SkyCoord`` object,
+                    # the column cannot be converted to a ``SkyCoord`` object.
+                    # These columns are converted to ``Column`` object and then converted
+                    # to string valued column.
+                    if not (isinstance(col, Column) or isinstance(col, MaskedColumn)):
+                        col = Column(col)
+                    col = Column([str(val) for val in col])
+                    self.cols[i] = col
+                    continue
+
+            # Replace single ``SkyCoord`` column by its coordinate components.
+            if isinstance(col, SkyCoord):
+                # If coordinates are given in RA/DEC, divide each them into hour/deg,
+                # minute/arcminute, second/arcsecond columns.
+                if 'ra' in col.representation_component_names.keys():
+                    ra_col, dec_col = col.ra.hms, col.dec.dms
+                    coords = [ra_col.h, ra_col.m, ra_col.s,
+                              dec_col.d, dec_col.m, dec_col.s]
+                    names = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
+                    coord_units = [u.h, u.min, u.second,
+                                   u.deg, u.arcmin, u.arcsec]
+                    coord_descrip = ['Right Ascension (hour)', 'Right Ascension (minute)',
+                                     'Right Ascension (second)', 'Declination (degree)',
+                                     'Declination (arcmin)', 'Declination (arcsec)']
+                    for coord, name, coord_unit, descrip in zip(
+                        coords, names, coord_units, coord_descrip):
+                            # Have Sign of Declination only in the DEd column.
+                            if name in ['DEm', 'DEs']:
+                                coord_col = Column(list(np.abs(coord)), name=name,
+                                                   unit=coord_unit, description=descrip)
+                            else:
+                                coord_col = Column(list(coord), name=name, unit=coord_unit,
+                                                   description=descrip)
+                            self.cols.append(coord_col)
+
+                # For all other coordinate types, simply divide into two columns
+                # for latitude and longitude resp. with the unit used been as it is.
+                else:
+                    # Galactic coordinates.
+                    if col.name == 'galactic':
+                        lon_col = Column(col.l, name='GLON',
+                                         description='Galactic Longitude',
+                                         unit=col.representation_component_units['l'])
+                        lat_col = Column(col.b, name='GLAT',
+                                         description='Galactic Latitude',
+                                         unit=col.representation_component_units['b'])
+                        self.cols.append(lon_col)
+                        self.cols.append(lat_col)
+
+                    # Ecliptic coordinates, can be any of various available.
+                    elif 'ecliptic' in col.name:
+                        lon_col = Column(col.lon, name='ELON',
+                                         description = 'Ecliptic Longitude (' + col.name + ')',
+                                         unit=col.representation_component_units['lon'])
+                        lat_col = Column(col.lat, name='ELAT',
+                                         description = 'Ecliptic Latitude (' + col.name + ')',
+                                         unit=col.representation_component_units['lat'])
+                        self.cols.append(lon_col)
+                        self.cols.append(lat_col)
+
+                    # Convert all other columns to string valued column.
+                    else:
+                        self.cols.append( Column(col.to_string()) )
+
+                self.cols.pop(i)  # Delete original ``SkyCoord`` column.
+
+            # Convert all other ``mixin`` columns to ``Column`` objects.
+            # Parsing these may still lead to errors!
+            elif not (isinstance(col, Column) or isinstance(col, MaskedColumn)):
+                col = Column(col)
+                # If column values are ``object`` types, convert them to string.
+                if np.issubdtype(col.dtype, np.object):
+                    col = Column([str(val) for val in col])
+                self.cols[i] = col
+                
         # Get Byte-By-Byte description and fill the template
         bbb_template = Template('\n'.join(BYTE_BY_BYTE_TEMPLATE))
         byte_by_byte = bbb_template.substitute({'file': 'table.dat',
