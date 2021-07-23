@@ -1,7 +1,6 @@
 4.3 (unreleased)
 ================
 
-
 New Features
 ------------
 
@@ -52,11 +51,36 @@ astropy.coordinates
   longitude and latitude, this method returns a new coordinate with the offsets
   applied. [#11635]
 
+- Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
+  and substantially improved speed. [#11069]
+
+- Also refactor ``EarthLocation.get_gcrs`` for an increase in performance of
+  an order of magnitude, which enters as well in getting observed positions of
+  planets using ``get_body``. [#11073]
+
+- Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
+  ``__init_subclass__`` where possible. [#11090]
+
+- Removed duplicate calls to ```transform_to``` from ```match_to_catalog_sky```
+  and ```match_to_catalog_3d```, improving their performance. [#11449]
+
+- The new DE440 and DE440s ephemerides are now available via shortcuts 'de440'
+  and 'de440s'.  The DE 440s ephemeris will probably become the default
+  ephemeris when chosing 'jpl' in 5.0. [#11601]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- Cosmology parameter dictionaries now also specify the Cosmology class to which
+  the parameters correspond. For example, the dictionary for
+  ``astropy.cosmology.parameters.Planck18`` has the added key-value pair
+  ("cosmology", "FlatLambdaCDM"). [#11530]
+
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
 
 - Added support for reading and writing ASCII tables in QDP (Quick and Dandy
- Plotter) format. [#11256]
+  Plotter) format. [#11256]
 
 - Added support for reading and writing multidimensional column data (masked and
   unmasked) to ECSV. Also added formal support for reading and writing object-type
@@ -113,6 +137,16 @@ astropy.modeling
 - The ``convolve_models_fft`` function implements model convolution so that one
 - insures that the convolution remains consistent across multiple different
 - inputs. [#11456]
+  insures that the convolution remains consistent across multiple different
+  inputs. [#11456]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Prevent unnecessary copies of the data during ``NDData`` arithmetic when units
+  need to be added. [#11107]
+
+- NDData str representations now show units, if present. [#11553]
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -120,6 +154,13 @@ astropy.stats
 - Added the ability to specify stdfunc='mad_std' when doing sigma clipping,
   which will use a built-in function and lead to significant performance
   improvements if cenfunc is 'mean' or 'median'. [#11664]
+
+
+- Significantly improved the performance of sigma clipping when cenfunc and
+  stdfunc are passed as strings and the ``grow`` option is not used. [#11219]
+
+- Improved performance of ``bayesian_blocks()`` by removing one ``np.log()``
+  call [#11356]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -194,6 +235,11 @@ astropy.utils
   instance on a cluster) by setting ``iers.conf.auto_download = False``. This
   can  be done after importing astropy but prior to performing any ``Time``
   scale transformations related to UTC. [#11638]
+
+
+- Added a new module at ``astropy.utils.compat.optional_deps`` to consolidate
+  the definition of ``HAS_x`` optional dependency flag variables,
+  like ``HAS_SCIPY``. [#11490]
 
 astropy.wcs
 ^^^^^^^^^^^
@@ -9615,23 +9661,6 @@ astropy.coordinates
 - The ``__repr__`` of coordinate objects now shows scalar coordinates in the
   same format as vector coordinates. [#3350, 3448]
 
-- Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
-  and substantially improved speed. [#11069]
-
-- Also refactor ``EarthLocation.get_gcrs`` for an increase in performance of
-  an order of magnitude, which enters as well in getting observed positions of
-  planets using ``get_body``. [#11073]
-
-- Refactored the usage of metaclasses in ``astropy.coordinates`` to instead use
-  ``__init_subclass__`` where possible. [#11090]
-
-- Removed duplicate calls to ```transform_to``` from ```match_to_catalog_sky```
-  and ```match_to_catalog_3d```, improving their performance. [#11449]
-
-- The new DE440 and DE440s ephemerides are now available via shortcuts 'de440'
-  and 'de440s'.  The DE 440s ephemeris will probably become the default
-  ephemeris when chosing 'jpl' in 5.0. [#11601]
-
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
@@ -9650,11 +9679,6 @@ astropy.cosmology
 - Cosmology functions that take a single (redshift) input now
   broadcast like numpy ufuncs.  So, passing an arbitrarily shaped
   array of inputs will produce an output of the same shape. [#3178, #3194]
-
-- Cosmology parameter dictionaries now also specify the Cosmology class to which
-the parameters correspond. For example, the dictionary for
-``astropy.cosmology.parameters.Planck18`` has the added key-value pair
-("cosmology", "FlatLambdaCDM"). [#11530]
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
@@ -9743,11 +9767,6 @@ astropy.nddata
 - Added a decorator ``support_nddata`` that can be used to write functions
   that can either take separate arguments or NDData objects. [#2855]
 
-- Prevent unnecessary copies of the data during ``NDData`` arithmetic when units
-  need to be added. [#11107]
-
-- NDData str representations now show units, if present. [#11553]
--
 astropy.stats
 ^^^^^^^^^^^^^
 
@@ -9759,12 +9778,6 @@ astropy.stats
 - New function ``sigma_clipped_stats`` which can be used to quickly get
   common statistics for an array, using sigma clipping at the same time.
   [#3201]
-
-- Significantly improved the performance of sigma clipping when cenfunc and
-stdfunc are passed as strings and the ``grow`` option is not used. [#11219]
-
-- Improved performance of ``bayesian_blocks()`` by removing one ``np.log()``
-call [#11356]
 
 astropy.table
 ^^^^^^^^^^^^^
@@ -9832,10 +9845,6 @@ astropy.utils
 - Added ``astropy.utils.minversion`` which can be used to check minimum
   version requirements of Python modules (to test for specific features and/
   or bugs and the like). [#3389]
-
-- Added a new module at ``astropy.utils.compat.optional_deps`` to consolidate the
-definition of ``HAS_x`` optional dependency flag variables,
-like ``HAS_SCIPY``. [#11490]
 
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
