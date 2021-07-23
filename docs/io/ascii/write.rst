@@ -241,14 +241,14 @@ of a table description and the table data itself. MRT differs slightly from the 
 format in table description sections. CDS format includes more detailed description
 in the form of ``Abstract``, ``Notes``, ``References`` fields etc. and often has it in a
 separate file called ``ReadMe`` file. On the other hand, MRT format includes just the
-table ``Title``, ``Authors``, Table Caption and ``Notes`` and always has the ``ReadMe`` section
-together with the data.
+table ``Title``, ``Authors``  Table Caption and ``Notes`` and always has the ``ReadMe``
+section together with the data.
 
 The :class:`~astropy.io.ascii.Cds` writer currently supports writing tables to MRT format.
 
 .. note::
 
-    The metadata of the table, apart from columns units, labels and description,
+    The metadata of the table, apart from column ``unit``, ``name`` and ``description``,
     will not be written in the output file. This also includes CDS/MRT format specific
     ``ReadMe`` fields. They have to be filled in by hand later.
 
@@ -346,7 +346,7 @@ The following example illustrates this.
 
   >>> from astropy.coordinates import SkyCoord
   >>> table = Table()
-  >>> table['object'] = ['ASASSN-15lh']
+  >>> table['Name'] = ['ASASSN-15lh']
   >>> table['coord'] = SkyCoord.from_name('ASASSN-15lh')  # doctest: +REMOTE_DATA
   >>> table.write('coord_cols.dat', format='ascii.cds')   # doctest: +SKIP
   >>> table['coord'] = table['coord'].geocentrictrueecliptic  # doctest: +REMOTE_DATA
@@ -363,7 +363,7 @@ modified copy of the table. Thus, the contents of ``coords_cols.dat`` will be::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-   1-11  A11    ---    obj     Description of obj  
+   1-11  A11    ---    Name    Description of Name     
   13-16  F4.1   h      RAh     Right Ascension (hour)  
   18-20  F3.1   min    RAm     Right Ascension (minute)
   22-39  F18.15 s      RAs     Right Ascension (second)
@@ -386,13 +386,44 @@ And the file ``ecliptic_cols.dat`` will look like::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-   1-11  A11    ---    obj     Description of obj                         
+   1-11  A11    ---    Name    Description of Name                        
   13-29  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
   31-48  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
   ASASSN-15lh 306.2242086500961 -45.62178985082456
+
+Also note that no internal conversion or modification takes place for columns with
+`~astropy.time.Time` and related values. They should be converted to regular columns
+with proper ``unit`` and ``name`` attribute before writing the table. Thus::
+
+  >>> from astropy.table import Column
+  >>> from astropy.time import Time, TimeDelta
+  >>> from astropy.timeseries import TimeSeries
+  >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
+  >>> table['time'] = Column(ts.time.decimalyear, unit=u.year)
+  >>> table['timeDelta'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
+                                  unit=u.s)
+
+  >>> ascii.write(table, format='ascii.cds')  # doctest: +SKIP
+  Title:
+  Authors:
+  Table:
+  ================================================================================
+  Byte-by-byte Description of file: ecliptic_cols.dat
+  --------------------------------------------------------------------------------
+   Bytes Format Units  Label     Explanations
+  --------------------------------------------------------------------------------
+   1-11  A11    ---    Name      Description of Name                        
+  13-18  F6.1   yr     time      [2019.0/2019.0] Description of time        
+  20-22  I3     s      timeDelta [100] Description of timeDelta             
+  24-40  F17.13 deg    ELON      Ecliptic Longitude (geocentrictrueecliptic)
+  42-59  F18.14 deg    ELAT      Ecliptic Latitude (geocentrictrueecliptic) 
+  --------------------------------------------------------------------------------
+  Notes:
+  --------------------------------------------------------------------------------
+  ASASSN-15lh 2019.0 100 306.2242086500961 -45.62178985082456
 
 ..
   EXAMPLE END
@@ -405,6 +436,3 @@ And the file ``ecliptic_cols.dat`` will look like::
     converted to its component columns and the rest of the coordinate columns will
     be converted to string columns. Thus, it should be taken care that the additional
     coordinate columns are dealt with beforehand using ``SkyCoord`` methods.
-
-    Also note that no internal conversion/modification takes place for columns with
-    `~astropy.time.Time` values. They are treated as regular ``float`` columns.
