@@ -435,3 +435,53 @@ Byte-by-byte Description of file: table.dat
     lines = lines[i_secs[-6]:i_secs[-3]]
     lines.append(lines[0])   # Append a separator line.
     assert lines == exp_output.splitlines()
+
+
+def test_write_mixin_and_broken_cols():
+    """
+    Tests convertion to string values for ``mix-in`` columns other than
+    ``SkyCoord`` and for columns with only partial ``SkyCoord`` values.
+    """
+    exp_output = '''\
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+  1-  7  A7     ---    name    Description of name   
+  9- 74  A66    ---    Unknown Description of Unknown
+ 76-114  A39    ---    Unknown Description of Unknown
+116-138  A23    ---    Unknown Description of Unknown
+--------------------------------------------------------------------------------
+
+See also:
+
+
+Acknowledgements:
+
+References:
+================================================================================
+     (prepared by 1st author ?  / astropy.io.ascii )
+--------------------------------------------------------------------------------
+HD81809 <SkyCoord (ICRS): (ra, dec) in deg
+    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
+random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
+''' # noqa: W291
+    from astropy.coordinates import SkyCoord
+    from astropy.time import Time
+    from astropy.table import Column
+    t = Table()
+    t['name'] = ['HD81809']
+    coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+    t['coord'] = Column(coord)
+    t.add_row(['random', 12])
+    t['cart'] = coord.cartesian
+    t['time'] = Time('2019-1-1')
+    out = StringIO()
+    t.write(out, format='ascii.cds')
+    lines = out.getvalue().splitlines()
+    i_secs = [i for i, s in enumerate(lines)
+                if s.startswith(('------', '======='))]
+    lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
+    # Check the written table.
+    assert lines == exp_output.splitlines()
