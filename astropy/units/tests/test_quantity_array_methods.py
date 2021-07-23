@@ -130,6 +130,8 @@ class TestQuantityReshapeFuncs:
         """While ``flat`` doesn't make a copy, it changes the shape."""
         q = np.arange(6.).reshape(3, 1, 2) * u.m
         qf = q.flat
+        # flat shape is same as before reshaping
+        assert len(qf) == 6
         # see TestQuantityArrayCopy.test_flat for tests of iteration
         # and slicing and setting. Here we test the properties and methods to
         # match `numpy.ndarray.flatiter`

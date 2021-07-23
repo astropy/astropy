@@ -110,6 +110,9 @@ class QuantityIterator:
 
     next = __next__
 
+    def __len__(self):
+        return len(self._dataiter)
+
     #### properties and methods to match `numpy.ndarray.flatiter` ####
 
     @property
