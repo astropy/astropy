@@ -545,3 +545,23 @@ class TestKernels:
         """
         with pytest.raises(TypeError):
             Kernel2D()
+
+    def test_array_keyword_not_allowed(self):
+        """
+        Regression test for issue #10439
+        """
+        x = np.ones([10,10])
+        with pytest.raises(TypeError, match=r".* allowed .*"):
+            AiryDisk2DKernel(2, array=x)
+            Box1DKernel(2, array=x)
+            Box2DKernel(2, array=x)
+            Gaussian1DKernel(2, array=x)
+            Gaussian2DKernel(2, array=x)
+            RickerWavelet1DKernel(2, array=x)
+            RickerWavelet2DKernel(2, array=x)
+            Model1DKernel(Gaussian1D(1, 0, 2), array=x)
+            Model2DKernel(Gaussian2D(1, 0, 0, 2, 2), array=x)
+            Ring2DKernel(9, 8, array=x)
+            Tophat2DKernel(2, array=x)
+            Trapezoid1DKernel(2, array=x)
+            Trapezoid1DKernel(2, array=x)
