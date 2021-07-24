@@ -1,1 +1,1 @@
-Passing an ``array`` argument for any Kernel1D or Kernel2D subclasses (with the exception of CustomKernel) will now raise a `TypeError``. 
+Passing an ``array`` argument for any Kernel1D or Kernel2D subclasses (with the exception of CustomKernel) will now raise a ``TypeError``. 
