@@ -38,17 +38,6 @@ MAX_COL_INTLIMIT = 100000
 
 __doctest_skip__ = ['*']
 
-cdsdicts = {'title': 'Title ?',
-            'author': '1st author ?',
-            'catalogue': '',
-            'date': 'Date ?',
-            'abstract': 'Abstract ?',
-            'authors': 'Authors ?',
-            'bibcode': 'ref ?',
-            'keywords': '',
-            'table_description': '',
-            'seealso': ''
-            }
 
 BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
 "--------------------------------------------------------------------------------",
@@ -57,13 +46,12 @@ BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
 "$bytebybyte",
 "--------------------------------------------------------------------------------"]
 
-README_TEMPLATE = os.path.dirname(os.path.realpath(__file__)) + "/src/ReadMe.template"
-
-MRT_TEMPLATE = ["Title: (title to be filled by user)",
-"Authors: (authors to be filled by user)",
-"Table: (caption to be filled by user)",
+MRT_TEMPLATE = ["Title:",
+"Authors:",
+"Table:",
 "================================================================================",
 "$bytebybyte",
+"Notes:",
 "--------------------------------------------------------------------------------"]
 
 
@@ -538,15 +526,7 @@ class CdsHeader(core.BaseHeader):
 
         # Last value of ``endb`` is the sum of column widths after formatting.
         self.linewidth = endb
-
-        # Add column notes to Byte-By-Byte
-        notes = self.cdsdicts.get('notes', None)
-        if notes is not None:
-            buff += "-" * MAX_SIZE_README_LINE + "\n"
-            for line in notes:
-                buff += line + "\n"
-            buff += "-" * MAX_SIZE_README_LINE + "\n"
-
+        
         # Remove the last extra newline character from Byte-By-Byte.
         buff = buff[:-1]
         return buff
@@ -640,46 +620,15 @@ class CdsHeader(core.BaseHeader):
                 if np.issubdtype(col.dtype, np.object):
                     col = Column([str(val) for val in col])
                 self.cols[i] = col
-                
+
         # Get Byte-By-Byte description and fill the template
         bbb_template = Template('\n'.join(BYTE_BY_BYTE_TEMPLATE))
         byte_by_byte = bbb_template.substitute({'file': 'table.dat',
                                     'bytebybyte': self.write_byte_by_byte()})
 
-        # Get index of files #
-        # Set width Lrecl column
-        lrec_col_width = len(str(self.linewidth))
-
-        # Create the File Index table
-        file_index_rows = (["ReadMe",
-                            MAX_SIZE_README_LINE,
-                            ".",
-                            "this file"],
-                            ['table',
-                            self.linewidth,
-                            str(len(self.cols[0])),
-                            self.cdsdicts['table_description']])
-        file_row = Table(names=['FileName', 'Lrecl', 'Records', 'Explanations'],
-                         rows=file_index_rows)
-
-        # Get File Index table rows as formatted lines
-        file_index_lines = StringIO()
-        file_row.write(file_index_lines, format='ascii.fixed_width_no_header',
-                            delimiter=' ', bookend=False, delimiter_pad=None,
-                            formats={'FileName': '14s',
-                                     'Lrecl': ''+str(lrec_col_width)+'d',
-                                     'Records': '>8s',
-                                     'Explanations': 's'})
-        file_index_lines = file_index_lines.getvalue()
-
         # Fill up the full ReadMe
-        with open(README_TEMPLATE) as rmf:
-            rm_template = Template(rmf.read())
-        rm_temp_vals = self.cdsdicts
-        rm_temp_vals.update({'tablesIndex': file_index_lines,
-                             'bytebybyte': byte_by_byte})
-        readme_filled = rm_template.substitute(rm_temp_vals)
-        readme_filled += "-" * MAX_SIZE_README_LINE
+        rm_template = Template('\n'.join(MRT_TEMPLATE))
+        readme_filled = rm_template.substitute({'bytebybyte': byte_by_byte})
         lines.append(readme_filled)
 
 
@@ -831,7 +780,7 @@ class Cds(core.BaseReader):
     data_class = CdsData
     header_class = CdsHeader
 
-    def __init__(self, readme=None, cdsdict={}):
+    def __init__(self, readme=None):
         super().__init__()
         self.header.readme = readme
 
@@ -839,12 +788,6 @@ class Cds(core.BaseReader):
         # default ``start_line`` at 1. For CDS format writing start line
         # should be at 0.
         self.data.start_line = None
-
-        # The cds dict contains the default values for table meta info
-        # required to fill up the ReadMe template.
-        self.cdsdicts = cdsdicts
-        self.cdsdicts.update(cdsdict)
-        self.header.cdsdicts = self.cdsdicts
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
