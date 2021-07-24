@@ -53,31 +53,10 @@ def test_write_byte_by_byte_units():
 
 def test_write_readme_with_default_options():
     exp_output = '''\
-                                                      (1st author ?, Date ?)
+Title:
+Authors:
+Table:
 ================================================================================
-Title ?
-    Authors ?
-    ref ?
-================================================================================
-Keywords: 
-
-Objects:
-    -----------------------------------------
-       RA   (2000)   DE    Designation(s)
-    -----------------------------------------
-
-Abstract:
-  Abstract ?
-
-File Summary:
---------------------------------------------------------------------------------
- FileName    Lrecl   Records    Explanations
---------------------------------------------------------------------------------
-ReadMe         80        . this file
-table          35        2          
-
-
---------------------------------------------------------------------------------
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -88,15 +67,7 @@ Byte-by-byte Description of file: table.dat
 25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
 33-35  I3     ---    i       [-30/67] Description of i         
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67
 HD103095 -3e+06 27.25000  -9e+34 -30
@@ -138,7 +109,7 @@ def test_write_byte_by_byte_for_masked_column():
     It also checks the description for columns with same values.
     """
     exp_output = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -151,15 +122,7 @@ Byte-by-byte Description of file: table.dat
 32-34  F3.1   ---    sameF   [5.0/5.0] Description of sameF
 36-37  I2     ---    sameI   [20] Description of sameI     
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809  1e-07    2e+00  67 5.0 20
 HD103095         -9e+34 -30 5.0 20
@@ -175,12 +138,12 @@ HD103095         -9e+34 -30 5.0 20
     lines = out.getvalue().splitlines()
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
-    lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
+    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
     assert lines == exp_output.splitlines()
 
 
 exp_coord_cols_output = dict(generic = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -200,22 +163,14 @@ Byte-by-byte Description of file: table.dat
  79- 82  F4.1   arcmin DEm     Declination (arcmin)              
  84-101  F18.15 arcsec DEs     Declination (arcsec)              
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0  2.0 15.450000000007265 -61.0 39.0 34.599996000000601
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200004890  17.0 46.0 26.496624000004374
 ''',  # noqa: W291
 
 positive_de = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -234,22 +189,14 @@ Byte-by-byte Description of file: table.dat
  77- 80  F4.1   arcmin DEm     Declination (arcmin)              
  82- 99  F18.15 arcsec DEs     Declination (arcsec)              
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
 ''',  # noqa: W291
 
 galactic = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -264,22 +211,14 @@ Byte-by-byte Description of file: table.dat
 44-60  F17.13 deg    GLON    Galactic Longitude                
 62-79  F18.14 deg    GLAT    Galactic Latitude                 
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.0716395916897 -45.54808048460931
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.0716395916897 -45.54808048460931
 ''',  # noqa: W291
 
 ecliptic = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -294,15 +233,7 @@ Byte-by-byte Description of file: table.dat
 44-60  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
 62-79  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.2242086500961 -45.62178985082456
 HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.2242086500961 -45.62178985082456
@@ -341,7 +272,7 @@ def test_write_coord_cols():
         lines = out.getvalue().splitlines()
         i_secs = [i for i, s in enumerate(lines)
                   if s.startswith(('------', '======='))]
-        lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
+        lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
         # Check the written table.
         assert lines == exp_output.splitlines()
 
@@ -358,7 +289,7 @@ def test_write_byte_by_byte_bytes_col_format():
     without the hyphen.
     """
     exp_output = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -392,8 +323,8 @@ Byte-by-byte Description of file: table.dat
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
     # Select only the Byte-By-Byte section.
-    lines = lines[i_secs[-6]:i_secs[-3]]
-    lines.append(lines[0])   # Append a separator line.
+    lines = lines[i_secs[0]:i_secs[-2]]
+    lines.append('-'*80)   # Append a separator line.
     assert lines == exp_output.splitlines()
 
 
@@ -403,7 +334,7 @@ def test_write_byte_by_byte_wrapping():
     Byte-By-Byte section of the ReadMe.
     """
     exp_output = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -432,8 +363,12 @@ Byte-by-byte Description of file: table.dat
     i_secs = [i for i, s in enumerate(lines)
               if s.startswith(('------', '======='))]
     # Select only the Byte-By-Byte section.
-    lines = lines[i_secs[-6]:i_secs[-3]]
-    lines.append(lines[0])   # Append a separator line.
+    lines = lines[i_secs[0]:i_secs[-2]]
+    lines.append('-'*80)   # Append a separator line.
+    print(lines)
+    for l, ll in zip(lines, exp_output.splitlines()):
+        print(l)
+        print(ll)
     assert lines == exp_output.splitlines()
 
 
@@ -443,7 +378,7 @@ def test_write_mixin_and_broken_cols():
     ``SkyCoord`` and for columns with only partial ``SkyCoord`` values.
     """
     exp_output = '''\
---------------------------------------------------------------------------------
+================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
@@ -453,15 +388,7 @@ Byte-by-byte Description of file: table.dat
  76-114  A39    ---    Unknown Description of Unknown
 116-138  A23    ---    Unknown Description of Unknown
 --------------------------------------------------------------------------------
-
-See also:
-
-
-Acknowledgements:
-
-References:
-================================================================================
-     (prepared by 1st author ?  / astropy.io.ascii )
+Notes:
 --------------------------------------------------------------------------------
 HD81809 <SkyCoord (ICRS): (ra, dec) in deg
     (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
@@ -482,6 +409,6 @@ random  12                                                                 (0.41
     lines = out.getvalue().splitlines()
     i_secs = [i for i, s in enumerate(lines)
                 if s.startswith(('------', '======='))]
-    lines = lines[i_secs[-6]:]  # Select Byte-By-Byte section and later lines.
+    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
     # Check the written table.
     assert lines == exp_output.splitlines()
