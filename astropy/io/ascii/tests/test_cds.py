@@ -412,3 +412,46 @@ random  12                                                                 (0.41
     lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
     # Check the written table.
     assert lines == exp_output.splitlines()
+
+
+def test_write_extra_SkyCoord_cols():
+    """
+    Tests output for cases when table contains multiple ``SkyCoord``
+    columns.
+    """
+    exp_output = '''\
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 7  A7     ---    name    Description of name     
+ 9-24  A16    ---    Unknown Description of Unknown  
+26-29  F4.1   h      RAh     Right Ascension (hour)  
+31-33  F3.1   min    RAm     Right Ascension (minute)
+35-52  F18.15 s      RAs     Right Ascension (second)
+   54  A1     ---    DE-     Sign of Declination     
+55-58  F5.1   deg    DEd     Declination (degree)    
+60-63  F4.1   arcmin DEm     Declination (arcmin)    
+65-80  F16.13 arcsec DEs     Declination (arcsec)    
+--------------------------------------------------------------------------------
+Notes:
+--------------------------------------------------------------------------------
+HD81809 330.564 -61.6596 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+''' # noqa: W291
+    import pytest
+    from astropy.coordinates import SkyCoord
+    t = Table()
+    t['name'] = ['HD81809']
+    coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+    t['coord1'] = coord
+    t['coord2'] = coord
+    out = StringIO()
+    with pytest.raises(UserWarning):
+        t.write(out, format='ascii.cds')
+        lines = out.getvalue().splitlines()
+        i_secs = [i for i, s in enumerate(lines)
+                    if s.startswith(('------', '======='))]
+        lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+        # Check the written table.
+        assert lines == exp_output.splitlines()

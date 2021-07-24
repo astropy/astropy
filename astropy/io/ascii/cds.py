@@ -17,6 +17,7 @@ import itertools
 import re
 import os
 import math
+import warnings
 import numpy as np
 from contextlib import suppress
 
@@ -526,7 +527,7 @@ class CdsHeader(core.BaseHeader):
 
         # Last value of ``endb`` is the sum of column widths after formatting.
         self.linewidth = endb
-        
+
         # Remove the last extra newline character from Byte-By-Byte.
         buff = buff[:-1]
         return buff
@@ -606,7 +607,8 @@ class CdsHeader(core.BaseHeader):
                         self.cols.append(lon_col)
                         self.cols.append(lat_col)
 
-                    # Convert all other columns to string valued column.
+                    # Convert all other ``SkyCoord`` columns that are not in the above three
+                    # representations to string valued columns.
                     else:
                         self.cols.append( Column(col.to_string()) )
 
@@ -620,6 +622,23 @@ class CdsHeader(core.BaseHeader):
                 if np.issubdtype(col.dtype, np.object):
                     col = Column([str(val) for val in col])
                 self.cols[i] = col
+
+        # Check for any left over extra coordinate columns.
+        if any(x in self.colnames for x in ['RAh', 'DEd', 'ELON', 'GLAT']):
+            # If there were any ``SkyCoord`` columns after the first one, then they would
+            # have been skipped the division into their component columns. This is done in
+            # order to not replace the data in the component columns already obtained.
+            # Explicit renaming of the extra coordinate component columns by appending some
+            # suffix to their name, so as to distinguish them, is not implemented.
+            # Such extra ``SkyCoord`` columns are converted to string valued columns,
+            # together with issuance of a warning.
+            for i, col in enumerate(self.cols):
+                if isinstance(col, SkyCoord):
+                    self.cols[i] = Column( col.to_string() )
+                    message = 'Table already has coordinate system in CDS/MRT-syle columns.' \
+                              + f'So column {col.name} is being skipped with designation' \
+                              + ' of an `Unknown` string valued column.'
+                    warnings.warn(message, UserWarning)
 
         # Get Byte-By-Byte description and fill the template
         bbb_template = Template('\n'.join(BYTE_BY_BYTE_TEMPLATE))
