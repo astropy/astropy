@@ -7,9 +7,12 @@ Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 from io import StringIO
 
-from astropy.table import Table
 from astropy.io import ascii
 from astropy import units as u
+from astropy.table import Table
+from astropy.table import Column, MaskedColumn
+from astropy.coordinates import SkyCoord
+from astropy.time import Time
 
 
 test_dat = ['names e d s i',
@@ -127,7 +130,6 @@ Notes:
 HD81809  1e-07    2e+00  67 5.0 20
 HD103095         -9e+34 -30 5.0 20
 ''' # noqa: W291
-    from astropy.table import MaskedColumn
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
     t.add_column([20, 20], name='sameI')
@@ -248,8 +250,6 @@ def test_write_coord_cols():
     iterating over the table columns, which will have to be done again
     if additional such coordinate columns are present.
     """
-    from astropy.table import Column
-    from astropy.coordinates import SkyCoord
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
     t.add_column([20, 20], name='sameI')
@@ -311,7 +311,6 @@ Byte-by-byte Description of file: table.dat
  85-100  F16.13 arcsec DEs           Declination (arcsec)              
 --------------------------------------------------------------------------------
 ''' # noqa: W291
-    from astropy.coordinates import SkyCoord
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
     t.add_column([20, 20], name='sameI')
@@ -394,9 +393,6 @@ HD81809 <SkyCoord (ICRS): (ra, dec) in deg
     (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
 random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
 ''' # noqa: W291
-    from astropy.coordinates import SkyCoord
-    from astropy.time import Time
-    from astropy.table import Column
     t = Table()
     t['name'] = ['HD81809']
     coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
@@ -440,7 +436,6 @@ Notes:
 HD81809 330.564 -61.6596 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
 ''' # noqa: W291
     import pytest
-    from astropy.coordinates import SkyCoord
     t = Table()
     t['name'] = ['HD81809']
     coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)

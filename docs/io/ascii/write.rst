@@ -233,7 +233,7 @@ details.
 .. _cds_mrt_format:
 
 CDS/MRT Format
-----------
+--------------
 
 Both `CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ and
 `Machine Readable Table (MRT) <https://journals.aas.org/mrt-standards/>`_ formats
