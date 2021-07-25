@@ -29,7 +29,6 @@ from astropy import units as u
 
 from astropy.table import Table
 from astropy.table import Column, MaskedColumn
-from astropy.coordinates import SkyCoord
 from string import Template
 from textwrap import wrap, fill
 
@@ -368,6 +367,7 @@ class CdsHeader(core.BaseHeader):
             if self.start_line is not None:
                 col.width = max(col.width, len(col.info.name))
         widths = [col.width for col in self.cols]
+        [print(f'{col.info.format} {col.format}') for col in self.cols]
 
         startb = 1  # Byte count starts at 1.
 
@@ -395,7 +395,7 @@ class CdsHeader(core.BaseHeader):
             col.has_null = isinstance(col, MaskedColumn)
 
             # Set CDSColumn type, size and format.
-            if np.issubdtype(col.dtype, np.int):
+            if np.issubdtype(col.dtype, int):
                 # Integer formatter
                 self._set_column_val_limits(col)
                 col.meta.size = len(str(col.max))
@@ -405,13 +405,13 @@ class CdsHeader(core.BaseHeader):
                 col.fortran_format = "I" + str(col.meta.size)
                 col.format = ">" + col.fortran_format[1:]
 
-            elif np.issubdtype(col.dtype, np.float):
+            elif np.issubdtype(col.dtype, float):
                 # Float formatter
                 self._set_column_val_limits(col)
                 self.column_float_formatter(col)
 
             else:
-                # String formatter, ``np.issubdtype(col.dtype, np.str)`` is ``True``.
+                # String formatter, ``np.issubdtype(col.dtype, str)`` is ``True``.
                 if col.has_null:
                     mcol = col
                     mcol.fill_value = ""
@@ -537,6 +537,8 @@ class CdsHeader(core.BaseHeader):
         Writes the Header of the CDS table, aka ReadMe, which
         also contains the Byte-By-Byte description of the table.
         """
+        from astropy.coordinates import SkyCoord
+
         # For columns that are instances of ``SkyCoord`` and other ``mixin`` columns
         # or whose values are objects of these classes.
         for i, col in enumerate(self.cols):
@@ -551,7 +553,7 @@ class CdsHeader(core.BaseHeader):
                     # the column cannot be converted to a ``SkyCoord`` object.
                     # These columns are converted to ``Column`` object and then converted
                     # to string valued column.
-                    if not (isinstance(col, Column) or isinstance(col, MaskedColumn)):
+                    if not isinstance(col, Column):
                         col = Column(col)
                     col = Column([str(val) for val in col])
                     self.cols[i] = col
@@ -616,10 +618,10 @@ class CdsHeader(core.BaseHeader):
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
-            elif not (isinstance(col, Column) or isinstance(col, MaskedColumn)):
+            elif not isinstance(col, Column):
                 col = Column(col)
                 # If column values are ``object`` types, convert them to string.
-                if np.issubdtype(col.dtype, np.object):
+                if np.issubdtype(col.dtype, object):
                     col = Column([str(val) for val in col])
                 self.cols[i] = col
 
