@@ -193,76 +193,76 @@ The people who have contributed to the code for this release are:
 .. hlist::
   :columns: 4
 
--  Adrian Price-Whelan
--  Albert Y. Shih
--  Andrej Rode  *
--  Bhavya Khandelwal  *
--  Brian Soto
--  Brigitta Sipőcz
--  Bruce Merry
--  Chiara Marmo  *
--  Dan Ryan  *
--  David Stansby
--  Derek Homeier
--  E. Madison Bray
--  Ed Slavich
--  Eero Vaher  *
--  Erik Tollerud
--  Gabriel Perren
--  Geert Barentsen
--  Gyanendra Shukla  *
--  Hans Moritz Günther
--  Ilya Kamenshchikov  *
--  Jakob Maljaars  *
--  James Davies
--  James Tocknell  *
--  James Turner
--  Jane Rigby
--  Jose Sabater  *
--  Juan Luis Cano Rodríguez
--  Julien Woillez
--  Karl Wessel  *
--  Larry Bradley
--  Laura Hayes  *
--  Leo Singer
--  Ludwig Schwardt
--  Léni Gauffier  *
--  Maik Nijhuis  *
--  Marten van Kerkwijk
--  Matteo Bachetti
--  Matthias Bussonnier  *
--  Maximilian Nöthe
--  Mihai Cara
--  Nadia Dencheva
--  Nathaniel Starkman
--  Nicholas Earl
--  Nick Murphy
--  Nikita Tewary  *
--  Ole Streicher
--  Param Patidar  *
--  Perry Greenfield
--  Pey Lian Lim
--  Pushkar Kopparla  *
--  Ricardo Fonseca
--  Richard R  *
--  Rik van Lieshout  *
--  Sam Lee   *
--  Sashank Mishra
--  Shankar Kulumani  *
--  Simon Conseil
--  Steve Guest  *
--  Steven Bamford
--  Stuart Littlefair
--  Stuart Mumford
--  Suyog Garg  *
--  Thomas Robitaille
--  Tim Gates  *
--  Tim Jenness
--  Tom Aldcroft
--  Tom Donaldson
--  William Jamieson  *
--  homeboy445  *
--  maggiesam  *
+  -  Adrian Price-Whelan
+  -  Albert Y. Shih
+  -  Andrej Rode  *
+  -  Bhavya Khandelwal  *
+  -  Brian Soto
+  -  Brigitta Sipőcz
+  -  Bruce Merry
+  -  Chiara Marmo  *
+  -  Dan Ryan  *
+  -  David Stansby
+  -  Derek Homeier
+  -  E. Madison Bray
+  -  Ed Slavich
+  -  Eero Vaher  *
+  -  Erik Tollerud
+  -  Gabriel Perren
+  -  Geert Barentsen
+  -  Gyanendra Shukla  *
+  -  Hans Moritz Günther
+  -  Ilya Kamenshchikov  *
+  -  Jakob Maljaars  *
+  -  James Davies
+  -  James Tocknell  *
+  -  James Turner
+  -  Jane Rigby
+  -  Jose Sabater  *
+  -  Juan Luis Cano Rodríguez
+  -  Julien Woillez
+  -  Karl Wessel  *
+  -  Larry Bradley
+  -  Laura Hayes  *
+  -  Leo Singer
+  -  Ludwig Schwardt
+  -  Léni Gauffier  *
+  -  Maik Nijhuis  *
+  -  Marten van Kerkwijk
+  -  Matteo Bachetti
+  -  Matthias Bussonnier  *
+  -  Maximilian Nöthe
+  -  Mihai Cara
+  -  Nadia Dencheva
+  -  Nathaniel Starkman
+  -  Nicholas Earl
+  -  Nick Murphy
+  -  Nikita Tewary  *
+  -  Ole Streicher
+  -  Param Patidar  *
+  -  Perry Greenfield
+  -  Pey Lian Lim
+  -  Pushkar Kopparla  *
+  -  Ricardo Fonseca
+  -  Richard R  *
+  -  Rik van Lieshout  *
+  -  Sam Lee   *
+  -  Sashank Mishra
+  -  Shankar Kulumani  *
+  -  Simon Conseil
+  -  Steve Guest  *
+  -  Steven Bamford
+  -  Stuart Littlefair
+  -  Stuart Mumford
+  -  Suyog Garg  *
+  -  Thomas Robitaille
+  -  Tim Gates  *
+  -  Tim Jenness
+  -  Tom Aldcroft
+  -  Tom Donaldson
+  -  William Jamieson  *
+  -  homeboy445  *
+  -  maggiesam  *
 
 Where a * indicates that this release contains their first contribution to
 Astropy.
