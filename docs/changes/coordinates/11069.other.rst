@@ -1,2 +1,0 @@
-Refactor conversions between ``GCRS`` and ``CIRS,TETE`` for better accuracy
-and substantially improved speed.

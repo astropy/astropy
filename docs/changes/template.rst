@@ -10,6 +10,7 @@
 {% endif %}
 
 {% for category, val in definitions.items() %}
+
 {% set underline = underlines[0] %}
 {{ definitions[category]['name'] }}
 {{ underline * definitions[category]['name']|length }}
