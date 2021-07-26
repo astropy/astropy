@@ -42,8 +42,7 @@ source::
 .. note::
     The light curve provided here is handpicked for example purposes. For
     more information about the Kepler FITS format, see
-    `Section 2.3.1 of the Kepler Archive Manual
-    <https://archive.stsci.edu/kepler/manuals/archive_manual.pdf#page=16>`_.
+    `Section 2.3.1 of the Kepler Archive Manual <https://archive.stsci.edu/files/live/sites/mast/files/home/missions-and-data/k2/_documents/MAST_Kepler_Archive_Manual_2020.pdf>`_.
     To get other light curves for science purposes using Python, see the
     `astroquery <https://astroquery.readthedocs.io>`_ affiliated package.
 
