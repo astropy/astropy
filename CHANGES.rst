@@ -130,13 +130,7 @@ astropy.modeling
   Fitters that support constraints will set this to False on the model copy
   and then set back to True when the fit is complete before returning. [#11365]
 
-- The ``convolve_models_fft`` function implements model convolution so that one insures that the convolution remains consistent across multiple different inputs. [#11456]
 - The ``convolve_models_fft`` function implements model convolution so that one
- insures that the convolution remains consistent across multiple different
- inputs. [#11456]
-- The ``convolve_models_fft`` function implements model convolution so that one
-- insures that the convolution remains consistent across multiple different
-- inputs. [#11456]
   insures that the convolution remains consistent across multiple different
   inputs. [#11456]
 
@@ -434,8 +428,6 @@ astropy.io.fits
 - Do not delete ``EXTNAME`` for compressed image header if a default and
   non-default ``EXTNAME`` are present. [#11396]
 
-
-  Previously if a compressed image header was assigned a value using a key of ``HIERARCH X Y Z`` a warning would be issued suggesting that ``HIERARCH`` should be used. [#11404]
 - Prevent warnings about ``HIERARCH`` with ``CompImageHeader`` class. [#11404]
 
 - Fixed regression introduced in Astropy 4.0.5 and 4.2.1 with verification of
