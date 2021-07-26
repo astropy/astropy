@@ -1,2 +1,0 @@
-Calling ``Unit()`` with no argument now returns a dimensionless unit,
-as was documented but not implemented.

@@ -1,2 +1,0 @@
-Comparing a non-SkyCoord object to a ``SkyCoord`` using ``==`` no longer
-raises an error.
