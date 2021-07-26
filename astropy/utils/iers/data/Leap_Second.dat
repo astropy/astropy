@@ -1,10 +1,10 @@
 #  Value of TAI-UTC in second valid beetween the initial value until
 #  the epoch given on the next line. The last line reads that NO
 #  leap second was introduced since the corresponding date 
-#  Updated through IERS Bulletin 61 issued in January 2021
+#  Updated through IERS Bulletin 62 issued in July 2021
 #  
 #
-#  File expires on 28 December 2021
+#  File expires on 28 June 2022
 #
 #
 #    MJD        Date        TAI-UTC (s)
