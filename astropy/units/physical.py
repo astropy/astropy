@@ -3,13 +3,13 @@
 """Defines the physical types that correspond to different units."""
 
 import numbers
-import sys
 import warnings
 
 from . import core
 from . import si
 from . import astrophys
 from . import cgs
+from . import imperial  # Need this for backward namespace compat # noqa
 from . import misc
 from . import quantity
 from astropy.utils.exceptions import AstropyDeprecationWarning
