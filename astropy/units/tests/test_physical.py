@@ -8,7 +8,7 @@ import pickle
 import pytest
 
 from astropy import units as u
-from astropy.units import physical, imperial
+from astropy.units import physical
 from astropy.constants import hbar
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -26,7 +26,7 @@ unit_physical_type_pairs = [
     (u.photon / (u.cm ** 2 * u.s * u.Hz), "photon flux density"),
     (u.byte, "data quantity"),
     (u.bit, "data quantity"),
-    (imperial.mi / u.week, "speed"),
+    (u.imperial.mi / u.week, "speed"),
     (u.erg / u.s, "power"),
     (u.C / u.s, "electrical current"),
     (u.C / u.s / u.cm ** 2, "electrical current density"),
@@ -44,9 +44,9 @@ unit_physical_type_pairs = [
     (u.mol, "amount of substance"),
     (u.K, "temperature"),
     (u.deg_C, "temperature"),
-    (imperial.deg_F, "temperature"),
-    (imperial.deg_R, "temperature"),
-    (imperial.deg_R / u.m, "temperature_gradient"),
+    (u.imperial.deg_F, "temperature"),
+    (u.imperial.deg_R, "temperature"),
+    (u.imperial.deg_R / u.m, "temperature_gradient"),
     (u.N, "force"),
     (u.J, "energy"),
     (u.Pa, "pressure"),
@@ -91,9 +91,9 @@ unit_physical_type_pairs = [
     (u.cgs.statampere, "electrical current (ESU)"),
     (u.cgs.Biot, "electrical current (EMU)"),
     (u.cgs.abcoulomb, "electrical charge (EMU)"),
-    (imperial.btu / (u.s * u.m * imperial.deg_F), "thermal conductivity"),
-    (imperial.cal / u.deg_C, "heat capacity"),
-    (imperial.cal / u.deg_C / u.g, "specific heat capacity"),
+    (u.imperial.btu / (u.s * u.m * u.imperial.deg_F), "thermal conductivity"),
+    (u.imperial.cal / u.deg_C, "heat capacity"),
+    (u.imperial.cal / u.deg_C / u.g, "specific heat capacity"),
     (u.J * u.m ** -2 * u.s ** -1, "energy flux"),
     (u.W / u.m ** 2, "energy flux"),
     (u.m ** 3 / u.mol, "molar volume"),
@@ -107,16 +107,16 @@ unit_physical_type_pairs = [
     (u.m / u.s ** 5, "crackle"),
     (u.m / u.s ** 6, "pop"),
     (u.deg_C / u.m, "temperature gradient"),
-    (imperial.deg_F / u.m, "temperature gradient"),
-    (imperial.deg_R / imperial.ft, "temperature gradient"),
-    (imperial.Calorie / u.g, "specific energy"),
+    (u.imperial.deg_F / u.m, "temperature gradient"),
+    (u.imperial.deg_R / u.imperial.ft, "temperature gradient"),
+    (u.imperial.Calorie / u.g, "specific energy"),
     (u.mol / u.L / u.s, "reaction rate"),
-    (imperial.lbf * imperial.ft * u.s ** 2, "moment of inertia"),
+    (u.imperial.lbf * u.imperial.ft * u.s ** 2, "moment of inertia"),
     (u.mol / u.s, "catalytic activity"),
-    (imperial.kcal / u.deg_C / u.mol, "molar heat capacity"),
+    (u.imperial.kcal / u.deg_C / u.mol, "molar heat capacity"),
     (u.mol / u.kg, "molality"),
-    (imperial.inch * u.hr, "absement"),
-    (imperial.ft ** 3 / u.s, "volumetric flow rate"),
+    (u.imperial.inch * u.hr, "absement"),
+    (u.imperial.ft ** 3 / u.s, "volumetric flow rate"),
     (u.Hz / u.s, "frequency drift"),
     (u.Pa ** -1, "compressibility"),
     (u.dimensionless_unscaled, "dimensionless"),
@@ -286,9 +286,9 @@ equivalent_unit_pairs = [
     (u.N, u.kg * u.m * u.s ** -2),
     (u.barn * u.Mpc, u.cm ** 3),
     (u.K, u.deg_C),
-    (u.K, imperial.deg_R),
-    (u.K, imperial.deg_F),
-    (u.deg_C, imperial.deg_F),
+    (u.K, u.imperial.deg_R),
+    (u.K, u.imperial.deg_F),
+    (u.deg_C, u.imperial.deg_F),
     (u.m ** 18, u.pc ** 18),
 ]
 
@@ -321,7 +321,7 @@ nonequivalent_unit_pairs = [
     (u.m, u.s),
     (u.m ** 18, u.m ** 19),
     (u.N, u.J),
-    (u.barn, imperial.deg_F),
+    (u.barn, u.imperial.deg_F),
 ]
 
 
