@@ -9,7 +9,7 @@ from . import core
 from . import si
 from . import astrophys
 from . import cgs
-from . import imperial  # Need this for backward namespace compat # noqa
+from . import imperial  # Need this for backward namespace compat, see issues 11975 and 11977  # noqa
 from . import misc
 from . import quantity
 from astropy.utils.exceptions import AstropyDeprecationWarning
