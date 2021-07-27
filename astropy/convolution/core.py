@@ -216,9 +216,11 @@ class Kernel1D(Kernel):
 
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
-        if array is None:
-            if self._model is None:
-                raise TypeError("Must specify either array or model.")
+        if self._model:
+            if array is not None:
+                # Reject "array" keyword for kernel models, to avoid them not being
+                # populated as expected.
+                raise TypeError("Array argument not allowed for kernel models.")
 
             if x_size is None:
                 x_size = self._default_size
@@ -235,8 +237,8 @@ class Kernel1D(Kernel):
             array = discretize_model(self._model, x_range, **kwargs)
 
         # Initialize from array
-        elif array is not None:
-            self._model = None
+        elif array is None:
+            raise TypeError("Must specify either array or model.")
 
         super().__init__(array)
 
@@ -280,10 +282,11 @@ class Kernel2D(Kernel):
     def __init__(self, model=None, x_size=None, y_size=None, array=None, **kwargs):
 
         # Initialize from model
-        if array is None:
-            if self._model is None:
-                raise TypeError("Must specify either array or model.")
-
+        if self._model:
+            if array is not None:
+                # Reject "array" keyword for kernel models, to avoid them not being
+                # populated as expected.
+                raise TypeError("Array argument not allowed for kernel models.")
             if x_size is None:
                 x_size = self._default_size
             elif x_size != int(x_size):
@@ -309,8 +312,8 @@ class Kernel2D(Kernel):
             array = discretize_model(self._model, x_range, y_range, **kwargs)
 
         # Initialize from array
-        elif array is not None:
-            self._model = None
+        elif array is None:
+            raise TypeError("Must specify either array or model.")
 
         super().__init__(array)
 
