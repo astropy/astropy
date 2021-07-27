@@ -5,6 +5,7 @@ import sys
 import subprocess
 
 import pytest
+import unittest.mock as mk
 import numpy as np
 from inspect import signature
 from numpy.testing import assert_allclose
@@ -18,6 +19,7 @@ from astropy.convolution import convolve_models
 import astropy.units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
+import astropy.modeling.core as core
 
 
 class NonFittableModel(Model):
@@ -616,6 +618,35 @@ def test_rename_inputs_outputs():
         g2.outputs = ("w", "e")
 
 
+def test__prepare_output_single_model():
+    model = models.Gaussian1D()
+
+    # No broadcast
+    assert (np.array([1, 2]) ==
+            model._prepare_output_single_model(np.array([1, 2]), None)).all()
+
+    # Broadcast to scalar
+    assert 1 == model._prepare_output_single_model(np.array([1]), ())
+    assert 2 == model._prepare_output_single_model(np.asanyarray(2), ())
+
+    # Broadcast reshape
+    output = np.array([[1, 2, 3],
+                       [4, 5, 6]])
+    reshape = np.array([[1, 2],
+                        [3, 4],
+                        [5, 6]])
+    assert (output == model._prepare_output_single_model(output, (2, 3))).all()
+    assert (reshape == model._prepare_output_single_model(output, (3, 2))).all()
+
+    # Broadcast reshape scalar
+    assert 1 == model._prepare_output_single_model(np.array([1]), (1, 2))
+    assert 2 == model._prepare_output_single_model(np.asanyarray(2), (3, 4))
+
+    # Fail to broadcast
+    assert (output == model._prepare_output_single_model(output, (1, 2))).all()
+    assert (output == model._prepare_output_single_model(output, (3, 4))).all()
+
+
 def test_prepare_outputs_mixed_broadcast():
     """
     Tests that _prepare_outputs_single_model does not fail when a smaller
@@ -822,3 +853,90 @@ def test_print_special_operator_CompoundModel(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == true_out
+
+
+def test__validate_input_shape():
+    model = models.Gaussian1D()
+    model._n_models = 2
+
+    _input = np.array([[1, 2, 3],
+                       [4, 5, 6]])
+
+    # Successful validation
+    assert model._validate_input_shape(_input, 0, model.inputs, 1, False) == (2, 3)
+
+    # Fail number of axes
+    with pytest.raises(ValueError) as err:
+        model._validate_input_shape(_input, 0, model.inputs, 2, True)
+    assert str(err.value) == \
+        "For model_set_axis=2, all inputs must be at least 3-dimensional."
+
+    # Fail number of models (has argname)
+    with pytest.raises(ValueError) as err:
+        model._validate_input_shape(_input, 0, model.inputs, 1, True)
+    assert str(err.value) == \
+        "Input argument 'x' does not have the correct dimensions in model_set_axis=1 " +\
+        "for a model set with n_models=2."
+
+    # Fail number of models  (no argname)
+    with pytest.raises(ValueError) as err:
+        model._validate_input_shape(_input, 0, [], 1, True)
+    assert str(err.value) == \
+        "Input argument '0' does not have the correct dimensions in model_set_axis=1 " +\
+        "for a model set with n_models=2."
+
+
+def test__validate_input_shapes():
+    model = models.Gaussian1D()
+    model._n_models = 2
+    inputs = [mk.MagicMock() for _ in range(3)]
+    argnames = mk.MagicMock()
+    model_set_axis = mk.MagicMock()
+    all_shapes = [mk.MagicMock() for _ in inputs]
+
+    # Successful validation
+    with mk.patch.object(Model, '_validate_input_shape',
+                         autospec=True, side_effect=all_shapes) as mkValidate:
+        with mk.patch.object(core, 'check_broadcast',
+                             autospec=True) as mkCheck:
+            assert mkCheck.return_value == \
+                model._validate_input_shapes(inputs, argnames, model_set_axis)
+            assert mkCheck.call_args_list == [mk.call(*all_shapes)]
+            assert mkValidate.call_args_list == \
+                [mk.call(model, _input, idx, argnames, model_set_axis, True)
+                 for idx, _input in enumerate(inputs)]
+
+    # Fail check_broadcast
+    with mk.patch.object(Model, '_validate_input_shape',
+                         autospec=True, side_effect=all_shapes) as mkValidate:
+        with mk.patch.object(core, 'check_broadcast',
+                             autospec=True, return_value=None) as mkCheck:
+            with pytest.raises(ValueError) as err:
+                model._validate_input_shapes(inputs, argnames, model_set_axis)
+            assert str(err.value) == \
+                "All inputs must have identical shapes or must be scalars."
+            assert mkCheck.call_args_list == [mk.call(*all_shapes)]
+            assert mkValidate.call_args_list == \
+                [mk.call(model, _input, idx, argnames, model_set_axis, True)
+                 for idx, _input in enumerate(inputs)]
+
+
+def test__remove_axes_from_shape():
+    model = models.Gaussian1D()
+
+    # len(shape) == 0
+    assert model._remove_axes_from_shape((), mk.MagicMock()) == ()
+
+    # axis < 0
+    assert model._remove_axes_from_shape((1, 2, 3), -1) == (1, 2)
+    assert model._remove_axes_from_shape((1, 2, 3), -2) == (1, 3)
+    assert model._remove_axes_from_shape((1, 2, 3), -3) == (2, 3)
+
+    # axis >= len(shape)
+    assert model._remove_axes_from_shape((1, 2, 3), 3) == ()
+    assert model._remove_axes_from_shape((1, 2, 3), 4) == ()
+
+    # 0 <= axis < len(shape)
+    assert model._remove_axes_from_shape((1, 2, 3), 0) == (2, 3)
+    assert model._remove_axes_from_shape((1, 2, 3), 1) == (3,)
+    assert model._remove_axes_from_shape((1, 2, 3), 2) == ()
