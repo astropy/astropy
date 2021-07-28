@@ -1,0 +1,1 @@
+Improved parameter support for ``astropy.modeling.core.custom_model`` created models.
