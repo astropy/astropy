@@ -8,6 +8,7 @@ import numpy.ma as ma
 from astropy.table import Column, MaskedColumn, Table, QTable
 from astropy.table.column import BaseColumn
 from astropy.time import Time
+from astropy.utils.masked import Masked
 import astropy.units as u
 
 
@@ -566,18 +567,32 @@ def test_masked_as_array_with_mixin():
 
 
 def test_masked_column_with_unit_in_qtable():
-    """Test that adding a MaskedColumn with a unit to QTable issues warning"""
+    """Test that adding a MaskedColumn with a unit to QTable creates a MaskedQuantity."""
+    MaskedQuantity = Masked(u.Quantity)
+
     t = QTable()
     t['a'] = MaskedColumn([1, 2])
     assert isinstance(t['a'], MaskedColumn)
 
     t['b'] = MaskedColumn([1, 2], unit=u.m)
-    assert isinstance(t['b'], u.Quantity)
+    assert isinstance(t['b'], MaskedQuantity)
+    assert np.all(t['b'].mask == False)  # noqa
 
-    with pytest.warns(UserWarning, match="dropping mask in Quantity column 'c'") as w:
-        t['c'] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
-    assert len(w) == 1
-    assert isinstance(t['b'], u.Quantity)
+    t['c'] = MaskedColumn([1, 2], unit=u.m, mask=[True, False])
+    assert isinstance(t['c'], MaskedQuantity)
+    assert np.all(t['c'].mask == [True, False])
+
+
+def test_masked_quantity_in_table():
+    MaskedQuantity = Masked(u.Quantity)
+    t = Table()
+    t['b'] = MaskedQuantity([1, 2], unit=u.m)
+    assert isinstance(t['b'], MaskedColumn)
+    assert np.all(t['b'].mask == False)  # noqa
+
+    t['c'] = MaskedQuantity([1, 2], unit=u.m, mask=[True, False])
+    assert isinstance(t['c'], MaskedColumn)
+    assert np.all(t['c'].mask == [True, False])
 
 
 def test_masked_column_data_attribute_is_plain_masked_array():
