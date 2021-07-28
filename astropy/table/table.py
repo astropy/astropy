@@ -19,6 +19,7 @@ from astropy.units import Quantity, QuantityInfo
 from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaData, MetaAttribute
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, DataInfo
 from astropy.utils.decorators import format_doc
@@ -1271,7 +1272,7 @@ class Table:
                 data = np.array(data, dtype=object)
                 col_cls = self.ColumnClass
 
-        elif isinstance(data, np.ma.MaskedArray):
+        elif isinstance(data, (np.ma.MaskedArray, Masked)):
             # Require that col_cls be a subclass of MaskedColumn, remembering
             # that ColumnClass could be a user-defined subclass (though more-likely
             # could be MaskedColumn).
@@ -1573,8 +1574,8 @@ class Table:
         if isinstance(col, BaseColumn):
             return False
 
-        # Is it a mixin but not not Quantity (which gets converted to Column with
-        # unit set).
+        # Is it a mixin but not [Masked]Quantity (which gets converted to
+        # [Masked]Column with unit set).
         return has_info_class(col, MixinInfo) and not has_info_class(col, QuantityInfo)
 
     @format_doc(_pprint_docs)
@@ -3943,26 +3944,17 @@ class QTable(Table):
 
     def _convert_col_for_table(self, col):
         if isinstance(col, Column) and getattr(col, 'unit', None) is not None:
-            # We need to turn the column into a quantity, or a subclass
-            # identified in the unit (such as u.mag()).
-            q_cls = getattr(col.unit, '_quantity_class', Quantity)
+            # We need to turn the column into a quantity; use subok=True to allow
+            # Quantity subclasses identified in the unit (such as u.mag()).
+            q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             try:
-                qcol = q_cls(col.data, col.unit, copy=False)
+                qcol = q_cls(col.data, col.unit, copy=False, subok=True)
             except Exception as exc:
                 warnings.warn(f"column {col.info.name} has a unit but is kept as "
                               f"a {col.__class__.__name__} as an attempt to "
                               f"convert it to Quantity failed with:\n{exc!r}",
                               AstropyUserWarning)
             else:
-                # What to do with MaskedColumn with units: leave as MaskedColumn or
-                # turn into Quantity and drop mask?  Assuming we have masking support
-                # in Quantity someday, let's drop the mask (consistent with legacy
-                # behavior) but issue a warning.
-                if isinstance(col, MaskedColumn) and np.any(col.mask):
-                    warnings.warn("dropping mask in Quantity column '{}': "
-                                  "masked Quantity not supported".format(col.info.name),
-                                  AstropyUserWarning)
-
                 qcol.info = col.info
                 qcol.info.indices = col.info.indices
                 col = qcol
