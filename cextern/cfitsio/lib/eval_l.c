@@ -46,6 +46,7 @@ typedef int16_t flex_int16_t;
 typedef uint16_t flex_uint16_t;
 typedef int32_t flex_int32_t;
 typedef uint32_t flex_uint32_t;
+typedef uint64_t flex_uint64_t;
 #else
 typedef signed char flex_int8_t;
 typedef short int flex_int16_t;
@@ -152,7 +153,12 @@ typedef unsigned int flex_uint32_t;
 typedef struct ff_buffer_state *FF_BUFFER_STATE;
 #endif
 
-extern int ffleng;
+#ifndef FF_TYPEDEF_FF_SIZE_T
+#define FF_TYPEDEF_FF_SIZE_T
+typedef size_t ff_size_t;
+#endif
+
+extern ff_size_t ffleng;
 
 extern FILE *ffin, *ffout;
 
@@ -178,11 +184,6 @@ extern FILE *ffin, *ffout;
 
 #define unput(c) ffunput( c, (fftext_ptr)  )
 
-#ifndef FF_TYPEDEF_FF_SIZE_T
-#define FF_TYPEDEF_FF_SIZE_T
-typedef size_t ff_size_t;
-#endif
-
 #ifndef FF_STRUCT_FF_BUFFER_STATE
 #define FF_STRUCT_FF_BUFFER_STATE
 struct ff_buffer_state
@@ -200,7 +201,7 @@ struct ff_buffer_state
 	/* Number of characters read into ff_ch_buf, not including EOB
 	 * characters.
 	 */
-	int ff_n_chars;
+	ff_size_t ff_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -270,8 +271,8 @@ static FF_BUFFER_STATE * ff_buffer_stack = 0; /**< Stack as an array. */
 
 /* ff_hold_char holds the character lost when fftext is formed. */
 static char ff_hold_char;
-static int ff_n_chars;		/* number of characters read into ff_ch_buf */
-int ffleng;
+static ff_size_t ff_n_chars;		/* number of characters read into ff_ch_buf */
+ff_size_t ffleng;
 
 /* Points to current character in buffer. */
 static char *ff_c_buf_p = (char *) 0;
@@ -299,7 +300,7 @@ static void ff_init_buffer (FF_BUFFER_STATE b,FILE *file  );
 
 FF_BUFFER_STATE ff_scan_buffer (char *base,ff_size_t size  );
 FF_BUFFER_STATE ff_scan_string (ffconst char *ff_str  );
-FF_BUFFER_STATE ff_scan_bytes (ffconst char *bytes,int len  );
+FF_BUFFER_STATE ff_scan_bytes (ffconst char *bytes,ff_size_t len  );
 
 void *ffalloc (ff_size_t  );
 void *ffrealloc (void *,ff_size_t  );
@@ -354,7 +355,7 @@ static void ff_fatal_error (ffconst char msg[]  );
  */
 #define FF_DO_BEFORE_ACTION \
 	(fftext_ptr) = ff_bp; \
-	ffleng = (size_t) (ff_cp - ff_bp); \
+	ffleng = (ff_size_t) (ff_cp - ff_bp); \
 	(ff_hold_char) = *ff_cp; \
 	*ff_cp = '\0'; \
 	(ff_c_buf_p) = ff_cp;
@@ -724,7 +725,7 @@ static int expr_read( char *buf, int nbytes );
         if ( (result = expr_read( (char *) buf, max_size )) < 0 ) \
             FF_FATAL_ERROR( "read() in flex scanner failed" );
 
-#line 728 "<stdout>"
+#line 729 "<stdout>"
 
 #define INITIAL 0
 
@@ -763,7 +764,7 @@ FILE *ffget_out (void );
 
 void ffset_out  (FILE * out_str  );
 
-int ffget_leng (void );
+ff_size_t ffget_leng (void );
 
 char *ffget_text (void );
 
@@ -824,7 +825,7 @@ static int input (void );
 	if ( FF_CURRENT_BUFFER_LVALUE->ff_is_interactive ) \
 		{ \
 		int c = '*'; \
-		int n; \
+		ff_size_t n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( ffin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -909,7 +910,7 @@ FF_DECL
 #line 146 "eval.l"
 
 
-#line 913 "<stdout>"
+#line 914 "<stdout>"
 
 	if ( !(ff_init) )
 		{
@@ -1327,6 +1328,9 @@ FF_RULE_SETUP
                   else if( FSTRCMP(fname,"GTIFILTER(")==0 )
                      return( GTIFILTER );
 
+                  else if( FSTRCMP(fname,"GTIOVERLAP(")==0 )
+                     return( GTIOVERLAP );
+
                   else if( FSTRCMP(fname,"REGFILTER(")==0 )
                      return( REGFILTER );
 
@@ -1339,86 +1343,86 @@ FF_RULE_SETUP
 	FF_BREAK
 case 15:
 FF_RULE_SETUP
-#line 439 "eval.l"
+#line 442 "eval.l"
 { return( INTCAST ); }
 	FF_BREAK
 case 16:
 FF_RULE_SETUP
-#line 440 "eval.l"
+#line 443 "eval.l"
 { return( FLTCAST ); }
 	FF_BREAK
 case 17:
 FF_RULE_SETUP
-#line 441 "eval.l"
+#line 444 "eval.l"
 { return( POWER   ); }
 	FF_BREAK
 case 18:
 FF_RULE_SETUP
-#line 442 "eval.l"
+#line 445 "eval.l"
 { return( NOT     ); }
 	FF_BREAK
 case 19:
 FF_RULE_SETUP
-#line 443 "eval.l"
+#line 446 "eval.l"
 { return( OR      ); }
 	FF_BREAK
 case 20:
 FF_RULE_SETUP
-#line 444 "eval.l"
+#line 447 "eval.l"
 { return( AND     ); }
 	FF_BREAK
 case 21:
 FF_RULE_SETUP
-#line 445 "eval.l"
+#line 448 "eval.l"
 { return( EQ      ); }
 	FF_BREAK
 case 22:
 FF_RULE_SETUP
-#line 446 "eval.l"
+#line 449 "eval.l"
 { return( NE      ); }
 	FF_BREAK
 case 23:
 FF_RULE_SETUP
-#line 447 "eval.l"
+#line 450 "eval.l"
 { return( GT      ); }
 	FF_BREAK
 case 24:
 FF_RULE_SETUP
-#line 448 "eval.l"
+#line 451 "eval.l"
 { return( LT      ); }
 	FF_BREAK
 case 25:
 FF_RULE_SETUP
-#line 449 "eval.l"
+#line 452 "eval.l"
 { return( GTE     ); }
 	FF_BREAK
 case 26:
 FF_RULE_SETUP
-#line 450 "eval.l"
+#line 453 "eval.l"
 { return( LTE     ); }
 	FF_BREAK
 case 27:
 FF_RULE_SETUP
-#line 451 "eval.l"
+#line 454 "eval.l"
 { return( XOR     ); }
 	FF_BREAK
 case 28:
 /* rule 28 can match eol */
 FF_RULE_SETUP
-#line 452 "eval.l"
+#line 455 "eval.l"
 { return( '\n'    ); }
 	FF_BREAK
 case 29:
 FF_RULE_SETUP
-#line 453 "eval.l"
+#line 456 "eval.l"
 { return( fftext[0] ); }
 	FF_BREAK
 case 30:
 FF_RULE_SETUP
-#line 454 "eval.l"
+#line 457 "eval.l"
 ECHO;
 	FF_BREAK
-#line 1422 "<stdout>"
+#line 1426 "<stdout>"
 case FF_STATE_EOF(INITIAL):
 	ffterminate();
 
@@ -1604,7 +1608,7 @@ static int ff_get_next_buffer (void)
 
 	else
 		{
-			int num_to_read =
+			ff_size_t num_to_read =
 			FF_CURRENT_BUFFER_LVALUE->ff_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
@@ -1618,7 +1622,7 @@ static int ff_get_next_buffer (void)
 
 			if ( b->ff_is_our_buffer )
 				{
-				int new_size = b->ff_buf_size * 2;
+				ff_size_t new_size = b->ff_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->ff_buf_size += b->ff_buf_size / 8;
@@ -1649,7 +1653,7 @@ static int ff_get_next_buffer (void)
 
 		/* Read in more data. */
 		FF_INPUT( (&FF_CURRENT_BUFFER_LVALUE->ff_ch_buf[number_to_move]),
-			(ff_n_chars), (size_t) num_to_read );
+			(ff_n_chars), num_to_read );
 
 		FF_CURRENT_BUFFER_LVALUE->ff_n_chars = (ff_n_chars);
 		}
@@ -1759,7 +1763,7 @@ static int ff_get_next_buffer (void)
 	if ( ff_cp < FF_CURRENT_BUFFER_LVALUE->ff_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		register int number_to_move = (ff_n_chars) + 2;
+		register ff_size_t number_to_move = (ff_n_chars) + 2;
 		register char *dest = &FF_CURRENT_BUFFER_LVALUE->ff_ch_buf[
 					FF_CURRENT_BUFFER_LVALUE->ff_buf_size + 2];
 		register char *source =
@@ -1808,7 +1812,7 @@ static int ff_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			int offset = (ff_c_buf_p) - (fftext_ptr);
+			ff_size_t offset = (ff_c_buf_p) - (fftext_ptr);
 			++(ff_c_buf_p);
 
 			switch ( ff_get_next_buffer(  ) )
@@ -1832,7 +1836,7 @@ static int ff_get_next_buffer (void)
 				case EOB_ACT_END_OF_FILE:
 					{
 					if ( ffwrap( ) )
-						return EOF;
+						return 0;
 
 					if ( ! (ff_did_buffer_switch_on_eof) )
 						FF_NEW_FILE;
@@ -2084,7 +2088,7 @@ void ffpop_buffer_state (void)
  */
 static void ffensure_buffer_stack (void)
 {
-	int num_to_alloc;
+	ff_size_t num_to_alloc;
     
 	if (!(ff_buffer_stack)) {
 
@@ -2181,12 +2185,11 @@ FF_BUFFER_STATE ff_scan_string (ffconst char * ffstr )
  * 
  * @return the newly allocated buffer state object.
  */
-FF_BUFFER_STATE ff_scan_bytes  (ffconst char * ffbytes, int  _ffbytes_len )
+FF_BUFFER_STATE ff_scan_bytes  (ffconst char * ffbytes, ff_size_t  _ffbytes_len )
 {
 	FF_BUFFER_STATE b;
 	char *buf;
-	ff_size_t n;
-	int i;
+	ff_size_t n, i;
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
 	n = _ffbytes_len + 2;
@@ -2268,7 +2271,7 @@ FILE *ffget_out  (void)
 /** Get the length of the current token.
  * 
  */
-int ffget_leng  (void)
+ff_size_t ffget_leng  (void)
 {
         return ffleng;
 }
@@ -2416,7 +2419,7 @@ void yyfffree (void * ptr )
 
 #define FFTABLES_NAME "fftables"
 
-#line 454 "eval.l"
+#line 457 "eval.l"
 
 
 

@@ -34,9 +34,10 @@ SERVICES PROVIDED HEREUNDER."
 #ifndef _FITSIO_H
 #define _FITSIO_H
 
-#define CFITSIO_VERSION 3.49
-#define CFITSIO_MINOR 49
-#define CFITSIO_MAJOR 3
+#define CFITSIO_VERSION 4.0.0
+#define CFITSIO_MICRO 0
+#define CFITSIO_MINOR 0
+#define CFITSIO_MAJOR 4
 #define CFITSIO_SONAME 9
 
 /* the SONAME is incremented in a new release if the binary shared */

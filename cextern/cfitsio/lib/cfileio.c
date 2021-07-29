@@ -2081,9 +2081,11 @@ int ffedit_columns(
 	       Note no leading '#'
 	    */
 	    } else if (clause1[0] && clause1[0] != '#' &&
-		ffgcno(*fptr, CASEINSEN, clause1, &colnum, status) <= 0)
+		       ((ffgcno(*fptr, CASEINSEN, clause1, &colnum, status) <= 0) ||
+			*status == COL_NOT_UNIQUE))
             {
                 /* a column with this name exists, so try to delete it */
+	        *status = 0; /* Clear potential status=COL_NOT_UNIQUE */
                 if (ffdcol(*fptr, colnum, status) > 0)
                 {
                     ffpmsg("failed to delete column in input file:");
@@ -2301,7 +2303,7 @@ int ffedit_columns(
 
               /* look for matching column */
               ffgcno(*fptr, CASEINSEN, colname, &testnum, status);
-
+	      
               while (*status == COL_NOT_UNIQUE) 
               {
                  /* the column name contained wild cards, and it */
@@ -7071,7 +7073,7 @@ int ffexts(char *extspec,
 
 
         ptr1 = strchr(ptr2, ')');
-        if (!ptr2)
+        if (!ptr1)
         {
             ffpmsg("illegal specification of image in table cell in input URL:");
             ffpmsg(" missing closing ')' character in row expression");

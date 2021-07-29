@@ -1401,12 +1401,13 @@ int ffs2tm(char *datestr,     /* I - date string: "YYYY-MM-DD"    */
             return(*status = BAD_DATE);
         }
 
-        else if (datestr[10] == 'T' && datestr[13] == ':' && datestr[16] == ':')
+        else if (datestr[10] == 'T')
         {
-          if (isdigit((int) datestr[11]) && isdigit((int) datestr[12])
-           && isdigit((int) datestr[14]) && isdigit((int) datestr[15])
-           && isdigit((int) datestr[17]) && isdigit((int) datestr[18]) )
-            {
+          if (datestr[13] == ':' && datestr[16] == ':') {
+            if (isdigit((int) datestr[11]) && isdigit((int) datestr[12])
+             && isdigit((int) datestr[14]) && isdigit((int) datestr[15])
+             && isdigit((int) datestr[17]) && isdigit((int) datestr[18]) )
+             {
                 if (slen > 19 && datestr[19] != '.')
                 {
                   ffpmsg("input date string has illegal format:");
@@ -1423,14 +1424,21 @@ int ffs2tm(char *datestr,     /* I - date string: "YYYY-MM-DD"    */
 
                 if (second)
                     *second = atof(&datestr[17]);
-            }
-            else
-            {
+             }
+             else
+             {
                   ffpmsg("input date string has illegal format:");
                   ffpmsg(datestr);
                   return(*status = BAD_DATE);
-            }
+             }
 
+          }
+          else
+          {
+               ffpmsg("input date string has illegal format:");
+               ffpmsg(datestr);
+               return(*status = BAD_DATE);
+          }
         }
     }
     else   /* no date fields */
@@ -1564,7 +1572,7 @@ int ffpkns( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1623,7 +1631,7 @@ int ffpknl( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1683,7 +1691,7 @@ int ffpknj( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1741,7 +1749,7 @@ int ffpknjj( fitsfile *fptr,    /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1800,7 +1808,7 @@ int ffpknf( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1859,7 +1867,7 @@ int ffpkne( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1918,7 +1926,7 @@ int ffpkng( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
@@ -1977,7 +1985,7 @@ int ffpknd( fitsfile *fptr,     /* I - FITS file pointer                    */
       while (len > 0  && comm[0][len - 1] == ' ')
         len--;                               /* ignore trailing blanks */
 
-      if (comm[0][len - 1] == '&')
+      if (len > 0 && comm[0][len - 1] == '&')
       {
         len = minvalue(len, FLEN_COMMENT);
         tcomment[0] = '\0';
