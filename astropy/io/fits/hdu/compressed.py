@@ -57,21 +57,7 @@ DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
 
-CMTYPE_ALIASES = {}
-
-# CFITSIO version-specific features
-if COMPRESSION_SUPPORTED:
-    try:
-        CFITSIO_SUPPORTS_GZIPDATA = compression.CFITSIO_VERSION >= 3.28
-        CFITSIO_SUPPORTS_Q_FORMAT = compression.CFITSIO_VERSION >= 3.35
-        if compression.CFITSIO_VERSION >= 3.35:
-            CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
-    except AttributeError:
-        # This generally shouldn't happen unless running pip in an
-        # environment where an old build of pyfits exists
-        CFITSIO_SUPPORTS_GZIPDATA = True
-        CFITSIO_SUPPORTS_Q_FORMAT = True
-
+CMTYPE_ALIASES = {'RICE_ONE': 'RICE_1'}
 
 COMPRESSION_KEYWORDS = {'ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS', 'ZMASKCMP',
                         'ZSIMPLE', 'ZTENSION', 'ZEXTEND'}
@@ -828,12 +814,6 @@ class CompImageHDU(BinTableHDU):
         # almost entirely contrived corner cases, so it will do for now
         if self._has_data:
             huge_hdu = self.data.nbytes > 2 ** 32
-
-            if huge_hdu and not CFITSIO_SUPPORTS_Q_FORMAT:
-                raise OSError(
-                    "Astropy cannot compress images greater than 4 GB in size "
-                    "({} is {} bytes) without CFITSIO >= 3.35".format(
-                        (self.name, self.ver), self.data.nbytes))
         else:
             huge_hdu = False
 
@@ -926,25 +906,11 @@ class CompImageHDU(BinTableHDU):
             # this behavior so the only way to determine which behavior will
             # be employed is via the CFITSIO version
 
-            if CFITSIO_SUPPORTS_GZIPDATA:
-                ttype2 = 'GZIP_COMPRESSED_DATA'
-                # The required format for the GZIP_COMPRESSED_DATA is actually
-                # missing from the standard docs, but CFITSIO suggests it
-                # should be 1PB, which is logical.
-                tform2 = '1QB' if huge_hdu else '1PB'
-            else:
-                # Q format is not supported for UNCOMPRESSED_DATA columns.
-                ttype2 = 'UNCOMPRESSED_DATA'
-                if zbitpix == 8:
-                    tform2 = '1QB' if huge_hdu else '1PB'
-                elif zbitpix == 16:
-                    tform2 = '1QI' if huge_hdu else '1PI'
-                elif zbitpix == 32:
-                    tform2 = '1QJ' if huge_hdu else '1PJ'
-                elif zbitpix == -32:
-                    tform2 = '1QE' if huge_hdu else '1PE'
-                else:
-                    tform2 = '1QD' if huge_hdu else '1PD'
+            ttype2 = 'GZIP_COMPRESSED_DATA'
+            # The required format for the GZIP_COMPRESSED_DATA is actually
+            # missing from the standard docs, but CFITSIO suggests it
+            # should be 1PB, which is logical.
+            tform2 = '1QB' if huge_hdu else '1PB'
 
             # Set up the second column for the table that will hold any
             # uncompressable data.
