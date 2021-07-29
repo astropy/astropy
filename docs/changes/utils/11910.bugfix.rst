@@ -1,0 +1,3 @@
+Ensure any ``.info`` on ``Masked`` instances is propagated correctly when
+viewing or slicing. As a consequence, ``MaskedQuantity`` can now be correctly
+written to, e.g., ECSV format with ``serialize_method='data_mask'``.
