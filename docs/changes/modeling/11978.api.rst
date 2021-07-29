@@ -1,0 +1,7 @@
+Removed the following deprecated modeling features:
+    ``astropy.modeling.utils.ExpressionTree`` class,
+    ``astropy.modeling.functional_models.MexicanHat1D`` model,
+    ``astropy.modeling.functional_models.MexicanHat2D`` model,
+    ``astropy.modeling.core.Model.inputs`` setting in model initialize,
+    ``astropy.modeling.core.CompoundModel.inverse`` setting in model initialize, and
+    ``astropy.modeling.core.CompoundModel.both_inverses_exist()`` method.
