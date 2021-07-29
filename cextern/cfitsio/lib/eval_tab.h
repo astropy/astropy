@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.5.  */
+/* A Bison parser, made by GNU Bison 3.7.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with FF_ or ff_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef FF_FF_Y_TAB_H_INCLUDED
 # define FF_FF_Y_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -40,47 +45,57 @@
 extern int ffdebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef FFTOKENTYPE
 # define FFTOKENTYPE
   enum fftokentype
   {
-    BOOLEAN = 258,
-    LONG = 259,
-    DOUBLE = 260,
-    STRING = 261,
-    BITSTR = 262,
-    FUNCTION = 263,
-    BFUNCTION = 264,
-    IFUNCTION = 265,
-    GTIFILTER = 266,
-    REGFILTER = 267,
-    COLUMN = 268,
-    BCOLUMN = 269,
-    SCOLUMN = 270,
-    BITCOL = 271,
-    ROWREF = 272,
-    NULLREF = 273,
-    SNULLREF = 274,
-    OR = 275,
-    AND = 276,
-    EQ = 277,
-    NE = 278,
-    GT = 279,
-    LT = 280,
-    LTE = 281,
-    GTE = 282,
-    XOR = 283,
-    POWER = 284,
-    NOT = 285,
-    INTCAST = 286,
-    FLTCAST = 287,
-    UMINUS = 288,
-    ACCUM = 289,
-    DIFF = 290
+    FFEMPTY = -2,
+    FFEOF = 0,                     /* "end of file"  */
+    FFerror = 256,                 /* error  */
+    FFUNDEF = 257,                 /* "invalid token"  */
+    BOOLEAN = 258,                 /* BOOLEAN  */
+    LONG = 259,                    /* LONG  */
+    DOUBLE = 260,                  /* DOUBLE  */
+    STRING = 261,                  /* STRING  */
+    BITSTR = 262,                  /* BITSTR  */
+    FUNCTION = 263,                /* FUNCTION  */
+    BFUNCTION = 264,               /* BFUNCTION  */
+    IFUNCTION = 265,               /* IFUNCTION  */
+    GTIFILTER = 266,               /* GTIFILTER  */
+    GTIOVERLAP = 267,              /* GTIOVERLAP  */
+    REGFILTER = 268,               /* REGFILTER  */
+    COLUMN = 269,                  /* COLUMN  */
+    BCOLUMN = 270,                 /* BCOLUMN  */
+    SCOLUMN = 271,                 /* SCOLUMN  */
+    BITCOL = 272,                  /* BITCOL  */
+    ROWREF = 273,                  /* ROWREF  */
+    NULLREF = 274,                 /* NULLREF  */
+    SNULLREF = 275,                /* SNULLREF  */
+    OR = 276,                      /* OR  */
+    AND = 277,                     /* AND  */
+    EQ = 278,                      /* EQ  */
+    NE = 279,                      /* NE  */
+    GT = 280,                      /* GT  */
+    LT = 281,                      /* LT  */
+    LTE = 282,                     /* LTE  */
+    GTE = 283,                     /* GTE  */
+    XOR = 284,                     /* XOR  */
+    POWER = 285,                   /* POWER  */
+    NOT = 286,                     /* NOT  */
+    INTCAST = 287,                 /* INTCAST  */
+    FLTCAST = 288,                 /* FLTCAST  */
+    UMINUS = 289,                  /* UMINUS  */
+    ACCUM = 290,                   /* ACCUM  */
+    DIFF = 291                     /* DIFF  */
   };
+  typedef enum fftokentype fftoken_kind_t;
 #endif
-/* Tokens.  */
+/* Token kinds.  */
+#define FFEMPTY -2
+#define FFEOF 0
+#define FFerror 256
+#define FFUNDEF 257
 #define BOOLEAN 258
 #define LONG 259
 #define DOUBLE 260
@@ -90,37 +105,37 @@ extern int ffdebug;
 #define BFUNCTION 264
 #define IFUNCTION 265
 #define GTIFILTER 266
-#define REGFILTER 267
-#define COLUMN 268
-#define BCOLUMN 269
-#define SCOLUMN 270
-#define BITCOL 271
-#define ROWREF 272
-#define NULLREF 273
-#define SNULLREF 274
-#define OR 275
-#define AND 276
-#define EQ 277
-#define NE 278
-#define GT 279
-#define LT 280
-#define LTE 281
-#define GTE 282
-#define XOR 283
-#define POWER 284
-#define NOT 285
-#define INTCAST 286
-#define FLTCAST 287
-#define UMINUS 288
-#define ACCUM 289
-#define DIFF 290
+#define GTIOVERLAP 267
+#define REGFILTER 268
+#define COLUMN 269
+#define BCOLUMN 270
+#define SCOLUMN 271
+#define BITCOL 272
+#define ROWREF 273
+#define NULLREF 274
+#define SNULLREF 275
+#define OR 276
+#define AND 277
+#define EQ 278
+#define NE 279
+#define GT 280
+#define LT 281
+#define LTE 282
+#define GTE 283
+#define XOR 284
+#define POWER 285
+#define NOT 286
+#define INTCAST 287
+#define FLTCAST 288
+#define UMINUS 289
+#define ACCUM 290
+#define DIFF 291
 
 /* Value type.  */
 #if ! defined FFSTYPE && ! defined FFSTYPE_IS_DECLARED
-
 union FFSTYPE
 {
-#line 192 "eval.y" /* yacc.c:1910  */
+#line 199 "eval.y"
 
     int    Node;        /* Index of Node */
     double dbl;         /* real value    */
@@ -128,9 +143,9 @@ union FFSTYPE
     char   log;         /* logical value */
     char   str[MAX_STRLEN];    /* string value  */
 
-#line 132 "y.tab.h" /* yacc.c:1910  */
-};
+#line 147 "y.tab.h"
 
+};
 typedef union FFSTYPE FFSTYPE;
 # define FFSTYPE_IS_TRIVIAL 1
 # define FFSTYPE_IS_DECLARED 1

@@ -980,17 +980,58 @@ int fits_in_region( double    X,
 
 /*---------------------------------------------------------------------------*/
 void fits_free_region( SAORegion *Rgn )
-/*   Free up memory allocated to hold the region data.                       */
+/*   Free up memory allocated to hold the region data.                       
+   This is more complicated for the case of polygons, which may be sharing
+   points arrays due to shallow copying (in fits_set_region_components) of
+   'exluded' regions.  We must ensure that these arrays are only freed once.       
+
 /*---------------------------------------------------------------------------*/
 {
-   int i;
+   int i,j;
+   
+   int nFreedPoly=0;
+   int nPolyArraySize=10;
+   double **freedPolyPtrs=0;
+   double *ptsToFree=0;
+   int isAlreadyFreed=0;
+   
+   freedPolyPtrs = (double**)malloc(nPolyArraySize*sizeof(double*));
 
    for( i=0; i<Rgn->nShapes; i++ )
       if( Rgn->Shapes[i].shape == poly_rgn )
-         free( Rgn->Shapes[i].param.poly.Pts );
+      {
+         /* No shared arrays for 'include' polygons */
+         if (Rgn->Shapes[i].sign)
+            free(Rgn->Shapes[i].param.poly.Pts);
+         else
+         {
+            ptsToFree = Rgn->Shapes[i].param.poly.Pts;
+            isAlreadyFreed = 0;
+            for (j=0; j<nFreedPoly && !isAlreadyFreed; j++)
+            {
+               if (freedPolyPtrs[j] == ptsToFree)
+                  isAlreadyFreed = 1;
+            }
+            if (!isAlreadyFreed)
+            {
+               free(ptsToFree);
+               /* Now add pointer to array of freed points */
+               if (nFreedPoly == nPolyArraySize)
+               {
+                  nPolyArraySize *= 2;
+                  freedPolyPtrs = (double **)realloc(freedPolyPtrs, 
+                          nPolyArraySize*sizeof(double*));
+               }
+               freedPolyPtrs[nFreedPoly] = ptsToFree;
+               ++nFreedPoly;
+            }
+         }
+      }
    if( Rgn->Shapes )
       free( Rgn->Shapes );
    free( Rgn );
+   
+   free(freedPolyPtrs);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1105,6 +1146,10 @@ void fits_set_region_components ( SAORegion *aRgn )
 
 	/* if this is an include region then insert a copy of the exclude
 	   region immediately after it */
+           
+        /* Note that this makes shallow copies of a polygon's dynamically
+        allocated Pts array -- the memory is shared.  This must be checked
+        when freeing in fits_free_region. */
 
 	if ( aRgn->Shapes[j].sign ) {
 
