@@ -6,7 +6,6 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
-from astropy.utils.decorators import deprecated
 from .core import (Fittable1DModel, Fittable2DModel)
 
 from .parameters import Parameter, InputParameterError
@@ -2833,13 +2832,3 @@ class Exponential1D(Fittable1DModel):
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         return {'tau': inputs_unit[self.inputs[0]],
                 'amplitude': outputs_unit[self.outputs[0]]}
-
-
-@deprecated('4.0', alternative='RickerWavelet1D')
-class MexicanHat1D(RickerWavelet1D):
-    """ Deprecated."""
-
-
-@deprecated('4.0', alternative='RickerWavelet2D')
-class MexicanHat2D(RickerWavelet2D):
-    """  Deprecated."""
