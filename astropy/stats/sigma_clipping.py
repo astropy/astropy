@@ -604,13 +604,21 @@ class SigmaClip:
         data = np.asanyarray(data)
 
         if data.size == 0:
-            return data
+            if return_bounds:
+                return data, self._min_value, self._max_value
+            else:
+                return data
 
         if isinstance(data, np.ma.MaskedArray) and data.mask.all():
             if masked:
-                return data
+                result = data
             else:
-                return np.ma.filled(data.astype(float), fill_value=np.nan)
+                result = np.ma.filled(data.astype(float), fill_value=np.nan)
+
+            if return_bounds:
+                return result, self._min_value, self._max_value
+            else:
+                return result
 
         # Shortcut for common cases where a fast C implementation can be
         # used.
