@@ -242,6 +242,7 @@ class SigmaClip:
         # later than necessary if __call__ needs it:
         if self.grow:
             from scipy.ndimage import binary_dilation
+            self.binary_dilation = binary_dilation
 
     def __repr__(self):
         return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
@@ -472,8 +473,6 @@ class SigmaClip:
                            for dim, size in enumerate(filtered_data.shape))
 
         if self.grow:
-            from scipy.ndimage import binary_dilation
-
             # Construct a growth kernel from the specified radius in
             # pixels (consider caching this for re-use by subsequent
             # calls?):
@@ -507,7 +506,7 @@ class SigmaClip:
                 new_mask = ((filtered_data < self._min_value) |
                             (filtered_data > self._max_value))
             if self.grow:
-                new_mask = binary_dilation(new_mask, kernel)
+                new_mask = self.binary_dilation(new_mask, kernel)
             filtered_data[new_mask] = np.nan
             nchanged = np.count_nonzero(new_mask)
             del new_mask
