@@ -352,11 +352,11 @@ class SigmaClip:
             data_reshaped = data_reshaped.view(np.ndarray)
             mask = np.broadcast_to(mask, data_reshaped.shape).copy()
 
-        bound_lo, bound_hi = _sigma_clip_fast(data_reshaped, mask,
-                                              self.cenfunc == 'median',
-                                              self.stdfunc == 'mad_std',
-                                              -1 if np.isinf(self.maxiters) else self.maxiters,
-                                              self.sigma_lower, self.sigma_upper, axis=axis)
+        bound_lo, bound_hi = _sigma_clip_fast(
+            data_reshaped, mask, self.cenfunc == 'median',
+            self.stdfunc == 'mad_std',
+            -1 if np.isinf(self.maxiters) else self.maxiters,
+            self.sigma_lower, self.sigma_upper, axis=axis)
 
         with np.errstate(invalid='ignore'):
             mask |= data_reshaped < np.expand_dims(bound_lo, axis)
@@ -416,8 +416,9 @@ class SigmaClip:
             iteration += 1
             size = filtered_data.size
             self._compute_bounds(filtered_data, axis=None)
-            filtered_data = filtered_data[(filtered_data >= self._min_value) &
-                                          (filtered_data <= self._max_value)]
+            filtered_data = filtered_data[
+                (filtered_data >= self._min_value)
+                & (filtered_data <= self._max_value)]
             nchanged = size - filtered_data.size
 
         self._niterations = iteration
@@ -486,7 +487,8 @@ class SigmaClip:
                     # points won't "grow" in that dimension:
                     if n not in axis:
                         dim[dim != cenidx] = size
-            kernel = sum(((idx - cenidx)**2 for idx in indices)) <= self.grow**2
+            kernel = (sum(((idx - cenidx)**2 for idx in indices))
+                      <= self.grow**2)
             del indices
 
         nchanged = 1
@@ -503,8 +505,8 @@ class SigmaClip:
                 # resulting mask contains only newly-rejected pixels and
                 # we can dilate it without growing masked pixels more
                 # than once.
-                new_mask = ((filtered_data < self._min_value) |
-                            (filtered_data > self._max_value))
+                new_mask = ((filtered_data < self._min_value)
+                            | (filtered_data > self._max_value))
             if self.grow:
                 new_mask = self.binary_dilation(new_mask, kernel)
             filtered_data[new_mask] = np.nan
@@ -607,9 +609,9 @@ class SigmaClip:
 
         # Shortcut for common cases where a fast C implementation can be
         # used.
-        if (self.cenfunc in ('mean', 'median') and
-                self.stdfunc in ('std', 'mad_std') and
-                axis is not None and not self.grow):
+        if (self.cenfunc in ('mean', 'median')
+                and self.stdfunc in ('std', 'mad_std')
+                and axis is not None and not self.grow):
             return self._sigmaclip_fast(data, axis=axis, masked=masked,
                                         return_bounds=return_bounds,
                                         copy=copy)
