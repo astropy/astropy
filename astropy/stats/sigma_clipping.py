@@ -236,6 +236,9 @@ class SigmaClip:
         self.stdfunc = stdfunc
         self._cenfunc_parsed = self._parse_cenfunc(cenfunc)
         self._stdfunc_parsed = self._parse_stdfunc(stdfunc)
+        self._min_value = np.nan
+        self._max_value = np.nan
+        self._niterations = 0
         self.grow = grow
 
         # This just checks that SciPy is available, to avoid failing
@@ -258,7 +261,8 @@ class SigmaClip:
             lines.append(f'    {attr}: {getattr(self, attr)}')
         return '\n'.join(lines)
 
-    def _parse_cenfunc(self, cenfunc):
+    @staticmethod
+    def _parse_cenfunc(cenfunc):
         if isinstance(cenfunc, str):
             if cenfunc == 'median':
                 if HAS_BOTTLENECK:
@@ -277,7 +281,8 @@ class SigmaClip:
 
         return cenfunc
 
-    def _parse_stdfunc(self, stdfunc):
+    @staticmethod
+    def _parse_stdfunc(stdfunc):
         if isinstance(stdfunc, str):
             if stdfunc == 'std':
                 if HAS_BOTTLENECK:
