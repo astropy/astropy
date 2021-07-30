@@ -24,23 +24,36 @@ def assert_time_all_equal(t1, t2):
 
 
 class ShapeSetup:
-    def create_data(self, use_mask):
+    def setup_class(cls):
         mjd = np.arange(50000, 50010)
         frac = np.arange(0., 0.999, 0.2)
-        if use_mask:
-            frac = np.ma.array(frac)
-            frac[1] = np.ma.masked
-        self.t0 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc')
-        self.t1 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                       location=('45d', '50d'))
-        self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                       location=(np.arange(len(frac)), np.arange(len(frac))))
-        # Note: location is along last axis only.
-        self.t2 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
-                       location=(np.arange(len(frac)), np.arange(len(frac))))
+        frac_masked = np.ma.array(frac)
+        frac_masked[1] = np.ma.masked
+
+        cls.t0 = {
+            'not_masked': Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc'),
+            'masked': Time(mjd[:, np.newaxis] + frac_masked, format='mjd', scale='utc')
+        }
+        cls.t1 = {
+            'not_masked': Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                               location=('45d', '50d')),
+            'masked': Time(mjd[:, np.newaxis] + frac_masked, format='mjd', scale='utc',
+                           location=('45d', '50d')),
+        }
+        cls.t2 = {
+            'not_masked': Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                               location=(np.arange(len(frac)), np.arange(len(frac)))),
+            'masked': Time(mjd[:, np.newaxis] + frac_masked, format='mjd', scale='utc',
+                           location=(np.arange(len(frac_masked)), np.arange(len(frac_masked)))),
+        }
+
+    def create_data(self, use_mask):
+        self.t0 = self.__class__.t0[use_mask]
+        self.t1 = self.__class__.t1[use_mask]
+        self.t2 = self.__class__.t2[use_mask]
 
 
-@pytest.mark.parametrize('use_mask', (True, False))
+@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
 class TestManipulation(ShapeSetup):
     """Manipulation of Time objects, ensuring attributes are done correctly."""
     def test_ravel(self, use_mask):
@@ -275,7 +288,7 @@ class TestManipulation(ShapeSetup):
         assert np.may_share_memory(t2_broadcast.location, self.t2.location)
 
 
-@pytest.mark.parametrize('use_mask', (True, False))
+@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
 class TestSetShape(ShapeSetup):
     def test_shape_setting(self, use_mask):
         # Shape-setting should be on the object itself, since copying removes
@@ -327,7 +340,7 @@ class TestSetShape(ShapeSetup):
         assert self.t2.location.shape == oldshape
 
 
-@pytest.mark.parametrize('use_mask', (True, False))
+@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
 class TestShapeFunctions(ShapeSetup):
     @needs_array_function
     def test_broadcast(self, use_mask):
@@ -436,27 +449,41 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0d[2:], self.t0[4:])
 
 
-@pytest.mark.parametrize('use_mask', (True, False))
+@pytest.mark.parametrize('use_mask', ('masked', 'not_masked'))
 class TestArithmetic:
     """Arithmetic on Time objects, using both doubles."""
     kwargs = ({}, {'axis': None}, {'axis': 0}, {'axis': 1}, {'axis': 2})
     functions = ('min', 'max', 'sort')
 
-    def create_data(self, use_mask):
+    def setup_class(cls):
         mjd = np.arange(50000, 50100, 10).reshape(2, 5, 1)
         frac = np.array([0.1, 0.1 + 1.e-15, 0.1 - 1.e-15, 0.9 + 2.e-16, 0.9])
-        if use_mask:
-            frac = np.ma.array(frac)
-            frac[1] = np.ma.masked
-        self.t0 = Time(mjd, frac, format='mjd', scale='utc')
+        frac_masked = np.ma.array(frac)
+        frac_masked[1] = np.ma.masked
+
+        cls.t0 = {
+            'not_masked': Time(mjd, frac, format='mjd', scale='utc'),
+            'masked': Time(mjd, frac_masked, format='mjd', scale='utc')
+        }
 
         # Define arrays with same ordinal properties
         frac = np.array([1, 2, 0, 4, 3])
-        if use_mask:
-            frac = np.ma.array(frac)
-            frac[1] = np.ma.masked
-        self.t1 = Time(mjd + frac, format='mjd', scale='utc')
-        self.jd = mjd + frac
+        frac_masked = np.ma.array(frac)
+        frac_masked[1] = np.ma.masked
+
+        cls.t1 = {
+            'not_masked': Time(mjd + frac, format='mjd', scale='utc'),
+            'masked': Time(mjd + frac_masked, format='mjd', scale='utc'),
+        }
+        cls.jd = {
+            'not_masked': mjd + frac,
+            'masked': mjd + frac_masked
+            }
+
+    def create_data(self, use_mask):
+        self.t0 = self.__class__.t0[use_mask]
+        self.t1 = self.__class__.t1[use_mask]
+        self.jd = self.__class__.jd[use_mask]
 
     @pytest.mark.parametrize('kw, func', itertools.product(kwargs, functions))
     def test_argfuncs(self, kw, func, use_mask):
@@ -507,7 +534,7 @@ class TestArithmetic:
         self.create_data(use_mask)
 
         assert self.t0.argmax() == self.t0.size - 2
-        if use_mask:
+        if use_mask == 'masked':
             # The 0 is where all entries are masked in that axis
             assert np.all(self.t0.argmax(axis=0) == [1, 0, 1, 1, 1])
             assert np.all(self.t0.argmax(axis=1) == [4, 0, 4, 4, 4])
@@ -519,13 +546,13 @@ class TestArithmetic:
     def test_argsort(self, use_mask):
         self.create_data(use_mask)
 
-        order = [2, 0, 4, 3, 1] if use_mask else [2, 0, 1, 4, 3]
+        order = [2, 0, 4, 3, 1] if use_mask == 'masked' else [2, 0, 1, 4, 3]
         assert np.all(self.t0.argsort() == np.array(order))
         assert np.all(self.t0.argsort(axis=0) == np.arange(2).reshape(2, 1, 1))
         assert np.all(self.t0.argsort(axis=1) == np.arange(5).reshape(5, 1))
         assert np.all(self.t0.argsort(axis=2) == np.array(order))
         ravel = np.arange(50).reshape(-1, 5)[:, order].ravel()
-        if use_mask:
+        if use_mask == 'masked':
             t0v = self.t0.argsort(axis=None)
             # Manually remove elements in ravel that correspond to masked
             # entries in self.t0.  This removes the 10 entries that are masked
@@ -581,12 +608,12 @@ class TestArithmetic:
     def test_sort(self, use_mask):
         self.create_data(use_mask)
 
-        order = [2, 0, 4, 3, 1] if use_mask else [2, 0, 1, 4, 3]
+        order = [2, 0, 4, 3, 1] if use_mask == 'masked' else [2, 0, 1, 4, 3]
         assert np.all(self.t0.sort() == self.t0[:, :, order])
         assert np.all(self.t0.sort(0) == self.t0)
         assert np.all(self.t0.sort(1) == self.t0)
         assert np.all(self.t0.sort(2) == self.t0[:, :, order])
-        if not use_mask:
+        if use_mask == 'not_masked':
             assert np.all(self.t0.sort(None)
                           == self.t0[:, :, order].ravel())
             # Bit superfluous, but good to check.
