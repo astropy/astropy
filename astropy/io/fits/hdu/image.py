@@ -8,7 +8,7 @@ import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU, BITPIX2DTYPE, DTYPE2BITPIX
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import _is_pseudo_unsigned, _unsigned_zero, _is_int
+from astropy.io.fits.util import _is_pseudo_integer, _pseudo_zero, _is_int
 from astropy.io.fits.verify import VerifyWarning
 
 from astropy.utils import isiterable, lazyproperty
@@ -249,7 +249,7 @@ class _ImageBaseHDU(_ValidHDU):
                 return
             else:
                 self._data_replaced = True
-            was_unsigned = _is_pseudo_unsigned(self.__dict__['data'].dtype)
+            was_unsigned = _is_pseudo_integer(self.__dict__['data'].dtype)
         else:
             self._data_replaced = True
             was_unsigned = False
@@ -369,7 +369,7 @@ class _ImageBaseHDU(_ValidHDU):
             self._blank = self._header['BLANK']
 
         # Add BSCALE/BZERO to header if data is unsigned int.
-        self._update_uint_scale_keywords()
+        self._update_pseudo_int_scale_keywords()
 
         self._modified = False
 
@@ -632,10 +632,10 @@ class _ImageBaseHDU(_ValidHDU):
             else:
                 swap_types = ('<',)
             # deal with unsigned integer 16, 32 and 64 data
-            if _is_pseudo_unsigned(self.data.dtype):
+            if _is_pseudo_integer(self.data.dtype):
                 # Convert the unsigned array to signed
                 output = np.array(
-                    self.data - _unsigned_zero(self.data.dtype),
+                    self.data - _pseudo_zero(self.data.dtype),
                     dtype=f'>i{self.data.dtype.itemsize}')
                 should_swap = False
             else:
@@ -668,7 +668,7 @@ class _ImageBaseHDU(_ValidHDU):
         else:
             swap_types = ('<',)
         # deal with unsigned integer 16, 32 and 64 data
-        if _is_pseudo_unsigned(self.data.dtype):
+        if _is_pseudo_integer(self.data.dtype):
             raise NotImplementedError("This dtype isn't currently supported with dask.")
         else:
             output = self.data
@@ -732,6 +732,9 @@ class _ImageBaseHDU(_ValidHDU):
         bitpix = self._orig_bitpix
         # Handle possible conversion to uints if enabled
         if self._uint and self._orig_bscale == 1:
+            if bitpix == 8 and self._orig_bzero == -128:
+                return np.dtype('int8')
+
             for bits, dtype in ((16, np.dtype('uint16')),
                                 (32, np.dtype('uint32')),
                                 (64, np.dtype('uint64'))):
@@ -743,7 +746,7 @@ class _ImageBaseHDU(_ValidHDU):
         elif bitpix > 0:  # scale integers to Float32
             return np.dtype('float32')
 
-    def _convert_pseudo_unsigned(self, data):
+    def _convert_pseudo_integer(self, data):
         """
         Handle "pseudo-unsigned" integers, if the user requested it.  Returns
         the converted data array if so; otherwise returns None.
@@ -795,7 +798,7 @@ class _ImageBaseHDU(_ValidHDU):
 
         data = None
         if not (self._orig_bzero == 0 and self._orig_bscale == 1):
-            data = self._convert_pseudo_unsigned(raw_data)
+            data = self._convert_pseudo_integer(raw_data)
 
         if data is None:
             # In these cases, we end up with floating-point arrays and have to
@@ -885,8 +888,8 @@ class _ImageBaseHDU(_ValidHDU):
 
             # First handle the special case where the data is unsigned integer
             # 16, 32 or 64
-            if _is_pseudo_unsigned(self.data.dtype):
-                d = np.array(self.data - _unsigned_zero(self.data.dtype),
+            if _is_pseudo_integer(self.data.dtype):
+                d = np.array(self.data - _pseudo_zero(self.data.dtype),
                              dtype=f'i{self.data.dtype.itemsize}')
 
             # Check the byte order of the data.  If it is little endian we
@@ -909,7 +912,7 @@ class _ImageBaseHDU(_ValidHDU):
 
             # If the data was byteswapped in this method then return it to
             # its original little-endian order.
-            if byteswapped and not _is_pseudo_unsigned(self.data.dtype):
+            if byteswapped and not _is_pseudo_integer(self.data.dtype):
                 d.byteswap(True)
                 d.dtype = d.dtype.newbyteorder('<')
 
