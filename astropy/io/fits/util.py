@@ -726,18 +726,25 @@ def _convert_array(array, dtype):
         return array.astype(dtype)
 
 
-def _unsigned_zero(dtype):
+def _pseudo_zero(dtype):
     """
     Given a numpy dtype, finds its "zero" point, which is exactly in the
     middle of its range.
     """
 
+    # special case for int8
+    if dtype.kind == 'i' and dtype.itemsize == 1:
+        return -128
+
     assert dtype.kind == 'u'
     return 1 << (dtype.itemsize * 8 - 1)
 
 
-def _is_pseudo_unsigned(dtype):
-    return dtype.kind == 'u' and dtype.itemsize >= 2
+def _is_pseudo_integer(dtype):
+    return (
+        (dtype.kind == 'u' and dtype.itemsize >= 2)
+        or (dtype.kind == 'i' and dtype.itemsize == 1)
+    )
 
 
 def _is_int(val):

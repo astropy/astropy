@@ -20,7 +20,7 @@ from astropy.io.fits.column import Column, ColDefs, TDEF_RE
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from astropy.io.fits.fitsrec import FITS_rec
 from astropy.io.fits.header import Header
-from astropy.io.fits.util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
+from astropy.io.fits.util import (_is_pseudo_integer, _pseudo_zero, _is_int,
                                   _get_array_mmap)
 
 from astropy.utils import lazyproperty
@@ -1682,10 +1682,10 @@ class CompImageHDU(BinTableHDU):
         # write to a buffer for compression or something. See ticket #88
         # deal with unsigned integer 16, 32 and 64 data
         old_data = self.data
-        if _is_pseudo_unsigned(self.data.dtype):
+        if _is_pseudo_integer(self.data.dtype):
             # Convert the unsigned array to signed
             self.data = np.array(
-                self.data - _unsigned_zero(self.data.dtype),
+                self.data - _pseudo_zero(self.data.dtype),
                 dtype=f'=i{self.data.dtype.itemsize}')
             should_swap = False
         else:
@@ -1856,7 +1856,7 @@ class CompImageHDU(BinTableHDU):
 
             # Use methods in the superclass to update the header with
             # scale/checksum keywords based on the data type of the image data
-            self._update_uint_scale_keywords()
+            self._update_pseudo_int_scale_keywords()
 
             # Shove the image header and data into a new ImageHDU and use that
             # to compute the image checksum
