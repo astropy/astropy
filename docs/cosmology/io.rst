@@ -40,6 +40,38 @@ There are currently no built-in Cosmology readers nor writers, but custom
 ``read`` / ``write`` formats may be registered into the Astropy Cosmology I/O
 framework.
 
+Writing a cosmology instance requires only the file location and optionally,
+if the file format cannot be inferred, a keyword argument "format". Additional
+positional arguments and keyword arguments are passed to the reader methods.
+::
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.write('[file name]')
+
+Reading back the cosmology is most safely done from ``Cosmology``, the base
+class, as it provides no default information and therefore requires the file
+to have all necessary information to describe a cosmology.
+
+::
+
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.read('[file name]')
+    >>> cosmo == Planck18
+    True
+
+When a subclass of ``Cosmology`` is used to read a file, the subclass will
+provide a keyword argument ``cosmology=[class]`` to the registered read
+method. The method uses this cosmology class, regardless of the class
+indicated in the file, and sets parameters' default values from the class'
+signature.
+
+::
+
+    >>> from astropy.cosmology import FlatLambdaCDM
+    >>> cosmo = FlatLambdaCDM.read('[file name]')
+    >>> cosmo == Planck18
+    True
+
 
 .. _custom_cosmology_readers_writers:
 

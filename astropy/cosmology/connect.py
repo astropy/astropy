@@ -13,15 +13,18 @@ __doctest_skip__ = __all__
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
-    This is *only* implemented on `~astropy.cosmology.Cosmology`,
-    not any subclass.
-
     This function provides the Cosmology interface to the Astropy unified I/O
     layer. This allows easily reading a file in supported data formats using
     syntax such as::
 
         >>> from astropy.cosmology import Cosmology
         >>> cosmo1 = Cosmology.read('[file name]')
+
+    When the ``read`` method is called from a subclass the subclass will
+    provide a keyword argument ``cosmology=[class]`` to the registered read
+    method. The method uses this cosmology class, regardless of the class
+    indicated in the file, and sets parameters' default values from the class'
+    signature.
 
     Get help on the available readers using the ``help()`` method::
 
@@ -45,31 +48,27 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -------
     out : `~astropy.cosmology.Cosmology` subclass instance
         `~astropy.cosmology.Cosmology` corresponding to file contents.
-
-    Warns
-    -----
-    `~astropy.utils.exceptions.AstropyUserWarning`
-        If ``read`` is examined not from the Cosmology base class.
     """
-
-    def __new__(cls, instance, cosmo_cls):
-        from astropy.cosmology.core import Cosmology
-
-        # warn that ``read`` is not (yet) implemented for subclasses
-        if cosmo_cls is not Cosmology:
-            warnings.warn(("``Cosmology.read()`` is not implemented for "
-                           "``Cosmology`` subclasses."),
-                           category=AstropyUserWarning)
-            return NotImplemented
-            # TODO! implement for non-abstract subclasses, using that class as
-            # the assumed Cosmology type.
-
-        return super().__new__(cls)
 
     def __init__(self, instance, cosmo_cls):
         super().__init__(instance, cosmo_cls, "read")
 
     def __call__(self, *args, **kwargs):
+        from astropy.cosmology.core import Cosmology
+
+        # so subclasses can override, also pass the class as a kwarg.
+        # allows for `FlatLambdaCDM.read` and
+        # `Cosmology.read(..., cosmology=FlatLambdaCDM)`
+        if self._cls is not Cosmology:
+            kwargs.setdefault("cosmology", self._cls)  # set, if not present
+            # check that it is the correct cosmology, can be wrong if user
+            # passes in e.g. `w0wzCDM.read(..., cosmology=FlatLambdaCDM)`
+            valid = (self._cls, self._cls.__qualname__)
+            if kwargs["cosmology"] not in valid:
+                raise ValueError(
+                    "keyword argument `cosmology` must be either the class "
+                    f"{valid[0]} or its qualified name '{valid[1]}'")
+
         cosmo = io_registry.read(self._cls, *args, **kwargs)
         return cosmo
 
