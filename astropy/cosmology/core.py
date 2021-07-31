@@ -116,7 +116,6 @@ class Cosmology(metaclass=ABCMeta):
     meta = MetaData()
 
     # Unified I/O read and write methods
-    # The 'read' method in subclasses is NotImplemented.
     read = UnifiedReadWriteMethod(CosmologyRead)
     write = UnifiedReadWriteMethod(CosmologyWrite)
 

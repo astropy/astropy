@@ -10,7 +10,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.cosmology import core
-from astropy.cosmology.funcs import z_at_value, _z_at_scalar_value
+from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
 from astropy.cosmology.realizations import WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
@@ -234,9 +234,7 @@ def test_z_at_value_roundtrip(cosmo):
     if str(cosmo.name).startswith('WMAP'):
         skip += ('nu_relative_density', )
 
-    # get methods, ignoring warning from ".read"
-    with pytest.warns(AstropyUserWarning, match=r'``Cosmology`` subclasses'):
-        methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
+    methods = inspect.getmembers(cosmo, predicate=inspect.ismethod)
 
     for name, func in methods:
         if name.startswith('_') or name in skip:
