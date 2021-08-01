@@ -152,25 +152,25 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
-  1-  8  A8     ---    names   Description of names              
- 10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
- 16- 23  F8.5   ---    d       [22.25/27.25] Description of d    
- 25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s     
- 33- 35  I3     ---    i       [-30/67] Description of i         
- 37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
- 41- 42  I2     ---    sameI   [20] Description of sameI         
- 44- 47  F4.1   h      RAh     Right Ascension (hour)            
- 49- 52  F4.1   min    RAm     Right Ascension (minute)          
- 54- 71  F18.15 s      RAs     Right Ascension (second)          
-     73  A1     ---    DE-     Sign of Declination               
- 74- 77  F5.1   deg    DEd     Declination (degree)              
- 79- 82  F4.1   arcmin DEm     Declination (arcmin)              
- 84-101  F18.15 arcsec DEs     Declination (arcsec)              
+ 1- 8  A8     ---    names   Description of names              
+10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+16-23  F8.5   ---    d       [22.25/27.25] Description of d    
+25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+33-35  I3     ---    i       [-30/67] Description of i         
+37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
+41-42  I2     ---    sameI   [20] Description of sameI         
+44-47  F4.1   h      RAh     Right Ascension (hour)            
+49-52  F4.1   min    RAm     Right Ascension (minute)          
+54-68  F15.12 s      RAs     Right Ascension (second)          
+   70  A1     ---    DE-     Sign of Declination               
+71-74  F5.1   deg    DEd     Declination (degree)              
+76-79  F4.1   arcmin DEm     Declination (arcmin)              
+81-95  F15.12 arcsec DEs     Declination (arcsec)              
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
-HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0  2.0 15.450000000007265 -61.0 39.0 34.599996000000601
-HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200004890  17.0 46.0 26.496624000004374
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
 ''',  # noqa: W291
 
 positive_de = '''\
@@ -179,24 +179,24 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
-  1-  8  A8     ---    names   Description of names              
- 10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
- 16- 23  F8.5   ---    d       [22.25/27.25] Description of d    
- 25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s     
- 33- 35  I3     ---    i       [-30/67] Description of i         
- 37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
- 41- 42  I2     ---    sameI   [20] Description of sameI         
- 44- 47  F4.1   h      RAh     Right Ascension (hour)            
- 49- 52  F4.1   min    RAm     Right Ascension (minute)          
- 54- 70  F17.14 s      RAs     Right Ascension (second)          
- 72- 75  F4.1   deg    DEd     Declination (degree)              
- 77- 80  F4.1   arcmin DEm     Declination (arcmin)              
- 82- 99  F18.15 arcsec DEs     Declination (arcsec)              
+ 1- 8  A8     ---    names   Description of names              
+10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+16-23  F8.5   ---    d       [22.25/27.25] Description of d    
+25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     
+33-35  I3     ---    i       [-30/67] Description of i         
+37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
+41-42  I2     ---    sameI   [20] Description of sameI         
+44-47  F4.1   h      RAh     Right Ascension (hour)            
+49-52  F4.1   min    RAm     Right Ascension (minute)          
+54-68  F15.12 s      RAs     Right Ascension (second)          
+70-73  F4.1   deg    DEd     Declination (degree)              
+75-78  F4.1   arcmin DEm     Declination (arcmin)              
+80-94  F15.12 arcsec DEs     Declination (arcsec)              
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
-HD81809  1e-07  22.25608   2e+00  67 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
-HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.22440720000489 17.0 46.0 26.496624000004374
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 12.0 48.0 15.224407200005 17.0 46.0 26.496624000004
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200005 17.0 46.0 26.496624000004
 ''',  # noqa: W291
 
 galactic = '''\
@@ -212,13 +212,13 @@ Byte-by-byte Description of file: table.dat
 33-35  I3     ---    i       [-30/67] Description of i         
 37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    
 41-42  I2     ---    sameI   [20] Description of sameI         
-44-60  F17.13 deg    GLON    Galactic Longitude                
-62-79  F18.14 deg    GLAT    Galactic Latitude                 
+44-59  F16.12 deg    GLON    Galactic Longitude                
+61-76  F16.12 deg    GLAT    Galactic Latitude                 
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
-HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.0716395916897 -45.54808048460931
-HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.0716395916897 -45.54808048460931
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.071639591690 -45.548080484609
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.071639591690 -45.548080484609
 ''',  # noqa: W291
 
 ecliptic = '''\
@@ -234,13 +234,13 @@ Byte-by-byte Description of file: table.dat
 33-35  I3     ---    i       [-30/67] Description of i                  
 37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF             
 41-42  I2     ---    sameI   [20] Description of sameI                  
-44-60  F17.13 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
-62-79  F18.14 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
+44-59  F16.12 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)
+61-76  F16.12 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) 
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
-HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.2242086500961 -45.62178985082456
-HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.2242086500961 -45.62178985082456
+HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.224208650096 -45.621789850825
+HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.224208650096 -45.621789850825
 '''  # noqa: W291
 )
 
@@ -297,20 +297,20 @@ Byte-by-byte Description of file: table.dat
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
   1-  8  A8     ---    names         Description of names              
- 10- 14  E5.1   ---    e             [-3160000.0/0.01] Description of e
- 16- 23  F8.5   ---    d             [22.25/27.25] Description of d    
- 25- 31  E7.1   ---    s             [-9e+34/2.0] Description of s     
- 33- 35  I3     ---    i             [-30/67] Description of i         
- 37- 39  F3.1   ---    sameF         [5.0/5.0] Description of sameF    
- 41- 42  I2     ---    sameI         [20] Description of sameI         
-     44  I1     ---    singleByteCol [2] Description of singleByteCol  
- 46- 49  F4.1   h      RAh           Right Ascension (hour)            
- 51- 53  F3.1   min    RAm           Right Ascension (minute)          
- 55- 72  F18.15 s      RAs           Right Ascension (second)          
-     74  A1     ---    DE-           Sign of Declination               
- 75- 78  F5.1   deg    DEd           Declination (degree)              
- 80- 83  F4.1   arcmin DEm           Declination (arcmin)              
- 85-100  F16.13 arcsec DEs           Declination (arcsec)              
+ 10- 21  E12.6  ---    e             [-3160000.0/0.01] Description of e
+ 23- 30  F8.5   ---    d             [22.25/27.25] Description of d    
+ 32- 38  E7.1   ---    s             [-9e+34/2.0] Description of s     
+ 40- 42  I3     ---    i             [-30/67] Description of i         
+ 44- 46  F3.1   ---    sameF         [5.0/5.0] Description of sameF    
+ 48- 49  I2     ---    sameI         [20] Description of sameI         
+     51  I1     ---    singleByteCol [2] Description of singleByteCol  
+ 53- 56  F4.1   h      RAh           Right Ascension (hour)            
+ 58- 60  F3.1   min    RAm           Right Ascension (minute)          
+ 62- 76  F15.12 s      RAs           Right Ascension (second)          
+     78  A1     ---    DE-           Sign of Declination               
+ 79- 82  F5.1   deg    DEd           Declination (degree)              
+ 84- 87  F4.1   arcmin DEm           Declination (arcmin)              
+ 89-103  F15.12 arcsec DEs           Declination (arcsec)              
 --------------------------------------------------------------------------------
 ''' # noqa: W291
     t = ascii.read(test_dat)
@@ -318,6 +318,7 @@ Byte-by-byte Description of file: table.dat
     t.add_column([20, 20], name='sameI')
     t['coord'] = SkyCoord(330.564375, -61.65961111, unit=u.deg)
     t['singleByteCol'] = [2, 2]
+    t['e'].format = '.5E'
     out = StringIO()
     t.write(out, format='ascii.cds')
     lines = out.getvalue().splitlines()
