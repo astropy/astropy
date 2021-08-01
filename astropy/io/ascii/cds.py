@@ -406,7 +406,7 @@ class CdsHeader(core.BaseHeader):
 
             if col.format is not None:
                 col.meta.size = max([len(sval) for sval in col.str_vals])
-                
+
             # Set CDSColumn type, size and format.
             if np.issubdtype(col.dtype, int):
                 # Integer formatter
@@ -594,6 +594,10 @@ class CdsHeader(core.BaseHeader):
                             else:
                                 coord_col = Column(list(coord), name=name, unit=coord_unit,
                                                    description=descrip)
+                            # Set default number of digits after decimal point for the
+                            # second values.
+                            if name in ['RAs', 'DEs']:
+                                coord_col.format = '.12f'
                             self.cols.append(coord_col)
 
                 # For all other coordinate types, simply divide into two columns
@@ -603,10 +607,12 @@ class CdsHeader(core.BaseHeader):
                     if col.name == 'galactic':
                         lon_col = Column(col.l, name='GLON',
                                          description='Galactic Longitude',
-                                         unit=col.representation_component_units['l'])
+                                         unit=col.representation_component_units['l'],
+                                         format='.12f')
                         lat_col = Column(col.b, name='GLAT',
                                          description='Galactic Latitude',
-                                         unit=col.representation_component_units['b'])
+                                         unit=col.representation_component_units['b'],
+                                         format='.12f')
                         self.cols.append(lon_col)
                         self.cols.append(lat_col)
 
@@ -614,10 +620,12 @@ class CdsHeader(core.BaseHeader):
                     elif 'ecliptic' in col.name:
                         lon_col = Column(col.lon, name='ELON',
                                          description = 'Ecliptic Longitude (' + col.name + ')',
-                                         unit=col.representation_component_units['lon'])
+                                         unit=col.representation_component_units['lon'],
+                                         format='.12f')
                         lat_col = Column(col.lat, name='ELAT',
                                          description = 'Ecliptic Latitude (' + col.name + ')',
-                                         unit=col.representation_component_units['lat'])
+                                         unit=col.representation_component_units['lat'],
+                                         format='.12f')
                         self.cols.append(lon_col)
                         self.cols.append(lat_col)
 
