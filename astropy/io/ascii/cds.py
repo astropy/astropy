@@ -237,7 +237,7 @@ class CdsHeader(core.BaseHeader):
         mo = regfloat.match(value)
 
         if mo is None:
-            raise Exception(value + " is not a float number")
+            raise Exception(f'{value} is not a float number')
         return (len(value),
                 len(mo.group('ent')),
                 len(mo.group('decimals')),
@@ -269,13 +269,17 @@ class CdsHeader(core.BaseHeader):
         fformat = 'F'
 
         # Find maximum sized value in the col
-        for rec in col:
+        if getattr(col.meta, 'size', None) is not None:  # If ``formats`` passed.
+            col_vals = col.str_vals
+        else:
+            col_vals = col
+        for val in col_vals:
             # Skip null values
-            if rec is None:
+            if val is None or val == '':
                 continue
 
             # Find format of the Float string
-            fmt = self._split_float_format(str(rec))
+            fmt = self._split_float_format(str(val))
 
             # If value is in Scientific notation
             if fmt[4] is True:
@@ -306,17 +310,19 @@ class CdsHeader(core.BaseHeader):
                 maxprec = fmt[1] + fmt[2]
 
         if fformat == 'E':
-            col.meta.size = maxsize
-            if sign:
-                col.meta.size += 1
+            if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
+                col.meta.size = maxsize
+                if sign:
+                    col.meta.size += 1
             # Number of digits after decimal is replaced by the precision
             # for values in Scientific notation, when writing that Format.
             col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
             col.format = str(col.meta.size) + "." + str(maxdec) + "e"
         else:
-            col.meta.size = maxent + maxdec + 1
-            if sign:
-                col.meta.size += 1
+            if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
+                col.meta.size = maxent + maxdec + 1
+                if sign:
+                    col.meta.size += 1
             col.fortran_format = fformat + str(col.meta.size) + "." + str(maxdec)
             col.format = col.fortran_format[1:] + "f"
 
@@ -393,14 +399,20 @@ class CdsHeader(core.BaseHeader):
             # Check if column is MaskedColumn
             col.has_null = isinstance(col, MaskedColumn)
 
+            # Check if the column format was set by the passed ``formats`` argument.
+            if col.format is None:
+                if col.info.format is not None:
+                    col.format = col.info.format
+
+            if col.format is not None:
+                col.meta.size = max([len(sval) for sval in col.str_vals])
+                
             # Set CDSColumn type, size and format.
             if np.issubdtype(col.dtype, int):
                 # Integer formatter
                 self._set_column_val_limits(col)
-                col.meta.size = len(str(col.max))
-                maxwidth = len(str(col.min))
-                if col.meta.size < maxwidth:
-                    col.meta.size = maxwidth
+                if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
+                    col.meta.size = max( len(str(col.max)), len(str(col.min)) )
                 col.fortran_format = "I" + str(col.meta.size)
                 col.format = ">" + col.fortran_format[1:]
 
@@ -411,13 +423,14 @@ class CdsHeader(core.BaseHeader):
 
             else:
                 # String formatter, ``np.issubdtype(col.dtype, str)`` is ``True``.
+                dtype = col.dtype.str
                 if col.has_null:
                     mcol = col
                     mcol.fill_value = ""
                     coltmp = Column(mcol.filled(), dtype=str)
-                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', coltmp.dtype.str))
-                else:
-                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', col.dtype.str))
+                    dtype = coltmp.dtype.str
+                if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
+                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', dtype))
                 col.fortran_format = "A" + str(col.meta.size)
                 col.format = str(col.meta.size) + "s"
 
