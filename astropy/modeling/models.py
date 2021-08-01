@@ -17,9 +17,6 @@ from .powerlaws import *
 from .tabular import *
 from . import math_functions as math
 
-# Deprecated models that are not defined in __all__
-from .functional_models import MexicanHat1D, MexicanHat2D
-
 
 # Attach a docstring explaining constraints to all models which support them.
 # Note: add new models to this list
