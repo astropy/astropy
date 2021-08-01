@@ -293,15 +293,15 @@ the table. Thus::
   >>> from astropy.time import Time, TimeDelta
   >>> from astropy.timeseries import TimeSeries
   >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
-  >>> table['Obs'] = Column(ts.time.decimalyear, unit=u.year)
+  >>> table['Obs'] = Column(ts.time.decimalyear, unit=u.year, description='Time of Observation')
   >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
   ...                           unit=u.s)
 
 Columns that are `~astropy.coordinates.SkyCoord` objects or columns with
 values that are such objects are recognized as such, and some predefined labels and
-description is used for them. Coordinate columns that have `~astropy.coordinates.SphericalRepresentation` are additionally
-sub-divided into their coordinate component columns. Representations that have ``ra``
-and ``dec`` components are divided into their ``hour``-``min``-``sec``
+description is used for them. Coordinate columns that have `~astropy.coordinates.SphericalRepresentation`
+are additionally sub-divided into their coordinate component columns. Representations that have
+``ra`` and ``dec`` components are divided into their ``hour``-``min``-``sec``
 and ``deg``-``arcmin``-``arcsec`` components respectively. Whereas, columns with
 ``SkyCoord`` objects in the ``Galactic`` or any of the ``Ecliptic`` frames are divided
 into their latitude(``ELAT``/``GLAT``) and longitude components (``ELON``/``GLAT``) only.
@@ -309,13 +309,21 @@ The original table remains accessible as such, while the file is written from a
 modified copy of the table. The new coordinate component columns are added at the end
 of the table.
 
-The following code illustrates this.
+It should be noted that the precision of the latitude and longitude and ``sec``, ``arcsec``
+columns is set at a default number of 12 digits after the decimal. Since, these component
+columns are obtained by dividing up ``SkyCoord`` columns, this precision is internally set,
+and cannot be changed. For all other columns though, the format can be set by passing the
+``formats`` keyword to the ``write`` function or by setting the ``format`` attribute of
+individual columns.
+
+The following code illustrates the above.
 
   >>> from astropy.coordinates import SkyCoord
   >>> table['coord'] = [SkyCoord.from_name('ASASSN-15lh'),
   ...                   SkyCoord.from_name('ASASSN-14li')]  # doctest: +REMOTE_DATA
   >>> table.write('coord_cols.dat', format='ascii.cds')     # doctest: +SKIP
   >>> table['coord'] = table['coord'].geocentrictrueecliptic  # doctest: +REMOTE_DATA
+  >>> table['Temperature'].format = '.5E' # Set default column format.
   >>> table.write('ecliptic_cols.dat', format='ascii.cds')    # doctest: +SKIP
 
 After execution, the contents of ``coords_cols.dat`` will be::
@@ -324,29 +332,29 @@ After execution, the contents of ``coords_cols.dat`` will be::
   Authors:
   Table:
   ================================================================================
-  Byte-by-byte Description of file: coords_cols.dat
+  Byte-by-byte Description of file: table.dat
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
     1- 11  A11     ---    Name        Description of Name                   
-   13- 34  E22.17  keV    Temperature [0.0/0.01] Description of Temperature 
-   36- 41  F6.4    10+22  nH          [0.01/0.03] Description of nH         
-   43- 48  F6.3   10+12Jy Flux        ? Description of Flux                 
-   50- 54  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   56- 61  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation   
-   63- 65  I3      s      Cadence     [100] Description of Cadence          
-   67- 70  F4.1    h      RAh         Right Ascension (hour)                
-   72- 75  F4.1    min    RAm         Right Ascension (minute)              
-   77- 94  F18.15  s      RAs         Right Ascension (second)              
-       96  A1      ---    DE-         Sign of Declination                   
-   97-100  F5.1    deg    DEd         Declination (degree)                  
-  102-105  F4.1    arcmin DEm         Declination (arcmin)                  
-  107-124  F18.15  arcsec DEs         Declination (arcsec)                  
+   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature 
+   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
+   32- 37  F6.3   10+12Jy Flux        ? Description of Flux                 
+   39- 43  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+   45- 50  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation   
+   52- 54  I3      s      Cadence     [100] Description of Cadence          
+   56- 59  F4.1    h      RAh         Right Ascension (hour)                
+   61- 64  F4.1    min    RAm         Right Ascension (minute)              
+   66- 80  F15.12  s      RAs         Right Ascension (second)              
+       82  A1      ---    DE-         Sign of Declination                   
+   83- 86  F5.1    deg    DEd         Declination (degree)                  
+   88- 91  F4.1    arcmin DEm         Declination (arcmin)                  
+   93-107  F15.12  arcsec DEs         Declination (arcsec)                  
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.8781893095564897e-09 0.0250        1e-10 2019.0 100 22.0  2.0 15.450000000007265 -61.0 39.0 34.599996000000601
-  ASASSN-14li 2.5593479788571177e-08 0.0188  2.044 4e+03 2019.0 100 12.0 48.0 15.224407200004890  17.0 46.0 26.496624000004374
+  ASASSN-15lh 2.87819e-09 0.0250        1e-10 2019.0 100 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
+  ASASSN-14li 2.55935e-08 0.0188  2.044 4e+03 2019.0 100 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
 
 And the file ``ecliptic_cols.dat`` will look like::
 
@@ -354,28 +362,29 @@ And the file ``ecliptic_cols.dat`` will look like::
   Authors:
   Table:
   ================================================================================
-  Byte-by-byte Description of file: ecliptic_cols.dat
+  Byte-by-byte Description of file: table.dat
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
     1- 11  A11     ---    Name        Description of Name                        
-   13- 34  E22.17  keV    Temperature [0.0/0.01] Description of Temperature      
-   36- 41  F6.4    10+22  nH          [0.01/0.03] Description of nH              
-   43- 48  F6.3   10+12Jy Flux        ? Description of Flux                      
-   50- 54  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   56- 61  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
-   63- 65  I3      s      Cadence     [100] Description of Cadence               
-   67- 84  F18.14  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   86-104  F19.15  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
+   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH              
+   32- 37  F6.3   10+12Jy Flux        ? Description of Flux                      
+   39- 43  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
+   45- 50  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
+   52- 54  I3      s      Cadence     [100] Description of Cadence               
+   56- 71  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   73- 88  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.8781893095564897e-09 0.0250        1e-10 2019.0 100 306.22420865009610 -45.621789850824563
-  ASASSN-14li 2.5593479788571177e-08 0.0188  2.044 4e+03 2019.0 100 183.75498009924348  21.051410763026894
+  ASASSN-15lh 2.87819e-09 0.0250        1e-10 2019.0 100 306.224208650096 -45.621789850825
+  ASASSN-14li 2.55935e-08 0.0188  2.044 4e+03 2019.0 100 183.754980099243  21.051410763027
 
 Finally, MRT and CDS have some specific naming conventions for columns
 (`<https://journals.aas.org/mrt-labels/#reflab>`_). For example, if a column contains
-the mean error for the data in a column named ``label``, then this column should be named ``e_label``. These kind of relative column naming cannot be enforced by the CDS/MRT writer
+the mean error for the data in a column named ``label``, then this column should be named ``e_label``.
+These kind of relative column naming cannot be enforced by the CDS/MRT writer
 because it does not know what the column data means and thus, the relation between the
 columns cannot be figured out. Therefore, it is up to the user to use ``Table.rename_colums``
 to appropriately rename any columns before writing the table to MRT/CDS format.
@@ -389,7 +398,7 @@ The following example shows a similar situation, using the option to send the ou
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
   ...                 'Temperature', 'Flux', 'e_flux']  # doctest: +REMOTE_DATA
   
-  >>> ascii.write(outtab, format='cds')  # doctest: +SKIP
+  >>> ascii.write(outtab, format='cds')  # doctest: +REMOTE_DATA
   Title:
   Authors:
   Table:
@@ -403,16 +412,16 @@ The following example shows a similar situation, using the option to send the ou
    20- 22  I3      s      Cadence     [100] Description of Cadence               
    24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   37- 58  E22.17  keV    Temperature [0.0/0.01] Description of Temperature      
-   60- 65  F6.3   10+12Jy Flux        ? Description of Flux                      
-   67- 73  F7.1    Jy     e_flux      [450.0/10000.0] Description of e_flux      
-   75- 92  F18.14  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   94-112  F19.15  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
+   49- 54  F6.3   10+12Jy Flux        ? Description of Flux                      
+   56- 62  F7.1    Jy     e_flux      [450.0/10000.0] Description of e_flux      
+   64- 79  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   81- 96  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2019.0 100 0.0250 1e-10 2.8781893095564897e-09        10000.0 306.22420865009610 -45.621789850824563
-  ASASSN-14li 2019.0 100 0.0188 4e+03 2.5593479788571177e-08  2.044   450.0 183.75498009924348  21.051410763026894
+  ASASSN-15lh 2019.0 100 0.0250 1e-10 2.87819e-09        10000.0 306.224208650096 -45.621789850825
+  ASASSN-14li 2019.0 100 0.0188 4e+03 2.55935e-08  2.044   450.0 183.754980099243  21.051410763027
 
 ..
   EXAMPLE END
