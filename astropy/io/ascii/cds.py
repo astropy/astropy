@@ -551,6 +551,9 @@ class CdsHeader(core.BaseHeader):
         """
         from astropy.coordinates import SkyCoord
 
+        # list to store indices of columns that are modified.
+        to_pop = []
+
         # For columns that are instances of ``SkyCoord`` and other ``mixin`` columns
         # or whose values are objects of these classes.
         for i, col in enumerate(self.cols):
@@ -634,7 +637,8 @@ class CdsHeader(core.BaseHeader):
                     else:
                         self.cols.append( Column(col.to_string()) )
 
-                self.cols.pop(i)  # Delete original ``SkyCoord`` column.
+                #self.cols.pop(i)  # Delete original ``SkyCoord`` column.
+                to_pop.append(i)
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
@@ -644,6 +648,10 @@ class CdsHeader(core.BaseHeader):
                 if np.issubdtype(col.dtype, object):
                     col = Column([str(val) for val in col])
                 self.cols[i] = col
+
+        # Delete original ``SkyCoord`` column, if there were any.
+        for i in to_pop:
+            self.cols.pop(i)
 
         # Check for any left over extra coordinate columns.
         if any(x in self.colnames for x in ['RAh', 'DEd', 'ELON', 'GLAT']):
@@ -658,7 +666,7 @@ class CdsHeader(core.BaseHeader):
                 if isinstance(col, SkyCoord):
                     self.cols[i] = Column( col.to_string() )
                     message = 'Table already has coordinate system in CDS/MRT-syle columns.' \
-                              + f'So column {col.name} is being skipped with designation' \
+                              + f' So column {i} is being skipped with designation' \
                               + ' of an `Unknown` string valued column.'
                     warnings.warn(message, UserWarning)
 
