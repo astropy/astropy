@@ -367,7 +367,6 @@ class CdsHeader(core.BaseHeader):
             if self.start_line is not None:
                 col.width = max(col.width, len(col.info.name))
         widths = [col.width for col in self.cols]
-        [print(f'{col.info.format} {col.format}') for col in self.cols]
 
         startb = 1  # Byte count starts at 1.
 
