@@ -408,7 +408,7 @@ class CdsHeader(core.BaseHeader):
                 col.meta.size = max([len(sval) for sval in col.str_vals])
 
             # Set CDSColumn type, size and format.
-            if np.issubdtype(col.dtype, int):
+            if np.issubdtype(col.dtype, int) or np.issubdtype(col.dtype, np.integer):
                 # Integer formatter
                 self._set_column_val_limits(col)
                 if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
