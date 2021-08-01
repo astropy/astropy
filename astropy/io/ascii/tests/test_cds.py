@@ -13,6 +13,7 @@ from astropy.table import Table
 from astropy.table import Column, MaskedColumn
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
+from astropy.utils.data import get_pkg_data_filename
 
 
 test_dat = ['names e d s i',
@@ -26,7 +27,8 @@ def test_write_data():
                   'S05-10  4342 0.91 1.82 -2.11  0.14',
                   'S05-47  4654 1.28 1.74 -1.64  0.16']
 
-    dat = 'data/cdsFunctional2.dat'
+    dat = get_pkg_data_filename('data/cdsFunctional2.dat',
+                                package='astropy.io.ascii.tests')
     t = Table.read(dat, format='ascii.cds')
 
     out = StringIO()
