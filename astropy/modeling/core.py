@@ -20,7 +20,6 @@ import itertools
 import functools
 import operator
 import types
-import warnings
 
 from collections import defaultdict, deque
 from inspect import signature
@@ -35,7 +34,6 @@ from astropy.units.utils import quantity_asanyarray
 from astropy.utils import (sharedmethod, find_current_module,
                            check_broadcast, IncompatibleShapeError, isiterable)
 from astropy.utils.codegen import make_function_with_signature
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _BoundingBox, _combine_equivalency_dict,
@@ -718,19 +716,6 @@ class Model(metaclass=_ModelMeta):
         self._initialize_parameters(args, kwargs)
         self._initialize_slices()
         self._initialize_unit_support()
-
-        # Raise DeprecationWarning on classes with class attributes
-        # ``inputs`` and ``outputs``.
-        self._inputs_deprecation()
-
-    def _inputs_deprecation(self):
-        if hasattr(self.__class__, 'inputs') and isinstance(self.__class__.inputs, tuple):
-            warnings.warn(
-                f"""Class {self.__class__.__name__} defines class attributes ``inputs``.
-                This has been deprecated in v4.0 and support will be removed in v4.1.
-                Starting with v4.0 classes must define a class attribute ``n_inputs``.
-                Please consult the documentation for details.
-                """, AstropyDeprecationWarning)
 
     def _default_inputs_outputs(self):
         if self.n_inputs == 1 and self.n_outputs == 1:
@@ -2519,7 +2504,7 @@ class CompoundModel(Model):
     to combine models is through the model operators.
     '''
 
-    def __init__(self, op, left, right, name=None, inverse=None):
+    def __init__(self, op, left, right, name=None):
         self.__dict__['_param_names'] = None
         self._n_submodels = None
         self.op = op
@@ -2532,14 +2517,6 @@ class CompoundModel(Model):
         self._parameters = None
         self._parameters_ = None
         self._param_metrics = None
-
-        if inverse:
-            warnings.warn(
-                "The 'inverse' argument is deprecated.  Instead, set the inverse "
-                "property after CompoundModel is initialized.",
-                AstropyDeprecationWarning
-            )
-            self.inverse = inverse
 
         if op != 'fix_inputs' and len(left) != len(right):
             raise ValueError(
@@ -2784,24 +2761,6 @@ class CompoundModel(Model):
             else:
                 newnames.append(item)
         return tuple(newnames)
-
-    def both_inverses_exist(self):
-        '''
-        if both members of this compound model have inverses return True
-        '''
-        warnings.warn(
-            "CompoundModel.both_inverses_exist is deprecated. "
-            "Use has_inverse instead.",
-            AstropyDeprecationWarning
-        )
-
-        try:
-            linv = self.left.inverse
-            rinv = self.right.inverse
-        except NotImplementedError:
-            return False
-
-        return True
 
     def __call__(self, *args, **kw):
         # Turn any keyword arguments into positional arguments.
@@ -3618,7 +3577,7 @@ def fix_inputs(modelinstance, values):
     return CompoundModel('fix_inputs', modelinstance, values)
 
 
-def custom_model(*args, fit_deriv=None, **kwargs):
+def custom_model(*args, fit_deriv=None):
     """
     Create a model from a user defined function. The inputs and parameters of
     the model will be inferred from the arguments of the function.
@@ -3688,13 +3647,6 @@ def custom_model(*args, fit_deriv=None, **kwargs):
         >>> model(1, 1)  # doctest: +FLOAT_CMP
         0.3333333333333333
     """
-
-    if kwargs:
-        warnings.warn(
-            "Function received unexpected arguments ({}) these "
-            "are ignored but will raise an Exception in the "
-            "future.".format(list(kwargs)),
-            AstropyDeprecationWarning)
 
     if len(args) == 1 and callable(args[0]):
         return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
