@@ -67,7 +67,7 @@ _good_sizes = np.array([   0,    1,    2,    3,    4,    5,    6,    8,    9,   
 _good_range = int(np.log10(_good_sizes[-1]))
 
 # Disabling doctests when scipy isn't present.
-__doctest_requires__ = {('convolve_fft',): ['scipy.fft']}
+__doctest_requires__ = {('convolve_fft',): ['scipy']}
 
 BOUNDARY_OPTIONS = [None, 'fill', 'wrap', 'extend']
 
@@ -458,7 +458,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
       is threaded, and therefore may yield significant performance benefits on
       multi-core machines at the cost of greater memory requirements.  Specify
       the ``fftn`` and ``ifftn`` keywords to override the default, which is
-      `numpy.fft.fftn` and `numpy.fft.ifftn`.  The `scipy.fft` functions also
+      `numpy.fft.fftn` and `numpy.fft.ifftn`.  The ``scipy.fft`` functions also
       offer somewhat better performance and a multi-threaded option.
 
     Parameters
