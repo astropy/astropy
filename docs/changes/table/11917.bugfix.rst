@@ -1,0 +1,3 @@
+Ensured that ``MaskedColumn.info`` is propagated in all cases, so that when
+tables are sliced, writing will still be as requested on
+``info.serialize_method``.

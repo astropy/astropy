@@ -536,6 +536,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if not hasattr(self, 'indices'):  # may have been copied in __new__
             self.indices = []
         self._copy_attrs(obj)
+        if 'info' in getattr(obj, '__dict__', {}):
+            self.info = obj.info
 
     def __array_wrap__(self, out_arr, context=None):
         """
@@ -1393,6 +1395,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
                                unit=unit, format=format, description=description,
                                meta=meta, copy=copy, copy_indices=copy_indices)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
+        # The above process preserves info relevant for Column, but this does
+        # not include serialize_method (and possibly other future attributes)
+        # relevant for MaskedColumn, so we set info explicitly.
+        if 'info' in getattr(data, '__dict__', {}):
+            self.info = data.info
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds.
@@ -1538,6 +1545,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
         if out.__class__ is self.__class__:
+            # TODO: this part is essentially the same as what is done in
+            # __array_finalize__ and could probably be called directly in our
+            # override of __getitem__ in _columns_mixins.pyx). Refactor?
+            if 'info' in self.__dict__:
+                out.info = self.info
             out.parent_table = None
             # we need this because __getitem__ does a shallow copy of indices
             if out.indices is self.indices:

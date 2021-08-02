@@ -919,3 +919,18 @@ def test_column_value_access():
     assert type(tbl['b'].value) == np.ma.MaskedArray
     assert type(tbl['c'].value) == np.ndarray
     assert type(tbl['d'].value) == np.ndarray
+
+
+def test_masked_column_serialize_method_propagation():
+    mc = table.MaskedColumn([1., 2., 3.], mask=[True, False, True])
+    assert mc.info.serialize_method['ecsv'] == 'null_value'
+    mc.info.serialize_method['ecsv'] = 'data_mask'
+    assert mc.info.serialize_method['ecsv'] == 'data_mask'
+    mc2 = mc.copy()
+    assert mc2.info.serialize_method['ecsv'] == 'data_mask'
+    mc3 = table.MaskedColumn(mc)
+    assert mc3.info.serialize_method['ecsv'] == 'data_mask'
+    mc4 = mc.view(table.MaskedColumn)
+    assert mc4.info.serialize_method['ecsv'] == 'data_mask'
+    mc5 = mc[1:]
+    assert mc5.info.serialize_method['ecsv'] == 'data_mask'
