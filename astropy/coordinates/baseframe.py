@@ -641,16 +641,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return repr_info
 
     @classmethod
-    def _create_readonly_property(cls, attr_name, value, docstring=None):
+    def _create_readonly_property(cls, attr_name, value, doc=None):
         private_attr = '_' + attr_name
 
         def getter(self):
             return getattr(self, private_attr)
 
         setattr(cls, private_attr, value)
-        setattr(cls, attr_name, property(getter))
-        if docstring:
-            setattr(getattr(cls, attr_name), '__doc__', docstring)
+        setattr(cls, attr_name, property(getter, doc=doc))
 
     @lazyproperty
     def cache(self):
