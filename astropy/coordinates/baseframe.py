@@ -268,10 +268,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         # be read-only to make them immutable after creation.
         # We copy attributes instead of linking to make sure there's no
         # accidental cross-talk between classes
-        cls._create_readonly_property('default_representation', default_repr)
-        cls._create_readonly_property('default_differential', default_diff)
+        cls._create_readonly_property('default_representation', default_repr,
+                                      'Default representation for position data')
+        cls._create_readonly_property('default_differential', default_diff,
+                                      'Default representation for differential data '
+                                      '(e.g., velocity)')
         cls._create_readonly_property('frame_specific_representation_info',
-                                      copy.deepcopy(repr_info))
+                                      copy.deepcopy(repr_info),
+                                      'Mapping for frame-specific component names')
 
         # Set the frame attributes. We first construct the attributes from
         # superclasses, going in reverse order to keep insertion order,
@@ -637,14 +641,14 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         return repr_info
 
     @classmethod
-    def _create_readonly_property(cls, attr_name, value):
+    def _create_readonly_property(cls, attr_name, value, doc=None):
         private_attr = '_' + attr_name
 
         def getter(self):
             return getattr(self, private_attr)
 
         setattr(cls, private_attr, value)
-        setattr(cls, attr_name, property(getter))
+        setattr(cls, attr_name, property(getter, doc=doc))
 
     @lazyproperty
     def cache(self):
