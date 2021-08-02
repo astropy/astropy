@@ -33,6 +33,11 @@ examples = {
          ('ivoa', 'stat.max')],
     'stat.error;phot.mag;em.opt.V':
         [('ivoa', 'stat.error'), ('ivoa', 'phot.mag'), ('ivoa', 'em.opt.V')],
+    'phot.color;em.opt.B;em.opt.V':
+        [('ivoa', 'phot.color'), ('ivoa', 'em.opt.B'), ('ivoa', 'em.opt.V')],
+    'stat.error;phot.color;em.opt.B;em.opt.V':
+        [('ivoa', 'stat.error'), ('ivoa', 'phot.color'), ('ivoa', 'em.opt.B'),
+         ('ivoa', 'em.opt.V')],
 }
 
 
