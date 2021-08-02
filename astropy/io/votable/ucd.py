@@ -33,9 +33,9 @@ class UCDWords:
                 type, name, descr = [
                     x.strip() for x in line.split('|')]
                 name_lower = name.lower()
-                if type in 'QPEV':
+                if type in 'QPEVC':
                     self._primary.add(name_lower)
-                if type in 'QSEV':
+                if type in 'QSEVC':
                     self._secondary.add(name_lower)
                 self._descriptions[name_lower] = descr
                 self._capitalization[name_lower] = name
