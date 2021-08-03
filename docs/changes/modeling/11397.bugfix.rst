@@ -1,0 +1,1 @@
+Correctly reduce cancelling units such as ``u.AA / u.nm`` in ``physical_models`` return.
