@@ -1100,7 +1100,7 @@ def fit_wcs_from_points(xy, world_coords, proj_point='center',
         _linear_wcs_fit, p0,
         args=(lon, lat, xp, yp, wcs),
         bounds=[[-np.inf, -np.inf, -np.inf, -np.inf, xpmin + 1, ypmin + 1],
-                [ np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1]]
+                [np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1]]
     )
     wcs.wcs.crpix = np.array(fit.x[4:6])
     wcs.wcs.cd = np.array(fit.x[0:4].reshape((2, 2)))

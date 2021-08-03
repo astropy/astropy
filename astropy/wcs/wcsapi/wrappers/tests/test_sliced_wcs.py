@@ -855,7 +855,7 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
     wao_components = dwd.pop("world_axis_object_components")
 
     validate_info_dict(dwd, {
-        "value": [ 4.e+00, -2.e+00,  1.e+10],
+        "value": [4.e+00, -2.e+00,  1.e+10],
         "world_axis_physical_types": ["pos.eq.ra", "pos.eq.dec", "em.freq"],
         "world_axis_names": ['Right Ascension', 'Declination', 'Frequency'],
         "world_axis_units": ["deg", "deg", "Hz"],
