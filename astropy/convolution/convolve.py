@@ -436,7 +436,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=complex, dealias=None):
+                 complex_dtype=complex, dealias=False):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -723,8 +723,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             psf_pad = True
         if fft_pad is None:
             fft_pad = True
-        if dealias is None:
-            dealias = False
     elif boundary == 'fill':
         # create a boundary region at least as large as the kernel
         if psf_pad is False:
@@ -735,9 +733,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         if fft_pad is None:
             # default is 'True' according to the docstring
             fft_pad = True
-        if dealias is None:
-            # default is 'False' according to the docstring
-            dealias = False
     elif boundary == 'wrap':
         if psf_pad:
             raise ValueError("With boundary='wrap', psf_pad cannot be enabled.")
