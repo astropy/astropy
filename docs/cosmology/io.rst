@@ -219,7 +219,7 @@ Now the registered functions can be used in
     True
 
 
-.. code-block:: python
+.. doctest::
     :hide:
 
     >>> io_registry.unregister_reader("row", Cosmology)
@@ -343,7 +343,7 @@ Now the registered functions can be used in
     True
 
 
-.. code-block:: python
+.. doctest::
     :hide:
 
     >>> io_registry.unregister_reader("json", Cosmology)
