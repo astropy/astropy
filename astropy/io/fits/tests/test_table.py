@@ -2950,6 +2950,22 @@ class TestVLATables(FitsTestCase):
         assert data['i'][497] == 497
         assert np.array_equal(data['arr'][497], [0, 1, 2, 3, 4])
 
+    def test_tolist(self):
+        col = fits.Column(
+            name='var', format='PI()',
+            array=np.array([[1, 2, 3], [11, 12]], dtype=np.object_))
+        hdu = fits.BinTableHDU.from_columns([col])
+        assert hdu.data.tolist() == [[[1, 2, 3]], [[11, 12]]]
+        assert hdu.data['var'].tolist() == [[1, 2, 3], [11, 12]]
+
+    def test_tolist_from_file(self):
+        filename = self.data('variable_length_table.fits')
+
+        with fits.open(filename) as hdul:
+            hdu = hdul[1]
+            assert hdu.data.tolist() == [[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]
+            assert hdu.data['var'].tolist() == [[45, 56], [11, 12, 13]]
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
