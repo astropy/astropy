@@ -6,6 +6,6 @@ Unified I/O Registry.
 from . import core, default
 from .core import *
 from .default import *
-from .default import _readers, _writers, _identifiers
+from .default import _identifiers, _readers, _writers
 
 __all__ = core.__all__ + default.__all__

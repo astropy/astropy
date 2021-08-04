@@ -1,21 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+from collections import Counter
 from copy import copy
 from io import StringIO
-from collections import Counter
 
 import pytest
-import numpy as np
 
-from astropy.io.registry import _readers, _writers, _identifiers
-from astropy.io import registry as io_registry
-from astropy.table import Table
-from astropy import units as u
+import numpy as np
 
 # Since we reset the readers/writers below, we need to also import any
 # sub-package that defines readers/writers first
 from astropy import timeseries  # noqa
+from astropy import units as u
+from astropy.io import registry as io_registry
+from astropy.io.registry import _identifiers, _readers, _writers
+from astropy.table import Table
 
 # Cache original _readers, _writers, _identifiers in setup_function
 # since tests modify them.  Important to do caching in setup_function
@@ -27,8 +27,8 @@ ORIGINAL = {}
 
 
 class TestData:
-    read = lambda *args, **kwargs: io_registry.read(TestData, *args, **kwargs)  # FIXME!
-    write = lambda self, *args, **kwargs: io_registry.write(self, *args, **kwargs)  # FIXME!
+    read = classmethod(io_registry.read)
+    write = io_registry.write
 
 
 def setup_function(function):
@@ -83,7 +83,8 @@ def test_register_reader():
         io_registry.get_reader('test1', TestData)
     assert io_registry.get_reader('test2', TestData) == empty_reader
 
-    io_registry.unregister_reader('test2', TestData)
+    with pytest.warns(FutureWarning):
+        io_registry.unregister_reader('test2', TestData)
 
     with pytest.raises(io_registry.IORegistryError):
         with pytest.warns(FutureWarning):
@@ -104,7 +105,8 @@ def test_register_writer():
         io_registry.get_writer('test1', TestData)
     assert io_registry.get_writer('test2', TestData) == empty_writer
 
-    io_registry.unregister_writer('test2', TestData)
+    with pytest.warns(FutureWarning):
+        io_registry.unregister_writer('test2', TestData)
 
     with pytest.raises(io_registry.IORegistryError):
         with pytest.warns(FutureWarning):
