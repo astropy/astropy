@@ -22,7 +22,9 @@ cosmo_instances.append(CosmologyWithKwargs())
 
 
 def teardown_module(module):
-    _COSMOLOGY_CLASSES.pop(CosmologyWithKwargs.__qualname__)
+    # pop CosmologyWithKwargs from registered classes
+    # but don't error b/c it fails in parallel
+    _COSMOLOGY_CLASSES.pop(CosmologyWithKwargs.__qualname__, None)
 
 
 ###############################################################################
