@@ -247,8 +247,8 @@ def test_sigmaclip_fully_masked():
 
 def test_sigmaclip_empty_masked():
     """
-    Make sure a empty masked array is returned when sigma clipping an empty
-    masked array.
+    Make sure an empty masked array is returned when sigma clipping an
+    empty masked array.
     """
     data = np.ma.MaskedArray(data=[], mask=[])
     clipped_data = sigma_clip(data)
@@ -262,7 +262,7 @@ def test_sigmaclip_empty_masked():
 
 def test_sigmaclip_empty():
     """
-    Make sure a empty array is returned when sigma clipping an empty
+    Make sure an empty array is returned when sigma clipping an empty
     array.
     """
     data = np.array([])
