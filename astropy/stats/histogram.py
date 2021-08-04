@@ -376,7 +376,7 @@ class _KnuthF:
         self.gammaln = special.gammaln
 
     def bins(self, M):
-        """Return the bin edges given a width dx"""
+        """Return the bin edges given M number of bins"""
         return np.linspace(self.data[0], self.data[-1], int(M) + 1)
 
     def __call__(self, M):
@@ -387,13 +387,13 @@ class _KnuthF:
 
         Parameters
         ----------
-        dx : float
-            Width of bins
+        M : int
+            Number of bins
 
         Returns
         -------
         F : float
-            evaluation of the negative Knuth likelihood function:
+            evaluation of the negative Knuth loglikelihood function:
             smaller values indicate a better fit.
         """
         M = int(M)
