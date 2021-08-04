@@ -245,7 +245,7 @@ class SigmaClip:
         # later than necessary if __call__ needs it:
         if self.grow:
             from scipy.ndimage import binary_dilation
-            self.binary_dilation = binary_dilation
+            self._binary_dilation = binary_dilation
 
     def __repr__(self):
         return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
@@ -395,8 +395,7 @@ class SigmaClip:
     def _sigmaclip_noaxis(self, data, masked=True, return_bounds=False,
                           copy=True):
         """
-        Sigma clip the data when ``axis`` is None and ``grow`` is not
-        >0.
+        Sigma clip when ``axis`` is None and ``grow`` is not >0.
 
         In this simple case, we remove clipped elements from the
         flattened array during each iteration.
@@ -513,7 +512,7 @@ class SigmaClip:
                 new_mask = ((filtered_data < self._min_value)
                             | (filtered_data > self._max_value))
             if self.grow:
-                new_mask = self.binary_dilation(new_mask, kernel)
+                new_mask = self._binary_dilation(new_mask, kernel)
             filtered_data[new_mask] = np.nan
             nchanged = np.count_nonzero(new_mask)
             del new_mask
@@ -558,9 +557,8 @@ class SigmaClip:
 
         masked : bool, optional
             If `True`, then a `~numpy.ma.MaskedArray` is returned, where
-            the mask is `True` for clipped values. If `False`, then
-            a `~numpy.ndarray` and the minimum and maximum clipping
-            thresholds are returned. The default is `True`.
+            the mask is `True` for clipped values. If `False`, then a
+            `~numpy.ndarray` is returned. The default is `True`.
 
         return_bounds : bool, optional
             If `True`, then the minimum and maximum clipping bounds are
@@ -613,7 +611,7 @@ class SigmaClip:
             if masked:
                 result = data
             else:
-                result = np.ma.filled(data.astype(float), fill_value=np.nan)
+                result = np.full(data.shape, np.nan)
 
             if return_bounds:
                 return result, self._min_value, self._max_value
