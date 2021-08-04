@@ -27,8 +27,8 @@ ORIGINAL = {}
 
 
 class TestData:
-    read = classmethod(io_registry.read)
-    write = io_registry.write
+    read = lambda *args, **kwargs: io_registry.read(TestData, *args, **kwargs)  # FIXME!
+    write = lambda self, *args, **kwargs: io_registry.write(self, *args, **kwargs)  # FIXME!
 
 
 def setup_function(function):
@@ -83,8 +83,7 @@ def test_register_reader():
         io_registry.get_reader('test1', TestData)
     assert io_registry.get_reader('test2', TestData) == empty_reader
 
-    with pytest.warns(FutureWarning):
-        io_registry.unregister_reader('test2', TestData)
+    io_registry.unregister_reader('test2', TestData)
 
     with pytest.raises(io_registry.IORegistryError):
         with pytest.warns(FutureWarning):
@@ -105,8 +104,7 @@ def test_register_writer():
         io_registry.get_writer('test1', TestData)
     assert io_registry.get_writer('test2', TestData) == empty_writer
 
-    with pytest.warns(FutureWarning):
-        io_registry.unregister_writer('test2', TestData)
+    io_registry.unregister_writer('test2', TestData)
 
     with pytest.raises(io_registry.IORegistryError):
         with pytest.warns(FutureWarning):
