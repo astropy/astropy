@@ -9,6 +9,15 @@ import os
 import tempfile
 import pytest
 
+# some paths to ignore
+collect_ignore = [
+    "cosmology/dev/astropy_convert.py",
+    "cosmology/dev/astropy_io.py",
+    "cosmology/dev/io_init.py",
+    "cosmology/dev/test_astropy_convert.py",
+    "cosmology/dev/test_astropy_io.py",
+]
+
 # Make sure we use temporary directories for the config and cache
 # so that the tests are insensitive to local configuration.
 
