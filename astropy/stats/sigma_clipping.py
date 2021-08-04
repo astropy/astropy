@@ -602,10 +602,15 @@ class SigmaClip:
         data = np.asanyarray(data)
 
         if data.size == 0:
-            if return_bounds:
-                return data, self._min_value, self._max_value
+            if masked:
+                result = np.ma.MaskedArray(data)
             else:
-                return data
+                result = data
+
+            if return_bounds:
+                return result, self._min_value, self._max_value
+            else:
+                return result
 
         if isinstance(data, np.ma.MaskedArray) and data.mask.all():
             if masked:
