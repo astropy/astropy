@@ -11,7 +11,8 @@ from operator import itemgetter
 
 import numpy as np
 
-__all__ = ['UnifiedIORegistry', 'UnifiedReadWriteMethod', 'UnifiedReadWrite',
+__all__ = ['UnifiedIORegistry', 'UnifiedInputRegistry', 'UnifiedOutputRegistry',
+           'UnifiedReadWriteMethod', 'UnifiedReadWrite',
            'IORegistryError']
 
 
