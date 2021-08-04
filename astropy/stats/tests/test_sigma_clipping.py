@@ -267,7 +267,8 @@ def test_sigmaclip_empty():
     """
     data = np.array([])
     clipped_data = sigma_clip(data)
-    assert_equal(data, clipped_data)
+    assert isinstance(clipped_data, np.ma.MaskedArray)
+    assert_equal(data, clipped_data.data)
 
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
     assert_equal(data, clipped_data)
