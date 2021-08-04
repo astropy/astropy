@@ -2,8 +2,8 @@
 
 from io import StringIO
 
-from astropy.table import Table
 from astropy.nddata import CCDData
+from astropy.table import Table
 
 
 def test_table_read_help_fits():

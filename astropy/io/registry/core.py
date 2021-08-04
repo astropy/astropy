@@ -400,7 +400,7 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
     # Read methods
 
     def register_reader(self, data_format, data_class, function, force=False,
-        priority=0):
+                        priority=0):
         """
         Register a reader function.
 
