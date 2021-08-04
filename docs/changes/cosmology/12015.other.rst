@@ -1,0 +1,2 @@
+The ``read/write`` Unified I/O registry is separated from all other registries
+and applies only to ``Cosmology``.
