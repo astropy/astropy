@@ -9,6 +9,7 @@ import pytest
 import numpy as np
 
 from astropy.utils import data, misc
+from astropy.io import fits
 
 
 def test_isiterable():
@@ -104,6 +105,24 @@ def test_inherit_docstrings():
 
     if Base.bar.__doc__ is not None:
         assert Subclass.bar.__doc__ == "BAR"
+
+
+def test_JsonCustomEncoder_FITS_rec_from_files():
+    with fits.open(fits.util.get_testdata_filepath('variable_length_table.fits')) as hdul:
+        assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \
+            "[[[45, 56], [11, 3]], [[11, 12, 13], [12, 4]]]"
+
+    with fits.open(fits.util.get_testdata_filepath('btable.fits')) as hdul:
+        assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \
+            '[[1, "Sirius", -1.4500000476837158, "A1V"], ' \
+             '[2, "Canopus", -0.7300000190734863, "F0Ib"], ' \
+             '[3, "Rigil Kent", -0.10000000149011612, "G2V"]]'
+
+    with fits.open(fits.util.get_testdata_filepath('table.fits')) as hdul:
+        assert json.dumps(hdul[1].data, cls=misc.JsonCustomEncoder) == \
+            '[["NGC1001", 11.100000381469727], ' \
+             '["NGC1002", 12.300000190734863], ' \
+             '["NGC1003", 15.199999809265137]]'
 
 
 def test_set_locale():

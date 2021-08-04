@@ -2005,6 +2005,9 @@ class _VLF(np.ndarray):
         np.ndarray.__setitem__(self, key, value)
         self.max = max(self.max, len(value))
 
+    def tolist(self):
+        return [list(item) for item in super().tolist()]
+
 
 def _get_index(names, key):
     """
