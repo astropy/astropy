@@ -1284,6 +1284,13 @@ class FITS_rec(np.recarray):
         if 'D' in format:
             output_field[:] = output_field.replace(b'E', b'D')
 
+    def tolist(self):
+        # Override .tolist to take care of special case of VLF
+
+        column_lists = [self[name].tolist() for name in self.columns.names]
+
+        return [list(row) for row in zip(*column_lists)]
+
 
 def _get_recarray_field(array, key):
     """
