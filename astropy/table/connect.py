@@ -51,14 +51,15 @@ class TableRead(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'read')
+        super().__init__(instance, cls, 'read', registry=None)
+        # uses default global registry
 
     def __call__(self, *args, **kwargs):
         cls = self._cls
         units = kwargs.pop('units', None)
         descriptions = kwargs.pop('descriptions', None)
 
-        out = registry.read(cls, *args, **kwargs)
+        out = self.registry.read(cls, *args, **kwargs)
 
         # For some readers (e.g., ascii.ecsv), the returned `out` class is not
         # guaranteed to be the same as the desired output `cls`.  If so,
@@ -119,9 +120,10 @@ class TableWrite(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'write')
+        super().__init__(instance, cls, 'write', registry=None)
+        # uses default global registry
 
     def __call__(self, *args, serialize_method=None, **kwargs):
         instance = self._instance
         with serialize_method_as(instance, serialize_method):
-            registry.write(instance, *args, **kwargs)
+            self.registry.write(instance, *args, **kwargs)
