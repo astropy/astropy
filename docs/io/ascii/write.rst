@@ -264,7 +264,8 @@ The command ``ascii.write(format='cds')`` writes an ``astropy`` `~astropy.table.
 to the MRT format. Section dividers ``---`` and ``===`` are used to divide the table
 into different sections, with the last section always been the actual data.
 
-For columns that have a ``Unit`` attribute, the unit names are tabulated in the Byte-By-Byte
+As the CDS/MRT standard requires,
+for columns that have a ``Unit`` attribute, the unit names are tabulated in the Byte-By-Byte
 description of the column. When columns do not contain any units, ``---`` is put instead.
 Also, a ``?`` is prefixed to the column description in the Byte-By-Byte for ``Masked``
 columns or columns that have null values, indicating them as such.
@@ -339,22 +340,22 @@ After execution, the contents of ``coords_cols.dat`` will be::
     1- 11  A11     ---    Name        Description of Name                   
    13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature 
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
-   32- 37  F6.3   10+12Jy Flux        ? Description of Flux                 
-   39- 43  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   45- 50  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation   
-   52- 54  I3      s      Cadence     [100] Description of Cadence          
-   56- 59  F4.1    h      RAh         Right Ascension (hour)                
-   61- 64  F4.1    min    RAm         Right Ascension (minute)              
-   66- 80  F15.12  s      RAs         Right Ascension (second)              
-       82  A1      ---    DE-         Sign of Declination                   
-   83- 86  F5.1    deg    DEd         Declination (degree)                  
-   88- 91  F4.1    arcmin DEm         Declination (arcmin)                  
-   93-107  F15.12  arcsec DEs         Declination (arcsec)                  
+   32- 36  F5.3   10+12Jy Flux        ? Description of Flux                 
+   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+   44- 49  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation   
+   51- 53  I3      s      Cadence     [100] Description of Cadence          
+   55- 58  F4.1    h      RAh         Right Ascension (hour)                
+   60- 63  F4.1    min    RAm         Right Ascension (minute)              
+   65- 79  F15.12  s      RAs         Right Ascension (second)              
+       81  A1      ---    DE-         Sign of Declination                   
+   82- 85  F5.1    deg    DEd         Declination (degree)                  
+   87- 90  F4.1    arcmin DEm         Declination (arcmin)                  
+   92-106  F15.12  arcsec DEs         Declination (arcsec)                  
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.87819e-09 0.0250        1e-10 2019.0 100 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
-  ASASSN-14li 2.55935e-08 0.0188  2.044 4e+03 2019.0 100 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
+  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
+  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
 
 And the file ``ecliptic_cols.dat`` will look like::
 
@@ -369,17 +370,17 @@ And the file ``ecliptic_cols.dat`` will look like::
     1- 11  A11     ---    Name        Description of Name                        
    13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH              
-   32- 37  F6.3   10+12Jy Flux        ? Description of Flux                      
-   39- 43  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   45- 50  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
-   52- 54  I3      s      Cadence     [100] Description of Cadence               
-   56- 71  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   73- 88  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   32- 36  F5.3   10+12Jy Flux        ? Description of Flux                      
+   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
+   44- 49  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
+   51- 53  I3      s      Cadence     [100] Description of Cadence               
+   55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.87819e-09 0.0250        1e-10 2019.0 100 306.224208650096 -45.621789850825
-  ASASSN-14li 2.55935e-08 0.0188  2.044 4e+03 2019.0 100 183.754980099243  21.051410763027
+  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 306.224208650096 -45.621789850825
+  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 183.754980099243  21.051410763027
 
 Finally, MRT and CDS have some specific naming conventions for columns
 (`<https://journals.aas.org/mrt-labels/#reflab>`_). For example, if a column contains
@@ -393,10 +394,10 @@ The following example shows a similar situation, using the option to send the ou
 
   >>> table['error'] = [1e4, 450] * u.Jy  # Error in the Flux values.
   >>> outtab = table.copy()  # So that changes don't affect the original table.
-  >>> outtab.rename_column('error', 'e_flux')
+  >>> outtab.rename_column('error', 'e_Flux')
   >>> # re-order so that related columns are placed next to eachother.
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
-  ...                 'Temperature', 'Flux', 'e_flux']  # doctest: +REMOTE_DATA
+  ...                 'Temperature', 'Flux', 'e_Flux']  # doctest: +REMOTE_DATA
   
   >>> ascii.write(outtab, format='cds')  # doctest: +REMOTE_DATA
   Title:
@@ -413,23 +414,23 @@ The following example shows a similar situation, using the option to send the ou
    24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
    37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
-   49- 54  F6.3   10+12Jy Flux        ? Description of Flux                      
-   56- 62  F7.1    Jy     e_flux      [450.0/10000.0] Description of e_flux      
-   64- 79  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   81- 96  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   49- 53  F5.3   10+12Jy Flux        ? Description of Flux                      
+   55- 61  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux      
+   63- 78  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   80- 95  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2019.0 100 0.0250 1e-10 2.87819e-09        10000.0 306.224208650096 -45.621789850825
-  ASASSN-14li 2019.0 100 0.0188 4e+03 2.55935e-08  2.044   450.0 183.754980099243  21.051410763027
+  ASASSN-15lh 2019.0 100 0.0250 1e-10 2.87819e-09       10000.0 306.224208650096 -45.621789850825
+  ASASSN-14li 2019.0 100 0.0188 4e+03 2.55935e-08 2.044   450.0 183.754980099243  21.051410763027
 
 ..
   EXAMPLE END
 
 .. attention::
 
-    The CDS writer currently supports automatically writing coordinate component
-    columns only for tables with a single coordinate column. For tables with more
+    The CDS writer currently supports automatic writing of a single coordinate
+    column in ``Tables``. For tables with more
     than one coordinate columns, only the first found coordinate column will be
     converted to its component columns and the rest of the coordinate columns will
     be converted to string columns. Thus, it should be taken care that the additional

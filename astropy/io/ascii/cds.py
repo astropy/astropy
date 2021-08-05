@@ -10,8 +10,6 @@ cds.py:
 """
 
 
-from io import StringIO
-
 import fnmatch
 import itertools
 import re
@@ -19,12 +17,12 @@ import os
 import math
 import warnings
 import numpy as np
+from io import StringIO
 from contextlib import suppress
 
 from . import core
 from . import fixedwidth
 
-from astropy.units import Unit
 from astropy import units as u
 
 from astropy.table import Table
@@ -161,7 +159,7 @@ class CdsHeader(core.BaseHeader):
                 if unit == '---':
                     col.unit = None  # "---" is the marker for no unit in CDS table
                 else:
-                    col.unit = Unit(unit, format='cds', parse_strict='warn')
+                    col.unit = u.Unit(unit, format='cds', parse_strict='warn')
                 col.description = (match.group('descr') or '').strip()
                 col.raw_type = match.group('format')
                 col.type = self.get_col_type(col)
@@ -246,7 +244,7 @@ class CdsHeader(core.BaseHeader):
 
     def _set_column_val_limits(self, col):
         """
-        Sets the `col.min` and `col.max` column attributes,
+        Sets the ``col.min`` and ``col.max`` column attributes,
         taking into account columns with Null values.
         """
         col.max = max(col)
@@ -258,7 +256,19 @@ class CdsHeader(core.BaseHeader):
 
     def column_float_formatter(self, col):
         """
-        String formatter for a column containing Float values.
+        String formatter function for a column containing Float values.
+        Checks if the values in the given column are in Scientific notation,
+        by spliting the value string. It is assumed that the column either has
+        float values or Scientific notation.
+
+        A ``col.meta.size`` attribute is added to the column. It is not added
+        if such an attribute is already present, say when the ``formats`` argument
+        is passed to the writer. A properly formatted format string is also added as
+        the ``col.format`` attribute.
+
+        Parameters
+        ----------
+        col : A ``Table.Column`` object.
         """
         # maxsize: maximum length of string containing the float value.
         # maxent: maximum number of digits places before decimal point.
@@ -269,18 +279,13 @@ class CdsHeader(core.BaseHeader):
         fformat = 'F'
 
         # Find maximum sized value in the col
-        if getattr(col.meta, 'size', None) is not None:  # If ``formats`` passed.
-            col_vals = col.str_vals
-        else:
-            col_vals = col
-        for val in col_vals:
+        for val in col.str_vals:
             # Skip null values
             if val is None or val == '':
                 continue
 
             # Find format of the Float string
-            fmt = self._split_float_format(str(val))
-
+            fmt = self._split_float_format(val)
             # If value is in Scientific notation
             if fmt[4] is True:
                 # if the previous column value was in normal Float format
