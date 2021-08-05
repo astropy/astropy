@@ -42,8 +42,11 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         self._delayed_docs_classes = set()
 
     @abc.abstractmethod
-    def get_formats(self, data_class=None):
-        pass
+    def get_formats(self, data_class=None, *args):
+        """
+        Get the list of registered formats as a Table.
+        Method is abstract and must be overwritten by subclasses.
+        """
 
     @contextlib.contextmanager
     def delay_doc_updates(self, cls):
@@ -121,13 +124,16 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         Examples
         --------
         To set the identifier based on extensions, for formats that take a
-        filename as a first argument, you can do for example::
+        filename as a first argument, you can do for example
+
+        .. code-block:: python
 
             from astropy.io.registry import register_identifier
             from astropy.table import Table
             def my_identifier(*args, **kwargs):
                 return isinstance(args[0], str) and args[0].endswith('.tbl')
             register_identifier('ipac', Table, my_identifier)
+            unregister_identifier('ipac', Table)
         """
 
         if not (data_format, data_class) in self._identifiers or force:
@@ -196,7 +202,7 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
     # Utils
 
     def _get_format_table_str(self, data_class, readwrite):
-        format_table = self.get_formats(data_class, readwrite=readwrite)
+        format_table = self.get_formats(data_class, readwrite)
         format_table.remove_column('Data class')
         format_table_str = '\n'.join(format_table.pformat(max_lines=-1))
         return format_table_str
@@ -345,9 +351,9 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
         self._readers = OrderedDict()
         self._cando += ("read", )
 
-    def get_formats(self, data_class=None):
+    def get_formats(self, data_class=None, *args):
         """
-        Get the list of registered I/O formats as a Table.
+        Get the list of registered input formats as a Table.
 
         Parameters
         ----------
@@ -385,7 +391,7 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
         # table is created. (#5262)
         if rows:
             # Indices represent "Data Class", "Deprecated" and "Format".
-            data = list(zip(*sorted(rows, key=itemgetter(0, 5, 1))))
+            data = list(zip(*sorted(rows, key=itemgetter(0, 4, 1))))
         else:
             data = None
         format_table = Table(data,
@@ -546,9 +552,9 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
         self._writers = OrderedDict()
         self._cando += ("write", )
 
-    def get_formats(self, data_class=None):
+    def get_formats(self, data_class=None, *args):
         """
-        Get the list of registered I/O formats as a Table.
+        Get the list of registered outputs formats as a Table.
 
         Parameters
         ----------
@@ -586,7 +592,7 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
         # table is created. (#5262)
         if rows:
             # Indices represent "Data Class", "Deprecated" and "Format".
-            data = list(zip(*sorted(rows, key=itemgetter(0, 5, 1))))
+            data = list(zip(*sorted(rows, key=itemgetter(0, 4, 1))))
         else:
             data = None
         format_table = Table(data,
@@ -712,10 +718,7 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
 # -----------------------------------------------------------------------------
 
 class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
-
-    def __init__(self):
-        super().__init__()
-        UnifiedOutputRegistry.__init__(self)
+    """Unified I/O Registry"""
 
     def get_formats(self, data_class=None, readwrite=None):
         """
@@ -813,8 +816,7 @@ class UnifiedReadWrite:
     """
     def __init__(self, instance, cls, method_name, registry=None):
         if registry is None:
-            from astropy.io.registry.default import default_registry
-            registry = default_registry
+            from astropy.io.registry.compat import default_registry as registry
 
         self._registry = registry
         self._instance = instance
