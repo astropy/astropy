@@ -105,7 +105,7 @@ typedef struct {
     PyObject*  fd;              /* Python file object */
     int        file;            /* C file descriptor */
     PyObject*  read;            /* The read method on the file object */
-    ssize_t    buffersize;      /* The size of the read buffer */
+    Py_ssize_t    buffersize;      /* The size of the read buffer */
     XML_Char*  buffer;          /* The read buffer */
 
     /* Text nodes */
@@ -981,7 +981,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
 {
     PyObject* fd              = NULL;
     PyObject* read            = NULL;
-    ssize_t   buffersize      = 1 << 14;
+    Py_ssize_t   buffersize      = 1 << 14;
 
     static char *kwlist[] = {"fd", "buffersize", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|n:IterParser.__init__", kwlist,
@@ -990,7 +990,7 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
     }
 
     /* Keep the buffersize within a reasonable range */
-    self->buffersize = CLAMP(buffersize, (ssize_t)(1 << 10), (ssize_t)(1 << 24));
+    self->buffersize = CLAMP(buffersize, (Py_ssize_t)(1 << 10), (Py_ssize_t)(1 << 24));
 #ifdef __clang__
     /* Clang can't handle the file descriptors Python gives us,
        so in that case, we just call the object's read method. */
