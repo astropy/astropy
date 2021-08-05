@@ -52,10 +52,11 @@ class NDDataRead(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'read')
+        super().__init__(instance, cls, 'read', registry=None)
+        # uses default global registry
 
     def __call__(self, *args, **kwargs):
-        return registry.read(self._cls, *args, **kwargs)
+        return self.registry.read(self._cls, *args, **kwargs)
 
 
 class NDDataWrite(registry.UnifiedReadWrite):
@@ -95,10 +96,11 @@ class NDDataWrite(registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, 'write')
+        super().__init__(instance, cls, 'write', registry=None)
+        # uses default global registry
 
     def __call__(self, *args, **kwargs):
-        registry.write(self._instance, *args, **kwargs)
+        self.registry.write(self._instance, *args, **kwargs)
 
 
 class NDIOMixin:
