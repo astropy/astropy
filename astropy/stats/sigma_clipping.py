@@ -118,14 +118,11 @@ class SigmaClip:
         in this class. Also, its input data cannot be a masked array
         and it does not handle data that contains invalid values (i.e.,
         NaN or inf). Also note that it uses the mean as the centering
-        function.
+        function. The equivalent settings to `scipy.stats.sigmaclip`
+        are::
 
-        If your data is a `~numpy.ndarray` with no invalid values
-        and you want to use the mean as the centering function
-        with ``axis=None`` and iterate to convergence, then
-        `scipy.stats.sigmaclip` is ~25-30% faster than the equivalent
-        settings here (``s = SigmaClip(cenfunc='mean', maxiters=None);
-        s(data, axis=None)``).
+            sigclip = SigmaClip(sigma=4., cenfunc='mean', maxiters=None)
+            sigclip(data, axis=None, masked=False, return_bounds=True)
 
     Parameters
     ----------
@@ -676,14 +673,11 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, maxiters=5,
         in this class. Also, its input data cannot be a masked array
         and it does not handle data that contains invalid values (i.e.,
         NaN or inf). Also note that it uses the mean as the centering
-        function.
+        function. The equivalent settings to `scipy.stats.sigmaclip`
+        are::
 
-        If your data is a `~numpy.ndarray` with no invalid values
-        and you want to use the mean as the centering function
-        with ``axis=None`` and iterate to convergence, then
-        `scipy.stats.sigmaclip` is ~25-30% faster than the equivalent
-        settings here (``sigma_clip(data, cenfunc='mean', maxiters=None,
-        axis=None)``).
+            sigma_clip(sigma=4., cenfunc='mean', maxiters=None, axis=None,
+            ...        masked=False, return_bounds=True)
 
     Parameters
     ----------
