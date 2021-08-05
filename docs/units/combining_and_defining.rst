@@ -50,6 +50,13 @@ complex operations. To do this, it is recommended to use
 
 Defining units
 ==============
+Users are free to define new units, either fundamental or compound
+using the `~astropy.units.def_unit` function.
+
+.. _defining_units:
+
+Example
+=======
 
 .. EXAMPLE START: Defining New Units
 
@@ -97,5 +104,41 @@ can be enabled by calling :func:`~astropy.units.add_enabled_units`::
   [
     kmph         | 0.277778 m / s  |         ,
   ]
+
+.. EXAMPLE END
+
+.. _enabling_units:
+
+Example
+=======
+
+.. EXAMPLE START: Enabling New Units
+
+The following example illustrates how `~astropy.units.add_enabled_units` 
+can be used for parsing a user-defined unit when reading from a FITS 
+file that has been outputted by a `~astropy.table.QTable`::
+
+  >>> import numpy as np
+  >>> from astropy import units as u
+  >>> from astropy.table import QTable
+
+  >>> kmph = u.def_unit('kmph', u.km / u.h)
+  >>> kmph_array = np.ones((5,5)) * kmph
+  >>> qt = QTable()
+  >>> qt['speeds'] = kmph_array 
+  >>> qt.write('kmph_output.fits',overwrite=True,format='fits')
+
+  >>> u.add_enabled_units(kmph)
+  >>> QTable.read('kmph_output.fits', format='fits')
+  <QTable length=5>
+  prop_to_measure [5]
+        my_unit
+        float64
+  -------------------
+           1.0 .. 1.0
+           1.0 .. 1.0
+           1.0 .. 1.0
+           1.0 .. 1.0
+           1.0 .. 1.0
 
 .. EXAMPLE END
