@@ -264,7 +264,8 @@ The command ``ascii.write(format='cds')`` writes an ``astropy`` `~astropy.table.
 to the MRT format. Section dividers ``---`` and ``===`` are used to divide the table
 into different sections, with the last section always been the actual data.
 
-For columns that have a ``Unit`` attribute, the unit names are tabulated in the Byte-By-Byte
+As the CDS/MRT standard requires,
+for columns that have a ``Unit`` attribute, the unit names are tabulated in the Byte-By-Byte
 description of the column. When columns do not contain any units, ``---`` is put instead.
 Also, a ``?`` is prefixed to the column description in the Byte-By-Byte for ``Masked``
 columns or columns that have null values, indicating them as such.
@@ -393,10 +394,10 @@ The following example shows a similar situation, using the option to send the ou
 
   >>> table['error'] = [1e4, 450] * u.Jy  # Error in the Flux values.
   >>> outtab = table.copy()  # So that changes don't affect the original table.
-  >>> outtab.rename_column('error', 'e_flux')
+  >>> outtab.rename_column('error', 'e_Flux')
   >>> # re-order so that related columns are placed next to eachother.
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
-  ...                 'Temperature', 'Flux', 'e_flux']  # doctest: +REMOTE_DATA
+  ...                 'Temperature', 'Flux', 'e_Flux']  # doctest: +REMOTE_DATA
   
   >>> ascii.write(outtab, format='cds')  # doctest: +REMOTE_DATA
   Title:
@@ -414,7 +415,7 @@ The following example shows a similar situation, using the option to send the ou
    31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
    37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
    49- 54  F6.3   10+12Jy Flux        ? Description of Flux                      
-   56- 62  F7.1    Jy     e_flux      [450.0/10000.0] Description of e_flux      
+   56- 62  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux      
    64- 79  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
    81- 96  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
@@ -428,8 +429,8 @@ The following example shows a similar situation, using the option to send the ou
 
 .. attention::
 
-    The CDS writer currently supports automatically writing coordinate component
-    columns only for tables with a single coordinate column. For tables with more
+    The CDS writer currently supports automatic writing of a single coordinate
+    column in ``Tables``. For tables with more
     than one coordinate columns, only the first found coordinate column will be
     converted to its component columns and the rest of the coordinate columns will
     be converted to string columns. Thus, it should be taken care that the additional
