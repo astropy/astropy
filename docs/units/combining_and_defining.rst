@@ -119,6 +119,7 @@ can be used for parsing a user-defined unit when reading from a FITS
 file that has been outputted by a `~astropy.table.QTable`::
 
   >>> import numpy as np
+<<<<<<< HEAD
   >>> from astropy import units as u
   >>> from astropy.table import QTable
 
@@ -130,6 +131,18 @@ file that has been outputted by a `~astropy.table.QTable`::
 
   >>> u.add_enabled_units(kmph)
   >>> QTable.read('kmph_output.fits', format='fits')
+=======
+  >>> from astropy.table import QTable
+  
+  >>> my_unit = u.def_unit('my_unit') 
+  >>> my_unit_array = np.ones((5,5)) * my_unit
+  >>> qt = QTable()
+  >>> qt['prop_to_measure'] = my_unit_array 
+  >>> qt.write('my_unit_output.fits',overwrite=True,format='fits')
+
+  >>> u.add_enabled_units(my_unit)
+  >>> QTable.read('my_unit_output.fits', format='fits')
+>>>>>>> f08fb4471 (Change the defined unit in the example and import some modules for them.)
   <QTable length=5>
   prop_to_measure [5]
         my_unit
