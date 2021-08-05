@@ -16,6 +16,11 @@ such data sets.
 .. note:: |Masked| is similar to Numpy's :class:`~numpy.ma.MaskedArray`,
    but it supports subclasses much better and also has some important
    :ref:`differences in behaviour <utils-masked-vs-numpy-maskedarray>`.
+   As a result, the behaviour of functions inside `numpy.ma` is poorly
+   defined, and one should instead use regular ``numpy`` functions, which
+   are overridden to work properly with masks (with non-obvious
+   choices documented in `astropy.utils.masked.function_helpers`; please
+   report numpy functions that do not work properly with |Masked| values!).
 
 Usage
 =====
