@@ -365,6 +365,14 @@ Implementation
 
    implementation_details.rst
 
+Tips and Tricks
+---------------
+   
+.. toctree::
+   :maxdepth: 2
+   
+   tips_and_tricks.rst
+
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do
    that
