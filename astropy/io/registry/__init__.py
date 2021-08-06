@@ -3,8 +3,10 @@
 Unified I/O Registry.
 """
 
-from . import compat, core
+from . import base, compat, core, interface
+from .base import *
 from .compat import *
 from .core import *
+from .interface import *
 
-__all__ = core.__all__ + compat.__all__
+__all__ = core.__all__ + interface.__all__ + compat.__all__ + base.__all__
