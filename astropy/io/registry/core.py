@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from .base import IORegistryError, UnifiedIORegistryBase
+from .base import IORegistryError, _UnifiedIORegistryBase
 
 __all__ = ['UnifiedIORegistry', 'UnifiedInputRegistry', 'UnifiedOutputRegistry']
 
@@ -16,8 +16,44 @@ PATH_TYPES = (str, os.PathLike)  # TODO! include bytes
 
 # -----------------------------------------------------------------------------
 
-class UnifiedInputRegistry(UnifiedIORegistryBase):
-    """Read-only Registry."""
+class UnifiedInputRegistry(_UnifiedIORegistryBase):
+    """Read-only Unified Registry.
+
+    .. versionadded:: 5.0
+
+    Examples
+    --------
+    First let's start by creating a read-only registry.
+
+    .. code-block:: python
+
+        >>> from astropy.io.registry import UnifiedInputRegistry
+        >>> read_reg = UnifiedInputRegistry()
+
+    There is nothing in this registry. Let's make a reader for the
+    :class:`~astropy.table.Table` class::
+
+        from astropy.table import Table
+
+        def my_table_reader(filename, some_option=1):
+            # Read in the table by any means necessary
+            return table  # should be an instance of Table
+
+    Such a function can then be registered with the I/O registry::
+
+        read_reg.register_reader('my-table-format', Table, my_table_reader)
+
+    Note that we CANNOT then read in a table with::
+
+        d = Table.read('my_table_file.mtf', format='my-table-format')
+
+    Why? because ``Table.read`` uses Astropy's default global registry and this
+    is a separate registry.
+    Instead we can read by the read method on the registry::
+
+        d = read_reg.read(Table, 'my_table_file.mtf', format='my-table-format')
+
+    """
 
     def __init__(self):
         super().__init__()  # set _identifiers
@@ -25,8 +61,24 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
         self._registries["read"] = dict(attr="_readers", column="Read")
         self._registries_order = ("read", "identify")
 
-    def get_formats(self, data_class=None, *args):
-        return super().get_formats(data_class, filter_on="Read")
+    def get_formats(self, data_class=None, filter_on="Read"):
+        """
+        Get the list of registered formats as a Table.
+
+        Parameters
+        ----------
+        data_class : class or None, optional
+            Filter readers/writer to match data class (default = all classes).
+        filter_on : str or None, optional
+            Which registry to show. E.g. "identify"
+            If None search for both.  Default is "Read".
+
+        Returns
+        -------
+        format_table : :class:`~astropy.table.Table`
+            Table of available I/O formats.
+        """
+        return super().get_formats(data_class, filter_on)
 
     # =========================================================================
     # Read methods
@@ -116,9 +168,22 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
         """
         Read in data.
 
-        The arguments passed to this method depend on the format.
-        """
+        Parameters
+        ----------
+        cls : class
+        *args
+            The arguments passed to this method depend on the format.
+        format : str or None
+        cache : bool
+            Whether to cache the results of reading in the data.
+        **kwargs
+            The arguments passed to this method depend on the format.
 
+        Returns
+        -------
+        object or None
+            The output of the registered reader.
+        """
         ctx = None
         try:
             if format is None:
@@ -170,8 +235,11 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
 
 # -----------------------------------------------------------------------------
 
-class UnifiedOutputRegistry(UnifiedIORegistryBase):
-    """Write-only Registry."""
+class UnifiedOutputRegistry(_UnifiedIORegistryBase):
+    """Write-only Registry.
+
+    .. versionadded:: 5.0
+    """
 
     def __init__(self):
         super().__init__()
@@ -179,8 +247,8 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
         self._registries["write"] = dict(attr="_writers", column="Write")
         self._registries_order = ("write", "identify", )
 
-    def get_formats(self, data_class=None, *args):
-        return super().get_formats(data_class, filter_on="Write")
+    def get_formats(self, data_class=None, filter_on="Write"):
+        return super().get_formats(data_class, filter_on)
 
     # =========================================================================
     # Write Methods
@@ -269,7 +337,22 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
         """
         Write out data.
 
-        The arguments passed to this method depend on the format.
+        Parameters
+        ----------
+        data : object
+            The data to write.
+        *args
+            The arguments passed to this method depend on the format.
+        format : str or None
+        **kwargs
+            The arguments passed to this method depend on the format.
+
+        Returns
+        -------
+        object or None
+            The output of the registered writer. Most often `None`.
+
+            .. versionadded:: 4.3
         """
 
         if format is None:
@@ -296,7 +379,10 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
 # -----------------------------------------------------------------------------
 
 class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
-    """Unified I/O Registry"""
+    """Unified I/O Registry.
+
+    .. versionadded:: 5.0
+    """
 
     def __init__(self):
         super().__init__()
@@ -304,7 +390,7 @@ class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
 
     def get_formats(self, data_class=None, readwrite=None):
         """
-        Get the list of registered I/O formats as a Table.
+        Get the list of registered I/O formats as a `~astropy.table.Table`.
 
         Parameters
         ----------
@@ -322,4 +408,4 @@ class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
         format_table : :class:`~astropy.table.Table`
             Table of available I/O formats.
         """
-        return UnifiedIORegistryBase.get_formats(self, data_class, filter_on=readwrite)
+        return super().get_formats(data_class, readwrite)

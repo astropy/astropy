@@ -19,7 +19,7 @@ class IORegistryError(Exception):
 
 # -----------------------------------------------------------------------------
 
-class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
+class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
     """Base class for registries in Astropy's Unified IO.
 
     This base class provides identification functions and miscellaneous
@@ -32,6 +32,8 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
     :class:`~astropy.io.registry.UnifiedOutputRegistry` to enable both
     reading from and writing to files.
 
+    .. versionadded:: 5.0
+
     """
 
     def __init__(self):
@@ -41,17 +43,44 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         # what this class can do: e.g. 'read' &/or 'write'
         self._registries = dict()
         self._registries["identify"] = dict(attr="_identifiers", column="Auto-identify")
-        self._registries_order = ("identify", )
+        self._registries_order = ("identify", )  # match keys in `_registries`
 
         # If multiple formats are added to one class the update of the docs is quite
         # expensive. Classes for which the doc update is temporarly delayed are added
         # to this set.
         self._delayed_docs_classes = set()
 
+    @property
+    def available_registries(self):
+        """Available registries.
+
+        Returns
+        -------
+        ``dict_keys``
+        """
+        return self._registries.keys()
+
     def get_formats(self, data_class=None, filter_on=None):
         """
-        Get the list of registered formats as a Table.
-        Method is abstract and must be overwritten by subclasses.
+        Get the list of registered formats as a `~astropy.table.Table`.
+
+        Parameters
+        ----------
+        data_class : class or None, optional
+            Filter readers/writer to match data class (default = all classes).
+        filter_on : str or None, optional
+            Which registry to show. E.g. "identify"
+            If None search for both.  Default is None.
+
+        Returns
+        -------
+        format_table : :class:`~astropy.table.Table`
+            Table of available I/O formats.
+
+        Raises
+        ------
+        ValueError
+            If ``filter_on`` is not None nor a registry name.
         """
         from astropy.table import Table
 
@@ -136,10 +165,6 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         because the documentation of the corresponding ``read`` and ``write``
         methods are build every time.
 
-        .. warning::
-            This contextmanager is experimental and may be replaced by a more
-            general approach.
-
         Examples
         --------
         see for example the source code of ``astropy.table.__init__``.
@@ -204,7 +229,6 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
             register_identifier('ipac', Table, my_identifier)
             unregister_identifier('ipac', Table)
         """
-
         if not (data_format, data_class) in self._identifiers or force:
             self._identifiers[(data_format, data_class)] = identifier
         else:
@@ -223,7 +247,6 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         data_class : class
             The class of the object that can be read/written.
         """
-
         if (data_format, data_class) in self._identifiers:
             self._identifiers.pop((data_format, data_class))
         else:
@@ -270,8 +293,9 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
     # =========================================================================
     # Utils
 
-    def _get_format_table_str(self, data_class, readwrite):
-        format_table = self.get_formats(data_class, readwrite)
+    def _get_format_table_str(self, data_class, filter_on):
+        """``get_formats()``, without column "Data class", as a str."""
+        format_table = self.get_formats(data_class, filter_on)
         format_table.remove_column('Data class')
         format_table_str = '\n'.join(format_table.pformat(max_lines=-1))
         return format_table_str

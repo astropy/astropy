@@ -24,15 +24,15 @@ import astropy.units as u
 from astropy.io import registry as io_registry
 from astropy.io.registry import (IORegistryError, UnifiedInputRegistry,
                                  UnifiedIORegistry, UnifiedOutputRegistry, compat)
+from astropy.io.registry.base import _UnifiedIORegistryBase
 from astropy.io.registry.compat import default_registry
-from astropy.io.registry.base import UnifiedIORegistryBase
 from astropy.table import Table
 
 ###############################################################################
 # pytest setup and fixtures
 
 
-class UnifiedIORegistryBaseSubClass(UnifiedIORegistryBase):
+class UnifiedIORegistryBaseSubClass(_UnifiedIORegistryBase):
     """Non-abstract subclass of UnifiedIORegistryBase for testing."""
 
     def get_formats(self, data_class=None):
@@ -348,18 +348,20 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.read.__doc__.split("\n")
-                ifmt = docs[8].index("Format") + 1
-                iread = docs[8].index("Read") + 1
+                ihd = [i for i, s in enumerate(docs)
+                       if ("Format" in s)][0]
+                ifmt = docs[ihd].index("Format") + 1
+                iread = docs[ihd].index("Read") + 1
                 # there might not actually be anything here, which is also good
-                if docs[9] != docs[10]:
-                    assert docs[10][ifmt : ifmt + 5] == "test"
-                    assert docs[10][iread : iread + 3] != "Yes"
+                if docs[-2] != docs[-1]:
+                    assert docs[-1][ifmt : ifmt + 5] == "test"
+                    assert docs[-1][iread : iread + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.read.__doc__.split("\n")
-        ifmt = docs[8].index("Format") + 2
-        iread = docs[8].index("Read") + 1
-        assert docs[10][ifmt : ifmt + 4] == "test"
-        assert docs[10][iread : iread + 3] == "Yes"
+        ifmt = docs[ihd].index("Format") + 2
+        iread = docs[ihd].index("Read") + 1
+        assert docs[-2][ifmt : ifmt + 4] == "test"
+        assert docs[-2][iread : iread + 3] == "Yes"
 
     def test_identify_read_format(self, registry):
         """Test ``registry.identify_format()``."""
@@ -729,18 +731,20 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.write.__doc__.split("\n")
-                ifmt = docs[8].index("Format")
-                iwrite = docs[8].index("Write") + 1
+                ihd = [i for i, s in enumerate(docs)
+                       if ("Format" in s)][0]
+                ifmt = docs[ihd].index("Format")
+                iwrite = docs[ihd].index("Write") + 1
                 # there might not actually be anything here, which is also good
-                if docs[9] != docs[10]:
-                    assert fmt in docs[10][ifmt : ifmt + len(fmt) + 1]
-                    assert docs[10][iwrite : iwrite + 3] != "Yes"
+                if docs[-2] != docs[-1]:
+                    assert fmt in docs[-1][ifmt : ifmt + len(fmt) + 1]
+                    assert docs[-1][iwrite : iwrite + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.write.__doc__.split("\n")
-        ifmt = docs[8].index("Format") + 1
-        iwrite = docs[8].index("Write") + 2
-        assert fmt in docs[10][ifmt : ifmt + len(fmt) + 1]
-        assert docs[10][iwrite : iwrite + 3] == "Yes"
+        ifmt = docs[ihd].index("Format") + 1
+        iwrite = docs[ihd].index("Write") + 2
+        assert fmt in docs[-2][ifmt : ifmt + len(fmt) + 1]
+        assert docs[-2][iwrite : iwrite + 3] == "Yes"
 
     @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
