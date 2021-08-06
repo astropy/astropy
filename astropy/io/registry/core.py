@@ -28,25 +28,102 @@ class IORegistryError(Exception):
 # -----------------------------------------------------------------------------
 
 class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
+    """Base class for registries in Astropy's Unified IO.
+
+    This base class provides identification functions and miscellaneous
+    utilities. For an example how to build a registry subclass we suggest
+    :class:`~astropy.io.registry.UnifiedInputRegistry`, which enables
+    read-only registries. These higher-level subclasses will probably serve
+    better as a baseclass, for instance
+    :class:`~astropy.io.registry.UnifiedIORegistry` subclasses both
+    :class:`~astropy.io.registry.UnifiedInputRegistry` and
+    :class:`~astropy.io.registry.UnifiedOutputRegistry` to enable both
+    reading from and writing to files.
+
+    """
 
     def __init__(self):
         # registry of identifier functions
         self._identifiers = OrderedDict()
 
-        # what this class can do: 'read' &/or 'write'
-        self._cando = ()
+        # what this class can do: e.g. 'read' &/or 'write'
+        self._registries = dict()
+        self._registries["identify"] = dict(attr="_identifiers", column="Auto-identify")
+        self._registries_order = ("identify", )
 
         # If multiple formats are added to one class the update of the docs is quite
         # expensive. Classes for which the doc update is temporarly delayed are added
         # to this set.
         self._delayed_docs_classes = set()
 
-    @abc.abstractmethod
-    def get_formats(self, data_class=None, *args):
+    def get_formats(self, data_class=None, filter_on=None):
         """
         Get the list of registered formats as a Table.
         Method is abstract and must be overwritten by subclasses.
         """
+        from astropy.table import Table
+
+        # set up the column names
+        colnames = (
+            "Data class", "Format",
+            *[self._registries[k]["column"] for k in self._registries_order],
+            "Deprecated")
+        i_dataclass = colnames.index("Data class")
+        i_format = colnames.index("Format")
+        i_regstart = colnames.index(self._registries[self._registries_order[0]]["column"])
+        i_deprecated = colnames.index("Deprecated")
+
+        # registries
+        regs = set()
+        for k in self._registries.keys() - {"identify"}:
+            regs |= set(getattr(self, self._registries[k]["attr"]))
+        format_classes = sorted(regs, key=itemgetter(0))
+        # the format classes from all registries except "identify"
+
+        rows = []
+        for (fmt, cls) in format_classes:
+            # see if can skip, else need to document in row
+            if (data_class is not None and not self._is_best_match(
+                data_class, cls, format_classes)):
+                continue
+
+            # flags for each registry
+            has_ = {k: "Yes" if (fmt, cls) in getattr(self, v["attr"]) else "No"
+                    for k, v in self._registries.items()}
+
+            # Check if this is a short name (e.g. 'rdb') which is deprecated in
+            # favor of the full 'ascii.rdb'.
+            ascii_format_class = ('ascii.' + fmt, cls)
+            # deprecation flag
+            deprecated = "Yes" if ascii_format_class in format_classes else ""
+
+            # add to rows
+            rows.append((cls.__name__, fmt,
+                         *[has_[n] for n in self._registries_order], deprecated))
+
+        # filter_on can be in self_registries_order or None
+        if str(filter_on).lower() in self._registries_order:
+            index = self._registries_order.index(str(filter_on).lower())
+            rows = [row for row in rows if row[i_regstart + index] == 'Yes']
+        elif filter_on is not None:
+            raise ValueError('unrecognized value for "filter_on": {0}.\n'
+                             f'Allowed are {self._registries_order} and None.')
+
+        # Sorting the list of tuples is much faster than sorting it after the
+        # table is created. (#5262)
+        if rows:
+            # Indices represent "Data Class", "Deprecated" and "Format".
+            data = list(zip(*sorted(
+                rows, key=itemgetter(i_dataclass, i_deprecated, i_format))))
+        else:
+            data = None
+
+        # make table
+        format_table = Table(data, names=colnames)
+        if not np.any(format_table['Deprecated'] == 'Yes'):
+            format_table.remove_column('Deprecated')
+
+        return format_table
 
     @contextlib.contextmanager
     def delay_doc_updates(self, cls):
@@ -80,7 +157,7 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         yield
 
         self._delayed_docs_classes.discard(cls)
-        for method in self._cando:
+        for method in self._registries.keys() - {"identify"}:
             self._update__doc__(cls, method)
 
     # =========================================================================
@@ -231,7 +308,6 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
         Returns the first valid format that can be used to read/write the data in
         question.  Mode can be either 'read' or 'write'.
         """
-
         valid_formats = self.identify_format(mode, cls, path, fileobj, args, kwargs)
 
         if len(valid_formats) == 0:
@@ -282,8 +358,8 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
 
     def _update__doc__(self, data_class, readwrite):
         """
-        Update the docstring to include all the available readers / writers for the
-        ``data_class.read`` or ``data_class.write`` functions (respectively).
+        Update the docstring to include all the available readers / writers for
+        the ``data_class.read``/``data_class.write`` functions (respectively).
         """
         FORMATS_TEXT = 'The available built-in formats are:'
 
@@ -350,59 +426,11 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
     def __init__(self):
         super().__init__()  # set _identifiers
         self._readers = OrderedDict()
-        self._cando += ("read", )
+        self._registries["read"] = dict(attr="_readers", column="Read")
+        self._registries_order = ("read", "identify")
 
     def get_formats(self, data_class=None, *args):
-        """
-        Get the list of registered input formats as a Table.
-
-        Parameters
-        ----------
-        data_class : class, optional
-            Filter readers/writer to match data class (default = all classes).
-
-        Returns
-        -------
-        format_table : :class:`~astropy.table.Table`
-            Table of available I/O formats.
-        """
-        from astropy.table import Table
-
-        format_classes = sorted(set(self._readers), key=itemgetter(0))
-        rows = []
-
-        for format_class in format_classes:
-            if (data_class is not None and not self._is_best_match(
-                    data_class, format_class[1], format_classes)):
-                continue
-
-            has_read = 'Yes' if format_class in self._readers else 'No'
-            has_identify = 'Yes' if format_class in self._identifiers else 'No'
-
-            # Check if this is a short name (e.g. 'rdb') which is deprecated in
-            # favor of the full 'ascii.rdb'.
-            ascii_format_class = ('ascii.' + format_class[0], format_class[1])
-
-            deprecated = 'Yes' if ascii_format_class in format_classes else ''
-
-            rows.append((format_class[1].__name__, format_class[0], has_read,
-                         has_identify, deprecated))
-
-        # Sorting the list of tuples is much faster than sorting it after the
-        # table is created. (#5262)
-        if rows:
-            # Indices represent "Data Class", "Deprecated" and "Format".
-            data = list(zip(*sorted(rows, key=itemgetter(0, 4, 1))))
-        else:
-            data = None
-        format_table = Table(data,
-                             names=('Data class', 'Format', 'Read',
-                                    'Auto-identify', 'Deprecated'))
-
-        if not np.any(format_table['Deprecated'] == 'Yes'):
-            format_table.remove_column('Deprecated')
-
-        return format_table
+        return super().get_formats(data_class, filter_on="Read")
 
     # =========================================================================
     # Read methods
@@ -552,59 +580,11 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
     def __init__(self):
         super().__init__()
         self._writers = OrderedDict()
-        self._cando += ("write", )
+        self._registries["write"] = dict(attr="_writers", column="Write")
+        self._registries_order = ("write", "identify", )
 
     def get_formats(self, data_class=None, *args):
-        """
-        Get the list of registered outputs formats as a Table.
-
-        Parameters
-        ----------
-        data_class : class, optional
-            Filter readers/writer to match data class (default = all classes).
-
-        Returns
-        -------
-        format_table : :class:`~astropy.table.Table`
-            Table of available I/O formats.
-        """
-        from astropy.table import Table
-
-        format_classes = sorted(set(self._writers), key=itemgetter(0))
-        rows = []
-
-        for format_class in format_classes:
-            if (data_class is not None and not self._is_best_match(
-                    data_class, format_class[1], format_classes)):
-                continue
-
-            has_write = 'Yes' if format_class in self._writers else 'No'
-            has_identify = 'Yes' if format_class in self._identifiers else 'No'
-
-            # Check if this is a short name (e.g. 'rdb') which is deprecated in
-            # favor of the full 'ascii.rdb'.
-            ascii_format_class = ('ascii.' + format_class[0], format_class[1])
-
-            deprecated = 'Yes' if ascii_format_class in format_classes else ''
-
-            rows.append((format_class[1].__name__, format_class[0],
-                         has_write, has_identify, deprecated))
-
-        # Sorting the list of tuples is much faster than sorting it after the
-        # table is created. (#5262)
-        if rows:
-            # Indices represent "Data Class", "Deprecated" and "Format".
-            data = list(zip(*sorted(rows, key=itemgetter(0, 4, 1))))
-        else:
-            data = None
-        format_table = Table(data,
-                             names=('Data class', 'Format', 'Write',
-                                    'Auto-identify', 'Deprecated'))
-
-        if not np.any(format_table['Deprecated'] == 'Yes'):
-            format_table.remove_column('Deprecated')
-
-        return format_table
+        return super().get_formats(data_class, filter_on="Write")
 
     # =========================================================================
     # Write Methods
@@ -722,6 +702,10 @@ class UnifiedOutputRegistry(UnifiedIORegistryBase):
 class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
     """Unified I/O Registry"""
 
+    def __init__(self):
+        super().__init__()
+        self._registries_order = ("read", "write", "identify")
+
     def get_formats(self, data_class=None, readwrite=None):
         """
         Get the list of registered I/O formats as a Table.
@@ -742,53 +726,7 @@ class UnifiedIORegistry(UnifiedInputRegistry, UnifiedOutputRegistry):
         format_table : :class:`~astropy.table.Table`
             Table of available I/O formats.
         """
-        from astropy.table import Table
-
-        format_classes = sorted(set(self._readers) | set(self._writers), key=itemgetter(0))
-        rows = []
-
-        for format_class in format_classes:
-            if (data_class is not None and not self._is_best_match(
-                    data_class, format_class[1], format_classes)):
-                continue
-
-            has_read = 'Yes' if format_class in self._readers else 'No'
-            has_write = 'Yes' if format_class in self._writers else 'No'
-            has_identify = 'Yes' if format_class in self._identifiers else 'No'
-
-            # Check if this is a short name (e.g. 'rdb') which is deprecated in
-            # favor of the full 'ascii.rdb'.
-            ascii_format_class = ('ascii.' + format_class[0], format_class[1])
-
-            deprecated = 'Yes' if ascii_format_class in format_classes else ''
-
-            rows.append((format_class[1].__name__, format_class[0], has_read,
-                         has_write, has_identify, deprecated))
-
-        if readwrite is not None:
-            if readwrite == 'Read':
-                rows = [row for row in rows if row[2] == 'Yes']
-            elif readwrite == 'Write':
-                rows = [row for row in rows if row[3] == 'Yes']
-            else:
-                raise ValueError('unrecognized value for "readwrite": {0}.\n'
-                                 'Allowed are "Read" and "Write" and None.')
-
-        # Sorting the list of tuples is much faster than sorting it after the
-        # table is created. (#5262)
-        if rows:
-            # Indices represent "Data Class", "Deprecated" and "Format".
-            data = list(zip(*sorted(rows, key=itemgetter(0, 5, 1))))
-        else:
-            data = None
-        format_table = Table(data,
-                             names=('Data class', 'Format', 'Read', 'Write',
-                                    'Auto-identify', 'Deprecated'))
-
-        if not np.any(format_table['Deprecated'] == 'Yes'):
-            format_table.remove_column('Deprecated')
-
-        return format_table
+        return UnifiedIORegistryBase.get_formats(self, data_class, filter_on=readwrite)
 
 
 # -----------------------------------------------------------------------------
