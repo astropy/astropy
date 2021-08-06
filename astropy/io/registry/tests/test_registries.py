@@ -25,7 +25,7 @@ from astropy.io import registry as io_registry
 from astropy.io.registry import (IORegistryError, UnifiedInputRegistry,
                                  UnifiedIORegistry, UnifiedOutputRegistry, compat)
 from astropy.io.registry.compat import default_registry
-from astropy.io.registry.core import UnifiedIORegistryBase
+from astropy.io.registry.base import UnifiedIORegistryBase
 from astropy.table import Table
 
 ###############################################################################
