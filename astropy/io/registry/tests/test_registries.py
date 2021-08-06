@@ -63,7 +63,7 @@ def empty_reader(*args, **kwargs):
 
 
 def empty_writer(table, *args, **kwargs):
-    pass
+    return "status: success"
 
 
 def empty_identifier(*args, **kwargs):
@@ -125,13 +125,13 @@ class TestUnifiedIORegistryBase:
 
         # copy and clear original registry
         ORIGINAL = {}
-        ORIGINAL["identifiers"] = copy(registry._identifiers)
+        ORIGINAL["identifiers"] = deepcopy(registry._identifiers)
         registry._identifiers.clear()
         if HAS_READERS:
-            ORIGINAL["readers"] = copy(registry._readers)
+            ORIGINAL["readers"] = deepcopy(registry._readers)
             registry._readers.clear()
         if HAS_WRITERS:
-            ORIGINAL["writers"] = copy(registry._writers)
+            ORIGINAL["writers"] = deepcopy(registry._writers)
             registry._writers.clear()
 
         yield registry
@@ -188,6 +188,8 @@ class TestUnifiedIORegistryBase:
         registry.register_identifier(*fmtcls1, empty_identifier, force=True)
         assert fmtcls1 in registry._identifiers
 
+    # -----------------------
+
     def test_unregister_identifier(self, registry, fmtcls1):
         """Test ``registry.unregister_identifier()``."""
         registry.register_identifier(*fmtcls1, empty_identifier)
@@ -206,18 +208,19 @@ class TestUnifiedIORegistryBase:
             f"and class '{cls.__name__}'"
         )
 
-    def test_identify_format(self, registry):
+    def test_identify_format(self, registry, fmtcls1):
         """Test ``registry.identify_format()``."""
-        args = (None, EmptyData, None, None, (None,), dict())
+        fmt, cls = fmtcls1
+        args = (None, cls, None, None, (None,), {})
 
         # test no formats to identify
         formats = registry.identify_format(*args)
         assert formats == []
 
         # test there is a format to identify
-        registry.register_identifier("test", EmptyData, empty_identifier)
+        registry.register_identifier(fmt, cls, empty_identifier)
         formats = registry.identify_format(*args)
-        assert "test" in formats
+        assert fmt in formats
 
     # ===========================================
     # Compat tests
@@ -240,13 +243,41 @@ class TestUnifiedIORegistryBase:
             finally:
                 default_registry._identifiers.pop(fmtcls1)
 
-    @pytest.mark.skip("TODO!")
     def test_compat_unregister_identifier(self, registry, fmtcls1):
-        assert False
+        # with registry specified
+        registry.register_identifier(*fmtcls1, empty_identifier)
+        assert fmtcls1 in registry._identifiers
+        compat.unregister_identifier(*fmtcls1, registry=registry)
+        assert fmtcls1 not in registry._identifiers
 
-    @pytest.mark.skip("TODO!")
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._identifiers
+            default_registry.register_identifier(*fmtcls1, empty_identifier)
+            assert fmtcls1 in default_registry._identifiers
+            compat.unregister_identifier(*fmtcls1)
+            assert fmtcls1 not in registry._identifiers
+
     def test_compat_identify_format(self, registry, fmtcls1):
-        assert False
+        fmt, cls = fmtcls1
+        args = (None, cls, None, None, (None,), dict())
+
+        # with registry specified
+        registry.register_identifier(*fmtcls1, empty_identifier)
+        formats = compat.identify_format(*args, registry=registry)
+        assert fmt in formats
+
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            try:
+                default_registry.register_identifier(*fmtcls1, empty_identifier)
+            except Exception:
+                pass
+            else:
+                formats = compat.identify_format(*args)
+                assert fmt in formats
+            finally:
+                default_registry.unregister_identifier(*fmtcls1)
 
     @pytest.mark.skip("TODO!")
     def test_compat_get_formats(self, registry, fmtcls1):
@@ -409,12 +440,11 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_get_reader(self, registry, fmtcls):
+    def test_get_reader(self, registry, fmtcls, recwarn):
         """Test ``registry.get_reader()``."""
         fmt, cls = fmtcls
         with pytest.raises(IORegistryError):
-            with pytest.warns(FutureWarning):
-                registry.get_reader(fmt, cls)
+            registry.get_reader(fmt, cls)
 
         registry.register_reader(fmt, cls, empty_reader)
         reader = registry.get_reader(fmt, cls)
@@ -431,23 +461,23 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_read_noformat(self, registry):
+    def test_read_noformat(self, registry, fmtcls1):
         """Test ``registry.read()`` when there isn't a reader."""
         with pytest.raises(IORegistryError) as exc:
             with pytest.warns(FutureWarning):
-                EmptyData.read(registry=registry)
+                fmtcls1[1].read(registry=registry)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
             "please provide a 'format' argument."
         )
 
-    def test_read_noformat_arbitrary(self, registry, original):
+    def test_read_noformat_arbitrary(self, registry, original, fmtcls1):
         """Test that all identifier functions can accept arbitrary input"""
         registry._identifiers.update(original["identifiers"])
         with pytest.raises(IORegistryError) as exc:
             with pytest.warns(FutureWarning):
-                EmptyData.read(object(), registry=registry)
+                fmtcls1[1].read(object(), registry=registry)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
@@ -545,7 +575,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     def test_read_valid_return(self, registry, fmtcls):
         fmt, cls = fmtcls
-        registry.register_reader(fmt, cls, lambda: cls())
+        registry.register_reader(fmt, cls, empty_reader)
         t = cls.read(format=fmt, registry=registry)
         assert isinstance(t, cls)
 
@@ -555,48 +585,92 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         with pytest.raises(OSError):
             data = fmtcls1[1].read("non-existing-file-with-unknown.ext")
 
-    def test_read_directory(self, tmpdir, registry):
+    def test_read_directory(self, tmpdir, registry, fmtcls1):
         """
         Regression test for a bug that caused the I/O registry infrastructure to
         not work correctly for datasets that are represented by folders as
         opposed to files, when using the descriptors to add read/write methods.
         """
-
+        _, cls = fmtcls1
         registry.register_identifier(
-            "test_folder_format", EmptyData, lambda o, *x, **y: o == "read"
+            "test_folder_format", cls, lambda o, *x, **y: o == "read"
         )
-        registry.register_reader("test_folder_format", EmptyData, empty_reader)
+        registry.register_reader("test_folder_format", cls, empty_reader)
 
         filename = tmpdir.mkdir("folder_dataset").strpath
 
         # With the format explicitly specified
-        dataset = EmptyData.read(
-            filename, format="test_folder_format", registry=registry
-        )
-        assert isinstance(dataset, EmptyData)
+        dataset = cls.read(filename, format="test_folder_format", registry=registry)
+        assert isinstance(dataset, cls)
 
         # With the auto-format identification
-        dataset = EmptyData.read(filename, registry=registry)
-        assert isinstance(dataset, EmptyData)
+        dataset = cls.read(filename, registry=registry)
+        assert isinstance(dataset, cls)
 
     # ===========================================
     # Compat tests
 
-    @pytest.mark.skip("TODO!")
     def test_compat_register_reader(self, registry, fmtcls1):
-        assert False
+        # with registry specified
+        assert fmtcls1 not in registry._readers
+        compat.register_reader(*fmtcls1, empty_reader, registry=registry)
+        assert fmtcls1 in registry._readers
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_unregister_reader(self, registry, fmtcls1):
-        assert False
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._readers
+            try:
+                compat.register_reader(*fmtcls1, empty_identifier)
+            except Exception:
+                pass
+            else:
+                assert fmtcls1 in default_registry._readers
+            finally:
+                default_registry._readers.pop(fmtcls1)
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_get_reader(self, registry, fmtcls1):
-        assert False
+    def test_compat_unregister_reader(self, registry, fmtcls1, recwarn):
+        # with registry specified
+        registry.register_reader(*fmtcls1, empty_reader)
+        assert fmtcls1 in registry._readers
+        compat.unregister_reader(*fmtcls1, registry=registry)
+        assert fmtcls1 not in registry._readers
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_read(self, registry, fmtcls1):
-        assert False
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._readers
+            default_registry.register_reader(*fmtcls1, empty_reader)
+            assert fmtcls1 in default_registry._readers
+            compat.unregister_reader(*fmtcls1)
+            assert fmtcls1 not in registry._readers
+
+    def test_compat_get_reader(self, registry, fmtcls1, recwarn):
+        # with registry specified
+        registry.register_reader(*fmtcls1, empty_reader)
+        reader = compat.get_reader(*fmtcls1, registry=registry)
+        assert reader is empty_reader
+        registry.unregister_reader(*fmtcls1)
+
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            default_registry.register_reader(*fmtcls1, empty_reader)
+            reader = compat.get_reader(*fmtcls1)
+            assert reader is empty_reader
+            default_registry.unregister_reader(*fmtcls1)
+
+    def test_compat_read(self, registry, fmtcls1, recwarn):
+        fmt, cls = fmtcls1
+        # with registry specified
+        registry.register_reader(*fmtcls1, empty_reader)
+        t = compat.read(cls, format=fmt, registry=registry)
+        assert isinstance(t, cls)
+        registry.unregister_reader(*fmtcls1)
+
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            default_registry.register_reader(*fmtcls1, empty_reader)
+            t = compat.read(cls, format=fmt)
+            assert isinstance(t, cls)
+            default_registry.unregister_reader(*fmtcls1)
 
 
 class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
@@ -645,26 +719,27 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         tests are run simultaneously.
         """
         super().test_delay_doc_updates(registry, fmtcls1, recwarn)
+        fmt, cls = fmtcls1
 
         with registry.delay_doc_updates(EmptyData):
-            registry.register_writer("test", EmptyData, empty_writer)
+            registry.register_writer(*fmtcls1, empty_writer)
 
             # test that the doc has not yet been updated.
             # if a the format was registered in a different way, then
             # test that this method is not present.
             if "Format" in EmptyData.read.__doc__:
                 docs = EmptyData.write.__doc__.split("\n")
-                ifmt = docs[8].index("Format") + 1
+                ifmt = docs[8].index("Format")
                 iwrite = docs[8].index("Write") + 1
                 # there might not actually be anything here, which is also good
                 if docs[9] != docs[10]:
-                    assert docs[10][ifmt : ifmt + 5] == "test"
+                    assert fmt in docs[10][ifmt : ifmt + len(fmt) + 1]
                     assert docs[10][iwrite : iwrite + 3] != "Yes"
         # now test it's updated
         docs = EmptyData.write.__doc__.split("\n")
-        ifmt = docs[8].index("Format") + 2
+        ifmt = docs[8].index("Format") + 1
         iwrite = docs[8].index("Write") + 2
-        assert docs[10][ifmt : ifmt + 4] == "test"
+        assert fmt in docs[10][ifmt : ifmt + len(fmt) + 1]
         assert docs[10][iwrite : iwrite + 3] == "Yes"
 
     @pytest.mark.skip("TODO!")
@@ -672,9 +747,10 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         """Test ``registry.get_formats()``."""
         assert False
 
-    def test_identify_write_format(self, registry):
+    def test_identify_write_format(self, registry, fmtcls1):
         """Test ``registry.identify_format()``."""
-        args = ("write", EmptyData, None, None, (None,), dict())
+        fmt, cls = fmtcls1
+        args = ("write", cls, None, None, (None,), {})
 
         # test there is no format to identify
         formats = registry.identify_format(*args)
@@ -682,9 +758,9 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
         # test there is a format to identify
         # doesn't actually matter if register a writer, it returns True for all
-        registry.register_identifier("test", EmptyData, empty_identifier)
+        registry.register_identifier(fmt, cls, empty_identifier)
         formats = registry.identify_format(*args)
-        assert "test" in formats
+        assert fmt in formats
 
     # -----------------------
 
@@ -739,13 +815,13 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_get_writer(self, registry, recwarn):
+    def test_get_writer(self, registry, fmtcls1, recwarn):
         """Test ``registry.get_writer()``."""
         with pytest.raises(IORegistryError):
-            registry.get_writer("test", EmptyData)
+            registry.get_writer(*fmtcls1)
 
-        registry.register_writer("test", EmptyData, empty_writer)
-        writer = registry.get_writer("test", EmptyData)
+        registry.register_writer(*fmtcls1, empty_writer)
+        writer = registry.get_writer(*fmtcls1)
         assert writer is empty_writer
 
     def test_get_writer_invalid(self, registry, fmtcls1, recwarn):
@@ -759,23 +835,22 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_write_noformat(self):
+    def test_write_noformat(self, registry, fmtcls1, recwarn):
         """Test ``registry.write()`` when there isn't a writer."""
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                EmptyData().write()
+            fmtcls1[1]().write(registry=registry)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
             "please provide a 'format' argument."
         )
 
-    def test_write_noformat_arbitrary(self, registry, original):
+    def test_write_noformat_arbitrary(self, registry, original, fmtcls1, recwarn):
         """Test that all identifier functions can accept arbitrary input"""
+
         registry._identifiers.update(original["identifiers"])
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                EmptyData().write(object())
+            fmtcls1[1]().write(object(), registry=registry)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
@@ -824,11 +899,10 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         assert counter[fmt2] == 1
         assert counter[fmt1] == 0
 
-    def test_write_format_nowriter(self, registry, fmtcls1):
+    def test_write_format_nowriter(self, registry, fmtcls1, recwarn):
         fmt, cls = fmtcls1
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                cls().write(format=fmt, registry=registry)
+            cls().write(format=fmt, registry=registry)
         assert str(exc.value).startswith(
             f"No writer defined for format '{fmt}' and class '{cls.__name__}'"
         )
@@ -843,7 +917,6 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         # Now check that we got past the identifier and are trying to get
         # the reader. The registry.get_writer will fail but the error message
         # will tell us if the identifier worked.
-
         with pytest.raises(IORegistryError) as exc:
             cls().write("abc", registry=registry)
         assert str(exc.value).startswith(
@@ -859,28 +932,81 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
     def test_write_return(self, registry, fmtcls1):
         """Most writers will return None, but other values are not forbidden."""
         fmt, cls = fmtcls1
-        registry.register_writer(fmt, cls, lambda *args: True)
+        registry.register_writer(fmt, cls, empty_writer)
         res = cls.write(cls(), format=fmt, registry=registry)
-        assert res is True
+        assert res == "status: success"
 
     # ===========================================
     # Compat tests
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_register_writer(self, registry, fmtcls1):
-        assert False
+    def test_compat_register_writer(self, registry, fmtcls1, recwarn):
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_unregister_writer(self, registry, fmtcls1):
-        assert False
+        # with registry specified
+        assert fmtcls1 not in registry._writers
+        compat.register_writer(*fmtcls1, empty_writer, registry=registry)
+        assert fmtcls1 in registry._writers
+        registry.unregister_writer(*fmtcls1)
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_get_writer(self, registry, fmtcls1):
-        assert False
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._writers
+            try:
+                compat.register_writer(*fmtcls1, empty_writer)
+            except Exception:
+                pass
+            else:
+                assert fmtcls1 in default_registry._writers
+            finally:
+                default_registry._writers.pop(fmtcls1)
 
-    @pytest.mark.skip("TODO!")
-    def test_compat_write(self, registry, fmtcls1):
-        assert False
+    def test_compat_unregister_writer(self, registry, fmtcls1, recwarn):
+        # with registry specified
+        registry.register_writer(*fmtcls1, empty_writer)
+        assert fmtcls1 in registry._writers
+        compat.unregister_writer(*fmtcls1, registry=registry)
+        assert fmtcls1 not in registry._writers
+
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._writers
+            default_registry.register_writer(*fmtcls1, empty_writer)
+            assert fmtcls1 in default_registry._writers
+            compat.unregister_writer(*fmtcls1)
+            assert fmtcls1 not in default_registry._writers
+
+    def test_compat_get_writer(self, registry, fmtcls1, recwarn):
+        # with registry specified
+        registry.register_writer(*fmtcls1, empty_writer)
+        writer = compat.get_writer(*fmtcls1, registry=registry)
+        assert writer is empty_writer
+
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._writers
+            default_registry.register_writer(*fmtcls1, empty_writer)
+            assert fmtcls1 in default_registry._writers
+            writer = compat.get_writer(*fmtcls1)
+            assert writer is empty_writer
+            default_registry.unregister_writer(*fmtcls1)
+            assert fmtcls1 not in default_registry._writers
+
+    def test_compat_write(self, registry, fmtcls1, recwarn):
+        fmt, cls = fmtcls1
+
+        # with registry specified
+        registry.register_writer(*fmtcls1, empty_writer)
+        res = compat.write(cls(), format=fmt, registry=registry)
+        assert res == "status: success"
+
+        # without registry specified it becomes default_registry
+        if registry is not default_registry:
+            assert fmtcls1 not in default_registry._writers
+            default_registry.register_writer(*fmtcls1, empty_writer)
+            assert fmtcls1 in default_registry._writers
+            res = compat.write(cls(), format=fmt)
+            assert res == "status: success"
+            default_registry.unregister_writer(*fmtcls1)
+            assert fmtcls1 not in default_registry._writers
 
 
 class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry):

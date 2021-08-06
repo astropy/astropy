@@ -345,6 +345,7 @@ class UnifiedIORegistryBase(metaclass=abc.ABCMeta):
 # -----------------------------------------------------------------------------
 
 class UnifiedInputRegistry(UnifiedIORegistryBase):
+    """Read-only Registry."""
 
     def __init__(self):
         super().__init__()  # set _identifiers
@@ -546,6 +547,7 @@ class UnifiedInputRegistry(UnifiedIORegistryBase):
 # -----------------------------------------------------------------------------
 
 class UnifiedOutputRegistry(UnifiedIORegistryBase):
+    """Write-only Registry."""
 
     def __init__(self):
         super().__init__()
