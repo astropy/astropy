@@ -61,25 +61,6 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         self._registries["read"] = dict(attr="_readers", column="Read")
         self._registries_order = ("read", "identify")
 
-    def get_formats(self, data_class=None, filter_on="Read"):
-        """
-        Get the list of registered formats as a Table.
-
-        Parameters
-        ----------
-        data_class : class or None, optional
-            Filter readers/writer to match data class (default = all classes).
-        filter_on : str or None, optional
-            Which registry to show. E.g. "identify"
-            If None search for both.  Default is "Read".
-
-        Returns
-        -------
-        format_table : :class:`~astropy.table.Table`
-            Table of available I/O formats.
-        """
-        return super().get_formats(data_class, filter_on)
-
     # =========================================================================
     # Read methods
 
@@ -246,9 +227,6 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
         self._writers = OrderedDict()
         self._registries["write"] = dict(attr="_writers", column="Write")
         self._registries_order = ("write", "identify", )
-
-    def get_formats(self, data_class=None, filter_on="Write"):
-        return super().get_formats(data_class, filter_on)
 
     # =========================================================================
     # Write Methods
