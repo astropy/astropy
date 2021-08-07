@@ -32,7 +32,9 @@ class UnifiedReadWrite:
     cls : type
         Descriptor calling class (either owner class or instance class)
     method_name : str
-        Method name, either 'read' or 'write'
+        Method name, e.g. 'read' or 'write'
+    registry : ``_UnifiedIORegistryBase`` or None, optional
+        The IO registry.
     """
     def __init__(self, instance, cls, method_name, registry=None):
         if registry is None:
@@ -60,7 +62,7 @@ class UnifiedReadWrite:
         cls = self._cls
         method_name = self._method_name
 
-        # Get reader or writer function
+        # Get reader or writer function associated with the registry
         get_func = (self._registry.get_reader if method_name == 'read'
                     else self._registry.get_writer)
         try:
