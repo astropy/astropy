@@ -648,13 +648,20 @@ class CdsHeader(core.BaseHeader):
             # If the whole column is a `Time` or if it contains `Time` values,
             # convert values to Modified Julian Dates.
             elif isinstance(col, Time) or isinstance(col[0], Time):
+                # If column already has a description, then append to it.
+                name, description = 'MJD', 'Modified Julian Date'
+                if isinstance(col, Column):
+                    if col.description is not None:
+                        description = col.description + ' (Modified Julian Date)'
+                    if col.name is not None:
+                        name = col.name
                 try:
                     self.cols[i] = Column([tval.mjd for tval in col],
-                                        name = 'MJD',
-                                        unit = u.day,
-                                        description = 'Modified Julian Date',
-                                        format = '.12f')
-                except (AttributeError):
+                                            name = name,
+                                            unit = u.day,
+                                            description = description,
+                                            format = '.12f')
+                except AttributeError:
                     # If only the first value of the column is a ``Time`` object,
                     # not all column values can be converted to Modified Julian Dates.
                     # Such columns are to ``Column`` objects with string values.
