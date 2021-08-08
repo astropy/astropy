@@ -558,6 +558,7 @@ class CdsHeader(core.BaseHeader):
         also contains the Byte-By-Byte description of the table.
         """
         from astropy.coordinates import SkyCoord
+        from astropy.time import Time
 
         # list to store indices of columns that are modified.
         to_pop = []
@@ -647,9 +648,17 @@ class CdsHeader(core.BaseHeader):
 
                 to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
+            # Convert all `Time` values to Julian Date value.
+            elif isinstance(col, Column):
+                if isinstance(col[0], Time):
+                    self.cols[i] = Column([tval.jd for tval in col],
+                                          name = 'Time',
+                                          )
+
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
-            elif not isinstance(col, Column):
+            #elif not isinstance(col, Column):
+            else:
                 col = Column(col)
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
