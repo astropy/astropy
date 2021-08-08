@@ -660,10 +660,10 @@ class CdsHeader(core.BaseHeader):
                         name = col.name
                 try:
                     self.cols[i] = Column([tval.mjd for tval in col],
-                                            name = name,
-                                            unit = u.day,
-                                            description = description,
-                                            format = '.12f')
+                                           name = name,
+                                           unit = u.day,
+                                           description = description,
+                                           format = '.12f')
                 except AttributeError:
                     # If only the first value of the column is a ``Time`` object,
                     # not all column values can be converted to Modified Julian Dates.
