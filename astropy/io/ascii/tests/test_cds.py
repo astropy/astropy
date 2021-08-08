@@ -423,16 +423,16 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
-  1-  7  A7     ---    name    Description of name   
-  9- 74  A66    ---    Unknown Description of Unknown
- 76-114  A39    ---    Unknown Description of Unknown
-116-138  A23    ---    Unknown Description of Unknown
+  1-  7  A7     ---    name    Description of name                   
+  9- 74  A66    ---    Unknown Description of Unknown                
+ 76-114  A39    ---    Unknown Description of Unknown                
+116-133  F18.12 d      MJD     [58484.0/58484.0] Modified Julian Date
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
 HD81809 <SkyCoord (ICRS): (ra, dec) in deg
-    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
-random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  2019-01-01 00:00:00.000
+    (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  58484.000000000000
+random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  58484.000000000000
 ''' # noqa: W291
     t = Table()
     t['name'] = ['HD81809']
@@ -491,3 +491,90 @@ HD81809 330.564 -61.6596 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
         lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
         # Check the written table.
         assert lines == exp_output.splitlines()
+
+
+def test_write_time_cols():
+    """
+    Tests conversion of columns that are `Time` object or that
+    have these objects as values. It also tests for cases with
+    multiple `Time` column and for columns that do/do-not have
+    predefined column name and description.
+    """
+    exp_output = '''\
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1-11  A11    ---    Name    Description of Name
+13-30  F18.12 d      time    [58484.97/58486.98] Modified Julian Date
+32-49  F18.12 d      col2    [58484.97/58486.98] Time of Observation (Modified
+                            Julian Date)
+51-68  F18.12 d      MJD     [48136.51/48136.52] Modified Julian Date
+--------------------------------------------------------------------------------
+Notes:
+--------------------------------------------------------------------------------
+ASASSN-15lh 58484.974448432251 58484.974448432251 48136.516043118841
+ASASSN-15lh 58486.974448432251 58486.974448432251 48136.516043118841
+''' # noqa: W291
+    from astropy.time import Time
+    from astropy.timeseries import TimeSeries
+    t = Table()
+    t['Name'] = ['ASASSN-15lh']*2
+    ts = TimeSeries(time_start=Time('2019-1-1 23:23:12.34454657134'),
+                    time_delta=2*u.day,
+                    n_samples=2)
+    t['time'] = Column(ts.time)
+    t.add_column(Column(ts.time, description='Time of Observation'))
+    t['obs'] = Time('1990-9-2 12:23:6.125468')
+    out = StringIO()
+    t.write(out, format='ascii.cds')
+    lines = out.getvalue().splitlines()
+    i_secs = [i for i, s in enumerate(lines)
+                if s.startswith(('------', '======='))]
+    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+    # Check the written table.
+    assert lines == exp_output.splitlines()
+
+
+def test_write_broken_time_cols():
+    """
+    To check what happens when the time column is broken, i.e. when
+    they contain some values that are not `Time` values. These columns
+    are created as any other mix-in column and all their values are
+    converted to strings.
+    """
+    exp_output = '''\
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1-11  A11    ---    Name    Description of Name                     
+13-35  A23    ---    Unknown Description of Unknown                  
+37-54  F18.12 d      MJD     [48136.51/48136.52] Modified Julian Date
+--------------------------------------------------------------------------------
+Notes:
+--------------------------------------------------------------------------------
+ASASSN-15lh 2019-01-01 23:23:12.345 48136.516043118841
+ASASSN-15lh 2019-01-03 23:23:12.345 48136.516043118841
+random      44                      48136.516043118841
+''' # noqa: W291
+    from astropy.time import Time
+    from astropy.timeseries import TimeSeries
+    t = Table()
+    t['Name'] = ['ASASSN-15lh']*2
+    ts = TimeSeries(time_start=Time('2019-1-1 23:23:12.34454657134'),
+                    time_delta=2*u.day,
+                    n_samples=2)
+    t['time'] = Column(ts.time)
+    t.add_row(['random', 44])
+    t['obs'] = Time('1990-9-2 12:23:6.125468')
+    out = StringIO()
+    t.write(out, format='ascii.cds')
+    lines = out.getvalue().splitlines()
+    i_secs = [i for i, s in enumerate(lines)
+                if s.startswith(('------', '======='))]
+    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+    # Check the written table.
+    assert lines == exp_output.splitlines()
