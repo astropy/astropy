@@ -648,17 +648,18 @@ class CdsHeader(core.BaseHeader):
 
                 to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
-            # Convert all `Time` values to Julian Date value.
-            elif isinstance(col, Column):
-                if isinstance(col[0], Time):
-                    self.cols[i] = Column([tval.jd for tval in col],
-                                          name = 'Time',
-                                          )
+            # If the whole column is a `Time` or if it contains `Time` values,
+            # convert all `Time` values to Modified Julian Dates.
+            elif isinstance(col, Time) or isinstance(col[0], Time):
+                self.cols[i] = Column([tval.mjd for tval in col],
+                                        name = 'MJD',
+                                        unit = u.day,
+                                        description = 'Modified Julian Date',
+                                        format = '.12f')
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
-            #elif not isinstance(col, Column):
-            else:
+            elif not isinstance(col, Column):
                 col = Column(col)
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
