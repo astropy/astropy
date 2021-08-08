@@ -1897,8 +1897,21 @@ class TestPandas:
         assert np.allclose(t2['dt'].value, [0, 2, 4, 6])
         assert t2['dt'].format == 'sec'
 
-    def test_to_pandas_index(self):
+    @pytest.mark.parametrize('use_IndexedTable', [False, True])
+    def test_to_pandas_index(self, use_IndexedTable):
+        """Test to_pandas() with different indexing options.
+
+        This also tests the fix for #12014. The exception seen there is
+        reproduced here without the fix.
+        """
         import pandas as pd
+
+        class IndexedTable(table.QTable):
+            """Always index the first column"""
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.add_index(self.colnames[0])
+
         row_index = pd.RangeIndex(0, 2, 1)
         tm_index = pd.DatetimeIndex(['1998-01-01', '2002-01-01'],
                                     dtype='datetime64[ns]',
@@ -1906,14 +1919,16 @@ class TestPandas:
 
         tm = Time([1998, 2002], format='jyear')
         x = [1, 2]
-        t = table.QTable([tm, x], names=['tm', 'x'])
+        table_cls = IndexedTable if use_IndexedTable else table.QTable
+        t = table_cls([tm, x], names=['tm', 'x'])
         tp = t.to_pandas()
-        assert np.all(tp.index == row_index)
 
-        tp = t.to_pandas(index='tm')
-        assert np.all(tp.index == tm_index)
+        if not use_IndexedTable:
+            assert np.all(tp.index == row_index)
+            tp = t.to_pandas(index='tm')
+            assert np.all(tp.index == tm_index)
+            t.add_index('tm')
 
-        t.add_index('tm')
         tp = t.to_pandas()
         assert np.all(tp.index == tm_index)
         # Make sure writing to pandas didn't hack the original table

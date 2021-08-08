@@ -3618,6 +3618,11 @@ class Table:
                     new_cols.append(new_col)
                 tbl = tbl.__class__(new_cols, copy=False)
 
+                # Certain subclasses (e.g. TimeSeries) may generate new indices on
+                # table creation, so make sure there are no indices on the table.
+                for col in tbl.itercols():
+                    col.info.indices.clear()
+
                 for col in time_cols:
                     if isinstance(col, TimeDelta):
                         # Convert to nanoseconds (matches astropy datetime64 support)
