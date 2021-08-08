@@ -1105,24 +1105,25 @@ int ffgstm( char *timestr,   /* O  - returned system date and time string  */
 */
 {
     time_t tp;
+    struct tm now;
     struct tm *ptr;
 
-    if (*status > 0)           /* inherit input status value if > 0 */
+    if (*status > 0)            /* inherit input status value if > 0 */
         return(*status);
 
     time(&tp);
-    ptr = gmtime(&tp);         /* get GMT (= UTC) time */
+    ptr = gmtime_r(&tp, &now);  /* get GMT (= UTC) time */
 
     if (timeref)
     {
         if (ptr)
-            *timeref = 0;   /* returning GMT */
+            *timeref = 0;      /* returning GMT */
         else
-            *timeref = 1;   /* returning local time */
+            *timeref = 1;      /* returning local time */
     }
 
     if (!ptr)                  /* GMT not available on this machine */
-        ptr = localtime(&tp); 
+        ptr = localtime_r(&tp, &now); 
 
     strftime(timestr, 25, "%Y-%m-%dT%H:%M:%S", ptr);
 
@@ -1516,19 +1517,20 @@ int ffgsdt( int *day, int *month, int *year, int *status )
 
 */
    time_t now;
-   struct tm *date;
+   struct tm date;
+   struct tm *ptr;
 
    now = time( NULL );
-   date = gmtime(&now);         /* get GMT (= UTC) time */
+   ptr = gmtime_r(&now, &date);   /* get GMT (= UTC) time */
 
-   if (!date)                  /* GMT not available on this machine */
+   if (!ptr)                     /* GMT not available on this machine */
    {
-       date = localtime(&now); 
+       ptr = localtime_r(&now, &date); 
    }
 
-   *day = date->tm_mday;
-   *month = date->tm_mon + 1;
-   *year = date->tm_year + 1900;  /* tm_year is defined as years since 1900 */
+   *day = date.tm_mday;
+   *month = date.tm_mon + 1;
+   *year = date.tm_year + 1900;  /* tm_year is defined as years since 1900 */
    return( *status );
 }
 /*--------------------------------------------------------------------------*/
