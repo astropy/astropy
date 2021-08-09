@@ -287,15 +287,35 @@ has masked values.
   >>> table['Flux'] = MaskedColumn(table['Flux'], mask=[True, False])
   >>> table['magnitude'] = [u.Magnitude(25), u.Magnitude(-9)]
 
-Note that for columns with `~astropy.time.Time`, `~astropy.time.TimeDelta` and related values,
-the writer does not do any internal conversion or modification. These columns should be
-converted to regular columns with proper ``unit`` and ``name`` attribute before writing
-the table. Thus::
+For columns with `~astropy.time.Time` values and for columns that are thus, the values are
+converted to Modified Julian Dates (MJD) with a precision of 12 digits after decimal.
+If whole column is a ``Time`` object, the column
+label and description are set to *MJD* and *Modified Julian Date* respectively. Otherwise,
+only the description is appended to. Note that for columns with `~astropy.time.TimeDelta` and
+other related values, the writer does not do any internal conversion or modification. These
+columns should be converted to regular columns with proper ``unit`` and ``name`` attribute
+before writing the table. Manual intervention is also necessary when time values other than
+MDJ are required. Thus::
 
   >>> from astropy.time import Time, TimeDelta
   >>> from astropy.timeseries import TimeSeries
+<<<<<<< main
   >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
   >>> table['Obs'] = Column(ts.time.decimalyear, description='Time of Observation')
+=======
+  >>> ts = TimeSeries(time_start=Time('2019-1-1 23:23:12.34454657134'),
+  ...                 time_delta=2*u.day,
+  ...                 n_samples=2)
+  >>> table['Obs0'] = Column(ts.time.decimalyear,
+  ...                        unit=u.year,
+  ...                        description='Time of Observation',
+  ...                        format='.3f')
+  >>> table['Year'] = Column([val.year for val in ts.time.datetime],
+  ...                        unit=u.year,
+  ...                        description='Year of Observation')
+  >>> table['Obs'] = Column(ts.time)
+  >>> table.add_column(ts.time)
+>>>>>>> HEAD~2
   >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
   ...                           unit=u.s)
 
@@ -343,20 +363,23 @@ After execution, the contents of ``coords_cols.dat`` will be::
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
    32- 36  F5.3   10+12Jy Flux        ? Description of Flux                 
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation   
-   51- 53  I3      s      Cadence     [100] Description of Cadence          
-   55- 58  F4.1    h      RAh         Right Ascension (hour)                
-   60- 63  F4.1    min    RAm         Right Ascension (minute)              
-   65- 79  F15.12  s      RAs         Right Ascension (second)              
-       81  A1      ---    DE-         Sign of Declination                   
-   82- 85  F5.1    deg    DEd         Declination (degree)                  
-   87- 90  F4.1    arcmin DEm         Declination (arcmin)                  
-   92-106  F15.12  arcsec DEs         Declination (arcsec)                  
+   44- 51  F8.3    yr     Obs0        [2019.0/2019.01] Time of Observation    
+   53- 56  I4      yr     Year        [2019] Year of Observation              
+   58- 75  F18.12  d      Obs         [58484.97/58486.98] Modified Julian Date
+   77- 94  F18.12  d      MJD         [58484.97/58486.98] Modified Julian Date
+   96- 98  I3      s      Cadence     [100] Description of Cadence            
+  100-103  F4.1    h      RAh         Right Ascension (hour)                  
+  105-108  F4.1    min    RAm         Right Ascension (minute)                
+  110-124  F15.12  s      RAs         Right Ascension (second)                
+      126  A1      ---    DE-         Sign of Declination                     
+  127-130  F5.1    deg    DEd         Declination (degree)                    
+  132-135  F4.1    arcmin DEm         Declination (arcmin)                    
+  137-151  F15.12  arcsec DEs         Declination (arcsec)                    
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
-  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
+  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.003 2019 58484.974448432251 58484.974448432251 100 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
+  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.008 2019 58486.974448432251 58486.974448432251 100 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
 
 And the file ``ecliptic_cols.dat`` will look like::
 
@@ -373,15 +396,18 @@ And the file ``ecliptic_cols.dat`` will look like::
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    32- 36  F5.3   10+12Jy Flux        ? Description of Flux                      
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation        
-   51- 53  I3      s      Cadence     [100] Description of Cadence               
-   55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   44- 51  F8.3    yr     Obs0        [2019.0/2019.01] Time of Observation       
+   53- 56  I4      yr     Year        [2019] Year of Observation                 
+   58- 75  F18.12  d      Obs         [58484.97/58486.98] Modified Julian Date   
+   77- 94  F18.12  d      MJD         [58484.97/58486.98] Modified Julian Date   
+   96- 98  I3      s      Cadence     [100] Description of Cadence               
+  100-115  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+  117-132  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 306.224208650096 -45.621789850825
-  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 183.754980099243  21.051410763027
+  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.003 2019 58484.974448432251 58484.974448432251 100 306.224208650096 -45.621789850825
+  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.008 2019 58486.974448432251 58486.974448432251 100 183.754980099243  21.051410763027
 
 Finally, MRT and CDS have some specific naming conventions for columns
 (`<https://journals.aas.org/mrt-labels/#reflab>`_). For example, if a column contains
@@ -410,20 +436,20 @@ The following example shows a similar situation, using the option to send the ou
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
     1- 11  A11     ---    Name        Description of Name                        
-   13- 18  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation        
-   20- 22  I3      s      Cadence     [100] Description of Cadence               
-   24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
-   31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
-   49- 53  F5.3   10+12Jy Flux        ? Description of Flux                      
-   55- 61  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux      
-   63- 78  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   80- 95  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   13- 30  F18.12  d      Obs         [58484.97/58486.98] Modified Julian Date   
+   32- 34  I3      s      Cadence     [100] Description of Cadence               
+   36- 41  F6.4    10+22  nH          [0.01/0.03] Description of nH              
+   43- 47  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
+   49- 59  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
+   61- 65  F5.3   10+12Jy Flux        ? Description of Flux                      
+   67- 73  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux      
+   75- 90  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+   92-107  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2019.0 100 0.0250 1e-10 2.87819e-09       10000.0 306.224208650096 -45.621789850825
-  ASASSN-14li 2019.0 100 0.0188 4e+03 2.55935e-08 2.044   450.0 183.754980099243  21.051410763027
+  ASASSN-15lh 58484.974448432251 100 0.0250 1e-10 2.87819e-09       10000.0 306.224208650096 -45.621789850825
+  ASASSN-14li 58486.974448432251 100 0.0188 4e+03 2.55935e-08 2.044   450.0 183.754980099243  21.051410763027
 
 ..
   EXAMPLE END
@@ -436,3 +462,5 @@ The following example shows a similar situation, using the option to send the ou
     converted to its component columns and the rest of the coordinate columns will
     be converted to string columns. Thus, it should be taken care that the additional
     coordinate columns are dealt with before using ``SkyCoord`` methods.
+    On the other hand, ``Time`` columns are modified in place, so there's no
+    issue for tables with multiple ``Time`` columns.
