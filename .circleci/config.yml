@@ -1,51 +1,51 @@
 version: 2
 
-# NOTE: We run these in CircleCI because it has better artifacts support.
-# TODO: Move to GitHub Actions when its artifacts support improves.
+# NOTE: We run these in CircleCI because it has better artifacts support
+# and it is possible to publish image diffs as HTML like pytest-mpl in the future.
 jobs:
 
   image-tests-mpl302:
     docker:
-      - image: astropy/image-tests-py37-mpl302:1.10
+      - image: circleci/python:3.8
     steps:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl
-      - run:
-          name: Force scipy upgrade
-          command: pip install scipy -U
+          command: pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py38-test-image-numpy118-mpl302 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
-  image-tests-mpl310:
+  image-tests-mpl311:
     docker:
-      - image: astropy/image-tests-py37-mpl311:1.10
+      - image: circleci/python:3.9
     steps:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -e .[test] pytest-mpl
+          command: pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: pytest -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py39-test-image-numpy119-mpl311 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
   image-tests-mpldev:
     docker:
-      - image: astropy/image-tests-py37-base:1.4
+      - image: circleci/python:3.9
     steps:
       - checkout
       - run:
-          name: Install tox
-          command: pip3 install tox
+          name: Install dependencies
+          command: |
+              sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
+              pip install pip tox --upgrade
+              pip install latex
       - run:
           name: Run tests
-          command: tox -e py37-test-image-mpldev -- -P visualization --remote-data=astropy --open-files --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py39-test-image-mpldev -- -P visualization --remote-data=astropy --open-files --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -54,5 +54,5 @@ workflows:
   tests:
     jobs:
       - image-tests-mpl302
-#      - image-tests-mpl310
+      - image-tests-mpl311
       - image-tests-mpldev
