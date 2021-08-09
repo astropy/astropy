@@ -22,6 +22,13 @@ astropy.modeling
 
 - Fixed bug in ``fix_inputs`` handling of bounding boxes. [#11908]
 
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix an error when converting to pandas any ``Table`` subclass that
+  automatically adds a table index when the table is created. An example is a
+  binned ``TimeSeries`` table. [#12018]
+
 astropy.units
 ^^^^^^^^^^^^^
 
@@ -30,6 +37,13 @@ astropy.units
   answers from the ``.si`` attribute. [#11879]
 
 - Fixed cannot import name imperial from astropy.units namespace. [#11977]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ensure any ``.info`` on ``Masked`` instances is propagated correctly when
+  viewing or slicing. As a consequence, ``MaskedQuantity`` can now be correctly
+  written to, e.g., ECSV format with ``serialize_method='data_mask'``. [#11910]
 
 
 4.3 (2021-07-26)
