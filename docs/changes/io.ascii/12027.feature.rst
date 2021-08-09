@@ -1,0 +1,3 @@
+Add features to ``astropy.io.ascii.Cds`` class to provides support for internally
+converting ``Time`` columns or columns with ``Time`` values when writing to CDS/MRT
+format.
