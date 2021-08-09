@@ -65,6 +65,7 @@ class Generic(Base):
     _show_scale = True
 
     _tokens = (
+        'COMMA',
         'DOUBLE_STAR',
         'STAR',
         'PERIOD',
@@ -107,6 +108,7 @@ class Generic(Base):
     def _make_lexer(cls):
         tokens = cls._tokens
 
+        t_COMMA = r'\,'
         t_STAR = r'\*'
         t_PERIOD = r'\.'
         t_SOLIDUS = r'/'
@@ -178,7 +180,60 @@ class Generic(Base):
 
         def p_main(p):
             '''
-            main : product_of_units
+            main : unit
+                 | structured_unit
+                 | structured_subunit
+            '''
+            if isinstance(p[1], tuple):
+                # Unpack possible StructuredUnit inside a tuple, ie.,
+                # ignore any set of very outer parentheses.
+                p[0] = p[1][0]
+            else:
+                p[0] = p[1]
+
+        def p_structured_subunit(p):
+            '''
+            structured_subunit : OPEN_PAREN structured_unit CLOSE_PAREN
+            '''
+            # We hide a structured unit enclosed by parentheses inside
+            # a tuple, so that we can easily distinguish units like
+            # "(au, au/day), yr" from "au, au/day, yr".
+            p[0] = (p[2],)
+
+        def p_structured_unit(p):
+            '''
+            structured_unit : subunit COMMA
+                            | subunit COMMA subunit
+            '''
+            from ..structured import StructuredUnit
+            inputs = (p[1],) if len(p) == 3 else (p[1], p[3])
+            units = ()
+            for subunit in inputs:
+                if isinstance(subunit, tuple):
+                    # Structured unit that should be its own entry in the
+                    # new StructuredUnit (was enclosed in parentheses).
+                    units += subunit
+                elif isinstance(subunit, StructuredUnit):
+                    # Structured unit whose entries should be
+                    # individiually added to the new StructuredUnit.
+                    units += subunit.values()
+                else:
+                    # Regular unit to be added to the StructuredUnit.
+                    units += (subunit,)
+
+            p[0] = StructuredUnit(units)
+
+        def p_subunit(p):
+            '''
+            subunit : unit
+                    | structured_unit
+                    | structured_subunit
+            '''
+            p[0] = p[1]
+
+        def p_unit(p):
+            '''
+            unit : product_of_units
                  | factor product_of_units
                  | factor product product_of_units
                  | division_product_of_units

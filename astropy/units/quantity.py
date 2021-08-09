@@ -11,6 +11,7 @@ but will deal with unit conversions internally.
 import re
 import numbers
 from fractions import Fraction
+import operator
 import warnings
 
 import numpy as np
@@ -18,6 +19,7 @@ import numpy as np
 # AstroPy
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
                    UnitBase, UnitsError, UnitConversionError, UnitTypeError)
+from .structured import StructuredUnit
 from .utils import is_effectively_unity
 from .format.latex import Latex
 from astropy.utils.compat.misc import override__dir__
@@ -367,13 +369,23 @@ class Quantity(np.ndarray):
                     if unit is None:
                         unit = value_unit  # signal no conversion needed below.
 
-            elif (isiterable(value) and len(value) > 0 and
-                  all(isinstance(v, Quantity) for v in value)):
-                # Convert all quantities to the same unit.
-                if unit is None:
-                    unit = value[0].unit
-                value = [q.to_value(unit) for q in value]
-                value_unit = unit  # signal below that conversion has been done
+            elif isiterable(value) and len(value) > 0:
+                # Iterables like lists and tuples.
+                if all(isinstance(v, Quantity) for v in value):
+                    # If a list/tuple containing only quantities, convert all
+                    # to the same unit.
+                    if unit is None:
+                        unit = value[0].unit
+                    value = [q.to_value(unit) for q in value]
+                    value_unit = unit  # signal below that conversion has been done
+                elif (dtype is None and not hasattr(value, 'dtype')
+                      and isinstance(unit, StructuredUnit)):
+                    # Special case for list/tuple of values and a structured unit:
+                    # ``np.array(value, dtype=None)`` would treat tuples as lower
+                    # levels of the array, rather than as elements of a structured
+                    # array, so we use the structure of the unit to help infer the
+                    # structured dtype of the value.
+                    dtype = unit._recursively_get_dtype(value)
 
         if value_unit is None:
             # If the value has a `unit` attribute and if not None
@@ -653,13 +665,17 @@ class Quantity(np.ndarray):
         a unit is consistent.
         """
         if not isinstance(unit, UnitBase):
-            # Trying to go through a string ensures that, e.g., Magnitudes with
-            # dimensionless physical unit become Quantity with units of mag.
-            unit = Unit(str(unit), parse_strict='silent')
-            if not isinstance(unit, UnitBase):
-                raise UnitTypeError(
-                    "{} instances require {} units, not {} instances."
-                    .format(type(self).__name__, UnitBase, type(unit)))
+            if (isinstance(self._unit, StructuredUnit)
+                    or isinstance(unit, StructuredUnit)):
+                unit = StructuredUnit(unit, self.dtype)
+            else:
+                # Trying to go through a string ensures that, e.g., Magnitudes with
+                # dimensionless physical unit become Quantity with units of mag.
+                unit = Unit(str(unit), parse_strict='silent')
+                if not isinstance(unit, (UnitBase, StructuredUnit)):
+                    raise UnitTypeError(
+                        "{} instances require normal units, not {} instances."
+                        .format(type(self).__name__, type(unit)))
 
         self._unit = unit
 
@@ -690,8 +706,20 @@ class Quantity(np.ndarray):
         """Helper method for to and to_value."""
         if equivalencies == []:
             equivalencies = self._equivalencies
-        return self.unit.to(unit, self.view(np.ndarray),
-                            equivalencies=equivalencies)
+        if not self.dtype.names or isinstance(self.unit, StructuredUnit):
+            # Standard path, let unit to do work.
+            return self.unit.to(unit, self.view(np.ndarray),
+                                equivalencies=equivalencies)
+
+        else:
+            # The .to() method of a simple unit cannot convert a structured
+            # dtype, so we work around it, by recursing.
+            # TODO: deprecate this?
+            # Convert simple to Structured on initialization?
+            result = np.empty_like(self.view(np.ndarray))
+            for name in self.dtype.names:
+                result[name] = self[name]._to_value(unit, equivalencies)
+            return result
 
     def to(self, unit, equivalencies=[], copy=True):
         """
@@ -762,7 +790,9 @@ class Quantity(np.ndarray):
         """
         if unit is None or unit is self.unit:
             value = self.view(np.ndarray)
-        else:
+        elif not self.dtype.names:
+            # For non-structured, we attempt a short-cut, where we just get
+            # the scale.  If that is 1, we do not have to do anything.
             unit = Unit(unit)
             # We want a view if the unit does not change.  One could check
             # with "==", but that calculates the scale that we need anyway.
@@ -777,9 +807,12 @@ class Quantity(np.ndarray):
                 if not is_effectively_unity(scale):
                     # not in-place!
                     value = value * scale
+        else:
+            # For structured arrays, we go the default route.
+            value = self._to_value(unit, equivalencies)
 
         # Index with empty tuple to decay array scalars in to numpy scalars.
-        return value[()]
+        return value if value.shape else value[()]
 
     value = property(to_value,
                      doc="""The numerical value of this instance.
@@ -807,12 +840,30 @@ class Quantity(np.ndarray):
 
         return self._equivalencies
 
+    def _recursively_apply(self, func):
+        """Apply function recursively to every field.
+
+        Returns a copy with the result.
+        """
+        result = np.empty_like(self)
+        result_value = result.view(np.ndarray)
+        result_unit = ()
+        for name in self.dtype.names:
+            part = func(self[name])
+            result_value[name] = part.value
+            result_unit += (part.unit,)
+
+        result._set_unit(result_unit)
+        return result
+
     @property
     def si(self):
         """
         Returns a copy of the current `Quantity` instance with SI units. The
         value of the resulting object will be scaled.
         """
+        if self.dtype.names:
+            return self._recursively_apply(operator.attrgetter('si'))
         si_unit = self.unit.si
         return self._new_view(self.value * si_unit.scale,
                               si_unit / si_unit.scale)
@@ -823,6 +874,8 @@ class Quantity(np.ndarray):
         Returns a copy of the current `Quantity` instance with CGS units. The
         value of the resulting object will be scaled.
         """
+        if self.dtype.names:
+            return self._recursively_apply(operator.attrgetter('cgs'))
         cgs_unit = self.unit.cgs
         return self._new_view(self.value * cgs_unit.scale,
                               cgs_unit / cgs_unit.scale)
@@ -893,30 +946,25 @@ class Quantity(np.ndarray):
             return value
 
     # Equality needs to be handled explicitly as ndarray.__eq__ gives
-    # DeprecationWarnings on any error, which is distracting.  On the other
-    # hand, for structured arrays, the ufunc does not work, so we do use
-    # __eq__ and live with the warnings.
+    # DeprecationWarnings on any error, which is distracting, and does not
+    # deal well with structured arrays (nor does the ufunc).
     def __eq__(self, other):
         try:
-            if self.dtype.kind == 'V':
-                return super().__eq__(other)
-            else:
-                return np.equal(self, other)
+            other_value = self._to_own_unit(other)
         except UnitsError:
             return False
-        except TypeError:
+        except Exception:
             return NotImplemented
+        return self.value.__eq__(other_value)
 
     def __ne__(self, other):
         try:
-            if self.dtype.kind == 'V':
-                return super().__ne__(other)
-            else:
-                return np.not_equal(self, other)
+            other_value = self._to_own_unit(other)
         except UnitsError:
             return True
-        except TypeError:
+        except Exception:
             return NotImplemented
+        return self.value.__ne__(other_value)
 
     # Unit conversion operator (<<).
     def __lshift__(self, other):
@@ -935,7 +983,7 @@ class Quantity(np.ndarray):
 
         try:
             factor = self.unit._to(other)
-        except UnitConversionError:
+        except Exception:
             # Maybe via equivalencies?  Now we do make a temporary copy.
             try:
                 value = self._to_value(other)
@@ -1065,6 +1113,9 @@ class Quantity(np.ndarray):
         return quantity_iter()
 
     def __getitem__(self, key):
+        if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
+            return self._new_view(self.view(np.ndarray)[key], self.unit[key])
+
         try:
             out = super().__getitem__(key)
         except IndexError:
@@ -1083,6 +1134,12 @@ class Quantity(np.ndarray):
         return out
 
     def __setitem__(self, i, value):
+        if isinstance(i, str):
+            # Indexing will cause a different unit, so by doing this in
+            # two steps we effectively try with the right unit.
+            self[i][...] = value
+            return
+
         # update indices in info if the info property has been accessed
         # (in which case 'info' in self.__dict__ is True; this is guaranteed
         # to be the case if we're part of a table).
@@ -1413,6 +1470,11 @@ class Quantity(np.ndarray):
                                             np.isnan(_value))):
                     raise TypeError("cannot convert value type to array type "
                                     "without precision loss")
+
+        # Setting names to ensure things like equality work (note that
+        # above will have failed already if units did not match).
+        if self.dtype.names:
+            _value.dtype.names = self.dtype.names
         return _value
 
     def itemset(self, *args):
