@@ -1,3 +1,37 @@
+4.3.1 (unreleased)
+==================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- In ``fits.io.getdata`` do not fall back to first non-primary extension when
+  user explicitly specifies an extension. [#11860]
+
+- Ensure multidimensional masked columns round-trip properly to FITS. [#11911]
+
+- Ensure masked times round-trip to FITS, even if multi-dimensional. [#11913]
+
+- Raise ``ValueError`` if an ``np.float32`` NaN/Inf value is assigned to a
+  header keyword. [#11922]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed bug in ``fix_inputs`` handling of bounding boxes. [#11908]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensure that unpickling quantities and units in new sessions does not change
+  hashes and thus cause problems with (de)composition such as getting different
+  answers from the ``.si`` attribute. [#11879]
+
+- Fixed cannot import name imperial from astropy.units namespace. [#11977]
+
+
 4.3 (2021-07-26)
 ================
 

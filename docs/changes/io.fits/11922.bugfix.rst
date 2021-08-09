@@ -1,1 +1,0 @@
-Raise ``ValueError`` if an ``np.float32`` NaN/Inf value is assigned to a header keyword.
