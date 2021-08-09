@@ -44,9 +44,9 @@ BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
 "$bytebybyte",
 "--------------------------------------------------------------------------------"]
 
-MRT_TEMPLATE = ["Title:",
-"Authors:",
-"Table:",
+MRT_TEMPLATE = ["Title: $title",
+"Authors: $authors",
+"Table: $caption",
 "================================================================================",
 "$bytebybyte",
 "Notes:",
@@ -710,7 +710,10 @@ class CdsHeader(core.BaseHeader):
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
-        readme_filled = rm_template.substitute({'bytebybyte': byte_by_byte})
+        readme_filled = rm_template.substitute({'bytebybyte': byte_by_byte,
+                                                'title': self.title,
+                                                'authors': self.authors,
+                                                'caption': self.caption})
         lines.append(readme_filled)
 
 
@@ -862,7 +865,7 @@ class Cds(core.BaseReader):
     data_class = CdsData
     header_class = CdsHeader
 
-    def __init__(self, readme=None):
+    def __init__(self, readme=None, title='', authors='', caption=''):
         super().__init__()
         self.header.readme = readme
 
@@ -870,6 +873,11 @@ class Cds(core.BaseReader):
         # default ``start_line`` at 1. For CDS format writing start line
         # should be at 0.
         self.data.start_line = None
+
+        # Properly edit MRT metadata if passed.
+        self.header.title = title
+        self.header.authors = authors
+        self.header.caption = caption
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
