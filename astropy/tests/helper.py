@@ -222,9 +222,11 @@ def treat_deprecations_as_exceptions():
     for module in list(sys.modules.values()):
         # We don't want to deal with six.MovedModules, only "real"
         # modules. FIXME: we no more use six, this should be useless ?
-        if (isinstance(module, types.ModuleType) and
-                hasattr(module, '__warningregistry__')):
-            del module.__warningregistry__
+        if isinstance(module, types.ModuleType):
+            try:
+                del module.__warningregistry__
+            except AttributeError:
+                pass
 
     if not _deprecations_as_exceptions:
         return

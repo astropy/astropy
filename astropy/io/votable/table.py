@@ -415,5 +415,7 @@ def reset_vo_warnings():
     #  warning out of this, we have to delete all of them first. #
     # -----------------------------------------------------------#
     for module in (converters, exceptions, tree, xmlutil):
-        if hasattr(module, '__warningregistry__'):
+        try:
             del module.__warningregistry__
+        except AttributeError:
+            pass
