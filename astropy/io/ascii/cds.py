@@ -345,26 +345,28 @@ class CdsHeader(core.BaseHeader):
 
         Example::
 
-        --------------------------------------------------------------------------------
+        ================================================================================
         Byte-by-byte Description of file: table.dat
         --------------------------------------------------------------------------------
         Bytes Format Units  Label     Explanations
         --------------------------------------------------------------------------------
-         1-  8  A8     ---    names   Description of names
-        10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
-        16- 23  F8.5   ---    d       [22.25/27.25] Description of d
-        25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s
-        33- 35  I3     ---    i       [-30/67] Description of i
-        37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF
-        41- 42  I2     ---    sameI   [20] Description of sameI
-        44- 47  F4.1   h      RAh     Right Ascension (hour)
-        49- 51  F3.1   min    RAm     Right Ascension (minute)
-        53- 70  F18.15 s      RAs     Right Ascension (second)
-            72  A1     ---    DE-     Sign of Declination
-        73- 76  F5.1   deg    DEd     Declination (degree)
-        78- 81  F4.1   arcmin DEm     Declination (arcmin)
-        83- 98  F16.13 arcsec DEs     Declination (arcsec)
-
+          1- 11  A11     ---    Name        Description of Name
+         13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+         25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH
+         32- 36  F5.3   10+12Jy Flux        ? Description of Flux
+         38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+         44- 51  F8.3    yr     Obs0        [2019.0/2019.01] Time of Observation
+         53- 56  I4      yr     Year        [2019] Year of Observation
+         58- 75  F18.12  d      Obs         [58484.97/58486.98] Modified Julian Date
+         77- 94  F18.12  d      MJD         [58484.97/58486.98] Modified Julian Date
+         96- 98  I3      s      Cadence     [100] Description of Cadence
+        100-103  F4.1    h      RAh         Right Ascension (hour)
+        105-108  F4.1    min    RAm         Right Ascension (minute)
+        110-124  F15.12  s      RAs         Right Ascension (second)
+            126  A1      ---    DE-         Sign of Declination
+        127-130  F5.1    deg    DEd         Declination (degree)
+        132-135  F4.1    arcmin DEm         Declination (arcmin)
+        137-151  F15.12  arcsec DEs         Declination (arcsec)
         --------------------------------------------------------------------------------
         """
         # Get column widths
