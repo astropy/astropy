@@ -401,9 +401,6 @@ class CdsHeader(core.BaseHeader):
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
                     dtype=[str]*5)
 
-        # list to store the column notes.
-        self.col_notes = []
-
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
             # Check if column is MaskedColumn
@@ -458,11 +455,10 @@ class CdsHeader(core.BaseHeader):
                 description = col.description
             else:
                 description = "Description of " + col.name
-            
-            # Save column notes to a ``notes`` list, to add to ReadMe later.
-            if hasattr(col.meta, 'notes'):
-                self.col_notes.append(col.meta.notes)
-                description += ' (' + str(len(self.col_notes)) + ')'
+
+            # Put a reference to the column notes, if present.
+            if hasattr(col, 'note_ref'):
+                description += ' (' + col.note_ref + ')'
 
             # Set null flag in column description
             nullflag = ""
@@ -569,10 +565,35 @@ class CdsHeader(core.BaseHeader):
 
         # list to store indices of columns that are modified.
         to_pop = []
+        # list to store the column notes.
+        self.col_notes = []
 
         # For columns that are instances of ``SkyCoord`` and other ``mixin`` columns
         # or whose values are objects of these classes.
+        # Also, to get column notes and assign references for them.
         for i, col in enumerate(self.cols):
+            # Save column notes to a ``notes`` list, to add to ReadMe later,
+            # and assign a ``note_ref`` attribute to the column if they have notes.
+            if hasattr(col.meta, 'notes'):
+                if col.meta.notes in self.colnames:
+                    # Refence to the same column note can be assigned by passing the name
+                    # of the first column whose note has to be repeated, to the
+                    # ``col.meta.notes`` attribute.
+                    ref_col_index = self.colnames.index(col.meta.notes)
+                    try:
+                        col.note_ref = self.cols[ref_col_index].note_ref
+                    except AttributeError:
+                        # An error occurs while assigning ``note_ref`` if the reference
+                        # column itself doesn't have a ``note_ref`` assigned yet. This can
+                        # occur, for instance, when the reference column is further down in
+                        # the Table. The Notes will be repeated for such cases, with the note
+                        # reference number also being different.
+                        self.col_notes.append(self.cols[ref_col_index].meta.notes)
+                        col.note_ref = str(len(self.col_notes))
+                else:
+                    self.col_notes.append(col.meta.notes)
+                    col.note_ref = str(len(self.col_notes))
+
             # If col is a ``Column`` object but its values are ``SkyCoord`` objects,
             # convert the whole column to ``SkyCoord`` object, which helps in applying
             # SkyCoord methods directly.
@@ -755,8 +776,6 @@ class CdsHeader(core.BaseHeader):
             self.caption = ('\n').join(wrap(self.caption,
                                             subsequent_indent = " " * 4,
                                             width = MAX_SIZE_README_LINE))
-
-
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
