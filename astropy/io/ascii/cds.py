@@ -28,7 +28,7 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.table import Column, MaskedColumn
 from string import Template
-from textwrap import wrap, fill
+from textwrap import fill  # ``fill()`` is shorthand for ``"\n".join(texwrap.wrap(text, ...))``
 
 MAX_SIZE_README_LINE = 80
 MAX_COL_INTLIMIT = 100000
@@ -541,9 +541,9 @@ class CdsHeader(core.BaseHeader):
         buff = ""
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
-                buff += ('\n').join(wrap(newline,
-                                         subsequent_indent = " " * nsplit,
-                                         width = MAX_SIZE_README_LINE))
+                buff += fill(newline,
+                             subsequent_indent = " " * nsplit,
+                             width = MAX_SIZE_README_LINE)
                 buff += '\n'
             else:
                 buff += newline + '\n'
@@ -755,7 +755,7 @@ class CdsHeader(core.BaseHeader):
         byte_by_byte = bbb_template.substitute({'file': 'table.dat',
                                     'bytebybyte': self.write_byte_by_byte()})
 
-        # Get the column and global notes as properly formatted strings.
+        # Get the column notes as properly formatted strings.
         notes = ''
         if len(self.col_notes) == 0:
             notes += 'Notes:'
@@ -763,37 +763,46 @@ class CdsHeader(core.BaseHeader):
             for i, note in enumerate(self.col_notes):
                 note = 'Note (' + str(i+1) + '): ' + note
                 if len(note) > MAX_SIZE_README_LINE - 10:
-                    notes += ('\n').join(wrap(note,
-                                              subsequent_indent = " " * 4,
-                                              width = MAX_SIZE_README_LINE))
+                    notes += fill(note,
+                                  subsequent_indent = " " * 4,
+                                  width = MAX_SIZE_README_LINE)
                     notes += '\n'
                 else:
                     notes += note + '\n'
             # Remove the last extra newline character from notes string.
             notes = notes[:-1]
+        
+        # Get the global notes as properly formatted strings.
         if self.global_notes is not None:
             notes += '\n\nGlobal Notes:\n'
-            global_notes = 'Note (G): ' + self.global_notes
-            if len(global_notes) > MAX_SIZE_README_LINE - 10:
-                notes += ('\n').join(wrap(global_notes,
-                                          subsequent_indent = " " * 4,
-                                          width = MAX_SIZE_README_LINE))
-            else:
-                notes += global_notes
+            for i, gnote in enumerate(self.global_notes):
+                global_notes = 'Note (G' + str(i+1) + '): '
+                if len(self.global_notes) == 1:
+                    global_notes = 'Note (G): '
+                global_notes += gnote
+                if len(global_notes) > MAX_SIZE_README_LINE - 10:
+                    notes += fill(global_notes,
+                                  subsequent_indent = " " * 4,
+                                  width = MAX_SIZE_README_LINE)
+                    notes += '\n'
+                else:
+                    notes += global_notes + '\n'
+            # Remove the last extra newline character from notes string.
+            notes = notes[:-1]
 
         # Also wrap other metadata if they are too long!
         if len(self.title) > MAX_SIZE_README_LINE:
-            self.title = ('\n').join(wrap(self.title,
-                                          subsequent_indent = " " * 4,
-                                          width = MAX_SIZE_README_LINE))
+            self.title = fill(self.title,
+                              subsequent_indent = " " * 4,
+                              width = MAX_SIZE_README_LINE)
         if len(self.authors) > MAX_SIZE_README_LINE:
-            self.authors = ('\n').join(wrap(self.authors,
-                                            subsequent_indent = " " * 4,
-                                            width = MAX_SIZE_README_LINE))
+            self.authors = fill(self.authors,
+                                subsequent_indent = " " * 4,
+                                width = MAX_SIZE_README_LINE)
         if len(self.caption) > MAX_SIZE_README_LINE:
-            self.caption = ('\n').join(wrap(self.caption,
-                                            subsequent_indent = " " * 4,
-                                            width = MAX_SIZE_README_LINE))
+            self.caption = fill(self.caption,
+                                subsequent_indent = " " * 4,
+                                width = MAX_SIZE_README_LINE)
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
@@ -970,12 +979,21 @@ class Cds(core.BaseReader):
         self.header.title = 'Title:'
         if title is not None:
             self.header.title += ' ' + title
+
         self.header.authors = 'Authors:'
         if authors is not None:
-            self.header.authors += ' ' + authors
+            self.header.authors += " "
+            if isinstance(authors, str):
+                self.header.authors += authors
+            elif isinstance(authors, list):
+                self.header.authors += ", ".join(authors)
+
         self.header.caption = 'Table:'
         if caption is not None:
             self.header.caption += ' ' + caption
+
+        if isinstance(notes, str):
+            notes = [notes]
         self.header.global_notes = notes
 
     def write(self, table=None):
