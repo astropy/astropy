@@ -545,12 +545,12 @@ class CdsHeader(core.BaseHeader):
         buff = ""
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
-                buff += ("\n").join(wrap(newline,
+                buff += ('\n').join(wrap(newline,
                                          subsequent_indent=" " * nsplit,
                                          width=MAX_SIZE_README_LINE))
-                buff += "\n"
+                buff += '\n'
             else:
-                buff += newline + "\n"
+                buff += newline + '\n'
 
         # Last value of ``endb`` is the sum of column widths after formatting.
         self.linewidth = endb
@@ -725,6 +725,8 @@ class CdsHeader(core.BaseHeader):
                 notes += 'Note (' + str(i+1) + '): ' + note + '\n'
             # Remove the last extra newline character from notes string.
             notes = notes[:-1]
+        if self.global_notes is not None:
+            notes += '\n' + 'Note (G): ' + self.global_notes
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
@@ -839,8 +841,11 @@ class Cds(core.BaseReader):
     format in table description sections of the ReadMe. It also has both the data and
     the ReadMe in a single file.
 
-    Note that the metadata of the table, apart from units, column names and description,
-    will not be written. These have to be filled in by hand later.
+    Column ``unit``, ``name`` and ``description`` are written whenever available.
+    Table metadata can be written by passing ``title``, ``authors`` and ``caption``
+    to the write function. If a ``notes`` keyword is passed, it is rendered as Global
+    notes. Individual column notes can be added via the ``notes`` attribute for each
+    column.
 
     See also: :ref:`cds_mrt_format`
 
@@ -885,7 +890,7 @@ class Cds(core.BaseReader):
     header_class = CdsHeader
 
     def __init__(self, readme=None,
-                 title='Title:', authors='Authors:', caption='Table:'):
+                 title=None, authors=None, caption=None, notes=None):
         super().__init__()
         self.header.readme = readme
 
@@ -895,9 +900,16 @@ class Cds(core.BaseReader):
         self.data.start_line = None
 
         # Properly edit MRT metadata if passed.
-        self.header.title = title
-        self.header.authors = authors
-        self.header.caption = caption
+        self.header.title = 'Title:'
+        if title is not None:
+            self.header.title += ' ' + title
+        self.header.authors = 'Authors:'
+        if authors is not None:
+            self.header.authors += ' ' + authors
+        self.header.caption = 'Table:'
+        if caption is not None:
+            self.header.caption += ' ' + caption
+        self.header.global_notes = notes
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
