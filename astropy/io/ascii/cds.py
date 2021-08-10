@@ -44,12 +44,12 @@ BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
 "$bytebybyte",
 "--------------------------------------------------------------------------------"]
 
-MRT_TEMPLATE = ["Title: $title",
-"Authors: $authors",
-"Table: $caption",
+MRT_TEMPLATE = ["$title",  # Defaults to 'Title:'
+"$authors",                # Defaults to 'Authors:'
+"$caption",                # Defaults to 'Table:'
 "================================================================================",
 "$bytebybyte",
-"Notes:",
+"$notes",                  # Defaults to 'Notes:'
 "--------------------------------------------------------------------------------"]
 
 
@@ -401,6 +401,9 @@ class CdsHeader(core.BaseHeader):
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
                     dtype=[str]*5)
 
+        # list to store the column notes.
+        self.col_notes = []
+
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
             # Check if column is MaskedColumn
@@ -455,6 +458,11 @@ class CdsHeader(core.BaseHeader):
                 description = col.description
             else:
                 description = "Description of " + col.name
+            
+            # Save column notes to a ``notes`` list, to add to ReadMe later.
+            if hasattr(col.meta, 'notes'):
+                self.col_notes.append(col.meta.notes)
+                description += ' (' + str(len(self.col_notes)) + ')'
 
             # Set null flag in column description
             nullflag = ""
@@ -708,12 +716,23 @@ class CdsHeader(core.BaseHeader):
         byte_by_byte = bbb_template.substitute({'file': 'table.dat',
                                     'bytebybyte': self.write_byte_by_byte()})
 
+        # Get the column and global notes as properly formatted strings.
+        notes = ''
+        if len(self.col_notes) == 0:
+            notes += 'Notes:'
+        else:
+            for i, note in enumerate(self.col_notes):
+                notes += 'Note (' + str(i+1) + '): ' + note + '\n'
+            # Remove the last extra newline character from notes string.
+            notes = notes[:-1]
+
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
         readme_filled = rm_template.substitute({'bytebybyte': byte_by_byte,
                                                 'title': self.title,
                                                 'authors': self.authors,
-                                                'caption': self.caption})
+                                                'caption': self.caption,
+                                                'notes': notes})
         lines.append(readme_filled)
 
 
@@ -865,7 +884,8 @@ class Cds(core.BaseReader):
     data_class = CdsData
     header_class = CdsHeader
 
-    def __init__(self, readme=None, title='', authors='', caption=''):
+    def __init__(self, readme=None,
+                 title='Title:', authors='Authors:', caption='Table:'):
         super().__init__()
         self.header.readme = readme
 
