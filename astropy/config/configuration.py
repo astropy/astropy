@@ -673,7 +673,7 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
                 fp.write(wrapper.fill(item.description) + '\n')
                 if isinstance(item.defaultvalue, (tuple, list)):
                     if len(item.defaultvalue) == 0:
-                        fp.write(f'# {item.name} =\n\n')
+                        fp.write(f'# {item.name} = ,\n\n')
                     elif len(item.defaultvalue) == 1:
                         fp.write(f'# {item.name} = {item.defaultvalue[0]},\n\n')
                     else:
