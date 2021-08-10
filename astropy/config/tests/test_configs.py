@@ -149,6 +149,8 @@ def check_config(conf):
     # test that the output contains some lines that we expect
     assert '# unicode_output = False' in conf
     assert '[io.fits]' in conf
+    assert '[table.jsviewer]' in conf
+    assert '# css_urls = https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css,' in conf
     assert '[visualization.wcsaxes]' in conf
     assert '## Whether to log exceptions before raising them.' in conf
     assert '# log_exceptions = False' in conf
