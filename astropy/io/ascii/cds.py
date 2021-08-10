@@ -574,7 +574,7 @@ class CdsHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             # Save column notes to a ``notes`` list, to add to ReadMe later,
             # and assign a ``note_ref`` attribute to the column if they have notes.
-            if hasattr(col.meta, 'notes'):
+            if isinstance(col, Column) and hasattr(col.meta, 'notes'):
                 if col.meta.notes in self.colnames:
                     # Refence to the same column note can be assigned by passing the name
                     # of the first column whose note has to be repeated, to the
@@ -599,7 +599,11 @@ class CdsHeader(core.BaseHeader):
             # SkyCoord methods directly.
             if not isinstance(col, SkyCoord) and isinstance(col[0], SkyCoord):
                 try:
-                    col = SkyCoord(col)
+                    coord_col = SkyCoord(col)
+                    # Put a reference to notes if present in the original column.
+                    if hasattr(col, 'note_ref'):
+                        coord_col.note_ref = col.note_ref
+                    col = coord_col
                 except (ValueError, TypeError):
                     # If only the first value of the column is a ``SkyCoord`` object,
                     # the column cannot be converted to a ``SkyCoord`` object.
@@ -638,6 +642,9 @@ class CdsHeader(core.BaseHeader):
                             # second values.
                             if name in ['RAs', 'DEs']:
                                 coord_col.format = '.12f'
+                            # Put a reference to notes if present in the original column.
+                            if hasattr(col, 'note_ref'):
+                                coord_col.note_ref = col.note_ref
                             self.cols.append(coord_col)
 
                 # For all other coordinate types, simply divide into two columns
@@ -653,6 +660,10 @@ class CdsHeader(core.BaseHeader):
                                          description='Galactic Latitude',
                                          unit=col.representation_component_units['b'],
                                          format='.12f')
+                        # Put a reference to notes if present in the original column.
+                        if hasattr(col, 'note_ref'):
+                            lon_col.note_ref = col.note_ref
+                            lat_col.note_ref = col.note_ref
                         self.cols.append(lon_col)
                         self.cols.append(lat_col)
 
@@ -666,6 +677,10 @@ class CdsHeader(core.BaseHeader):
                                          description = 'Ecliptic Latitude (' + col.name + ')',
                                          unit=col.representation_component_units['lat'],
                                          format='.12f')
+                        # Put a reference to notes if present in the original column.
+                        if hasattr(col, 'note_ref'):
+                            lon_col.note_ref = col.note_ref
+                            lat_col.note_ref = col.note_ref
                         self.cols.append(lon_col)
                         self.cols.append(lat_col)
 
@@ -692,6 +707,9 @@ class CdsHeader(core.BaseHeader):
                                            unit = u.day,
                                            description = description,
                                            format = '.12f')
+                    # Put a reference to notes if present in the original column.
+                    if isinstance(col, Column) and hasattr(col, 'note_ref'):
+                        self.cols[i].note_ref = col.note_ref
                 except AttributeError:
                     # If only the first value of the column is a ``Time`` object,
                     # not all column values can be converted to Modified Julian Dates.

@@ -44,8 +44,8 @@ def test_roundtrip_mrt_table():
         * Metadata is different because MRT template is used for writing.
         * Spacing between ``Label`` and ``Explanations`` column in the
             Byte-By-Byte.
-        * Units are written as ``[cm.s-2]`` and not ``[cm/s2]``, since both
-            are valid according to CDS/MRT standard.
+        * Units are written as ``[cm.s-2]`` and not ``[cm/s2]``, since
+            both are valid according to CDS/MRT standard.
     """
     exp_output = '''\
 ================================================================================
