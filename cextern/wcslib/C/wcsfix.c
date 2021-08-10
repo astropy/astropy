@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: wcsfix.c,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -353,12 +353,12 @@ int datfix(struct wcsprm *wcs)
         if (!undefined(wcs->jepoch)) {
           *wcsmjd = mjd2000 + (wcs->jepoch - 2000.0)*djy;
           sprintf(newline(&cp), "Set MJD-OBS to %.6f from JEPOCH", *wcsmjd);
-	  if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
+          if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
 
         } else if (!undefined(wcs->bepoch)) {
           *wcsmjd = mjd1900 + (wcs->bepoch - 1900.0)*dty;
           sprintf(newline(&cp), "Set MJD-OBS to %.6f from BEPOCH", *wcsmjd);
-	  if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
+          if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
         }
       }
 
@@ -1227,11 +1227,12 @@ int wcspcx(
   }
 
   // mapto[i] records where row i of PCi_j should move to.
-  int *mapto;
-  if ((mapto = (int*)malloc(naxis * sizeof(int))) == 0x0) {
+  int *mapto = 0x0;
+  if ((mapto = (int*)malloc(naxis*sizeof(int))) == 0x0) {
     free(mem);
     return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
   }
+
   for (int i = 0; i < naxis; i++) {
     mapto[i] = -1;
   }
@@ -1274,6 +1275,7 @@ int wcspcx(
       }
     }
   }
+
 
   // Fix the sign of CDELTi.  Celestial axes are special, otherwise diagonal
   // elements of the correctly permuted matrix should be positive.
@@ -1345,19 +1347,12 @@ int wcspcx(
     if (scrambled) {
       for (int i = 0; i < naxis; i++) {
         // Do columns of the PCi_ja matrix.
-        if (unscramble(naxis, mapto, naxis, 1, wcs->pc + i)) {
-          free(mapto);
-          return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
-        }
+        if (unscramble(naxis, mapto, naxis, 1, wcs->pc + i)) goto cleanup;
       }
-
-      if (unscramble(naxis, mapto, 1, 1, wcs->cdelt) ||
-          unscramble(naxis, mapto, 1, 1, wcs->crval) ||
-          unscramble(naxis, mapto, 1, 2, wcs->cunit) ||
-          unscramble(naxis, mapto, 1, 2, wcs->ctype)) {
-        free(mapto);
-        return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
-      }
+      if (unscramble(naxis, mapto, 1, 1, wcs->cdelt)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 1, wcs->crval)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 2, wcs->cunit)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 2, wcs->ctype)) goto cleanup;
 
       for (int ipv = 0; ipv < wcs->npv; ipv++) {
         // Noting that PVi_ma axis numbers are 1-relative.
@@ -1374,29 +1369,20 @@ int wcspcx(
       if (wcs->altlin & 2) {
         for (int i = 0; i < naxis; i++) {
           // Do columns of the CDi_ja matrix.
-          if (unscramble(naxis, mapto, naxis, 1, wcs->cd + i)) {
-            free(mapto);
-            return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
-          }
+          if (unscramble(naxis, mapto, naxis, 1, wcs->cd + i)) goto cleanup;
         }
       }
 
       if (wcs->altlin & 4) {
-        if (unscramble(naxis, mapto, 1, 1, wcs->crota)) {
-          free(mapto);
-          return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
-        }
+        if (unscramble(naxis, mapto, 1, 1, wcs->crota)) goto cleanup;
       }
 
-      if (unscramble(naxis, mapto, 1, 3, wcs->colax) ||
-          unscramble(naxis, mapto, 1, 2, wcs->cname) ||
-          unscramble(naxis, mapto, 1, 1, wcs->crder) ||
-          unscramble(naxis, mapto, 1, 1, wcs->csyer) ||
-          unscramble(naxis, mapto, 1, 1, wcs->czphs) ||
-          unscramble(naxis, mapto, 1, 1, wcs->cperi)) {
-        free(mapto);
-        return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
-      }
+      if (unscramble(naxis, mapto, 1, 3, wcs->colax)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 2, wcs->cname)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 1, wcs->crder)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 1, wcs->csyer)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 1, wcs->czphs)) goto cleanup;
+      if (unscramble(naxis, mapto, 1, 1, wcs->cperi)) goto cleanup;
 
       // Coordinate lookup tables.
       for (int itab = 0; itab < wcs->ntab; itab++) {
@@ -1411,7 +1397,7 @@ int wcspcx(
         wcs->wtb[iwtb].i = mapto[i];
       }
 
-      // Distortions?  No. Prior distortions operate on pixel coordinates and
+      // Distortions?  No.  Prior distortions operate on pixel coordinates and
       // therefore are not permuted, and sequent distortions are not handled.
     }
   }
@@ -1422,6 +1408,10 @@ int wcspcx(
   if ((status = wcsset(wcs))) return fix_wcserr[status];
 
   return FIXERR_SUCCESS;
+
+cleanup:
+  if (mapto) free(mapto);
+  return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
 }
 
 
@@ -1437,9 +1427,8 @@ int unscramble(
 
   if (type == 1) {
     double *dval = (double *)vptr;
-
     double *dtmp;
-    if ((dtmp = (double *)malloc(n * sizeof(double))) == 0x0) {
+    if ((dtmp = (double *)malloc(n*sizeof(double))) == 0x0) {
       return 1;
     }
 
@@ -1455,27 +1444,25 @@ int unscramble(
 
   } else if (type == 2) {
     char (*cval)[72] = (char (*)[72])vptr;
-
-    char *ctmp;
-    if ((ctmp = (char *)malloc(n * 72 * sizeof(char))) == 0x0) {
+    char (*ctmp)[72];
+    if ((ctmp = (char (*)[72])malloc(n*72*sizeof(char))) == 0x0) {
       return 1;
     }
 
     for (int i = 0; i < n; i++) {
-      memcpy(ctmp + 72 * mapto[i], cval[i], 72);
+      memcpy(ctmp[mapto[i]], cval[i], 72);
     }
 
     for (int i = 0; i < n; i++) {
-      memcpy(cval[i], ctmp + 72 * i, 72);
+      memcpy(cval[i], ctmp[i], 72);
     }
 
     free(ctmp);
 
   } else if (type == 3) {
     int *ival = (int *)vptr;
-
     int *itmp;
-    if ((itmp = (int *)malloc(n * sizeof(int))) == 0x0) {
+    if ((itmp = (int *)malloc(n*sizeof(int))) == 0x0) {
       return 1;
     }
 
