@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: wcsutrn.l,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -352,8 +352,6 @@ int wcsutrne(
   struct wcserr **err)
 
 {
-  static const char *function = "wcsutrne";
-
   // Function prototypes.
   int yylex_init_extra(YY_EXTRA_TYPE extra, yyscan_t *yyscanner);
   int yylex_destroy(yyscan_t yyscanner);

@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 7.6 2021/04/13 12:57:02 mcalabre Exp $
+# $Id: configure.ac,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [7.6], [mark@calabretta.id.au], [wcslib-7.6])
+AC_INIT([WCSLIB], [7.7], [mark@calabretta.id.au], [wcslib-7.7])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 7.6 $])
+AC_REVISION([$Revision: 7.7 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -303,7 +303,7 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
       SHRLIB="libwcs.$LIBVER.dylib"
       SONAME="libwcs.$SHVER.dylib"
       SHRLD="$SHRLD -dynamiclib -single_module"
-      SHRLD="$SHRLD -compatibility_version $SHVER -current_version $LIBVER"
+      SHRLD="$SHRLD -compatibility_version $SHVER -current_version $LIBVER -install_name \$(SONAME)"
       SHRLN="libwcs.dylib"
 
       case "$host_cpu" in
@@ -312,6 +312,12 @@ if test "x$ac_cv_c_compiler_gnu" = xyes ; then
         CFLAGS="$CFLAGS -mdynamic-no-pic"
         ;;
       esac
+      ;;
+    *mingw*)
+      SHRLIB="libwcs.dll.$LIBVER"
+      SONAME="libwcs.dll.$SHVER"
+      SHRLD="$SHRLD -shared -Wl,-h\$(SONAME)"
+      SHRLN="libwcs.dll"
       ;;
     *)
       # Covers Linux and Solaris at least.

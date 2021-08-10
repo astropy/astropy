@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: wcsutil.c,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -358,9 +358,9 @@ char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
   sprintf(t, "0x0");
   t += 2;
 
+  int gotone = 0;
   for (size_t i = 0; i < sizeof(fptr); i++) {
     // Skip leading zeroes.
-    int gotone = 0;
     if (*p) gotone = 1;
 
     if (gotone) {

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 7.6 and its test suite.
+# GNU makefile for building WCSLIB 7.7 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+# $Id: GNUmakefile,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -181,8 +181,8 @@ $(PICLIB)(%.o) : $(WCSLIB)(%.o)
 	   sed -e 's|.*/||' | \
 	   sort -u
 
-%.fits : test/%.keyrec tofits
-	   ./tofits < $< > $@
+%.fits : test/%.keyrec ../utils/tofits
+	   ../utils/tofits < $< > $@
 
 # Use 'make VALGRIND=T run_%' to have VALGRIND defined (from flavours).
 # Use 'make VALGRIND=T check < /dev/null |& tee check_valgrind.log' to run
@@ -369,10 +369,9 @@ cleaner : clean
 	-  $(RM) .gdb_history
 	-  $(RM) $(TEST_N) $(TEST_n) $(TEST_T) $(TEST_X)
 	-  $(RM) $(TEST_P) tdis3 tpih2 twcshdr twcslint twcstab
-	-  $(RM) tofits
-	-  $(RM) bth.fits fitshdr.fits pih.fits wcslint.fits wcstab.fits
-	-  $(RM) SIP.fits SIPTPV.fits TPV3.fits TPV5.fits TPV7.fits
-	-  $(RM) DSS.fits TNX.fits ZPX.fits
+	-  $(RM) bth.fits fitshdr.fits pih.fits wcslint.fits wcspcx.fits
+	-  $(RM) wcstab.fits SIP.fits SIPTPV.fits TPV3.fits TPV5.fits
+	-  $(RM) TPV7.fits DSS.fits TNX.fits ZPX.fits
 	-  $(RM) t*_cfitsio test_results
 
 cleanest distclean realclean : cleaner
@@ -458,7 +457,7 @@ $(PGSBOXLIB) :
 	-@ echo ''
 	   $(MAKE) -C ../pgsbox $(notdir $@)
 
-tofits : test/tofits.c
+../utils/tofits : ../utils/tofits.c
 	   $(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $<
 
 GNUmakefile : ../makedefs ;
