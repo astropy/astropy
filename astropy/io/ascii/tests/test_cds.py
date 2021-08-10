@@ -12,7 +12,6 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.table import Column, MaskedColumn
 from astropy.coordinates import SkyCoord
-from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -405,10 +404,6 @@ Byte-by-byte Description of file: table.dat
     # Select only the Byte-By-Byte section.
     lines = lines[i_secs[0]:i_secs[-2]]
     lines.append('-'*80)   # Append a separator line.
-    print(lines)
-    for l, ll in zip(lines, exp_output.splitlines()):
-        print(l)
-        print(ll)
     assert lines == exp_output.splitlines()
 
 
@@ -434,6 +429,7 @@ HD81809 <SkyCoord (ICRS): (ra, dec) in deg
     (330.564375, -61.65961111)> (0.41342785, -0.23329341, -0.88014294)  58484.000000000000
 random  12                                                                 (0.41342785, -0.23329341, -0.88014294)  58484.000000000000
 ''' # noqa: W291
+    from astropy.time import Time
     t = Table()
     t['name'] = ['HD81809']
     coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
@@ -578,3 +574,302 @@ random      44                      48136.516043118841
     lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
     # Check the written table.
     assert lines == exp_output.splitlines()
+
+
+def test_write_mrt_metadata():
+    """ Tests basic metadata writing. """
+    exp_output = '''\
+Title: Astropy v5.0
+Authors: Suyog Garg
+Table: This is the table caption!
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names              
+10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
+19-21  I3     ---    i       [-30/67] Description of i (2)     
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. 
+Note (2): Notes can be put here. Notes can be put here. 
+--------------------------------------------------------------------------------
+''' # noqa: W291
+    t = ascii.read(test_dat)
+    title = 'Astropy v5.0'
+    authors = 'Suyog Garg'
+    caption = 'This is the table caption!'
+    notes = 'Notes can be put here. '
+    t = t['names', 'd', 'i']
+    t['d'].meta.notes = notes
+    t['i'].meta.notes = notes*2
+    out = StringIO()
+    t.write(out, format='ascii.cds',
+            title=title, authors=authors, caption=caption)
+    lines = out.getvalue().splitlines()
+    lines = lines[:-2]     # Do not select the data part.
+    assert lines == exp_output.splitlines()
+
+
+def test_write_mrt_metadata_global_notes():
+    """
+    Tests writing of Global notes and passing metadata keywords ``authors``
+    and ``notes`` as lists of string.
+    """
+    exp_output = '''\
+Title: Astropy v5.0
+Authors: Suyog Garg, Aarya Patil, Hans Moritz Gunther
+Table: This is the table caption!
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names              
+10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
+19-21  I3     ---    i       [-30/67] Description of i (2)     
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. 
+Note (2): Notes can be put here. Notes can be put here. 
+
+Global Notes:
+Note (G1): These are Global notes!
+Note (G2): There can be multiple of them too.
+--------------------------------------------------------------------------------
+''' # noqa: W291
+    t = ascii.read(test_dat)
+    title = 'Astropy v5.0'
+    caption = 'This is the table caption!'
+    authors = ['Suyog Garg', 'Aarya Patil', 'Hans Moritz Gunther']
+    notes = ['These are Global notes!', 'There can be multiple of them too.']
+    t = t['names', 'd', 'i']
+    t['d'].meta.notes = 'Notes can be put here. '
+    t['i'].meta.notes = 'Notes can be put here. ' * 2
+    out = StringIO()
+    t.write(out, format='ascii.cds',
+            title=title, authors=authors, caption=caption, notes=notes)
+    lines = out.getvalue().splitlines()
+    lines = lines[:-2]     # Do not select the data part.
+    assert lines == exp_output.splitlines()
+
+
+def test_write_mrt_metadata_wrapping():
+    """
+    Tests that long metadata fields are wrapped to a max linewidth of
+    80 characters. Also, checks for proper note referencing when column
+    notes are repeated, with the first column with repeated notes being
+    the reference column for the ``col.meta.notes`` attribute of the
+    following columns.
+    """
+    exp_output = '''\
+Title: Astropy v5.0: The extra long version. Astropy v5.0: The extra long
+    version. Astropy v5.0: The extra long version.
+Authors: Suyog Garg, Aarya Patil, Hans Moritz Gunther, Suyog Garg, Aarya Patil,
+    Hans Moritz Gunther
+Table: This is a longish table caption! This is a longish table caption! This is
+    a longish table caption!
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names (1)          
+10-17  F8.5   ---    d       [22.25/27.25] Description of d (2)
+19-21  I3     ---    i       [-30/67] Description of i (2)     
+--------------------------------------------------------------------------------
+Note (1): This is a normal note!
+Note (2): Extremely long table or column description can be put in the table
+    notes, which is also the recommended route to take instead of say putting
+    them in the column description, although multiline column description in the
+    Byte-By-Byte also wrap and can ineffect are valid. Also, there are two types
+    of notes, column notes and Global notes.
+
+Global Notes:
+Note (G1): Extremely long table or column description can be put in the table
+    notes, which is also the recommended route to take instead of say putting
+    them in the column description, although multiline column description in the
+    Byte-By-Byte also wrap and can ineffect are valid. Also, there are two types
+    of notes, column notes and Global notes.
+Note (G2): Extremely long table or column description can be put in the table
+    notes, which is also the recommended route to take instead of say putting
+    them in the column description, although multiline column description in the
+    Byte-By-Byte also wrap and can ineffect are valid. Also, there are two types
+    of notes, column notes and Global notes.
+--------------------------------------------------------------------------------
+''' # noqa: W291
+    longnote = '''\
+Extremely long table or column description can be put in the table notes,
+which is also the recommended route to take instead of say putting them in the
+column description, although multiline column description in the Byte-By-Byte
+also wrap and can ineffect are valid. Also, there are two types of notes,
+column notes and Global notes.
+'''
+    t = ascii.read(test_dat)
+    t = t['names', 'd', 'i']
+    title = 'Astropy v5.0: The extra long version. ' * 3
+    authors = ['Suyog Garg', 'Aarya Patil', 'Hans Moritz Gunther'] * 2
+    caption = 'This is a longish table caption! ' * 3
+    notes = [longnote, longnote]
+    t['names'].meta.notes = 'This is a normal note!'
+    t['d'].meta.notes = longnote
+    t['i'].meta.notes = 'd'
+    out = StringIO()
+    t.write(out, format='ascii.cds',
+            title=title, authors=authors, caption=caption, notes=notes)
+    lines = out.getvalue().splitlines()
+    lines = lines[:-2]     # Do not select the data part.
+    assert lines == exp_output.splitlines()
+
+
+def test_write_mrt_metadata_repeated_notes():
+    """
+    This is to check the output for cases when the note reference
+    to a column is made before that column has been assigned notes.
+    For such cases, the Notes should be repeated with different reference
+    number in the Byte-By-Byte description.
+    """
+    exp_output = '''\
+Title:
+Authors:
+Table:
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names              
+10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
+19-21  I3     ---    i       [-30/67] Description of i (2)     
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. Notes can be put here. 
+Note (2): Notes can be put here. Notes can be put here. 
+--------------------------------------------------------------------------------
+''' # noqa: W291
+    t = ascii.read(test_dat)
+    notes = 'Notes can be put here. '
+    t = t['names', 'd', 'i']
+    t['d'].meta.notes = 'i'
+    t['i'].meta.notes = notes*2
+    out = StringIO()
+    t.write(out, format='ascii.cds')
+    lines = out.getvalue().splitlines()
+    lines = lines[:-2]     # Do not select the data part.
+    assert lines == exp_output.splitlines()
+
+
+exp_mixin_col_notes_output = dict(generic = '''\
+Title: Astropy v5.0: The extra long version. 
+Authors: Suyog Garg; 
+Table: This is a longish table caption! 
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1-11  A11    ---    Name    Description of Name                         
+13-18  F6.1   yr     time    [2019.0/2019.0] Description of time (1)     
+20-37  F18.12 d      obs     [48136.51/48136.52] Modified Julian Date (1)
+39-42  F4.1   h      RAh     Right Ascension (hour) (1)                  
+44-46  F3.1   min    RAm     Right Ascension (minute) (1)                
+48-62  F15.12 s      RAs     Right Ascension (second) (1)                
+   64  A1     ---    DE-     Sign of Declination                         
+65-68  F5.1   deg    DEd     Declination (degree) (1)                    
+70-73  F4.1   arcmin DEm     Declination (arcmin) (1)                    
+75-89  F15.12 arcsec DEs     Declination (arcsec) (1)                    
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. 
+
+Global Notes:
+Note (G): Notes can be put here. 
+--------------------------------------------------------------------------------
+''', # noqa: W291
+
+galactic = '''\
+Title: Astropy v5.0: The extra long version. 
+Authors: Suyog Garg; 
+Table: This is a longish table caption! 
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1-11  A11    ---    Name    Description of Name                         
+13-18  F6.1   yr     time    [2019.0/2019.0] Description of time (1)     
+20-37  F18.12 d      obs     [48136.51/48136.52] Modified Julian Date (1)
+39-54  F16.12 deg    GLON    Galactic Longitude (1)                      
+56-71  F16.12 deg    GLAT    Galactic Latitude (1)                       
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. 
+
+Global Notes:
+Note (G): Notes can be put here. 
+--------------------------------------------------------------------------------
+''', # noqa: W291
+
+ecliptic = '''\
+Title: Astropy v5.0: The extra long version. 
+Authors: Suyog Garg; 
+Table: This is a longish table caption! 
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1-11  A11    ---    Name    Description of Name                            
+13-18  F6.1   yr     time    [2019.0/2019.0] Description of time (1)        
+20-37  F18.12 d      obs     [48136.51/48136.52] Modified Julian Date (1)   
+39-54  F16.12 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic) (1)
+56-71  F16.12 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) (1) 
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. 
+
+Global Notes:
+Note (G): Notes can be put here. 
+--------------------------------------------------------------------------------
+''' # noqa: W291
+)
+
+
+def test_write_mrt_metadata_notes_for_mixin_cols():
+    """
+    Checks writing Notes for ``SkyCoord`` and ``Time`` cols.
+    The internally created component columns and modified columns,
+    should all reference the same notes in the original columns.
+    And this note referencing should work for repeated notes too!
+    ``col.meta.notes`` cannot be assigned if the column is mix-in and
+    not a `Column` object. But Notes work for ``Column`` objects with
+    mix-in values. Creating the coord column for which we need a note,
+    after the reference column, the one with label ``time`` here, removes
+    the possibility of repetition of notes, as in the previous test.
+    """
+    from astropy.time import Time, TimeDelta
+    from astropy.timeseries import TimeSeries
+    title = 'Astropy v5.0: The extra long version. '
+    authors = 'Suyog Garg; '
+    caption = 'This is a longish table caption! '
+    notes = 'Notes can be put here. '
+    t = Table()
+    t['Name'] = ['ASASSN-15lh']
+    # Coordinates of ASASSN-15lh
+    coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+    ts = TimeSeries(time_start=Time('2019-1-1'),
+                    time_delta=2*u.day,
+                    n_samples=1)
+    t['time'] = Column(ts.time.decimalyear, unit=u.year)
+    t['obs'] = Column(Time('1990-9-2 12:23:6.125468'))
+    t['time'].meta.notes = notes
+    t['obs'].meta.notes = 'time'
+    cols = [Column(coord),           # Generic coordinate column
+            Column(coord.galactic),  # Galactic coordinates
+            Column(coord.geocentrictrueecliptic)  # Ecliptic coordinates
+           ]
+    # Loop through different types of coordinate columns.
+    for col, exp_output in zip(cols, exp_mixin_col_notes_output.values()):
+        t['coord'] = col
+        t['coord'].meta.notes = 'time'
+        out = StringIO()
+        t.write(out, format='ascii.cds',
+                title=title, authors=authors, caption=caption, notes=notes)
+        lines = out.getvalue().splitlines()
+        lines = lines[:-1]     # Do not select the data part.
+        assert lines == exp_output.splitlines()

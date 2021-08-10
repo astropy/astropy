@@ -771,7 +771,7 @@ class CdsHeader(core.BaseHeader):
                     notes += note + '\n'
             # Remove the last extra newline character from notes string.
             notes = notes[:-1]
-        
+
         # Get the global notes as properly formatted strings.
         if self.global_notes is not None:
             notes += '\n\nGlobal Notes:\n'
