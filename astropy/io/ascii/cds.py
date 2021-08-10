@@ -546,8 +546,8 @@ class CdsHeader(core.BaseHeader):
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
                 buff += ('\n').join(wrap(newline,
-                                         subsequent_indent=" " * nsplit,
-                                         width=MAX_SIZE_README_LINE))
+                                         subsequent_indent = " " * nsplit,
+                                         width = MAX_SIZE_README_LINE))
                 buff += '\n'
             else:
                 buff += newline + '\n'
@@ -722,11 +722,41 @@ class CdsHeader(core.BaseHeader):
             notes += 'Notes:'
         else:
             for i, note in enumerate(self.col_notes):
-                notes += 'Note (' + str(i+1) + '): ' + note + '\n'
+                note = 'Note (' + str(i+1) + '): ' + note
+                if len(note) > MAX_SIZE_README_LINE - 10:
+                    notes += ('\n').join(wrap(note,
+                                              subsequent_indent = " " * 4,
+                                              width = MAX_SIZE_README_LINE))
+                    notes += '\n'
+                else:
+                    notes += note + '\n'
             # Remove the last extra newline character from notes string.
             notes = notes[:-1]
         if self.global_notes is not None:
-            notes += '\n' + 'Note (G): ' + self.global_notes
+            notes += '\n\nGlobal Notes:\n'
+            global_notes = 'Note (G): ' + self.global_notes
+            if len(global_notes) > MAX_SIZE_README_LINE - 10:
+                notes += ('\n').join(wrap(global_notes,
+                                          subsequent_indent = " " * 4,
+                                          width = MAX_SIZE_README_LINE))
+            else:
+                notes += global_notes
+
+        # Also wrap other metadata if they are too long!
+        if len(self.title) > MAX_SIZE_README_LINE:
+            self.title = ('\n').join(wrap(self.title,
+                                          subsequent_indent = " " * 4,
+                                          width = MAX_SIZE_README_LINE))
+        if len(self.authors) > MAX_SIZE_README_LINE:
+            self.authors = ('\n').join(wrap(self.authors,
+                                            subsequent_indent = " " * 4,
+                                            width = MAX_SIZE_README_LINE))
+        if len(self.caption) > MAX_SIZE_README_LINE:
+            self.caption = ('\n').join(wrap(self.caption,
+                                            subsequent_indent = " " * 4,
+                                            width = MAX_SIZE_README_LINE))
+
+
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
