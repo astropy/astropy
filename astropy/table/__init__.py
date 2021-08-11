@@ -33,7 +33,7 @@ class Conf(_config.ConfigNamespace):  # noqa
         'List of conditions for issuing a warning when replacing a table '
         "column using setitem, e.g. t['a'] = value.  Allowed options are "
         "'always', 'slice', 'refcount', 'attributes'.",
-        'list')
+        'string_list')
     replace_inplace = _config.ConfigItem(
         False,
         'Always use in-place update of a table column when using setitem, '

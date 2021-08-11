@@ -269,12 +269,16 @@ each sub-package that has configuration items)::
             1, 'Description of some_setting')
         another_setting = _config.ConfigItem(
             'string value', 'Description of another_setting')
+        some_list = _config.ConfigItem(
+            [], 'Description of some_list', cfgtype='list')
+        another_list = _config.ConfigItem(
+            ['value'], 'Description of another_setting', cfgtype='list')
     # Create an instance for the user
     conf = Conf()
 
     ... implementation ...
     def some_func():
-        #to get the value of these options, I might do:
+        # to get the value of some of these options, I might do:
         something = conf.some_setting + 2
         return conf.another_setting + ' Also, I added text.'
 
@@ -293,8 +297,14 @@ following content would be added to the config file template:
     ## Description of another_setting
     # another_setting = foo
 
+    ## Description of some_list
+    # some_list = ,
+
+    ## Description of another_setting
+    # another_list = value,
+
 Note that the key/value pairs are commented out. This will allow for
-changing the default values in a future version of ``astropy`` without
+changing the default values in a future version of the package without
 requiring the user to edit their configuration file to take advantage
 of the new defaults. By convention, the descriptions of each
 parameter are in comment lines starting with two hash characters
