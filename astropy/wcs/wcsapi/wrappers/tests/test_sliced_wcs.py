@@ -890,3 +890,12 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
 
     assert wao_classes['spectral'][0:3] == (u.Quantity, (), {})
     assert wao_classes['time'][0:3] == (Time, (), {})
+
+
+def test_pixel_to_world_values_different_int_types():
+    int_sliced = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, np.s_[:, 0, :])
+    np64_sliced = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, np.s_[:, np.int64(0), :])
+    pixel_arrays = ([0, 1], [0, 1])
+    for int_coord, np64_coord in zip(int_sliced.pixel_to_world_values(*pixel_arrays),
+                                     np64_sliced.pixel_to_world_values(*pixel_arrays)):
+        assert all(int_coord == np64_coord)
