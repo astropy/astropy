@@ -1,4 +1,52 @@
-4.3 (unreleased)
+4.3.1 (2021-08-11)
+==================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- In ``fits.io.getdata`` do not fall back to first non-primary extension when
+  user explicitly specifies an extension. [#11860]
+
+- Ensure multidimensional masked columns round-trip properly to FITS. [#11911]
+
+- Ensure masked times round-trip to FITS, even if multi-dimensional. [#11913]
+
+- Raise ``ValueError`` if an ``np.float32`` NaN/Inf value is assigned to a
+  header keyword. [#11922]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed bug in ``fix_inputs`` handling of bounding boxes. [#11908]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix an error when converting to pandas any ``Table`` subclass that
+  automatically adds a table index when the table is created. An example is a
+  binned ``TimeSeries`` table. [#12018]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Ensure that unpickling quantities and units in new sessions does not change
+  hashes and thus cause problems with (de)composition such as getting different
+  answers from the ``.si`` attribute. [#11879]
+
+- Fixed cannot import name imperial from astropy.units namespace. [#11977]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Ensure any ``.info`` on ``Masked`` instances is propagated correctly when
+  viewing or slicing. As a consequence, ``MaskedQuantity`` can now be correctly
+  written to, e.g., ECSV format with ``serialize_method='data_mask'``. [#11910]
+
+
+4.3 (2021-07-26)
 ================
 
 New Features
