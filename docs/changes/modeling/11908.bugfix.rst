@@ -1,1 +1,0 @@
-Fixed bug in ``fix_inputs`` handling of bounding boxes.
