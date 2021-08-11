@@ -220,8 +220,7 @@ def treat_deprecations_as_exceptions():
     # this iteration thus we copy the original state to a list to iterate
     # on. See https://github.com/astropy/astropy/pull/5513.
     for module in list(sys.modules.values()):
-        if (isinstance(module, types.ModuleType) and
-                hasattr(module, '__warningregistry__')):
+        if hasattr(module, '__warningregistry__'):
             del module.__warningregistry__
 
     if not _deprecations_as_exceptions:
