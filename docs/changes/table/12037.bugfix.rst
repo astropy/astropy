@@ -1,1 +1,1 @@
-``table.jsviewer.conf.css_urls`` configuration item now has correct ``'string_list'`` type.
+``table.conf.replace_warnings`` and ``table.jsviewer.conf.css_urls`` configuration items now have correct ``'string_list'`` type.
