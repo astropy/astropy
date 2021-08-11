@@ -220,13 +220,10 @@ def treat_deprecations_as_exceptions():
     # this iteration thus we copy the original state to a list to iterate
     # on. See https://github.com/astropy/astropy/pull/5513.
     for module in list(sys.modules.values()):
-        # We don't want to deal with six.MovedModules, only "real"
-        # modules. FIXME: we no more use six, this should be useless ?
-        if isinstance(module, types.ModuleType):
-            try:
-                del module.__warningregistry__
-            except AttributeError:
-                pass
+        try:
+            del module.__warningregistry__
+        except AttributeError:
+            pass
 
     if not _deprecations_as_exceptions:
         return
