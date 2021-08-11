@@ -214,7 +214,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         pixel_arrays_new = []
         ipix_curr = -1
         for ipix in range(self._wcs.pixel_n_dim):
-            if isinstance(self._slices_pixel[ipix], int):
+            if isinstance(self._slices_pixel[ipix], numbers.Integral):
                 pixel_arrays_new.append(self._slices_pixel[ipix])
             else:
                 ipix_curr += 1
