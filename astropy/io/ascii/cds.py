@@ -50,6 +50,42 @@ MRT_TEMPLATE = ["$title",  # Defaults to 'Title:'
 "$notes",                  # Defaults to 'Notes:'
 "--------------------------------------------------------------------------------"]
 
+CDS_TEMPLATE = '''\
+$catalogue                                                      ($author, $date)
+================================================================================
+$title
+    $authors
+    $bibcode
+================================================================================
+Keywords: $keywords
+
+Objects:
+    -----------------------------------------
+       RA   (2000)   DE    Designation(s)
+    -----------------------------------------
+
+Abstract:
+  $abstract
+
+File Summary:
+--------------------------------------------------------------------------------
+ FileName    Lrecl   Records    Explanations
+--------------------------------------------------------------------------------
+$tablesIndex
+
+--------------------------------------------------------------------------------
+$bytebybyte
+
+See also:
+$seealso
+
+Acknowledgements:
+
+References:
+================================================================================
+     (prepared by $author  / astropy.io.ascii )
+'''
+
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
     """
