@@ -72,10 +72,12 @@ File Summary:
 --------------------------------------------------------------------------------
  FileName    Lrecl   Records    Explanations
 --------------------------------------------------------------------------------
-$tablesIndex
+$fileindex
 
 --------------------------------------------------------------------------------
 $bytebybyte
+$notes
+--------------------------------------------------------------------------------
 
 See also:
 $seealso
@@ -824,6 +826,7 @@ class CdsHeader(core.BaseHeader):
                 if len(self.global_notes) == 1:
                     global_notes = 'Note (G): '
                 global_notes += gnote
+                # Wrap lines if Global notes extend too far.
                 if len(global_notes) > MAX_SIZE_README_LINE - 10:
                     notes += fill(global_notes,
                                   subsequent_indent = " " * 4,
@@ -847,6 +850,34 @@ class CdsHeader(core.BaseHeader):
             self.caption = fill(self.caption,
                                 subsequent_indent = " " * 4,
                                 width = MAX_SIZE_README_LINE)
+
+        # 
+        
+        # Add CDS template specific fields.
+        if self.template == 'cds':
+            # Get ``fileindex`` to fill in CDS template.
+            lrec_col_width = len(str(self.linewidth))    # Set width Lrecl column
+            # Create the File Index table
+            file_index_rows = (["ReadMe",
+                                MAX_SIZE_README_LINE,
+                                ".",
+                                "this file"],
+                               ["table",
+                                self.linewidth,
+                                str(len(self.cols[0])),
+                                self.caption])
+            file_row = Table(names=['FileName', 'Lrecl', 'Records', 'Explanations'],
+                             rows=file_index_rows)
+
+            # Get File Index table rows as formatted lines
+            file_index_lines = StringIO()
+            file_row.write(file_index_lines, format='ascii.fixed_width_no_header',
+                           delimiter=' ', bookend=False, delimiter_pad=None,
+                           formats={'FileName': '14s',
+                                    'Lrecl': ''+str(lrec_col_width)+'d',
+                                    'Records': '>8s',
+                                    'Explanations': 's'})
+            file_index_lines = file_index_lines.getvalue()
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
@@ -1012,7 +1043,7 @@ class Cds(core.BaseReader):
     def __init__(self, readme=None, template='mrt',
                  title=None, authors=None, caption=None, notes=None,
                  catalogue=None, bibcode=None, keywords=None,
-                 date=datetime.date.today().year,
+                 date=datetime.date.today().year, description=None,
                  abstract=None, seealso=None, references=None):
         super().__init__()
         self.header.readme = readme
@@ -1045,8 +1076,12 @@ class Cds(core.BaseReader):
 
         # Parse CDS metadata properly, if passed.
         self.date = str(date)
-        
-        
+        self.catalogue = catalogue
+        self.bibcode = bibcode
+        self.keywords = keywords
+        self.abstract = abstract
+        self.seealso = seealso
+        self.references = references        
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
