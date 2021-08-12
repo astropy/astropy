@@ -15,6 +15,7 @@ import itertools
 import re
 import os
 import math
+import datetime
 import warnings
 import numpy as np
 from io import StringIO
@@ -349,7 +350,8 @@ class CdsHeader(core.BaseHeader):
                 maxprec = fmt[1] + fmt[2]
 
         if fformat == 'E':
-            if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
+            # If ``format`` is not passed, this attribute would not be set.
+            if getattr(col.meta, 'size', None) is None:
                 col.meta.size = maxsize
                 if sign:
                     col.meta.size += 1
@@ -358,7 +360,8 @@ class CdsHeader(core.BaseHeader):
             col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
             col.format = str(col.meta.size) + "." + str(maxdec) + "e"
         else:
-            if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
+            # If ``format`` is not passed, this attribute would not be set.
+            if getattr(col.meta, 'size', None) is None:
                 col.meta.size = maxent + maxdec + 1
                 if sign:
                     col.meta.size += 1
@@ -449,6 +452,7 @@ class CdsHeader(core.BaseHeader):
                 if col.info.format is not None:
                     col.format = col.info.format
 
+            # If ``format`` is not passed, this attribute would not be set.
             if col.format is not None:
                 col.meta.size = max([len(sval) for sval in col.str_vals])
 
@@ -1005,8 +1009,11 @@ class Cds(core.BaseReader):
     data_class = CdsData
     header_class = CdsHeader
 
-    def __init__(self, readme=None,
-                 title=None, authors=None, caption=None, notes=None):
+    def __init__(self, readme=None, template='mrt',
+                 title=None, authors=None, caption=None, notes=None,
+                 catalogue=None, bibcode=None, keywords=None,
+                 date=datetime.date.today().year,
+                 abstract=None, seealso=None, references=None):
         super().__init__()
         self.header.readme = readme
 
@@ -1015,7 +1022,7 @@ class Cds(core.BaseReader):
         # should be at 0.
         self.data.start_line = None
 
-        # Properly edit MRT metadata if passed.
+        # Properly edit MRT metadata, if passed.
         self.header.title = 'Title:'
         if title is not None:
             self.header.title += ' ' + title
@@ -1035,6 +1042,11 @@ class Cds(core.BaseReader):
         if isinstance(notes, str):
             notes = [notes]
         self.header.global_notes = notes
+
+        # Parse CDS metadata properly, if passed.
+        self.date = str(date)
+        
+        
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
