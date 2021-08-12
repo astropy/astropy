@@ -14,7 +14,7 @@ __all__ = ['AffineType', 'Rotate2DType', 'Rotate3DType',
 
 class AffineType(TransformType):
     name = "transform/affine"
-    version = '1.2.0'
+    version = '1.3.0'
     types = ['astropy.modeling.projections.AffineTransformation2D']
 
     @classmethod
@@ -48,7 +48,7 @@ class AffineType(TransformType):
 
 class Rotate2DType(TransformType):
     name = "transform/rotate2d"
-    version = '1.2.0'
+    version = '1.3.0'
     types = ['astropy.modeling.rotations.Rotation2D']
 
     @classmethod
@@ -70,7 +70,7 @@ class Rotate2DType(TransformType):
 
 class Rotate3DType(TransformType):
     name = "transform/rotate3d"
-    version = '1.2.0'
+    version = '1.3.0'
     types = ['astropy.modeling.rotations.RotateNative2Celestial',
              'astropy.modeling.rotations.RotateCelestial2Native',
              'astropy.modeling.rotations.EulerAngleRotation']
@@ -214,26 +214,26 @@ class GenericProjectionType(TransformType):
 
 
 _generic_projections = {
-    'zenithal_perspective': ('ZenithalPerspective', (('mu', 0.0), ('gamma', 0.0)), '1.2.0'),
+    'zenithal_perspective': ('ZenithalPerspective', (('mu', 0.0), ('gamma', 0.0)), '1.3.0'),
     'gnomonic': ('Gnomonic', (), None),
     'stereographic': ('Stereographic', (), None),
     'slant_orthographic': ('SlantOrthographic', (('xi', 0.0), ('eta', 0.0)), None),
     'zenithal_equidistant': ('ZenithalEquidistant', (), None),
     'zenithal_equal_area': ('ZenithalEqualArea', (), None),
     'airy': ('Airy', (('theta_b', 90.0),), '1.2.0'),
-    'cylindrical_perspective': ('CylindricalPerspective', (('mu', 0.0), ('lam', 0.0)), '1.2.0'),
-    'cylindrical_equal_area': ('CylindricalEqualArea', (('lam', 0.0),), '1.2.0'),
+    'cylindrical_perspective': ('CylindricalPerspective', (('mu', 0.0), ('lam', 0.0)), '1.3.0'),
+    'cylindrical_equal_area': ('CylindricalEqualArea', (('lam', 0.0),), '1.3.0'),
     'plate_carree': ('PlateCarree', (), None),
     'mercator': ('Mercator', (), None),
     'sanson_flamsteed': ('SansonFlamsteed', (), None),
     'parabolic': ('Parabolic', (), None),
     'molleweide': ('Molleweide', (), None),
     'hammer_aitoff': ('HammerAitoff', (), None),
-    'conic_perspective': ('ConicPerspective', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
-    'conic_equal_area': ('ConicEqualArea', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
-    'conic_equidistant': ('ConicEquidistant', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
-    'conic_orthomorphic': ('ConicOrthomorphic', (('sigma', 0.0), ('delta', 0.0)), '1.2.0'),
-    'bonne_equal_area': ('BonneEqualArea', (('theta1', 0.0),), '1.2.0'),
+    'conic_perspective': ('ConicPerspective', (('sigma', 0.0), ('delta', 0.0)), '1.3.0'),
+    'conic_equal_area': ('ConicEqualArea', (('sigma', 0.0), ('delta', 0.0)), '1.3.0'),
+    'conic_equidistant': ('ConicEquidistant', (('sigma', 0.0), ('delta', 0.0)), '1.3.0'),
+    'conic_orthomorphic': ('ConicOrthomorphic', (('sigma', 0.0), ('delta', 0.0)), '1.3.0'),
+    'bonne_equal_area': ('BonneEqualArea', (('theta1', 0.0),), '1.3.0'),
     'polyconic': ('Polyconic', (), None),
     'tangential_spherical_cube': ('TangentialSphericalCube', (), None),
     'cobe_quad_spherical_cube': ('COBEQuadSphericalCube', (), None),

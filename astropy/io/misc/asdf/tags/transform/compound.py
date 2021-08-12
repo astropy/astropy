@@ -96,6 +96,7 @@ class CompoundType(TransformType):
 class RemapAxesType(TransformType):
     name = 'transform/remap_axes'
     types = [Mapping]
+    version = '1.3.0'
 
     @classmethod
     def from_tree_transform(cls, node, ctx):
