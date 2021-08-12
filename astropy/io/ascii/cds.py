@@ -52,24 +52,22 @@ MRT_TEMPLATE = ["$title",  # Defaults to 'Title:'
 "--------------------------------------------------------------------------------"]
 
 CDS_TEMPLATE = '''\
-$catalogue                                                      ($author, $date)
+$catalogue   $shorttitle                                ($firstauthor, $date)
 ================================================================================
 $title
     $authors
     $bibcode
 ================================================================================
-Keywords: $keywords
+$keywords
 
 Objects:
     -----------------------------------------
        RA   (2000)   DE    Designation(s)
     -----------------------------------------
 
-Abstract:
-    $abstract
+$abstract
 
-Description:
-    $description
+$description
 
 File Summary:
 --------------------------------------------------------------------------------
@@ -82,15 +80,14 @@ $bytebybyte
 $notes
 --------------------------------------------------------------------------------
 
-See also:
 $seealso
 
 Acknowledgements:
 
-References:
 $references
 ================================================================================
-     (prepared by $author  / astropy.io.ascii )
+     (prepared by $firstauthor / astropy.io.ascii)
+--------------------------------------------------------------------------------\
 '''
 
 
@@ -862,12 +859,12 @@ class CdsHeader(core.BaseHeader):
                         'caption': self.caption,
                         'notes': notes}
         # Set default ReadMe format to MRT.
-        rm_format = MRT_TEMPLATE
+        rm_template_string = '\n'.join(MRT_TEMPLATE)
         
         # Add CDS template specific fields.
         if self.template == 'cds':
             # Change ReadMe format to CDS.
-            rm_format = CDS_TEMPLATE
+            rm_template_string = CDS_TEMPLATE
 
             # Get ``fileindex`` to fill in CDS template.
             lrec_col_width = len(str(self.linewidth))    # Set width Lrecl column
@@ -892,20 +889,24 @@ class CdsHeader(core.BaseHeader):
                                     'Records': '>8s',
                                     'Explanations': 's'})
             file_index_lines = file_index_lines.getvalue()
+            # Remove newline character at the end.
+            file_index_lines = '\n'.join(file_index_lines.splitlines())
 
             # Update the dictionary of ReadMe template values.
-            if self.catalogue is not None:
-                rm_temp_vals.update({'catalogue': self.catalogue})
-            rm_temp_vals.update({'date': self.date,
+            rm_temp_vals.update({'catalogue': self.catalogue,
+                                 'shorttitle': self.shorttitle,
+                                 'firstauthor': self.firstauthor,
+                                 'date': self.date,
                                  'bibcode': self.bibcode,
                                  'keywords': self.keywords,
+                                 'abstract': self.abstract,
                                  'description': self.description,
                                  'fileindex': file_index_lines,
                                  'seealso': self.seealso,
                                  'references': self.references})
 
         # Fill up the full ReadMe
-        rm_template = Template('\n'.join(rm_format))
+        rm_template = Template(rm_template_string)
         readme_filled = rm_template.substitute(rm_temp_vals)
         lines.append(readme_filled)
 
@@ -1063,9 +1064,10 @@ class Cds(core.BaseReader):
 
     def __init__(self, readme=None, template='mrt',
                  title=None, authors=None, caption=None, notes=None,
-                 catalogue=None, bibcode=None, keywords=None,
-                 date=datetime.date.today().year, description=None,
-                 abstract=None, seealso=None, references=None):
+                 date=datetime.date.today().year,  keywords=None,
+                 catalogue='{catalogue}', bibcode='{bibcode}',
+                 firstauthor='{firstauthor}', shorttitle='{shorttitle}',
+                 abstract=None, description=None, seealso=None, references=None):
         super().__init__()
         self.header.readme = readme
 
@@ -1110,22 +1112,46 @@ class Cds(core.BaseReader):
         self.header.global_notes = notes
 
         # Parse CDS specific metadata keywords only if the template is set CDS.
-        if self.template == 'cds':
-            # ``title`` and ``authors`` fields in CDS ReadMe do not section
+        if self.header.template == 'cds':
+            # ``title`` and ``authors`` fields in CDS ReadMe do not have section
             # headings. So, these field names are put within curly brackets,
             if title is None:
                 self.header.title = '{title}'
+            if authors is None:
                 self.header.authors = '{authors}'
-            # Default ``date`` is the current year, unless some other value is passed.
+            # The table ``caption`` is put in the ``Explanations`` column of File Index.
+            if caption is None:
+                self.header.caption = '{caption}'
+
+            # Default ``date`` is the current year, unless some other year value
+            # is passed along.
             self.header.date = str(date)
-            # Catalogue 
+
+            # ``catalogue`` and ``bibcode`` also don't need section headings.
             self.header.catalogue = catalogue
             self.header.bibcode = bibcode
-            self.header.keywords = keywords
-            self.header.abstract = abstract
-            self.header.description = description
-            self.header.seealso = seealso
-            self.header.references = references        
+
+            # Remaining fields need section headings.
+            self.header.shorttitle = shorttitle
+            self.header.firstauthor = firstauthor
+
+            self.header.keywords = 'Keywords:'
+            if keywords is not None:
+                self.header.keywords += ' ' + keywords
+
+            self.header.abstract = 'Abstract:'
+            if abstract is not None:
+                self.header.abstract += '\n' + abstract
+            self.header.description = 'Description:'
+            if description is not None:
+                self.header.description += '\n' + description
+
+            self.header.seealso = 'See also:'
+            if seealso is not None:
+                self.header.seealso += '\n' + seealso
+            self.header.references = 'References:'
+            if references is not None:
+                self.header.references += '\n' + references  
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
