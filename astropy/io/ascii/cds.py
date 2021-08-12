@@ -68,6 +68,9 @@ Objects:
 Abstract:
   $abstract
 
+Description:
+  $description
+
 File Summary:
 --------------------------------------------------------------------------------
  FileName    Lrecl   Records    Explanations
@@ -85,6 +88,7 @@ $seealso
 Acknowledgements:
 
 References:
+$references
 ================================================================================
      (prepared by $author  / astropy.io.ascii )
 '''
@@ -851,10 +855,20 @@ class CdsHeader(core.BaseHeader):
                                 subsequent_indent = " " * 4,
                                 width = MAX_SIZE_README_LINE)
 
-        # 
+        # Initialize the ReadMe template values.
+        rm_temp_vals = {'bytebybyte': byte_by_byte,
+                        'title': self.title,
+                        'authors': self.authors,
+                        'caption': self.caption,
+                        'notes': notes}
+        # Set default ReadMe format to MRT.
+        rm_format = MRT_TEMPLATE
         
         # Add CDS template specific fields.
         if self.template == 'cds':
+            # Change ReadMe format to CDS.
+            rm_format = CDS_TEMPLATE
+
             # Get ``fileindex`` to fill in CDS template.
             lrec_col_width = len(str(self.linewidth))    # Set width Lrecl column
             # Create the File Index table
@@ -879,13 +893,19 @@ class CdsHeader(core.BaseHeader):
                                     'Explanations': 's'})
             file_index_lines = file_index_lines.getvalue()
 
+            # Update the dictionary of ReadMe template values.
+            rm_temp_vals.update({'catalogue': self.catalogue,
+                                 'date': self.date,
+                                 'bibcode': self.bibcode,
+                                 'keywords': self.keywords,
+                                 'description': self.description,
+                                 'fileindex': file_index_lines,
+                                 'seealso': self.seealso,
+                                 'references': self.references})
+
         # Fill up the full ReadMe
-        rm_template = Template('\n'.join(MRT_TEMPLATE))
-        readme_filled = rm_template.substitute({'bytebybyte': byte_by_byte,
-                                                'title': self.title,
-                                                'authors': self.authors,
-                                                'caption': self.caption,
-                                                'notes': notes})
+        rm_template = Template('\n'.join(rm_format))
+        readme_filled = rm_template.substitute(rm_temp_vals)
         lines.append(readme_filled)
 
 
@@ -1087,6 +1107,7 @@ class Cds(core.BaseReader):
         self.header.bibcode = bibcode
         self.header.keywords = keywords
         self.header.abstract = abstract
+        self.header.description = description
         self.header.seealso = seealso
         self.header.references = references        
 
