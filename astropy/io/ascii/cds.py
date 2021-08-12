@@ -66,10 +66,10 @@ Objects:
     -----------------------------------------
 
 Abstract:
-  $abstract
+    $abstract
 
 Description:
-  $description
+    $description
 
 File Summary:
 --------------------------------------------------------------------------------
@@ -894,8 +894,9 @@ class CdsHeader(core.BaseHeader):
             file_index_lines = file_index_lines.getvalue()
 
             # Update the dictionary of ReadMe template values.
-            rm_temp_vals.update({'catalogue': self.catalogue,
-                                 'date': self.date,
+            if self.catalogue is not None:
+                rm_temp_vals.update({'catalogue': self.catalogue})
+            rm_temp_vals.update({'date': self.date,
                                  'bibcode': self.bibcode,
                                  'keywords': self.keywords,
                                  'description': self.description,
@@ -1073,11 +1074,24 @@ class Cds(core.BaseReader):
         # should be at 0.
         self.data.start_line = None
 
-        # Properly edit MRT metadata, if passed.
+        # Set ReadMe template name to use. Default template is MRT.
+        if template.lower() not in ['mrt', 'cds']:
+            message = '`template` should be one of ("mrt", "cds")\n' \
+                      + 'Defaulting to the MRT format.'
+            warnings.warn(message, UserWarning)
+            self.header.template = 'mrt'
+        else:
+            self.header.template = template.lower()
+
+        # Parse MRT metadata if they are passed to the write function.
+        # These same metadata fields are also available in the CDS table,
+        # so they are used if template is set to CDS as well.
         self.header.title = 'Title:'
         if title is not None:
             self.header.title += ' ' + title
 
+        # The ``Authors`` field, can be passed as a list as well.
+        # The list values are joined into a string to insert to the template later.
         self.header.authors = 'Authors:'
         if authors is not None:
             self.header.authors += " "
@@ -1090,26 +1104,28 @@ class Cds(core.BaseReader):
         if caption is not None:
             self.header.caption += ' ' + caption
 
+        # ``notes`` are parsed as a list of Global notes.
         if isinstance(notes, str):
             notes = [notes]
         self.header.global_notes = notes
 
-        # Parse CDS metadata properly, if passed.
-        if template.lower() not in ['mrt', 'cds']:
-            message = '`template` should be one of ("mrt", "cds")\n' \
-                      + 'Defaulting to the MRT format.'
-            warnings.warn(message, UserWarning)
-            self.header.template = 'mrt'
-        else:
-            self.header.template = template.lower()
-        self.header.date = str(date)
-        self.header.catalogue = catalogue
-        self.header.bibcode = bibcode
-        self.header.keywords = keywords
-        self.header.abstract = abstract
-        self.header.description = description
-        self.header.seealso = seealso
-        self.header.references = references        
+        # Parse CDS specific metadata keywords only if the template is set CDS.
+        if self.template == 'cds':
+            # ``title`` and ``authors`` fields in CDS ReadMe do not section
+            # headings. So, these field names are put within curly brackets,
+            if title is None:
+                self.header.title = '{title}'
+                self.header.authors = '{authors}'
+            # Default ``date`` is the current year, unless some other value is passed.
+            self.header.date = str(date)
+            # Catalogue 
+            self.header.catalogue = catalogue
+            self.header.bibcode = bibcode
+            self.header.keywords = keywords
+            self.header.abstract = abstract
+            self.header.description = description
+            self.header.seealso = seealso
+            self.header.references = references        
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
