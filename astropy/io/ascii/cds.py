@@ -1075,13 +1075,20 @@ class Cds(core.BaseReader):
         self.header.global_notes = notes
 
         # Parse CDS metadata properly, if passed.
-        self.date = str(date)
-        self.catalogue = catalogue
-        self.bibcode = bibcode
-        self.keywords = keywords
-        self.abstract = abstract
-        self.seealso = seealso
-        self.references = references        
+        if template.lower() not in ['mrt', 'cds']:
+            message = '`template` should be one of ("mrt", "cds")\n' \
+                      + 'Defaulting to the MRT format.'
+            warnings.warn(message, UserWarning)
+            self.header.template = 'mrt'
+        else:
+            self.header.template = template.lower()
+        self.header.date = str(date)
+        self.header.catalogue = catalogue
+        self.header.bibcode = bibcode
+        self.header.keywords = keywords
+        self.header.abstract = abstract
+        self.header.seealso = seealso
+        self.header.references = references        
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
