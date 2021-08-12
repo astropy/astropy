@@ -500,7 +500,7 @@ PyWcsprm_init(
 
     if (status != 0) {
       free(colsel_ints);
-      wcshdr_err_to_python_exc(status);
+      wcshdr_err_to_python_exc(status, wcs);
       return -1;
     }
 
@@ -536,7 +536,7 @@ PyWcsprm_init(
     free(colsel_ints);
 
     if (status != 0) {
-      wcshdr_err_to_python_exc(status);
+      wcshdr_err_to_python_exc(status, wcs);
       return -1;
     }
 
@@ -772,7 +772,7 @@ PyWcsprm_find_all_wcs(
   Py_END_ALLOW_THREADS
 
   if (status != 0) {
-    wcshdr_err_to_python_exc(status);
+    wcshdr_err_to_python_exc(status, wcs);
     return NULL;
   }
 
@@ -807,7 +807,7 @@ PyWcsprm_find_all_wcs(
   Py_END_ALLOW_THREADS
 
   if (status != 0) {
-    wcshdr_err_to_python_exc(status);
+    wcshdr_err_to_python_exc(status, wcs);
     return NULL;
   }
 
