@@ -55,10 +55,12 @@ of two Gaussians:
 
 This decorator also supports setting a model's
 `~astropy.modeling.FittableModel.fit_deriv` as well as creating models with
-more than one inputs.  It can also be used as a normal factory function (for
-example ``SumOfGaussians = custom_model(sum_of_gaussians)``) rather than as a
-decorator.  See the `~astropy.modeling.custom_model` documentation for more
-examples.
+more than one inputs.  Note that when creating a model from a function with
+multiple outputs, the keyword argument ``n_outputs`` must be set to the
+number of outputs of the function.  It can also be used as a normal factory
+function (for example ``SumOfGaussians = custom_model(sum_of_gaussians)``)
+rather than as a decorator.  See the `~astropy.modeling.custom_model`
+documentation for more examples.
 
 
 A step by step definition of a 1-D Gaussian model

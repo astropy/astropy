@@ -710,6 +710,7 @@ class Model(metaclass=_ModelMeta):
                         self.__dict__[parname] = newpar
 
         self._initialize_constraints(kwargs)
+        kwargs = self._initialize_setters(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
         # distinguish them
@@ -734,6 +735,19 @@ class Model(metaclass=_ModelMeta):
                 # ``n_inputs``, ``n_outputs``, ``inputs`` or ``outputs``.
                 self._inputs = ()
                 self._outputs = ()
+
+    def _initialize_setters(self, kwargs):
+        """
+        This exists to inject defaults for settable properties for models
+        originating from `custom_model`.
+        """
+        if hasattr(self, '_settable_properties'):
+            setters = {name: kwargs.pop(name, default)
+                       for name, default in self._settable_properties.items()}
+            for name, value in setters.items():
+                setattr(self, name, value)
+
+        return kwargs
 
     @property
     def inputs(self):
@@ -3593,6 +3607,13 @@ def custom_model(*args, fit_deriv=None):
         default values in the model function.  Use `None` as a default argument
         value if you do not want to have a default value for that parameter.
 
+        The standard settable model properties can be configured by default
+        using keyword arguments matching the name of the property; however,
+        these values are not set as model "parameters". Moreover, users
+        cannot use keyword arguments matching non-settable model properties,
+        with the exception of ``n_outputs`` which should be set to the number of
+        outputs of your function.
+
     Parameters
     ----------
     func : function
@@ -3660,6 +3681,50 @@ def custom_model(*args, fit_deriv=None):
             "any).".format(__name__))
 
 
+def _custom_model_inputs(func):
+    """
+    Processes the inputs to the `custom_model`'s function into the appropriate
+    categories.
+
+    Parameters
+    ----------
+    func : callable
+
+    Returns
+    -------
+    inputs : list
+        list of evaluation inputs
+    special_params : dict
+        dictionary of model properties which require special treatment
+    settable_params : dict
+        dictionary of defaults for settable model properties
+    params : dict
+        dictionary of model parameters set by `custom_model`'s function
+    """
+    inputs, parameters = get_inputs_and_params(func)
+
+    special = ['n_outputs']
+    settable = [attr for attr, value in vars(Model).items()
+                if isinstance(value, property) and value.fset is not None]
+    properties = [attr for attr, value in vars(Model).items()
+                  if isinstance(value, property) and value.fset is None and attr not in special]
+
+    special_params = {}
+    settable_params = {}
+    params = {}
+    for param in parameters:
+        if param.name in special:
+            special_params[param.name] = param.default
+        elif param.name in settable:
+            settable_params[param.name] = param.default
+        elif param.name in properties:
+            raise ValueError(f"Parameter '{param.name}' cannot be a model property: {properties}.")
+        else:
+            params[param.name] = param.default
+
+    return inputs, special_params, settable_params, params
+
+
 def _custom_model_wrapper(func, fit_deriv=None):
     """
     Internal implementation `custom_model`.
@@ -3683,21 +3748,15 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
     model_name = func.__name__
 
-    inputs, params = get_inputs_and_params(func)
+    inputs, special_params, settable_params, params = _custom_model_inputs(func)
 
     if (fit_deriv is not None and
             len(fit_deriv.__defaults__) != len(params)):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 
-    # TODO: Maybe have a clever scheme for default output name?
-    if inputs:
-        output_names = (inputs[0].name,)
-    else:
-        output_names = ('x',)
-
-    params = {param.name: Parameter(param.name, default=param.default)
-              for param in params}
+    params = {param: Parameter(param, default=default)
+              for param, default in params.items()}
 
     mod = find_current_module(2)
     if mod:
@@ -3709,9 +3768,9 @@ def _custom_model_wrapper(func, fit_deriv=None):
         '__module__': str(modname),
         '__doc__': func.__doc__,
         'n_inputs': len(inputs),
-        # tuple(x.name for x in inputs)),
-        'n_outputs': len(output_names),
-        'evaluate': staticmethod(func)
+        'n_outputs': special_params.pop('n_outputs', 1),
+        'evaluate': staticmethod(func),
+        '_settable_properties': settable_params
     }
 
     if fit_deriv is not None:

@@ -11,6 +11,7 @@ from numpy.testing import assert_allclose
 
 import astropy
 from astropy.modeling.core import Model, custom_model, SPECIAL_OPERATORS, _add_special_operator
+from astropy.modeling.separable import separability_matrix
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
 from astropy.convolution import convolve_models
@@ -186,6 +187,100 @@ def test_custom_model_parametrized_decorator():
     s = sine(2)
     assert_allclose(s(np.pi / 2), 2)
     assert_allclose(s.fit_deriv(0, 2), 2)
+
+
+def test_custom_model_n_outputs():
+    """
+    Test creating a custom_model which has more than one output, which
+    requires special handling.
+        Demonstrates issue #11791's ``n_outputs`` error has been solved
+    """
+
+    @custom_model
+    def model(x, y, n_outputs=2):
+        return x+1, y+1
+
+    m = model()
+    assert not isinstance(m.n_outputs, Parameter)
+    assert isinstance(m.n_outputs, int)
+    assert m.n_outputs == 2
+    assert m.outputs == ('x0', 'x1')
+    assert (separability_matrix(m) == [[True, True],
+                                       [True, True]]).all()
+
+    @custom_model
+    def model(x, y, z, n_outputs=3):
+        return x+1, y+1, z+1
+
+    m = model()
+    assert not isinstance(m.n_outputs, Parameter)
+    assert isinstance(m.n_outputs, int)
+    assert m.n_outputs == 3
+    assert m.outputs == ('x0', 'x1', 'x2')
+    assert (separability_matrix(m) == [[True, True, True],
+                                       [True, True, True],
+                                       [True, True, True]]).all()
+
+
+def test_custom_model_settable_parameters():
+    """
+    Test creating a custom_model which specifically sets adjustable model
+    parameters.
+        Demonstrates part of issue #11791's notes about what passed parameters
+        should/shouldn't be allowed. In this case, settable parameters
+        should be allowed to have defaults set.
+    """
+    @custom_model
+    def model(x, y, n_outputs=2, bounding_box=((1, 2), (3, 4))):
+        return x+1, y+1
+
+    m = model()
+    assert m.n_outputs == 2
+    assert m.bounding_box == ((1, 2), (3, 4))
+    m.bounding_box = ((9, 10), (11, 12))
+    assert m.bounding_box == ((9, 10), (11, 12))
+    m = model(bounding_box=((5, 6), (7, 8)))
+    assert m.n_outputs == 2
+    assert m.bounding_box == ((5, 6), (7, 8))
+    m.bounding_box = ((9, 10), (11, 12))
+    assert m.bounding_box == ((9, 10), (11, 12))
+
+    @custom_model
+    def model(x, y, n_outputs=2, outputs=('z0', 'z1')):
+        return x+1, y+1
+
+    m = model()
+    assert m.n_outputs == 2
+    assert m.outputs == ('z0', 'z1')
+    m.outputs = ('a0', 'a1')
+    assert m.outputs == ('a0', 'a1')
+    m = model(outputs=('w0', 'w1'))
+    assert m.n_outputs == 2
+    assert m.outputs == ('w0', 'w1')
+    m.outputs = ('a0', 'a1')
+    assert m.outputs == ('a0', 'a1')
+
+
+def test_custom_model_regected_parameters():
+    """
+    Test creating a custom_model which attempts to override non-overridable
+    parameters.
+        Demonstrates part of issue #11791's notes about what passed parameters
+        should/shouldn't be allowed. In this case, non-settable parameters
+        should raise an error (unexpected behavior may occur).
+    """
+
+    with pytest.raises(ValueError,
+                       match=r"Parameter 'n_inputs' cannot be a model property: *"):
+        @custom_model
+        def model(x, y, n_outputs=2, n_inputs=3):
+            return x+1, y+1
+
+    with pytest.raises(ValueError,
+                       match=r"Parameter 'uses_quantity' cannot be a model property: *"):
+        @custom_model
+        def model(x, y, n_outputs=2, uses_quantity=True):
+            return x+1, y+1
 
 
 def test_custom_inverse():
