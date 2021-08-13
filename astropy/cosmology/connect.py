@@ -61,6 +61,8 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     out : `~astropy.cosmology.Cosmology` subclass instance
         `~astropy.cosmology.Cosmology` corresponding to file contents.
 
+    Notes
+    -----
     """
 
     def __init__(self, instance, cosmo_cls):
@@ -121,6 +123,8 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     **kwargs
         Keyword arguments passed through to data writer.
 
+    Notes
+    -----
     """
 
     def __init__(self, instance, cls):
