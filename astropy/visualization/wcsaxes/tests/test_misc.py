@@ -33,7 +33,7 @@ TEX_UNAVAILABLE = not matplotlib.checkdep_usetex(True)
 
 DATA = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
-MATPLOTLIB_GT_3_4_2 = Version(matplotlib.__version__) > Version('3.4.2')
+MATPLOTLIB_GT_3_4_3 = Version(matplotlib.__version__) > Version('3.4.3 ')
 
 
 def teardown_function(function):
@@ -91,7 +91,7 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmpdir, grid_type):
     ax.imshow(np.zeros((100, 200)))
     ax.coords.grid(color='white', grid_type=grid_type)
 
-    if MATPLOTLIB_GT_3_4_2 and grid_type == 'contours':
+    if MATPLOTLIB_GT_3_4_3 and grid_type == 'contours':
         ctx = pytest.raises(AttributeError, match='dpi')
     else:
         ctx = nullcontext()
