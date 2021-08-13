@@ -3607,6 +3607,13 @@ def custom_model(*args, fit_deriv=None):
         default values in the model function.  Use `None` as a default argument
         value if you do not want to have a default value for that parameter.
 
+        The standard settable model properties can be configured by default
+        using keyword arguments matching the name of the property; however,
+        these values are not set as model "parameters". Moreover, users
+        cannot use keyword arguments matching non-settable model properties,
+        with the exception of ``n_outputs`` which should be set to the number of
+        outputs of your function.
+
     Parameters
     ----------
     func : function

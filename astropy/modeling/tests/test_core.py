@@ -193,7 +193,7 @@ def test_custom_model_n_outputs():
     """
     Test creating a custom_model which has more than one output, which
     requires special handling.
-        Demonstrates issue #11791's `n_outputs` error has been solved
+        Demonstrates issue #11791's ``n_outputs`` error has been solved
     """
 
     @custom_model
