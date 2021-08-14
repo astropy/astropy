@@ -1,0 +1,4 @@
+Add support for converting between uncertainty types. This uncertainty
+conversion system uses a similar flow to the coordinate subsystem, where
+Cartesian is used as the common system. In this case, variance is used as the
+common system.
