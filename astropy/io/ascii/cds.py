@@ -89,6 +89,34 @@ $lastline
 '''
 
 
+def fill_and_indent(par, indent=4, width=MAX_SIZE_README_LINE):
+    """
+    Function to indent a paragraph and wrap its lines within a
+    certain width. The ``fill`` command is equivalent to saying
+    ``"\n".join(texwrap.wrap(text, ...))``
+
+    Parameters
+    ----------
+    par : str
+        A string containing the input paragraph.
+    indent : int
+        Number of single spaces to indent in the subsequent lines
+        after the first one. Defaults to 4.
+    width : int
+        Required width of the paragraph after which the lines
+        will be wrapped. Defaults to the value of ``MAX_SIZE_README_LINE``.
+
+    Returns
+    -------
+    par_filled : list of str
+        List of indented and wrapped paragraph lines.
+    """
+    par_filled = fill(par,
+                      subsequent_indent = " " * indent,
+                      width = width)
+    return par_filled
+
+
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
     """
     Contains the join function to left align the CDS columns
@@ -586,9 +614,7 @@ class CdsHeader(core.BaseHeader):
         buff = ""
         for newline in bbblines:
             if len(newline) > MAX_SIZE_README_LINE:
-                buff += fill(newline,
-                             subsequent_indent = " " * nsplit,
-                             width = MAX_SIZE_README_LINE)
+                buff += fill_and_indent(newline, nsplit)
                 buff += '\n'
             else:
                 buff += newline + '\n'
@@ -808,9 +834,7 @@ class CdsHeader(core.BaseHeader):
             for i, note in enumerate(self.col_notes):
                 note = 'Note (' + str(i+1) + '): ' + note
                 if len(note) > MAX_SIZE_README_LINE - 10:
-                    notes += fill(note,
-                                  subsequent_indent = " " * 4,
-                                  width = MAX_SIZE_README_LINE)
+                    notes += fill_and_indent(note, indent=4)
                     notes += '\n'
                 else:
                     notes += note + '\n'
@@ -827,9 +851,7 @@ class CdsHeader(core.BaseHeader):
                 global_notes += gnote
                 # Wrap lines if Global notes extend too far.
                 if len(global_notes) > MAX_SIZE_README_LINE - 10:
-                    notes += fill(global_notes,
-                                  subsequent_indent = " " * 4,
-                                  width = MAX_SIZE_README_LINE)
+                    notes += fill_and_indent(global_notes, indent=4)
                     notes += '\n'
                 else:
                     notes += global_notes + '\n'
@@ -837,18 +859,12 @@ class CdsHeader(core.BaseHeader):
             notes = notes[:-1]
 
         # Also wrap other metadata if they are too long!
-        if len(self.title) > MAX_SIZE_README_LINE:
-            self.title = fill(self.title,
-                              subsequent_indent = " " * 4,
-                              width = MAX_SIZE_README_LINE)
-        if len(self.authors) > MAX_SIZE_README_LINE:
-            self.authors = fill(self.authors,
-                                subsequent_indent = " " * 4,
-                                width = MAX_SIZE_README_LINE)
-        if len(self.caption) > MAX_SIZE_README_LINE:
-            self.caption = fill(self.caption,
-                                subsequent_indent = " " * 4,
-                                width = MAX_SIZE_README_LINE)
+        attrs = ['authors']
+        if not self.template == 'cds':
+            attrs += ['title', 'caption']
+        for attr in attrs:
+            if len(getattr(self, attr)) > MAX_SIZE_README_LINE:
+                setattr(self, attr, fill_and_indent(getattr(self, attr), indent=4))
 
         # Initialize the ReadMe template values.
         rm_temp_vals = {'bytebybyte': byte_by_byte,
@@ -883,18 +899,33 @@ class CdsHeader(core.BaseHeader):
                                      rows=file_index_rows)
 
             # Get File Index table rows as formatted lines.
-            file_index_lines = StringIO()
-            file_index_table.write(file_index_lines, format='ascii.fixed_width_no_header',
+            file_index = StringIO()
+            file_index_table.write(file_index, format='ascii.fixed_width_no_header',
                                    delimiter=' ', bookend=False, delimiter_pad=' ',
                                    formats={' FileName': '<14s',
                                             'Lrecl': ''+str(lrec_col_width)+'s',
                                             'Records': '>6s',
-                                            'Explanations': '<40s'})
-            file_index_lines = file_index_lines.getvalue().splitlines()
+                                            'Explanations': '<'+str(len(self.caption))+'s'})
+            file_index = file_index.getvalue().splitlines()
             # Insert File Index header divder line at the proper place.
-            file_index_lines.insert(1, '-' * MAX_SIZE_README_LINE)
-            # Remove newline character at the end.
-            file_index_lines = '\n'.join(file_index_lines)
+            file_index.insert(1, '-' * MAX_SIZE_README_LINE)
+
+            # Wrap and indent long File Index Explanations.
+            file_index_lines = ""
+            for newline in file_index:
+                if len(newline) > MAX_SIZE_README_LINE:
+                    file_index_lines += fill_and_indent(newline,
+                                                        indent = 14+6+6+8)
+                    file_index_lines += '\n'
+                else:
+                    file_index_lines += newline + '\n'
+            # Remove extra newline character.
+            file_index_lines = file_index_lines[:-1]
+
+            # Wrap the title if it is too long. Do not indent.
+            if len(self.title) > MAX_SIZE_README_LINE:
+                self.title = fill_and_indent(self.title, indent=0)
+                rm_temp_vals.update({'title': self.title})
 
             # Give proper alignment to ``firstline`` and ``lastline``.
             # ``firstline`` contains Catalogue name, Short Title, First Author and Year.
