@@ -73,6 +73,16 @@ uncertainty_types_to_be_tested = [
     UnknownUncertainty
 ]
 
+uncertainty_types_with_conversion_support = (
+    StdDevUncertainty,
+    VarianceUncertainty,
+    InverseVariance,
+)
+uncertainty_types_without_conversion_support = (
+    FakeUncertainty,
+    UnknownUncertainty,
+)
+
 
 @pytest.mark.parametrize(('UncertClass'), uncertainty_types_to_be_tested)
 def test_init_fake_with_list(UncertClass):
@@ -354,3 +364,36 @@ def test_assigning_uncertainty_with_bad_unit_to_parent_fails(NDClass,
     v = UncertClass([1, 1], unit=u.second)
     with pytest.raises(u.UnitConversionError):
         ndd.uncertainty = v
+
+
+@pytest.mark.parametrize(
+    'UncertClass', uncertainty_types_with_conversion_support
+)
+def test_self_conversion_via_variance_supported(UncertClass):
+    uncert = np.arange(1, 11).reshape(2, 5) * u.adu
+    start_uncert = UncertClass(uncert)
+    final_uncert = start_uncert.represent_as(UncertClass)
+    assert_array_equal(start_uncert.array, final_uncert.array)
+    assert start_uncert.unit == final_uncert.unit
+
+
+@pytest.mark.parametrize(
+    'UncertClass', uncertainty_types_with_conversion_support
+)
+def test_conversion_to_from_variance_supported(UncertClass):
+    uncert = np.arange(1, 11).reshape(2, 5) * u.adu
+    start_uncert = UncertClass(uncert)
+    var_uncert = start_uncert.represent_as(VarianceUncertainty)
+    final_uncert = var_uncert.represent_as(UncertClass)
+    assert_array_equal(start_uncert.array, final_uncert.array)
+    assert start_uncert.unit == final_uncert.unit
+
+
+@pytest.mark.parametrize(
+    'UncertClass', uncertainty_types_without_conversion_support
+)
+def test_self_conversion_via_variance_not_supported(UncertClass):
+    uncert = np.arange(1, 11).reshape(2, 5) * u.adu
+    start_uncert = UncertClass(uncert)
+    with pytest.raises(TypeError):
+        final_uncert = start_uncert.represent_as(UncertClass)
