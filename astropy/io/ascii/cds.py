@@ -89,7 +89,7 @@ $lastline
 '''
 
 
-def fill_and_indent(par, indent=4, width=MAX_SIZE_README_LINE):
+def fill_and_indent(par, indent=4, width=MAX_SIZE_README_LINE, **kwargs):
     """
     Function to indent a paragraph and wrap its lines within a
     certain width. The ``fill`` command is equivalent to saying
@@ -105,15 +105,16 @@ def fill_and_indent(par, indent=4, width=MAX_SIZE_README_LINE):
     width : int
         Required width of the paragraph after which the lines
         will be wrapped. Defaults to the value of ``MAX_SIZE_README_LINE``.
+    **kwargs
+        Other keyword arguments as necessary.
 
     Returns
     -------
     par_filled : list of str
         List of indented and wrapped paragraph lines.
     """
-    par_filled = fill(par,
-                      subsequent_indent = " " * indent,
-                      width = width)
+    par_filled = fill(par, subsequent_indent = " " * indent,
+                      width = width, **kwargs)
     return par_filled
 
 
@@ -860,7 +861,7 @@ class CdsHeader(core.BaseHeader):
 
         # Also wrap other metadata if they are too long!
         attrs = ['authors']
-        if not self.template == 'cds':
+        if not self.template == 'cds':   # Different wrapping treatment required.
             attrs += ['title', 'caption']
         for attr in attrs:
             if len(getattr(self, attr)) > MAX_SIZE_README_LINE:
@@ -927,7 +928,14 @@ class CdsHeader(core.BaseHeader):
                 self.title = fill_and_indent(self.title, indent=0)
                 rm_temp_vals.update({'title': self.title})
 
-            # Give proper alignment to ``firstline`` and ``lastline``.
+            """ # Wrap other metadata sections too, if they are too long.
+            for attr in ['description', 'seealso', 'references']:
+                parsplit = getattr(self, attr)
+                print(parsplit)
+                par = '\n'.join(parsplit[1:])
+                if len(par) > MAX_SIZE_README_LINE:
+                    setattr(self, attr, parsplit[0] + fill_and_indent(par, indent=4)) """
+
             # ``firstline`` contains Catalogue name, Short Title, First Author and Year.
             firstline_items = [self.catalogue,
                                self.shorttitle,
@@ -936,6 +944,7 @@ class CdsHeader(core.BaseHeader):
             lastline_items = ['(End)',
                               f'(prepared by {self.firstauthor} / astropy.io.ascii)',
                               datetime.date.today().strftime('%d-%b-%Y')]
+            # Give proper alignment to ``firstline`` and ``lastline``.
             for line_name, line_item in zip(['firstline', 'lastline'],
                 [firstline_items, lastline_items]):
                     gap = MAX_SIZE_README_LINE - sum([len(item) for item in line_item])
@@ -1183,21 +1192,33 @@ class Cds(core.BaseReader):
             # is passed along.
             self.header.date = str(date)
 
-            # ``catalogue`` and ``bibcode`` also don't need section headings.
+            # Some other sections also don't need section headings.
             self.header.catalogue = catalogue
             self.header.bibcode = bibcode
-
-            # Remaining fields need section headings.
             self.header.shorttitle = shorttitle
             self.header.firstauthor = firstauthor
 
+            # Remaining fields need section headings.
+
+            """ 
             self.header.keywords = 'Keywords:'
-            if keywords is not None:
+                if keywords is not None:
                 self.header.keywords += ' ' + keywords
 
             self.header.abstract = 'Abstract:'
-            if abstract is not None:
-                self.header.abstract += '\n' + abstract
+                if abstract is not None:
+                self.header.abstract += '\n' + abstract """
+
+            for attr, default in zip(['keywords', 'abstract'], ['Keywords:', 'Abstract:']):
+                val = getattr(self.header, attr, default)
+                if eval(attr) is not None:
+                    par = ' ' + eval(attr)
+                    if len(eval(attr)) > MAX_SIZE_README_LINE:
+                        par = '\n' + fill_and_indent(eval(attr), indent=4,
+                                                     initial_indent=' '*4)
+                    val +=  par
+                setattr(self.header, attr, val)
+
             self.header.description = 'Description:'
             if description is not None:
                 self.header.description += '\n' + description
