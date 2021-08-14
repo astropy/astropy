@@ -52,7 +52,7 @@ MRT_TEMPLATE = ["$title",  # Defaults to 'Title:'
 "--------------------------------------------------------------------------------"]
 
 CDS_TEMPLATE = '''\
-$catalogue   $shorttitle                                ($firstauthor, $date)
+$firstline
 ================================================================================
 $title
     $authors
@@ -883,20 +883,29 @@ class CdsHeader(core.BaseHeader):
             # Get File Index table rows as formatted lines
             file_index_lines = StringIO()
             file_row.write(file_index_lines, format='ascii.fixed_width_no_header',
-                           delimiter=' ', bookend=False, delimiter_pad=None,
+                           delimiter=' ', bookend=False, delimiter_pad=' ',
                            formats={'FileName': '14s',
                                     'Lrecl': ''+str(lrec_col_width)+'d',
-                                    'Records': '>8s',
-                                    'Explanations': 's'})
+                                    'Records': '>6s',
+                                    'Explanations': '<40s'})
             file_index_lines = file_index_lines.getvalue()
             # Remove newline character at the end.
             file_index_lines = '\n'.join(file_index_lines.splitlines())
 
+            # Align Catalogue name, Short Title, First Author and Year in ``firstline``
+            firstline_items = [self.catalogue, self.shorttitle,
+                               f'({self.firstauthor}, {self.date})']
+            firstline = '{:<}\t{}\t{:>}'.format(firstline_items[0], firstline_items[1],
+                                                firstline_items[2])
+            w = MAX_SIZE_README_LINE - sum([len(item) for item in firstline_items])
+            firstline = firstline.expandtabs(w//2)
+            firstline = f'{firstline_items[0]:<}' \
+                        + ' '*(w//2) + f'{firstline_items[1]:}' \
+                        + ' '*(w//2) + f'{firstline_items[2]:<}'
+
             # Update the dictionary of ReadMe template values.
-            rm_temp_vals.update({'catalogue': self.catalogue,
-                                 'shorttitle': self.shorttitle,
+            rm_temp_vals.update({'firstline': firstline,
                                  'firstauthor': self.firstauthor,
-                                 'date': self.date,
                                  'bibcode': self.bibcode,
                                  'keywords': self.keywords,
                                  'abstract': self.abstract,
@@ -1114,14 +1123,22 @@ class Cds(core.BaseReader):
         # Parse CDS specific metadata keywords only if the template is set CDS.
         if self.header.template == 'cds':
             # ``title`` and ``authors`` fields in CDS ReadMe do not have section
-            # headings. So, these field names are put within curly brackets,
+            # headings. So, these field names are put within curly brackets if they
+            # are not passed, else the section headings are removed.
             if title is None:
                 self.header.title = '{title}'
+            else:
+                self.header.title = self.header.title[len('Title: '):]
             if authors is None:
                 self.header.authors = '{authors}'
+            else:
+                self.header.authors = self.header.authors[len('Authors: '):]
             # The table ``caption`` is put in the ``Explanations`` column of File Index.
+            # Section heading is removed when a value is passed.
             if caption is None:
                 self.header.caption = '{caption}'
+            else:
+                self.header.caption = self.header.caption[len('Table: '):]
 
             # Default ``date`` is the current year, unless some other year value
             # is passed along.
