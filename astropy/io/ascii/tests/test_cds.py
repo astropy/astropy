@@ -50,7 +50,7 @@ def test_roundtrip_mrt_table():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format   Units  Label    Explanations                         
 --------------------------------------------------------------------------------
  1- 7  A7       ---    ID       Star ID                              
  9-12  I4       K      Teff     [4337/4654] Effective temperature    
@@ -101,7 +101,7 @@ Table:
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
@@ -154,7 +154,7 @@ def test_write_byte_by_byte_for_masked_column():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                  
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names          
 10-14  E5.1   ---    e       [0.0/0.01]? Description of e  
@@ -187,7 +187,7 @@ exp_coord_cols_output = dict(generic = '''\
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
@@ -214,7 +214,7 @@ positive_de = '''\
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
@@ -240,7 +240,7 @@ galactic = '''\
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
@@ -262,7 +262,7 @@ ecliptic = '''\
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                               
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names                       
 10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e         
@@ -331,7 +331,7 @@ def test_write_byte_by_byte_bytes_col_format():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+   Bytes Format Units  Label         Explanations                      
 --------------------------------------------------------------------------------
   1-  8  A8     ---    names         Description of names              
  10- 21  E12.6  ---    e             [-3160000.0/0.01] Description of e
@@ -376,7 +376,7 @@ def test_write_byte_by_byte_wrapping():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label                  Explanations
 --------------------------------------------------------------------------------
  1- 8  A8     ---    thisIsALongColumnLabel This is a tediously long
                                            description. But they do sometimes
@@ -416,7 +416,7 @@ def test_write_mixin_and_broken_cols():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+   Bytes Format Units  Label   Explanations                          
 --------------------------------------------------------------------------------
   1-  7  A7     ---    name    Description of name                   
   9- 74  A66    ---    Unknown Description of Unknown                
@@ -500,7 +500,7 @@ def test_write_time_cols():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations
 --------------------------------------------------------------------------------
  1-11  A11    ---    Name    Description of Name
 13-30  F18.12 d      time    [58484.97/58486.98] Modified Julian Date
@@ -544,7 +544,7 @@ def test_write_broken_time_cols():
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                            
 --------------------------------------------------------------------------------
  1-11  A11    ---    Name    Description of Name                     
 13-35  A23    ---    Unknown Description of Unknown                  
@@ -585,7 +585,7 @@ Table: This is the table caption!
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
@@ -623,7 +623,7 @@ Table: This is the table caption!
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
@@ -671,7 +671,7 @@ Table: This is a longish table caption! This is a longish table caption! This is
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names (1)          
 10-17  F8.5   ---    d       [22.25/27.25] Description of d (2)
@@ -735,7 +735,7 @@ Table:
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                      
 --------------------------------------------------------------------------------
  1- 8  A8     ---    names   Description of names              
 10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
@@ -764,7 +764,7 @@ Table: This is a longish table caption!
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                                
 --------------------------------------------------------------------------------
  1-11  A11    ---    Name    Description of Name                         
 13-18  F6.1   yr     time    [2019.0/2019.0] Description of time (1)     
@@ -791,7 +791,7 @@ Table: This is a longish table caption!
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                                
 --------------------------------------------------------------------------------
  1-11  A11    ---    Name    Description of Name                         
 13-18  F6.1   yr     time    [2019.0/2019.0] Description of time (1)     
@@ -813,7 +813,7 @@ Table: This is a longish table caption!
 ================================================================================
 Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
- Bytes Format Units  Label     Explanations
+ Bytes Format Units  Label   Explanations                                   
 --------------------------------------------------------------------------------
  1-11  A11    ---    Name    Description of Name                            
 13-18  F6.1   yr     time    [2019.0/2019.0] Description of time (1)        

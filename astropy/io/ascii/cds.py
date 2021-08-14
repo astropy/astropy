@@ -39,8 +39,6 @@ __doctest_skip__ = ['*']
 
 BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
 "--------------------------------------------------------------------------------",
-" Bytes Format Units  Label     Explanations",
-"--------------------------------------------------------------------------------",
 "$bytebybyte",
 "--------------------------------------------------------------------------------"]
 
@@ -398,8 +396,12 @@ class CdsHeader(core.BaseHeader):
         # Set default width of Label and Description Byte-By-Byte columns.
         max_label_width, max_descrip_size = 7, 16
 
-        bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
+        # Initialize the Byte-By-Byte (bbb) table to save bbb rows and add the
+        # column names as the first row, so that it can formatted correctly.
+        bbb_colnames = ['Bytes', 'Format', 'Units', 'Label', 'Explanations']
+        bbb = Table(names=bbb_colnames,
                     dtype=[str]*5)
+        bbb.add_row(bbb_colnames)
 
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
@@ -530,6 +532,8 @@ class CdsHeader(core.BaseHeader):
 
         # Get formatted bbb lines
         bbblines = bbblines.getvalue().splitlines()
+        # Insert Byte-By-Byte header divider line at the proper place.
+        bbblines.insert(1, '-' * MAX_SIZE_README_LINE)
 
         # ``nsplit`` is the number of whitespaces to prefix to long description
         # lines in order to wrap them. It is the sum of the widths of the
