@@ -255,6 +255,7 @@ static int wcspih_timepixr(double timepixr);
 	
 	// Return here via longjmp() invoked by yy_fatal_error().
 	if (setjmp(yyextra->abort_jmp_env)) {
+	  wcsfprintf(stderr, "Failed with yy_fatal_error");
 	  return WCSHDRERR_PARSER;
 	}
 	
@@ -2541,6 +2542,7 @@ int wcspih_init1(
   if (*nwcs) {
     // Allocate memory for the required number of wcsprm structs.
     if ((*wcs = calloc(*nwcs, sizeof(struct wcsprm))) == 0x0) {
+      wcsfprintf(stderr, "Failed to allocate memory for wcspm structs");
       return WCSHDRERR_MEMORY;
     }
 
@@ -2895,6 +2897,7 @@ int wcspih_final(
 
       // Read the control parameters.
       if ((wp = strchr(wat[i], '"')) == 0x0) {
+        wcsfprintf(stderr, "Did not find double quotes for control parameters (first)");
         return WCSHDRERR_PARSER;
       }
       wp++;
@@ -2902,6 +2905,7 @@ int wcspih_final(
       for (int m = 0; m < 4; m++) {
         sscanf(wp, "%d", wctrl+m);
         if ((wp = strchr(wp, ' ')) == 0x0) {
+          wcsfprintf(stderr, "Failed to read control parameters (first)");
           return WCSHDRERR_PARSER;
         }
         wp++;
@@ -2943,6 +2947,7 @@ int wcspih_final(
 
       // Read the control parameters.
       if ((wp = strchr(wat[i], '"')) == 0x0) {
+        wcsfprintf(stderr, "Did not find double quotes for control parameters (actual read)");
         return WCSHDRERR_PARSER;
       }
       wp++;
@@ -2950,6 +2955,7 @@ int wcspih_final(
       for (int m = 0; m < 4; m++) {
         sscanf(wp, "%d", wctrl+m);
         if ((wp = strchr(wp, ' ')) == 0x0) {
+          wcsfprintf(stderr, "Failed to read control parameters (actual read)");
           return WCSHDRERR_PARSER;
         }
         wp++;
@@ -2980,6 +2986,7 @@ int wcspih_final(
         dpfill(disp->dp+(idp++), "DQ", field, i+1, 1, 0, wval);
 
         if ((wp = strchr(wp, ' ')) == 0x0) {
+          wcsfprintf(stderr, "Failed to read scaling parameters");
           return WCSHDRERR_PARSER;
         }
         wp++;
@@ -3001,6 +3008,7 @@ int wcspih_final(
           dpfill(disp->dp+(idp++), "DQ", field, i+1, 1, 0, wval);
 
           if ((wp = strchr(wp, ' ')) == 0x0) {
+            wcsfprintf(stderr, "Failed to read coefficients");
             return WCSHDRERR_PARSER;
           }
           wp++;
