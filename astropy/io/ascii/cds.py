@@ -71,8 +71,6 @@ $description
 
 File Summary:
 --------------------------------------------------------------------------------
- FileName    Lrecl   Records    Explanations
---------------------------------------------------------------------------------
 $fileindex
 
 --------------------------------------------------------------------------------
@@ -868,29 +866,35 @@ class CdsHeader(core.BaseHeader):
 
             # Get ``fileindex`` to fill in CDS template.
             lrec_col_width = len(str(self.linewidth))    # Set width Lrecl column
-            # Create the File Index table
-            file_index_rows = (["ReadMe",
+            # Add column names row to the File Index table, so that names are aligned.
+            # The section headings are indented by single space.
+            file_index_colnames = [' FileName', 'Lrecl', 'Records', 'Explanations']
+            # Create the File Index table.
+            file_index_rows = (file_index_colnames,
+                               ["ReadMe",
                                 MAX_SIZE_README_LINE,
                                 ".",
                                 "this file"],
                                ["table",
-                                self.linewidth,
+                                str(self.linewidth),
                                 str(len(self.cols[0])),
                                 self.caption])
-            file_row = Table(names=['FileName', 'Lrecl', 'Records', 'Explanations'],
-                             rows=file_index_rows)
+            file_index_table = Table(names=file_index_colnames,
+                                     rows=file_index_rows)
 
-            # Get File Index table rows as formatted lines
+            # Get File Index table rows as formatted lines.
             file_index_lines = StringIO()
-            file_row.write(file_index_lines, format='ascii.fixed_width_no_header',
-                           delimiter=' ', bookend=False, delimiter_pad=' ',
-                           formats={'FileName': '14s',
-                                    'Lrecl': ''+str(lrec_col_width)+'d',
-                                    'Records': '>6s',
-                                    'Explanations': '<40s'})
-            file_index_lines = file_index_lines.getvalue()
+            file_index_table.write(file_index_lines, format='ascii.fixed_width_no_header',
+                                   delimiter=' ', bookend=False, delimiter_pad=' ',
+                                   formats={' FileName': '<14s',
+                                            'Lrecl': ''+str(lrec_col_width)+'s',
+                                            'Records': '>6s',
+                                            'Explanations': '<40s'})
+            file_index_lines = file_index_lines.getvalue().splitlines()
+            # Insert File Index header divder line at the proper place.
+            file_index_lines.insert(1, '-' * MAX_SIZE_README_LINE)
             # Remove newline character at the end.
-            file_index_lines = '\n'.join(file_index_lines.splitlines())
+            file_index_lines = '\n'.join(file_index_lines)
 
             # Give proper alignment to ``firstline`` and ``lastline``.
             # ``firstline`` contains Catalogue name, Short Title, First Author and Year.
