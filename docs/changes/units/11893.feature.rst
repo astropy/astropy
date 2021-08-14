@@ -1,0 +1,1 @@
+Add quantity-aware version of ``numpy.frompyfunc``.
