@@ -86,7 +86,7 @@ Acknowledgements:
 
 $references
 ================================================================================
-     (prepared by $firstauthor / astropy.io.ascii)
+$lastline
 --------------------------------------------------------------------------------\
 '''
 
@@ -892,21 +892,25 @@ class CdsHeader(core.BaseHeader):
             # Remove newline character at the end.
             file_index_lines = '\n'.join(file_index_lines.splitlines())
 
-            # Align Catalogue name, Short Title, First Author and Year in ``firstline``
-            firstline_items = [self.catalogue, self.shorttitle,
+            # Give proper alignment to ``firstline`` and ``lastline``.
+            # ``firstline`` contains Catalogue name, Short Title, First Author and Year.
+            firstline_items = [self.catalogue,
+                               self.shorttitle,
                                f'({self.firstauthor}, {self.date})']
-            firstline = '{:<}\t{}\t{:>}'.format(firstline_items[0], firstline_items[1],
-                                                firstline_items[2])
-            w = MAX_SIZE_README_LINE - sum([len(item) for item in firstline_items])
-            firstline = firstline.expandtabs(w//2)
-            firstline = f'{firstline_items[0]:<}' \
-                        + ' '*(w//2) + f'{firstline_items[1]:}' \
-                        + ' '*(w//2) + f'{firstline_items[2]:<}'
+            # ``lastline`` contains prepared by and last edited date.
+            lastline_items = ['(End)',
+                              f'(prepared by {self.firstauthor} / astropy.io.ascii)',
+                              datetime.date.today().strftime('%d-%b-%Y')]
+            for line_name, line_item in zip(['firstline', 'lastline'],
+                [firstline_items, lastline_items]):
+                    gap = MAX_SIZE_README_LINE - sum([len(item) for item in line_item])
+                    line = f'{line_item[0]:<}' \
+                        + ' '*(gap//2) + f'{line_item[1]:}' \
+                        + ' '*(gap//2) + f'{line_item[2]:<}'
+                    rm_temp_vals.update({line_name: line})
 
             # Update the dictionary of ReadMe template values.
-            rm_temp_vals.update({'firstline': firstline,
-                                 'firstauthor': self.firstauthor,
-                                 'bibcode': self.bibcode,
+            rm_temp_vals.update({'bibcode': self.bibcode,
                                  'keywords': self.keywords,
                                  'abstract': self.abstract,
                                  'description': self.description,
@@ -1073,7 +1077,7 @@ class Cds(core.BaseReader):
 
     def __init__(self, readme=None, template='mrt',
                  title=None, authors=None, caption=None, notes=None,
-                 date=datetime.date.today().year,  keywords=None,
+                 date='{year}',  keywords=None,
                  catalogue='{catalogue}', bibcode='{bibcode}',
                  firstauthor='{firstauthor}', shorttitle='{shorttitle}',
                  abstract=None, description=None, seealso=None, references=None):
