@@ -79,7 +79,7 @@ class TestUfuncHelpers:
         all_erfa_ufuncs = set([ufunc for ufunc in erfa_ufunc.__dict__.values()
                                if isinstance(ufunc, np.ufunc)])
         assert ((all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs
-                 - qh.REGISTERED_NARG_UFUNCS) == set())
+                 - qh.REGISTERED_NARG_UFUNCS) == set()), str(qh.REGISTERED_NARG_UFUNCS)
 
     def test_scipy_registered(self):
         # Should be registered as existing even if scipy is not available.
@@ -1353,7 +1353,7 @@ if HAS_SCIPY:
 
 # -------------------------------------------------------------------
 
-def make_ufunc_list():
+def make_func_list():
 
     def func_1_1(x: "km") -> "km2":
         return x**2
@@ -1373,7 +1373,7 @@ def make_ufunc_list():
     def funcobj_2_2(x: "km", y: "km") -> (object, object):
         return x**2, y**2
 
-    ufunc_list = np.array(
+    func_list = np.array(
         # ( func, (input,), (output,) )
         [(func_1_1, (2,), (4,)),
          (funcobj_1_1, (2,), (4,)),
@@ -1392,10 +1392,10 @@ def make_ufunc_list():
         ],
         dtype=object)
 
-    return ufunc_list
+    return func_list
 
 
-ufunc_list = make_ufunc_list()
+func_list = make_func_list()
 
 
 class TestRegisterUfunc:
@@ -1404,19 +1404,16 @@ class TestRegisterUfunc:
         # registry of normal ufuncs
         self.ufunc_registry = {
             func: np.frompyfunc(func, *map(int, func.__name__.split("_")[1:]))
-            for func in ufunc_list[:, 0]}
+            for func in func_list[:, 0]}
 
         # registry of normal ufuncs, where the units will be assumed correct
         self.ufunc_assume_registry = {
             func: np.frompyfunc(func, *map(int, func.__name__.split("_")[1:]))
-            for func in ufunc_list[:, 0]}
+            for func in func_list[:, 0]}
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
         # start by saving a copy of REGISTERED_NARG_UFUNCS
         # TODO! when py3.8+ use copy.deepcopy
-        ORIGINAL_REGISTERED_NARG_UFUNCS = {k for k in qh.REGISTERED_NARG_UFUNCS}
-        ORIGINAL_UFUNC_HELPERS = {k: v for k, v in qh.UFUNC_HELPERS.items()}
+        self.ORIGINAL_REGISTERED_NARG_UFUNCS = {k for k in qh.REGISTERED_NARG_UFUNCS}
 
         # register as quantity-ufuncs
         # NOTE! output units are "u.km" even though the functions are squaring
@@ -1433,21 +1430,17 @@ class TestRegisterUfunc:
                            ounits=[u.km] * ufunc.nout,
                            assume_correct_units=True)
 
-        yield  # go to function
-
+    def teardown_class(self):
         # restore states
-        ADDED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS - qh.REGISTERED_NARG_UFUNCS
-
-        qh.REGISTERED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS
-        qh.UFUNC_HELPERS = ORIGINAL_UFUNC_HELPERS
-        
-        for k in ADDED_NARG_UFUNCS:  # double extra make sure it's clean
+        ADDED_NARG_UFUNCS = self.ORIGINAL_REGISTERED_NARG_UFUNCS - qh.REGISTERED_NARG_UFUNCS
+        for k in ADDED_NARG_UFUNCS:
             qh.UFUNC_HELPERS.pop(k, None)
+            qh.REGISTERED_NARG_UFUNCS.pop(k, None)
 
     # -------------------
     # variety of funcs
 
-    @pytest.mark.parametrize("func, inp, res", ufunc_list[:7])
+    @pytest.mark.parametrize("func, inp, res", func_list[:7])
     def test_raw_func(self, func, inp, res):
         """
         In this case, the output will also not have units.
@@ -1459,7 +1452,7 @@ class TestRegisterUfunc:
         # got = np.array(got).astype(float) if isinstance(got, (np.ndarray, tuple)) else got
         assert_allclose(got, res)
 
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_no_units(self, func, inp, res):
         """Test unitless input has unitless output. NO UNITS ATTACHED!"""
         got = self.ufunc_registry[func](*inp)  # no units
@@ -1468,7 +1461,7 @@ class TestRegisterUfunc:
         got = np.array(got).astype(float) if isinstance(got, (np.ndarray, tuple)) else got
         assert_allclose(got, res)
 
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_has_units(self, func, inp, res):
         """Test unitful input has unitful output."""
         inp = [(x * u.km if x is not None else None) for x in inp]
@@ -1484,7 +1477,7 @@ class TestRegisterUfunc:
         got = (u.Quantity(got, dtype=float) if isinstance(got, (np.ndarray, tuple)) else got)
         assert_quantity_allclose(got, res * u.km)
 
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_has_units_assumed_correct(self, func, inp, res):
         """
         Test unitful input has unitful output and units are assumed to be
@@ -1501,7 +1494,7 @@ class TestRegisterUfunc:
 
     @pytest.mark.parametrize("registry",
                              ["ufunc_registry", "ufunc_assume_registry"])
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_has_wrong_units(self, registry, func, inp, res):
         """Test wrong unitful input raises errors."""
         inp = [(x * u.deg if x is not None else None) for x in inp]
@@ -1526,19 +1519,17 @@ class TestRegisterUfunc:
 class TestQuantityFromPyFunc:
     """Test `astropy.units.utils.frompyfunc`."""
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_class(self):
         # start by saving a copy of REGISTERED_NARG_UFUNCS
         # TODO! when py3.8+ use copy.deepcopy
-        ORIGINAL_REGISTERED_NARG_UFUNCS = {k for k in qh.REGISTERED_NARG_UFUNCS}
-        ORIGINAL_UFUNC_HELPERS = {k: v for k, v in qh.UFUNC_HELPERS.items()}
+        self.ORIGINAL_REGISTERED_NARG_UFUNCS = {k for k in qh.REGISTERED_NARG_UFUNCS}
 
         # registry of ufuncs
         self.ufunc_registry = {}
         self.ufunc_assume_registry = {}
         self.ufunc_introspect_registry = {}
         self.ufunc_introspect_assume_registry = {}
-        for func in ufunc_list[:, 0]:
+        for func in func_list[:, 0]:
             nin, nout = map(int, func.__name__.split("_")[1:])
 
             self.ufunc_registry[func] = frompyfunc(
@@ -1552,16 +1543,12 @@ class TestQuantityFromPyFunc:
             self.ufunc_introspect_assume_registry[func] = frompyfunc(
                 func, nin, nout, assume_correct_units=True)
 
-        yield  # go to function
-
+    def teardown_class(self):
         # restore states
-        ADDED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS - qh.REGISTERED_NARG_UFUNCS
-
-        qh.REGISTERED_NARG_UFUNCS = ORIGINAL_REGISTERED_NARG_UFUNCS
-        qh.UFUNC_HELPERS = ORIGINAL_UFUNC_HELPERS
-
-        for k in ADDED_NARG_UFUNCS:  # double extra make sure it's clean
+        ADDED_NARG_UFUNCS = self.ORIGINAL_REGISTERED_NARG_UFUNCS - qh.REGISTERED_NARG_UFUNCS
+        for k in ADDED_NARG_UFUNCS:
             qh.UFUNC_HELPERS.pop(k, None)
+            qh.REGISTERED_NARG_UFUNCS.pop(k, None)
 
     # -------------------
     # variety of funcs
@@ -1570,7 +1557,7 @@ class TestQuantityFromPyFunc:
         "registry",
         ["ufunc_registry", "ufunc_assume_registry",
          "ufunc_introspect_registry", "ufunc_introspect_assume_registry"])
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_no_units(self, registry, func, inp, res):
         """Test unitless input has unitless output. NO UNITS ATTACHED!"""
         got = getattr(self, registry)[func](*inp)  # no units
@@ -1582,7 +1569,7 @@ class TestQuantityFromPyFunc:
     @pytest.mark.parametrize(
         "registry",
         ["ufunc_registry", "ufunc_assume_registry"])
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_has_units(self, registry, func, inp, res):
         """Test unitful input has unitful output."""
         inp = [(x * u.km if x is not None else None) for x in inp]
@@ -1601,7 +1588,7 @@ class TestQuantityFromPyFunc:
     @pytest.mark.parametrize(
         "registry",
         ["ufunc_introspect_registry", "ufunc_introspect_assume_registry"])
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_has_introspected_units(self, registry, func, inp, res):
         """Test unitful input has unitful output."""
         # give units to inputs
@@ -1629,7 +1616,7 @@ class TestQuantityFromPyFunc:
     @pytest.mark.parametrize(
         "registry",
         ["ufunc_registry", "ufunc_assume_registry"])
-    @pytest.mark.parametrize("func, inp, res", ufunc_list)
+    @pytest.mark.parametrize("func, inp, res", func_list)
     def test_has_wrong_units(self, registry, func, inp, res):
         """Test wrong unitful input raises errors."""
         inp = [(x * u.deg if x is not None else None) for x in inp]

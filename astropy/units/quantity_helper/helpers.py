@@ -347,7 +347,7 @@ def _is_ulike(unit, allow_structured=False):  # TODO! make a public-scoped funct
 
 def _is_seq_ulike(seq, allow_structured=False):
     """Check if a sequence is unit-like."""
-    return (  isinstance(seq, Sequence)
+    return (isinstance(seq, Sequence)
             and all(_is_ulike(x, allow_structured) for x in seq))
 
 
