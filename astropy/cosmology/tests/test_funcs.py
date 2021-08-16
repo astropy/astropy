@@ -239,13 +239,13 @@ def test_z_at_value_roundtrip(cosmo):
     for name, func in methods:
         if name.startswith('_') or name in skip:
             continue
-        print(f'Round-trip testing {name}')
         fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
         # Be slightly more generous with rtol than the default 1e-8
         # used in z_at_value
-        assert allclose(z, z_at_value(func, fval, bracket=[0.3, 1.0], ztol=1e-12), rtol=2e-11)
+        got = z_at_value(func, fval, bracket=[0.3, 1.0], ztol=1e-12)
+        assert allclose(got, z, rtol=2e-11), f'Round-trip testing {name} failed'
 
     # Test distance functions between two redshifts; only for realizations
     if isinstance(cosmo.name, str):
