@@ -296,7 +296,7 @@ def quantity_asanyarray(a, dtype=None):
         return np.asanyarray(a, dtype=dtype)
 
 
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def frompyfunc(func, nin, nout, inunits=None, ounits=None,
@@ -423,7 +423,7 @@ def frompyfunc(func, nin, nout, inunits=None, ounits=None,
         <Quantity 4.5 km2 / s>
 
     """
-    from astropy.units import Unit
+    from astropy.units.core import Unit
     from astropy.units.quantity_helper.helpers import (
         _is_ulike, _is_seq_ulike, register_ufunc)
 

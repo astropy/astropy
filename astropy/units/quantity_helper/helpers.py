@@ -422,7 +422,7 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
 
         >>> ufunc(36)
         96.8
-        >>> ufunc(np.array([0, 10, 20]))  # note dtype is an object
+        >>> ufunc(np.array([0, 10, 20]))  # note return dtype is an object
         array([32.0, 50.0, 68.0], dtype=object)
 
     2. The function cannot return a Quantity with units. If so, an object array
@@ -448,7 +448,7 @@ def register_ufunc(ufunc, inunits, ounits, *, assume_correct_units=False):
         >>> exufunc = np.frompyfunc(exfunc, 2, 1)
         >>> register_ufunc(exufunc, [u.km, u.s], ["km2/s"],
         ...                assume_correct_units=True)
-        >>> exufunc(3 * u.km, 2)
+        >>> exufunc(3 * u.km, 2)  # arg 2 is unitless. 'inunits' are assumed.
         <Quantity 4.5 km2 / s>
 
     """
