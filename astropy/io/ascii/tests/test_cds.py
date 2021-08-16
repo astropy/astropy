@@ -873,3 +873,196 @@ def test_write_mrt_metadata_notes_for_mixin_cols():
         lines = out.getvalue().splitlines()
         lines = lines[:-1]     # Do not select the data part.
         assert lines == exp_output.splitlines()
+
+
+def test_write_cds_template_with_default_options():
+    """
+    Checks layout of CDS template with default metadata values,
+    i.e. for a empty CDS ReadMe template. ReadMe fields that do
+    not require any section heading are put within curly brackets.
+    """
+    exp_output = '''\
+{catalogue}                 {shorttitle}                 ({firstauthor}, {year})
+================================================================================
+{title}
+    {authors}
+    ={bibcode}
+================================================================================
+Keywords:
+
+Objects:
+    -----------------------------------------
+       RA (2000)    DE    Designation(s)
+    -----------------------------------------
+
+Abstract:
+
+Description:
+
+File Summary:
+--------------------------------------------------------------------------------
+ FileName        Lrecl   Records   Explanations
+--------------------------------------------------------------------------------
+ReadMe              80         .      this file
+table               21         2      {caption}
+
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label   Explanations                  
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names          
+10-17  F8.5   ---    d       [22.25/27.25] Description of d
+19-21  I3     ---    i       [-30/67] Description of i     
+--------------------------------------------------------------------------------
+Notes:
+--------------------------------------------------------------------------------
+
+See also:
+
+References:
+================================================================================
+(End)         (prepared by {firstauthor} / astropy.io.ascii)         16-Aug-2021
+--------------------------------------------------------------------------------
+''' # noqa: W291
+    t = ascii.read(test_dat)
+    t = t['names', 'd', 'i']
+    out = StringIO()
+    t.write(out, format='cds', template='cds')
+    lines = out.getvalue().splitlines()
+    lines = lines[:-2]     # Do not select the data part.
+    assert lines == exp_output.splitlines()
+
+
+def test_write_cds_metadata_longlines_and_wrapping():
+    """
+    Checks filled line alignment for cases when the first and the
+    last ReadMe line are excessively long. These lines are allowed
+    to extend beyond the max linewidth allowed by the format, an
+    indication that Short title should really be short.
+    Other ReadMe section paragraphs are wrapped around, including
+    the ``Explanations`` column in the File Index.
+    Also, this test uses metadata keywords passing via the write function.
+    """
+    exp_output = '''\
+I2B-HI2B-HAstropy v5.0Astropy v5.0(garg+garg+garg+garg+garg+garg+garg+, -1995-1995-1995)
+================================================================================
+Astropy v5.0: The extra long version. Astropy v5.0: The extra long version.
+Astropy v5.0: The extra long version.
+    Suyog Garg, Aarya Patil, Hans Moritz Gunther, Suyog Garg, Aarya Patil, Hans
+    Moritz Gunther
+    ={bibcode}
+================================================================================
+Keywords: Sun; X-Ray sources; HR diagrams; Notes can be put here. ; Models:
+    Optical; Novae; Notes can be put here. ; Models: Optical; Novae
+ADC_Keywords: Earth; Radio; Ephemerides; Paragraph like table metadata sections
+    can be extraneously long. There isn't any limit on how long they can be. So,
+    it's no problem. Most of the sections in the ReadMe can be paragraph like.
+Mission_name: XMM Newton
+
+
+Objects:
+    -----------------------------------------
+       RA (2000)    DE    Designation(s)
+    -----------------------------------------
+
+Abstract:
+    Paragraph like table metadata sections can be extraneously long. There isn't
+    any limit on how long they can be. So, it's no problem. Most of the sections
+    in the ReadMe can be paragraph like.
+
+Description:
+    Paragraph like table metadata sections can be extraneously long. There isn't
+    any limit on how long they can be. So, it's no problem. Most of the sections
+    in the ReadMe can be paragraph like.
+
+File Summary:
+--------------------------------------------------------------------------------
+ FileName        Lrecl   Records   Explanations
+--------------------------------------------------------------------------------
+ReadMe              80         .   this file
+table               21         2   This is a longish table caption! This is a
+                                  longish table caption! This is a longish table
+                                  caption!
+
+--------------------------------------------------------------------------------
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label   Explanations                      
+--------------------------------------------------------------------------------
+ 1- 8  A8     ---    names   Description of names              
+10-17  F8.5   ---    d       [22.25/27.25] Description of d (1)
+19-21  I3     ---    i       [-30/67] Description of i (2)     
+--------------------------------------------------------------------------------
+Note (1): Notes can be put here. 
+Note (2): Notes can be put here. Notes can be put here. 
+--------------------------------------------------------------------------------
+
+See also:
+    J/A+AS/97/729 : O-rich stars in 1-20um range
+    http://machine/description.html : Paragraph like table metadata sections can
+        be extraneously long. There isn't any limit on how long they can be. So,
+        it's no problem. Most of the sections in the ReadMe can be paragraph
+        like.
+    Notes can be put here. 
+
+Acknowledgements:
+    Paragraph like table metadata sections can be extraneously long. There isn't
+    any limit on how long they can be. So, it's no problem. Most of the sections
+    in the ReadMe can be paragraph like.
+
+History:
+    Paragraph like table metadata sections can be extraneously long. There isn't
+    any limit on how long they can be. So, it's no problem. Most of the sections
+    in the ReadMe can be paragraph like.
+
+References:
+    Paragraph like table metadata sections can be extraneously long. There isn't
+        any limit on how long they can be. So, it's no problem. Most of the
+        sections in the ReadMe can be paragraph like.
+    Amnuel, P. R., Guseinox, O. H., and Rakhamimov, Sh. Yu. 1979,
+        =1979ApJS...41..327A
+    Notes can be put here. 
+================================================================================
+(End)(prepared by garg+garg+garg+garg+garg+garg+garg+ / astropy.io.ascii)16-Aug-2021
+--------------------------------------------------------------------------------
+''' # noqa: W291
+    longnote = '''\
+Paragraph like table metadata sections can be extraneously long. There
+isn't any limit on how long they can be. So, it's no problem. Most of
+the sections in the ReadMe can be paragraph like.
+'''
+    t = ascii.read(test_dat)
+    t = t['names', 'd', 'i']
+    title = 'Astropy v5.0: The extra long version. ' *3
+    authors = ['Suyog Garg', 'Aarya Patil', 'Hans Moritz Gunther'] * 2
+    caption = 'This is a longish table caption! ' * 3
+    catalogue = 'I2B-H'*2
+    shorttitle = 'Astropy v5.0'*2
+    firstauthor = 'garg+'*7
+    date = '-1995'*3
+    notes = 'Notes can be put here. '
+    abstract = description = longnote
+    t['d'].meta.notes = notes
+    t['i'].meta.notes = notes*2
+    custom_fields = {'Acknowledgements': longnote,
+                     'History': longnote}
+    references = [longnote, '''\
+Amnuel, P. R., Guseinox, O. H., and Rakhamimov, Sh. Yu. 1979,
+=1979ApJS...41..327A''', notes]
+    seealso = ['J/A+AS/97/729 : O-rich stars in 1-20um range',
+                'http://machine/description.html : '+longnote,
+                notes]
+    keywords = [['Sun', 'X-Ray sources', 'HR diagrams'],
+                ['Earth', 'Radio', 'Ephemerides', longnote],
+                'XMM Newton', notes, ['Models: Optical', 'Novae']]
+    out = StringIO()
+    t.write(out, format='cds', template='cds',
+            title=title, authors=authors, caption=caption,
+            catalogue=catalogue, firstauthor=firstauthor, shorttitle=shorttitle,
+            date=date, abstract=abstract, description=description, keywords=keywords,
+            seealso=seealso, references=references, custom_fields=custom_fields)
+    lines = out.getvalue().splitlines()
+    lines = lines[:-2]     # Do not select the data part.
+    assert lines == exp_output.splitlines()
+
