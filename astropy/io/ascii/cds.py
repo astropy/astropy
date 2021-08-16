@@ -1190,13 +1190,10 @@ class Cds(core.BaseReader):
             else:
                 self.header.caption = self.header.caption[len('Table: '):]
 
-            # Default ``date`` is the current year, unless some other year value
-            # is passed along.
-            self.header.date = str(date)
-
             # Some other sections also don't need section headings.
+            self.header.date = str(date)
             self.header.catalogue = catalogue
-            self.header.bibcode = '=' + bibcode
+            self.header.bibcode = '=' + bibcode  # Bibcode will only be 19 character string.
             self.header.shorttitle = shorttitle
             self.header.firstauthor = firstauthor
             # If custom fields are wanted, items will be added from passed dict later.
@@ -1214,6 +1211,33 @@ class Cds(core.BaseReader):
                                               initial_indent = ' ' * 4)
                     val +=  '\n' + par
                 setattr(self.header, attr, val)
+
+            # Three different kinds of keywords can be put, ``Keywords``, ``ADC_Keywords``,
+            # ``Mission_name``. The argument ``keyword`` can be passed as a string, list of strings
+            # or a dictionary of strings. It can also be passed as a list/dictionary of lists.
+            # If a string is passed, it is assumed that only the first section is intended.
+            # If however, a list or dictionary is passed, values are inserted for other keyword
+            # sections as well.
+            self.header.keywords = 'Keywords:'
+            if keywords is not None:
+                self.header.keywords = ''
+                # This keyword list will contain three items for the three types of keywords
+                # respectively. All non-string ``kw`` list items will be joined together in a
+                # string. None is appended when a particular type of keyword is not present.
+                kw = []
+                types = ['Keywords', 'ADC_Keywords', 'Mission_name']
+                if isinstance(keywords, str):
+                    kw.append(keywords)
+                if isinstance(keywords, dict):
+                    for kw_type in types:
+                        kw.append(keywords.get(kw_type, None))
+                if isinstance(keywords, list):
+                    kw = keywords
+                for kw_type, kw_val in zip(types[:len(kw)], kw):
+                    if isinstance(kw_val, list):
+                        kw_val = '; '.join(kw_val)
+                    if kw_val is not None:
+                        self.header.keywords += kw_type + ': ' + kw_val + '\n'
 
             # ``seealso`` and References sections receive list treatment and have
             # double indentation for long items.
@@ -1234,10 +1258,6 @@ class Cds(core.BaseReader):
                                                   initial_indent = ' ' * 4)
                         val +=  '\n' + par
                 setattr(self.header, attr, val)
-
-            self.header.keywords = 'Keywords:'
-            if keywords is not None:
-                self.header.keywords += ' ' + keywords
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
