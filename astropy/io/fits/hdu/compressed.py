@@ -1410,6 +1410,13 @@ class CompImageHDU(BinTableHDU):
             for _ in range(required_blanks - table_blanks):
                 self._header.append()
 
+    def update_header(self):
+        """
+        Update the header keywords to agree with the data.
+        """
+        self._update_header_data(self.header)
+        del self.header  # delete cached header
+
     @lazyproperty
     def data(self):
         # The data attribute is the image data (not the table data).
