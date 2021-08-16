@@ -1229,15 +1229,50 @@ class Cds(core.BaseReader):
                 if isinstance(keywords, str):
                     kw.append(keywords)
                 if isinstance(keywords, dict):
+                    # Only the keys corresponding to the three keyword types are added to list.
+                    # Other dictionary values are ignored.
                     for kw_type in types:
                         kw.append(keywords.get(kw_type, None))
                 if isinstance(keywords, list):
-                    kw = keywords
+                    # If a list is passed, the first list items, which can be string or whole
+                    # lists themselves, are treated as the three types of keywords.
+                    if len(keywords) <= 3:
+                        for kw_val in keywords:
+                            if isinstance(kw_val, list):
+                                kw_val = '; '.join(kw_val)
+                            kw.append(kw_val)
+                    # Now, suppose the passed list contains more than three items. Then, all
+                    # the rest of the items are added to the first item of the list. If these
+                    # additional items are themselves lists, then they are concatenated together
+                    # and then added to the first item, corresponding to ``Keywords``.
+                    else:
+                        # If first item is not a list, convert it to a list, so that additional
+                        # items can be appended to it.
+                        if not isinstance(keywords[0], list):
+                            keywords[0] = [keywords[0]]
+                        kw.append(keywords[0])              # Add first item.
+                        for kw_val in keywords[1:3]:
+                            if isinstance(kw_val, list):
+                                kw_val = '; '.join(kw_val)
+                            kw.append(kw_val)               # Add second and third item.
+                        for kw_item in keywords[3:]:
+                            # Append all other items to the first item, concatenating them
+                            # together if they are themselves a list.
+                            if isinstance(kw_item, str):
+                                kw[0].append(kw_item)
+                            if isinstance(kw_item, list):
+                                kw[0].append('; '.join(kw_item))
+                # If ``keywords`` wasn't passed along as a list, it would have been converted
+                # to a list by this time.
                 for kw_type, kw_val in zip(types[:len(kw)], kw):
                     if isinstance(kw_val, list):
                         kw_val = '; '.join(kw_val)
                     if kw_val is not None:
-                        self.header.keywords += kw_type + ': ' + kw_val + '\n'
+                        kw_val = kw_type + ': ' + kw_val
+                        # Wrap and indent keyword lines that are too long.
+                        if len(kw_val) > MAX_SIZE_README_LINE:
+                            kw_val = fill_and_indent(kw_val, indent=4)
+                        self.header.keywords += kw_val + '\n'
 
             # ``seealso`` and References sections receive list treatment and have
             # double indentation for long items.
