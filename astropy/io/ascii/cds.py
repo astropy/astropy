@@ -62,7 +62,7 @@ $keywords
 
 Objects:
     -----------------------------------------
-       RA   (2000)   DE    Designation(s)
+       RA (2000)    DE    Designation(s)
     -----------------------------------------
 
 $abstract
@@ -79,9 +79,7 @@ $notes
 --------------------------------------------------------------------------------
 
 $seealso
-
-Acknowledgements:
-
+$custom_fields
 $references
 ================================================================================
 $lastline
@@ -928,13 +926,15 @@ class CdsHeader(core.BaseHeader):
                 self.title = fill_and_indent(self.title, indent=0)
                 rm_temp_vals.update({'title': self.title})
 
-            """ # Wrap other metadata sections too, if they are too long.
-            for attr in ['description', 'seealso', 'references']:
-                parsplit = getattr(self, attr)
-                print(parsplit)
-                par = '\n'.join(parsplit[1:])
-                if len(par) > MAX_SIZE_README_LINE:
-                    setattr(self, attr, parsplit[0] + fill_and_indent(par, indent=4)) """
+            # Add custom fields as normal indented paragraphs.
+            custom_fields = ''
+            if self.custom_fields:
+                for key, val in self.custom_fields.items():
+                    val =  str(val)
+                    if len(val) > MAX_SIZE_README_LINE:
+                        val = fill_and_indent(val, indent = 4, initial_indent = ' ' * 4)
+                    custom_fields += '\n' + key + ':\n' + val + '\n'
+            rm_temp_vals.update({'custom_fields': custom_fields})    
 
             # ``firstline`` contains Catalogue name, Short Title, First Author and Year.
             firstline_items = [self.catalogue,
@@ -1124,7 +1124,8 @@ class Cds(core.BaseReader):
                  date='{year}',  keywords=None,
                  catalogue='{catalogue}', bibcode='{bibcode}',
                  firstauthor='{firstauthor}', shorttitle='{shorttitle}',
-                 abstract=None, description=None, seealso=None, references=None):
+                 abstract=None, description=None, seealso=None, references=None,
+                 custom_fields={}):
         super().__init__()
         self.header.readme = readme
 
@@ -1194,41 +1195,30 @@ class Cds(core.BaseReader):
 
             # Some other sections also don't need section headings.
             self.header.catalogue = catalogue
-            self.header.bibcode = bibcode
+            self.header.bibcode = '=' + bibcode
             self.header.shorttitle = shorttitle
             self.header.firstauthor = firstauthor
+            self.header.custom_fields = custom_fields
 
             # Remaining fields need section headings.
-
-            """ 
-            self.header.keywords = 'Keywords:'
-                if keywords is not None:
-                self.header.keywords += ' ' + keywords
-
-            self.header.abstract = 'Abstract:'
-                if abstract is not None:
-                self.header.abstract += '\n' + abstract """
-
-            for attr, default in zip(['keywords', 'abstract'], ['Keywords:', 'Abstract:']):
+            for attr, default in zip(['abstract', 'description', 'seealso'],
+                                     ['Abstract:', 'Description:', 'See also:']):
                 val = getattr(self.header, attr, default)
                 if eval(attr) is not None:
                     par = ' ' + eval(attr)
                     if len(eval(attr)) > MAX_SIZE_README_LINE:
-                        par = '\n' + fill_and_indent(eval(attr), indent=4,
-                                                     initial_indent=' '*4)
+                        par = '\n' + fill_and_indent(eval(attr), indent = 4,
+                                                     initial_indent = ' ' * 4)
                     val +=  par
                 setattr(self.header, attr, val)
 
-            self.header.description = 'Description:'
-            if description is not None:
-                self.header.description += '\n' + description
+            self.header.keywords = 'Keywords:'
+            if keywords is not None:
+                self.header.keywords += ' ' + keywords
 
-            self.header.seealso = 'See also:'
-            if seealso is not None:
-                self.header.seealso += '\n' + seealso
             self.header.references = 'References:'
             if references is not None:
-                self.header.references += '\n' + references  
+                self.header.references += '\n' + references
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
