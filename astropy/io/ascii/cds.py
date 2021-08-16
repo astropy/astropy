@@ -930,11 +930,10 @@ class CdsHeader(core.BaseHeader):
             custom_fields = ''
             if self.custom_fields:
                 for key, val in self.custom_fields.items():
-                    val =  str(val)
                     if len(val) > MAX_SIZE_README_LINE:
                         val = fill_and_indent(val, indent = 4, initial_indent = ' ' * 4)
-                    else:
-                        val = ' ' * 4 + val
+                    else: # Even a single sentence should be indented.
+                        val = ' ' * 4 + str(val)
                     custom_fields += '\n' + key + ':\n' + val + '\n'
             rm_temp_vals.update({'custom_fields': custom_fields})
 
@@ -1200,28 +1199,45 @@ class Cds(core.BaseReader):
             self.header.bibcode = '=' + bibcode
             self.header.shorttitle = shorttitle
             self.header.firstauthor = firstauthor
+            # If custom fields are wanted, items will be added from passed dict later.
             self.header.custom_fields = custom_fields
 
             # Remaining fields need section headings.
-            for attr, default in zip(['abstract', 'description', 'seealso'],
-                                     ['Abstract:', 'Description:', 'See also:']):
+            for attr, default in zip(['abstract', 'description'],
+                                     ['Abstract:', 'Description:']):
                 val = getattr(self.header, attr, default)
-                if eval(attr) is not None:
-                    if len(eval(attr)) > MAX_SIZE_README_LINE:
-                        par = fill_and_indent(eval(attr), indent = 4,
+                passed = eval(attr)
+                if passed is not None:
+                    par = ' ' * 4 + passed
+                    if len(passed) > MAX_SIZE_README_LINE:
+                        par = fill_and_indent(passed, indent = 4,
                                               initial_indent = ' ' * 4)
-                    else:
-                        par = ' ' * 4 + eval(attr)
                     val +=  '\n' + par
+                setattr(self.header, attr, val)
+
+            # ``seealso`` and References sections receive list treatment and have
+            # double indentation for long items.
+            for attr, default in zip(['seealso', 'references'],
+                                     ['See also:', 'References:']):
+                val = getattr(self.header, attr, default)
+                passed = eval(attr)
+                if passed is not None:
+                    # If string is passed, convert it to a list containing single item.
+                    if isinstance(passed, str):
+                        passed = [passed]
+                    # Iterate over all the list items.
+                    for item in passed:
+                        par = ' ' * 4 + item
+                        if len(item) > MAX_SIZE_README_LINE:
+                            # Subsequent indent in this case will be double.
+                            par = fill_and_indent(item, indent = 8,
+                                                  initial_indent = ' ' * 4)
+                        val +=  '\n' + par
                 setattr(self.header, attr, val)
 
             self.header.keywords = 'Keywords:'
             if keywords is not None:
                 self.header.keywords += ' ' + keywords
-
-            self.header.references = 'References:'
-            if references is not None:
-                self.header.references += '\n' + references
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
