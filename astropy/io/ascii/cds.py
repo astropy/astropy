@@ -933,8 +933,10 @@ class CdsHeader(core.BaseHeader):
                     val =  str(val)
                     if len(val) > MAX_SIZE_README_LINE:
                         val = fill_and_indent(val, indent = 4, initial_indent = ' ' * 4)
+                    else:
+                        val = ' ' * 4 + val
                     custom_fields += '\n' + key + ':\n' + val + '\n'
-            rm_temp_vals.update({'custom_fields': custom_fields})    
+            rm_temp_vals.update({'custom_fields': custom_fields})
 
             # ``firstline`` contains Catalogue name, Short Title, First Author and Year.
             firstline_items = [self.catalogue,
@@ -1205,11 +1207,12 @@ class Cds(core.BaseReader):
                                      ['Abstract:', 'Description:', 'See also:']):
                 val = getattr(self.header, attr, default)
                 if eval(attr) is not None:
-                    par = ' ' + eval(attr)
                     if len(eval(attr)) > MAX_SIZE_README_LINE:
-                        par = '\n' + fill_and_indent(eval(attr), indent = 4,
-                                                     initial_indent = ' ' * 4)
-                    val +=  par
+                        par = fill_and_indent(eval(attr), indent = 4,
+                                              initial_indent = ' ' * 4)
+                    else:
+                        par = ' ' * 4 + eval(attr)
+                    val +=  '\n' + par
                 setattr(self.header, attr, val)
 
             self.header.keywords = 'Keywords:'
