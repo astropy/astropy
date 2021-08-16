@@ -451,7 +451,7 @@ class CdsHeader(core.BaseHeader):
         # Set default width of the Bytes count column of the Byte-By-Byte table.
         # This ``byte_count_width`` value helps align byte counts with respect
         # to the hyphen using a format string.
-        byte_count_width = len(str( sum(widths) + len(self.cols) - 1 ))
+        byte_count_width = len(str(sum(widths) + len(self.cols) - 1))
 
         # Format string for Start Byte and End Byte
         singlebfmt = "{:" + str(byte_count_width) + "d}"
@@ -489,7 +489,7 @@ class CdsHeader(core.BaseHeader):
                 # Integer formatter
                 self._set_column_val_limits(col)
                 if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
-                    col.meta.size = max( len(str(col.max)), len(str(col.min)) )
+                    col.meta.size = max(len(str(col.max)), len(str(col.min)))
                 col.fortran_format = "I" + str(col.meta.size)
                 col.format = ">" + col.fortran_format[1:]
 
@@ -757,7 +757,7 @@ class CdsHeader(core.BaseHeader):
                     # Convert all other ``SkyCoord`` columns that are not in the above three
                     # representations to string valued columns.
                     else:
-                        self.cols.append( Column(col.to_string()) )
+                        self.cols.append(Column(col.to_string()))
 
                 to_pop.append(i)
 
@@ -814,7 +814,7 @@ class CdsHeader(core.BaseHeader):
             # together with issuance of a warning.
             for i, col in enumerate(self.cols):
                 if isinstance(col, SkyCoord):
-                    self.cols[i] = Column( col.to_string() )
+                    self.cols[i] = Column(col.to_string())
                     message = 'Table already has coordinate system in CDS/MRT-syle columns.' \
                               + f' So column {i} is being skipped with designation' \
                               + ' of an `Unknown` string valued column.'
@@ -873,7 +873,7 @@ class CdsHeader(core.BaseHeader):
                         'notes': notes}
         # Set default ReadMe format to MRT.
         rm_template_string = '\n'.join(MRT_TEMPLATE)
-        
+
         # Add CDS template specific fields.
         if self.template == 'cds':
             # Change ReadMe format to CDS.
@@ -1170,6 +1170,8 @@ class Cds(core.BaseReader):
             notes = [notes]
         self.header.global_notes = notes
 
+        print(keywords)
+
         # Parse CDS specific metadata keywords only if the template is set CDS.
         if self.header.template == 'cds':
             # ``title`` and ``authors`` fields in CDS ReadMe do not have section
@@ -1225,37 +1227,36 @@ class Cds(core.BaseReader):
                 # respectively. All non-string ``kw`` list items will be joined together in a
                 # string. None is appended when a particular type of keyword is not present.
                 kw = []
-                types = ['Keywords', 'ADC_Keywords', 'Mission_name']
+                ktypes = ['Keywords', 'ADC_Keywords', 'Mission_name']
                 if isinstance(keywords, str):
                     kw.append(keywords)
                 if isinstance(keywords, dict):
                     # Only the keys corresponding to the three keyword types are added to list.
                     # Other dictionary values are ignored.
-                    for kw_type in types:
+                    for kw_type in ktypes:
                         kw.append(keywords.get(kw_type, None))
                 if isinstance(keywords, list):
                     # If a list is passed, the first list items, which can be string or whole
                     # lists themselves, are treated as the three types of keywords.
-                    if len(keywords) <= 3:
-                        for kw_val in keywords:
-                            if isinstance(kw_val, list):
-                                kw_val = '; '.join(kw_val)
-                            kw.append(kw_val)
                     # Now, suppose the passed list contains more than three items. Then, all
                     # the rest of the items are added to the first item of the list. If these
                     # additional items are themselves lists, then they are concatenated together
                     # and then added to the first item, corresponding to ``Keywords``.
-                    else:
+                    for i, kw_item in enumerate(keywords):
                         # If first item is not a list, convert it to a list, so that additional
                         # items can be appended to it.
-                        if not isinstance(keywords[0], list):
-                            keywords[0] = [keywords[0]]
-                        kw.append(keywords[0])              # Add first item.
-                        for kw_val in keywords[1:3]:
-                            if isinstance(kw_val, list):
-                                kw_val = '; '.join(kw_val)
-                            kw.append(kw_val)               # Add second and third item.
-                        for kw_item in keywords[3:]:
+                        if i == 0:
+                            if isinstance(kw_item, str):
+                                # ``keywords[0] = [keywords[0]]`` cannot be used here because
+                                # of list mutability.
+                                kw.append([kw_item])
+                            else:
+                                kw.append(kw_item)              # Add first item.
+                        elif i == 1 or i == 2:
+                            if isinstance(kw_item, list):
+                                kw_item = '; '.join(kw_item)
+                            kw.append(kw_item)                  # Add second and third item.
+                        else:
                             # Append all other items to the first item, concatenating them
                             # together if they are themselves a list.
                             if isinstance(kw_item, str):
@@ -1264,7 +1265,7 @@ class Cds(core.BaseReader):
                                 kw[0].append('; '.join(kw_item))
                 # If ``keywords`` wasn't passed along as a list, it would have been converted
                 # to a list by this time.
-                for kw_type, kw_val in zip(types[:len(kw)], kw):
+                for kw_type, kw_val in zip(ktypes[:len(kw)], kw):
                     if isinstance(kw_val, list):
                         kw_val = '; '.join(kw_val)
                     if kw_val is not None:
@@ -1273,6 +1274,8 @@ class Cds(core.BaseReader):
                         if len(kw_val) > MAX_SIZE_README_LINE:
                             kw_val = fill_and_indent(kw_val, indent=4)
                         self.header.keywords += kw_val + '\n'
+
+            print(keywords)
 
             # ``seealso`` and References sections receive list treatment and have
             # double indentation for long items.

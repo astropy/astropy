@@ -1065,4 +1065,3 @@ Amnuel, P. R., Guseinox, O. H., and Rakhamimov, Sh. Yu. 1979,
     lines = out.getvalue().splitlines()
     lines = lines[:-2]     # Do not select the data part.
     assert lines == exp_output.splitlines()
-
