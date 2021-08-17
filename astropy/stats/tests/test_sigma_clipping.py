@@ -226,10 +226,10 @@ def test_sigmaclip_negative_axis():
 
 
 def test_sigmaclip_fully_masked():
-    """Make sure a fully masked array is returned when sigma clipping a fully
-    masked array.
     """
-
+    Make sure a fully masked array is returned when sigma clipping a
+    fully masked array.
+    """
     data = np.ma.MaskedArray(data=[[1., 0.], [0., 1.]],
                              mask=[[True, True], [True, True]])
     clipped_data = sigma_clip(data)
@@ -239,30 +239,46 @@ def test_sigmaclip_fully_masked():
     assert not isinstance(clipped_data, np.ma.MaskedArray)
     assert np.all(np.isnan(clipped_data))
 
+    clipped_data, low, high = sigma_clip(data, return_bounds=True)
+    assert np.ma.allequal(data, clipped_data)
+    assert np.isnan(low)
+    assert np.isnan(high)
+
 
 def test_sigmaclip_empty_masked():
-    """Make sure a empty masked array is returned when sigma clipping an empty
-    masked array.
     """
-
+    Make sure an empty masked array is returned when sigma clipping an
+    empty masked array.
+    """
     data = np.ma.MaskedArray(data=[], mask=[])
     clipped_data = sigma_clip(data)
     assert np.ma.allequal(data, clipped_data)
 
+    clipped_data, low, high = sigma_clip(data, return_bounds=True)
+    assert np.ma.allequal(data, clipped_data)
+    assert np.isnan(low)
+    assert np.isnan(high)
+
 
 def test_sigmaclip_empty():
-    """Make sure a empty array is returned when sigma clipping an empty array.
     """
-
+    Make sure an empty array is returned when sigma clipping an empty
+    array.
+    """
     data = np.array([])
     clipped_data = sigma_clip(data)
+    assert isinstance(clipped_data, np.ma.MaskedArray)
+    assert_equal(data, clipped_data.data)
+
+    clipped_data, low, high = sigma_clip(data, return_bounds=True)
     assert_equal(data, clipped_data)
+    assert np.isnan(low)
+    assert np.isnan(high)
 
 
 def test_sigma_clip_axis_tuple_3D():
     """Test sigma clipping over a subset of axes (issue #7227).
     """
-
     data = np.sin(0.78 * np.arange(27)).reshape(3, 3, 3)
     mask = np.zeros_like(data, dtype=np.bool_)
 
