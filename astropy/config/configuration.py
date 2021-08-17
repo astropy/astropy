@@ -632,6 +632,7 @@ def is_unedited_config_file(content, template_content=None):
     # Now determine if it matches the md5sum of a known, unedited
     # config file.
     known_configs = set([
+        '722de3c659616d0a8a18e1f85d3e0ee8',  # v0.3.2 with updated comment
         '7d4b4f1120304b286d71f205975b1286',  # v0.3.2
         '5df7e409425e5bfe7ed041513fda3288',  # v0.3
         '8355f99a01b3bdfd8761ef45d5d8b7e5',  # v0.2
