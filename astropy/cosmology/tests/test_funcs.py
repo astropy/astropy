@@ -214,7 +214,7 @@ def test_z_at_value_unconverged(method):
 @pytest.mark.parametrize('cosmo', [Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9,
                                    core.LambdaCDM, core.FlatLambdaCDM, core.wpwaCDM, core.w0wzCDM,
                                    core.wCDM, core.FlatwCDM, core.w0waCDM, core.Flatw0waCDM])
-def test_z_at_value_roundtrip(cosmo):
+def test_z_at_value_roundtrip(cosmo, recwarn):
     """
     Calculate values from a known redshift, and then check that
     z_at_value returns the right answer.
