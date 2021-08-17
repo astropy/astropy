@@ -193,7 +193,8 @@ Post-Release procedures
    next release with towncrier.
    In the same PR, you also have to update ``docs/whatsnew/index.rst`` and
    ``docs/whatsnew/X.Y.rst`` to link to "what's new" documentation in the
-   released RTD branch, using the existing text as example.
+   released RTD branch, using the existing text as example. See
+   `PR#12073 <https://github.com/astropy/astropy/pull/12073>`_ for an example.
 
 #. ``conda-forge`` has a bot that automatically opens
    a PR from a new PyPI (stable) release, which you need to follow up on and
