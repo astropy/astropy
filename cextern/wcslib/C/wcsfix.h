@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsfix.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: wcsfix.h,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -58,7 +58,7 @@
 * component (PCi_j) of the coordinate transformation to make it more human-
 * readable.  Where a coordinate description was constructed from CDi_j, it
 * decomposes it into PCi_j + CDELTi in a meaningful way.  Optionally, it can
-* also diagonalize the PCi_j matrix (as far as possible), i.e. undo the
+* also diagonalize the PCi_j matrix (as far as possible), i.e. undo a
 * transposition of axes in the intermediate pixel coordinate system.
 *
 * Non-standard keyvalues:
@@ -511,7 +511,7 @@
 *
 * Optionally, rows of the PCi_ja matrix may also be permuted to diagonalize
 * it as far as possible, thus undoing any transposition of axes in the
-* intermdiate pixel coordinate system.
+* intermediate pixel coordinate system.
 *
 * If the coordinate description contains a celestial plane, then the angle of
 * rotation of each of the basis vectors associated with the celestial axes is

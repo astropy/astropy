@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 7.6 2021/04/13 12:57:02 mcalabre Exp $
+# $Id: flavours,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -46,29 +46,42 @@ endif
 # Linux with gcc/gfortran (also works for Darwin).
 ifeq "$(FLAVOUR)" "Linux"
   F := $(FLAVOUR)
-  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long $(WPADDED)
+  INSTRUMENT      := -fsanitize=address -fsanitize=undefined
+  INSTRUMENT      += -fstack-protector-strong
+  CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
+  ifeq "$(INSTRUMENT)" ""
+    # The instrumentation options produce copious "padding" warnings.
+    CWARNINGS     += $(WPADDED)
+  endif
+  FWARNINGS       := -Wall -Wno-surprising
   export CC       := gcc -std=c99 -pedantic
   export CPPFLAGS :=
-  export CFLAGS   := -g -O0 $(CWARNINGS)
+  export CFLAGS   := -g -O0 $(INSTRUMENT) $(CWARNINGS)
   export F77      := gfortran
-  export FFLAGS   := -g -O0 -fimplicit-none -I. -Wall
-  export LDFLAGS  :=
+  export FFLAGS   := -g -O0 -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
+  export LDFLAGS  := $(INSTRUMENT)
   ifdef VALGRIND
     override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
     override VALGRIND += --track-origins=yes
   endif
 endif
 
-ifeq "$(FLAVOUR)" "Linux9"
+ifeq "$(FLAVOUR)" "Linux11"
   F := $(FLAVOUR)
-  SANITIZE        := -fsanitize=address -fsanitize=undefined
+  INSTRUMENT      := -fsanitize=address -fsanitize=undefined
+  INSTRUMENT      += -fstack-protector-strong
   CWARNINGS       := -Wall -Wextra -Wno-clobbered -Wno-long-long
-  export CC       := gcc-9.2.0 -std=c99 -pedantic
+  ifeq "$(INSTRUMENT)" ""
+    # The instrumentation options produce copious "padding" warnings.
+    CWARNINGS     += $(WPADDED)
+  endif
+  FWARNINGS       := -Wall -Wno-surprising
+  export CC       := gcc-11.1.0 -std=c99 -pedantic
   export CPPFLAGS := -D_FORTIFY_SOURCE=2
-  export CFLAGS   := -g -O2 $(SANITIZE) $(CWARNINGS)
-  export F77      := gfortran-9.2.0
-  export FFLAGS   := -g -O2 -fimplicit-none -I. $(SANITIZE) -Wall
-  export LDFLAGS  := $(SANITIZE)
+  export CFLAGS   := -g -O0 $(INSTRUMENT) $(CWARNINGS)
+  export F77      := gfortran-11.1.0
+  export FFLAGS   := -g -O0 -fimplicit-none -I. $(INSTRUMENT) $(FWARNINGS)
+  export LDFLAGS  := $(INSTRUMENT)
   export LD_RUN_PATH := /usr/local/lib64
   ifdef VALGRIND
     override VALGRIND := valgrind -v --leak-check=full --show-leak-kinds=all
