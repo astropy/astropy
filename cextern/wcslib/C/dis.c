@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: dis.c,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -97,8 +97,6 @@ int dpfill(
   double f)
 
 {
-  char axno[8], *cp;
-
   if (keyword) {
     if (field) {
       if (j && 2 <= strlen(keyword)) {
@@ -107,6 +105,7 @@ int dpfill(
           sprintf(dp->field, "%s%d.%s", keyword, j, field);
         } else {
           // Take care not to overwrite any alternate code.
+          char axno[8];
           sprintf(dp->field, "%s.%s", keyword, field);
           sprintf(axno, "%d", j);
           dp->field[2] = axno[0];
@@ -126,6 +125,7 @@ int dpfill(
     dp->j = j;
   } else {
     // The field name must either be given or preset.
+    char *cp;
     if ((cp = strpbrk(dp->field, "0123456789")) != 0x0) {
       sscanf(cp, "%d.", &(dp->j));
     }
@@ -179,8 +179,6 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
 {
   static const char *function = "disinit";
 
-  struct wcserr **err;
-
   // Check inputs.
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
@@ -191,7 +189,7 @@ int disinit(int alloc, int naxis, struct disprm *dis, int ndpmax)
   if (dis->flag == -1) {
     dis->err = 0x0;
   }
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
   wcserr_clear(err);
 
 
@@ -330,19 +328,17 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
 {
   static const char *function = "discpy";
 
-  int naxis, status;
-  struct wcserr **err;
-
   if (dissrc == 0x0) return DISERR_NULL_POINTER;
   if (disdst == 0x0) return DISERR_NULL_POINTER;
-  err = &(disdst->err);
+  struct wcserr **err = &(disdst->err);
 
-  naxis = dissrc->naxis;
+  int naxis = dissrc->naxis;
   if (naxis < 1) {
     return wcserr_set(WCSERR_SET(DISERR_MEMORY),
       "naxis must be positive (got %d)", naxis);
   }
 
+  int status;
   if ((status = disinit(alloc, naxis, disdst, dissrc->ndpmax))) {
     return status;
   }
@@ -363,8 +359,6 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
 int disfree(struct disprm *dis)
 
 {
-  int j;
-
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
   if (dis->flag != -1) {
@@ -391,12 +385,20 @@ int disfree(struct disprm *dis)
     if (dis->axmap)  free(dis->axmap);
     if (dis->offset) free(dis->offset);
     if (dis->scale)  free(dis->scale);
-    for (j = 0; j < dis->i_naxis; j++) {
-      if (dis->iparm[j]) free(dis->iparm[j]);
-      if (dis->dparm[j]) free(dis->dparm[j]);
+
+    if (dis->iparm) {
+      for (int j = 0; j < dis->i_naxis; j++) {
+        if (dis->iparm[j]) free(dis->iparm[j]);
+      }
+      free(dis->iparm);
     }
-    if (dis->iparm)  free(dis->iparm);
-    if (dis->dparm)  free(dis->dparm);
+
+    if (dis->dparm) {
+      for (int j = 0; j < dis->i_naxis; j++) {
+        if (dis->dparm[j]) free(dis->dparm[j]);
+      }
+      free(dis->dparm);
+    }
 
     if (dis->disp2x) free(dis->disp2x);
     if (dis->disx2p) free(dis->disx2p);
@@ -443,7 +445,6 @@ int dissize(const struct disprm *dis, int sizes[2])
   // Total size of allocated memory, in bytes.
   sizes[1] = 0;
 
-  int exsizes[2];
   int naxis = dis->naxis;
 
   // disprm::dtype[].
@@ -456,6 +457,7 @@ int dissize(const struct disprm *dis, int sizes[2])
   sizes[1] += naxis * sizeof(double);
 
   // dis::err[].
+  int exsizes[2];
   wcserr_size(dis->err, exsizes);
   sizes[1] += exsizes[0] + exsizes[1];
 
@@ -515,9 +517,6 @@ int dissize(const struct disprm *dis, int sizes[2])
 int disprt(const struct disprm *dis)
 
 {
-  char hext[32];
-  int i, j, jhat, k, naxis;
-
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
   if (dis->flag != DISSET) {
@@ -525,7 +524,7 @@ int disprt(const struct disprm *dis)
     return 0;
   }
 
-  naxis = dis->naxis;
+  int naxis = dis->naxis;
 
 
   wcsprintf("       flag: %d\n", dis->flag);
@@ -534,14 +533,14 @@ int disprt(const struct disprm *dis)
   wcsprintf("      naxis: %d\n", naxis);
 
   WCSPRINTF_PTR("      dtype: ", dis->dtype, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("             \"%s\"\n", dis->dtype[j]);
   }
 
   wcsprintf("        ndp: %d\n", dis->ndp);
   wcsprintf("     ndpmax: %d\n", dis->ndpmax);
   WCSPRINTF_PTR("         dp: ", dis->dp, "\n");
-  for (i = 0; i < dis->ndp; i++) {
+  for (int i = 0; i < dis->ndp; i++) {
     if (dis->dp[i].type) {
       wcsprintf("             %3d%3d  %#- 11.5g  %.32s\n",
         dis->dp[i].j, dis->dp[i].type, dis->dp[i].value.f, dis->dp[i].field);
@@ -553,7 +552,7 @@ int disprt(const struct disprm *dis)
 
   WCSPRINTF_PTR("     maxdis: ", dis->maxdis, "\n");
   wcsprintf("            ");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("  %#- 11.5g", dis->maxdis[j]);
   }
   wcsprintf("\n");
@@ -563,53 +562,53 @@ int disprt(const struct disprm *dis)
   // Derived values.
   WCSPRINTF_PTR("     docorr: ", dis->docorr, "\n");
   wcsprintf("            ");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("%6d", dis->docorr[j]);
   }
   wcsprintf("\n");
 
   WCSPRINTF_PTR("       Nhat: ", dis->Nhat, "\n");
   wcsprintf("            ");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("%6d", dis->Nhat[j]);
   }
   wcsprintf("\n");
 
   WCSPRINTF_PTR("      axmap: ", dis->axmap, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf(" axmap[%d][]:", j);
-    for (jhat = 0; jhat < naxis; jhat++) {
+    for (int jhat = 0; jhat < naxis; jhat++) {
       wcsprintf("%6d", dis->axmap[j][jhat]);
     }
     wcsprintf("\n");
   }
 
   WCSPRINTF_PTR("     offset: ", dis->offset, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("offset[%d][]:", j);
-    for (jhat = 0; jhat < naxis; jhat++) {
+    for (int jhat = 0; jhat < naxis; jhat++) {
       wcsprintf("  %#- 11.5g", dis->offset[j][jhat]);
     }
     wcsprintf("\n");
   }
 
   WCSPRINTF_PTR("      scale: ", dis->scale, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf(" scale[%d][]:", j);
-    for (jhat = 0; jhat < naxis; jhat++) {
+    for (int jhat = 0; jhat < naxis; jhat++) {
       wcsprintf("  %#- 11.5g", dis->scale[j][jhat]);
     }
     wcsprintf("\n");
   }
 
   WCSPRINTF_PTR("      iparm: ", dis->iparm, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf(" iparm[%d]  : ", j);
     WCSPRINTF_PTR("", dis->iparm[j], "\n");
 
     if (dis->iparm[j]) {
       wcsprintf(" iparm[%d][]:", j);
-      for (k = 0; k < dis->iparm[j][I_NIPARM]; k++) {
+      for (int k = 0; k < dis->iparm[j][I_NIPARM]; k++) {
         if (k && k%5 == 0) {
           wcsprintf("\n            ");
         }
@@ -620,13 +619,13 @@ int disprt(const struct disprm *dis)
   }
 
   WCSPRINTF_PTR("      dparm: ", dis->dparm, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf(" dparm[%d]  : ", j);
     WCSPRINTF_PTR("", dis->dparm[j], "\n");
 
     if (dis->dparm[j]) {
       wcsprintf(" dparm[%d][]:", j);
-      for (k = 0; k < dis->iparm[j][I_NDPARM]; k++) {
+      for (int k = 0; k < dis->iparm[j][I_NDPARM]; k++) {
         if (k && k%5 == 0) {
           wcsprintf("\n            ");
         }
@@ -646,8 +645,9 @@ int disprt(const struct disprm *dis)
   }
 
   // Work arrays.
+  char hext[32];
   WCSPRINTF_PTR("     disp2x: ", dis->disp2x, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("  disp2x[%d]: %s", j,
       wcsutil_fptr2str((void (*)(void))dis->disp2x[j], hext));
     if (dis->disp2x[j] == dispoly) {
@@ -675,7 +675,7 @@ int disprt(const struct disprm *dis)
     }
   }
   WCSPRINTF_PTR("     disx2p: ", dis->disx2p, "\n");
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     wcsprintf("  disx2p[%d]: %s\n", j,
       wcsutil_fptr2str((void (*)(void))dis->disx2p[j], hext));
   }
@@ -718,14 +718,11 @@ int dishdo(struct disprm *dis)
 {
   static const char *function = "dishdo";
 
-  int j, status;
-  struct wcserr **err;
-
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
-  status = 0;
-  for (j = 0; j < dis->naxis; j++) {
+  int status = 0;
+  for (int j = 0; j < dis->naxis; j++) {
     if (dis->iparm[j][I_DTYPE]) {
       if (dis->iparm[j][I_DTYPE] == DIS_TPD) {
         // Implemented as TPD...
@@ -751,15 +748,10 @@ int disset(struct disprm *dis)
 {
   static const char *function = "disset";
 
-  char   *dpq, *fp;
-  int    idp, j, jhat, k, naxis, ndis, Nhat, status;
-  struct dpkey *keyp;
-  struct wcserr **err;
-
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
-  naxis = dis->naxis;
+  int naxis = dis->naxis;
 
 
   // Do basic checks.
@@ -768,14 +760,15 @@ int disset(struct disprm *dis)
       "disprm::ndp is negative (%d)", dis->ndp);
   }
 
-  ndis = 0;
-  for (j = 0; j < naxis; j++) {
+  int ndis = 0;
+  for (int j = 0; j < naxis; j++) {
     if (strlen(dis->dtype[j])) {
       ndis++;
       break;
     }
   }
 
+  char *dpq;
   if (dis->ndp) {
     // Is it prior or sequent?
     if (dis->dp[0].field[1] == 'P') {
@@ -801,9 +794,11 @@ int disset(struct disprm *dis)
 
 
   // Free memory allocated separately for each axis.
-  for (j = 0; j < dis->i_naxis; j++) {
+  for (int j = 0; j < dis->i_naxis; j++) {
     if (dis->iparm[j]) free(dis->iparm[j]);
     if (dis->dparm[j]) free(dis->dparm[j]);
+    dis->iparm[j] = 0x0;
+    dis->dparm[j] = 0x0;
   }
 
   // Allocate or reallocate memory, if necessary, for derived parameter and
@@ -851,7 +846,7 @@ int disset(struct disprm *dis)
       return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
     }
 
-    for (j = 1; j < naxis; j++) {
+    for (int j = 1; j < naxis; j++) {
       dis->axmap[j] = dis->axmap[j-1] + naxis;
     }
 
@@ -866,7 +861,7 @@ int disset(struct disprm *dis)
       return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
     }
 
-    for (j = 1; j < naxis; j++) {
+    for (int j = 1; j < naxis; j++) {
       dis->offset[j] = dis->offset[j-1] + naxis;
     }
 
@@ -881,7 +876,7 @@ int disset(struct disprm *dis)
       return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
     }
 
-    for (j = 1; j < naxis; j++) {
+    for (int j = 1; j < naxis; j++) {
       dis->scale[j] = dis->scale[j-1] + naxis;
     }
 
@@ -914,19 +909,19 @@ int disset(struct disprm *dis)
   }
 
   // Start with a clean slate.
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     dis->docorr[j] = 1;
   }
 
   memset(dis->Nhat, 0, naxis*sizeof(int));
 
-  for (jhat = 0; jhat < naxis*naxis; jhat++) {
+  for (int jhat = 0; jhat < naxis*naxis; jhat++) {
     dis->axmap[0][jhat] = -1;
   }
 
   memset(dis->offset[0], 0, naxis*naxis*sizeof(double));
 
-  for (jhat = 0; jhat < naxis*naxis; jhat++) {
+  for (int jhat = 0; jhat < naxis*naxis; jhat++) {
     dis->scale[0][jhat] = 1.0;
   }
 
@@ -941,21 +936,22 @@ int disset(struct disprm *dis)
 
 
   // Handle DPja or DQia keywords common to all distortions.
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     // Check that they're all one kind or the other.
     if (keyp->field[1] != dpq[1]) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "disprm::dp appears to contain a mix of DPja and DQia keys");
     }
 
-    j = keyp->j;
+    int j = keyp->j;
 
     if (j < 1 || naxis < j) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid axis number (%d) in %s", j, keyp->field);
     }
 
+    char *fp;
     if ((fp = strchr(keyp->field, '.')) == 0x0) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid record field name: %s", j, keyp->field);
@@ -971,7 +967,7 @@ int disset(struct disprm *dis)
       }
 
     } else if (strncmp(fp, "NAXES", 6) == 0) {
-      Nhat = dpkeyi(keyp);
+      int Nhat = dpkeyi(keyp);
       if (Nhat < 0 || naxis < Nhat) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
           "Invalid value of Nhat for %s distortion in %s: %d", dis->dtype[j],
@@ -981,6 +977,7 @@ int disset(struct disprm *dis)
       dis->Nhat[j] = Nhat;
 
     } else if (strncmp(fp, "AXIS.", 5) == 0) {
+      int jhat;
       sscanf(fp+5, "%d", &jhat);
       if (jhat < 1 || naxis < jhat) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
@@ -992,21 +989,23 @@ int disset(struct disprm *dis)
       dis->axmap[j][jhat-1] = dpkeyi(keyp) - 1;
 
     } else if (strncmp(fp, "OFFSET.", 7) == 0) {
+      int jhat;
       sscanf(fp+7, "%d", &jhat);
       dis->offset[j][jhat-1] = dpkeyd(keyp);
 
     } else if (strncmp(fp, "SCALE.", 6) == 0) {
+      int jhat;
       sscanf(fp+6, "%d", &jhat);
       dis->scale[j][jhat-1] = dpkeyd(keyp);
     }
   }
 
   // Set defaults and do sanity checks on axmap[][].
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     if (strlen(dis->dtype[j]) == 0) {
       // No distortion on this axis, check that there are no parameters.
       keyp = dis->dp;
-      for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+      for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
         if (keyp->j == j+1) {
           return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
             "No distortion type, yet %s keyvalues are present for axis %d",
@@ -1025,8 +1024,8 @@ int disset(struct disprm *dis)
     }
 
     // Set defaults for axmap[][].
-    Nhat = dis->Nhat[j];
-    for (jhat = 0; jhat < Nhat; jhat++) {
+    int Nhat = dis->Nhat[j];
+    for (int jhat = 0; jhat < Nhat; jhat++) {
       if (dis->axmap[j][jhat] == -1) {
         dis->axmap[j][jhat] = jhat;
       }
@@ -1034,7 +1033,7 @@ int disset(struct disprm *dis)
 
     // Sanity check on the length of the axis map.
     Nhat = 0;
-    for (jhat = 0; jhat < naxis; jhat++) {
+    for (int jhat = 0; jhat < naxis; jhat++) {
       if (dis->axmap[j][jhat] != -1) Nhat = jhat+1;
     }
 
@@ -1045,8 +1044,8 @@ int disset(struct disprm *dis)
     }
 
     // Check uniqueness of entries in the axis map.
-    for (jhat = 0; jhat < Nhat; jhat++) {
-      for (k = 0; k < jhat; k++) {
+    for (int jhat = 0; jhat < Nhat; jhat++) {
+      for (int k = 0; k < jhat; k++) {
         if (dis->axmap[j][jhat] == dis->axmap[j][k]) {
           return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
             "Duplicated entry in axis map for %s distortion on axis %d",
@@ -1059,7 +1058,7 @@ int disset(struct disprm *dis)
 
   // Identify the distortion functions.
   ndis = 0;
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     if (strlen(dis->dtype[j]) == 0) {
       // No distortion on this axis.
       continue;
@@ -1071,6 +1070,7 @@ int disset(struct disprm *dis)
     }
 
     // Invoke the specific setup functions for each distortion.
+    int status;
     if (strcmp(dis->dtype[j], "TPD") == 0) {
       // Template Polynomial Distortion.
       if ((status = tpdset(j, dis))) {
@@ -1138,37 +1138,34 @@ int disp2x(
 {
   static const char *function = "disp2x";
 
-  int    axisj, j, jhat, naxis, Nhat, status;
-  double dtmp, *offset, *scale, *tmpcrd;
-  struct wcserr **err;
-
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
   if (dis->flag != DISSET) {
+    int status;
     if ((status = disset(dis))) return status;
   }
 
-  naxis = dis->naxis;
+  int naxis = dis->naxis;
 
 
   // Invoke the distortion functions for each axis.
-  tmpcrd = dis->tmpmem;
-  for (j = 0; j < naxis; j++) {
+  double *tmpcrd = dis->tmpmem;
+  for (int j = 0; j < naxis; j++) {
     if (dis->disp2x[j]) {
-      offset = dis->offset[j];
-      scale  = dis->scale[j];
+      double *offset = dis->offset[j];
+      double *scale  = dis->scale[j];
 
-      Nhat = dis->Nhat[j];
-      for (jhat = 0; jhat < Nhat; jhat++) {
-        axisj = dis->axmap[j][jhat];
+      int Nhat = dis->Nhat[j];
+      for (int jhat = 0; jhat < Nhat; jhat++) {
+        int axisj = dis->axmap[j][jhat];
         tmpcrd[jhat] = (rawcrd[axisj] - offset[jhat])*scale[jhat];
       }
 
-      if ((status = (dis->disp2x[j])(0, dis->iparm[j], dis->dparm[j], Nhat,
-                                     tmpcrd, &dtmp))) {
+      double dtmp;
+      if ((dis->disp2x[j])(0, dis->iparm[j], dis->dparm[j], Nhat, tmpcrd,
+                           &dtmp)) {
         return wcserr_set(DIS_ERRMSG(DISERR_DISTORT));
       }
 
@@ -1216,23 +1213,19 @@ int disx2p(
 
   const double TOL = 1.0e-13;
 
-  int    axisj, convergence, iter, itermax, j, jhat, naxis, Nhat, status;
-  double dd, *dcrd0, *dcrd1, *delta, *offset, residual, *rcrd1, rtmp, *scale,
-         *tmpcrd;
-  struct wcserr **err;
-
+  int status;
 
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
-  naxis = dis->naxis;
+  int naxis = dis->naxis;
 
   // Carve up working memory, noting that disp2x() gets to it first.
-  dcrd0 = dis->tmpmem + naxis;
-  dcrd1 = dcrd0 + naxis;
-  rcrd1 = dcrd1 + naxis;
-  delta = rcrd1 + naxis;
+  double *dcrd0 = dis->tmpmem + naxis;
+  double *dcrd1 = dcrd0 + naxis;
+  double *rcrd1 = dcrd1 + naxis;
+  double *delta = rcrd1 + naxis;
 
 
   // Zeroth approximation.  The assumption here and below is that the
@@ -1244,18 +1237,19 @@ int disx2p(
   memcpy(rawcrd, discrd, naxis*sizeof(double));
 
   // If available, use disprm::disx2p to improve the zeroth approximation.
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     if (dis->disx2p[j]) {
-      offset = dis->offset[j];
-      scale  = dis->scale[j];
-      tmpcrd = dis->tmpmem;
+      double *offset = dis->offset[j];
+      double *scale  = dis->scale[j];
+      double *tmpcrd = dis->tmpmem;
 
-      Nhat = dis->Nhat[j];
-      for (jhat = 0; jhat < Nhat; jhat++) {
-        axisj = dis->axmap[j][jhat];
+      int Nhat = dis->Nhat[j];
+      for (int jhat = 0; jhat < Nhat; jhat++) {
+        int axisj = dis->axmap[j][jhat];
         tmpcrd[jhat] = (discrd[axisj] - offset[jhat])*scale[jhat];
       }
 
+      double rtmp;
       if ((status = (dis->disx2p[j])(1, dis->iparm[j], dis->dparm[j], Nhat,
                                      tmpcrd, &rtmp))) {
         return wcserr_set(DIS_ERRMSG(DISERR_DEDISTORT));
@@ -1272,12 +1266,14 @@ int disx2p(
   }
 
   // Quick return debugging hook, assumes inverse functions were defined.
+  int itermax;
   if ((itermax = disitermax(-1)) == 0) {
     return 0;
   }
 
 
   // Iteratively invert the (well-behaved!) distortion function.
+  int convergence, iter;
   for (iter = 0; iter < itermax; iter++) {
     if ((status = disp2x(dis, rawcrd, dcrd0))) {
       return wcserr_set(DIS_ERRMSG(status));
@@ -1285,9 +1281,10 @@ int disx2p(
 
     // Check for convergence.
     convergence = 1;
-    for (j = 0; j < naxis; j++) {
+    for (int j = 0; j < naxis; j++) {
       delta[j] = discrd[j] - dcrd0[j];
 
+      double dd;
       if (fabs(discrd[j]) < 1.0) {
         dd = delta[j];
       } else {
@@ -1305,7 +1302,7 @@ int disx2p(
     if (convergence) break;
 
     // Determine a suitable test point for computing the gradient.
-    for (j = 0; j < naxis; j++) {
+    for (int j = 0; j < naxis; j++) {
       // Constrain the displacement.
       delta[j] /= 2.0;
       if (fabs(delta[j]) < 1.0e-6) {
@@ -1329,7 +1326,7 @@ int disx2p(
       // respect to rawcrd[j], and we can neglect partials with respect
       // to rawcrd[i], where i != j.  Thus only one test point is needed,
       // not one for each axis.
-      for (j = 0; j < naxis; j++) {
+      for (int j = 0; j < naxis; j++) {
         rcrd1[j] = rawcrd[j] + delta[j];
       }
 
@@ -1339,7 +1336,7 @@ int disx2p(
       }
 
       // Compute the next approximation.
-      for (j = 0; j < naxis; j++) {
+      for (int j = 0; j < naxis; j++) {
         rawcrd[j] += (discrd[j] - dcrd0[j]) *
                         (delta[j]/(dcrd1[j] - dcrd0[j]));
       }
@@ -1349,7 +1346,7 @@ int disx2p(
       // it is slow, try computing the gradient in full.
       memcpy(rcrd1, rawcrd, naxis*sizeof(double));
 
-      for (j = 0; j < naxis; j++) {
+      for (int j = 0; j < naxis; j++) {
         rcrd1[j] += delta[j];
 
         // Compute discrd[] at the test point.
@@ -1368,9 +1365,9 @@ int disx2p(
 
 
   if (!convergence) {
-    residual = 0.0;
-    for (j = 0; j < naxis; j++) {
-      dd = discrd[j] - dcrd0[j] ;
+    double residual = 0.0;
+    for (int j = 0; j < naxis; j++) {
+      double dd = discrd[j] - dcrd0[j] ;
       residual += dd*dd;
     }
     residual = sqrt(residual);
@@ -1402,20 +1399,16 @@ int diswarp(
 {
   static const char *function = "diswarp";
 
-  int carry, j, naxis, status = 0;
-  double dpix, dpx2, dssq, *pix0, *pix1, *pixend, *pixinc, pixspan, *ssqdis,
-         ssqtot, *sumdis, sumtot, totdis;
-  struct wcserr **err;
-
+  int status = 0;
 
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
-  naxis = dis->naxis;
+  int naxis = dis->naxis;
 
   if (nsamp) *nsamp = 0;
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     if (maxdis) maxdis[j] = 0.0;
     if (avgdis) avgdis[j] = 0.0;
     if (rmsdis) rmsdis[j] = 0.0;
@@ -1428,14 +1421,14 @@ int diswarp(
   if (dis->ndis == 0) return 0;
 
   // Carve up working memory, noting that disp2x() gets to it first.
-  pixinc = dis->tmpmem + naxis;
-  pixend = pixinc + naxis;
-  sumdis = pixend + naxis;
-  ssqdis = sumdis + naxis;
+  double *pixinc = dis->tmpmem + naxis;
+  double *pixend = pixinc + naxis;
+  double *sumdis = pixend + naxis;
+  double *ssqdis = sumdis + naxis;
 
   // Work out increments on each axis.
-  for (j = 0; j < naxis; j++) {
-    pixspan = pixtrc[j] - (pixblc ? pixblc[j] : 1.0);
+  for (int j = 0; j < naxis; j++) {
+    double pixspan = pixtrc[j] - (pixblc ? pixblc[j] : 1.0);
 
     if (pixsamp == 0x0) {
       pixinc[j] = 1.0;
@@ -1451,6 +1444,7 @@ int diswarp(
   }
 
   // Get some more memory for coordinate vectors.
+  double *pix0, *pix1;
   if ((pix0 = calloc(2*naxis, sizeof(double))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
@@ -1459,22 +1453,22 @@ int diswarp(
 
 
   // Set up the array of pixel coordinates.
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     pix0[j] = pixblc ? pixblc[j] : 1.0;
     pixend[j] = pixtrc[j] + 0.5*pixinc[j];
   }
 
   // Initialize accumulators.
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     sumdis[j] = 0.0;
     ssqdis[j] = 0.0;
   }
-  sumtot = 0.0;
-  ssqtot = 0.0;
+  double sumtot = 0.0;
+  double ssqtot = 0.0;
 
 
   // Loop over N dimensions.
-  carry = 0;
+  int carry = 0;
   while (carry == 0) {
     if ((status = disp2x(dis, pix0, pix1))) {
       // (Preserve the error message set by disp2x().)
@@ -1484,10 +1478,10 @@ int diswarp(
     // Accumulate statistics.
     (*nsamp)++;
 
-    dssq = 0.0;
-    for (j = 0; j < naxis; j++) {
-      dpix = pix1[j] - pix0[j];
-      dpx2 = dpix*dpix;
+    double dssq = 0.0;
+    for (int j = 0; j < naxis; j++) {
+      double dpix = pix1[j] - pix0[j];
+      double dpx2 = dpix*dpix;
 
       sumdis[j] += dpix;
       ssqdis[j] += dpx2;
@@ -1499,7 +1493,7 @@ int diswarp(
       dssq += dpx2;
     }
 
-    totdis = sqrt(dssq);
+    double totdis = sqrt(dssq);
     sumtot += totdis;
     ssqtot += totdis*totdis;
 
@@ -1508,7 +1502,7 @@ int diswarp(
     }
 
     // Next pixel.
-    for (j = 0; j < naxis; j++) {
+    for (int j = 0; j < naxis; j++) {
       pix0[j] += pixinc[j];
       if (pix0[j] < pixend[j]) {
         carry = 0;
@@ -1522,7 +1516,7 @@ int diswarp(
 
 
   // Compute the means and RMSs.
-  for (j = 0; j < naxis; j++) {
+  for (int j = 0; j < naxis; j++) {
     ssqdis[j] /= *nsamp;
     sumdis[j] /= *nsamp;
     if (avgdis) avgdis[j] = sumdis[j];
@@ -1548,29 +1542,24 @@ int polyset(int j, struct disprm *dis)
 {
   static const char *function = "polyset";
 
-  char   *fp, id[32];
-  int    i, idp, *iparm, ipow, ivar, jhat, k, K, lendp, m, M, naxis, ndparm,
-         Nhat, niparm, nKparm, npow, nTparm, nVar, offset;
-  double *dparm, *dptr, power;
-  struct dpkey *keyp;
-  struct wcserr **err;
-
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
-  naxis = dis->naxis;
+  int naxis = dis->naxis;
+
+  char   id[32];
   sprintf(id, "Polynomial on axis %d", j+1);
 
 
   // Find the number of auxiliary variables and terms.
-  K = 0;
-  M = 0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  int K = 0;
+  int M = 0;
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
+    char *fp;
     if ((fp = strchr(keyp->field, '.')) == 0x0) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid field name for %s: %s", id, keyp->field);
@@ -1594,11 +1583,11 @@ int polyset(int j, struct disprm *dis)
       "Invalid number of terms (%d) for %s", M, id);
   }
 
-  Nhat = dis->Nhat[j];
-  nKparm = 2*(Nhat + 1);
-  nVar   = Nhat + K;
-  nTparm = 1 + nVar;
-  ndparm = K*nKparm + M*nTparm;
+  int Nhat = dis->Nhat[j];
+  int nKparm = 2*(Nhat + 1);
+  int nVar   = Nhat + K;
+  int nTparm = 1 + nVar;
+  int ndparm = K*nKparm + M*nTparm;
 
 // These iparm indices are specific to Polynomial.
 #define I_NIDX    3	// No. of indexes in iparm[].
@@ -1619,10 +1608,10 @@ int polyset(int j, struct disprm *dis)
 #define I_NPOLY  18
 
   // Add extra for handling integer exponents.  See "Optimization" below.
-  niparm = I_NPOLY + (2 + 2*M)*nVar;
+  int niparm = I_NPOLY + (2 + 2*M)*nVar;
 
   // Add extra memory for temporaries.
-  lendp = ndparm + K;
+  int lendp = ndparm + K;
 
   // Allocate memory for the indexes and parameter array.
   if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
@@ -1634,8 +1623,8 @@ int polyset(int j, struct disprm *dis)
   }
 
   // These help a bit to stop the code from turning into hieroglyphics.
-  iparm = dis->iparm[j];
-  dparm = dis->dparm[j];
+  int    *iparm = dis->iparm[j];
+  double *dparm = dis->dparm[j];
 
 
   // Record the indexing parameters.  The first three are more widely used.
@@ -1660,9 +1649,9 @@ int polyset(int j, struct disprm *dis)
   iparm[I_IPOW]   = iparm[I_FLAGS]  + M*nVar;
 
   // Set default values of POWER for the auxiliary variables.
-  dptr = dparm + (1 + Nhat);
-  for (k = 0; k < K; k++) {
-    for (jhat = 0; jhat <= Nhat; jhat++) {
+  double *dptr = dparm + (1 + Nhat);
+  for (int k = 0; k < K; k++) {
+    for (int jhat = 0; jhat <= Nhat; jhat++) {
       dptr[jhat] = 1.0;
     }
     dptr += nKparm;
@@ -1670,19 +1659,20 @@ int polyset(int j, struct disprm *dis)
 
   // Set default values of COEFF for the independent variables.
   dptr = dparm + iparm[I_DPOLY];
-  for (m = 0; m < M; m++) {
+  for (int m = 0; m < M; m++) {
     *dptr = 1.0;
     dptr += nTparm;
   }
 
   // Extract parameter values from DPja or DQia.
+  int i, k, m;
   k = m = 0;
   keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     // N.B. keyp->j is 1-relative, but j is 0-relative.
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "AUX.", 4) == 0) {
       // N.B. k here is 1-relative.
@@ -1699,6 +1689,7 @@ int polyset(int j, struct disprm *dis)
       }
       fp++;
 
+      int offset;
       if (strncmp(fp, "COEFF.", 6) == 0) {
         offset = 0;
 
@@ -1711,6 +1702,7 @@ int polyset(int j, struct disprm *dis)
       }
 
       fp += 6;
+      int jhat;
       sscanf(fp, "%d", &jhat);
       if (jhat < 0 || naxis < jhat) {
         // N.B. jhat == 0 is ok.
@@ -1743,6 +1735,7 @@ int polyset(int j, struct disprm *dis)
       } else if (strncmp(fp, "VAR.", 4) == 0) {
         // N.B. jhat here is 1-relative.
         fp += 4;
+        int jhat;
         sscanf(fp, "%d", &jhat);
         if (jhat < 1 || naxis < jhat) {
           return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
@@ -1750,7 +1743,7 @@ int polyset(int j, struct disprm *dis)
         }
 
         i = iparm[I_DPOLY] + (m-1)*nTparm + 1 + (jhat-1);
-        power = dpkeyd(keyp);
+        double power = dpkeyd(keyp);
         dparm[i] = power;
 
       } else if (strncmp(fp, "AUX.", 4) == 0) {
@@ -1763,7 +1756,7 @@ int polyset(int j, struct disprm *dis)
         }
 
         i = iparm[I_DPOLY] + (m-1)*nTparm + 1 + Nhat + (k-1);
-        power = dpkeyd(keyp);
+        double power = dpkeyd(keyp);
         dparm[i] = power;
 
       } else {
@@ -1792,19 +1785,19 @@ int polyset(int j, struct disprm *dis)
   //     nVar elements record offsets into dparm for each variable,
   //   M*nVar flags to signal whether the power is integral,
   //   M*nVar integral powers.
-  for (ivar = 0; ivar < nVar; ivar++) {
+  for (int ivar = 0; ivar < nVar; ivar++) {
     // Want at least the first degree power for all variables.
     i = iparm[I_MAXPOW] + ivar;
     iparm[i] = 1;
   }
 
-  for (ivar = 0; ivar < nVar; ivar++) {
+  for (int ivar = 0; ivar < nVar; ivar++) {
     for (m = 0; m < M; m++) {
       i = iparm[I_DPOLY] + m*nTparm + 1 + ivar;
-      power = dparm[i];
+      double power = dparm[i];
 
       // Is it integral?  (Positive, negative, or zero.)
-      ipow = (int)power;
+      int ipow = (int)power;
       if (power == (double)ipow) {
         // Signal that the power is integral.
         i = iparm[I_FLAGS] + m*nVar + ivar;
@@ -1828,8 +1821,8 @@ int polyset(int j, struct disprm *dis)
   }
 
   // How many of all powers of each variable will there be?
-  npow = 0;
-  for (ivar = 0; ivar < nVar; ivar++) {
+  int npow = 0;
+  for (int ivar = 0; ivar < nVar; ivar++) {
     // Offset into dparm.
     i = iparm[I_DPOFF] + ivar;
     iparm[i] = lendp + npow;
@@ -1867,15 +1860,10 @@ int tpdset(int j, struct disprm *dis)
 {
   static const char *function = "tpdset";
 
-  char   *fp, id[32];
-  int    doaux, doradial, idis, idp, k, m, ncoeff[2], ndparm, niparm;
-  struct dpkey *keyp;
-  struct wcserr **err;
-  int (*(distpd[2]))(DISP2X_ARGS);
-
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
+  char id[32];
   sprintf(id, "TPD on axis %d", j+1);
 
 
@@ -1887,18 +1875,18 @@ int tpdset(int j, struct disprm *dis)
   }
 
   // Find the number of parameters.
-  ncoeff[0] = 0;
-  ncoeff[1] = 0;
-  doaux     = 0;
-  doradial  = 0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  int ncoeff[2] = {0, 0};
+  int doaux     = 0;
+  int doradial  = 0;
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "TPD.", 4) == 0) {
       fp += 4;
+      int idis;
       if (strncmp(fp, "FWD.", 4) == 0) {
         idis = 0;
 
@@ -1911,6 +1899,7 @@ int tpdset(int j, struct disprm *dis)
           "Unrecognized field name for %s: %s", id, keyp->field);
       }
 
+      int k;
       sscanf(fp+4, "%d", &k);
       if (0 <= k && k <= 59) {
         if (ncoeff[idis] < k+1) ncoeff[idis] = k+1;
@@ -1939,9 +1928,8 @@ int tpdset(int j, struct disprm *dis)
     }
   }
 
-  distpd[0] = 0x0;
-  distpd[1] = 0x0;
-  for (idis = 0; idis < 2; idis++) {
+  int (*(distpd[2]))(DISP2X_ARGS) = {0x0, 0x0};
+  for (int idis = 0; idis < 2; idis++) {
     if (ncoeff[idis] <= 4) {
       if (idis) {
         // No inverse polynomial.
@@ -2003,12 +1991,12 @@ int tpdset(int j, struct disprm *dis)
 #define I_NTPD    7
 
   // Record indexing parameters.
-  niparm = I_NTPD;
+  int niparm = I_NTPD;
   if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
-  ndparm = (doaux?6:0) + ncoeff[0] + ncoeff[1];
+  int ndparm = (doaux?6:0) + ncoeff[0] + ncoeff[1];
 
   // The first three are more widely used.
   dis->iparm[j][I_DTYPE]  = DIS_TPD;
@@ -2038,14 +2026,15 @@ int tpdset(int j, struct disprm *dis)
   }
 
   keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "AUX.", 4) == 0) {
       // Auxiliary variables.
       fp += 4;
+      int k;
       sscanf(fp, "%d", &k);
       if (k < 1 || 2 < k) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
@@ -2064,22 +2053,24 @@ int tpdset(int j, struct disprm *dis)
       }
 
       fp += 6;
+      int m;
       sscanf(fp, "%d", &m);
       if (m < 0 || 2 < m) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid coefficient number (%d) for %s: %s", m, id, keyp->field);
       }
 
-      idis = 3*(k-1) + m;
+      int idis = 3*(k-1) + m;
       dis->dparm[j][idis] = dpkeyd(keyp);
 
     } else if (strncmp(fp, "TPD.", 4) == 0) {
       fp += 4;
-      idis = (doaux?6:0);
+      int idis = (doaux?6:0);
       if (strncmp(fp, "REV.", 4) == 0) {
         idis += ncoeff[0];
       }
 
+      int k;
       sscanf(fp+4, "%d", &k);
       dis->dparm[j][idis+k] = dpkeyd(keyp);
     }
@@ -2106,25 +2097,20 @@ int pol2tpd(int j, struct disprm *dis)
                                 {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  int deg, degree, *iflgp, *iparm, *ipowp, jhat, K, m, n, ndparm, Nhat,
-      niparm, p[2], *tpd_iparm;
-  double *dparm, *dpolp, *tpd_dparm;
-  struct wcserr **err;
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
-  iparm = dis->iparm[j];
-  dparm = dis->dparm[j];
+  int    *iparm = dis->iparm[j];
+  double *dparm = dis->dparm[j];
 
 
   // Check the number of independent variables, no more than two.
-  Nhat = dis->Nhat[j];
+  int Nhat = dis->Nhat[j];
   if (2 < Nhat) return -1;
 
   // Check auxiliaries: only one is allowed...
-  K = iparm[I_K];
+  int K = iparm[I_K];
   if (1 < K) return -1;
   if (K) {
     // ...and it must be radial.
@@ -2137,12 +2123,12 @@ int pol2tpd(int j, struct disprm *dis)
   }
 
   // Check powers...
-  iflgp = iparm + iparm[I_FLAGS];
-  ipowp = iparm + iparm[I_IPOW];
-  degree = 0;
-  for (m = 0; m < iparm[I_M]; m++) {
-    deg = 0;
-    for (jhat = 0; jhat < Nhat; jhat++) {
+  int *iflgp = iparm + iparm[I_FLAGS];
+  int *ipowp = iparm + iparm[I_IPOW];
+  int degree = 0;
+  for (int m = 0; m < iparm[I_M]; m++) {
+    int deg = 0;
+    for (int jhat = 0; jhat < Nhat; jhat++) {
       // ...they must be positive integral.
       if (*iflgp == 0)  return -1;
       if (*ipowp < 0)   return -1;
@@ -2177,7 +2163,7 @@ int pol2tpd(int j, struct disprm *dis)
 
 
   // OK, it ticks all the boxes.  Now translate it.
-  ndparm = 0;
+  int ndparm = 0;
   if (degree == 1) {
     ndparm = 4;
     dis->disp2x[j] = tpd1;
@@ -2211,7 +2197,8 @@ int pol2tpd(int j, struct disprm *dis)
   dis->disx2p[j] = 0x0;
 
   // Record indexing parameters.
-  niparm = I_NTPD;
+  int niparm = I_NTPD;
+  int *tpd_iparm;
   if ((tpd_iparm = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
@@ -2233,13 +2220,14 @@ int pol2tpd(int j, struct disprm *dis)
 
 
   // Allocate memory for the polynomial coefficients and fill it.
+  double *tpd_dparm;
   if ((tpd_dparm = calloc(ndparm, sizeof(double))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
   ipowp = iparm + iparm[I_IPOW];
-  dpolp = dparm + iparm[I_DPOLY];
-  for (m = 0; m < iparm[I_M]; m++) {
+  double *dpolp = dparm + iparm[I_DPOLY];
+  for (int m = 0; m < iparm[I_M]; m++) {
     if (K && ipowp[Nhat]) {
       // The radial variable.
       switch (ipowp[Nhat]) {
@@ -2262,12 +2250,12 @@ int pol2tpd(int j, struct disprm *dis)
 
     } else {
       // The independent variables.
-      p[0] = p[1] = 0;
-      for (jhat = 0; jhat < Nhat; jhat++) {
+      int p[] = {0, 0};
+      for (int jhat = 0; jhat < Nhat; jhat++) {
         p[jhat] = ipowp[jhat];
       }
 
-      n = map[p[0]][p[1]];
+      int n = map[p[0]][p[1]];
       tpd_dparm[n] = *dpolp;
     }
 
@@ -2293,17 +2281,12 @@ int tpvset(int j, struct disprm *dis)
 {
   static const char *function = "tpvset";
 
-  char   *fp, id[32];
-  int    doradial, idp, k, ndparm, niparm;
-  struct dpkey *keyp;
-  struct wcserr **err;
-
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
   // TPV "projection".
+  char id[32];
   sprintf(id, "TPV on axis %d", j+1);
 
   // TPV is a sequent distortion, applied to intermediate world coordinates
@@ -2316,15 +2299,16 @@ int tpvset(int j, struct disprm *dis)
   }
 
   // Find the number of parameters.
-  ndparm   = 0;
-  doradial = 0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  int ndparm   = 0;
+  int doradial = 0;
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "TPV.", 4) == 0) {
+      int k;
       sscanf(fp+4, "%d", &k);
       if (0 <= k && k <= 39) {
         if (ndparm < k+1) ndparm = k+1;
@@ -2387,7 +2371,7 @@ int tpvset(int j, struct disprm *dis)
   dis->disx2p[j] = 0x0;
 
   // Record indexing parameters.
-  niparm = I_NTPD;
+  int niparm = I_NTPD;
   if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
@@ -2414,13 +2398,14 @@ int tpvset(int j, struct disprm *dis)
   }
 
   keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     // One-to-one correspondence between TPV and TPD coefficients.
     if (strncmp(fp, "TPV.", 4) == 0) {
+      int k;
       sscanf(fp+4, "%d", &k);
       dis->dparm[j][k] = dpkeyd(keyp);
     }
@@ -2447,18 +2432,12 @@ int sipset(int j, struct disprm *dis)
                                 {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  char   *fp, id[32];
-  int    deg, degree[2], idis, idp, ncoeff[2], ndparm, niparm, p, q;
-  struct dpkey *keyp;
-  struct wcserr **err;
-  int (*(distpd[2]))(DISP2X_ARGS);
-
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
   // Simple Imaging Polynomial.
+  char id[32];
   sprintf(id, "SIP on axis %d", j+1);
 
 
@@ -2471,16 +2450,16 @@ int sipset(int j, struct disprm *dis)
   }
 
   // Find the polynomial degree, at least 1 for the forward function.
-  degree[0] =  1;
-  degree[1] = -1;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  int degree[2] = {1, -1};
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "SIP.", 4) == 0) {
       fp += 4;
+      int idis;
       if (strncmp(fp, "FWD.", 4) == 0) {
         idis = 0;
 
@@ -2494,8 +2473,9 @@ int sipset(int j, struct disprm *dis)
       }
 
       fp += 4;
+      int p, q;
       sscanf(fp, "%d_%d", &p, &q);
-      deg = p + q;
+      int deg = p + q;
       if (p < 0 || 9 < p || q < 0 || 9 < q || 9 < deg) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid powers (%d, %d) for %s: %s", p, q, id, keyp->field);
@@ -2515,9 +2495,8 @@ int sipset(int j, struct disprm *dis)
   if (degree[1] == 0 ) degree[1] = 1;
 
   // TPD is going to do the dirty work.
-  distpd[0] = 0x0;
-  distpd[1] = 0x0;
-  for (idis = 0; idis < 2; idis++) {
+  int (*(distpd[2]))(DISP2X_ARGS) = {0x0, 0x0}, ncoeff[2];
+  for (int idis = 0; idis < 2; idis++) {
     ncoeff[idis] = 0;
     if (degree[idis] == 1) {
       ncoeff[idis] = 4;
@@ -2556,12 +2535,12 @@ int sipset(int j, struct disprm *dis)
 
 
   // Record indexing parameters.
-  niparm = I_NTPD;
+  int niparm = I_NTPD;
   if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
-  ndparm = ncoeff[0] + ncoeff[1];
+  int ndparm = ncoeff[0] + ncoeff[1];
 
   // The first three are more widely used.
   dis->iparm[j][I_DTYPE]  = DIS_TPD;
@@ -2585,19 +2564,21 @@ int sipset(int j, struct disprm *dis)
   }
 
   keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "SIP.", 4) == 0) {
       fp += 4;
+      int idis;
       if (strncmp(fp, "FWD.", 4) == 0) {
         idis = 0;
       } else {
         idis = ncoeff[0];
       }
 
+      int p, q;
       sscanf(fp+4, "%d_%d", &p, &q);
 
       // Map to TPD coefficient number.
@@ -2618,18 +2599,12 @@ int dssset(int j, struct disprm *dis)
 {
   static const char *function = "dssset";
 
-  char   *fp, id[32];
-  int    degree, idp, m, ncoeff, ndparm, niparm;
-  double A1, A2, A3, B1, B2, B3, coeff, *dparm, S, X0, Y0;
-  struct dpkey *keyp;
-  struct wcserr **err;
-
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
   // Digitized Sky Survey.
+  char id[32];
   sprintf(id, "DSS on axis %d", j+1);
 
 
@@ -2643,7 +2618,7 @@ int dssset(int j, struct disprm *dis)
   }
 
   // Safe to assume the polynomial degree is 5 (or less).
-  ncoeff = 24;
+  int ncoeff = 24;
   dis->disp2x[j] = tpd5;
 
   // No specialist de-distortions.
@@ -2651,12 +2626,12 @@ int dssset(int j, struct disprm *dis)
 
 
   // Record indexing parameters.
-  niparm = I_NTPD;
+  int niparm = I_NTPD;
   if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
-  ndparm = 6 + ncoeff;
+  int ndparm = 6 + ncoeff;
 
   // The first three are more widely used.
   dis->iparm[j][I_DTYPE]  = DIS_TPD;
@@ -2681,13 +2656,15 @@ int dssset(int j, struct disprm *dis)
 
   // This translation follows WCS Paper IV, Sect. 5.2 using the same
   // variable names.  Find A1, A2, A3, B1, B2, and B3.
+  double A1, A2, A3, B1, B2, B3;
   A1 = A2 = A3 = 0.0;
   B1 = B2 = B3 = 0.0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    fp = strchr(keyp->field, '.') + 1;
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
+    char *fp = strchr(keyp->field, '.') + 1;
     if (strncmp(fp, "DSS.AMD.", 8) == 0) {
       fp += 8;
+      int m;
       sscanf(fp, "%d", &m);
 
       if (m == 1) {
@@ -2712,17 +2689,17 @@ int dssset(int j, struct disprm *dis)
     }
   }
 
-  X0 = (A2*B3 - A3*B1) / (A1*B1 - A2*B2);
-  Y0 = (A3*B2 - A1*B3) / (A1*B1 - A2*B2);
+  double X0 = (A2*B3 - A3*B1) / (A1*B1 - A2*B2);
+  double Y0 = (A3*B2 - A1*B3) / (A1*B1 - A2*B2);
 
-  S = sqrt(fabs(A1*B1 - A2*B2));
+  double S = sqrt(fabs(A1*B1 - A2*B2));
   if (S == 0.0) {
     return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
       "Coefficient scale for %s is zero.", id);
   }
 
   // Coefficients for the auxiliary variables.
-  dparm = dis->dparm[j];
+  double *dparm = dis->dparm[j];
   if (j == 0) {
     dparm[0] =  X0;
     dparm[1] = -B1/S;
@@ -2745,18 +2722,20 @@ int dssset(int j, struct disprm *dis)
 
   // Translate DSS coefficients to TPD.
   dparm += 6;
-  degree = 3;
+  int degree = 3;
   keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "DSS.AMD.", 8) == 0) {
       // Skip zero coefficients.
-      if ((coeff = dpkeyd(keyp)) == 0.0) continue;
+      double coeff = dpkeyd(keyp);
+      if (coeff == 0.0) continue;
 
       fp += 8;
+      int m;
       sscanf(fp, "%d", &m);
 
       // Apply the coefficient scale factor.
@@ -2792,7 +2771,7 @@ int dssset(int j, struct disprm *dis)
         dparm[17] = coeff;
         dparm[19] = coeff * 2.0;
         dparm[21] = coeff;
-	degree = 5;
+        degree = 5;
       } else if (coeff != 0.0) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid parameter for %s: %s", m, id, keyp->field);
@@ -2839,20 +2818,12 @@ int watset(int j, struct disprm *dis)
                                 {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-  char   *fp, id[32];
-  int    deg, degree, doaux, idis, idp, im, in, *iparm, kind, m, n, ncoeff,
-         ndparm, niparm;
-  double coeff, coeffm[10], coeffn[10], *dparm, dx, dy, x0, xmax, xmin,
-         y0, ymax, ymin;
-  struct dpkey *keyp;
-  struct wcserr **err;
-
-
   // Initialize.
   if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
+  struct wcserr **err = &(dis->err);
 
   // WAT (TNX or ZPX) Polynomial.
+  char id[32];
   sprintf(id, "WAT (%s) on axis %d", dis->dtype[0]+4, j+1);
 
 
@@ -2866,15 +2837,17 @@ int watset(int j, struct disprm *dis)
   }
 
   // Find the polynomial degree (at least 1), kind, and domain.
-  degree = 1;
-  kind = 0;
-  xmin = xmax = 0.0;
-  ymin = ymax = 0.0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  int degree = 1;
+  int kind = 0;
+  double xmin = 0.0;
+  double xmax = 0.0;
+  double ymin = 0.0;
+  double ymax = 0.0;
+  struct dpkey *keyp = dis->dp;
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if (strncmp(fp, "WAT.", 4) == 0) {
       fp += 4;
@@ -2883,8 +2856,9 @@ int watset(int j, struct disprm *dis)
           strncmp(fp, "MONO.", 5) == 0) {
 
         fp += 5;
+        int m, n;
         sscanf(fp, "%d_%d", &m, &n);
-        deg = m + n;
+        int deg = m + n;
         if (m < 0 || 9 < m || n < 0 || 9 < n || 9 < deg) {
           return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
           "Invalid powers (%d, %d) for %s: %s", m, n, id, keyp->field);
@@ -2917,10 +2891,10 @@ int watset(int j, struct disprm *dis)
     }
   }
 
-  doaux = (kind == 1 || kind == 2);
+  int doaux = (kind == 1 || kind == 2);
 
   // TPD is going to do the dirty work.
-  ncoeff = 0;
+  int ncoeff = 0;
   if (degree == 1) {
     // First degree.
     ncoeff = 4;
@@ -2964,14 +2938,14 @@ int watset(int j, struct disprm *dis)
 
 
   // Record indexing parameters.
-  niparm = I_NTPD;
+  int niparm = I_NTPD;
   if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
-  iparm = dis->iparm[j];
+  int *iparm = dis->iparm[j];
 
-  ndparm = 6 + ncoeff;
+  int ndparm = 6 + ncoeff;
 
   // The first three are more widely used.
   iparm[I_DTYPE]  = DIS_TPD;
@@ -2994,13 +2968,13 @@ int watset(int j, struct disprm *dis)
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
-  dparm = dis->dparm[j];
+  double *dparm = dis->dparm[j];
 
 
   // Coefficients for the auxiliary variables.
   if (doaux) {
-    x0 = (xmax + xmin)/2.0;
-    dx = (xmax - xmin)/2.0;
+    double x0 = (xmax + xmin)/2.0;
+    double dx = (xmax - xmin)/2.0;
     if (dx == 0.0) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "X-span for %s is zero", id);
@@ -3010,8 +2984,8 @@ int watset(int j, struct disprm *dis)
     dparm[1] = 1.0/dx;
     dparm[2] = 0.0;
 
-    y0 = (ymax + ymin)/2.0;
-    dy = (ymax - ymin)/2.0;
+    double y0 = (ymax + ymin)/2.0;
+    double dy = (ymax - ymin)/2.0;
     if (dy == 0.0) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Y-span for %s is zero", id);
@@ -3027,36 +3001,38 @@ int watset(int j, struct disprm *dis)
 
   // Unpack the polynomial coefficients.
   keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+  for (int idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    fp = strchr(keyp->field, '.') + 1;
+    char *fp = strchr(keyp->field, '.') + 1;
 
     if ((kind == CHEBYSHEV && strncmp(fp, "WAT.CHBY.", 9) == 0) ||
         (kind == LEGENDRE  && strncmp(fp, "WAT.LEGR.", 9) == 0) ||
         (kind == MONOMIAL  && strncmp(fp, "WAT.MONO.", 9) == 0)) {
       fp += 9;
 
+      int m, n;
       sscanf(fp, "%d_%d", &m, &n);
 
       if (kind == MONOMIAL) {
         // Monomial coefficient, maps simply to TPD coefficient number.
-        idis = map[m][n];
+        int idis = map[m][n];
         dparm[idis] = dpkeyd(keyp);
 
       } else {
         // Coefficient of the product of two Chebyshev or two Legendre
         // polynomials.  Find the corresponding monomial coefficients.
-        coeff = dpkeyd(keyp);
+        double coeff = dpkeyd(keyp);
 
+        double coeffm[10], coeffn[10];
         cheleg(kind, m, n, coeffm, coeffn);
-        for (im = 0; im <= m; im++) {
+        for (int im = 0; im <= m; im++) {
           if (coeffm[im] == 0.0) continue;
 
-          for (in = 0; in <= n; in++) {
+          for (int in = 0; in <= n; in++) {
             if (coeffn[in] == 0.0) continue;
 
-            idis = map[im][in];
+            int idis = map[im][in];
             dparm[idis] += coeff*coeffm[im]*coeffn[in];
           }
         }
@@ -3074,18 +3050,16 @@ int watset(int j, struct disprm *dis)
 int cheleg(int kind, int m, int n, double coeffm[], double coeffn[])
 
 {
-  int    j, j0, j1, j2, k, N;
-  double *coeff[3], d;
-
-  N = (m > n) ? m : n;
+  int N = (m > n) ? m : n;
 
   // Allocate work arrays.
+  double *coeff[3];
   coeff[0] = calloc(3*(N+1), sizeof(double));
   coeff[1] = coeff[0] + (N+1);
   coeff[2] = coeff[1] + (N+1);
 
-  for (j = 0; j <= N; j++) {
-    j0 =  j%3;
+  for (int j = 0; j <= N; j++) {
+    int j0 =  j%3;
 
     if (j == 0) {
       coeff[0][0] = 1.0;
@@ -3095,13 +3069,13 @@ int cheleg(int kind, int m, int n, double coeffm[], double coeffn[])
 
     } else {
       // Cyclic buffer indices.
-      j1 = (j-1)%3;
-      j2 = (j-2)%3;
+      int j1 = (j-1)%3;
+      int j2 = (j-2)%3;
 
       memset(coeff[j0], 0, (N+1)*sizeof(double));
 
-      d = (double)j;
-      for (k = 0; k < N; k++) {
+      double d = (double)j;
+      for (int k = 0; k < N; k++) {
         if (kind == CHEBYSHEV) {
           coeff[j0][k+1] = 2.0 * coeff[j1][k];
           coeff[j0][k]  -=       coeff[j2][k];
@@ -3132,16 +3106,11 @@ int dispoly(
   double *discrd)
 
 {
-  const int *iflgp, *imaxp, *imaxpow, *ipowp;
-  int    ip, ivar, jhat, k, m;
-  const double *cptr, *dpolp, *pptr;
-  double *aux, auxp0, *dvarpow, *dpowp, term, var;
-
   // Avert nuisance compiler warnings about unused parameters.
   (void)dummy;
 
   // Check for zeroes.
-  for (jhat = 0; jhat < Nhat; jhat++) {
+  for (int jhat = 0; jhat < Nhat; jhat++) {
     if (rawcrd[jhat] == 0.0) {
       *discrd = 0.0;
       return 0;
@@ -3149,17 +3118,17 @@ int dispoly(
   }
 
   // Working memory for auxiliaries &c. was allocated at the end of p[].
-  aux = (double *)(dparm + iparm[I_DAUX]);
+  double *aux = (double *)(dparm + iparm[I_DAUX]);
 
   // Compute the auxiliary variables.
-  for (k = 0; k < iparm[I_K]; k++) {
-    cptr = dparm + k*iparm[I_NKPARM];
-    pptr = cptr + (1+Nhat);
+  for (int k = 0; k < iparm[I_K]; k++) {
+    const double *cptr = dparm + k*iparm[I_NKPARM];
+    const double *pptr = cptr + (1+Nhat);
 
     aux[k] = *(cptr++);
-    auxp0  = *(pptr++);
+    double auxp0  = *(pptr++);
 
-    for (jhat = 0; jhat < Nhat; jhat++) {
+    for (int jhat = 0; jhat < Nhat; jhat++) {
       aux[k] += *(cptr++)*pow(rawcrd[jhat], *(pptr++));
     }
 
@@ -3174,22 +3143,22 @@ int dispoly(
 
 
   // Compute all required integral powers of the variables.
-  imaxpow = iparm + iparm[I_MAXPOW];
-  dvarpow = (double *)(dparm + iparm[I_DVPOW]);
+  const int *imaxpow = iparm + iparm[I_MAXPOW];
+  double *dvarpow = (double *)(dparm + iparm[I_DVPOW]);
 
-  imaxp = imaxpow;
-  dpowp = dvarpow;
-  for (jhat = 0; jhat < Nhat; jhat++, imaxp++) {
-    var = 1.0;
-    for (ip = 0; ip < *imaxp; ip++, dpowp++) {
+  const int *imaxp = imaxpow;
+  double *dpowp = dvarpow;
+  for (int jhat = 0; jhat < Nhat; jhat++, imaxp++) {
+    double var = 1.0;
+    for (int ip = 0; ip < *imaxp; ip++, dpowp++) {
       var *= rawcrd[jhat];
       *dpowp = var;
     }
   }
 
-  for (k = 0; k < iparm[I_K]; k++, imaxp++) {
-    var = 1.0;
-    for (ip = 0; ip < *imaxp; ip++, dpowp++) {
+  for (int k = 0; k < iparm[I_K]; k++, imaxp++) {
+    double var = 1.0;
+    for (int ip = 0; ip < *imaxp; ip++, dpowp++) {
       var *= aux[k];
       *dpowp = var;
     }
@@ -3197,16 +3166,16 @@ int dispoly(
 
   // Loop for each term of the polynomial.
   *discrd = 0.0;
-  iflgp = iparm + iparm[I_FLAGS];
-  ipowp = iparm + iparm[I_IPOW];
-  dpolp = dparm + iparm[I_DPOLY];
-  for (m = 0; m < iparm[I_M]; m++) {
-    term = *(dpolp++);
+  const int    *iflgp = iparm + iparm[I_FLAGS];
+  const int    *ipowp = iparm + iparm[I_IPOW];
+  const double *dpolp = dparm + iparm[I_DPOLY];
+  for (int m = 0; m < iparm[I_M]; m++) {
+    double term = *(dpolp++);
 
     // Loop over all variables.
     imaxp = imaxpow;
     dpowp = dvarpow - 1;
-    for (ivar = 0; ivar < iparm[I_NVAR]; ivar++) {
+    for (int ivar = 0; ivar < iparm[I_NVAR]; ivar++) {
       if (*iflgp & 2) {
         // Nothing (zero power).
 
@@ -3250,14 +3219,13 @@ int tpd1(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 4 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3298,14 +3266,13 @@ int tpd2(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 7 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3348,14 +3315,13 @@ int tpd3(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 12 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3399,14 +3365,13 @@ int tpd4(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 17 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3451,14 +3416,13 @@ int tpd5(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 24 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3504,14 +3468,13 @@ int tpd6(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 31 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3558,14 +3521,13 @@ int tpd7(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 40 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3613,14 +3575,13 @@ int tpd8(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 49 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {
@@ -3669,14 +3630,13 @@ int tpd9(
   double *discrd)
 
 {
-  double r, s, u, v;
-
   if (i[I_TPDNCO+inverse] != 60 || 2 < Nhat) {
     return 1;
   }
 
-  u = rawcrd[0];
-  v = rawcrd[1];
+  double r, s;
+  double u = rawcrd[0];
+  double v = rawcrd[1];
 
   // Auxiliary variables?
   if (i[I_TPDAUX]) {

@@ -1,3 +1,53 @@
+WCSLIB version 7.7 (2021/07/12)
+-------------------------------
+
+* C library
+
+  - In disfree() and disset(), removed potential for double invokation
+    of free() on allocated memory.  Reported by Cyril Richard.
+
+  - In wcsutil_fptr2str(), fixed a bug reported by Ralf Palsa (with fix)
+    that caused it to be overly enthusiastic in stripping leading zeroes
+    off addresses of function pointers.
+
+  - In wcspcx(), replaced variable length arrays will allocated memory
+    (portability issue).  Reported by Mihai Cara with patch.
+
+  - Fixed buglets in wcsbth() and linsize() uncovered by gcc 11.1.0.
+
+  - Quelled inconsequential compiler warnings from gcc 11.1.0 concerning
+    wcsmix() (function prototype in wcs.h), wcstrim(), wcseulexe(),
+    wcsulex(), and wcsutrne().
+
+  - Defined _POSIX_C_SOURCE appropriately in tprj2.c and tspc.c to get
+    the function prototype etc. for nanosleep() from time.h.
+
+* Fortran wrappers
+
+  - Quelled numerous inconsequential compiler warnings from gfortran
+    11.1.0.
+
+  - Fixed minor bugs uncovered by gfortran 11.1.0 in test programs tdis2
+    and ttab3.
+
+* Utilities
+
+  - Moved 'tofits' from ./C/test/ into the utilities directory as it's
+    generally useful, and added usage (converted to man page).
+
+    Also made it a bit smarter in dealing with ISO/IEC 8859 and UTF-8
+    encoded byte streams, in particular translating non-breaking spaces
+    into ordinary spaces.
+
+* Installation
+
+  - Two patches for configure.ac provided by Mosè Giordano:
+    1. makes it possible to build the Windows library using the MinGW
+       cross-compiler,
+    2. makes the soname of the MacOSX library consistent with other
+       Unix systems.
+
+
 WCSLIB version 7.6 (2021/04/13)
 -------------------------------
 
@@ -3213,4 +3263,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 7.6 2021/04/13 12:57:02 mcalabre Exp $
+$Id: CHANGES,v 7.7 2021/07/12 06:36:49 mcalabre Exp $

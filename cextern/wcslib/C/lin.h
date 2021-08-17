@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: lin.h,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 7.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 7.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -236,11 +236,13 @@
 *
 * Returned:
 *   sizes     int[2]    The first element is the base size of the struct as
-*                       returned by sizeof(struct linprm).  The second element
-*                       is the total allocated size, in bytes, assuming that
-*                       the allocation was done by linini().  This figure
-*                       includes memory allocated for members of constituent
-*                       structs, such as linprm::dispre.
+*                       returned by sizeof(struct linprm).
+*
+*                       The second element is the total size of memory
+*                       allocated in the struct, in bytes, assuming that the
+*                       allocation was done by linini().  This figure includes
+*                       memory allocated for members of constituent structs,
+*                       such as linprm::dispre.
 *
 *                       It is not an error for the struct not to have been set
 *                       up via linset(), which normally results in additional

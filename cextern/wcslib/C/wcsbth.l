@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 7.6 - an implementation of the FITS WCS standard.
+  WCSLIB 7.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2021, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsbth.l,v 7.6 2021/04/13 12:57:01 mcalabre Exp $
+  $Id: wcsbth.l,v 7.7 2021/07/12 06:36:49 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -221,7 +221,7 @@ static int wcsbth_timepixr(double timepixr);
 
 %%
 	char *errmsg, errtxt[80], *keyname, strtmp[80];
-	int  auxprm, inttmp;
+	int    inttmp;
 	double dbltmp, dbl2tmp[2];
 	struct auxprm auxtem;
 	struct wcsprm wcstem;
@@ -274,12 +274,13 @@ static int wcsbth_timepixr(double timepixr);
 	void *vptr  = 0x0;
 	
 	// For keywords that require special handling.
-	int altlin  = 0;
-	char ptype  = ' ';
+	int altlin = 0;
+	char ptype = ' ';
 	int (*chekval)(double) = 0x0;
 	int (*special)(double *, const double *) = 0x0;
 	struct auxprm *auxp = 0x0;
-	int naux = 0;
+	int auxprm = 0;
+	int naux   = 0;
 	
 	// Selection by column number.
 	int nsel = colsel ? colsel[0] : 0;
@@ -3010,6 +3011,7 @@ static int wcsbth_timepixr(double timepixr);
 	  }
 	
 	  naux += auxprm;
+	  auxprm = 0;
 	
 	  // Throw away the rest of the line and reset for the next one.
 	  i = j = 0;
@@ -3076,7 +3078,6 @@ static int wcsbth_timepixr(double timepixr);
 	    ptype  = ' ';
 	    chekval = 0x0;
 	    special = 0x0;
-	    auxprm  = 0;
 	
 	    yyrestart(yyin, yyscanner);
 	
