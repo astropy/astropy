@@ -7,6 +7,8 @@ flake8:
     select:
         - E101 # mix of tabs and spaces
         - W191 # use of tabs
+        - E201 # whitespace after '('
+        - E202 # whitespace before ')'
         - W291 # trailing whitespace
         - W292 # no newline at end of file
         - W293 # trailing whitespace
