@@ -580,7 +580,7 @@ def test_insert_exceptions():
     sc4 = SkyCoord([[1, 2], [3, 4]]*u.deg,
                    [[5, 6], [7, 8]]*u.deg)
 
-    with pytest.raises(TypeError, match='cannot insert into scalar' ):
+    with pytest.raises(TypeError, match='cannot insert into scalar'):
         sc1.insert(0, sc0)
 
     with pytest.raises(ValueError, match='axis must be 0'):

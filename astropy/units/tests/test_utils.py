@@ -23,5 +23,5 @@ def test_quantity_asanyarray():
 
 
 def test_sanitize_scale():
-    assert sanitize_scale( complex(2, _float_finfo.eps) ) == 2
-    assert sanitize_scale( complex(_float_finfo.eps, 2) ) == 2j
+    assert sanitize_scale(complex(2, _float_finfo.eps)) == 2
+    assert sanitize_scale(complex(_float_finfo.eps, 2)) == 2j
