@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.tests.helper import (assert_quantity_allclose as
@@ -47,6 +47,15 @@ def teardown_function(func):
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
     DUPLICATE_REPRESENTATIONS.clear()
     DUPLICATE_REPRESENTATIONS.update(func.DUPLICATE_REPRESENTATIONS_ORIG)
+
+
+def components_equal(rep1, rep2):
+    result = True
+    if type(rep1) is not type(rep2):
+        return False
+    for component in rep1.components:
+        result &= getattr(rep1, component) == getattr(rep2, component)
+    return result
 
 
 class TestSphericalRepresentation:
