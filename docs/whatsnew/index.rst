@@ -12,9 +12,9 @@ functionality highlighted in these pages.
    :maxdepth: 1
 
    5.0
-   4.3
-   4.2
 
+* `What's New in Astropy 4.3? <https://docs.astropy.org/en/v4.3post1/whatsnew/4.3.html>`__
+* `What's New in Astropy 4.2? <https://docs.astropy.org/en/v4.2/whatsnew/4.2.html>`__
 * `What's New in Astropy 4.1? <https://docs.astropy.org/en/v4.1/whatsnew/4.1.html>`__
 * `What's New in Astropy 4.0? <https://docs.astropy.org/en/v4.0/whatsnew/4.0.html>`__
 * `What's New in Astropy 3.2? <https://docs.astropy.org/en/v3.2/whatsnew/3.2.html>`__
