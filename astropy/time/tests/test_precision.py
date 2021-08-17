@@ -34,8 +34,10 @@ dt_tiny = TimeDelta(tiny, format='jd')
 
 def setup_module():
     # Pre-load leap seconds table to avoid flakiness in hypothesis runs.
-    # See https://github.com/astropy/astropy/issues/11030
-    Time('2020-01-01').ut1
+    # See https://github.com/astropy/astropy/issues/11030. In some cases,
+    # the auto_download setting in conftest.py is not picked up, so we
+    with iers.conf.set_temp('auto_download', False):
+        Time('2020-01-01').ut1
 
 
 @pytest.fixture(scope='module')
