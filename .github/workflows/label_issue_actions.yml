@@ -10,7 +10,9 @@ jobs:
   # job in ci_cron_daily.yml
   stalebot:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'Close?')
+    # TODO: Revisit when stalebot is ready to go live.
+    #if: contains(github.event.issue.labels.*.name, 'Close?')
+    if: false
     steps:
     - name: Stale issue message
       uses: actions/github-script@v3
