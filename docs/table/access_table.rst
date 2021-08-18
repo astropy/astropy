@@ -135,19 +135,19 @@ of available options::
 
   >>> t.info('stats')  # doctest: +FLOAT_CMP
   <Table length=5>
-  name mean        std        min max
-  ---- ---- ----------------- --- ---
-     a  6.0 4.242640687119285   0  12
-     b  7.0 4.242640687119285   1  13
-     c  8.0 4.242640687119285   2  14
+  name mean   std   min max
+  ---- ---- ------- --- ---
+     a    6 4.24264   0  12
+     b    7 4.24264   1  13
+     c    8 4.24264   2  14
 
   >>> t.info(['attributes', 'stats'])  # doctest: +FLOAT_CMP
   <Table length=5>
-  name dtype   unit   format       description        mean        std        min max
-  ---- ----- -------- ------ ------------------------ ---- ----------------- --- ---
-     a int32 m sec^-1 {:.3f} unladen swallow velocity  6.0 4.242640687119285   0  12
-     b int32                                           7.0 4.242640687119285   1  13
-     c int32                                           8.0 4.242640687119285   2  14
+  name dtype   unit   format       description        mean   std   min max
+  ---- ----- -------- ------ ------------------------ ---- ------- --- ---
+     a int32 m sec^-1 {:.3f} unladen swallow velocity    6 4.24264   0  12
+     b int32                                             7 4.24264   1  13
+     c int32                                             8 4.24264   2  14
 
 Columns also have an ``info`` property that has the same behavior and
 arguments, but provides information about a single column::
@@ -164,8 +164,8 @@ arguments, but provides information about a single column::
 
   >>> t['a'].info('stats')  # doctest: +FLOAT_CMP
   name = a
-  mean = 6.0
-  std = 4.24264068712
+  mean = 6
+  std = 4.24264
   min = 0
   max = 12
   n_bad = 0

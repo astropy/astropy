@@ -82,7 +82,7 @@ def test_table_info_stats(table_types):
            'name mean std min max',
            '---- ---- --- --- ---',
            '   a  1.5 0.5   1   2',
-           '   b  1.5 0.5 1.0 2.0',
+           '   b  1.5 0.5   1   2',
            '   c   --  --  --  --',
            '   d   --  -- 1.0 2.0']
     assert out.getvalue().splitlines() == exp
@@ -93,8 +93,8 @@ def test_table_info_stats(table_types):
                               'class', 'mean', 'std', 'min', 'max', 'n_bad', 'length']
     assert np.all(tinfo['mean'] == ['1.5', '1.5', '--', '--'])
     assert np.all(tinfo['std'] == ['0.5', '0.5', '--', '--'])
-    assert np.all(tinfo['min'] == ['1', '1.0', '--', '1.0'])
-    assert np.all(tinfo['max'] == ['2', '2.0', '--', '2.0'])
+    assert np.all(tinfo['min'] == ['1', '1', '--', '1.0'])
+    assert np.all(tinfo['max'] == ['2', '2', '--', '2.0'])
 
     out = StringIO()
     t.info('stats', out=out)
@@ -102,7 +102,7 @@ def test_table_info_stats(table_types):
            'name mean std min max',
            '---- ---- --- --- ---',
            '   a  1.5 0.5   1   2',
-           '   b  1.5 0.5 1.0 2.0',
+           '   b  1.5 0.5   1   2',
            '   c   --  --  --  --',
            '   d   --  -- 1.0 2.0']
     assert out.getvalue().splitlines() == exp
@@ -116,8 +116,8 @@ def test_table_info_stats(table_types):
                               'class', 'sum', 'first', 'n_bad', 'length']
     assert np.all(tinfo['name'] == ['a', 'b', 'c', 'd'])
     assert np.all(tinfo['dtype'] == ['int32', 'float32', dtype_info_name('S1'), 'object'])
-    assert np.all(tinfo['sum'] == ['6', '6.0', '--', '--'])
-    assert np.all(tinfo['first'] == ['1', '1.0', 'a', '1.0'])
+    assert np.all(tinfo['sum'] == ['6', '6', '--', '--'])
+    assert np.all(tinfo['first'] == ['1', '1', 'a', '1.0'])
 
 
 def test_data_info():
@@ -162,8 +162,8 @@ def test_data_info():
         assert cinfo == OrderedDict([('name', 'name'),
                                      ('mean', '1.5'),
                                      ('std', '0.5'),
-                                     ('min', '1.0'),
-                                     ('max', '2.0'),
+                                     ('min', '1'),
+                                     ('max', '2'),
                                      ('n_bad', 1),
                                      ('length', 3)])
 

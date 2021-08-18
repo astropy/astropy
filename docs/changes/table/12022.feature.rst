@@ -1,0 +1,2 @@
+Formatting of any numerical values in the output of ``Table.info()`` and
+``Column.info()`` has been improved.
