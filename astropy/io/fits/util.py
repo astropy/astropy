@@ -607,9 +607,9 @@ def _array_to_file(arr, outfile):
 
     try:
         seekable = outfile.seekable()
-    except:
+    except AttributeError:
         seekable = False
-    
+
     if isfile(outfile) and seekable:
         write = lambda a, f: a.tofile(f)
     else:
