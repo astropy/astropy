@@ -3,6 +3,8 @@
    from === to ***, the filename extension needs to be changed from .inc.rst to
    .rst, and a link needs to be added in the subpackage toctree
 
+.. doctest-skip-all
+
 .. _astropy-table-performance:
 
 Performance Tips
@@ -14,7 +16,7 @@ Constructing |Table| objects row by row using
     >>> from astropy.table import Table
     >>> t = Table(names=['a', 'b'])
     >>> for i in range(100):
-    ...    t.add_row((1, 2))
+    ...     t.add_row((1, 2))
 
 If you do need to loop in your code to create the rows, a much faster approach
 is to construct a list of rows and then create the |Table| object at the very
@@ -22,7 +24,7 @@ end::
 
   >>> rows = []
   >>> for i in range(100):
-  ...    rows.append((1, 2))
+  ...     rows.append((1, 2))
   >>> t = Table(rows=rows, names=['a', 'b'])
 
 Writing a |Table| with |MaskedColumn| to ``.ecsv`` using
@@ -32,13 +34,13 @@ Writing a |Table| with |MaskedColumn| to ``.ecsv`` using
     >>> import numpy as np
     >>> x = np.arange(10000, dtype=float)
     >>> tm = Table([x], masked=True)
-    >>> tm.write('tm.ecsv', overwrite=True) # doctest: +SKIP
+    >>> tm.write('tm.ecsv', overwrite=True)
 
 If you want to write ``.ecsv`` using :meth:`~astropy.table.Table.write`,
 then use ``serialize_method='data_mask'``.
 This uses the non-masked version of data and it is faster::
 
-    >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask') # doctest: +SKIP
+    >>> tm.write('tm.ecsv', overwrite=True, serialize_method='data_mask')
 
 Read FITS with memmap=True
 --------------------------
@@ -50,9 +52,7 @@ subset of the table by choosing the option ``memmap=True``.
 
 For FITS binary tables, the data is stored row by row, and it is possible to
 read only a subset of rows, but reading a full column loads the whole table data
-into memory:
-
-.. doctest-skip::
+into memory::
 
     >>> import numpy as np
     >>> from astropy.table import Table
@@ -74,5 +74,5 @@ into memory:
     Length = 100 rows
     >>> col = table['my_column']  # Will load all table into memory
 
-At the moment :meth:`~astropy.table.Table.read` does not support ``memmap=True``
+:meth:`~astropy.table.Table.read` does not support ``memmap=True``
 for the HDF5 and ASCII file formats.

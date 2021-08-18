@@ -3,13 +3,15 @@
 Masking and Missing Values
 **************************
 
-The `astropy.table` package provides support for masking and missing values in a
-table by using the ``numpy.ma`` masked array package to define masked columns
-and by supporting :ref:`mixin_columns` that provide masking. This allows
-handling tables with missing or invalid entries in much the same manner as for
-standard (unmasked) tables. It is useful to be familiar with the `masked array
+The `astropy.table` package provides support for masking and missing values in
+a table by using the ``numpy.ma`` `masked array
+<https://numpy.org/doc/stable/reference/maskedarray.html>`_ package to define
+masked columns and by supporting :ref:`mixin_columns` that provide masking.
+This allows handling tables with missing or invalid entries in much the same
+manner as for standard (unmasked) tables. It is useful to be familiar with the
+`masked array documentation
 <https://numpy.org/doc/stable/reference/maskedarray.generic.html>`_
-documentation when using masked tables within `astropy.table`.
+when using masked tables within `astropy.table`.
 
 In a nutshell, the concept is to define a boolean mask that mirrors
 the structure of a column data array. Wherever a mask value is
@@ -22,13 +24,15 @@ on masked arrays
 
 .. Note::
 
-   Reduction operations like `numpy.sum` or `numpy.mean` follow the
+   Reduction operations like :func:`numpy.sum` or :func:`numpy.mean` follow the
    convention of ignoring masked (invalid) values. This differs from
    the behavior of the floating point ``NaN``, for which the sum of an
    array including one or more ``NaN's`` will result in ``NaN``.
 
-   See `this page <https://numpy.org/neps/>`_ for information on NumPy
-   Enhancement Proposals 24, 25, and 26.
+   For more information see NumPy Enhancement Proposals `24
+   <https://numpy.org/neps/nep-0024-missing-data-2.html>`_, `25
+   <https://numpy.org/neps/nep-0025-missing-data-3.html>`_, and `26
+   <https://numpy.org/neps/nep-0026-missing-data-summary.html>`_.
 
 Table Creation
 ==============
@@ -48,23 +52,22 @@ A masked table can be created in several ways:
       1     3
      --     4
 
-The |MaskedColumn| is the masked analog of the |Column| class and
-provides the interface for creating and manipulating a column of
-masked data. The |MaskedColumn| class inherits from
-`numpy.ma.MaskedArray`, in contrast to |Column| which inherits from
-`numpy.ndarray`. This distinction is the main reason there are
-different classes for these two cases.
+The |MaskedColumn| is the masked analog of the |Column| class and provides the
+interface for creating and manipulating a column of masked data. The
+|MaskedColumn| class inherits from :class:`numpy.ma.MaskedArray`, in contrast
+to |Column| which inherits from |ndarray|. This distinction is the main reason
+there are different classes for these two cases.
 
 Notice that masked entries in the table output are shown as ``--``.
 
-**Create a table with one or more columns as a ``numpy`` MaskedArray**
+**Create a table with one or more columns as a NumPy MaskedArray**
 
   >>> import numpy as np
   >>> a = np.ma.array([1, 2])
   >>> b = [3, 4]
   >>> t = Table([a, b], names=('a', 'b'))
 
-**Create a table from list data containing `numpy.ma.masked`**
+**Create a table from list data containing numpy.ma.masked**
 
 You can use the `numpy.ma.masked` constant to indicate masked or invalid data::
 
@@ -78,9 +81,10 @@ You can use the `numpy.ma.masked` constant to indicate masked or invalid data::
       1.0   --
       --  val
 
-Initializing from lists with embedded `numpy.ma.masked` elements is considerably
-slower than using `numpy.ma.array` or |MaskedColumn| directly, so if performance
-is a concern you should use the latter methods if possible.
+Initializing from lists with embedded `numpy.ma.masked` elements is
+considerably slower than using :func:`numpy.ma.array` or |MaskedColumn|
+directly, so if performance is a concern you should use the latter methods if
+possible.
 
 **Add a MaskedColumn object to an existing table**
 
@@ -99,7 +103,7 @@ is a concern you should use the latter methods if possible.
 
 If ``masked=True`` is provided when creating the table then every column will
 be created as a |MaskedColumn|, and new columns will always be added as a
-a |MaskedColumn|.
+|MaskedColumn|.
 
   >>> Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
   <Table masked=True length=2>
@@ -108,9 +112,6 @@ a |MaskedColumn|.
   ----- -----
       1     3
       2     4
-
-Notice the table attributes ``mask`` and ``fill_value`` that are
-available for a masked table.
 
 **Convert an existing table to a masked table**
 
@@ -126,14 +127,15 @@ Table Access
 Nearly all of the standard methods for accessing and modifying data
 columns, rows, and individual elements also apply to masked tables.
 
-There are two minor differences for the |Row| object that is obtained by
-indexing a single row of a table:
+There is a difference however regarding the |Row| objects that are obtained by
+indexing a single row of a table. For standard tables, two such rows can be
+compared for equality, but for masked tables this comparison will produce an
+exception::
 
-- For standard tables, two such rows can be compared for equality, but
-  in masked tables this comparison will produce an exception.
-
-Both of these differences are due to issues in the underlying
-`numpy.ma.MaskedArray` implementation.
+  >>> t[0] == t[1]
+  Traceback (most recent call last):
+  ...
+  ValueError: Unable to compare rows for masked table due to numpy.ma bug
 
 Masking and Filling
 ===================
@@ -183,13 +185,12 @@ Filling
 
 .. EXAMPLE START: Manipulating Tables with Missing Data by Filling Masked Values
 
-The entries which are masked (i.e., missing or invalid) can be replaced
-with specified fill values. In this case the |MaskedColumn| or masked
-|Table| will be converted to a standard |Column| or table. Each column
-in a masked table has a ``fill_value`` attribute that specifies the
-default fill value for that column. To perform the actual replacement
-operation the ``filled()`` method is called. This takes an optional
-argument which can override the default column ``fill_value``
+The entries which are masked (i.e., missing or invalid) can be replaced with
+specified fill values. Filling a |MaskedColumn| produces a |Column|. Each
+column in a masked table has a ``fill_value`` attribute that specifies the
+default fill value for that column. To perform the actual replacement operation
+the :meth:`~astropy.table.Table.filled` method is called. This takes an
+optional argument which can override the default column ``fill_value``
 attribute.
 ::
 
