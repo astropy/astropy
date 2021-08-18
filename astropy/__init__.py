@@ -104,7 +104,7 @@ class base_constants_version(ScienceState):
         if 'astropy.constants' in sys.modules:
             raise RuntimeError('astropy.constants is already imported')
 
-        return super().set(cls, value)
+        return super().set(value)
 
 
 class physical_constants(base_constants_version):
