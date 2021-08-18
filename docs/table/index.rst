@@ -53,9 +53,9 @@ respectively::
 
 Comments:
 
-- Column ``a`` is a ``numpy`` array with a specified ``dtype`` of ``int32``. If
-  the data type is not provided, the default type for integers is ``int64`` on
-  Mac and Linux and ``int32`` on Windows.
+- Column ``a`` is a |ndarray| with a specified ``dtype`` of ``int32``. If the
+  data type is not provided, the default type for integers is ``int64`` on Mac
+  and Linux and ``int32`` on Windows.
 - Column ``b`` is a list of ``float`` values, represented as ``float64``.
 - Column ``c`` is a list of ``str`` values, represented as unicode.
   See :ref:`bytestring-columns-python-3` for more information.
@@ -99,15 +99,17 @@ You can get summary information about the table as follows::
      c    str1         Column
      d float64 m / s Quantity
 
-From within a Jupyter notebook, the table is displayed as a formatted HTML
-table (details of how it appears can be changed by altering the
-``astropy.table.default_notebook_table_class`` configuration item):
+From within a `Jupyter notebook <https://jupyter.org/>`_, the table is
+displayed as a formatted HTML table (details of how it appears can be changed
+by altering the `astropy.table.conf.default_notebook_table_class
+<astropy.table.Conf.default_notebook_table_class>` item in the
+:ref:`astropy_config`:
 
 .. image:: table_repr_html.png
    :width: 450px
 
 Or you can get a fancier notebook interface with in-browser search, and sort
-using `~astropy.table.Table.show_in_notebook`:
+using :meth:`~astropy.table.Table.show_in_notebook`:
 
 .. image:: table_show_in_nb.png
    :width: 450px
@@ -169,7 +171,7 @@ syntax::
   >>> t['a'][1]    # Row 1 of column 'a'
   4
 
-  >>> t[1]         # Row object for table row index=1
+  >>> t[1]         # Row 1 of the table
   <Row index=1>
     a      b     c      d
                       m / s
@@ -181,7 +183,7 @@ syntax::
   >>> t[1]['a']    # Column 'a' of row 1
   4
 
-You can retrieve a subset of a table by rows (using a slice) or by
+You can retrieve a subset of a table by rows (using a :class:`slice`) or by
 columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
@@ -192,7 +194,7 @@ columns (using column names), where the subset is returned as a new table::
     4   5.000   y  20.0
 
 
-  >>> print(t['a', 'c'])  # Table with cols 'a', 'c'
+  >>> print(t['a', 'c'])  # Table with cols 'a' and 'c'
    a   c
   --- ---
     1   x
@@ -203,7 +205,7 @@ columns (using column names), where the subset is returned as a new table::
 
   >>> t['a'][:] = [-1, -2, -3]    # Set all column values in place
   >>> t['a'][2] = 30              # Set row 2 of column 'a'
-  >>> t[1] = (8, 9.0, "W", 4 * u.m / u.s) # Set all row values
+  >>> t[1] = (8, 9.0, "W", 4 * u.m / u.s) # Set all values of row 1
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
   >>> print(t)
@@ -216,10 +218,10 @@ columns (using column names), where the subset is returned as a new table::
 
 Replace, add, remove, and rename columns with the following::
 
-  >>> t['b'] = ['a', 'new', 'dtype']   # Replace column b (different from in-place)
-  >>> t['e'] = [1, 2, 3]               # Add column d
-  >>> del t['c']                       # Delete column c
-  >>> t.rename_column('a', 'A')        # Rename column a to A
+  >>> t['b'] = ['a', 'new', 'dtype']   # Replace column 'b' (different from in-place)
+  >>> t['e'] = [1, 2, 3]               # Add column 'e'
+  >>> del t['c']                       # Delete column 'c'
+  >>> t.rename_column('a', 'A')        # Rename column 'a' to 'A'
   >>> t.colnames
   ['A', 'b', 'd', 'e']
 
@@ -228,16 +230,17 @@ value is given in ``cm / s`` but will be added to the table as ``0.1 m / s`` in
 accord with the existing unit.
 
   >>> t.add_row([-8, 'string', 10 * u.cm / u.s, 10])
-  >>> len(t)
-  4
+  >>> t['d']
+  <Quantity [10. ,  4. , 30. ,  0.1] m / s>
 
-You can create a table with support for missing values, for example, by setting
-``masked=True``::
+Tables can be used for data with missing values::
 
-  >>> t = QTable([a, b, c], names=('a', 'b', 'c'), masked=True, dtype=('i4', 'f8', 'U1'))
-  >>> t['a'].mask = [True, True, False]
+  >>> from astropy.table import MaskedColumn
+  >>> a_masked = MaskedColumn(a, mask=[True, True, False])
+  >>> t = QTable([a_masked, b, c], names=('a', 'b', 'c'),
+  ...            dtype=('i4', 'f8', 'U1'))
   >>> t
-  <QTable masked=True length=3>
+  <QTable length=3>
     a      b     c
   int32 float64 str1
   ----- ------- ----

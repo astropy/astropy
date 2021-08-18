@@ -6,7 +6,7 @@
 Table Indexing
 **************
 
-Once a |Table| has been created, it is possible to create indexes on one or
+Once a |Table| has been created, it is possible to create indices on one or
 more columns of the table. An index internally sorts the rows of a table based
 on the index column(s), allowing for element retrieval by column value and
 improved performance for certain table operations.
@@ -61,9 +61,9 @@ Row Retrieval using Indices
 
 Row retrieval can be accomplished using two table properties:
 `~astropy.table.Table.loc` and `~astropy.table.Table.iloc`. The
-`~astropy.table.Table.loc` property can be indexed either by column value, range
-of column values (*including* the bounds), or a list or ndarray of column
-values::
+`~astropy.table.Table.loc` property can be indexed either by column value,
+range of column values (*including* the bounds), or a :class:`list` or
+|ndarray| of column values::
 
    >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'), dtype=['i8', 'i8'])
    >>> t.add_index('a')
@@ -99,7 +99,7 @@ values::
        4     9
 
 Note that by default, `~astropy.table.Table.loc` uses the primary index, which
-here is column 'a'. To use a different index, pass the indexed column name
+here is column ``'a'``. To use a different index, pass the indexed column name
 before the retrieval data::
 
    >>> t.add_index('b')
@@ -113,8 +113,9 @@ before the retrieval data::
        1    10
 
 The property `~astropy.table.Table.iloc` works similarly, except that the
-retrieval information must be either an integer or a slice, and relates to the
-sorted order of the index rather than column values. For example::
+retrieval information must be either an integer or a :class:`slice`, and
+relates to the sorted order of the index rather than column values. For
+example::
 
    >>> t.iloc[0] # smallest row by value 'a'
    <Row index=0>
@@ -158,12 +159,12 @@ Index Modes
 
 The |index_mode| method allows for some flexibility in the behavior of table
 indexing by allowing the user to enter a specific indexing mode via a context
-manager. There are currently three indexing modes: ``freeze``,
-``copy_on_getitem``, and ``discard_on_copy``.
+manager. There are currently three indexing modes: ``'freeze'``,
+``'copy_on_getitem'``, and ``'discard_on_copy'``.
 
 .. EXAMPLE START: Table Indexing with the "freeze" Index Mode
 
-The ``freeze`` mode prevents automatic index updates whenever a column of the
+The ``'freeze'`` mode prevents automatic index updates whenever a column of the
 index is modified, and all indices refresh themselves after the context ends::
 
   >>> with t.index_mode('freeze'):
@@ -189,7 +190,7 @@ index is modified, and all indices refresh themselves after the context ends::
 
 .. EXAMPLE START: Table Indexing with the "copy_on_getitem" Index Mode
 
-The ``copy_on_getitem`` mode forces columns to copy and relabel their indices
+The ``'copy_on_getitem'`` mode forces columns to copy and relabel their indices
 upon slicing. In the absence of this mode, table slices will preserve
 indices while column slices will not::
 
@@ -209,7 +210,7 @@ indices while column slices will not::
 
 .. EXAMPLE START: Table Indexing with the "discard_on_copy" Index Mode
 
-The ``discard_on_copy`` mode prevents indices from being copied whenever a
+The ``'discard_on_copy'`` mode prevents indices from being copied whenever a
 column or table is copied::
 
   >>> t2 = Table(t)
@@ -261,7 +262,7 @@ Row updates can be accomplished by assigning the table property
    ---- -----
       w    10
       y     9
-   >>> t.loc[['w', 'z']] = [['b',23], ['c',56]]
+   >>> t.loc[['w', 'z']] = [['b', 23], ['c', 56]]
    >>> t
    <Table length=4>
     a     b
@@ -282,7 +283,7 @@ Retrieving the Location of Rows using Indices
 Retrieval of the location of rows can be accomplished using a table property:
 `~astropy.table.Table.loc_indices`. The `~astropy.table.Table.loc_indices`
 property can be indexed either by column value, range of column values
-(*including* the bounds), or a list or ndarray of column values::
+(*including* the bounds), or a :class:`list` or |ndarray| of column values::
 
    >>> t = Table([('w', 'x', 'y', 'z'), (10, 1, 9, 9)], names=('a', 'b'), dtype=['str', 'i8'])
    >>> t.add_index('a')
@@ -298,7 +299,7 @@ When creating an index via |add_index|, the keyword argument ``engine`` may be
 specified to use a particular indexing engine. The available engines are:
 
 * `~astropy.table.SortedArray`, a sorted array engine using an underlying
-  sorted ``Table``.
+  sorted |Table|.
 * `~astropy.table.SCEngine`, a sorted list engine using the `Sorted Containers
   <https://pypi.org/project/sortedcontainers/>`_ package.
 * `~astropy.table.BST`, a Python-based binary search tree engine (not recommended).

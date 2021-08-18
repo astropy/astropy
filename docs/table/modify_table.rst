@@ -4,10 +4,11 @@ Modifying a Table
 *****************
 
 The data values within a |Table| object can be modified in much the same manner
-as for ``numpy`` structured arrays by accessing columns or rows of data and
-assigning values appropriately. A key enhancement provided by the |Table| class
-is the ability to modify the structure of the table: you can add or remove
-columns, and add new rows of data.
+as for ``numpy`` `structured arrays
+<https://numpy.org/doc/stable/user/basics.rec.html>`_ by accessing columns or
+rows of data and assigning values appropriately. A key enhancement provided by
+the |Table| class is the ability to modify the structure of the table: you can
+add or remove columns, and add new rows of data.
 
 Quick Overview
 ==============
@@ -30,17 +31,16 @@ Examples
 **Modify data values**
 ::
 
-  >>> t['a'][:] = [1, -2, 3, -4, 5]  # Set all column values
+  >>> t['a'][:] = [1, -2, 3, -4, 5]  # Set all values of column 'a'
   >>> t['a'][2] = 30                 # Set row 2 of column 'a'
-  >>> t[1] = (8, 9, 10)              # Set all row values
+  >>> t[1] = (8, 9, 10)              # Set all values of row 1
   >>> t[1]['b'] = -9                 # Set column 'b' of row 1
   >>> t[0:3]['c'] = 100              # Set column 'c' of rows 0, 1, 2
 
-Note that ``table[row][column]`` assignments will not work with
-``numpy`` "fancy" ``row`` indexing (in that case ``table[row]`` would be
-a *copy* instead of a *view*). "Fancy" ``numpy`` indices include a
-`list`, `numpy.ndarray`, or `tuple` of `numpy.ndarray` (e.g., the
-return from `numpy.where`)::
+Note that ``table[row][column]`` assignments will not work with ``numpy``
+"fancy" ``row`` indexing (in that case ``table[row]`` would be a *copy* instead
+of a *view*). "Fancy" ``numpy`` indices include a :class:`list`, |ndarray|, or
+:class:`tuple` of |ndarray| (e.g., the return from :func:`numpy.where`)::
 
   >>> t[[1, 2]]['a'] = [3., 5.]             # doesn't change table t
   >>> t[np.array([1, 2])]['a'] = [3., 5.]   # doesn't change table t
@@ -65,15 +65,22 @@ the conventions of `~astropy.units.Quantity` by using the
   1000.0
   2000.0
 
+.. note::
+
+  The best way to combine the functionality of the |Table| and |Quantity|
+  classes is to use a |QTable|. See :ref:`quantity_and_qtable` for more
+  information.
+
 .. EXAMPLE END
 
 **Add a column or columns**
 
 .. EXAMPLE START: Adding Columns to Tables
 
-A single column can be added to a table using syntax like adding a dict value.
-The value on the right hand side can be a list or array
-of the correct size, or a scalar value that will be broadcast::
+A single column can be added to a table using syntax like adding a key-value
+pair to a :class:`dict`. The value on the right hand side can be a
+:class:`list` or |ndarray| of the correct size, or a scalar value that will be
+`broadcast <https://numpy.org/doc/stable/user/basics.broadcasting.html>`_::
 
   >>> t['d1'] = np.arange(5)
   >>> t['d2'] = [1, 2, 3, 4, 5]
@@ -82,7 +89,7 @@ of the correct size, or a scalar value that will be broadcast::
 For more explicit control, the :meth:`~astropy.table.Table.add_column` and
 :meth:`~astropy.table.Table.add_columns` methods can be used to add one or
 multiple columns to a table. In both cases the new column(s) can be specified as
-a list, an array (including |Column| or |MaskedColumn|), or a scalar::
+a :class:`list`, |ndarray|, |Column|, |MaskedColumn|, or a scalar::
 
   >>> from astropy.table import Column
   >>> t.add_column(np.arange(5), name='aa', index=0)  # Insert before first table column
@@ -91,8 +98,10 @@ a list, an array (including |Column| or |MaskedColumn|), or a scalar::
   >>> t.add_column(c, index=0)  # Add Column using the existing column name 'e'
   >>> t.add_columns([[1, 2, 3, 4, 5], ['v', 'w', 'x', 'y', 'z']], names=['h', 'i'])
 
-Finally, columns can also be added from :class:`~astropy.units.Quantity`
-objects, which automatically sets the ``.unit`` attribute on the column:
+Finally, columns can also be added from |Quantity| objects, which automatically
+sets the ``unit`` attribute on the column (but you might find it more
+convenient to add a |Quantity| to a |QTable| instead, see
+:ref:`quantity_and_qtable` for details)::
 
   >>> from astropy import units as u
   >>> t['d'] = np.arange(1., 6.) * u.m
@@ -126,13 +135,14 @@ To remove a column from a table::
 
 You can entirely replace an existing column with a new column by setting the
 column to any object that could be used to initialize a table column (e.g.,  a
-list or ``numpy`` array). For example, you could change the data type of the
+:class:`list` or |ndarray|). For example, you could change the data type of the
 ``a`` column from ``int`` to ``float`` using::
 
   >>> t['a'] = t['a'].astype(float)
 
-If the right-hand side value is not column-like, then an in-place update
-using broadcasting will be done, for example::
+If the right-hand side value is not column-like, then an in-place update using
+`broadcasting <https://numpy.org/doc/stable/user/basics.broadcasting.html>`_
+will be done, for example::
 
   >>> t['a'] = 1  # Internally does t['a'][:] = 1
 
@@ -211,7 +221,7 @@ To sort columns::
 
 .. EXAMPLE START: Reversing Table Rows
 
-To reverse a table row::
+To reverse the order of table rows::
 
   >>> t.reverse()
 
@@ -293,8 +303,8 @@ column with a new column based on the supplied data values.
 The answer for ``astropy`` is that the operation shown above does a *complete
 replacement* of the column object. In this case it makes a new column object
 with float values by internally calling ``t.replace_column('a', [10.5, 20.5,
-30.5])``. In general this behavior is more consistent with Python and Pandas
-behavior.
+30.5])``. In general this behavior is more consistent with Python and `pandas
+<https://pandas.pydata.org>`_ behavior.
 
 **Forcing in-place update**
 
@@ -304,18 +314,19 @@ It is possible to force an in-place update of a column as follows::
 
 **Finding the source of problems**
 
-In order to find potential problems related to the replacing columns, there is a
-configuration option ``table.conf.replace_warnings``. This controls a set of
-warnings that are emitted under certain circumstances when a table column is
-replaced. This option must be set to a list that includes zero or more of the
-following string values:
+In order to find potential problems related to replacing columns, there is the
+option `astropy.table.conf.replace_warnings
+<astropy.table.Conf.replace_warnings>` in the :ref:`astropy_config`. This
+controls a set of warnings that are emitted under certain circumstances when a
+table column is replaced. This option must be set to a list that includes zero
+or more of the following string values:
 
 ``always`` :
   Print a warning every time a column gets replaced via the
-  setItem() syntax (i.e., ``t['a'] = new_col``).
+  ``__setitem__()`` syntax (i.e., ``t['a'] = new_col``).
 
 ``slice`` :
-  Print a warning when a column that appears to be a slice of
+  Print a warning when a column that appears to be a :class:`slice` of
   a parent column is replaced.
 
 ``refcount`` :
