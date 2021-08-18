@@ -378,9 +378,14 @@ def isfile(f):
 def fileobj_open(filename, mode):
     """
     A wrapper around the `open()` builtin.
+    For Linux/Mac, I/O is buffered.
+    For Windows, I/O is unbuffered.
     """
 
-    return open(filename, mode)
+    if sys.platform.startswith('win'):
+        return open(filename, mode, buffering=0)
+    else:
+        return open(filename, mode)
 
 
 def fileobj_name(f):
