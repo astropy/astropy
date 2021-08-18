@@ -123,6 +123,9 @@ class QuantityInput:
         The checking of arguments inside variable arguments to a function is not
         supported (i.e. \*arg or \**kwargs).
 
+        The original function is accessible by the attributed ``__wrapped__``.
+        See :func:`functools.wraps` for details.
+
         Examples
         --------
 
