@@ -1,3 +1,0 @@
-Fix a bug where a string-valued ``Column`` that happened to have a ``unit``
-attribute could not be added to a ``QTable``.  Such columns are now simply
-kept as ``Column`` instances (with a warning).
