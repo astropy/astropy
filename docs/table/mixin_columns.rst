@@ -5,7 +5,7 @@
 Mixin Columns
 *************
 
-``astropy`` tables support the concept of a "mixin column" in tables, which
+``astropy`` tables support the concept of "mixin columns", which
 allows integration of appropriate non-|Column| based class objects within a
 |Table| object. These mixin column objects are not converted in any way but are
 used natively.
@@ -18,8 +18,8 @@ The available built-in mixin column classes are:
 - :class:`~astropy.coordinates.EarthLocation`
 - `~astropy.table.NdarrayMixin`
 
-Example
--------
+Basic Example
+=============
 
 .. EXAMPLE START: Using Mixin Columns in Tables
 
@@ -97,7 +97,7 @@ attribute but does not have all of the features of a |Quantity|)::
   >>> (t['velocity'] ** 2).unit  # WRONG because Column is not smart about unit
   Unit("m / s")
 
-So instead let's do the same thing using a quantity table |QTable|::
+So instead let's do the same thing using a |QTable|::
 
   >>> from astropy.table import QTable
 
@@ -164,8 +164,8 @@ The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, and
   >>> qt['velocity'].info.name
   'velocity'
 
-This ``info`` property is a key bit of glue that allows a non-Column object to
-behave much like a column.
+This ``info`` property is a key bit of glue that allows a non-|Column| object
+to behave much like a |Column|.
 
 The same ``info`` property is also available in standard
 `~astropy.table.Column` objects. These ``info`` attributes like
@@ -192,87 +192,50 @@ the table. However, there are limitations in the current implementation.
 
 Adding or inserting a row works as expected only for mixin classes that are
 mutable (data can be changed internally) and that have an ``insert()`` method.
-|Quantity| and |Time| support ``insert()`` but, for example, |SkyCoord| does
-not. If you tried to insert a row into a table with a |SkyCoord| column then
-an exception like the following would occur::
-
-  ValueError: Unable to insert row because of exception in column 'skycoord':
-  'SkyCoord' object has no attribute 'insert'
-
-**Initializing from a list of rows or a list of dicts**
-
-This mode of initializing a table does not work with mixin columns, so both of
-the following will fail::
-
-   >>> qt = QTable([{'a': 1 * u.m, 'b': 2},
-   ...              {'a': 2 * u.m, 'b': 3}])  # doctest: +SKIP
-   Traceback (most recent call last):
-    ...
-   TypeError: only dimensionless scalar quantities can be converted to Python scalars
-
-   >>> qt = QTable(rows=[[1 * u.m, 2],
-   ...                   [2 * u.m, 3]])  # doctest: +SKIP
-   Traceback (most recent call last):
-    ...
-   TypeError: only dimensionless scalar quantities can be converted to Python scalars
-
-The problem lies in knowing if and how to assemble the individual elements
-for each column into an appropriate mixin column. The current code uses
-``numpy`` to perform this function on numerical or string types, but it
-does not handle mixin column types like |Quantity| or |SkyCoord|.
+Adding rows to a |Table| with |Quantity|, |Time| or |SkyCoord| columns does
+work.
 
 **Masking**
 
-Mixin columns do not generally support masking (with the exception of |Time|),
-but there is limited support for use of mixins within a masked table. In this
-case a ``mask`` attribute is assigned to the mixin column object. This ``mask``
-is a special object that is a boolean array of ``False`` corresponding to the
-mixin data shape. The ``mask`` looks like a normal ``numpy`` array but an
-exception will be raised if ``True`` is assigned to any element. The
-consequences of the limitation are most apparent in the high-level table
-operations.
+Masking of mixin columns is enabled by the |Masked| class. See
+:ref:`utils-masked` for details.
 
 **High-level table operations**
 
-The table below gives a summary of support for high-level operations on tables
-that contain mixin columns:
+Some :ref:`grouped-operations` can be used with a |QTable| with |Quantity|
+columns, but performing aggregation on such a |QTable| fails::
 
-.. list-table::
-   :header-rows: 1
-   :widths: 28 72
-
-   * - Operation
-     - Support
-   * - :ref:`grouped-operations`
-     - Not implemented yet, but no fundamental limitation.
-   * - :ref:`stack-vertically`
-     - Available for `~astropy.units.Quantity` subclasses, |Time|
-       and any other mixin classes that provide a
-       `new_like() method`_ in the ``info`` descriptor.
-   * - :ref:`stack-horizontally`
-     - Works if output mixin column supports masking or if no masking is
-       required.
-   * - :ref:`table-join`
-     - Works if output mixin column supports masking or if no masking is
-       required; key columns must be subclasses of `numpy.ndarray`.
-   * - :ref:`unique-rows`
-     - Not implemented yet, uses grouped operations.
+  >>> import numpy as np
+  >>> t = QTable()
+  >>> t['name'] = ['foo', 'foo', 'bar']
+  >>> t['a'] = np.arange(3)*u.m
+  >>> t_grouped = t.group_by('name')
+  >>> print(t_grouped)
+  name  a
+        m
+  ---- ---
+   bar 2.0
+   foo 0.0
+   foo 1.0
+  >>> t_grouped.groups.aggregate(np.mean)
+  Traceback (most recent call last):
+  ...
+  AttributeError: 'Quantity' object has no 'groups' member
 
 **ASCII table writing**
 
 Tables with mixin columns can be written out to file using the
 `astropy.io.ascii` module, but the fast C-based writers are not available.
 Instead, the pure-Python writers will be used. For writing tables with mixin
-columns it is recommended to use the ``'ecsv'`` ASCII format. This will fully
+columns it is recommended to use the :ref:`ecsv_format`. This will fully
 serialize the table data and metadata, allowing full "round-trip" of the table
-when it is read back. See :ref:`ecsv_format` for details.
+when it is read back.
 
 **Binary table writing**
 
-Starting with ```astropy`` 3.0, tables with mixin columns can be written in
-binary format to file using both FITS and HDF5 formats. These can be read back
-to recover exactly the original |Table| including mixin columns and metadata.
-See :ref:`table_io` for details.
+Tables with mixin columns can be written to binary files using both FITS and
+HDF5 formats. These can be read back to recover exactly the original |Table|
+including mixin columns and metadata. See :ref:`table_io` for details.
 
 .. _mixin_protocol:
 
@@ -286,17 +249,16 @@ relatively concise and requires that a class behave like a minimal ``numpy``
 array with the following properties:
 
 - Contains array-like data.
-- Implements ``__getitem__`` to support getting data as a
+- Implements ``__getitem__()`` to support getting data as a
   single item, slicing, or index array access.
 - Has a ``shape`` attribute.
-- Has a ``__len__`` method for length.
+- Has a ``__len__()`` method for length.
 - Has an ``info`` class descriptor which is a subclass of the
-  ``astropy.utils.data_info.MixinInfo`` class.
+  :class:`astropy.utils.data_info.MixinInfo` class.
 
 The `Example: ArrayWrapper`_ section shows a minimal working example of a class
-which can be used as a mixin column. A `pandas.Series
-<https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`_
-object can function as a mixin column as well.
+which can be used as a mixin column. A :class:`pandas.Series` object can
+function as a mixin column as well.
 
 Other interesting possibilities for mixin columns include:
 
@@ -306,18 +268,19 @@ Other interesting possibilities for mixin columns include:
   concept <https://github.com/astropy/astropy/pull/3963>`_ is available.
 
 new_like() method
-~~~~~~~~~~~~~~~~~
+-----------------
 
-In order to support high-level operations like `~astropy.table.join` and
-`~astropy.table.vstack`, a mixin class must provide a ``new_like()`` method
-in the ``info`` class descriptor. A key part of the functionality is to ensure
-that the input column metadata are merged appropriately and that the columns
-have consistent properties such as the shape.
+In order to support high-level operations like :func:`~astropy.table.join` and
+:func:`~astropy.table.vstack`, a mixin class must provide a ``new_like()``
+method in the ``info`` class descriptor. A key part of the functionality is to
+ensure that the input column metadata are merged appropriately and that the
+columns have consistent properties such as the shape.
 
-A mixin class that provides ``new_like()`` must also implement ``__setitem__``
-to support setting via a single item, slicing, or index array.
+A mixin class that provides ``new_like()`` must also implement
+``__setitem__()`` to support setting via a single item, slicing, or index
+array.
 
-The ``new_like`` method has the following signature::
+The ``new_like()`` method has the following signature::
 
     def new_like(self, cols, length, metadata_conflicts='warn', name=None):
         """
@@ -333,7 +296,7 @@ The ``new_like`` method has the following signature::
             List of input columns
         length : int
             Length of the output column object
-        metadata_conflicts : str ('warn'|'error'|'silent')
+        metadata_conflicts : {'warn', 'error', 'silent'}
             How to handle metadata conflicts
         name : str
             Output column name
@@ -354,9 +317,8 @@ Example: ArrayWrapper
 =====================
 
 The code listing below shows an example of a data container class which acts as
-a mixin column class. This class is a wrapper around a ``numpy`` array. It
-is used in the ``astropy`` mixin test suite and is fully compliant as a mixin
-column.
+a mixin column class. This class is a wrapper around a |ndarray|. It is used in
+the ``astropy`` mixin test suite and is fully compliant as a mixin column.
 
 ::
 
