@@ -19,28 +19,28 @@ a new table from one or more input tables. This includes:
      - Function
    * - `Grouped operations`_
      - Group tables and columns by keys
-     - `~astropy.table.Table.group_by`
+     - :func:`~astropy.table.Table.group_by`
    * - `Binning`_
      - Binning tables
-     - `~astropy.table.Table.group_by`
+     - :func:`~astropy.table.Table.group_by`
    * - `Stack vertically`_
      - Concatenate input tables along rows
-     - `~astropy.table.vstack`
+     - :func:`~astropy.table.vstack`
    * - `Stack horizontally`_
      - Concatenate input tables along columns
-     - `~astropy.table.hstack`
+     - :func:`~astropy.table.hstack`
    * - `Join`_
      - Database-style join of two tables
-     - `~astropy.table.join`
+     - |join|
    * - `Unique rows`_
      - Unique table rows by keys
-     - `~astropy.table.unique`
+     - :func:`~astropy.table.unique`
    * - `Set difference`_
      - Set difference of two tables
-     - `~astropy.table.setdiff`
+     - :func:`~astropy.table.setdiff`
    * - `Table diff`_
      - Generic difference of two simple tables
-     - `~astropy.utils.diff.report_diff_values`
+     - :func:`~astropy.utils.diff.report_diff_values`
 
 
 .. _grouped-operations:
@@ -67,6 +67,9 @@ list of objects with photometry from various observing runs::
   ...                     M101    2012-03-26  15.1   13.5
   ...                     M101    2012-03-26  14.8   14.3
   ...                     """, format='ascii')
+  >>> # Make sure magnitudes are printed with one digit after the decimal point
+  >>> obs['mag_b'].info.format = '{:.1f}'
+  >>> obs['mag_v'].info.format = '{:.1f}'
 
 .. EXAMPLE END
 
@@ -108,8 +111,8 @@ values and the indices of the group boundaries for those key values. The groups
 here correspond to the row slices ``0:4``, ``4:7``, and ``7:10`` in the
 ``obs_by_name`` table.
 
-The initial argument (``keys``) for the `~astropy.table.Table.group_by` function
-can take a number of input data types:
+The initial argument (``keys``) for the :func:`~astropy.table.Table.group_by`
+function can take a number of input data types:
 
 - Single string value with a table column name (as shown above)
 - List of string values with table column names
@@ -117,9 +120,9 @@ can take a number of input data types:
 - ``numpy`` structured array with same length as table
 - ``numpy`` homogeneous array with same length as table
 
-In all cases the corresponding row elements are considered as a tuple of values
-which form a key value that is used to sort the original table and generate the
-required groups.
+In all cases the corresponding row elements are considered as a :class:`tuple`
+of values which form a key value that is used to sort the original table and
+generate the required groups.
 
 As an example, to get the average magnitudes for each object on each observing
 night, we would first group the table on both ``name`` and ``obs_date`` as
@@ -154,7 +157,7 @@ For instance, to get the subtable which corresponds to the second group
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
 
-To get the first and second groups together use a slice::
+To get the first and second groups together use a :class:`slice`::
 
   >>> groups01 = obs_by_name.groups[0:2]
   >>> print(groups01)
@@ -222,7 +225,7 @@ manipulation with grouped operations. This can apply both to columns within a
 |Table| or bare |Column| objects.
 
 As for |Table|, the grouping is generated with the
-`~astropy.table.Table.group_by` method. The difference here is that
+:func:`~astropy.table.Table.group_by` method. The difference here is that
 there is no option of providing one or more column names since that
 does not make sense for a |Column|.
 
@@ -267,47 +270,51 @@ Aggregation
 
 Aggregation is the process of applying a specified reduction function to the
 values within each group for each non-key column. This function must accept a
-``numpy`` array as the first argument and return a single scalar value. Common
-function examples are `numpy.sum`, `numpy.mean`, and `numpy.std`.
+|ndarray| as the first argument and return a single scalar value. Common
+function examples are :func:`numpy.sum`, :func:`numpy.mean`, and
+:func:`numpy.std`.
 
 For the example grouped table ``obs_by_name`` from above, we compute the group
-means with the `~astropy.table.groups.TableGroups.aggregate` method::
+means with the :meth:`~astropy.table.groups.TableGroups.aggregate` method::
 
-  >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SKIP
-  WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
-  >>> print(obs_mean)  # doctest: +SKIP
+  >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SHOW_WARNINGS
+  AstropyUserWarning: Cannot aggregate column 'obs_date' with type '<U10'
+  >>> print(obs_mean)
   name mag_b mag_v
-  ---- ----- ------
-  M101  15.0 13.725
-   M31  17.0   17.4
-   M82  15.7   15.5
+  ---- ----- -----
+  M101  15.0  13.7
+   M31  17.0  17.4
+   M82  15.7  15.5
 
-It seems the magnitude values were successfully averaged, but what
-about the WARNING? Since the ``obs_date`` column is a string-type
-array, the `numpy.mean` function failed and raised an exception.
-Any time this happens then `~astropy.table.groups.TableGroups.aggregate`
-will issue a warning and then drop that column from the output result. Note
-that the ``name`` column is one of the ``keys`` used to determine the grouping
-so it is automatically ignored from aggregation.
+It seems the magnitude values were successfully averaged, but what about the
+:class:`~astropy.utils.exceptions.AstropyUserWarning`? Since the ``obs_date``
+column is a string-type array, the :func:`numpy.mean` function failed and
+raised an exception.  Any time this happens
+:meth:`~astropy.table.groups.TableGroups.aggregate` will issue a warning and
+then drop that column from the output result. Note that the ``name`` column is
+one of the ``keys`` used to determine the grouping so it is automatically
+ignored from aggregation.
 
 .. EXAMPLE START: Performing Aggregation on Grouped Tables
 
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))  # doctest: +FLOAT_CMP
-        mag_b
-  ------------------
-  15.000000000000002
-                17.0
-  15.699999999999998
+  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))
+  mag_b
+  -----
+   15.0
+   17.0
+   15.7
 
-  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))  # doctest: +FLOAT_CMP
-  name       mag_v              mag_b
-  ---- ------------------ ------------------
-  M101 13.725000000000001 15.000000000000002
-   M31 17.400000000000002               17.0
-   M82               15.5 15.699999999999998
+The order of the columns can be specified too::
+
+  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))
+  name mag_v mag_b
+  ---- ----- -----
+  M101  13.7  15.0
+   M31  17.4  17.0
+   M82  15.5  15.7
 
 
 A single column of data can be aggregated as well::
@@ -325,13 +332,13 @@ A single column of data can be aggregated as well::
 
 .. EXAMPLE END
 
-If the specified function has a `numpy.ufunc.reduceat` method, this will be
-called instead. This can improve the performance by a factor of 10 to 100 (or
-more) for large unmasked tables or columns with many relatively small groups.
-It also allows for the use of certain ```numpy`` functions which normally take
-more than one input array but also work as reduction functions, like
-`numpy.add`.  The ``numpy`` functions which should take advantage of using
-`numpy.ufunc.reduceat` include:
+If the specified function has a :meth:`numpy.ufunc.reduceat` method, this will
+be called instead. This can improve the performance by a factor of 10 to 100
+(or more) for large unmasked tables or columns with many relatively small
+groups.  It also allows for the use of certain ``numpy`` functions which
+normally take more than one input array but also work as reduction functions,
+like `numpy.add`.  The ``numpy`` functions which should take advantage of using
+:meth:`numpy.ufunc.reduceat` include:
 
 - `numpy.add`
 - `numpy.arctan2`
@@ -367,14 +374,14 @@ more than one input array but also work as reduction functions, like
 - `numpy.subtract`
 - `numpy.true_divide`
 
-In special cases, `numpy.sum` and `numpy.mean` are substituted with their
-respective ``reduceat`` methods.
+In special cases, :func:`numpy.sum` and :func:`numpy.mean` are substituted with
+their respective ``reduceat`` methods.
 
 Filtering
 ^^^^^^^^^
 
 Table groups can be filtered by means of the
-`~astropy.table.groups.TableGroups.filter` method. This is done by
+:meth:`~astropy.table.groups.TableGroups.filter` method. This is done by
 supplying a function which is called for each group. The function
 which is passed to this method must accept two arguments:
 
@@ -394,19 +401,19 @@ key columns::
   >>> def all_positive(table, key_colnames):
   ...     colnames = [name for name in table.colnames if name not in key_colnames]
   ...     for colname in colnames:
-  ...         if np.any(table[colname] < 0):
+  ...         if np.any(table[colname] <= 0):
   ...             return False
   ...     return True
 
 An example of using this function is::
 
   >>> t = Table.read(""" a   b    c
-  ...                   -2  7.0   0
+  ...                   -2  7.0   2
   ...                   -2  5.0   1
   ...                    1  3.0  -5
   ...                    1 -2.0  -6
   ...                    1  1.0   7
-  ...                    0  0.0   4
+  ...                    0  4.0   4
   ...                    3  3.0   5
   ...                    3 -2.0   6
   ...                    3  1.0   7""", format='ascii')
@@ -418,25 +425,23 @@ An example of using this function is::
   ...
    a   b   c
   --- --- ---
-   -2 7.0   0
+   -2 7.0   2
    -2 5.0   1
   <BLANKLINE>
    a   b   c
   --- --- ---
-    0 0.0   4
+    0 4.0   4
 
 As can be seen only the groups with ``a == -2`` and ``a == 0`` have all
 positive values in the non-key columns, so those are the ones that are selected.
 
 Likewise a grouped column can be filtered with the
-`~astropy.table.groups.ColumnGroups.filter`, method but in this case the
+:meth:`~astropy.table.groups.ColumnGroups.filter`, method but in this case the
 filtering function takes only a single argument which is the column group. It
 still must return either `True` or `False`. For example::
 
   def all_positive(column):
-      if np.any(column < 0):
-          return False
-      return True
+      return np.all(column > 0)
 
 .. EXAMPLE END
 
@@ -484,10 +489,10 @@ intervals::
 
   >>> year_bin = np.trunc(year / 0.25)
 
-This has the property that all samples in each 0.25 year bin have, which is the
-same value of ``year_bin``. Think of ``year_bin`` as the bin number for
-``year``. Then do the binning by grouping and immediately aggregating with
-``np.mean``.
+This has the property that all samples in each 0.25 year bin have the same
+value of ``year_bin``. Think of ``year_bin`` as the bin number for ``year``.
+Then do the binning by grouping and immediately aggregating with
+:func:`numpy.mean`.
 
   >>> dat_grouped = dat.group_by(year_bin)
   >>> dat_binned = dat_grouped.groups.aggregate(np.mean)
@@ -510,9 +515,9 @@ Stack Vertically
 ----------------
 
 The |Table| class supports stacking tables vertically with the
-`~astropy.table.vstack` function. This process is also commonly known as
+:func:`~astropy.table.vstack` function. This process is also commonly known as
 concatenating or appending tables in the row direction. It corresponds roughly
-to the `numpy.vstack` function.
+to the :func:`numpy.vstack` function.
 
 Examples
 ^^^^^^^^
@@ -568,10 +573,10 @@ values for the ``join_type`` argument, ``'inner'`` and ``'exact'``::
 
 In the case of ``join_type='inner'``, only the common columns (the intersection)
 are present in the output table. When ``join_type='exact'`` is specified, then
-`~astropy.table.vstack` requires that all of the input tables have exactly the
-same column names.
+:func:`~astropy.table.vstack` requires that all of the input tables have
+exactly the same column names.
 
-More than two tables can be stacked by supplying a list of table objects::
+More than two tables can be stacked by supplying a longer list of tables::
 
   >>> obs3 = Table.read("""name    obs_date    mag_b  logLx
   ...                      M45     2012-02-03  15.0   40.5""", format='ascii')
@@ -588,8 +593,8 @@ More than two tables can be stacked by supplying a list of table objects::
 
 See also the sections on `Merging metadata`_ and `Merging column attributes`_
 for details on how these characteristics of the input tables are merged in the
-single output table. Note also that you can use a single table row instead of a
-full table as one of the inputs.
+single output table. Note also that you can use a single table |Row| instead of
+a full table as one of the inputs.
 
 .. EXAMPLE END
 
@@ -599,8 +604,8 @@ Stack Horizontally
 ------------------
 
 The |Table| class supports stacking tables horizontally (in the column-wise
-direction) with the `~astropy.table.hstack` function. It corresponds roughly to
-the `numpy.hstack` function.
+direction) with the :func:`~astropy.table.hstack` function. It corresponds
+roughly to the :func:`numpy.hstack` function.
 
 Examples
 ^^^^^^^^
@@ -627,12 +632,12 @@ Now we can stack these two tables horizontally::
     2 bar 2.1 spam toast
     3 baz 2.8   --    --
 
-As with `~astropy.table.vstack`, there is an optional ``join_type`` argument
-that can take values ``'inner'``, ``'exact'``, and ``'outer'``. The default is
-``'outer'``, which effectively takes the union of available rows and masks out
-any missing values. This is illustrated in the example above. The other options
-give the intersection of rows, where ``'exact'`` requires that all tables have
-exactly the same number of rows::
+As with :func:`~astropy.table.vstack`, there is an optional ``join_type``
+argument that can take values ``'inner'``, ``'exact'``, and ``'outer'``. The
+default is ``'outer'``, which effectively takes the union of available rows and
+masks out any missing values. This is illustrated in the example above. The
+other options give the intersection of rows, where ``'exact'`` requires that
+all tables have exactly the same number of rows::
 
   >>> print(hstack([t1, t2], join_type='inner'))
    a   b   c   d     e
@@ -646,7 +651,7 @@ exactly the same number of rows::
   TableMergeError: Inconsistent number of rows in input arrays (use 'inner' or
   'outer' join_type to allow non-matching rows)
 
-More than two tables can be stacked by supplying a list of table objects. The
+More than two tables can be stacked by supplying a longer list of tables. The
 example below also illustrates the behavior when there is a conflict in the
 input column names (see the section on `Column renaming`_ for details)::
 
@@ -660,7 +665,7 @@ input column names (see the section on `Column renaming`_ for details)::
     3 baz 2.8   --    --  --         --
 
 The metadata from the input tables is merged by the process described in the
-`Merging metadata`_ section. Note also that you can use a single table row
+`Merging metadata`_ section. Note also that you can use a single table |Row|
 instead of a full table as one of the inputs.
 
 .. EXAMPLE END
@@ -670,10 +675,9 @@ instead of a full table as one of the inputs.
 Stack Depth-Wise
 ----------------
 
-The |Table| class supports stacking columns within tables depth-wise using
-the `~astropy.table.dstack` function. It corresponds roughly
-to running the `numpy.dstack` function on the individual columns matched
-by name.
+The |Table| class supports stacking columns within tables depth-wise using the
+:func:`~astropy.table.dstack` function. It corresponds roughly to running the
+:func:`numpy.dstack` function on the individual columns matched by name.
 
 Examples
 ^^^^^^^^
@@ -711,15 +715,15 @@ In this case the counts for the first source are accessible as
 ``srcs['counts'][:, 0]``, and likewise the second source counts are
 ``srcs['counts'][:, 1]``.
 
-For this function the length of all input tables must be the same. This function
-can accept ``join_type`` and ``metadata_conflicts`` just like the
-`~astropy.table.vstack` function. The ``join_type`` argument controls how to
-handle mismatches in the columns of the input table.
+For this function the length of all input tables must be the same. This
+function can accept ``join_type`` and ``metadata_conflicts`` just like the
+:func:`~astropy.table.vstack` function. The ``join_type`` argument controls how
+to handle mismatches in the columns of the input table.
 
 See also the sections on `Merging metadata`_ and `Merging column attributes`_
 for details on how these characteristics of the input tables are merged in the
-single output table. Note also that you can use a single table row instead of a
-full table as one of the inputs.
+single output table. Note also that you can use a single table |Row| instead of
+a full table as one of the inputs.
 
 .. EXAMPLE END
 
@@ -801,11 +805,9 @@ left join::
    M82 2012-10-29  16.2  15.2  45.0
 
 Two of the observations do not have X-ray data, as indicated by the ``--`` in
-the table.  When there are any missing values the output will be a masked table
-(see :ref:`masking_and_missing_values` for more information). You might be
-surprised that there is no X-ray data for M31 in the output. Remember that the
-default matching key includes both ``name`` and ``obs_date``. Specifying the key
-as only the ``name`` column gives::
+the table. You might be surprised that there is no X-ray data for M31 in the
+output. Remember that the default matching key includes both ``name`` and
+``obs_date``. Specifying the key as only the ``name`` column gives::
 
   >>> print(join(optical, xray, join_type='left', keys='name'))
   name obs_date_1 mag_b mag_v obs_date_2 logLx
@@ -832,7 +834,7 @@ In all the above cases the output join table will be sorted by the key
 column(s) and in general will not preserve the row order of the input tables.
 
 Finally, you can do a "Cartesian" join, which is the Cartesian product of all
-available rows. In this case one there are no key columns (and supplying a
+available rows. In this case there are no key columns (and supplying the
 ``keys`` argument is an error)::
 
   >>> print(join(optical, xray, join_type='cartesian'))
@@ -889,8 +891,8 @@ Identical Key Values
 .. EXAMPLE START: Joining Tables with Identical Key Values
 
 The |Table| join operation works even if there are multiple rows with identical
-key values. For example, the following tables have multiple rows for the key
-column ``x``::
+key values. For example, the following tables have multiple rows for the column
+``'key'``::
 
   >>> from astropy.table import Table, join
   >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('key', 'L'))
@@ -914,9 +916,7 @@ Doing an outer join on these tables shows that what is really happening is a
 `Cartesian product <https://en.wikipedia.org/wiki/Cartesian_product>`_. For
 each matching key, every combination of the left and right tables is
 represented. When there is no match in either the left or right table, the
-corresponding column values are designated as missing.
-
-.. doctest-skip:: win32
+corresponding column values are designated as missing::
 
   >>> print(join(left, right, join_type='outer'))
   key  L   R
@@ -929,17 +929,8 @@ corresponding column values are designated as missing.
     2  L4  R3
     4  --  R4
 
-.. note::
-
-   The output table is sorted on the key columns, but when there are rows with
-   identical keys the output order in the non-key columns is not guaranteed to
-   be identical across installations. In the example above, the order within the
-   four rows with ``key == 1`` can vary.
-
 An inner join is the same but only returns rows where there is a key match in
-both the left and right tables:
-
-.. doctest-skip:: win32
+both the left and right tables::
 
   >>> print(join(left, right, join_type='inner'))
   key  L   R
@@ -972,7 +963,7 @@ is a mechanism to generate unique output column names. There are two
 keyword arguments that control the renaming behavior:
 
 ``table_names``
-    Two-element list of strings that provide a name for the tables being joined.
+    List of strings that provide names for the tables being joined.
     By default this is ``['1', '2', ...]``, where the numbers correspond to
     the input tables.
 
@@ -1005,12 +996,12 @@ the input tables into a single output structure. Because the metadata can be
 arbitrarily complex there is no unique way to do the merge. The current
 implementation uses a recursive algorithm with four rules:
 
-- `dict` elements are merged by keys.
-- Conflicting `list` or `tuple` elements are concatenated.
-- Conflicting `dict` elements are merged by recursively calling the merge
-  function.
-- Conflicting elements that are not both `list`, `tuple`, or `dict` will follow
-  the following rules:
+- :class:`dict` elements are merged by keys.
+- Conflicting :class:`list` or :class:`tuple` elements are concatenated.
+- Conflicting :class:`dict` elements are merged by recursively calling the
+  merge function.
+- Conflicting elements that are not :class:`list`, :class:`tuple`, or
+  :class:`dict` will follow the following rules:
 
     - If both metadata values are identical, the output is set to this value.
     - If one of the conflicting metadata values is `None`, the other value is
@@ -1031,8 +1022,8 @@ By default, a warning is emitted in the last case (both metadata values are not
 
 The default strategies for merging metadata can be augmented or customized by
 defining subclasses of the `~astropy.utils.metadata.MergeStrategy` base class.
-In most cases you will also use the
-`~astropy.utils.metadata.enable_merge_strategies` for enabling the custom
+In most cases you will also use
+:func:`~astropy.utils.metadata.enable_merge_strategies` for enabling the custom
 strategies. The linked documentation strings provide details.
 
 Merging Column Attributes
@@ -1040,7 +1031,8 @@ Merging Column Attributes
 
 In addition to the table and column ``meta`` attributes, the column attributes
 ``unit``, ``format``, and ``description`` are merged by going through the input
-tables in order and taking the first value which is defined (i.e., is not None).
+tables in order and taking the last value which is defined (i.e., is not
+`None`).
 
 Example
 ~~~~~~~
@@ -1056,10 +1048,10 @@ To merge column attributes ``unit``, ``format``, or ``description``::
   >>> t1 = Table([col1])
   >>> t2 = Table([col2])
   >>> t3 = Table([col3])
-  >>> out = vstack([t1, t2, t3])  # doctest: +SKIP
-  WARNING: MergeConflictWarning: In merged column 'a' the 'unit' attribute does
-  not match (cm != m).  Using m for merged output [astropy.table.operations]
-  >>> out['a'].unit  # doctest: +SKIP
+  >>> out = vstack([t1, t2, t3])  # doctest: +SHOW_WARNINGS
+  MergeConflictWarning: In merged column 'a' the 'unit' attribute does
+  not match (cm != m).  Using m for merged output
+  >>> out['a'].unit
   Unit("m")
 
 The rules for merging are the same as for `Merging metadata`_, and the
@@ -1072,35 +1064,36 @@ The rules for merging are the same as for `Merging metadata`_, and the
 Joining Coordinates and Custom Join Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you have two source catalogs that have `~astropy.coordinates.SkyCoord`
-coordinate columns, these can be joined using cross-matching of the coordinates
-with a specified distance threshold. This is a special case of a more general
-problem of "fuzzy" matching of key column values, where instead of an exact match
-we require only an approximate match. This is supported using the ``join_funcs``
-argument.
+Source catalogs that have |SkyCoord| coordinate columns can be joined using
+cross-matching of the coordinates with a specified distance threshold. This is
+a special case of a more general problem of "fuzzy" matching of key column
+values, where instead of an exact match we require only an approximate match.
+This is supported using the ``join_funcs`` argument.
 
 Example
 ~~~~~~~
 
 .. EXAMPLE START: Joining a Table on Coordinates
 
-To join two tables on a `~astropy.coordinates.SkyCoord` key column we use the
-``join_funcs`` keyword to supply a ``dict`` of functions that specify how to
-match a particular key column by name.  In the example below we are joining
-on the ``sc`` column, so we provide the following argument::
+To join two tables on a |SkyCoord| key column we use the ``join_funcs`` keyword
+to supply a :class:`dict` of functions that specify how to match a particular
+key column by name. In the example below we are joining on the ``sc`` column,
+so we provide the following argument::
 
   join_funcs={'sc': join_skycoord(0.2 * u.deg)}
 
-This tells `~astropy.table.join` to match the ``sc`` key column using a custom
-join function `~astropy.table.join_skycoord` using a matching distance
-threshold of 0.2 deg. Under the hood this calls
-`~astropy.coordinates.SkyCoord.search_around_sky` or
-`~astropy.coordinates.SkyCoord.search_around_3d` to do the cross-matching. The
-default is using ``'search_around_sky'`` (angle) matching, but
-``'search_around_3d'`` (length or dimensionless) is also available.
-This is specified using the ``distance_func`` argument of
-`~astropy.table.join_skycoord`, which can also be a function that matches the
-input and output API of `~astropy.coordinates.SkyCoord.search_around_sky`.
+This tells |join| to match the ``sc`` key column using the join function
+:func:`~astropy.table.join_skycoord` with a matching distance threshold of 0.2
+deg. Under the hood this calls
+:meth:`~astropy.coordinates.SkyCoord.search_around_sky` or
+:meth:`~astropy.coordinates.SkyCoord.search_around_3d` to do the
+cross-matching. The default is to use
+:meth:`~astropy.coordinates.SkyCoord.search_around_sky` (angle) matching, but
+:meth:`~astropy.coordinates.SkyCoord.search_around_3d` (length or
+dimensionless) is also available. This is specified using the ``distance_func``
+argument of :func:`~astropy.table.join_skycoord`, which can also be a function
+that matches the input and output API of
+:meth:`~astropy.coordinates.SkyCoord.search_around_sky`.
 
 Now we show the whole process:
 
@@ -1137,15 +1130,15 @@ column ``sc_id`` with a unique identifier for each source.
 .. EXAMPLE END
 
 You might be wondering what is happening in the join function defined above,
-especially if you are interested in defining your own such function.  This
-could be done in order to allow fuzzy word matching of tables, for example
-joining tables of people by name where the names do not always match exactly.
+especially if you are interested in defining your own such function. This could
+be done in order to allow fuzzy word matching of tables, for example joining
+tables of people by name where the names do not always match exactly.
 
-The first thing to note here is that the `~astropy.table.join_skycoord`
+The first thing to note here is that the :func:`~astropy.table.join_skycoord`
 function actually returns a function itself. This allows specifying a variable
-match distance via a function enclosure.  The requirement of the join function
+match distance via a function enclosure. The requirement of the join function
 is that it accepts two arguments corresponding to the two key columns, and
-returns a tuple of ``(ids1, ids2)``.  These identifiers correspond to the
+returns a tuple of ``(ids1, ids2)``. These identifiers correspond to the
 identification of each column entry with a unique matched source.
 
 ..  doctest-requires:: scipy
@@ -1155,20 +1148,20 @@ identification of each column entry with a unique matched source.
     (array([3, 1, 1, 2]), array([1, 4, 2]))
 
 If you would like to write your own fuzzy matching function, we suggest starting
-from the source code for `~astropy.table.join_skycoord` or
-`~astropy.table.join_distance`.
+from the source code for :func:`~astropy.table.join_skycoord` or
+:func:`~astropy.table.join_distance`.
 
 Join on Distance
 ~~~~~~~~~~~~~~~~
 
-The example above focused on joining on a `~astropy.coordinates.SkyCoord`, but
-you can also join on a generic distance between column values using the
-`~astropy.table.join_distance` join function. This can apply to
-1D or 2D (vector) columns. This will look very similar to the coordinates example,
-but here there is a bit more flexibility. The matching is done using
-`scipy.spatial.cKDTree` and `scipy.spatial.cKDTree.query_ball_tree`, and
-the behavior of these can be controlled via the ``kdtree_args`` and
-``query_args`` arguments, respectively.
+The example above focused on joining on a |SkyCoord|, but you can also join on
+a generic distance between column values using the
+:func:`~astropy.table.join_distance` join function. This can apply to 1D or 2D
+(vector) columns. This will look very similar to the coordinates example, but
+here there is a bit more flexibility. The matching is done using
+:class:`scipy.spatial.cKDTree` and
+:meth:`scipy.spatial.cKDTree.query_ball_tree`, and the behavior of these can be
+controlled via the ``kdtree_args`` and ``query_args`` arguments, respectively.
 
 .. _unique-rows:
 
@@ -1177,11 +1170,11 @@ Unique Rows
 
 Sometimes it makes sense to use only rows with unique key columns or even
 fully unique rows from a table. This can be done using the above described
-:func:`~astropy.table.Table.group_by` method and ``groups`` attribute, or
-with the `~astropy.table.unique` convenience function. The
-`~astropy.table.unique` function returns with a sorted table containing the
-first row for each unique ``keys`` column value. If no ``keys`` is provided,
-it returns with a sorted table containing all of the fully unique rows.
+:meth:`~astropy.table.Table.group_by` method and ``groups`` attribute, or with
+the :func:`~astropy.table.unique` convenience function. The
+:func:`~astropy.table.unique` function returns a sorted table containing the
+first row for each unique ``keys`` column value. If no ``keys`` is provided, it
+returns a sorted table containing all of the fully unique rows.
 
 Example
 ^^^^^^^
@@ -1237,19 +1230,19 @@ Using multiple columns as ``keys``::
 Set Difference
 --------------
 
-A set difference will tell you the elements that are contained in one set but
-not in the other. This concept can be applied to rows of a table by using the
-`~astropy.table.setdiff` function. You provide the function with two input
-tables and it will return all rows in the first table which do not occur in
-the second table.
+A set difference will tell you the elements that are contained in the first set
+but not in the other. This concept can be applied to rows of a table by using
+the :func:`~astropy.table.setdiff` function. You provide the function with two
+input tables and it will return all rows in the first table which do not occur
+in the second table.
 
 The optional ``keys`` parameter specifies the names of columns that are used to
 match table rows. This can be a subset of the full list of columns, but both
 the first and second tables must contain all columns specified by ``keys``.
 If not provided, then ``keys`` defaults to all column names in the first table.
 
-If no different rows are found, the `~astropy.table.setdiff` function will
-return an empty table.
+If no different rows are found, the :func:`~astropy.table.setdiff` function
+will return an empty table.
 
 Example
 ^^^^^^^
