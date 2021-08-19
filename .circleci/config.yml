@@ -4,7 +4,7 @@ version: 2
 # and it is possible to publish image diffs as HTML like pytest-mpl in the future.
 jobs:
 
-  image-tests-mpl302:
+  image-tests-mpl303:
     docker:
       - image: circleci/python:3.8
     steps:
@@ -14,7 +14,7 @@ jobs:
           command: pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: tox -e py38-test-image-numpy118-mpl302 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py38-test-image-numpy118-mpl303 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -53,6 +53,6 @@ workflows:
   version: 2
   tests:
     jobs:
-      - image-tests-mpl302
+      - image-tests-mpl303
       - image-tests-mpl311
       - image-tests-mpldev
