@@ -1,3 +1,95 @@
+4.0.6 (2021-08-18)
+==================
+
+Bug Fixes
+---------
+
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Fixes for ``convolve_fft`` documentation examples. [#11510]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Ensure that proper motions can be calculated when converting a ``SkyCoord``
+  with cartesian representation to unit-spherical, by fixing the conversion of
+  ``CartesianDifferential`` to ``UnitSphericalDifferential``. [#11469]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fixed bug where writing a table that has comments defined (via
+  ``tbl.meta['comments']``) with the 'csv' format was failing. Since the formally
+  defined CSV format does not support comments, the comments are now just ignored
+  unless ``comment=<comment prefix>`` is supplied to the ``write()`` call. [#11475]
+
+- Fixed the issue where the CDS reader failed to treat columns 
+  as nullable if the ReadMe file contains a limits specifier. [#11531]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix indexing of ``fits.Header`` with Numpy integers. [#11387]
+
+- Fixed regression introduced in Astropy 4.0.5 and 4.2.1 with verification of
+  FITS headers with HISTORY or COMMENT cards with long (> 72 characters)
+  values. [#11487]
+
+- Fix reading variable-length arrays when there is a gap between the data and the
+  heap. [#11688]
+
+- Raise ``ValueError`` if an ``np.float32`` NaN/Inf value is assigned to a header keyword. [#11922]
+
+- Enable ``json.dump`` for FITS_rec with variable length (VLF) arrays. [#11957]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Now accepting UCDs containing phot.color. [#11982]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Bugfix to allow rotation models to accept arbitrarily-shaped inputs. [#11435]
+
+- Fixed bug in ``fix_inputs`` handling of bounding boxes. [#11908]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a bug where a string-valued ``Column`` that happened to have a ``unit``
+  attribute could not be added to a ``QTable``.  Such columns are now simply
+  kept as ``Column`` instances (with a warning). [#11585]
+
+- Fix an issue in ``Table.to_pandas(index=<colname>)`` where the index column name
+  was not being set properly for the ``DataFrame`` index. This was introduced by
+  an API change in pandas version 1.3.0. Previously when creating a ``DataFrame``
+  with the index set to an astropy ``Column``, the ``DataFrame`` index name was
+  automatically set to the column name. [#11921]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fixed converting a zero-length time object from UTC to 
+  UT1 when an empty array is passed. [#11516]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Added ``WCSCOMPARE_*`` constants to the list of WCSLIB constants
+  available/exposed through the ``astropy.wcs`` module. [#11647]
+
+Other Changes and Additions
+---------------------------
+
+- The name of the default branch for the astropy git repository
+  has been renamed to ``main``, and the documentation and tooling
+  has been updated accordingly. If you have made a local clone you
+  may wish to update it following the instructions in the
+  repository's README. [#11379]
+
+
 4.0.5 (2021-03-26)
 ==================
 

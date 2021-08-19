@@ -1,1 +1,0 @@
-Bugfix to allow rotation models to accept arbitrarily-shaped inputs.
