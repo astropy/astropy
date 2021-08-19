@@ -14,7 +14,7 @@ jobs:
           command: pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: tox -e py38-test-image-numpy118-mpl303 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py38-test-image-mpl303 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
@@ -28,7 +28,7 @@ jobs:
           command: pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: tox -e py39-test-image-numpy119-mpl311 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
+          command: tox -e py39-test-image-mpl311 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar
       - store_artifacts:
           path: results
 
