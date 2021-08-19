@@ -1788,6 +1788,19 @@ class TestCompressedImage(FitsTestCase):
 
         assert len(hdu._header._keyword_indices['EXTNAME']) == 1
 
+    def test_compressed_header_minimal(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/11694
+
+        Tests that CompImageHDU can be initialized with a Header that
+        contains few or no cards, and doesn't require specific cards
+        such as 'BITPIX' or 'NAXIS'.
+        """
+        fits.CompImageHDU(data=np.arange(10), header=fits.Header())
+        header = fits.Header({'HELLO': 'world'})
+        hdu = fits.CompImageHDU(data=np.arange(10), header=header)
+        assert hdu.header['HELLO'] == 'world'
+
     @pytest.mark.parametrize(
         ('keyword', 'dtype', 'expected'),
         [('BSCALE', np.uint8, np.float32), ('BSCALE', np.int16, np.float32),
