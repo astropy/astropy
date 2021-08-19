@@ -882,10 +882,14 @@ class CompImageHDU(BinTableHDU):
             if bzero != 0.0:
                 self._header.set('BZERO', bzero, after=after_keyword)
 
+        try:
             bitpix_comment = image_header.comments['BITPIX']
-            naxis_comment = image_header.comments['NAXIS']
-        else:
+        except (AttributeError, KeyError):
             bitpix_comment = 'data type of original image'
+
+        try:
+            naxis_comment = image_header.comments['NAXIS']
+        except (AttributeError, KeyError):
             naxis_comment = 'dimension of original image'
 
         # Set the label for the first column in the table
