@@ -59,8 +59,6 @@ version with::
 
 Set up an isolated workspace
 ============================
-+ Make a new `git`_ branch for fixing this issue, check it out, and let my
-  GitHub account know about this branch::
 
 + Make a new `git`_ branch for fixing this issue and switch to the branch::
 
