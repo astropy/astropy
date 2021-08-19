@@ -57,7 +57,9 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt-get install language-pack-de tzdata
+      run: |
+        sudo apt-get update
+        sudo apt-get install language-pack-de tzdata
     - name: Install graphviz
       if: ${{ matrix.toxenv == 'linkcheck' }}
       run: sudo apt-get install graphviz
