@@ -294,7 +294,7 @@ the table. Thus::
   >>> from astropy.time import Time, TimeDelta
   >>> from astropy.timeseries import TimeSeries
   >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
-  >>> table['Obs'] = Column(ts.time.decimalyear, unit=u.year, description='Time of Observation')
+  >>> table['Obs'] = Column(ts.time.decimalyear, unit=u.day, description='Time of Observation')
   >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
   ...                           unit=u.s)
 
@@ -342,7 +342,7 @@ After execution, the contents of ``coords_cols.dat`` will be::
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
    32- 36  F5.3   10+12Jy Flux        ? Description of Flux                 
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44- 49  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation   
+   44- 49  F6.1    d      Obs         [2019.0/2019.0] Time of Observation   
    51- 53  I3      s      Cadence     [100] Description of Cadence          
    55- 58  F4.1    h      RAh         Right Ascension (hour)                
    60- 63  F4.1    min    RAm         Right Ascension (minute)              
@@ -372,7 +372,7 @@ And the file ``ecliptic_cols.dat`` will look like::
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    32- 36  F5.3   10+12Jy Flux        ? Description of Flux                      
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   44- 49  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
+   44- 49  F6.1    d      Obs         [2019.0/2019.0] Time of Observation        
    51- 53  I3      s      Cadence     [100] Description of Cadence               
    55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
    72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
@@ -409,7 +409,7 @@ The following example shows a similar situation, using the option to send the ou
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
     1- 11  A11     ---    Name        Description of Name                        
-   13- 18  F6.1    yr     Obs         [2019.0/2019.0] Time of Observation        
+   13- 18  F6.1    d      Obs         [2019.0/2019.0] Time of Observation        
    20- 22  I3      s      Cadence     [100] Description of Cadence               
    24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     

@@ -5,6 +5,7 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+import os
 from io import StringIO
 
 from astropy.io import ascii
@@ -118,7 +119,7 @@ HD103095 -3e+06 27.25000  -9e+34 -30
     t = ascii.read(test_dat)
     out = StringIO()
     t.write(out, format='ascii.cds')
-    assert out.getvalue() == exp_output
+    assert out.getvalue().splitlines() == exp_output.splitlines()
 
 
 def test_write_empty_table():
