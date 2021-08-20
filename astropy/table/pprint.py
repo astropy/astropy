@@ -96,7 +96,7 @@ def get_auto_format_func(
                 if val is np.ma.masked:
                     return str(val)
 
-                raise ValueError(f'Format function for value {val} failed: {err}')
+                raise ValueError(f'Format function for value {val} failed.') from err
             # If the user-supplied function handles formatting masked elements, use
             # it directly.  Otherwise, wrap it in a function that traps them.
             try:

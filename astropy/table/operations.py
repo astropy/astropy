@@ -64,8 +64,8 @@ def _get_list_of_tables(tables):
         else:
             try:
                 tables[ii] = Table([val])
-            except (ValueError, TypeError):
-                raise TypeError(f'cannot convert {val} to table column.')
+            except (ValueError, TypeError) as err:
+                raise TypeError(f'Cannot convert {val} to table column.') from err
 
     return tables
 
@@ -160,8 +160,8 @@ def join_skycoord(distance, distance_func='search_around_sky'):
         import astropy.coordinates as coords
         try:
             distance_func = getattr(coords, distance_func)
-        except AttributeError:
-            raise ValueError('distance_func must be a function in astropy.coordinates')
+        except AttributeError as err:
+            raise ValueError('distance_func must be a function in astropy.coordinates') from err
     else:
         from inspect import isfunction
         if not isfunction(distance_func):
@@ -943,7 +943,7 @@ def get_descrs(arrays, col_name_map):
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError("The '{}' columns have incompatible types: {}"
-                                  .format(names[0], tme._incompat_types))
+                                  .format(names[0], tme._incompat_types)) from tme
 
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
@@ -968,7 +968,7 @@ def common_dtype(cols):
     except metadata.MergeConflictError as err:
         tme = TableMergeError(f'Columns have incompatible types {err._incompat_types}')
         tme._incompat_types = err._incompat_types
-        raise tme
+        raise tme from err
 
 
 def _get_join_sort_idxs(keys, left, right):
@@ -1237,11 +1237,11 @@ def _join(left, right, keys=None, join_type='inner',
 
             try:
                 col[array_mask] = col.info.mask_val
-            except Exception:  # Not clear how different classes will fail here
+            except Exception as err:  # Not clear how different classes will fail here
                 raise NotImplementedError(
                     "join requires masking column '{}' but column"
                     " type {} does not support masking"
-                    .format(out_name, col.__class__.__name__))
+                    .format(out_name, col.__class__.__name__)) from err
 
         # Set the output table column to the new joined column
         out[out_name] = col
@@ -1396,7 +1396,7 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError("The '{}' columns have incompatible types: {}"
-                                  .format(out_name, err._incompat_types))
+                                  .format(out_name, err._incompat_types)) from err
 
         idx0 = 0
         for name, array in zip(in_names, arrays):
@@ -1414,11 +1414,11 @@ def _vstack(arrays, join_type='outer', col_name_map=None, metadata_conflicts='wa
 
                 try:
                     col[idx0:idx1] = col.info.mask_val
-                except Exception:
+                except Exception as err:
                     raise NotImplementedError(
                         "vstack requires masking column '{}' but column"
                         " type {} does not support masking"
-                        .format(out_name, col.__class__.__name__))
+                        .format(out_name, col.__class__.__name__)) from err
             idx0 = idx1
 
         out[out_name] = col
@@ -1517,11 +1517,11 @@ def _hstack(arrays, join_type='outer', uniq_col_name='{col_name}_{table_name}',
 
                 try:
                     col[arr_len:] = col.info.mask_val
-                except Exception:
+                except Exception as err:
                     raise NotImplementedError(
                         "hstack requires masking column '{}' but column"
                         " type {} does not support masking"
-                        .format(out_name, col.__class__.__name__))
+                        .format(out_name, col.__class__.__name__)) from err
             else:
                 col = array[name][:n_rows]
 
