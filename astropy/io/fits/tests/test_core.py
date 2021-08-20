@@ -1305,7 +1305,7 @@ class TestFileFunctions(FitsTestCase):
     def test_primaryhdu_zero_bytes(self):
         """
         Make sure we don't have any zero-byte writes from an ImageHDU
-        `(or other) of `size % BLOCK_SIZE == 0`
+        (or other) of `size % BLOCK_SIZE == 0`
         """
 
         hdu_img_2880 = fits.PrimaryHDU(data=np.arange(720, dtype='i4'))
