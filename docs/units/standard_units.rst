@@ -138,7 +138,6 @@ or by the user.
 For convenience, there is a unit that is both dimensionless and
 unscaled: the ``dimensionless_unscaled`` object::
 
-   >>> from astropy import units as u
    >>> u.dimensionless_unscaled
    Unit(dimensionless)
 
@@ -226,25 +225,28 @@ Example
 To enable Imperial units, do::
 
     >>> from astropy.units import imperial
-    >>> imperial.enable()  # doctest: +SKIP
-    >>> u.m.find_equivalent_units()  # doctest: +SKIP
+    >>> imperial.enable()
+    <astropy.units.core._UnitContext object at ...>
+    >>> u.m.find_equivalent_units()
       Primary name | Unit definition | Aliases
     [
-      AU           | 1.49598e+11 m   | au, astronomical_unit ,
-      Angstrom     | 1e-10 m         | AA, angstrom          ,
-      cm           | 0.01 m          | centimeter            ,
-      ft           | 0.3048 m        | foot                  ,
-      fur          | 201.168 m       | furlong               ,
-      inch         | 0.0254 m        |                       ,
-      lyr          | 9.46073e+15 m   | lightyear             ,
-      m            | irreducible     | meter                 ,
-      mi           | 1609.34 m       | mile                  ,
-      micron       | 1e-06 m         |                       ,
-      mil          | 2.54e-05 m      | thou                  ,
-      nmi          | 1852 m          | nauticalmile, NM      ,
-      pc           | 3.08568e+16 m   | parsec                ,
-      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
-      yd           | 0.9144 m        | yard                  ,
+      AU           | 1.49598e+11 m   | au, astronomical_unit            ,
+      Angstrom     | 1e-10 m         | AA, angstrom                     ,
+      cm           | 0.01 m          | centimeter                       ,
+      earthRad     | 6.3781e+06 m    | R_earth, Rearth                  ,
+      ft           | 0.3048 m        | foot                             ,
+      fur          | 201.168 m       | furlong                          ,
+      inch         | 0.0254 m        |                                  ,
+      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
+      lyr          | 9.46073e+15 m   | lightyear                        ,
+      m            | irreducible     | meter                            ,
+      mi           | 1609.34 m       | mile                             ,
+      micron       | 1e-06 m         |                                  ,
+      mil          | 2.54e-05 m      | thou                             ,
+      nmi          | 1852 m          | nauticalmile, NM                 ,
+      pc           | 3.08568e+16 m   | parsec                           ,
+      solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
+      yd           | 0.9144 m        | yard                             ,
     ]
 
 
@@ -252,8 +254,6 @@ This may also be used with the `Python "with" statement
 <https://docs.python.org/3/reference/compound_stmts.html#with>`_, to
 temporarily enable additional units::
 
-    >>> from astropy import units as u
-    >>> from astropy.units import imperial
     >>> with imperial.enable():
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases
@@ -261,8 +261,6 @@ temporarily enable additional units::
 
 To enable only specific units, use :func:`~astropy.units.add_enabled_units`::
 
-    >>> from astropy import units as u
-    >>> from astropy.units import imperial
     >>> with u.add_enabled_units([imperial.knot]):
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases

@@ -46,7 +46,6 @@ Using Physical Types
 An equality comparison between a |PhysicalType| and a string will return
 `True` if the string is a name of the |PhysicalType|::
 
-  >>> import astropy.units as u
   >>> acceleration = u.get_physical_type(u.m / u.s ** 2)
   >>> acceleration == 'acceleration'
   True
@@ -83,7 +82,6 @@ Dimensional Analysis
 and exponentiation. Because of this, they can be used for
 dimensional analysis::
 
-  >>> import astropy.units as u
   >>> length = u.get_physical_type('length')
   >>> time = u.get_physical_type('time')
   >>> length ** 2

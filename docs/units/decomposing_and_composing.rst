@@ -69,7 +69,7 @@ To recompose a unit with :meth:`~astropy.units.core.UnitBase.compose`::
 Some other interesting examples::
 
    >>> (u.s ** -1).compose()  # doctest: +SKIP
-   [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
+   [Unit("Bq"), Unit("Hz"), Unit("2.7027e-11 Ci")]
 
 Composition can be combined with :ref:`unit_equivalencies`::
 

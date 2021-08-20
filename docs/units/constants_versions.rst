@@ -26,7 +26,7 @@ To initialize units to a prior version of constants:
 >>> import astropy.constants as const
 >>> (const.M_sun / u.M_sun).to(u.dimensionless_unscaled) - 1  # doctest: +SKIP
 <Quantity 0.>
->>> const.M_sun  # doctest: +SKIP
+>>> print(const.M_sun)  # doctest: +SKIP
   Name   = Solar mass
   Value  = 1.9891e+30
   Uncertainty  = 5e+25
