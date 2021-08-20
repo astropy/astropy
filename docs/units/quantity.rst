@@ -130,7 +130,7 @@ which are unit-aware analogues of the ``numpy`` functions with the same name::
 
     >>> u.allclose([1, 2] * u.m, [100, 200] * u.cm)
     True
-    >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)  # doctest: +SKIP
+    >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)
     array([ True, False])
 
 The use of `Python comparison operators
