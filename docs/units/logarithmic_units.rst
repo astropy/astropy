@@ -76,9 +76,12 @@ To convert a logarithmic quantity to a different unit::
     >>> logg.to('dex(m/s2)')  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
 
-For convenience, the `~astropy.units.function.FunctionQuantity.si` and
-`~astropy.units.function.FunctionQuantity.cgs` attributes can be used
-to convert the |Quantity| to base SI or CGS units::
+For convenience, the :attr:`~astropy.units.function.FunctionQuantity.si` and
+:attr:`~astropy.units.function.FunctionQuantity.cgs` attributes can be used to
+convert the |Quantity| to base `SI
+<https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
+<https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_
+units::
 
     >>> logg.si  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
@@ -157,7 +160,7 @@ Now applying the calibration, we find (note the proper change in units)::
      <Magnitude [17.        , 21.1195437 , 22.51029996] mag(ST)>)
 
 We could convert these magnitudes to another system, for example, ABMag, using
-appropriate equivalency::
+appropriate :ref:`equivalency <unit_equivalencies>`::
 
     >>> V.to(u.ABmag, u.spectral_density(5500.*u.AA))  # doctest: +FLOAT_CMP
     <Magnitude [16.99023831, 21.10978201, 22.50053827] mag(AB)>
@@ -229,8 +232,9 @@ distance modulus::
      <Magnitude 5.46 mag(Bol)>,
      <Magnitude 10. mag(bol / Bol)>)
 
-With a proper equivalency, we can also convert to distance without remembering
-the 5-5log rule::
+With a proper :ref:`equivalency <unit_equivalencies>`, we can also convert to
+distance without remembering the 5-5log rule (but you might find the
+:class:`~astropy.coordinates.Distance` class to be even more convenient)::
 
     >>> radius_and_inverse_area = [(u.pc, u.pc**-2,
     ...                            lambda x: 1./(4.*np.pi*x**2),
@@ -241,9 +245,9 @@ the 5-5log rule::
 NumPy Functions
 ===============
 
-For logarithmic quantities, most NumPy functions and many array methods do not
-make sense, hence they are disabled. But you can use those you would expect to
-work::
+For logarithmic quantities, most ``numpy`` functions and many array methods do
+not make sense, hence they are disabled. But you can use those you would expect
+to work::
 
     >>> np.max(v_i)  # doctest: +FLOAT_CMP
     <Magnitude 4.00514998 mag(ct / s)>
@@ -276,6 +280,7 @@ supported as logarithmic units. For instance::
     >>> signal_in - better_cable_loss * 100. * u.m  # doctest: +FLOAT_CMP
     <Decibel 80. dB(mW)>
 
+**References**
 
 .. [M15] Mamajek et al., 2015, `arXiv:1510.06262
 	  <https://ui.adsabs.harvard.edu/abs/2015arXiv151006262M>`_

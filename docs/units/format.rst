@@ -59,12 +59,13 @@ Examine the NumPy documentation for more examples with :func:`numpy.array_str`.
 
 Units, or the unit part of a quantity, can also be formatted in a number of
 different styles. By default, the string format used is referred to as the
-"generic" format, which is based on syntax of the FITS standard format for
-representing units, but supports all of the units defined within the
-`astropy.units` framework, including user-defined units. The format specifier
-(and `~astropy.units.core.UnitBase.to_string`) functions also take an optional
+"generic" format, which is based on syntax of the `FITS standard
+<https://fits.gsfc.nasa.gov/fits_standard.html>`_ format for representing
+units, but supports all of the units defined within the :mod:`astropy.units`
+framework, including user-defined units. The format specifier (and
+:meth:`~astropy.units.core.UnitBase.to_string`) functions also take an optional
 parameter to select a different format, including ``"latex"``, ``"unicode"``,
-``"cds"``, and others, defined below.
+``"cds"``, and others, defined below::
 
     >>> f"{q.value:0.003f} in {q.unit:latex}"  # doctest: +SKIP
     '10.000 in $\\mathrm{km}$'
@@ -80,8 +81,8 @@ parameter to select a different format, including ``"latex"``, ``"unicode"``,
     >>> f"{fluxunit:>20s}"
     u'       erg / (cm2 s)'
 
-The `~astropy.units.core.UnitBase.to_string` method is an alternative way to
-format units as strings, and is the underlying implementation of the
+The :meth:`~astropy.units.core.UnitBase.to_string` method is an alternative way
+to format units as strings, and is the underlying implementation of the
 `format`-style usage::
 
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
@@ -217,20 +218,21 @@ However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control
 this behavior:
 
-  - ``'raise'``: (default) raise a ValueError exception.
+  - ``'raise'``: (default) raise a :class:`ValueError`.
 
-  - ``'warn'``: emit a Warning, and return an
+  - ``'warn'``: emit a :class:`~astropy.units.UnitsWarning`, and return an
     `~astropy.units.UnrecognizedUnit` instance.
 
   - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
 By either adding additional unit aliases for the misspelt units with
-`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom'; as
-demonstrated below), or defining new units via `~astropy.units.def_unit` and
-`~astropy.units.add_enabled_units`, we can use ``parse_strict='raise'`` to
-rapidly find issues with the units used, while also being able to read in
-older datasets where the unit usage may have been less standard.
+:func:`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom';
+as demonstrated below), or defining new units via
+:func:`~astropy.units.def_unit` and :func:`~astropy.units.add_enabled_units`,
+we can use ``parse_strict='raise'`` to rapidly find issues with the units used,
+while also being able to read in older datasets where the unit usage may have
+been less standard.
 
 
 Examples
@@ -238,9 +240,9 @@ Examples
 
 .. EXAMPLE START: Define Aliases for Units
 
-To set unit aliases, pass `~astropy.units.set_enabled_aliases` a
-dictionary mapping the misspelt string to an astropy unit. The following code
-snippet shows how to set up Angstroem -> Angstrom::
+To set unit aliases, pass :func:`~astropy.units.set_enabled_aliases` a
+:class:`dict` mapping the misspelt string to an astropy unit. The following
+code snippet shows how to set up Angstroem -> Angstrom::
 
     >>> u.set_enabled_aliases({"Angstroem": u.Angstrom})
     <astropy.units.core._UnitContext object at 0x...>
@@ -263,9 +265,10 @@ The aliases can be reset by passing an empty dictionary::
     >>> u.set_enabled_aliases({})
     <astropy.units.core._UnitContext object at 0x...>
 
-You can use both `~astropy.units.set_enabled_aliases` and
-`~astropy.units.add_enabled_aliases` as context manager, limiting where a
-particular alias is used::
+You can use both :func:`~astropy.units.set_enabled_aliases` and
+:func:`~astropy.units.add_enabled_aliases` as a `context manager
+<https://docs.python.org/3/reference/datamodel.html#context-managers>`_,
+limiting where a particular alias is used::
 
     >>> with u.add_enabled_aliases({"Angstroem": u.Angstrom}):
     ...     print(u.Unit("Angstroem") == u.Angstrom)

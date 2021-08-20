@@ -26,9 +26,8 @@ array. You can do this by using parentheses as for any other operation::
     In [3]: %timeit array * (u.m / u.s / u.kg / u.sr)
     21.5 ms ± 886 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
 
-In this case, this has sped things up by a factor of 4x. If you
-use a composite unit several times in your code, another approach is to create a
-constant at the top of your code for this unit and use it subsequently::
+In this case, this has sped things up by a factor of 4. If you use a composite
+unit several times in your code then you can define a variable for it::
 
     In [4]: UNIT_MSKGSR = u.m / u.s / u.kg / u.sr
 
