@@ -1,15 +1,13 @@
 Combining and Defining Units
 ****************************
 
-Units and quantities can be combined together using the regular Python
-numeric operators.
-
-Example
-=======
+Basic example
+=============
 
 .. EXAMPLE START: Combining Units and Quantities
 
-To combine units and quantities::
+Units and quantities can be combined together using the regular Python
+numeric operators::
 
   >>> from astropy import units as u
   >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
@@ -22,16 +20,14 @@ To combine units and quantities::
 
 .. EXAMPLE END
 
-Units support fractional powers, which retain their precision through
-complex operations. To do this, it is recommended to use
-`fractions.Fraction` objects.
-
-Example
-=======
+Fractional powers
+=================
 
 .. EXAMPLE START: Using Fractional Powers with Units
 
-To use `fractions.Fraction` objects::
+Units support fractional powers, which retain their precision through
+complex operations. To do this, it is recommended to use
+:class:`fractions.Fraction` objects::
 
   >>> from fractions import Fraction
   >>> Franklin = u.g ** Fraction(1, 2) * u.cm ** Fraction(3, 2) * u.s ** -1
@@ -52,15 +48,13 @@ To use `fractions.Fraction` objects::
 
 .. EXAMPLE END
 
-Users are free to define new units, either fundamental or compound
-using the `~astropy.units.def_unit` function.
-
-Example
-=======
+Defining units
+==============
 
 .. EXAMPLE START: Defining New Units
 
-To define new units using the `~astropy.units.def_unit` function::
+Users are free to define new units, either fundamental or compound,
+using the :func:`~astropy.units.def_unit` function::
 
   >>> bakers_fortnight = u.def_unit('bakers_fortnight', 13 * u.day)
 
@@ -90,8 +84,8 @@ Users can see the definition of a unit and its :ref:`decomposition
   Unit("240 titter")
 
 By default, custom units are not searched by methods such as
-`~astropy.units.core.UnitBase.find_equivalent_units`. However, they
-can be enabled by calling `~astropy.units.add_enabled_units`::
+:meth:`~astropy.units.core.UnitBase.find_equivalent_units`. However, they
+can be enabled by calling :func:`~astropy.units.add_enabled_units`::
 
   >>> kmph = u.def_unit('kmph', u.km / u.h)
   >>> (u.m / u.s).find_equivalent_units()

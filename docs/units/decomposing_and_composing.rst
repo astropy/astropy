@@ -7,8 +7,8 @@ Reducing a Unit to Its Irreducible Parts
 ========================================
 
 A unit or quantity can be decomposed into its irreducible parts using
-the `Unit.decompose <astropy.units.core.UnitBase.decompose>` or
-`Quantity.decompose <astropy.units.quantity.Quantity.decompose>`
+the `Unit.decompose() <astropy.units.core.UnitBase.decompose>` or
+`Quantity.decompose() <astropy.units.quantity.Quantity.decompose>`
 methods.
 
 Examples
@@ -16,8 +16,7 @@ Examples
 
 .. EXAMPLE START: Reducing a Unit to Its Irreducible Parts
 
-To decompose a unit with `Unit.decompose
-<astropy.units.core.UnitBase.decompose>`::
+To decompose a unit with :meth:`~astropy.units.core.UnitBase.decompose`::
 
   >>> from astropy import units as u
   >>> u.Ry
@@ -32,7 +31,9 @@ using the ``bases`` keyword argument::
   Unit("2.17987e-18 m N")
 
 This is also useful to decompose to a particular system. For example,
-to decompose the Rydberg unit in terms of CGS units::
+to decompose the Rydberg unit of energy in terms of `CGS
+<https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_
+units::
 
   >>> u.Ry.decompose(bases=u.cgs.bases)
   Unit("2.17987e-11 cm2 g / s2")
@@ -48,7 +49,7 @@ Automatically Composing a Unit into More Complex Units
 ======================================================
 
 Conversely, a unit may be recomposed back into more complex units
-using the `~astropy.units.core.UnitBase.compose` method. Since there
+using the :meth:`~astropy.units.core.UnitBase.compose` method. Since there
 may be multiple equally good results, a list is always returned.
 
 Examples
@@ -56,7 +57,7 @@ Examples
 
 .. EXAMPLE START: Recomposing a Unit into More Complex Units
 
-To recompose a unit with `~astropy.units.core.UnitBase.compose`::
+To recompose a unit with :meth:`~astropy.units.core.UnitBase.compose`::
 
   >>> x = u.Ry.decompose()
   >>> x.compose()
@@ -123,7 +124,7 @@ many possible matches::
 
 This is equivalent to decomposing into the new system and then
 composing into the most complex units possible, though
-`~astropy.units.core.UnitBase.to_system` adds some extra logic to
+:meth:`~astropy.units.core.UnitBase.to_system` adds some extra logic to
 return the results sorted in the most useful order::
 
    >>> u.Pa.decompose(bases=u.cgs.bases)

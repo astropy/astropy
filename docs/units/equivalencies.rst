@@ -14,11 +14,13 @@ equivalencies included in `astropy.units` and how to
 define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
-``equivalencies`` keyword argument of :meth:`Quantity.to
-<astropy.units.quantity.Quantity.to>` or :meth:`Unit.to
-<astropy.units.core.UnitBase.to>` methods. Alternatively, if a larger
-piece of code needs the same equivalencies, you can set them for a
-:ref:`given context <equivalency-context>`.
+``equivalencies`` keyword argument of `Quantity.to()
+<astropy.units.quantity.Quantity.to>` or `Unit.to()
+<astropy.units.core.UnitBase.to>` methods. The list can be supplied directly,
+but ``astropy`` contains several functions that return appropriate lists so
+constructing them is often not necessary. Alternatively, if a larger piece of
+code needs the same equivalencies, you can set them for a :ref:`given context
+<equivalency-context>`.
 
 Built-In Equivalencies
 ======================
@@ -27,7 +29,7 @@ How to Convert Parallax to Distance
 -----------------------------------
 
 The length unit *parsec* is defined such that a star one parsec away
-will exhibit a 1-arcsecond parallax. (Think of it as a contraction
+will exhibit a 1-arcsecond parallax. (Think of the name as a contraction
 between *parallax* and *arcsecond*.)
 
 The :func:`~astropy.units.equivalencies.parallax` function handles
@@ -260,9 +262,9 @@ Examples
 .. EXAMPLE START: Converting Brightness Temperature and Surface Brightness
    Equivalency
 
-The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
-the beam area and frequency as arguments. Recalling that the area of a 2D
-Gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
+The :func:`~astropy.units.equivalencies.brightness_temperature` equivalency
+requires the beam area and frequency as arguments. Recalling that the area of a
+2D Gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
 <https://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
 here is an example::
 
@@ -305,7 +307,7 @@ Beam Equivalency
 Radio data, especially from interferometers, is often produced in units of
 ``Jy/beam``. Converting this number to a beam-independent value (e.g.,
 ``Jy/sr``), can be done with the
-`~astropy.units.equivalencies.beam_angular_area` equivalency.
+:func:`~astropy.units.equivalencies.beam_angular_area` equivalency.
 
 Example
 ^^^^^^^
@@ -331,10 +333,11 @@ package deals with beam input/output and various operations more directly.
 Temperature Energy Equivalency
 ------------------------------
 
-This equivalency allows conversion between temperature and its equivalent
-in energy (i.e., the temperature multiplied by the Boltzmann constant),
-usually expressed in electronvolts. This is used frequently for
-observations at high-energy, be it for solar or X-ray astronomy.
+The :func:`~astropy.units.equivalencies.temperature_energy` equivalency allows
+conversion between temperature and its equivalent in energy (i.e., the
+temperature multiplied by the Boltzmann constant), usually expressed in
+electronvolts. This is used frequently for observations at high-energy, be it
+for solar or X-ray astronomy.
 
 Example
 ^^^^^^^
@@ -372,9 +375,10 @@ To convert between ``Jy/beam`` and thermodynamic temperature::
     >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
     <Quantity 1. MJy / sr>
 
-By default, this will use the :math:`T_{CMB}` value for the default cosmology in
-``astropy``, but it is possible to specify a custom :math:`T_{CMB}` value for a
-specific cosmology as the second argument to the equivalency::
+By default, this will use the :math:`T_{CMB}` value for the default
+:ref:`cosmology <astropy-cosmology>` in ``astropy``, but it is possible to
+specify a custom :math:`T_{CMB}` value for a specific cosmology as the second
+argument to the equivalency::
 
     >>> from astropy.cosmology import WMAP9
     >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu, T_cmb=WMAP9.Tcmb0))  # doctest: +FLOAT_CMP
@@ -385,8 +389,9 @@ specific cosmology as the second argument to the equivalency::
 Molar Mass AMU Equivalency
 --------------------------
 
-This equivalency allows conversion between the atomic mass unit and the
-equivalent g/mol. For context, refer to the NIST definition of `SI Base Units
+The :func:`~astropy.units.equivalencies.molar_mass_amu` equivalency allows
+conversion between the atomic mass unit and the equivalent g/mol. For context,
+refer to the `NIST definition of SI Base Units
 <https://www.nist.gov/si-redefinition/definitions-si-base-units>`_.
 
 Example
@@ -430,18 +435,19 @@ cutout image::
 
 Or maybe you are designing an instrument for a telescope that someone told you
 has an inverse plate scale of 7.8 meters per radian (for your desired focus),
-and you want to know how big your pixels need to be to cover half an arcsecond::
+and you want to know how big your pixels need to be to cover half an arcsecond.
+Using :func:`~astropy.units.equivalencies.plate_scale`::
 
     >>> import astropy.units as u
     >>> tel_platescale = u.plate_scale(7.8*u.m/u.radian)
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
 
-The pixel scale equivalency can also work in more general context, where the
-scale is specified as any quantity that is reducible to ``<composite
-unit>/u.pix`` or ``u.pix/<composite unit>`` (that is, the dimensionality of
-``u.pix`` is 1 or -1). For instance, you may define the dots per inch
-(DPI) for a digital image to calculate its physical size::
+The :func:`~astropy.units.equivalencies.pixel_scale` equivalency can also work
+in more general context, where the scale is specified as any quantity that is
+reducible to ``<composite unit>/u.pix`` or ``u.pix/<composite unit>`` (that is,
+the dimensionality of ``u.pix`` is 1 or -1). For instance, you may define the
+dots per inch (DPI) for a digital image to calculate its physical size::
 
     >>> import astropy.units as u
     >>> dpi = u.pixel_scale(100 * u.pix / u.imperial.inch)
@@ -453,9 +459,10 @@ unit>/u.pix`` or ``u.pix/<composite unit>`` (that is, the dimensionality of
 Photometric Zero Point Equivalency
 ----------------------------------
 
-This equivalency provides a way to move between photometric systems (i.e.,
-those defined relative to a particular zero-point flux) and absolute fluxes.
-This is most useful in conjunction with support for :ref:`logarithmic_units`.
+The :func:`~astropy.units.zero_point_flux` equivalency provides a way to move
+between photometric systems (i.e., those defined relative to a particular
+zero-point flux) and absolute fluxes. This is most useful in conjunction with
+support for :ref:`logarithmic_units`.
 
 Example
 ^^^^^^^
@@ -479,11 +486,12 @@ Reduced Hubble Constant and "little-h" Equivalency
 
 The dimensionless version of the Hubble constant — often known as "little h" —
 is a frequently used quantity in extragalactic astrophysics. It is also widely
-known as the bane of beginners' existence in such fields (See e.g., the title of
-`this paper <https://doi.org/10.1017/pasa.2013.31>`__, which also provides
-valuable advice on the use of little h). ``astropy`` provides an equivalency
-that helps keep this straight in at least some of these cases, by providing a
-way to convert to/from physical to "little h" units.
+known as the bane of beginners' existence in such fields (See e.g., the title
+of `this paper <https://doi.org/10.1017/pasa.2013.31>`__, which also provides
+valuable advice on the use of little h). ``astropy`` provides the
+:func:`~astropy.units.equivalencies.with_H0` equivalency that helps keep this
+straight in at least some of these cases, by providing a way to convert to/from
+physical to "little h" units.
 
 Examples
 ^^^^^^^^
@@ -506,7 +514,7 @@ literature as just ``h``, here it is ``littleh`` to avoid confusion with
 "hours."
 
 If no argument is given (or the argument is `None`), this equivalency assumes
-the ``H0`` from the current default cosmology:
+the ``H0`` from the current default :ref:`cosmology <astropy-cosmology>`::
 
     >>> distance = 100 * (u.Mpc/u.littleh)
     >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
@@ -557,8 +565,8 @@ Mass-Energy Equivalency
 
 .. EXAMPLE START: Using the Mass-Energy Equivalency
 
-In a special relativity context, mass and energy can be equivalent units. For
-instance::
+In a special relativity context it can be convenient to use the
+:func:`~astropy.units.equivalencies.mass_energy` equivalency. For instance::
 
     >>> import astropy.units as u
     >>> (1 * u.g).to(u.eV, u.mass_energy())  # doctest: +FLOAT_CMP
@@ -569,16 +577,17 @@ instance::
 Writing New Equivalencies
 =========================
 
-An equivalence list is a list of tuples, where each tuple has four elements::
+An equivalence list is a :class:`list` of tuples, where each :class:`tuple` has
+four elements::
 
   (from_unit, to_unit, forward, backward)
 
 ``from_unit`` and ``to_unit`` are the equivalent units. ``forward`` and
 ``backward`` are functions that convert values between those units. ``forward``
-and ``backward`` are optional, and if omitted such an equivalency declares that
-the two units should be taken as equivalent.
-The functions must take and return non-Quantity objects to avoid infinite
-recursion; See :ref:`complicated-equiv-example` for more details.
+and ``backward`` are optional, and if omitted then the equivalency declares
+that the two units should be taken as equivalent. The functions must take and
+return non-|Quantity| objects to avoid infinite recursion; See
+:ref:`complicated-equiv-example` for more details.
 
 Examples
 --------
@@ -636,8 +645,8 @@ illustrative::
 Note that once this is defined for GHz and km/s, it will work for all other
 units of frequency and velocity. ``x`` is converted from the input frequency
 unit (e.g., Hz) to GHz before being passed to ``lambda x:``. Similarly, the
-return value is assumed to be in units of ``km/s``, which is why the ``.value``
-of ``c`` is used instead of the constant.
+return value is assumed to be in units of ``km/s``, which is why the ``value``
+of ``c`` is used instead of the :class:`~astropy.constants.Constant`.
 
 Displaying Available Equivalencies
 ==================================
@@ -704,7 +713,8 @@ Examples
 
 .. EXAMPLE START: Using Equivalencies in Larger Pieces of Code
 
-To enable radians to be treated as a dimensionless unit:
+To enable radians to be treated as a dimensionless unit with the
+:func:`~astropy.units.set_enabled_equivalencies` function:
 
 .. doctest-skip::
 
@@ -719,9 +729,10 @@ Here, any list of equivalencies could be used, or you could add, for example,
 :func:`~astropy.units.equivalencies.spectral_density` (since these return
 lists, they should indeed be combined by adding them together).
 
-The disadvantage of the above approach is that you may forget to turn
-the default off (done by giving an empty argument). To automate this,
-a context manager is provided:
+The disadvantage of the above approach is that you may forget to turn the
+default off (done by giving an empty argument). To automate this, use
+:func:`~astropy.units.set_enabled_equivalencies` as a `context manager
+<https://docs.python.org/3/reference/datamodel.html#context-managers>`_:
 
 .. doctest-skip::
 

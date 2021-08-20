@@ -6,9 +6,9 @@ the current versions of `astropy.constants`. For units to initialize
 properly to a prior version of constants, the constants versions must
 be set before the first import of `astropy.units` or `astropy.constants`.
 
-This is accomplished using ScienceState classes in the top-level package.
-Setting the prior versions at the start of a Python session will allow
-consistent units.
+This is accomplished using :class:`~astropy.utils.state.ScienceState` classes
+in the top-level package. Setting the prior versions at the start of a Python
+session will allow consistent units.
 
 Example
 =======
@@ -33,6 +33,7 @@ To initialize units to a prior version of constants:
   Unit  = kg
   Reference = Allen's Astrophysical Quantities 4th Ed.
 
-If `astropy.units` has already been imported, a RuntimeError is raised.
+If :mod:`astropy.units` has already been imported, a :class:`RuntimeError` is
+raised.
 
 .. EXAMPLE END
