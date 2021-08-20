@@ -78,7 +78,6 @@ Examples
 
 Normally the following would raise exceptions::
 
-  >>> from astropy import units as u
   >>> u.degree.to('')  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
@@ -97,7 +96,7 @@ But when passing the proper conversion function,
   ...                            equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
   <Quantity 1.9739208802178715e+39 J>
   >>> import numpy as np
-  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +SKIP
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles())) # doctest: +FLOAT_CMP
   <Quantity  0.70710678+0.70710678j>
 
 .. EXAMPLE END
@@ -268,7 +267,6 @@ requires the beam area and frequency as arguments. Recalling that the area of a
 <https://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
 here is an example::
 
-    >>> import numpy as np
     >>> beam_sigma = 50*u.arcsec
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
@@ -279,23 +277,15 @@ If you have beam full-width half-maxima (FWHM), which are often quoted and are
 the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
 example converts the FWHM to sigma::
 
-    >>> import numpy as np
     >>> beam_fwhm = 50*u.arcsec
     >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
     >>> beam_sigma = beam_fwhm * fwhm_to_sigma
     >>> omega_B = 2 * np.pi * beam_sigma**2
-    >>> freq = 5 * u.GHz
     >>> (1*u.Jy/omega_B).to(u.K, equivalencies=u.brightness_temperature(freq))  # doctest: +FLOAT_CMP
     <Quantity 19.553932298231704 K>
 
 You can also convert between ``Jy/beam`` and ``K`` by specifying the beam area::
 
-    >>> import numpy as np
-    >>> beam_fwhm = 50*u.arcsec
-    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
-    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
-    >>> omega_B = 2 * np.pi * beam_sigma**2
-    >>> freq = 5 * u.GHz
     >>> (1*u.Jy/u.beam).to(u.K, u.brightness_temperature(freq, beam_area=omega_B))  # doctest: +FLOAT_CMP
     <Quantity 19.553932298231704 K>
 
@@ -316,7 +306,6 @@ Example
 
 To convert units of ``Jy/beam`` to ``Jy/sr``::
 
-    >>> import numpy as np
     >>> beam_fwhm = 50*u.arcsec
     >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
     >>> beam_sigma = beam_fwhm * fwhm_to_sigma
@@ -346,7 +335,6 @@ Example
 
 To convert between temperature and its equivalent in energy::
 
-    >>> import astropy.units as u
     >>> t_k = 1e6 * u.K
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
     <Quantity 86.17332384960955 eV>
@@ -369,7 +357,6 @@ Examples
 
 To convert between ``Jy/beam`` and thermodynamic temperature::
 
-    >>> import astropy.units as u
     >>> nu = 143 * u.GHz
     >>> t_k = 0.002632051878 * u.K
     >>> t_k.to(u.MJy / u.sr, equivalencies=u.thermodynamic_temperature(nu))  # doctest: +FLOAT_CMP
@@ -401,8 +388,6 @@ Example
 
 To convert between atomic mass unit and the equivalent g/mol::
 
-    >>> import astropy.units as u
-    >>> import astropy.constants as const
     >>> x = 1 * (u.g / u.mol)
     >>> y = 1 * u.u
     >>> x.to(u.u, equivalencies=u.molar_mass_amu()) # doctest: +FLOAT_CMP
@@ -428,7 +413,6 @@ which defaults to a pixel scale of 0.4 arcseconds per pixel, and want to know
 the true size of something that you measure to be 240 pixels across in the
 cutout image::
 
-    >>> import astropy.units as u
     >>> sdss_pixelscale = u.pixel_scale(0.4*u.arcsec/u.pixel)
     >>> (240*u.pixel).to(u.arcmin, sdss_pixelscale)  # doctest: +FLOAT_CMP
     <Quantity 1.6 arcmin>
@@ -438,7 +422,6 @@ has an inverse plate scale of 7.8 meters per radian (for your desired focus),
 and you want to know how big your pixels need to be to cover half an arcsecond.
 Using :func:`~astropy.units.equivalencies.plate_scale`::
 
-    >>> import astropy.units as u
     >>> tel_platescale = u.plate_scale(7.8*u.m/u.radian)
     >>> (0.5*u.arcsec).to(u.micron, tel_platescale)  # doctest: +FLOAT_CMP
     <Quantity 18.9077335632719 micron>
@@ -449,7 +432,6 @@ reducible to ``<composite unit>/u.pix`` or ``u.pix/<composite unit>`` (that is,
 the dimensionality of ``u.pix`` is 1 or -1). For instance, you may define the
 dots per inch (DPI) for a digital image to calculate its physical size::
 
-    >>> import astropy.units as u
     >>> dpi = u.pixel_scale(100 * u.pix / u.imperial.inch)
     >>> (1024 * u.pix).to(u.cm, dpi)  # doctest: +FLOAT_CMP
     <Quantity 26.0096 cm>
@@ -500,7 +482,6 @@ Examples
 
 To convert to or from physical to "little h" units:
 
-    >>> import astropy.units as u
     >>> H0_70 = 70 * u.km/u.s / u.Mpc
     >>> distance = 70 * (u.Mpc/u.littleh)
     >>> distance.to(u.Mpc, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
@@ -544,7 +525,6 @@ Example
 
 To convert between temperature scales::
 
-    >>> import astropy.units as u
     >>> temp_C = 0 * u.Celsius
     >>> temp_Kelvin = temp_C.to(u.K, equivalencies=u.temperature())
     >>> temp_Kelvin  # doctest: +FLOAT_CMP
@@ -568,7 +548,6 @@ Mass-Energy Equivalency
 In a special relativity context it can be convenient to use the
 :func:`~astropy.units.equivalencies.mass_energy` equivalency. For instance::
 
-    >>> import astropy.units as u
     >>> (1 * u.g).to(u.eV, u.mass_energy())  # doctest: +FLOAT_CMP
     <Quantity 5.60958865e+32 eV>
 
@@ -607,7 +586,6 @@ true, we could build an equivalency for them::
 
 Note that the equivalency can be used with any other compatible unit::
 
-  >>> from astropy.units import imperial
   >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
   8.345404463333525
 
@@ -716,9 +694,6 @@ Examples
 To enable radians to be treated as a dimensionless unit with the
 :func:`~astropy.units.set_enabled_equivalencies` function:
 
-.. doctest-skip::
-
-  >>> import astropy.units as u
   >>> u.set_enabled_equivalencies(u.dimensionless_angles())
   <astropy.units.core._UnitContext object at ...>
   >>> u.deg.to('')  # doctest: +FLOAT_CMP
@@ -732,15 +707,12 @@ lists, they should indeed be combined by adding them together).
 The disadvantage of the above approach is that you may forget to turn the
 default off (done by giving an empty argument). To automate this, use
 :func:`~astropy.units.set_enabled_equivalencies` as a `context manager
-<https://docs.python.org/3/reference/datamodel.html#context-managers>`_:
+<https://docs.python.org/3/reference/datamodel.html#context-managers>`_::
 
-.. doctest-skip::
-
-  >>> import astropy.units as u
   >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
   ...    phase = 0.5 * u.cycle
   ...    c = np.exp(1j*phase)
   >>> c  # doctest: +FLOAT_CMP
-  <Quantity (-1+1.2246063538223773e-16j) >
+  <Quantity -1.+1.2246468e-16j>
 
 .. EXAMPLE END

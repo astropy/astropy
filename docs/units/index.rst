@@ -107,16 +107,14 @@ multiply a value by the unscaled dimensionless unit::
 knows about::
 
     >>> (u.s ** -1).compose()  # doctest: +SKIP
-    [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
+    [Unit("Bq"), Unit("Hz"), Unit("2.7027e-11 Ci")]
 
 And it can convert between unit systems, such as `SI
 <https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
-<https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_:
-
-.. doctest-skip::
+<https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_::
 
     >>> (1.0 * u.Pa).cgs
-    <Quantity 10.0 Ba>
+    <Quantity 10. P / s>
 
 The units ``mag``, ``dex``, and ``dB`` are special, being :ref:`logarithmic
 units <logarithmic_units>`, for which a value is the logarithm of a physical

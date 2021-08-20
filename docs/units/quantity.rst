@@ -128,7 +128,6 @@ The equality of |Quantity| objects is best tested using the
 :func:`~astropy.units.allclose` and :func:`~astropy.units.isclose` functions,
 which are unit-aware analogues of the ``numpy`` functions with the same name::
 
-    >>> from astropy import units as u
     >>> u.allclose([1, 2] * u.m, [100, 200] * u.cm)
     True
     >>> u.isclose([1, 2] * u.m, [100, 20] * u.cm)  # doctest: +SKIP
@@ -366,6 +365,11 @@ To verify if a |Quantity| argument can be used in calculations::
 
     >>> myfunction(100*u.arcsec)
     Unit("arcsec")
+    >>> myfunction(2*u.m)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    UnitsError: Argument 'myarg' to function 'myfunction' must be in units
+    convertible to 'deg'.
 
 It is also possible to instead specify the :ref:`physical type
 <physical_types>` of the desired unit::
@@ -392,29 +396,29 @@ input is only checked when a value other than `None` is passed::
 Alternatively, you can use the `annotations syntax
 <https://docs.python.org/3/library/typing.html>`_ to provide the units::
 
-    >>> @u.quantity_input  # doctest: +SKIP
+    >>> @u.quantity_input
     ... def myfunction(myarg: u.arcsec):
     ...     return myarg.unit
 
-    >>> myfunction(100*u.arcsec)  # doctest: +SKIP
+    >>> myfunction(100*u.arcsec)
     Unit("arcsec")
 
 You can also annotate for different types in non-unit expecting arguments:
 
-    >>> @u.quantity_input  # doctest: +SKIP
+    >>> @u.quantity_input
     ... def myfunction(myarg: u.arcsec, nice_string: str):
     ...     return myarg.unit, nice_string
-    >>> myfunction(100*u.arcsec, "a nice string")  # doctest: +SKIP
+    >>> myfunction(100*u.arcsec, "a nice string")
     (Unit("arcsec"), 'a nice string')
 
 The output can be specified to have a desired unit with a function annotation,
 for example::
 
-    >>> @u.quantity_input  # doctest: +SKIP
+    >>> @u.quantity_input
     ... def myfunction(myarg: u.arcsec) -> u.deg:
     ...     return myarg*1000
 
-    >>> myfunction(100*u.arcsec)  # doctest: +SKIP
+    >>> myfunction(100*u.arcsec)  # doctest: +FLOAT_CMP
     <Quantity 27.77777778 deg>
 
 This both checks that the return value of your function is consistent with what

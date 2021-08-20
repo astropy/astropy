@@ -67,7 +67,8 @@ framework, including user-defined units. The format specifier (and
 parameter to select a different format, including ``"latex"``, ``"unicode"``,
 ``"cds"``, and others, defined below::
 
-    >>> f"{q.value:0.003f} in {q.unit:latex}"  # doctest: +SKIP
+    >>> q = 10 * u.km
+    >>> f"{q.value:0.003f} in {q.unit:latex}"
     '10.000 in $\\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
@@ -97,7 +98,6 @@ Creating Units from Strings
 Units can also be created from strings in a number of different
 formats using the `~astropy.units.Unit` class::
 
-  >>> from astropy import units as u
   >>> u.Unit("m")
   Unit("m")
   >>> u.Unit("erg / (s cm2)")
@@ -184,9 +184,9 @@ following formats:
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
 
-      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +SKIP
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
                       m² kg
-      2.1798721×10-¹⁸ ─────
+      2.1798724×10⁻¹⁸ ─────
                        s²
 
 .. _astropy-units-format-unrecognized:
@@ -289,24 +289,27 @@ limiting where a particular alias is used::
 
 To pass an unrecognized unit string::
 
-   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")  # doctest: +SKIP
-   WARNING: UnitsWarning: 'Angstroem' did not parse as unit format
-   'fits': At col 0, 'Angstroem' is not a valid unit in string
-   'Angstroem' [astropy.units.core]
+   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")  # doctest: +SHOW_WARNINGS
+   UnitsWarning: 'Angstroem' did not parse as fits unit: At col 0, Unit
+   'Angstroem' not supported by the FITS standard. Did you mean Angstrom or
+   angstrom? If this is meant to be a custom unit, define it with 'u.def_unit'.
+   To have it recognized inside a file reader or other code, enable it with
+   'u.add_enabled_units'. For details, see
+   https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
 This `~astropy.units.UnrecognizedUnit` object remembers the
 original string it was created with, so it can be written back out,
 but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.
 
-   >>> x.to_string()  # doctest: +SKIP
+   >>> x.to_string()
    'Angstroem'
-   >>> x.to(u.km)  # doctest: +SKIP
+   >>> x.to(u.km)
    Traceback (most recent call last):
      ...
    ValueError: The unit 'Angstroem' is unrecognized.  It can not be
    converted to other units.
-   >>> x / u.m  # doctest: +SKIP
+   >>> x / u.m
    Traceback (most recent call last):
      ...
    ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic
