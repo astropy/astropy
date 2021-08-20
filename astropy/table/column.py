@@ -608,8 +608,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self._format = prev_format
             raise ValueError(
                 "Invalid format for column '{}': could not display "
-                "values in this column using this format ({})".format(
-                    self.name, err.args[0]))
+                "values in this column using this format".format(
+                    self.name)) from err
 
     @property
     def descr(self):

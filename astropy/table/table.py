@@ -3068,7 +3068,7 @@ class Table:
 
         except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{}':\n{}"
-                             .format(name, err))
+                             .format(name, err)) from err
         else:
             self._replace_cols(columns)
 

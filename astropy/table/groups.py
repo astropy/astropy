@@ -191,9 +191,9 @@ class BaseGroups:
             indices0, indices1 = self.indices[:-1], self.indices[1:]
             try:
                 i0s, i1s = indices0[item], indices1[item]
-            except Exception:
+            except Exception as err:
                 raise TypeError('Index item for groups attribute must be a slice, '
-                                'numpy mask or int array')
+                                'numpy mask or int array') from err
             mask = np.zeros(len(parent), dtype=bool)
             # Is there a way to vectorize this in numpy?
             for i0, i1 in zip(i0s, i1s):
@@ -256,10 +256,10 @@ class ColumnGroups(BaseGroups):
                     vals = func.reduceat(par_col, i0s)
             else:
                 vals = np.array([func(par_col[i0: i1]) for i0, i1 in zip(i0s, i1s)])
-        except Exception:
+        except Exception as err:
             raise TypeError("Cannot aggregate column '{}' with type '{}'"
                             .format(par_col.info.name,
-                                    par_col.info.dtype))
+                                    par_col.info.dtype)) from err
 
         out = par_col.__class__(data=vals,
                                 name=par_col.info.name,
