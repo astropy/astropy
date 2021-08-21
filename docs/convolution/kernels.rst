@@ -220,6 +220,7 @@ Available Kernels
    RickerWavelet2DKernel
    Model1DKernel
    Model2DKernel
+   Moffat2DKernel
    Ring2DKernel
    Tophat2DKernel
    Trapezoid1DKernel
