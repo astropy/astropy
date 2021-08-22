@@ -38,6 +38,9 @@ Complete the following sentence and add relevant details as you see fit. -->
 <!-- In addition please ensure that the pull request title is descriptive
 and allows maintainers to infer the applicable subpackage(s). -->
 
+<!-- READ THIS FOR MANUAL BACKPORT FROM A MAINTAINER:
+Apply "skip-basebranch-check" label **before** you open the PR! -->
+
 This pull request is to address ...
 
 <!-- If the pull request closes any open issues you can add this.
@@ -59,6 +62,6 @@ This checklist is meant to remind the package maintainer(s) who will review this
 - [ ] Are docs added/updated as required? If so, do they follow the [Astropy documentation guidelines](https://docs.astropy.org/en/latest/development/docguide.html#astropy-documentation-rules-and-guidelines)?
 - [ ] Is rebase and/or squash necessary? If so, please provide the author with appropriate instructions. Also see ["When to rebase and squash commits"](https://docs.astropy.org/en/latest/development/when_to_rebase.html).
 - [ ] Did the CI pass? If no, are the failures related? If you need to run daily and weekly cron jobs as part of the PR, please apply the `Extra CI` label.
-- [ ] Is a change log needed? If yes, did the change log check pass? If no, add the `no-changelog-entry-needed` label.
+- [ ] Is a change log needed? If yes, did the change log check pass? If no, add the `no-changelog-entry-needed` label. If this is a manual backport, use the `skip-changelog-checks` label unless special changelog handling is necessary.
 - [ ] Is a milestone set? Milestone must be set but `astropy-bot` check might be missing; do not let the green checkmark fool you.
 - [ ] At the time of adding the milestone, if the milestone set requires a backport to release branch(es), apply the appropriate `backport-X.Y.x` label(s) *before* merge.
