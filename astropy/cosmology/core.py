@@ -34,35 +34,6 @@ __all__ = ["Cosmology", "FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM",
 
 __doctest_requires__ = {'*': ['scipy']}
 
-# Notes about speeding up integrals:
-# ---------------------------------
-#  The supplied cosmology classes use a few tricks to speed
-#  up distance and time integrals.  It is not necessary for
-#  anyone subclassing FLRW to use these tricks -- but if they
-#  do, such calculations may be a lot faster.
-# The first, more basic, idea is that, in many cases, it's a big deal to
-#  provide explicit formulae for inv_efunc rather than simply
-#  setting up de_energy_scale -- assuming there is a nice expression.
-#  As noted above, almost all of the provided classes do this, and
-#  that template can pretty much be followed directly with the appropriate
-#  formula changes.
-# The second, and more advanced, option is to also explicitly
-#  provide a scalar only version of inv_efunc.  This results in a fairly
-#  large speedup (>10x in most cases) in the distance and age integrals,
-#  even if only done in python,  because testing whether the inputs are
-#  iterable or pure scalars turns out to be rather expensive. To take
-#  advantage of this, the key thing is to explicitly set the
-#  instance variables self._inv_efunc_scalar and self._inv_efunc_scalar_args
-#  in the constructor for the subclass, where the latter are all the
-#  arguments except z to _inv_efunc_scalar.
-#
-#  The provided classes do use this optimization, and in fact go
-#  even further and provide optimizations for no radiation, and for radiation
-#  with massless neutrinos coded in cython.  Consult the subclasses for
-#  details, and scalar_inv_efuncs for the details.
-#
-#  However, the important point is that it is -not- necessary to do this.
-
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
 H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
@@ -104,6 +75,9 @@ class Cosmology(metaclass=ABCMeta):
     Class instances are static -- you cannot (and should not) change the values
     of the parameters.  That is, all of the above attributes (except meta) are
     read only.
+
+    For details on how to create performant custom subclasses, see the
+    documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
 
     meta = MetaData()
@@ -285,6 +259,9 @@ class FLRW(Cosmology):
     Class instances are static -- you cannot change the values
     of the parameters.  That is, all of the above attributes (except meta) are
     read only.
+
+    For details on how to create performant custom subclasses, see the
+    documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
@@ -1739,7 +1716,7 @@ class LambdaCDM(FLRW):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
@@ -2273,7 +2250,7 @@ class FlatLambdaCDM(LambdaCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
@@ -2433,7 +2410,7 @@ class wCDM(FLRW):
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self._w0 = float(w0)
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
@@ -2647,7 +2624,7 @@ class FlatwCDM(wCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
@@ -2810,7 +2787,7 @@ class w0waCDM(FLRW):
         self._w0 = float(w0)
         self._wa = float(wa)
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_norel
@@ -2982,7 +2959,7 @@ class Flatw0waCDM(w0waCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_norel
@@ -3093,7 +3070,7 @@ class wpwaCDM(FLRW):
         self._wa = float(wa)
         self._zp = float(zp)
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         apiv = 1.0 / (1.0 + self._zp)
         if self._Tcmb0.value == 0:
@@ -3279,7 +3256,7 @@ class w0wzCDM(FLRW):
         self._w0 = float(w0)
         self._wz = float(wz)
 
-        # Please see "Notes about speeding up integrals" for discussion
+        # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
