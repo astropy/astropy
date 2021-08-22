@@ -46,3 +46,37 @@ unless explicitly overridden.
     cosmology should generally be reserved for code that will be
     included in the ``astropy`` core or an affiliated package.
 
+
+.. _astropy-cosmology-fast-integrals:
+
+Speeding up Integrals in Custom Cosmologies
+===========================================
+
+The supplied cosmology classes use a few tricks to speed up distance and time
+integrals.  It is not necessary for anyone subclassing
+:class:`~astropy.cosmology.FLRW` to use these tricks -- but if they do, such
+calculations may be a lot faster.
+
+The first, more basic, idea is that, in many
+cases, it's a big deal to provide explicit formulae for
+:meth:`~astropy.cosmology.FLRW.inv_efunc` rather than simply setting up
+``de_energy_scale`` -- assuming there is a nice expression. As noted above,
+almost all of the provided classes do this, and that template can pretty much
+be followed directly with the appropriate formula changes.
+
+The second, and more advanced, option is to also explicitly provide a
+scalar only version of :meth:`~astropy.cosmology.FLRW.inv_efunc`. This results
+in a fairly large speedup (>10x in most cases) in the distance and age
+integrals, even if only done in python, because testing whether the inputs are
+iterable or pure scalars turns out to be rather expensive. To take advantage of
+this, the key thing is to explicitly set the instance variables
+``self._inv_efunc_scalar`` and ``self._inv_efunc_scalar_args`` in the
+constructor for the subclass, where the latter are all the arguments except
+``z`` to ``_inv_efunc_scalar``. The provided classes do use this optimization,
+and in fact go even further and provide optimizations for no radiation, and for
+radiation with massless neutrinos coded in cython. Consult the 
+:class:`~astropy.cosmology.FLRW` subclasses for details, and
+``scalar_inv_efuncs`` for the details.
+
+However, the important point is that it is *not* necessary to do this.
+
