@@ -24,6 +24,8 @@ from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils import data
 
+from astropy.io.tests import safeio
+
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
 if HAS_BZ2:
@@ -1285,6 +1287,32 @@ class TestFileFunctions(FitsTestCase):
             hdul.writeto(None)
             hdul[0].writeto(None)
             hdul[0].header.tofile(None)
+
+    def test_bintablehdu_zero_bytes(self):
+        """Make sure we don't have any zero-byte writes in BinTableHDU"""
+
+        bright = np.rec.array([(1, 'Sirius', -1.45, 'A1V'),
+                            (2, 'Canopus', -0.73, 'F0Ib'),
+                            (3, 'Rigil Kent', -0.1, 'G2V')],
+                           formats='int16,a20,float32,a10', names='order,name,mag,Sp')
+
+        hdu_non_zero = fits.BinTableHDU(bright)
+        # use safeio, a special file handler meant to fail on zero-byte writes
+        fh = safeio.CatchZeroByteWriter(open('bright.fits', mode='wb'))
+        hdu_non_zero.writeto(fh)
+        fh.close()
+
+    def test_primaryhdu_zero_bytes(self):
+        """
+        Make sure we don't have any zero-byte writes from an ImageHDU
+        (or other) of `size % BLOCK_SIZE == 0`
+        """
+
+        hdu_img_2880 = fits.PrimaryHDU(data=np.arange(720, dtype='i4'))
+        # use safeio, a special file handler meant to fail on zero-byte writes
+        fh = safeio.CatchZeroByteWriter(open('image.fits', mode='wb'))
+        hdu_img_2880.writeto(fh)
+        fh.close()
 
 
 class TestStreamingFunctions(FitsTestCase):

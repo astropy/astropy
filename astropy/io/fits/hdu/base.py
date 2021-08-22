@@ -623,7 +623,9 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             if self.data is not None:
                 size += self._writedata_internal(fileobj)
             # pad the FITS data block
-            if size > 0:
+            # to avoid a bug in the lustre filesystem client, don't
+            # write zero-byte objects
+            if size > 0 and _pad_length(size) > 0:
                 padding = _pad_length(size) * self._padding_byte
                 # TODO: Not that this is ever likely, but if for some odd
                 # reason _padding_byte is > 0x80 this will fail; but really if
