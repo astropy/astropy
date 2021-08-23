@@ -6,9 +6,9 @@ the current versions of `astropy.constants`. For units to initialize
 properly to a prior version of constants, the constants versions must
 be set before the first import of `astropy.units` or `astropy.constants`.
 
-This is accomplished using ScienceState classes in the top-level package.
-Setting the prior versions at the start of a Python session will allow
-consistent units.
+This is accomplished using :class:`~astropy.utils.state.ScienceState` classes
+in the top-level package. Setting the prior versions at the start of a Python
+session will allow consistent units.
 
 Example
 =======
@@ -26,13 +26,14 @@ To initialize units to a prior version of constants:
 >>> import astropy.constants as const
 >>> (const.M_sun / u.M_sun).to(u.dimensionless_unscaled) - 1  # doctest: +SKIP
 <Quantity 0.>
->>> const.M_sun  # doctest: +SKIP
+>>> print(const.M_sun)  # doctest: +SKIP
   Name   = Solar mass
   Value  = 1.9891e+30
   Uncertainty  = 5e+25
   Unit  = kg
   Reference = Allen's Astrophysical Quantities 4th Ed.
 
-If `astropy.units` has already been imported, a RuntimeError is raised.
+If :mod:`astropy.units` has already been imported, a :class:`RuntimeError` is
+raised.
 
 .. EXAMPLE END
