@@ -7,12 +7,16 @@ Cosmological Calculations (`astropy.cosmology`)
 Introduction
 ============
 
-The `astropy.cosmology` sub-package contains classes for representing
+The :mod:`astropy.cosmology` sub-package contains classes for representing
 cosmologies and utility functions for calculating commonly used
 quantities that depend on a cosmological model. This includes
 distances, ages, and lookback times corresponding to a measured
 redshift or the transverse separation corresponding to a measured
 angular separation.
+
+:mod:`astropy.cosmology.units` extends the :mod:`astropy.units` sub-package,
+adding and collecting cosmological units and equivalencies, like :math:`h` for
+keeping track of (dimensionless) factors of the Hubble constant.
 
 For details on reading and writing cosmologies from files,
 see :ref:`read_write_cosmologies`.
@@ -101,6 +105,8 @@ listed below.
    :maxdepth: 1
 
    Reading and Writing <io>
+   Units and Equivalencies <units>
+
 
 Most of the functionality is enabled by the `~astropy.cosmology.FLRW`
 object. This represents a homogeneous and isotropic cosmology

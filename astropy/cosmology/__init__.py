@@ -8,7 +8,7 @@ detailed usage examples and references.
 
 """
 
-from . import core, funcs, realizations, utils
+from . import core, funcs, realizations, units, utils
 from .core import *
 from .funcs import *
 from .realizations import *
