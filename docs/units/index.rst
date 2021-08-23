@@ -107,14 +107,14 @@ multiply a value by the unscaled dimensionless unit::
 knows about::
 
     >>> (u.s ** -1).compose()  # doctest: +SKIP
-    [Unit("Bq"), Unit("Hz"), Unit("3.7e+10 Ci")]
+    [Unit("Bq"), Unit("Hz"), Unit("2.7027e-11 Ci")]
 
-And it can convert between unit systems, such as SI or CGS:
-
-.. doctest-skip::
+And it can convert between unit systems, such as `SI
+<https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ or `CGS
+<https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_::
 
     >>> (1.0 * u.Pa).cgs
-    <Quantity 10.0 Ba>
+    <Quantity 10. P / s>
 
 The units ``mag``, ``dex``, and ``dB`` are special, being :ref:`logarithmic
 units <logarithmic_units>`, for which a value is the logarithm of a physical
@@ -138,7 +138,8 @@ normally work:
       ...
     UnitConversionError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
-But by passing an equivalency list, in this case ``spectral()``, it does:
+But by passing an equivalency list, in this case
+:func:`~astropy.units.equivalencies.spectral`, it does:
 
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
     <Quantity  2.99792458e+14 Hz>
@@ -209,7 +210,7 @@ See Also
 - OGIP Units: A standard for storing units in `OGIP FITS files
   <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
-- `Standards for astronomical catalogues units
+- `Standards for astronomical catalogues: units
   <http://vizier.u-strasbg.fr/vizier/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
