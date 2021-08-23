@@ -671,7 +671,15 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
                     print_module = False
 
                 fp.write(wrapper.fill(item.description) + '\n')
-                fp.write(f'# {item.name} = {item.defaultvalue}\n\n')
+                if isinstance(item.defaultvalue, (tuple, list)):
+                    if len(item.defaultvalue) == 0:
+                        fp.write(f'# {item.name} = ,\n\n')
+                    elif len(item.defaultvalue) == 1:
+                        fp.write(f'# {item.name} = {item.defaultvalue[0]},\n\n')
+                    else:
+                        fp.write(f'# {item.name} = {",".join(map(str, item.defaultvalue))}\n\n')
+                else:
+                    fp.write(f'# {item.name} = {item.defaultvalue}\n\n')
 
 
 def reload_config(packageormod=None, rootname=None):
