@@ -17,6 +17,8 @@ angular separation.
 For details on reading and writing cosmologies from files,
 see :ref:`read_write_cosmologies`.
 
+For developer notes see :ref:`astropy-cosmology-for-developers`.
+
 
 Getting Started
 ===============
@@ -470,51 +472,6 @@ the above examples also apply for all of the other cosmology classes.
 ..
   EXAMPLE END
 
-For Developers: Using `astropy.cosmology` Inside ``astropy``
-============================================================
-
-If you are writing code for the ``astropy`` core or an affiliated package,
-it is often useful to assume a default cosmology so that the exact
-cosmology does not have to be specified every time a function or method
-is called. In this case, it is possible to specify a "default"
-cosmology.
-
-You can set the default cosmology to a predefined value by using the
-"default_cosmology" option in the ``[cosmology.core]`` section of the
-configuration file (see :ref:`astropy_config`). Alternatively, you can
-use the ``set`` function of `~astropy.cosmology.default_cosmology` to
-set a cosmology for the current Python session. If you have not set a
-default cosmology using one of the methods described above, then the
-cosmology module will default to using the nine-year WMAP parameters.
-
-It is strongly recommended that you use the default cosmology through
-the `~astropy.cosmology.default_cosmology` science state object. An
-override option can then be provided using something like the
-following::
-
-    def myfunc(..., cosmo=None):
-	from astropy.cosmology import default_cosmology
-
-	if cosmo is None:
-	    cosmo = default_cosmology.get()
-
-	... your code here ...
-
-This ensures that all code consistently uses the default cosmology
-unless explicitly overridden.
-
-.. note::
-    In general it is better to use an explicit cosmology (for example
-    ``WMAP9.H(0)`` instead of
-    ``cosmology.default_cosmology.get().H(0)``). Use of the default
-    cosmology should generally be reserved for code that will be
-    included in the ``astropy`` core or an affiliated package.
-
-.. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
-.. include:: performance.inc.rst
-
 See Also
 ========
 
@@ -556,4 +513,15 @@ the fact that five digits are quoted in the papers.
 Reference/API
 =============
 
+More detailed information on using the package is provided on separate pages,
+listed below.
+
+.. toctree::
+   :maxdepth: 1
+
+   Reading and Writing <io>
+   For Developers <dev>
+
+
 .. automodapi:: astropy.cosmology
+   :inherited-members:
