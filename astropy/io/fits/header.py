@@ -1648,6 +1648,22 @@ class Header:
                      'TFIELDS'):
             self.remove(name, ignore_missing=True)
 
+    def size_of_data(self):
+        """
+        Return the size (in bytes) of the data portion following the `Header`.
+        """
+        size = 0
+        naxis = self.get('NAXIS', 0)
+        if naxis > 0:
+            size = 1
+            for idx in range(naxis):
+                size = size * self['NAXIS' + str(idx + 1)]
+            bitpix = self['BITPIX']
+            gcount = self.get('GCOUNT', 1)
+            pcount = self.get('PCOUNT', 0)
+            size = abs(bitpix) * gcount * (pcount + size) // 8
+        return size
+
     def _update(self, card):
         """
         The real update code.  If keyword already exists, its value and/or

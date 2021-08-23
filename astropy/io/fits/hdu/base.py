@@ -374,6 +374,19 @@ class _BaseHDU:
                         checksum=checksum)
 
     @classmethod
+    def size_of_header(cls, header):
+        """
+        Calculate the size of the data of an HDU given a Header object.
+        This allows one to determine the data size of an HDU without
+        having to create the full HDU object.
+
+        Parameters
+        ----------
+        header: FITS Header object
+        """
+        return header.size_of_data()
+
+    @classmethod
     def _from_data(cls, data, header, **kwargs):
         """
         Instantiate the HDU object after guessing the HDU class from the

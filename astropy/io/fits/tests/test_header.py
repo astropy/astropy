@@ -2515,6 +2515,20 @@ class TestHeaderFunctions(FitsTestCase):
         assert header[('C', np.int16(0))] == 'BAZ'
         assert header[('C', np.uint32(1))] == 'BAZBAZ'
 
+    def test_header_data_size(self):
+        """
+        Tests data size calculation given a Header.
+        """
+        hdu = fits.PrimaryHDU()
+        header = hdu.header
+        assert header.size_of_data() == 0
+
+        header['BITPIX'] = 32
+        header['NAXIS'] = 2
+        header['NAXIS1'] = 100
+        header['NAXIS2'] = 100
+        assert header.size_of_data() == 40000
+
 
 class TestRecordValuedKeywordCards(FitsTestCase):
     """
