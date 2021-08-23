@@ -73,6 +73,8 @@ The current unit and value can be accessed via the
 
 .. EXAMPLE END
 
+.. _quantity_unit_conversion:
+
 Converting to Different Units
 =============================
 
@@ -134,6 +136,8 @@ Plotting Quantities
 
 |Quantity| objects can be conveniently plotted using matplotlib — see
 :ref:`plotting-quantities` for more details.
+
+.. _quantity_arithmetic:
 
 Arithmetic
 ==========
@@ -228,6 +232,8 @@ This method is also useful for more complicated arithmetic:
     <Quantity 3.41950973 kg m2 / s2>
 
 .. EXAMPLE END
+
+.. _quantity_and_numpy:
 
 NumPy Functions
 ===============
