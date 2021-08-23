@@ -24,7 +24,7 @@ class Conf(_config.ConfigNamespace):
 
     css_urls = _config.ConfigItem(
         ['https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css'],
-        'The URLs to the css file(s) to include.', cfgtype='list')
+        'The URLs to the css file(s) to include.', cfgtype='string_list')
 
 
 conf = Conf()
