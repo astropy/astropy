@@ -441,12 +441,12 @@ supported for functions that should accept inputs with multiple valid units:
 Representing Vectors with Units
 ===============================
 
-|Quantity| objects can, like ``numpy`` arrays, be used to represent vectors by
-assigning specific dimensions to represent the coordinates, as described in
-:ref:`structured_units`. However, in some cases
-:ref:`astropy-coordinates-representations` can be more convenient as doing so
-allows you to use representations other than Cartesian (such as spherical or
-cylindrical), as well as simple vector arithmetic.
+|Quantity| objects can, like ``numpy`` arrays, be used to represent vectors or
+matrices by assigning specific dimensions to represent the coordinates or
+matrix elements, but that implies tracking those dimensions carefully. For
+vectors :ref:`astropy-coordinates-representations` can be more convenient as
+doing so allows you to use representations other than Cartesian (such as
+spherical or cylindrical), as well as simple vector arithmetic.
 
 .. _astropy-units-quantity-no-copy:
 
