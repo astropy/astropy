@@ -561,6 +561,18 @@ class TestCore(FitsTestCase):
                                         hdu.header[:len(hdu2.header)])
                             assert np.all(hdu.data == hdu2.data)
 
+    def test_hdu_size_of_header(self):
+        """
+        Tests the calculation of data size given a Header to
+        the HDU classmethod.
+        """
+        header = fits.Header()
+        header['BITPIX'] = 32
+        header['NAXIS'] = 2
+        header['NAXIS1'] = 100
+        header['NAXIS2'] = 100
+        assert fits.PrimaryHDU.size_of_header(header) == 40000
+
 
 class TestConvenienceFunctions(FitsTestCase):
     def test_writeto(self):
