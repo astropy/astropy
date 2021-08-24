@@ -63,7 +63,7 @@ literature as just ``h``, here it is ``littleh`` to avoid confusion with
 "hours."
 
 If no argument is given (or the argument is `None`), this equivalency assumes
-the ``H0`` from the current default :ref:`cosmology <astropy-cosmology>`:
+the ``H0`` from the current default :class:`~astropy.cosmology.Cosmology`:
 
 .. code-block:: python
 
