@@ -9,7 +9,7 @@ detailed usage examples and references.
 """
 
 from . import core, funcs, units, utils
-from . import _io  # isort: split  # needed before 'realizations'
+from . import io  # isort: split  # needed before 'realizations'
 from . import realizations
 from .core import *
 from .funcs import *
