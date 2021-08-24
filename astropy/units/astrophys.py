@@ -120,14 +120,6 @@ def_unit(['bin'], namespace=_ns, prefixes=True)
 def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,
          format={'latex': r'e^{-}', 'unicode': 'e⁻'})
-# This is not formally a unit, but is used in that way in many contexts, and
-# an appropriate equivalency is only possible if it's treated as a unit (see
-# https://arxiv.org/pdf/1308.4150.pdf for more)
-# Also note that h or h100 or h_100 would be a better name, but they either
-# conflict or have numbers in them, which is apparently disallowed
-def_unit(['littleh'], namespace=_ns, prefixes=False,
-         doc="Reduced/\"dimensionless\" Hubble constant",
-         format={'latex': r'h_{100}'})
 
 ###########################################################################
 # CLEANUP
@@ -145,3 +137,22 @@ del si
 from .utils import generate_unit_summary as _generate_unit_summary
 if __doc__ is not None:
     __doc__ += _generate_unit_summary(globals())
+
+
+# -------------------------------------------------------------------------
+
+def __getattr__(attr):
+    if attr == "littleh":
+        import warnings
+        from astropy.cosmology.units import littleh
+        from astropy.utils.exceptions import AstropyDeprecationWarning
+
+        warnings.warn(
+            ("`littleh` is deprecated from module `astropy.units.astrophys` "
+             "since astropy 5.0 and may be removed in a future version. "
+             "Use `astropy.cosmology.units.littleh` instead."),
+            AstropyDeprecationWarning)
+
+        return littleh
+
+    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
