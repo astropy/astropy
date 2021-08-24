@@ -325,18 +325,18 @@ Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.read` and
 :meth:`astropy.cosmology.Cosmology.write`.
 
-.. code-block:: python
+.. doctest-skip:: win32
 
     >>> import tempfile
     >>> from astropy.cosmology import Planck18
-
+    >>>
     >>> file = tempfile.NamedTemporaryFile()
     >>> Planck18.write(file.name, format="json", overwrite=True)
     >>> with open(file.name) as f: f.readlines()
     ['{"cosmology": "FlatLambdaCDM", "name": "Planck18",
        "H0": {"value": 67.66, "unit": "km / (Mpc s)"}, "Om0": 0.30966,
        ...
-
+    >>>
     >>> cosmo = Cosmology.read(file.name, format="json")
     >>> file.close()
     >>> cosmo == Planck18  # test it round-trips
