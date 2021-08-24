@@ -5,13 +5,15 @@
 ##############################################################################
 # IMPORTS
 
+import contextlib
+
 import pytest
 
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import default_cosmology
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_ASDF
+from astropy.utils.compat.optional_deps import HAS_ASDF, HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ##############################################################################
@@ -64,12 +66,29 @@ def test_littleh():
     assert_quantity_allclose(withlittlehmag.to(u.mag, cu.with_H0(H0_10)), 12 * u.mag)
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
+def test_dimensionless_redshift():
+    """Test the equivalency  ``dimensionless_redshift``.
+    """
+    z = 3 * cu.redshift
+    val = 3 * u.one
+
+    # show units not equal
+    assert z.unit == cu.redshift
+    assert z.unit != u.one
+
+    assert z.to(u.one, equivalencies=cu.dimensionless_redshift()) == val
+
+    with u.add_enabled_equivalencies(cu.dimensionless_redshift()):
+        assert z.to(u.one) == val
+
+
 @pytest.mark.skipif(not HAS_ASDF, reason="requires ASDF")
-@pytest.mark.parametrize('equiv', [cu.with_H0()])
-def test_equivalencies(tmpdir, equiv):
+@pytest.mark.parametrize('equiv', [cu.with_H0(), cu.dimensionless_redshift()])
+def test_equivalencies_asdf(tmpdir, equiv):
     from asdf.tests import helpers
 
     tree = {'equiv': equiv}
-
-    with pytest.warns(AstropyDeprecationWarning, match="`with_H0`"):
+    with (pytest.warns(AstropyDeprecationWarning, match="`with_H0`")
+          if equiv.__name__ == "with_H0" else contextlib.nullcontext()):
         helpers.assert_roundtrip_tree(tree, tmpdir)
