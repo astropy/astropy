@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 # LOCAL
 from astropy import units as u
 from astropy.units.equivalencies import Equivalency
-from astropy import constants, cosmology
+from astropy import constants
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -835,28 +835,6 @@ def test_plate_scale():
 
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale)), mm)
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale2)), mm)
-
-
-def test_littleh():
-    H0_70 = 70*u.km/u.s/u.Mpc
-    h70dist = 70 * u.Mpc/u.littleh
-
-    assert_quantity_allclose(h70dist.to(u.Mpc, u.with_H0(H0_70)), 100*u.Mpc)
-
-    # make sure using the default cosmology works
-    cosmodist = cosmology.default_cosmology.get().H0.value * u.Mpc/u.littleh
-    assert_quantity_allclose(cosmodist.to(u.Mpc, u.with_H0()), 100*u.Mpc)
-
-    # Now try a luminosity scaling
-    h1lum = .49 * u.Lsun * u.littleh**-2
-    assert_quantity_allclose(h1lum.to(u.Lsun, u.with_H0(H0_70)), 1*u.Lsun)
-
-    # And the trickiest one: magnitudes.  Using H0=10 here for the round numbers
-    H0_10 = 10*u.km/u.s/u.Mpc
-    # assume the "true" magnitude M = 12.
-    # Then M - 5*log_10(h)  = M + 5 = 17
-    withlittlehmag = 17 * (u.mag - u.MagUnit(u.littleh**2))
-    assert_quantity_allclose(withlittlehmag.to(u.mag, u.with_H0(H0_10)), 12*u.mag)
 
 
 def test_equivelency():

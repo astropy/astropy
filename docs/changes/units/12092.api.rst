@@ -1,0 +1,2 @@
+Unit ``littleh`` and equivalency ``with_H0`` have been moved to the
+``cosmology`` module and are deprecated from ``astropy.units``.

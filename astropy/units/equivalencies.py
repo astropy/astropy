@@ -25,7 +25,7 @@ __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
            'brightness_temperature', 'thermodynamic_temperature',
            'beam_angular_area', 'dimensionless_angles', 'logarithmic',
            'temperature', 'temperature_energy', 'molar_mass_amu',
-           'pixel_scale', 'plate_scale', 'with_H0', "Equivalency"]
+           'pixel_scale', 'plate_scale', "Equivalency"]
 
 
 class Equivalency(UserList):
@@ -794,27 +794,20 @@ def plate_scale(platescale):
                        "plate_scale", {'platescale': platescale})
 
 
-def with_H0(H0=None):
-    """
-    Convert between quantities with little-h and the equivalent physical units.
+# -------------------------------------------------------------------------
 
-    Parameters
-    ----------
-    H0 : None or `~astropy.units.Quantity` ['frequency']
-        The value of the Hubble constant to assume. If a `~astropy.units.Quantity`,
-        will assume the quantity *is* ``H0``.  If `None` (default), use the
-        ``H0`` attribute from the default `astropy.cosmology` cosmology.
+def __getattr__(attr):
+    if attr == "with_H0":
+        import warnings
+        from astropy.cosmology.units import with_H0
+        from astropy.utils.exceptions import AstropyDeprecationWarning
 
-    References
-    ----------
-    For an illuminating discussion on why you may or may not want to use
-    little-h at all, see https://arxiv.org/pdf/1308.4150.pdf
-    """
+        warnings.warn(
+            ("`with_H0` is deprecated from `astropy.units.equivalencies` "
+             "since astropy 5.0 and may be removed in a future version. "
+             "Use `astropy.cosmology.units.with_H0` instead."),
+            AstropyDeprecationWarning)
 
-    if H0 is None:
-        from astropy import cosmology
-        H0 = cosmology.default_cosmology.get().H0
+        return with_H0
 
-    h100_val_unit = Unit(100/(H0.to_value((si.km/si.s)/astrophys.Mpc)) * astrophys.littleh)
-
-    return Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
+    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
