@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import inspect
 import json
 import os
 
@@ -11,7 +12,6 @@ import numpy as np
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
-from astropy.cosmology.io.mapping import from_mapping, to_mapping
 from astropy.cosmology.connect import CosmologyRead
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.io import registry as io_registry
@@ -24,7 +24,7 @@ tofrom_formats = [("mapping", dict)]  # (format, data type)
 ###############################################################################
 # Setup
 
-def read_json(filename, key=None, **kwargs):
+def read_json(filename, **kwargs):
     with open(filename, "r") as file:
         data = file.read()
     mapping = json.loads(data)  # parse json mappable to dict
@@ -32,11 +32,19 @@ def read_json(filename, key=None, **kwargs):
     for k, v in mapping.items():
         if isinstance(v, dict) and "value" in v and "unit" in v:
             mapping[k] = u.Quantity(v["value"], v["unit"])
-    return from_mapping(mapping, **kwargs)
+    return Cosmology.from_format(mapping, **kwargs)
 
 
-def write_json(cosmology, file, *, overwrite=False, **kwargs):
-    data = to_mapping(cosmology)  # start by turning into dict
+def write_json(cosmology, file, *, overwrite=False):
+    """Write Cosmology to JSON.
+
+    Parameters
+    ----------
+    cosmology : `astropy.cosmology.Cosmology` subclass instance
+    file : path-like or file-like
+    overwrite : bool (optional, keyword-only)
+    """
+    data = cosmology.to_format("mapping")  # start by turning into dict
     data["cosmology"] = data["cosmology"].__name__  # change class field to str
     # serialize Quantity
     for k, v in data.items():
@@ -73,6 +81,16 @@ def teardown_module(module):
 # Tests
 
 class TestReadWriteCosmology:
+
+    @pytest.mark.parametrize("format", readwrite_formats)
+    def test_write_methods_have_explicit_kwarg_overwrite(self, format):
+        writer = io_registry.get_writer(format, Cosmology)
+        # test in signature
+        sig = inspect.signature(writer)
+        assert "overwrite" in sig.parameters
+
+        # also in docstring
+        assert "overwrite : bool" in writer.__doc__
 
     @pytest.mark.parametrize("format", readwrite_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)

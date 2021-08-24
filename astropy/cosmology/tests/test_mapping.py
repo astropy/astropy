@@ -4,6 +4,7 @@ import pytest
 
 from astropy import cosmology
 from astropy.cosmology import Cosmology
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.table import QTable, vstack
 from astropy.utils.compat import optional_deps
 from astropy.utils.exceptions import AstropyUserWarning
@@ -20,7 +21,11 @@ cosmo_instances = [
 cosmo_instances.append(CosmologyWithKwargs())
 
 
-# -----------------------------------------------------------------------------
+def teardown_module(module):
+    _COSMOLOGY_CLASSES.pop(CosmologyWithKwargs.__qualname__)
+
+
+###############################################################################
 
 @pytest.mark.parametrize("expected", cosmo_instances)
 def test_to_from_mapping_instance(expected):
