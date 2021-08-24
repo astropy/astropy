@@ -77,8 +77,20 @@ def test_dimensionless_redshift():
     assert z.unit == cu.redshift
     assert z.unit != u.one
 
-    assert z.to(u.one, equivalencies=cu.dimensionless_redshift()) == val
+    # test equivalency enabled by default
+    assert z.to(u.one) == val
+    
+    # also test that it works for powers
+    assert (3 * cu.redshift ** 3).to(u.one) == val
 
+    # and in composite units
+    assert (3 * u.km / cu.redshift**3).to(u.km) == 3 * u.km
+
+    # test it also works as an equivalency
+    with u.set_enabled_equivalencies([]):  # turn off default equivalencies
+        assert z.to(u.one, equivalencies=cu.dimensionless_redshift()) == val
+
+    # if this fails, something is really wrong
     with u.add_enabled_equivalencies(cu.dimensionless_redshift()):
         assert z.to(u.one) == val
 

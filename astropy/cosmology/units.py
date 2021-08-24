@@ -70,6 +70,13 @@ def with_H0(H0=None):
     return u.Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
 
 
+# ===================================================================
+# Enable the set of default equivalencies.
+# If the cosmology package is imported, this is added to the list.
+
+u.add_enabled_equivalencies(dimensionless_redshift())
+
+
 # =============================================================================
 # DOCSTRING
 
