@@ -22,7 +22,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     syntax such as::
 
         >>> from astropy.cosmology import Cosmology
-        >>> cosmo1 = Cosmology.read('[file name]')
+        >>> cosmo1 = Cosmology.read('<file name>')
 
     When the ``read`` method is called from a subclass the subclass will
     provide a keyword argument ``cosmology=<class>`` to the registered read
@@ -33,7 +33,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     Get help on the available readers using the ``help()`` method::
 
       >>> Cosmology.read.help()  # Get help reading and list supported formats
-      >>> Cosmology.read.help(format=...)  # Get detailed help on a format
+      >>> Cosmology.read.help(format='<format>')  # Get detailed help on a format
       >>> Cosmology.read.list_formats()  # Print list of available formats
 
     See also: https://docs.astropy.org/en/stable/io/unified.html
@@ -86,13 +86,13 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     using syntax such as::
 
       >>> from astropy.cosmology import Planck18
-      >>> Planck18.write('[file name]')
+      >>> Planck18.write('<file name>')
 
     Get help on the available writers for ``Cosmology`` using the ``help()``
     method::
 
       >>> Cosmology.write.help()  # Get help writing and list supported formats
-      >>> Cosmology.write.help(format=...)  # Get detailed help on format
+      >>> Cosmology.write.help(format='<format>')  # Get detailed help on format
       >>> Cosmology.write.list_formats()  # Print list of available formats
 
     Parameters
@@ -126,7 +126,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     syntax such as::
 
       >>> from astropy.cosmology import Cosmology
-      >>> cosmo1 = Cosmology.from_format([object], format='[format]')
+      >>> cosmo1 = Cosmology.from_format(cosmo_mapping, format='mapping')
 
     When the ``from_format`` method is called from a subclass the subclass will
     provide a keyword argument ``cosmology=<class>`` to the registered parser.
@@ -136,7 +136,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     Get help on the available readers using the ``help()`` method::
 
       >>> Cosmology.from_format.help()  # Get help and list supported formats
-      >>> Cosmology.from_format.help('[format]')  # Get detailed help on a format
+      >>> Cosmology.from_format.help('<format>')  # Get detailed help on a format
       >>> Cosmology.from_format.list_formats()  # Print list of available formats
 
     See also: https://docs.astropy.org/en/stable/io/unified.html
@@ -201,13 +201,13 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
     ``help()`` method::
 
       >>> Cosmology.to_format.help()  # Get help and list supported formats
-      >>> Cosmology.to_format.help('[format]')  # Get detailed help on format
+      >>> Cosmology.to_format.help('<format>')  # Get detailed help on format
       >>> Cosmology.to_format.list_formats()  # Print list of available formats
 
     Parameters
     ----------
     format : str
-        File format specifier.
+        Format specifier.
     *args
         Positional arguments passed through to data writer. If supplied the
         first argument is the output filename.

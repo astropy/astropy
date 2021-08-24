@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-The following are private functions, registered into
-:meth:`~astropy.cosmology.Cosmology.to_format`,
-:meth:`~astropypy.cosmology.Cosmology.from_format`, and should be used via
-these methods. The functions are included here since the dynamic registry
-cannot be displayed.
+The following are private functions, included here **FOR REFERENCE ONLY** since
+the io registry cannot be displayed. These functions are registered into
+:meth:`~astropy.cosmology.Cosmology.to_format` and
+:meth:`~astropy.cosmology.Cosmology.from_format` and should only be accessed
+via these methods.
 """  # this is shown in the docs.
 
 import copy
@@ -118,7 +118,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
 
 
 def to_mapping(cosmology, *args):
-    """Return the cosmology class, inputs, and metadata as a dict.
+    """Return the cosmology class, inputs, and metadata as a `dict`.
 
     Parameters
     ----------
