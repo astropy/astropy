@@ -9,6 +9,47 @@ What's New in Astropy 5.0?
 Overview
 ========
 
+.. _whatsnew-5.0-cosmology:
+
+Support for reading, writing, and converting ``Cosmology``
+==========================================================
+
+Four new methods -- ``read``, ``write``, ``to_format``, ``from_format`` -- have
+been added to the ``Cosmology`` class, enabling reading from and writing to
+files and converting between different python objects.
+The methods use Astropy's Unified I/O registry so custom formats can be
+registered. Details are discussed in an addition to the docs.
+
+Currently no file formats are registered, but the syntax is as follows:
+
+.. doctest-skip::
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.write('<file name>.<format>')
+    >>>
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.read('<file name>.<format>')
+    >>> cosmo == Planck18
+    True
+
+
+The transformation between ``Cosmology`` and `dict` is pre-registered,
+e.g. enabling::
+
+    >>> from astropy.cosmology import Planck18
+    >>> cm = Planck18.to_format("mapping")
+    >>> cm
+    {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
+     'name': 'Planck18',
+     'H0': <Quantity 67.66 km / (Mpc s)>,
+     'Om0': 0.30966,
+     ...
+
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.from_format(cm, format="mapping")
+    >>> cosmo == Planck18
+    True
+
 
 Full change log
 ===============
