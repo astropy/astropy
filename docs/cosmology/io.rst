@@ -80,7 +80,8 @@ These intermediate representations are accessible through the methods
 .. EXAMPLE START: Planck18 to mapping and back
 
     >>> from astropy.cosmology import Planck18
-    >>> cm = Planck18.to_format("mapping"); cm
+    >>> cm = Planck18.to_format("mapping")
+    >>> cm
     {'cosmology': astropy.cosmology.core.FlatLambdaCDM,
      'name': 'Planck18',
      'H0': <Quantity 67.66 km / (Mpc s)>,
@@ -109,46 +110,73 @@ Custom representation formats may also be registered into the Astropy Cosmology
 I/O framework for use by these methods. For details of the framework see
 :ref:`io_registry`.
 
-As an example, the following is an implementation of an `astropy.table.Row`
-converter.
+.. EXAMPLE START : custom to/from format
 
-.. code-block:: python
+    As an example, the following is an implementation of an `astropy.table.Row`
+    converter. Note that we can use other registered parsers -- here ``mapping``
+    -- to make the implementation much simpler.
 
-    def from_table_row(row, *, **kwargs):
-        name = row['name'] if 'name' in row.columns else None  # get name from column
-        meta = copy.deepcopy(row.meta)
-        # turn row into mapping (dict of the arguments)
-        mapping = dict(row)
-        mapping["cosmology"] = meta.pop("cosmology")
-        mapping["meta"] = meta
-        # build cosmology from map
-        return from_mapping(mapping, move_to_meta=move_to_meta, **kwargs)
+    We start by defining the function to parse a `astropy.table.Row` into a
+    `~astropy.cosmology.Cosmology`. This function should take 1 positional
+    argument, the row object, and 2 keyword arguments, for how to handle
+    extra metadata and which Cosmology class to use. Details of each are in
+    ``from_mapping`` or ``Cosmology.from_format.help("mapping")``.
+
+    .. code-block:: python
+    
+        from astropy.cosmology.io.mapping import from_mapping, to_mapping
+    
+        def from_table_row(row, *, move_to_meta=False, cosmology=None):
+            # get name from column
+            name = row['name'] if 'name' in row.columns else None
+            meta = copy.deepcopy(row.meta)
+            # turn row into mapping (dict of the arguments)
+            mapping = dict(row)
+            mapping["cosmology"] = meta.pop("cosmology")
+            mapping["meta"] = meta
+            # build cosmology from map
+            return from_mapping(mapping, move_to_meta=move_to_meta, cosmology=cosmology)
+
+    The next step is a function to perform the reverse operation: parse a
+    `~astropy.cosmology.Cosmology` into a `astropy.table.Row`. This function
+    only the cosmology object and also ``*args`` to absorb unneeded information
+    passed by `astropy.io.registry.UnifiedReadWrite`, which implements
+    `astropy.cosmology.Cosmology.to_format`.
+
+    .. code-block:: python
+
+        from astropy.cosmology.io.mapping import to_mapping
+
+        def to_table_row(cosmology, *args):
+            # start by getting a map representation
+            p = to_mapping(cosmology)
+            # create metadata from mapping
+            meta = p.pop("meta")
+            meta["cosmology"] = p.pop("cosmology").__name__
+            # package parameters into lists for Table parsing
+            params = {k: [v] for k, v in p.items()}
+            return QTable(params, meta=meta)[0]  # return row
+
+    Last we write a function to help with format auto-identification and then
+    register everything into `astropy.io.registry`.
+
+    .. code-block:: python
+
+        froma astropy.cosmology import Cosmology
+        from astropy.io import registry as io_registry
+        from astropy.table import Row
 
 
-    def to_table_row(cosmology, *args, **kwargs):
-        # start by getting a map representation. This requires minimal repackaging.
-        p = to_mapping(cosmology)
-        # create metadata from mapping
-        meta = p.pop("meta")
-        meta["cosmology"] = p.pop("cosmology").__name__  # move class to Table meta
-        # package parameters into lists for Table parsing
-        params = {k: [v] for k, v in p.items()}
-        return QTable(params, meta=meta)
-
-
-    def row_identify(origin, format, *args, **kwargs):
-        """Identify if object uses the Table format."""
-        if origin == "write":
-            return format == "row"
-        elif origin == "read":
-            return isinstance(args[1], Row) and (format in (None, "row"))
-        return False
-
-
-    # register the methods
-    io_registry.register_reader("row", Cosmology, from_table_row)
-    io_registry.register_writer("row", Cosmology, to_table_row)
-    io_registry.register_identifier("row", Cosmology, row_identify)
+        def row_identify(origin, format, *args, **kwargs):
+            """Identify if object uses the Table format."""
+            if origin == "read":
+                return isinstance(args[1], Row) and (format in (None, "row"))
+            return False
+    
+        # register the methods
+        io_registry.register_reader("row", Cosmology, from_table_row)
+        io_registry.register_writer("row", Cosmology, to_table_row)
+        io_registry.register_identifier("row", Cosmology, row_identify)
 
 .. EXAMPLE END
 
