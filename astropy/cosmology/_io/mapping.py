@@ -5,9 +5,9 @@ from collections.abc import Mapping
 
 import numpy as np
 
+from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.io import registry as io_registry
 from astropy.table import QTable
-from astropy.cosmology.core import Cosmology, _COSMOLOGY_CLASSES
 
 
 def from_mapping(map, *, move_to_meta=False, **kwargs):

@@ -194,7 +194,7 @@ class TestCosmologyToFromFormat:
 
     @pytest.mark.parametrize("format_type", tofrom_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_format_roundtrip(self, instance, format_type):
+    def test_format_complete_info(self, instance, format_type):
         """Read tests happen later."""
         format, objtype = format_type
         cosmo = getattr(cosmology.realizations, instance)
@@ -212,17 +212,20 @@ class TestCosmologyToFromFormat:
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
 
+    @pytest.mark.parametrize("format_type", tofrom_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_tofrom_format_with_subclass(self, instance):
-        format, objtype = ("mapping", dict)
+    def test_from_subclass_complete_info(self, instance, format_type):
+        """
+        Test transforming an instance and parsing from that class, when there's
+        full information available.
+        """
+        format, objtype = format_type
         cosmo = getattr(cosmology.realizations, instance)
 
         # test to_format
         obj = cosmo.to_format(format)
         assert isinstance(obj, objtype)
 
-        # ----------
-        # simple test
         # read with the same class that wrote.
         got = cosmo.__class__.from_format(obj, format=format)
         got2 = Cosmology.from_format(obj)  # and autodetect
@@ -231,7 +234,33 @@ class TestCosmologyToFromFormat:
         assert got == cosmo  # external consistency
         assert got.meta == cosmo.meta
 
-        # ----------
+        # this should be equivalent to
+        got = Cosmology.from_format(obj, format=format, cosmology=cosmo.__class__)
+        assert got == cosmo
+        assert got.meta == cosmo.meta
+
+        # and also
+        got = Cosmology.from_format(obj, format=format, cosmology=cosmo.__class__.__qualname__)
+        assert got == cosmo
+        assert got.meta == cosmo.meta
+
+    @pytest.mark.parametrize("instance", cosmo_instances)
+    def test_from_subclass_partial_info(self, instance):
+        """
+        Test writing from an instance and reading from that class.
+        This requires partial information.
+
+        .. todo::
+
+            generalize over all formats for this test.
+        """
+        format, objtype = ("mapping", dict)
+        cosmo = getattr(cosmology.realizations, instance)
+
+        # test to_format
+        obj = cosmo.to_format(format)
+        assert isinstance(obj, objtype)
+
         # partial information
         tempobj = copy.deepcopy(obj)
         del tempobj["cosmology"]
@@ -240,6 +269,10 @@ class TestCosmologyToFromFormat:
         # read with the same class that wrote fills in the missing info with
         # the default value
         got = cosmo.__class__.from_format(tempobj, format=format)
+        got2 = Cosmology.from_format(tempobj, format=format, cosmology=cosmo.__class__)
+        got3 = Cosmology.from_format(tempobj, format=format, cosmology=cosmo.__class__.__qualname__)
+
+        assert (got == got2) and (got2 == got3)  # internal consistency
 
         # not equal, because Tcmb0 is changed
         assert got != cosmo
@@ -248,7 +281,24 @@ class TestCosmologyToFromFormat:
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-        # ----------
+    @pytest.mark.parametrize("format_type", tofrom_formats)
+    @pytest.mark.parametrize("instance", cosmo_instances)
+    def test_reader_class_mismatch(self, instance, format_type):
+        """Test when the reader class doesn't match the object."""
+        format, objtype = format_type
+        cosmo = getattr(cosmology.realizations, instance)
+
+        # test to_format
+        obj = cosmo.to_format(format)
+        assert isinstance(obj, objtype)
+
         # class mismatch
         with pytest.raises(TypeError, match="missing 1 required"):
             w0wzCDM.from_format(obj, format=format)
+
+        with pytest.raises(TypeError, match="missing 1 required"):
+            Cosmology.from_format(obj, format=format, cosmology=w0wzCDM)
+
+        # when specifying the class
+        with pytest.raises(ValueError, match="`cosmology` must be either"):
+            w0wzCDM.from_format(obj, format=format, cosmology="FlatLambdaCDM")

@@ -77,17 +77,27 @@ intermediate representations, often a dict or `~astropy.table.QTable` instance.
 These intermediate representations are accessible through the methods
 ``to_format`` / ``from_format``.
 
-.. EXAMPLE START: Planck18 to mapping
+.. EXAMPLE START: Planck18 to mapping and back
 
     >>> from astropy.cosmology import Planck18
-    >>> Planck18.to_format("mapping")
+    >>> cm = Planck18.to_format("mapping"); cm
     {'cosmology': astropy.cosmology.core.FlatLambdaCDM,
      'name': 'Planck18',
      'H0': <Quantity 67.66 km / (Mpc s)>,
      'Om0': 0.30966,
      ...
 
+    Now this dict can be used to load a new cosmological instance identical
+    to the ``Planck18`` cosmology from which it was created.
+
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.from_format(cm, format="mapping")
+    >>> cosmo == Planck18
+    True
+
 .. EXAMPLE END
+
+
 
 
 .. _custom_cosmology_converters:
@@ -95,9 +105,9 @@ These intermediate representations are accessible through the methods
 Custom Cosmology To/From Formats
 ================================
 
-Custom representation formats may also be
-registered into the Astropy Cosmology I/O framework for use by these methods.
-For details of the framework see :ref:`io_registry`.
+Custom representation formats may also be registered into the Astropy Cosmology
+I/O framework for use by these methods. For details of the framework see
+:ref:`io_registry`.
 
 As an example, the following is an implementation of an `astropy.table.Row`
 converter.
