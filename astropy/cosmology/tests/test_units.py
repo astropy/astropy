@@ -12,6 +12,7 @@ import astropy.units as u
 from astropy.cosmology import default_cosmology
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_ASDF
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ##############################################################################
 # TESTS
@@ -25,7 +26,8 @@ def test_has_expected_units():
     not usage. Units from :mod:`astropy.units` are tested in that module. Units
     defined in :mod:`astropy.cosmology` will be tested subsequently.
     """
-    assert u.astrophys.littleh is cu.littleh
+    with pytest.warns(AstropyDeprecationWarning, match="`littleh`"):
+        assert u.astrophys.littleh is cu.littleh
 
 
 def test_has_expected_equivalencies():
@@ -36,7 +38,8 @@ def test_has_expected_equivalencies():
     that module. Equivalencies defined in :mod:`astropy.cosmology` will be
     tested subsequently.
     """
-    assert u.equivalencies.with_H0 is cu.with_H0
+    with pytest.warns(AstropyDeprecationWarning, match="`with_H0`"):
+        assert u.equivalencies.with_H0 is cu.with_H0
 
 
 def test_littleh():
@@ -67,4 +70,6 @@ def test_equivalencies(tmpdir, equiv):
     from asdf.tests import helpers
 
     tree = {'equiv': equiv}
-    helpers.assert_roundtrip_tree(tree, tmpdir)
+
+    with pytest.warns(AstropyDeprecationWarning, match="`with_H0`"):
+        helpers.assert_roundtrip_tree(tree, tmpdir)

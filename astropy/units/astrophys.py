@@ -145,6 +145,13 @@ def __getattr__(attr):
     if attr == "littleh":
         import warnings
         from astropy.cosmology.units import littleh
+        from astropy.utils.exceptions import AstropyDeprecationWarning
+
+        warnings.warn(
+            ("`littleh` is deprecated from module `astropy.units.astrophys` "
+             "since astropy 5.0 and may be removed in a future version. "
+             "Use `astropy.cosmology.units.littleh` instead."),
+            AstropyDeprecationWarning)
 
         return littleh
 
