@@ -67,8 +67,8 @@ the ``H0`` from the current default :ref:`cosmology <astropy-cosmology>`:
 
 .. code-block:: python
 
-    >>> distance = 100 * (u.Mpc/u.littleh)
-    >>> distance.to(u.Mpc, u.with_H0())  # doctest: +FLOAT_CMP
+    >>> distance = 100 * (u.Mpc/cu.littleh)
+    >>> distance.to(u.Mpc, cu.with_H0())  # doctest: +FLOAT_CMP
     <Quantity 147.79781259 Mpc>
 
 This equivalency also allows a common magnitude formulation of little h
@@ -76,10 +76,10 @@ scaling:
 
 .. code-block:: python
 
-    >>> mag_quantity = 12 * (u.mag - u.MagUnit(u.littleh**2))
+    >>> mag_quantity = 12 * (u.mag - u.MagUnit(cu.littleh**2))
     >>> mag_quantity  # doctest: +FLOAT_CMP
     <Magnitude 12. mag(1 / littleh2)>
-    >>> mag_quantity.to(u.mag, u.with_H0(H0_70))  # doctest: +FLOAT_CMP
+    >>> mag_quantity.to(u.mag, cu.with_H0(H0_70))  # doctest: +FLOAT_CMP
     <Quantity 11.2254902 mag>
 
 .. EXAMPLE END
@@ -90,5 +90,3 @@ Reference/API
 
 .. automodapi:: astropy.cosmology.units
    :inherited-members:
-   :include-all-objects:
-   :allowed-package-names: astropy.units
