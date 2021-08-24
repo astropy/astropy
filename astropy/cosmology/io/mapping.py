@@ -1,5 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""
+The following are private functions, registered into
+:meth:`~astropy.cosmology.Cosmology.to_format`,
+:meth:`~astropypy.cosmology.Cosmology.from_format`, and should be used via
+these methods. The functions are included here since the dynamic registry
+cannot be displayed.
+"""  # this is shown in the docs.
+
 import copy
 from collections.abc import Mapping
 
@@ -8,6 +16,8 @@ import numpy as np
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.io import registry as io_registry
 from astropy.table import QTable
+
+__all__ = ["from_mapping", "to_mapping"]
 
 
 def from_mapping(map, *, move_to_meta=False, cosmology=None):

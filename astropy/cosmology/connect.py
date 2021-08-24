@@ -25,7 +25,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         >>> cosmo1 = Cosmology.read('[file name]')
 
     When the ``read`` method is called from a subclass the subclass will
-    provide a keyword argument ``cosmology=[class]`` to the registered read
+    provide a keyword argument ``cosmology=<class>`` to the registered read
     method. The method uses this cosmology class, regardless of the class
     indicated in the file, and sets parameters' default values from the class'
     signature.
@@ -33,7 +33,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     Get help on the available readers using the ``help()`` method::
 
       >>> Cosmology.read.help()  # Get help reading and list supported formats
-      >>> Cosmology.read.help('[format]')  # Get detailed help on a format
+      >>> Cosmology.read.help(format=...)  # Get detailed help on a format
       >>> Cosmology.read.list_formats()  # Print list of available formats
 
     See also: https://docs.astropy.org/en/stable/io/unified.html
@@ -82,17 +82,17 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     """Write this Cosmology object out in the specified format.
 
     This function provides the Cosmology interface to the astropy unified I/O
-    layer.  This allows easily writing a file in supported data formats
+    layer. This allows easily writing a file in supported data formats
     using syntax such as::
 
       >>> from astropy.cosmology import Planck18
       >>> Planck18.write('[file name]')
 
-    Get help on the available writers for ``Cosmology`` using the``help()``
+    Get help on the available writers for ``Cosmology`` using the ``help()``
     method::
 
       >>> Cosmology.write.help()  # Get help writing and list supported formats
-      >>> Cosmology.write.help('[format]')  # Get detailed help on format
+      >>> Cosmology.write.help(format=...)  # Get detailed help on format
       >>> Cosmology.write.list_formats()  # Print list of available formats
 
     Parameters
@@ -129,7 +129,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
       >>> cosmo1 = Cosmology.from_format([object], format='[format]')
 
     When the ``from_format`` method is called from a subclass the subclass will
-    provide a keyword argument ``cosmology=[class]`` to the registered parser.
+    provide a keyword argument ``cosmology=<class>`` to the registered parser.
     The method uses this cosmology class, regardless of the class indicated in
     the data, and sets parameters' default values from the class' signature.
 
@@ -150,7 +150,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     format : str (optional, keyword-only)
         Object format specifier.
     **kwargs
-        Keyword arguments passed through to data reader.
+        Keyword arguments passed through to data parser.
 
     Returns
     -------
@@ -220,5 +220,5 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         super().__init__(instance, cls, "write")
 
     def __call__(self, format, *args, **kwargs):
-        return io_registry.write(self._instance, format, *args, format=format,
+        return io_registry.write(self._instance, None, *args, format=format,
                                  **kwargs)
