@@ -6,9 +6,13 @@ import warnings
 from astropy.io import registry as io_registry
 from astropy.utils.exceptions import AstropyUserWarning
 
-__all__ = ["CosmologyRead", "CosmologyWrite"]
+__all__ = ["CosmologyRead", "CosmologyWrite",
+           "CosmologyFromFormat", "CosmologyToFormat"]
 __doctest_skip__ = __all__
 
+
+# ==============================================================================
+# Read / Write
 
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
@@ -106,3 +110,102 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
 
     def __call__(self, *args, **kwargs):
         io_registry.write(self._instance, *args, **kwargs)
+
+
+# ==============================================================================
+# Format Interchange
+# for transforming instances, e.g. Cosmology <-> dict
+
+class CosmologyFromFormat(io_registry.UnifiedReadWrite):
+    """Transform object to a `~astropy.cosmology.Cosmology`.
+
+    This function provides the Cosmology interface to the Astropy unified I/O
+    layer. This allows easily parsing supported data formats using
+    syntax such as::
+
+      >>> from astropy.cosmology import Cosmology
+      >>> cosmo1 = Cosmology.from_format([object], format='[format]')
+
+    When the ``from_format`` method is called from a subclass the subclass will
+    provide a keyword argument ``cosmology=[class]`` to the registered parser.
+    The method uses this cosmology class, regardless of the class indicated in
+    the data, and sets parameters' default values from the class' signature.
+
+    Get help on the available readers using the ``help()`` method::
+
+      >>> Cosmology.from_format.help()  # Get help and list supported formats
+      >>> Cosmology.from_format.help('[format]')  # Get detailed help on a format
+      >>> Cosmology.from_format.list_formats()  # Print list of available formats
+
+    See also: https://docs.astropy.org/en/stable/io/unified.html
+
+    Parameters
+    ----------
+    obj : object
+        The object to parse according to 'format'
+    *args
+        Positional arguments passed through to data parser.
+    format : str (optional, keyword-only)
+        Object format specifier.
+    **kwargs
+        Keyword arguments passed through to data reader.
+
+    Returns
+    -------
+    out : `~astropy.cosmology.Cosmology` subclass instance
+        `~astropy.cosmology.Cosmology` corresponding to ``obj`` contents.
+    """
+
+    def __init__(self, instance, cosmo_cls):
+        super().__init__(instance, cosmo_cls, "read")
+
+    def __call__(self, obj, *args, **kwargs):
+        from astropy.cosmology.core import Cosmology
+
+        # so subclasses can override also pass the class as a kwarg.
+        if self._cls is not Cosmology:
+            kwargs["cosmology"] = self._cls
+
+        cosmo = io_registry.read(self._cls, obj, *args, **kwargs)
+        return cosmo
+
+
+class CosmologyToFormat(io_registry.UnifiedReadWrite):
+    """Transform this Cosmology to another format.
+
+    This function provides the Cosmology interface to the astropy unified I/O
+    layer. This allows easily transforming to supported data formats
+    using syntax such as::
+
+      >>> from astropy.cosmology import Planck18
+      >>> Planck18.to_format("mapping")
+      {'cosmology': astropy.cosmology.core.FlatLambdaCDM,
+       'name': 'Planck18',
+       'H0': <Quantity 67.66 km / (Mpc s)>,
+       'Om0': 0.30966,
+       ...
+
+    Get help on the available representations for ``Cosmology`` using the
+    ``help()`` method::
+
+      >>> Cosmology.to_format.help()  # Get help and list supported formats
+      >>> Cosmology.to_format.help('[format]')  # Get detailed help on format
+      >>> Cosmology.to_format.list_formats()  # Print list of available formats
+
+    Parameters
+    ----------
+    format : str
+        File format specifier.
+    *args
+        Positional arguments passed through to data writer. If supplied the
+        first argument is the output filename.
+    **kwargs
+        Keyword arguments passed through to data writer.
+    """
+
+    def __init__(self, instance, cls):
+        super().__init__(instance, cls, "write")
+
+    def __call__(self, format, *args, **kwargs):
+        return io_registry.write(self._instance, format, *args, format=format,
+                                 **kwargs)

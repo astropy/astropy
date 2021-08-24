@@ -1,0 +1,13 @@
+Added ``to_format/from_format`` methods to Cosmology using the Unified I/O
+registry. Now custom format converters and format-identifier functions
+can be registered to transform Cosmology objects.
+Details are discussed in an addition to the docs.
+The transformation between Cosmology and dictionaries is pre-registered,
+e.g. enabling::
+
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> Planck18.to_format('mapping')
+    {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
+     'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
+     'Tcmb0': 2.7255, 'Neff': 3.046, 'm_nu': <Quantity [0. , 0. , 0.06] eV>,
+     'Ob0': 0.04897, 'meta': ...

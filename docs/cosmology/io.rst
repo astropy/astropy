@@ -2,8 +2,8 @@
 
 .. _read_write_cosmologies:
 
-Reading and Writing Cosmology Objects
-*************************************
+Read, Write, and Convert Cosmology Objects
+******************************************
 
 An easy way to serialize and deserialize a Cosmology object is using the
 :mod:`pickle` module.
@@ -71,6 +71,76 @@ signature.
     >>> cosmo = FlatLambdaCDM.read('[file name]')
     >>> cosmo == Planck18
     True
+    
+Reading and writing :class:`~astropy.cosmology.Cosmology` objects go through
+intermediate representations, often a dict or `~astropy.table.QTable` instance.
+These intermediate representations are accessible through the methods
+``to_format`` / ``from_format``.
+
+.. EXAMPLE START: Planck18 to mapping
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.to_format("mapping")
+    {'cosmology': astropy.cosmology.core.FlatLambdaCDM,
+     'name': 'Planck18',
+     'H0': <Quantity 67.66 km / (Mpc s)>,
+     'Om0': 0.30966,
+     ...
+
+.. EXAMPLE END
+
+
+.. _custom_cosmology_converters:
+
+Custom Cosmology To/From Formats
+================================
+
+Custom representation formats may also be
+registered into the Astropy Cosmology I/O framework for use by these methods.
+For details of the framework see :ref:`io_registry`.
+
+As an example, the following is an implementation of an `astropy.table.Row`
+converter.
+
+.. code-block:: python
+
+    def from_table_row(row, *, **kwargs):
+        name = row['name'] if 'name' in row.columns else None  # get name from column
+        meta = copy.deepcopy(row.meta)
+        # turn row into mapping (dict of the arguments)
+        mapping = dict(row)
+        mapping["cosmology"] = meta.pop("cosmology")
+        mapping["meta"] = meta
+        # build cosmology from map
+        return from_mapping(mapping, move_to_meta=move_to_meta, **kwargs)
+
+
+    def to_table_row(cosmology, *args, **kwargs):
+        # start by getting a map representation. This requires minimal repackaging.
+        p = to_mapping(cosmology)
+        # create metadata from mapping
+        meta = p.pop("meta")
+        meta["cosmology"] = p.pop("cosmology").__name__  # move class to Table meta
+        # package parameters into lists for Table parsing
+        params = {k: [v] for k, v in p.items()}
+        return QTable(params, meta=meta)
+
+
+    def row_identify(origin, format, *args, **kwargs):
+        """Identify if object uses the Table format."""
+        if origin == "write":
+            return format == "row"
+        elif origin == "read":
+            return isinstance(args[1], Row) and (format in (None, "row"))
+        return False
+
+
+    # register the methods
+    io_registry.register_reader("row", Cosmology, from_table_row)
+    io_registry.register_writer("row", Cosmology, to_table_row)
+    io_registry.register_identifier("row", Cosmology, row_identify)
+
+.. EXAMPLE END
 
 
 .. _custom_cosmology_readers_writers:
@@ -86,23 +156,39 @@ As a quick example, outlining how to make a
 .. code-block:: python
 
    import json
+   import os
    from astropy.cosmology import Cosmology
    from astropy.io import registry as io_registry
 
    def read_json(filename, **kwargs):
-       cosmology = ...  # read and parse file
-       return cosmology
+       # read file, from path-like or file-like
+       if isinstance(filename, (str, bytes, os.PathLike)):  # pathlike
+           with open(filename, "r") as file:
+               data = file.read()
+       else:  # file-like
+           data = filename.read()
 
-   def write_json(cosmology, file, **kwargs):
-       data = ...  # parse cosmology to dict
-       with open(file, "w") as write_file:
-            json.dump(data, write_file)
+       mapping = json.loads(data)  # parse json to dict
+       return Cosmology.from_format(mapping, move_to_meta=move_to_meta)
+
+   def write_json(cosmology, file, overwrite=False, **kwargs):
+       data = cosmology.to_format("mapping")  # start by turning into dict
+       data["cosmology"] = data["cosmology"].__name__  # change class to str
+
+       if isinstance(file, _all_pathlike):  # pathlike
+           # check that file exists and whether to overwrite.
+           if os.path.exists(file) and not overwrite:
+               raise IOError(f"{file} exists. Set 'overwrite' to write over.")
+           with open(file, "w") as write_file:
+               json.dump(data, write_file)
+       else:  # file-like or error (this handles errors in dumping)
+           json.dump(data, file)
 
    def json_identify(origin, filepath, fileobj, *args, **kwargs):
        """Identify if object uses the JSON format."""
        return filepath is not None and filepath.endswith(".json")
 
-   # register the read/write methods 
+   # register the read/write methods
    io_registry.register_reader("json", Cosmology, read_json)
    io_registry.register_writer("json", Cosmology, write_json)
    io_registry.register_identifier("json", Cosmology, json_identify)
