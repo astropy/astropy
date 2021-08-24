@@ -11,6 +11,7 @@ from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .core import CosmologyError
+from .units import redshift as redshift_unit
 
 __all__ = ['z_at_value']
 
@@ -121,15 +122,15 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     func : function or method
        A function that takes a redshift as input.
 
-    fval : `~astropy.units.Quantity` instance
-       The (scalar or vector) value of ``func(z)`` to recover.
+    fval : `~astropy.units.Quantity`
+       The (scalar or array) value of ``func(z)`` to recover.
 
-    zmin : float or array-like['dimensionless'], optional
+    zmin : float or array-like['dimensionless'] or quantity-like, optional
        The lower search limit for ``z``.  Beware of divergences
        in some cosmological functions, such as distance moduli,
        at z=0 (default 1e-8).
 
-    zmax : float or array-like['dimensionless'], optional
+    zmax : float or array-like['dimensionless'] or quantity-like, optional
        The upper search limit for ``z`` (default 1000).
 
     ztol : float or array-like['dimensionless'], optional
@@ -169,9 +170,9 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     Returns
     -------
-    z : scalar or array
+    z : `~astropy.units.Quantity` ['redshift']
       The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
-      fval`` within ``ztol``.
+      fval`` within ``ztol``. Has units of cosmological redshift.
 
     Warns
     -----
@@ -218,7 +219,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     >>> zmin = z_at_value(Planck13.distmod, Dvals.min())
     >>> zmax = z_at_value(Planck13.distmod, Dvals.max())
-    >>> zgrid = np.logspace(np.log10(zmin), np.log10(zmax), 50)
+    >>> zgrid = np.geomspace(zmin, zmax, 50)
     >>> Dgrid = Planck13.distmod(zgrid)
 
     Finally interpolate to find the redshift at each distance modulus:
@@ -234,7 +235,7 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     unique solution can be found:
 
     >>> z_at_value(Planck13.age, 2 * u.Gyr)               # doctest: +FLOAT_CMP
-    3.19812268
+    <Quantity 3.19812268 redshift>
 
     The angular diameter is not monotonic however, and there are two
     redshifts that give a value of 1500 Mpc. You can use the zmin and
@@ -242,10 +243,10 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmax=1.5)                # doctest: +FLOAT_CMP
-    0.68044452
+    <Quantity 0.68044452 redshift>
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmin=2.5)                # doctest: +FLOAT_CMP
-    3.7823268
+    <Quantity 3.7823268 redshift>
 
     Alternatively the ``bracket`` option may be used to initialize the
     function solver on a desired region, but one should be aware that this
@@ -256,32 +257,32 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    0.68044452
+    <Quantity 0.68044452 redshift>
 
     But this is not ascertained especially if the bracket is chosen too wide
     and/or too close to the turning point:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(0.1, 1.5))           # doctest: +SKIP
-    3.7823268                                                  # doctest: +SKIP
+    <Quantity 3.7823268 redshift>                              # doctest: +SKIP
 
     Likewise, even for the same minimizer and same starting conditions different
     results can be found depending on architecture or library versions:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(2.0, 2.5))           # doctest: +SKIP
-    3.7823268                                                  # doctest: +SKIP
+    <Quantity 3.7823268 redshift>                              # doctest: +SKIP
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(2.0, 2.5))           # doctest: +SKIP
-    0.68044452                                                 # doctest: +SKIP
+    <Quantity 0.68044452 redshift>                             # doctest: +SKIP
 
     It is therefore generally safer to use the 3-parameter variant to ensure
     the solution stays within the bracketing limits:
 
     >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc,
     ...            bracket=(0.1, 1.0, 1.5))               # doctest: +FLOAT_CMP
-    0.68044452
+    <Quantity 0.68044452 redshift>
 
     Also note that the luminosity distance and distance modulus (two
     other commonly inverted quantities) are monotonic in flat and open
@@ -296,20 +297,20 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     array of ``fval``:
 
     >>> z_at_value(Planck13.age, [2, 7] * u.Gyr)          # doctest: +FLOAT_CMP
-    array([3.19812061, 0.75620443])
+    <Quantity [3.19812061, 0.75620443] redshift>
 
     ``fval`` can be any shape:
 
     >>> z_at_value(Planck13.age, [[2, 7], [1, 3]]*u.Gyr)  # doctest: +FLOAT_CMP
-    array([[3.19812061, 0.75620443],
-           [5.67661227, 2.19131955]])
+    <Quantity [[3.19812061, 0.75620443],
+               [5.67661227, 2.19131955]] redshift>
 
     Other arguments can be arrays. For non-monotic functions  -- for example,
     the angular diameter distance -- this can be useful to find all solutions.
 
     >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc,
     ...            zmin=[0, 2.5], zmax=[2, 4])            # doctest: +FLOAT_CMP
-    array([0.68127747, 3.79149062])
+    <Quantity [0.68127747, 3.79149062] redshift>
 
     The ``bracket`` argument can likewise be be an array. However, since
     bracket must already be a sequence (or None), it MUST be given as an
@@ -323,13 +324,15 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     >>> bracket=np.array([(1.0, 1.2),(2.0, 2.5), ()], dtype=object)[:-1]
     >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc,
     ...            bracket=bracket)  # doctest: +SKIP
-    array([0.68044452, 3.7823268])
+    <Quantity [0.68044452, 3.7823268] redshift>
     """
     # `fval` can be a Quantity, which isn't (yet) compatible w/ `numpy.nditer`
     # so we strip it of units for broadcasting and restore the units when
     # passing the elements to `_z_at_scalar_value`.
     fval = np.asanyarray(fval)
     unit = getattr(fval, 'unit', 1)  # can be unitless
+    zmin = Quantity(zmin, redshift_unit).value  # must be unitless
+    zmax = Quantity(zmax, redshift_unit).value
 
     # bracket must be an object array (assumed to be correct) or a 'scalar'
     # bracket: 2 or 3 elt sequence
@@ -343,7 +346,6 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         raise TypeError(f"`bracket` has dtype {bracket.dtype}, not 'O'")
 
     # make multi-dimensional iterator for all but `method`, `verbose`
-    # TODO: figure out 'reduce_ok', so scalar returns scalar
     with np.nditer(
         [fval, zmin, zmax, ztol, maxfun, bracket, None],
         flags = ['refs_ok'],
@@ -361,5 +363,5 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         # cast to the same type as the function value.
         result = it.operands[-1]  # zs
 
-    # degrade to scalar if 0d array  # TODO: rm when 'reduce_ok' works
-    return result if result.shape else result[()]
+    # degrade to scalar if 0d array
+    return (result if result.shape else result[()]) << redshift_unit

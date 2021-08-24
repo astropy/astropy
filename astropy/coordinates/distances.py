@@ -197,7 +197,7 @@ class Distance(u.SpecificTypeQuantity):
         """Short for ``self.compute_z()``"""
         return self.compute_z()
 
-    def compute_z(self, cosmology=None):
+    def compute_z(self, cosmology=None, **atzkw):
         """
         The redshift for this distance assuming its physical distance is
         a luminosity distance.
@@ -207,10 +207,12 @@ class Distance(u.SpecificTypeQuantity):
         cosmology : `~astropy.cosmology.Cosmology` or None
             The cosmology to assume for this calculation, or `None` to use the
             current cosmology (see `astropy.cosmology` for details).
+        **atzkw
+            keyword arguments for :func:`~astropy.cosmology.z_at_value`
 
         Returns
         -------
-        z : float
+        z : `~astropy.units.Quantity`
             The redshift of this distance given the provided ``cosmology``.
 
         Warnings
@@ -228,13 +230,14 @@ class Distance(u.SpecificTypeQuantity):
             Find the redshift corresponding to a
             :meth:`astropy.cosmology.FLRW.luminosity_distance`.
         """
+        from astropy.cosmology import z_at_value
 
         if cosmology is None:
             from astropy.cosmology import default_cosmology
             cosmology = default_cosmology.get()
 
-        from astropy.cosmology import z_at_value
-        return z_at_value(cosmology.luminosity_distance, self, ztol=1.e-10)
+        atzkw.setdefault("ztol", 1.e-10)
+        return z_at_value(cosmology.luminosity_distance, self, **atzkw)
 
     @property
     def distmod(self):

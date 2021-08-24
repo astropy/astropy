@@ -7,12 +7,18 @@
 import astropy.units as u
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
-__all__ = ["littleh", "with_H0"]
+__all__ = ["littleh", "redshift",
+           # equivalencies
+           "dimensionless_redshift", "with_H0"]
 
 _ns = globals()
 
+
 ###############################################################################
 # Cosmological Units
+
+redshift = u.def_unit(['redshift'], prefixes=False, namespace=_ns,
+                      doc="Cosmological redshift.", format={'latex': r''})
 
 # This is not formally a unit, but is used in that way in many contexts, and
 # an appropriate equivalency is only possible if it's treated as a unit (see
@@ -26,6 +32,17 @@ littleh = u.def_unit(['littleh'], namespace=_ns, prefixes=False,
 
 ###############################################################################
 # Equivalencies
+
+
+def dimensionless_redshift():
+    """Allow Cosmological redshift to be 1-to-1 equivalent to dimensionless.
+
+    It is special compared to other equivalency pairs in that it
+    allows this independent of the power to which the angle is raised,
+    and independent of whether it is part of a more complicated unit.
+    """
+    return u.Equivalency([(redshift, None)], "dimensionless_redshift")
+
 
 def with_H0(H0=None):
     """

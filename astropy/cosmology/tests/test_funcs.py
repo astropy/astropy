@@ -107,10 +107,10 @@ class Test_ZatValue:
 
     def test_scalar_input_to_output(self):
         """Test scalar input returns a scalar."""
-        assert isinstance(
-            z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
-                       zmin=0, zmax=2),
-            np.float64)
+        z = z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
+                       zmin=0, zmax=2)
+        assert isinstance(z, u.Quantity)
+        assert z.dtype == np.float64
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -135,7 +135,7 @@ def test_z_at_value_verbose(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', mock_stdout)
 
     resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
-    assert str(resx) in mock_stdout.getvalue()  # test "verbose" prints res
+    assert str(resx.value) in mock_stdout.getvalue()  # test "verbose" prints res
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
