@@ -52,6 +52,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     -------
     out : `~astropy.cosmology.Cosmology` subclass instance
         `~astropy.cosmology.Cosmology` corresponding to file contents.
+
     """
 
     def __init__(self, instance, cosmo_cls):
@@ -103,6 +104,7 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
         File format specifier.
     **kwargs
         Keyword arguments passed through to data writer.
+
     """
 
     def __init__(self, instance, cls):
@@ -154,6 +156,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     -------
     out : `~astropy.cosmology.Cosmology` subclass instance
         `~astropy.cosmology.Cosmology` corresponding to ``obj`` contents.
+
     """
 
     def __init__(self, instance, cosmo_cls):
@@ -162,9 +165,18 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     def __call__(self, obj, *args, **kwargs):
         from astropy.cosmology.core import Cosmology
 
-        # so subclasses can override also pass the class as a kwarg.
+        # so subclasses can override, also pass the class as a kwarg.
+        # allows for `FlatLambdaCDM.read` and
+        # `Cosmology.read(..., cosmology=FlatLambdaCDM)`
         if self._cls is not Cosmology:
-            kwargs["cosmology"] = self._cls
+            kwargs.setdefault("cosmology", self._cls)  # set, if not present
+            # check that it is the correct cosmology, can be wrong if user
+            # passes in e.g. `w0wzCDM.read(..., cosmology=FlatLambdaCDM)`
+            valid = (self._cls, self._cls.__qualname__)
+            if kwargs["cosmology"] not in valid:
+                raise ValueError(
+                    "keyword argument `cosmology` must be either the class "
+                    f"{valid[0]} or its qualified name '{valid[1]}'")
 
         cosmo = io_registry.read(self._cls, obj, *args, **kwargs)
         return cosmo
@@ -201,6 +213,7 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         first argument is the output filename.
     **kwargs
         Keyword arguments passed through to data writer.
+
     """
 
     def __init__(self, instance, cls):

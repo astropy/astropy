@@ -18,8 +18,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarni
 from astropy.utils.metadata import MetaData
 
 from . import scalar_inv_efuncs
-from .connect import (CosmologyRead, CosmologyWrite,
-                      CosmologyFromFormat, CosmologyToFormat)
+from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 from .utils import _float_or_none, inf_like, vectorize_if_needed
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
