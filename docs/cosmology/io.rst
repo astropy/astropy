@@ -44,7 +44,7 @@ positional arguments and keyword arguments are passed to the reader methods.
 .. doctest-skip::
 
     >>> from astropy.cosmology import Planck18
-    >>> Planck18.write('[file name]')
+    >>> Planck18.write('<file name>')
 
 Reading back the cosmology is most safely done from ``Cosmology``, the base
 class, as it provides no default information and therefore requires the file
@@ -53,12 +53,12 @@ to have all necessary information to describe a cosmology.
 .. doctest-skip::
 
     >>> from astropy.cosmology import Cosmology
-    >>> cosmo = Cosmology.read('[file name]')
+    >>> cosmo = Cosmology.read('<file name>')
     >>> cosmo == Planck18
     True
 
 When a subclass of ``Cosmology`` is used to read a file, the subclass will
-provide a keyword argument ``cosmology=[class]`` to the registered read
+provide a keyword argument ``cosmology=<class>`` to the registered read
 method. The method uses this cosmology class, regardless of the class
 indicated in the file, and sets parameters' default values from the class'
 signature.
@@ -66,16 +66,37 @@ signature.
 .. doctest-skip::
 
     >>> from astropy.cosmology import FlatLambdaCDM
-    >>> cosmo = FlatLambdaCDM.read('[file name]')
+    >>> cosmo = FlatLambdaCDM.read('<file name>')
     >>> cosmo == Planck18
     True
     
 Reading and writing :class:`~astropy.cosmology.Cosmology` objects go through
 intermediate representations, often a dict or `~astropy.table.QTable` instance.
 These intermediate representations are accessible through the methods
-``to_format`` / ``from_format``.
+:meth:`~astropy.cosmology.Cosmology.to_format` /
+:meth:`~astropy.cosmology.Cosmology.from_format`.
+
+To see the a list of the available formats:
+
+    >>> from astropy.cosmology import Cosmology
+    >>> Cosmology.to_format.list_formats()
+    Format Read Write Auto-identify
+    ------- ---- ----- -------------
+    mapping  Yes   Yes           Yes
+
+This list will include both built-in and registered 3rd-party formats.
+
+:meth:`~astropy.cosmology.Cosmology.to_format` /
+:meth:`~astropy.cosmology.Cosmology.from_format` parse a Cosmology to/from
+another python object. This can be useful for e.g., iterating through an MCMC
+of cosmological parameters or printing out a cosmological model to a journal
+format, like latex or HTML. When 3rd party cosmology packages register with
+Astropy' Cosmology I/O, ``to/from_format`` can be used to convert cosmology
+instances between packages!
 
 .. EXAMPLE START: Planck18 to mapping and back
+
+.. code-block::
 
     >>> from astropy.cosmology import Planck18
     >>> cm = Planck18.to_format("mapping")
@@ -86,8 +107,10 @@ These intermediate representations are accessible through the methods
      'Om0': 0.30966,
      ...
 
-    Now this dict can be used to load a new cosmological instance identical
-    to the ``Planck18`` cosmology from which it was created.
+Now this dict can be used to load a new cosmological instance identical
+to the ``Planck18`` cosmology from which it was created.
+
+.. code-block::
 
     >>> from astropy.cosmology import Cosmology
     >>> cosmo = Cosmology.from_format(cm, format="mapping")
@@ -95,7 +118,6 @@ These intermediate representations are accessible through the methods
     True
 
 .. EXAMPLE END
-
 
 
 
@@ -117,8 +139,8 @@ converter. Note that we can use other registered parsers -- here "mapping"
 We start by defining the function to parse a `astropy.table.Row` into a
 `~astropy.cosmology.Cosmology`. This function should take 1 positional
 argument, the row object, and 2 keyword arguments, for how to handle
-extra metadata and which Cosmology class to use. Details of are in
-``Cosmology.from_format.help("mapping")``.
+extra metadata and which Cosmology class to use. Details about metadata
+treatment are in ``Cosmology.from_format.help("mapping")``.
 
 .. code-block:: python
     :emphasize-lines: 12,13
@@ -132,14 +154,13 @@ extra metadata and which Cosmology class to use. Details of are in
     ...     meta = copy.deepcopy(row.meta)
     ...     # turn row into mapping (dict of the arguments)
     ...     mapping = dict(row)
-    ...     mapping["cosmology"] = meta.pop("cosmology")
     ...     mapping["meta"] = meta
     ...     # build cosmology from map
     ...     return Cosmology.from_format(mapping,
     ...                                  move_to_meta=move_to_meta, cosmology=cosmology)
 
 The next step is a function to perform the reverse operation: parse a
-`~astropy.cosmology.Cosmology` into a `astropy.table.Row`. This function
+`~astropy.cosmology.Cosmology` into a `~astropy.table.Row`. This function
 requires only the cosmology object and a ``*args`` to absorb unneeded
 information passed by `astropy.io.registry.UnifiedReadWrite` (which
 implements `astropy.cosmology.Cosmology.to_format`).
@@ -151,9 +172,8 @@ implements `astropy.cosmology.Cosmology.to_format`).
     
     >>> def to_table_row(cosmology, *args):
     ...     p = cosmology.to_format("mapping")
-    ...     # create metadata from mapping
+    ...     p["cosmology"] = p["cosmology"].__qualname__  # as string
     ...     meta = p.pop("meta")
-    ...     meta["cosmology"] = p.pop("cosmology").__name__
     ...     # package parameters into lists for Table parsing
     ...     params = {k: [v] for k, v in p.items()}
     ...     return QTable(params, meta=meta)[0]  # return row
@@ -183,17 +203,16 @@ Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.to_format`.
 
 .. code-block:: python
-    :emphasize-lines: 2,4
 
     >>> from astropy.cosmology import Planck18
     >>> row = Planck18.to_format("row")
     >>> row
     <Row index=0>
-      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0  
-             km / (Mpc s)                              eV            
-      str8     float64    float64 float64 float64   float64   float64
-    -------- ------------ ------- ------- ------- ----------- -------
-    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+      cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0  
+                           km / (Mpc s)                              eV            
+        str13       str8     float64    float64 float64 float64   float64   float64
+    ------------- -------- ------------ ------- ------- ------- ----------- -------
+    FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
     >>> cosmo = Cosmology.from_format(row)
     >>> cosmo == Planck18  # test it round-trips
@@ -237,7 +256,7 @@ and which Cosmology class to use. Details of are in
 ``Cosmology.from_format.help("mapping")``.
 
 .. code-block:: python
-    :emphasize-lines: 8,13
+    :emphasize-lines: 9,12,17
 
     >>> import json, os
     >>> import astropy.units as u
@@ -266,7 +285,7 @@ JSON. In both the ``write`` and ``read`` methods we have to create custom
 parsers.
 
 .. code-block:: python
-    :emphasize-lines: 2,14
+    :emphasize-lines: 2,15
 
     >>> def write_json(cosmology, file, *, overwrite=False, **kwargs):
     ...    data = cosmology.to_format("mapping")  # start by turning into dict
@@ -307,7 +326,6 @@ Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.write`.
 
 .. code-block:: python
-    :emphasize-lines: 6,8
 
     >>> import tempfile
     >>> from astropy.cosmology import Planck18
