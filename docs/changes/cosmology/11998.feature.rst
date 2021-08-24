@@ -1,0 +1,5 @@
+Added ``to_format/from_format`` methods to Cosmology using the Unified I/O
+registry. Now custom format converters and format-identifier functions
+can be registered to transform Cosmology objects.
+The transformation between Cosmology and dictionaries is pre-registered.
+Details are discussed in an addition to the docs.
