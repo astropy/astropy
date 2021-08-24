@@ -207,10 +207,6 @@ Post-Release procedures
    ``conda`` works before sending out the public announcement
    (so that users who want to try out the new version can do so with ``conda``).
 
-#. Update the ``LATEST_ASTROPY_STABLE`` or ``ASTROPY_LTS_VERSION`` variables
-   in the ``ci-helpers`` repository once the ``conda`` packages became
-   available.
-
 #. Upload the release to Zenodo by creating a GitHub Release off the GitHub tag.
    Click on the tag in https://github.com/astropy/astropy/tags and then click on
    the "Edit tag" button on the upper right. The release title is the same as the

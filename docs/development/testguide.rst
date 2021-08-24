@@ -1074,15 +1074,6 @@ Astropy uses the following continuous integration (CI) services:
 These continuously test the package for each commit and pull request that is
 pushed to GitHub to notice when something breaks.
 
-Astropy and many affiliated packages use an external package called
-`ci-helpers <https://github.com/astropy/ci-helpers>`_ to provide
-support for the generic parts of the CI systems.
-
-Dependencies can be customized for different packages using the appropriate
-environment variables in the relevant YAML files. For more
-details on how to set up this machinery, see the `package-template
-<https://github.com/astropy/package-template>`_ and `ci-helpers`_.
-
 The 32-bit tests on CircleCI use the
 `quay.io/pypa/manylinux1_i686 <https://quay.io/pypa/manylinux1_i686>`_
 docker image which includes a 32-bit Python environment for each major Python
