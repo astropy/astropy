@@ -11,7 +11,7 @@ import numpy as np
 import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
-from astropy.cosmology._io.mapping import from_mapping, to_mapping
+from astropy.cosmology.io.mapping import from_mapping, to_mapping
 from astropy.cosmology.connect import CosmologyRead
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.io import registry as io_registry
