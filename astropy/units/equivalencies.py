@@ -800,6 +800,13 @@ def __getattr__(attr):
     if attr == "with_H0":
         import warnings
         from astropy.cosmology.units import with_H0
+        from astropy.utils.exceptions import AstropyDeprecationWarning
+
+        warnings.warn(
+            ("`with_H0` is deprecated from `astropy.units.equivalencies` "
+             "since astropy 5.0 and may be removed in a future version. "
+             "Use `astropy.cosmology.units.with_H0` instead."),
+            AstropyDeprecationWarning)
 
         return with_H0
 
