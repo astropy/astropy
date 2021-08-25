@@ -768,39 +768,13 @@ with reference files on a pixel-by-pixel basis (this is used for instance in
 
 To run the Astropy tests with the image comparison, use::
 
-    pytest --mpl --remote-data
+    pytest --mpl --remote-data=astropy
 
 However, note that the output can be very sensitive to the version of Matplotlib
-as well as all its dependencies (e.g. freetype), so we recommend running the
+as well as all its dependencies (e.g., freetype), so we recommend running the
 image tests inside a `Docker <https://www.docker.com/>`__ container which has a
 frozen set of package versions (Docker containers can be thought of as mini
-virtual machines). We have made a `set of Docker container images
-<https://hub.docker.com/u/astropy/>`__ that can be used for this. Once you have
-installed Docker, to run the Astropy tests with the image comparison inside a
-Docker container, make sure you are inside the Astropy repository (or the
-repository of the package you are testing) then do::
-
-    docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl300:1.3 /bin/bash
-
-This will start up a bash prompt in the Docker container, and you should see
-something like::
-
-    root@8173d2494b0b:/#
-
-You can now go to the ``/repo`` directory, which is the same folder as
-your local version of the repository you are testing::
-
-    cd /repo
-
-You can then run the tests as above::
-
-    pip install -e .[test]
-    pytest --mpl --remote-data
-
-Type ``exit`` to exit the container.
-
-You can find the names of the available Docker images on the `Docker Hub
-<https://hub.docker.com/u/astropy>`_.
+virtual machines). See our ``.circleci/config.yml`` for reference.
 
 Writing image tests
 -------------------
@@ -822,23 +796,10 @@ re-generate reference files, but we describe the process here.
 Generating reference images
 ---------------------------
 
-Once you have a test for which you want to (re-)generate reference images,
-start up one of the Docker containers using e.g.::
-
-  docker run -it -v ${PWD}:/repo astropy/image-tests-py35-mpl300:1.3 /bin/bash
-
-then run the tests inside ``/repo`` with the ``--mpl-generate-path`` argument, e.g::
-
-    cd repo
-    pip install -e .[test]
-    pytest --mpl --mpl-generate-path=reference_tmp --remote-data
-
-This will create a ``reference_tmp`` folder and put the generated reference
-images inside it - the folder will be available in the repository outside of
-the Docker container. Type ``exit`` to exit the container.
-
-Make sure you generate images for the different supported Matplotlib versions
-using the available containers.
+Any failed test on CircleCI would provide you with the old and the new reference
+images, along with the difference image. After you have determined that the
+new reference image is acceptable, you could download it from the "artifacts"
+tab on the CircleCI dashboard.
 
 Uploading the reference images
 ------------------------------
@@ -1063,60 +1024,19 @@ Overview
 Astropy uses the following continuous integration (CI) services:
 
 * `GitHub Actions <https://github.com/astropy/astropy/actions>`_ for
-  64-bit Linux, OS X, and Windows setups
+  Linux, OS X, and Windows setups
   (Note: GitHub Actions does not have "allowed failures" yet, so you might
   see a fail job reported for your PR with "(Allowed Failure)" in its name.
   Still, some failures might be real and related to your changes, so check
   it anyway!)
-* `CircleCI <https://circleci.com>`_ for 32-bit Linux,
-  documentation build, and visualization tests
+* `CircleCI <https://circleci.com>`_ for visualization tests
 
 These continuously test the package for each commit and pull request that is
 pushed to GitHub to notice when something breaks.
 
-The 32-bit tests on CircleCI use the
-`quay.io/pypa/manylinux1_i686 <https://quay.io/pypa/manylinux1_i686>`_
-docker image which includes a 32-bit Python environment for each major Python
-version. See the CircleCI
-`configuration file <https://github.com/astropy/astropy/blob/main/.circleci/config.yml>`_
-for the core package for how to access the different Python versions.
-
 In some cases, you may see failures on continuous integration services that
 you do not see locally, for example because the operating system is different,
-or because the failure happens with only 32-bit Python. The following sections
-explain how you can reproduce specific builds locally.
-
-Reproducing failing 32-bit builds
-=================================
-
-If you want to run your tests in the same 32-bit Python environment that
-CircleCI uses, start off by installing `Docker <https://www.docker.com>`__ if you
-don't already have it installed. Docker can be installed on a variety of
-different operating systems.
-
-Then, make sure you have a version of the git repository (either the main
-Astropy repository or your fork) for which you want to run the tests. Go to that
-directory, then run Docker with::
-
-    $ docker run -i -v ${PWD}:/astropy_src -t quay.io/pypa/manylinux1_i686 bash
-
-This will put you in the bash shell inside the Docker container. Once inside,
-you can go to the ``/astropy_src`` directory, and you should see the files that
-are in your local git repository::
-
-    root@5e2b89d7b07c:/# cd /astropy_src
-    root@5e2b89d7b07c:/astropy_src# ls
-    astropy		        conftest.py      licenses	       setup.py
-    cextern		        CONTRIBUTING.md  MANIFEST.in       static
-    CHANGES.rst	        docs	         pip-requirements  tox.ini
-    CITATION	        examples	     pyproject.toml
-    codecov.yml         GOVERNANCE.md    README.rst
-    CODE_OF_CONDUCT.md  LICENSE.rst      setup.cfg
-
-You can then run the tests with e.g.::
-
-    root@5e2b89d7b07c:/astropy_src# /opt/python/cp36-cp36m/bin/pip install -e .[test]
-    root@5e2b89d7b07c:/astropy_src# pytest
+or because the failure happens with only 32-bit Python.
 
 .. _pytest-plugins:
 
