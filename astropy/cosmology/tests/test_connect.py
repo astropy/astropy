@@ -32,6 +32,9 @@ def read_json(filename, **kwargs):
     for k, v in mapping.items():
         if isinstance(v, dict) and "value" in v and "unit" in v:
             mapping[k] = u.Quantity(v["value"], v["unit"])
+    for k, v in mapping.get("meta", {}).items():  # also the metadata
+        if isinstance(v, dict) and "value" in v and "unit" in v:
+            mapping["meta"][k] = u.Quantity(v["value"], v["unit"])
     return Cosmology.from_format(mapping, **kwargs)
 
 
@@ -45,12 +48,16 @@ def write_json(cosmology, file, *, overwrite=False):
     overwrite : bool (optional, keyword-only)
     """
     data = cosmology.to_format("mapping")  # start by turning into dict
-    data["cosmology"] = data["cosmology"].__name__  # change class field to str
+    data["cosmology"] = data["cosmology"].__qualname__
     # serialize Quantity
     for k, v in data.items():
         if isinstance(v, u.Quantity):
             data[k] = {"value": v.value.tolist(),
                        "unit": str(v.unit)}
+    for k, v in data.get("meta", {}).items():  # also serialize the metadata
+        if isinstance(v, u.Quantity):
+            data["meta"][k] = {"value": v.value.tolist(),
+                               "unit": str(v.unit)}
 
     # check that file exists and whether to overwrite.
     if os.path.exists(file) and not overwrite:
@@ -162,14 +169,14 @@ class TestReadWriteCosmology:
 
         # partial information
         with open(fname, "r") as file:
-            L = file.readlines()
-        L[0] = L[0][:L[0].index('"cosmology":')]+L[0][L[0].index(', ')+2:]
-        i = L[0].index('"Tcmb0":')  # delete Tcmb0
-        L[0] = L[0][:i] + L[0][L[0].index(', ', i)+2:]
+            L = file.readlines()[0]
+        L = L[:L.index('"cosmology":')]+L[L.index(', ')+2:]  # remove cosmology
+        i = L.index('"Tcmb0":')  # delete Tcmb0
+        L = L[:i] + L[L.index(', ', L.index(', ', i) + 1)+2:]  # second occurence
 
         tempfname = tmpdir / f"{instance}_temp.{format}"
         with open(tempfname, "w") as file:
-            file.writelines(L)
+            file.writelines([L])
 
         # read with the same class that wrote fills in the missing info with
         # the default value
@@ -182,7 +189,7 @@ class TestReadWriteCosmology:
         # not equal, because Tcmb0 is changed
         assert got != cosmo
         assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
-        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0.value) == cosmo
+        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
@@ -295,7 +302,7 @@ class TestCosmologyToFromFormat:
         # not equal, because Tcmb0 is changed
         assert got != cosmo
         assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
-        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0.value) == cosmo
+        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
