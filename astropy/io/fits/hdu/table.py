@@ -937,7 +937,10 @@ class BinTableHDU(_TableBaseHDU):
                 fileobj.writearray(data)
                 # write out the heap of variable length array columns this has
                 # to be done after the "regular" data is written (above)
-                fileobj.write((data._gap * '\0').encode('ascii'))
+                # to avoid a bug in the lustre filesystem client, don't
+                # write 0-byte objects
+                if data._gap > 0:
+                    fileobj.write((data._gap * '\0').encode('ascii'))
 
             nbytes = data._gap
 
