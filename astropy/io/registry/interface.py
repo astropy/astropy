@@ -45,6 +45,10 @@ class UnifiedReadWrite:
         self._cls = cls
         self._method_name = method_name  # 'read' or 'write'
 
+    @property
+    def registry(self):
+        return self._registry
+
     def help(self, format=None, out=None):
         """Output help documentation for the specified unified I/O ``format``.
 
