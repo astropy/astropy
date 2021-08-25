@@ -38,7 +38,7 @@ def read_myformat(filename, **kwargs):
         with open(filename, "r") as file:
             data = file.read()
     else:  # file-like : this also handles errors in dumping
-       data = filename.read()
+        data = filename.read()
 
     mapping = {}
     ...  # process `data`, adding to `mapping`

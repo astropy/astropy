@@ -15,11 +15,11 @@ from .core import file_reader, file_writer
 try:
     from astropy.utils.introspection import minversion
 except ImportError:
-    ASTROPY_GEV5_INSTALLED = False
+    ASTROPY_GE_5 = False
 else:
-    ASTROPY_GEV5_INSTALLED = minversion("astropy", "5.0")
+    ASTROPY_GE_5 = minversion("astropy", "5.0")
 
-if ASTROPY_GEV5_INSTALLED:
+if ASTROPY_GE_5:
     # Astropy is installed and v5.0+ so we import the following modules
     # to register "myformat" with Cosmology read/write and "mypcakage"
     # with Cosmology to/from_format.
