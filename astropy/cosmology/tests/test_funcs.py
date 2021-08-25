@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.cosmology import core
+from astropy.cosmology import core, flrw
 from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
 from astropy.cosmology.realizations import WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18
 from astropy.units import allclose
@@ -212,8 +212,8 @@ def test_z_at_value_unconverged(method):
 
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('cosmo', [Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9,
-                                   core.LambdaCDM, core.FlatLambdaCDM, core.wpwaCDM, core.w0wzCDM,
-                                   core.wCDM, core.FlatwCDM, core.w0waCDM, core.Flatw0waCDM])
+                                   flrw.LambdaCDM, flrw.FlatLambdaCDM, flrw.wpwaCDM, flrw.w0wzCDM,
+                                   flrw.wCDM, flrw.FlatwCDM, flrw.w0waCDM, flrw.Flatw0waCDM])
 def test_z_at_value_roundtrip(cosmo):
     """
     Calculate values from a known redshift, and then check that
