@@ -60,8 +60,9 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> cm
         {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
          'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
-         'Tcmb0': 2.7255, 'Neff': 3.046, 'm_nu': <Quantity [0. , 0. , 0.06] eV>,
-         'Ob0': 0.04897, 'meta': ...
+         'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
+         'm_nu': <Quantity [0. , 0. , 0.06] eV>, 'Ob0': 0.04897,
+         'meta': ...
 
     Now this dict can be used to load a new cosmological instance identical
     to the ``Planck18`` cosmology from which it was generated.
@@ -143,8 +144,9 @@ def to_mapping(cosmology, *args):
         >>> Planck18.to_format('mapping')
         {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
          'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
-         'Tcmb0': 2.7255, 'Neff': 3.046, 'm_nu': <Quantity [0.  , 0.  , 0.06] eV>,
-         'Ob0': 0.04897, 'meta': ...
+         'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
+         'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897,
+         'meta': ...
 
     """
 

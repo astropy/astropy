@@ -1,0 +1,2 @@
+Cosmology parameters in ``cosmology.parameters.py`` now have units,
+where applicable.

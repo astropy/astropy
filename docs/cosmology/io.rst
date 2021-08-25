@@ -209,7 +209,7 @@ Now the registered functions can be used in
     >>> row
     <Row index=0>
       cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0  
-                           km / (Mpc s)                              eV            
+                           km / (Mpc s)            K                 eV            
         str13       str8     float64    float64 float64 float64   float64   float64
     ------------- -------- ------------ ------- ------- ------- ----------- -------
     FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
@@ -274,6 +274,9 @@ and which Cosmology class to use. Details of are in
     ...     for k, v in mapping.items():
     ...         if isinstance(v, dict) and "value" in v and "unit" in v:
     ...             mapping[k] = u.Quantity(v["value"], v["unit"])
+    ...     for k, v in mapping.get("meta", {}).items():  # also the metadata
+    ...         if isinstance(v, dict) and "value" in v and "unit" in v:
+    ...             mapping["meta"][k] = u.Quantity(v["value"], v["unit"])
     ...     return Cosmology.from_format(mapping, **kwargs)
 
 
@@ -285,7 +288,7 @@ JSON. In both the ``write`` and ``read`` methods we have to create custom
 parsers.
 
 .. code-block:: python
-    :emphasize-lines: 2,15
+    :emphasize-lines: 2,19
 
     >>> def write_json(cosmology, file, *, overwrite=False, **kwargs):
     ...    data = cosmology.to_format("mapping")  # start by turning into dict
@@ -293,8 +296,10 @@ parsers.
     ...    # serialize Quantity
     ...    for k, v in data.items():
     ...        if isinstance(v, u.Quantity):
-    ...            data[k] = {"value": v.value.tolist(),
-    ...                       "unit": str(v.unit)}
+    ...            data[k] = {"value": v.value.tolist(), "unit": str(v.unit)}
+    ...    for k, v in data.get("meta", {}).items():  # also serialize the metadata
+    ...        if isinstance(v, u.Quantity):
+    ...            data["meta"][k] = {"value": v.value.tolist(), "unit": str(v.unit)}
     ...
     ...    if isinstance(file, (str, bytes, os.PathLike)):
     ...        # check that file exists and whether to overwrite.
@@ -355,6 +360,7 @@ Now the registered functions can be used in
     ...     pass
 
 .. EXAMPLE END
+
 
 Reference/API
 =============
