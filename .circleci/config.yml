@@ -32,7 +32,7 @@ jobs:
               pip install pip tox --upgrade
       - run:
           name: Run tests
-          command: tox -e py39-test-image-mpl311 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar -W ignore::DeprecationWarning
+          command: tox -e py39-test-image-mpl311 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar -W ignore::DeprecationWarning -k "not test_no_numpy_warnings"
       - store_artifacts:
           path: results
 
