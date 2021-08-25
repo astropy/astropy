@@ -11,7 +11,9 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install pip tox --upgrade
+          command: |
+              sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
+              pip install pip tox --upgrade
       - run:
           name: Run tests
           command: tox -e py38-test-image-mpl303 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar -W ignore::DeprecationWarning
@@ -25,7 +27,9 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install pip tox --upgrade
+          command: |
+              sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
+              pip install pip tox --upgrade
       - run:
           name: Run tests
           command: tox -e py39-test-image-mpl311 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar -W ignore::DeprecationWarning
@@ -42,7 +46,6 @@ jobs:
           command: |
               sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
               pip install pip tox --upgrade
-              pip install latex
       - run:
           name: Run tests
           command: tox -e py39-test-image-mpldev -- -P visualization --remote-data=astropy --open-files --mpl-results-path=$PWD/results -W ignore:np.asscalar
