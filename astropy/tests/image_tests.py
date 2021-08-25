@@ -13,7 +13,7 @@ else:
     if MPL_VERSION[:3] == '3.2' and '+' in MPL_VERSION:
         MPL_VERSION = '3.3'
 
-    ROOT = "http://{server}/testing/astropy/2019-08-02T11:38:58.288466/{mpl_version}/"
+    ROOT = "http://{server}/testing/astropy/2021-08-25T18:18:36.000000/{mpl_version}/"
     IMAGE_REFERENCE_DIR = (
         ROOT.format(server='data.astropy.org', mpl_version=MPL_VERSION[:3] + '.x') + ',' +
         ROOT.format(server='www.astropy.org/astropy-data', mpl_version=MPL_VERSION[:3] + '.x'))
