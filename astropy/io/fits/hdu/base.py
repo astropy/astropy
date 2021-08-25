@@ -107,40 +107,9 @@ def _hdu_class_from_header(cls, header):
     return klass
 
 
-class _BaseHDUMeta(type):
-    def __init__(cls, name, bases, members):
-        # The sole purpose of this metaclass right now is to add the same
-        # data.deleter to all HDUs with a data property.
-        # It's unfortunate, but there's otherwise no straightforward way
-        # that a property can inherit setters/deleters of the property of the
-        # same name on base classes
-        if 'data' in members:
-            data_prop = members['data']
-            if (isinstance(data_prop, (lazyproperty, property)) and
-                    data_prop.fdel is None):
-                # Don't do anything if the class has already explicitly
-                # set the deleter for its data property
-                def data(self):
-                    # The deleter
-                    if self._file is not None and self._data_loaded:
-                        data_refcount = sys.getrefcount(self.data)
-                        # Manually delete *now* so that FITS_rec.__del__
-                        # cleanup can happen if applicable
-                        del self.__dict__['data']
-                        # Don't even do this unless the *only* reference to the
-                        # .data array was the one we're deleting by deleting
-                        # this attribute; if any other references to the array
-                        # are hanging around (perhaps the user ran ``data =
-                        # hdu.data``) don't even consider this:
-                        if data_refcount == 2:
-                            self._file._maybe_close_mmap()
-
-                setattr(cls, 'data', data_prop.deleter(data))
-
-
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
-class _BaseHDU(metaclass=_BaseHDUMeta):
+class _BaseHDU:
     """Base class for all HDU (header data unit) classes."""
 
     _hdu_registry = set()
@@ -181,6 +150,35 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             self._output_checksum = 'datasum'
         elif 'CHECKSUM' in self._header:
             self._output_checksum = True
+
+    def __init_subclass__(cls, **kwargs):
+        # Add the same data.deleter to all HDUs with a data property.
+        # It's unfortunate, but there's otherwise no straightforward way
+        # that a property can inherit setters/deleters of the property of the
+        # same name on base classes.
+        data_prop = cls.__dict__.get('data', None)
+        if (isinstance(data_prop, (lazyproperty, property))
+                and data_prop.fdel is None):
+            # Don't do anything if the class has already explicitly
+            # set the deleter for its data property
+            def data(self):
+                # The deleter
+                if self._file is not None and self._data_loaded:
+                    data_refcount = sys.getrefcount(self.data)
+                    # Manually delete *now* so that FITS_rec.__del__
+                    # cleanup can happen if applicable
+                    del self.__dict__['data']
+                    # Don't even do this unless the *only* reference to the
+                    # .data array was the one we're deleting by deleting
+                    # this attribute; if any other references to the array
+                    # are hanging around (perhaps the user ran ``data =
+                    # hdu.data``) don't even consider this:
+                    if data_refcount == 2:
+                        self._file._maybe_close_mmap()
+
+            setattr(cls, 'data', data_prop.deleter(data))
+
+        return super().__init_subclass__(**kwargs)
 
     @property
     def header(self):
