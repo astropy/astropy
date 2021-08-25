@@ -12,7 +12,15 @@ from astropy.cosmology import Cosmology, flrw, funcs
 from astropy.cosmology.realizations import Planck13, Planck18, default_cosmology
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+
+
+def test_flrw_moved_deprecation():
+    """Test the  deprecation warning about the move of FLRW classes."""
+    with pytest.warns(AstropyDeprecationWarning):
+        from astropy.cosmology.core import FLRW
+
+    assert FLRW is flrw.FLRW
 
 
 def test_init():
