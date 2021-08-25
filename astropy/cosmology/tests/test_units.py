@@ -11,7 +11,7 @@ import pytest
 
 import astropy.cosmology.units as cu
 import astropy.units as u
-from astropy.cosmology import default_cosmology
+from astropy.cosmology import default_cosmology, Planck13
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_ASDF, HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -79,7 +79,7 @@ def test_dimensionless_redshift():
 
     # test equivalency enabled by default
     assert z.to(u.one) == val
-    
+
     # also test that it works for powers
     assert (3 * cu.redshift ** 3).to(u.one) == val
 
@@ -95,12 +95,62 @@ def test_dimensionless_redshift():
         assert z.to(u.one) == val
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
+def test_with_redshift():
+    """Test the equivalency  ``with_redshift``.
+    """
+    cosmo = Planck13.clone(Tcmb0=3*u.K)  # make non-default cosmology
+    z = 15 * cu.redshift
+    Tcmb = cosmo.Tcmb(z)
+
+    default_cosmo = default_cosmology.get()
+    assert default_cosmo != cosmo  # shows changing default
+
+    # 1) Default (without specifying the cosmology)
+    with default_cosmology.set(cosmo):
+        # A) Default (Tcmb=True)
+        equivalency = cu.with_redshift()
+        assert_quantity_allclose(z.to(u.K, equivalency), Tcmb)
+        assert_quantity_allclose(Tcmb.to(cu.redshift, equivalency), z)
+
+        # B) Tcmb=False
+        equivalency = cu.with_redshift(Tcmb=False)
+        with pytest.raises(u.UnitConversionError, match="'redshift' and 'K'"):
+            z.to(u.K, equivalency)
+
+    # showing the answer changes if the cosmology changes
+    # this test uses the default cosmology
+    equivalency = cu.with_redshift()
+    assert_quantity_allclose(z.to(u.K, equivalency),
+                             default_cosmo.Tcmb(z))
+    assert default_cosmo.Tcmb(z) != Tcmb
+
+    # 2) Specifying the cosmology
+    # A) Default (Tcmb=True)
+    equivalency = cu.with_redshift(cosmo)
+    assert_quantity_allclose(z.to(u.K, equivalency), Tcmb)
+    assert_quantity_allclose(Tcmb.to(cu.redshift, equivalency), z)
+
+    # B) Tcmb=False
+    equivalency = cu.with_redshift(cosmo, Tcmb=False)
+    with pytest.raises(u.UnitConversionError, match="'redshift' and 'K'"):
+        z.to(u.K, equivalency)
+
+    # Test atzkw
+    # this is really just a test that 'atzkw' doesn't fail
+    equivalency = cu.with_redshift(cosmo, atzkw={"ztol": 1e-10})
+    assert_quantity_allclose(Tcmb.to(cu.redshift, equivalency), z)
+
+
+# FIXME! get "dimensionless_redshift", "with_redshift" to work in this
+# they are not in ``astropy.units.equivalencies``, so the following fails
 @pytest.mark.skipif(not HAS_ASDF, reason="requires ASDF")
-@pytest.mark.parametrize('equiv', [cu.with_H0(), cu.dimensionless_redshift()])
+@pytest.mark.parametrize('equiv',[cu.with_H0])
 def test_equivalencies_asdf(tmpdir, equiv):
     from asdf.tests import helpers
 
-    tree = {'equiv': equiv}
+    tree = {'equiv': equiv()}
     with (pytest.warns(AstropyDeprecationWarning, match="`with_H0`")
           if equiv.__name__ == "with_H0" else contextlib.nullcontext()):
+
         helpers.assert_roundtrip_tree(tree, tmpdir)

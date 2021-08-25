@@ -9,7 +9,7 @@ from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
 __all__ = ["littleh", "redshift",
            # equivalencies
-           "dimensionless_redshift", "with_H0"]
+           "dimensionless_redshift", "with_redshift", "with_H0"]
 
 _ns = globals()
 
@@ -17,6 +17,8 @@ _ns = globals()
 ###############################################################################
 # Cosmological Units
 
+# This is not formally a unit, but is used in that way in many contexts, and
+# an appropriate equivalency is only possible if it's treated as a unit.
 redshift = u.def_unit(['redshift'], prefixes=False, namespace=_ns,
                       doc="Cosmological redshift.", format={'latex': r''})
 
@@ -35,13 +37,64 @@ littleh = u.def_unit(['littleh'], namespace=_ns, prefixes=False,
 
 
 def dimensionless_redshift():
-    """Allow Cosmological redshift to be 1-to-1 equivalent to dimensionless.
+    """Allow redshift to be 1-to-1 equivalent to dimensionless.
 
     It is special compared to other equivalency pairs in that it
     allows this independent of the power to which the angle is raised,
     and independent of whether it is part of a more complicated unit.
     """
     return u.Equivalency([(redshift, None)], "dimensionless_redshift")
+
+
+def with_redshift(cosmology=None, *, Tcmb=True, atzkw=None):
+    """Convert quantities between measures of cosmological distance.
+
+    When this equivalency is enabled ALL redshifts are treated as cosmological.
+    Care should be taken to not misinterpret a relativistic, gravitational, etc
+    redshift as a cosmological one.
+
+    Parameters
+    ----------
+    cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
+        A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
+        If None, will use the default cosmology
+        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+    Tcmb : bool (optional, keyword-only)
+        Whether to create a CMB temperature <-> redshift equivalency.
+    atzkw : dict or None (optional, keyword-only)
+        keyword arguments for :func:`~astropy.cosmology.z_at_value`
+
+    Returns
+    -------
+    `~astropy.units.equivalencies.Equivalency`
+        With equivalencies between redshift and (temperature, distance).
+    """
+    from astropy.cosmology import default_cosmology, z_at_value
+
+    cosmology = cosmology if cosmology is not None else default_cosmology.get()
+    with default_cosmology.set(cosmology):  # if already cosmo, passes through
+        cosmology = default_cosmology.get()
+    atzkw = atzkw or {}  # None -> {}
+
+    equivs = []  # will append as built
+
+    # -----------
+    # CMB Temperature <-> Redshift
+
+    if Tcmb:
+
+        def z_to_Tcmb(z):
+            return cosmology.Tcmb(z)
+
+        def Tcmb_to_z(T):
+            return z_at_value(cosmology.Tcmb, T << u.K, **atzkw) << redshift
+
+        equivs.append((redshift, u.K, z_to_Tcmb, Tcmb_to_z))
+
+    # -----------
+
+    return u.Equivalency(equivs, "with_redshift",
+                         {'cosmology': cosmology, 'Tcmb': Tcmb})
 
 
 def with_H0(H0=None):
@@ -72,7 +125,7 @@ def with_H0(H0=None):
 
 # ===================================================================
 # Enable the set of default equivalencies.
-# If the cosmology package is imported, this is added to the list.
+# If the cosmology package is imported, this is added to the list astropy-wide.
 
 u.add_enabled_equivalencies(dimensionless_redshift())
 
