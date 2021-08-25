@@ -78,13 +78,20 @@ These intermediate representations are accessible through the methods
 
 To see the a list of the available formats:
 
+.. code-block:: python
+
     >>> from astropy.cosmology import Cosmology
     >>> Cosmology.to_format.list_formats()
-    Format Read Write Auto-identify
-    ------- ---- ----- -------------
-    mapping  Yes   Yes           Yes
+      Format  Read Write Auto-identify
+    --------- ---- ----- -------------
+      mapping  Yes   Yes           Yes
+     myformat  Yes   Yes           Yes
+    mypackage  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
+For instance, in the above, "mapping" is built-in while "mypackage" and
+"myformat" are from an `example 3rd-party package
+<https://github.com/astropy/astropy/tree/main/docs/cosmology/mypackage>`_.
 
 :meth:`~astropy.cosmology.Cosmology.to_format` /
 :meth:`~astropy.cosmology.Cosmology.from_format` parse a Cosmology to/from

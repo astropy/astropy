@@ -2,15 +2,15 @@
 # Licensed under a 3-clause BSD style license - see Astropy LICENSE.rst
 
 """
-Register Read/Write methods for "myformat" with Astropy Cosmology.
+Register Read/Write methods for "myformat" (JSON) with Astropy Cosmology.
 
 With this format registered, we can start with a Cosmology from
 ``mypackage``, write it to a file, and read it with Astropy to create an
 astropy Cosmology instance.
 
-    >>> from mypackage.cosmology import somecosmologyobject
+    >>> from mypackage.cosmology import myplanck
     >>> from mypackage.io import file_writer
-    >>> file_writer('<file name>', somecosmologyobject)
+    >>> file_writer('<file name>', myplanck)
 
     >>> from astropy.cosmology import Cosmology
     >>> cosmo = Cosmology.read('<file name>', format="myformat")
@@ -28,43 +28,55 @@ read it with ``mypackage``.
 
 """
 
+# STDLIB
+import json
+import os
+
 # THIRD PARTY
+import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.io import registry as io_registry
 
+# LOCAL
+from .core import file_reader, file_writer
+
+__doctest_skip__ = ['*']
+
 
 def read_myformat(filename, **kwargs):
-    if isinstance(filename, (str, bytes, os.PathLike)):
-        with open(filename, "r") as file:
-            data = file.read()
-    else:  # file-like : this also handles errors in dumping
-        data = filename.read()
+    """Read files in format 'myformat'.
 
-    mapping = {}
-    ...  # process `data`, adding to `mapping`
+    Parameters
+    ----------
+    filename : str
+    **kwargs
+        Keyword arguments into `astropy.cosmology.Cosmology.from_format`
+        with ``format="mypackage"``.
 
-    return Cosmology.from_format(mapping, **kwargs)
+    Returns
+    -------
+    `~mypackage.cosmology.MyCosmology` instance
+    """
+    mycosmo = file_reader(filename)  # ← read file  ↓ build Cosmology
+    return Cosmology.from_format(mycosmo, format="mypackage", **kwargs)
 
 
-def write_myformat(cosmology, file, *, overwrite=False, **kwargs):
-    data = cosmology.to_format("mapping")  # start by turning into dict
-    data["cosmology"] = data["cosmology"].__name__  # change class field to str
+def write_myformat(cosmology, file, *, overwrite=False):
+    """Write files in format 'myformat'.
 
-    output = ...  # whatever it's supposed to be
-    ...  # process `data` into correct "myformat"
-
-    if isinstance(file, (str, bytes, os.PathLike)):
-        # check that file exists and whether to overwrite.
-        if os.path.exists(file) and not overwrite:
-            raise IOError(f"{file} exists. Set 'overwrite' to write over.")
-        with open(file, "w") as write_file:
-            write_file.write(output)
-    else:  # file-like
-        file.write(output)
+    Parameters
+    ----------
+    cosmology : `~astropy.cosmology.Cosmology` instance
+    file : str, bytes, or `~os.PathLike`
+    overwrite : bool (optional, keyword-only)
+        Whether to overwrite an existing file. Default is False.
+    """
+    cosmo = cosmology.to_format("mypackage")  # ← convert Cosmology ↓ write file
+    file_writer(file, cosmo, overwrite=overwrite)
 
 
 def myformat_identify(origin, filepath, fileobj, *args, **kwargs):
-    """Identify if object uses ``myformat``."""
+    """Identify if object uses ``myformat`` (JSON)."""
     return filepath is not None and filepath.endswith(".myformat")
 
 

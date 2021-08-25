@@ -12,12 +12,16 @@ import pytest
 
 # LOCAL
 from mypackage.cosmology import myplanck
-from mypackage.io import file_reader, file_writer
+from mypackage.io import file_reader
 
 # skip all tests in module if import is missing
-astropy = pytest.importorskip("astropy", minversion="5.0")  # isort: skip
+astropy = pytest.importorskip("astropy", minversion="4.3")  # isort: skip
 # can now import freely from astropy
+import astropy.units as u
 from astropy import cosmology
+from astropy.cosmology import Cosmology
+from astropy.io import registry as io_registry
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 # the formats being registered with Astropy
 readwrite_formats = ["myformat"]
@@ -28,7 +32,10 @@ astropy_cosmos = cosmology.parameters.available
 mypackage_cosmos = [myplanck]
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy.")
 class TestAstropyCosmologyIO:
+    """Test read/write interoperability with Astropy."""
+
     @pytest.mark.parametrize("format", readwrite_formats)
     @pytest.mark.parametrize("instance", astropy_cosmos)
     def test_roundtrip_from_astropy(self, tmp_path, instance, format):
@@ -51,7 +58,9 @@ class TestAstropyCosmologyIO:
 
         # test round-tripped as expected
         assert got == cosmo  # tests immutable parameters, e.g. H0
-        assert got.meta == cosmo.meta  # (metadata not tested in got == cosmo)
+
+        # NOTE: if your package's cosmology supports metadata
+        # assert got.meta == expected.meta  # (metadata not tested above)
 
     @pytest.mark.parametrize("format", readwrite_formats)
     @pytest.mark.parametrize("instance", astropy_cosmos)
@@ -67,7 +76,7 @@ class TestAstropyCosmologyIO:
         # write with Astropy
         original.write(str(fname), format=format)
 
-        # Read back with ``mypackage``
+        # Read back with ``myformat``
         cosmo = file_reader(str(fname))  # read to instance from mypackage
 
         # and a read comparison from Astropy
@@ -75,10 +84,11 @@ class TestAstropyCosmologyIO:
 
         # ------------
         # test that the mypackage and astropy cosmologies are equivalent
-        assert original.H0 == cosmo.hubble_parameter
-        assert cosmo2.H0 == cosmo.hubble_parameter
+        assert original.H0.value == cosmo.hubble_parameter
+        assert cosmo2.H0.value == cosmo.hubble_parameter
 
-        assert original.age(1100) == cosmo.age(1100)
-        assert cosmo2.age(1100) == cosmo.age(1100)
+        ...  # continue with the tests
 
-        # ...  continue with the tests
+        # e.g. test some methods
+        # assert original.age(1100).to_value(u.Gyr) == cosmo.age_in_Gyr(1100)
+        # assert cosmo2.age(1100) == cosmo.age(1100)
