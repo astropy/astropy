@@ -28,7 +28,7 @@ mypackage_cosmos = [myplanck]  # list of ``mypackage`` cosmology realizations
 
 class TestAstropyCosmologyConvert:
     @pytest.mark.parametrize("expected", astropy_cosmos)
-    def test_roundtrip_from_astropy(self, tmpdir, expected):
+    def test_roundtrip_from_astropy(self, expected):
         # convert to ``mypackage``
         mycosmo = expected.to_format("mypackage")
 
@@ -40,7 +40,7 @@ class TestAstropyCosmologyConvert:
         assert got.meta == expected.meta  # (metadata not tested above)
 
     @pytest.mark.parametrize("expected", mypackage_cosmos)
-    def test_roundtrip_from_mypackage(self, tmpdir, expected):
+    def test_roundtrip_from_mypackage(self, expected):
         # convert to Astropy
         acosmo = Cosmology.from_format(expected)
 
@@ -54,7 +54,7 @@ class TestAstropyCosmologyConvert:
         ...  # more equality tests
 
     @pytest.mark.parametrize("expected", astropy_cosmos)
-    def test_package_equality(self, tmpdir, expected):
+    def test_package_equality(self, expected):
         """
         The most important test: are the ``mypackage`` and ``astropy``
         cosmologies equivalent!? They should be if read from the same source

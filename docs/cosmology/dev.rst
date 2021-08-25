@@ -124,6 +124,8 @@ integrated within the code structure.
                 test_astropy_io.py
                 ...
 
+.. MAINTAINER COMMENT: if the files in `docs/cosmology/mypackage` are changed, 
+..                     there should be corresponding changes in `docs/conf.py`
 
 Converting Objects Between Packages
 -----------------------------------

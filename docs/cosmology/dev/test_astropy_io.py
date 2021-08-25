@@ -31,9 +31,9 @@ mypackage_cosmos = [myplanck]
 class TestAstropyCosmologyIO:
     @pytest.mark.parametrize("format", readwrite_formats)
     @pytest.mark.parametrize("instance", astropy_cosmos)
-    def test_roundtrip_from_astropy(self, tmpdir, instance, format):
+    def test_roundtrip_from_astropy(self, tmp_path, instance, format):
         cosmo = getattr(cosmology.realizations, instance)
-        fname = tmpdir / f"{instance}.{format}"
+        fname = tmp_path / f"{instance}.{format}"
 
         # write to file
         cosmo.write(str(fname), format=format)
@@ -55,14 +55,14 @@ class TestAstropyCosmologyIO:
 
     @pytest.mark.parametrize("format", readwrite_formats)
     @pytest.mark.parametrize("instance", astropy_cosmos)
-    def test_package_equality(self, tmpdir, instance, format):
+    def test_package_equality(self, tmp_path, instance, format):
         """
         The most important test: are the ``mypackage`` and ``astropy``
         cosmologies equivalent!? They should be if read from the same source
         file.
         """
         original = getattr(cosmology.realizations, instance)
-        fname = tmpdir / f"{instance}.{format}"
+        fname = tmp_path / f"{instance}.{format}"
 
         # write with Astropy
         original.write(str(fname), format=format)
