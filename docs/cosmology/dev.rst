@@ -80,3 +80,105 @@ radiation with massless neutrinos coded in cython. Consult the
 
 However, the important point is that it is *not* necessary to do this.
 
+
+Astropy Interoperability: I/O and your Cosmology Package
+========================================================
+
+If you are developing a package and want to be able to interoperate with
+`astropy.cosmology.Cosmology`, you're in the right place! Here we will discuss
+and provide examples for enabling Astropy to read and write your file formats,
+but also convert your cosmology objects to and from Astropy's |Cosmology|.
+
+The following presumes knowledge of how Astropy structures I/O functions. For
+a quick tutorial see :ref:`read_write_cosmologies`.
+
+Now that we know how to build and register functions into
+:meth:`~astropy.cosmology.Cosmology.read`,
+:meth:`~astropy.cosmology.Cosmology.write`,
+:meth:`~astropy.cosmology.Cosmology.from_format`,
+:meth:`~astropy.cosmology.Cosmology.to_format`, we can do this in your package.
+
+Consider a package -- since this is mine, it's cleverly named ``mypackage`` --
+with the following file structure: a module for cosmology codes and a module
+for defining related input/output functions. In the cosmology module are
+defined cosmology classes and a file format -- ``myformat`` -- and everything
+should interoperate with astropy. The tests are done with :mod:`pytest` and are
+integrated within the code structure.
+
+.. code-block:: text
+    :emphasize-lines: 7,8,9,13,14
+
+    mypackage/
+        __init__.py
+        cosmology/
+            __init__.py
+            ...
+        io/
+            __init__.py
+            astropy_convert.py
+            astropy_io.py
+            ...
+            tests/
+                __init__.py
+                test_astropy_convert.py
+                test_astropy_io.py
+                ...
+
+.. MAINTAINER COMMENT: if the files in `docs/cosmology/mypackage` are changed, 
+..                     there should be corresponding changes in `docs/conf.py`
+
+Converting Objects Between Packages
+-----------------------------------
+
+We want to enable conversion between cosmology objects from ``mypckage``
+to/from |Cosmology|. All the Astropy interface code is defined in
+``mypackage/io/astropy_convert.py``. The following is a rough outline of the
+necessary functions and how to register them with astropy's unified
+I/O to be automatically available to
+:meth:`astropy.cosmology.Cosmology.from_format` and
+:meth:`astropy.cosmology.Cosmology.to_format`.
+
+.. literalinclude:: dev/astropy_convert.py
+   :language: python
+
+
+Reading and Writing
+-------------------
+
+Everything Astropy read/write related is defined in
+``mypackage/io/astropy_io.py``. The following is a rough outline of the read,
+write, and identify functions and how to register them with astropy's unified
+io to be automatically available to :meth:`astropy.cosmology.Cosmology.read`
+and :meth:`astropy.cosmology.Cosmology.write`.
+
+.. literalinclude:: dev/astropy_io.py
+   :language: python
+
+
+If Astropy is an optional dependency
+------------------------------------
+
+The ``astropy_io`` and ``astropy_convert`` modules are written assuming Astropy
+is installed. If in ``mypackage`` it is an optional dependency then it is
+important to detect if Astropy is installed (and the correct version) before
+importing ``astropy_io`` and ``astropy_convert``.
+We do this in ``mypackage/io/__init__.py``:
+
+.. literalinclude:: dev/io_init.py
+   :language: python
+
+
+Astropy Interoperability Tests
+------------------------------
+
+Lastly, it's important to test that everything works. In this example package
+all such tests are contained in ``mypackage/io/tests/test_astropy_io.py``.
+These tests require Astropy and will be skipped if it is not installed (and
+not the correct version), so at least one test in the test matrix should
+include ``astropy >= 5.0``.
+
+.. literalinclude:: dev/test_astropy_convert.py
+   :language: python
+
+.. literalinclude:: dev/test_astropy_io.py
+   :language: python
