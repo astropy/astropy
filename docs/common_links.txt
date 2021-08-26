@@ -18,6 +18,9 @@
 .. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
 .. |SpectralCoord| replace:: `~astropy.coordinates.SpectralCoord`
 
+.. Cosmology
+.. |Cosmology| replace:: :class:`~astropy.cosmology.Cosmology`
+
 .. SAMP
 .. |SAMPClient| replace:: :class:`~astropy.samp.SAMPClient`
 .. |SAMPIntegratedClient| replace:: :class:`~astropy.samp.SAMPIntegratedClient`
