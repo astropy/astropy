@@ -168,9 +168,9 @@ jobs:
     # In addition to testing 32-bit, we also use the 3.8 builds to
     # test the ability to run the test suite in parallel.
     - name: Install dependencies for Python 3.8
-      run: /opt/python/cp38-cp38m/bin/pip install tox
+      run: /opt/python/cp38-cp38/bin/pip install tox
     - name: Run tests for Python 3.8
-      run: /opt/python/cp38-cp38m/bin/python -m tox -e py38-test -- -n=4 --durations=50
+      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-test -- -n=4 --durations=50
     # We use the 3.8 build to check that running tests twice in a row in the
     # same Python session works without issues. This catches cases where
     # running the tests changes the module state permanently. Note that we
