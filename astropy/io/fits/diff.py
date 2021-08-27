@@ -523,6 +523,7 @@ class HDUDiff(_BaseDiff):
 
         self.numdiffs = numdiffs
         self.ignore_blanks = ignore_blanks
+        self.ignore_blank_cards = ignore_blank_cards
 
         self.diff_extnames = ()
         self.diff_extvers = ()
