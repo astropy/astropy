@@ -1,0 +1,1 @@
+Minimum version of required Scipy is now 1.3.
