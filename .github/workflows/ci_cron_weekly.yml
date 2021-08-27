@@ -76,7 +76,7 @@ jobs:
     # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-18.04
-    name: Python 3.8
+    name: Python 3.9
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
@@ -99,12 +99,12 @@ jobs:
         id: build
         with:
           arch: ${{ matrix.arch }}
-          distro: buster
+          distro: bullseye
 
           shell: /bin/bash
 
           install: |
-            echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
+            echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
@@ -115,7 +115,7 @@ jobs:
                                   python3-ply \
                                   python3-venv \
                                   cython3 \
-                                  wcslib-dev/buster-backports \
+                                  wcslib-dev/bullseye-backports \
                                   libcfitsio-dev \
                                   liberfa1
 
