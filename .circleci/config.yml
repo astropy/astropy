@@ -4,22 +4,6 @@ version: 2
 # and it is possible to publish image diffs as HTML like pytest-mpl in the future.
 jobs:
 
-  image-tests-mpl303:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies
-          command: |
-              sudo apt install texlive texlive-latex-extra texlive-fonts-recommended dvipng cm-super
-              pip install pip tox --upgrade
-      - run:
-          name: Run tests
-          command: tox -e py38-test-image-mpl303 -- -P visualization --remote-data=astropy --open-files --mpl --mpl-results-path=$PWD/results -W ignore:np.asscalar -W ignore::DeprecationWarning
-      - store_artifacts:
-          path: results
-
   image-tests-mpl311:
     docker:
       - image: circleci/python:3.9
@@ -56,6 +40,5 @@ workflows:
   version: 2
   tests:
     jobs:
-      - image-tests-mpl303
       - image-tests-mpl311
       - image-tests-mpldev
