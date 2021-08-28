@@ -74,9 +74,8 @@ S05-47  4654 1.28 1.74 -1.64 0.16
     out = StringIO()
     t.write(out, format='ascii.cds')
     lines = out.getvalue().splitlines()
-    i_secs = [i for i, s in enumerate(lines)
-            if s.startswith(('------', '======='))]
-    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+    i_bbb = lines.index('=' * 80)
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
     assert lines == exp_output.splitlines()
 
 
@@ -179,9 +178,8 @@ HD103095         -9e+34 -30 5.0 20
     out = StringIO()
     t.write(out, format='ascii.cds')
     lines = out.getvalue().splitlines()
-    i_secs = [i for i, s in enumerate(lines)
-              if s.startswith(('------', '======='))]
-    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+    i_bbb = lines.index('=' * 80)
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
     assert lines == exp_output.splitlines()
 
 
@@ -311,9 +309,8 @@ def test_write_coord_cols():
         out = StringIO()
         t.write(out, format='ascii.cds')
         lines = out.getvalue().splitlines()
-        i_secs = [i for i, s in enumerate(lines)
-                  if s.startswith(('------', '======='))]
-        lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+        i_bbb = lines.index('=' * 80)
+        lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
         # Check the written table.
         assert lines == exp_output.splitlines()
 
@@ -445,9 +442,8 @@ random  12                                                                 (0.41
     out = StringIO()
     t.write(out, format='ascii.cds')
     lines = out.getvalue().splitlines()
-    i_secs = [i for i, s in enumerate(lines)
-                if s.startswith(('------', '======='))]
-    lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+    i_bbb = lines.index('=' * 80)
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
     # Check the written table.
     assert lines == exp_output.splitlines()
 
@@ -487,8 +483,7 @@ HD81809 330.564 -61.6596 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
     with pytest.raises(UserWarning):
         t.write(out, format='ascii.cds')
         lines = out.getvalue().splitlines()
-        i_secs = [i for i, s in enumerate(lines)
-                    if s.startswith(('------', '======='))]
-        lines = lines[i_secs[0]:]  # Select Byte-By-Byte section and later lines.
+        i_bbb = lines.index('=' * 80)
+        lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
         # Check the written table.
         assert lines == exp_output.splitlines()
