@@ -213,7 +213,8 @@ class CdsHeader(core.BaseHeader):
 
         Parameters
         ----------
-        value : the float value
+        value : str
+            String containing the float value to split.
 
         Returns
         -------
@@ -261,7 +262,7 @@ class CdsHeader(core.BaseHeader):
         by spliting the value string. It is assumed that the column either has
         float values or Scientific notation.
 
-        A ``col.meta.size`` attribute is added to the column. It is not added
+        A ``col.formatted_width`` attribute is added to the column. It is not added
         if such an attribute is already present, say when the ``formats`` argument
         is passed to the writer. A properly formatted format string is also added as
         the ``col.format`` attribute.
@@ -315,20 +316,20 @@ class CdsHeader(core.BaseHeader):
                 maxprec = fmt[1] + fmt[2]
 
         if fformat == 'E':
-            if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
-                col.meta.size = maxsize
+            if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+                col.formatted_width = maxsize
                 if sign:
-                    col.meta.size += 1
+                    col.formatted_width += 1
             # Number of digits after decimal is replaced by the precision
             # for values in Scientific notation, when writing that Format.
-            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxprec)
-            col.format = str(col.meta.size) + "." + str(maxdec) + "e"
+            col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxprec)
+            col.format = str(col.formatted_width) + "." + str(maxdec) + "e"
         else:
-            if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
-                col.meta.size = maxent + maxdec + 1
+            if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+                col.formatted_width = maxent + maxdec + 1
                 if sign:
-                    col.meta.size += 1
-            col.fortran_format = fformat + str(col.meta.size) + "." + str(maxdec)
+                    col.formatted_width += 1
+            col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxdec)
             col.format = col.fortran_format[1:] + "f"
 
     def write_byte_by_byte(self):
@@ -410,15 +411,15 @@ class CdsHeader(core.BaseHeader):
                     col.format = col.info.format
 
             if col.format is not None:
-                col.meta.size = max([len(sval) for sval in col.str_vals])
+                col.formatted_width = max([len(sval) for sval in col.str_vals])
 
             # Set CDSColumn type, size and format.
-            if np.issubdtype(col.dtype, np.dtype(int).type) or np.issubdtype(col.dtype, np.integer):
+            if np.issubdtype(col.dtype, np.integer):
                 # Integer formatter
                 self._set_column_val_limits(col)
-                if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
-                    col.meta.size = max(len(str(col.max)), len(str(col.min)))
-                col.fortran_format = "I" + str(col.meta.size)
+                if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+                    col.formatted_width = max(len(str(col.max)), len(str(col.min)))
+                col.fortran_format = "I" + str(col.formatted_width)
                 col.format = ">" + col.fortran_format[1:]
 
             elif np.issubdtype(col.dtype, np.dtype(float).type):
@@ -434,12 +435,12 @@ class CdsHeader(core.BaseHeader):
                     mcol.fill_value = ""
                     coltmp = Column(mcol.filled(), dtype=str)
                     dtype = coltmp.dtype.str
-                if getattr(col.meta, 'size', None) is None:  # If ``formats`` not passed.
-                    col.meta.size = int(re.sub(r'^[^0-9]+(\d+)$', r'\1', dtype))
-                col.fortran_format = "A" + str(col.meta.size)
-                col.format = str(col.meta.size) + "s"
+                if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
+                    col.formatted_width = int(re.search(r'(\d+)$', dtype).group(1))
+                col.fortran_format = "A" + str(col.formatted_width)
+                col.format = str(col.formatted_width) + "s"
 
-            endb = col.meta.size + startb - 1
+            endb = col.formatted_width + startb - 1
 
             # ``mixin`` columns converted to string valued columns will not have a name
             # attribute. In those cases, a ``Unknown`` column label is put, indicating that
@@ -461,7 +462,7 @@ class CdsHeader(core.BaseHeader):
 
             # Set column unit
             if col.unit is not None:
-                col.meta.unit = col.unit.to_string("cds")
+                col_unit = col.unit.to_string("cds")
             elif col.name.lower().find("magnitude") > -1:
                 # ``col.unit`` can still be ``None``, if the unit of column values
                 # is ``Magnitude``, because ``astropy.units.Magnitude`` is actually a class.
@@ -469,9 +470,9 @@ class CdsHeader(core.BaseHeader):
                 # application of the ``Magnitude`` unit calculates the logarithm
                 # of the values. Thus, the only way to check for if the column values
                 # have ``Magnitude`` unit is to check the column name.
-                col.meta.unit = "mag"
+                col_unit = "mag"
             else:
-                col.meta.unit = "---"
+                col_unit = "---"
 
             # Add col limit values to col description
             lim_vals = ""
@@ -508,7 +509,7 @@ class CdsHeader(core.BaseHeader):
             bbb.add_row([singlebfmt.format(startb) if startb == endb
                             else fmtb.format(startb, endb),
                          "" if col.fortran_format is None else col.fortran_format,
-                         col.meta.unit,
+                         col_unit,
                          "" if col.name is None else col.name,
                          description])
             startb = endb + 2

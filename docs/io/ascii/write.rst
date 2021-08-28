@@ -244,7 +244,7 @@ and often has it in a separate file called ``ReadMe``. On the other hand, MRT fo
 includes just the table ``Title``, ``Authors``, Table Caption and ``Notes`` and always
 has the ``ReadMe`` section together with the data.
 
-The :class:`~astropy.io.ascii.Cds` writer currently supports writing tables to MRT format.
+The :class:`~astropy.io.ascii.Cds` writer supports writing tables to MRT format.
 
 .. note::
 
@@ -265,12 +265,13 @@ to the MRT format. Section dividers ``---`` and ``===`` are used to divide the t
 into different sections, with the last section always been the actual data.
 
 As the CDS/MRT standard requires,
-for columns that have a ``Unit`` attribute, the unit names are tabulated in the Byte-By-Byte
+for columns that have a ``unit`` attribute not set to ``None``,
+the unit names are tabulated in the Byte-By-Byte
 description of the column. When columns do not contain any units, ``---`` is put instead.
 Also, a ``?`` is prefixed to the column description in the Byte-By-Byte for ``Masked``
 columns or columns that have null values, indicating them as such.
 
-The example below initializes a table with columns that have a ``Unit`` attribute and
+The example below initializes a table with columns that have a ``unit`` attribute and
 has masked values.
 
   >>> from astropy.io import ascii
@@ -294,7 +295,7 @@ the table. Thus::
   >>> from astropy.time import Time, TimeDelta
   >>> from astropy.timeseries import TimeSeries
   >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
-  >>> table['Obs'] = Column(ts.time.decimalyear, unit=u.day, description='Time of Observation')
+  >>> table['Obs'] = Column(ts.time.decimalyear, description='Time of Observation')
   >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
   ...                           unit=u.s)
 
@@ -342,7 +343,7 @@ After execution, the contents of ``coords_cols.dat`` will be::
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
    32- 36  F5.3   10+12Jy Flux        ? Description of Flux                 
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44- 49  F6.1    d      Obs         [2019.0/2019.0] Time of Observation   
+   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation   
    51- 53  I3      s      Cadence     [100] Description of Cadence          
    55- 58  F4.1    h      RAh         Right Ascension (hour)                
    60- 63  F4.1    min    RAm         Right Ascension (minute)              
@@ -372,7 +373,7 @@ And the file ``ecliptic_cols.dat`` will look like::
    25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    32- 36  F5.3   10+12Jy Flux        ? Description of Flux                      
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   44- 49  F6.1    d      Obs         [2019.0/2019.0] Time of Observation        
+   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation        
    51- 53  I3      s      Cadence     [100] Description of Cadence               
    55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
    72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
@@ -409,7 +410,7 @@ The following example shows a similar situation, using the option to send the ou
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
     1- 11  A11     ---    Name        Description of Name                        
-   13- 18  F6.1    d      Obs         [2019.0/2019.0] Time of Observation        
+   13- 18  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation        
    20- 22  I3      s      Cadence     [100] Description of Cadence               
    24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
    31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
