@@ -58,7 +58,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> from astropy.cosmology import Cosmology, Planck18
         >>> cm = Planck18.to_format('mapping')
         >>> cm
-        {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
+        {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
          'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
          'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
          'm_nu': <Quantity [0. , 0. , 0.06] eV>, 'Ob0': 0.04897,
@@ -142,7 +142,7 @@ def to_mapping(cosmology, *args):
 
         >>> from astropy.cosmology import Planck18
         >>> Planck18.to_format('mapping')
-        {'cosmology': <class 'astropy.cosmology.core.FlatLambdaCDM'>,
+        {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
          'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
          'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
          'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897,
