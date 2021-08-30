@@ -28,7 +28,7 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.table import Column, MaskedColumn
 from string import Template
-from textwrap import wrap, fill
+from textwrap import wrap
 
 MAX_SIZE_README_LINE = 80
 MAX_COL_INTLIMIT = 100000
@@ -37,20 +37,22 @@ MAX_COL_INTLIMIT = 100000
 __doctest_skip__ = ['*']
 
 
-BYTE_BY_BYTE_TEMPLATE = ["Byte-by-byte Description of file: $file",
-"--------------------------------------------------------------------------------",
-" Bytes Format Units  Label     Explanations",
-"--------------------------------------------------------------------------------",
-"$bytebybyte",
-"--------------------------------------------------------------------------------"]
+BYTE_BY_BYTE_TEMPLATE = [
+    "Byte-by-byte Description of file: $file",
+    "--------------------------------------------------------------------------------",
+    " Bytes Format Units  Label     Explanations",
+    "--------------------------------------------------------------------------------",
+    "$bytebybyte",
+    "--------------------------------------------------------------------------------"]
 
-MRT_TEMPLATE = ["Title:",
-"Authors:",
-"Table:",
-"================================================================================",
-"$bytebybyte",
-"Notes:",
-"--------------------------------------------------------------------------------"]
+MRT_TEMPLATE = [
+    "Title:",
+    "Authors:",
+    "Table:",
+    "================================================================================",
+    "$bytebybyte",
+    "Notes:",
+    "--------------------------------------------------------------------------------"]
 
 
 class CdsSplitter(fixedwidth.FixedWidthSplitter):
@@ -398,7 +400,7 @@ class CdsHeader(core.BaseHeader):
         max_label_width, max_descrip_size = 7, 16
 
         bbb = Table(names=['Bytes', 'Format', 'Units', 'Label', 'Explanations'],
-                    dtype=[str]*5)
+                    dtype=[str] * 5)
 
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
@@ -477,7 +479,7 @@ class CdsHeader(core.BaseHeader):
             # Add col limit values to col description
             lim_vals = ""
             if (col.min and col.max and
-                not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT'])):
+                    not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT'])):
                 # No col limit values for coordinate columns.
                 if col.fortran_format[0] == 'I':
                     if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
@@ -507,7 +509,7 @@ class CdsHeader(core.BaseHeader):
 
             # Add Byte-By-Byte row to bbb table
             bbb.add_row([singlebfmt.format(startb) if startb == endb
-                            else fmtb.format(startb, endb),
+                         else fmtb.format(startb, endb),
                          "" if col.fortran_format is None else col.fortran_format,
                          col_unit,
                          "" if col.name is None else col.name,
@@ -520,8 +522,8 @@ class CdsHeader(core.BaseHeader):
                   delimiter=' ', bookend=False, delimiter_pad=None,
                   formats={'Format': '<6s',
                            'Units': '<6s',
-                           'Label': '<'+str(max_label_width)+'s',
-                           'Explanations': ''+str(max_descrip_size)+'s'})
+                           'Label': '<' + str(max_label_width) + 's',
+                           'Explanations': '' + str(max_descrip_size) + 's'})
 
         # Get formatted bbb lines
         bbblines = bbblines.getvalue().splitlines()
@@ -530,7 +532,7 @@ class CdsHeader(core.BaseHeader):
         # lines in order to wrap them. It is the sum of the widths of the
         # previous 4 columns plus the number of single spacing between them.
         # The hyphen in the Bytes column is also counted.
-        nsplit = byte_count_width*2 + 1 + 12 + max_label_width + 4
+        nsplit = byte_count_width * 2 + 1 + 12 + max_label_width + 4
 
         # Wrap line if it is too long
         buff = ""
@@ -595,19 +597,19 @@ class CdsHeader(core.BaseHeader):
                                      'Right Ascension (second)', 'Declination (degree)',
                                      'Declination (arcmin)', 'Declination (arcsec)']
                     for coord, name, coord_unit, descrip in zip(
-                        coords, names, coord_units, coord_descrip):
-                            # Have Sign of Declination only in the DEd column.
-                            if name in ['DEm', 'DEs']:
-                                coord_col = Column(list(np.abs(coord)), name=name,
-                                                   unit=coord_unit, description=descrip)
-                            else:
-                                coord_col = Column(list(coord), name=name, unit=coord_unit,
-                                                   description=descrip)
-                            # Set default number of digits after decimal point for the
-                            # second values.
-                            if name in ['RAs', 'DEs']:
-                                coord_col.format = '.12f'
-                            self.cols.append(coord_col)
+                            coords, names, coord_units, coord_descrip):
+                        # Have Sign of Declination only in the DEd column.
+                        if name in ['DEm', 'DEs']:
+                            coord_col = Column(list(np.abs(coord)), name=name,
+                                               unit=coord_unit, description=descrip)
+                        else:
+                            coord_col = Column(list(coord), name=name, unit=coord_unit,
+                                               description=descrip)
+                        # Set default number of digits after decimal point for the
+                        # second values.
+                        if name in ['RAs', 'DEs']:
+                            coord_col.format = '.12f'
+                        self.cols.append(coord_col)
 
                 # For all other coordinate types, simply divide into two columns
                 # for latitude and longitude resp. with the unit used been as it is.
@@ -628,11 +630,11 @@ class CdsHeader(core.BaseHeader):
                     # Ecliptic coordinates, can be any of various available.
                     elif 'ecliptic' in col.name:
                         lon_col = Column(col.lon, name='ELON',
-                                         description = 'Ecliptic Longitude (' + col.name + ')',
+                                         description='Ecliptic Longitude (' + col.name + ')',
                                          unit=col.representation_component_units['lon'],
                                          format='.12f')
                         lat_col = Column(col.lat, name='ELAT',
-                                         description = 'Ecliptic Latitude (' + col.name + ')',
+                                         description='Ecliptic Latitude (' + col.name + ')',
                                          unit=col.representation_component_units['lat'],
                                          format='.12f')
                         self.cols.append(lon_col)
@@ -643,8 +645,7 @@ class CdsHeader(core.BaseHeader):
                     else:
                         self.cols.append(Column(col.to_string()))
 
-                #self.cols.pop(i)  # Delete original ``SkyCoord`` column.
-                to_pop.append(i)
+                to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
@@ -679,7 +680,7 @@ class CdsHeader(core.BaseHeader):
         # Get Byte-By-Byte description and fill the template
         bbb_template = Template('\n'.join(BYTE_BY_BYTE_TEMPLATE))
         byte_by_byte = bbb_template.substitute({'file': 'table.dat',
-                                    'bytebybyte': self.write_byte_by_byte()})
+                                                'bytebybyte': self.write_byte_by_byte()})
 
         # Fill up the full ReadMe
         rm_template = Template('\n'.join(MRT_TEMPLATE))
