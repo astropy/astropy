@@ -234,16 +234,17 @@ class TestVerifyOptions:
         with pytest.raises(VOWarning):
             parse(get_pkg_data_filename('data/gemini.xml'), verify='exception')
 
-    # Make sure the pedantic option still works for now (pending deprecation)
+    # Make sure the deprecated pedantic option still works for now
 
     def test_pedantic_false(self):
         with pytest.warns(VOWarning) as w:
             parse(get_pkg_data_filename('data/gemini.xml'), pedantic=False)
-        assert len(w) == 24
+        assert len(w) == 25
 
     def test_pedantic_true(self):
-        with pytest.raises(VOWarning):
-            parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
+        with pytest.raises(AstropyDeprecationWarning):
+            with pytest.raises(VOWarning):
+                parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
 
     # Make sure that the default behavior can be set via configuration items
 
@@ -275,7 +276,7 @@ class TestVerifyOptions:
 
             with pytest.warns(VOWarning) as w:
                 parse(get_pkg_data_filename('data/gemini.xml'))
-            assert len(w) == 24
+            assert len(w) == 25
 
     def test_conf_pedantic_true(self, tmpdir):
 
@@ -286,5 +287,6 @@ class TestVerifyOptions:
 
             reload_config('astropy.io.votable')
 
-            with pytest.raises(VOWarning):
-                parse(get_pkg_data_filename('data/gemini.xml'))
+            with pytest.raises(AstropyDeprecationWarning):
+                with pytest.raises(VOWarning):
+                    parse(get_pkg_data_filename('data/gemini.xml'))
