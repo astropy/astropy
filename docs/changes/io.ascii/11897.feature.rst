@@ -1,0 +1,2 @@
+Add features to ``astropy.io.ascii.Cds`` class to write tables in the MRT format,
+including documentation and tests for the same.
