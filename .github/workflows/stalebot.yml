@@ -10,6 +10,7 @@ on:
 jobs:
   stalebot:
     runs-on: ubuntu-latest
+    if: github.repository == 'astropy/astropy'
     steps:
       # TODO: Remove STALEBOT_DRYRUN for production
       - uses: pllim/action-astropy-stalebot@main
