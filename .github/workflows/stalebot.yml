@@ -16,3 +16,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STALEBOT_DRYRUN: 1
+          STALEBOT_MAX_ISSUES: -1
+          STALEBOT_MAX_PRS: -1
