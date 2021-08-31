@@ -43,6 +43,8 @@ def_unit(['earthRad', 'R_earth', 'Rearth'], _si.R_earth, namespace=_ns,
 
 def_unit(['lyr', 'lightyear'], (_si.c * si.yr).to(si.m),
          namespace=_ns, prefixes=True, doc="Light year")
+def_unit(['lsec', 'lightsecond'], (_si.c * si.s).to(si.m),
+         namespace=_ns, prefixes=False, doc="Light second")
 
 
 ###########################################################################
