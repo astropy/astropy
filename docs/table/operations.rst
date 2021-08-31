@@ -1086,6 +1086,26 @@ problem of "fuzzy" matching of key column values, where instead of an exact matc
 we require only an approximate match. This is supported using the ``join_funcs``
 argument (introduced in version 4.1).
 
+.. warning::
+
+   The coordinate and distance table joins discussed in this section are most
+   applicable in the case where the relevant entries in at least one of the
+   tables are all separated from one another by more than twice the join
+   distance. If this is not satisfied then the join results may be unexpected.
+
+   This is a consequence of the algorithm which effectively finds clusters of
+   nearby points (an "equivalence class") and assigns a unique cluster
+   identifier to each entry in both tables. This assumes the join matching
+   function is a transitive relation where ``join_func(A, B)`` and
+   ``join_func(B, C)`` implies ``join_func(A, C)``. With multiple matches on
+   both left and right sides it is possible for the cluster of points having a
+   single cluster identifier to expand in size beyond the distance threshold.
+
+   Users should be especially aware of this issue if additional join keys
+   are provided beyond the ``join_funcs``. The code does not do a "pre-join"
+   on the other keys, so the possibility of having overlaps within the distance
+   in both tables is higher.
+
 Example
 ~~~~~~~
 
