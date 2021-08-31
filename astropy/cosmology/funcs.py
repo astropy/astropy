@@ -10,8 +10,8 @@ import numpy as np
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
 
+from . import units as cu
 from .core import CosmologyError
-from .units import redshift as redshift_unit
 
 __all__ = ['z_at_value']
 
@@ -331,8 +331,8 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # passing the elements to `_z_at_scalar_value`.
     fval = np.asanyarray(fval)
     unit = getattr(fval, 'unit', 1)  # can be unitless
-    zmin = Quantity(zmin, redshift_unit).value  # must be unitless
-    zmax = Quantity(zmax, redshift_unit).value
+    zmin = Quantity(zmin, cu.redshift).value  # must be unitless
+    zmax = Quantity(zmax, cu.redshift).value
 
     # bracket must be an object array (assumed to be correct) or a 'scalar'
     # bracket: 2 or 3 elt sequence
@@ -363,5 +363,4 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         # cast to the same type as the function value.
         result = it.operands[-1]  # zs
 
-    # degrade to scalar if 0d array
-    return (result if result.shape else result[()]) << redshift_unit
+    return result << cu.redshift

@@ -111,6 +111,7 @@ class Test_ZatValue:
                        zmin=0, zmax=2)
         assert isinstance(z, u.Quantity)
         assert z.dtype == np.float64
+        assert z.shape == ()
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

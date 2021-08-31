@@ -692,9 +692,8 @@ def test_equivalency_context_manager():
     tf_dimensionless_angles = just_to_from_units(u.dimensionless_angles())
     tf_spectral = just_to_from_units(u.spectral())
 
-    # check starting with only the dimensionless_redshift equivalency.
-    assert len(base_registry.equivalencies) == 1
-    assert str(base_registry.equivalencies[0][0]) == "redshift"
+    # <=1 b/c might have the dimensionless_redshift equivalency enabled.
+    assert len(base_registry.equivalencies) <= 1
 
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
         new_registry = u.get_current_unit_registry()

@@ -7,9 +7,6 @@ Cosmological Units and Equivalencies
 .. currentmodule:: astropy.cosmology.units
 
 This package defines and collects cosmological units and equivalencies.
-Some of the units and equivalencies are also available in
-:mod:`astropy.units`.
-
 We suggest importing this units package as
 
     >>> import astropy.cosmology.units as cu
@@ -38,7 +35,7 @@ Cosmological Redshift and Dimensionless Equivalency
 ---------------------------------------------------
 
 There are numerous measures of distance in cosmology -- luminosities,
-CMB temperature, the universe's age, etc -- but redshift is the principal
+CMB temperature, the universe's age, etc. -- but redshift is the principal
 measure from which others are defined. In cosmology, distance measures are
 commonly exasperating to follow in a derivation, because they are used
 so interchangeably. ``astropy`` provides the ``redshift`` unit and associated
@@ -67,8 +64,8 @@ The equivalency works as part of a quantity with composite units
 Since the redshift is not a true unit and is used so frequently, the
 redshift / dimensionless equivalency is actually enabled by default.
 
-    >>> z.to(u.dimensionless_unscaled)
-    <Quantity 1100.>
+    >>> z == 1100 * u.dimensionless_unscaled
+    True
 
     >>> q.to(u.K)
     <Quantity 2970. K>
@@ -77,8 +74,10 @@ To temporarily remove the equivalency and enforce unit strictness, use
 :func:`astropy.units.set_enabled_equivalencies` as a context.
 
     >>> with u.set_enabled_equivalencies([]):
-    ...     try: z.to(u.dimensionless_unscaled)
-    ...     except u.UnitConversionError: print("equivalency disabled")
+    ...     try:
+    ...         z.to(u.dimensionless_unscaled)
+    ...     except u.UnitConversionError:
+    ...         print("equivalency disabled")
     equivalency disabled
 
 .. EXAMPLE END
@@ -104,7 +103,6 @@ so too will the conversions.
 If no argument is given (or the argument is `None`), this equivalency assumes
 the current default :class:`~astropy.cosmology.Cosmology`:
 
-    >>> excosmo = WMAP9.clone(Tcmb0=3.0)
     >>> z.to(u.K, cu.with_redshift())
     <Quantity 3000.7755 K>
 
