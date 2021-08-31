@@ -247,7 +247,8 @@ Version 1.1
 and `Version 1.4
 <https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_.
 Some flexibility is provided to support the 1.0 draft version and
-other nonstandard usage in the wild, see :ref:`pedantic-mode` for more details.
+other nonstandard usage in the wild, see :ref:`verifying-votables` for more
+details.
 
 .. note::
 
@@ -258,14 +259,14 @@ other nonstandard usage in the wild, see :ref:`pedantic-mode` for more details.
 Output always conforms to the 1.1, 1.2, 1.3, or 1.4 spec, depending on the
 input.
 
-.. _pedantic-mode:
+.. _verifying-votables:
 
 Verifying VOTables
 ^^^^^^^^^^^^^^^^^^
 
 Many VOTable files in the wild do not conform to the VOTable specification. You
 can set what should happen when a violation is encountered with the ``verify``
-argument, which can take three values:
+keyword, which can take three values:
 
     * ``'ignore'`` - Attempt to parse the VOTable silently. This is the default
       setting.
@@ -274,11 +275,11 @@ argument, which can take three values:
       same type to a maximum value using the
       `astropy.io.votable.exceptions.conf.max_warnings
       <astropy.io.votable.exceptions.Conf.max_warnings>` item in the
-      :ref:`astropy_config`
+      :ref:`astropy_config`.
     * ``'exception'`` - Do not parse the VOTable and raise an exception.
 
-The ``verify`` argument can be used with the :func:`~astropy.io.votable.parse` or
-:func:`~astropy.io.votable.parse_single_table` functions::
+The ``verify`` keyword can be used with the :func:`~astropy.io.votable.parse`
+or :func:`~astropy.io.votable.parse_single_table` functions::
 
   from astropy.io.votable import parse
   votable = parse("votable.xml", verify='warn')
