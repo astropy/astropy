@@ -6,6 +6,7 @@ from astropy.io.fits.column import Column
 from astropy.io.fits.diff import (FITSDiff, HeaderDiff, ImageDataDiff,
                                   TableDataDiff, HDUDiff)
 from astropy.io.fits.hdu import HDUList, PrimaryHDU, ImageHDU
+from astropy.io.fits.hdu.base import NonstandardExtHDU
 from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
 
@@ -13,6 +14,18 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.io import fits
 
 from . import FitsTestCase
+
+
+class DummyNonstandardExtHDU(NonstandardExtHDU):
+
+    def __init__(self, data=None, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
+        self._buffer = np.asarray(data).tobytes()
+        self._data_offset = 0
+
+    @property
+    def size(self):
+        return len(self._buffer)
 
 
 class TestDiff(FitsTestCase):
@@ -790,6 +803,53 @@ class TestDiff(FitsTestCase):
                           r'deprecated in version 2\.0 and will be removed in a '
                           r'future version\. Use argument "overwrite" instead\.'):
             diffobj.report(fileobj=outpath, clobber=True)
+
+    def test_rawdatadiff_nodiff(self):
+        a = np.arange(100, dtype='uint8').reshape(10, 10)
+        b = a.copy()
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+        assert diff.identical
+        report = diff.report()
+        assert 'No differences found.' in report
+
+    def test_rawdatadiff_dimsdiff(self):
+        a = np.arange(100, dtype='uint8') + 10
+        b = a[:80].copy()
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+        assert not diff.identical
+        report = diff.report()
+        assert 'Data sizes differ:' in report
+        assert 'a: 100 bytes' in report
+        assert 'b: 80 bytes' in report
+        assert 'No further data comparison performed.' in report
+
+    def test_rawdatadiff_bytesdiff(self):
+        a = np.arange(100, dtype='uint8') + 10
+        b = a.copy()
+        changes = [(30, 200), (89, 170)]
+        for i, v in changes:
+            b[i] = v
+
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+
+        assert not diff.identical
+
+        diff_bytes = diff.diff_data.diff_bytes
+        assert len(changes) == len(diff_bytes)
+        for j, (i, v) in enumerate(changes):
+            assert diff_bytes[j] == (i, (i+10, v))
+
+        report = diff.report()
+        assert 'Data contains differences:' in report
+        for i, _ in changes:
+            assert f'Data differs at byte {i}:' in report
+        assert '2 different bytes found (2.00% different).' in report
 
 
 def test_fitsdiff_hdu_name(tmpdir):
