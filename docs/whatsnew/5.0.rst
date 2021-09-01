@@ -9,7 +9,7 @@ What's New in Astropy 5.0?
 Overview
 ========
 
-.. _whatsnew-5.0-cosmology:
+.. _whatsnew-5.0-cosmology-io:
 
 Support for reading, writing, and converting ``Cosmology``
 ==========================================================
@@ -49,6 +49,34 @@ e.g. enabling::
     >>> cosmo = Cosmology.from_format(cm, format="mapping")
     >>> cosmo == Planck18
     True
+
+.. _whatsnew-5.0-cosmology-units:
+
+``Cosmology`` units module
+==========================
+
+A new module -- ``cosmology.units`` -- is added to the cosmology subpackage for
+defining and collecting cosmological units and equivalencies.
+The unit ``littleh`` and equivalency ``with_H0`` are deprecated from the main
+``astropy.units`` subpackage and moved to ``cosmology.units``.
+A new unit, ``redshift``, is added for tracking factors of cosmological redshift.
+As this is a pseudo-unit an equivalency ``dimensionless_redshift`` is added
+(and enabled by default) to allow for redshift - dimensionless conversions.
+To convert between redshift and other cosmological distance measures, e.g.
+CMB temperature, the equivalency ``with_redshift`` is also added.
+
+    >>> import astropy.units as u
+    >>> import astropy.cosmology.units as cu
+    >>> z = 1100 * cu.redshift
+
+    >>> z.to(u.dimensionless_unscaled)
+    <Quantity 1100.>
+
+    >>> from astropy.cosmology import WMAP9
+    >>> z.to(u.K, cu.with_redshift(WMAP9))
+    <Quantity 3000.225 K>
+
+Further details are available in an addition to the docs.
 
 
 Full change log
