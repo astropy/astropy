@@ -7,9 +7,6 @@ Cosmological Units and Equivalencies
 .. currentmodule:: astropy.cosmology.units
 
 This package defines and collects cosmological units and equivalencies.
-Many of the units and equivalencies are also available in the
-:mod:`astropy.units` namespace.
-
 We suggest importing this units package as
 
     >>> import astropy.cosmology.units as cu
@@ -19,11 +16,105 @@ To enable the main :mod:`astropy.units` to access these units when searching
 for unit conversions and equivalencies, use
 :func:`~astropy.units.add_enabled_units`.
 
+    >>> import astropy.units as u
     >>> u.add_enabled_units(cu)  # doctest: +SKIP
 
 
 About the Units
 ===============
+
+.. doctest::
+   :hide:
+
+   >>> import astropy.units as u
+
+
+.. _cosmological-redshift:
+
+Cosmological Redshift and Dimensionless Equivalency
+---------------------------------------------------
+
+There are numerous measures of distance in cosmology -- luminosities,
+CMB temperature, the universe's age, etc. -- but redshift is the principal
+measure from which others are defined. In cosmology, distance measures are
+commonly exasperating to follow in a derivation, because they are used
+so interchangeably. ``astropy`` provides the ``redshift`` unit and associated
+equivalencies to assist in these derivations by providing a way to convert
+to/from redshift "units".
+
+Examples
+^^^^^^^^
+
+.. EXAMPLE START: Using redshift-dimensionless equivalency
+
+To convert to or from dimensionless to "redshift" units:
+
+    >>> import astropy.units as u
+    >>> import astropy.cosmology.units as cu
+    >>> z = 1100 * cu.redshift
+    >>> z.to(u.dimensionless_unscaled, equivalencies=cu.dimensionless_redshift())
+    <Quantity 1100.>
+
+The equivalency works as part of a quantity with composite units
+
+    >>> q = (2.7 * u.K) * z
+    >>> q.to(u.K, equivalencies=cu.dimensionless_redshift())
+    <Quantity 2970. K>
+
+Since the redshift is not a true unit and is used so frequently, the
+redshift / dimensionless equivalency is actually enabled by default.
+
+    >>> z == 1100 * u.dimensionless_unscaled
+    True
+
+    >>> q.to(u.K)
+    <Quantity 2970. K>
+
+To temporarily remove the equivalency and enforce unit strictness, use
+:func:`astropy.units.set_enabled_equivalencies` as a context.
+
+    >>> with u.set_enabled_equivalencies([]):
+    ...     try:
+    ...         z.to(u.dimensionless_unscaled)
+    ...     except u.UnitConversionError:
+    ...         print("equivalency disabled")
+    equivalency disabled
+
+.. EXAMPLE END
+
+
+.. EXAMPLE START: Using `with_redshift` equivalency
+
+The other redshift equivalency is `~astropy.cosmology.units.with_redshift`,
+enabling redshift to be converted to other units, like temperature.
+
+    >>> from astropy.cosmology import WMAP9
+    >>> z = 1100 * cu.redshift
+    >>> z.to(u.K, cu.with_redshift(WMAP9))
+    <Quantity 3000.225 K>
+
+These conversions are cosmology dependent, so if the cosmology changes,
+so too will the conversions.
+
+    >>> excosmo = WMAP9.clone(Tcmb0=3.0)
+    >>> z.to(u.K, cu.with_redshift(excosmo))
+    <Quantity 3303. K>
+
+If no argument is given (or the argument is `None`), this equivalency assumes
+the current default :class:`~astropy.cosmology.Cosmology`:
+
+    >>> z.to(u.K, cu.with_redshift())
+    <Quantity 3000.7755 K>
+
+To use this equivalency in a larger block of code:
+
+    >>> with u.add_enabled_equivalencies(cu.with_redshift()):
+    ...     # long derivation here
+    ...     z.to(u.K)
+    <Quantity 3000.7755 K>
+
+.. EXAMPLE END
+
 
 .. _littleh-and-H0-equivalency:
 
