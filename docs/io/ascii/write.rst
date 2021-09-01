@@ -299,10 +299,6 @@ MDJ are required. Thus::
 
   >>> from astropy.time import Time, TimeDelta
   >>> from astropy.timeseries import TimeSeries
-<<<<<<< main
-  >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
-  >>> table['Obs'] = Column(ts.time.decimalyear, description='Time of Observation')
-=======
   >>> ts = TimeSeries(time_start=Time('2019-1-1 23:23:12.34454657134'),
   ...                 time_delta=2*u.day,
   ...                 n_samples=2)
@@ -315,7 +311,6 @@ MDJ are required. Thus::
   ...                        description='Year of Observation')
   >>> table['Obs'] = Column(ts.time)
   >>> table.add_column(ts.time)
->>>>>>> HEAD~2
   >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
   ...                           unit=u.s)
 
@@ -358,11 +353,11 @@ After execution, the contents of ``coords_cols.dat`` will be::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name                   
-   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature 
-   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
-   32- 36  F5.3   10+12Jy Flux        ? Description of Flux                 
-   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+    1- 11  A11     ---    Name        Description of Name                     
+   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature   
+   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH           
+   32- 36  F5.3   10+12Jy Flux        ? Description of Flux                   
+   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude  
    44- 51  F8.3    yr     Obs0        [2019.0/2019.01] Time of Observation    
    53- 56  I4      yr     Year        [2019] Year of Observation              
    58- 75  F18.12  d      Obs         [58484.97/58486.98] Modified Julian Date

@@ -421,9 +421,9 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
-  1-  7  A7     ---    name    Description of name   
-  9- 74  A66    ---    Unknown Description of Unknown
- 76-114  A39    ---    Unknown Description of Unknown
+  1-  7  A7     ---    name    Description of name                   
+  9- 74  A66    ---    Unknown Description of Unknown                
+ 76-114  A39    ---    Unknown Description of Unknown                
 116-133  F18.12 d      MJD     [58484.0/58484.0] Modified Julian Date
 --------------------------------------------------------------------------------
 Notes:
