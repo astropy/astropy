@@ -266,8 +266,8 @@ class W01(VOTableSpecWarning):
         encoded as multiple numbers separated by whitespace.
 
     Many VOTable files in the wild use commas as a separator instead,
-    and ``astropy.io.votable`` supports this convention when not in
-    :ref:`astropy:pedantic-mode`.
+    and ``astropy.io.votable`` can support this convention depending on the
+    :ref:`astropy:verifying-votables` setting.
 
     ``astropy.io.votable`` always outputs files using only spaces, regardless of
     how they were input.
