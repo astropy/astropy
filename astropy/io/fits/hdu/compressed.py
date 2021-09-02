@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import io
 import ctypes
 import gc
 import itertools
@@ -18,8 +19,9 @@ from astropy.io.fits import conf
 from astropy.io.fits.card import Card
 from astropy.io.fits.column import Column, ColDefs, TDEF_RE
 from astropy.io.fits.column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
+from astropy.io.fits.file import _File
 from astropy.io.fits.fitsrec import FITS_rec
-from astropy.io.fits.header import Header
+from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                                   _get_array_mmap)
 
@@ -1850,6 +1852,40 @@ class CompImageHDU(BinTableHDU):
         self._orig_bitpix = self._bitpix
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
+
+
+    def _calculate_datasum_with_heap(self):
+        """
+        Override the way BinTableHDU calculates the datasum in a desperate
+        attempt to make datasum work.
+
+        For reasons I don't fully understand the way that BinTableHDU
+        calculates the checksum with the heap must be wrong when cfitsio and
+        CompImageHDU is managing it's own heap.
+
+        What I know works is calculating the datasum using the raw bytes as is
+        written to disk; I know this works because it's what happens when you
+        calculate the datasum when you are *reading* a file.
+
+        Therefore what I do here is generate the raw bytes as would be written
+        to disk and then compute the checksum on those bytes. This is hacky as
+        hell and probably nowhere near the most memory efficient way to do
+        this, but hey it works!
+        """
+        # Write the bytes to a memory buffer
+        target = io.BytesIO()
+        # _writedata_internal needs the special _File object
+        fileobj = _File(target)
+        n_bytes = self._writedata_internal(fileobj)
+        # Pad the written data to the end of the next block
+        padding = _pad_length(n_bytes) * self._padding_byte
+        target.write(padding.encode('ascii'))
+        # Seek to the start of the buffer
+        target.seek(0)
+        # Get all the bytes out of the buffer
+        raw_bytes = target.read()
+        ndarray_buffer = np.ndarray(len(raw_bytes), dtype='ubyte', buffer=raw_bytes)
+        return self._compute_checksum(ndarray_buffer)
 
     def _prewriteto(self, checksum=False, inplace=False):
         if self._scale_back:
