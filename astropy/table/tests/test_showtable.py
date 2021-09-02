@@ -30,10 +30,10 @@ def test_stats(capsys):
     showtable.main([os.path.join(FITS_ROOT, 'data/table.fits'), '--stats'])
     out, err = capsys.readouterr()
     expected = ['<Table length=3>',
-                ' name     mean      std    min  max ',
-                '------ --------- --------- ---- ----',
-                'target        --        --   --   --',
-                ' V_mag 12.86666[0-9]? 1.7211105 11.1 15.2']
+                ' name    mean    std   min  max ',
+                '------ ------- ------- ---- ----',
+                'target      --      --   --   --',
+                ' V_mag 12.866[0-9]? 1.72111 11.1 15.2']
 
     out = out.splitlines()
     assert out[:4] == expected[:4]
