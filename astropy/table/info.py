@@ -49,7 +49,7 @@ def table_info(tbl, option='attributes', out=''):
     name mean std min max
     ---- ---- --- --- ---
        a  1.5 0.5   1   2
-       b  1.5 0.5 1.0 2.0
+       b  1.5 0.5   1   2
 
     Parameters
     ----------
