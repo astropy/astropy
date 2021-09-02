@@ -248,14 +248,15 @@ class SigmaClip:
         return ('SigmaClip(sigma={}, sigma_lower={}, sigma_upper={}, '
                 'maxiters={}, cenfunc={}, stdfunc={}, grow={})'
                 .format(self.sigma, self.sigma_lower, self.sigma_upper,
-                        self.maxiters, self.cenfunc, self.stdfunc, self.grow))
+                        self.maxiters, repr(self.cenfunc), repr(self.stdfunc),
+                        self.grow))
 
     def __str__(self):
         lines = ['<' + self.__class__.__name__ + '>']
         attrs = ['sigma', 'sigma_lower', 'sigma_upper', 'maxiters', 'cenfunc',
                  'stdfunc', 'grow']
         for attr in attrs:
-            lines.append(f'    {attr}: {getattr(self, attr)}')
+            lines.append(f'    {attr}: {repr(getattr(self, attr))}')
         return '\n'.join(lines)
 
     @staticmethod
