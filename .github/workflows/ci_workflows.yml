@@ -68,10 +68,10 @@ jobs:
             toxargs: -v --develop
             toxposargs: --open-files
 
-          - name: Python 3.7 with oldest supported version of all dependencies
+          - name: Python 3.8 with oldest supported version of all dependencies
             os: ubuntu-16.04
-            python: 3.7
-            toxenv: py37-test-oldestdeps
+            python: 3.8
+            toxenv: py38-test-oldestdeps
 
           - name: Python 3.8 with numpy 1.18 and full coverage
             os: ubuntu-latest
@@ -85,10 +85,10 @@ jobs:
             toxenv: py38-test-alldeps
             toxposargs: --durations=50
 
-          - name: Python 3.7 with all optional dependencies (MacOS X)
+          - name: Python 3.8 with all optional dependencies (MacOS X)
             os: macos-latest
-            python: 3.7
-            toxenv: py37-test-alldeps
+            python: 3.8
+            toxenv: py38-test-alldeps
             toxposargs: --durations=50
 
     steps:
@@ -124,10 +124,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: (Allowed Failure) Python 3.7 with remote data and dev version of key dependencies
+          - name: (Allowed Failure) Python 3.8 with remote data and dev version of key dependencies
             os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
+            python: 3.8
+            toxenv: py38-test-devdeps
             toxposargs: --remote-data=any
 
     steps:
@@ -165,12 +165,12 @@ jobs:
       run: |
         mkdir -p $HOME/.astropy/config/
         printf "unicode_output = True\nmax_width = 500" > $HOME/.astropy/config/astropy.cfg
-    # In addition to testing 32-bit, we also use the 3.7 builds to
+    # In addition to testing 32-bit, we also use the 3.8 builds to
     # test the ability to run the test suite in parallel.
-    - name: Install dependencies for Python 3.7
-      run: /opt/python/cp37-cp37m/bin/pip install tox
-    - name: Run tests for Python 3.7
-      run: /opt/python/cp37-cp37m/bin/python -m tox -e py37-test -- -n=4 --durations=50
+    - name: Install dependencies for Python 3.8
+      run: /opt/python/cp38-cp38/bin/pip install tox
+    - name: Run tests for Python 3.8
+      run: /opt/python/cp38-cp38/bin/python -m tox -e py38-test -- -n=4 --durations=50
     # We use the 3.8 build to check that running tests twice in a row in the
     # same Python session works without issues. This catches cases where
     # running the tests changes the module state permanently. Note that we

@@ -1,0 +1,1 @@
+Minimum version of required Python is now 3.8.
