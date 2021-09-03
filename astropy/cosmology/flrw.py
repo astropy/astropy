@@ -415,7 +415,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return self._Om0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
 
     def Ob(self, z):
@@ -442,7 +442,7 @@ class FLRW(Cosmology):
         if self._Ob0 is None:
             raise ValueError("Baryon density not set for this cosmology")
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return self._Ob0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
 
     def Odm(self, z):
@@ -475,7 +475,7 @@ class FLRW(Cosmology):
             raise ValueError("Baryonic density not set for this cosmology, "
                              "unclear meaning of dark matter density")
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return self._Odm0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
 
     def Ok(self, z):
@@ -495,7 +495,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
             # Common enough case to be worth checking explicitly
             if self._Ok0 == 0:
                 return np.zeros(np.asanyarray(z).shape)
@@ -522,7 +522,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
             # Common case worth checking
             if self._Ode0 == 0:
                 return np.zeros(np.asanyarray(z).shape)
@@ -549,7 +549,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return self._Ogamma0 * (1. + z) ** 4 * self.inv_efunc(z) ** 2
 
     def Onu(self, z):
@@ -572,7 +572,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
             if self._Onu0 == 0:
                 return np.zeros(np.asanyarray(z).shape)
         else:
@@ -596,7 +596,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return self._Tcmb0 * (1. + z)
 
     def Tnu(self, z):
@@ -614,7 +614,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return self._Tnu0 * (1. + z)
 
     def nu_relative_density(self, z):
@@ -739,7 +739,7 @@ class FLRW(Cosmology):
         # one in the documentation string, but it's the same thing.
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
             ival = np.array([quad(self._w_integrand, 0, log(1 + redshift))[0]
                              for redshift in z])
             return np.exp(3 * ival)
@@ -770,7 +770,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         if self._massivenu:
@@ -799,7 +799,7 @@ class FLRW(Cosmology):
 
         # Avoid the function overhead by repeating code
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         if self._massivenu:
             Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
@@ -935,7 +935,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return 1. / (1. + z)
 
@@ -1240,7 +1240,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return self.comoving_transverse_distance(z) / (1. + z)
 
@@ -1271,7 +1271,7 @@ class FLRW(Cosmology):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return (1. + z) * self.comoving_transverse_distance(z)
 
@@ -1854,7 +1854,7 @@ class LambdaCDM(FLRW):
           The age of the universe in Gyr at each input redshift.
         """
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return (2./3) * self._hubble_time * (1+z)**(-3./2)
 
@@ -1876,7 +1876,7 @@ class LambdaCDM(FLRW):
           The age of the universe in Gyr at each input redshift.
         """
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         # Use np.sqrt, np.arcsinh instead of math.sqrt, math.asinh
         # to handle properly the complex numbers for 1 - Om0 < 0
@@ -1930,7 +1930,7 @@ class LambdaCDM(FLRW):
           Lookback time in Gyr to each input redshift.
         """
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return self._hubble_time * np.log(1+z)
 
@@ -1976,7 +1976,7 @@ class LambdaCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         # We override this because it takes a particularly simple
         # form for a cosmological constant
@@ -2010,7 +2010,7 @@ class LambdaCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0, Ok0 = self._Om0, self._Ode0, self._Ok0
         if self._massivenu:
             Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
@@ -2122,7 +2122,7 @@ class FlatLambdaCDM(LambdaCDM):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         # We override this because it takes a particularly simple
         # form for a cosmological constant
@@ -2155,7 +2155,7 @@ class FlatLambdaCDM(LambdaCDM):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0 = self._Om0, self._Ode0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
@@ -2315,7 +2315,7 @@ class wCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         return (1. + z) ** (3. * (1. + self._w0))
 
     def efunc(self, z):
@@ -2338,7 +2338,7 @@ class wCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
@@ -2369,7 +2369,7 @@ class wCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
@@ -2494,7 +2494,7 @@ class FlatwCDM(wCDM):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
@@ -2525,7 +2525,7 @@ class FlatwCDM(wCDM):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
@@ -2672,7 +2672,7 @@ class w0waCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return self._w0 + self._wa * z / (1.0 + z)
 
@@ -2702,7 +2702,7 @@ class w0waCDM(FLRW):
 
         """
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         zp1 = 1.0 + z
         return zp1 ** (3 * (1 + self._w0 + self._wa)) * \
             np.exp(-3 * self._wa * z / zp1)
@@ -2962,7 +2962,7 @@ class wpwaCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         apiv = 1.0 / (1.0 + self._zp)
         return self._wp + self._wa * (apiv - 1.0 / (1. + z))
@@ -2995,7 +2995,7 @@ class wpwaCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         zp1 = 1. + z
         apiv = 1. / (1. + self._zp)
         return zp1 ** (3. * (1. + self._wp + apiv * self._wa)) * \
@@ -3141,7 +3141,7 @@ class w0wzCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
 
         return self._w0 + self._wz * z
 
@@ -3171,7 +3171,7 @@ class w0wzCDM(FLRW):
         """
 
         if isiterable(z):
-            z = np.asarray(z)
+            z = u.Quantity(z, u.dimensionless_unscaled).value
         zp1 = 1. + z
         return zp1 ** (3. * (1. + self._w0 - self._wz)) *\
             np.exp(-3. * self._wz * z)
