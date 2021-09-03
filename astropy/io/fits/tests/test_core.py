@@ -1298,7 +1298,7 @@ class TestFileFunctions(FitsTestCase):
 
         hdu_non_zero = fits.BinTableHDU(bright)
         # use safeio, a special file handler meant to fail on zero-byte writes
-        fh = safeio.CatchZeroByteWriter(open('bright.fits', mode='wb'))
+        fh = safeio.CatchZeroByteWriter(open(self.temp('bright.fits'), mode='wb'))
         hdu_non_zero.writeto(fh)
         fh.close()
 
@@ -1310,7 +1310,7 @@ class TestFileFunctions(FitsTestCase):
 
         hdu_img_2880 = fits.PrimaryHDU(data=np.arange(720, dtype='i4'))
         # use safeio, a special file handler meant to fail on zero-byte writes
-        fh = safeio.CatchZeroByteWriter(open('image.fits', mode='wb'))
+        fh = safeio.CatchZeroByteWriter(open(self.temp('image.fits'), mode='wb'))
         hdu_img_2880.writeto(fh)
         fh.close()
 
