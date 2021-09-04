@@ -342,17 +342,17 @@ wcserr_fix_to_python_exc(const struct wcserr *err) {
 void
 wcshdr_err_to_python_exc(int status, const struct wcsprm *wcs) {
   /* Add error to wcslib error buffer */
-  wcsperr(wcs, "");
+  wcsperr(wcs, NULL);
   if (status > 0 && status != WCSHDRERR_PARSER) {
     PyErr_Format(
       PyExc_MemoryError,
-      "Memory allocation error (internal details %s)",
+      "Memory allocation error:\n%s",
       wcsprintf_buf()
     );
   } else {
     PyErr_Format(
       PyExc_ValueError,
-      "Internal error in wcslib header parser (internal details %s)",
+      "Internal error in wcslib header parser:\n %s",
       wcsprintf_buf()
     );
   }
