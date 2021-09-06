@@ -6,11 +6,7 @@ Module to test fitting routines
 import os.path
 import warnings
 from unittest import mock
-
-try:
-    from importlib.metadata import EntryPoint
-except ImportError:
-    from importlib_metadata import EntryPoint
+from importlib.metadata import EntryPoint
 
 import pytest
 import numpy as np
