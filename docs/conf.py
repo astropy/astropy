@@ -29,26 +29,22 @@ import os
 import sys
 import configparser
 from datetime import datetime
+from importlib import metadata
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 
-try:
-    import importlib.metadata as importlib_metadata
-except ImportError:
-    import importlib_metadata
-
 # -- Check for missing dependencies -------------------------------------------
 missing_requirements = {}
-for line in importlib_metadata.requires('astropy'):
+for line in metadata.requires('astropy'):
     if 'extra == "docs"' in line:
         req = Requirement(line.split(';')[0])
         req_package = req.name.lower()
         req_specifier = str(req.specifier)
 
         try:
-            version = importlib_metadata.version(req_package)
-        except importlib_metadata.PackageNotFoundError:
+            version = metadata.version(req_package)
+        except metadata.PackageNotFoundError:
             missing_requirements[req_package] = req_specifier
 
         if version not in SpecifierSet(req_specifier, prereleases=True):
@@ -125,7 +121,7 @@ __minimum_python_version__ = setup_cfg['options']['python_requires'].replace('>=
 project = u'Astropy'
 
 min_versions = {}
-for line in importlib_metadata.requires('astropy'):
+for line in metadata.requires('astropy'):
     req = Requirement(line.split(';')[0])
     min_versions[req.name.lower()] = str(req.specifier)
 
@@ -190,7 +186,7 @@ copyright = f'2011–{datetime.utcnow().year}, ' + author
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = importlib_metadata.version(project)
+release = metadata.version(project)
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 

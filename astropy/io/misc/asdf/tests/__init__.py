@@ -4,10 +4,7 @@
 # Define a constant to know if the entry points are installed, since this impacts
 # whether we can run the tests.
 
-try:
-    from importlib.metadata import entry_points
-except ImportError:
-    from importlib_metadata import entry_points
+from importlib.metadata import entry_points
 
 import pytest
 
