@@ -163,7 +163,8 @@ class TestDiff(FitsTestCase):
             assert not diff.identical
             assert diff.diff_keyword_values == {'C': [('A       ', 'A')]}
 
-    def test_ignore_blank_cards(self):
+    @pytest.mark.parametrize("differ", [HeaderDiff, HDUDiff, FITSDiff])
+    def test_ignore_blank_cards(self, differ):
         """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/152
 
         Ignore blank cards.
@@ -172,27 +173,41 @@ class TestDiff(FitsTestCase):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = Header([('A', 1), ('', ''), ('B', 2), ('', ''), ('C', 3)])
         hc = ha.copy()
-        hc.append()
-        hc.append()
+        if differ is HeaderDiff:
+            hc.append()
+            hc.append()
+        else:  # Ensure blanks are not at the end as they are stripped by HDUs
+            hc.add_blank(after=-2)
+            hc.add_blank(after=-2)
+
+        if differ in (HDUDiff, FITSDiff):  # wrap it in a PrimaryHDU
+            ha, hb, hc = (PrimaryHDU(np.arange(10), h) for h in (ha, hb, hc))
+            hc_header = hc.header
+        if differ is FITSDiff:  # wrap it in a HDUList
+            ha, hb, hc = (HDUList([h]) for h in (ha, hb, hc))
+            hc_header = hc[0].header
 
         # We now have a header with interleaved blanks, and a header with end
         # blanks, both of which should ignore the blanks
-        assert HeaderDiff(ha, hb).identical
-        assert HeaderDiff(ha, hc).identical
-        assert HeaderDiff(hb, hc).identical
+        assert differ(ha, hb).identical
+        assert differ(ha, hc).identical
+        assert differ(hb, hc).identical
 
-        assert not HeaderDiff(ha, hb, ignore_blank_cards=False).identical
-        assert not HeaderDiff(ha, hc, ignore_blank_cards=False).identical
+        assert not differ(ha, hb, ignore_blank_cards=False).identical
+        assert not differ(ha, hc, ignore_blank_cards=False).identical
 
         # Both hb and hc have the same number of blank cards; since order is
         # currently ignored, these should still be identical even if blank
         # cards are not ignored
-        assert HeaderDiff(hb, hc, ignore_blank_cards=False).identical
+        assert differ(hb, hc, ignore_blank_cards=False).identical
 
-        hc.append()
+        if differ is HeaderDiff:
+            hc.append()
+        else:  # Ensure blanks are not at the end as they are stripped by HDUs
+            hc_header.add_blank(after=-2)
         # But now there are different numbers of blanks, so they should not be
         # ignored:
-        assert not HeaderDiff(hb, hc, ignore_blank_cards=False).identical
+        assert not differ(hb, hc, ignore_blank_cards=False).identical
 
     def test_ignore_hdus(self):
         a = np.arange(100).reshape(10, 10)
