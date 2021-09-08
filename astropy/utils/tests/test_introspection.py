@@ -76,8 +76,8 @@ def test_minversion():
         assert not minversion(numpy, version)
         assert not minversion("numpy", version)
 
-    assert minversion(yaml, '5.1')
-    assert minversion('yaml', '5.1')
+    assert minversion(yaml, '3.1')
+    assert minversion('yaml', '3.1')
 
 
 def test_find_current_module_bundle():

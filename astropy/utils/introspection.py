@@ -33,9 +33,6 @@ else:
         return dict(pkg_to_dist)
 
 
-_PKG_TO_DIST_NAMES = {}
-
-
 def resolve_name(name, *additional_parts):
     """Resolve a name like ``module.object`` to an object and return it.
 
@@ -153,11 +150,15 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
                          'module, or the import name of the module; '
                          f'got {repr(module)}')
 
-    # Convert the module name to a distribution name
-    if not _PKG_TO_DIST_NAMES:
-        _PKG_TO_DIST_NAMES.update(packages_distributions())
-    module_name = _PKG_TO_DIST_NAMES[module_name][0]
-    module_version = metadata.version(module_name)
+    try:
+        module_version = metadata.version(module_name)
+    except metadata.PackageNotFoundError:
+        # Maybe the distribution name is different from package name.
+        # Calling packages_distributions is costly so we do it only
+        # if necessary, as only a few packages don't have the same
+        # distribution name.
+        dist_names = packages_distributions()
+        module_version = metadata.version(dist_names[module_name][0])
 
     if inclusive:
         return Version(module_version) >= Version(version)
