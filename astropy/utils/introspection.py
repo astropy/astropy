@@ -2,16 +2,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
+import collections
 import inspect
 import os
 import sys
 import types
 import importlib
-
-try:
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata
+from importlib import metadata
+from packaging.version import Version
 
 from astropy.utils.decorators import deprecated_renamed_argument
 
@@ -19,6 +17,20 @@ __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
 
 __doctest_skip__ = ['find_current_module']
+
+if sys.version_info[:2] >= (3, 10):
+    from importlib.metadata import packages_distributions
+else:
+    def packages_distributions():
+        """
+        Return a mapping of top-level packages to their distributions.
+        Note: copied from https://github.com/python/importlib_metadata/pull/287
+        """
+        pkg_to_dist = collections.defaultdict(list)
+        for dist in metadata.distributions():
+            for pkg in (dist.read_text('top_level.txt') or '').split():
+                pkg_to_dist[pkg].append(dist.metadata['Name'])
+        return dict(pkg_to_dist)
 
 
 def resolve_name(name, *additional_parts):
@@ -138,11 +150,15 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
                          'module, or the import name of the module; '
                          f'got {repr(module)}')
 
+    # Convert the module name to a distribution name
+    pkgdist = packages_distributions()
+    module_name = pkgdist[module_name][0]
     module_version = metadata.version(module_name)
+
     if inclusive:
-        return module_version >= version
+        return Version(module_version) >= Version(version)
     else:
-        return module_version > version
+        return Version(module_version) > Version(version)
 
 
 def find_current_module(depth=1, finddiff=False):
