@@ -5,6 +5,7 @@ from collections import namedtuple
 from unittest import mock
 
 import pytest
+import yaml
 
 from astropy.utils import introspection
 from astropy.utils.introspection import (find_current_module, find_mod_objs,
@@ -74,6 +75,9 @@ def test_minversion():
     for version in bad_versions:
         assert not minversion(numpy, version)
         assert not minversion("numpy", version)
+
+    assert minversion(yaml, '5.1')
+    assert minversion('yaml', '5.1')
 
 
 def test_find_current_module_bundle():
