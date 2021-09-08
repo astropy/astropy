@@ -1,0 +1,3 @@
+``astropy.utils.introspection.minversion()`` now uses
+``importlib.metadata.version()``. Therefore, its ``version_path`` keyword is no
+longer used and deprecated. This keyword will be removed in a future release.
