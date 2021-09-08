@@ -1,0 +1,1 @@
+``update_default_config`` and ``ConfigurationMissingWarning`` are deprecated.

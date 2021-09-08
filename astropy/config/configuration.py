@@ -22,6 +22,7 @@ from contextlib import contextmanager, nullcontext
 
 from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import resolve_name
 
@@ -41,6 +42,7 @@ class InvalidConfigurationItemWarning(AstropyWarning):
 
 # This was raised with Astropy < 4.3 when the configuration file was not found.
 # It is kept for compatibility and should be removed at some point.
+@deprecated('5.0')
 class ConfigurationMissingWarning(AstropyWarning):
     """ A Warning that is issued when the configuration directory cannot be
     accessed (usually due to a permissions problem). If this warning appears,
@@ -723,6 +725,7 @@ def is_unedited_config_file(content, template_content=None):
 # packages that may use it (e.g. astroquery). It should be removed at some
 # point.
 # this is not in __all__ because it's not intended that a user uses it
+@deprecated('5.0')
 def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='astropy'):
     """
     Checks if the configuration file for the specified package exists,
