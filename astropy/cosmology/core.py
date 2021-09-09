@@ -173,6 +173,8 @@ class Parameter:
     def getter(self, fget):
         """Make new Parameter with custom ``fget``.
 
+        Note: ``Parameter.getter`` must be the top-most descriptor decorator.
+
         Parameters
         ----------
         fget : callable
