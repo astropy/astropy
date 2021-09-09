@@ -10,6 +10,7 @@ import astropy.constants as const
 import astropy.units as u
 from astropy.utils import isiterable
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import scalar_inv_efuncs
@@ -288,6 +289,7 @@ class FLRW(Cosmology):
         return self._massivenu
 
     @m_nu.getter
+    @lazyproperty
     def m_nu(self):
         """Mass of neutrino species."""
         unit = self.__class__.m_nu.unit  # eV
