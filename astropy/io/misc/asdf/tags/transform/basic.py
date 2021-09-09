@@ -46,6 +46,12 @@ class TransformType(AstropyAsdfType):
                 param_and_model_constraints[constraint] = node[constraint]
         model._initialize_constraints(param_and_model_constraints)
 
+        if "input_units_equivalencies" in node:
+            # this still writes eqs. for compound, but operates on each sub model
+            if not isinstance(model, CompoundModel):
+                eqs = node['input_units_equivalencies']
+                model.input_units_equivalencies = eqs
+
         yield model
 
         if 'inverse' in node:
@@ -106,6 +112,16 @@ class TransformType(AstropyAsdfType):
             bounds_nondefaults = {k: b for k, b in model.bounds.items() if any(b)}
             if bounds_nondefaults:
                 node['bounds'] = bounds_nondefaults
+
+        if not isinstance(model, CompoundModel):
+            if model.input_units is not None:
+                if model.input_units_equivalencies:
+                    input_unit_equivalencies = {}
+                    for in_unit in model.input_units:
+                        eq = model.input_units_equivalencies[in_unit]
+                        unit_equiv = eq
+                        input_unit_equivalencies[in_unit] = unit_equiv
+                    node['input_units_equivalencies'] = input_unit_equivalencies
 
         return node
 
@@ -170,6 +186,8 @@ class ConstantType(TransformType):
             return functional_models.Const1D(node['value'])
         elif node['dimensions'] == 2:
             return functional_models.Const2D(node['value'])
+        else:
+            raise TypeError('Only 1D and 2D constant models are supported.')
 
     @classmethod
     def to_tree_transform(cls, data, ctx):
