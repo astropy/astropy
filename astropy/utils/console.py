@@ -121,7 +121,7 @@ def isatty(file):
     ttys.
     """
     if (multiprocessing.current_process().name != 'MainProcess' or
-            threading.current_thread().getName() != 'MainThread'):
+            threading.current_thread().name != 'MainThread'):
         return False
 
     if hasattr(file, 'isatty'):
