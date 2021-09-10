@@ -86,12 +86,20 @@ To temporarily remove the equivalency and enforce unit strictness, use
 .. EXAMPLE START: Using `with_redshift` equivalency
 
 The other redshift equivalency is `~astropy.cosmology.units.with_redshift`,
-enabling redshift to be converted to other units, like temperature.
+enabling redshift to be converted to other units, like CMB temperature:
 
     >>> from astropy.cosmology import WMAP9
     >>> z = 1100 * cu.redshift
     >>> z.to(u.K, cu.with_redshift(WMAP9))
     <Quantity 3000.225 K>
+
+or the Hubble parameter:
+
+    >>> z.to(u.km / u.s / u.Mpc, cu.with_redshift(WMAP9))
+    <Quantity 1565637.40154275 km / (Mpc s)>
+
+    >>> z.to(cu.littleh, cu.with_redshift(WMAP9))
+    <Quantity 15656.37401543 littleh>
 
 These conversions are cosmology dependent, so if the cosmology changes,
 so too will the conversions.
