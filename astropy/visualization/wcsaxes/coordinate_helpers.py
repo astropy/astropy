@@ -591,18 +591,20 @@ class CoordinateHelper:
 
         renderer.close_group('grid lines')
 
-    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox, ticks_locs):
+    def _draw_ticks(self, renderer, bboxes, ticklabels_bbox):
+        """
+        Draw all ticks and ticklabels.
+        """
 
         renderer.open_group('ticks')
-
-        self.ticks.draw(renderer, ticks_locs)
+        self.ticks.draw(renderer)
         self.ticklabels.draw(renderer, bboxes=bboxes,
                              ticklabels_bbox=ticklabels_bbox,
                              tick_out_size=self.ticks.out_size)
 
         renderer.close_group('ticks')
 
-    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, ticks_locs, visible_ticks):
+    def _draw_axislabels(self, renderer, bboxes, ticklabels_bbox, visible_ticks):
         # Render the default axis label if no axis label is set.
         if self._auto_axislabel and not self.get_axislabel():
             self.set_axislabel(self._get_default_axislabel())
@@ -612,7 +614,7 @@ class CoordinateHelper:
         self.axislabels.draw(renderer, bboxes=bboxes,
                              ticklabels_bbox=ticklabels_bbox,
                              coord_ticklabels_bbox=ticklabels_bbox[self],
-                             ticks_locs=ticks_locs,
+                             ticks_locs=self.ticks.ticks_locs,
                              visible_ticks=visible_ticks)
 
         renderer.close_group('axis labels')
