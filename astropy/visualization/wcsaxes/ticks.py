@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from collections import defaultdict
+import warnings
 
 import numpy as np
 
@@ -30,6 +32,12 @@ class Ticks(Line2D):
     * `xtick.major.width`
     * `xtick.minor.size`
     * `xtick.color`
+
+    Attributes
+    ----------
+    ticks_locs : dict
+        This is set when the ticks are drawn, and is a mapping from axis to
+        the locations of the ticks for that axis.
     """
 
     def __init__(self, ticksize=None, tick_out=None, **kwargs):
@@ -147,21 +155,30 @@ class Ticks(Line2D):
 
     _tickvert_path = Path([[0., 0.], [1., 0.]])
 
-    def draw(self, renderer, ticks_locs):
+    def draw(self, renderer, ticks_locs=None):
         """
         Draw the ticks.
         """
+        if ticks_locs is None:
+            # Deprecated in astropy 4.3
+            warnings.warn(
+                "The ticks_loc argument is deprecated, and no longer has any effect. "
+                "Set the .ticks_locs attribute before drawing "
+                "to modify the ticks being drawn.",
+                AstropyDeprecationWarning)
+
+        self.ticks_locs = defaultdict(list)
 
         if not self.get_visible():
             return
 
         offset = renderer.points_to_pixels(self.get_ticksize())
-        self._draw_ticks(renderer, self.pixel, self.angle, offset, ticks_locs)
+        self._draw_ticks(renderer, self.pixel, self.angle, offset)
         if self._display_minor_ticks:
             offset = renderer.points_to_pixels(self.get_minor_ticksize())
-            self._draw_ticks(renderer, self.minor_pixel, self.minor_angle, offset, ticks_locs)
+            self._draw_ticks(renderer, self.minor_pixel, self.minor_angle, offset)
 
-    def _draw_ticks(self, renderer, pixel_array, angle_array, offset, ticks_locs):
+    def _draw_ticks(self, renderer, pixel_array, angle_array, offset):
         """
         Draw the minor ticks.
         """
@@ -196,6 +213,6 @@ class Ticks(Line2D):
                 # Reset the tick rotation before moving to the next tick
                 marker_rotation.clear()
 
-                ticks_locs[axis].append(locs)
+                self.ticks_locs[axis].append(locs)
 
         gc.restore()
