@@ -9,6 +9,8 @@ from astropy.stats.biweight import (biweight_location, biweight_scale,
                                     biweight_midvariance,
                                     biweight_midcovariance,
                                     biweight_midcorrelation)
+from astropy.tests.helper import assert_quantity_allclose
+import astropy.units as u
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -553,3 +555,23 @@ def test_biweight_32bit_runtime_warnings():
         data[50] = 30000.
         biweight_scale(data)
         biweight_midvariance(data)
+
+
+def test_biweight_scl_var_constant_units():
+    unit = u.km
+    data = np.ones(10) << unit
+    biwscl = biweight_scale(data)
+    biwvar = biweight_midvariance(data)
+    assert isinstance(biwscl, u.Quantity)
+    assert isinstance(biwvar, u.Quantity)
+    assert_quantity_allclose(biwscl, 0. << unit)
+    assert_quantity_allclose(biwvar, 0. << unit ** 2)
+
+    data = np.ones(10) << unit
+    data[0] = np.nan
+    biwscl = biweight_scale(data)
+    biwvar = biweight_midvariance(data)
+    assert isinstance(biwscl, u.Quantity)
+    assert isinstance(biwvar, u.Quantity)
+    assert_quantity_allclose(biwscl, np.nan << unit)
+    assert_quantity_allclose(biwvar, np.nan << unit ** 2)

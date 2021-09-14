@@ -376,7 +376,6 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     >>> print(bivar)    # doctest: +FLOAT_CMP
     1.0484350639638342
     """
-
     median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
 
     if isinstance(data, np.ma.MaskedArray) and ignore_nan:
@@ -396,10 +395,10 @@ def biweight_midvariance(data, c=9.0, M=None, axis=None,
     mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
 
     if axis is None:
-        if mad == 0.:  # data is constant or mostly constant
-            return 0.0
-        if np.isnan(mad):  # data contains NaNs and ignore_nan=False
-            return np.nan
+        # data is constant or mostly constant OR
+        # data contains NaNs and ignore_nan=False
+        if mad == 0. or np.isnan(mad):
+            return mad ** 2  # variance units
     else:
         mad = _expand_dims(mad, axis=axis)  # NUMPY_LT_1_18
 
