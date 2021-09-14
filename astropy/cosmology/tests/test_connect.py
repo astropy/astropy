@@ -48,7 +48,7 @@ def write_json(cosmology, file, *, overwrite=False):
     overwrite : bool (optional, keyword-only)
     """
     data = cosmology.to_format("mapping")  # start by turning into dict
-    data["cosmology"] = data["cosmology"].__qualname__
+    data["cosmology"] = data["cosmology"].__qualname__  # class -> str
     # serialize Quantity
     for k, v in data.items():
         if isinstance(v, u.Quantity):
