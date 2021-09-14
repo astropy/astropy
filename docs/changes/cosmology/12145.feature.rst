@@ -1,0 +1,2 @@
+Replaced ``z = np.asarray(z)`` with ``z=u.Quantity(z, u.dimensionless_unscaled).value`` in Cosmology methods. 
+Input of values with incorrect units raises a UnitConversionError or TypeError.
