@@ -242,8 +242,8 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     Convert low level values into high level objects.
 
     This function uses the information in ``wcs.world_axis_object_classes`` and
-    ``wcs.world_axis_object_components`` to convert the high level objects
-    (such as `~.SkyCoord`) to low level "values" `~.Quantity` objects.
+    ``wcs.world_axis_object_components`` to convert low level "values"
+    `~.Quantity` objects, to high level objects (such as `~.SkyCoord).
 
     This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
     separate function for use in other places where needed.
