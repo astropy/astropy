@@ -1,0 +1,3 @@
+Removed deprecated ``overwrite=None`` option for
+``astropy.io.ascii.ui.write()``. Overwriting existing files now only happens if
+``overwrite=True``.

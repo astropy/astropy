@@ -12,7 +12,7 @@ import numpy as np
 from astropy.io import ascii
 from astropy import table
 from astropy.table.table_helpers import simple_table
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.compat.optional_deps import HAS_BS4
 from astropy import units as u
 
@@ -694,24 +694,14 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
 
     with pytest.raises(OSError) as err:
-        t.write(filename, overwrite=False, format=format,
-                fast_writer=fast_writer)
-    assert str(err.value).endswith('already exists')
-
-    with pytest.warns(
-            AstropyDeprecationWarning,
-            match=r".* Automatically overwriting ASCII files is deprecated. "
-            "Use the argument 'overwrite=True' in the future.") as warning:
         t.write(filename, format=format, fast_writer=fast_writer)
-    assert len(warning) == 1
+    assert str(err.value).endswith('already exists')
 
     t.write(filename, overwrite=True, format=format,
             fast_writer=fast_writer)
 
     # If the output is a file object, overwrite is ignored
     with open(filename, 'w') as fp:
-        t.write(fp, format=format,
-                fast_writer=fast_writer)
         t.write(fp, overwrite=False, format=format,
                 fast_writer=fast_writer)
         t.write(fp, overwrite=True, format=format,
