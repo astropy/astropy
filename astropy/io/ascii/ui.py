@@ -38,7 +38,7 @@ from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyWarning
 
 _read_trace = []
 
@@ -782,22 +782,15 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
 
 
 def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
-          overwrite=None, **kwargs):
+          overwrite=False, **kwargs):
     # Docstring inserted below
 
     _validate_read_write_kwargs('write', format=format, fast_writer=fast_writer,
                                 overwrite=overwrite, **kwargs)
 
     if isinstance(output, str):
-        if os.path.lexists(output):
-            if overwrite is None:
-                warnings.warn(
-                    "{} already exists. "
-                    "Automatically overwriting ASCII files is deprecated. "
-                    "Use the argument 'overwrite=True' in the future.".format(
-                        output), AstropyDeprecationWarning)
-            elif not overwrite:
-                raise OSError(f"{output} already exists")
+        if not overwrite and os.path.lexists(output):
+            raise OSError(f"{output} already exists")
 
     if output is None:
         output = sys.stdout
