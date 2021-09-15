@@ -306,24 +306,24 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
     def world_to_pixel(self, *world_objects):
 
-        world = high_level_objects_to_values(*world_objects, low_level_wcs=self.low_level_wcs)
+        world_values = high_level_objects_to_values(*world_objects, low_level_wcs=self.low_level_wcs)
 
         # Finally we convert to pixel coordinates
-        pixel = self.low_level_wcs.world_to_pixel_values(*world)
+        pixel_values = self.low_level_wcs.world_to_pixel_values(*world_values)
 
-        return pixel
+        return pixel_values
 
     def pixel_to_world(self, *pixel_arrays):
 
         # Compute the world coordinate values
-        world = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
+        world_values = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
 
         if self.world_n_dim == 1:
-            world = (world,)
+            world_values = (world_values,)
 
-        result = values_to_high_level_objects(*world, low_level_wcs=self.low_level_wcs)
+        pixel_values = values_to_high_level_objects(*world_values, low_level_wcs=self.low_level_wcs)
 
-        if len(result) == 1:
-            return result[0]
+        if len(pixel_values) == 1:
+            return pixel_values[0]
         else:
-            return result
+            return pixel_values

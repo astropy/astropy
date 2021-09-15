@@ -5,7 +5,7 @@ from astropy.units import Quantity
 from astropy.coordinates import SkyCoord
 
 from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
-from astropy.wcs.wcsapi.high_level_api import HighLevelWCSMixin
+from astropy.wcs.wcsapi.high_level_api import HighLevelWCSMixin, high_level_objects_to_values, values_to_high_level_objects
 
 
 class DoubleLowLevelWCS(BaseLowLevelWCS):
@@ -171,3 +171,24 @@ def test_serialized_classes():
     x = wcs.world_to_pixel(q)
 
     assert_allclose(x, 1)
+
+
+def test_objects_to_values():
+    wcs = SkyCoordDuplicateWCS()
+    c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
+
+    values = high_level_objects_to_values(c1, c2, low_level_wcs=wcs)
+
+    assert np.allclose(values, [2, 4, 6, 8])
+
+
+def test_values_to_objects():
+    wcs = SkyCoordDuplicateWCS()
+    c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
+
+    c1_out, c2_out = values_to_high_level_objects(*[2,4,6,8], low_level_wcs=wcs)
+    assert c1.ra == c1_out.ra
+    assert c2.l == c2_out.l
+
+    assert c1.dec == c1_out.dec
+    assert c2.b == c2_out.b
