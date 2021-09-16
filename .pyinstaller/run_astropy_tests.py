@@ -17,7 +17,13 @@ if len(sys.argv) > 1:
 for root, dirnames, files in os.walk(os.path.join(ROOT, 'astropy')):
     # Copy over the astropy 'tests' directories and their contents
     for dirname in dirnames:
-        final_dir = os.path.relpath(os.path.join(root.replace('astropy', 'astropy_tests'), dirname), ROOT)
+        # NOTE: we can't simply use
+        # test_root = root.replace('astropy', 'astropy_tests')
+        # as we only want to change the one which is for the module, so instead
+        # we search for the last occurrence and replace that.
+        pos = root.rfind('astropy')
+        test_root = root[:pos] + 'astropy_tests' + root[pos + 7:]
+        final_dir = os.path.relpath(os.path.join(test_root, dirname), ROOT)
         # We only copy over 'tests' directories, but not astropy/tests (only
         # astropy/tests/tests) since that is not just a directory with tests.
         if dirname == 'tests' and not root.endswith('astropy'):
