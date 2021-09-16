@@ -1,18 +1,24 @@
+# We need to import this here to make sure the correct hook gets run to make sure
+# metadata.version('numpy') works correctly
+from importlib import metadata
+
 import os
 import sys
 import pytest
 import shutil
+import erfa  # noqa
 import astropy  # noqa
 
-ROOT = os.path.join(os.path.dirname(__file__), '../')
-
-# Make sure we don't allow any arguments to be passed - some tests call
-# sys.executable which becomes this script when producing a pyinstaller
-# bundle, but we should just error in this case since this is not the
-# regular Python interpreter.
-if len(sys.argv) > 1:
-    print("Extra arguments passed, exiting early")
-    sys.exit(1)
+if len(sys.argv) == 3 and sys.argv[1] == '--astropy-root':
+    ROOT = sys.argv[2]
+else:
+    # Make sure we don't allow any arguments to be passed - some tests call
+    # sys.executable which becomes this script when producing a pyinstaller
+    # bundle, but we should just error in this case since this is not the
+    # regular Python interpreter.
+    if len(sys.argv) > 1:
+        print("Extra arguments passed, exiting early")
+        sys.exit(1)
 
 for root, dirnames, files in os.walk(os.path.join(ROOT, 'astropy')):
     # Copy over the astropy 'tests' directories and their contents
