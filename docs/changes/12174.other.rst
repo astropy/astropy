@@ -1,0 +1,2 @@
+Speed up ``minversion()`` in cases where a module with a ``__version__``
+attribute is passed.

@@ -139,8 +139,10 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     """
     if isinstance(module, types.ModuleType):
         module_name = module.__name__
+        module_version = getattr(module, '__version__', None)
     elif isinstance(module, str):
         module_name = module
+        module_version = None
         try:
             module = resolve_name(module_name)
         except ImportError:
@@ -150,15 +152,16 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
                          'module, or the import name of the module; '
                          f'got {repr(module)}')
 
-    try:
-        module_version = metadata.version(module_name)
-    except metadata.PackageNotFoundError:
-        # Maybe the distribution name is different from package name.
-        # Calling packages_distributions is costly so we do it only
-        # if necessary, as only a few packages don't have the same
-        # distribution name.
-        dist_names = packages_distributions()
-        module_version = metadata.version(dist_names[module_name][0])
+    if module_version is None:
+        try:
+            module_version = metadata.version(module_name)
+        except metadata.PackageNotFoundError:
+            # Maybe the distribution name is different from package name.
+            # Calling packages_distributions is costly so we do it only
+            # if necessary, as only a few packages don't have the same
+            # distribution name.
+            dist_names = packages_distributions()
+            module_version = metadata.version(dist_names[module_name][0])
 
     if inclusive:
         return Version(module_version) >= Version(version)
