@@ -63,6 +63,8 @@ def parse(source, columns=None, invalid='exception', verify=None,
         .. versionchanged:: 4.0
            ``verify`` replaces the ``pedantic`` argument, which will be
            deprecated in future.
+        .. versionchanged:: 5.0
+            The ``pedantic`` argument is deprecated.
 
     chunk_size : int, optional
         The number of rows to read before converting to an array.
