@@ -192,20 +192,25 @@ class Fittable2DModelTester:
         try:
             bbox = model.bounding_box
         except NotImplementedError:
-            pytest.skip("Bounding_box is not defined for model.")
+            return
 
+        ddx = 0.01
         ylim, xlim = bbox
-        dy, dx = np.diff(bbox)/2
-        y1, x1 = np.mgrid[slice(ylim[0], ylim[1] + 1),
-                          slice(xlim[0], xlim[1] + 1)]
-        y2, x2 = np.mgrid[slice(ylim[0] - dy, ylim[1] + dy + 1),
-                          slice(xlim[0] - dx, xlim[1] + dx + 1)]
+        x1 = np.arange(xlim[0], xlim[1], ddx)
+        y1 = np.arange(ylim[0], ylim[1], ddx)
 
-        arr = model(x2, y2)
-        sub_arr = model(x1, y1)
+        x2 = np.concatenate(([xlim[0] - idx * ddx for idx in range(10, 0, -1)],
+                             x1,
+                             [xlim[1] + idx * ddx for idx in range(1, 10)]))
+        y2 = np.concatenate(([ylim[0] - idx * ddx for idx in range(10, 0, -1)],
+                             y1,
+                             [ylim[1] + idx * ddx for idx in range(1, 10)]))
 
-        # check for flux agreement
-        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
+        inside_bbox = model(x1, y1)
+        outside_bbox = model(x2, y2, with_bounding_box=True)
+        outside_bbox = outside_bbox[~np.isnan(outside_bbox)]
+
+        assert np.all(inside_bbox == outside_bbox)
 
     def test_bounding_box2D_peak(self, model_class, test_parameters):
         if not test_parameters.pop('bbox_peak', False):
@@ -399,8 +404,6 @@ class Fittable1DModelTester:
         outside_bbox = outside_bbox[~np.isnan(outside_bbox)]
 
         assert np.all(inside_bbox == outside_bbox)
-        # check for flux agreement
-        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * rtol
 
     def test_bounding_box1D_peak(self, model_class, test_parameters):
         if not test_parameters.pop('bbox_peak', False):
