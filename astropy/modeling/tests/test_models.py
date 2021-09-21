@@ -386,21 +386,19 @@ class Fittable1DModelTester:
         try:
             bbox = model.bounding_box
         except NotImplementedError:
-            pytest.skip("Bounding_box is not defined for model.")
+            return
 
-        if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
-            rtol = 0.01  # 1% agreement is enough due to very extended wings
-            ddx = 0.1  # Finer sampling to "integrate" flux for narrow peak
-        else:
-            rtol = 1e-7
-            ddx = 1
+        ddx = 0.01
+        x1 = np.arange(bbox[0], bbox[1], ddx)
+        x2 = np.concatenate(([bbox[0] - idx * ddx for idx in range(10, 0, -1)],
+                             x1,
+                             [bbox[1] + idx * ddx for idx in range(1, 10)]))
 
-        dx = np.diff(bbox) / 2
-        x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]
-        x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1, ddx)]
-        arr = model(x2)
-        sub_arr = model(x1)
+        inside_bbox = model(x1)
+        outside_bbox = model(x2, with_bounding_box=True)
+        outside_bbox = outside_bbox[~np.isnan(outside_bbox)]
 
+        assert np.all(inside_bbox == outside_bbox)
         # check for flux agreement
         assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * rtol
 
