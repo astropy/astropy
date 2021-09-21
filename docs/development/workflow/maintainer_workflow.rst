@@ -215,6 +215,14 @@ stale status. The pull request author (or maintainer) can reset the stale timer 
 pushing out a commit (e.g., by rebasing). Otherwise, stale-bot will close the
 pull request after about a month and apply a "closed-by-bot" label.
 
+.. note::
+
+    The "keep-open" label should be used very sparingly, only for pull requests that
+    *must* be kept open. For example, a pull request that has been completed but cannot be
+    merged until a blocker is removed can use this label. An abandoned or incomplete
+    pull request should not use this label as it can be re-opened later when the author
+    has a renewed interest to wrap it up.
+
 When both "keep-open" and "Close?" labels exist, the former will take precedence
 and the latter will be removed from the pull request. If maintainer removes "Close?"
 without applying "keep-open" or pushing a new commit, stale-bot will mark it as
