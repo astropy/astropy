@@ -121,24 +121,24 @@ file that has been outputted by a `~astropy.table.QTable`::
   >>> import numpy as np
   >>> from astropy.table import QTable
 
-  >>> kmph = u.def_unit('kmph', u.km / u.h)
-  >>> kmph_array = np.ones((5,5)) * kmph
+  >>> lps = u.def_unit('Lps', u.L / u.s)
+  >>> lps_array = np.ones((5,5)) * lps
   >>> qt = QTable()
-  >>> qt['speeds'] = kmph_array 
-  >>> qt.write('kmph_output.fits',overwrite=True,format='fits')
+  >>> qt['speeds'] = lps_array 
+  >>> qt.write('Lps_output.fits',overwrite=True,format='fits')
 
-  >>> u.add_enabled_units(kmph)
+  >>> u.add_enabled_units(lps)
   <astropy.units.core._UnitContext object at 0x...>
-  >>> QTable.read('kmph_output.fits', format='fits')
+  >>> QTable.read('Lps_output.fits', format='fits')
   <QTable length=5>
-      speeds [5]
-      km / h
-     float64
-    ----------
-    1.0 .. 1.0
-    1.0 .. 1.0
-    1.0 .. 1.0
-    1.0 .. 1.0
-    1.0 .. 1.0
+     speeds [5]
+    1000 cm3 / s
+      float64
+    ------------
+      1.0 .. 1.0
+      1.0 .. 1.0
+      1.0 .. 1.0
+      1.0 .. 1.0
+      1.0 .. 1.0
 
 .. EXAMPLE END
