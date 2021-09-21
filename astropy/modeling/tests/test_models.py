@@ -1,4 +1,4 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Licensed under a 3-clause BSD style license - see LICENSE.rst:
 
 """
 Tests for model evaluation.
@@ -207,6 +207,26 @@ class Fittable2DModelTester:
         # check for flux agreement
         assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
+    def test_bounding_box2D_peak(self, model_class, test_parameters):
+        if not test_parameters.pop('bbox_peak', False):
+            return
+
+        model = create_model(model_class, test_parameters)
+        bbox = model.bounding_box
+
+        ylim, xlim = bbox
+        dy, dx = np.diff(bbox)/2
+        y1, x1 = np.mgrid[slice(ylim[0], ylim[1] + 1),
+                          slice(xlim[0], xlim[1] + 1)]
+        y2, x2 = np.mgrid[slice(ylim[0] - dy, ylim[1] + dy + 1),
+                          slice(xlim[0] - dx, xlim[1] + dx + 1)]
+
+        arr = model(x2, y2)
+        sub_arr = model(x1, y1)
+
+        # check for flux agreement
+        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
+
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitter2D(self, model_class, test_parameters):
         """Test if the parametric model works with the fitter."""
@@ -367,6 +387,29 @@ class Fittable1DModelTester:
             bbox = model.bounding_box
         except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
+
+        if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
+            rtol = 0.01  # 1% agreement is enough due to very extended wings
+            ddx = 0.1  # Finer sampling to "integrate" flux for narrow peak
+        else:
+            rtol = 1e-7
+            ddx = 1
+
+        dx = np.diff(bbox) / 2
+        x1 = np.mgrid[slice(bbox[0], bbox[1] + 1, ddx)]
+        x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1, ddx)]
+        arr = model(x2)
+        sub_arr = model(x1)
+
+        # check for flux agreement
+        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * rtol
+
+    def test_bounding_box1D_peak(self, model_class, test_parameters):
+        if not test_parameters.pop('bbox_peak', False):
+            return
+
+        model = create_model(model_class, test_parameters)
+        bbox = model.bounding_box
 
         if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
             rtol = 0.01  # 1% agreement is enough due to very extended wings
