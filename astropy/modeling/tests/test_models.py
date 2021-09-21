@@ -280,10 +280,8 @@ class Fittable2DModelTester:
         x_lim = test_parameters['x_lim']
         y_lim = test_parameters['y_lim']
 
-        if model_class.fit_deriv is None:
-            pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, PolynomialBase):
-            pytest.skip("Skip testing derivative of polynomials.")
+        if model_class.fit_deriv is None or issubclass(model_class, PolynomialBase):
+            return
 
         if "log_fit" in test_parameters:
             if test_parameters['log_fit']:
@@ -473,10 +471,8 @@ class Fittable1DModelTester:
 
         x_lim = test_parameters['x_lim']
 
-        if model_class.fit_deriv is None:
-            pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, PolynomialBase):
-            pytest.skip("Skip testing derivative of polynomials.")
+        if model_class.fit_deriv is None or issubclass(model_class, PolynomialBase):
+            return
 
         if "log_fit" in test_parameters:
             if test_parameters['log_fit']:
