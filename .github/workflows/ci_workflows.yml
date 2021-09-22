@@ -38,7 +38,7 @@ jobs:
             toxposargs: --open-files
 
           - name: Python 3.6 with oldest supported version of all dependencies
-            os: ubuntu-16.04
+            os: ubuntu-18.04
             python: 3.6
             toxenv: py36-test-oldestdeps
             toxposargs: --doctest-rst
