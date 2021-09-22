@@ -390,7 +390,7 @@ def test_repr():
     cosmo = flrw.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4',
                              Ob0=0.0456789)
     expected = ('Flatw0waCDM(name="test4", H0=55 km / (Mpc s), Om0=0.35, '
-                'w0=-0.9, Tcmb0=0 K, Neff=3.04, m_nu=None, '
+                'w0=-0.9, wa=-0.2, Tcmb0=0 K, Neff=3.04, m_nu=None, '
                 'Ob0=0.0457)')
     assert str(cosmo) == expected
 
@@ -404,7 +404,7 @@ def test_repr():
     cosmo = flrw.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2, Tcmb0=2.725,
                          m_nu=u.Quantity([0.001, 0.01, 0.015], u.eV))
     expected = ('w0wzCDM(H0=55 km / (Mpc s), Om0=0.4, Ode0=0.8, w0=-1.05, '
-                'wz=-0.2 Tcmb0=2.725 K, Neff=3.04, '
+                'wz=-0.2, Tcmb0=2.725 K, Neff=3.04, '
                 'm_nu=[0.001 0.01  0.015] eV, Ob0=None)')
     assert str(cosmo) == expected
 

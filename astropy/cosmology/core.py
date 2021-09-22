@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import abc
+import copy
 import inspect
-from abc import ABCMeta
 from types import MappingProxyType
 
 import numpy as np
@@ -15,8 +16,8 @@ from astropy.utils.metadata import MetaData
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
-# and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
-# Kramer (robanhk@gmail.com).
+# and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
+# (robanhk@gmail.com), and Nathaniel Starkman (n.starkman@mail.utoronto.ca).
 
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
@@ -47,6 +48,8 @@ class Parameter:
     doc : str or None, optional
         Parameter description. If 'doc' is None and 'fget' is not, then 'doc'
         is taken from ``fget.__doc__``.
+    fmt : str (optional, keyword-only)
+        format specification.
 
     Examples
     --------
@@ -60,7 +63,7 @@ class Parameter:
         ...     def __init__(self, param=15):
         ...         self._param = param
         >>> Example1.param
-        <Parameter 'param' at ...
+        <Parameter 'Example1.param' at ...
         >>> Example1.param.default
         15
 
@@ -91,13 +94,14 @@ class Parameter:
        >>> _ = _COSMOLOGY_CLASSES.pop(Example2.__qualname__)
     """
 
-    def __init__(self, fget=None, doc=None):
+    def __init__(self, fget=None, doc=None, *, fmt=".3g"):
         # modeled after https://docs.python.org/3/howto/descriptor.html#properties
         self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
         self.fget = fget if not hasattr(fget, "fget") else fget.__get__
         # TODO! better detection if descriptor.
 
         # misc
+        self._fmt = str(fmt)
         self.__wrapped__ = fget  # so always have access to `fget`
         self.__name__ = getattr(fget, "__name__", None)  # compat with other descriptors
 
@@ -110,6 +114,11 @@ class Parameter:
     def name(self):
         """Parameter name."""
         return self._attr_name
+
+    @property
+    def format_spec(self):
+        """String format specification."""
+        return self._fmt
 
     # -------------------------------------------
     # descriptor
@@ -144,7 +153,7 @@ class Parameter:
         `~astropy.cosmology.Parameter`
             Copy of this Parameter but with custom ``fget``.
         """
-        return type(self)(fget=fget, doc=self.__doc__)
+        return type(self)(fget=fget, fmt=self.format_spec, doc=self.__doc__)
 
     # -------------------------------------------
 
@@ -152,7 +161,7 @@ class Parameter:
         return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
 
 
-class Cosmology(metaclass=ABCMeta):
+class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
 
     Parameters
@@ -192,14 +201,25 @@ class Cosmology(metaclass=ABCMeta):
     def __init_subclass__(cls):
         super().__init_subclass__()
 
-        # names of Parameters
-        cls.__parameters__ = frozenset({
-            n for n in dir(cls)
-            # select only <Parameter>, and guard from private attributes
-            if (not n.startswith("_") and isinstance(getattr(cls, n, None), Parameter))
-        })
-
+        # registry of Cosmology's subclasses
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
+
+        # -------------------
+        # Parameters
+
+        # Get parameters that are still Parameters, either in this class or above.
+        parameters = [n for n in cls.__parameters__ if isinstance(getattr(cls, n), Parameter)]
+        # Add new parameter definitions
+        parameters += [n for n, v in cls.__dict__.items()
+                       if (n not in parameters
+                           and not n.startswith("_")
+                           and isinstance(v, Parameter))]
+        # reorder to match signature
+        ordered = [parameters.pop(parameters.index(n))
+                   for n in cls._init_signature.parameters.keys()
+                   if n in parameters]
+        parameters = ordered + parameters  # place "unordered" at the end
+        cls.__parameters__ = tuple(parameters)
 
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)
@@ -312,8 +332,23 @@ class Cosmology(metaclass=ABCMeta):
         return all((np.all(oias[k] == v) for k, v in sias.items()
                     if k != "meta"))
 
+    # -----------------------------------------------------
 
-class FlatCosmologyMixin(metaclass=ABCMeta):
+    def __repr__(self):
+        ps = {k: getattr(self, k) for k in self.__parameters__}  # values
+        cps = {k: getattr(self.__class__, k) for k in self.__parameters__}  # Parameter objects
+
+        namelead = f"{self.__class__.__qualname__}("
+        if self.name is not None:
+            namelead += f"name=\"{self.name}\", "
+        # nicely formatted parameters
+        fmtps = (k + '=' + format(v, cps[k].format_spec if v is not None else '')
+                 for k, v in ps.items())
+
+        return namelead + ", ".join(fmtps) + ")"
+
+
+class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     """
     Mixin class for flat cosmologies. Do NOT instantiate directly.
     Note that all instances of ``FlatCosmologyMixin`` are flat, but not all
