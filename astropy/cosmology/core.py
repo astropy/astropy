@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
 from abc import ABCMeta
-from inspect import signature
+from types import MappingProxyType
 
 import numpy as np
 
@@ -20,7 +21,7 @@ from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, Cosm
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
+__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin", "Parameter"]
 
 __doctest_requires__ = {}  # needed until __getattr__ removed
 
@@ -30,6 +31,125 @@ _COSMOLOGY_CLASSES = dict()
 
 class CosmologyError(Exception):
     pass
+
+
+class Parameter:
+    """Cosmological parameter (descriptor).
+
+    Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
+
+    Parameters
+    ----------
+    fget : callable or None, optional
+        Function to get the value from instances of the cosmology class.
+        If None (default) returns the corresponding private attribute.
+        Often not set here, but as a decorator with ``getter``.
+    doc : str or None, optional
+        Parameter description. If 'doc' is None and 'fget' is not, then 'doc'
+        is taken from ``fget.__doc__``.
+
+    Examples
+    --------
+    The most common use case of ``Parameter`` is to access the corresponding
+    private attribute.
+
+        >>> from astropy.cosmology import LambdaCDM
+        >>> from astropy.cosmology.core import Parameter
+        >>> class Example1(LambdaCDM):
+        ...     param = Parameter(doc="example parameter")
+        ...     def __init__(self, param=15):
+        ...         self._param = param
+        >>> Example1.param
+        <Parameter 'param' at ...
+        >>> Example1.param.default
+        15
+
+        >>> ex = Example1(param=12357)
+        >>> ex.param
+        12357
+
+    ``Parameter`` also supports custom ``getter`` methods.
+
+        >>> import astropy.units as u
+        >>> class Example2(LambdaCDM):
+        ...     param = Parameter(doc="example parameter")
+        ...     def __init__(self, param=15):
+        ...         self._param = param
+        ...     @param.getter
+        ...     def param(self):
+        ...         return self._param * u.m
+
+        >>> ex2 = Example2(param=12357)
+        >>> ex2.param
+        <Quantity 12357. m>
+
+    .. doctest::
+       :hide:
+
+       >>> from astropy.cosmology.core import _COSMOLOGY_CLASSES
+       >>> _ = _COSMOLOGY_CLASSES.pop(Example1.__qualname__)
+       >>> _ = _COSMOLOGY_CLASSES.pop(Example2.__qualname__)
+    """
+
+    def __init__(self, fget=None, doc=None):
+        # modeled after https://docs.python.org/3/howto/descriptor.html#properties
+        self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
+        self.fget = fget if not hasattr(fget, "fget") else fget.__get__
+        # TODO! better detection if descriptor.
+
+        # misc
+        self.__wrapped__ = fget  # so always have access to `fget`
+        self.__name__ = getattr(fget, "__name__", None)  # compat with other descriptors
+
+    def __set_name__(self, objcls, name):
+        # attribute name
+        self._attr_name = name
+        self._attr_name_private = "_" + name
+
+    @property
+    def name(self):
+        """Parameter name."""
+        return self._attr_name
+
+    # -------------------------------------------
+    # descriptor
+
+    def __get__(self, obj, objcls=None):
+        # get from class
+        if obj is None:
+            return self
+        # get from obj, allowing for custom ``getter``
+        if self.fget is None:  # default to private attr (diff from `property`)
+            return getattr(obj, self._attr_name_private)
+        return self.fget(obj)
+
+    def __set__(self, obj, value):
+        raise AttributeError("can't set attribute")
+
+    def __delete__(self, obj):
+        raise AttributeError("can't delete attribute")
+
+    # -------------------------------------------
+    # from 'property'
+
+    def getter(self, fget):
+        """Make new Parameter with custom ``fget``.
+
+        Parameters
+        ----------
+        fget : callable
+
+        Returns
+        -------
+        `~astropy.cosmology.Parameter`
+            Copy of this Parameter but with custom ``fget``.
+        """
+        return type(self)(fget=fget, doc=self.__doc__)
+
+    # -------------------------------------------
+
+    def __repr__(self):
+        return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
 
 
 class Cosmology(metaclass=ABCMeta):
@@ -66,8 +186,18 @@ class Cosmology(metaclass=ABCMeta):
     read = UnifiedReadWriteMethod(CosmologyRead)
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
+    # Parameters
+    __parameters__ = ()
+
     def __init_subclass__(cls):
         super().__init_subclass__()
+
+        # names of Parameters
+        cls.__parameters__ = frozenset({
+            n for n in dir(cls)
+            # select only <Parameter>, and guard from private attributes
+            if (not n.startswith("_") and isinstance(getattr(cls, n, None), Parameter))
+        })
 
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
@@ -89,7 +219,7 @@ class Cosmology(metaclass=ABCMeta):
     def _init_signature(cls):
         """Initialization signature (without 'self')."""
         # get signature, dropping "self" by taking arguments [1:]
-        sig = signature(cls.__init__)
+        sig = inspect.signature(cls.__init__)
         sig = sig.replace(parameters=list(sig.parameters.values())[1:])
         return sig
 

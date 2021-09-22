@@ -13,7 +13,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import scalar_inv_efuncs
-from .core import Cosmology, FlatCosmologyMixin
+from .core import Cosmology, FlatCosmologyMixin, Parameter
 from .utils import _float_or_none, inf_like, vectorize_if_needed
 
 # isort: split
@@ -103,6 +103,14 @@ class FLRW(Cosmology):
     For details on how to create performant custom subclasses, see the
     documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
+
+    H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0.")
+    Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.")
+    Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.")
+    Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.")
+    Neff = Parameter(doc="Number of effective neutrino species.")
+    m_nu = Parameter(doc="Mass of neutrino species.")
+    Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                  Ob0=None, *, name=None, meta=None):
@@ -264,28 +272,8 @@ class FLRW(Cosmology):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
-    # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
+    # Set up a set of properties for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
-
-    @property
-    def H0(self):
-        """Return the Hubble constant as an `~astropy.units.Quantity` at z=0."""
-        return self._H0
-
-    @property
-    def Om0(self):
-        """Omega matter; matter density/critical density at z=0."""
-        return self._Om0
-
-    @property
-    def Ode0(self):
-        """Omega dark energy; dark energy density/critical density at z=0."""
-        return self._Ode0
-
-    @property
-    def Ob0(self):
-        """Omega baryon; baryonic matter density/critical density at z=0."""
-        return self._Ob0
 
     @property
     def Odm0(self):
@@ -298,19 +286,9 @@ class FLRW(Cosmology):
         return self._Ok0
 
     @property
-    def Tcmb0(self):
-        """Temperature of the CMB as `~astropy.units.Quantity` at z=0."""
-        return self._Tcmb0
-
-    @property
     def Tnu0(self):
         """Temperature of the neutrino background as `~astropy.units.Quantity` at z=0."""
         return self._Tnu0
-
-    @property
-    def Neff(self):
-        """Number of effective neutrino species."""
-        return self._Neff
 
     @property
     def has_massive_nu(self):
@@ -319,7 +297,7 @@ class FLRW(Cosmology):
             return False
         return self._massivenu
 
-    @property
+    @m_nu.getter
     def m_nu(self):
         """Mass of neutrino species."""
         if self._Tnu0.value == 0:
@@ -1488,6 +1466,11 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
+    @property  # no longer a Parameter
+    def Ode0(self):
+        """Omega dark energy; dark energy density/critical density at z=0."""
+        return self._Ode0
+
 
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.
@@ -2245,6 +2228,8 @@ class wCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
+    w0 = Parameter(doc="Dark energy equation of state.")
+
     def __init__(self, H0, Om0, Ode0, w0=-1.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
@@ -2268,11 +2253,6 @@ class wCDM(FLRW):
                                            self._Ogamma0, self._neff_per_nu,
                                            self._nmasslessnu,
                                            self._nu_y_list, self._w0)
-
-    @property
-    def w0(self):
-        """Dark energy equation of state."""
-        return self._w0
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -2606,6 +2586,9 @@ class w0waCDM(FLRW):
            Universe. Phys. Rev. Lett., 90, 091301.
     """
 
+    w0 = Parameter(doc="Dark energy equation of state at z=0.")
+    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.")
+
     def __init__(self, H0, Om0, Ode0, w0=-1.0, wa=0.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
@@ -2631,16 +2614,6 @@ class w0waCDM(FLRW):
                                            self._nmasslessnu,
                                            self._nu_y_list, self._w0,
                                            self._wa)
-
-    @property
-    def w0(self):
-        """Dark energy equation of state at z=0."""
-        return self._w0
-
-    @property
-    def wa(self):
-        """Negative derivative of dark energy equation of state w.r.t. a."""
-        return self._wa
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -2899,6 +2872,10 @@ class wpwaCDM(FLRW):
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
+    wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.")
+    wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.")
+    zp = Parameter(doc="The pivot redshift, where w(z) = wp.")
+
     def __init__(self, H0, Om0, Ode0, wp=-1.0, wa=0.0, zp=0.0, Tcmb0=0.0*u.K,
                  Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
@@ -2926,21 +2903,6 @@ class wpwaCDM(FLRW):
                                            self._nmasslessnu,
                                            self._nu_y_list, self._wp,
                                            apiv, self._wa)
-
-    @property
-    def wp(self):
-        """Dark energy equation of state at the pivot redshift zp."""
-        return self._wp
-
-    @property
-    def wa(self):
-        """Negative derivative of dark energy equation of state w.r.t. a."""
-        return self._wa
-
-    @property
-    def zp(self):
-        """The pivot redshift, where ``w(z) = wp``."""
-        return self._zp
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.
@@ -3082,6 +3044,9 @@ class w0wzCDM(FLRW):
     >>> dc = cosmo.comoving_distance(z)
     """
 
+    w0 = Parameter(doc="Dark energy equation of state at z=0.")
+    wz = Parameter(doc="Derivative of the dark energy equation of state w.r.t. z.")
+
     def __init__(self, H0, Om0, Ode0, w0=-1.0, wz=0.0, Tcmb0=0.0*u.K, Neff=3.04,
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
@@ -3107,16 +3072,6 @@ class w0wzCDM(FLRW):
                                            self._nmasslessnu,
                                            self._nu_y_list, self._w0,
                                            self._wz)
-
-    @property
-    def w0(self):
-        """Dark energy equation of state at z=0."""
-        return self._w0
-
-    @property
-    def wz(self):
-        """Derivative of the dark energy equation of state w.r.t. z."""
-        return self._wz
 
     def w(self, z):
         r"""Returns dark energy equation of state at redshift ``z``.

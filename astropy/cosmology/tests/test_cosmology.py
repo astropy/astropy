@@ -61,8 +61,10 @@ def test_init():
 def test_immutability():
     """Test immutability of cosmologies."""
     cosmo = Cosmology()
-    with pytest.raises(AttributeError):
-        cosmo.name = "new name"
+
+    for attr in [*cosmo.__parameters__, "name"]:
+        with pytest.raises(AttributeError):
+            setattr(cosmo, attr, None)
 
     # The metadata is NOT immutable
     assert "a" not in cosmo.meta
