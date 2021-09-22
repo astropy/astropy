@@ -3,3 +3,8 @@ FLRW-specific subclass ``FlatFLRWMixin``. All ``FlatCosmologyMixin`` are flat,
 but not all flat cosmologies are instances of ``FlatCosmologyMixin``. As
 example, ``LambdaCDM`` **may** be flat (for the a specific set of parameter
 values),  but ``FlatLambdaCDM`` **will** be flat.
+
+Cosmology parameters are now descriptors. When accessed from a class they
+transparently stores information, like the units and accepted equivalencies.
+On a cosmology instance, the descriptor will return the parameter value.
+Parameters can have custom ``getter`` methods.
