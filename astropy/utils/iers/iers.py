@@ -121,7 +121,7 @@ class Conf(_config.ConfigNamespace):
     auto_max_age = _config.ConfigItem(
         30.0,
         'Maximum age (days) of predictive data before auto-downloading. '
-        'See "Auto refresh behavior" in astropy.utils.iers documentation for details.'
+        'See "Auto refresh behavior" in astropy.utils.iers documentation for details. '
         'Default is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
