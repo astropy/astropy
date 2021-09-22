@@ -397,7 +397,7 @@ def test_repr():
     cosmo = flrw.wpwaCDM(50.0, 0.3, 0.3, wp=-0.9, wa=-0.2,
                          zp=0.3, name='test5')
     expected = ('wpwaCDM(name="test5", H0=50 km / (Mpc s), Om0=0.3, '
-                'Ode0=0.3, wp=-0.9, wa=-0.2, zp=0.3, Tcmb0=0 K, '
+                'Ode0=0.3, wp=-0.9, wa=-0.2, zp=0.3 redshift, Tcmb0=0 K, '
                 'Neff=3.04, m_nu=None, Ob0=None)')
     assert str(cosmo) == expected
 

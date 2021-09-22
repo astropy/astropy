@@ -38,6 +38,8 @@ class Parameter:
     """Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
+    For automatic default value and unit inference make sure the Parameter
+    attribute has a corresponding initialization argument (see Examples below).
 
     Parameters
     ----------
@@ -48,8 +50,15 @@ class Parameter:
     doc : str or None, optional
         Parameter description. If 'doc' is None and 'fget' is not, then 'doc'
         is taken from ``fget.__doc__``.
+    unit : unit-like or None (optional, keyword-only)
+        The `~astropy.units.Unit` for the Parameter. If None (default) no
+        unit as assumed.
+    equivalencies : `~astropy.units.Equivalency` or sequence thereof
+        Unit equivalencies for this Parameter.
     fmt : str (optional, keyword-only)
-        format specification.
+        `format` specification, used when making string representation
+        of the containing Cosmology.
+        See https://docs.python.org/3/library/string.html#formatspec
 
     Examples
     --------
@@ -59,32 +68,35 @@ class Parameter:
         >>> from astropy.cosmology import LambdaCDM
         >>> from astropy.cosmology.core import Parameter
         >>> class Example1(LambdaCDM):
-        ...     param = Parameter(doc="example parameter")
-        ...     def __init__(self, param=15):
-        ...         self._param = param
+        ...     param = Parameter(doc="example parameter", unit=u.m)
+        ...     def __init__(self, param=15 * u.m):
+        ...         super().__init__(70, 0.3, 0.7)
+        ...         self._param = param << self.__class__.param.unit
         >>> Example1.param
-        <Parameter 'Example1.param' at ...
-        >>> Example1.param.default
-        15
+        <Parameter 'param' at ...
+        >>> Example1.param.unit
+        Unit("m")
 
         >>> ex = Example1(param=12357)
         >>> ex.param
-        12357
+        <Quantity 12357. m>
 
     ``Parameter`` also supports custom ``getter`` methods.
+    :attr:`~astropy.cosmology.FLRW.m_nu` is a good example.
 
         >>> import astropy.units as u
         >>> class Example2(LambdaCDM):
-        ...     param = Parameter(doc="example parameter")
+        ...     param = Parameter(doc="example parameter", unit="m")
         ...     def __init__(self, param=15):
-        ...         self._param = param
+        ...         super().__init__(70, 0.3, 0.7)
+        ...         self._param = param << self.__class__.param.unit
         ...     @param.getter
         ...     def param(self):
-        ...         return self._param * u.m
+        ...         return self._param << u.km
 
         >>> ex2 = Example2(param=12357)
         >>> ex2.param
-        <Quantity 12357. m>
+        <Quantity 12.357 km>
 
     .. doctest::
        :hide:
@@ -94,11 +106,15 @@ class Parameter:
        >>> _ = _COSMOLOGY_CLASSES.pop(Example2.__qualname__)
     """
 
-    def __init__(self, fget=None, doc=None, *, fmt=".3g"):
+    def __init__(self, fget=None, doc=None, *, unit=None, equivalencies=[], fmt=".3g"):
         # modeled after https://docs.python.org/3/howto/descriptor.html#properties
         self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
         self.fget = fget if not hasattr(fget, "fget") else fget.__get__
         # TODO! better detection if descriptor.
+
+        # units stuff
+        self._unit = u.Unit(unit) if unit is not None else None
+        self._equivalencies = equivalencies
 
         # misc
         self._fmt = str(fmt)
@@ -110,10 +126,23 @@ class Parameter:
         self._attr_name = name
         self._attr_name_private = "_" + name
 
+        # update __name__, if not already set
+        self.__name__ = self.__name__ or name
+
     @property
     def name(self):
         """Parameter name."""
         return self._attr_name
+
+    @property
+    def unit(self):
+        """Parameter unit."""
+        return self._unit
+
+    @property
+    def equivalencies(self):
+        """Equivalencies used when initializing Parameter."""
+        return self._equivalencies
 
     @property
     def format_spec(self):
@@ -153,7 +182,9 @@ class Parameter:
         `~astropy.cosmology.Parameter`
             Copy of this Parameter but with custom ``fget``.
         """
-        return type(self)(fget=fget, fmt=self.format_spec, doc=self.__doc__)
+        return type(self)(fget=fget, doc=self.__doc__,
+                          unit=self.unit, equivalencies=self.equivalencies,
+                          fmt=self.format_spec)
 
     # -------------------------------------------
 

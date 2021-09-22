@@ -13,6 +13,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import scalar_inv_efuncs
+from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
 from .utils import inf_like, vectorize_if_needed
 
@@ -104,17 +105,21 @@ class FLRW(Cosmology):
     documentation on :ref:`astropy-cosmology-fast-integrals`.
     """
 
-    H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0.")
+    H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0.",
+                   unit="km/(s Mpc)")
     Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.")
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.")
-    Tcmb0 = Parameter(fmt="0.4g", doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.")
+    Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
+                      unit="Kelvin", fmt="0.4g")
     Neff = Parameter(doc="Number of effective neutrino species.")
-    m_nu = Parameter(fmt="", doc="Mass of neutrino species.")
+    m_nu = Parameter(doc="Mass of neutrino species.",
+                     unit="eV", equivalencies=u.mass_energy(), fmt="")
     Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                  Ob0=None, *, name=None, meta=None):
         super().__init__(name=name, meta=meta)
+        cls = self.__class__
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -139,12 +144,12 @@ class FLRW(Cosmology):
                              "not be negative")
 
         # Tcmb may have units
-        self._Tcmb0 = u.Quantity(Tcmb0, unit=u.K)
+        self._Tcmb0 = Tcmb0 << cls.Tcmb0.unit
         if not self._Tcmb0.isscalar:
             raise ValueError("Tcmb0 is a non-scalar quantity")
 
         # Hubble parameter at z=0, km/s/Mpc
-        self._H0 = u.Quantity(H0, unit=u.km / u.s / u.Mpc)
+        self._H0 = H0 << cls.H0.unit
         if not self._H0.isscalar:
             raise ValueError("H0 is a non-scalar quantity")
 
@@ -174,8 +179,8 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            with u.add_enabled_equivalencies(u.mass_energy()):
-                m_nu = u.Quantity(m_nu, u.eV)
+            with u.add_enabled_equivalencies(cls.m_nu.equivalencies):
+                m_nu = m_nu << cls.m_nu.unit
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
@@ -285,18 +290,19 @@ class FLRW(Cosmology):
     @m_nu.getter
     def m_nu(self):
         """Mass of neutrino species."""
+        unit = self.__class__.m_nu.unit  # eV
         if self._Tnu0.value == 0:
             return None
         if not self._massivenu:
             # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), u.eV)
+            return u.Quantity(np.zeros(self._nmasslessnu), unit)
         if self._nmasslessnu == 0:
             # Only massive
-            return u.Quantity(self._massivenu_mass, u.eV)
+            return u.Quantity(self._massivenu_mass, unit)
         # A mix -- the most complicated case
         numass = np.append(np.zeros(self._nmasslessnu),
                            self._massivenu_mass.value)
-        return u.Quantity(numass, u.eV)
+        return u.Quantity(numass, unit)
 
     @property
     def h(self):
@@ -2765,7 +2771,7 @@ class wpwaCDM(FLRW):
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has wp=-1.0 and wa=0.0.
 
-    zp : float, optional
+    zp : float or quantity-like ['redshift'], optional
         Pivot redshift -- the redshift where w(z) = wp
 
     Tcmb0 : float or scalar quantity-like ['temperature'], optional
@@ -2821,7 +2827,7 @@ class wpwaCDM(FLRW):
 
     wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.")
     wa = Parameter(doc="Negative derivative of dark energy equation of state w.r.t. a.")
-    zp = Parameter(doc="The pivot redshift, where w(z) = wp.")
+    zp = Parameter(doc="The pivot redshift, where w(z) = wp.", unit=cu.redshift)
 
     def __init__(self, H0, Om0, Ode0, wp=-1.0, wa=0.0, zp=0.0, Tcmb0=0.0*u.K,
                  Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
@@ -2829,7 +2835,7 @@ class wpwaCDM(FLRW):
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self._wp = float(wp)
         self._wa = float(wa)
-        self._zp = float(zp)
+        self._zp = zp << self.__class__.zp.unit
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.

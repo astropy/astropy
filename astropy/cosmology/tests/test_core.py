@@ -26,16 +26,18 @@ class TestParameter:
 
     def setup_class(self):
         class Example1(Cosmology):
-            param = Parameter(doc="example parameter")
+            param = Parameter(unit=u.m, equivalencies=u.mass_energy(),
+                              doc="example parameter")
 
             def __init__(self, param=15):
                 self._param = param
                 
         class Example2(Cosmology):
-            param = Parameter(doc="example parameter")
+            param = Parameter(equivalencies=u.mass_energy(),
+                              doc="example parameter")
 
             def __init__(self, param=15 * u.m):
-                self._param = param.value
+                self._param = param.to_value(u.km)
 
             @param.getter
             def param(self):
@@ -87,12 +89,6 @@ class TestParameter:
     def test_equivalencies(self, parameter):
         """Test :attr:`astropy.cosmology.Parameter.equivalencies`."""
         assert parameter.equivalencies == u.mass_energy()
-
-    def test_format_spec(self, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
-        # see test_format for more in-depth tests
-        assert parameter.format_spec is parameter._fmt
-        assert parameter._fmt == ".3g"
 
     def test_format_spec(self, parameter):
         """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
@@ -163,7 +159,7 @@ class TestParameter:
     def test_parameter_doesnt_change_with_cosmology(self, cosmo_cls):
         """Cosmology reinitializes all descriptors when a subclass is defined."""
 
-        # define subclass to show param is different
+        # define subclass to show param is same
         class Example(cosmo_cls): pass
 
         assert Example.param is cosmo_cls.param
@@ -197,7 +193,7 @@ class ParameterTestMixin:
     def test_Parameter_not_unique(self, cosmo_cls, clean_registry):
         """Cosmology reinitializes Parameter when a class is defined."""
 
-        # define subclass to show param is different
+        # define subclass to show param is same
         class ExampleBase(cosmo_cls):
             param = Parameter()
 
@@ -217,16 +213,23 @@ class ParameterTestMixin:
 
         # param should be 1st, all other parameters next
         Example.__parameters__[0] == "param"
+        # Check the other parameters are as expected.
+        assert set(Example.__parameters__[1:]) == set(cosmo_cls.__parameters__)
 
-    def test_parameters(self, cosmo):
-        """Test :attr:`astropy.cosmology.Cosmology.parameters`."""
-        # check type
-        assert isinstance(cosmo.parameters, MappingProxyType)
-        # check keys
-        assert set(cosmo.parameters.keys()) == set(cosmo.__parameters__)
-        # check values
-        for k, v in cosmo.parameters.items():
-            assert np.all(np.equal(v, getattr(cosmo, k)))
+    def test_make_from_Parameter(self, cosmo_cls, clean_registry):
+        """Test the parameter creation process."""
+
+        class Example(cosmo_cls):
+            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
+
+            def __init__(self, param, *, name=None, meta=None):
+                cls = self.__class__
+                self._param = Parameter.validate(cls.param, param)
+
+        assert Example(1).param == 1 * u.eV
+        assert Example(1 * u.eV).param == 1 * u.eV
+        assert Example(1 * u.J).param == (1 * u.J).to(u.eV)
+        assert Example(1 * u.kg).param == (1 * u.kg).to(u.eV, u.mass_energy())
 
 
 class TestCosmology(ParameterTestMixin):
