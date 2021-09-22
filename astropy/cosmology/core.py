@@ -132,7 +132,6 @@ class Cosmology(metaclass=ABCMeta):
 
             >>> Planck13.clone(Om0=0.35).name
             'Planck13 (modified)'
-
         """
         # Quick return check, taking advantage of the Cosmology immutability.
         if meta is None and not kwargs:
@@ -167,7 +166,6 @@ class Cosmology(metaclass=ABCMeta):
         -------
         bool
             True if all immutable fields are equal, False otherwise.
-
         """
         if not isinstance(other, Cosmology):
             return False
