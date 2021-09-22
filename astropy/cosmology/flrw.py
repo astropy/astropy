@@ -14,7 +14,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from . import scalar_inv_efuncs
 from .core import Cosmology, FlatCosmologyMixin, Parameter
-from .utils import _float_or_none, inf_like, vectorize_if_needed
+from .utils import inf_like, vectorize_if_needed
 
 # isort: split
 if HAS_SCIPY:
@@ -107,9 +107,9 @@ class FLRW(Cosmology):
     H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0.")
     Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.")
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.")
-    Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.")
+    Tcmb0 = Parameter(fmt="0.4g", doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.")
     Neff = Parameter(doc="Number of effective neutrino species.")
-    m_nu = Parameter(doc="Mass of neutrino species.")
+    m_nu = Parameter(fmt="", doc="Mass of neutrino species.")
     Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
@@ -256,21 +256,6 @@ class FLRW(Cosmology):
         #  more efficient scalar versions of inv_efunc.
         self._inv_efunc_scalar = self.inv_efunc
         self._inv_efunc_scalar_args = ()
-
-    def _namelead(self):
-        """Helper function for constructing ``__repr__``."""
-        if self.name is None:
-            return f"{self.__class__.__name__}("
-        else:
-            return f"{self.__class__.__name__}(name=\"{self.name}\", "
-
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
-                 "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
-                 "Ob0={7:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0, self._Ode0,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
 
     # Set up a set of properties for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -2157,13 +2142,6 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         zp1 = 1.0 + z
         return (zp1 ** 3 * (Or * zp1 + Om0) + Ode0)**(-0.5)
 
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
-                 "Neff={4:.3g}, m_nu={5}, Ob0={6:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
-
 
 class wCDM(FLRW):
     """
@@ -2358,13 +2336,6 @@ class wCDM(FLRW):
         return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                 Ode0 * zp1 ** (3. * (1. + w0)))**(-0.5)
 
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
-                 "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7}, Ob0={8:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Ode0, self._w0, self._Tcmb0, self._Neff,
-                             self.m_nu, _float_or_none(self._Ob0))
-
 
 class FlatwCDM(FlatFLRWMixin, wCDM):
     """
@@ -2502,13 +2473,6 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
 
         return (zp1 ** 3 * (Or * zp1 + Om0) +
                 Ode0 * zp1 ** (3. * (1. + w0)))**(-0.5)
-
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
-                 "Neff={5:.3g}, m_nu={6}, Ob0={7:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
 
 
 class w0waCDM(FLRW):
@@ -2672,15 +2636,6 @@ class w0waCDM(FLRW):
         return zp1 ** (3 * (1 + self._w0 + self._wa)) * \
             np.exp(-3 * self._wa * z / zp1)
 
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
-                 "Ode0={3:.3g}, w0={4:.3g}, wa={5:.3g}, Tcmb0={6:.4g}, "\
-                 "Neff={7:.3g}, m_nu={8}, Ob0={9:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Ode0, self._w0, self._wa,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
-
 
 class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
     """FLRW cosmology with a CPL dark energy equation of state and no
@@ -2777,14 +2732,6 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
                                            self._nmasslessnu,
                                            self._nu_y_list, self._w0,
                                            self._wa)
-
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
-                 "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
-                 "Ob0={7:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
 
 
 class wpwaCDM(FLRW):
@@ -2965,15 +2912,6 @@ class wpwaCDM(FLRW):
         return zp1 ** (3. * (1. + self._wp + apiv * self._wa)) * \
             np.exp(-3. * self._wa * z / zp1)
 
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, wp={4:.3g}, "\
-                 "wa={5:.3g}, zp={6:.3g}, Tcmb0={7:.4g}, Neff={8:.3g}, "\
-                 "m_nu={9}, Ob0={10:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Ode0, self._wp, self._wa, self._zp,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
-
 
 class w0wzCDM(FLRW):
     """
@@ -3128,11 +3066,3 @@ class w0wzCDM(FLRW):
         zp1 = 1. + z
         return zp1 ** (3. * (1. + self._w0 - self._wz)) *\
             np.exp(-3. * self._wz * z)
-
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
-                 "Ode0={3:.3g}, w0={4:.3g}, wz={5:.3g} Tcmb0={6:.4g}, "\
-                 "Neff={7:.3g}, m_nu={8}, Ob0={9:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Ode0, self._w0, self._wz, self._Tcmb0,
-                             self._Neff, self.m_nu, _float_or_none(self._Ob0))

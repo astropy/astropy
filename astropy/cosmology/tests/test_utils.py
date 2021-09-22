@@ -6,29 +6,7 @@ import pytest
 
 import numpy as np
 
-from astropy.cosmology.utils import _float_or_none, inf_like, vectorize_if_needed
-
-
-@pytest.mark.parametrize("x, digits, expected",
-                         [(None, 1, "None"),
-                          (10.1234, 3, "10.1"),
-                          (10.1234, 7, "10.1234"),  # no more digits
-                          # some edge cases I can think of
-                          (10.0, 0, "1e+01"),  # weird
-                          (10, 5, "10"),  # integer
-                          # errors
-                          (10, None, "missing precision"),
-                          (10, 1.2, "Invalid format specifier"),
-                          (10, -3, "missing precision")])
-def test__float_or_none(x, digits, expected):
-    """Test :func:`astropy.cosmology.utils._float_or_none`."""
-    # handle errors
-    if not isinstance(digits, int) or digits < 0:
-        with pytest.raises(ValueError, match=expected):
-            _float_or_none(x, digits=digits)
-    # normal use cases
-    else:
-        assert _float_or_none(x, digits=digits) == expected
+from astropy.cosmology.utils import inf_like, vectorize_if_needed
 
 
 def test_vectorize_if_needed():

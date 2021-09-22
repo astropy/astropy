@@ -74,7 +74,6 @@ class TestParameter:
         # custom from set_name
         assert parameter._attr_name == "param"
         assert parameter._attr_name_private == "_param"
-        assert u.Quantity(parameter._default).value == 15
 
     def test_name(self, parameter):
         """Test :attr:`astropy.cosmology.Parameter.name`."""
@@ -88,6 +87,12 @@ class TestParameter:
     def test_equivalencies(self, parameter):
         """Test :attr:`astropy.cosmology.Parameter.equivalencies`."""
         assert parameter.equivalencies == u.mass_energy()
+
+    def test_format_spec(self, parameter):
+        """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
+        # see test_format for more in-depth tests
+        assert parameter.format_spec is parameter._fmt
+        assert parameter._fmt == ".3g"
 
     def test_format_spec(self, parameter):
         """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
