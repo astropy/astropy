@@ -53,9 +53,6 @@ Defining units
 
 .. _defining_units:
 
-Example
-=======
-
 .. EXAMPLE START: Defining New Units
 
 Users are free to define new units, either fundamental or compound,
