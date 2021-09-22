@@ -1462,6 +1462,48 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         """Omega dark energy; dark energy density/critical density at z=0."""
         return self._Ode0
 
+    def __equiv__(self, other):
+        """flat-FLRW equivalence. Use ``.is_equivalent()`` for actual check!
+
+        Parameters
+        ----------
+        other : `~astropy.cosmology.FLRW` subclass instance
+            The object in which to compare.
+
+        Returns
+        -------
+        bool or `NotImplemented`
+            `True` if 'other' is of the same class / non-flat class (e.g.
+            ``FlatLambdaCDM`` and ``LambdaCDM``) has matching parameters
+            and parameter values. `False` if 'other' is of the same class but
+            has different parameters. `NotImplemented` otherwise.
+        """
+        # check if case (1): same class & parameters
+        if isinstance(other, FlatFLRWMixin):
+            return super().__equiv__(other)
+
+        # check cases (3, 4), if other is the non-flat version of this class
+        # this makes the assumption that any further subclass of a flat cosmo
+        # keeps the same physics.
+        comparable_classes = [c for c in self.__class__.mro()[1:]
+                              if (issubclass(c, FLRW) and c is not FLRW)]
+        if other.__class__ not in comparable_classes:
+            return NotImplemented
+
+        # check if have equivalent parameters
+        # check all parameters in other match those in 'self' and 'other' has
+        # no extra parameters (case (2)) except for 'Ode0' and that other
+        params_eq = (
+            not (set(self.__parameters__) - set(other.__parameters__) - {"Ode0"}) # no extra params
+            and all(np.all(getattr(self, k) == getattr(other, k))  # params equal
+                     for k in self.__parameters__)
+            # flatness conditions
+            and other.Ok0 == 0.0
+            and other.Ode0 == 1.0 - other.Om0 - other.Ogamma0 - other.Onu0
+        )
+
+        return params_eq
+
 
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.

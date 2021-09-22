@@ -5,6 +5,7 @@
 ##############################################################################
 # IMPORTS
 
+import abc
 import inspect
 from types import MappingProxyType
 
@@ -13,7 +14,7 @@ import pytest
 import numpy as np
 
 import astropy.units as u
-from astropy.cosmology import Cosmology
+from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
 
 ##############################################################################
@@ -26,20 +27,17 @@ class TestParameter:
 
     def setup_class(self):
         class Example1(Cosmology):
-            param = Parameter(unit=u.m, equivalencies=u.mass_energy(),
-                              doc="example parameter")
+            param = Parameter(doc="example parameter",
+                              unit=u.m, equivalencies=u.mass_energy())
 
             def __init__(self, param=15):
                 self._param = param
-                
-        class Example2(Cosmology):
-            param = Parameter(equivalencies=u.mass_energy(),
-                              doc="example parameter")
 
+        class Example2(Example1):
             def __init__(self, param=15 * u.m):
                 self._param = param.to_value(u.km)
 
-            @param.getter
+            @Example1.param.getter
             def param(self):
                 return self._param << u.km
 
@@ -224,7 +222,8 @@ class ParameterTestMixin:
 
             def __init__(self, param, *, name=None, meta=None):
                 cls = self.__class__
-                self._param = Parameter.validate(cls.param, param)
+                with u.add_enabled_equivalencies(cls.param.equivalencies):
+                    self._param = param << cls.param.unit
 
         assert Example(1).param == 1 * u.eV
         assert Example(1 * u.eV).param == 1 * u.eV
@@ -232,20 +231,30 @@ class ParameterTestMixin:
         assert Example(1 * u.kg).param == (1 * u.kg).to(u.eV, u.mass_energy())
 
 
-class TestCosmology(ParameterTestMixin):
+class TestCosmology(ParameterTestMixin, metaclass=abc.ABCMeta):
     """Test :class:`astropy.cosmology.Cosmology`"""
 
     def setup_class(self):
-        self.cls = Cosmology
+        """
+        Setup for testing.
+        Cosmology should not be instantiated, so tests are done on a subclass.
+        """
+        class SubCosmology(Cosmology):
+            pass
+
+        self.cls = SubCosmology
         self.cls_args = (70 * (u.km / u.s / u.Mpc),)  # nothing real
         self.cls_kwargs = dict(name="test", meta={"a": "b"})
 
-    @pytest.fixture(scope="class")
+    def teardown_class(self):
+        _COSMOLOGY_CLASSES.pop("TestCosmology.setup_class.<locals>.SubCosmology", None)
+
+    @pytest.fixture
     def cosmo_cls(self):
         return self.cls
 
     @pytest.fixture
-    def cosmo(self, request):
+    def cosmo(self):
         """The cosmology instance with which to test."""
         return self.cls(*self.cls_args, **self.cls_kwargs)
 
@@ -271,9 +280,49 @@ class TestCosmology(ParameterTestMixin):
         assert cosmo2.name == "test"
         assert cosmo2.meta["m"] == 1
 
+    # ---------------------------------------------------------------
+
+    def test_is_equivalent(self, cosmo):
+        """
+        Test :meth:`astropy.cosmology.Cosmology.is_equivalent`.
+        """
+        # to self
+        assert cosmo.is_equivalent(cosmo)
+
+        # same class, different instance
+        newclone = cosmo.clone(name="cloned")
+        assert cosmo.is_equivalent(newclone)
+        assert newclone.is_equivalent(cosmo)
+
+        # different class
+        assert not cosmo.is_equivalent(2)
+
+
+class CosmologySubclassTest(TestCosmology):
+    """
+    Test subclasses of :class:`astropy.cosmology.Cosmology`.
+    This is broken away from ``TestCosmology``, because |Cosmology| is/will be
+    an ABC and subclasses must override some methods.
+    """
+
+    @abc.abstractmethod
+    def setup_class(self):
+        """Setup for testing."""
+        pass
+
 
 # -----------------------------------------------------------------------------
 
 
 class FlatCosmologyMixinTest:
     """Test :class:`astropy.cosmology.core.FlatCosmologyMixin`."""
+
+    def test_is_equivalent(self, cosmo):
+        """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_equivalent`.
+
+        normally this would pass up via super(), but ``__equiv__`` is meant
+        to be overridden, so we skip super().
+        e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology
+        vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
+        """
+        CosmologySubclassTest.test_is_equivalent(self, cosmo)

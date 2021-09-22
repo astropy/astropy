@@ -60,7 +60,7 @@ def test_init():
 
 def test_immutability():
     """Test immutability of cosmologies."""
-    cosmo = Cosmology()
+    cosmo = flrw.FlatLambdaCDM(70, 0.3)
 
     for attr in [*cosmo.__parameters__, "name"]:
         with pytest.raises(AttributeError):

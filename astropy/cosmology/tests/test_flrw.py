@@ -5,14 +5,16 @@
 ##############################################################################
 # IMPORTS
 
+import abc
+
 import pytest
 
 import astropy.units as u
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
-                               LambdaCDM, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
+                               LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
 
 from .test_core import FlatCosmologyMixinTest
-from .test_core import TestCosmology as CosmologyTest
+from .test_core import CosmologySubclassTest as CosmologyTest
 
 ##############################################################################
 # TESTS
@@ -37,8 +39,10 @@ class TestFLRW(CosmologyTest):
         self.cls_args = (70 * u.km / u.s / u.Mpc, 0.27 * u.one, 0.689 * u.one)
         self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name="test", meta={"a": "b"})
 
-    def cleanup_class(self):
-        _COSMOLOGY_CLASSES.pop("TestFLRW.setup_class.<locals>.SubFLRW")
+    @pytest.fixture
+    def nonflatcosmo(self):
+        """A non-flat cosmology used in equivalence tests."""
+        return LambdaCDM(70, 0.4, 0.8)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -47,6 +51,32 @@ class TestFLRW(CosmologyTest):
         # Cosmology accepts any args, kwargs
         cosmo1 = cosmo_cls(*self.cls_args, **self.cls_kwargs)
         self._cosmo_test_init_attr(cosmo1)
+
+    def test_is_equivalent(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.is_equivalent`."""
+        super().test_is_equivalent(cosmo)  # pass to CosmologySubclassTest
+
+        # test against a FlatFLRWMixin
+        # case (3) in FLRW.is_equivalent
+        if isinstance(cosmo, FlatLambdaCDM):
+            assert cosmo.is_equivalent(Planck18)
+            assert Planck18.is_equivalent(cosmo)
+        else:
+            assert not cosmo.is_equivalent(Planck18)
+            assert not Planck18.is_equivalent(cosmo)
+
+
+class FLRWSubclassTest(TestFLRW):
+    """
+    Test subclasses of :class:`astropy.cosmology.FLRW`.
+    This is broken away from ``TestFLRW``, because ``FLRW`` is an ABC and
+    subclasses must override some methods.
+    """
+
+    @abc.abstractmethod
+    def setup_class(self):
+        """Setup for testing."""
+        pass
 
 
 # -----------------------------------------------------------------------------
@@ -61,11 +91,36 @@ class FlatFLRWMixinTest(FlatCosmologyMixinTest):
         assert cosmo._Ode0 == 1.0 - cosmo._Om0 - cosmo._Ogamma0 - cosmo._Onu0
         assert cosmo._Ok0 == 0.0
 
+    def test_is_equivalent(self, cosmo, nonflatcosmo):
+        """Test :meth:`astropy.cosmology.FLRW.is_equivalent`."""
+        super().test_is_equivalent(cosmo)  # pass to TestFLRW
+
+        # against non-flat Cosmology
+        assert not cosmo.is_equivalent(nonflatcosmo)
+        assert not nonflatcosmo.is_equivalent(cosmo)
+
+        # non-flat version of class
+        nonflat_cosmo_cls = cosmo.__class__.mro()[3]
+        # keys check in `test_is_equivalent_nonflat_class_different_params`
+
+        # non-flat
+        nonflat = nonflat_cosmo_cls(*self.cls_args, Ode0=0.9, **self.cls_kwargs)
+        assert not nonflat.is_equivalent(cosmo)
+        assert not cosmo.is_equivalent(nonflat)
+
+        # flat, but not FlatFLRWMixin
+        flat = nonflat_cosmo_cls(*self.cls_args,
+                                   Ode0=1.0 - cosmo.Om0 - cosmo.Ogamma0 - cosmo.Onu0,
+                                   **self.cls_kwargs)
+        flat._Ok0 = 0.0
+        assert flat.is_equivalent(cosmo)
+        assert cosmo.is_equivalent(flat)
+
 
 # -----------------------------------------------------------------------------
 
 
-class TestLambdaCDM(TestFLRW):
+class TestLambdaCDM(FLRWSubclassTest):
     """Test :class:`astropy.cosmology.LambdaCDM`."""
 
     def setup_class(self):
@@ -91,7 +146,7 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
 # -----------------------------------------------------------------------------
 
 
-class TestwCDM(TestFLRW):
+class TestwCDM(FLRWSubclassTest):
     """Test :class:`astropy.cosmology.wCDM`."""
 
     def setup_class(self):
@@ -117,7 +172,7 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
 # -----------------------------------------------------------------------------
 
 
-class Testw0waCDM(TestFLRW):
+class Testw0waCDM(FLRWSubclassTest):
     """Test :class:`astropy.cosmology.w0waCDM`."""
 
     def setup_class(self):
@@ -143,7 +198,7 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
 # -----------------------------------------------------------------------------
 
 
-class TestwpwaCDM(TestFLRW):
+class TestwpwaCDM(FLRWSubclassTest):
     """Test :class:`astropy.cosmology.wpwaCDM`."""
 
     def setup_class(self):
@@ -156,7 +211,7 @@ class TestwpwaCDM(TestFLRW):
 # -----------------------------------------------------------------------------
 
 
-class Testw0wzCDM(TestFLRW):
+class Testw0wzCDM(FLRWSubclassTest):
     """Test :class:`astropy.cosmology.w0wzCDM`."""
 
     def setup_class(self):

@@ -334,9 +334,14 @@ class Cosmology(metaclass=abc.ABCMeta):
         return self.__class__(*ba.args, **ba.kwargs)
 
     # -----------------------------------------------------
+    # comparison methods
 
-    def __eq__(self, other):
-        """Check equality on all immutable fields (i.e. not "meta").
+    def is_equivalent(self, other):
+        r"""Check equivalence between Cosmologies.
+
+        Two cosmologies may be equivalent even if not the same class.
+        For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
+        and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
 
         Parameters
         ----------
@@ -346,22 +351,66 @@ class Cosmology(metaclass=abc.ABCMeta):
         Returns
         -------
         bool
-            True if all immutable fields are equal, False otherwise.
+            True if cosmologies are equivalent, False otherwise.
         """
-        if not isinstance(other, Cosmology):
-            return False
+        # The options are: 1) same class & parameters; 2) same class, different
+        # parameters; 3) different classes, equivalent parameters; 4) different
+        # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
+        equiv = self.__equiv__(other)
+        if equiv is NotImplemented and hasattr(other, "__equiv__"):
+            equiv = other.__equiv__(self)  # that failed, try from 'other'
 
-        sias, oias = self._init_arguments, other._init_arguments
+        return equiv if equiv is not NotImplemented else False
 
-        # check if the cosmologies have identical signatures.
-        # this protects against one cosmology having a superset of input
-        # parameters to another cosmology.
-        if (sias.keys() ^ oias.keys()) - {'meta'}:
-            return False
+    def __equiv__(self, other):
+        """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
 
-        # are all the non-excluded immutable arguments equal?
-        return all((np.all(oias[k] == v) for k, v in sias.items()
-                    if k != "meta"))
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object in which to compare.
+
+        Returns
+        -------
+        bool or `NotImplemented`
+            `NotImplemented` if 'other' is from a different class.
+            `True` if 'other' is of the same class and has matching parameters
+            and parameter values. `False` otherwise.
+        """
+        if other.__class__ is not self.__class__:
+            return NotImplemented  # allows other.__equiv__
+
+        # check all parameters in 'other' match those in 'self' and 'other' has
+        # no extra parameters (latter part should never happen b/c same class)
+        params_eq = (set(self.__parameters__) == set(other.__parameters__)
+                     and all(np.all(getattr(self, k) == getattr(other, k))
+                             for k in self.__parameters__))
+        return params_eq
+
+    def __eq__(self, other):
+        """Check equality between Cosmologies.
+
+        Checks the Parameters and immutable fields (i.e. not "meta").
+
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object in which to compare.
+
+        Returns
+        -------
+        bool
+            True if Parameters and names are the same, False otherwise.
+        """
+        if other.__class__ is not self.__class__:
+            return NotImplemented  # allows other.__eq__
+
+        # check all parameters in 'other' match those in 'self'
+        equivalent = self.__equiv__(other)
+        # non-Parameter checks: name
+        name_eq = (self.name == other.name)
+
+        return equivalent and name_eq
 
     # -----------------------------------------------------
 
@@ -387,6 +436,7 @@ class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
     but ``FlatLambdaCDM`` **will** be flat.
     """
+    pass
 
 
 # -----------------------------------------------------------------------------
