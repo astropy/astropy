@@ -20,7 +20,7 @@ from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, Cosm
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["Cosmology", "CosmologyError"]
+__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
 
 __doctest_requires__ = {}  # needed until __getattr__ removed
 
@@ -181,6 +181,16 @@ class Cosmology(metaclass=ABCMeta):
         # are all the non-excluded immutable arguments equal?
         return all((np.all(oias[k] == v) for k, v in sias.items()
                     if k != "meta"))
+
+
+class FlatCosmologyMixin(metaclass=ABCMeta):
+    """
+    Mixin class for flat cosmologies. Do NOT instantiate directly.
+    Note that all instances of ``FlatCosmologyMixin`` are flat, but not all
+    flat cosmologies are instances of ``FlatCosmologyMixin``. As example,
+    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
+    but ``FlatLambdaCDM`` **will** be flat.
+    """
 
 
 # -----------------------------------------------------------------------------

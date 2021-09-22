@@ -13,7 +13,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 from . import scalar_inv_efuncs
-from .core import Cosmology
+from .core import Cosmology, FlatCosmologyMixin
 from .utils import _float_or_none, inf_like, vectorize_if_needed
 
 # isort: split
@@ -24,8 +24,8 @@ else:
         raise ModuleNotFoundError("No module named 'scipy.integrate'")
 
 
-__all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM",
-           "FlatwCDM", "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM"]
+__all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
+           "w0waCDM", "Flatw0waCDM", "wpwaCDM", "w0wzCDM", "FlatFLRWMixin"]
 
 __doctest_requires__ = {'*': ['scipy']}
 
@@ -1471,6 +1471,24 @@ class FLRW(Cosmology):
                            arcsec_in_radians)
 
 
+class FlatFLRWMixin(FlatCosmologyMixin):
+    """
+    Mixin class for flat FLRW cosmologies. Do NOT instantiate directly.
+    Must precede the base class in the multiple-inheritance so that this
+    mixin's ``__init__`` proceeds the base class'.
+    Note that all instances of ``FlatFLRWMixin`` are flat, but not all
+    flat cosmologies are instances of ``FlatFLRWMixin``. As example,
+    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
+    but ``FlatLambdaCDM`` **will** be flat.
+    """
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        # Do some twiddling after the fact to get flatness
+        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
+        self._Ok0 = 0.0
+
+
 class LambdaCDM(FLRW):
     """FLRW cosmology with a cosmological constant and curvature.
 
@@ -2024,7 +2042,7 @@ class LambdaCDM(FLRW):
         return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)**(-0.5)
 
 
-class FlatLambdaCDM(LambdaCDM):
+class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
 
     This has no additional attributes beyond those of FLRW.
@@ -2081,9 +2099,6 @@ class FlatLambdaCDM(LambdaCDM):
                  Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=0.0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        # Do some twiddling after the fact to get flatness
-        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
-        self._Ok0 = 0.0
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2371,7 +2386,7 @@ class wCDM(FLRW):
                              self.m_nu, _float_or_none(self._Ob0))
 
 
-class FlatwCDM(wCDM):
+class FlatwCDM(FlatFLRWMixin, wCDM):
     """
     FLRW cosmology with a constant dark energy equation of state and no spatial
     curvature.
@@ -2435,9 +2450,6 @@ class FlatwCDM(wCDM):
                  Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=0.0, w0=w0, Tcmb0=Tcmb0,
                          Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        # Do some twiddling after the fact to get flatness
-        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
-        self._Ok0 = 0.0
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2697,7 +2709,7 @@ class w0waCDM(FLRW):
                              _float_or_none(self._Ob0))
 
 
-class Flatw0waCDM(w0waCDM):
+class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
     """FLRW cosmology with a CPL dark energy equation of state and no
     curvature.
 
@@ -2773,9 +2785,6 @@ class Flatw0waCDM(w0waCDM):
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
                          Neff=Neff, m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        # Do some twiddling after the fact to get flatness
-        self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
-        self._Ok0 = 0.0
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
