@@ -130,12 +130,12 @@ class FLRW(Cosmology):
         cls = self.__class__
 
         # all densities are in units of the critical density
-        self._Om0 = float(Om0)
+        self.Om0 = float(Om0)
         if self._Om0 < 0.0:
             raise ValueError("Matter density can not be negative")
-        self._Ode0 = float(Ode0)
+        self.Ode0 = float(Ode0)
         if Ob0 is not None:
-            self._Ob0 = float(Ob0)
+            self.Ob0 = float(Ob0)
             if self._Ob0 < 0.0:
                 raise ValueError("Baryonic density can not be negative")
             if self._Ob0 > self._Om0:
@@ -143,21 +143,21 @@ class FLRW(Cosmology):
                                  "total matter density")
             self._Odm0 = self._Om0 - self._Ob0
         else:
-            self._Ob0 = None
+            self.Ob0 = None
             self._Odm0 = None
 
-        self._Neff = float(Neff)
+        self.Neff = float(Neff)
         if self._Neff < 0.0:
             raise ValueError("Effective number of neutrinos can "
                              "not be negative")
 
         # Tcmb may have units
-        self._Tcmb0 = Tcmb0 << cls.Tcmb0.unit
+        self.Tcmb0 = Tcmb0
         if not self._Tcmb0.isscalar:
             raise ValueError("Tcmb0 is a non-scalar quantity")
 
         # Hubble parameter at z=0, km/s/Mpc
-        self._H0 = H0 << cls.H0.unit
+        self.H0 = H0
         if not self._H0.isscalar:
             raise ValueError("H0 is a non-scalar quantity")
 
@@ -298,17 +298,16 @@ class FLRW(Cosmology):
         """Mass of neutrino species."""
         unit = self.__class__.m_nu.unit  # eV
         if self._Tnu0.value == 0:
-            return None
-        if not self._massivenu:
-            # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), unit)
-        if self._nmasslessnu == 0:
-            # Only massive
-            return u.Quantity(self._massivenu_mass, unit)
-        # A mix -- the most complicated case
-        numass = np.append(np.zeros(self._nmasslessnu),
-                           self._massivenu_mass.value)
-        return u.Quantity(numass, unit)
+            m = None
+        elif not self._massivenu:  # only massless
+            m = u.Quantity(np.zeros(self._nmasslessnu), unit)
+        elif self._nmasslessnu == 0:  # only massive
+            m = u.Quantity(self._massivenu_mass, unit)
+        else:  # a mix -- the most complicated case
+            numass = np.append(np.zeros(self._nmasslessnu),
+                               self._massivenu_mass.value)
+            m = u.Quantity(numass, unit)
+        return m
 
     @property
     def h(self):
@@ -1425,16 +1424,14 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     but ``FlatLambdaCDM`` **will** be flat.
     """
 
+    Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
+                     fixed=True)  # no longer a Parameter
+
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
-
-    @property  # no longer a Parameter
-    def Ode0(self):
-        """Omega dark energy; dark energy density/critical density at z=0."""
-        return self._Ode0
 
     def __equiv__(self, other):
         """flat-FLRW equivalence. Use ``.is_equivalent()`` for actual check!
@@ -1468,12 +1465,11 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         # check all parameters in other match those in 'self' and 'other' has
         # no extra parameters (case (2)) except for 'Ode0' and that other
         params_eq = (
-            not (set(self.__parameters__) - set(other.__parameters__) - {"Ode0"}) # no extra params
+            set(self.__all_parameters__) == set(other.__all_parameters__) # no extra params
             and all(np.all(getattr(self, k) == getattr(other, k))  # params equal
-                     for k in self.__parameters__)
+                    for k in self.__all_parameters__)
             # flatness conditions
-            and other.Ok0 == 0.0
-            and other.Ode0 == 1.0 - other.Om0 - other.Ogamma0 - other.Onu0
+            and other.Ok0 == 0.0  # `Ode0` is checked in __all_parameters__
         )
 
         return params_eq
@@ -2201,7 +2197,7 @@ class wCDM(FLRW):
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._w0 = float(w0)
+        self.w0 = float(w0)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2530,8 +2526,8 @@ class w0waCDM(FLRW):
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._w0 = float(w0)
-        self._wa = float(wa)
+        self.w0 = float(w0)
+        self.wa = float(wa)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2796,9 +2792,9 @@ class wpwaCDM(FLRW):
                  Neff=3.04, m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._wp = float(wp)
-        self._wa = float(wa)
-        self._zp = zp << self.__class__.zp.unit
+        self.wp = float(wp)
+        self.wa = float(wa)
+        self.zp = zp << self.__class__.zp.unit
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
@@ -2954,8 +2950,8 @@ class w0wzCDM(FLRW):
                  m_nu=0.0*u.eV, Ob0=None, *, name=None, meta=None):
         super().__init__(H0=H0, Om0=Om0, Ode0=Ode0, Tcmb0=Tcmb0, Neff=Neff,
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
-        self._w0 = float(w0)
-        self._wz = float(wz)
+        self.w0 = float(w0)
+        self.wz = float(wz)
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
