@@ -60,9 +60,11 @@ def test_init():
 
 def test_immutability():
     """Test immutability of cosmologies."""
-    cosmo = Cosmology()
-    with pytest.raises(AttributeError):
-        cosmo.name = "new name"
+    cosmo = flrw.FlatLambdaCDM(70, 0.3)
+
+    for attr in [*cosmo.__parameters__, "name"]:
+        with pytest.raises(AttributeError):
+            setattr(cosmo, attr, None)
 
     # The metadata is NOT immutable
     assert "a" not in cosmo.meta
@@ -388,21 +390,21 @@ def test_repr():
     cosmo = flrw.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4',
                              Ob0=0.0456789)
     expected = ('Flatw0waCDM(name="test4", H0=55 km / (Mpc s), Om0=0.35, '
-                'w0=-0.9, Tcmb0=0 K, Neff=3.04, m_nu=None, '
+                'w0=-0.9, wa=-0.2, Tcmb0=0 K, Neff=3.04, m_nu=None, '
                 'Ob0=0.0457)')
     assert str(cosmo) == expected
 
     cosmo = flrw.wpwaCDM(50.0, 0.3, 0.3, wp=-0.9, wa=-0.2,
                          zp=0.3, name='test5')
     expected = ('wpwaCDM(name="test5", H0=50 km / (Mpc s), Om0=0.3, '
-                'Ode0=0.3, wp=-0.9, wa=-0.2, zp=0.3, Tcmb0=0 K, '
+                'Ode0=0.3, wp=-0.9, wa=-0.2, zp=0.3 redshift, Tcmb0=0 K, '
                 'Neff=3.04, m_nu=None, Ob0=None)')
     assert str(cosmo) == expected
 
     cosmo = flrw.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2, Tcmb0=2.725,
                          m_nu=u.Quantity([0.001, 0.01, 0.015], u.eV))
     expected = ('w0wzCDM(H0=55 km / (Mpc s), Om0=0.4, Ode0=0.8, w0=-1.05, '
-                'wz=-0.2 Tcmb0=2.725 K, Neff=3.04, '
+                'wz=-0.2, Tcmb0=2.725 K, Neff=3.04, '
                 'm_nu=[0.001 0.01  0.015] eV, Ob0=None)')
     assert str(cosmo) == expected
 

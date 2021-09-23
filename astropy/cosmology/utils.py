@@ -9,33 +9,6 @@ from astropy.utils import isiterable
 __all__ = []  # nothing is publicly scoped
 
 
-def _float_or_none(x, digits=3):
-    """Helper function to format a variable that can be a float or None.
-
-    Parameters
-    ----------
-    x : float or None
-    digits : int
-        Number of digits to display. This includes left of the decimal place.
-        Must be positive.
-
-    Returns
-    -------
-    str
-
-    Examples
-    --------
-    >>> _float_or_none(None)
-    'None'
-    >>> _float_or_none(10.1234, 3)
-    '10.1'
-    """
-    if x is None:
-        return str(x)
-    fmtstr = "{0:.{digits}g}".format(x, digits=digits)
-    return fmtstr.format(x)
-
-
 def vectorize_if_needed(f, *x, **vkw):
     """Helper function to vectorize scalar functions on array inputs.
 

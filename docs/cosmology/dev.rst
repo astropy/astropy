@@ -47,10 +47,120 @@ unless explicitly overridden.
     included in the ``astropy`` core or an affiliated package.
 
 
+.. _astropy-cosmology-custom:
+
+Custom Cosmologies
+==================
+
+In :mod:`astropy.cosmology` cosmologies are classes, so custom cosmologies may
+be implemented by subclassing |Cosmology| (or more likely
+:class:`~astropy.cosmology.FLRW`) and adding details specific to that
+cosmology. Here we will review some of those details and tips and tricks to
+building a performant cosmology class.
+
+.. code-block:: python
+
+    from astropy.cosmology import FLRW
+
+    class CustomCosmology(FLRW):
+        ...  # [details discussed below]
+
+
+.. _astropy-cosmology-custom-parameters:
+
+Parameters
+----------
+
+.. |Parameter| replace:: :class:`~astropy.cosmology.Parameter`
+
+An astropy |Cosmology| is characterized by 1) its class, which encodes the
+physics, and 2) its free parameter(s), which specify a cosmological realization.
+When defining the former, all parameters must be declared using
+|Parameter| and should have values assigned at instantiation (or appropriate
+``getter`` methods).
+
+A |Parameter| is a `descriptor <https://docs.python.org/3/howto/descriptor.html>`_.
+When accessed from a class it transparently stores information, like the units
+and accepted equivalencies, that might be opaquely contained in the constructor
+signature or more deeply in the code. On a cosmology instance, the descriptor
+will return the parameter value.
+
+There are a number of best practices. For a reference, this is excerpted from
+the definition of :class:`~astropy.cosmology.FLRW`.
+
+.. code-block:: python
+
+    from astropy.utils.decorators import lazyproperty
+
+    class FLRW(Cosmology):
+
+        H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
+                       unit="km/(s Mpc)")
+        Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0")
+        Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0")
+        Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0",
+                          unit="Kelvin", fmt="0.4g")
+        Neff = Parameter(doc="Number of effective neutrino species")
+        m_nu = Parameter(doc="Mass of neutrino species",
+                         unit="eV", equivalencies=u.mass_energy(), fmt="")
+        Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0")
+        
+        def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
+                     Ob0=None, *, name=None, meta=None):
+            cls = self.__class__
+            self._H0 = H0 << cls.H0.unit
+            ...  # for each Parameter in turn
+
+        @m_nu.getter
+        @lazyproperty  # so only does expensive computation once
+        def m_nu(self):
+            """ Mass of neutrino species"""
+            ...
+            return u.Quantity(numass, self.__class__.m_nu.unit)
+
+First note that all the parameters are also arguments in ``__init__``. This is
+not strictly necessary, but is good practice. If the parameter has units (and
+related equivalencies) these must be specified on the Parameter, as seen in 
+:attr:`~astropy.cosmology.FLRW.H0` and :attr:`~astropy.cosmology.FLRW.m_nu`.
+
+The next important thing to note is how the parameter value is set, in
+``__init__``. Without a custom ``getter``, |Parameter| returns the
+corresponding private attribute: so the value for "H0" is set on "._H0".
+
+When a Parameter uses :meth:`~astropy.cosmology.Parameter.getter`, the
+value may be stored anywhere, anyhow. For instance
+:attr:`~astropy.cosmology.FLRW.m_nu` is declared a Parameter with all the rest,
+but has a custom ``getter``. On instances of FLRW its value depends on
+:attr:`~astropy.cosmology.FLRW.Neff` and :attr:`~astropy.cosmology.FLRW.Tcmb0`,
+so is not neatly stored in an attribute ``_m_nu``.
+Note: ``Parameter.getter`` must be the top-most decorator.
+
+The last thing to note is pretty formatting for the |Cosmology|. Each
+|Parameter| defaults to the `format specification
+<https://docs.python.org/3/library/string.html#formatspec>`_ ".3g", but this
+may be overridden, like :attr:`~astropy.cosmology.FLRW.Tcmb0` does.
+
+
+Mixins
+------
+
+`Mixins <https://en.wikipedia.org/wiki/Mixin>`_ are used in
+:mod:`~astropy.cosmology` to reuse code across multiple classes in different
+inheritance lines. We use the term loosely as mixins are meant to be strictly
+orthogonal, but may not be, particularly in ``__init__``.
+
+Currently the only mixin is :class:`~astropy.cosmology.FlatCosmologyMixin`
+and its :class:`~astropy.cosmology.FLRW`-specific subclass
+:class:`~astropy.cosmology.FlatFLRWMixin`. "Flat" cosmologies should use this
+mixin. :class:`~astropy.cosmology.FlatFLRWMixin` must precede the base class in
+the multiple-inheritance so that this mixin's ``__init__`` proceeds the base
+class'.
+
+
 .. _astropy-cosmology-fast-integrals:
 
 Speeding up Integrals in Custom Cosmologies
-===========================================
+-------------------------------------------
 
 The supplied cosmology classes use a few tricks to speed up distance and time
 integrals.  It is not necessary for anyone subclassing
