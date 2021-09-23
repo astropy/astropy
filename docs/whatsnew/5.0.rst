@@ -78,6 +78,16 @@ CMB temperature, the equivalency ``with_redshift`` is also added.
 
 Further details are available in an addition to the docs.
 
+.. _whatsnew-5.0-modeling-new-models:
+
+New Models
+==========
+
+The following models have now been added:
+
+* :class:`~astropy.modeling.functional_models.Cosine1D`: a one-dimensional
+  cosine model.
+
 
 Full change log
 ===============
