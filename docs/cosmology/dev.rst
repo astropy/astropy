@@ -75,9 +75,8 @@ Parameters
 
 An astropy |Cosmology| is characterized by 1) its class, which encodes the
 physics, and 2) its free parameter(s), which specify a cosmological realization.
-When defining the former, all parameters must be declared using
-|Parameter| and should have values assigned at instantiation (or appropriate
-``getter`` methods).
+When defining the former, all parameters must be declared using |Parameter| and
+should have values assigned at instantiation (or appropriate ``getter`` methods).
 
 A |Parameter| is a `descriptor <https://docs.python.org/3/howto/descriptor.html>`_.
 When accessed from a class it transparently stores information, like the units
@@ -107,8 +106,7 @@ the definition of :class:`~astropy.cosmology.FLRW`.
 
         def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                      Ob0=None, *, name=None, meta=None):
-            cls = self.__class__
-            self._H0 = H0 << cls.H0.unit
+            self.H0 = H0
             ...  # for each Parameter in turn
 
         @m_nu.getter
@@ -126,6 +124,15 @@ related equivalencies) these must be specified on the Parameter, as seen in
 The next important thing to note is how the parameter value is set, in
 ``__init__``. Without a custom ``getter``, |Parameter| returns the
 corresponding private attribute: so the value for "H0" is set on "._H0".
+However |Parameter| allows for a value to be set once (before auto-locking),
+so ``self.H0 = H0`` will use this setter and put the value on "._H0". The
+advantage of this method over direct assignment to the private attribute is
+the use of validators. |Parameter| allows for custom value validators, using
+the method-decorator ``validator``, that can check a values validity and even
+modify the value, e.g to assign units. If no custom ``validator`` is specified
+the default is to check if the |Parameter| has defined units and if so, return
+the value as a |Quantity| with those units, using all enabled + the parameter's
+unit equivalencies.
 
 When a Parameter uses :meth:`~astropy.cosmology.Parameter.getter`, the
 value may be stored anywhere, anyhow. For instance
