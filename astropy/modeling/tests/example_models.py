@@ -71,7 +71,8 @@ models_1D = {
         'x_values': [0, np.sqrt(2), -np.sqrt(2)],
         'y_values': [1.0, 0.367879, 0.367879],
         'x_lim': [-10, 10],
-        'integral': np.sqrt(2 * np.pi)
+        'integral': np.sqrt(2 * np.pi),
+        'bbox_peak': True
     },
 
     Sine1D: {
@@ -95,7 +96,8 @@ models_1D = {
         'x_values': [-5, 5, 0, -10, 10],
         'y_values': [1, 1, 1, 0, 0],
         'x_lim': [-10, 10],
-        'integral': 10
+        'integral': 10,
+        'bbox_peak': True
     },
 
     Linear1D: {
@@ -111,7 +113,8 @@ models_1D = {
         'x_values': [0, -1, 1, 0.5, -0.5],
         'y_values': [1., 0.2, 0.2, 0.5, 0.5],
         'x_lim': [-10, 10],
-        'integral': 1
+        'integral': 1,
+        'bbox_peak': True
     },
 
     RickerWavelet1D: {
@@ -119,7 +122,8 @@ models_1D = {
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [1.0, 0.0, 0.0, -0.088872, -0.088872],
         'x_lim': [-20, 20],
-        'integral': 0
+        'integral': 0,
+        'bbox_peak': True
     },
 
     Trapezoid1D: {
@@ -127,7 +131,8 @@ models_1D = {
         'x_values': [0, 1, -1, 1.5, -1.5, 2, 2],
         'y_values': [1, 1, 1, 0.5, 0.5, 0, 0],
         'x_lim': [-10, 10],
-        'integral': 3
+        'integral': 3,
+        'bbox_peak': True
     },
 
     Const1D: {
@@ -227,6 +232,7 @@ models_1D = {
         'y_values': [0.30557281, 0.30011069, 0.2, 0.1113258],
         'x_lim': [0, 10],
         'y_lim': [0, 10],
+        'bbox_peak': True
     },
 
     Drude1D: {
@@ -234,7 +240,8 @@ models_1D = {
         'x_values': [7.0, 8.0, 9.0, 10.0],
         'y_values': [0.17883212, 1.0, 0.21891892, 0.07163324],
         'x_lim': [1.0, 20.0],
-        'y_lim': [0.0, 10.0]
+        'y_lim': [0.0, 10.0],
+        'bbox_peak': True
     },
 
     Plummer1D: {
@@ -274,7 +281,8 @@ models_2D = {
         'y_lim': [-10, 10],
         'integral': 2 * np.pi,
         'deriv_parameters': [137., 5.1, 5.4, 1.5, 2., np.pi/4],
-        'deriv_initial': [10, 5, 5, 4, 4, .5]
+        'deriv_initial': [10, 5, 5, 4, 4, .5],
+        'bbox_peak': True
     },
 
     Const2D: {
@@ -294,7 +302,8 @@ models_2D = {
         'z_values': [1, 1, 1, 1, 1, 0, 0],
         'x_lim': [-10, 10],
         'y_lim': [-10, 10],
-        'integral': 100
+        'integral': 100,
+        'bbox_peak': True
     },
 
     RickerWavelet2D: {
@@ -314,7 +323,8 @@ models_2D = {
         'y_values': [0, 0.5, 1.5, 0],
         'z_values': [1, 1, 0.5, 0.5],
         'x_lim': [-3, 3],
-        'y_lim': [-3, 3]
+        'y_lim': [-3, 3],
+        'bbox_peak': True
     },
 
     AiryDisk2D: {
@@ -352,7 +362,8 @@ models_2D = {
         'z_values': [0, 0, 1, 1, 1, 0, 0],
         'x_lim': [-10, 10],
         'y_lim': [-10, 10],
-        'integral': np.pi * 5 ** 2
+        'integral': np.pi * 5 ** 2,
+        'bbox_peak': True
     },
 
     Ring2D: {
@@ -362,7 +373,8 @@ models_2D = {
         'z_values': [1, 1, 1, 1, 0, 0, 0],
         'x_lim': [-10, 10],
         'y_lim': [-10, 10],
-        'integral': np.pi * (10 ** 2 - 5 ** 2)
+        'integral': np.pi * (10 ** 2 - 5 ** 2),
+        'bbox_peak': True
     },
 
     Sersic2D: {

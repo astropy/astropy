@@ -1,4 +1,4 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Licensed under a 3-clause BSD style license - see LICENSE.rst:
 
 """
 Tests for model evaluation.
@@ -192,7 +192,32 @@ class Fittable2DModelTester:
         try:
             bbox = model.bounding_box
         except NotImplementedError:
-            pytest.skip("Bounding_box is not defined for model.")
+            return
+
+        ddx = 0.01
+        ylim, xlim = bbox
+        x1 = np.arange(xlim[0], xlim[1], ddx)
+        y1 = np.arange(ylim[0], ylim[1], ddx)
+
+        x2 = np.concatenate(([xlim[0] - idx * ddx for idx in range(10, 0, -1)],
+                             x1,
+                             [xlim[1] + idx * ddx for idx in range(1, 10)]))
+        y2 = np.concatenate(([ylim[0] - idx * ddx for idx in range(10, 0, -1)],
+                             y1,
+                             [ylim[1] + idx * ddx for idx in range(1, 10)]))
+
+        inside_bbox = model(x1, y1)
+        outside_bbox = model(x2, y2, with_bounding_box=True)
+        outside_bbox = outside_bbox[~np.isnan(outside_bbox)]
+
+        assert np.all(inside_bbox == outside_bbox)
+
+    def test_bounding_box2D_peak(self, model_class, test_parameters):
+        if not test_parameters.pop('bbox_peak', False):
+            return
+
+        model = create_model(model_class, test_parameters)
+        bbox = model.bounding_box
 
         ylim, xlim = bbox
         dy, dx = np.diff(bbox)/2
@@ -255,10 +280,8 @@ class Fittable2DModelTester:
         x_lim = test_parameters['x_lim']
         y_lim = test_parameters['y_lim']
 
-        if model_class.fit_deriv is None:
-            pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, PolynomialBase):
-            pytest.skip("Skip testing derivative of polynomials.")
+        if model_class.fit_deriv is None or issubclass(model_class, PolynomialBase):
+            return
 
         if "log_fit" in test_parameters:
             if test_parameters['log_fit']:
@@ -366,7 +389,26 @@ class Fittable1DModelTester:
         try:
             bbox = model.bounding_box
         except NotImplementedError:
-            pytest.skip("Bounding_box is not defined for model.")
+            return
+
+        ddx = 0.01
+        x1 = np.arange(bbox[0], bbox[1], ddx)
+        x2 = np.concatenate(([bbox[0] - idx * ddx for idx in range(10, 0, -1)],
+                             x1,
+                             [bbox[1] + idx * ddx for idx in range(1, 10)]))
+
+        inside_bbox = model(x1)
+        outside_bbox = model(x2, with_bounding_box=True)
+        outside_bbox = outside_bbox[~np.isnan(outside_bbox)]
+
+        assert np.all(inside_bbox == outside_bbox)
+
+    def test_bounding_box1D_peak(self, model_class, test_parameters):
+        if not test_parameters.pop('bbox_peak', False):
+            return
+
+        model = create_model(model_class, test_parameters)
+        bbox = model.bounding_box
 
         if isinstance(model, models.Lorentz1D) or isinstance(model, models.Drude1D):
             rtol = 0.01  # 1% agreement is enough due to very extended wings
@@ -429,10 +471,8 @@ class Fittable1DModelTester:
 
         x_lim = test_parameters['x_lim']
 
-        if model_class.fit_deriv is None:
-            pytest.skip("Derivative function is not defined for model.")
-        if issubclass(model_class, PolynomialBase):
-            pytest.skip("Skip testing derivative of polynomials.")
+        if model_class.fit_deriv is None or issubclass(model_class, PolynomialBase):
+            return
 
         if "log_fit" in test_parameters:
             if test_parameters['log_fit']:
