@@ -1,0 +1,3 @@
+Cosmology parameters now allow for custom value validators.
+If not specified, the default validator is used, which will assign units
+using the Parameters ``units`` and ``equivalencies`` (if present)
