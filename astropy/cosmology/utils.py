@@ -1,10 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from math import inf
+from numbers import Number
 
 import numpy as np
 
+from astropy.units import Quantity
 from astropy.utils import isiterable
+
+from . import units as cu
 
 __all__ = []  # nothing is publicly scoped
 
@@ -63,3 +67,18 @@ def inf_like(x):
     array([inf, inf, inf, inf])
     """
     return inf if np.isscalar(x) else np.full_like(x, inf, dtype=float)
+
+
+def aszarr(z):
+    """
+    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity|.
+    Allows for any ndarray ducktype by checking for attribute "shape".
+    """
+    if isinstance(z, Number):
+        return z
+    elif hasattr(z, "shape"):
+        if hasattr(z, "unit"):  # Quantity
+            return z.to_value(cu.redshift)
+        return z
+    # not one of the preferred types: Number / array ducktype
+    return Quantity(z, cu.redshift).value

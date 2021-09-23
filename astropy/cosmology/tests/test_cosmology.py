@@ -12,7 +12,8 @@ from astropy.cosmology import Cosmology, flrw, funcs
 from astropy.cosmology.realizations import Planck13, Planck18, default_cosmology
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
+                                      AstropyUserWarning)
 
 
 def test_flrw_moved_deprecation():
