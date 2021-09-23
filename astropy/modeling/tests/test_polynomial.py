@@ -235,8 +235,7 @@ class TestFitting:
 
 
 @pytest.mark.parametrize('model_class',
-                         [cls for cls in list(linear1d) + list(linear2d)
-                          if isinstance(cls, PolynomialBase)])
+                         [cls for cls in list(linear1d) + list(linear2d)])
 def test_polynomial_init_with_constraints(model_class):
     """
     Test that polynomial models can be instantiated with constraints, but no
@@ -252,6 +251,9 @@ def test_polynomial_init_with_constraints(model_class):
         param = 'c0'
     else:
         param = 'c0_0'
+
+    if issubclass(model_class, Linear1D):
+        param = 'intercept'
 
     if issubclass(model_class, OrthoPolynomialBase):
         degree = (2, 2)
