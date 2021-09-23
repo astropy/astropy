@@ -1,7 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from abc import ABCMeta
-from inspect import signature
+import abc
+import copy
+import inspect
+from types import MappingProxyType
 
 import numpy as np
 
@@ -14,13 +16,13 @@ from astropy.utils.metadata import MetaData
 from .connect import CosmologyFromFormat, CosmologyRead, CosmologyToFormat, CosmologyWrite
 
 # Originally authored by Andrew Becker (becker@astro.washington.edu),
-# and modified by Neil Crighton (neilcrighton@gmail.com) and Roban
-# Kramer (robanhk@gmail.com).
+# and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
+# (robanhk@gmail.com), and Nathaniel Starkman (n.starkman@mail.utoronto.ca).
 
 # Many of these adapted from Hogg 1999, astro-ph/9905116
 # and Linder 2003, PRL 90, 91301
 
-__all__ = ["Cosmology", "CosmologyError"]
+__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin", "Parameter"]
 
 __doctest_requires__ = {}  # needed until __getattr__ removed
 
@@ -32,7 +34,167 @@ class CosmologyError(Exception):
     pass
 
 
-class Cosmology(metaclass=ABCMeta):
+class Parameter:
+    """Cosmological parameter (descriptor).
+
+    Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
+    For automatic default value and unit inference make sure the Parameter
+    attribute has a corresponding initialization argument (see Examples below).
+
+    Parameters
+    ----------
+    fget : callable or None, optional
+        Function to get the value from instances of the cosmology class.
+        If None (default) returns the corresponding private attribute.
+        Often not set here, but as a decorator with ``getter``.
+    doc : str or None, optional
+        Parameter description. If 'doc' is None and 'fget' is not, then 'doc'
+        is taken from ``fget.__doc__``.
+    unit : unit-like or None (optional, keyword-only)
+        The `~astropy.units.Unit` for the Parameter. If None (default) no
+        unit as assumed.
+    equivalencies : `~astropy.units.Equivalency` or sequence thereof
+        Unit equivalencies for this Parameter.
+    fmt : str (optional, keyword-only)
+        `format` specification, used when making string representation
+        of the containing Cosmology.
+        See https://docs.python.org/3/library/string.html#formatspec
+
+    Examples
+    --------
+    The most common use case of ``Parameter`` is to access the corresponding
+    private attribute.
+
+        >>> from astropy.cosmology import LambdaCDM
+        >>> from astropy.cosmology.core import Parameter
+        >>> class Example1(LambdaCDM):
+        ...     param = Parameter(doc="example parameter", unit=u.m)
+        ...     def __init__(self, param=15 * u.m):
+        ...         super().__init__(70, 0.3, 0.7)
+        ...         self._param = param << self.__class__.param.unit
+        >>> Example1.param
+        <Parameter 'param' at ...
+        >>> Example1.param.unit
+        Unit("m")
+
+        >>> ex = Example1(param=12357)
+        >>> ex.param
+        <Quantity 12357. m>
+
+    ``Parameter`` also supports custom ``getter`` methods.
+    :attr:`~astropy.cosmology.FLRW.m_nu` is a good example.
+
+        >>> import astropy.units as u
+        >>> class Example2(LambdaCDM):
+        ...     param = Parameter(doc="example parameter", unit="m")
+        ...     def __init__(self, param=15):
+        ...         super().__init__(70, 0.3, 0.7)
+        ...         self._param = param << self.__class__.param.unit
+        ...     @param.getter
+        ...     def param(self):
+        ...         return self._param << u.km
+
+        >>> ex2 = Example2(param=12357)
+        >>> ex2.param
+        <Quantity 12.357 km>
+
+    .. doctest::
+       :hide:
+
+       >>> from astropy.cosmology.core import _COSMOLOGY_CLASSES
+       >>> _ = _COSMOLOGY_CLASSES.pop(Example1.__qualname__)
+       >>> _ = _COSMOLOGY_CLASSES.pop(Example2.__qualname__)
+    """
+
+    def __init__(self, fget=None, doc=None, *, unit=None, equivalencies=[], fmt=".3g"):
+        # modeled after https://docs.python.org/3/howto/descriptor.html#properties
+        self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
+        self.fget = fget if not hasattr(fget, "fget") else fget.__get__
+        # TODO! better detection if descriptor.
+
+        # units stuff
+        self._unit = u.Unit(unit) if unit is not None else None
+        self._equivalencies = equivalencies
+
+        # misc
+        self._fmt = str(fmt)
+        self.__wrapped__ = fget  # so always have access to `fget`
+        self.__name__ = getattr(fget, "__name__", None)  # compat with other descriptors
+
+    def __set_name__(self, objcls, name):
+        # attribute name
+        self._attr_name = name
+        self._attr_name_private = "_" + name
+
+        # update __name__, if not already set
+        self.__name__ = self.__name__ or name
+
+    @property
+    def name(self):
+        """Parameter name."""
+        return self._attr_name
+
+    @property
+    def unit(self):
+        """Parameter unit."""
+        return self._unit
+
+    @property
+    def equivalencies(self):
+        """Equivalencies used when initializing Parameter."""
+        return self._equivalencies
+
+    @property
+    def format_spec(self):
+        """String format specification."""
+        return self._fmt
+
+    # -------------------------------------------
+    # descriptor
+
+    def __get__(self, obj, objcls=None):
+        # get from class
+        if obj is None:
+            return self
+        # get from obj, allowing for custom ``getter``
+        if self.fget is None:  # default to private attr (diff from `property`)
+            return getattr(obj, self._attr_name_private)
+        return self.fget(obj)
+
+    def __set__(self, obj, value):
+        raise AttributeError("can't set attribute")
+
+    def __delete__(self, obj):
+        raise AttributeError("can't delete attribute")
+
+    # -------------------------------------------
+    # from 'property'
+
+    def getter(self, fget):
+        """Make new Parameter with custom ``fget``.
+
+        Note: ``Parameter.getter`` must be the top-most descriptor decorator.
+
+        Parameters
+        ----------
+        fget : callable
+
+        Returns
+        -------
+        `~astropy.cosmology.Parameter`
+            Copy of this Parameter but with custom ``fget``.
+        """
+        return type(self)(fget=fget, doc=self.__doc__,
+                          unit=self.unit, equivalencies=self.equivalencies,
+                          fmt=self.format_spec)
+
+    # -------------------------------------------
+
+    def __repr__(self):
+        return f"<Parameter {self._attr_name!r} at {hex(id(self))}>"
+
+
+class Cosmology(metaclass=abc.ABCMeta):
     """Base-class for all Cosmologies.
 
     Parameters
@@ -66,10 +228,31 @@ class Cosmology(metaclass=ABCMeta):
     read = UnifiedReadWriteMethod(CosmologyRead)
     write = UnifiedReadWriteMethod(CosmologyWrite)
 
+    # Parameters
+    __parameters__ = ()
+
     def __init_subclass__(cls):
         super().__init_subclass__()
 
+        # registry of Cosmology's subclasses
         _COSMOLOGY_CLASSES[cls.__qualname__] = cls
+
+        # -------------------
+        # Parameters
+
+        # Get parameters that are still Parameters, either in this class or above.
+        parameters = [n for n in cls.__parameters__ if isinstance(getattr(cls, n), Parameter)]
+        # Add new parameter definitions
+        parameters += [n for n, v in cls.__dict__.items()
+                       if (n not in parameters
+                           and not n.startswith("_")
+                           and isinstance(v, Parameter))]
+        # reorder to match signature
+        ordered = [parameters.pop(parameters.index(n))
+                   for n in cls._init_signature.parameters.keys()
+                   if n in parameters]
+        parameters = ordered + parameters  # place "unordered" at the end
+        cls.__parameters__ = tuple(parameters)
 
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)
@@ -89,7 +272,7 @@ class Cosmology(metaclass=ABCMeta):
     def _init_signature(cls):
         """Initialization signature (without 'self')."""
         # get signature, dropping "self" by taking arguments [1:]
-        sig = signature(cls.__init__)
+        sig = inspect.signature(cls.__init__)
         sig = sig.replace(parameters=list(sig.parameters.values())[1:])
         return sig
 
@@ -153,9 +336,14 @@ class Cosmology(metaclass=ABCMeta):
         return self.__class__(*ba.args, **ba.kwargs)
 
     # -----------------------------------------------------
+    # comparison methods
 
-    def __eq__(self, other):
-        """Check equality on all immutable fields (i.e. not "meta").
+    def is_equivalent(self, other):
+        r"""Check equivalence between Cosmologies.
+
+        Two cosmologies may be equivalent even if not the same class.
+        For example, an instance of ``LambdaCDM`` might have :math:`\Omega_0=1`
+        and :math:`\Omega_k=0` and therefore be flat, like ``FlatLambdaCDM``.
 
         Parameters
         ----------
@@ -165,22 +353,92 @@ class Cosmology(metaclass=ABCMeta):
         Returns
         -------
         bool
-            True if all immutable fields are equal, False otherwise.
+            True if cosmologies are equivalent, False otherwise.
         """
-        if not isinstance(other, Cosmology):
-            return False
+        # The options are: 1) same class & parameters; 2) same class, different
+        # parameters; 3) different classes, equivalent parameters; 4) different
+        # classes, different parameters. (1) & (3) => True, (2) & (4) => False.
+        equiv = self.__equiv__(other)
+        if equiv is NotImplemented and hasattr(other, "__equiv__"):
+            equiv = other.__equiv__(self)  # that failed, try from 'other'
 
-        sias, oias = self._init_arguments, other._init_arguments
+        return equiv if equiv is not NotImplemented else False
 
-        # check if the cosmologies have identical signatures.
-        # this protects against one cosmology having a superset of input
-        # parameters to another cosmology.
-        if (sias.keys() ^ oias.keys()) - {'meta'}:
-            return False
+    def __equiv__(self, other):
+        """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
 
-        # are all the non-excluded immutable arguments equal?
-        return all((np.all(oias[k] == v) for k, v in sias.items()
-                    if k != "meta"))
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object in which to compare.
+
+        Returns
+        -------
+        bool or `NotImplemented`
+            `NotImplemented` if 'other' is from a different class.
+            `True` if 'other' is of the same class and has matching parameters
+            and parameter values. `False` otherwise.
+        """
+        if other.__class__ is not self.__class__:
+            return NotImplemented  # allows other.__equiv__
+
+        # check all parameters in 'other' match those in 'self' and 'other' has
+        # no extra parameters (latter part should never happen b/c same class)
+        params_eq = (set(self.__parameters__) == set(other.__parameters__)
+                     and all(np.all(getattr(self, k) == getattr(other, k))
+                             for k in self.__parameters__))
+        return params_eq
+
+    def __eq__(self, other):
+        """Check equality between Cosmologies.
+
+        Checks the Parameters and immutable fields (i.e. not "meta").
+
+        Parameters
+        ----------
+        other : `~astropy.cosmology.Cosmology` subclass instance
+            The object in which to compare.
+
+        Returns
+        -------
+        bool
+            True if Parameters and names are the same, False otherwise.
+        """
+        if other.__class__ is not self.__class__:
+            return NotImplemented  # allows other.__eq__
+
+        # check all parameters in 'other' match those in 'self'
+        equivalent = self.__equiv__(other)
+        # non-Parameter checks: name
+        name_eq = (self.name == other.name)
+
+        return equivalent and name_eq
+
+    # -----------------------------------------------------
+
+    def __repr__(self):
+        ps = {k: getattr(self, k) for k in self.__parameters__}  # values
+        cps = {k: getattr(self.__class__, k) for k in self.__parameters__}  # Parameter objects
+
+        namelead = f"{self.__class__.__qualname__}("
+        if self.name is not None:
+            namelead += f"name=\"{self.name}\", "
+        # nicely formatted parameters
+        fmtps = (k + '=' + format(v, cps[k].format_spec if v is not None else '')
+                 for k, v in ps.items())
+
+        return namelead + ", ".join(fmtps) + ")"
+
+
+class FlatCosmologyMixin(metaclass=abc.ABCMeta):
+    """
+    Mixin class for flat cosmologies. Do NOT instantiate directly.
+    Note that all instances of ``FlatCosmologyMixin`` are flat, but not all
+    flat cosmologies are instances of ``FlatCosmologyMixin``. As example,
+    ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
+    but ``FlatLambdaCDM`` **will** be flat.
+    """
+    pass
 
 
 # -----------------------------------------------------------------------------

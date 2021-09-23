@@ -21,7 +21,9 @@ keeping track of (dimensionless) factors of the Hubble constant.
 For details on reading and writing cosmologies from files,
 see :ref:`read_write_cosmologies`.
 
-For developer notes see :ref:`astropy-cosmology-for-developers`.
+For notes on building custom Cosmology classes and interfacing
+:mod:`astropy.cosmology` with 3rd-party packages,
+see :ref:`astropy-cosmology-for-developers`.
 
 
 Getting Started
