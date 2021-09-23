@@ -35,16 +35,22 @@ class TestParameter:
                               unit=u.m, equivalencies=u.mass_energy())
 
             def __init__(self, param=15):
-                self._param = param
+                self.param = param
 
+        #  with getter and validator
         class Example2(Example1):
             def __init__(self, param=15 * u.m):
-                self._param = param.to_value(u.km)
+                self._param = self.__class__.param.validate(self, param)
 
             @Example1.param.getter
             def param(self):
                 return self._param << u.km
 
+            @param.validator
+            def param(self, param, value):
+                return value.to(u.km)
+
+        # attributes
         self.classes = {"Example1": Example1, "Example2": Example2}
 
     def teardown_class(self):
@@ -67,17 +73,23 @@ class TestParameter:
 
     def test_has_expected_attributes(self, parameter):
         # property
-        assert hasattr(parameter, "fget")  # None or callable
+        assert hasattr(parameter, "_fget")  # None or callable
         assert parameter.__doc__ == "example parameter"
 
+        # property-esque
+        assert hasattr(parameter, "_fvalidate")
+
         # custom from init
-        assert parameter._fmt == ".3g"
         assert parameter._unit == u.m
         assert hasattr(parameter, "_equivalencies")
+        assert parameter._fmt == ".3g"
+        assert parameter._fixed == False
 
         # custom from set_name
         assert parameter._attr_name == "param"
         assert parameter._attr_name_private == "_param"
+        assert hasattr(parameter, "__wrapped__")
+        assert hasattr(parameter, "__name__")
 
     def test_name(self, parameter):
         """Test :attr:`astropy.cosmology.Parameter.name`."""
@@ -96,7 +108,12 @@ class TestParameter:
         """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
         # see test_format for more in-depth tests
         assert parameter.format_spec is parameter._fmt
-        assert parameter._fmt == ".3g"
+        assert parameter.format_spec == ".3g"
+
+    def test_fixed(self, parameter):
+        """Test :attr:`astropy.cosmology.Parameter.fixed`."""
+        assert parameter.fixed is parameter._fixed
+        assert parameter.fixed is False
 
     # -------------------------------------------
     # descriptor methods
@@ -109,13 +126,12 @@ class TestParameter:
 
         # from instance
         value = cosmo_cls().param
-        if parameter.fget is None:
-            assert value == 15
-        else:
-            assert value == 15 * u.m
+        assert value == 15 * u.m
 
     def test_set(self, cosmo):
         """Test :meth:`astropy.cosmology.Parameter.__set__`."""
+        # setting once tested when instantiate Parameter
+
         with pytest.raises(AttributeError, match="can't set attribute"):
             cosmo.param = 2
 
@@ -127,10 +143,45 @@ class TestParameter:
     # -------------------------------------------
     # property-style methods
 
+    def test_fget(self, cosmo, parameter):
+        """Test :attr:`astropy.cosmology.Parameter.fget`."""
+        assert parameter.fget is parameter._fget
+
+        if parameter.fget is not None:
+            value = parameter.fget(cosmo)
+            assert value  == 0.015 * u.km
+
     def test_getter_method(self, parameter):
         """Test :meth:`astropy.cosmology.Parameter.getter`."""
         newparam = parameter.getter("NOT NONE")
         assert newparam.fget == "NOT NONE"
+
+    # -------------------------------------------
+    # validation
+
+    def test_fvalidate(self, cosmo, parameter):
+        """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
+        assert parameter.fvalidate is parameter._fvalidate
+
+        value = parameter.fvalidate(cosmo, parameter, 1000 * u.m)
+        assert value == 1 * u.km
+
+    def test_validator_method(self, parameter):
+        """Test :meth:`astropy.cosmology.Parameter.validator`."""
+        newparam = parameter.validator("NOT NONE")
+        assert newparam.fvalidate == "NOT NONE"
+
+    def test_validate(self, cosmo, parameter):
+        """Test :meth:`astropy.cosmology.Parameter.validate`."""
+        value = parameter.validate(cosmo, 1000 * u.m)
+
+        # whether has custom validator
+        if parameter.fvalidate is parameter._default_validator:
+            assert value.unit == u.m
+            assert value.value == 1000
+        else:
+            assert value.unit == u.km
+            assert value.value == 1
 
     # -------------------------------------------
     # misc
@@ -188,9 +239,10 @@ class ParameterTestMixin:
             assert isinstance(getattr(cosmo_cls, n), Parameter)
 
         # the reverse: check that if it is a Parameter, it's listed.
+        # note have to check the more inclusive ``__all_parameters__``
         for n in dir(cosmo_cls):
             if isinstance(getattr(cosmo_cls, n), Parameter):
-                assert n in cosmo_cls.__parameters__
+                assert n in cosmo_cls.__all_parameters__
 
     def test_Parameter_not_unique(self, cosmo_cls, clean_registry):
         """Cosmology reinitializes Parameter when a class is defined."""
@@ -219,15 +271,13 @@ class ParameterTestMixin:
         assert set(Example.__parameters__[1:]) == set(cosmo_cls.__parameters__)
 
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
-        """Test the parameter creation process."""
+        """Test the parameter creation process. Uses validator."""
 
         class Example(cosmo_cls):
             param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
 
             def __init__(self, param, *, name=None, meta=None):
-                cls = self.__class__
-                with u.add_enabled_equivalencies(cls.param.equivalencies):
-                    self._param = param << cls.param.unit
+                self.param = param
 
         assert Example(1).param == 1 * u.eV
         assert Example(1 * u.eV).param == 1 * u.eV

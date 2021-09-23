@@ -127,7 +127,6 @@ class FLRW(Cosmology):
     def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                  Ob0=None, *, name=None, meta=None):
         super().__init__(name=name, meta=meta)
-        cls = self.__class__
 
         # all densities are in units of the critical density
         self.Om0 = float(Om0)
@@ -187,8 +186,8 @@ class FLRW(Cosmology):
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             self._neff_per_nu = self._Neff / self._nneutrinos
 
-            with u.add_enabled_equivalencies(cls.m_nu.equivalencies):
-                m_nu = m_nu << cls.m_nu.unit
+            # validate value to Quantity using equivalencies
+            m_nu = self.__class__.m_nu.validate(self, m_nu)
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
@@ -2794,7 +2793,7 @@ class wpwaCDM(FLRW):
                          m_nu=m_nu, Ob0=Ob0, name=name, meta=meta)
         self.wp = float(wp)
         self.wa = float(wa)
-        self.zp = zp << self.__class__.zp.unit
+        self.zp = zp
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
         # about what is being done here.
