@@ -38,8 +38,6 @@ class Parameter:
     """Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
-    For automatic default value and unit inference make sure the Parameter
-    attribute has a corresponding initialization argument (see Examples below).
 
     Parameters
     ----------
@@ -59,6 +57,19 @@ class Parameter:
         `format` specification, used when making string representation
         of the containing Cosmology.
         See https://docs.python.org/3/library/string.html#formatspec
+
+    fixed : bool (optional, keyword-only)
+        Whether the Parameter is fixed/'derived', default `False`.
+        Fixed parameters behave similarly to normal parameters, but are not
+        sorted by the |Cosmology| signature (probably not there) and are not
+        included in all methods. For reference, see ``Ode0`` in
+        ``FlatFLRWMixin``, which removes :math:`\Omega_{de,0}`` as an
+        independent parameter (:math:`\Omega_{de,0} \equiv 1 - \Omega_{tot}`).
+
+        Note this is NOT the same as a fixed `~astropy.modeling.Parameter`.
+        To set ``fixed`` if converting a |Cosmology| to a
+        `~astropy.modeling.Model`, set
+        ``cosmology_instance.meta[<param name>] = dict(fixed=True, ...)``.
 
     Examples
     --------
@@ -106,7 +117,8 @@ class Parameter:
        >>> _ = _COSMOLOGY_CLASSES.pop(Example2.__qualname__)
     """
 
-    def __init__(self, fget=None, doc=None, *, unit=None, equivalencies=[], fmt=".3g"):
+    def __init__(self, fget=None, doc=None, *, unit=None, equivalencies=[], fmt=".3g",
+                 fixed=False):
         # modeled after https://docs.python.org/3/howto/descriptor.html#properties
         self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
         self.fget = fget if not hasattr(fget, "fget") else fget.__get__
@@ -118,6 +130,9 @@ class Parameter:
 
         # misc
         self._fmt = str(fmt)
+        self._fixed = fixed
+
+        # nested descriptor decorator compatibility
         self.__wrapped__ = fget  # so always have access to `fget`
         self.__name__ = getattr(fget, "__name__", None)  # compat with other descriptors
 
@@ -149,6 +164,11 @@ class Parameter:
         """String format specification."""
         return self._fmt
 
+    @property
+    def fixed(self):
+        """Whether the Parameter is fixed; true parameters are not."""
+        return self._fixed
+
     # -------------------------------------------
     # descriptor
 
@@ -162,7 +182,18 @@ class Parameter:
         return self.fget(obj)
 
     def __set__(self, obj, value):
-        raise AttributeError("can't set attribute")
+        """Allows attribute setting once. Fails subsequently."""
+        # raise error if setting 2nd time
+        if hasattr(obj, self._attr_name_private):
+            raise AttributeError("can't set attribute")
+
+        # set attribute, with correct units if present
+        # TODO! a validate method. See modeling.Parameter for reference.
+        if self.unit is not None:
+            with u.add_enabled_equivalencies(self.equivalencies):
+                value = u.Quantity(value, self.unit)
+
+        setattr(obj, self._attr_name_private, value)
 
     def __delete__(self, obj):
         raise AttributeError("can't delete attribute")
@@ -186,7 +217,7 @@ class Parameter:
         """
         return type(self)(fget=fget, doc=self.__doc__,
                           unit=self.unit, equivalencies=self.equivalencies,
-                          fmt=self.format_spec)
+                          fmt=self.format_spec, fixed=self.fixed)
 
     # -------------------------------------------
 
@@ -230,6 +261,7 @@ class Cosmology(metaclass=abc.ABCMeta):
 
     # Parameters
     __parameters__ = ()
+    __all_parameters__ = ()
 
     # ---------------------------------------------------------------
 
@@ -253,18 +285,26 @@ class Cosmology(metaclass=abc.ABCMeta):
         # Parameters
 
         # Get parameters that are still Parameters, either in this class or above.
-        parameters = [n for n in cls.__parameters__ if isinstance(getattr(cls, n), Parameter)]
+        parameters = []
+        fixed_parameters = []
+        for n in cls.__parameters__:
+            p = getattr(cls, n)
+            if isinstance(p, Parameter):
+                fixed_parameters.append(n) if p.fixed else parameters.append(n)
+
         # Add new parameter definitions
-        parameters += [n for n, v in cls.__dict__.items()
-                       if (n not in parameters
-                           and not n.startswith("_")
-                           and isinstance(v, Parameter))]
+        for n, v in cls.__dict__.items():
+            if n in parameters or n.startswith("_") or not isinstance(v, Parameter):
+                continue
+            fixed_parameters.append(n) if v.fixed else parameters.append(n)
+
         # reorder to match signature
         ordered = [parameters.pop(parameters.index(n))
                    for n in cls._init_signature.parameters.keys()
                    if n in parameters]
         parameters = ordered + parameters  # place "unordered" at the end
         cls.__parameters__ = tuple(parameters)
+        cls.__all_parameters__ = cls.__parameters__ + tuple(fixed_parameters)
 
         # -------------------
         # register as a Cosmology subclass
@@ -402,9 +442,9 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         # check all parameters in 'other' match those in 'self' and 'other' has
         # no extra parameters (latter part should never happen b/c same class)
-        params_eq = (set(self.__parameters__) == set(other.__parameters__)
+        params_eq = (set(self.__all_parameters__) == set(other.__all_parameters__)
                      and all(np.all(getattr(self, k) == getattr(other, k))
-                             for k in self.__parameters__))
+                             for k in self.__all_parameters__))
         return params_eq
 
     def __eq__(self, other):
