@@ -1,5 +1,3 @@
-import numpy as np
-
 READ_DOCSTRING = """
     Read the input ``table`` and return the table.  Most of
     the default behavior for various parameters is determined by the Reader

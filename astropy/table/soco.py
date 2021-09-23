@@ -82,7 +82,7 @@ class SCEngine:
         Add a key, value pair.
         '''
         if self._unique and (key in self._nodes):
-            message = f'duplicate {key:!r} in unique index'
+            message = f'duplicate {key!r} in unique index'
             raise ValueError(message)
         self._nodes.add(Node(key, value))
 

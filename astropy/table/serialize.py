@@ -329,14 +329,18 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     # example would be a formatted time object that would have (e.g.)
     # "time_col" and "value", respectively.
     for name, data_attr in data_attrs_map.items():
-        col = out[name]
-        obj_attrs[data_attr] = col
+        obj_attrs[data_attr] = out[name]
         del out[name]
 
     info = obj_attrs.pop('__info__', {})
     if len(data_attrs_map) == 1:
         # col is the first and only serialized column; in that case, use info
-        # stored on the column.
+        # stored on the column. First step is to get that first column which
+        # has been moved from `out` to `obj_attrs` above.
+        data_attr = next(iter(data_attrs_map.values()))
+        col = obj_attrs[data_attr]
+
+        # Now copy the relevant attributes
         for attr, nontrivial in (('unit', lambda x: x not in (None, '')),
                                  ('format', lambda x: x is not None),
                                  ('description', lambda x: x is not None),

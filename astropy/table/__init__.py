@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy import config as _config
+import astropy.config as _config
 from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 
 __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
