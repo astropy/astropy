@@ -137,6 +137,8 @@ class CdsHeader(core.BaseHeader):
             elif found_line:  # First line after list of file descriptions
                 i_col_def -= 1  # Set i_col_def to last description line
                 break
+        else:
+            raise ValueError('no line with "Byte-by-byte Description" found')
 
         re_col_def = re.compile(r"""\s*
                                     (?P<start> \d+ \s* -)? \s*

@@ -8,10 +8,7 @@ html.py:
 must be installed to read HTML tables.
 """
 
-
 import warnings
-import numpy
-
 
 from . import core
 from astropy.table import Column

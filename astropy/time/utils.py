@@ -12,7 +12,7 @@ objects into two values, and vice versa.
 import decimal
 
 import numpy as np
-from astropy import units as u
+import astropy.units as u
 
 
 def day_frac(val1, val2, factor=None, divisor=None):

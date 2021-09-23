@@ -139,6 +139,8 @@ def _get_lines_from_file(qdp_file):
             lines = [line.strip() for line in fobj.readlines()]
     elif isinstance(qdp_file, Iterable):
         lines = qdp_file
+    else:
+        raise ValueError('invalid value of qdb_file')
 
     return lines
 
