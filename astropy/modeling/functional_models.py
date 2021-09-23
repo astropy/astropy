@@ -16,7 +16,7 @@ __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D', 'Gaussian2D',
            'Linear1D', 'Lorentz1D', 'RickerWavelet1D', 'RickerWavelet2D',
            'RedshiftScaleFactor', 'Multiply', 'Planar2D', 'Scale',
-           'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
+           'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Cosine1D', 'Trapezoid1D',
            'TrapezoidDisk2D', 'Ring2D', 'Voigt1D', 'KingProjectedAnalytic1D',
            'Exponential1D', 'Logarithmic1D']
 
@@ -762,7 +762,36 @@ class Sersic1D(Fittable1DModel):
                 'amplitude': outputs_unit[self.outputs[0]]}
 
 
-class Sine1D(Fittable1DModel):
+class _Trigonometric1D(Fittable1DModel):
+    """
+    Base class for one dimensional Sine and Cosine models
+
+    Parameters
+    ----------
+    amplitude : float
+        Oscillation amplitude
+    frequency : float
+        Oscillation frequency
+    phase : float
+        Oscillation phase
+    """
+
+    amplitude = Parameter(default=1, description="Oscillation amplitude")
+    frequency = Parameter(default=1, description="Oscillation frequency")
+    phase = Parameter(default=0, description="Oscillation phase")
+
+    @property
+    def input_units(self):
+        if self.frequency.unit is None:
+            return None
+        return {self.inputs[0]: 1. / self.frequency.unit}
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        return {'frequency': inputs_unit[self.inputs[0]] ** -1,
+                'amplitude': outputs_unit[self.outputs[0]]}
+
+
+class Sine1D(_Trigonometric1D):
     """
     One dimensional Sine model.
 
@@ -777,7 +806,7 @@ class Sine1D(Fittable1DModel):
 
     See Also
     --------
-    Const1D, Linear1D
+    Cosine1D, Const1D, Linear1D
 
 
     Notes
@@ -808,10 +837,6 @@ class Sine1D(Fittable1DModel):
         plt.show()
     """
 
-    amplitude = Parameter(default=1, description="Oscillation amplitude")
-    frequency = Parameter(default=1, description="Oscillation frequency")
-    phase = Parameter(default=0, description="Oscillation phase")
-
     @staticmethod
     def evaluate(x, amplitude, frequency, phase):
         """One dimensional Sine model function"""
@@ -836,15 +861,76 @@ class Sine1D(Fittable1DModel):
                    np.cos(TWOPI * frequency * x + TWOPI * phase))
         return [d_amplitude, d_frequency, d_phase]
 
-    @property
-    def input_units(self):
-        if self.frequency.unit is None:
-            return None
-        return {self.inputs[0]: 1. / self.frequency.unit}
 
-    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
-        return {'frequency': inputs_unit[self.inputs[0]] ** -1,
-                'amplitude': outputs_unit[self.outputs[0]]}
+class Cosine1D(_Trigonometric1D):
+    """
+    One dimensional Cosine model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Oscillation amplitude
+    frequency : float
+        Oscillation frequency
+    phase : float
+        Oscillation phase
+
+    See Also
+    --------
+    Sine1D, Const1D, Linear1D
+
+
+    Notes
+    -----
+    Model formula:
+
+        .. math:: f(x) = A \\cos(2 \\pi f x + 2 \\pi p)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Cosine1D
+
+        plt.figure()
+        s1 = Cosine1D(amplitude=1, frequency=.25)
+        r=np.arange(0, 10, .01)
+
+        for amplitude in range(1,4):
+             s1.amplitude = amplitude
+             plt.plot(r, s1(r), color=str(0.25 * amplitude), lw=2)
+
+        plt.axis([0, 10, -5, 5])
+        plt.show()
+    """
+
+    @staticmethod
+    def evaluate(x, amplitude, frequency, phase):
+        """One dimensional Cosine model function"""
+        # Note: If frequency and x are quantities, they should normally have
+        # inverse units, so that argument ends up being dimensionless. However,
+        # np.sin of a dimensionless quantity will crash, so we remove the
+        # quantity-ness from argument in this case (another option would be to
+        # multiply by * u.rad but this would be slower overall).
+        argument = TWOPI * (frequency * x + phase)
+        if isinstance(argument, Quantity):
+            argument = argument.value
+        return amplitude * np.cos(argument)
+
+    @staticmethod
+    def fit_deriv(x, amplitude, frequency, phase):
+        """One dimensional Cosine model derivative"""
+
+        d_amplitude = np.cos(TWOPI * frequency * x + TWOPI * phase)
+        d_frequency = - (TWOPI * x * amplitude *
+                         np.sin(TWOPI * frequency * x + TWOPI * phase))
+        d_phase = - (TWOPI * amplitude *
+                     np.sin(TWOPI * frequency * x + TWOPI * phase))
+        return [d_amplitude, d_frequency, d_phase]
 
 
 class Linear1D(Fittable1DModel):

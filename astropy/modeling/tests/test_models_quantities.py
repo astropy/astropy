@@ -10,7 +10,7 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
 from astropy.modeling.functional_models import (
     Gaussian1D,
-    Sersic1D, Sine1D, Linear1D,
+    Sersic1D, Sine1D, Cosine1D, Linear1D,
     Lorentz1D, Voigt1D, Const1D,
     Box1D, Trapezoid1D, RickerWavelet1D,
     Moffat1D, Gaussian2D, Const2D, Ellipse2D,
@@ -39,6 +39,10 @@ FUNC_MODELS_1D = [
  'bounding_box': False},
 {'class': Sine1D,
  'parameters': {'amplitude': 3 * u.km / u.s, 'frequency': 0.25 * u.Hz, 'phase': 0.5},
+ 'evaluation': [(1 * u.s, -3 * u.km / u.s)],
+ 'bounding_box': False},
+{'class': Cosine1D,
+ 'parameters': {'amplitude': 3 * u.km / u.s, 'frequency': 0.25 * u.Hz, 'phase': 0.25},
  'evaluation': [(1 * u.s, -3 * u.km / u.s)],
  'bounding_box': False},
 {'class': Linear1D,
