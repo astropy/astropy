@@ -10,6 +10,7 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import CosmologyRead
 from astropy.cosmology.core import Cosmology
+from astropy.cosmology.io.tests import test_mapping
 from astropy.io import registry as io_registry
 
 from .conftest import json_identify, read_json, write_json
@@ -176,11 +177,9 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("instance", cosmo_instances)
     @pytest.mark.parametrize("format", readwrite_formats)
-    def test_readwrite_reader_class_mismatch(self, instance, tmpdir, format):
+    def test_readwrite_reader_class_mismatch(self, cosmo, tmpdir, format):
         """Test when the reader class doesn't match the file."""
-        cosmo = getattr(cosmology.realizations, instance)
 
         fname = tmpdir / f"{cosmo.name}.{format}"
         cosmo.write(str(fname), format=format)
@@ -202,7 +201,7 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 # To/From_Format Tests
 
 
-class ToFromFormatTestMixin:
+class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin):
     """
     Tests for a Cosmology[To/From]Format on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -235,6 +234,7 @@ class ToFromFormatTestMixin:
         """
         Test transforming an instance and parsing from that class, when there's
         full information available.
+        Partial information tests are handled in the Mixin super classes.
         """
         format, objtype = format_type
 
@@ -260,41 +260,6 @@ class ToFromFormatTestMixin:
         assert got == cosmo
         assert got.meta == cosmo.meta
 
-    def test_fromformat_subclass_partial_info(self, cosmo):
-        """
-        Test writing from an instance and reading from that class.
-        This requires partial information.
-
-        .. todo::
-
-            generalize over all formats for this test.
-        """
-        format, objtype = ("mapping", dict)
-
-        # test to_format
-        obj = cosmo.to_format(format)
-        assert isinstance(obj, objtype)
-
-        # partial information
-        tempobj = copy.deepcopy(obj)
-        tempobj.pop("cosmology", None)
-        tempobj.pop("Tcmb0", None)
-
-        # read with the same class that wrote fills in the missing info with
-        # the default value
-        got = cosmo.__class__.from_format(tempobj, format=format)
-        got2 = Cosmology.from_format(tempobj, format=format, cosmology=cosmo.__class__)
-        got3 = Cosmology.from_format(tempobj, format=format, cosmology=cosmo.__class__.__qualname__)
-
-        assert (got == got2) and (got2 == got3)  # internal consistency
-
-        # not equal, because Tcmb0 is changed
-        assert got != cosmo
-        assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
-        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
-        # but the metadata is the same
-        assert got.meta == cosmo.meta
-
 
 class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     """Test Cosmology[To/From]Format classes."""
@@ -306,9 +271,7 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     # ==============================================================
 
     @pytest.mark.parametrize("format_type", tofrom_formats)
-    @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_fromformat_class_mismatch(self, instance, format_type):
-        cosmo = getattr(cosmology.realizations, instance)
+    def test_fromformat_class_mismatch(self, cosmo, format_type):
         format, objtype = format_type
 
         # test to_format

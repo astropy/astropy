@@ -81,12 +81,11 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> FlatLambdaCDM.from_format(cm)
         FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
                       Tcmb0=0 K, Neff=3.05, m_nu=None, Ob0=0.049)
-
     """
     params = copy.deepcopy(map)  # so can pop
 
     # get cosmology
-    # 1st from 'kwargs'. Allows for override of the cosmology, if on file.
+    # 1st from argument. Allows for override of the cosmology, if on file.
     # 2nd from params. This MUST have the cosmology if 'kwargs' did not.
     if cosmology is None:
         cosmology = params.pop("cosmology")
@@ -118,7 +117,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
     return cosmology(*ba.args, **ba.kwargs)
 
 
-def to_mapping(cosmology, *args):
+def to_mapping(cosmology, *args, cls=dict):
     """Return the cosmology class, inputs, and metadata as a `dict`.
 
     Parameters
@@ -127,6 +126,9 @@ def to_mapping(cosmology, *args):
     *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
+    cls: type (optional, keyword-only)
+        `dict` or `collections.Mapping` subclass.
+        The mapping type to return. Default is `dict`.
 
     Returns
     -------
@@ -147,10 +149,11 @@ def to_mapping(cosmology, *args):
          'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
          'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897,
          'meta': ...
-
     """
+    if not issubclass(cls, (dict, Mapping)):
+        raise TypeError(f"'cls' must be a (sub)class of dict or Mapping, not {type(cls)}")
 
-    m = {}
+    m = cls()
     # start with the cosmology class & name
     m["cosmology"] = cosmology.__class__
     m["name"] = cosmology.name  # here only for dict ordering
@@ -173,7 +176,6 @@ def mapping_identify(origin, format, *args, **kwargs):
     itis = False
     if origin == "read":
         itis = isinstance(args[1], Mapping) and (format in (None, "mapping"))
-
     return itis
 
 
