@@ -12,7 +12,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 class CosmologyWithKwargs(Cosmology):
     def __init__(self, name="cosmology with kwargs", meta=None, **kwargs):
-        super().__init__(name=name, meta=meta, **kwargs)
+        super().__init__(name=name, meta=meta)
 
 
 cosmo_instances = [

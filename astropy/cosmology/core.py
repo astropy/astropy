@@ -263,7 +263,7 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         return self
 
-    def __init__(self, *args, name=None, meta=None, **kwargs):
+    def __init__(self, name=None, meta=None):
         self._name = name
         self.meta.update(meta or {})
 
