@@ -258,15 +258,20 @@ def deprecated_attribute(name, since, message=None, alternative=None,
     """
     private_name = '_' + name
 
-    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
+    specific_deprecated = deprecated(since, name=name, obj_type='attribute',
+                                     message=message, alternative=alternative,
+                                     pending=pending,
+                                     warning_type=warning_type)
+
+    @specific_deprecated
     def get(self):
         return getattr(self, private_name)
 
-    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
+    @specific_deprecated
     def set(self, val):
         setattr(self, private_name, val)
 
-    @deprecated(since, name=name, obj_type='attribute', warning_type=warning_type)
+    @specific_deprecated
     def delete(self):
         delattr(self, private_name)
 
