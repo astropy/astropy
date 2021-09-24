@@ -17,6 +17,8 @@ import astropy.units as u
 from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
 
+from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
+
 ##############################################################################
 # TESTS
 ##############################################################################
@@ -171,7 +173,7 @@ class TestParameter:
 
 
 class ParameterTestMixin:
-    """Tests for a Parameter on a Cosmology."""
+    """Tests for a :class:`astropy.cosmology.Parameter` on a Cosmology."""
 
     def test_Parameters(self, cosmo_cls):
         """Test `astropy.cosmology.Parameter` attached to Cosmology."""
@@ -231,8 +233,9 @@ class ParameterTestMixin:
         assert Example(1 * u.kg).param == (1 * u.kg).to(u.eV, u.mass_energy())
 
 
-class TestCosmology(ParameterTestMixin, metaclass=abc.ABCMeta):
-    """Test :class:`astropy.cosmology.Cosmology`"""
+class TestCosmology(ParameterTestMixin, ReadWriteTestMixin, ToFromFormatTestMixin,
+                    metaclass=abc.ABCMeta):
+    """Test :class:`astropy.cosmology.Cosmology`."""
 
     def setup_class(self):
         """
@@ -240,11 +243,18 @@ class TestCosmology(ParameterTestMixin, metaclass=abc.ABCMeta):
         Cosmology should not be instantiated, so tests are done on a subclass.
         """
         class SubCosmology(Cosmology):
-            pass
+
+            H0 = Parameter(unit=u.km / u.s / u.Mpc)
+            Tcmb0 = Parameter(unit=u.K)
+
+            def __init__(self, H0, Tcmb0=0*u.K, name=None, meta=None):
+                super().__init__(name=name, meta=meta)
+                self._H0 = H0
+                self._Tcmb0 = Tcmb0
 
         self.cls = SubCosmology
-        self.cls_args = (70 * (u.km / u.s / u.Mpc),)  # nothing real
-        self.cls_kwargs = dict(name="test", meta={"a": "b"})
+        self.cls_args = (70 * (u.km / u.s / u.Mpc), 2.7 * u.K)
+        self.cls_kwargs = dict(name=self.__class__.__name__, meta={"a": "b"})
 
     def teardown_class(self):
         _COSMOLOGY_CLASSES.pop("TestCosmology.setup_class.<locals>.SubCosmology", None)
@@ -262,7 +272,7 @@ class TestCosmology(ParameterTestMixin, metaclass=abc.ABCMeta):
     # Method & Attribute Tests
 
     def _cosmo_test_init_attr(self, cosmo):
-        """Helper function for testing ``__init__``"""
+        """Helper function for testing ``__init__``."""
         assert hasattr(cosmo, "_name")
         assert cosmo._name is None or isinstance(cosmo._name, str)
 
@@ -270,12 +280,12 @@ class TestCosmology(ParameterTestMixin, metaclass=abc.ABCMeta):
         assert isinstance(cosmo.meta, dict)
 
     def test_init(self, cosmo_cls):
-        # Cosmology accepts any args, kwargs
-        cosmo1 = cosmo_cls(1, 2, 3, 4, 5, a=1, b=2, c=3, d=4, e=5)
+        """Test initialization."""
+        cosmo1 = cosmo_cls(70, 2.7)
         self._cosmo_test_init_attr(cosmo1)
 
         # but only "name" and "meta" are used
-        cosmo2 = cosmo_cls(name="test", meta={"m": 1})
+        cosmo2 = cosmo_cls(70, name="test", meta={"m": 1})
         self._cosmo_test_init_attr(cosmo2)
         assert cosmo2.name == "test"
         assert cosmo2.meta["m"] == 1
