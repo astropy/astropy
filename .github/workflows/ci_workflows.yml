@@ -53,10 +53,12 @@ jobs:
             python: 3.x
             toxenv: codestyle
 
-          - name: Python 3.9 with minimal dependencies
+          # NOTE: this 2nd coverage test is needed for tests and code that
+          #       run only with minimal dependencies.
+          - name: Python 3.9 with minimal dependencies and full coverage
             os: ubuntu-latest
             python: 3.9
-            toxenv: py39-test
+            toxenv: py39-test-cov
 
           - name: Python 3.10 with minimal dependencies
             os: ubuntu-latest
