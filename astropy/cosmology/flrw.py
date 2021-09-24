@@ -21,9 +21,16 @@ from .utils import inf_like, vectorize_if_needed, aszarr
 # isort: split
 if HAS_SCIPY:
     from scipy.integrate import quad
+    from scipy.special import ellipkinc, hyp2f1
 else:
     def quad(*args, **kwargs):
         raise ModuleNotFoundError("No module named 'scipy.integrate'")
+
+    def ellipkinc(*args, **kwargs):
+        raise ModuleNotFoundError("No module named 'scipy.special'")
+
+    def hyp2f1(*args, **kwargs):
+        raise ModuleNotFoundError("No module named 'scipy.special'")
 
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
@@ -1635,7 +1642,6 @@ class LambdaCDM(FLRW):
         .. [1] Kantowski, R., Kao, J., & Thomas, R. (2000). Distance-Redshift
                in Inhomogeneous FLRW. arXiv e-prints, astro-ph/0002334.
         """
-        from scipy.special import ellipkinc
         try:
             z1, z2 = np.broadcast_arrays(z1, z2)
         except ValueError as e:
@@ -1799,7 +1805,6 @@ class LambdaCDM(FLRW):
            expressions and numerical evaluation of the luminosity distance
            in a flat cosmology. MNRAS, 468(1), 927-930.
         """
-        from scipy.special import hyp2f1
         return 2 * np.sqrt(x) * hyp2f1(1./6, 1./2, 7./6, -x**3)
 
     def _dS_age(self, z):
