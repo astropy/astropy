@@ -7,10 +7,13 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import isiterable
+from astropy.utils.decorators import deprecated
 
 from . import units as cu
 
 __all__ = []  # nothing is publicly scoped
+
+__doctest_skip__ = ["inf_like"]
 
 
 def vectorize_if_needed(f, *x, **vkw):
@@ -37,6 +40,7 @@ def vectorize_if_needed(f, *x, **vkw):
     return np.vectorize(f, **vkw)(*x) if any(map(isiterable, x)) else f(*x)
 
 
+@deprecated("5.0")
 def inf_like(x):
     """Return the shape of x with value infinity and dtype='float'.
 
