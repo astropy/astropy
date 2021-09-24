@@ -9,7 +9,6 @@ import numpy as np
 
 import astropy.units as u
 from astropy.io.registry import UnifiedReadWriteMethod
-from astropy.utils import isiterable
 from astropy.utils.decorators import classproperty
 from astropy.utils.metadata import MetaData
 

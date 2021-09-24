@@ -41,13 +41,13 @@ def _z_at_scalar_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
     # guarantee it has a unique solution, but for Standard Cosmological
     # quantities normally should (being monotonic or having a single extremum).
     # In these cases keep solver from returning solutions outside of bracket.
-    fval_zmin, fval_zmax = func((zmin, zmax))
+    fval_zmin, fval_zmax = func(zmin), func(zmax)
     nobracket = False
     if np.sign(fval - fval_zmin) != np.sign(fval_zmax - fval):
         if bracket is None:
             nobracket = True
         else:
-            fval_brac = func(bracket)
+            fval_brac = func(np.asanyarray(bracket))
             if np.sign(fval - fval_brac[0]) != np.sign(fval_brac[-1] - fval):
                 nobracket = True
             else:

@@ -66,8 +66,9 @@ redshifts as input:
 
 .. doctest-requires:: scipy
 
+  >>> import numpy as np
   >>> from astropy.cosmology import WMAP9 as cosmo
-  >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
+  >>> cosmo.comoving_distance(np.array([0.5, 1.0, 1.5]))  # doctest: +FLOAT_CMP
   <Quantity [1916.06941724, 3363.07062107, 4451.7475201 ] Mpc>
 
 You can create your own FLRW-like cosmology using one of the cosmology
@@ -166,8 +167,9 @@ They also accept arrays of redshifts:
 
 .. doctest-requires:: scipy
 
-  >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +FLOAT_CMP
-  array([8.42128013, 5.74698021, 4.19645373])
+  >>> import astropy.cosmology.units as cu
+  >>> cosmo.age([0.5, 1, 1.5] * cu.redshift)  # doctest: +FLOAT_CMP
+  <Quantity [8.42128013, 5.74698021, 4.19645373] Gyr>
 
 See the `~astropy.cosmology.FLRW` and
 `~astropy.cosmology.FlatLambdaCDM` object docstring for all of the
@@ -191,10 +193,12 @@ parameters already defined are also available
 
 You can see how the density parameters evolve with redshift as well::
 
+  >>> import numpy as np
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
-  >>> WMAP7.Om([0, 1.0, 2.0]), WMAP7.Ode([0., 1.0, 2.0])  # doctest: +FLOAT_CMP
-  (array([0.272     , 0.74898522, 0.90905234]),
-   array([0.72791572, 0.2505506 , 0.0901026 ]))
+  >>> WMAP7.Om(np.array([0, 1.0, 2.0]))  # doctest: +FLOAT_CMP
+  array([0.272     , 0.74898522, 0.90905234])
+  >>> WMAP7.Ode(np.array([0., 1.0, 2.0]))  # doctest: +FLOAT_CMP
+  array([0.72791572, 0.2505506 , 0.0901026 ])
 
 Note that these do not quite add up to one, even though WMAP7 assumes a
 flat universe, because photons and neutrinos are included. Also note
@@ -421,7 +425,7 @@ can be found as a function of redshift::
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Ogamma0, WMAP7.Onu0  # Current epoch values  # doctest: +FLOAT_CMP
   (4.985694972799396e-05, 3.442154948307989e-05)
-  >>> z = [0, 1.0, 2.0]
+  >>> z = np.array([0, 1.0, 2.0])
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)  # doctest: +FLOAT_CMP
   (array([4.98603986e-05, 2.74593395e-04, 4.99915942e-04]),
    array([3.44239306e-05, 1.89580995e-04, 3.45145089e-04]))
@@ -441,9 +445,9 @@ Universe) but setting ``Neff`` to 0::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725, Neff=0)
-  >>> cos.Ogamma([0, 1, 2])  # Photons are still present  # doctest: +FLOAT_CMP
+  >>> cos.Ogamma(np.array([0, 1, 2]))  # Photons are still present  # doctest: +FLOAT_CMP
   array([4.98603986e-05, 2.74642208e-04, 5.00086413e-04])
-  >>> cos.Onu([0, 1, 2])  # But not neutrinos  # doctest: +FLOAT_CMP
+  >>> cos.Onu(np.array([0, 1, 2]))  # But not neutrinos  # doctest: +FLOAT_CMP
   array([0., 0., 0.])
 
 The number of neutrino species is assumed to be the floor of ``Neff``,
@@ -469,7 +473,7 @@ value is provided, all of the species are assumed to have the same mass.
   True
   >>> cosmo.m_nu  # doctest: +FLOAT_CMP
   <Quantity [0.  , 0.05, 0.1 ] eV>
-  >>> cosmo.Onu([0, 1.0, 15.0])  # doctest: +FLOAT_CMP
+  >>> cosmo.Onu(np.array([0, 1.0, 15.0]))  # doctest: +FLOAT_CMP
   array([0.00327011, 0.00896845, 0.01257946])
   >>> cosmo.Onu(1) * cosmo.critical_density(1)  # doctest: +FLOAT_CMP
   <Quantity 2.444380380370406e-31 g / cm3>
