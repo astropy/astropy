@@ -12,6 +12,7 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw import ellipkinc, hyp2f1, quad
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -55,7 +56,11 @@ class TestFLRW(CosmologyTest):
         self.cls = SubFLRW
         # H0, Om0, Ode0
         self.cls_args = (70 * u.km / u.s / u.Mpc, 0.27 * u.one, 0.689 * u.one)
-        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3.0 * u.K, name=self.__class__.__name__, meta={"a": "b"})
+
+    def teardown_class(self):
+        super().teardown_class(self)
+        _COSMOLOGY_CLASSES.pop("TestFLRW.setup_class.<locals>.SubFLRW", None)
 
     @pytest.fixture
     def nonflatcosmo(self):
@@ -144,7 +149,7 @@ class TestLambdaCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = LambdaCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -157,7 +162,7 @@ class TestFlatLambdaCDM(FlatFLRWMixinTest, TestLambdaCDM):
         """Setup for testing."""
         self.cls = FlatLambdaCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -170,7 +175,7 @@ class TestwCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = wCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -183,7 +188,7 @@ class TestFlatwCDM(FlatFLRWMixinTest, TestwCDM):
         """Setup for testing."""
         self.cls = FlatwCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -196,7 +201,7 @@ class Testw0waCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = w0waCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -209,7 +214,7 @@ class TestFlatw0waCDM(FlatFLRWMixinTest, Testw0waCDM):
         """Setup for testing."""
         self.cls = Flatw0waCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27)  # H0, Om0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -222,7 +227,7 @@ class TestwpwaCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = wpwaCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
 
 
 # -----------------------------------------------------------------------------
@@ -235,4 +240,4 @@ class Testw0wzCDM(FLRWSubclassTest):
         """Setup for testing."""
         self.cls = w0wzCDM
         self.cls_args = (70 * (u.km / u.s / u.Mpc), 0.27, 0.73)  # H0, Om0, Ode0
-        self.cls_kwargs = dict(Tcmb0=3 * u.K, name="test", meta={"a": "b"})
+        self.cls_kwargs = dict(Tcmb0=3 * u.K, name=self.__class__.__name__, meta={"a": "b"})
