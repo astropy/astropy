@@ -12,12 +12,30 @@ import pytest
 import astropy.units as u
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
+from astropy.cosmology.flrw import ellipkinc, hyp2f1, quad
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .test_core import FlatCosmologyMixinTest
 from .test_core import CosmologySubclassTest as CosmologyTest
+from .test_core import FlatCosmologyMixinTest
 
 ##############################################################################
 # TESTS
+##############################################################################
+
+
+@pytest.mark.skipif(HAS_SCIPY, reason="scipy is installed")
+def test_optional_deps_functions():
+    """Test stand-in functions when optional dependencies not installed."""
+    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.integrate'"):
+        quad()
+
+    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.special'"):
+        ellipkinc()
+
+    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.special'"):
+        hyp2f1()
+
+
 ##############################################################################
 
 
@@ -83,7 +101,6 @@ class FLRWSubclassTest(TestFLRW):
 
 
 class FlatFLRWMixinTest(FlatCosmologyMixinTest):
-
     def test_init(self, cosmo_cls):
         super().test_init(cosmo_cls)
 
