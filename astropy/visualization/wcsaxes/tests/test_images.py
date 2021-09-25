@@ -702,6 +702,59 @@ class TestBasic(BaseImageTests):
 
         return fig
 
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_beam_shape_from_args(self, tmpdir):
+        # Test for adding the beam shape with the beam parameters as arguments
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect='equal')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        ax.add_beam(major=2 * u.arcmin, minor=1 * u.arcmin, angle=-30 * u.degree,
+                    corner='bottom right', frame=True, borderpad=0., pad=1.,
+                    color="black")
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_beam_shape_from_header(self, tmpdir):
+        # Test for adding the beam shape with the beam parameters from a header
+        hdr = self.msx_header
+        hdr['BMAJ'] = (2 * u.arcmin).to(u.degree).value
+        hdr['BMIN'] = (1 * u.arcmin).to(u.degree).value
+        hdr['BPA'] = 30.
+
+        wcs = WCS(hdr)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect='equal')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        ax.add_beam(header=hdr)
+
+        return fig
+
+    @pytest.mark.remote_data(source='astropy')
+    @pytest.mark.mpl_image_compare(baseline_dir=IMAGE_REFERENCE_DIR,
+                                   tolerance=0, style={})
+    def test_scalebar(self, tmpdir):
+        # Test for adding a scale bar
+        wcs = WCS(self.msx_header)
+        fig = plt.figure(figsize=(4, 3))
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6], projection=wcs, aspect='equal')
+        ax.set_xlim(-10, 10)
+        ax.set_ylim(-10, 10)
+
+        ax.add_scalebar(2 * u.arcmin, label="2'", corner='top right', borderpad=1.,
+                        label_top=True)
+
+        return fig
+
     @figure_test
     def test_elliptical_frame(self):
 
