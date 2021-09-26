@@ -230,6 +230,8 @@ class Cosmology(metaclass=abc.ABCMeta):
     # Parameters
     __parameters__ = ()
 
+    # ---------------------------------------------------------------
+
     def __init_subclass__(cls):
         super().__init_subclass__()
 
@@ -253,6 +255,16 @@ class Cosmology(metaclass=abc.ABCMeta):
         parameters = ordered + parameters  # place "unordered" at the end
         cls.__parameters__ = tuple(parameters)
 
+    @classproperty(lazy=True)
+    def _init_signature(cls):
+        """Initialization signature (without 'self')."""
+        # get signature, dropping "self" by taking arguments [1:]
+        sig = inspect.signature(cls.__init__)
+        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
+        return sig
+
+    # ---------------------------------------------------------------
+
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls)
 
@@ -266,14 +278,6 @@ class Cosmology(metaclass=abc.ABCMeta):
     def __init__(self, name=None, meta=None):
         self._name = name
         self.meta.update(meta or {})
-
-    @classproperty(lazy=True)
-    def _init_signature(cls):
-        """Initialization signature (without 'self')."""
-        # get signature, dropping "self" by taking arguments [1:]
-        sig = inspect.signature(cls.__init__)
-        sig = sig.replace(parameters=list(sig.parameters.values())[1:])
-        return sig
 
     @property
     def name(self):
@@ -334,7 +338,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         # Return new instance, respecting args vs kwargs
         return self.__class__(*ba.args, **ba.kwargs)
 
-    # -----------------------------------------------------
+    # ---------------------------------------------------------------
     # comparison methods
 
     def is_equivalent(self, other):
@@ -413,7 +417,7 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         return equivalent and name_eq
 
-    # -----------------------------------------------------
+    # ---------------------------------------------------------------
 
     def __repr__(self):
         ps = {k: getattr(self, k) for k in self.__parameters__}  # values
