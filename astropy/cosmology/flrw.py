@@ -621,7 +621,7 @@ class FLRW(Cosmology):
         invp = 0.54644808743  # 1.0 / p
         k = 0.3173
 
-        curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
+        curr_nu_y = self._nu_y / (1.0 + np.expand_dims(z, axis=-1))
         rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
         rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
 
@@ -713,12 +713,9 @@ class FLRW(Cosmology):
         It is not necessary to override this method, but if de_density_scale
         takes a particularly simple form, it may be advantageous to.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
                        self._Ode0 * self.de_density_scale(z))
 
@@ -737,12 +734,9 @@ class FLRW(Cosmology):
             Returns `float` if the input is scalar.
         """
         # Avoid the function overhead by repeating code
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z))
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
                 self._Ode0 * self.de_density_scale(z))**(-0.5)
 
@@ -1285,18 +1279,18 @@ class FLRW(Cosmology):
         """
         Ok0 = self._Ok0
         if Ok0 == 0:
-            return 4. / 3. * pi * self.comoving_distance(z) ** 3
+            return 4.0 / 3.0* pi * self.comoving_distance(z) ** 3
 
         dh = self._hubble_distance.value  # .value for speed
         dm = self.comoving_transverse_distance(z).value
-        term1 = 4. * pi * dh ** 3 / (2. * Ok0) * u.Mpc ** 3
+        term1 = 4.0 * pi * dh ** 3 / (2.0 * Ok0) * u.Mpc ** 3
         term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
         term3 = sqrt(abs(Ok0)) * dm / dh
 
         if Ok0 > 0:
-            return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsinh(term3))
+            return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsinh(term3))
         else:
-            return term1 * (term2 - 1. / sqrt(abs(Ok0)) * np.arcsin(term3))
+            return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsin(term3))
 
     def differential_comoving_volume(self, z):
         """Differential comoving volume at redshift z.
@@ -1659,7 +1653,7 @@ class LambdaCDM(FLRW):
                 return np.arccos(((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A) /
                                  ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 + A))
 
-            v_k = pow(kappa * (b - 1) + sqrt(b * (b - 2)), 1. / 3)
+            v_k = pow(kappa * (b - 1) + sqrt(b * (b - 2)), 1.0 / 3)
             y1 = (-1 + kappa * (v_k + 1 / v_k)) / 3
             A = sqrt(y1 * (3 * y1 + 2))
             g = 1 / sqrt(A)
@@ -1676,9 +1670,9 @@ class LambdaCDM(FLRW):
 
             yb = cos(acos(1 - b) / 3)
             yc = sqrt(3) * sin(acos(1 - b) / 3)
-            y1 = (1. / 3) * (-1 + yb + yc)
-            y2 = (1. / 3) * (-1 - 2 * yb)
-            y3 = (1. / 3) * (-1 + yb - yc)
+            y1 = (1.0 / 3) * (-1 + yb + yc)
+            y2 = (1.0 / 3) * (-1 - 2 * yb)
+            y3 = (1.0 / 3) * (-1 + yb - yc)
             g = 2 / sqrt(y1 - y2)
             k2 = (y1 - y3) / (y1 - y2)
             phi_z1 = phi_z(self._Om0, self._Ok0, y1, y2, z1)
@@ -1744,8 +1738,7 @@ class LambdaCDM(FLRW):
         except ValueError as e:
             raise ValueError("z1 and z2 have different shapes") from e
 
-        prefactor = 2 * self._hubble_distance
-        return prefactor * ((z1 + 1.0)**(-1./2) - (z2 + 1.0)**(-1./2))
+        return 2 * self._hubble_distance * ((z1 + 1.0)**(-0.5) - (z2 + 1.0)**(-0.5))
 
     def _hypergeometric_comoving_distance_z1z2(self, z1, z2):
         r"""
@@ -1962,12 +1955,9 @@ class LambdaCDM(FLRW):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)
 
     def inv_efunc(self, z):
@@ -1985,12 +1975,9 @@ class LambdaCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) + self._Ode0)**(-0.5)
 
 
@@ -2089,12 +2076,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         """
         # We override this because it takes a particularly simple
         # form for a cosmological constant
-        if self._massivenu:
-            Or = self._Ogamma0 * (1 + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return np.sqrt(zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0)
 
     def inv_efunc(self, z):
@@ -2112,11 +2096,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return (zp1 ** 3 * (Or * zp1 + self._Om0) + self._Ode0)**(-0.5)
 
 
@@ -2253,7 +2235,7 @@ class wCDM(FLRW):
         and in this case is given by
         :math:`I = \left(1 + z\right)^{3\left(1 + w_0\right)}`
         """
-        return (aszarr(z) + 1.0) ** (3.0 * (1. + self._w0))
+        return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self._w0))
 
     def efunc(self, z):
         """Function used to calculate H(z), the Hubble parameter.
@@ -2270,14 +2252,11 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return np.sqrt(zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
-                       self._Ode0 * zp1 ** (3. * (1. + self._w0)))
+                       self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0)))
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -2294,14 +2273,11 @@ class wCDM(FLRW):
             Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
-                self._Ode0 * zp1 ** (3. * (1. + self._w0)))**(-0.5)
+                self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0)))**(-0.5)
 
 
 class FlatwCDM(FlatFLRWMixin, wCDM):
@@ -2402,14 +2378,11 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = aszarr(z) + 1.0
         return np.sqrt(zp1 ** 3 * (Or * zp1 + self._Om0) +
-                       self._Ode0 * zp1 ** (3. * (1 + self._w0)))
+                       self._Ode0 * zp1 ** (3.0 * (1 + self._w0)))
 
     def inv_efunc(self, z):
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
@@ -2426,14 +2399,12 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
-        if self._massivenu:
-            Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
-        else:
-            Or = self._Ogamma0 + self._Onu0
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
+        z = aszarr(z)
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
+                              if self._massivenu else self._Onu0)
+        zp1 = z + 1.0
         return (zp1 ** 3 * (Or * zp1 + self._Om0) +
-                self._Ode0 * zp1 ** (3. * (1. + self._w0)))**(-0.5)
+                self._Ode0 * zp1 ** (3.0 * (1.0 + self._w0)))**(-0.5)
 
 
 class w0waCDM(FLRW):
@@ -2590,7 +2561,7 @@ class w0waCDM(FLRW):
                      \exp \left(-3 w_a \frac{z}{1+z}\right)
         """
         z = aszarr(z)
-        zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
+        zp1 = z + 1.0
         return zp1 ** (3 * (1 + self._w0 + self._wa)) * np.exp(-3 * self._wa * z / zp1)
 
 
@@ -2860,10 +2831,10 @@ class wpwaCDM(FLRW):
                      \exp \left(-3 w_a \frac{z}{1+z}\right)
         """
         z = aszarr(z)
-        zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        apiv = 1. / (1. + self._zp)
-        return zp1 ** (3. * (1. + self._wp + apiv * self._wa)) * \
-            np.exp(-3. * self._wa * z / zp1)
+        zp1 = z + 1.0
+        apiv = 1.0 / (1.0 + self._zp)
+        return zp1 ** (3.0 * (1.0 + self._wp + apiv * self._wa)) * \
+            np.exp(-3.0 * self._wa * z / zp1)
 
 
 class w0wzCDM(FLRW):
@@ -3012,5 +2983,5 @@ class w0wzCDM(FLRW):
                      \exp \left(-3 w_z z\right)
         """
         z = aszarr(z)
-        zp1 = z + 1.0  # (converts z [unit] -> z [dimensionless])
-        return zp1 ** (3. * (1. + self._w0 - self._wz)) * np.exp(-3. * self._wz * z)
+        zp1 = z + 1.0
+        return zp1 ** (3.0 * (1.0 + self._w0 - self._wz)) * np.exp(-3.0 * self._wz * z)
