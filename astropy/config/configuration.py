@@ -6,7 +6,7 @@ configuration files for Astropy and affiliated packages.
     The configuration system makes use of the 'configobj' package, which stores
     configuration in a text format like that used in the standard library
     `ConfigParser`. More information and documentation for configobj can be
-    found at http://www.voidspace.org.uk/python/configobj.html.
+    found at https://configobj.readthedocs.io .
 """
 
 import io
