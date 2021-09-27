@@ -1,0 +1,1 @@
+``astropy`` now requires ``packaging``.
