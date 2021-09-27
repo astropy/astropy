@@ -40,7 +40,11 @@ def vectorize_if_needed(f, *x, **vkw):
     return np.vectorize(f, **vkw)(*x) if any(map(isiterable, x)) else f(*x)
 
 
-@deprecated("5.0")
+@deprecated(
+    since="5.0",
+    message="inf_like has been removed because it duplicates functionality provided by numpy.full_like()",
+    alternative="Use numpy.full_like(z, numpy.inf) instead for a target array 'z'"
+)
 def inf_like(x):
     """Return the shape of x with value infinity and dtype='float'.
 
