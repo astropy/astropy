@@ -1,0 +1,2 @@
+Avoid unnecessary transforms through CIRS for AltAz and
+use ICRS as intermediate frame for these transformations instead.
