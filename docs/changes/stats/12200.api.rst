@@ -1,0 +1,6 @@
+Removed the following deprecated features from ``astropy.stats``:
+
+* ``conf`` argument for ``funcs.binom_conf_interval()`` and
+  ``funcs.binned_binom_proportion()``,
+* ``conflevel`` argument for ``funcs.poisson_conf_interval()``, and
+* ``conf_lvl`` argument for ``jackknife.jackknife_stats()``.
