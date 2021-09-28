@@ -99,6 +99,10 @@
 .. pyyaml
 .. |minimum_pyyaml_version| replace:: {pyyaml}
 
+.. packaging
+.. _packaging: https://packaging.pypa.io/
+.. |minimum_packaging_version| replace:: {packaging}
+
 .. IPython
 .. _IPython: http://ipython.org/
 .. _`ipython github`: https://github.com/ipython/ipython
