@@ -97,3 +97,18 @@ def observed_to_icrs(observed_coo, icrs_frame):
         icrs_srepr = newrepr.represent_as(SphericalRepresentation)
 
     return icrs_frame.realize_frame(icrs_srepr)
+
+
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, AltAz)
+@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, HADec)
+def observed_to_observed(from_coo, to_frame):
+    if from_coo.is_equivalent_frame(to_frame):  # loopback to the same frame
+        return to_frame.realize_frame(from_coo.data)
+
+    # for now we just implement this through ICRS to make sure we get everything
+    # covered
+    # Before, this was using CIRS as intermediate frame, however this is much
+    # slower than the direct observed<->ICRS transform added in 4.3
+    # due to how the frame attribute broadcasting works, see
+    # https://github.com/astropy/astropy/pull/10994#issuecomment-722617041
+    return from_coo.transform_to(ICRS()).transform_to(to_frame)

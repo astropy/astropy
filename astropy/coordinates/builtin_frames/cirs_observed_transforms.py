@@ -88,14 +88,3 @@ def observed_to_cirs(observed_coo, cirs_frame):
 
     # this final transform may be a no-op if the obstimes and locations are the same
     return cirs_at_aa_time.transform_to(cirs_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, AltAz, AltAz)
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HADec, HADec)
-def observed_to_observed(from_coo, to_frame):
-    if from_coo.is_equivalent_frame(to_frame):  # loopback to the same frame
-        return to_frame.realize_frame(from_coo.data)
-
-    # for now we just implement this through CIRS to make sure we get everything
-    # covered
-    return from_coo.transform_to(CIRS(obstime=from_coo.obstime)).transform_to(to_frame)
