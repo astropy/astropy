@@ -2,7 +2,7 @@
 
 import warnings
 from abc import abstractmethod
-from math import acos, cos, exp, floor, log, pi, sin, sqrt
+from math import acos, cos, exp, floor, inf, log, pi, sin, sqrt
 from numbers import Number
 
 import numpy as np
@@ -16,7 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from . import scalar_inv_efuncs
 from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
-from .utils import inf_like, vectorize_if_needed, aszarr
+from .utils import vectorize_if_needed, aszarr
 
 # isort: split
 if HAS_SCIPY:
@@ -1822,7 +1822,8 @@ class LambdaCDM(FLRW):
         t : `~astropy.units.Quantity` ['time']
             The age of the universe in Gyr at each input redshift.
         """
-        return self._hubble_time * inf_like(z)
+        t = (inf if isinstance(z, Number) else np.full_like(z, inf, dtype=float))
+        return self._hubble_time * t
 
     def _EdS_age(self, z):
         r"""Age of the universe in Gyr at redshift ``z``.
