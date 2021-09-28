@@ -175,7 +175,7 @@ for the list of available versions with ``conda search astropy``.
 
 It is highly recommended that you install all of the optional dependencies with::
 
-    conda install -c astropy -c defaults \
+    conda install -c conda-forge -c defaults \
       scipy h5py beautifulsoup4 html5lib bleach pyyaml pandas sortedcontainers \
       pytz matplotlib setuptools mpmath bottleneck jplephem asdf
 
@@ -433,7 +433,7 @@ either with pip::
 
 or with Conda::
 
-    conda install -c astropy sphinx-astropy
+    conda install -c conda-forge sphinx-astropy
 
 In addition to providing configuration common to packages in the Astropy
 ecosystem, this package also serves as a way to automatically get the main
