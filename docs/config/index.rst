@@ -402,7 +402,7 @@ as a *list of options* unless you explicitly tell it that the
 
 Details of all of the valid ``cfgtype`` items can be found in the
 `validation section of the configobj manual
-<http://www.voidspace.org.uk/python/validate.html#the-standard-functions>`_.
+<https://configobj.readthedocs.io/en/latest/validate.html#the-standard-functions>`_.
 Below is a list of the valid values here for quick reference:
 
 * ``'integer'``
