@@ -1188,8 +1188,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         -------
         transframe : coordinate-like
             A new object with the coordinate data represented in the
-            ``newframe`` system (meaning a `~astropy.coordinates.SkyCoord` will
-            remain a SkyCoord).
+            ``newframe`` system.
 
         Raises
         ------
