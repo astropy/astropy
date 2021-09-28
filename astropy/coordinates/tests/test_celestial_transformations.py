@@ -9,10 +9,10 @@ from astropy.coordinates import galactocentric_frame_defaults
 from astropy.coordinates.distances import Distance
 from astropy.coordinates.builtin_frames import (
     ICRS, FK5, FK4, FK4NoETerms, Galactic, CIRS,
-    Supergalactic, Galactocentric, HCRS, GCRS, LSR)
+    Supergalactic, Galactocentric, HCRS, GCRS, LSR, GalacticLSR)
 from astropy.coordinates import SkyCoord
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
-from astropy.coordinates import EarthLocation, CartesianRepresentation
+from astropy.coordinates import EarthLocation, CartesianRepresentation, CartesianDifferential
 from astropy.time import Time
 from astropy.units import allclose
 
@@ -340,3 +340,46 @@ def test_cirs_icrs():
     # now check ICRS transform gives a decent distance from Barycentre
     moon_icrs = moon_geo.transform_to(ICRS())
     assert_allclose(moon_icrs.distance - 1*u.au, 0.0*u.R_sun, atol=3*u.R_sun)
+
+
+@pytest.mark.parametrize('frame', [LSR, GalacticLSR])
+def test_lsr_loopback(frame):
+    xyz = CartesianRepresentation(1, 2, 3)*u.AU
+    xyz = xyz.with_differentials(CartesianDifferential(4, 5, 6)*u.km/u.s)
+
+    v_bary = CartesianDifferential(5, 10, 15)*u.km/u.s
+
+    # Test that the loopback properly handles a change in v_bary
+    from_coo = frame(xyz)  # default v_bary
+    to_frame = frame(v_bary=v_bary)
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the velocity but not the position
+    assert allclose(explicit_coo.cartesian.xyz, from_coo.cartesian.xyz, rtol=1e-10)
+    assert not allclose(explicit_coo.velocity.d_xyz, from_coo.velocity.d_xyz, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert allclose(explicit_coo.cartesian.xyz, implicit_coo.cartesian.xyz, rtol=1e-10)
+    assert allclose(explicit_coo.velocity.d_xyz, implicit_coo.velocity.d_xyz, rtol=1e-10)
+
+
+@pytest.mark.parametrize('to_frame',
+                         [Galactocentric(galcen_coord=ICRS(300*u.deg, -30*u.deg)),
+                          Galactocentric(galcen_distance=10*u.kpc),
+                          Galactocentric(z_sun=10*u.pc),
+                          Galactocentric(roll=1*u.deg)])
+def test_galactocentric_loopback(to_frame):
+    xyz = CartesianRepresentation(1, 2, 3)*u.pc
+
+    from_coo = Galactocentric(xyz)
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the position
+    assert not allclose(explicit_coo.cartesian.xyz, from_coo.cartesian.xyz, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert allclose(explicit_coo.cartesian.xyz, implicit_coo.cartesian.xyz, rtol=1e-10)

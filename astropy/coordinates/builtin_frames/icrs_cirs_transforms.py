@@ -24,7 +24,6 @@ from .icrs import ICRS
 from .gcrs import GCRS
 from .cirs import CIRS
 from .hcrs import HCRS
-from .equatorial import TETE
 from .utils import aticq, atciqz, get_offset_sun_from_barycenter
 
 from ..erfa_astrom import erfa_astrom
@@ -94,21 +93,6 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
     return icrs_frame.realize_frame(newrep)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, CIRS, CIRS)
-def cirs_to_cirs(from_coo, to_frame):
-    if (np.all(from_coo.location == to_frame.location) and
-            np.all(from_coo.obstime == to_frame.obstime)):
-        return to_frame.realize_frame(from_coo.data)
-    else:
-        # the CIRS<-> CIRS transform actually goes through ICRS.  This has a
-        # subtle implication that a point in CIRS is uniquely determined
-        # by the corresponding astrometric ICRS coordinate *at its
-        # current time*.  This has some subtle implications in terms of GR, but
-        # is sort of glossed over in the current scheme because we are dropping
-        # distances anyway.
-        return from_coo.transform_to(ICRS()).transform_to(to_frame)
-
-
 # Now the GCRS-related transforms to/from ICRS
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ICRS, GCRS)
@@ -175,16 +159,6 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
         newrep = intermedrep + astrom_eb
 
     return icrs_frame.realize_frame(newrep)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, GCRS)
-def gcrs_to_gcrs(from_coo, to_frame):
-    if (np.all(from_coo.obstime == to_frame.obstime) and
-            np.all(from_coo.obsgeoloc == to_frame.obsgeoloc)):
-        return to_frame.realize_frame(from_coo.data)
-    else:
-        # like CIRS, we do this self-transform via ICRS
-        return from_coo.transform_to(ICRS()).transform_to(to_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, HCRS)
@@ -260,22 +234,13 @@ def icrs_to_hcrs(icrs_coo, hcrs_frame):
                                                 include_velocity=bool(icrs_coo.data.differentials))
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, HCRS, HCRS)
-def hcrs_to_hcrs(from_coo, to_frame):
-    if np.all(from_coo.obstime == to_frame.obstime):
-        return to_frame.realize_frame(from_coo.data)
-    else:
-        # like CIRS, we do this self-transform via ICRS
-        return from_coo.transform_to(ICRS()).transform_to(to_frame)
-
-
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, TETE)
-def tete_to_tete(from_coo, to_frame):
-    if (np.all(from_coo.location == to_frame.location)
-            and np.all(from_coo.obstime == to_frame.obstime)):
-        return to_frame.realize_frame(from_coo.data)
-    else:
-        # We perform the self-transform through ICRS, since any change in obstime
-        # will require handling the change in pos/vel of the Earth and it's impact
-        # on aberration.
-        return from_coo.transform_to(ICRS()).transform_to(to_frame)
+# Create loopback transformations
+frame_transform_graph._add_merged_transform(CIRS, ICRS, CIRS)
+# The CIRS<-> CIRS transform going through ICRS has a
+# subtle implication that a point in CIRS is uniquely determined
+# by the corresponding astrometric ICRS coordinate *at its
+# current time*.  This has some subtle implications in terms of GR, but
+# is sort of glossed over in the current scheme because we are dropping
+# distances anyway.
+frame_transform_graph._add_merged_transform(GCRS, ICRS, GCRS)
+frame_transform_graph._add_merged_transform(HCRS, ICRS, HCRS)

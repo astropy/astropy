@@ -10,6 +10,7 @@ from astropy.coordinates import transformations as t
 from astropy.coordinates.builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, AltAz, HCRS
 from astropy.coordinates import representation as r
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
@@ -621,3 +622,46 @@ def test_impose_finite_difference_dt():
     assert transform1.finite_difference_dt == old_dt
     assert transform2.finite_difference_dt == old_dt * 2
     assert transform3.finite_difference_dt == old_dt * 3
+
+
+@pytest.mark.parametrize("first, second, check",
+                         [((rotation_matrix(30*u.deg), None),
+                           (rotation_matrix(45*u.deg), None),
+                           (rotation_matrix(75*u.deg), None)),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
+                           (rotation_matrix(45*u.deg), None),
+                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([1/np.sqrt(2), -1/np.sqrt(2), 0]))),
+                          ((rotation_matrix(30*u.deg), None),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
+                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([0, 0, 1]))),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
+                           (rotation_matrix(75*u.deg), r.CartesianRepresentation([1/np.sqrt(2), -1/np.sqrt(2), 1]))),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 2 ,3])),
+                           (None, r.CartesianRepresentation([4, 5, 6])),
+                           (rotation_matrix(30*u.deg), r.CartesianRepresentation([5, 7, 9]))),
+                          ((None, r.CartesianRepresentation([1, 2, 3])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([4, 5, 6])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([3/np.sqrt(2)+4, 1/np.sqrt(2)+5, 9]))),
+                          ((None, r.CartesianRepresentation([1, 2, 3])),
+                           (None, r.CartesianRepresentation([4, 5, 6])),
+                           (None, r.CartesianRepresentation([5, 7, 9]))),
+                          ((rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0])),
+                           (None, None),
+                           (rotation_matrix(30*u.deg), r.CartesianRepresentation([1, 0, 0]))),
+                          ((None, None),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1])),
+                           (rotation_matrix(45*u.deg), r.CartesianRepresentation([0, 0, 1]))),
+                          ((None, None),
+                           (None, None),
+                           (None, None))])
+def test_combine_affine_params(first, second, check):
+    result = t._combine_affine_params(first, second)
+    if check[0] is None:
+        assert result[0] is None
+    else:
+        assert_allclose(result[0], check[0])
+    if check[1] is None:
+        assert result[1] is None
+    else:
+        assert_allclose(result[1].xyz, check[1].xyz)

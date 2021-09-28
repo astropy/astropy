@@ -13,7 +13,7 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
 
-
+from .icrs import ICRS
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
@@ -218,11 +218,10 @@ def itrs_to_cirs(itrs_coo, cirs_frame):
     return cirs.transform_to(cirs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, ITRS)
-def itrs_to_itrs(from_coo, to_frame):
-    # this self-transform goes through CIRS right now, which implicitly also
-    # goes back to ICRS
-    return from_coo.transform_to(CIRS()).transform_to(to_frame)
+# TODO: implement GCRS<->CIRS if there's call for it.  The thing that's awkward
+# is that they both have obstimes, so an extra set of transformations are necessary.
+# so unless there's a specific need for that, better to just have it go through the above
+# two steps anyway
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, PrecessedGeocentric)
@@ -274,11 +273,8 @@ def itrs_to_teme(itrs_coo, teme_frame):
     return teme_frame.realize_frame(newrepr)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TEME, TEME)
-def teme_to_teme(from_coo, to_frame):
-    if np.all(from_coo.obstime == to_frame.obstime):
-        return to_frame.realize_frame(from_coo.data)
-    else:
-        # this self-transform goes through ITRS right now, which implicitly also
-        # goes back to ICRS
-        return from_coo.transform_to(ITRS(obstime=from_coo.obstime)).transform_to(to_frame)
+# Create loopback transformations
+frame_transform_graph._add_merged_transform(ITRS, CIRS, ITRS)
+frame_transform_graph._add_merged_transform(PrecessedGeocentric, GCRS, PrecessedGeocentric)
+frame_transform_graph._add_merged_transform(TEME, ITRS, TEME)
+frame_transform_graph._add_merged_transform(TETE, ICRS, TETE)
