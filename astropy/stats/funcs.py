@@ -14,7 +14,6 @@ import math
 import numpy as np
 
 import astropy.units as u
-from astropy.utils.decorators import deprecated_renamed_argument
 from . import _stats
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
@@ -88,7 +87,6 @@ def _expand_dims(data, axis):
     return data.reshape(shape)
 
 
-@deprecated_renamed_argument('conf', 'confidence_level', '4.0')
 def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
@@ -316,7 +314,6 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     return conf_interval
 
 
-@deprecated_renamed_argument('conf', 'confidence_level', '4.0')
 def binned_binom_proportion(x, success, bins=10, range=None,
                             confidence_level=0.68269, interval='wilson'):
     """Binomial proportion and confidence interval in bins of a continuous
@@ -506,7 +503,6 @@ def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
         raise ValueError(f"confidence_level not supported for interval {name}")
 
 
-@deprecated_renamed_argument('conflevel', 'confidence_level', '4.0')
 def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
                           confidence_level=None):
     r"""Poisson parameter confidence interval given observed counts
