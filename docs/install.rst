@@ -141,7 +141,7 @@ Requirements
 
 - `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
 
-- `packaging <https://packaging.pypa.io/>`_ |minimum_packaging_version| or later
+- `packaging`_ |minimum_packaging_version| or later
 
 ``astropy`` also depends on a number of other packages for optional features.
 The following are particularly recommended:
