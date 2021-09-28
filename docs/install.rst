@@ -80,11 +80,11 @@ for the list of available versions with ``conda search astropy``.
 If you want to install ``astropy`` along with recommended or all of the
 available optional :ref:`dependencies <astropy-main-req>`, you can do::
 
-    conda install -c astropy -c defaults scipy matplotlib
+    conda install -c conda-forge -c defaults scipy matplotlib
 
 or::
 
-    conda install -c astropy -c defaults scipy matplotlib \
+    conda install -c conda-forge -c defaults scipy matplotlib \
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
       pytz setuptools mpmath bottleneck jplephem asdf
 
@@ -448,7 +448,7 @@ documentation, you will need to make sure that a number of dependencies are
 installed. If you use conda, the easiest way to install the dependencies is
 with::
 
-    conda install -c astropy sphinx-astropy
+    conda install -c conda-forge sphinx-astropy
 
 Without conda, you install the dependencies by specifying ``[docs]`` when
 installing ``astropy`` with pip::
