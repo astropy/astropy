@@ -600,6 +600,43 @@ def test_teme_itrf():
     )
 
 
+def test_precessedgeocentric_loopback():
+    from_coo = PrecessedGeocentric(1*u.deg, 2*u.deg, 3*u.AU,
+                                   obstime='2001-01-01', equinox='2001-01-01')
+
+    # Change just the obstime
+    to_frame = PrecessedGeocentric(obstime='2001-06-30', equinox='2001-01-01')
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the coordinate
+    assert not allclose(explicit_coo.ra, from_coo.ra, rtol=1e-10)
+    assert not allclose(explicit_coo.dec, from_coo.dec, rtol=1e-10)
+    assert not allclose(explicit_coo.distance, from_coo.distance, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert_allclose(explicit_coo.ra, implicit_coo.ra, rtol=1e-10)
+    assert_allclose(explicit_coo.dec, implicit_coo.dec, rtol=1e-10)
+    assert_allclose(explicit_coo.distance, implicit_coo.distance, rtol=1e-10)
+
+    # Change just the equinox
+    to_frame = PrecessedGeocentric(obstime='2001-01-01', equinox='2001-06-30')
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the direction but not the distance
+    assert not allclose(explicit_coo.ra, from_coo.ra, rtol=1e-10)
+    assert not allclose(explicit_coo.dec, from_coo.dec, rtol=1e-10)
+    assert allclose(explicit_coo.distance, from_coo.distance, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert_allclose(explicit_coo.ra, implicit_coo.ra, rtol=1e-10)
+    assert_allclose(explicit_coo.dec, implicit_coo.dec, rtol=1e-10)
+    assert_allclose(explicit_coo.distance, implicit_coo.distance, rtol=1e-10)
+
+
 def test_teme_loopback():
     from_coo = TEME(1*u.AU, 2*u.AU, 3*u.AU, obstime='2001-01-01')
     to_frame = TEME(obstime='2001-06-30')
