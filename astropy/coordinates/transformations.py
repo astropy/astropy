@@ -1429,6 +1429,46 @@ class CompositeTransform(CoordinateTransform):
         return curr_coord
 
 
+def _combine_affine_params(params, next_params):
+    """
+    Combine two sets of affine parameters.
+
+    The parameters for an affine transformation are a 3 x 3 Cartesian
+    transformation matrix and a displacement vector, which can include an
+    attached velocity.  Either type of parameter can be ``None``.
+    """
+    M, vec = params
+    next_M, next_vec = next_params
+
+    # Multiply the transformation matrices if they both exist
+    if M is not None and next_M is not None:
+        new_M = next_M @ M
+    else:
+        new_M = M if M is not None else next_M
+
+    if vec is not None:
+        # Transform the first displacement vector by the second transformation matrix
+        if next_M is not None:
+            vec = vec.transform(next_M)
+
+        # Calculate the new displacement vector
+        if next_vec is not None:
+            if 's' in vec.differentials and 's' in next_vec.differentials:
+                # Adding vectors with velocities takes more steps
+                # TODO: Add support in representation.py
+                new_vec_velocity = vec.differentials['s'] + next_vec.differentials['s']
+                new_vec = vec.without_differentials() + next_vec.without_differentials()
+                new_vec = new_vec.with_differentials({'s': new_vec_velocity})
+            else:
+                new_vec = vec + next_vec
+        else:
+            new_vec = vec
+    else:
+        new_vec = next_vec
+
+    return new_M, new_vec
+
+
 # map class names to colorblind-safe colors
 trans_to_color = {}
 trans_to_color[AffineTransform] = '#555555'  # gray
