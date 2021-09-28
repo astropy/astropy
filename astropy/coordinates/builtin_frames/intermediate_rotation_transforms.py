@@ -275,5 +275,6 @@ def itrs_to_teme(itrs_coo, teme_frame):
 
 # Create loopback transformations
 frame_transform_graph._add_merged_transform(ITRS, CIRS, ITRS)
+frame_transform_graph._add_merged_transform(PrecessedGeocentric, GCRS, PrecessedGeocentric)
 frame_transform_graph._add_merged_transform(TEME, ITRS, TEME)
 frame_transform_graph._add_merged_transform(TETE, ICRS, TETE)

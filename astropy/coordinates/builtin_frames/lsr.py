@@ -80,6 +80,7 @@ def lsr_to_icrs(lsr_coord, icrs_frame):
     offset = r.CartesianRepresentation([0, 0, 0]*u.au, differentials=-v_offset)
     return None, offset
 
+
 # ------------------------------------------------------------------------------
 
 
@@ -261,3 +262,10 @@ def icrs_to_lsrd(icrs_coord, lsr_frame):
 @frame_transform_graph.transform(AffineTransform, LSRD, ICRS)
 def lsrd_to_icrs(lsr_coord, icrs_frame):
     return None, LSRD_ICRS_OFFSET
+
+
+# ------------------------------------------------------------------------------
+
+# Create loopback transformations
+frame_transform_graph._add_merged_transform(LSR, ICRS, LSR)
+frame_transform_graph._add_merged_transform(GalacticLSR, Galactic, GalacticLSR)

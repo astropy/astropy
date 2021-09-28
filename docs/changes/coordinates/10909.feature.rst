@@ -1,0 +1,1 @@
+Added missing coordinate transformations where the starting and ending frames are the same (i.e., loopback transformations).

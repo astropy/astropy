@@ -242,3 +242,14 @@ def icrs_to_custombaryecliptic(from_coo, to_frame):
                                  CustomBarycentricEcliptic, ICRS)
 def custombaryecliptic_to_icrs(from_coo, to_frame):
     return icrs_to_custombaryecliptic(to_frame, from_coo).T
+
+
+# Create loopback transformations
+frame_transform_graph._add_merged_transform(GeocentricMeanEcliptic, ICRS, GeocentricMeanEcliptic)
+frame_transform_graph._add_merged_transform(GeocentricTrueEcliptic, ICRS, GeocentricTrueEcliptic)
+frame_transform_graph._add_merged_transform(HeliocentricMeanEcliptic, ICRS, HeliocentricMeanEcliptic)
+frame_transform_graph._add_merged_transform(HeliocentricTrueEcliptic, ICRS, HeliocentricTrueEcliptic)
+frame_transform_graph._add_merged_transform(HeliocentricEclipticIAU76, ICRS, HeliocentricEclipticIAU76)
+frame_transform_graph._add_merged_transform(BarycentricMeanEcliptic, ICRS, BarycentricMeanEcliptic)
+frame_transform_graph._add_merged_transform(BarycentricTrueEcliptic, ICRS, BarycentricTrueEcliptic)
+frame_transform_graph._add_merged_transform(CustomBarycentricEcliptic, ICRS, CustomBarycentricEcliptic)
