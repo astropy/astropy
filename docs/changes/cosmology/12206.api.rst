@@ -1,0 +1,1 @@
+Many FLRW methods return a scalar when possible.

@@ -169,11 +169,11 @@ def test_distance_broadcast():
     for method in methods:
         g = getattr(cosmo, method)
         value_flat = g(z)
-        assert value_flat.shape == z.shape
+        assert value_flat.shape in (z.shape, ())
         value_2d = g(z_reshape2d)
-        assert value_2d.shape == z_reshape2d.shape
+        assert value_2d.shape in (z_reshape2d.shape, ())
         value_3d = g(z_reshape3d)
-        assert value_3d.shape == z_reshape3d.shape
+        assert value_3d.shape in (z_reshape3d.shape, ())
         assert value_flat.unit == value_2d.unit
         assert value_flat.unit == value_3d.unit
         assert allclose(value_flat, value_2d.flatten())
@@ -186,11 +186,11 @@ def test_distance_broadcast():
     for method in methods:
         g = getattr(cosmo, method)
         value_flat = g(z)
-        assert value_flat.shape == z.shape
+        assert value_flat.shape in (z.shape, ())
         value_2d = g(z_reshape2d)
-        assert value_2d.shape == z_reshape2d.shape
+        assert value_2d.shape in (z_reshape2d.shape, ())
         value_3d = g(z_reshape3d)
-        assert value_3d.shape == z_reshape3d.shape
+        assert value_3d.shape in (z_reshape3d.shape, ())
         assert allclose(value_flat, value_2d.flatten())
         assert allclose(value_flat, value_3d.flatten())
 
@@ -205,11 +205,11 @@ def test_distance_broadcast():
         for method in methods:
             g = getattr(cosmo, method)
             value_flat = g(z)
-            assert value_flat.shape == z.shape
+            assert value_flat.shape in (z.shape, ())
             value_2d = g(z_reshape2d)
-            assert value_2d.shape == z_reshape2d.shape
+            assert value_2d.shape in (z_reshape2d.shape, ())
             value_3d = g(z_reshape3d)
-            assert value_3d.shape == z_reshape3d.shape
+            assert value_3d.shape in (z_reshape3d.shape, ())
             assert allclose(value_flat, value_2d.flatten())
             assert allclose(value_flat, value_3d.flatten())
 

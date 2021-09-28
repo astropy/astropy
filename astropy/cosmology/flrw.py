@@ -299,19 +299,15 @@ class FLRW(Cosmology):
     @lazyproperty
     def m_nu(self):
         """Mass of neutrino species."""
-        unit = self.__class__.m_nu.unit  # eV
         if self._Tnu0.value == 0:
             return None
-        if not self._massivenu:
-            # Only massless
-            return u.Quantity(np.zeros(self._nmasslessnu), unit)
-        if self._nmasslessnu == 0:
-            # Only massive
-            return u.Quantity(self._massivenu_mass, unit)
-        # A mix -- the most complicated case
-        numass = np.append(np.zeros(self._nmasslessnu),
-                           self._massivenu_mass.value)
-        return u.Quantity(numass, unit)
+        elif not self._massivenu:  # Only massless
+            m = np.zeros(self._nmasslessnu)
+        elif self._nmasslessnu == 0:  # Only massive
+            m = self._massivenu_mass
+        else:  # A mix -- the most complicated case
+            m = np.append(np.zeros(self._nmasslessnu), self._massivenu_mass.value)
+        return u.Quantity(m, self.__class__.m_nu.unit)
 
     @property
     def h(self):
@@ -463,11 +459,13 @@ class FLRW(Cosmology):
         -------
         Ok : ndarray or float
             The equivalent density parameter for curvature at each redshift.
-            Returns `float` if the input is scalar.
+            Returns `float` if the input is a `~numbers.Number`, a scalar
+            `~numpy.ndarray` if a ``Ok0`` is zero, a ndarray matching ``z``
+            otherwise.
         """
-        z = aszarr(z)
         if self._Ok0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
+            return 0.0 if isinstance(z, Number) else np.zeros(())  # scalar
+        z = aszarr(z)
         return self._Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
 
     def Ode(self, z):
@@ -483,11 +481,13 @@ class FLRW(Cosmology):
         Ode : ndarray or float
             The density of non-relativistic matter relative to the critical
             density at each redshift.
-            Returns `float` if the input is scalar.
+            Returns `float` if the input is a `~numbers.Number`, a scalar
+            `~numpy.ndarray` if a ``Ode0`` is zero, a ndarray matching ``z``
+            otherwise.
         """
-        z = aszarr(z)
         if self._Ode0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
+            return 0.0 if isinstance(z, Number) else np.zeros(())  # scalar
+        z = aszarr(z)
         return self._Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
 
     def Ogamma(self, z):
@@ -524,11 +524,13 @@ class FLRW(Cosmology):
             they have mass), so it is not equal to the commonly used
             :math:`\sum \frac{m_{\nu}}{94 eV}`, which does not include
             kinetic energy.
-            Returns `float` if the input is scalar.
+            Returns `float` if the input is a `~numbers.Number`, a scalar
+            `~numpy.ndarray` if a ``Onu0`` is zero, a ndarray matching ``z``
+            otherwise.
         """
-        z = aszarr(z)
         if self._Onu0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
+            return 0.0 if isinstance(z, Number) else np.zeros(())  # scalar
+        z = aszarr(z)
         return self.Ogamma(z) * self.nu_relative_density(z)
 
     def Tcmb(self, z):
@@ -574,7 +576,8 @@ class FLRW(Cosmology):
         f : ndarray or float
             The neutrino density scaling factor relative to the density in
             photons at each redshift.
-            Only returns `float` if z is scalar.
+            Returns `float` if the input is a `~numbers.Number`, else a scalar
+            `~numpy.ndarray`.
 
         Notes
         -----
@@ -734,7 +737,7 @@ class FLRW(Cosmology):
             Returns `float` if the input is scalar.
         """
         # Avoid the function overhead by repeating code
-        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z))
+        Or = self._Ogamma0 + (self._Ogamma0 * self.nu_relative_density(z)
                               if self._massivenu else self._Onu0)
         zp1 = aszarr(z) + 1.0
         return (zp1 ** 2 * ((Or * zp1 + self._Om0) * zp1 + self._Ok0) +
@@ -1351,8 +1354,7 @@ class FLRW(Cosmology):
             The distance in proper kpc corresponding to an arcmin at each input
             redshift.
         """
-        return (self.angular_diameter_distance(z).to(u.kpc) *
-                arcmin_in_radians / u.arcmin)
+        return self.angular_diameter_distance(z).to(u.kpc) * arcmin_in_radians / u.arcmin
 
     def arcsec_per_kpc_comoving(self, z):
         """
@@ -1370,8 +1372,7 @@ class FLRW(Cosmology):
             The angular separation in arcsec corresponding to a comoving kpc at
             each input redshift.
         """
-        return u.arcsec / (self.comoving_transverse_distance(z).to(u.kpc) *
-                           arcsec_in_radians)
+        return u.arcsec / (self.comoving_transverse_distance(z).to(u.kpc) * arcsec_in_radians)
 
     def arcsec_per_kpc_proper(self, z):
         """
@@ -1389,8 +1390,7 @@ class FLRW(Cosmology):
             The angular separation in arcsec corresponding to a proper kpc at
             each input redshift.
         """
-        return u.arcsec / (self.angular_diameter_distance(z).to(u.kpc) *
-                           arcsec_in_radians)
+        return u.arcsec / (self.angular_diameter_distance(z).to(u.kpc) * arcsec_in_radians)
 
 
 class FlatFLRWMixin(FlatCosmologyMixin):
@@ -1575,7 +1575,8 @@ class LambdaCDM(FLRW):
         -------
         w : ndarray or float
             The dark energy equation of state.
-            Returns `float` if the input is scalar.
+            Returns `float` if the input is a `~numbers.Number`, else a scalar
+            `~numpy.ndarray`.
 
         Notes
         -----
@@ -1584,8 +1585,8 @@ class LambdaCDM(FLRW):
         redshift z and :math:`\rho(z)` is the density at redshift z, both in
         units where c=1. Here this is :math:`w(z) = -1`.
         """
-        z = aszarr(z)
-        return -1.0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+        # on the honor system for inputs. `z` is not checked.
+        return -1.0 * (1.0 if isinstance(z, Number) else np.ones(()))
 
     def de_density_scale(self, z):
         r"""Evaluates the redshift dependence of the dark energy density.
@@ -1599,15 +1600,16 @@ class LambdaCDM(FLRW):
         -------
         I : ndarray or float
             The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
+            Returns `float` if the input is a `~numbers.Number`, else a scalar
+            `~numpy.ndarray`.
 
         Notes
         -----
         The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
         and in this case is given by :math:`I = 1`.
         """
-        z = aszarr(z)
-        return np.ones(z.shape) if hasattr(z, "shape") else 1.0
+        # on the honor system for inputs. `z` is not checked.
+        return 1.0 if isinstance(z, Number) else np.ones(())
 
     def _elliptic_comoving_distance_z1z2(self, z1, z2):
         r"""Comoving transverse distance in Mpc between two redshifts.
@@ -1798,7 +1800,7 @@ class LambdaCDM(FLRW):
            expressions and numerical evaluation of the luminosity distance
            in a flat cosmology. MNRAS, 468(1), 927-930.
         """
-        return 2 * np.sqrt(x) * hyp2f1(1./6, 1./2, 7./6, -x**3)
+        return 2 * np.sqrt(x) * hyp2f1(1./6, 0.5, 7./6, -x**3)
 
     def _dS_age(self, z):
         """Age of the universe in Gyr at redshift ``z``.
@@ -2203,7 +2205,8 @@ class wCDM(FLRW):
         -------
         w : ndarray or float
             The dark energy equation of state
-            Returns `float` if the input is scalar.
+            Returns `float` if the input is a `~numbers.Number`, else a scalar
+            `~numpy.ndarray`.
 
         Notes
         -----
@@ -2212,8 +2215,8 @@ class wCDM(FLRW):
         redshift z and :math:`\rho(z)` is the density at redshift z, both in
         units where c=1. Here this is :math:`w(z) = w_0`.
         """
-        z = aszarr(z)
-        return self._w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+        # on the honor system for inputs. `z` is not checked.
+        return self._w0 * (1.0 if isinstance(z, Number) else np.ones(()))
 
     def de_density_scale(self, z):
         r"""Evaluates the redshift dependence of the dark energy density.
