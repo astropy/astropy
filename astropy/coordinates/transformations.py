@@ -674,6 +674,62 @@ class TransformGraph:
             return func
         return deco
 
+    def _add_merged_transform(self, fromsys, tosys, *furthersys, priority=1):
+        """
+        Add a single-step transform that encapsulates a multi-step transformation path,
+        using the transforms that already exist in the graph.
+
+        The created transform internally calls the existing transforms.  If all of the
+        transforms are affine, the merged transform is
+        `~astropy.coordinates.transformations.DynamicMatrixTransform` (if there are no
+        origin shifts) or `~astropy.coordinates.transformations.AffineTransform`
+        (otherwise).  If at least one of the transforms is not affine, the merged
+        transform is
+        `~astropy.coordinates.transformations.FunctionTransformWithFiniteDifference`.
+
+        This method is primarily useful for defining loopback transformations
+        (i.e., where ``fromsys`` and the final ``tosys`` are the same).
+
+        Parameters
+        ----------
+        fromsys : class
+            The coordinate frame class to start from.
+        tosys : class
+            The coordinate frame class to transform to.
+        furthersys : class
+            Additional coordinate frame classes to transform to in order.
+        priority : number
+            The priority of this transform when finding the shortest
+            coordinate transform path - large numbers are lower priorities.
+
+        Notes
+        -----
+        Even though the created transform is a single step in the graph, it
+        will still internally call the constituent transforms.  Thus, there is
+        no performance benefit for using this created transform.
+
+        For Astropy's built-in frames, loopback transformations typically use
+        `~astropy.coordinates.ICRS` to be safe.  Tranforming through an inertial
+        frame ensures that changes in observation time and observer
+        location/velocity are properly accounted for.
+
+        An error will be raised if a direct transform between ``fromsys`` and
+        ``tosys`` already exist.
+        """
+        frames = [fromsys, tosys, *furthersys]
+        lastsys = frames[-1]
+        full_path = self.get_transform(fromsys, lastsys)
+        transforms = [self.get_transform(frame_a, frame_b)
+                      for frame_a, frame_b in zip(frames[:-1], frames[1:])]
+        if None in transforms:
+            raise ValueError(f"This transformation path is not possible")
+        if len(full_path.transforms) == 1:
+            raise ValueError(f"A direct transform for {fromsys.__name__}->{lastsys.__name__} already exists")
+
+        self.add_transform(fromsys, lastsys,
+                           CompositeTransform(transforms, fromsys, lastsys,
+                                              priority=priority)._as_single_transform())
+
     @contextmanager
     def impose_finite_difference_dt(self, dt):
         """
