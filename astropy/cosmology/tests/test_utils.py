@@ -7,6 +7,7 @@ import pytest
 import numpy as np
 
 from astropy.cosmology.utils import inf_like, vectorize_if_needed
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_vectorize_if_needed():
@@ -38,4 +39,5 @@ def test_inf_like(arr, expected):
     These tests are also in the docstring, but it's better to have them also
     in one consolidated location.
     """
-    assert np.all(inf_like(arr) == expected)
+    with pytest.warns(AstropyDeprecationWarning):
+        assert np.all(inf_like(arr) == expected)
