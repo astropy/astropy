@@ -1,0 +1,2 @@
+Add Parquet serialization of Tables with pyarrow, including metadata support and
+columnar access.
