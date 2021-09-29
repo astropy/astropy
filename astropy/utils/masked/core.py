@@ -301,6 +301,7 @@ class MaskedInfoBase:
             self.serialize_method = {'fits': 'null_value',
                                      'ecsv': 'null_value',
                                      'hdf5': 'data_mask',
+                                     'parquet': 'data_mask',
                                      None: 'null_value'}
 
 

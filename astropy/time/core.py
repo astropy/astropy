@@ -155,6 +155,7 @@ class TimeInfo(MixinInfo):
                                      'ecsv': 'formatted_value',
                                      'hdf5': 'jd1_jd2',
                                      'yaml': 'jd1_jd2',
+                                     'parquet': 'jd1_jd2',
                                      None: 'jd1_jd2'}
 
     def get_sortable_arrays(self):
