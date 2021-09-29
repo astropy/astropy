@@ -23,6 +23,7 @@ def pytest_configure(config):
     PYTEST_HEADER_MODULES['Cython'] = 'cython'
     PYTEST_HEADER_MODULES['Scikit-image'] = 'skimage'
     PYTEST_HEADER_MODULES['asdf'] = 'asdf'
+    PYTEST_HEADER_MODULES['pyarrow'] = 'pyarrow'
     TESTED_VERSIONS['Astropy'] = __version__
 
 
