@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import functools
 from math import inf
 from numbers import Number
 
@@ -13,9 +14,61 @@ from . import units as cu
 
 __all__ = []  # nothing is publicly scoped
 
-__doctest_skip__ = ["inf_like"]
+__doctest_skip__ = ["inf_like", "vectorize_if_needed"]
 
 
+def _vectorize_zfunc(func=None, nin=1):
+    """Vectorize a method.
+
+    .. todo::
+
+        Rename this function ``vectorize_if_needed`` when the original is gone.
+
+    Parameters
+    ----------
+    func : callable or None
+        method to wrap. If `None` returns a :func:`functools.partial`
+        with ``nin`` loaded.
+    nin : int
+        Number of positional redshift arguments.
+
+    Returns
+    -------
+    wrapper : callable
+        :func:`functools.wraps` of ``func`` where the first ``nin``
+        arguments are converted from |Quantity| to :class:`numpy.ndarray`.
+    """
+    # allow for pie-syntax & setting nin
+    if func is None:
+        return functools.partial(_vectorize_zfunc, nin=nin)
+
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        """
+        :func:`functools.wraps` of ``func`` where the first ``nin``
+        arguments are converted from |Quantity| to `numpy.ndarray` or scalar.
+        """
+        # process inputs
+        # TODO! quantity-aware vectorization can simplify this.
+        zs = [z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
+              for z in args[:nin]]
+        # scalar inputs
+        if all(isinstance(z, (Number, np.generic)) for z in zs):
+            return func(self, *zs, *args[nin:], **kwargs)
+        # non-scalar. use vectorized func
+        return wrapper.__vectorized__(self, *zs, *args[nin:], **kwargs)
+
+    wrapper.__vectorized__ = np.vectorize(func)  # attach vectorized function
+    # TODO! use frompyfunc when can solve return type errors
+
+    return wrapper
+
+
+@deprecated(
+    since="5.0",
+    message="vectorize_if_needed has been removed because it constructs a new ufunc on each call",
+    alternative="use a pre-vectorized function instead for a target array 'z'"
+)
 def vectorize_if_needed(f, *x, **vkw):
     """Helper function to vectorize scalar functions on array inputs.
 
@@ -82,11 +135,11 @@ def aszarr(z):
     Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity|.
     Allows for any ndarray ducktype by checking for attribute "shape".
     """
-    if isinstance(z, Number):
+    if isinstance(z, (Number, np.generic)):  # scalars
         return z
-    elif hasattr(z, "shape"):
+    elif hasattr(z, "shape"):  # ducktypes NumPy array
         if hasattr(z, "unit"):  # Quantity
-            return z.to_value(cu.redshift)
+            return z.to_value(cu.redshift)  # for speed only use enabled equivs
         return z
     # not one of the preferred types: Number / array ducktype
     return Quantity(z, cu.redshift).value

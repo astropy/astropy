@@ -19,11 +19,11 @@ def test_vectorize_if_needed():
     """
     func = lambda x: x ** 2
 
-    # not vectorized
-    assert vectorize_if_needed(func, 2) == 4
-
-    # vectorized
-    assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
+    with pytest.warns(AstropyDeprecationWarning):
+        # not vectorized
+        assert vectorize_if_needed(func, 2) == 4
+        # vectorized
+        assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
 
 
 @pytest.mark.parametrize("arr, expected",
