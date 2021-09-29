@@ -115,6 +115,9 @@
 .. pipenv
 .. _pipenv: https://pipenv.pypa.io/en/latest/
 
+.. pyarrow
+.. |minimum_pyarrow_version| replace:: {pyarrow}
+
 .. virtualenv
 .. _virtualenv: https://pypi.org/project/virtualenv
 .. _virtualenvwrapper: https://pypi.org/project/virtualenvwrapper
