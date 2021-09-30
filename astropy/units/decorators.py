@@ -93,7 +93,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
 
 def _parse_annotation(target):
 
-    if target in (None, NoneType):
+    if target in (None, NoneType, inspect._empty):
         return target
     elif unit := is_unitlike(target, allow_structured=False):
         return unit
