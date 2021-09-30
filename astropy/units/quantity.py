@@ -18,12 +18,14 @@ import numpy as np
 
 # AstroPy
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
+                   UnitBase, UnitsError, UnitConversionError, UnitTypeError,
+                   is_unitlike)
 from .structured import StructuredUnit
 from .utils import is_effectively_unity
 from .format.latex import Latex
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.introspection import minversion
 from astropy.utils.misc import isiterable
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy import config as _config
@@ -32,6 +34,20 @@ from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
 from .quantity_helper.function_helpers import (
     SUBCLASS_SAFE_FUNCTIONS, FUNCTION_HELPERS, DISPATCHED_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS)
+
+HAS_ANNOTATED = True  # assume, then check
+try:  # py 3.9+
+    from typing import Annotated
+except (ImportError, ModuleNotFoundError):  # optional dependency
+    try:
+        from typing_extensions import Annotated
+    except (ImportError, ModuleNotFoundError):
+        HAS_ANNOTATED = False
+
+        Annotated = NotImplemented
+
+        warnings.warn("Python is not v3.9+ and the package `typing_extensions`"
+                      " is not installed. Quantity annotations will not work.")
 
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
@@ -313,6 +329,79 @@ class Quantity(np.ndarray):
     _unit = None
 
     __array_priority__ = 10000
+
+    def __class_getitem__(cls, unit_shape_dtype):
+        """Quantity Type Hints.
+
+        Unit-aware type hints are ``Annotated`` objects that encode the class
+        and the unit as well as possible further metadata as the annotation.
+
+        Schematically,
+        ``Annotated[cls, *unit_shape_dtype]``
+
+        As a classmethod, the type is the class, ie ``Quantity``
+        produces an ``Annotated[Quantity, ...]`` while a subclass
+        like :class:`~astropy.coordinates.Angle` returns
+        ``Annotated[Angle, ...]``.
+
+        Parameters
+        ----------
+        unit_shape_dtype : :class:`~astropy.units.UnitBase`, str, `~astropy.units.PhysicalType`, or tuple
+            Unit specification, can be the physical type (ie str or class).
+            If tuple, then the first element is the unit specification
+            and all other elements are for ndarray type annotations.
+
+        Returns
+        -------
+        `typing.Annotated` or `typing_extensions.Annotated`
+
+        Raises
+        ------
+        ImportError
+            If python is not v3.9+ and ``typing_extensions`` is not installed.
+
+        Examples
+        --------
+        Create a unit-aware Quantity type annotation
+
+            >>> Quantity[Unit("s")]
+            Annotated[Quantity, Unit("s")]
+
+        See Also
+        --------
+        `~astropy.units.quantity_input`
+            Use annotations for unit checks on function arguments and results.
+
+        Notes
+        -----
+        With Python 3.9+ or ``typing_extensions``, Quantity types are also
+        static compatible.
+        """
+        if not HAS_ANNOTATED:
+            raise ImportError(
+                "python is not v3.9+ and the package `typing_extensions` is "
+                "not installed. Quantity annotations will not work.")
+
+        # LOCAL
+        from .physical import is_physicaltypelike
+
+        if isinstance(unit_shape_dtype, tuple):  # unit, shape, dtype
+            target = unit_shape_dtype[0]
+            shape_dtype = unit_shape_dtype[1:]
+        else:  # just unit
+            target = unit_shape_dtype
+            shape_dtype = ()
+
+        # Allowed unit/physical types. Errors if neither.
+        unit = x if (x := is_unitlike(target, True)) else is_physicaltypelike(target)
+        if not unit:
+            raise TypeError("target is not a Unit or PhysicalType")
+
+        if minversion('numpy', '1.22'):  # https://github.com/numpy/numpy/pull/19879
+            # use NumPy generics type hinting
+            cls = super().__class_getitem__((cls, *shape_dtype))
+
+        return Annotated.__class_getitem__((cls, unit))
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
