@@ -571,7 +571,7 @@ def is_physicaltypelike(target):
     """
     try:
         ptype = get_physical_type(target)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, KeyError):  # KeyError for Enum
         return False
     return ptype
 

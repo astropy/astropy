@@ -3,17 +3,22 @@
 
 __all__ = ['quantity_input']
 
+import inspect
+import typing as T
 from numbers import Number
 from collections.abc import Sequence
-import inspect
+from functools import wraps
 
 import numpy as np
 
-from astropy.utils.decorators import wraps
 from .core import (Unit, UnitBase, UnitsError, add_enabled_equivalencies,
-                   dimensionless_unscaled)
+                   dimensionless_unscaled, is_unitlike)
 from .function.core import FunctionUnitBase
-from .physical import _unit_physical_mapping
+from .physical import PhysicalType, is_physicaltypelike
+from .quantity import Quantity, HAS_ANNOTATED, Annotated
+
+
+NoneType = type(None)
 
 
 def _get_allowed_units(targets):
@@ -21,25 +26,16 @@ def _get_allowed_units(targets):
     From a list of target units (either as strings or unit objects) and physical
     types, return a list of Unit objects.
     """
-
     allowed_units = []
     for target in targets:
+        if unit := is_unitlike(target, True):
+            pass
+        elif ptype := is_physicaltypelike(target):
+            unit = ptype._unit
+        else:
+            raise ValueError(f"Invalid unit or physical type '{target}'.")
 
-        try:  # unit passed in as a string
-            target_unit = Unit(target)
-
-        except ValueError:
-
-            try:  # See if the function writer specified a physical type
-                physical_type_id = _unit_physical_mapping[target]
-
-            except KeyError:  # Function argument target is invalid
-                raise ValueError(f"Invalid unit or physical type '{target}'.")
-
-            # get unit directly from physical type id
-            target_unit = Unit._from_physical_type_id(physical_type_id)
-
-        allowed_units.append(target_unit)
+        allowed_units.append(unit)
 
     return allowed_units
 
@@ -77,8 +73,7 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
 
         except AttributeError:  # Either there is no .unit or no .is_equivalent
             if hasattr(arg, "unit"):
-                error_msg = ("a 'unit' attribute without an 'is_equivalent' "
-                             "method")
+                error_msg = ("a 'unit' attribute without an 'is_equivalent' method")
             else:
                 error_msg = "no 'unit' attribute"
 
@@ -94,6 +89,37 @@ def _validate_arg_value(param_name, func_name, arg, targets, equivalencies,
             raise UnitsError(f"{error_msg} one of: {targ_names}.")
         else:
             raise UnitsError(f"{error_msg} '{str(targets[0])}'.")
+
+
+def _parse_annotation(target):
+
+    if target in (None, NoneType):
+        return target
+    elif unit := is_unitlike(target, allow_structured=False):
+        return unit
+    elif unit := is_physicaltypelike(target):
+        return unit
+    elif isinstance(target, str):
+        raise ValueError(f"Invalid unit or physical type '{target}'.")
+
+    # could be a type hint
+    origin = T.get_origin(target)
+    if origin is T.Union:
+        return [_parse_annotation(t) for t in T.get_args(target)]
+    elif origin is not Annotated:  # can't be Quantity[]
+        return False
+
+    # parse type hint
+    cls, *annotations = T.get_args(target)
+    if not issubclass(cls, Quantity) or not annotations:
+        return False
+
+    # get unit from type hint
+    unit, *rest = annotations
+    if not isinstance(unit, (UnitBase, PhysicalType)):
+        return False
+
+    return unit
 
 
 class QuantityInput:
@@ -142,6 +168,14 @@ class QuantityInput:
             import astropy.units as u
             @u.quantity_input
             def myfunction(myangle: u.arcsec):
+                return myangle**2
+
+        Or using a unit-aware Quantity annotation.
+
+        .. code-block:: python
+
+            @u.quantity_input
+            def myfunction(myangle: u.Quantity[u.arcsec]):
                 return myangle**2
 
         Also you can specify a return value annotation, which will
@@ -209,6 +243,9 @@ class QuantityInput:
                     targets = param.annotation
                     is_annotation = True
 
+                    # parses to unit if it's an annotation (or list thereof)
+                    targets = _parse_annotation(targets)
+
                 # If the targets is empty, then no target units or physical
                 #   types were specified so we can continue to the next arg
                 if targets is inspect.Parameter.empty:
@@ -229,7 +266,7 @@ class QuantityInput:
 
                 # Check for None in the supplied list of allowed units and, if
                 #   present and the passed value is also None, ignore.
-                elif None in targets:
+                elif None in targets or NoneType in targets:
                     if arg is None:
                         continue
                     else:
@@ -243,7 +280,7 @@ class QuantityInput:
                 #    non unit related annotations to pass through
                 if is_annotation:
                     valid_targets = [t for t in valid_targets
-                                     if isinstance(t, (str, UnitBase))]
+                                     if isinstance(t, (str, UnitBase, PhysicalType))]
 
                 # Now we loop over the allowed units/physical types and validate
                 #   the value of the argument:
@@ -255,12 +292,22 @@ class QuantityInput:
             with add_enabled_equivalencies(self.equivalencies):
                 return_ = wrapped_function(*func_args, **func_kwargs)
 
-            valid_empty = (inspect.Signature.empty, None)
-            if (wrapped_signature.return_annotation not in valid_empty) and isinstance(
-                wrapped_signature.return_annotation, (str, UnitBase, FunctionUnitBase)):
-                return return_.to(wrapped_signature.return_annotation)
-            else:
-                return return_
+            # Return
+            ra = wrapped_signature.return_annotation
+            valid_empty = (inspect.Signature.empty, None, NoneType, T.NoReturn)
+            if ra not in valid_empty:
+                target = (ra if T.get_origin(ra) not in (Annotated, T.Union)
+                          else _parse_annotation(ra))
+                if isinstance(target, str) or not isinstance(target, Sequence):
+                    target = [target]
+                valid_targets = [t for t in target
+                                 if isinstance(t, (str, UnitBase, PhysicalType))]
+                _validate_arg_value("return", wrapped_function.__name__,
+                                    return_, valid_targets, self.equivalencies,
+                                    self.strict_dimensionless)
+                if len(valid_targets) == 1 and isinstance(valid_targets[0], UnitBase):
+                    return_ <<= valid_targets[0]
+            return return_
 
         return wrapper
 
