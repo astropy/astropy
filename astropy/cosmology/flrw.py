@@ -45,8 +45,9 @@ H0units_to_invs = (u.km / (u.s * u.Mpc)).to(1.0 / u.s)
 sec_to_Gyr = u.s.to(u.Gyr)
 # const in critical density in cgs units (g cm^-3)
 critdens_const = (3 / (8 * pi * const.G)).cgs.value
-arcsec_in_radians = pi / (3600. * 180)
-arcmin_in_radians = pi / (60. * 180)
+# angle conversions
+radian_in_arcsec = (1 * u.rad).to(u.arcsec)
+radian_in_arcmin = (1 * u.rad).to(u.arcmin)
 # Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
 a_B_c2 = (4 * const.sigma_sb / const.c ** 3).cgs.value
 # Boltzmann constant in eV / K
@@ -1301,11 +1302,11 @@ class FLRW(Cosmology):
         """
         Ok0 = self._Ok0
         if Ok0 == 0:
-            return 4. / 3. * pi * self.comoving_distance(z) ** 3
+            return 4.0 / 3.0 * pi * self.comoving_distance(z) ** 3
 
         dh = self._hubble_distance.value  # .value for speed
         dm = self.comoving_transverse_distance(z).value
-        term1 = 4. * pi * dh ** 3 / (2. * Ok0) * u.Mpc ** 3
+        term1 = 4.0 * pi * dh ** 3 / (2.0 * Ok0) * u.Mpc ** 3
         term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
         term3 = sqrt(abs(Ok0)) * dm / dh
 
@@ -1353,8 +1354,7 @@ class FLRW(Cosmology):
             The distance in comoving kpc corresponding to an arcmin at each
             input redshift.
         """
-        return (self.comoving_transverse_distance(z).to(u.kpc) *
-                arcmin_in_radians / u.arcmin)
+        return self.comoving_transverse_distance(z).to(u.kpc) / radian_in_arcmin
 
     def kpc_proper_per_arcmin(self, z):
         """
@@ -1372,8 +1372,7 @@ class FLRW(Cosmology):
             The distance in proper kpc corresponding to an arcmin at each input
             redshift.
         """
-        return (self.angular_diameter_distance(z).to(u.kpc) *
-                arcmin_in_radians / u.arcmin)
+        return self.angular_diameter_distance(z).to(u.kpc) / radian_in_arcmin
 
     def arcsec_per_kpc_comoving(self, z):
         """
@@ -1391,8 +1390,7 @@ class FLRW(Cosmology):
             The angular separation in arcsec corresponding to a comoving kpc at
             each input redshift.
         """
-        return u.arcsec / (self.comoving_transverse_distance(z).to(u.kpc) *
-                           arcsec_in_radians)
+        return radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
 
     def arcsec_per_kpc_proper(self, z):
         """
@@ -1410,8 +1408,7 @@ class FLRW(Cosmology):
             The angular separation in arcsec corresponding to a proper kpc at
             each input redshift.
         """
-        return u.arcsec / (self.angular_diameter_distance(z).to(u.kpc) *
-                           arcsec_in_radians)
+        return radian_in_arcsec / self.angular_diameter_distance(z).to(u.kpc)
 
 
 class FlatFLRWMixin(FlatCosmologyMixin):
