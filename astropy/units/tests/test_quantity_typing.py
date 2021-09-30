@@ -5,12 +5,14 @@
 import sys
 import typing as T
 
+import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.units.quantity import Annotated
+from astropy.units.quantity import Annotated, HAS_ANNOTATED
 
 
+@pytest.mark.skipif(not HAS_ANNOTATED, reason="requires Annotated")
 class TestQuantityTyping:
     """Test Quantity Typing Annotations."""
 
@@ -31,7 +33,7 @@ class TestQuantityTyping:
 
     def test_metadata_in_annotation(self):
         """Test Quantity annotation with added metadata."""
-        multi_annot = u.Quantity[u.m, "other"]
+        multi_annot = u.Quantity[u.m, T.Any, np.dtype]
 
         def multi_func(x: multi_annot, y: str):
             return x, y

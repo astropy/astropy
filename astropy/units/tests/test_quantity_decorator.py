@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
+import sys
+
+# THIRD PARTY
 import pytest
 import numpy as np
 
+# LOCAL
 from astropy import units as u
 
 # list of pairs (target unit/physical type, input unit)
@@ -90,7 +95,7 @@ def test_wrong_unit_annotated(x_input, y_input):
         x, y = myfunc_args(1*x_unit, 100*u.Joule)  # has to be an unspecified unit
 
     str_to = str(y_target)
-    assert str(e.value) == f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}'."
+    assert f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}" in str(e.value)
 
 
 def test_not_quantity(x_input, y_input):
@@ -322,17 +327,32 @@ def test_str_unit_typo():
         result = myfunc_args(u.kg)
 
 
-def test_type_annotations():
-    @u.quantity_input
-    def myfunc_args(x: u.m, y: str):
-        return x, y
+def parameters_quantity_annotations():
+    if u.quantity.HAS_ANNOTATED:
+        parameters = [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]]
+    else:
+        parameters = [None]
+    return parameters
 
-    in_quantity = 2 * u.m
-    in_string = "cool string"
 
-    quantity, string = myfunc_args(in_quantity, in_string)
-    assert quantity == in_quantity
-    assert string == in_string
+@pytest.mark.skipif(not u.quantity.HAS_ANNOTATED, reason="need `Annotated`")
+class TestTypeAnnotations:
+
+    @pytest.mark.parametrize("annot",
+                             [None] if not u.quantity.HAS_ANNOTATED
+                             else [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]])
+    def test_single_annotation_unit(self, annot):
+        """Try a variety of valid annotations."""
+        @u.quantity_input
+        def myfunc_args(x: annot, y: str):
+            return x, y
+
+        i_q, i_str = 2 * u.m, "cool string"
+        o_q, o_str = myfunc_args(i_q, i_str)
+        assert o_q == i_q
+        assert o_str == i_str
+
+    # TODO! test return Union[valid, something else]
 
 
 def test_args_None():
@@ -422,3 +442,37 @@ def test_dimensionless_with_nondimensionless_input(val):
 
     with pytest.raises(u.UnitsError):
         myfunc(val)
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
+def test_annotated_not_quantity():
+    """
+    When Quantity[].
+    """
+    import typing
+
+    @u.quantity_input()
+    def myfunc(x: typing.Annotated[object, u.m]):
+        return x
+
+    # nothing happens when wrong unit is passed
+    assert myfunc(1) == 1
+    assert myfunc(1 * u.m) == 1 * u.m
+    assert myfunc(1 * u.s) == 1 * u.s
+
+
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
+def test_annotated_not_unit():
+    """
+    When Quantity[].
+    """
+    import typing
+
+    @u.quantity_input()
+    def myfunc(x: typing.Annotated[u.Quantity, object()]):
+        return x
+
+    # nothing happens when wrong unit is passed
+    assert myfunc(1) == 1
+    assert myfunc(1 * u.m) == 1 * u.m
+    assert myfunc(1 * u.s) == 1 * u.s
