@@ -1,0 +1,2 @@
+The tick labelling for radians has been fixed to remove a redundant ``.0`` in
+the label for integer multiples of pi at 2pi and above.
