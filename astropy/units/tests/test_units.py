@@ -861,3 +861,20 @@ def test_raise_to_negative_power():
     assert spm.bases == [u.s, u.m]
     assert spm.powers == [1, -1]
     assert spm == u.s / u.m
+
+
+def test_is_unitlike():
+    """Test `~astropy.units.core.is_unitlike`."""
+    # not unit-like
+    assert u.is_unitlike("not a unit at all") is False
+
+    # is unit-like
+    assert u.is_unitlike(u.m) == u.m
+    assert u.is_unitlike("km") == u.km
+    assert u.is_unitlike("km/hr") == u.km / u.hr
+
+    # is structured unit-like
+    assert u.is_unitlike((u.m, u.m), allow_structured=True) == u.Unit((u.m, u.m))
+
+    # is not structured unit-like
+    assert u.is_unitlike((u.m, u.m), allow_structured=False) is False
