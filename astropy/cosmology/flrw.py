@@ -16,7 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from . import scalar_inv_efuncs
 from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
-from .utils import _vectorize_zfunc, aszarr
+from .utils import aszarr, vectorize_redshift_method
 
 # isort: split
 if HAS_SCIPY:
@@ -899,7 +899,7 @@ class FLRW(Cosmology):
         """
         return self._hubble_time * self._integral_lookback_time(z)
 
-    @_vectorize_zfunc
+    @vectorize_redshift_method
     def _integral_lookback_time(self, z, /):
         """Lookback time to redshift ``z``. Value in units of Hubble time.
 
@@ -974,7 +974,7 @@ class FLRW(Cosmology):
         """
         return self._hubble_time * self._integral_age(z)
 
-    @_vectorize_zfunc
+    @vectorize_redshift_method
     def _integral_age(self, z, /):
         """Age of the universe at redshift ``z``. Value in units of Hubble time.
 
@@ -1051,7 +1051,7 @@ class FLRW(Cosmology):
         """
         return self._integral_comoving_distance_z1z2(z1, z2)
 
-    @_vectorize_zfunc(nin=2)
+    @vectorize_redshift_method(nin=2)
     def _integral_comoving_distance_z1z2_scalar(self, z1, z2, /):
         """
         Comoving line-of-sight distance between objects at redshifts ``z1`` and
@@ -1228,7 +1228,7 @@ class FLRW(Cosmology):
                           f"redshift(s) z1 ({z1}).", AstropyUserWarning)
         return self._comoving_transverse_distance_z1z2(z1, z2) / (z2 + 1.0)
 
-    @_vectorize_zfunc
+    @vectorize_redshift_method
     def absorption_distance(self, z, /):
         """Absorption distance at redshift ``z``.
 

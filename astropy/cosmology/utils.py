@@ -17,12 +17,8 @@ __all__ = []  # nothing is publicly scoped
 __doctest_skip__ = ["inf_like", "vectorize_if_needed"]
 
 
-def _vectorize_zfunc(func=None, nin=1):
-    """Vectorize a method.
-
-    .. todo::
-
-        Rename this function ``vectorize_if_needed`` when the original is gone.
+def vectorize_redshift_method(func=None, nin=1):
+    """Vectorize a method of redshift(s).
 
     Parameters
     ----------
@@ -40,7 +36,7 @@ def _vectorize_zfunc(func=None, nin=1):
     """
     # allow for pie-syntax & setting nin
     if func is None:
-        return functools.partial(_vectorize_zfunc, nin=nin)
+        return functools.partial(vectorize_redshift_method, nin=nin)
 
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
