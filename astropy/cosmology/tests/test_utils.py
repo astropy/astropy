@@ -6,8 +6,38 @@ import pytest
 
 import numpy as np
 
-from astropy.cosmology.utils import inf_like, vectorize_if_needed
+from astropy.cosmology.utils import inf_like, vectorize_if_needed, vectorize_redshift_method
 from astropy.utils.exceptions import AstropyDeprecationWarning
+
+
+def test_vectorize_redshift_method():
+    """Test :func:`astropy.cosmology.utils.vectorize_redshift_method`."""
+    class Class:
+
+        @vectorize_redshift_method
+        def method(self, z):
+            return z
+
+    c = Class()
+
+    assert hasattr(c.method, "__vectorized__")
+    assert isinstance(c.method.__vectorized__, np.vectorize)
+
+    # calling with Number
+    assert c.method(1) == 1
+    assert isinstance(c.method(1), int)
+
+    # calling with a numpy scalar
+    assert c.method(np.float64(1)) == np.float64(1)
+    assert isinstance(c.method(np.float64(1)), np.float64)
+
+    # numpy array
+    assert all(c.method(np.array([1, 2])) == np.array([1, 2]))
+    assert isinstance(c.method(np.array([1, 2])), np.ndarray)
+
+    # non-scalar
+    assert all(c.method([1, 2]) == np.array([1, 2]))
+    assert isinstance(c.method([1, 2]), np.ndarray)
 
 
 def test_vectorize_if_needed():
@@ -19,11 +49,11 @@ def test_vectorize_if_needed():
     """
     func = lambda x: x ** 2
 
-    # not vectorized
-    assert vectorize_if_needed(func, 2) == 4
-
-    # vectorized
-    assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
+    with pytest.warns(AstropyDeprecationWarning):
+        # not vectorized
+        assert vectorize_if_needed(func, 2) == 4
+        # vectorized
+        assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
 
 
 @pytest.mark.parametrize("arr, expected",

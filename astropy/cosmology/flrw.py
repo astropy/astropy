@@ -16,7 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from . import scalar_inv_efuncs
 from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
-from .utils import vectorize_if_needed, aszarr
+from .utils import aszarr, vectorize_redshift_method
 
 # isort: split
 if HAS_SCIPY:
@@ -259,7 +259,7 @@ class FLRW(Cosmology):
 
         else:
             self._Ogamma0 = 0.0
-            self._Tnu0 = u.Quantity(0.0, u.K)
+            self._Tnu0 = 0.0 * u.K
             self._Onu0 = 0.0
 
         # Compute curvature density
@@ -269,9 +269,6 @@ class FLRW(Cosmology):
         #  more efficient scalar versions of inv_efunc.
         self._inv_efunc_scalar = self.inv_efunc
         self._inv_efunc_scalar_args = ()
-
-    # Set up a set of properties for user access.
-    # Note that we don't let these be set (so, obj.Om0 = value fails)
 
     @property
     def Odm0(self):
@@ -764,8 +761,7 @@ class FLRW(Cosmology):
         .. [1] Hogg, D. (1999). Distance measures in cosmology, section 11.
                arXiv e-prints, astro-ph/9905116.
         """
-        args = self._inv_efunc_scalar_args
-        return self._inv_efunc_scalar(z, *args) / (z + 1.0)
+        return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / (z + 1.0)
 
     def lookback_time_integrand(self, z):
         """Integrand of the lookback time (equation 30 of [1]_).
@@ -901,10 +897,11 @@ class FLRW(Cosmology):
         t : `~astropy.units.Quantity` ['time']
             Lookback time in Gyr to each input redshift.
         """
-        return self._integral_lookback_time(z)
+        return self._hubble_time * self._integral_lookback_time(z)
 
-    def _integral_lookback_time(self, z):
-        """Lookback time in Gyr to redshift ``z``.
+    @vectorize_redshift_method
+    def _integral_lookback_time(self, z, /):
+        """Lookback time to redshift ``z``. Value in units of Hubble time.
 
         The lookback time is the difference between the age of the Universe now
         and the age at redshift ``z``.
@@ -916,11 +913,11 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
-            Lookback time in Gyr to each input redshift.
+        t : float or ndarray
+            Lookback time to each input redshift in Hubble time units.
+            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
         """
-        f = lambda red: quad(self._lookback_time_integrand_scalar, 0, red)[0]
-        return self._hubble_time * vectorize_if_needed(f, z)
+        return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
     def lookback_distance(self, z):
         """
@@ -975,10 +972,11 @@ class FLRW(Cosmology):
         t : `~astropy.units.Quantity` ['time']
             The age of the universe in Gyr at each input redshift.
         """
-        return self._integral_age(z)
+        return self._hubble_time * self._integral_age(z)
 
-    def _integral_age(self, z):
-        """Age of the universe in Gyr at redshift ``z``.
+    @vectorize_redshift_method
+    def _integral_age(self, z, /):
+        """Age of the universe at redshift ``z``. Value in units of Hubble time.
 
         Calculated using explicit integration.
 
@@ -989,16 +987,15 @@ class FLRW(Cosmology):
 
         Returns
         -------
-        t : `~astropy.units.Quantity` ['time']
-            The age of the universe in Gyr at each input redshift.
+        t : float or ndarray
+            The age of the universe at each input redshift in Hubble time units.
+            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
 
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
         """
-        f = lambda red: quad(self._lookback_time_integrand_scalar,
-                             red, np.inf)[0]
-        return self._hubble_time * vectorize_if_needed(f, aszarr(z))
+        return quad(self._lookback_time_integrand_scalar, z, np.inf)[0]
 
     def critical_density(self, z):
         """Critical density in grams per cubic cm at redshift ``z``.
@@ -1054,10 +1051,11 @@ class FLRW(Cosmology):
         """
         return self._integral_comoving_distance_z1z2(z1, z2)
 
-    def _integral_comoving_distance_z1z2(self, z1, z2):
+    @vectorize_redshift_method(nin=2)
+    def _integral_comoving_distance_z1z2_scalar(self, z1, z2, /):
         """
-        Comoving line-of-sight distance in Mpc between objects at redshifts
-        ``z1`` and ``z2``.
+        Comoving line-of-sight distance between objects at redshifts ``z1`` and
+        ``z2``. Value in Mpc.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -1069,13 +1067,30 @@ class FLRW(Cosmology):
 
         Returns
         -------
+        d : float or ndarray
+            Comoving distance in Mpc between each input redshift.
+            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
+        """
+        return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
+
+    def _integral_comoving_distance_z1z2(self, z1, z2):
+        """
+        Comoving line-of-sight distance in Mpc between objects at redshifts
+        ``z1`` and ``z2``. The comoving distance along the line-of-sight
+        between two objects remains constant with time for objects in the
+        Hubble flow.
+
+        Parameters
+        ----------
+        z1, z2 : Quantity-like ['redshift'] or array-like
+            Input redshifts.
+
+        Returns
+        -------
         d : `~astropy.units.Quantity` ['length']
             Comoving distance in Mpc between each input redshift.
         """
-        z1, z2 = aszarr(z1), aszarr(z2)
-        f = lambda z1, z2: quad(self._inv_efunc_scalar, z1, z2,
-                                args=self._inv_efunc_scalar_args)[0]
-        return self._hubble_distance * vectorize_if_needed(f, z1, z2)
+        return self._hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)
 
     def comoving_transverse_distance(self, z):
         r"""Comoving transverse distance in Mpc at a given redshift.
@@ -1213,12 +1228,13 @@ class FLRW(Cosmology):
                           f"redshift(s) z1 ({z1}).", AstropyUserWarning)
         return self._comoving_transverse_distance_z1z2(z1, z2) / (z2 + 1.0)
 
-    def absorption_distance(self, z):
+    @vectorize_redshift_method
+    def absorption_distance(self, z, /):
         """Absorption distance at redshift ``z``.
 
         This is used to calculate the number of objects with some cross section
         of absorption and number density intersecting a sightline per unit
-        redshift path [1]_, [2]_.
+        redshift path ([1]_, [2]_).
 
         Parameters
         ----------
@@ -1229,6 +1245,7 @@ class FLRW(Cosmology):
         -------
         d : float or ndarray
             Absorption distance (dimensionless) at each input redshift.
+            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
 
         References
         ----------
@@ -1236,8 +1253,7 @@ class FLRW(Cosmology):
                arXiv e-prints, astro-ph/9905116.
         .. [2] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
         """
-        f = lambda red: quad(self._abs_distance_integrand_scalar, 0, red)[0]
-        return vectorize_if_needed(f, z)
+        return quad(self._abs_distance_integrand_scalar, 0, z)[0]
 
     def distmod(self, z):
         """Distance modulus at redshift ``z``.
@@ -1318,9 +1334,8 @@ class FLRW(Cosmology):
             Differential comoving volume per redshift per steradian at each
             input redshift.
         """
-        dh = self._hubble_distance
         dm = self.comoving_transverse_distance(z)
-        return dh * (dm ** 2.0) / u.Quantity(self.efunc(z), u.steradian)
+        return self._hubble_distance * (dm ** 2.0) / (self.efunc(z) << u.steradian)
 
     def kpc_comoving_per_arcmin(self, z):
         """
@@ -1534,8 +1549,7 @@ class LambdaCDM(FLRW):
             if self._Ok0 == 0:
                 self._optimize_flat_norad()
             else:
-                self._comoving_distance_z1z2 = \
-                    self._elliptic_comoving_distance_z1z2
+                self._comoving_distance_z1z2 = self._elliptic_comoving_distance_z1z2
         elif not self._massivenu:
             self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
@@ -1554,18 +1568,15 @@ class LambdaCDM(FLRW):
         #    for Omega_M=0 would lead to an infinity in its argument.
         # The EdS case is three times faster than the hypergeometric.
         if self._Om0 == 0:
-            self._comoving_distance_z1z2 = \
-                self._dS_comoving_distance_z1z2
+            self._comoving_distance_z1z2 = self._dS_comoving_distance_z1z2
             self._age = self._dS_age
             self._lookback_time = self._dS_lookback_time
         elif self._Om0 == 1:
-            self._comoving_distance_z1z2 = \
-                self._EdS_comoving_distance_z1z2
+            self._comoving_distance_z1z2 = self._EdS_comoving_distance_z1z2
             self._age = self._EdS_age
             self._lookback_time = self._EdS_lookback_time
         else:
-            self._comoving_distance_z1z2 = \
-                self._hypergeometric_comoving_distance_z1z2
+            self._comoving_distance_z1z2 = self._hypergeometric_comoving_distance_z1z2
             self._age = self._flat_age
             self._lookback_time = self._flat_lookback_time
 
