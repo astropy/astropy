@@ -20,16 +20,20 @@ PARQUET_SIGNATURE = b'PAR1'
 __all__ = ['read_table_parquet', 'write_table_parquet']
 
 
-def is_parquet(origin, filepath, fileobj, *args, **kwargs):
+def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
 
     if fileobj is not None:
-        pos = fileobj.tell()
+        try:
+            pos = fileobj.tell()
+        except AttributeError:
+            return False
+
         signature = fileobj.read(4)
         fileobj.seek(pos)
 
         return signature == PARQUET_SIGNATURE
     elif filepath is not None:
-        return filepath.endswith(('.parquet'))
+        return filepath.endswith(('.parquet', '.parq'))
     else:
         return False
 
@@ -95,7 +99,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     except ImportError:
         raise Exception("pyarrow is required to read and write parquet files")
 
-    if not isinstance(input, str):
+    if not isinstance(input, (str, os.PathLike)):
         if hasattr(input, 'read'):
             try:
                 input = input.name
@@ -300,4 +304,4 @@ def register_parquet():
 
     io_registry.register_reader('parquet', Table, read_table_parquet)
     io_registry.register_writer('parquet', Table, write_table_parquet)
-    io_registry.register_identifier('parquet', Table, is_parquet)
+    io_registry.register_identifier('parquet', Table, parquet_identify)
