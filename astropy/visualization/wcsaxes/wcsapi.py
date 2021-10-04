@@ -22,7 +22,6 @@ IDENTITY.wcs.cdelt = [1., 1.]
 
 
 def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
-
     if slices is not None:
         slices = tuple(slices)
 
