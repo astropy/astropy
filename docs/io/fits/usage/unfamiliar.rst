@@ -27,7 +27,7 @@ is.
     >>> from astropy.io import fits
     >>> filename = fits.util.get_testdata_filepath('ascii.fits')
     >>> hdul = fits.open(filename)
-    >>> hdul[1].data[:1]  # doctest: +FLOAT_CMP
+    >>> hdul[1].data[:1]  # doctest: +SKIP
     FITS_rec([(10.123, 37)],
              dtype=(numpy.record, {'names':['a','b'], 'formats':['S10','S5'], 'offsets':[0,11], 'itemsize':16}))
     >>> hdul[1].data['a']
