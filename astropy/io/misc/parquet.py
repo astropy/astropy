@@ -43,16 +43,16 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
 
     Parameters
     ----------
-    input : `str` or file-like object
+    input : str or file-like object
         If a string, the filename to read the table from.
         If a file-like object, the stream to read data.
-    columns : `list` [`str`], optional
+    columns : list [str], optional
         Names of astropy columns to read.
         This will automatically expand to all serialized columns if
         necessary.
-    schema_only : `bool`, optional
+    schema_only : bool, optional
         Only read the schema/metadata with table information.
-    filters : `list` [`tuple`] or `list` [`list` [`tuple`] ] or None, optional
+    filters : list [tuple] or list [list [tuple] ] or None, optional
         Rows which do not match the filter predicate will be removed from
         scanned data.  See `pyarrow.parquet.read_table()` for details.
 
@@ -219,9 +219,9 @@ def write_table_parquet(table, output, overwrite=False):
     ----------
     table : `~astropy.table.Table`
         Data table that is to be written to file.
-    output : `str`
+    output : str
         The filename to write the table to.
-    overwrite : `bool`
+    overwrite : bool
         Whether to overwrite any existing file without warning.
     """
 
@@ -286,9 +286,8 @@ def _get_names(_dict):
     for key in _dict:
         if isinstance(_dict[key], dict):
             all_names.extend(_get_names(_dict[key]))
-        else:
-            if key == 'name':
-                all_names.append(_dict['name'])
+        elif key == 'name':
+            all_names.append(_dict['name'])
     return all_names
 
 
