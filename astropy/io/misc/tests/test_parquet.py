@@ -19,6 +19,9 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.compat.optional_deps import HAS_PYARROW  # noqa
 if HAS_PYARROW:
     import pyarrow
+from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
+if HAS_PANDAS:
+    import pandas
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
@@ -575,3 +578,61 @@ def test_parquet_filter(tmpdir):
     t2 = Table.read(filename, filters=[('b', '<', 50)])
 
     assert t2['b'].max() < 50
+
+
+@pytest.mark.skipif('not HAS_PYARROW')
+def test_parquet_read_generic(tmpdir):
+    """Test reading a generic parquet file."""
+    filename = str(tmpdir.join('test_generic.parq'))
+
+    t1 = Table()
+
+    for dtype in ALL_DTYPES:
+        values = _default_values(dtype)
+        t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
+
+    # Write the table generically via pyarrow.parquet
+    names = t1.dtype.names
+    type_list = [(name, pyarrow.from_numpy_dtype(t1[name].dtype.type))
+                 for name in names]
+    schema = pyarrow.schema(type_list)
+
+    from pyarrow import parquet
+    # We use version='2.0' for full support of datatypes including uint32.
+    with parquet.ParquetWriter(filename, schema, version='2.0') as writer:
+        arrays = [pyarrow.array(t1[name].data)
+                  for name in names]
+        writer.write_table(pyarrow.Table.from_arrays(arrays, schema=schema))
+
+    with pytest.warns(AstropyUserWarning, match='No table::len'):
+        t2 = Table.read(filename)
+
+    for dtype in ALL_DTYPES:
+        values = _default_values(dtype)
+        assert np.all(t2[str(dtype)] == values)
+        assert t2[str(dtype)].dtype == dtype
+
+
+@pytest.mark.skipif('not HAS_PYARROW')
+@pytest.mark.skipif('not HAS_PANDAS')
+def test_parquet_read_pandas(tmpdir):
+    """Test reading a pandas parquet file."""
+    filename = str(tmpdir.join('test_pandas.parq'))
+
+    t1 = Table()
+
+    for dtype in ALL_DTYPES:
+        values = _default_values(dtype)
+        t1.add_column(Column(name=str(dtype), data=np.array(values, dtype=dtype)))
+
+    df = t1.to_pandas()
+    # We use version='2.0' for full support of datatypes including uint32.
+    df.to_parquet(filename, version='2.0')
+
+    with pytest.warns(AstropyUserWarning, match='No table::len'):
+        t2 = Table.read(filename)
+
+    for dtype in ALL_DTYPES:
+        values = _default_values(dtype)
+        assert np.all(t2[str(dtype)] == values)
+        assert t2[str(dtype)].dtype == dtype
