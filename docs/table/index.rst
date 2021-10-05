@@ -127,7 +127,8 @@ then a formatted version appears::
     5 8.5   z  30.0
 
 
-If you do not like the format of a particular column, you can change it::
+If you do not like the format of a particular column, you can change it through
+:ref:`the 'info' property <mixin_attributes>`::
 
   >>> t['b'].info.format = '7.3f'
   >>> print(t)
