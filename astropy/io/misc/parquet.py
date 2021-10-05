@@ -45,6 +45,33 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     This requires `pyarrow <https://arrow.apache.org/docs/python/>`_
     to be installed.
 
+    The ``filters`` parameter consists of predicates that are expressed
+    in disjunctive normal form (DNF), like ``[[('x', '=', 0), ...], ...]``.
+    DNF allows arbitrary boolean logical combinations of single column
+    predicates. The innermost tuples each describe a single column predicate.
+    The list of inner predicates is interpreted as a conjunction (AND),
+    forming a more selective and multiple column predicate. Finally, the most
+    outer list combines these filters as a disjunction (OR).
+
+    Predicates may also be passed as List[Tuple]. This form is interpreted
+    as a single conjunction. To express OR in predicates, one must
+    use the (preferred) List[List[Tuple]] notation.
+
+    Each tuple has format: (``key``, ``op``, ``value``) and compares the
+    ``key`` with the ``value``.
+    The supported ``op`` are:  ``=`` or ``==``, ``!=``, ``<``, ``>``, ``<=``,
+    ``>=``, ``in`` and ``not in``. If the ``op`` is ``in`` or ``not in``, the
+    ``value`` must be a collection such as a ``list``, a ``set`` or a
+    ``tuple``.
+
+    Examples:
+
+    .. code-block:: python
+
+        ('x', '=', 0)
+        ('y', 'in', ['a', 'b', 'c'])
+        ('z', 'not in', {'a','b'})
+
     Parameters
     ----------
     input : str or file-like object
@@ -59,33 +86,6 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     filters : list [tuple] or list [list [tuple] ] or None, optional
         Rows which do not match the filter predicate will be removed from
         scanned data.  See `pyarrow.parquet.read_table()` for details.
-
-        Predicates are expressed in disjunctive normal form (DNF), like
-        ``[[('x', '=', 0), ...], ...]``. DNF allows arbitrary boolean logical
-        combinations of single column predicates. The innermost tuples each
-        describe a single column predicate. The list of inner predicates is
-        interpreted as a conjunction (AND), forming a more selective and
-        multiple column predicate. Finally, the most outer list combines these
-        filters as a disjunction (OR).
-
-        Predicates may also be passed as List[Tuple]. This form is interpreted
-        as a single conjunction. To express OR in predicates, one must
-        use the (preferred) List[List[Tuple]] notation.
-
-        Each tuple has format: (``key``, ``op``, ``value``) and compares the
-        ``key`` with the ``value``.
-        The supported ``op`` are:  ``=`` or ``==``, ``!=``, ``<``, ``>``, ``<=``,
-        ``>=``, ``in`` and ``not in``. If the ``op`` is ``in`` or ``not in``, the
-        ``value`` must be a collection such as a ``list``, a ``set`` or a
-        ``tuple``.
-
-        Examples:
-
-        .. code-block:: python
-
-            ('x', '=', 0)
-            ('y', 'in', ['a', 'b', 'c'])
-            ('z', 'not in', {'a','b'})
 
     Returns
     -------
@@ -109,8 +109,11 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     schema = parquet.read_schema(input)
 
     # Convert metadata from bytes to strings
-    md = {key.decode(): schema.metadata[key].decode()
-          for key in schema.metadata}
+    if schema.metadata is not None:
+        md = {key.decode('UTF-8'): schema.metadata[key].decode('UTF-8')
+              for key in schema.metadata}
+    else:
+        md = {}
 
     from astropy.table import Table, meta, serialize
 
@@ -163,32 +166,32 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
         num_rows = 0
 
     dtype = []
-    for col in columns_to_read:
-        if schema.field(col).type == pa.string() or schema.field(col).type == pa.binary():
-            md_name = f'table::len::{col}'
+    for name in columns_to_read:
+        if schema.field(name).type == pa.string() or schema.field(name).type == pa.binary():
+            md_name = f'table::len::{name}'
             if md_name in md:
                 # String/bytes length from header.
-                strlen = int(md[f'table::len::{col}'])
+                strlen = int(md[f'table::len::{name}'])
             else:
                 # Find the maximum string length.
                 if schema_only:
                     # Choose an arbitrary string length since
                     # are not reading in the table.
                     strlen = 10
-                    warnings.warn(f"No table::len::{col} found in metadata. "
+                    warnings.warn(f"No table::len::{name} found in metadata. "
                                   f"Guessing {{strlen}} for schema.",
                                   AstropyUserWarning)
                 else:
-                    strlen = max([len(row.as_py()) for row in pa_table[col]])
-                    warnings.warn(f"No table::len::{col} found in metadata. "
+                    strlen = max([len(row.as_py()) for row in pa_table[name]])
+                    warnings.warn(f"No table::len::{name} found in metadata. "
                                   f"Using longest string ({{strlen}} characters).",
                                   AstropyUserWarning)
-            if schema.field(col).type == pa.string():
+            if schema.field(name).type == pa.string():
                 dtype.append(f'U{strlen}')
             else:
                 dtype.append(f'|S{strlen}')
         else:
-            dtype.append(schema.field(col).type.to_pandas_dtype())
+            dtype.append(schema.field(name).type.to_pandas_dtype())
 
     data = np.zeros(num_rows, dtype=list(zip(columns_to_read, dtype)))
 
@@ -252,22 +255,25 @@ def write_table_parquet(table, output, overwrite=False):
     meta_yaml_str = '\n'.join(meta_yaml)
 
     metadata = {}
-    for col in encode_table.columns:
+    for name, col in encode_table.columns.items():
         # Special-case string types to record the length
-        if encode_table[col].dtype.type is np.str_:
-            metadata[f'table::len::{col}'] = str(encode_table[col].dtype.itemsize//4)
-        elif encode_table[col].dtype.type is np.bytes_:
-            metadata[f'table::len::{col}'] = str(encode_table[col].dtype.itemsize)
+        if col.dtype.type is np.str_:
+            metadata[f'table::len::{name}'] = str(col.dtype.itemsize//4)
+        elif col.dtype.type is np.bytes_:
+            metadata[f'table::len::{name}'] = str(col.dtype.itemsize)
 
         metadata['table_meta_yaml'] = meta_yaml_str
 
+    metadata_encode = {key.encode('UTF-8'): metadata[key].encode('UTF-8')
+                       for key in metadata}
+
     type_list = [(name, pa.from_numpy_dtype(encode_table.dtype[name].type))
                  for name in encode_table.dtype.names]
-    schema = pa.schema(type_list, metadata=metadata)
+    schema = pa.schema(type_list, metadata=metadata_encode)
 
     # We use version='2.0' for full support of datatypes including uint32.
     with parquet.ParquetWriter(output, schema, version='2.0') as writer:
-        arrays = [pa.array(encode_table[col]) for col in encode_table.columns]
+        arrays = [pa.array(col) for col in encode_table.itercols()]
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
 
         writer.write_table(pa_table)
