@@ -17,19 +17,34 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 PARQUET_SIGNATURE = b'PAR1'
 
-__all__ = ['read_table_parquet', 'write_table_parquet']
+__all__ = []  # nothing is publicly scoped
 
 
 def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
+    """Checks if input is in the Parquet format.
 
+    Parameters
+    ----------
+    origin : Any
+    filepath : str or None
+    fileobj : `~pyarrow.NativeFile` or None
+    *args, **kwargs
+
+    Returns
+    -------
+    is_parquet : bool
+        True if 'fileobj' is not None and is a pyarrow file, or if
+        'filepath' is a string ending with '.parquet' or '.parq'.
+        False otherwise.
+    """
     if fileobj is not None:
-        try:
-            pos = fileobj.tell()
+        try:  # safely test if pyarrow file
+            pos = fileobj.tell()  # store current stream position
         except AttributeError:
             return False
 
-        signature = fileobj.read(4)
-        fileobj.seek(pos)
+        signature = fileobj.read(4)  # read first 4 bytes
+        fileobj.seek(pos)  # return to original location
 
         return signature == PARQUET_SIGNATURE
     elif filepath is not None:
@@ -74,7 +89,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
 
     Parameters
     ----------
-    input : str or file-like object
+    input : path-like or file-like object
         If a string, the filename to read the table from.
         If a file-like object, the stream to read data.
     columns : list [str], optional
@@ -117,6 +132,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
 
     from astropy.table import Table, meta, serialize
 
+    # parse metadata from table yaml
     meta_dict = {}
     if 'table_meta_yaml' in md:
         meta_yaml = md.pop('table_meta_yaml').split('\n')
@@ -126,6 +142,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     else:
         meta_hdr = None
 
+    # parse and set serialized columns
     full_table_columns = {name: name for name in schema.names}
     has_serialized_columns = False
     if '__serialized_columns__' in meta_dict:
@@ -138,12 +155,10 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     if columns is not None:
         columns_to_read = []
         for column in columns:
-            cols = [full_table_column
-                    for full_table_column in full_table_columns
-                    if column == full_table_columns[full_table_column]]
+            cols = [n for n in full_table_columns if column == full_table_columns[n]]
             columns_to_read.extend(cols)
 
-        if columns_to_read == []:
+        if not columns_to_read:
             # Should this raise instead?
             warnings.warn(f"No columns specified were found in the table.",
                           AstropyUserWarning)
@@ -157,6 +172,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     else:
         columns_to_read = schema.names
 
+    # whether to return the whole table or a formatted empty table.
     if not schema_only:
         pa_table = parquet.read_table(input,
                                       columns=columns_to_read,
@@ -165,6 +181,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     else:
         num_rows = 0
 
+    # Now need to convert parquet table to Astropy
     dtype = []
     for name in columns_to_read:
         if schema.field(name).type == pa.string() or schema.field(name).type == pa.binary():
@@ -199,9 +216,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
         for name in columns_to_read:
             data[name][:] = pa_table[name].to_numpy()
 
-    table = Table(data=data)
-    if meta_dict != {}:
-        table.meta = meta_dict
+    table = Table(data=data, meta=meta_dict)
 
     if meta_hdr is not None:
         header_cols = dict((x['name'], x) for x in meta_hdr['datatype'])
@@ -241,7 +256,7 @@ def write_table_parquet(table, output, overwrite=False):
         raise Exception("pyarrow is required to read and write Parquet files")
 
     if not isinstance(output, str):
-        raise TypeError('output should be a string')
+        raise TypeError(f'`output` should be a string, not {output}')
 
     if os.path.exists(output):
         if overwrite:
@@ -264,8 +279,7 @@ def write_table_parquet(table, output, overwrite=False):
 
         metadata['table_meta_yaml'] = meta_yaml_str
 
-    metadata_encode = {key.encode('UTF-8'): metadata[key].encode('UTF-8')
-                       for key in metadata}
+    metadata_encode = {k.encode('UTF-8'): v.encode('UTF-8') for k, v in metadata.items()}
 
     type_list = [(name, pa.from_numpy_dtype(encode_table.dtype[name].type))
                  for name in encode_table.dtype.names]
