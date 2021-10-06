@@ -428,7 +428,6 @@ The output can be specified to have a desired unit with a function annotation,
 for example:
 
 .. doctest::
-   :pyversion: >= 3.9
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec]) -> u.deg:
