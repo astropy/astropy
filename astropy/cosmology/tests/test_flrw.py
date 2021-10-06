@@ -9,6 +9,8 @@ import abc
 
 import pytest
 
+import numpy as np
+
 import astropy.units as u
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
@@ -88,6 +90,19 @@ class TestFLRW(CosmologyTest):
             assert not cosmo.is_equivalent(Planck18)
             assert not Planck18.is_equivalent(cosmo)
 
+    def test_efunc_vs_invefunc(self, cosmo):
+        """
+        Test that efunc and inv_efunc give inverse values.
+        Here they just fail b/c no ``w(z)`` or no scipy.
+        """
+        exception = NotImplementedError if HAS_SCIPY else ModuleNotFoundError
+
+        with pytest.raises(exception):
+            cosmo.efunc(0.5)
+
+        with pytest.raises(exception):
+            cosmo.inv_efunc(0.5)
+
 
 class FLRWSubclassTest(TestFLRW):
     """
@@ -100,6 +115,21 @@ class FLRWSubclassTest(TestFLRW):
     def setup_class(self):
         """Setup for testing."""
         pass
+
+    # ===============================================================
+
+    def test_efunc_vs_invefunc(self, cosmo):
+        """Test that ``efunc`` and ``inv_efunc`` give inverse values.
+
+        Note that the test doesn't need scipy because it doesn't need to call
+        ``de_density_scale``.
+        """
+        # super().test_efunc_vs_invefunc(cosmo)  # NOT b/c abstract `w(z)`
+        z0 = 0.5
+        z = np.array([0.5, 1.0, 2.0, 5.0])
+
+        assert np.allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+        assert np.allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
 
 # -----------------------------------------------------------------------------

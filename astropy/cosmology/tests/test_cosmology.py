@@ -12,8 +12,7 @@ from astropy.cosmology import Cosmology, flrw, funcs
 from astropy.cosmology.realizations import Planck13, Planck18, default_cosmology
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.utils.exceptions import (AstropyDeprecationWarning,
-                                      AstropyUserWarning)
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 def test_flrw_moved_deprecation():
@@ -693,48 +692,6 @@ def test_tnu():
     # Test for integers
     z = [0, 1, 2, 3]
     assert allclose(cosmo.Tnu(z), expected, rtol=1e-6)
-
-
-def test_efunc_vs_invefunc():
-    """ Test that efunc and inv_efunc give inverse values"""
-
-    # Note that all of the subclasses here don't need
-    #  scipy because they don't need to call de_density_scale
-    # The test following this tests the case where that is needed.
-
-    z0 = 0.5
-    z = np.array([0.5, 1.0, 2.0, 5.0])
-
-    # Below are the 'standard' included cosmologies
-    # We do the non-standard case in test_efunc_vs_invefunc_flrw,
-    # since it requires scipy
-    cosmo = flrw.LambdaCDM(70, 0.3, 0.5)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.LambdaCDM(70, 0.3, 0.5, m_nu=u.Quantity(0.01, u.eV))
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.FlatLambdaCDM(50.0, 0.27)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.wCDM(60.0, 0.27, 0.6, w0=-0.8)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.FlatwCDM(65.0, 0.27, w0=-0.6)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.w0waCDM(60.0, 0.25, 0.4, w0=-0.6, wa=0.1)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.wpwaCDM(50.0, 0.3, 0.3, wp=-0.9, wa=-0.2, zp=0.3)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = flrw.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2)
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
