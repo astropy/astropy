@@ -89,8 +89,8 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
 
     Parameters
     ----------
-    input : path-like or file-like object
-        If a string, the filename to read the table from.
+    input : str or path-like or file-like object
+        If a string or path-like object, the filename to read the table from.
         If a file-like object, the stream to read data.
     columns : list [str], optional
         Names of astropy columns to read.
@@ -115,15 +115,15 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
         raise Exception("pyarrow is required to read and write parquet files")
 
     if not isinstance(input, (str, os.PathLike)):
-        if hasattr(input, 'read'):
-            try:
-                input = input.name
-            except AttributeError:
-                raise TypeError("pyarrow can only open regular files")
+        # The 'read' attribute is the key component of a generic
+        # file-like object.
+        if not hasattr(input, 'read'):
+            raise TypeError("pyarrow can only open path-like or file-like objects.")
 
     schema = parquet.read_schema(input)
 
-    # Convert metadata from bytes to strings
+    # Pyarrow stores all metadata as byte-strings, so we convert
+    # to UTF-8 strings here.
     if schema.metadata is not None:
         md = {key.decode('UTF-8'): schema.metadata[key].decode('UTF-8')
               for key in schema.metadata}
@@ -152,31 +152,29 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
             for name in _get_names(serialized_columns[scol]):
                 full_table_columns[name] = scol
 
-    if columns is not None:
+    # columns_to_read is a list of actual serialized column names, where
+    # e.g. the requested column 'time' becomes ['time.jd1', 'time.jd2']
+    if columns is None:
+        columns_to_read = schema.names
+    else:
         columns_to_read = []
         for column in columns:
             cols = [n for n in full_table_columns if column == full_table_columns[n]]
             columns_to_read.extend(cols)
 
         if not columns_to_read:
-            # Should this raise instead?
-            warnings.warn(f"No columns specified were found in the table.",
-                          AstropyUserWarning)
-            return Table()
+            raise ValueError("No columns specified were found in the table.")
 
         # We need to pop any unread serialized columns out of the meta_dict.
         if has_serialized_columns:
             for scol in list(meta_dict['__serialized_columns__'].keys()):
                 if scol not in columns:
                     meta_dict['__serialized_columns__'].pop(scol)
-    else:
-        columns_to_read = schema.names
 
     # whether to return the whole table or a formatted empty table.
     if not schema_only:
-        pa_table = parquet.read_table(input,
-                                      columns=columns_to_read,
-                                      filters=filters)
+        # Read the pyarrow table, specifying columns and filters.
+        pa_table = parquet.read_table(input, columns=columns_to_read, filters=filters)
         num_rows = pa_table.num_rows
     else:
         num_rows = 0
@@ -184,6 +182,8 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     # Now need to convert parquet table to Astropy
     dtype = []
     for name in columns_to_read:
+        # Pyarrow string and byte columns do not have native length information
+        # so we must determine those here.
         if schema.field(name).type == pa.string() or schema.field(name).type == pa.binary():
             md_name = f'table::len::{name}'
             if md_name in md:
@@ -208,23 +208,31 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
             else:
                 dtype.append(f'|S{strlen}')
         else:
+            # Convert the pyarrow type into a numpy dtype (which is returned
+            # by the to_pandas_type() method).
             dtype.append(schema.field(name).type.to_pandas_dtype())
 
+    # Create the empty numpy record array to store the pyarrow data.
     data = np.zeros(num_rows, dtype=list(zip(columns_to_read, dtype)))
 
     if not schema_only:
+        # Convert each column in the pyarrow table to a numpy array
         for name in columns_to_read:
             data[name][:] = pa_table[name].to_numpy()
 
     table = Table(data=data, meta=meta_dict)
 
     if meta_hdr is not None:
+        # Set description, format, unit, meta from the column
+        # metadata that was serialized with the table.
         header_cols = dict((x['name'], x) for x in meta_hdr['datatype'])
         for col in table.columns.values():
             for attr in ('description', 'format', 'unit', 'meta'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
 
+    # Convert all compound columns to astropy objects
+    # (e.g. time.jd1, time.jd2 into a single time column)
     table = serialize._construct_mixins_from_columns(table)
 
     return table
@@ -258,14 +266,11 @@ def write_table_parquet(table, output, overwrite=False):
     if not isinstance(output, str):
         raise TypeError(f'`output` should be a string, not {output}')
 
-    if os.path.exists(output):
-        if overwrite:
-            os.remove(output)
-        else:
-            raise OSError(f"File exists: {output}")
-
+    # Convert all compound columns into serialized column names, where
+    # e.g. 'time' becomes ['time.jd1', 'time.jd2'].
     with serialize_context_as('parquet'):
         encode_table = serialize.represent_mixins_as_columns(table)
+    # We store the encoded serialization metadata as a yaml string.
     meta_yaml = meta.get_yaml_from_table(encode_table)
     meta_yaml_str = '\n'.join(meta_yaml)
 
@@ -279,17 +284,30 @@ def write_table_parquet(table, output, overwrite=False):
 
         metadata['table_meta_yaml'] = meta_yaml_str
 
+    # Pyarrow stores all metadata as byte-strings, so we explicitly convert
+    # all metadata from UTF-8 to byte strings here.
     metadata_encode = {k.encode('UTF-8'): v.encode('UTF-8') for k, v in metadata.items()}
 
+    # Build the pyarrow schema by converting from the numpy dtype of each
+    # column to an equivalent pyarrow type with from_numpy_dtype()
     type_list = [(name, pa.from_numpy_dtype(encode_table.dtype[name].type))
                  for name in encode_table.dtype.names]
     schema = pa.schema(type_list, metadata=metadata_encode)
 
+    if os.path.exists(output):
+        if overwrite:
+            # We must remove the file prior to writing below.
+            os.remove(output)
+        else:
+            raise OSError(f"File exists: {output}")
+
     # We use version='2.0' for full support of datatypes including uint32.
     with parquet.ParquetWriter(output, schema, version='2.0') as writer:
+        # Convert each Table column to a pyarrow array
         arrays = [pa.array(col) for col in encode_table.itercols()]
+        # Create a pyarrow table from the list of arrays and the schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
-
+        # Write the pyarrow table to a file
         writer.write_table(pa_table)
 
 

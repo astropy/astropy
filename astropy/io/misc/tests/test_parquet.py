@@ -16,12 +16,12 @@ from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW  # noqa
-if HAS_PYARROW:
-    import pyarrow
-from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa
+from astropy.utils.compat.optional_deps import HAS_PANDAS # noqa
 if HAS_PANDAS:
     import pandas
+
+# Skip all tests in this file if we cannot import pyarrow
+pyarrow = pytest.importorskip("pyarrow")
 
 ALL_DTYPES = [np.uint8, np.uint16, np.uint32, np.uint64, np.int8,
               np.int16, np.int32, np.int64, np.float32, np.float64,
@@ -39,17 +39,8 @@ def _default_values(dtype):
         return [1, 2, 3]
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
-def test_write_nopath_nonempty(tmpdir):
-    test_file = str(tmpdir.join('test.parquet'))
-    t1 = Table()
-    t1.add_column(Column(name='a', data=[1, 2, 3]))
-
-    t1.write(test_file)
-
-
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_read_write_simple(tmpdir):
+    """Test writing/reading a simple parquet file."""
     test_file = str(tmpdir.join('test.parquet'))
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
@@ -58,8 +49,8 @@ def test_read_write_simple(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_read_write_existing(tmpdir):
+    """Test writing an existing file without overwriting."""
     test_file = str(tmpdir.join('test.parquet'))
     with open(test_file, 'w') as f:  # create empty file
         pass
@@ -71,8 +62,9 @@ def test_read_write_existing(tmpdir):
     assert exc.value.args[0].startswith("File exists:")
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_read_write_existing_overwrite(tmpdir):
+    """Test overwriting an existing file."""
+
     test_file = str(tmpdir.join('test.parquet'))
     with open(test_file, 'w') as f:  # create empty file
         pass
@@ -83,8 +75,8 @@ def test_read_write_existing_overwrite(tmpdir):
     assert np.all(t2['a'] == [1, 2, 3])
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_read_fileobj(tmpdir):
+    """Test reading a file object."""
 
     test_file = str(tmpdir.join('test.parquet'))
 
@@ -98,33 +90,47 @@ def test_read_fileobj(tmpdir):
         assert np.all(t2['a'] == [1, 2, 3])
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
+def test_read_pathlikeobj(tmpdir):
+    """Test reading a path-like object."""
+
+    test_file = str(tmpdir.join('test.parquet'))
+
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1.write(test_file)
+
+    import pathlib
+    p = pathlib.Path(test_file)
+    t2 = Table.read(p)
+    assert np.all(t2['a'] == [1, 2, 3])
+
+
 def test_read_wrong_fileobj():
+    """Test reading an incorrect fileobject type."""
 
     class FakeFile:
-        def read(self):
+        def not_read(self):
             pass
 
     f = FakeFile()
 
-    with pytest.raises(TypeError, match='pyarrow can only open regular files'):
+    with pytest.raises(TypeError,
+                       match="pyarrow can only open path-like or file-like objects."):
         Table.read(f, format='parquet')
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_write_wrong_type():
+    """Test writing to a filename of the wrong type."""
 
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
-    with pytest.raises(TypeError) as exc:
+    with pytest.raises(TypeError, match='should be a string'):
         t1.write(1212, format='parquet')
 
-    assert exc.value.args[0] == ('output should be a string')
 
-
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.parametrize(('dtype'), ALL_DTYPES)
 def test_preserve_single_dtypes(tmpdir, dtype):
+    """Test that round-tripping a single column preserves datatypes."""
 
     test_file = str(tmpdir.join('test.parquet'))
 
@@ -140,8 +146,8 @@ def test_preserve_single_dtypes(tmpdir, dtype):
     assert t2['a'].dtype == dtype
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_preserve_all_dtypes(tmpdir):
+    """Test that round-tripping preserves a table with all the datatypes."""
 
     test_file = str(tmpdir.join('test.parquet'))
 
@@ -161,8 +167,8 @@ def test_preserve_all_dtypes(tmpdir):
         assert t2[str(dtype)].dtype == dtype
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_preserve_meta(tmpdir):
+    """Test that writing/reading preserves metadata."""
 
     test_file = str(tmpdir.join('test.parquet'))
 
@@ -183,8 +189,9 @@ def test_preserve_meta(tmpdir):
         assert np.all(t1.meta[key] == t2.meta[key])
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_preserve_serialized(tmpdir):
+    """Test that writing/reading preserves unit/format/description."""
+
     test_file = str(tmpdir.join('test.parquet'))
 
     t1 = Table()
@@ -207,9 +214,9 @@ def test_preserve_serialized(tmpdir):
     assert t1.meta == t2.meta
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_metadata_very_large(tmpdir):
-    """Test that very large datasets work, now!"""
+    """Test that very large datasets work"""
+
     test_file = str(tmpdir.join('test.parquet'))
 
     t1 = Table()
@@ -234,8 +241,8 @@ def test_metadata_very_large(tmpdir):
     assert t1.meta == t2.meta
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_fail_meta_serialize(tmpdir):
+    """Test that we cannot preserve objects in metadata."""
 
     test_file = str(tmpdir.join('test.parquet'))
 
@@ -250,6 +257,8 @@ def test_fail_meta_serialize(tmpdir):
 
 
 def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
+    """Convenient routine to check objects and attributes match."""
+
     if compare_class:
         assert obj1.__class__ is obj2.__class__
 
@@ -365,7 +374,6 @@ compare_attrs = {
 }
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_parquet_mixins_qtable_to_table(tmpdir):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
@@ -403,7 +411,6 @@ def test_parquet_mixins_qtable_to_table(tmpdir):
         assert_objects_equal(col, col2, attrs, compare_class)
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_as_one(table_cls, tmpdir):
     """Test write/read all cols at once and validate intermediate column names"""
@@ -425,7 +432,6 @@ def test_parquet_mixins_as_one(table_cls, tmpdir):
     assert t.colnames == t2.colnames
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.parametrize('name_col', list(mixin_cols.items()))
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_per_column(table_cls, name_col, tmpdir):
@@ -458,7 +464,6 @@ def test_parquet_mixins_per_column(table_cls, name_col, tmpdir):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_round_trip_masked_table_default(tmpdir):
     """Test round-trip of MaskedColumn through Parquet using default serialization
     that writes a separate mask column.  Note:
@@ -492,7 +497,6 @@ def test_round_trip_masked_table_default(tmpdir):
         assert np.all(t2[name] == t[name])
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_one_column(table_cls, tmpdir):
     """Test write all cols at once, and read one at a time."""
@@ -515,10 +519,9 @@ def test_parquet_mixins_read_one_column(table_cls, tmpdir):
         assert t2.colnames == [name]
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_no_columns(table_cls, tmpdir):
-    """Test write all cols at once, and read one at a time."""
+    """Test write all cols at once, and try to read no valid columns."""
     filename = str(tmpdir.join('test_simple.parquet'))
     names = sorted(mixin_cols)
 
@@ -529,13 +532,10 @@ def test_parquet_mixins_read_no_columns(table_cls, tmpdir):
 
     t.write(filename, format="parquet")
 
-    with pytest.warns(AstropyUserWarning, match='No columns specified'):
+    with pytest.raises(ValueError, match='No columns specified'):
         t2 = table_cls.read(filename, format='parquet', columns=['not_a_column', 'also_not_a_column'])
 
-    assert len(t2) == 0
 
-
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_schema(table_cls, tmpdir):
     """Test write all cols at once, and read the schema."""
@@ -560,7 +560,6 @@ def test_parquet_mixins_read_schema(table_cls, tmpdir):
     assert len(t2) == 0
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_parquet_filter(tmpdir):
     """Test reading a parquet file with a filter."""
     filename = str(tmpdir.join('test_simple.parquet'))
@@ -580,7 +579,6 @@ def test_parquet_filter(tmpdir):
     assert t2['b'].max() < 50
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 def test_parquet_read_generic(tmpdir):
     """Test reading a generic parquet file."""
     filename = str(tmpdir.join('test_generic.parq'))
@@ -613,7 +611,6 @@ def test_parquet_read_generic(tmpdir):
         assert t2[str(dtype)].dtype == dtype
 
 
-@pytest.mark.skipif('not HAS_PYARROW')
 @pytest.mark.skipif('not HAS_PANDAS')
 def test_parquet_read_pandas(tmpdir):
     """Test reading a pandas parquet file."""
