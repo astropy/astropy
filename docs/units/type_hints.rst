@@ -43,8 +43,7 @@ the unit.
 Unit information may be included by the syntax
 ``Quantity[unit or "physical_type", shape, numpy.dtype]``.:
 
-.. doctest::
-   :pyversion: >= 3.9
+.. doctest-skip::
    :options: ELLIPSIS
 
    >>> Quantity[u.m]
@@ -58,7 +57,6 @@ See ``typing.Annotated`` for explanation of ``Annotated``
 These can also be used on functions
 
 .. doctest::
-   :pyversion: >= 3.9
 
    >>> def func(x: Quantity[u.kpc, "input"]) -> Quantity[u.m, "output"]:
    ...     return x << u.m
@@ -72,8 +70,7 @@ Multiple Annotations
 Multiple Quantity and unit-aware |Quantity| annotations are supported using
 :class:`~typing.Union` or :class:`~typing.Optional`
 
-.. doctest::
-   :pyversion: >= 3.9
+.. doctest-skip::
    :options: ELLIPSIS
 
    >>> T.Union[Quantity[u.m], None]

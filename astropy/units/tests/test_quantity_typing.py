@@ -12,7 +12,7 @@ from astropy import units as u
 from astropy.units.quantity import Annotated, HAS_ANNOTATED
 
 
-@pytest.mark.skipif(not HAS_ANNOTATED, reason="requires Annotated")
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
 class TestQuantityTyping:
     """Test Quantity Typing Annotations."""
 
@@ -20,7 +20,7 @@ class TestQuantityTyping:
         """Test type hint creation from Quantity."""
         annot = u.Quantity[u.m]
 
-        assert T.get_origin(annot) is u.Quantity
+        assert T.get_origin(annot) is Annotated
         assert T.get_args(annot) == (u.Quantity, u.m)
 
         # test usage
