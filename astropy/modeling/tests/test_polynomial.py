@@ -9,6 +9,7 @@ from itertools import product
 
 import pytest
 import numpy as np
+import unittest.mock as mk
 
 from numpy.testing import assert_allclose
 
@@ -265,6 +266,60 @@ def test_polynomial_init_with_constraints(model_class):
     assert m.fixed[param] is True
     assert getattr(m, param).fixed is True
 
+    if issubclass(model_class, OrthoPolynomialBase):
+        assert repr(m) ==\
+            f"<{model_class.__name__}(2, 2, c0_0=0., c1_0=0., c2_0=0., c0_1=0., c1_1=0., c2_1=0., c0_2=0., c1_2=0., c2_2=0.)>"
+        assert str(m) ==\
+            f"Model: {model_class.__name__}\n" +\
+            "Inputs: ('x', 'y')\n" +\
+            "Outputs: ('z',)\n" +\
+            "Model set size: 1\n" +\
+            "X_Degree: 2\n" +\
+            "Y_Degree: 2\n" +\
+            "Parameters:\n" +\
+            "    c0_0 c1_0 c2_0 c0_1 c1_1 c2_1 c0_2 c1_2 c2_2\n" +\
+            "    ---- ---- ---- ---- ---- ---- ---- ---- ----\n" +\
+            "     0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0"
+    else:
+        if model_class.__name__ == 'Polynomial2D':
+            assert repr(m) ==\
+                "<Polynomial2D(2, c0_0=0., c1_0=0., c2_0=0., c0_1=0., c0_2=0., c1_1=0.)>"
+            assert str(m) ==\
+                "Model: Polynomial2D\n" +\
+                "Inputs: ('x', 'y')\n" +\
+                "Outputs: ('z',)\n" +\
+                "Model set size: 1\n" +\
+                "Degree: 2\n" +\
+                "Parameters:\n" +\
+                "    c0_0 c1_0 c2_0 c0_1 c0_2 c1_1\n" +\
+                "    ---- ---- ---- ---- ---- ----\n" +\
+                "     0.0  0.0  0.0  0.0  0.0  0.0"
+        elif model_class.__name__ == 'Linear1D':
+            assert repr(m) ==\
+                "<Linear1D(slope=2., intercept=0.)>"
+            assert str(m) ==\
+                "Model: Linear1D\n" +\
+                "Inputs: ('x',)\n" +\
+                "Outputs: ('y',)\n" +\
+                "Model set size: 1\n" +\
+                "Parameters:\n" +\
+                "    slope intercept\n" +\
+                "    ----- ---------\n" +\
+                "      2.0       0.0"
+        else:
+            assert repr(m) ==\
+                f"<{model_class.__name__}(2, c0=0., c1=0., c2=0.)>"
+            assert str(m) ==\
+                f"Model: {model_class.__name__}\n" +\
+                "Inputs: ('x',)\n" +\
+                "Outputs: ('y',)\n" +\
+                "Model set size: 1\n" +\
+                "Degree: 2\n" +\
+                "Parameters:\n" +\
+                "     c0  c1  c2\n" +\
+                "    --- --- ---\n" +\
+                "    0.0 0.0 0.0"
+
 
 def test_sip_hst():
     """Test SIP against astropy.wcs"""
@@ -288,6 +343,70 @@ def test_sip_hst():
     sip.inputs = ("r", "t")
     assert_allclose(sip(r=1, t=1), astwcs_result)
     assert_allclose(sip(1, t=1), astwcs_result)
+
+    # Test representations
+    assert repr(sip) ==\
+        "<SIP([<Shift(offset=-2048.)>, <Shift(offset=-1024.)>, " +\
+        "<_SIP1D(4, 'A', A_2_0=0.00000855, A_3_0=-0., A_4_0=0., A_0_2=0.00000217, " +\
+        "A_0_3=0., A_0_4=0., A_1_1=-0.0000052, A_1_2=-0., A_1_3=-0., " +\
+        "A_2_1=-0., A_2_2=0., A_3_1=0.)>, " +\
+        "<_SIP1D(4, 'B', B_2_0=-0.00000175, B_3_0=0., B_4_0=-0., B_0_2=-0.00000722, " +\
+        "B_0_3=-0., B_0_4=-0., B_1_1=0.00000618, B_1_2=-0., B_1_3=0., " +\
+        "B_2_1=-0., B_2_2=-0., B_3_1=-0.)>])>"
+    assert str(sip) ==\
+        "Model: SIP\n" +\
+        "    Model: Shift\n" +\
+        "    Inputs: ('x',)\n" +\
+        "    Outputs: ('y',)\n" +\
+        "    Model set size: 1\n" +\
+        "    Parameters:\n" +\
+        "         offset\n" +\
+        "        -------\n" +\
+        "        -2048.0\n" +\
+        "\n" +\
+        "    Model: Shift\n" +\
+        "    Inputs: ('x',)\n" +\
+        "    Outputs: ('y',)\n" +\
+        "    Model set size: 1\n" +\
+        "    Parameters:\n" +\
+        "         offset\n" +\
+        "        -------\n" +\
+        "        -1024.0\n" +\
+        "\n" +\
+        "    Model: _SIP1D\n" +\
+        "    Inputs: ('x', 'y')\n" +\
+        "    Outputs: ('z',)\n" +\
+        "    Model set size: 1\n" +\
+        "    Order: 4\n" +\
+        "    Coeff. Prefix: A\n" +\
+        "    Parameters:\n" +\
+        "                A_2_0                 A_3_0          ...         A_3_1        \n" +\
+        "        --------------------- ---------------------- ... ---------------------\n" +\
+        "        8.551277582556502e-06 -4.730444829222791e-10 ... 1.971022971660309e-15\n" +\
+        "\n" +\
+        "    Model: _SIP1D\n" +\
+        "    Inputs: ('x', 'y')\n" +\
+        "    Outputs: ('z',)\n" +\
+        "    Model set size: 1\n" +\
+        "    Order: 4\n" +\
+        "    Coeff. Prefix: B\n" +\
+        "    Parameters:\n" +\
+        "                B_2_0                  B_3_0         ...         B_3_1         \n" +\
+        "        ---------------------- --------------------- ... ----------------------\n" +\
+        "        -1.746491877058669e-06 8.567635427816317e-11 ... -3.779506805487476e-15\n"
+
+    # Test get num of coeffs
+    assert sip.sip1d_a.get_num_coeff(1) == 6
+    # Test error
+    message = "Degree of polynomial must be 2< deg < 9"
+    sip.sip1d_a.order = 1
+    with pytest.raises(ValueError) as err:
+        sip.sip1d_a.get_num_coeff(1)
+    assert str(err.value) == message
+    sip.sip1d_a.order = 10
+    with pytest.raises(ValueError) as err:
+        sip.sip1d_a.get_num_coeff(1)
+    assert str(err.value) == message
 
 
 def test_sip_irac():
@@ -320,6 +439,34 @@ def test_sip_irac():
     assert_allclose(sip.inverse(*foc[0]) +
                     foc[0] - rel_pix, newpix - pix)
 
+    # Test inverse representations
+    assert repr(sip.inverse) ==\
+        "<InverseSIP([<Polynomial2D(2, c0_0=0., c1_0=0.0000114, c2_0=0.00002353, " +\
+        "c0_1=-0.00000546, c0_2=-0.00000667, c1_1=-0.00001801)>, " +\
+        "<Polynomial2D(2, c0_0=0., c1_0=-0.00001495, c2_0=0.00000122, c0_1=0.00001975, " +\
+        "c0_2=-0.00002601, c1_1=0.00002944)>])>"
+    assert str(sip.inverse) ==\
+        "Model: InverseSIP\n" +\
+        "    Model: Polynomial2D\n" +\
+        "    Inputs: ('x', 'y')\n" +\
+        "    Outputs: ('z',)\n" +\
+        "    Model set size: 1\n" +\
+        "    Degree: 2\n" +\
+        "    Parameters:\n" +\
+        "        c0_0   c1_0      c2_0      c0_1       c0_2       c1_1   \n" +\
+        "        ---- -------- --------- ---------- ---------- ----------\n" +\
+        "         0.0 1.14e-05 2.353e-05 -5.463e-06 -6.666e-06 -1.801e-05\n" +\
+        "\n" +\
+        "    Model: Polynomial2D\n" +\
+        "    Inputs: ('x', 'y')\n" +\
+        "    Outputs: ('z',)\n" +\
+        "    Model set size: 1\n" +\
+        "    Degree: 2\n" +\
+        "    Parameters:\n" +\
+        "        c0_0    c1_0       c2_0      c0_1      c0_2       c1_1  \n" +\
+        "        ---- ---------- --------- --------- ---------- ---------\n" +\
+        "         0.0 -1.495e-05 1.225e-06 1.975e-05 -2.601e-05 2.944e-05\n"
+
 
 def test_sip_no_coeff():
     sip = SIP([10, 12], 2, 2)
@@ -327,6 +474,11 @@ def test_sip_no_coeff():
     assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
     with pytest.raises(NotImplementedError):
         sip.inverse
+
+    # Test model set
+    sip = SIP([10, 12], 2, 2, n_models=2)
+    assert sip.sip1d_a.model_set_axis == 0
+    assert sip.sip1d_b.model_set_axis == 0
 
 
 @pytest.mark.parametrize('cls', (Polynomial1D, Chebyshev1D, Legendre1D,
@@ -338,6 +490,8 @@ def test_zero_degree_polynomial(cls):
 
     Regression test for https://github.com/astropy/astropy/pull/3589
     """
+
+    message = "Degree of polynomial must be positive or null"
 
     if cls.n_inputs == 1:  # Test 1D polynomials
         p1 = cls(degree=0, c0=1)
@@ -355,11 +509,40 @@ def test_zero_degree_polynomial(cls):
         # The fit won't be exact of course, but it should get close to within
         # 1%
         assert_allclose(p1_fit.c0, 1, atol=0.10)
+
+        # Error from negative degree
+        with pytest.raises(ValueError) as err:
+            cls(degree=-1)
+        assert str(err.value) == message
     elif cls.n_inputs == 2:  # Test 2D polynomials
         if issubclass(cls, OrthoPolynomialBase):
             p2 = cls(x_degree=0, y_degree=0, c0_0=1)
+
+            # different shaped x and y inputs
+            a = np.array([1, 2, 3])
+            b = np.array([1, 2])
+            with mk.patch.object(PolynomialBase, 'prepare_inputs', autospec=True,
+                                 return_value=((a, b), mk.MagicMock())):
+                with pytest.raises(ValueError) as err:
+                    p2.prepare_inputs(mk.MagicMock(), mk.MagicMock())
+                assert str(err.value) ==\
+                    "Expected input arrays to have the same shape"
+
+            # Error from negative degree
+            with pytest.raises(ValueError) as err:
+                cls(x_degree=-1, y_degree=0)
+            assert str(err.value) == message
+            with pytest.raises(ValueError) as err:
+                cls(x_degree=0, y_degree=-1)
+            assert str(err.value) == message
         else:
             p2 = cls(degree=0, c0_0=1)
+
+            # Error from negative degree
+            with pytest.raises(ValueError) as err:
+                cls(degree=-1)
+            assert str(err.value) == message
+
         assert p2(0, 0) == 1
         assert np.all(p2(np.zeros(5), np.zeros(5)) == np.ones(5))
 
@@ -403,3 +586,78 @@ def test_2d_orthopolynomial_in_compound_model():
         compound_fit = fitter(compound_model, x, y, z)
 
     assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-15)
+
+
+def test_Hermite1D_clenshaw():
+    model = Hermite1D(degree=2)
+
+    assert model.clenshaw(1, [3]) == 3
+    assert model.clenshaw(1, [3, 4]) == 11
+    assert model.clenshaw(1, [3, 4, 5]) == 21
+    assert model.clenshaw(1, [3, 4, 5, 6]) == -3
+
+
+def test__fcache():
+    model = OrthoPolynomialBase(x_degree=2, y_degree=2)
+    with pytest.raises(NotImplementedError) as err:
+        model._fcache(np.asanyarray(1), np.asanyarray(1))
+    assert str(err.value) == "Subclasses should implement this"
+
+    model = Hermite2D(x_degree=2, y_degree=2)
+    assert model._fcache(np.asanyarray(1), np.asanyarray(1)) ==\
+        {
+            0: np.asanyarray(1),
+            1: 2,
+            3: np.asanyarray(1),
+            4: 2,
+            2: 2.0,
+            5: -4.0
+        }
+
+    model = Legendre2D(x_degree=2, y_degree=2)
+    assert model._fcache(np.asanyarray(1), np.asanyarray(1)) ==\
+        {
+            0: np.asanyarray(1),
+            1: np.asanyarray(1),
+            2: 1.0,
+            3: np.asanyarray(1),
+            4: np.asanyarray(1),
+            5: 1.0
+        }
+
+    model = Chebyshev2D(x_degree=2, y_degree=2)
+    assert model._fcache(np.asanyarray(1), np.asanyarray(1)) ==\
+        {
+            0: np.asanyarray(1),
+            1: np.asanyarray(1),
+            2: 1.0,
+            3: np.asanyarray(1),
+            4: np.asanyarray(1),
+            5: 1.0
+        }
+
+
+def test_fit_deriv_shape_error():
+    model = Hermite2D(x_degree=2, y_degree=2)
+    with pytest.raises(ValueError) as err:
+        model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
+    assert str(err.value) ==\
+        "x and y must have the same shape"
+
+    model = Chebyshev2D(x_degree=2, y_degree=2)
+    with pytest.raises(ValueError) as err:
+        model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
+    assert str(err.value) ==\
+        "x and y must have the same shape"
+
+    model = Legendre2D(x_degree=2, y_degree=2)
+    with pytest.raises(ValueError) as err:
+        model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
+    assert str(err.value) ==\
+        "x and y must have the same shape"
+
+    model = Polynomial2D(degree=2)
+    with pytest.raises(ValueError) as err:
+        model.fit_deriv(np.array([1, 2]), np.array([3, 4, 5]))
+    assert str(err.value) ==\
+        "Expected x and y to be of equal size"

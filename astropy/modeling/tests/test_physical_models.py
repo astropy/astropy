@@ -55,6 +55,9 @@ def test_blackbody_return_units():
     assert isinstance(b(1.0 * u.micron), u.Quantity)
     assert b(1.0 * u.micron).unit == u.MJy / u.sr
 
+    # scale has units but evaluate scale has no units
+    assert_quantity_allclose(b.evaluate(1.0 * u.micron, 1000.0 * u.K, 4.0), 89668184.86321202 * u.MJy / u.sr)
+
 
 @pytest.mark.skipif("not HAS_SCIPY")
 def test_blackbody_fit():
@@ -448,6 +451,8 @@ def test_NFW_exceptions_and_warnings_and_misc():
                             2154.53909153, 1950.07947819, 1512.37442943,
                             1260.94034541]) * (u.km / u.s)
     assert_quantity_allclose(n200c.circular_velocity(r_r), circ_v_200c)
+    # test with unitless input velocity
+    assert_quantity_allclose(n200c.circular_velocity(r_r.value), circ_v_200c)
 
     # Test Default Cosmology
     ncos = NFW(mass=mass, concentration=concentration, redshift=redshift)

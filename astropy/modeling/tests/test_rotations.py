@@ -4,6 +4,7 @@
 from math import cos, sin
 
 import pytest
+import unittest.mock as mk
 import numpy as np
 from numpy.testing import assert_allclose
 
@@ -97,6 +98,30 @@ def test_Rotation2D_inverse():
     model = models.Rotation2D(angle=234.23494)
     x, y = model.inverse(*model(1, 0))
     assert_allclose([x, y], [1, 0], atol=1e-10)
+
+
+def test_Rotation2D_errors():
+    model = models.Rotation2D(angle=90*u.deg)
+
+    # Bad evaluation input shapes
+    x = np.array([1, 2])
+    y = np.array([1, 2, 3])
+    message = "Expected input arrays to have the same shape"
+    with pytest.raises(ValueError) as err:
+        model.evaluate(x, y, model.angle)
+    assert str(err.value) == message
+    message = "Expected input arrays to have the same shape"
+    with pytest.raises(ValueError) as err:
+        model.evaluate(y, x, model.angle)
+    assert str(err.value) == message
+
+    # Bad evaluation units
+    x = np.array([1, 2])
+    y = np.array([1, 2])
+    message = "x and y must have compatible units"
+    with pytest.raises(u.UnitsError) as err:
+        model.evaluate(x * u.m, y, model.angle)
+    assert str(err.value) == message
 
 
 def test_euler_angle_rotations():
@@ -223,3 +248,114 @@ def test_spherical_rotation():
     assert_allclose(radec, expected_ra_dec, atol=1e-10)
 
     #assert_allclose(v2s.inverse(*v2s(v2, v3)), (v2, v3))
+
+
+def test_RotationSequence3D_errors():
+    # Bad axes_order labels
+    with pytest.raises(ValueError, match=r"Unrecognized axis label .* should be one of .*"):
+        rotations.RotationSequence3D(mk.MagicMock(), axes_order="abc")
+
+    # Bad number of angles
+    with pytest.raises(ValueError) as err:
+        rotations.RotationSequence3D([1, 2, 3, 4], axes_order="zyx")
+    assert str(err.value) ==\
+        "The number of angles 4 should match the number of axes 3."
+
+    # Bad evaluation input shapes
+    model = rotations.RotationSequence3D([1, 2, 3], axes_order="zyx")
+    message = "Expected input arrays to have the same shape"
+    with pytest.raises(ValueError) as err:
+        model.evaluate(np.array([1, 2, 3]),
+                       np.array([1, 2]),
+                       np.array([1, 2]),
+                       [1, 2, 3])
+    assert str(err.value) == message
+    with pytest.raises(ValueError) as err:
+        model.evaluate(np.array([1, 2]),
+                       np.array([1, 2, 3]),
+                       np.array([1, 2]),
+                       [1, 2, 3])
+    assert str(err.value) == message
+    with pytest.raises(ValueError) as err:
+        model.evaluate(np.array([1, 2]),
+                       np.array([1, 2]),
+                       np.array([1, 2, 3]),
+                       [1, 2, 3])
+    assert str(err.value) == message
+
+
+def test_RotationSequence3D_inverse():
+    model = rotations.RotationSequence3D([1, 2, 3], axes_order="zyx")
+
+    assert_allclose(model.inverse.angles.value, [-3, -2, -1])
+    assert model.inverse.axes_order == "xyz"
+
+
+def test_EulerAngleRotation_errors():
+    # Bad length of axes_order
+    with pytest.raises(TypeError) as err:
+        rotations.EulerAngleRotation(mk.MagicMock(), mk.MagicMock(), mk.MagicMock(),
+                                     axes_order="xyzx")
+    assert str(err.value) ==\
+        "Expected axes_order to be a character sequence of length 3, got xyzx"
+
+    # Bad axes_order labels
+    with pytest.raises(ValueError, match=r"Unrecognized axis label .* should be one of .*"):
+        rotations.EulerAngleRotation(mk.MagicMock(), mk.MagicMock(), mk.MagicMock(),
+                                     axes_order="abc")
+
+    # Bad units
+    message = "All parameters should be of the same type - float or Quantity."
+    with pytest.raises(TypeError) as err:
+        rotations.EulerAngleRotation(1 * u.m, 2, 3,
+                                     axes_order="xyz")
+    assert str(err.value) == message
+    with pytest.raises(TypeError) as err:
+        rotations.EulerAngleRotation(1, 2 * u.m, 3,
+                                     axes_order="xyz")
+    assert str(err.value) == message
+    with pytest.raises(TypeError) as err:
+        rotations.EulerAngleRotation(1, 2, 3 * u.m,
+                                     axes_order="xyz")
+    assert str(err.value) == message
+
+
+def test_EulerAngleRotation_inverse():
+    model = rotations.EulerAngleRotation(1, 2, 3, "xyz")
+
+    assert_allclose(model.inverse.phi, -3)
+    assert_allclose(model.inverse.theta, -2)
+    assert_allclose(model.inverse.psi, -1)
+    assert model.inverse.axes_order == "zyx"
+
+
+def test__SkyRotation_errors():
+    # Bad units
+    message = "All parameters should be of the same type - float or Quantity."
+    with pytest.raises(TypeError) as err:
+        rotations._SkyRotation(1 * u.m, 2, 3)
+    assert str(err.value) == message
+    with pytest.raises(TypeError) as err:
+        rotations._SkyRotation(1, 2 * u.m, 3)
+    assert str(err.value) == message
+    with pytest.raises(TypeError) as err:
+        rotations._SkyRotation(1, 2, 3 * u.m)
+    assert str(err.value) == message
+
+
+def test__SkyRotation__evaluate():
+    model = rotations._SkyRotation(1, 2, 3)
+
+    phi = mk.MagicMock()
+    theta = mk.MagicMock()
+    lon = mk.MagicMock()
+    lat = mk.MagicMock()
+    lon_pole = mk.MagicMock()
+
+    alpha = 5
+    delta = mk.MagicMock()
+    with mk.patch.object(rotations._EulerRotation, 'evaluate',
+                         autospec=True, return_value=(alpha, delta)) as mkEval:
+        assert (365, delta) == model._evaluate(phi, theta, lon, lat, lon_pole)
+        assert mkEval.call_args_list ==\
+            [mk.call(model, phi, theta, lon, lat, lon_pole, 'zxz')]

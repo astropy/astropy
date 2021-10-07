@@ -313,8 +313,8 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
 
     def _validate_mu(mu):
         if np.asarray(mu == -1).any():
-            raise ValueError(
-                "Zenithal perspective projection is not defined for mu=-1")
+            raise InputParameterError(
+                "Zenithal perspective projection is not defined for mu = -1")
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu, description="Distance from point of projection to center of sphere")
@@ -358,7 +358,7 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
 
     def _validate_mu(mu):
         if np.asarray(mu == -1).any():
-            raise ValueError("Zenithal perspective projection is not defined for mu=-1")
+            raise InputParameterError("Zenithal perspective projection is not defined for mu = -1")
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu,
@@ -1920,7 +1920,7 @@ class Pix2Sky_HEALPixPolar(Pix2SkyProjection, HEALPix):
 
     @property
     def inverse(self):
-        return Sky2Pix_HEALPix()
+        return Sky2Pix_HEALPixPolar()
 
     @classmethod
     def evaluate(cls, x, y):
@@ -1940,11 +1940,11 @@ class Sky2Pix_HEALPixPolar(Sky2PixProjection, HEALPix):
 
     @property
     def inverse(self):
-        return Pix2Sky_HEALPix()
+        return Pix2Sky_HEALPixPolar()
 
     @classmethod
     def evaluate(cls, phi, theta):
-        return _projections.hpxs2x(phi, theta)
+        return _projections.xphs2x(phi, theta)
 
 
 Sky2Pix_XPH = Sky2Pix_HEALPixPolar

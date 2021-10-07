@@ -10,6 +10,7 @@ from importlib.metadata import EntryPoint
 
 import pytest
 import numpy as np
+import unittest.mock as mk
 from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
@@ -18,6 +19,7 @@ from astropy.modeling.core import Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
     SimplexLSQFitter, SLSQPLSQFitter, LinearLSQFitter, LevMarLSQFitter,
     JointFitter, Fitter, FittingWithOutlierRemoval)
+from astropy.modeling.optimizers import Optimization
 from astropy.utils import NumpyRNGContext
 from astropy.utils.data import get_pkg_data_filename
 from astropy.stats import sigma_clip
@@ -1000,6 +1002,76 @@ def test_fitters_interface():
     _ = simplex(model, x, y, **simplex_kwargs)
     kwargs.pop('verblevel')
     _ = levmar(model, x, y, **kwargs)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('fitter_class', [SLSQPLSQFitter, SimplexLSQFitter])
+def test_optimizers(fitter_class):
+    fitter = fitter_class()
+
+    # Test maxiter
+    assert fitter._opt_method.maxiter == 100
+    fitter._opt_method.maxiter = 1000
+    assert fitter._opt_method.maxiter == 1000
+
+    # Test eps
+    assert fitter._opt_method.eps == np.sqrt(np.finfo(float).eps)
+    fitter._opt_method.eps = 1e-16
+    assert fitter._opt_method.eps == 1e-16
+
+    # Test acc
+    assert fitter._opt_method.acc == 1e-7
+    fitter._opt_method.acc = 1e-16
+    assert fitter._opt_method.acc == 1e-16
+
+    # Test repr
+    assert repr(fitter._opt_method) ==\
+        f"{fitter._opt_method.__class__.__name__}()"
+
+    fitparams = mk.MagicMock()
+    final_func_val = mk.MagicMock()
+    numiter = mk.MagicMock()
+    funcalls = mk.MagicMock()
+    exit_mode = 1
+    mess = mk.MagicMock()
+    xtol = mk.MagicMock()
+
+    if fitter_class == SLSQPLSQFitter:
+        return_value = (fitparams, final_func_val, numiter, exit_mode, mess)
+        fit_info = {
+            'final_func_val': final_func_val,
+            'numiter': numiter,
+            'exit_mode': exit_mode,
+            'message': mess
+        }
+    else:
+        return_value = (fitparams, final_func_val, numiter, funcalls, exit_mode)
+        fit_info = {
+            'final_func_val': final_func_val,
+            'numiter': numiter,
+            'exit_mode': exit_mode,
+            'num_function_calls': funcalls
+        }
+
+    with mk.patch.object(fitter._opt_method.__class__, 'opt_method',
+                         return_value=return_value):
+        with pytest.warns(AstropyUserWarning, match=r"The fit may be unsuccessful; .*"):
+            assert (fitparams, fit_info) == fitter._opt_method(mk.MagicMock(), mk.MagicMock(),
+                                                               mk.MagicMock(), xtol=xtol)
+        assert fit_info == fitter._opt_method.fit_info
+        if isinstance(fitter, SLSQPLSQFitter):
+            fitter._opt_method.acc == 1e-16
+        else:
+            fitter._opt_method.acc == xtol
+
+
+@mk.patch.multiple(Optimization, __abstractmethods__=set())
+def test_Optimization_abstract_call():
+    optimization = Optimization(mk.MagicMock())
+    with pytest.raises(NotImplementedError) as err:
+        optimization()
+    assert str(err.value) ==\
+        "Subclasses should implement this method"
 
 
 def test_fitting_with_outlier_removal_niter():

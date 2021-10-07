@@ -12,6 +12,7 @@ from astropy.modeling import custom_model, models
 from astropy.modeling.models import Mapping
 from astropy.modeling.separable import (_coord_matrix, is_separable, _cdot,
                                         _cstack, _arith_oper, separability_matrix)
+from astropy.modeling.core import ModelDefinitionError
 
 
 sh1 = models.Shift(1, name='shift1')
@@ -89,6 +90,10 @@ def test_cdot():
     result = _cdot(Mapping((0, 0)), rot)
     assert_allclose(result, np.array([[2], [2]]))
 
+    with pytest.raises(ModelDefinitionError,
+                       match=r"Models cannot be combined with the \"|\" operator; .*"):
+        _cdot(sh1, map1)
+
 
 def test_cstack():
     result = _cstack(sh1, scl1)
@@ -109,10 +114,19 @@ def test_cstack():
 
 
 def test_arith_oper():
+    # Models as inputs
     result = _arith_oper(sh1, scl1)
     assert_allclose(result, np.array([[1]]))
     result = _arith_oper(rot, rot)
     assert_allclose(result, np.array([[1, 1], [1, 1]]))
+
+    # ndarray
+    result = _arith_oper(np.array([[1, 2], [3, 4]]), np.array([[1, 2], [3, 4]]))
+    assert_allclose(result, np.array([[1, 1], [1, 1]]))
+
+    # Error
+    with pytest.raises(ModelDefinitionError, match=r"Unsupported operands for arithmetic operator: .*"):
+        _arith_oper(sh1, map1)
 
 
 @pytest.mark.parametrize(('compound_model', 'result'), compound_models.values())

@@ -744,11 +744,8 @@ class Sersic1D(Fittable1DModel):
         """One dimensional Sersic profile function."""
 
         if cls._gammaincinv is None:
-            try:
-                from scipy.special import gammaincinv
-                cls._gammaincinv = gammaincinv
-            except ValueError:
-                raise ImportError('Sersic1D model requires scipy.')
+            from scipy.special import gammaincinv
+            cls._gammaincinv = gammaincinv
 
         return (amplitude * np.exp(
             -cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1)))
@@ -1607,10 +1604,7 @@ class Voigt1D(Fittable1DModel):
                  fwhm_L=fwhm_L.default, fwhm_G=fwhm_G.default, method='humlicek2',  # noqa: N803
                  **kwargs):
         if str(method).lower() in ('wofz', 'scipy'):
-            try:
-                from scipy.special import wofz
-            except (ValueError, ImportError) as err:
-                raise ImportError(f'Voigt1D method {method} requires scipy: {err}.') from err
+            from scipy.special import wofz
             self._faddeeva = wofz
         elif str(method).lower() == 'humlicek2':
             self._faddeeva = self._hum2zpf16c
@@ -2732,12 +2726,9 @@ class AiryDisk2D(Fittable2DModel):
         """Two dimensional Airy model function"""
 
         if cls._rz is None:
-            try:
-                from scipy.special import j1, jn_zeros
-                cls._rz = jn_zeros(1, 1)[0] / np.pi
-                cls._j1 = j1
-            except ValueError:
-                raise ImportError('AiryDisk2D model requires scipy.')
+            from scipy.special import j1, jn_zeros
+            cls._rz = jn_zeros(1, 1)[0] / np.pi
+            cls._j1 = j1
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
 
@@ -3046,11 +3037,8 @@ class Sersic2D(Fittable2DModel):
         """Two dimensional Sersic profile function."""
 
         if cls._gammaincinv is None:
-            try:
-                from scipy.special import gammaincinv
-                cls._gammaincinv = gammaincinv
-            except ValueError:
-                raise ImportError('Sersic2D model requires scipy.')
+            from scipy.special import gammaincinv
+            cls._gammaincinv = gammaincinv
 
         bn = cls._gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
@@ -3250,7 +3238,7 @@ class Logarithmic1D(Fittable1DModel):
 
     @tau.validator
     def tau(self, val):
-        if val == 0:
+        if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
 
     @property
@@ -3300,7 +3288,7 @@ class Exponential1D(Fittable1DModel):
     @tau.validator
     def tau(self, val):
         ''' tau cannot be 0'''
-        if val == 0:
+        if np.all(val == 0):
             raise ValueError("0 is not an allowed value for tau")
 
     @property
