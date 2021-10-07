@@ -95,9 +95,8 @@ class RotationSequence3D(Model):
                                                             self.axes))
         self.axes_order = axes_order
         if len(angles) != len(axes_order):
-            raise ValueError("The number of angles {0} should match the number \
-                              of axes {1}.".format(len(angles),
-                                                   len(axes_order)))
+            raise ValueError("The number of angles {0} should match the number of axes {1}."
+                             .format(len(angles), len(axes_order)))
         super().__init__(angles, name=name)
         self._inputs = ('x', 'y', 'z')
         self._outputs = ('x', 'y', 'z')
@@ -112,7 +111,7 @@ class RotationSequence3D(Model):
         """
         Apply the rotation to a set of 3D Cartesian coordinates.
         """
-        if x.shape != y.shape != z.shape:
+        if x.shape != y.shape or x.shape != z.shape:
             raise ValueError("Expected input arrays to have the same shape")
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
@@ -231,7 +230,7 @@ class EulerAngleRotation(_EulerRotation, Model):
         self.axes = ['x', 'y', 'z']
         if len(axes_order) != 3:
             raise TypeError(
-                "Expected axes_order to be a character sequence of length 3,"
+                "Expected axes_order to be a character sequence of length 3, "
                 "got {}".format(axes_order))
         unrecognized = set(axes_order).difference(self.axes)
         if unrecognized:

@@ -166,8 +166,8 @@ class _PolyDomainWindow1D(PolynomialModel):
         self._default_domain_window = {'domain': None,
                                        'window': (-1, 1)
                                        }
-        self._window = _validate_domain_window(window or (-1, 1))
-        self._domain = _validate_domain_window(domain)
+        self.window = window or (-1, 1)
+        self.domain = domain
 
     def __repr__(self):
         return self._format_repr([self.degree],
@@ -228,10 +228,10 @@ class OrthoPolynomialBase(PolynomialBase):
             'y_domain': None
             }
 
-        self._x_window = _validate_domain_window(x_window or self._default_domain_window['x_window'])
-        self._y_window = _validate_domain_window(y_window or self._default_domain_window['y_window'])
-        self._x_domain = _validate_domain_window(x_domain)
-        self._y_domain = _validate_domain_window(y_domain)
+        self.x_window = x_window or self._default_domain_window['x_window']
+        self.y_window = y_window or self._default_domain_window['y_window']
+        self.x_domain = x_domain
+        self.y_domain = y_domain
 
         self._param_names = self._generate_coeff_names()
         if n_models:
@@ -307,6 +307,9 @@ class OrthoPolynomialBase(PolynomialBase):
         numc : int
             number of coefficients
         """
+
+        if self.x_degree < 0 or self.y_degree < 0:
+            raise ValueError("Degree of polynomial must be positive or null")
 
         return (self.x_degree + 1) * (self.y_degree + 1)
 
@@ -904,8 +907,8 @@ class Polynomial1D(_PolyDomainWindow1D):
         self._default_domain_window = {'domain': (-1, 1),
                                        'window': (-1, 1),
                                        }
-        self._domain = _validate_domain_window(domain or self._default_domain_window['domain'])
-        self._domain = _validate_domain_window(window or self._default_domain_window['window'])
+        self.domain = domain or self._default_domain_window['domain']
+        self.window = window or self._default_domain_window['window']
 
     def prepare_inputs(self, x, **kwargs):
         inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
@@ -1026,11 +1029,10 @@ class Polynomial2D(PolynomialModel):
             'y_window': (-1, 1)
             }
 
-        self._x_domain = _validate_domain_window(x_domain or
-            self._default_domain_window['x_domain'])
-        self._y_domain = _validate_domain_window(y_domain or self._default_domain_window['y_domain'])
-        self._x_window = _validate_domain_window(x_window or self._default_domain_window['x_window'])
-        self._y_window = _validate_domain_window(y_window or self._default_domain_window['y_window'])
+        self.x_domain = x_domain or self._default_domain_window['x_domain']
+        self.y_domain = y_domain or self._default_domain_window['y_domain']
+        self.x_window = x_window or self._default_domain_window['x_window']
+        self.y_window = y_window or self._default_domain_window['y_window']
 
     def prepare_inputs(self, x, y, **kwargs):
 
