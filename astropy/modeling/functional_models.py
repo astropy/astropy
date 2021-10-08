@@ -2096,16 +2096,28 @@ class Ring2D(Fittable2DModel):
     width = Parameter(default=1, description="Width of the ring")
 
     def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
-                 y_0=y_0.default, r_in=r_in.default, width=width.default,
+                 y_0=y_0.default, r_in=None, width=None,
                  r_out=None, **kwargs):
-        # If outer radius explicitly given, it overrides default width.
-        if r_out is not None:
-            if width != self.width.default:
-                raise InputParameterError(
-                    "Cannot specify both width and outer radius separately.")
-            width = r_out - r_in
-        elif width is None:
+        if (r_in is None) and (r_out is None) and (width is None):
+            r_in = self.r_in.default
             width = self.width.default
+        elif (r_in is not None) and (r_out is None) and (width is None):
+            width = self.width.default
+        elif (r_in is None) and (r_out is not None) and (width is None):
+            r_in = self.r_in.default
+            width = r_out - r_in
+        elif (r_in is None) and (r_out is None) and (width is not None):
+            r_in = self.r_in.default
+        elif (r_in is not None) and (r_out is not None) and (width is None):
+            width = r_out - r_in
+        elif (r_in is None) and (r_out is not None) and (width is not None):
+            r_in = r_out - width
+        elif (r_in is not None) and (r_out is not None) and (width is not None):
+            if np.any(width != (r_out - r_in)):
+                raise InputParameterError("Width must be r_out - r_in")
+
+        if np.any(r_in < 0) or np.any(width < 0):
+            raise InputParameterError(f"{r_in=} and {width=} must both be >=0")
 
         super().__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, r_in=r_in, width=width,
