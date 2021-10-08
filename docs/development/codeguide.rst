@@ -185,9 +185,9 @@ Coding Style/Conventions
   requires a computationally-expensive operation. The
   :ref:`prop-get-set-example` example below illustrates this guideline.
 
-* Classes should use the builtin :func:`super` function when making calls to
+* Classes should use the builtin `super` function when making calls to
   methods in their super-class(es) unless there are specific reasons not to.
-  :func:`super` should be used consistently in all subclasses since it does not
+  `super` should be used consistently in all subclasses since it does not
   work otherwise. The :ref:`super-vs-direct-example` example below illustrates
   why this is important.
 
@@ -376,7 +376,7 @@ a get/set method. For lengthy or complex calculations, however, use a method::
 super() vs. Direct Calling
 --------------------------
 
-This example shows why the use of :func:`super` leads to a more consistent
+This example shows why the use of `super` leads to a more consistent
 method resolution order than manually calling methods of the super classes in a
 multiple inheritance case::
 
@@ -432,9 +432,9 @@ because both ``B.method()`` and ``C.method()`` call ``A.method()`` unaware of
 the fact that they're being called as part of a chain in a hierarchy.  When
 ``C.method()`` is called it is unaware that it's being called from a subclass
 that inherits from both ``B`` and ``C``, and that ``B.method()`` should be
-called next.  By calling :func:`super` the entire method resolution order for
+called next.  By calling `super` the entire method resolution order for
 ``D`` is precomputed, enabling each superclass to cooperatively determine which
-class should be handed control in the next :func:`super` call::
+class should be handed control in the next `super` call::
 
     # This is safer
 
@@ -469,14 +469,14 @@ class should be handed control in the next :func:`super` call::
 
 As you can see, each superclass's method is entered only once.  For this to
 work it is very important that each method in a class that calls its
-superclass's version of that method use :func:`super` instead of calling the
+superclass's version of that method use `super` instead of calling the
 method directly.  In the most common case of single-inheritance, using
 ``super()`` is functionally equivalent to calling the superclass's method
 directly.  But as soon as a class is used in a multiple-inheritance
 hierarchy it must use ``super()`` in order to cooperate with other classes in
 the hierarchy.
 
-.. note:: For more information on the the benefits of :func:`super`, see
+.. note:: For more information on the the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
 
 .. _import-star-example:
