@@ -3,6 +3,7 @@
 import gzip
 import itertools
 import os
+import re
 import shutil
 import sys
 import warnings
@@ -1077,18 +1078,28 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
-        if (hdulist._file and hdulist._file.mode != 'ostream' and
+        if (not ignore_missing_simple and
+                hdulist._file and
+                hdulist._file.mode != 'ostream' and
                 hdulist._file.size > 0):
             pos = hdulist._file.tell()
             simple = hdulist._file.read(30)
             match_sig = (simple[:-1] == FITS_SIGNATURE[:-1] and
                          simple[-1:] in (b'T', b'F'))
 
-            if not match_sig and not ignore_missing_simple:
-                if hdulist._file.close_on_error:
-                    hdulist._file.close()
-                raise OSError('No SIMPLE card found, this file does not '
-                              'appear to be a valid FITS file')
+            if not match_sig:
+                match_sig_relaxed = re.match(rb"SIMPLE\s*=\s*[T|F]", simple)
+
+                if match_sig_relaxed:
+                    warnings.warn("Found a SIMPLE card but its format doesn't"
+                                  " respect the FITS Standard", VerifyWarning)
+                else:
+                    if hdulist._file.close_on_error:
+                        hdulist._file.close()
+                    raise OSError(
+                        'No SIMPLE card found, this file does not appear to '
+                        'be a valid FITS file. If this is really a FITS file, '
+                        'try with ignore_missing_simple=True')
 
             hdulist._file.seek(pos)
 
