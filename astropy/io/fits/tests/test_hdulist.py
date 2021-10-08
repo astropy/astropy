@@ -1017,6 +1017,36 @@ class TestHDUListFunctions(FitsTestCase):
             assert isinstance(hdul[0], _ValidHDU)
             assert hdul[0].header['FOO'] == 'BAR'
 
+    def test_warning_raised_on_non_standard_simple_card(self):
+        filename = self.temp('bad-fits.fits')
+        hdu = fits.PrimaryHDU()
+        hdu.header['FOO'] = 'BAR'
+        buf = io.BytesIO()
+        hdu.writeto(buf)
+
+        # change the simple card format
+        buf.seek(0)
+        buf.write(b'SIMPLE  = T                   ')
+        buf.seek(0)
+        with open(filename, mode='wb') as f:
+            f.write(buf.read())
+
+        match = ("Found a SIMPLE card but its format doesn't"
+                 " respect the FITS Standard")
+
+        with pytest.warns(VerifyWarning, match=match):
+            fits.open(filename)
+
+        with pytest.warns(VerifyWarning, match=match):
+            fits.open(filename, mode='append')
+
+        with pytest.warns(VerifyWarning, match=match):
+            fits.open(filename, mode='update')
+
+        with fits.open(filename, ignore_missing_simple=True) as hdul:
+            assert isinstance(hdul[0], _ValidHDU)
+            assert hdul[0].header['FOO'] == 'BAR'
+
     def test_proper_error_raised_on_non_fits_file_with_unicode(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/5594
