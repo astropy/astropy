@@ -107,10 +107,10 @@ def test_Rotation2D_errors():
     x = np.array([1, 2])
     y = np.array([1, 2, 3])
     message = "Expected input arrays to have the same shape"
+
     with pytest.raises(ValueError) as err:
         model.evaluate(x, y, model.angle)
     assert str(err.value) == message
-    message = "Expected input arrays to have the same shape"
     with pytest.raises(ValueError) as err:
         model.evaluate(y, x, model.angle)
     assert str(err.value) == message

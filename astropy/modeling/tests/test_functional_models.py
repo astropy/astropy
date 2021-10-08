@@ -183,12 +183,12 @@ def test_RedshiftScaleFactor_model_levmar_fit():
     init_model = models.RedshiftScaleFactor()
 
     x = np.arange(10)
-    y = x+0.1
+    y = 2.7174 * x
 
     fitter = fitting.LevMarLSQFitter()
     fitted_model = fitter(init_model, x, y)
 
-    assert_allclose(fitted_model.parameters, [0.01578947], atol=1e-8)
+    assert_allclose(fitted_model.parameters, [1.7174])
 
 
 def test_Ellipse2D():
@@ -276,7 +276,7 @@ def test_Shift_model_levmar_fit():
     init_model = models.Shift()
 
     x = np.arange(10)
-    y = x+0.1
+    y = x + 0.1
 
     fitter = fitting.LevMarLSQFitter()
     with pytest.warns(AstropyUserWarning,
@@ -317,25 +317,95 @@ def test_Scale_model_set_linear_fit(Model):
 
 @pytest.mark.parametrize('Model', (models.Scale, models.Multiply))
 def test_Scale_model_evaluate_without_units(Model):
-    m = Model(factor=1*u.m)
+    m = Model(factor=4*u.m)
     kwargs = {'x': 3*u.m, 'y': 7*u.m}
     mnu = m.without_units_for_data(**kwargs)
+
+    x = np.linspace(-1, 1, 100)
+    assert_allclose(mnu(x), 4*x)
 
 
 # https://github.com/astropy/astropy/issues/6178
 def test_Ring2D_rout():
-    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, r_out=5)
-    assert m.width.value == 3
-
-    # set width when nothing is specified
-    m = models.Ring2D(r_out=None, width=None)
+    # Test with none of r_in, r_out, width specified
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 1
     assert m.width.value == 1
 
-    # Error in setting width with r_out
+    # Test with r_in specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=4)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 4
+    assert m.width.value == 1
+
+    # Test with r_out specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=7)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 1
+    assert m.width.value == 6
+    # Error when r_out is too small for default r_in
     with pytest.raises(InputParameterError) as err:
-        models.Ring2D(r_out=5, width=7)
-    assert str(err.value) ==\
-        "Cannot specify both width and outer radius separately."
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=0.5)
+    assert str(err.value) == "r_in=1 and width=-0.5 must both be >=0"
+
+    # Test with width specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, width=11)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 1
+    assert m.width.value == 11
+
+    # Test with r_in and r_out specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, r_out=5)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 2
+    assert m.width.value == 3
+    # Error when r_out is smaller than r_in
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=1, r_in=4)
+    assert str(err.value) == "r_in=4 and width=-3 must both be >=0"
+
+    # Test with r_in and width specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, width=4)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 2
+    assert m.width.value == 4
+
+    # Test with r_out and width specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=12, width=7)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 5
+    assert m.width.value == 7
+    # Error when width is larger than r_out
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=1, width=4)
+    assert str(err.value) == "r_in=-3 and width=4 must both be >=0"
+
+    # Test with r_in, r_out, and width all specified
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=8)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 3
+    assert m.width.value == 8
+    # error when specifying all
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=7)
+    assert str(err.value) == "Width must be r_out - r_in"
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -396,7 +466,7 @@ def test_KingProjectedAnalytic1D_fit():
     fitter = fitting.LevMarLSQFitter()
     km_fit = fitter(km_init, xarr, yarr)
     assert_allclose(km_fit.param_sets, km.param_sets)
-    assert km_fit.concentration == 0.30102999566398136
+    assert_allclose(km_fit.concentration, 0.30102999566398136)
 
 
 @pytest.mark.parametrize('model', [models.Exponential1D(), models.Logarithmic1D()])
