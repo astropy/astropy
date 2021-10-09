@@ -40,7 +40,7 @@ class TestParameter:
         #  with getter and validator
         class Example2(Example1):
             def __init__(self, param=15 * u.m):
-                self._param = self.__class__.param.validate(self, param)
+                self.param = param
 
             @Example1.param.getter
             def param(self):
@@ -59,21 +59,21 @@ class TestParameter:
 
     @pytest.fixture(params=["Example1", "Example2"])
     def cosmo_cls(self, request):
-        yield self.classes[request.param]
+        return self.classes[request.param]
 
     @pytest.fixture
     def cosmo(self, cosmo_cls):
-        yield cosmo_cls()
+        return cosmo_cls()
 
     @pytest.fixture
     def parameter(self, cosmo_cls):
-        yield cosmo_cls.param
+        return cosmo_cls.param
 
     # ==============================================================
 
     def test_has_expected_attributes(self, parameter):
         # property
-        assert hasattr(parameter, "_fget")  # None or callable
+        assert hasattr(parameter, "fget")  # None or callable
         assert parameter.__doc__ == "example parameter"
 
         # property-esque
@@ -145,8 +145,6 @@ class TestParameter:
 
     def test_fget(self, cosmo, parameter):
         """Test :attr:`astropy.cosmology.Parameter.fget`."""
-        assert parameter.fget is parameter._fget
-
         if parameter.fget is not None:
             value = parameter.fget(cosmo)
             assert value  == 0.015 * u.km
@@ -155,6 +153,24 @@ class TestParameter:
         """Test :meth:`astropy.cosmology.Parameter.getter`."""
         newparam = parameter.getter("NOT NONE")
         assert newparam.fget == "NOT NONE"
+
+    def test_fset(self, cosmo, parameter):
+        """Test :attr:`astropy.cosmology.Parameter.fset`."""
+        assert parameter.fset is None
+
+    def test_setter_method(self, parameter):
+        """Test :meth:`astropy.cosmology.Parameter.setter`."""
+        with pytest.raises(AttributeError, match="can't create custom Parameter setter."):
+            parameter.setter(None)
+
+    def test_fdel(self, cosmo, parameter):
+        """Test :attr:`astropy.cosmology.Parameter.fdel`."""
+        assert parameter.fdel is None
+
+    def test_deleter_method(self, parameter):
+        """Test :meth:`astropy.cosmology.Parameter.deleter`."""
+        with pytest.raises(AttributeError, match="can't create custom Parameter deleter."):
+            parameter.deleter(None)
 
     # -------------------------------------------
     # validation
