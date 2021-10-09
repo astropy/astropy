@@ -34,7 +34,7 @@ class CosmologyError(Exception):
     pass
 
 
-class Parameter:
+class Parameter(property):
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -106,7 +106,7 @@ class Parameter:
         ...     param = Parameter(doc="example parameter", unit="m")
         ...     def __init__(self, param=15):
         ...         super().__init__(70, 0.3, 0.7)
-        ...         self._param = self.__class__.param.validate(self, param)
+        ...         self.param = param
         ...     @param.getter
         ...     def param(self):
         ...         return self._param << u.km
@@ -126,11 +126,12 @@ class Parameter:
     def __init__(self, fget=None, fvalidate=None, doc=None, *,
                  unit=None, equivalencies=[], fmt=".3g", fixed=False):
         # modeled after https://docs.python.org/3/howto/descriptor.html#properties
+        super().__init__(fget=fget if not hasattr(fget, "fget") else fget.__get__)
+        # TODO! better detection if `fget` is a descriptor.
+        # Note: setting here b/c @propert(doc=) is broken in subclasses
         self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
-        self._fget = fget if not hasattr(fget, "fget") else fget.__get__
-        # TODO! better detection if descriptor.
 
-        # extending this paradigm
+        # extending property paradigm
         # allow for custom validator. If not present, use default one that just
         # creates Quantities, using ``unit`` and ``equivalencies``.
         self._fvalidate = self._default_validator if fvalidate is None else fvalidate
@@ -183,11 +184,6 @@ class Parameter:
     # -------------------------------------------
     # 'property' descriptor overrides
 
-    @property
-    def fget(self):
-        """Parameter value getter."""
-        return self._fget
-
     def getter(self, fget):
         """Make new Parameter with custom ``fget``.
 
@@ -207,6 +203,12 @@ class Parameter:
                           unit=self.unit, equivalencies=self.equivalencies,
                           fixed=self.fixed)
 
+    def setter(self, fset):
+        raise AttributeError("can't create custom Parameter setter.")
+
+    def deleter(self, fdel):
+        raise AttributeError("can't create custom Parameter deleter.")
+
     # -------------------------------------------
     # descriptor methods
 
@@ -215,24 +217,26 @@ class Parameter:
         if obj is None:
             return self
         # get from obj, allowing for custom ``getter``
-        if self._fget is None:  # default to private attr (diff from `property`)
+        if self.fget is None:  # default to private attr (diff from `property`)
             return getattr(obj, self._attr_name_private)
-        return self._fget(obj)
+        return self.fget(obj)
 
     def __set__(self, obj, value):
-        """Allows attribute setting once. Raises AttributeError subsequently."""
-        # raise error if setting 2nd time or has custom getter
-        # TODO! custom getter is currently a strong limitation on `validate`
-        #       because can't know if getter draws from ``_attr_name_private``
-        if hasattr(obj, self._attr_name_private) or self.fget is not None:
+        """Allows attribute setting once. Raises AttributeError subsequently.
+
+        .. warning::
+
+           Caution if using a custom ``getter``.
+           can't know if getter draws from ``_attr_name_private``
+
+        """
+        # raise error if setting 2nd time.
+        if hasattr(obj, self._attr_name_private):
             raise AttributeError("can't set attribute")
 
         # validate value, generally setting units if present
         value = self.validate(obj, value)
         setattr(obj, self._attr_name_private, value)
-
-    def __delete__(self, obj):
-        raise AttributeError("can't delete attribute")
 
     # -------------------------------------------
     # validate
