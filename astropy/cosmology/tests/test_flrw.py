@@ -83,10 +83,10 @@ class TestFLRW(CosmologyTest):
         assert cosmo_cls.H0.unit == u.Unit("km/(s Mpc)")
 
         # validation
-        assert cosmo_cls.H0.validate(cosmo, 1) == 1 * u.Unit("km/(s Mpc)")
-        assert cosmo_cls.H0.validate(cosmo, 10 * u.Unit("km/(s Mpc)")) == 10 * u.Unit("km/(s Mpc)")
+        assert cosmo_cls.H0.set(cosmo, 1) == 1 * u.Unit("km/(s Mpc)")
+        assert cosmo_cls.H0.set(cosmo, 10 * u.Unit("km/(s Mpc)")) == 10 * u.Unit("km/(s Mpc)")
         with pytest.raises(ValueError, match="H0 is a non-scalar quantity"):
-            cosmo_cls.H0.validate(cosmo, [1, 2])
+            cosmo_cls.H0.set(cosmo, [1, 2])
 
         # on the instance
         assert cosmo.H0 is cosmo._H0
@@ -100,14 +100,14 @@ class TestFLRW(CosmologyTest):
         assert cosmo_cls.Tcmb0.format_spec == "0.4g"
 
         # validation
-        assert cosmo_cls.Om0.validate(cosmo, 1) == 1
-        assert cosmo_cls.Om0.validate(cosmo, 10 * u.one) == 10
+        assert cosmo_cls.Om0.set(cosmo, 1) == 1
+        assert cosmo_cls.Om0.set(cosmo, 10 * u.one) == 10
         with pytest.raises(ValueError, match="matter density can not be negative"):
-            cosmo_cls.Om0.validate(cosmo, -1)
+            cosmo_cls.Om0.set(cosmo, -1)
 
         # on the instance
         assert cosmo.Om0 is cosmo._Om0
-        assert isinstance(cosmo.Om0, float)  # from fvalidate
+        assert isinstance(cosmo.Om0, float)  # from fset
         assert cosmo.Om0 == 0.27
 
     def test_Ode0(self, cosmo_cls, cosmo):
@@ -117,12 +117,12 @@ class TestFLRW(CosmologyTest):
         assert "Omega dark energy" in cosmo_cls.Ode0.__doc__
 
         # validation
-        assert cosmo_cls.Ode0.validate(cosmo, 1) == 1
-        assert cosmo_cls.Ode0.validate(cosmo, 10 * u.one) == 10
+        assert cosmo_cls.Ode0.set(cosmo, 1) == 1
+        assert cosmo_cls.Ode0.set(cosmo, 10 * u.one) == 10
 
         # on the instance
         assert cosmo.Ode0 is cosmo._Ode0
-        assert isinstance(cosmo.Ode0, float)  # from validator
+        assert isinstance(cosmo.Ode0, float)  # from setter
 
     def test_Tcmb0(self, cosmo_cls, cosmo):
         """Test Parameter ``Tcmb0``."""
@@ -132,10 +132,10 @@ class TestFLRW(CosmologyTest):
         assert cosmo_cls.Tcmb0.unit == u.K
 
         # validation
-        assert cosmo_cls.Tcmb0.validate(cosmo, 1) == 1 * u.K
-        assert cosmo_cls.Tcmb0.validate(cosmo, 10 * u.K) == 10 * u.K
+        assert cosmo_cls.Tcmb0.set(cosmo, 1) == 1 * u.K
+        assert cosmo_cls.Tcmb0.set(cosmo, 10 * u.K) == 10 * u.K
         with pytest.raises(ValueError, match="Tcmb0 is a non-scalar quantity"):
-            cosmo_cls.Tcmb0.validate(cosmo, [1, 2])
+            cosmo_cls.Tcmb0.set(cosmo, [1, 2])
 
         # on the instance
         assert cosmo.Tcmb0 is cosmo._Tcmb0
@@ -148,10 +148,10 @@ class TestFLRW(CosmologyTest):
         assert "Number of effective neutrino species" in cosmo_cls.Neff.__doc__
 
         # validation
-        assert cosmo_cls.Neff.validate(cosmo, 1) == 1
-        assert cosmo_cls.Neff.validate(cosmo, 10 * u.one) == 10
+        assert cosmo_cls.Neff.set(cosmo, 1) == 1
+        assert cosmo_cls.Neff.set(cosmo, 10 * u.one) == 10
         with pytest.raises(ValueError, match="effective number of neutrinos can not be negative"):
-            cosmo_cls.Neff.validate(cosmo, -1)
+            cosmo_cls.Neff.set(cosmo, -1)
 
         # on the instance
         assert cosmo.Neff is cosmo._Neff
@@ -188,13 +188,13 @@ class TestFLRW(CosmologyTest):
         assert "Omega baryon;" in cosmo_cls.Ob0.__doc__
 
         # validation
-        assert cosmo_cls.Ob0.validate(cosmo, None) is None
-        assert cosmo_cls.Ob0.validate(cosmo, 0.1) == 0.1
-        assert cosmo_cls.Ob0.validate(cosmo, 0.1 * u.one) == 0.1
+        assert cosmo_cls.Ob0.set(cosmo, None) is None
+        assert cosmo_cls.Ob0.set(cosmo, 0.1) == 0.1
+        assert cosmo_cls.Ob0.set(cosmo, 0.1 * u.one) == 0.1
         with pytest.raises(ValueError, match="baryonic density can not be negative"):
-            cosmo_cls.Ob0.validate(cosmo, -1)
+            cosmo_cls.Ob0.set(cosmo, -1)
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
-            cosmo_cls.Ob0.validate(cosmo, cosmo.Om0 + 1)
+            cosmo_cls.Ob0.set(cosmo, cosmo.Om0 + 1)
 
         # on the instance
         assert cosmo.Ob0 is cosmo._Ob0

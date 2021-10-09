@@ -37,16 +37,12 @@ class TestParameter:
             def __init__(self, param=15):
                 self.param = param
 
-        #  with getter and validator
+        #  with setter
         class Example2(Example1):
             def __init__(self, param=15 * u.m):
                 self.param = param
 
-            @Example1.param.getter
-            def param(self):
-                return self._param << u.km
-
-            @param.validator
+            @Example1.param.setter
             def param(self, param, value):
                 return value.to(u.km)
 
@@ -73,11 +69,7 @@ class TestParameter:
 
     def test_has_expected_attributes(self, parameter):
         # property
-        assert hasattr(parameter, "fget")  # None or callable
         assert parameter.__doc__ == "example parameter"
-
-        # property-esque
-        assert hasattr(parameter, "_fvalidate")
 
         # custom from init
         assert parameter._unit == u.m
@@ -130,7 +122,7 @@ class TestParameter:
 
     def test_set(self, cosmo):
         """Test :meth:`astropy.cosmology.Parameter.__set__`."""
-        # setting once tested when instantiate Parameter
+        # already set 1st time when instantiated Parameter
 
         with pytest.raises(AttributeError, match="can't set attribute"):
             cosmo.param = 2
@@ -145,23 +137,22 @@ class TestParameter:
 
     def test_fget(self, cosmo, parameter):
         """Test :attr:`astropy.cosmology.Parameter.fget`."""
-        if parameter.fget is not None:
-            value = parameter.fget(cosmo)
-            assert value  == 0.015 * u.km
+        assert parameter.fget is None
 
     def test_getter_method(self, parameter):
         """Test :meth:`astropy.cosmology.Parameter.getter`."""
-        newparam = parameter.getter("NOT NONE")
-        assert newparam.fget == "NOT NONE"
+        with pytest.raises(AttributeError, match="can't create custom Parameter getter."):
+            parameter.getter(None)
 
     def test_fset(self, cosmo, parameter):
         """Test :attr:`astropy.cosmology.Parameter.fset`."""
-        assert parameter.fset is None
+        value = parameter.fset(cosmo, parameter, 1000 * u.m)
+        assert value == 1 * u.km
 
     def test_setter_method(self, parameter):
         """Test :meth:`astropy.cosmology.Parameter.setter`."""
-        with pytest.raises(AttributeError, match="can't create custom Parameter setter."):
-            parameter.setter(None)
+        newparam = parameter.setter("default")
+        assert newparam.fset == newparam._default_setter
 
     def test_fdel(self, cosmo, parameter):
         """Test :attr:`astropy.cosmology.Parameter.fdel`."""
@@ -175,24 +166,12 @@ class TestParameter:
     # -------------------------------------------
     # validation
 
-    def test_fvalidate(self, cosmo, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
-        assert parameter.fvalidate is parameter._fvalidate
-
-        value = parameter.fvalidate(cosmo, parameter, 1000 * u.m)
-        assert value == 1 * u.km
-
-    def test_validator_method(self, parameter):
-        """Test :meth:`astropy.cosmology.Parameter.validator`."""
-        newparam = parameter.validator("NOT NONE")
-        assert newparam.fvalidate == "NOT NONE"
-
-    def test_validate(self, cosmo, parameter):
+    def test_set(self, cosmo, parameter):
         """Test :meth:`astropy.cosmology.Parameter.validate`."""
-        value = parameter.validate(cosmo, 1000 * u.m)
+        value = parameter.set(cosmo, 1000 * u.m)
 
-        # whether has custom validator
-        if parameter.fvalidate is parameter._default_validator:
+        # whether has custom setter
+        if parameter.fset is parameter._default_setter:
             assert value.unit == u.m
             assert value.value == 1000
         else:
@@ -287,7 +266,7 @@ class ParameterTestMixin:
         assert set(Example.__parameters__[1:]) == set(cosmo_cls.__parameters__)
 
     def test_make_from_Parameter(self, cosmo_cls, clean_registry):
-        """Test the parameter creation process. Uses validator."""
+        """Test the parameter creation process. Uses setter."""
 
         class Example(cosmo_cls):
             param = Parameter(unit=u.eV, equivalencies=u.mass_energy())

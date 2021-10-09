@@ -109,12 +109,11 @@ the definition of :class:`~astropy.cosmology.FLRW`.
             self.H0 = H0
             ...  # for each Parameter in turn
 
-        @m_nu.getter
-        @lazyproperty  # so only does expensive computation once
-        def m_nu(self):
-            """ Mass of neutrino species"""
+        @m_nu.setter
+        def m_nu(self, param, value):
+            """Mass of neutrino species."""
             ...
-            return u.Quantity(numass, self.__class__.m_nu.unit)
+            return u.Quantity(value, param.unit)
 
 First note that all the parameters are also arguments in ``__init__``. This is
 not strictly necessary, but is good practice. If the parameter has units (and
@@ -122,25 +121,17 @@ related equivalencies) these must be specified on the Parameter, as seen in
 :attr:`~astropy.cosmology.FLRW.H0` and :attr:`~astropy.cosmology.FLRW.m_nu`.
 
 The next important thing to note is how the parameter value is set, in
-``__init__``. Without a custom ``getter``, |Parameter| returns the
-corresponding private attribute: so the value for "H0" is set on "._H0".
-However |Parameter| allows for a value to be set once (before auto-locking),
-so ``self.H0 = H0`` will use this setter and put the value on "._H0". The
-advantage of this method over direct assignment to the private attribute is
-the use of validators. |Parameter| allows for custom value validators, using
-the method-decorator ``validator``, that can check a values validity and even
-modify the value, e.g to assign units. If no custom ``validator`` is specified
-the default is to check if the |Parameter| has defined units and if so, return
-the value as a |Quantity| with those units, using all enabled + the parameter's
-unit equivalencies.
+``__init__``. |Parameter| allows for a value to be set once (before
+auto-locking), so ``self.H0 = H0`` will use this setter and put the value on
+"._H0". The advantage of this method over direct assignment to the private
+attribute is the use of setters / validators. |Parameter| allows for custom
+value setters, using the method-decorator ``setter``, that can check a values
+validity and modify the value, e.g to assign units. If no custom ``setter`` is
+specified the default is to check if the |Parameter| has defined units and if
+so, return the value as a |Quantity| with those units, using all enabled and
+the parameter's unit equivalencies.
 
-When a Parameter uses :meth:`~astropy.cosmology.Parameter.getter`, the
-value may be stored anywhere, anyhow. For instance
-:attr:`~astropy.cosmology.FLRW.m_nu` is declared a Parameter with all the rest,
-but has a custom ``getter``. On instances of FLRW its value depends on
-:attr:`~astropy.cosmology.FLRW.Neff` and :attr:`~astropy.cosmology.FLRW.Tcmb0`,
-so is not neatly stored in an attribute ``_m_nu``.
-Note: ``Parameter.getter`` must be the top-most decorator.
+Note: ``Parameter.setter`` must be the top-most decorator.
 
 The last thing to note is pretty formatting for the |Cosmology|. Each
 |Parameter| defaults to the `format specification
