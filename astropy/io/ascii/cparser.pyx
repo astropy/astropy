@@ -481,7 +481,7 @@ cdef class CParser:
         cdef list comments_chunks = [None] * N
         cdef dict failed_procs = {}
 
-        # Asyncronously get the read results for the N chunks.  These
+        # Asynchronously get the read results for the N chunks.  These
         # come back in a non-deterministic order using the ``queue``
         # to return results and the chunk index as ``proc``.  ``queue.get()``
         # is blocking and waiting for a result.
@@ -521,7 +521,7 @@ cdef class CParser:
             seen_numeric[name] = False
 
         # Go through each chunk and each column name and see if it was parsed
-        # as both a string in at least one chunck and/or numeric in at least
+        # as both a string in at least one chunk and/or numeric in at least
         # one chunk.
         for chunk in chunks:
             for name in chunk:
@@ -664,7 +664,7 @@ cdef class CParser:
         cdef int num_rows = t.num_rows
         if nrows != -1:
             num_rows = nrows
-        # intialize ndarray
+        # initialize ndarray
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
         cdef long converted
         cdef int row = 0

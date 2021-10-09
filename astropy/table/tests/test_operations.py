@@ -1777,7 +1777,7 @@ def test_unique(operation_table_type):
 def test_vstack_bytes(operation_table_type):
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.
-    This is really an upsteam numpy issue numpy/numpy/#8403.
+    This is really an upstream numpy issue numpy/numpy/#8403.
     """
     t = operation_table_type([[b'a']], names=['a'])
     assert t['a'].itemsize == 1

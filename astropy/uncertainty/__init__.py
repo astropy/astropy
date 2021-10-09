@@ -3,7 +3,7 @@
 
 """
 This sub-package contains classes and functions for creating distributions that
-work similar to `~astropy.units.Quantity` or array objects, but can propogate
+work similar to `~astropy.units.Quantity` or array objects, but can propagate
 uncertainties.
 """
 

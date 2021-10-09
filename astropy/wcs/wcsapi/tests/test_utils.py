@@ -53,7 +53,7 @@ World Dim    0
 
 def test_wcs_info_str():
 
-    # The tests in test_sliced_low_level_wcs.py excercise wcs_info_str
+    # The tests in test_sliced_low_level_wcs.py exercise wcs_info_str
     # extensively. This test is to ensure that the function exists and the
     # API of the function works as expected.
 

@@ -138,7 +138,7 @@ def test_rename_cols():
 @pytest.mark.skipif('not HAS_BS4')
 def test_no_names():
     """
-    Test reading a table witn no column header
+    Test reading a table with no column header
     """
     table_in = ['<table>',
                 '<tr><td>1</td></tr>',

@@ -864,7 +864,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
         # TODO: remove this sanity check once test cases are more complete.
         assert isinstance(out, Masked)
-        # If we have an output, the result was writtin in-place, so we should
+        # If we have an output, the result was written in-place, so we should
         # also write the mask in-place (if not done already in the code).
         if out._mask is not mask:
             out._mask[...] = mask
@@ -917,7 +917,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return self._apply('repeat', repeats, axis=axis)
 
     def choose(self, choices, out=None, mode='raise'):
-        # Let __array_function__ take care since choises can be masked too.
+        # Let __array_function__ take care since choices can be masked too.
         return np.choose(self, choices, out=out, mode=mode)
 
     def argmin(self, axis=None, out=None):

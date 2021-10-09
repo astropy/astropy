@@ -132,7 +132,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         # (e.g. skycoord.ra, skycoord.dec).unless it is the primary data
         # attribute for the column (e.g. value for Quantity or data for
         # MaskedColumn).  For primary data, we attempt to store any info on
-        # the format, etc., on the column, but not for ancilliary data (e.g.,
+        # the format, etc., on the column, but not for ancillary data (e.g.,
         # no sense to use a float format for a mask).
         if data_attr == col.info._represent_as_dict_primary_data:
             new_name = name

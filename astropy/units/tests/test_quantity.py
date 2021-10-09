@@ -1034,7 +1034,7 @@ def test_arrays():
     assert isinstance(qsecsub25, u.Quantity)
     assert len(qsecsub25) == 3
 
-    # make sure isscalar, len, and indexing behave correcly for non-arrays.
+    # make sure isscalar, len, and indexing behave correctly for non-arrays.
     qsecnotarray = u.Quantity(10., u.second)
     assert qsecnotarray.isscalar
     with pytest.raises(TypeError):

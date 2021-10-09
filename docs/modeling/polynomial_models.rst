@@ -43,7 +43,7 @@ map to the window range for the range of input x values supplied (so that
 domain may change if the minimum and maximum x values being fit change).
 
 The meaning of these terms may conflict with expectations (e.g., domain
-is often meant to mean the range of input values the funciton is valid
+is often meant to mean the range of input values the function is valid
 for). For fit results that is somewhat true, but otherwise, it is not.
 The default values for ordinary polynomials is [-1, 1] for both domain
 and window, which effectively signals no transformation of the input

@@ -154,7 +154,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
           to access on the corresponding class from
           `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes` in
           order to get numerical values. Alternatively, this argument can be a
-          callable Python object that taks a high-level coordinate object and
+          callable Python object that takes a high-level coordinate object and
           returns the numerical values suitable for passing to the low-level
           WCS transformation methods.
 

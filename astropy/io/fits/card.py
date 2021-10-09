@@ -299,7 +299,7 @@ class Card(_Verify):
     def value(self, value):
         if self._invalid:
             raise ValueError(
-                'The value of invalid/unparseable cards cannot set.  Either '
+                'The value of invalid/unparsable cards cannot set.  Either '
                 'delete this card from the header or replace it.')
 
         if value is None:
@@ -364,7 +364,7 @@ class Card(_Verify):
     def value(self):
         if self._invalid:
             raise ValueError(
-                'The value of invalid/unparseable cards cannot deleted.  '
+                'The value of invalid/unparsable cards cannot deleted.  '
                 'Either delete this card from the header or replace it.')
 
         if not self.field_specifier:
@@ -420,7 +420,7 @@ class Card(_Verify):
     def comment(self, comment):
         if self._invalid:
             raise ValueError(
-                'The comment of invalid/unparseable cards cannot set.  Either '
+                'The comment of invalid/unparsable cards cannot set.  Either '
                 'delete this card from the header or replace it.')
 
         if comment is None:
@@ -452,7 +452,7 @@ class Card(_Verify):
     def comment(self):
         if self._invalid:
             raise ValueError(
-                'The comment of invalid/unparseable cards cannot deleted.  '
+                'The comment of invalid/unparsable cards cannot deleted.  '
                 'Either delete this card from the header or replace it.')
 
         self.comment = ''
@@ -776,7 +776,7 @@ class Card(_Verify):
         """Extract the keyword value from the card image."""
 
         # for commentary cards, no need to parse further
-        # likewise for invalid/unparseable cards
+        # likewise for invalid/unparsable cards
         if self.keyword in Card._commentary_keywords or self._invalid:
             return ''
 

@@ -105,7 +105,7 @@ def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
 # implement the transformation between these two.
 def fk4_e_terms(equinox):
     """
-    Return the e-terms of aberation vector
+    Return the e-terms of aberration vector
 
     Parameters
     ----------

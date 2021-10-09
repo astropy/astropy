@@ -419,7 +419,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_overwrite_invalid(self):
         """
-        Tests that invalid checksum or datasum are overwriten when the file is
+        Tests that invalid checksum or datasum are overwritten when the file is
         saved.
         """
 

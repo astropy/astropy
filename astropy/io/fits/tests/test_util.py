@@ -88,7 +88,7 @@ class TestUtilMode(FitsTestCase):
         result = Image.fromarray(img)
 
         result.save(self.temp('test_simple.jpg'))
-        # PIL doesn't support append mode. So it will allways use binary read.
+        # PIL doesn't support append mode. So it will always use binary read.
         with Image.open(self.temp('test_simple.jpg')) as fileobj:
             assert util.fileobj_mode(fileobj) == 'rb'
 

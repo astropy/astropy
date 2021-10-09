@@ -18,7 +18,7 @@ class BasePeriodogram:
 
         If a binned time series is passed, the time at the center of the bins is
         used. Also note that this method automatically gets rid of NaN/undefined
-        values when initalizing the periodogram.
+        values when initializing the periodogram.
 
         Parameters
         ----------

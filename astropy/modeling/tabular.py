@@ -235,7 +235,7 @@ class _Tabular(Model):
     @property
     def inverse(self):
         if self.n_inputs == 1:
-            # If the wavelength array is decending instead of ascending, both
+            # If the wavelength array is descending instead of ascending, both
             # points and lookup_table need to be reversed in the inverse transform
             # for scipy.interpolate to work properly
             if np.all(np.diff(self.lookup_table) > 0):

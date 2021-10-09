@@ -178,7 +178,7 @@ def test_read_with_names_arg(fast_reader):
     """
     Test that a bad value of `names` raises an exception.
     """
-    # CParser only uses columns in `names` and thus reports mismach in num_col
+    # CParser only uses columns in `names` and thus reports mismatch in num_col
     with pytest.raises(ascii.InconsistentTableError):
         ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
@@ -587,7 +587,7 @@ def test_set_guess_kwarg():
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_rdb_wrong_type(fast_reader):
-    """Read RDB data with inconstent data type (except failure)"""
+    """Read RDB data with inconsistent data type (except failure)"""
     table = """col1\tcol2
 N\tN
 1\tHello"""
