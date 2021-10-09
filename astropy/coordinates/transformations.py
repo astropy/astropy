@@ -1481,7 +1481,7 @@ class CompositeTransform(CoordinateTransform):
             curr_coord = t(curr_coord, curr_toframe)
 
         # this is safe even in the case where self.transforms is empty, because
-        # coordinate objects are immutible, so copying is not needed
+        # coordinate objects are immutable, so copying is not needed
         return curr_coord
 
     def _as_single_transform(self):

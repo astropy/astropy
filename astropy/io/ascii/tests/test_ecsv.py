@@ -473,7 +473,7 @@ def test_ecsv_mixins_as_one(table_cls):
 def make_multidim(col, ndim):
     """Take a col with length=2 and make it N-d by repeating elements.
 
-    For the special case of ndim==1 just return the orignal.
+    For the special case of ndim==1 just return the original.
 
     The output has shape [3] * ndim. By using 3 we can be sure that repeating
     the two input elements gives an output that is sufficiently unique for

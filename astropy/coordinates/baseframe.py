@@ -169,7 +169,7 @@ base_doc = """{__doc__}
         expected keyword arguments for the data passed in. For example, passing
         ``representation_type='cartesian'`` will make the classes expect
         position data with cartesian names, i.e. ``x, y, z`` in most cases
-        unless overriden via ``frame_specific_representation_info``. To see this
+        unless overridden via ``frame_specific_representation_info``. To see this
         frame's names, check out ``<this frame>().representation_info``.
     differential_type : `~astropy.coordinates.BaseDifferential` subclass, str, dict, optional
         A differential class or dictionary of differential classes (currently
@@ -177,7 +177,7 @@ base_doc = """{__doc__}
         expected input differential class, thereby changing the expected keyword
         arguments of the data passed in. For example, passing
         ``differential_type='cartesian'`` will make the classes expect velocity
-        data with the argument names ``v_x, v_y, v_z`` unless overriden via
+        data with the argument names ``v_x, v_y, v_z`` unless overridden via
         ``frame_specific_representation_info``. To see this frame's names,
         check out ``<this frame>().representation_info``.
     copy : bool, optional
@@ -760,7 +760,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         This will be a subclass from `~astropy.coordinates.BaseRepresentation`.
         Can also be *set* using the string name of the representation. If you
         wish to set an explicit differential class (rather than have it be
-        inferred), use the ``set_represenation_cls`` method.
+        inferred), use the ``set_representation_cls`` method.
         """)
 
     @property
@@ -770,7 +770,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
         This will be a subclass from `~astropy.coordinates.BaseDifferential`.
         For simultaneous setting of representation and differentials, see the
-        ``set_represenation_cls`` method.
+        ``set_representation_cls`` method.
         """
         return self.get_representation_cls('s')
 

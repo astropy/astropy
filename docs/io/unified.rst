@@ -451,7 +451,7 @@ Python strings map to the TDISP format A if the Python formatting string does
 not contain right space padding. It will accept left space padding. The same
 applies to the logical format L.
 
-The integer formats (decimal integer, binary, octal, hexidecimal) map to the
+The integer formats (decimal integer, binary, octal, hexadecimal) map to the
 I, B, O, and Z TDISP formats respectively. Integer formats do not accept a
 zero padded format string or a format string with no left padding defined (a
 width is required in the TDISP format standard for the Integer formats).

@@ -2481,7 +2481,7 @@ def _convert_ascii_format(format, reverse=False):
 
         # The following logic is taken from CFITSIO:
         # For integers, if the width <= 4 we can safely use 16-bit ints for all
-        # values, if width >= 10 we may need to accomodate 64-bit ints.
+        # values, if width >= 10 we may need to accommodate 64-bit ints.
         # values [for the non-standard J format code just always force 64-bit]
         if format == 'I':
             if width <= 4:
@@ -2589,7 +2589,7 @@ def python_to_tdisp(format_string, logical_dtype=False):
         TDISPn FITS Header keyword.  Used to specify display formatting.
     logical_dtype: bool
         True is this format type should be a logical type, 'L'. Needs special
-        handeling.
+        handling.
 
     Returns
     -------

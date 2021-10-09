@@ -495,12 +495,12 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             Input coordinates
         z : array-like, optional
             Input coordinates.
-            If the dependent (``y`` or ``z``) co-ordinate values are provided
+            If the dependent (``y`` or ``z``) coordinate values are provided
             as a `numpy.ma.MaskedArray`, any masked points are ignored when
             fitting. Note that model set fitting is significantly slower when
             there are masked points (not just an empty mask), as the matrix
             equation has to be solved for each model separately when their
-            co-ordinate grids differ.
+            coordinate grids differ.
         weights : array, optional
             Weights for fitting.
             For data with Gaussian uncertainties, the weights should be
@@ -678,7 +678,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
             # dimensionality of rhs after _convert_input "rolls" it as needed
             # by np.linalg.lstsq. The vector then gets broadcast to the right
             # number of sets (columns). This assumes all the models share the
-            # same input co-ordinates, as is currently the case.
+            # same input coordinates, as is currently the case.
             if len(model_copy) > 1:
                 sum_of_implicit_terms = sum_of_implicit_terms[..., np.newaxis]
             rhs = rhs - sum_of_implicit_terms
@@ -877,7 +877,7 @@ class FittingWithOutlierRemoval:
         # then passed to the fitter, which is the historical behavior and
         # works even for fitters that don't understand masked arrays. For model
         # sets, the fitter must be able to filter masked data internally,
-        # because fitters require a single set of x/y co-ordinates whereas the
+        # because fitters require a single set of x/y coordinates whereas the
         # eliminated points can vary between models. To avoid this limitation,
         # we could fall back to looping over individual model fits, but it
         # would likely be fiddly and involve even more overhead (and the
@@ -894,7 +894,7 @@ class FittingWithOutlierRemoval:
             # Fitters use their input model's model_set_axis to determine how
             # their input data are stacked:
             model_set_axis = model.model_set_axis
-        # Construct input co-ordinate tuples for fitters & models that are
+        # Construct input coordinate tuples for fitters & models that are
         # appropriate for the dimensionality being fitted:
         if z is None:
             coords = (x, )

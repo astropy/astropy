@@ -2708,7 +2708,7 @@ class KingProjectedAnalytic1D(Fittable1DModel):
     This model approximates a King model with an analytic function. The derivation of this
     equation can be found in King '62 (equation 14). This is just an approximation of the
     full model and the parameters derived from this model should be taken with caution.
-    It usually works for models with a concentration (c = log10(r_t/r_c) paramter < 2.
+    It usually works for models with a concentration (c = log10(r_t/r_c) parameter < 2.
 
     Model formula:
 

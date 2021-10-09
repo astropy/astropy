@@ -166,13 +166,13 @@ class TestImageFunctions(FitsTestCase):
 
         afits = self.temp('a_str.fits')
         bfits = self.temp('b_str.fits')
-        # writting to str specified files
+        # writing to str specified files
         fits.PrimaryHDU(data=a).writeto(afits)
         fits.PrimaryHDU(data=b).writeto(bfits)
         np.testing.assert_array_equal(fits.getdata(afits), a)
         np.testing.assert_array_equal(fits.getdata(bfits), a)
 
-        # writting to fileobjs
+        # writing to fileobjs
         aafits = self.temp('a_fileobj.fits')
         bbfits = self.temp('b_fileobj.fits')
         with open(aafits, mode='wb') as fd:
@@ -187,7 +187,7 @@ class TestImageFunctions(FitsTestCase):
         a = np.arange(105).reshape(3, 5, 7)
         b = np.asfortranarray(a)
 
-        # writting to str specified files
+        # writing to str specified files
         afits = self.temp('a_str_slice.fits')
         bfits = self.temp('b_str_slice.fits')
         fits.PrimaryHDU(data=a[::2, ::2]).writeto(afits)
@@ -195,7 +195,7 @@ class TestImageFunctions(FitsTestCase):
         np.testing.assert_array_equal(fits.getdata(afits), a[::2, ::2])
         np.testing.assert_array_equal(fits.getdata(bfits), a[::2, ::2])
 
-        # writting to fileobjs
+        # writing to fileobjs
         aafits = self.temp('a_fileobj_slice.fits')
         bbfits = self.temp('b_fileobj_slice.fits')
         with open(aafits, mode='wb') as fd:
@@ -630,7 +630,7 @@ class TestImageFunctions(FitsTestCase):
         Regression test for https://github.com/astropy/astropy/issues/2305
 
         This ensures that an HDU containing unsigned integer data always has
-        the apppriate BZERO value in its header.
+        the appropriate BZERO value in its header.
         """
 
         for int_size in (16, 32, 64):
@@ -929,7 +929,7 @@ class TestImageFunctions(FitsTestCase):
         assert (orig_data == hdul[0].data).all()
 
         # Try reshaping the data, then closing and reopening the file; let's
-        # see if all the changes are preseved properly
+        # see if all the changes are preserved properly
         hdul[0].data.shape = (42, 10)
         hdul.close()
 
@@ -1283,7 +1283,7 @@ class TestCompressedImage(FitsTestCase):
         assert 'BSCALE' not in hdul[1].header
 
         # Try reshaping the data, then closing and reopening the file; let's
-        # see if all the changes are preseved properly
+        # see if all the changes are preserved properly
         hdul[1].data.shape = (42, 10)
         hdul.close()
 
@@ -1544,7 +1544,7 @@ class TestCompressedImage(FitsTestCase):
 
     def test_compression_header_append2(self):
         """
-        Regresion test for issue https://github.com/astropy/astropy/issues/5827
+        Regression test for issue https://github.com/astropy/astropy/issues/5827
         """
         with fits.open(self.data('comp.fits')) as hdul:
             header = hdul[1].header

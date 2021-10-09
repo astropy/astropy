@@ -216,7 +216,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
             A list of equivalence pairs to try if the units are not
             directly convertible.  See :ref:`astropy:unit_equivalencies`.
             This list is in meant to treat only equivalencies between different
-            physical units; the build-in equivalency between the function
+            physical units; the built-in equivalency between the function
             unit and the physical one is automatically taken into account.
 
         Returns
@@ -277,7 +277,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
         return not self.__eq__(other)
 
     def __rlshift__(self, other):
-        """Unit converstion operator ``<<``"""
+        """Unit conversion operator ``<<``"""
         try:
             return self._quantity_class(other, self, copy=False, subok=True)
         except Exception:
@@ -643,7 +643,7 @@ class FunctionQuantity(Quantity):
         return self._comparison(other, self.value.__le__)
 
     def __lshift__(self, other):
-        """Unit converstion operator `<<`"""
+        """Unit conversion operator `<<`"""
         try:
             other = Unit(other, parse_strict='silent')
         except UnitTypeError:

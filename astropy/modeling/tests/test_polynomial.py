@@ -291,7 +291,7 @@ def test_sip_hst():
 
 
 def test_sip_irac():
-    """Test forward and inverse SIP againts astropy.wcs"""
+    """Test forward and inverse SIP against astropy.wcs"""
 
     test_file = get_pkg_data_filename(os.path.join('data', 'irac_sip.hdr'))
     hdr = fits.Header.fromtextfile(test_file)

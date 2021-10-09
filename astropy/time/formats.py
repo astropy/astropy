@@ -257,7 +257,7 @@ class TimeFormat:
         if getattr(val1, 'unit', None) is not None:
             # Convert any quantity-likes to days first, attempting to be
             # careful with the conversion, so that, e.g., large numbers of
-            # seconds get converted without loosing precision because
+            # seconds get converted without losing precision because
             # 1/86400 is not exactly representable as a float.
             val1 = u.Quantity(val1, copy=False)
             if val2 is not None:
@@ -1522,7 +1522,7 @@ class TimeISOT(TimeISO):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
-    # See TimeISO for expanation
+    # See TimeISO for explanation
     fast_parser_pars = dict(
         delims=(0, ord('-'), ord('-'), ord('T'), ord(':'), ord(':'), ord('.')),
         starts=(0, 4, 7, 10, 13, 16, 19),

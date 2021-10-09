@@ -750,7 +750,7 @@ def test_tete_transforms():
     moon = SkyCoord(169.24113968*u.deg, 10.86086666*u.deg, 358549.25381755*u.km, frame=gcrs_frame)
 
     tete_frame = TETE(obstime=time, location=loc)
-    # need to set obsgeoloc/vel explicity or skycoord behaviour over-writes
+    # need to set obsgeoloc/vel explicitly or skycoord behaviour over-writes
     tete_geo = TETE(obstime=time, location=EarthLocation(*([0, 0, 0]*u.km)))
 
     # test self-transform by comparing to GCRS-TETE-ITRS-TETE route

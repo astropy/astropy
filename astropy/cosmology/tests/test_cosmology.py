@@ -604,7 +604,7 @@ def test_ogamma():
     """Tests the effects of changing the temperature of the CMB"""
 
     # Tested against Ned Wright's advanced cosmology calculator,
-    # Sep 7 2012.  The accuracy of our comparision is limited by
+    # Sep 7 2012.  The accuracy of our comparison is limited by
     # how many digits it outputs, which limits our test to about
     # 0.2% accuracy.  The NWACC does not allow one
     # to change the number of nuetrino species, fixing that at 3.

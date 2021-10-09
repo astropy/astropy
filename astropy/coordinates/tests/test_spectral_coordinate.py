@@ -694,7 +694,7 @@ def test_shift_to_rest_star_withobserver():
 
     # note this probably will not work on the first try, but it's ok if this is
     # "good enough", where good enough is estimated below.  But that could be
-    # adjusted if we think that's too agressive of a precision target for what
+    # adjusted if we think that's too aggressive of a precision target for what
     # the machinery can handle
     # with pytest.raises(AssertionError):
     assert_quantity_allclose(vcorr, drv, atol=10*u.m/u.s)
@@ -794,7 +794,7 @@ def test_asteroid_velocity_frame_shifts():
     # now check the behavior of with_observer_stationary_relative_to: we shift each coord
     # into the velocity frame of its *own* target.  That would then be a
     # spectralcoord that would allow direct physical comparison of the two
-    # diffferent spec_corrds.  There's no way to test that, without
+    # different spec_corrds.  There's no way to test that, without
     # actual data, though.
 
     # spec_coord2 is redshifted, so we test that it behaves the way "shifting

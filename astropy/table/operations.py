@@ -191,7 +191,7 @@ def join_skycoord(distance, distance_func='search_around_sky'):
             elif ids2[idx2] > 0:
                 ids1[idx1] = ids2[idx2]
             else:
-                # Not yet seen so set identifer for col1 and col2
+                # Not yet seen so set identifier for col1 and col2
                 ids1[idx1] = id_
                 ids2[idx2] = id_
                 id_ += 1
@@ -319,7 +319,7 @@ def join_distance(distance, kdtree_args=None, query_args=None):
                 elif ids2[idx2] > 0:
                     ids1[idx1] = ids2[idx2]
                 else:
-                    # Not yet seen so set identifer for col1 and col2
+                    # Not yet seen so set identifier for col1 and col2
                     ids1[idx1] = id_
                     ids2[idx2] = id_
                     id_ += 1

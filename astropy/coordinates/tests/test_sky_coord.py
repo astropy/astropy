@@ -149,7 +149,7 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
 
 def test_coord_init_string():
     """
-    Spherical or Cartesian represenation input coordinates.
+    Spherical or Cartesian representation input coordinates.
     """
     sc = SkyCoord('1d 2d')
     assert allclose(sc.ra, 1 * u.deg)
@@ -308,7 +308,7 @@ def test_coord_init_array():
 
 def test_coord_init_representation():
     """
-    Spherical or Cartesian represenation input coordinates.
+    Spherical or Cartesian representation input coordinates.
     """
     coord = SphericalRepresentation(lon=8 * u.deg, lat=5 * u.deg, distance=1 * u.kpc)
     sc = SkyCoord(coord, frame='icrs')

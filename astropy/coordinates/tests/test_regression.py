@@ -443,7 +443,7 @@ def test_regression_6236():
     assert mf1.representation_type is CartesianRepresentation
     assert mf2.representation_type is CartesianRepresentation
     assert mf2.my_attr == mf1.my_attr
-    # It should be independent of whether I set the reprensentation explicitly
+    # It should be independent of whether I set the representation explicitly
     mf3 = MyFrame(rep1, my_attr=1.*u.km, representation_type='unitspherical')
     mf4 = mf3.realize_frame(rep2)
     assert mf3.data is rep1

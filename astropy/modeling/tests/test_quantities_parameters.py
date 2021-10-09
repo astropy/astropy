@@ -76,7 +76,7 @@ def test_parameter_lose_units():
     Check that parameters that have been set to a quantity that are then set to
     a value with no units raise an exception. We do this because setting a
     parameter to a value with no units is ambiguous if units were set before:
-    if a paramter is 1 * u.Jy and the parameter is then set to 4, does this mean
+    if a parameter is 1 * u.Jy and the parameter is then set to 4, does this mean
     2 without units, or 2 * u.Jy?
     """
 

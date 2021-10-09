@@ -8,7 +8,7 @@ satellite files.
 
 TETE is a True equator, True Equinox coordinate frame often called the
 "apparent" coordinates. It is the same frame as used by JPL Horizons
-and can be combined with Local Apparent Sideral Time to calculate the
+and can be combined with Local Apparent Sidereal Time to calculate the
 hour angle.
 """
 

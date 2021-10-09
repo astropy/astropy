@@ -1575,7 +1575,7 @@ astropy.time
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Fixed the caclulation of the tight bounding box of a ``WCSAxes``. This should
+- Fixed the calculation of the tight bounding box of a ``WCSAxes``. This should
   also significantly improve the application of ``tight_layout()`` to figures
   containing ``WCSAxes``. [#10797]
 
@@ -1946,7 +1946,7 @@ astropy.io.fits
 ^^^^^^^^^^^^^^^
 
 - Fix regression with ``GroupsHDU`` which needs to modify the header to handle
-  invalid headers, and fix accesing ``.data`` for empty HDU. [#9711, #9934]
+  invalid headers, and fix accessing ``.data`` for empty HDU. [#9711, #9934]
 
 - Fix ``fitsdiff`` when its arguments are directories that contain other
   directories. [#9711]
@@ -2251,7 +2251,7 @@ astropy.table
 
 - Changed the implementation of ``Table.add_columns()`` to use the new
   ``Table.add_column()`` method.  In most cases the performance is similar
-  or slightly faster to the previous implemenation. [#8933]
+  or slightly faster to the previous implementation. [#8933]
 
 - ``MaskedColumn.data`` will now return a plain ``MaskedArray`` rather than
   the previous (unintended) ``masked_BaseColumn``. [#8855]
@@ -2322,12 +2322,12 @@ astropy.time
   existing method for ``TimeDelta``) so that one can get values in a given
   ``format`` and possible ``subfmt`` (e.g., ``to_value('mjd', 'str')``. [#9361]
 
-- Prevent unecessary ERFA warnings when sorting ``Time`` objects. [#9545]
+- Prevent unnecessary ERFA warnings when sorting ``Time`` objects. [#9545]
 
 astropy.timeseries
 ^^^^^^^^^^^^^^^^^^
 
-- Addig ``epoch_phase``, ``wrap_phase`` and ``normalize_phase`` keywords to
+- Adding ``epoch_phase``, ``wrap_phase`` and ``normalize_phase`` keywords to
   ``TimeSeries.fold()`` to control the phase of the epoch and to return
   normalized phase rather than time for the folded TimeSeries. [#9455]
 
@@ -2344,7 +2344,7 @@ astropy.uncertainty
   of ``Distrubution`` instances were changed into methods. This allows one
   to pass parameters such as ``ddof`` to ``pdf_std`` and ``pdf_var`` (which
   generally should equal 1 instead of the default 0), and reflects that these
-  are fairly involved calcuations, not just "properties". [#9613]
+  are fairly involved calculations, not just "properties". [#9613]
 
 astropy.units
 ^^^^^^^^^^^^^
@@ -2846,7 +2846,7 @@ astropy.visualization
   handle when input coordinates are not already in spherical representations.
   [#8927]
 
-- Fixed ``ImageNormalize`` so that when it is intialized without
+- Fixed ``ImageNormalize`` so that when it is initialized without
   ``data`` it will still use the input ``interval`` class. [#9698]
 
 - Fixed ``ImageNormalize`` to handle input data with non-finite
@@ -2861,7 +2861,7 @@ astropy.wcs
 - Fix NaN-masking of world coordinates when some but not all of the coordinates
   were flagged as invalid by WCSLIB. This occurred for example with WCS with >2
   dimensions where two of the dimensions were celestial coordinates and pixel
-  coordinates ouside of the 'sky' were converted to world coordinates -
+  coordinates outside of the 'sky' were converted to world coordinates -
   previously all world coordinates were masked even if uncorrelated with the
   celestial axes, but this is no longer the case. [#9688]
 
@@ -4548,7 +4548,7 @@ astropy.coordinates
   a ``CartesianDifferential``, the 2D proper motion as a ``Quantity``, and the
   radial or line-of-sight velocity as a ``Quantity``. [#6869]
 
-- ``SkyCoord`` objects now support storing and tranforming differentials - i.e.,
+- ``SkyCoord`` objects now support storing and transforming differentials - i.e.,
   both radial velocities and proper motions. [#6944]
 
 - All frame classes now automatically get sensible representation mappings for
@@ -4642,7 +4642,7 @@ astropy.modeling
   ``None`` if not set. [#6746]
 
 - Support masked array values in ``LinearLSQFitter`` (instead of silently
-  ignorning the mask). [#6927]
+  ignoring the mask). [#6927]
 
 astropy.stats
 ^^^^^^^^^^^^^
@@ -4748,7 +4748,7 @@ astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
 - Enable Matplotlib's subtraction shorthand syntax for composing and
-  inverting trasformations for the ``WCSWorld2PixelTransform`` and
+  inverting transformations for the ``WCSWorld2PixelTransform`` and
   ``WCSPixel2WorldTransform`` classes by setting ``has_inverse`` to ``True``.
   In order to implement a unit test, also implement the equality comparison
   operator for both classes. [#6531]
@@ -4796,7 +4796,7 @@ astropy.coordinates
   frame components. [#6871]
 
 - Slicing and reshaping of ``SkyCoord`` and coordinate frames no longer passes
-  the new object through ``__init__``, but directly sets atttributes on a new
+  the new object through ``__init__``, but directly sets attributes on a new
   instance. This speeds up those methods by an order of magnitude, but means
   that any customization done in ``__init__`` is by-passed. [#6941]
 
@@ -5115,7 +5115,7 @@ Bug Fixes
 astropy.io.fits
 ^^^^^^^^^^^^^^^
 - Fixed bug in ``ColDefs._init_from_array()`` that caused unsigned datatypes
-  with the opposite endianess as the host architecture to fail the
+  with the opposite endianness as the host architecture to fail the
   TestColumnFunctions.test_coldefs_init_from_array unit test. [#8460]
 
 astropy.io.misc
@@ -5409,7 +5409,7 @@ astropy.convolution
 - Correct data type conversion for non-float masked kernels. [#7542]
 
 - Fix non-float or masked, zero sum kernels when ``normalize_kernel=False``.
-  Non-floats would yeild a type error and masked kernels were not being filled.
+  Non-floats would yield a type error and masked kernels were not being filled.
   [#7541]
 
 astropy.coordinates
@@ -6473,7 +6473,7 @@ Other Changes and Additions
 
 - Numpy 1.7 and 1.8 are no longer supported. [#6006]
 
-- Python 3.3 is no longer suppored. [#6020]
+- Python 3.3 is no longer supported. [#6020]
 
 - The bundled ERFA was updated to version 1.4.0. [#6239]
 
@@ -6567,7 +6567,7 @@ Bug Fixes
 astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
-- Ensure that checking equivalance of ``SkyCoord`` objects works with
+- Ensure that checking equivalence of ``SkyCoord`` objects works with
   non-scalar attributes [#5884, #5887]
 
 - Ensure that transformation to frames with multi-dimensional attributes
@@ -7266,7 +7266,7 @@ astropy.stats
 ^^^^^^^^^^^^^
 
 - ``poisson_conf_interval`` with ``'kraft-burrows-nousek'`` interval is now
-  faster and useable with SciPy versions < 0.14. [#5064, #5290]
+  faster and usable with SciPy versions < 0.14. [#5064, #5290]
 
 
 
@@ -7384,7 +7384,7 @@ astropy.modeling
 
 - Added the fittable=True attribute to the Scale and Shift models with tests. [#4718]
 
-- Added example plots to docstrings for some build-in models. [#4008]
+- Added example plots to docstrings for some built-in models. [#4008]
 
 astropy.nddata
 ^^^^^^^^^^^^^^
@@ -9802,7 +9802,7 @@ astropy.nddata
   subclasses without restricting implementation of the data storage. [#2905]
 
 - New mixin classes ``NDSlicingMixin`` for slicing, ``NDArithmeticMixin``
-  for arithmetic operations, and ``NDIOMixin`` for input/ouput in NDData. [#2905]
+  for arithmetic operations, and ``NDIOMixin`` for input/output in NDData. [#2905]
 
 - Added a decorator ``support_nddata`` that can be used to write functions
   that can either take separate arguments or NDData objects. [#2855]
@@ -10908,7 +10908,7 @@ astropy.sphinx
   generate, mainly for debugging purposes. [#1975, #2022]
 
 - Reference documentation now shows functions/class docstrings at the
-  inteded user-facing API location rather than the actual file where
+  intended user-facing API location rather than the actual file where
   the implementation is found. [#1826]
 
 - The ``automodsumm`` extension configuration was changed to generate
@@ -11420,7 +11420,7 @@ astropy.wcs
 
 - In ``WCS.to_header``, floating point values will now always be written
   with an exponent or fractional part, i.e. ``.0`` being appended if necessary
-  to acheive this. [#2468]
+  to achieve this. [#2468]
 
 - If the C extension for ``astropy.wcs`` was not built or fails to import for
   any reason, ``import astropy.wcs`` will result in an ``ImportError``,
@@ -11508,7 +11508,7 @@ astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
 - if ``sep`` argument is specified to be a single character in
-  ``sexagisimal_to_string``, it now includes seperators only between
+  ``sexagisimal_to_string``, it now includes separators only between
   items [#2183]
 
 - Ensure comparisons involving ``Distance`` objects do not raise exceptions;
@@ -12782,7 +12782,7 @@ astropy.table
 astropy.units
 ^^^^^^^^^^^^^
 
-- Improved error handling for unparseable units and fixed parsing CDS units
+- Improved error handling for unparsable units and fixed parsing CDS units
   without mantissas in the exponent. [#1288]
 
 - Added a physical type for spectral flux density. [#1410]
@@ -13019,7 +13019,7 @@ astropy.io.fits
 
 - Fixed inconsistent behavior in creating CONTINUE cards from byte strings
   versus unicode strings in Python 2--CONTINUE cards can now be created
-  properly from unicode strings (so long as they are convertable to ASCII).
+  properly from unicode strings (so long as they are convertible to ASCII).
 
 - Fixed a bug in parsing HIERARCH keywords that do not have a space after the
   first equals sign (before the value).

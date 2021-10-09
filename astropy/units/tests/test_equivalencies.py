@@ -36,7 +36,7 @@ def test_dimensionless_angles():
     # and check that value is correct
     assert_allclose(Erot_in_erg1.value, (Erot/u.radian**2).to_value(u.erg))
 
-    # test build-in equivalency in subclass
+    # test built-in equivalency in subclass
     class MyRad1(u.Quantity):
         _equivalencies = rad1
 
