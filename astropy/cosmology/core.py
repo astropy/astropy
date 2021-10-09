@@ -45,12 +45,13 @@ class Parameter(property):
         Function to get the value from instances of the cosmology class.
         If None (default) returns the corresponding private attribute.
         Often not set here, but as a decorator with ``getter``.
-    fvalidate : callable[[type, type, Any], Any] or None, optional
+    fset : callable[[object, object, Any], Any] or {'default', 'float'}, optional
         Function to validate the Parameter value from instances of the
-        cosmology class. If None (default), uses default validator to assign
-        units (with equivalencies), if Parameter has units.
-        Often not set here, but as a decorator with ``validator``.
-        See ``Parameter._default_validator`` for an example.
+        cosmology class. If "default", uses default setter to assign units
+        (with equivalencies), if Parameter has units. If "float" will first do
+        units, then take the float value.
+        Often not set here, but as a decorator with ``setter``.
+        See ``Parameter._default_setter`` for an example.
     doc : str or None, optional
         Parameter description. If 'doc' is None and 'fget' is not, then 'doc'
         is taken from ``fget.__doc__``.
@@ -98,7 +99,7 @@ class Parameter(property):
         >>> ex.param
         <Quantity 12357. m>
 
-    ``Parameter`` also supports custom ``getter`` and ``validator`` methods.
+    ``Parameter`` also supports custom ``setter`` methods.
     :attr:`~astropy.cosmology.FLRW.m_nu` is a good example for the former.
 
         >>> import astropy.units as u
@@ -107,9 +108,9 @@ class Parameter(property):
         ...     def __init__(self, param=15):
         ...         super().__init__(70, 0.3, 0.7)
         ...         self.param = param
-        ...     @param.getter
-        ...     def param(self):
-        ...         return self._param << u.km
+        ...     @param.setter
+        ...     def param(self, param, value):
+        ...         return (value << param.unit).to(u.km)
 
         >>> ex2 = Example2(param=12357)
         >>> ex2.param
@@ -123,18 +124,28 @@ class Parameter(property):
        >>> _ = _COSMOLOGY_CLASSES.pop(Example2.__qualname__)
     """
 
-    def __init__(self, fget=None, fvalidate=None, doc=None, *,
+    def __init__(self, fget=None, fset="default", doc=None, *,
                  unit=None, equivalencies=[], fmt=".3g", fixed=False):
+        # parse registered fset
+        if callable(fset):
+            pass
+        elif fset == "default":
+            fset = self._default_setter
+        elif fset == "float":
+            fset = self._set_to_float
+        elif fset == "scalar":
+            fset = self._set_to_scalar
+        elif isinstance(fset, str):
+            raise ValueError("fset if str, must be in {'default', 'float'}")
+        else:
+            raise TypeError("fset must be a function or {'default', 'float'}")
+
         # modeled after https://docs.python.org/3/howto/descriptor.html#properties
-        super().__init__(fget=fget if not hasattr(fget, "fget") else fget.__get__)
+        super().__init__(fget=fget if not hasattr(fget, "fget") else fget.__get__,
+                         fset=self._default_setter if fset is None else fset)
         # TODO! better detection if `fget` is a descriptor.
         # Note: setting here b/c @propert(doc=) is broken in subclasses
         self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
-
-        # extending property paradigm
-        # allow for custom validator. If not present, use default one that just
-        # creates Quantities, using ``unit`` and ``equivalencies``.
-        self._fvalidate = self._default_validator if fvalidate is None else fvalidate
 
         # units stuff
         self._unit = u.Unit(unit) if unit is not None else None
@@ -148,7 +159,7 @@ class Parameter(property):
         self.__wrapped__ = fget  # so always have access to `fget`
         self.__name__ = getattr(fget, "__name__", None)  # compat with other descriptors
 
-    def __set_name__(self, objcls, name):
+    def __set_name__(self, cosmo_cls, name):
         # attribute name
         self._attr_name = name
         self._attr_name_private = "_" + name
@@ -185,26 +196,28 @@ class Parameter(property):
     # 'property' descriptor overrides
 
     def getter(self, fget):
-        """Make new Parameter with custom ``fget``.
+        raise AttributeError("can't create custom Parameter getter.")
 
-        Note: ``Parameter.getter`` must be the top-most descriptor decorator.
+    def setter(self, fset):
+        """Make new Parameter with custom ``fset``.
+
+        Note: ``Parameter.setter`` must be the top-most descriptor decorator.
 
         Parameters
         ----------
-        fget : callable
+        fset : callable[[type, type, Any], Any]
 
         Returns
         -------
         `~astropy.cosmology.Parameter`
-            Copy of this Parameter but with custom ``fget``.
+            Copy of this Parameter but with custom ``fset``.
         """
-        return type(self)(fget=fget, fvalidate=self.fvalidate,
+        desc = type(self)(fget=self.fget, fset=fset,
                           doc=self.__doc__, fmt=self.format_spec,
                           unit=self.unit, equivalencies=self.equivalencies,
                           fixed=self.fixed)
-
-    def setter(self, fset):
-        raise AttributeError("can't create custom Parameter setter.")
+        # TODO? need to override __wrapped__?
+        return desc
 
     def deleter(self, fdel):
         raise AttributeError("can't create custom Parameter deleter.")
@@ -212,16 +225,13 @@ class Parameter(property):
     # -------------------------------------------
     # descriptor methods
 
-    def __get__(self, obj, objcls=None):
+    def __get__(self, cosmology, cosmo_cls=None):
         # get from class
-        if obj is None:
+        if cosmology is None:
             return self
-        # get from obj, allowing for custom ``getter``
-        if self.fget is None:  # default to private attr (diff from `property`)
-            return getattr(obj, self._attr_name_private)
-        return self.fget(obj)
+        return getattr(cosmology, self._attr_name_private)
 
-    def __set__(self, obj, value):
+    def __set__(self, cosmology, value):
         """Allows attribute setting once. Raises AttributeError subsequently.
 
         .. warning::
@@ -231,74 +241,59 @@ class Parameter(property):
 
         """
         # raise error if setting 2nd time.
-        if hasattr(obj, self._attr_name_private):
+        if hasattr(cosmology, self._attr_name_private):
             raise AttributeError("can't set attribute")
 
         # validate value, generally setting units if present
-        value = self.validate(obj, value)
-        setattr(obj, self._attr_name_private, value)
+        value = self.set(cosmology, value)
+        setattr(cosmology, self._attr_name_private, value)
 
     # -------------------------------------------
-    # validate
+    # set value
 
-    @property
-    def fvalidate(self):
-        """Parameter value validator."""
-        return self._fvalidate
+    def set(self, cosmology, value):
+        """Run the setter on this Parameter.
 
-    def validator(self, fvalidate):
-        """Make new Parameter with custom ``fvalidate``.
-
-        Note: ``Parameter.validator`` must be the top-most descriptor decorator.
+        Note this setter doesn't actually set the value, but returns the value
+        that *should* be set.
 
         Parameters
         ----------
-        fvalidate : callable[[type, type, Any], Any]
-            Function to validate the Parameter value from instances of the
-            cosmology class.
-            The function should have signature
-            ``function(cosmology_instance, Parameter, value) -> value``.
-            If a method on a Cosmology, ``cosmology_instance`` => ``self``.
-            See ``Parameter._default_validator`` for an example.
-
-        Returns
-        -------
-        `~astropy.cosmology.Parameter`
-            Copy of this Parameter but with custom ``fvalidate``.
-        """
-        desc = type(self)(fget=self.fget, fvalidate=fvalidate,
-                          doc=self.__doc__, fmt=self.format_spec,
-                          unit=self.unit, equivalencies=self.equivalencies,
-                          fixed=self.fixed)
-        # TODO? need to override __wrapped__?
-        return desc
-
-    def validate(self, obj, value):
-        """Run the validator on this Parameter.
-
-        Parameters
-        ----------
-        obj : `~astropy.cosmology.Cosmology` instance
+        cosmology : `~astropy.cosmology.Cosmology` instance
         value : Any
-            The object to validate
+            The object to validate and set.
 
         Returns
         -------
         Any
-            The output of calling ``fvalidate(obj, self, value)``
+            The output of calling ``fset(cosmology, self, value)``
             (yes, that parameter order).
         """
-        return self.fvalidate(obj, self, value)
+        return self.fset(cosmology, self, value)
 
     @staticmethod
-    def _default_validator(obj, param, value):
+    def _default_setter(cosmology, param, value):
         """
-        Default Parameter value validation.
+        Default Parameter value setter.
         Adds/converts units if Parameter has a unit.
         """
         if param.unit is not None:
             with u.add_enabled_equivalencies(param.equivalencies):
                 value = u.Quantity(value, param.unit)
+        return value
+
+    @staticmethod
+    def _set_to_float(cosmology, param, value):
+        """Parameter value setter with units, and converted to float."""
+        value = param._default_setter(cosmology, param, value)
+        return float(value)
+
+    @staticmethod
+    def _set_to_scalar(cosmology, param, value):
+        """"""
+        value = param._default_setter(cosmology, param, value)
+        if not value.isscalar:
+            raise ValueError(f"{param.name} is a non-scalar quantity")
         return value
 
     # -------------------------------------------
