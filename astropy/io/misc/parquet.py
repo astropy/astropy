@@ -20,6 +20,7 @@ from astropy.utils.compat.optional_deps import HAS_PYARROW
 if HAS_PYARROW:
     import pyarrow as pa
     from pyarrow import parquet
+
 PARQUET_SIGNATURE = b'PAR1'
 
 __all__ = []  # nothing is publicly scoped
@@ -113,10 +114,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
         Table will have zero rows and only metadata information
         if schema_only is True.
     """
-    try:
-        import pyarrow as pa
-        from pyarrow import parquet
-    except ImportError:
+    if not HAS_PYARROW:
         raise Exception("pyarrow is required to read and write parquet files")
 
     if not isinstance(input, (str, os.PathLike)):
@@ -188,30 +186,29 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     for name in columns_to_read:
         # Pyarrow string and byte columns do not have native length information
         # so we must determine those here.
-        if schema.field(name).type in (pa.string(), pa.binary()):
+        if schema.field(name).type not in (pa.string(), pa.binary()):
+            # Convert the pyarrow type into a numpy dtype (which is returned
+            # by the to_pandas_type() method).
+            dtype.append(schema.field(name).type.to_pandas_dtype())
+        else:
+            # Special-case for string and binary columns
             md_name = f'table::len::{name}'
             if md_name in md:
                 # String/bytes length from header.
                 strlen = int(md[f'table::len::{name}'])
+            elif schema_only:  # Find the maximum string length.
+                # Choose an arbitrary string length since
+                # are not reading in the table.
+                strlen = 10
+                warnings.warn(f"No table::len::{name} found in metadata. "
+                              f"Guessing {{strlen}} for schema.",
+                              AstropyUserWarning)
             else:
-                # Find the maximum string length.
-                if schema_only:
-                    # Choose an arbitrary string length since
-                    # are not reading in the table.
-                    strlen = 10
-                    warnings.warn(f"No table::len::{name} found in metadata. "
-                                  f"Guessing {{strlen}} for schema.",
-                                  AstropyUserWarning)
-                else:
-                    strlen = max([len(row.as_py()) for row in pa_table[name]])
-                    warnings.warn(f"No table::len::{name} found in metadata. "
-                                  f"Using longest string ({{strlen}} characters).",
-                                  AstropyUserWarning)
+                strlen = max([len(row.as_py()) for row in pa_table[name]])
+                warnings.warn(f"No table::len::{name} found in metadata. "
+                              f"Using longest string ({{strlen}} characters).",
+                              AstropyUserWarning)
             dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
-        else:
-            # Convert the pyarrow type into a numpy dtype (which is returned
-            # by the to_pandas_type() method).
-            dtype.append(schema.field(name).type.to_pandas_dtype())
 
     # Create the empty numpy record array to store the pyarrow data.
     data = np.zeros(num_rows, dtype=list(zip(columns_to_read, dtype)))
@@ -258,10 +255,8 @@ def write_table_parquet(table, output, overwrite=False):
 
     from astropy.table import meta, serialize
     from astropy.utils.data_info import serialize_context_as
-    try:
-        import pyarrow as pa
-        from pyarrow import parquet
-    except ImportError:
+
+    if not HAS_PYARROW:
         raise Exception("pyarrow is required to read and write Parquet files")
 
     if not isinstance(output, str):
@@ -277,7 +272,9 @@ def write_table_parquet(table, output, overwrite=False):
 
     metadata = {}
     for name, col in encode_table.columns.items():
-        # Special-case string types to record the length
+        # Parquet will retain the datatypes of columns, but string and
+        # byte column length is lost.  Therefore, we special-case these
+        # types to record the length for precise round-tripping.
         if col.dtype.type is np.str_:
             metadata[f'table::len::{name}'] = str(col.dtype.itemsize//4)
         elif col.dtype.type is np.bytes_:
@@ -285,8 +282,8 @@ def write_table_parquet(table, output, overwrite=False):
 
         metadata['table_meta_yaml'] = meta_yaml_str
 
-    # Pyarrow stores all metadata as byte-strings, so we explicitly convert
-    # all metadata from UTF-8 to byte strings here.
+    # Pyarrow stores all metadata as byte strings, so we explicitly encode
+    # our unicode strings in metadata as UTF-8 byte strings here.
     metadata_encode = {k.encode('UTF-8'): v.encode('UTF-8') for k, v in metadata.items()}
 
     # Build the pyarrow schema by converting from the numpy dtype of each
