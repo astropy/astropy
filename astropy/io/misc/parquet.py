@@ -59,7 +59,7 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_parquet(input, columns=None, schema_only=False, filters=None):
+def read_table_parquet(input, include_names=None, exclude_names=None, schema_only=False, filters=None):
     """
     Read a Table object from a Parquet file.
 
@@ -98,8 +98,12 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     input : str or path-like or file-like object
         If a string or path-like object, the filename to read the table from.
         If a file-like object, the stream to read data.
-    columns : list [str], optional
-        Names of astropy columns to read.
+    include_names : list [str], optional
+        List of names to include in output.
+        This will automatically expand to all serialized columns if
+        necessary.
+    exclude_names : list [str], optional
+        List of names to exclude from output (applied after ``include_names``).
         This will automatically expand to all serialized columns if
         necessary.
     schema_only : bool, optional
@@ -154,36 +158,43 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
             for name in _get_names(serialized_columns[scol]):
                 full_table_columns[name] = scol
 
-    # columns_to_read is a list of actual serialized column names, where
-    # e.g. the requested column 'time' becomes ['time.jd1', 'time.jd2']
-    if columns is None:
-        columns_to_read = schema.names
-    else:
-        columns_to_read = []
-        for column in columns:
-            names = [n for n, col in full_table_columns.items() if column == col]
-            columns_to_read.extend(names)
+    use_names = set(full_table_columns.values())
+    # Apply include_names before exclude_names
+    if include_names is not None:
+        use_names.intersection_update(include_names)
+    if exclude_names is not None:
+        use_names.difference_update(exclude_names)
+    # Preserve column ordering via list, and use this dict trick
+    # to remove duplicates and preserve ordering (for mixin columns)
+    use_names = list(dict.fromkeys([x for x in full_table_columns.values() if x in use_names]))
 
-        if not columns_to_read:
-            raise ValueError("No columns specified were found in the table.")
+    # names_to_read is a list of actual serialized column names, where
+    # e.g. the requested name 'time' becomes ['time.jd1', 'time.jd2']
+    names_to_read = []
+    for name in use_names:
+        names = [n for n, col in full_table_columns.items() if name == col]
+        names_to_read.extend(names)
 
-        # We need to pop any unread serialized columns out of the meta_dict.
-        if has_serialized_columns:
-            for scol in list(meta_dict['__serialized_columns__'].keys()):
-                if scol not in columns:
-                    meta_dict['__serialized_columns__'].pop(scol)
+    if not names_to_read:
+        raise ValueError("No include_names specified were found in the table.")
+
+    # We need to pop any unread serialized columns out of the meta_dict.
+    if has_serialized_columns:
+        for scol in list(meta_dict['__serialized_columns__'].keys()):
+            if scol not in use_names:
+                meta_dict['__serialized_columns__'].pop(scol)
 
     # whether to return the whole table or a formatted empty table.
     if not schema_only:
         # Read the pyarrow table, specifying columns and filters.
-        pa_table = parquet.read_table(input, columns=columns_to_read, filters=filters)
+        pa_table = parquet.read_table(input, columns=names_to_read, filters=filters)
         num_rows = pa_table.num_rows
     else:
         num_rows = 0
 
     # Now need to convert parquet table to Astropy
     dtype = []
-    for name in columns_to_read:
+    for name in names_to_read:
         # Pyarrow string and byte columns do not have native length information
         # so we must determine those here.
         if schema.field(name).type not in (pa.string(), pa.binary()):
@@ -211,11 +222,11 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
             dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
 
     # Create the empty numpy record array to store the pyarrow data.
-    data = np.zeros(num_rows, dtype=list(zip(columns_to_read, dtype)))
+    data = np.zeros(num_rows, dtype=list(zip(names_to_read, dtype)))
 
     if not schema_only:
         # Convert each column in the pyarrow table to a numpy array
-        for name in columns_to_read:
+        for name in names_to_read:
             data[name][:] = pa_table[name].to_numpy()
 
     table = Table(data=data, meta=meta_dict)

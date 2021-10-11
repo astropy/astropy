@@ -498,7 +498,7 @@ def test_round_trip_masked_table_default(tmpdir):
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
-def test_parquet_mixins_read_one_column(table_cls, tmpdir):
+def test_parquet_mixins_read_one_name(table_cls, tmpdir):
     """Test write all cols at once, and read one at a time."""
     filename = str(tmpdir.join('test_simple.parquet'))
     names = sorted(mixin_cols)
@@ -511,12 +511,29 @@ def test_parquet_mixins_read_one_column(table_cls, tmpdir):
     t.write(filename, format="parquet")
 
     for name in names:
-        t2 = table_cls.read(filename, format='parquet', columns=[name])
+        t2 = table_cls.read(filename, format='parquet', include_names=[name])
         assert t2.meta['C'] == 'spam'
         assert t2.meta['comments'] == ['this', 'is', 'a', 'comment']
         assert t2.meta['history'] == ['first', 'second', 'third']
 
         assert t2.colnames == [name]
+
+
+@pytest.mark.parametrize('table_cls', (Table, QTable))
+def test_parquet_mixins_read_exclude_names(table_cls, tmpdir):
+    """Test write all cols at once, and read all but one at a time."""
+    filename = str(tmpdir.join('test_simple.parquet'))
+    names = sorted(mixin_cols)
+
+    t = table_cls([mixin_cols[name] for name in names], names=names)
+    t.meta['C'] = 'spam'
+    t.meta['comments'] = ['this', 'is', 'a', 'comment']
+    t.meta['history'] = ['first', 'second', 'third']
+
+    t.write(filename, format="parquet")
+
+    t2 = table_cls.read(filename, format='parquet', exclude_names=names[0: 5])
+    assert t.colnames[5: ] == t2.colnames
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
@@ -532,8 +549,8 @@ def test_parquet_mixins_read_no_columns(table_cls, tmpdir):
 
     t.write(filename, format="parquet")
 
-    with pytest.raises(ValueError, match='No columns specified'):
-        t2 = table_cls.read(filename, format='parquet', columns=['not_a_column', 'also_not_a_column'])
+    with pytest.raises(ValueError, match='No include_names specified'):
+        t2 = table_cls.read(filename, format='parquet', include_names=['not_a_column', 'also_not_a_column'])
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
