@@ -356,7 +356,7 @@ class EarthLocation(u.Quantity):
         class = EarthLocation
         n_bad = 0
         >>> keck.info.meta  # doctest: +REMOTE_DATA
-        {'source': 'IRAF Observatory Database', 'timezone': 'US/Aleutian'}
+        {'source': 'IRAF Observatory Database', 'timezone': 'US/Hawaii'}
 
         See Also
         --------
