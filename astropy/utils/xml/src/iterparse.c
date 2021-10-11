@@ -14,7 +14,7 @@
  *     astropy.io.votable (the primary user of this library) we only
  *     care about simple text nodes contained between a single pair of
  *     open/close element nodes.  It also has an optimization for
- *     recognizing the most commonly occuring element in a VO file,
+ *     recognizing the most commonly occurring element in a VO file,
  *     "TD".
  *
  *   - Two functions, escape_xml() and escape_xml_cdata() that escape

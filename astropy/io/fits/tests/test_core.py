@@ -899,7 +899,7 @@ class TestFileFunctions(FitsTestCase):
             h[0].header['EXPFLAG'] = 'ABNORMAL'
             h[1].data[0, 0] = 1
         with fits.open(gf) as h:
-            # Just to make sur ethe update worked; if updates work
+            # Just to make sure the update worked; if updates work
             # normal writes should work too...
             assert h[0].header['EXPFLAG'] == 'ABNORMAL'
             assert h[1].data[0, 0] == 1
@@ -1166,7 +1166,7 @@ class TestFileFunctions(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/2463
 
-        Test againt `io.BytesIO`.  `io.StringIO` is not supported.
+        Test against `io.BytesIO`.  `io.StringIO` is not supported.
         """
 
         self._test_write_string_bytes_io(io.BytesIO())

@@ -299,7 +299,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert str(c) == _pad("HISTORY  (1, 2)")
 
     def test_equal_sign_after_column8(self):
-        # equal sign after column 8 of a commentary card will be part ofthe
+        # equal sign after column 8 of a commentary card will be part of the
         # string value
         c = fits.Card.fromstring("HISTORY =   (1, 2)")
         assert str(c) == _pad("HISTORY =   (1, 2)")
@@ -1726,7 +1726,7 @@ class TestHeaderFunctions(FitsTestCase):
                 return StringIO(s)
 
         # Basic case motivated by the original issue; it's as if the END card
-        # was appened by software that doesn't know to treat it specially, and
+        # was appended by software that doesn't know to treat it specially, and
         # it is given an = after it
         s = invalid_header('END =', True)
 
@@ -2153,7 +2153,7 @@ class TestHeaderFunctions(FitsTestCase):
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/156
 
         When creating a new HDU from an existing Header read from an existing
-        FITS file, if the origianl header contains duplicate HISTORY values
+        FITS file, if the original header contains duplicate HISTORY values
         those duplicates should be preserved just as in the original header.
 
         This bug occurred due to naivete in Header.extend.
@@ -2828,7 +2828,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/183
 
         Ensures that cards with standard commentary keywords are never treated
-        as RVKCs.  Also ensures that cards not stricly matching the RVKC
+        as RVKCs.  Also ensures that cards not strictly matching the RVKC
         pattern are not treated as such.
         """
 

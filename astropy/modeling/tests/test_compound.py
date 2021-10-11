@@ -590,7 +590,7 @@ def test_tabular_in_compound():
     rot = Rotation2D(2)
     p = Polynomial1D(1)
     x = np.arange(12).reshape((3, 4))
-    # Create a compound model which does ot execute Tabular.__call__,
+    # Create a compound model which does not execute Tabular.__call__,
     # but model.evaluate and is followed by a Rotation2D which
     # checks the exact shapes.
     model = p & t | rot

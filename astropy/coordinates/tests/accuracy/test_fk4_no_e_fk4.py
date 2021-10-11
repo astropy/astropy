@@ -14,7 +14,7 @@ from astropy.utils.data import get_pkg_data_contents
 from . import N_ACCURACY_TESTS
 
 # It looks as though SLALIB, which AST relies on, assumes a simplified version
-# of the e-terms corretion, so we have to up the tolerance a bit to get things
+# of the e-terms correction, so we have to up the tolerance a bit to get things
 # to agree.
 TOLERANCE = 1.e-5  # arcseconds
 

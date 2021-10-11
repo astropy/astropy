@@ -100,7 +100,7 @@ These models provide profiles, often used for lines in spectra.
 
 - :class:`~astropy.modeling.functional_models.Trapezoid1D` model computes a
   box with sloping sides with an amplitude centered at x_0 with the specified
-  width and sides wit the specified slope.
+  width and sides with the specified slope.
 
 - :class:`~astropy.modeling.functional_models.Voigt1D` model computes a
   Voigt function with an amplitude centered at x_0 with the specified

@@ -325,7 +325,7 @@ Byte-by-byte Description of file: lmxbdata.dat
                                         period of the neutron star;
                                     XP: pulse period of the pulsar
      141  A1    ---     u_3.__Per Uncertainty flag for 3.__Per
- 142-146  F5.1  s         4.__Per ? Aditional period in the system, in case of
+ 142-146  F5.1  s         4.__Per ? Additional period in the system, in case of
                                     object type XP: optical period, presumably
                                     due to e_processed X-Rays
      152  A1    ---       EB      [D1 ] Occurrence of eclipses (G4)

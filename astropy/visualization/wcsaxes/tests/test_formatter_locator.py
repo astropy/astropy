@@ -25,19 +25,19 @@ class TestAngleFormatterLocator:
 
         with pytest.raises(ValueError) as exc:
             AngleFormatterLocator(values=[1., 2.], number=5)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
         with pytest.raises(ValueError) as exc:
             AngleFormatterLocator(values=[1., 2.], spacing=5. * u.deg)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
         with pytest.raises(ValueError) as exc:
             AngleFormatterLocator(number=5, spacing=5. * u.deg)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
         with pytest.raises(ValueError) as exc:
             AngleFormatterLocator(values=[1., 2.], number=5, spacing=5. * u.deg)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
     def test_values(self):
 
@@ -300,19 +300,19 @@ class TestScalarFormatterLocator:
 
         with pytest.raises(ValueError) as exc:
             ScalarFormatterLocator(values=[1., 2.] * u.m, number=5)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
         with pytest.raises(ValueError) as exc:
             ScalarFormatterLocator(values=[1., 2.] * u.m, spacing=5. * u.m)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
         with pytest.raises(ValueError) as exc:
             ScalarFormatterLocator(number=5, spacing=5. * u.m)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
         with pytest.raises(ValueError) as exc:
             ScalarFormatterLocator(values=[1., 2.] * u.m, number=5, spacing=5. * u.m)
-        assert exc.value.args[0] == "At most one of values/number/spacing can be specifed"
+        assert exc.value.args[0] == "At most one of values/number/spacing can be specified"
 
     def test_values(self):
 

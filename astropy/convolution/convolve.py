@@ -383,7 +383,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   nan_interpolate, embed_result_within_padded_region,
                   n_threads)
 
-    # So far, normalization has only occured for nan_treatment == 'interpolate'
+    # So far, normalization has only occurred for nan_treatment == 'interpolate'
     # because this had to happen within the C extension so as to ignore
     # any NaNs
     if normalize_kernel:

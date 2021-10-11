@@ -1154,7 +1154,7 @@ def obsgeo_to_frame(obsgeo, obstime):
         returned by ``WCS.wcs.obsgeo``.
 
     obstime : time-like
-        The time assiociated with the coordinate, will be passed to
+        The time associated with the coordinate, will be passed to
         `~.builtin_frames.ITRS` as the obstime keyword.
 
     Returns

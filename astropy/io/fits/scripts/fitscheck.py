@@ -190,7 +190,7 @@ def update(filename):
 
     # For unit tests we reset temporarily the warning filters. Indeed, before
     # updating the checksums, fits.open will verify the existing checksums and
-    # raise warnings, which are later catched and converted to log.warning...
+    # raise warnings, which are later caught and converted to log.warning...
     # which is an issue when testing, using the "error" action to convert
     # warnings to exceptions.
     with warnings.catch_warnings():

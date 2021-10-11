@@ -604,7 +604,7 @@ class SkyCoord(ShapedLikeNDArray):
         Note that in either case, any explicitly set attributes on the source
         `SkyCoord` that are not part of the destination frame's definition are
         kept (stored on the resulting `SkyCoord`), and thus one can round-trip
-        (e.g., from FK4 to ICRS to FK4 without loosing obstime).
+        (e.g., from FK4 to ICRS to FK4 without losing obstime).
 
         Parameters
         ----------
@@ -761,7 +761,7 @@ class SkyCoord(ShapedLikeNDArray):
                 # for anything except a delta-t in starpm, so it's OK that it's
                 # not necessarily the "real" obstime
                 t1 = Time('J2000')
-                new_obstime = None  # we don't actually know the inital obstime
+                new_obstime = None  # we don't actually know the initial obstime
                 t2 = t1 + dt
             else:
                 t2 = t1 + dt
@@ -1662,7 +1662,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         # because of issue #7028, the conversion to a PrecessedGeocentric
         # system fails in some cases.  Work around is to  drop the velocities.
-        # they are not needed here since only position infromation is used
+        # they are not needed here since only position information is used
         extra_frameattrs = {nm: getattr(self, nm)
                             for nm in self._extra_frameattr_names}
         novel = SkyCoord(self.realize_frame(self.data.without_differentials()),

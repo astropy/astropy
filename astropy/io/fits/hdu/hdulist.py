@@ -239,7 +239,7 @@ class HDUList(list, _Verify):
 
         if file is None:
             # Only do this when initializing from an existing list of HDUs
-            # When initalizing from a file, this will be handled by the
+            # When initializing from a file, this will be handled by the
             # append method after the first HDU is read
             self.update_extend()
 

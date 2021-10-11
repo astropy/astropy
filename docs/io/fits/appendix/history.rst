@@ -3027,7 +3027,7 @@ Changes since 0.7.5:
   order to make pyfits to work under Python 2.2. (2 occurrences)
 
 - Modify the "update" method in the Header class to use the "fixed-format"
-  card even if the card already exists.  This is to avoid the mis-alignment as
+  card even if the card already exists.  This is to avoid the misalignment as
   shown below:
 
   After running drizzle on ACS images it creates a CD matrix whose elements

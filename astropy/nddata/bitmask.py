@@ -393,7 +393,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
                 break
 
             if nlpar != nrpar:
-                raise ValueError("Unbalanced parantheses in bit flag list.")
+                raise ValueError("Unbalanced parentheses in bit flag list.")
 
             lpar_pos = bit_flags.find('(')
             rpar_pos = bit_flags.rfind(')')
@@ -537,7 +537,7 @@ good_mask_value=False, dtype=numpy.bool_)
 
             Each item in the list must be a flag, i.e., an integer that is an
             integer power of 2. In addition, for convenience, an arbitrary
-            **single** integer is allowed and it will be interpretted as an
+            **single** integer is allowed and it will be interpreted as an
             integer bit mask. For example, instead of ``'4,8'`` one could
             simply provide string ``'12'``.
 
