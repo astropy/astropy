@@ -15,10 +15,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.compat.optional_deps import HAS_PANDAS
-if HAS_PANDAS:
-    import pandas
+from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa 401
 
 # Skip all tests in this file if we cannot import pyarrow
 pyarrow = pytest.importorskip("pyarrow")
@@ -572,7 +569,7 @@ def test_parquet_mixins_read_exclude_names(table_cls, tmpdir):
     t.write(filename, format="parquet")
 
     t2 = table_cls.read(filename, format='parquet', exclude_names=names[0: 5])
-    assert t.colnames[5: ] == t2.colnames
+    assert t.colnames[5:] == t2.colnames
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
@@ -589,7 +586,8 @@ def test_parquet_mixins_read_no_columns(table_cls, tmpdir):
     t.write(filename, format="parquet")
 
     with pytest.raises(ValueError, match='No include_names specified'):
-        t2 = table_cls.read(filename, format='parquet', include_names=['not_a_column', 'also_not_a_column'])
+        t2 = table_cls.read(filename, format='parquet',
+                            include_names=['not_a_column', 'also_not_a_column'])
 
 
 @pytest.mark.parametrize('table_cls', (Table, QTable))
