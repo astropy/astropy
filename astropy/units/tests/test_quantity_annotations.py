@@ -94,7 +94,7 @@ class TestQuantityUnitAnnotations:
             Quantity["definitely not a unit"]
 
 
-@pytest.mark.skipif(HAS_ANNOTATED, reason="requires py3.8 behabior")
+@pytest.mark.skipif(HAS_ANNOTATED, reason="requires py3.8 behavior")
 def test_not_unit_or_ptype():
     """
     Same as above test, but different behavior for python 3.8 b/c it passes

@@ -333,11 +333,11 @@ class Quantity(np.ndarray):
     def __class_getitem__(cls, unit_shape_dtype):
         """Quantity Type Hints.
 
-        Unit-aware type hints are ``Annotated`` objects that encode the class
-        and the unit as well as possible further metadata as the annotation.
+        Unit-aware type hints are ``Annotated`` objects that encode the class,
+        the unit, and possibly shape and dtype information, depending on the
+        python and :mod:`numpy` versions.
 
-        Schematically,
-        ``Annotated[cls, *unit_shape_dtype]``
+        Schematically, ``Annotated[cls[shape, dtype], unit]``
 
         As a classmethod, the type is the class, ie ``Quantity``
         produces an ``Annotated[Quantity, ...]`` while a subclass
@@ -349,16 +349,23 @@ class Quantity(np.ndarray):
         unit_shape_dtype : :class:`~astropy.units.UnitBase`, str, `~astropy.units.PhysicalType`, or tuple
             Unit specification, can be the physical type (ie str or class).
             If tuple, then the first element is the unit specification
-            and all other elements are for ndarray type annotations.
+            and all other elements are for `numpy.ndarray` type annotations.
+            Whether they are included depends on the python and :mod:`numpy`
+            versions.
 
         Returns
         -------
-        `typing.Annotated` or `typing_extensions.Annotated`
+        `typing.Annotated`, `typing_extensions.Annotated`, `astropy.units.Unit`, or `astropy.units.PhysicalType`
+            Return type in this preference order:
+            `typing.Annotated` if python v3.9+; `typing_extensions.Annotated`
+            if :mod:`typing_extensions` is installed, a `astropy.units.Unit`
+            or `astropy.units.PhysicalType` else-wise, depending on the input.
 
         Raises
         ------
-        ImportError
-            If python is not v3.9+ and ``typing_extensions`` is not installed.
+        TypeError
+            If the unit/physical_type annotation is not Unit-like or
+            PhysicalType-like.
 
         Examples
         --------
@@ -374,17 +381,13 @@ class Quantity(np.ndarray):
 
         Notes
         -----
-        With Python 3.9+ or ``typing_extensions``, Quantity types are also
-        static compatible.
+        With Python 3.9+ or :mod:`typing_extensions`, |Quantity| types are also
+        static-type compatible.
         """
-        if not HAS_ANNOTATED:
-            raise ImportError(
-                "python is not v3.9+ and the package `typing_extensions` is "
-                "not installed. Quantity annotations will not work.")
-
         # LOCAL
         from .physical import is_physicaltypelike
 
+        # process whether [unit] or [unit, shape, ptype]
         if isinstance(unit_shape_dtype, tuple):  # unit, shape, dtype
             target = unit_shape_dtype[0]
             shape_dtype = unit_shape_dtype[1:]
@@ -397,10 +400,16 @@ class Quantity(np.ndarray):
         if not unit:
             raise TypeError("target is not a Unit or PhysicalType")
 
-        if minversion('numpy', '1.22'):  # https://github.com/numpy/numpy/pull/19879
-            # use NumPy generics type hinting
-            cls = super().__class_getitem__((cls, *shape_dtype))
+        # Allow to sort of work for python 3.8- / no typing_extensions
+        # instead of bailing out, return the unit for `quantity_input`
+        if not HAS_ANNOTATED:
+            return unit
 
+        # Quantity does not (yet) properly extend the NumPy generics types,
+        # introduce in numpy v1.22+, instead just including the unit info as
+        # metadata using Annotated.
+        if minversion('numpy', '1.22'):
+            cls = super().__class_getitem__((cls, *shape_dtype))
         return Annotated.__class_getitem__((cls, unit))
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
