@@ -59,7 +59,8 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
-def read_table_parquet(input, include_names=None, exclude_names=None, schema_only=False, filters=None):
+def read_table_parquet(input, include_names=None, exclude_names=None,
+                       schema_only=False, filters=None):
     """
     Read a Table object from a Parquet file.
 
