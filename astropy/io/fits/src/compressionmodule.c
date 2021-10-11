@@ -8,7 +8,7 @@
 /* rectangular grid of subimages or 'tiles'.  Each tile is then compressed   */
 /* as a continuous block of data, and the resulting compressed byte stream   */
 /* is stored in a row of a variable length column in a FITS binary table.    */
-/* The default tiling pattern treates each row of a 2-dimensional image      */
+/* The default tiling pattern treats each row of a 2-dimensional image      */
 /* (or higher dimensional cube) as a tile, such that each tile contains      */
 /* NAXIS1 pixels.                                                            */
 /*                                                                           */

@@ -79,7 +79,7 @@ print(gc1.v_x, gc1.v_y, gc1.v_z)
 # ``z_sun`` which set the sun-Galactic center distance, the 3D velocity vector
 # of the sun, and the height of the sun above the Galactic midplane,
 # respectively. The velocity of the sun can be specified as an
-# `~astropy.units.Quantity` object with velocity units and is interepreted as a
+# `~astropy.units.Quantity` object with velocity units and is interpreted as a
 # Cartesian velocity, as in the example below. Note that, as with the positions,
 # the Galactocentric frame is a right-handed system (i.e., the Sun is at negative
 # x values) so ``v_x`` is opposite of the Galactocentric radial velocity:

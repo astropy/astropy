@@ -113,7 +113,7 @@ class _ModelMeta(abc.ABCMeta):
                 if issubclass(tbase, Model):
                     # Preserve order of definitions
                     param_names = list(tbase._parameters_) + param_names
-        # Remove duplicates (arising from redefintion in subclass).
+        # Remove duplicates (arising from redefinition in subclass).
         param_names = list(dict.fromkeys(param_names))
         if cls._parameters_:
             if hasattr(cls, '_param_names'):
@@ -689,7 +689,7 @@ class Model(metaclass=_ModelMeta):
     input_units_equivalencies = None
 
     # Covariance matrix can be set by fitter if available.
-    # If cov_matrix is availble, then std will set as well
+    # If cov_matrix is available, then std will set as well
     _cov_matrix = None
     _stds = None
 
@@ -2644,7 +2644,7 @@ class CompoundModel(Model):
     def _get_right_inputs_from_args(self, args):
         op = self.op
         if op == '&':
-            # Args expected to look lik (*left inputs, *right inputs, *left params, *right params)
+            # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             return args[self.left.n_inputs: self.left.n_inputs + self.right.n_inputs]
         elif op == '|' or  op == 'fix_inputs':
             return None
@@ -2654,7 +2654,7 @@ class CompoundModel(Model):
     def _get_left_params_from_args(self, args):
         op = self.op
         if op == '&':
-            # Args expected to look lik (*left inputs, *right inputs, *left params, *right params)
+            # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             n_inputs = self.left.n_inputs + self.right.n_inputs
             return args[n_inputs: n_inputs + self.n_left_params]
         else:
@@ -2665,7 +2665,7 @@ class CompoundModel(Model):
         if op == 'fix_inputs':
             return None
         if op == '&':
-            # Args expected to look lik (*left inputs, *right inputs, *left params, *right params)
+            # Args expected to look like (*left inputs, *right inputs, *left params, *right params)
             return args[self.left.n_inputs + self.right.n_inputs + self.n_left_params:]
         else:
             return args[self.left.n_inputs + self.n_left_params:]
@@ -3410,7 +3410,7 @@ class CompoundModel(Model):
                                  'number of dimensions.')
 
         if bbox is not None:
-            # Assures position is at center pixel, important when usin
+            # Assures position is at center pixel, important when using
             # add_array.
             pd = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2))
                            for bb in bbox]).astype(int).T
@@ -4085,7 +4085,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
 def remove_axes_from_shape(shape, axis):
     """
     Given a shape tuple as the first input, construct a new one by  removing
-    that particular axis from the shape and all preceeding axes. Negative axis
+    that particular axis from the shape and all preceding axes. Negative axis
     numbers are permittted, where the axis is relative to the last axis.
     """
     if len(shape) == 0:

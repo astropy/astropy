@@ -855,7 +855,7 @@ class FITS_rec(np.recarray):
         null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
 
         # Convert all fields equal to the TNULL value (nullval) to empty fields.
-        # TODO: These fields really should be conerted to NaN or something else undefined.
+        # TODO: These fields really should be converted to NaN or something else undefined.
         # Currently they are converted to empty fields, which are then set to zero.
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 

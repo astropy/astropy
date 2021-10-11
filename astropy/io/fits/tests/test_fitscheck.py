@@ -58,7 +58,7 @@ class TestFitscheck(FitsTestCase):
 
     def test_overwrite_invalid(self, caplog):
         """
-        Tests that invalid checksum or datasum are overwriten when the file is
+        Tests that invalid checksum or datasum are overwritten when the file is
         saved.
         """
         reffile = self.temp('ref.fits')

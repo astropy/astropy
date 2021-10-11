@@ -1460,7 +1460,7 @@ class E22(VOWarning, ValueError):
 class E23(VOTableSpecWarning):
     """
     The ``timeorigin`` attribute on the ``TIMESYS`` element must be
-    either a floating point literal specifiying a valid Julian Date,
+    either a floating point literal specifying a valid Julian Date,
     or, for convenience, the string "MJD-origin" (standing for 2400000.5)
     or the string "JD-origin" (standing for 0).
 

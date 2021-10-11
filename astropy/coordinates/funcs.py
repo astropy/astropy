@@ -305,7 +305,7 @@ def concatenate_representations(reps):
         raise TypeError('Input must be a list or iterable of representation '
                         'objects.')
 
-    # First, validate that the represenations are the same, and
+    # First, validate that the representations are the same, and
     # concatenate all of the positional data:
     rep_type = type(reps[0])
     if any(type(r) != rep_type for r in reps):
@@ -347,7 +347,7 @@ def concatenate(coords):
     "Coordinate objects" here mean frame objects with data,
     `~astropy.coordinates.SkyCoord`, or representation objects.  Currently,
     they must all be in the same frame, but in a future version this may be
-    relaxed to allow inhomogenous sequences of objects.
+    relaxed to allow inhomogeneous sequences of objects.
 
     Parameters
     ----------

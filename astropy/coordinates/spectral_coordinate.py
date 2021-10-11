@@ -282,7 +282,7 @@ class SpectralCoord(SpectralQuantity):
             coord = SkyCoord(coord, distance=DEFAULT_DISTANCE)
             warnings.warn(
                 "Distance on coordinate object is dimensionless, an "
-                f"abritrary distance value of {DEFAULT_DISTANCE} will be set instead.",
+                f"arbitrary distance value of {DEFAULT_DISTANCE} will be set instead.",
                 NoDistanceWarning)
 
         # If the observer frame does not contain information about the

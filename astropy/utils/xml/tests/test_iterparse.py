@@ -104,8 +104,8 @@ class UngzipFileWrapper:
 #
 # If a dependency upon 'zlib' is not desired, it would be possible to
 # simplify this testcase by replacing the compress/decompress with a
-# read() method emulation that always returned more from a buffer tha
-# was requested.
+# read() method emulation that always returned more from a buffer
+# that was requested.
 
 
 def test_iterparser_over_read_simple():

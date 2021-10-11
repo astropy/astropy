@@ -97,7 +97,7 @@ def format_exception(msg, *args, **kwargs):
         in the formatting arguments. Since `sys.exc_info` is not carried
         outside a handled exception, it's not wise to use this
         outside of an ``except`` clause - if it is, this will substitute
-        '<unkonwn>' for the 4 formatting arguments.
+        '<unknown>' for the 4 formatting arguments.
     """
 
     tb = traceback.extract_tb(sys.exc_info()[2], limit=1)

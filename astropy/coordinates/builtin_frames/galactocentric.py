@@ -508,7 +508,7 @@ class Galactocentric(BaseCoordinateFrame):
         """
         # note that the actual value is defined at the module level.  We make at
         # a property here because this module isn't actually part of the public
-        # API, so it's better for it to be accessable from Galactocentric
+        # API, so it's better for it to be accessible from Galactocentric
         return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->

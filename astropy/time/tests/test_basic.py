@@ -406,7 +406,7 @@ class TestBasic:
 
     def test_local_format_transforms(self):
         """
-        Test trasformation of local time to different formats
+        Test transformation of local time to different formats
         Transformation to formats with reference time should give
         ScalevalueError
         """

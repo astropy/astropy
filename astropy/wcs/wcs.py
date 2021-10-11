@@ -1793,7 +1793,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 # Compute norm (L2) of the correction:
                 dnnew = np.sum(np.square(dpixnew), axis=1)
 
-                # Bookeeping of corrections:
+                # Bookkeeping of corrections:
                 dnprev[ind] = dn[ind].copy()
                 dn[ind] = dnnew
 

@@ -955,7 +955,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slic
     actually changes on the bottom.
 
     For example an aligned wcs, pixel grid where you plot a lon slice through a
-    lat axis, you would end up with no ticks on the bottom as the lon dosen't
+    lat axis, you would end up with no ticks on the bottom as the lon doesn't
     change, and a set of lat ticks on the top because it does but it's the
     correlated axis not the actual one you are plotting against.
     """

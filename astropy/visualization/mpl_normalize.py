@@ -318,7 +318,7 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of
         the supplied axes.
     imshow_only_kwargs : dict, optional
-        Deprecated since Astropy v4.1.  Note that settting both ``norm``
+        Deprecated since Astropy v4.1.  Note that setting both ``norm``
         and ``vmin/vmax`` is deprecated in ``matplotlib >= 3.3``.
 
         Arguments to be passed directly to `~matplotlib.pyplot.imshow` without

@@ -1682,7 +1682,7 @@ def test_unicode_policy():
 @pytest.mark.parametrize('uni', ['питона', 'ascii'])
 def test_unicode_bytestring_conversion(table_types, uni):
     """
-    Test converting columns to all unicode or all bytestring.  Thi
+    Test converting columns to all unicode or all bytestring.  This
     makes two columns, one which is unicode (str in Py3) and one which
     is bytes (UTF-8 encoded).  There are two code paths in the conversions,
     a faster one where the data are actually ASCII and a slower one where
@@ -2575,7 +2575,7 @@ def test_create_table_from_final_row():
 
 
 def test_key_values_in_as_array():
-    # Test for cheking column slicing using key_values in Table.as_array()
+    # Test for checking column slicing using key_values in Table.as_array()
     data_rows = [(1, 2.0, 'x'),
                  (4, 5.0, 'y'),
                  (5, 8.2, 'z')]
@@ -2586,7 +2586,7 @@ def test_key_values_in_as_array():
     # Values of sliced column a,b is stored in a numpy array
     a = np.array([(1, 2.), (4, 5.), (5, 8.2)],
                  dtype=[('a', '<i4'), ('b', '<f8')])
-    # Values fo sliced column c is stored in a numpy array
+    # Values for sliced column c is stored in a numpy array
     b = np.array([(b'x',), (b'y',), (b'z',)], dtype=[('c', 'S1')])
     # Comparing initialised array with sliced array using Table.as_array()
     assert np.array_equal(a, t1.as_array(names=['a', 'b']))

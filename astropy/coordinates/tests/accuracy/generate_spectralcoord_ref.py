@@ -1,7 +1,7 @@
 # Script to generate random targets, observatory locations, and times, and
 # run these using the Starlink rv command to generate reference values for the
 # velocity frame corrections. This requires that Starlink is installed and that
-# the rv comamnd is in your PATH. More information about Starlink can be found
+# the rv command is in your PATH. More information about Starlink can be found
 # at http://starlink.eao.hawaii.edu/starlink
 
 if __name__ == "__main__":

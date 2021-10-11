@@ -2224,9 +2224,9 @@ class TestTableFunctions(FitsTestCase):
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/86
 
         Numpy recarray objects have a poorly-considered feature of allowing
-        field access by attribute lookup.  However, if a field name conincides
+        field access by attribute lookup.  However, if a field name coincides
         with an existing attribute/method of the array, the existing name takes
-        precence (making the attribute-based field lookup completely unreliable
+        presence (making the attribute-based field lookup completely unreliable
         in general cases).
 
         This ensures that any FITS_rec attributes still work correctly even
@@ -2391,11 +2391,11 @@ class TestTableFunctions(FitsTestCase):
 
     def test_unncessary_table_load(self):
         """Test unnecessary parsing and processing of FITS tables when writing
-        direclty from one FITS file to a new file without first reading the
+        directly from one FITS file to a new file without first reading the
         data for user manipulation.
 
         In other words, it should be possible to do a direct copy of the raw
-        data without unecessary processing of the data.
+        data without unnecessary processing of the data.
         """
 
         with fits.open(self.data('table.fits')) as h:

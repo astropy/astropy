@@ -927,7 +927,7 @@ accepted by the :class:`FITSDiff` class.
     from astropy.io.fits import printdiff
     # get a difference report of ext 2 of inA and inB
     printdiff('inA.fits', 'inB.fits', ext=2)
-    # ignore HISTORY and COMMMENT keywords
+    # ignore HISTORY and COMMENT keywords
     printdiff('inA.fits', 'inB.fits', ignore_keywords=('HISTORY','COMMENT')
 
 Finally, the :func:`info` function will print out information of the specified

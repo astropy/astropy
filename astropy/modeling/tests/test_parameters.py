@@ -175,7 +175,7 @@ class TestParameters:
         Read an iraf database file created by onedspec.identify.  Use the
         information to create a 1D Chebyshev model and perform the same fit.
 
-        Create also a gausian model.
+        Create also a gaussian model.
         """
         test_file = get_pkg_data_filename('data/idcompspec.fits')
         f = open(test_file)
