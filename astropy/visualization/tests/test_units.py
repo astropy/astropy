@@ -8,6 +8,7 @@ import pytest
 from astropy.utils.compat.optional_deps import HAS_PLT
 if HAS_PLT:
     import matplotlib.pyplot as plt
+import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -124,3 +125,13 @@ def test_empty_hist():
         # The second call results in an empty list being passed to the
         # unit converter in matplotlib >= 3.1
         ax.hist([] * u.mmag, bins=100)
+
+
+@pytest.mark.skipif('not HAS_PLT')
+def test_radian_formatter():
+    with quantity_support():
+        fig, ax = plt.subplots()
+        ax.plot([1, 2, 3], [1, 2, 3] * u.rad * np.pi)
+        fig.canvas.draw()
+        labels = [tl.get_text() for tl in ax.yaxis.get_ticklabels()]
+        assert labels == ['π/2', 'π', '3π/2', '2π', '5π/2', '3π', '7π/2']
