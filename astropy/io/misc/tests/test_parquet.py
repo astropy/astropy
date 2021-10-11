@@ -119,6 +119,45 @@ def test_read_wrong_fileobj():
         Table.read(f, format='parquet')
 
 
+def test_identify_wrong_fileobj():
+    """Test identifying an incorrect fileobj."""
+
+    class FakeFile:
+        def not_read(self):
+            pass
+
+    f = FakeFile()
+
+    from astropy.io.misc.parquet import parquet_identify
+
+    assert not parquet_identify('test', 'test', f)
+
+
+def test_identify_file_wrong_extension():
+    """Test identifying an incorrect extension."""
+
+    from astropy.io.misc.parquet import parquet_identify
+
+    assert not parquet_identify('test', 'test.notparquet', None)
+
+
+def test_identify_file_correct_extension():
+    """Test identifying an incorrect extension."""
+
+    from astropy.io.misc.parquet import parquet_identify
+
+    assert parquet_identify('test', 'test.parquet', None)
+    assert parquet_identify('test', 'test.parq', None)
+
+
+def test_identify_file_noobject_nopath():
+    """Test running identify with no object or path."""
+
+    from astropy.io.misc.parquet import parquet_identify
+
+    assert not parquet_identify('test', None, None)
+
+
 def test_write_wrong_type():
     """Test writing to a filename of the wrong type."""
 
