@@ -16,7 +16,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.compat.optional_deps import HAS_PANDAS # noqa
+from astropy.utils.compat.optional_deps import HAS_PANDAS
 if HAS_PANDAS:
     import pandas
 

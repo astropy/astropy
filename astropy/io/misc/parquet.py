@@ -15,6 +15,11 @@ import numpy as np
 # https://github.com/astropy/astropy/issues/6604
 from astropy.utils.exceptions import AstropyUserWarning
 
+from astropy.utils.compat.optional_deps import HAS_PYARROW
+
+if HAS_PYARROW:
+    import pyarrow as pa
+    from pyarrow import parquet
 PARQUET_SIGNATURE = b'PAR1'
 
 __all__ = []  # nothing is publicly scoped
@@ -125,8 +130,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     # Pyarrow stores all metadata as byte-strings, so we convert
     # to UTF-8 strings here.
     if schema.metadata is not None:
-        md = {key.decode('UTF-8'): schema.metadata[key].decode('UTF-8')
-              for key in schema.metadata}
+        md = {k.decode('UTF-8'): v.decode('UTF-8') for k, v in schema.metadata.items()}
     else:
         md = {}
 
@@ -159,8 +163,8 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     else:
         columns_to_read = []
         for column in columns:
-            cols = [n for n in full_table_columns if column == full_table_columns[n]]
-            columns_to_read.extend(cols)
+            names = [n for n, col in full_table_columns.items() if column == col]
+            columns_to_read.extend(names)
 
         if not columns_to_read:
             raise ValueError("No columns specified were found in the table.")
@@ -184,7 +188,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
     for name in columns_to_read:
         # Pyarrow string and byte columns do not have native length information
         # so we must determine those here.
-        if schema.field(name).type == pa.string() or schema.field(name).type == pa.binary():
+        if schema.field(name).type in (pa.string(), pa.binary()):
             md_name = f'table::len::{name}'
             if md_name in md:
                 # String/bytes length from header.
@@ -203,10 +207,7 @@ def read_table_parquet(input, columns=None, schema_only=False, filters=None):
                     warnings.warn(f"No table::len::{name} found in metadata. "
                                   f"Using longest string ({{strlen}} characters).",
                                   AstropyUserWarning)
-            if schema.field(name).type == pa.string():
-                dtype.append(f'U{strlen}')
-            else:
-                dtype.append(f'|S{strlen}')
+            dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
         else:
             # Convert the pyarrow type into a numpy dtype (which is returned
             # by the to_pandas_type() method).
@@ -251,8 +252,8 @@ def write_table_parquet(table, output, overwrite=False):
         Data table that is to be written to file.
     output : str
         The filename to write the table to.
-    overwrite : bool
-        Whether to overwrite any existing file without warning.
+    overwrite : bool, optional
+        Whether to overwrite any existing file without warning. Default `False`.
     """
 
     from astropy.table import meta, serialize
@@ -325,11 +326,11 @@ def _get_names(_dict):
         All the column names mentioned in _dict and sub-dicts.
     """
     all_names = []
-    for key in _dict:
-        if isinstance(_dict[key], dict):
-            all_names.extend(_get_names(_dict[key]))
-        elif key == 'name':
-            all_names.append(_dict['name'])
+    for k, v in _dict.items():
+        if isinstance(v, dict):
+            all_names.extend(_get_names(v))
+        elif k == 'name':
+            all_names.append(v)
     return all_names
 
 
