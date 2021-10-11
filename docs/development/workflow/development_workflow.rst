@@ -236,8 +236,9 @@ At this point you have made and checked out a new branch, but `git`_ does not
 know it should be connected to your fork on GitHub. You need that connection
 for your proposed changes to be managed by the Astropy maintainers on GitHub.
 
-To connect your local branch to GitHub, you `git push`_ this new branch up to
-your GitHub repo with the ``--set-upstream`` option::
+The most convenient way for connecting your local branch to GitHub is to `git
+push`_ this new branch up to your GitHub repo with the ``--set-upstream``
+option::
 
    git push --set-upstream your-github-username my-new-feature
 
@@ -245,7 +246,9 @@ From now on git will know that ``my-new-feature`` is related to the
 ``your-github-username/my-new-feature`` branch in your GitHub fork of Astropy.
 
 You will still need to ``git push`` your changes to GitHub periodically. The
-setup in this section will make that easier.
+setup in this section will make that easier because any following pushes of
+this branch can be performed without having to write out the remote and branch
+names.
 
 .. _install-branch:
 
@@ -395,9 +398,15 @@ names and the like is encouraged.
 Copy your changes to GitHub
 ***************************
 
-This step is easy because of the way you created the feature branch. Just::
+If you followed the instructions to `Connect the branch to GitHub`_ then you
+can simply use::
 
     git push
+
+If you skipped that step then you need to write out the remote and branch
+names::
+
+    git push your-github-username my-new-feature
 
 .. _pull-request:
 
