@@ -388,7 +388,7 @@ class Fittable1DModelTester:
             model.bounding_box = 5
 
         try:
-            bbox = model.bounding_box
+            bbox = model.bounding_box.bounding_box()
         except NotImplementedError:
             return
 
