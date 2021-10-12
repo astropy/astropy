@@ -87,6 +87,14 @@ The following models have now been added:
 
 * :class:`~astropy.modeling.functional_models.Cosine1D`: a one-dimensional
   cosine model.
+* :class:`~astropy.modeling.functional_models.Tangent1D`: a one-dimensional
+  Tangent model.
+* :class:`~astropy.modeling.functional_models.ArcSine1D`: a one-dimensional
+  inverse sine model.
+* :class:`~astropy.modeling.functional_models.ArcCosine1D`: a one-dimensional
+  inverse cosine model.
+* :class:`~astropy.modeling.functional_models.ArcTangent1D`: a one-dimensional
+  inverse tangent model.
 
 
 Full change log
