@@ -51,7 +51,9 @@ Explanation of keywords of the dictionaries:
 
 
 from astropy.modeling.functional_models import (
-    Gaussian1D, Sine1D, Cosine1D, Box1D, Linear1D, Lorentz1D,
+    Gaussian1D,
+    Sine1D, Cosine1D, Tangent1D, ArcSine1D, ArcCosine1D, ArcTangent1D,
+    Box1D, Linear1D, Lorentz1D,
     RickerWavelet1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, RickerWavelet2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
@@ -87,6 +89,38 @@ models_1D = {
         'parameters': [1, 0.1, 0],
         'x_values': [0, 2.5],
         'y_values': [1, 0],
+        'x_lim': [-10, 10],
+        'integral': 0
+    },
+
+    Tangent1D: {
+        'parameters': [1, 0.1, 0],
+        'x_values': [0, 1.25],
+        'y_values': [0, 1],
+        'x_lim': [-10, 10],
+        'integral': 0
+    },
+
+    ArcSine1D: {
+        'parameters': [1, 0.1, 0],
+        'x_values': [0, 1],
+        'y_values': [0, 2.5],
+        'x_lim': [-0.5, 0.5],
+        'integral': 0
+    },
+
+    ArcCosine1D: {
+        'parameters': [1, 0.1, 0],
+        'x_values': [1, 0],
+        'y_values': [0, 2.5],
+        'x_lim': [-0.5, 0.5],
+        'integral': 0
+    },
+
+    ArcTangent1D: {
+        'parameters': [1, 0.1, 0],
+        'x_values': [0, 1],
+        'y_values': [0, 1.25],
         'x_lim': [-10, 10],
         'integral': 0
     },
