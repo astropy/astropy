@@ -343,7 +343,7 @@ class Fittable1DModelTester:
         self.N = 100
         self.M = 100
         self.eval_error = 0.0001
-        self.fit_error = 0.1
+        self.fit_error = 0.11
         self.x = 5.3
         self.y = 6.7
         self.x1 = np.arange(1, 10, .1)
