@@ -202,25 +202,26 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
             # Convert the pyarrow type into a numpy dtype (which is returned
             # by the to_pandas_type() method).
             dtype.append(schema.field(name).type.to_pandas_dtype())
+            continue
+
+        # Special-case for string and binary columns
+        md_name = f'table::len::{name}'
+        if md_name in md:
+            # String/bytes length from header.
+            strlen = int(md[md_name])
+        elif schema_only:  # Find the maximum string length.
+            # Choose an arbitrary string length since
+            # are not reading in the table.
+            strlen = 10
+            warnings.warn(f"No table::len::{name} found in metadata. "
+                          f"Guessing {{strlen}} for schema.",
+                          AstropyUserWarning)
         else:
-            # Special-case for string and binary columns
-            md_name = f'table::len::{name}'
-            if md_name in md:
-                # String/bytes length from header.
-                strlen = int(md[f'table::len::{name}'])
-            elif schema_only:  # Find the maximum string length.
-                # Choose an arbitrary string length since
-                # are not reading in the table.
-                strlen = 10
-                warnings.warn(f"No table::len::{name} found in metadata. "
-                              f"Guessing {{strlen}} for schema.",
-                              AstropyUserWarning)
-            else:
-                strlen = max([len(row.as_py()) for row in pa_table[name]])
-                warnings.warn(f"No table::len::{name} found in metadata. "
-                              f"Using longest string ({{strlen}} characters).",
-                              AstropyUserWarning)
-            dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
+            strlen = max([len(row.as_py()) for row in pa_table[name]])
+            warnings.warn(f"No table::len::{name} found in metadata. "
+                          f"Using longest string ({{strlen}} characters).",
+                          AstropyUserWarning)
+        dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
 
     # Create the empty numpy record array to store the pyarrow data.
     data = np.zeros(num_rows, dtype=list(zip(names_to_read, dtype)))
@@ -259,7 +260,7 @@ def write_table_parquet(table, output, overwrite=False):
     ----------
     table : `~astropy.table.Table`
         Data table that is to be written to file.
-    output : str
+    output : str or path-like
         The filename to write the table to.
     overwrite : bool, optional
         Whether to overwrite any existing file without warning. Default `False`.
@@ -271,8 +272,8 @@ def write_table_parquet(table, output, overwrite=False):
     if not HAS_PYARROW:
         raise Exception("pyarrow is required to read and write Parquet files")
 
-    if not isinstance(output, str):
-        raise TypeError(f'`output` should be a string, not {output}')
+    if not isinstance(output, (str, os.PathLike)):
+        raise TypeError(f'`output` should be a string or path-like, not {output}')
 
     # Convert all compound columns into serialized column names, where
     # e.g. 'time' becomes ['time.jd1', 'time.jd2'].

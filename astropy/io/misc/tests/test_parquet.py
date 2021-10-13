@@ -39,7 +39,7 @@ def _default_values(dtype):
 
 def test_read_write_simple(tmpdir):
     """Test writing/reading a simple parquet file."""
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
     t1.write(test_file)
@@ -49,7 +49,7 @@ def test_read_write_simple(tmpdir):
 
 def test_read_write_existing(tmpdir):
     """Test writing an existing file without overwriting."""
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
     with open(test_file, 'w') as f:  # create empty file
         pass
     t1 = Table()
@@ -63,7 +63,7 @@ def test_read_write_existing(tmpdir):
 def test_read_write_existing_overwrite(tmpdir):
     """Test overwriting an existing file."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
     with open(test_file, 'w') as f:  # create empty file
         pass
     t1 = Table()
@@ -76,7 +76,7 @@ def test_read_write_existing_overwrite(tmpdir):
 def test_read_fileobj(tmpdir):
     """Test reading a file object."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
@@ -91,7 +91,7 @@ def test_read_fileobj(tmpdir):
 def test_read_pathlikeobj(tmpdir):
     """Test reading a path-like object."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
@@ -161,7 +161,7 @@ def test_write_wrong_type():
 def test_preserve_single_dtypes(tmpdir, dtype):
     """Test that round-tripping a single column preserves datatypes."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     values = _default_values(dtype)
 
@@ -178,7 +178,7 @@ def test_preserve_single_dtypes(tmpdir, dtype):
 def test_preserve_all_dtypes(tmpdir):
     """Test that round-tripping preserves a table with all the datatypes."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
 
@@ -199,7 +199,7 @@ def test_preserve_all_dtypes(tmpdir):
 def test_preserve_meta(tmpdir):
     """Test that writing/reading preserves metadata."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
@@ -221,7 +221,7 @@ def test_preserve_meta(tmpdir):
 def test_preserve_serialized(tmpdir):
     """Test that writing/reading preserves unit/format/description."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3], unit="s")
@@ -246,7 +246,7 @@ def test_preserve_serialized(tmpdir):
 def test_metadata_very_large(tmpdir):
     """Test that very large datasets work"""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3], unit="s")
@@ -273,7 +273,7 @@ def test_metadata_very_large(tmpdir):
 def test_fail_meta_serialize(tmpdir):
     """Test that we cannot preserve objects in metadata."""
 
-    test_file = str(tmpdir.join('test.parquet'))
+    test_file = tmpdir.join('test.parquet')
 
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
@@ -407,7 +407,7 @@ def test_parquet_mixins_qtable_to_table(tmpdir):
     """Test writing as QTable and reading as Table.  Ensure correct classes
     come out.
     """
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
 
     names = sorted(mixin_cols)
 
@@ -443,7 +443,7 @@ def test_parquet_mixins_qtable_to_table(tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_as_one(table_cls, tmpdir):
     """Test write/read all cols at once and validate intermediate column names"""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
     names = sorted(mixin_cols)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
@@ -465,7 +465,7 @@ def test_parquet_mixins_as_one(table_cls, tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_per_column(table_cls, name_col, tmpdir):
     """Test write/read one col at a time and do detailed validation"""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
     name, col = name_col
 
     c = [1.0, 2.0]
@@ -506,7 +506,7 @@ def test_round_trip_masked_table_default(tmpdir):
         2     2.0   --
         3      --    e
     """
-    filename = str(tmpdir.join('test.parquet'))
+    filename = tmpdir.join('test.parquet')
 
     t = simple_table(masked=True)  # int, float, and str cols with one masked element
     t['c'] = [b'c', b'd', b'e']
@@ -529,7 +529,7 @@ def test_round_trip_masked_table_default(tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_one_name(table_cls, tmpdir):
     """Test write all cols at once, and read one at a time."""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
     names = sorted(mixin_cols)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
@@ -551,7 +551,7 @@ def test_parquet_mixins_read_one_name(table_cls, tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_exclude_names(table_cls, tmpdir):
     """Test write all cols at once, and read all but one at a time."""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
     names = sorted(mixin_cols)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
@@ -568,7 +568,7 @@ def test_parquet_mixins_read_exclude_names(table_cls, tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_no_columns(table_cls, tmpdir):
     """Test write all cols at once, and try to read no valid columns."""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
     names = sorted(mixin_cols)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
@@ -586,7 +586,7 @@ def test_parquet_mixins_read_no_columns(table_cls, tmpdir):
 @pytest.mark.parametrize('table_cls', (Table, QTable))
 def test_parquet_mixins_read_schema(table_cls, tmpdir):
     """Test write all cols at once, and read the schema."""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
     names = sorted(mixin_cols)
 
     t = table_cls([mixin_cols[name] for name in names], names=names)
@@ -609,7 +609,7 @@ def test_parquet_mixins_read_schema(table_cls, tmpdir):
 
 def test_parquet_filter(tmpdir):
     """Test reading a parquet file with a filter."""
-    filename = str(tmpdir.join('test_simple.parquet'))
+    filename = tmpdir.join('test_simple.parquet')
 
     t1 = Table()
     t1['a'] = Column(data=np.arange(100), dtype=np.int32)
@@ -628,7 +628,7 @@ def test_parquet_filter(tmpdir):
 
 def test_parquet_read_generic(tmpdir):
     """Test reading a generic parquet file."""
-    filename = str(tmpdir.join('test_generic.parq'))
+    filename = tmpdir.join('test_generic.parq')
 
     t1 = Table()
 
@@ -661,7 +661,7 @@ def test_parquet_read_generic(tmpdir):
 @pytest.mark.skipif('not HAS_PANDAS')
 def test_parquet_read_pandas(tmpdir):
     """Test reading a pandas parquet file."""
-    filename = str(tmpdir.join('test_pandas.parq'))
+    filename = tmpdir.join('test_pandas.parq')
 
     t1 = Table()
 
