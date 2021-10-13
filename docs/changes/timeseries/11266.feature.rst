@@ -1,0 +1,4 @@
+A custom binning scheme is now available in ``aggregate_downsample``.
+It allows ``time_bin_start`` and ``time_bin_size`` to be arrays, and adds
+an optional ``time_bin_end``.
+This scheme mirrors the API for ``BinnedTimeSeries``.
