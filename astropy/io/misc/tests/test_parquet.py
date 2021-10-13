@@ -11,6 +11,7 @@ from astropy import units as u
 from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
                                  SphericalRepresentation, CartesianRepresentation,
                                  SphericalCosLatDifferential)
+from astropy.io.misc.parquet import parquet_identify
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
@@ -125,15 +126,11 @@ def test_identify_wrong_fileobj():
 
     f = FakeFile()
 
-    from astropy.io.misc.parquet import parquet_identify
-
     assert not parquet_identify('test', 'test', f)
 
 
 def test_identify_file_wrong_extension():
     """Test identifying an incorrect extension."""
-
-    from astropy.io.misc.parquet import parquet_identify
 
     assert not parquet_identify('test', 'test.notparquet', None)
 
@@ -141,16 +138,12 @@ def test_identify_file_wrong_extension():
 def test_identify_file_correct_extension():
     """Test identifying an incorrect extension."""
 
-    from astropy.io.misc.parquet import parquet_identify
-
     assert parquet_identify('test', 'test.parquet', None)
     assert parquet_identify('test', 'test.parq', None)
 
 
 def test_identify_file_noobject_nopath():
     """Test running identify with no object or path."""
-
-    from astropy.io.misc.parquet import parquet_identify
 
     assert not parquet_identify('test', None, None)
 
