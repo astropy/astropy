@@ -329,10 +329,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             pixel = self.all_world2pix(*world_arrays, 0)
         except NoConvergence as e:
             warnings.warn(str(e))
-            # would be better to use e.best_solution here but that would
-            # have to be formatted by wcs._array_converter which feels like
-            # unnecessary code duplication
-            pixel = self.all_world2pix(*world_arrays, 0, quiet=True)
+            # use best_solution contained in the exception and format the same
+            # way as all_world2pix does (using _array_converter)
+            pixel = self._array_converter(lambda *args: e.best_solution,
+                                         'input', *world_arrays, 0)
 
         return pixel[0] if self.pixel_n_dim == 1 else tuple(pixel)
 
