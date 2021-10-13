@@ -213,12 +213,12 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
             # Choose an arbitrary string length since
             # are not reading in the table.
             strlen = 10
-            warnings.warn(f"No table::len::{name} found in metadata. "
+            warnings.warn(f"No {md_name} found in metadata. "
                           f"Guessing {{strlen}} for schema.",
                           AstropyUserWarning)
         else:
             strlen = max([len(row.as_py()) for row in pa_table[name]])
-            warnings.warn(f"No table::len::{name} found in metadata. "
+            warnings.warn(f"No {md_name} found in metadata. "
                           f"Using longest string ({{strlen}} characters).",
                           AstropyUserWarning)
         dtype.append(f'U{strlen}' if schema.field(name).type == pa.string() else f'|S{strlen}')
