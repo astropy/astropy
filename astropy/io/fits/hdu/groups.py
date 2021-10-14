@@ -8,7 +8,7 @@ from .image import PrimaryHDU
 from .table import _TableLikeHDU
 from astropy.io.fits.column import Column, ColDefs, FITS2NUMPY
 from astropy.io.fits.fitsrec import FITS_rec, FITS_record
-from astropy.io.fits.util import _is_int, _is_pseudo_unsigned, _unsigned_zero
+from astropy.io.fits.util import _is_int, _is_pseudo_integer, _pseudo_zero
 
 from astropy.utils import lazyproperty
 
@@ -472,10 +472,10 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             else:
                 swap_types = ('<',)
             # deal with unsigned integer 16, 32 and 64 data
-            if _is_pseudo_unsigned(self.data.dtype):
+            if _is_pseudo_integer(self.data.dtype):
                 # Convert the unsigned array to signed
                 output = np.array(
-                    self.data - _unsigned_zero(self.data.dtype),
+                    self.data - _pseudo_zero(self.data.dtype),
                     dtype=f'>i{self.data.dtype.itemsize}')
                 should_swap = False
             else:
