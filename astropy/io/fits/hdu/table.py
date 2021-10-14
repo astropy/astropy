@@ -885,22 +885,23 @@ class BinTableHDU(_TableBaseHDU):
             # Now add in the heap data to the checksum (we can skip any gap
             # between the table and the heap since it's all zeros and doesn't
             # contribute to the checksum
-            # TODO: The following code may no longer be necessary since it is
-            # now possible to get a pointer directly to the heap data as a
-            # whole.  That said, it is possible for the heap section to contain
-            # data that is not actually pointed to by the table (i.e. garbage;
-            # this *shouldn't* happen but it is not disallowed either)--need to
-            # double check whether or not the checksum should include such
-            # garbage
-            for idx in range(data._nfields):
-                if isinstance(data.columns._recformats[idx], _FormatP):
-                    for coldata in data.field(idx):
-                        # coldata should already be byteswapped from the call
-                        # to _binary_table_byte_swap
-                        if not len(coldata):
-                            continue
+            if data._get_raw_data() is None:
+                # This block is still needed because
+                # test_variable_length_table_data leads to ._get_raw_data
+                # returning None which means _get_heap_data doesn't work.
+                # Which happens when the data is loaded in memory rather than
+                # being unloaded on disk
+                for idx in range(data._nfields):
+                    if isinstance(data.columns._recformats[idx], _FormatP):
+                        for coldata in data.field(idx):
+                            # coldata should already be byteswapped from the call
+                            # to _binary_table_byte_swap
+                            if not len(coldata):
+                                continue
 
-                        csum = self._compute_checksum(coldata, csum)
+                            csum = self._compute_checksum(coldata, csum)
+            else:
+                csum = self._compute_checksum(data._get_heap_data(), csum)
 
             return csum
 
