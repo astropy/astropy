@@ -1972,3 +1972,17 @@ def test_image_write_readonly(tmpdir):
 
     with fits.open(filename) as hdulist:
         assert_equal(hdulist[1].data, [1.0, 2.0, 3.0])
+
+
+def test_int8(tmp_path):
+    '''Test for int8 support, https://github.com/astropy/astropy/issues/11995'''
+    img = np.arange(-50, 50, dtype=np.int8).reshape(10, 10)
+    hdu = fits.PrimaryHDU(img)
+    hdu.writeto(tmp_path / "int8.fits")
+
+    with fits.open(tmp_path / "int8.fits") as hdul:
+        assert hdul[0].header['BITPIX'] == 8
+        assert hdul[0].header['BZERO'] == -128
+        assert hdul[0].header['BSCALE'] == 1.0
+        assert_equal(hdul[0].data, img)
+        assert hdul[0].data.dtype == img.dtype
