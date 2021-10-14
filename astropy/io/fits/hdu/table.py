@@ -889,6 +889,8 @@ class BinTableHDU(_TableBaseHDU):
                 # This block is still needed because
                 # test_variable_length_table_data leads to ._get_raw_data
                 # returning None which means _get_heap_data doesn't work.
+                # Which happens when the data is loaded in memory rather than
+                # being unloaded on disk
                 for idx in range(data._nfields):
                     if isinstance(data.columns._recformats[idx], _FormatP):
                         for coldata in data.field(idx):
