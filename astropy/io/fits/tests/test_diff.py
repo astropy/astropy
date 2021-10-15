@@ -11,6 +11,7 @@ from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.io import fits
 
 from . import FitsTestCase
@@ -789,7 +790,7 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
 
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
             diffobj.report(fileobj=outpath)
 
     def test_file_output_overwrite_success(self):

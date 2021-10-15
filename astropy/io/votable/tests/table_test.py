@@ -15,8 +15,10 @@ from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree, conf
 from astropy.io.votable.exceptions import VOWarning, W39, E25
 from astropy.table import Column, Table
+from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 
 def test_table(tmpdir):
@@ -178,6 +180,15 @@ def test_write_with_format():
     assert b'VOTABLE version="1.4"' in obuff
     assert b'BINARY2' in obuff
     assert b'TABLEDATA' not in obuff
+
+
+def test_write_overwrite(tmpdir):
+    t = simple_table(3, 3)
+    filename = os.path.join(tmpdir, 'overwrite_test.vot')
+    t.write(filename, format='votable')
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+        t.write(filename, format='votable')
+    t.write(filename, format='votable', overwrite=True)
 
 
 def test_empty_table():

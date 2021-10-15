@@ -14,6 +14,7 @@ from astropy import table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.compat.optional_deps import HAS_BS4
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy import units as u
 
 from .common import setup_function, teardown_function  # noqa
@@ -693,9 +694,8 @@ def test_write_overwrite_ascii(format, fast_writer, tmpdir):
         pass
     t = table.Table([['Hello', ''], ['', '']], dtype=['S10', 'S10'])
 
-    with pytest.raises(OSError) as err:
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         t.write(filename, format=format, fast_writer=fast_writer)
-    assert str(err.value).endswith('already exists')
 
     t.write(filename, overwrite=True, format=format,
             fast_writer=fast_writer)

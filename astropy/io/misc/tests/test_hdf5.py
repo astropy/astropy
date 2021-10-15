@@ -16,6 +16,7 @@ from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.io.misc.hdf5 import meta_path
 from astropy.utils.compat.optional_deps import HAS_H5PY  # noqa
 if HAS_H5PY:
@@ -181,9 +182,8 @@ def test_read_write_existing(tmpdir):
     h5py.File(test_file, 'w').close()  # create empty file
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
-    with pytest.raises(OSError) as exc:
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         t1.write(test_file, path='the_table')
-    assert exc.value.args[0].startswith("File exists:")
 
 
 @pytest.mark.skipif('not HAS_H5PY')

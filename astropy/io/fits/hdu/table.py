@@ -1104,7 +1104,10 @@ class BinTableHDU(_TableBaseHDU):
 
         if exist:
             raise OSError('  '.join([f"File '{f}' already exists."
-                                     for f in exist]))
+                                     for f in exist])+"  If you mean to "
+                                                      "replace the file(s) "
+                                                      "then use the argument "
+                                                      "'overwrite=True'.")
 
         # Process the data
         self._dump_data(datafile)
