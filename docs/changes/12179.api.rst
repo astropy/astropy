@@ -1,0 +1,3 @@
+When ``astropy`` raises an ``OSError`` because a file it was told to write
+already exists, then the error message now always suggests the use of the
+``overwrite=True`` argument. The wording is now consistent for all I/O formats.

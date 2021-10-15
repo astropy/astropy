@@ -10,6 +10,7 @@ from astropy.table.table import Table
 from astropy import extern
 
 from astropy.utils.compat.optional_deps import HAS_BLEACH, HAS_IPYTHON  # noqa
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 EXTERN_DIR = abspath(join(dirname(extern.__file__), 'jquery', 'data'))
 
@@ -116,7 +117,7 @@ def test_write_jsviewer_overwrite(tmpdir):
     # normal write
     t.write(tmpfile, format='jsviewer')
     # errors on overwrite
-    with pytest.raises(OSError, match="exists"):
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         t.write(tmpfile, format='jsviewer')
     # unless specified
     t.write(tmpfile, format='jsviewer', overwrite=True)

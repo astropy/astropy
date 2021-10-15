@@ -39,6 +39,7 @@ from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 _read_trace = []
 
@@ -801,7 +802,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
 
     if isinstance(output, str):
         if not overwrite and os.path.lexists(output):
-            raise OSError(f"{output} already exists")
+            raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     if output is None:
         output = sys.stdout
