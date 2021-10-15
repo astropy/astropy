@@ -23,6 +23,7 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
 from astropy.utils.data import download_file, _is_url
 from astropy.utils.decorators import classproperty, deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
@@ -434,7 +435,7 @@ class _File:
                         fileobj.close()
                     os.remove(self.name)
             else:
-                raise OSError(f"File {self.name!r} already exists.")
+                raise OSError(NOT_OVERWRITING_MSG.format(self.name))
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""

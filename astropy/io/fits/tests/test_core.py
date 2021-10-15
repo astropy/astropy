@@ -23,6 +23,7 @@ from astropy.io.fits.file import _File, GZIP_MAGIC
 from astropy.io import fits
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.utils import data
 
 from astropy.io.tests import safeio
@@ -1277,6 +1278,14 @@ class TestFileFunctions(FitsTestCase):
             gz.close()
 
         return gzfile
+
+    def test_write_overwrite(self):
+        filename = self.temp('test_overwrite.fits')
+        hdu = fits.PrimaryHDU(data=np.arange(10))
+        hdu.writeto(filename)
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            hdu.writeto(filename)
+        hdu.writeto(filename, overwrite=True)
 
     def _make_zip_file(self, mode='copyonwrite', filename='test0.fits.zip'):
         zfile = zipfile.ZipFile(self.temp(filename), 'w')
