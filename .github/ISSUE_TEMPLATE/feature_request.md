@@ -1,6 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea to improve astropy
+labels: "Feature Request"
 ---
 
 <!-- This comments are hidden when you submit the issue,
