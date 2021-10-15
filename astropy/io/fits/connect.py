@@ -15,6 +15,7 @@ from astropy.time import Time
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import (AstropyUserWarning,
                                       AstropyDeprecationWarning)
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 from . import HDUList, TableHDU, BinTableHDU, GroupsHDU, append as fits_append
 from .column import KEYWORD_NAMES, _fortran_to_python_format
 from .convenience import table_to_hdu
@@ -400,7 +401,7 @@ def write_table_fits(input, output, overwrite=False, append=False):
         if overwrite:
             os.remove(output)
         elif not append:
-            raise OSError(f"File exists: {output}")
+            raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     if append:
         # verify=False stops it reading and checking the existing file.

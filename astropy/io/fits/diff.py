@@ -29,6 +29,7 @@ from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 from astropy.utils.diff import (report_diff_values, fixed_width_indent,
                                 where_not_allclose, diff_values)
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -156,8 +157,7 @@ class _BaseDiff:
 
         if isinstance(fileobj, str):
             if os.path.exists(fileobj) and not overwrite:
-                raise OSError("File {} exists, aborting (pass in "
-                              "overwrite=True to overwrite)".format(fileobj))
+                raise OSError(NOT_OVERWRITING_MSG.format(fileobj))
             else:
                 filepath = fileobj
                 fileobj = open(filepath, 'w')

@@ -2669,6 +2669,11 @@ class TestTableFunctions(FitsTestCase):
             cdfile = self.temp('coldefs.txt')
             hfile = self.temp('header.txt')
             tbhdu.dump(datafile, cdfile, hfile)
+            msg = (r"File .* already exists\.  File .* already exists\.  File "
+                   r".* already exists\.  If you mean to replace the "
+                   r"file\(s\) then use the argument 'overwrite=True'\.")
+            with pytest.raises(OSError, match=msg):
+                tbhdu.dump(datafile, cdfile, hfile)
             tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
             with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
                               r'deprecated in version 2\.0 and will be removed in a '

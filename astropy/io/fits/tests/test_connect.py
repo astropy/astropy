@@ -21,6 +21,7 @@ from astropy.units.format.fits import UnitScaleError
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import (AstropyUserWarning,
                                       AstropyDeprecationWarning)
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
                                  SphericalRepresentation, CartesianRepresentation,
@@ -325,6 +326,14 @@ class TestSingleTable:
         t.write(filename, append=True)
         check_equal(filename, 3, start_from=2)
         assert equal_data(t2, Table.read(filename, hdu=1))
+
+    def test_write_overwrite(self, tmpdir):
+        t = Table(self.data)
+        filename = str(tmpdir.join('test_write_overwrite.fits'))
+        t.write(filename)
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            t.write(filename)
+        t.write(filename, overwrite=True)
 
     def test_mask_nans_on_read(self, tmpdir):
         filename = str(tmpdir.join('test_inexact_format_parse_on_read.fits'))
