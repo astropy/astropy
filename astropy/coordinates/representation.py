@@ -272,7 +272,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         Parameters
         ----------
         other : `CartesianRepresentation`
-            The representation to turn into this class
+            The representation to turn into this class.
 
         Returns
         -------
@@ -1135,9 +1135,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         taking the mean of the x, y, and z components. The result is converted
         back to the same representation as the input.
 
-        Refer to `~numpy.mean` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Parameters
+        ----------
+        *args, **kwargs
+            Passed to :meth:`astropy.coordinates.CartesianRepresentation.mean`.
+            See that and `~numpy.mean` for full documentation of the arguments,
+            noting that ``axis`` is the entry in the ``shape`` of the
+            representation, and that the ``out`` argument cannot be used.
 
         Returns
         -------
@@ -1154,9 +1158,13 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         summing the x, y, and z components. The result is converted back to the
         same representation as the input.
 
-        Refer to `~numpy.sum` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Parameters
+        ----------
+        *args, **kwargs
+            Passed to :meth:`astropy.coordinates.CartesianRepresentation.sum`.
+            See that and `~numpy.sum` for full documentation of the arguments,
+            noting that ``axis`` is the entry in the ``shape`` of the
+            representation, and that the ``out`` argument cannot be used.
 
         Returns
         -------
@@ -1427,12 +1435,18 @@ class CartesianRepresentation(BaseRepresentation):
     def mean(self, *args, **kwargs):
         """Vector mean.
 
-        Returns a new CartesianRepresentation instance with the means of the
-        x, y, and z components.
+        Parameters
+        ----------
+        *args, **kwargs
+            Arguments into `~numpy.mean`. Note ``axis`` is the entry in the
+            ``shape`` of the representation, and that the ``out`` argument
+            cannot be used.
 
-        Refer to `~numpy.mean` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Returns
+        -------
+        `CartesianRepresentation`
+            A new CartesianRepresentation instance with the means of the x, y,
+            and z components.
         """
         self._raise_if_has_differentials('mean')
         return self._apply('mean', *args, **kwargs)
@@ -1440,12 +1454,18 @@ class CartesianRepresentation(BaseRepresentation):
     def sum(self, *args, **kwargs):
         """Vector sum.
 
-        Returns a new CartesianRepresentation instance with the sums of the
-        x, y, and z components.
+        Parameters
+        ----------
+        *args, **kwargs
+            Arguments into `~numpy.sum`. Note that ``axis`` is the entry in the
+            ``shape`` of the representation, and that the ``out`` argument
+            cannot be used.
 
-        Refer to `~numpy.sum` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Returns
+        -------
+        `CartesianRepresentation`
+            A new CartesianRepresentation instance with the sums of the x, y,
+            and z components.
         """
         self._raise_if_has_differentials('sum')
         return self._apply('sum', *args, **kwargs)
@@ -1591,6 +1611,11 @@ class UnitSphericalRepresentation(BaseRepresentation):
         """
         Convert 3D rectangular cartesian coordinates to spherical polar
         coordinates.
+
+        Parameters
+        ----------
+        cart : `CartesianRepresentation`
+            The representation to turn into this class.
         """
         p = cart.get_xyz(xyz_axis=-1)
         # erfa c2s: P-vector to [unit]spherical coordinates.
@@ -1703,9 +1728,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
         and z components are calculated, and the result is converted to a
         `~astropy.coordinates.SphericalRepresentation`.
 
-        Refer to `~numpy.mean` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Parameters
+        ----------
+        *args, **kwargs
+            Arguments into `~numpy.mean`. Note that ``axis`` is the entry in
+            the ``shape`` of the representation, and that the ``out`` argument
+            cannot be used.
+
+        Returns
+        -------
+        `~astropy.coordinates.SphericalRepresentation`
         """
         self._raise_if_has_differentials('mean')
         return self._dimensional_representation.from_cartesian(
@@ -1718,9 +1750,16 @@ class UnitSphericalRepresentation(BaseRepresentation):
         and z components are calculated, and the result is converted to a
         `~astropy.coordinates.SphericalRepresentation`.
 
-        Refer to `~numpy.sum` for full documentation of the arguments, noting
-        that ``axis`` is the entry in the ``shape`` of the representation, and
-        that the ``out`` argument cannot be used.
+        Parameters
+        ----------
+        *args, **kwargs
+            Arguments into `~numpy.sum`. Note that ``axis`` is the entry in
+            the ``shape`` of the representation, and that the ``out`` argument
+            cannot be used.
+
+        Returns
+        -------
+        `~astropy.coordinates.SphericalRepresentation`
         """
         self._raise_if_has_differentials('sum')
         return self._dimensional_representation.from_cartesian(
@@ -1805,6 +1844,11 @@ class RadialRepresentation(BaseRepresentation):
     def from_cartesian(cls, cart):
         """
         Convert 3D rectangular cartesian coordinates to radial coordinate.
+
+        Parameters
+        ----------
+        cart : `CartesianRepresentation`
+            The representation to turn into this class.
         """
         return cls(distance=cart.norm(), copy=False)
 
@@ -2012,6 +2056,11 @@ class SphericalRepresentation(BaseRepresentation):
         """
         Convert 3D rectangular cartesian coordinates to spherical polar
         coordinates.
+
+        Parameters
+        ----------
+        cart : `CartesianRepresentation`
+            The representation to turn into this class.
         """
         p = cart.get_xyz(xyz_axis=-1)
         # erfa p2s: P-vector to spherical polar coordinates.
@@ -2209,8 +2258,12 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         """
         Convert 3D rectangular cartesian coordinates to spherical polar
         coordinates.
-        """
 
+        Parameters
+        ----------
+        cart : `CartesianRepresentation`
+            The representation to turn into this class.
+        """
         s = np.hypot(cart.x, cart.y)
         r = np.hypot(s, cart.z)
 
@@ -2359,8 +2412,12 @@ class CylindricalRepresentation(BaseRepresentation):
         """
         Convert 3D rectangular cartesian coordinates to cylindrical polar
         coordinates.
-        """
 
+        Parameters
+        ----------
+        cart : `CartesianRepresentation`
+            The representation to turn into this class.
+        """
         rho = np.hypot(cart.x, cart.y)
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z

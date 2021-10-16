@@ -101,6 +101,9 @@ class Angle(u.SpecificTypeQuantity):
     copy : bool, optional
         See `~astropy.units.Quantity`.
 
+    **kwargs
+        Passed to `~astropy.units.Quantity`.
+
     Raises
     ------
     `~astropy.units.UnitsError`
@@ -546,6 +549,9 @@ class Latitude(Angle):
         better to give an actual unit object.  Must be an angular
         unit.
 
+    **kwargs
+        See :class:`~astropy.coordinates.Angle`.
+
     Raises
     ------
     `~astropy.units.UnitsError`
@@ -646,6 +652,9 @@ class Longitude(Angle):
         If ``None`` (default), it will be taken to be 360 deg unless ``angle``
         has a ``wrap_angle`` attribute already (i.e., is a ``Longitude``),
         in which case it will be taken from there.
+
+    **kwargs
+        See :class:`~astropy.coordinates.Angle`.
 
     Raises
     ------

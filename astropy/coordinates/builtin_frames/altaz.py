@@ -106,9 +106,6 @@ class AltAz(BaseCoordinateFrame):
     relative_humidity = QuantityAttribute(default=0, unit=u.dimensionless_unscaled)
     obswl = QuantityAttribute(default=1*u.micron, unit=u.micron)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def secz(self):
         """

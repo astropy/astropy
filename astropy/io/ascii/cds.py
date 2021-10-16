@@ -716,6 +716,12 @@ class CdsData(fixedwidth.FixedWidthData):
 class Cds(core.BaseReader):
     """CDS format table.
 
+    Parameters
+    ----------
+    readme : str or None, optional
+
+    Notes
+    -----
     See: http://vizier.u-strasbg.fr/doc/catstd.htx
 
     Example::

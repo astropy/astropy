@@ -116,9 +116,21 @@ class HADec(BaseCoordinateFrame):
         return data
 
     def represent_as(self, base, s='base', in_frame_units=False):
-        """
-        Ensure the wrap angle for any spherical
-        representations.
+        """Ensure the wrap angle for any spherical representations.
+
+        Parameters
+        ----------
+        base : subclass of BaseRepresentation or string
+            The type of representation to generate.  Must be a *class*
+            (not an instance), or the string name of the representation class.
+        s : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
+            Class in which any velocities should be represented. Must be
+            a *class* (not an instance), or the string name of the
+            differential class.  If equal to 'base' (default), inferred from
+            the base class.  If `None`, all velocity information is dropped.
+        in_frame_units : bool, keyword-only
+            Force the representation units to match the specified units
+            particular to this frame.
         """
         data = super().represent_as(base, s, in_frame_units=in_frame_units)
         self._set_data_lon_wrap_angle(data)

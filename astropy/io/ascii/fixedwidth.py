@@ -271,7 +271,16 @@ class FixedWidth(basic.Basic):
     Fixed width table with single header line defining column names and
     positions.
 
-    Examples::
+    Parameters
+    ----------
+    col_starts : int or None, optional
+    col_ends : int or None, optional
+    delimiter_pad : str, optional
+    bookend : bool, optional
+
+    Examples
+    --------
+    ::
 
       # Bar delimiter in header and data
 
@@ -344,6 +353,13 @@ class FixedWidthNoHeader(FixedWidth):
     but with ``header_start=None`` and ``data_start=0``.
 
     See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
+
+    Parameters
+    ----------
+    col_starts : int or None, optional
+    col_ends : int or None, optional
+    delimiter_pad : str, optional
+    bookend : bool, optional
     """
     _format_name = 'fixed_width_no_header'
     _description = 'Fixed width with no header'
@@ -400,6 +416,13 @@ class FixedWidthTwoLine(FixedWidth):
       +------+------------+
 
     See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
+
+    Parameters
+    ----------
+    position_line : int, optional
+    position_char : str, optional
+    delimiter_pad : str or None, optional
+    bookend : bool, optional
     """
     _format_name = 'fixed_width_two_line'
     _description = 'Fixed width with second header line'

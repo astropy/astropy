@@ -48,12 +48,12 @@ class IllegalHourError(RangeError):
 
 
 class IllegalHourWarning(AstropyWarning):
-    """
-    Raised when an hour value is 24.
+    """Raised when an hour value is 24.
 
     Parameters
     ----------
     hour : int, float
+    alternativeactionstr : str or None, optional
     """
     def __init__(self, hour, alternativeactionstr=None):
         self.hour = hour
@@ -96,6 +96,7 @@ class IllegalMinuteWarning(AstropyWarning):
     Parameters
     ----------
     minute : int, float
+    alternativeactionstr : str or None, optional
     """
     def __init__(self, minute, alternativeactionstr=None):
         self.minute = minute
@@ -138,6 +139,7 @@ class IllegalSecondWarning(AstropyWarning):
     Parameters
     ----------
     second : int, float
+    alternativeactionstr : str or None, optional
     """
     def __init__(self, second, alternativeactionstr=None):
         self.second = second

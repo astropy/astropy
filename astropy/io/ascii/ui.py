@@ -120,6 +120,16 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
         Inputter class
     Outputter : `~astropy.io.ascii.BaseOutputter`
         Outputter class
+    **kwargs
+        See Other Parameters for options.
+
+    Returns
+    -------
+    reader : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format reader instance.
+
+    Other Parameters
+    ----------------
     delimiter : str
         Column delimiter string
     comment : str
@@ -153,11 +163,6 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
         List of names to include in fill_values.
     fill_exclude_names : list
         List of names to exclude from fill_values (applied after ``fill_include_names``).
-
-    Returns
-    -------
-    reader : `~astropy.io.ascii.BaseReader` subclass
-        ASCII format reader instance
     """
     # This function is a light wrapper around core._get_reader to provide a
     # public interface with a default Reader.
@@ -747,6 +752,18 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     ----------
     Writer : ``Writer``
         Writer class (DEPRECATED). Defaults to :class:`Basic`.
+    fast_writer : bool, optional
+        Whether to use the fast Cython writer.
+    **kwargs
+        See Other Parameters for options.
+
+    Returns
+    -------
+    writer : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format writer instance.
+
+    Other Parameters
+    ----------------
     delimiter : str
         Column delimiter string
     comment : str
@@ -762,14 +779,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     include_names : list
         List of names to include in output.
     exclude_names : list
-        List of names to exclude from output (applied after ``include_names``)
-    fast_writer : bool
-        Whether to use the fast Cython writer.
-
-    Returns
-    -------
-    writer : `~astropy.io.ascii.BaseReader` subclass
-        ASCII format writer instance
+        List of names to exclude from output (applied after ``include_names``).
     """
     if Writer is None:
         Writer = basic.Basic

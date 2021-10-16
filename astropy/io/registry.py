@@ -488,10 +488,24 @@ def get_writer(data_format, data_class):
 
 
 def read(cls, *args, format=None, cache=False, **kwargs):
-    """
-    Read in data.
+    """Read in data.
 
     The arguments passed to this method depend on the format.
+
+    Parameters
+    ----------
+    cls : type
+    *args
+        Use to determine reader function and passed to that function.
+    format : str or None (optional, keyword-only)
+    cache : bool (optional, keyword-only)
+    **kwargs
+        Passed to reader function.
+
+    Returns
+    -------
+    Any
+        Output of called reader function.
     """
 
     ctx = None
@@ -547,6 +561,20 @@ def write(data, *args, format=None, **kwargs):
     Write out data.
 
     The arguments passed to this method depend on the format.
+
+    Parameters
+    ----------
+    data : Any
+    *args
+        Use to determine writer function and passed to that function.
+    format : str or None (optional, keyword-only)
+    **kwargs
+        Passed to writer function.
+
+    Returns
+    -------
+    Any
+        Output of called writer function.
     """
 
     if format is None:
@@ -725,8 +753,10 @@ class UnifiedReadWrite:
     def list_formats(self, out=None):
         """Print a list of available formats to console (or ``out`` filehandle)
 
-        out : None or file handle object
-            Output destination (default is stdout via a pager)
+        Parameters
+        ----------
+        out : None or file handle object, optional
+            Output destination (default is stdout via a pager).
         """
         tbl = get_formats(self._cls, self._method_name.capitalize())
         del tbl['Data class']
@@ -753,8 +783,11 @@ class UnifiedReadWriteMethod(property):
 
     Parameters
     ----------
-    func : `~astropy.io.registry.UnifiedReadWrite` subclass
+    fget : `~astropy.io.registry.UnifiedReadWrite` subclass
         Class that defines read or write functionality
+
+    fset, fdel : callable or None, optional
+    doc : str or None, optional
     """
     # We subclass property to ensure that __set__ is defined and that,
     # therefore, we are a data descriptor, which cannot be overridden.

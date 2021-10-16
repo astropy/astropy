@@ -107,6 +107,13 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
         will stop searching at the object *before*.  This is
         important, since "forward references" are not allowed in the
         VOTABLE format.
+
+        Parameters
+        ----------
+        ref : str
+            The ID or name of the element in the iterator at which to start.
+        before : object or None, optional
+            If provided, will stop searching at ``before``.
         """
         for element in getattr(self, iterator)():
             if element is before:
@@ -126,10 +133,12 @@ def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
                 element_name, attr, ref, element_name))
 
     if unique:
-        lookup_by_attr_unique.__doc__ = doc
+        # lookup_by_attr_unique.__doc__ = doc
+        lookup_by_attr_unique.__doc__ = None
         return lookup_by_attr_unique
     else:
-        lookup_by_attr.__doc__ = doc
+        # lookup_by_attr.__doc__ = doc
+        lookup_by_attr.__doc__ = None
         return lookup_by_attr
 
 
@@ -146,6 +155,13 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
         is provided, will stop searching at the object *before*.  This
         is important, since "forward references" are not allowed in
         the VOTABLE format.
+
+        Parameters
+        ----------
+        ref : str
+            The ID or name of the element in the iterator at which to start.
+        before : object or None, optional
+            If provided, will stop searching at ``before``.
         """
         for element in getattr(self, iterator)():
             if element is before:
@@ -160,7 +176,8 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
             "No {} with ID or name '{}' found before the referencing {}".format(
                 element_name, ref, element_name))
 
-    lookup_by_id_or_name.__doc__ = doc
+    # lookup_by_id_or_name.__doc__ = doc
+    lookup_by_id_or_name.__doc__ = None
     return lookup_by_id_or_name
 
 
@@ -456,8 +473,7 @@ class Element:
         ----------
         w : astropy.utils.xml.writer.XMLWriter object
             An XML writer to write to.
-
-        kwargs : dict
+        **kwargs : dict
             Any configuration parameters to control the output.
         """
         raise NotImplementedError()
@@ -538,6 +554,21 @@ class Link(SimpleElement, _IDProperty):
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    ID : str or None, optional
+    title : str or None, optional
+    value : Any or None, optional
+    href : Any or None, optional
+    action : Any or None, optional
+    id : Any or None, optional
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **kwargs
     """
     _attr_list = ['ID', 'content_role', 'content_type', 'title', 'value',
                   'href', 'action']
@@ -646,6 +677,25 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty,
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    ID : str or None, optional
+    name : str or None, optional
+    value : Any or None, optional
+    id : Any or None, optional
+    xtype : Any or None, optional
+    ref : Any or None, optional
+    unit : Any or None, optional
+    ucd : Any or None, optional
+    utype : Any or None, optional
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be empty.
     """
     _element_name = 'INFO'
     _attr_list_11 = ['ID', 'name', 'value']
@@ -1142,6 +1192,27 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
     resulting recarray of the table.  If no *ID* is provided, *name*
     is used instead.  If neither is provided, an exception will be
     raised.
+
+    Parameters
+    ----------
+    votable
+    ID : str or None, optional
+    name : str or None, optional
+    datatype : None, optional
+    arraysize : int, optional
+    ucd : None, optional
+    unit : unit-like or None, optional
+    width : int or None, optional
+    precision : None, optional
+    utype : None, optional
+    ref : None, optional
+    type : None, optional
+    id : None, optional
+    xtype : None, optional
+    config : None, optional
+    pos : None, optional
+    **extra
+        Passed to `SimpleElement`.
     """
     _attr_list_11 = ['ID', 'name', 'datatype', 'arraysize', 'ucd',
                      'unit', 'width', 'precision', 'utype', 'ref']
@@ -1245,6 +1316,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         """
         Make sure that all names and titles in a list of fields are
         unique, by appending numbers if necessary.
+
+        Parameters
+        ----------
+        fields : sequence[`astropy.io.votable.Field`]
         """
         unique = {}
         for field in fields:
@@ -1523,6 +1598,10 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         """
         Set the attributes of a given `astropy.table.Column` instance
         to match the information in this `Field`.
+
+        Parameters
+        ----------
+        column : `astropy.table.Column`
         """
         for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
             val = getattr(self, key, None)
@@ -1550,6 +1629,15 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
         """
         Restores a `Field` instance from a given
         `astropy.table.Column` instance.
+
+        Parameters
+        ----------
+        votable
+        column : `astropy.table.Column`
+
+        Returns
+        -------
+        `astropy.io.votable.tree.Field`
         """
         kwargs = {}
         meta = column.info.meta
@@ -1584,6 +1672,30 @@ class Param(Field):
 
     :class:`Param` objects are a subclass of :class:`Field`, and have
     all of its methods and members.  Additionally, it defines :attr:`value`.
+
+    Parameters
+    ----------
+    votable
+    ID : str or None, optional
+    name : str or None, optional
+    value : Any or None, optional
+    datatype : Any or None, optional
+    arraysize : Any or None, optional
+    ucd : Any or None, optional
+    unit : Any or None, optional
+    width : Any or None, optional
+    precision : Any or None, optional
+    utype : Any or None, optional
+    type : Any or None, optional
+    id : Any or None, optional
+
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be empty.
     """
     _attr_list_11 = Field._attr_list_11 + ['value']
     _attr_list_12 = Field._attr_list_12 + ['value']
@@ -1594,10 +1706,10 @@ class Param(Field):
                  precision=None, utype=None, type=None, id=None, config=None,
                  pos=None, **extra):
         self._value = value
-        Field.__init__(self, votable, ID=ID, name=name, datatype=datatype,
-                       arraysize=arraysize, ucd=ucd, unit=unit,
-                       precision=precision, utype=utype, type=type,
-                       id=id, config=config, pos=pos, **extra)
+        super().__init__(votable, ID=ID, name=name, datatype=datatype,
+                         arraysize=arraysize, ucd=ucd, unit=unit,
+                         precision=precision, utype=utype, type=type,
+                         id=id, config=config, pos=pos, **extra)
 
     @property
     def value(self):
@@ -1637,6 +1749,25 @@ class CooSys(SimpleElement):
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    ID
+    equinox
+    epoch
+    system
+    id
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be empty.
+
+    Warns
+    -----
+    W27
     """
     _attr_list = ['ID', 'equinox', 'epoch', 'system']
     _element_name = 'COOSYS'
@@ -1743,6 +1874,21 @@ class TimeSys(SimpleElement):
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    ID : str or None, optional
+    timeorigin : Any or None, optional
+    timescale : Any or None, optional
+    refposition : Any or None, optional
+    id : Any or None, optional
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be empty.
     """
     _attr_list = ['ID', 'timeorigin', 'timescale', 'refposition']
     _element_name = 'TIMESYS'
@@ -1857,6 +2003,22 @@ class TimeSys(SimpleElement):
 class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     """
     FIELDref_ element: used inside of GROUP_ elements to refer to remote FIELD_ elements.
+
+    Parameters
+    ----------
+    table : `astropy.io.votable.Table`
+        The :class:`Table` object that this :class:`FieldRef` is a member of.
+    ref : str
+        The ID to reference a :class:`Field` object defined elsewhere.
+    ucd : None, optional
+    utype : None, optional
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be empty.
     """
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
@@ -1866,13 +2028,6 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None,
                  **extra):
-        """
-        *table* is the :class:`Table` object that this :class:`FieldRef`
-        is a member of.
-
-        *ref* is the ID to reference a :class:`Field` object defined
-        elsewhere.
-        """
         if config is None:
             config = {}
         self._config = config
@@ -1930,6 +2085,19 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     It contains the following publicly-accessible members:
 
       *ref*: An XML ID referring to a <PARAM> element.
+
+    Parameters
+    ----------
+    table : `astropy.io.votable.Table`
+    ref : str
+        XML ID referring to a <PARAM> element.
+    ucd : Any or None, optional
+    utype : Any or None, optional
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
     """
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
@@ -1998,6 +2166,23 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    table : `astropy.io.votable.Table`
+    ID : None, optional
+    name : str or None, optional
+    ref : str or None, optional
+    ucd : None, optional
+    utype : None, optional
+    id : None, optional
+    config : dict or None, optional
+        The parser configuration dictionary.
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be empty.
     """
 
     def __init__(self, table, ID=None, name=None, ref=None, ucd=None,
@@ -2150,6 +2335,24 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    votable : Any
+    ID : Any or None, optional
+    name : str or None, optional
+    ref : Any or None, optional
+    ucd : Any or None, optional
+    utype : Any or None, optional
+    nrows : int or None, optional
+    id : Any or None, optional
+    config : dict or None, optional
+        The parser configuration dictionary
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found. Used for error messages.
+    **extra
+        Should be None.
     """
 
     def __init__(self, votable, ID=None, name=None, ref=None, ucd=None,
@@ -2333,7 +2536,12 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         of fields, and store them in the *array* and member variable.
         Any data in the existing array will be lost.
 
-        *nrows*, if provided, is the number of rows to allocate.
+        Parameters
+        ----------
+        nrows : int, optional
+            The number of rows to allocate.
+        config : dict or None, optional
+            The parser configuration dictionary.
         """
         if nrows is None:
             nrows = 0
@@ -3012,9 +3220,16 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     @classmethod
     def from_table(cls, votable, table):
-        """
-        Create a `Table` instance from a given `astropy.table.Table`
-        instance.
+        """Create a `Table` from a given `astropy.table.Table` instance.
+
+        Parameters
+        ----------
+        votable : Any
+        table : `astropy.table.Table`
+
+        Returns
+        -------
+        `astropy.io.votable.Table`
         """
         kwargs = {}
         for key in ['ID', 'name', 'ref', 'ucd', 'utype']:
@@ -3104,6 +3319,21 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     The keyword arguments correspond to setting members of the same
     name, documented below.
+
+    Parameters
+    ----------
+    name : Any or None, optional
+    ID : Any or None, optional
+    utype : Any or None, optional
+    type : str, optional
+    id : Any or None, optional
+    config : dict or None, optional
+        The parser configuration dictionary
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found.  Used for error messages.
+    **kwargs
+        Should be empty.
     """
 
     def __init__(self, name=None, ID=None, utype=None, type='results',
@@ -3384,8 +3614,17 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     The keyword arguments correspond to setting members of the same
     name, documented below.
 
-    *version* is settable at construction time only, since conformance
-    tests for building the rest of the structure depend on it.
+    Parameters
+    ----------
+    ID, id : Any or None
+    config : dict or None, optional
+        The parser configuration dictionary
+    pos : tuple or None, optional
+        The position in the XML file where the FIELD object was
+        found.  Used for error messages.
+    version : str, optional
+        Settable at construction time only, since conformance tests for
+        building the rest of the structure depend on it.
     """
 
     def __init__(self, ID=None, id=None, config=None, pos=None, version="1.4"):
@@ -3733,8 +3972,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """)
 
     def get_table_by_index(self, idx):
-        """
-        Get a table by its ordinal position in the file.
+        """Get a table by its ordinal position in the file.
+
+        Parameters
+        ----------
+        idx : int
+            Ordinal position in the file.
         """
         for i, table in enumerate(self.iter_tables()):
             if i == idx:
@@ -3811,8 +4054,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     def iter_coosys(self):
         """
-        Recursively iterate over all COOSYS_ elements in the VOTABLE_
-        file.
+        Recursively iterate over all COOSYS_ elements in the VOTABLE_ file.
         """
         for coosys in self.coordinate_systems:
             yield coosys
@@ -3826,8 +4068,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     def iter_timesys(self):
         """
-        Recursively iterate over all TIMESYS_ elements in the VOTABLE_
-        file.
+        Recursively iterate over all TIMESYS_ elements in the VOTABLE_ file.
         """
         for timesys in self.time_systems:
             yield timesys
@@ -3840,9 +4081,12 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """Look up a TIMESYS_ element by the given ID.""")
 
     def iter_info(self):
-        """
-        Recursively iterate over all INFO_ elements in the VOTABLE_
-        file.
+        """Recursively iterate over all INFO_ elements in the VOTABLE_ file.
+
+        Yields
+        ------
+        INFO_
+            From the VOTABLE_ file.
         """
         for info in self.infos:
             yield info
@@ -3855,20 +4099,22 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """Look up a INFO element by the given ID.""")
 
     def set_all_tables_format(self, format):
-        """
-        Set the output storage format of all tables in the file.
+        """Set the output storage format of all tables in the file.
+
+        Parameters
+        ----------
+        format : Any
         """
         for table in self.iter_tables():
             table.format = format
 
     @classmethod
     def from_table(cls, table, table_id=None):
-        """
-        Create a `VOTableFile` instance from a given
-        `astropy.table.Table` instance.
+        """Create a `VOTableFile` from a given `astropy.table.Table` instance.
 
         Parameters
         ----------
+        table : `astropy.table.Table`
         table_id : str, optional
             Set the given ID attribute on the returned Table instance.
         """

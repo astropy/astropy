@@ -48,13 +48,8 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
 
     Parameters
     ----------
-    *args
-        Positional arguments passed through to data reader. If supplied the
-        first argument is typically the input filename.
-    format : str (optional, keyword-only)
-        File format specifier.
-    **kwargs
-        Keyword arguments passed through to data reader.
+    instance : `~astropy.cosmology.Cosmology` instance
+    cosmo_cls : `~astropy.cosmology.Cosmology` class
 
     Returns
     -------
@@ -69,6 +64,22 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
         super().__init__(instance, cosmo_cls, "read")
 
     def __call__(self, *args, **kwargs):
+        """Read and parse data to a `~astropy.cosmology.Cosmology`.
+
+        Parameters
+        ----------
+        *args
+            Positional arguments passed through to data reader. If supplied the
+            first argument is typically the input filename.
+        format : str (optional, keyword-only)
+            File format specifier.
+        **kwargs
+            Keyword arguments passed through to data reader.
+
+        Returns
+        -------
+        `~astropy.cosmology.Cosmology`
+        """
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -115,22 +126,29 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
 
     Parameters
     ----------
-    *args
-        Positional arguments passed through to data writer. If supplied the
-        first argument is the output filename.
-    format : str (optional, keyword-only)
-        File format specifier.
-    **kwargs
-        Keyword arguments passed through to data writer.
+    instance : `~astropy.cosmology.Cosmology` instance
+    cosmo_cls : `~astropy.cosmology.Cosmology` class
 
     Notes
     -----
     """
 
-    def __init__(self, instance, cls):
-        super().__init__(instance, cls, "write")
+    def __init__(self, instance, cosmo_cls):
+        super().__init__(instance, cosmo_cls, "write")
 
     def __call__(self, *args, **kwargs):
+        """Write this Cosmology object out in the specified format.
+
+        Parameters
+        ----------
+        *args
+            Positional arguments passed through to data writer. If supplied the
+            first argument is the output filename.
+        format : str (optional, keyword-only)
+            File format specifier.
+        **kwargs
+            Keyword arguments passed through to data writer.
+        """
         io_registry.write(self._instance, *args, **kwargs)
 
 
@@ -171,14 +189,8 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
 
     Parameters
     ----------
-    obj : object
-        The object to parse according to 'format'
-    *args
-        Positional arguments passed through to data parser.
-    format : str (optional, keyword-only)
-        Object format specifier.
-    **kwargs
-        Keyword arguments passed through to data parser.
+    instance : `~astropy.cosmology.Cosmology` instance
+    cosmo_cls : `~astropy.cosmology.Cosmology` class
 
     Returns
     -------
@@ -190,6 +202,23 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
         super().__init__(instance, cosmo_cls, "read")
 
     def __call__(self, obj, *args, **kwargs):
+        """Transform object to a `~astropy.cosmology.Cosmology`.
+
+        Parameters
+        ----------
+        obj : object
+            The object to parse according to 'format'
+        *args
+            Positional arguments passed through to data parser.
+        format : str (optional, keyword-only)
+            Object format specifier.
+        **kwargs
+            Keyword arguments passed through to data parser.
+
+        Returns
+        -------
+        `~astropy.cosmology.Cosmology`
+        """
         from astropy.cosmology.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -241,18 +270,30 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
 
     Parameters
     ----------
-    format : str
-        Format specifier.
-    *args
-        Positional arguments passed through to data writer. If supplied the
-        first argument is the output filename.
-    **kwargs
-        Keyword arguments passed through to data writer.
+    instance : `~astropy.cosmology.Cosmology` instance
+    cosmo_cls : `~astropy.cosmology.Cosmology` class
     """
 
-    def __init__(self, instance, cls):
-        super().__init__(instance, cls, "write")
+    def __init__(self, instance, cosmo_cls):
+        super().__init__(instance, cosmo_cls, "write")
 
     def __call__(self, format, *args, **kwargs):
+        """Transform this Cosmology to another format.
+
+        Parameters
+        ----------
+        format : str
+            Format specifier.
+        *args
+            Positional arguments passed through to data writer. If supplied the
+            first argument is the output filename.
+        **kwargs
+            Keyword arguments passed through to data writer.
+
+        Returns
+        -------
+        Any
+            Output of writer function. Depends on ``format``.
+        """
         return io_registry.write(self._instance, None, *args, format=format,
                                  **kwargs)

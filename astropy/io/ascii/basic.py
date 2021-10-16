@@ -103,6 +103,10 @@ class CommentedHeaderHeader(BasicHeader):
     """
     Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
+
+    Parameters
+    ----------
+    lines : list[str]
     """
 
     def process_lines(self, lines):
@@ -145,9 +149,16 @@ class CommentedHeader(Basic):
     data_class = NoHeaderData
 
     def read(self, table):
-        """
-        Read input data (file-like object, filename, list of strings, or single
-        string) into a Table and return the result.
+        """Read input data into a Table.
+
+        Parameters
+        ----------
+        table : path-like, file-like, str, or list[str]
+            Table location or string representation to read.
+
+        Returns
+        -------
+        `~astropy.table.Table`
         """
         out = super().read(table)
 
@@ -164,8 +175,12 @@ class CommentedHeader(Basic):
         return out
 
     def write_header(self, lines, meta):
-        """
-        Write comment lines after, rather than before, the header.
+        """Write comment lines after, rather than before, the header.
+
+        Parameters
+        ----------
+        lines : list[str]
+        meta : dict[str, Any]
         """
         self.header.write(lines)
         self.header.write_comments(lines, meta)

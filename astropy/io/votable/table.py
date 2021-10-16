@@ -108,6 +108,11 @@ def parse(source, columns=None, invalid='exception', verify=None,
     -------
     votable : `~astropy.io.votable.tree.VOTableFile` object
 
+    Other Parameters
+    ----------------
+    _debug_python_based_parser : bool
+        Whether to operate in debug mode.
+
     See Also
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
@@ -166,7 +171,13 @@ def parse_single_table(source, **kwargs):
     returning only the first `~astropy.io.votable.tree.Table`
     instance.
 
-    See `parse` for a description of the keyword arguments.
+    Parameters
+    ----------
+    source : path-like or file-like
+        Path or file-like object containing a VOTABLE_ xml file.
+        If file, must be readable.
+    **kwargs
+        Passed to `parse`.
 
     Returns
     -------

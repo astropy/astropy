@@ -257,7 +257,10 @@ class HTML(core.BaseReader):
     In order to customize input and output, a dict of parameters may
     be passed to this class holding specific customizations.
 
-    **htmldict** : Dictionary of parameters for HTML input/output.
+    Parameters
+    ----------
+    htmldict : dict, optional
+        Dictionary of parameters for HTML input/output.
 
         * css : Customized styling
             If present, this parameter will be included in a <style>
@@ -333,6 +336,14 @@ class HTML(core.BaseReader):
     def read(self, table):
         """
         Read the ``table`` in HTML format and return a resulting ``Table``.
+
+        Parameters
+        ----------
+        table : path-like or file-like object
+
+        Returns
+        -------
+        `~astropy.table.Table`        
         """
 
         self.outputter = HTMLOutputter()
@@ -341,6 +352,14 @@ class HTML(core.BaseReader):
     def write(self, table):
         """
         Return data in ``table`` converted to HTML as a list of strings.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+
+        Returns
+        -------
+        list[str]
         """
         # Check that table has only 1-d or 2-d columns. Above that fails.
         self._check_multidim_table(table)
@@ -455,8 +474,16 @@ class HTML(core.BaseReader):
         return [''.join(lines)]
 
     def fill_values(self, col, col_str_iters):
-        """
-        Return an iterator of the values with replacements based on fill_values
+        """Iterate through values with replacements based on fill_values.
+
+        Parameters
+        ----------
+        col : `~astropy.table.Column`
+        col_str_iters : iterable
+
+        Yields
+        ------
+        str
         """
         # check if the col is a masked column and has fill values
         is_masked_column = hasattr(col, 'mask')

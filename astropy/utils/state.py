@@ -41,8 +41,13 @@ class ScienceState:
 
     @classmethod
     def set(cls, value):
-        """
-        Set the current science state value.
+        """Set the current science state value.
+
+        Parameters
+        ----------
+        value : Any
+            Valid value types determined by each
+            `~astropy.utils.state.ScienceState` subclass.
         """
         class _Context:
             def __init__(self, parent, value):

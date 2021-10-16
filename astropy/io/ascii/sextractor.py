@@ -140,9 +140,16 @@ class SExtractor(core.BaseReader):
     inputter_class = core.ContinuationLinesInputter
 
     def read(self, table):
-        """
-        Read input data (file-like object, filename, list of strings, or single
-        string) into a Table and return the result.
+        """Read input data into a Table.
+
+        Parameters
+        ----------
+        table : path-like, file-like, str, or list[str]
+            Table location or string representation to read.
+
+        Returns
+        -------
+        `~astropy.table.Table`
         """
         out = super().read(table)
         # remove the comments

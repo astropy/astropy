@@ -270,16 +270,28 @@ class AllType(StrType, FloatType, IntType):
 class Column:
     """Table column.
 
-    The key attributes of a Column object are:
+    Parameters
+    ----------
+    name : str
+        Column name. Assigned to attribute.
 
-    * **name** : column name
-    * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
-    * **dtype** : numpy dtype (optional, overrides **type** if set)
-    * **str_vals** : list of column values as strings
-    * **fill_values** : dict of fill values
-    * **shape** : list of element shape (default [] => scalar)
-    * **data** : list of converted column values
-    * **subtype** : actual datatype for columns serialized with JSON
+    Attributes
+    ----------
+    name : str
+    type : NoType, StrType, NumType, FloatType, IntType
+        The column type
+    dtype : `numpy.dtype` or None
+        NumPy dtype (optional, overrides **type** if set).
+    str_vals : list[str]
+        List of column values as strings.
+    fill_values : dict
+        Dictionary of fill values.
+    shape : list[int]
+        List of element shape (default [] => scalar).
+    data : list
+        List of converted column values.
+    subtype : type
+        Actual datatype for columns serialized with JSON.
     """
 
     def __init__(self, name):
@@ -315,7 +327,8 @@ class BaseInputter:
             Can be either a file name, string (newline separated) with all header and data
             lines (must have at least 2 lines), a file-like object with a
             ``read()`` method, or a list of strings.
-        newline: line separator, if `None` use OS default from ``splitlines()``.
+        newline : str or None, optional
+            Line separator, if `None` use OS default from ``splitlines()``.
 
         Returns
         -------
@@ -364,6 +377,10 @@ class BaseInputter:
         input lines to the table rows.  For example the
         ContinuationLinesInputter derived class accounts for continuation
         characters if a row is split into lines.
+
+        Parameters
+        ----------
+        lines : sequence
         """
         return lines
 
@@ -396,11 +413,28 @@ class BaseSplitter:
         Remove whitespace at the beginning or end of line.
         This is especially useful for whitespace-delimited files to prevent
         spurious columns at the beginning or end.
+
+        Parameters
+        ----------
+        line : str
+
+        Returns
+        -------
+        str
         """
         return line.strip()
 
     def process_val(self, val):
-        """Remove whitespace at the beginning or end of value."""
+        """Remove whitespace at the beginning or end of value.
+
+        Parameters
+        ----------
+        val : str
+
+        Returns
+        -------
+        str
+        """
         return val.strip()
 
     def __call__(self, lines):
@@ -462,6 +496,14 @@ class DefaultSplitter(BaseSplitter):
         useful for whitespace-delimited files to prevent spurious columns at
         the beginning or end. If splitting on whitespace then replace unquoted
         tabs with space first.
+
+        Parameters
+        ----------
+        line : str
+
+        Returns
+        -------
+        str
         """
         if self.delimiter == r'\s':
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
@@ -596,11 +638,15 @@ class BaseHeader:
         self.cols = [Column(name=x) for x in self.names]
 
     def update_meta(self, lines, meta):
-        """
-        Extract any table-level metadata, e.g. keywords, comments, column
-        metadata, from the table ``lines`` and update the OrderedDict ``meta``
-        in place. This base method extracts comment lines and stores them in
-        ``meta`` for output.
+        """Extract table-level metadata, e.g. keywords, comments, about columns.
+
+        This base method extracts comment lines and stores them in ``meta`` for
+        output.
+
+        Parameters
+        ----------
+        lines : list
+        meta : `~collections.OrderedDict`
         """
         if self.comment:
             re_comment = re.compile(self.comment)
@@ -649,7 +695,17 @@ class BaseHeader:
         self._set_cols_from_names()
 
     def process_lines(self, lines):
-        """Generator to yield non-blank and non-comment lines."""
+        """Generator to yield non-blank and non-comment lines.
+
+        Parameters
+        ----------
+        lines : list[str]
+
+        Yields
+        ------
+        str
+            Non-blank and non-comment lines.
+        """
         re_comment = re.compile(self.comment) if self.comment else None
         # Yield non-comment lines
         for line in lines:
@@ -821,6 +877,11 @@ class BaseData:
         """
         READ: Set ``data_lines`` attribute to lines slice comprising table data
         values.
+
+        Parameters
+        ----------
+        lines : list
+            Processed by ``self.process_lines``.
         """
         data_lines = self.process_lines(lines)
         start_line = _get_line_index(self.start_line, data_lines)
@@ -845,6 +906,10 @@ class BaseData:
         applies to which column using ``fill_include_names`` and
         ``fill_exclude_names``. In the second step all replacements are done
         for the appropriate columns.
+
+        Parameters
+        ----------
+        cols : sequence[`~astropy.table.Column`]
         """
         if self.fill_values:
             self._set_fill_values(cols)
@@ -1566,6 +1631,14 @@ class WhitespaceSplitter(DefaultSplitter):
         """
         Replace tab with space within ``line`` while respecting quoted
         substrings.
+
+        Parameters
+        ----------
+        line : str
+
+        Returns
+        -------
+        str
         """
         newline = []
         in_quote = False

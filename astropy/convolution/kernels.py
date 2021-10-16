@@ -38,6 +38,11 @@ class Gaussian1DKernel(Kernel1D):
     ----------
     stddev : number
         Standard deviation of the Gaussian kernel.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size of the kernel array. Default = ⌊8*stddev+1⌋.
     mode : str, optional
@@ -108,6 +113,11 @@ class Gaussian2DKernel(Kernel2D):
     theta : float or `~astropy.units.Quantity` ['angle']
         Rotation angle. If passed as a float, it is assumed to be in radians.
         The rotation angle increases counterclockwise.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*stddev + 1⌋.
     y_size : int, optional
@@ -185,6 +195,11 @@ class Box1DKernel(Kernel1D):
     ----------
     width : number
         Width of the filter kernel.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center'
@@ -253,6 +268,11 @@ class Box2DKernel(Kernel2D):
     ----------
     width : number
         Width of the filter kernel.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center'
@@ -320,6 +340,11 @@ class Tophat2DKernel(Kernel2D):
     ----------
     radius : int
         Radius of the filter kernel.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -381,6 +406,11 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     width : number
         Width of the ring kernel.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -441,6 +471,11 @@ class Trapezoid1DKernel(Kernel1D):
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -501,6 +536,11 @@ class TrapezoidDisk2DKernel(Kernel2D):
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
@@ -575,6 +615,11 @@ class RickerWavelet1DKernel(Kernel1D):
     width : number
         Width of the filter kernel, defined as the standard deviation
         of the Gaussian function from which it is derived.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     mode : str, optional
@@ -593,7 +638,6 @@ class RickerWavelet1DKernel(Kernel1D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -650,6 +694,11 @@ class RickerWavelet2DKernel(Kernel2D):
     width : number
         Width of the filter kernel, defined as the standard deviation
         of the Gaussian function from which it is derived.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
     y_size : int, optional
@@ -670,7 +719,6 @@ class RickerWavelet2DKernel(Kernel2D):
                 model over the bin.
     factor : number, optional
         Factor of oversampling. Default factor = 10.
-
 
     See Also
     --------
@@ -715,6 +763,11 @@ class AiryDisk2DKernel(Kernel2D):
     ----------
     radius : float
         The radius of the Airy disk kernel (radius of the first zero).
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
@@ -781,6 +834,11 @@ class Moffat2DKernel(Kernel2D):
         Core width of the Moffat model.
     alpha : float
         Power index of the Moffat model.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*radius + 1⌋.
     y_size : int, optional
@@ -846,6 +904,11 @@ class Model1DKernel(Kernel1D):
     ----------
     model : `~astropy.modeling.Fittable1DModel`
         Kernel response function model
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
         Must be odd.
@@ -911,6 +974,11 @@ class Model2DKernel(Kernel2D):
     ----------
     model : `~astropy.modeling.Fittable2DModel`
         Kernel response function model
+    **kwargs
+        See Other Parameters for options.
+    
+    Other Parameters
+    ----------------
     x_size : int, optional
         Size in x direction of the kernel array. Default = ⌊8*width +1⌋.
         Must be odd.

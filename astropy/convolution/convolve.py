@@ -863,6 +863,8 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         *must be normalizable* (i.e., its sum cannot be zero).
     convolve : `convolve` or `convolve_fft`
         One of the two convolution functions defined in this package.
+    **kwargs
+        Passed to ``convolve``.
 
     Returns
     -------

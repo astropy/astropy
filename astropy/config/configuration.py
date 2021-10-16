@@ -50,6 +50,11 @@ class ConfigurationMissingWarning(AstropyWarning):
     accessed (usually due to a permissions problem). If this warning appears,
     configuration items will be set to their defaults rather than read from the
     configuration file, and no configuration will persist across sessions.
+
+    Parameters
+    ----------
+    *args, **kwargs
+        Passed to :class:`~astropy.utils.exceptions.AstropyWarning`
     """
 
 
@@ -602,6 +607,8 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
         The package for which to retrieve the configuration object.
     filename : str or file-like or None
         If None, the default configuration path is taken from `get_config`.
+    verbose : bool
+        Whether to display information while generating the configuration file.
     """
     if verbose:
         verbosity = nullcontext

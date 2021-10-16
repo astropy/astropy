@@ -182,6 +182,8 @@ class SpectralCoord(SpectralQuantity):
         The rest value to use when expressing the spectral value as a velocity.
     doppler_convention : str, optional
         The Doppler convention to use when expressing the spectral value as a velocity.
+    **kwargs
+        Passed to `astropy.units.Quantity`.
     """
 
     @u.quantity_input(radial_velocity=u.km/u.s)

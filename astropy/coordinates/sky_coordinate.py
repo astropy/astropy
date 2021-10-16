@@ -416,9 +416,9 @@ class SkyCoord(ShapedLikeNDArray):
         method : str or callable
             If str, it is the name of a method that is applied to the internal
             ``components``. If callable, the function is applied.
-        args : tuple
+        *args : tuple
             Any positional arguments for ``method``.
-        kwargs : dict
+        **kwargs : dict
             Any keyword arguments for ``method``.
         """
         def apply_method(value):
@@ -962,7 +962,7 @@ class SkyCoord(ShapedLikeNDArray):
         style : {'hmsdms', 'dms', 'decimal'}
             The formatting specification to use. These encode the three most
             common ways to represent coordinates. The default is `decimal`.
-        kwargs
+        **kwargs
             Keyword args passed to :meth:`~astropy.coordinates.Angle.to_string`.
         """
 
@@ -1603,8 +1603,15 @@ class SkyCoord(ShapedLikeNDArray):
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
     def skyoffset_frame(self, rotation=None):
-        """
-        Return the sky offset frame with this `SkyCoord` at the origin.
+        """Create a sky offset frame with this `SkyCoord` at the origin.
+
+        Parameters
+        ----------
+        rotation : angle-like
+            The final rotation of the frame about the ``origin``. The sign of
+            the rotation is the left-hand rule. That is, an object at a
+            particular position angle in the un-rotated system will be sent to
+            the positive latitude (z) direction in the final frame.
 
         Returns
         -------
@@ -1612,11 +1619,6 @@ class SkyCoord(ShapedLikeNDArray):
             A sky offset frame of the same type as this `SkyCoord` (e.g., if
             this object has an ICRS coordinate, the resulting frame is
             SkyOffsetICRS, with the origin set to this object)
-        rotation : angle-like
-            The final rotation of the frame about the ``origin``. The sign of
-            the rotation is the left-hand rule. That is, an object at a
-            particular position angle in the un-rotated system will be sent to
-            the positive latitude (z) direction in the final frame.
         """
         return SkyOffsetFrame(origin=self, rotation=rotation)
 
@@ -2086,9 +2088,9 @@ class SkyCoord(ShapedLikeNDArray):
         ----------
         name : str
             The name of the object to get coordinates for, e.g. ``'M42'``.
-        frame : str or `BaseCoordinateFrame` class or instance
+        frame : str or `BaseCoordinateFrame` class or instance, optional
             The frame to transform the object to.
-        parse: bool
+        parse : bool, optional
             Whether to attempt extracting the coordinates from the name by
             parsing with a regex. For objects catalog names that have
             J-coordinates embedded in their names, e.g.,

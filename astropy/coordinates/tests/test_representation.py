@@ -2034,6 +2034,11 @@ def unitphysics():
             """
             Converts 3D rectangular cartesian coordinates to spherical polar
             coordinates.
+
+            Parameters
+            ----------
+            cart : `~astropy.coordinates.CartesianRepresentation`
+                The representation to turn into this class.
             """
             s = np.hypot(cart.x, cart.y)
 

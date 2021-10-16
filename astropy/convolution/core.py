@@ -194,6 +194,11 @@ class Kernel1D(Kernel):
         Only used if ``array`` is None.
     array : ndarray or None, optional
         Kernel array.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     width : number
         Width of the filter kernel.
     mode : str, optional
@@ -259,6 +264,11 @@ class Kernel2D(Kernel):
         Only used if ``array`` is None,
     array : ndarray or None, optional
         Kernel array. Default is None.
+    **kwargs
+        See Other Parameters for options.
+
+    Other Parameters
+    ----------------
     mode : str, optional
         One of the following discretization modes:
             * 'center' (default)

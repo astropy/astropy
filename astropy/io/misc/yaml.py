@@ -193,6 +193,10 @@ class AstropyLoader(yaml.SafeLoader):
     called when parsing a YAML stream.  See the `PyYaml documentation
     <https://pyyaml.org/wiki/PyYAMLDocumentation>`_ for details of the
     class signature.
+
+    Parameters
+    ----------
+    stream : file-like object
     """
 
     def _construct_python_tuple(self, node):
@@ -212,6 +216,23 @@ class AstropyDumper(yaml.SafeDumper):
     called when generating a YAML stream from an object.  See the
     `PyYaml documentation <https://pyyaml.org/wiki/PyYAMLDocumentation>`_
     for details of the class signature.
+
+    Parameters
+    ----------
+    stream : file-like object
+    default_style : None, optional
+    default_flow_style : bool, optional
+    canonical : None, optional
+    indent : None, optional
+    width : None, optional
+    allow_unicode : None, optional
+    line_break : None, optional
+    encoding : None, optional
+    explicit_start : None, optional
+    explicit_end : None, optional
+    version : None, optional
+    tags : None, optional
+    sort_keys : bool, optional
     """
 
     def _represent_tuple(self, data):
@@ -317,7 +338,7 @@ def dump(data, stream=None, **kwargs):
 
     Parameters
     ----------
-    data: object
+    data : object
         Object to serialize to YAML
     stream : file-like, optional
         YAML output (if not supplied a string is returned)

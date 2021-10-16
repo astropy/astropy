@@ -1423,10 +1423,15 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     flat cosmologies are instances of ``FlatFLRWMixin``. As example,
     ``LambdaCDM`` **may** be flat (for the a specific set of parameter values),
     but ``FlatLambdaCDM`` **will** be flat.
+
+    Parameters
+    ----------
+    *args, **kwargs
+        Passed to Cosmology superclass.
     """
 
-    def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0

@@ -76,7 +76,7 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
     path : str
         The path from which to read the table inside the HDF5 file.
         This should be relative to the input file or group.
-    character_as_bytes: bool
+    character_as_bytes : bool
         If `True` then Table columns are left as bytes.
         If `False` then Table columns are converted to unicode.
     """
@@ -221,22 +221,24 @@ def write_table_hdf5(table, output, path=None, compression=False,
     output : str or :class:`h5py.File` or :class:`h5py.Group`
         If a string, the filename to write the table to. If an h5py object,
         either the file or the group object to write the table to.
-    path : str
+    path : str, optional
         The path to which to write the table inside the HDF5 file.
         This should be relative to the input file or group.
         If not specified, defaults to ``__astropy_table__``.
-    compression : bool or str or int
+    compression : bool or str or int, optional
         Whether to compress the table inside the HDF5 file. If set to `True`,
         ``'gzip'`` compression is used. If a string is specified, it should be
         one of ``'gzip'``, ``'szip'``, or ``'lzf'``. If an integer is
         specified (in the range 0-9), ``'gzip'`` compression is used, and the
         integer denotes the compression level.
-    append : bool
+    append : bool, optional
         Whether to append the table to an existing HDF5 file.
-    overwrite : bool
+    overwrite : bool, optional
         Whether to overwrite any existing file without warning.
         If ``append=True`` and ``overwrite=True`` then only the dataset will be
         replaced; the file/group will not be overwritten.
+    serialize_meta : bool, optional
+        Whether to serialize the metadata.
     **create_dataset_kwargs
         Additional keyword arguments are passed to
         ``h5py.File.create_dataset()`` or ``h5py.Group.create_dataset()``.

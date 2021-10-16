@@ -177,6 +177,18 @@ class EarthLocation(u.Quantity):
     arguments with names (``x``, ``y``, ``z`` for geocentric; ``lon``, ``lat``,
     ``height`` for geodetic).  See the class methods for details.
 
+    Parameters
+    ----------
+    *args, **kwargs
+        Can be 1 EarthLocation args and no kwargs
+        or valid arguments into :meth:`~astropy.coordinates.EarthLocation.from_geocentric`
+        or valid arguments into :meth:`~astropy.coordinates.EarthLocation.from_geodetic`.
+
+    Raises
+    ------
+    TypeError
+        If ``*args, **kwargs`` are not one of the set of options specified
+        in Parameters.
 
     Notes
     -----
@@ -906,6 +918,11 @@ class BaseGeodeticRepresentation(BaseRepresentation):
         """
         Convert 3D rectangular cartesian coordinates (assumed geocentric) to
         WGS84 geodetic coordinates.
+
+        Parameters
+        ----------
+        cart : `CartesianRepresentation`
+            The representation to turn into this class.
         """
         lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid),
                                       cart.get_xyz(xyz_axis=-1))

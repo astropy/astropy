@@ -151,10 +151,10 @@ class Converter:
     field : `~astropy.io.votable.tree.Field`
         object describing the datatype
 
-    config : dict
+    config : dict or None, optional
         The parser configuration dictionary
 
-    pos : tuple
+    pos : tuple or None, optional
         The position in the XML file where the FIELD object was
         found.  Used for error messages.
     """
@@ -171,8 +171,17 @@ class Converter:
         return struct_pack(">I", int(length))
 
     def supports_empty_values(self, config):
-        """
-        Return True when the field can be completely empty.
+        """Return True when the field can be completely empty.
+
+        Parameters
+        ----------
+        config : dict or None, optional
+            The parser configuration dictionary
+
+        Returns
+        -------
+        bool or None
+            Value of config['version_1_3_or_later'] or None, if not present.
         """
         return config.get('version_1_3_or_later')
 
@@ -185,6 +194,11 @@ class Converter:
         ----------
         value : str
             value in TABLEDATA format
+        config : dict or None, optional
+            The parser configuration dictionary
+        pos : tuple or None, optional
+            The position in the XML file where the FIELD object was
+            found.  Used for error messages.
 
         Returns
         -------
@@ -193,8 +207,7 @@ class Converter:
             The value as a Numpy array or scalar, and *mask* is True
             if the value is missing.
         """
-        raise NotImplementedError(
-            "This datatype must implement a 'parse' method.")
+        raise NotImplementedError("This datatype must implement a 'parse' method.")
 
     def parse_scalar(self, value, config=None, pos=None):
         """
@@ -207,6 +220,11 @@ class Converter:
         ----------
         value : str
             value in TABLEDATA format
+        config : dict or None, optional
+            The parser configuration dictionary
+        pos : tuple or None, optional
+            The position in the XML file where the FIELD object was
+            found.  Used for error messages.
 
         Returns
         -------

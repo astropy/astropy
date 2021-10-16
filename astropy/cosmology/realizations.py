@@ -53,19 +53,33 @@ class default_cosmology(ScienceState):
     _value = "Planck18"
 
     @staticmethod
-    def get_cosmology_from_string(arg):
-        """ Return a cosmology instance from a string.
+    def get_cosmology_from_string(key):
+        """Return a cosmology instance from a string.
+
+        Parameters
+        ----------
+        key : str or {"no_default"}
+            The name of the Cosmology or the string "no_default".
+
+        Returns
+        -------
+        `~astropy.cosmology.Cosmology` or None
+            The Cosmology corresponding to ``key`` or `None` if "no_default".
+
+        Raises
+        ------
+        ValueError
+            If cannot find cosmology corresponding to ``key``.
         """
-        if arg == "no_default":
+        if key == "no_default":
             cosmo = None
         else:
             try:
-                cosmo = getattr(sys.modules[__name__], arg)
+                cosmo = getattr(sys.modules[__name__], key)
             except AttributeError:
-                s = "Unknown cosmology '{}'. Valid cosmologies:\n{}".format(
-                    arg, parameters.available
-                )
-                raise ValueError(s)
+                s = (f"Unknown cosmology '{key}'. "
+                     f"Valid cosmologies:\n{parameters.available}")
+                raise ValueError(s) from None
         return cosmo
 
     @classmethod

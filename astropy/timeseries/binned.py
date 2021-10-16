@@ -267,10 +267,8 @@ class BinnedTimeSeries(BaseTimeSeries):
             The time format for the start and end columns.
         time_scale : str, optional
             The time scale for the start and end columns.
-        *args : tuple, optional
-            Positional arguments passed through to the data reader.
-        **kwargs : dict, optional
-            Keyword arguments passed through to the data reader.
+        *args, **kwargs
+            Arguments passed through to the data reader.
 
         Returns
         -------

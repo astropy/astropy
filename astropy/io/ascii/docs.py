@@ -15,6 +15,8 @@ READ_DOCSTRING = """
         single newline-separated string or `pathlib.Path` object.
     guess : bool
         Try to guess the table format. Defaults to None.
+    **kwargs
+        See the following for full options.
     format : str, `~astropy.io.ascii.BaseReader`
         Input table format
     Inputter : `~astropy.io.ascii.BaseInputter`
@@ -135,6 +137,8 @@ WRITE_DOCSTRING = """
         Output [filename, file-like object]. Defaults to``sys.stdout``.
     format : str
         Output table format. Defaults to 'basic'.
+    Writer : type or None
+        The writer class or None, in which case the class is determined.
     delimiter : str
         Column delimiter string
     comment : str, bool
@@ -160,6 +164,7 @@ WRITE_DOCSTRING = """
         If ``overwrite=False`` (default) and the file exists, then an OSError
         is raised. This parameter is ignored when the ``output`` arg is not a
         string (e.g., a file object).
+    **kwargs
     """
 # Specify allowed types for core write() keyword arguments.  Each entry
 # corresponds to the name of an argument and either a type (e.g. int) or a

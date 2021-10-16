@@ -626,9 +626,8 @@ class TransformGraph:
         priority : float or int
             The priority if this transform when finding the shortest
             coordinate transform path - large numbers are lower priorities.
-
-        Additional keyword arguments are passed into the ``transcls``
-        constructor.
+        **kwargs
+            Passed into the ``transcls`` constructor.
 
         Returns
         -------
@@ -939,25 +938,39 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
     Parameters
     ----------
-    finite_difference_frameattr_name : str or None
+    func : callable
+        The transformation function. Should have a call signature
+        ``func(formcoord, toframe)``. Note that, unlike
+        `CoordinateTransform.__call__`, ``toframe`` is assumed to be of type
+        ``tosys`` for this function. See `FunctionTransform`.
+    fromsys : `~astropy.coordinates.BaseCoordinateFrame` subclass
+        The coordinate frame class to start from. See `FunctionTransform`.
+    tosys : `~astropy.coordinates.BaseCoordinateFrame` subclass
+        The coordinate frame class to transform into. See `FunctionTransform`.
+    priority : float or int, optional
+        The priority if this transform when finding the shortest
+        coordinate transform path - large numbers are lower priorities.
+        See `FunctionTransform`.
+    register_graph : `TransformGraph` or None, optional
+        A graph to register this transformation with on creation, or
+        `None` to leave it unregistered.
+        See `FunctionTransform`.
+    finite_difference_frameattr_name : str or None, optional
         The name of the frame attribute on the frames to use for the finite
         difference.  Both the to and the from frame will be checked for this
         attribute, but only one needs to have it. If None, no velocity
         component induced from the frame itself will be included - only the
         re-orientation of any existing differential.
-    finite_difference_dt : `~astropy.units.Quantity` ['time'] or callable
+    finite_difference_dt : `~astropy.units.Quantity` ['time'] or callable, optional
         If a quantity, this is the size of the differential used to do the
         finite difference.  If a callable, should accept
         ``(fromcoord, toframe)`` and return the ``dt`` value.
-    symmetric_finite_difference : bool
+    symmetric_finite_difference : bool, optional
         If True, the finite difference is computed as
         :math:`\frac{x(t + \Delta t / 2) - x(t + \Delta t / 2)}{\Delta t}`, or
         if False, :math:`\frac{x(t + \Delta t) - x(t)}{\Delta t}`.  The latter
         case has slightly better performance (and more stable finite difference
         behavior).
-
-    All other parameters are identical to the initializer for
-    `FunctionTransform`.
     """
 
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None,
@@ -1086,6 +1099,19 @@ class BaseAffineTransform(CoordinateTransform):
     in ``None`` for the offset. Hence, user subclasses would likely want to
     subclass this (rather than ``AffineTransform``) if they want to provide
     alternative transformations using this machinery.
+
+    Parameters
+    ----------
+    fromsys : `~astropy.coordinates.BaseCoordinateFrame` subclass
+        The coordinate frame class to start from.
+    tosys : `~astropy.coordinates.BaseCoordinateFrame` subclass
+        The coordinate frame class to transform into.
+    priority : float or int
+        The priority if this transform when finding the shortest
+        coordinate transform path - large numbers are lower priorities.
+    register_graph : `TransformGraph` or None
+        A graph to register this transformation with on creation, or
+        `None` to leave it unregistered.
     """
 
     def _apply_transform(self, fromcoord, matrix, offset):

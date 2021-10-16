@@ -81,9 +81,17 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     start_line = None
 
     def process_lines(self, lines):
-        """
-        Generator to yield IPAC header lines, i.e. those starting and ending
-        with delimiter character (with trailing whitespace stripped).
+        """Generator to yield IPAC header lines.
+
+        Parameters
+        ----------
+        lines : list[str]
+
+        Yields
+        ------
+        str
+            IPAC header line, i.e. starting and ending with delimiter character
+            (with trailing whitespace stripped).
         """
         delim = self.splitter.delimiter
         for line in lines:
@@ -95,6 +103,11 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         """
         Extract table-level comments and keywords for IPAC table.  See:
         https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html#kw
+
+        Parameters
+        ----------
+        lines : list[str]
+        meta : mapping[str, Any]
         """
         def process_keyword_value(val):
             """

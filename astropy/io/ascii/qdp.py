@@ -603,6 +603,13 @@ class QDP(basic.Basic):
         t.write(test_file, err_specs={'terr': [1], 'serr': [3]})
 
     Note how the ``terr`` and ``serr`` commands are passed to the writer.
+
+    Parameters
+    ----------
+    table_id : int or None, optional
+    names : list[str] or None, optional
+    err_specs : None, optional
+    sep : None, optional
     """
     _format_name = 'qdp'
     _io_registry_can_write = True

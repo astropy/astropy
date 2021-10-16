@@ -209,21 +209,24 @@ class Latex(core.BaseReader):
 
     Reading a LaTeX table, the following keywords are accepted:
 
-    **ignore_latex_commands** :
+    Parameters
+    ----------
+    ignore_latex_commands : list[str]
         Lines starting with these LaTeX commands will be treated as comments (i.e. ignored).
 
-    When writing a LaTeX table, the some keywords can customize the
-    format.  Care has to be taken here, because python interprets ``\\``
-    in a string as an escape character.  In order to pass this to the
-    output either format your strings as raw strings with the ``r``
-    specifier or use a double ``\\\\``.
+        When writing a LaTeX table, the some keywords can customize the
+        format.  Care has to be taken here, because python interprets ``\\``
+        in a string as an escape character.  In order to pass this to the
+        output either format your strings as raw strings with the ``r``
+        specifier or use a double ``\\\\``.
+    
+        Examples::
+    
+            caption = r'My table \label{mytable}'
+            caption = 'My table \\\\label{mytable}'
 
-    Examples::
-
-        caption = r'My table \label{mytable}'
-        caption = 'My table \\\\label{mytable}'
-
-    **latexdict** : Dictionary of extra parameters for the LaTeX output
+    latexdict : dict
+        Dictionary of extra parameters for the LaTeX output
 
         * tabletype : used for first and last line of table.
             The default is ``\\begin{table}``.  The following would generate a table,
@@ -289,12 +292,14 @@ class Latex(core.BaseReader):
                                    'tablefoot': r'\end{center}',
                                    'tabletype': 'table*'})
 
-    **caption** : Set table caption
+    caption : str
+        Set table caption
         Shorthand for::
 
             latexdict['caption'] = caption
 
-    **col_align** : Set the column alignment.
+    col_align : str or None
+        Set the column alignment.
         If not present this will be auto-generated for centered
         columns. Shorthand for::
 
@@ -434,16 +439,19 @@ class AASTexData(LatexData):
 
 
 class AASTex(Latex):
-    '''AASTeX format table.
+    """AASTeX format table.
 
     This class implements some AASTeX specific commands.
     AASTeX is used for the AAS (American Astronomical Society)
     publications like ApJ, ApJL and AJ.
 
-    It derives from the ``Latex`` reader and accepts the same
-    keywords.  However, the keywords ``header_start``, ``header_end``,
-    ``data_start`` and ``data_end`` in ``latexdict`` have no effect.
-    '''
+    Parameters
+    ----------
+    **kwargs
+        Accepts the same keywords as the parent class ``Latex``,
+        however, the keywords ``header_start``, ``header_end``,
+        ``data_start`` and ``data_end`` in ``latexdict`` have no effect.
+    """
 
     _format_name = 'aastex'
     _io_registry_format_aliases = ['aastex']

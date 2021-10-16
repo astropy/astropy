@@ -485,9 +485,9 @@ class Quantity(np.ndarray):
             ufunc to wrap.
         method : str
             Ufunc method: ``__call__``, ``at``, ``reduce``, etc.
-        inputs : tuple
+        *inputs : tuple
             Input arrays.
-        kwargs : keyword arguments
+        **kwargs : keyword arguments
             As passed on, with ``out`` containing possible quantity output.
 
         Returns
@@ -1672,25 +1672,25 @@ class Quantity(np.ndarray):
         args : positional arguments
             Any positional arguments to the function beyond the first argument
             (which will be set to ``self``).
-        kwargs : keyword arguments
+        **kwargs : keyword arguments
             Keyword arguments to the function.
 
-        If present, the following arguments are treated specially:
+            If present, the following arguments are treated specially:
 
-        unit : `~astropy.units.Unit`
-            Unit of the output result.  If not given, the unit of ``self``.
-        out : `~astropy.units.Quantity`
-            A Quantity instance in which to store the output.
-
-        Notes
-        -----
-        Output should always be assigned via a keyword argument, otherwise
-        no proper account of the unit is taken.
+            unit : `~astropy.units.Unit`
+                Unit of the output result.  If not given, the unit of ``self``.
+            out : `~astropy.units.Quantity`
+                A Quantity instance in which to store the output.
 
         Returns
         -------
         out : `~astropy.units.Quantity`
             Result of the function call, with the unit set properly.
+
+        Notes
+        -----
+        Output should always be assigned via a keyword argument, otherwise
+        no proper account of the unit is taken.
         """
         if unit is None:
             unit = self.unit

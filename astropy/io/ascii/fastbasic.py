@@ -17,6 +17,11 @@ class FastBasic(metaclass=core.MetaBaseReader):
     code and is therefore much faster. Unlike the other ASCII readers and
     writers, this class is not very extensible and is restricted
     by optimization requirements.
+
+    Parameters
+    ----------
+    default_kwargs : dict
+    **user_kwargs
     """
     _format_name = 'fast_basic'
     _description = 'Basic table with custom delimiter using the fast C engine'
@@ -63,9 +68,16 @@ class FastBasic(metaclass=core.MetaBaseReader):
         self.engine.read_header()
 
     def read(self, table):
-        """
-        Read input data (file-like object, filename, list of strings, or
-        single string) into a Table and return the result.
+        """Read input data into a Table.
+
+        Parameters
+        ----------
+        table : path-like, file-like, str, or list[str]
+            Table location or string representation to read.
+
+        Returns
+        -------
+        `~astropy.table.Table`
         """
         if self.comment is not None and len(self.comment) != 1:
             raise core.ParameterError("The C reader does not support a comment regex")
@@ -134,7 +146,15 @@ class FastBasic(metaclass=core.MetaBaseReader):
         return out
 
     def make_table(self, data, comments):
-        """Actually make the output table give the data and comments."""
+        """Actually make the output table give the data and comments.
+
+        Parameters
+        ----------
+        data : Any
+            Passed to `~astropy.table.Table`.
+        comments : Any
+            Set as item in :attr:`astropy.table.Table.meta` with key 'comments'.
+        """
         meta = OrderedDict()
         if comments:
             meta['comments'] = comments
@@ -160,9 +180,12 @@ class FastBasic(metaclass=core.MetaBaseReader):
                              .format(names))
 
     def write(self, table, output):
-        """
-        Use a fast Cython method to write table data to output,
-        where output is a filename or file-like object.
+        """Use a fast Cython method to write table data to output.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+        output : path-like or file-like object
         """
         self._write(table, output, {})
 
@@ -190,6 +213,12 @@ class FastCsv(FastBasic):
     optimized C parsing engine. Note that this reader will append empty
     field values to the end of any row with not enough columns, while
     :class:`FastBasic` simply raises an error.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to `FastBasic`, with ``default_kwargs`` set to have
+        ``delimiter=','`` and ``comment=None``.
     """
     _format_name = 'fast_csv'
     _description = 'Comma-separated values table using the fast C engine'
@@ -203,6 +232,11 @@ class FastCsv(FastBasic):
         """
         Override the default write method of `FastBasic` to
         output masked values as empty fields.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+        output : path-like or file-like object
         """
         self._write(table, output, {'fill_values': [(core.masked, '')]})
 
@@ -211,6 +245,12 @@ class FastTab(FastBasic):
     """
     A faster version of the ordinary :class:`Tab` reader that uses
     the optimized C parsing engine.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to `FastBasic`, with ``default_kwargs`` set to have
+        ``delimiter='\t'``.
     """
     _format_name = 'fast_tab'
     _description = 'Tab-separated values table using the fast C engine'
@@ -227,6 +267,12 @@ class FastNoHeader(FastBasic):
     This class uses the fast C engine to read tables with no header line. If
     the names parameter is unspecified, the columns will be autonamed with
     "col{}".
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to `FastBasic`, with ``default_kwargs`` set to have
+        ``header_start=None`` and ``data_start=0``.
     """
     _format_name = 'fast_no_header'
     _description = 'Basic table with no headers using the fast C engine'
@@ -239,6 +285,11 @@ class FastNoHeader(FastBasic):
         """
         Override the default writing behavior in `FastBasic` so
         that columns names are not included in output.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+        output : path-like or file-like object
         """
         self._write(table, output, {}, header_output=None)
 
@@ -248,6 +299,11 @@ class FastCommentedHeader(FastBasic):
     A faster version of the :class:`CommentedHeader` reader, which looks for
     column names in a commented line. ``header_start`` denotes the index of
     the header line among all commented lines and is 0 by default.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to `FastBasic`, without ``default_kwargs``.
     """
     _format_name = 'fast_commented_header'
     _description = 'Columns name in a commented line using the fast C engine'
@@ -265,6 +321,13 @@ class FastCommentedHeader(FastBasic):
         Actually make the output table give the data and comments.  This is
         slightly different from the base FastBasic method in the way comments
         are handled.
+
+        Parameters
+        ----------
+        data : Any
+            Passed to `~astropy.table.Table`.
+        comments : Any
+            Set as item in :attr:`astropy.table.Table.meta` with key 'comments'.
         """
         meta = OrderedDict()
         if comments:
@@ -301,6 +364,11 @@ class FastCommentedHeader(FastBasic):
         """
         Override the default writing behavior in `FastBasic` so
         that column names are commented.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+        output : path-like or file-like object
         """
         self._write(table, output, {}, header_output='comment')
 
@@ -310,6 +378,12 @@ class FastRdb(FastBasic):
     A faster version of the :class:`Rdb` reader. This format is similar to
     tab-delimited, but it also contains a header line after the column
     name line denoting the type of each column (N for numeric, S for string).
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to `FastBasic`, with ``default_kwargs`` set to have
+        ``delimiter='\t'`` and ``data_start=2``.
     """
     _format_name = 'fast_rdb'
     _description = 'Tab-separated with a type definition header line'
@@ -386,5 +460,10 @@ class FastRdb(FastBasic):
         """
         Override the default writing behavior in `FastBasic` to
         output a line with column types after the column name line.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+        output : path-like or file-like object
         """
         self._write(table, output, {}, output_types=True)

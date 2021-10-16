@@ -78,6 +78,26 @@ class Constant(Quantity, metaclass=ConstantMeta):
 
     These objects are quantities that are meant to represent physical
     constants.
+
+    Parameters
+    ----------
+    abbrev : str
+        ASCII text abbreviation of the constant, also generally the same as the
+        Python variable used for this constant.
+    name : str
+        The full name of the constant.
+    value : Number or `~astropy.units.Quantity`
+        The value of the constant. May or may not have units assigned.
+    unit : str
+        String representation of the unit(s) in which this constant is defined.
+    uncertainty : Number
+        The known absolute uncertainty in this constant's value.
+    reference : str or None, optional
+        The source used for the value of this constant.
+    system : str or None, optional
+        The system of units in which this constant is defined (typically
+        `None` so long as the constant's units can be directly converted
+        between systems).
     """
     _registry = {}
     _has_incompatible_units = set()
@@ -218,7 +238,28 @@ class Constant(Quantity, metaclass=ConstantMeta):
 
 
 class EMConstant(Constant):
-    """An electromagnetic constant."""
+    """An electromagnetic constant.
+
+    Parameters
+    ----------
+    abbrev : str
+        ASCII text abbreviation of the constant, also generally the same as the
+        Python variable used for this constant.
+    name : str
+        The full name of the constant.
+    value : Number or `~astropy.units.Quantity`
+        The value of the constant. May or may not have units assigned.
+    unit : str
+        String representation of the unit(s) in which this constant is defined.
+    uncertainty : Number
+        The known absolute uncertainty in this constant's value.
+    reference : str or None, optional
+        The source used for the value of this constant.
+    system : str or None, optional
+        The system of units in which this constant is defined (typically
+        `None` so long as the constant's units can be directly converted
+        between systems).
+    """
 
     @property
     def cgs(self):

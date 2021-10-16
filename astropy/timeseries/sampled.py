@@ -346,10 +346,8 @@ class TimeSeries(BaseTimeSeries):
             The time format for the time column.
         time_scale : str, optional
             The time scale for the time column.
-        *args : tuple, optional
-            Positional arguments passed through to the data reader.
-        **kwargs : dict, optional
-            Keyword arguments passed through to the data reader.
+        *args, **kwargs
+            Arguments passed through to the data reader.
 
         Returns
         -------

@@ -220,6 +220,11 @@ class galactocentric_frame_defaults(ScienceState):
         for the parameter sets. This method ensures the returned state is a
         mutable copy, so any changes made do not affect the registry state.
 
+        Parameters
+        ----------
+        name : str
+            The namefor the parameter set.
+
         Returns
         -------
         state : dict
@@ -257,6 +262,11 @@ class galactocentric_frame_defaults(ScienceState):
         """
         Return Galactocentric solar parameters given string names
         for the parameter sets.
+
+        Parameters
+        ----------
+        arg : str
+            Name of the parameter set to get from the registry.
 
         Returns
         -------

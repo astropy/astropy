@@ -145,10 +145,14 @@ class RepresentationMapping(_RepresentationMappingBase):
     This `~collections.namedtuple` is used with the
     ``frame_specific_representation_info`` attribute to tell frames what
     attribute names (and default units) to use for a particular representation.
-    ``reprname`` and ``framename`` should be strings, while ``defaultunit`` can
-    be either an astropy unit, the string ``'recommended'`` (which is degrees
-    for Angles, nothing otherwise), or None (to indicate that no unit mapping
-    should be done).
+
+    Parameters
+    ----------
+    reprname, framename : str
+        Representation and Frame names, respectively.
+    defaultunit : `~astropy.units.Unit`, {'recommended'}, or None, optional
+        If ``'recommended'`` is degrees for Angles, nothing otherwise.
+        `None` indicates that no unit mapping should be done.
     """
 
     def __new__(cls, reprname, framename, defaultunit='recommended'):
@@ -927,9 +931,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             If True, the resulting object is a copy of the data.  When False,
             references are used where  possible. This rule also applies to the
             frame attributes.
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object.
+        **kwargs
+            Additional keywords are treated as frame attributes to be set on
+            the new frame object.
 
         Returns
         -------
@@ -955,9 +959,9 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         copy : bool, optional
             If True, the resulting object has copies of the frame attributes.
             When False, references are used where  possible.
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object.
+        **kwargs
+            Additional keywords are treated as frame attributes to be set on
+            the new frame object.
 
         Returns
         -------
@@ -977,9 +981,10 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         ----------
         data : `~astropy.coordinates.BaseRepresentation`
             The representation to use as the data for the new frame.
-
-        Any additional keywords are treated as frame attributes to be set on the
-        new frame object. In particular, `representation_type` can be specified.
+        **kwargs
+            Additional keywords are treated as frame attributes to be set on
+            the new frame object. In particular, `representation_type` can be
+            specified.
 
         Returns
         -------
@@ -1003,8 +1008,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         ----------
         base : subclass of BaseRepresentation or string
             The type of representation to generate.  Must be a *class*
-            (not an instance), or the string name of the representation
-            class.
+            (not an instance), or the string name of the representation class.
         s : subclass of `~astropy.coordinates.BaseDifferential`, str, optional
             Class in which any velocities should be represented. Must be
             a *class* (not an instance), or the string name of the
@@ -1012,7 +1016,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             the base class.  If `None`, all velocity information is dropped.
         in_frame_units : bool, keyword-only
             Force the representation units to match the specified units
-            particular to this frame
+            particular to this frame.
 
         Returns
         -------
