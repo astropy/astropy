@@ -90,7 +90,6 @@ class CdsHeader(core.BaseHeader):
         ----------
         lines : list
             List of table lines
-
         """
 
         # Read header block for the table ``self.data.table_name`` from the read
@@ -696,7 +695,7 @@ class CdsData(fixedwidth.FixedWidthData):
     splitter_class = CdsSplitter
 
     def process_lines(self, lines):
-        """Skip over CDS header by finding the last section delimiter"""
+        """Skip over CDS header by finding the last section delimiter."""
         # If the header has a ReadMe and data has a filename
         # then no need to skip, as the data lines do not have header
         # info. The ``read`` method adds the table_name to the ``data``

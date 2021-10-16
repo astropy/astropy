@@ -324,7 +324,6 @@ def comb(N, k):
         Number of things.
     k : int, array
         Number of elements taken.
-
     """
     if (k > N) or (N < 0) or (k < 0):
         return 0

@@ -132,7 +132,7 @@ class DaophotHeader(core.BaseHeader):
 
     def extract_keyword_line(self, line):
         """
-        Extract info from a header keyword line (#K)
+        Extract info from a header keyword line (#K).
         """
         m = self.re_header_keyword.match(line)
         if m:
@@ -144,11 +144,9 @@ class DaophotHeader(core.BaseHeader):
 
     def get_cols(self, lines):
         """
-        Initialize the header Column objects from the table ``lines`` for a DAOphot
-        header.  The DAOphot header is specialized so that we just copy the entire BaseHeader
-        get_cols routine and modify as needed.
-
-
+        Initialize the header Column objects from the table ``lines`` for a
+        DAOphot header. The DAOphot header is specialized so that we just copy
+        the entire BaseHeader get_cols routine and modify as needed.
 
         Parameters
         ----------
@@ -160,7 +158,6 @@ class DaophotHeader(core.BaseHeader):
         col : list
             List of table Columns
         """
-
         if not self.names:
             raise core.InconsistentTableError('No column names found in DAOphot header')
 
@@ -372,7 +369,6 @@ class Daophot(core.BaseReader):
     second aperture radius will be RAPERT2 and corresponding magnitude will be MAG2,
     third aperture radius will be RAPERT3 and corresponding magnitude will be MAG3,
     and so on.
-
     """
     _format_name = 'daophot'
     _io_registry_format_aliases = ['daophot']

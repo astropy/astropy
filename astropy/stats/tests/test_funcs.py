@@ -511,7 +511,6 @@ def test_poisson_conf_frequentist_confidence_gehrels_2sigma():
     Note: I think there's a typo (transposition of digits) in Gehrels 1986,
     specifically for the two-sigma lower limit for 3 events; they claim
     0.569 but this function returns 0.59623...
-
     """
     nlh = np.array([(0, 2, 0, 3.783),
                     (1, 2, 2.30e-2, 5.683),
@@ -785,7 +784,6 @@ def test_uniform_binomial(N, m, p):
     and check that the number of false positives is consistent with
     a binomial distribution. The more trials, the tighter the bounds
     but the longer the runtime.
-
     """
     from scipy.stats import binom
 

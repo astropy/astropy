@@ -45,7 +45,6 @@ def test_vectorize_if_needed():
     Test :func:`astropy.cosmology.utils.vectorize_if_needed`.
     There's no need to test 'veckw' because that is directly pasased to
     `numpy.vectorize` which thoroughly tests the various inputs.
-
     """
     func = lambda x: x ** 2
 

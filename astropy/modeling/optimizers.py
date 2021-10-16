@@ -38,7 +38,6 @@ class Optimization(metaclass=abc.ABCMeta):
     The base Optimizer does not support any constraints by default; individual
     optimizers should explicitly set this list to the specific constraints
     it supports.
-
     """
 
     supported_constraints = []
@@ -131,7 +130,6 @@ class SLSQP(Optimization):
             other arguments to be passed to the statistic function
         kwargs : dict
             other keyword arguments to be passed to the solver
-
         """
         kwargs['iter'] = kwargs.pop('maxiter', self._maxiter)
 
@@ -212,8 +210,7 @@ class Simplex(Optimization):
         fargs : tuple
             other arguments to be passed to the statistic function
         kwargs : dict
-            other keyword arguments to be passed to the solver
-
+            Other keyword arguments to be passed to the solver.
         """
         if 'maxiter' not in kwargs:
             kwargs['maxiter'] = self._maxiter

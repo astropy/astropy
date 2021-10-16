@@ -683,7 +683,6 @@ def choose(a, choices, out=None, mode='raise'):
     values and underlying data values are ignored if out of bounds (for
     ``mode='raise'``).  Any values masked in ``choices`` will be propagated
     if chosen.
-
     """
     from astropy.utils.masked import Masked
 
@@ -716,7 +715,6 @@ def select(condlist, choicelist, default=0):
 
     Like `numpy.select`, with masks in ``choicelist`` are propagated.
     Any masks in ``condlist`` are ignored.
-
     """
     from astropy.utils.masked import Masked
 
@@ -735,7 +733,6 @@ def piecewise(x, condlist, funclist, *args, **kw):
 
     Like `numpy.piecewise` but for masked input array ``x``.
     Any masks in ``condlist`` are ignored.
-
     """
     # Copied implementation from numpy.lib.function_base.piecewise,
     # just to ensure output is Masked.

@@ -551,7 +551,6 @@ class Parameter:
         return value is ignored, but it may raise an exception if the value
         set on the parameter is invalid (typically an `InputParameterError`
         should be raised, though this is not currently a requirement).
-
         """
 
         def validator(func, self=self):
@@ -583,7 +582,6 @@ class Parameter:
         .. code:: python
 
             Parameter(self.name, self.description, ...)
-
         """
 
         kwargs = locals().copy()

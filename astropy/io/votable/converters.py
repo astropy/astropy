@@ -157,7 +157,6 @@ class Converter:
     pos : tuple
         The position in the XML file where the FIELD object was
         found.  Used for error messages.
-
     """
 
     def __init__(self, field, config=None, pos=None):

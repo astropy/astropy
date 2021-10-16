@@ -81,7 +81,6 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
         >>> FlatLambdaCDM.from_format(cm)
         FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
                       Tcmb0=0 K, Neff=3.05, m_nu=None, Ob0=0.049)
-
     """
     params = copy.deepcopy(map)  # so can pop
 
@@ -147,7 +146,6 @@ def to_mapping(cosmology, *args):
          'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
          'm_nu': <Quantity [0.  , 0.  , 0.06] eV>, 'Ob0': 0.04897,
          'meta': ...
-
     """
 
     m = {}

@@ -425,7 +425,6 @@ class EarthLocation(u.Quantity):
         .. [2] https://developers.google.com/maps/documentation/geocoding/start
         .. [3] https://developers.google.com/maps/documentation/elevation/start
         .. [4] https://developers.google.com/maps/documentation/geocoding/get-api-key
-
         """
 
         use_google = google_api_key is not None
@@ -656,9 +655,11 @@ class EarthLocation(u.Quantity):
         from .builtin_frames import ITRS
         return ITRS(x=self.x, y=self.y, z=self.z, obstime=obstime)
 
-    itrs = property(get_itrs, doc="""An `~astropy.coordinates.ITRS` object  with
-                                     for the location of this object at the
-                                     default ``obstime``.""")
+    itrs = property(get_itrs,
+                    doc="""An `~astropy.coordinates.ITRS` object with
+                           for the location of this object at the
+                           default ``obstime``.
+                        """)
 
     def get_gcrs(self, obstime):
         """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
@@ -868,7 +869,6 @@ geodetic_base_doc = """{__doc__}
     copy : bool, optional
         If `True` (default), arrays will be copied. If `False`, arrays will
         be references, though possibly broadcast to ensure matching shapes.
-
 """
 
 

@@ -497,7 +497,7 @@ manner::
 In this case, ``packagename/__init__.py`` may be::
 
     """
-    A docstring describing the package goes here
+    A docstring describing the package goes here.
     """
     from submodule1 import *
     from submodule2 import *

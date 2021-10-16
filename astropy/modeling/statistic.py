@@ -47,7 +47,6 @@ def leastsquare(measured_vals, updated_model, weights, *x):
     the Numpy arithmetic functions. This can obfuscate arithmetic computation
     overrides, like with Quantities. Implement a custom statistic for more
     direct control.
-
     """
 
     model_vals = updated_model(*x)
@@ -91,7 +90,6 @@ def leastsquare_1d(measured_vals, updated_model, weights, x):
     See Also
     --------
     :func:`~astropy.modeling.statistic.leastsquare`
-
     """
     model_vals = updated_model(x)
 
@@ -127,7 +125,6 @@ def leastsquare_2d(measured_vals, updated_model, weights, x, y):
     See Also
     --------
     :func:`~astropy.modeling.statistic.leastsquare`
-
     """
     model_vals = updated_model(x, y)
 
@@ -165,7 +162,6 @@ def leastsquare_3d(measured_vals, updated_model, weights, x, y, z):
     See Also
     --------
     :func:`~astropy.modeling.statistic.leastsquare`
-
     """
     model_vals = updated_model(x, y, z)
 

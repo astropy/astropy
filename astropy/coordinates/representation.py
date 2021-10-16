@@ -130,8 +130,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
         Returns
         -------
         col : `BaseRepresentation` or `BaseDifferential` subclass instance
-            Empty instance of this class consistent with ``cols``
-
+            Empty instance of this class consistent with ``cols``.
         """
 
         # Get merged info attributes like shape, dtype, format, description, etc.
@@ -881,7 +880,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         ----------
         matrix : (3,3) array-like
             A 3x3 (or stack thereof) matrix, such as a rotation matrix.
-
         """
         # route transformation through Cartesian
         difs_cls = {k: CartesianDifferential for k in self.differentials.keys()}
@@ -997,7 +995,6 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             Any positional arguments for ``method``.
         **kwargs : dict
             Any keyword arguments for ``method``.
-
         """
         rep = super()._apply(method, *args, **kwargs)
 
@@ -1635,7 +1632,6 @@ class UnitSphericalRepresentation(BaseRepresentation):
             then the result is a `UnitSphericalRepresentation`.
             All other matrices will change the distance, so the dimensional
             representation is used instead.
-
         """
         # the transformation matrix does not need to be a rotation matrix,
         # so the unit-distance is not guaranteed. For speed, we check if the
@@ -1849,7 +1845,6 @@ class RadialRepresentation(BaseRepresentation):
         ------
         ValueError
             If the matrix is not a multiplication.
-
         """
         scl = matrix[..., 0, 0]
         # check that the matrix is a scaled identity matrix on the last 2 axes.
@@ -2034,7 +2029,6 @@ class SphericalRepresentation(BaseRepresentation):
         ----------
         matrix : (3,3) array-like
             A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
-
         """
         xyz = erfa_ufunc.s2c(self.lon, self.lat)
         p = erfa_ufunc.rxp(matrix, xyz)
@@ -2237,7 +2231,6 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         ----------
         matrix : (3,3) array-like
             A 3x3 matrix, such as a rotation matrix (or a stack of matrices).
-
         """
         # apply transformation in unit-spherical coordinates
         xyz = erfa_ufunc.s2c(self.phi, 90*u.deg-self.theta)
@@ -2544,7 +2537,6 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         -------
         `CartesianDifferential`
             This object, converted.
-
         """
         base_e, base_sf = self._get_base_vectors(base)
         return functools.reduce(

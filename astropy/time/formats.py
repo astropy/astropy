@@ -1069,8 +1069,10 @@ class TimeYMDHMS(TimeUnique):
 
         Returns
         -------
-        val1_as_dict, val2 : val1 as dict or None, val2 is always None
-
+        val1_as_dict : dict or None
+            val1 as a dict, or `None`.
+        val2 : None
+            val2 is always `None`
         """
         if val2 is not None:
             raise ValueError('val2 must be None for ymdhms format')

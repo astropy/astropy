@@ -182,11 +182,11 @@ numpydoc_xref_aliases.update(numpydoc_xref_astropy_aliases)
 numpydoc_validation_checks = {
     # Docstring text (summary) should start in the line immediately after the
     # opening quotes (not in the same line, or leaving a blank line in between)
-    "GL01",
+    # "GL01",
     # Closing quotes should be placed in the line after the last text in the
     # docstring (do not close the quotes in the same line as the text, or leave
     # a blank line between the last text and the quotes).
-    # "GL02",
+    "GL02",
     # # Double line break found; please use only 1 blank line to separate sections
     # # or paragraphs, and do not leave blank lines at the end of docstrings.
     # "GL03",

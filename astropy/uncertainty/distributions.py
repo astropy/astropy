@@ -22,7 +22,7 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
     Parameters
     ----------
     center : `~astropy.units.Quantity`
-        The center of this distribution
+        The center of this distribution.
     std : `~astropy.units.Quantity` or None
         The standard deviation/σ of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
@@ -35,19 +35,18 @@ def normal(center, *, std=None, var=None, ivar=None, n_samples,
         must be compatible with ``center``, or be `None` (if ``std`` or ``var``
         are set).
     n_samples : int
-        The number of Monte Carlo samples to use with this distribution
+        The number of Monte Carlo samples to use with this distribution.
     cls : class
-        The class to use to create this distribution.  Typically a
-        `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+        The class to use to create this distribution.
+        Typically a `Distribution` subclass.
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``
 
     Returns
     -------
     distr : `~astropy.uncertainty.Distribution` or object
         The sampled Gaussian distribution.
         The type will be the same as the parameter ``cls``.
-
     """
     center = np.asanyarray(center)
     if var is not None:

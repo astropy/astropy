@@ -288,7 +288,6 @@ class TimeSeries(BaseTimeSeries):
         time_scale : str
             The time scale to pass into `astropy.time.Time`.
             Defaults to ``UTC``.
-
         """
         from pandas import DataFrame, DatetimeIndex
 

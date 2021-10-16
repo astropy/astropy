@@ -200,7 +200,6 @@ class NoConvergence(Exception):
         non-converging solutions (i.e., if the required accuracy
         has been achieved for all input data points)
         then ``slow_conv`` will be set to `None`.
-
     """
 
     def __init__(self, *args, best_solution=None, accuracy=None, niter=None,
@@ -370,7 +369,6 @@ class WCS(FITSWCSAPIMixin, WCSBase):
        construction, so any invalid keywords or transformations will
        be raised by the constructor, not when subsequently calling a
        transformation method.
-
     """  # noqa: E501
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
@@ -1478,7 +1476,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         `~astropy.wcs.Wcsprm.lat`, `~astropy.wcs.Wcsprm.lng`,
         `~astropy.wcs.Wcsprm.lattyp` and `~astropy.wcs.Wcsprm.lngtyp`
         members can be used to determine the order of the axes.
-
         """.format(docstrings.TWO_OR_MORE_ARGS('naxis', 8),
                    docstrings.RA_DEC_ORDER(8),
                    docstrings.RETURNS('world coordinates, in degrees', 8))
@@ -2215,7 +2212,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         NoConvergence: 'WCS.all_world2pix' failed to converge to the
         requested accuracy.  After 6 iterations, the solution is
         diverging at least for one input point.
-
         """.format(docstrings.TWO_OR_MORE_ARGS('naxis', 8),
                    docstrings.RA_DEC_ORDER(8),
                    docstrings.RETURNS('pixel coordinates', 8))
@@ -2476,7 +2472,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         See Also
         --------
         astropy.wcs.utils.proj_plane_pixel_scales
-
         """  # noqa: E501
         from astropy.wcs.utils import proj_plane_pixel_scales  # Avoid circular import
         values = proj_plane_pixel_scales(self)
@@ -2523,7 +2518,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         See Also
         --------
         astropy.wcs.utils.proj_plane_pixel_area
-
         """  # noqa: E501
         from astropy.wcs.utils import proj_plane_pixel_area  # Avoid circular import
         value = proj_plane_pixel_area(self)
@@ -2645,7 +2639,6 @@ reduce these to 2 dimensions using the naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
-
         """
         # default precision for numerical WCS keywords
         precision = WCSHDO_P14  # Defined by C-ext  # noqa: F821
@@ -2805,7 +2798,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             Coordinate system. If not specified (default), the ``radesys``
             value is used. For all possible values, see
             http://ds9.si.edu/doc/ref/region.html#RegionFileFormat
-
         """
         comments = ('# Region file format: DS9 version 4.0 \n'
                     '# global color=green font="helvetica 12 bold '
@@ -3391,7 +3383,6 @@ def validate(source):
         an entry for each WCS found in that header.  The special
         subclass of list will pretty-print the results as a table when
         printed.
-
     """
     class _WcsValidateWcsResult(list):
         def __init__(self, key):

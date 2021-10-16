@@ -158,7 +158,6 @@ class NDArithmeticMixin:
 
         >>> NDDataWithMath.subtract(5, 4)
         NDDataWithMath(1)
-
     """
 
     def _arithmetic(self, operation, operand,
@@ -213,7 +212,6 @@ class NDArithmeticMixin:
             and unit) needed to create a new instance for the result. Creating
             the new instance is up to the calling method, for example
             :meth:`NDArithmeticMixin.add`.
-
         """
         # Find the appropriate keywords for the appropriate method (not sure
         # if data and uncertainty are ever used ...)

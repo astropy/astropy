@@ -401,7 +401,6 @@ def get_header_from_yaml(lines):
     -------
     header : dict
         Dictionary describing table and column meta
-
     """
     from astropy.io.misc.yaml import AstropyLoader
 

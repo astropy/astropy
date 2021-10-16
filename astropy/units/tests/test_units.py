@@ -550,7 +550,6 @@ def test_pickle_between_sessions():
 
     This test can be changed if the pickle protocol or the code
     changes enough that it no longer works.
-
     """
     hash_m = hash(u.m)
     unit = pickle.loads(

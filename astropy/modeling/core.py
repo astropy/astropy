@@ -643,9 +643,13 @@ class Model(metaclass=_ModelMeta):
     """
 
     n_inputs = 0
-    """The number of inputs."""
+    """
+    The number of inputs.
+    """
     n_outputs = 0
-    """ The number of outputs."""
+    """
+    The number of outputs.
+    """
 
     standard_broadcasting = True
     fittable = False
@@ -1387,7 +1391,6 @@ class Model(metaclass=_ModelMeta):
         quantities need to define a ``_parameter_units_for_data_units`` method
         that takes the input and output units (as two dictionaries) and
         returns a dictionary giving the target units for each parameter.
-
         """
         model = self.copy()
 
@@ -1815,10 +1818,7 @@ class Model(metaclass=_ModelMeta):
         return copy.deepcopy(self)
 
     def deepcopy(self):
-        """
-        Return a deep copy of this model.
-
-        """
+        """Return a deep copy of this model."""
 
         return copy.deepcopy(self)
 
@@ -2879,7 +2879,7 @@ class CompoundModel(Model):
 
     @property
     def param_names(self):
-        """ An ordered list of parameter names."""
+        """An ordered list of parameter names."""
         return self._param_names
 
     def _make_leaflist(self):

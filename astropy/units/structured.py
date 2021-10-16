@@ -118,7 +118,6 @@ class StructuredUnit:
         ((PhysicalType('length'), PhysicalType({'speed', 'velocity'})), PhysicalType('time'))
         >>> su.si
         Unit("((1.49598e+11 m, 1.73146e+06 m / s), 3.15576e+07 s)")
-
     """
     def __new__(cls, units, names=None):
         dtype = None
@@ -240,7 +239,6 @@ class StructuredUnit:
 
         For the special value of ``UNITY``, all fields are assumed to be 1.0,
         and hence this will return an all-float dtype.
-
         """
         if enter_lists:
             while isinstance(value, list):
@@ -408,7 +406,6 @@ class StructuredUnit:
         -----
         Structured units can be written to all formats, but can be
         re-read only with 'generic'.
-
         """
         parts = [part.to_string(format) for part in self.values()]
         out_fmt = '({})' if len(self) > 1 else '({},)'
@@ -495,7 +492,6 @@ class Structure(np.void):
     be indexed with field names, but overrides ``__eq__`` and ``__ne__`` to
     compare only the contents, not the field names.  Furthermore, this way no
     `FutureWarning` about comparisons is given.
-
     """
     # Note that it is important for physical type IDs to not be stored in a
     # tuple, since then the physical types would be treated as alternatives in

@@ -38,7 +38,6 @@ class _StateProxy(MappingView):
     """
     `~collections.abc.MappingView` with a read-only ``getitem`` through
     `~types.MappingProxyType`.
-
     """
 
     def __init__(self, mapping):
@@ -140,7 +139,6 @@ class galactocentric_frame_defaults(ScienceState):
         >>> state = galactocentric_frame_defaults.get_from_registry("DB1998")
         >>> print(state["error"]["galcen_v_sun"])  # doctest: +FLOAT_CMP
         [0.36 0.62 0.38] km / s
-
     """
 
     _latest_value = 'v4.0'
@@ -239,7 +237,6 @@ class galactocentric_frame_defaults(ScienceState):
         KeyError
             If invalid string input to registry
             to retrieve solar parameters for Galactocentric frame.
-
         """
         # Resolve the meaning of 'latest': latest parameter set is from v4.0
         # - update this as newer parameter choices are added
@@ -271,7 +268,6 @@ class galactocentric_frame_defaults(ScienceState):
         KeyError
             If invalid string input to registry
             to retrieve solar parameters for Galactocentric frame.
-
         """
         return cls.get_from_registry(arg)["parameters"]
 
@@ -321,7 +317,6 @@ class galactocentric_frame_defaults(ScienceState):
             None becomes empty dict.
         **meta : dict, optional
             Any other properties to register.
-
         """
         # check on contents of `parameters`
         must_have = {"galcen_coord", "galcen_distance", "galcen_v_sun",
@@ -355,7 +350,8 @@ doc_components = """
 """
 
 doc_footer = """
-    Other parameters
+
+    Other Parameters
     ----------------
     galcen_coord : `ICRS`, optional, keyword-only
         The ICRS coordinates of the Galactic center.
@@ -424,7 +420,6 @@ doc_footer = """
         <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
             [( 86.2585249 , 28.85773187, 2.75625475e-05),
              (289.77285255, 50.06290457, 8.59216010e+01)]>
-
 """
 
 

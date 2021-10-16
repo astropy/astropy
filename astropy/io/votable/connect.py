@@ -48,7 +48,7 @@ def is_votable(origin, filepath, fileobj, *args, **kwargs):
 def read_table_votable(input, table_id=None, use_names_over_ids=False,
                        verify=None, **kwargs):
     """
-    Read a Table object from an VO table file
+    Read a Table object from an VO table file.
 
     Parameters
     ----------

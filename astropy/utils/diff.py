@@ -33,7 +33,6 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
     -------
     is_different : bool
         `True` if they are different, else `False`.
-
     """
     if isinstance(a, float) and isinstance(b, float):
         if np.isnan(a) and np.isnan(b):
@@ -64,7 +63,6 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0):
     -------
     identical : bool
         `True` if no diff, else `False`.
-
     """
     if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
         if a.shape != b.shape:
@@ -156,7 +154,6 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
     -------
     idx : tuple of array
         Indices where the two arrays differ.
-
     """
     # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
     # are handled as equivalent

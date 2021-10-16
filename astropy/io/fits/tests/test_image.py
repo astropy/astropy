@@ -1836,7 +1836,6 @@ class TestCompressedImage(FitsTestCase):
         """Test that the various integer dtypes are correctly written and read.
 
         Regression test for https://github.com/astropy/astropy/issues/9072
-
         """
         mid = np.iinfo(dtype).max // 2
         data = np.arange(mid-50, mid+50, dtype=dtype)

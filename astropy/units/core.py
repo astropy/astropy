@@ -287,7 +287,6 @@ class _UnitRegistry:
         ------
         ValueError
             If the alias already defines a different unit.
-
         """
         self._reset_aliases()
         self.add_enabled_aliases(aliases)
@@ -306,7 +305,6 @@ class _UnitRegistry:
         ------
         ValueError
             If the alias already defines a different unit.
-
         """
         for alias, unit in aliases.items():
             if alias in self._registry and unit != self._registry[alias]:
@@ -535,7 +533,6 @@ def set_enabled_aliases(aliases):
         >>> with u.set_enabled_aliases({'Angstroem': u.Angstrom}):
         ...     print(u.Unit("Angstroem", parse_strict="raise") == u.Angstrom)
         True
-
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
@@ -573,7 +570,6 @@ def add_enabled_aliases(aliases):
         >>> with u.add_enabled_aliases({'Angstroem': u.Angstrom}):
         ...     print(u.Unit("Angstroem", parse_strict="raise") == u.Angstrom)
         True
-
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
@@ -1032,7 +1028,6 @@ class UnitBase:
 
         If no conversion is necessary, returns ``unit_scale_converter``
         (which is used as a check in quantity helpers).
-
         """
 
         # First see if it is just a scaling.

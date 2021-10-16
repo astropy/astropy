@@ -28,7 +28,6 @@ class NDArrayShapeMethods:
     particular for `~numpy.ndarray` subclasses that need to keep track of
     other arrays.  For other classes, `~astropy.utils.shapes.ShapedLikeNDArray`
     is recommended.
-
     """
 
     # Note to developers: if new methods are added here, be sure to check that
@@ -151,7 +150,6 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     This class also defines default implementations for ``ndim`` and ``size``
     properties, calculating those from the ``shape``.  These can be overridden
     by subclasses if there are faster ways to obtain those numbers.
-
     """
 
     # Note to developers: if new methods are added here, be sure to check that
@@ -184,7 +182,6 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
             Any positional arguments for ``method``.
         kwargs : dict
             Any keyword arguments for ``method``.
-
         """
 
     @property

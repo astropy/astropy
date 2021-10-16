@@ -128,8 +128,7 @@ class SkyCoordInfo(MixinInfo):
         Returns
         -------
         skycoord : SkyCoord (or subclass)
-            Instance of this class consistent with ``skycoords``
-
+            Instance of this class consistent with ``skycoords``.
         """
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(skycoords, metadata_conflicts, name,
@@ -513,7 +512,6 @@ class SkyCoord(ShapedLikeNDArray):
         -------
         out : `~astropy.coordinates.SkyCoord` instance
             New coordinate object with inserted value(s)
-
         """
         # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
         # input index is in bounds.
@@ -625,7 +623,6 @@ class SkyCoord(ShapedLikeNDArray):
         ------
         ValueError
             If there is no possible transformation route.
-
         """
         from astropy.coordinates.errors import ConvertError
 
@@ -1119,7 +1116,6 @@ class SkyCoord(ShapedLikeNDArray):
         is stable at all locations, including poles and antipodes [1]_.
 
         .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
-
         """
         from . import Angle
         from .angle_utilities import angular_separation
@@ -1306,7 +1302,6 @@ class SkyCoord(ShapedLikeNDArray):
         --------
         position_angle : inverse operation for the ``position_angle`` component
         separation : inverse operation for the ``separation`` component
-
         """
         from . import angle_utilities
 
@@ -1865,7 +1860,6 @@ class SkyCoord(ShapedLikeNDArray):
           >>> sc = SkyCoord(1*u.deg, 2*u.deg)
           >>> with solar_system_ephemeris.set('jpl'):  # doctest: +REMOTE_DATA
           ...     rv += sc.radial_velocity_correction(obstime=t, location=loc)  # doctest: +SKIP
-
         """
         # has to be here to prevent circular imports
         from .solar_system import get_body_barycentric_posvel
@@ -2021,7 +2015,6 @@ class SkyCoord(ShapedLikeNDArray):
             If more than one match is found in the table for a component,
             unless the additional matches are also valid frame component names.
             If a "coord_kwargs" is provided for a value also found in the table.
-
         """
         _frame_cls, _frame_kwargs = _get_frame_without_data([], coord_kwargs)
         frame = _frame_cls(**_frame_kwargs)

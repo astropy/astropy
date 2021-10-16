@@ -57,7 +57,8 @@ class BaseEclipticFrame(BaseCoordinateFrame):
 
 
 doc_footer_geo = """
-    Other parameters
+
+    Other Parameters
     ----------------
     equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
@@ -110,7 +111,8 @@ class GeocentricTrueEcliptic(BaseEclipticFrame):
 
 
 doc_footer_bary = """
-    Other parameters
+
+    Other Parameters
     ----------------
     equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
@@ -152,7 +154,8 @@ class BarycentricTrueEcliptic(BaseEclipticFrame):
 
 
 doc_footer_helio = """
-    Other parameters
+
+    Other Parameters
     ----------------
     equinox : `~astropy.time.Time`, optional
         The date to assume for this frame.  Determines the location of the
@@ -177,8 +180,6 @@ class HeliocentricMeanEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
 
     {params}
-
-
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
@@ -198,8 +199,6 @@ class HeliocentricTrueEcliptic(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
 
     {params}
-
-
     """
 
     equinox = TimeAttribute(default=EQUINOX_J2000)
@@ -220,8 +219,6 @@ class HeliocentricEclipticIAU76(BaseEclipticFrame):
     The frame attributes are listed under **Other Parameters**.
 
     {params}
-
-
     """
 
     obstime = TimeAttribute(default=DEFAULT_OBSTIME)

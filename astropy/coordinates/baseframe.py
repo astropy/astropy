@@ -183,8 +183,7 @@ base_doc = """{__doc__}
     copy : bool, optional
         If `True` (default), make copies of the input coordinate arrays.
         Can only be passed in as a keyword argument.
-    {footer}
-"""
+    {footer}"""
 
 _components = """
     *args, **kwargs
@@ -668,7 +667,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         be cleared::
 
             myframe.cache.clear()
-
         """
         return defaultdict(dict)
 
@@ -988,7 +986,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         frameobj : `BaseCoordinateFrame` subclass instance
             A new object in *this* frame, with the same frame attributes as
             this one, but with the ``data`` as the coordinate data.
-
         """
         return self._replicate(data, **kwargs)
 
@@ -1733,7 +1730,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
         is stable at all locations, including poles and antipodes [1]_.
 
         .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
-
         """
         from .angle_utilities import angular_separation
         from .angles import Angle

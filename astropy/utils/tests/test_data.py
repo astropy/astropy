@@ -386,7 +386,6 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
 
     The goal is to stress-test the locking system. Normal parallel downloading
     also does this but coverage tools lose track of which paths are explored.
-
     """
     urls = list(islice(valid_urls, N_THREAD_HAMMER))
     with ThreadPoolExecutor(max_workers=len(urls)) as P:
@@ -424,7 +423,6 @@ def test_download_file_threaded_many_partial_success(
     exercised with exceptions as well as success returns. I do not expect many
     surprises from the threaded version, but the process version gave trouble
     here.
-
     """
     urls = []
     contents = {}
@@ -522,7 +520,6 @@ def test_download_file_local_cache_survives(tmpdir, temp_cache, use_cache):
     not copied to create temporaries, so importing them to the cache deleted
     the original from wherever it was in the filesystem. I lost some built-in
     astropy data.
-
     """
     fn = tmpdir / "file"
     contents = "some text"
@@ -762,7 +759,6 @@ def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls)
     Even in the presence of many requested URLs, presumably hitting all the
     parallelism this system can manage, a download failure leads to a tidy
     shutdown.
-
     """
     td = list(islice(valid_urls, N_PARALLEL_HAMMER))
 
@@ -781,7 +777,6 @@ def test_download_parallel_partial_success_lock_safe(temp_cache, valid_urls, inv
     This needs to be repeated many times because race conditions are what cause
     this sort of thing, especially situations where a process might be forcibly
     shut down while it holds the lock.
-
     """
     s = random.getstate()
     try:

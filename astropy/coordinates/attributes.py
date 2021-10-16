@@ -89,7 +89,6 @@ class Attribute:
         ------
         ValueError
             If the input is not valid for this attribute.
-
         """
         return value, False
 

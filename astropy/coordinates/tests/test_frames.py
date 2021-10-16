@@ -483,7 +483,6 @@ def test_transform():
     """
     This test just makes sure the transform architecture works, but does *not*
     actually test all the builtin transforms themselves are accurate.
-
     """
     i = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg)
     f = i.transform_to(FK5())
@@ -542,7 +541,6 @@ def test_transform_to_nonscalar_nodata_frame():
 
 def test_setitem_no_velocity():
     """Test different flavors of item setting for a Frame without a velocity.
-
     """
     obstime = 'B1955'
     sc0 = FK4([1, 2]*u.deg, [3, 4]*u.deg, obstime=obstime)
@@ -589,7 +587,6 @@ def test_setitem_no_velocity():
 
 def test_setitem_velocities():
     """Test different flavors of item setting for a Frame with a velocity.
-
     """
     sc0 = FK4([1, 2]*u.deg, [3, 4]*u.deg, radial_velocity=[1, 2]*u.km/u.s,
               obstime='B1950')
@@ -696,7 +693,6 @@ def test_sep():
 def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
-
     """
     c = FK4(1 * u.deg, 2 * u.deg, equinox='J2001.5', obstime='2000-01-01 12:00:00')
     assert c.equinox == Time('J2001.5')
@@ -721,7 +717,6 @@ def test_time_inputs():
 def test_is_frame_attr_default():
     """
     Check that the `is_frame_attr_default` machinery works as expected
-
     """
     c1 = FK5(ra=1*u.deg, dec=1*u.deg)
     c2 = FK5(ra=1*u.deg, dec=1*u.deg, equinox=FK5.get_frame_attr_names()['equinox'])
@@ -774,7 +769,6 @@ def test_hadec_attributes():
 def test_representation():
     """
     Test the getter and setter properties for `representation`
-
     """
     # Create the frame object.
     icrs = ICRS(ra=1*u.deg, dec=1*u.deg)
@@ -1377,7 +1371,6 @@ def test_missing_component_error_names():
     should state:
 
     TypeError: __init__() missing 1 required positional argument: 'dec'
-
     """
     with pytest.raises(TypeError) as e:
         ICRS(ra=150 * u.deg)

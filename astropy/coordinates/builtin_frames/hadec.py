@@ -34,7 +34,8 @@ doc_components = """
         The radial velocity of this object."""
 
 doc_footer = """
-    Other parameters
+
+    Other Parameters
     ----------------
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
@@ -68,7 +69,7 @@ doc_footer = """
     results.  For much better numerical stability, leave the ``pressure`` at
     ``0`` (the default), thereby disabling the refraction correction and
     yielding "topocentric" equatorial coordinates.
-    """
+"""
 
 
 @format_doc(base_doc, components=doc_components, footer=doc_footer)

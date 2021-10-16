@@ -82,7 +82,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         """
         if not old_doc:
             old_doc = ''
-        old_doc = textwrap.dedent(old_doc).strip('\n')
+        old_doc = textwrap.dedent(old_doc).lstrip('\n')
         new_doc = (('\n.. deprecated:: {since}'
                     '\n    {message}\n\n'.format(
                      **{'since': since, 'message': message.strip()})) + old_doc)
@@ -409,7 +409,6 @@ def deprecated_renamed_argument(old_name, new_name, since,
     In this case ``arg_in_kwargs`` and ``relax`` can be a single value (which
     is applied to all renamed arguments) or must also be a `tuple` or `list`
     with values for each of the arguments.
-
     """
     cls_iter = (list, tuple)
     if isinstance(old_name, cls_iter):
@@ -752,7 +751,6 @@ class lazyproperty(property):
     The one exception is that the default setter is not run if the user setter
     already sets the new value in ``__dict__`` and returns that value and the
     returned value is not ``None``.
-
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):

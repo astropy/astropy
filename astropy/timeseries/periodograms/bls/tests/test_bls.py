@@ -22,7 +22,6 @@ def assert_allclose_blsresults(blsresult, other, **kwargs):
     ----------
     other : BoxLeastSquaresResults
         The other results object to compare.
-
     """
     for k, v in blsresult.items():
         if k not in other:

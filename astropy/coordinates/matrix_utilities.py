@@ -151,7 +151,6 @@ def is_O3(matrix):
     The orthogonal group O(3) preserves lengths, but is not guaranteed to keep
     orientations. Rotations and reflections are in this group.
     For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
-
     """
     # matrix is in O(3) (rotations, proper and improper).
     I = np.identity(matrix.shape[-1])
@@ -191,7 +190,6 @@ def is_rotation(matrix, allow_improper=False):
     Rotations with determinant -1 are improper rotations, combining both a
     rotation and a reflection.
     For more information, see https://en.wikipedia.org/wiki/Orthogonal_group
-
     """
     # matrix is in O(3).
     is_o3 = is_O3(matrix)

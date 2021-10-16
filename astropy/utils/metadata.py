@@ -159,7 +159,6 @@ class MergeStrategy(metaclass=MergeStrategyMeta):
       ...     @classmethod
       ...     def merge(cls, left, right):
       ...         return [left, right]
-
     """
     # Set ``enabled = True`` to globally enable applying this merge strategy.
     # This is not generally recommended.
@@ -282,7 +281,6 @@ def enable_merge_strategies(*merge_strategies):
     ----------
     *merge_strategies : `~astropy.utils.metadata.MergeStrategy`
         Merge strategies that will be enabled.
-
     """
 
     return _EnableMergeStrategies(*merge_strategies)
@@ -441,7 +439,6 @@ class MetaAttribute:
       taken to be ``owner.__mro__[1]``.
 
     :param default: default value
-
     """
     def __init__(self, default=None):
         self.default = default

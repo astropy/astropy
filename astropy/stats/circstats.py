@@ -217,7 +217,6 @@ def circstd(data, axis=None, weights=None, method='angular'):
        <https://cran.r-project.org/web/packages/CircStats/CircStats.pdf>
     .. [3] S. R. Jammalamadaka, A. SenGupta. "Topics in Circular Statistics".
        Series on Multivariate Analysis, Vol. 5, 2001.
-
     """
     if method not in ('angular', 'circular'):
         raise ValueError("method should be either 'angular' or 'circular'")

@@ -755,7 +755,6 @@ class UnifiedReadWriteMethod(property):
     ----------
     func : `~astropy.io.registry.UnifiedReadWrite` subclass
         Class that defines read or write functionality
-
     """
     # We subclass property to ensure that __set__ is defined and that,
     # therefore, we are a data descriptor, which cannot be overridden.

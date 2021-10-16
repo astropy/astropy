@@ -159,7 +159,6 @@ def _precess_from_J2000_Capitaine(epoch):
     ----------
     epoch : scalar
         The epoch as a Julian year number (e.g. J2000 is 2000.0)
-
     """
     T = (epoch - 2000.0) / 100.0
     # from USNO circular

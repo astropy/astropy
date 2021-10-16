@@ -299,7 +299,6 @@ class Latex(core.BaseReader):
         columns. Shorthand for::
 
             latexdict['col_align'] = col_align
-
     '''
     _format_name = 'latex'
     _io_registry_format_aliases = ['latex']

@@ -150,7 +150,6 @@ class Gaussian2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
     _separable = True
     _is_bool = False
@@ -223,7 +222,6 @@ class Box1DKernel(Kernel1D):
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
-
     """
     _separable = True
     _is_bool = True
@@ -360,7 +358,6 @@ class Tophat2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
     def __init__(self, radius, **kwargs):
         self._model = models.Disk2D(1. / (np.pi * radius ** 2), 0, 0, radius)
@@ -541,7 +538,6 @@ class TrapezoidDisk2DKernel(Kernel2D):
         plt.ylabel('y [pixels]')
         plt.colorbar()
         plt.show()
-
     """
     _is_bool = False
 
@@ -617,7 +613,6 @@ class RickerWavelet1DKernel(Kernel1D):
         plt.xlabel('x [pixels]')
         plt.ylabel('value')
         plt.show()
-
     """
     _is_bool = True
 
@@ -876,7 +871,7 @@ class Model1DKernel(Kernel1D):
     TypeError
         If model is not an instance of `~astropy.modeling.Fittable1DModel`
 
-    See also
+    See Also
     --------
     Model2DKernel : Create kernel from `~astropy.modeling.Fittable2DModel`
     CustomKernel : Create kernel from list or array
@@ -943,7 +938,7 @@ class Model2DKernel(Kernel2D):
     TypeError
         If model is not an instance of `~astropy.modeling.Fittable2DModel`
 
-    See also
+    See Also
     --------
     Model1DKernel : Create kernel from `~astropy.modeling.Fittable1DModel`
     CustomKernel : Create kernel from list or array
@@ -961,7 +956,6 @@ class Model2DKernel(Kernel2D):
         >>> gauss_kernel = Model2DKernel(gauss, x_size=9)
 
     This kernel can now be used like a usual astropy kernel.
-
     """
     _is_bool = False
     _separable = False
@@ -1001,7 +995,7 @@ class CustomKernel(Kernel):
     `~astropy.convolution.KernelSizeError`
         If array size is even.
 
-    See also
+    See Also
     --------
     Model2DKernel, Model1DKernel
 

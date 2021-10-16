@@ -146,8 +146,6 @@ class NumpyRNGContext:
         #Any code using numpy.random at this indent level will act just as it
         #would have if it had been before the with statement - e.g. whatever
         #the default seed is.
-
-
     """
 
     def __init__(self, seed):
@@ -203,7 +201,6 @@ def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     ------
     ValueError
         If the documentation can't be found
-
     """
     import webbrowser
     from zlib import decompress
@@ -351,7 +348,7 @@ def walk_skip_hidden(top, onerror=None, followlinks=False):
     `os.walk`: the directories must always be recursed top-down when
     using this function.
 
-    See also
+    See Also
     --------
     os.walk : For a description of the parameters
     """
@@ -385,7 +382,6 @@ class JsonCustomEncoder(json.JSONEncoder):
     >>> from astropy.utils.misc import JsonCustomEncoder
     >>> json.dumps(np.arange(3), cls=JsonCustomEncoder)
     '[0, 1, 2]'
-
     """
 
     def default(self, obj):
@@ -868,7 +864,6 @@ def _hungry_for(option):  # pragma: no cover
     responsible for any liability from using this function.*
 
     .. note:: Accuracy depends on your browser settings.
-
     """
     import webbrowser
     webbrowser.open(f'https://www.google.com/search?q={option}+near+me')

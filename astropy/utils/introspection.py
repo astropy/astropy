@@ -244,7 +244,6 @@ def find_current_module(depth=1, finddiff=False):
         <module 'astropy.utils.misc' from 'astropy/utils/misc.py'>
         >>> mod1.find_diff()
         pkg.mod1
-
     """
 
     frm = inspect.currentframe()
@@ -354,7 +353,6 @@ def find_mod_objs(modname, onlylocals=False):
     objs : list of objects
         A list of the actual attributes themselves (in the same order as
         the other arguments)
-
     """
 
     mod = resolve_name(modname)

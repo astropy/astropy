@@ -2303,7 +2303,6 @@ KeyError
 
 wtb = """
 ``list of Wtbarr`` objects to construct coordinate lookup tables from BINTABLE.
-
 """
 
 Wtbarr = """
@@ -2580,7 +2579,6 @@ obsorbit = """
 See also
 --------
 astropy.wcs.Wcsprm.trefpos
-
 """
 xposure = """
 ``double`` effective exposure time in units of TIMEUNIT.

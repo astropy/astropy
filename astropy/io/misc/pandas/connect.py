@@ -54,7 +54,6 @@ def import_html_libs():
 
 def _pandas_read(fmt, filespec, **kwargs):
     """Provide io Table connector to read table using pandas.
-
     """
     try:
         import pandas
@@ -88,7 +87,6 @@ def _pandas_read(fmt, filespec, **kwargs):
 
 def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
     """Provide io Table connector to write table using pandas.
-
     """
     pandas_fmt = fmt[len(PANDAS_PREFIX):]  # chop the 'pandas.' in front
 

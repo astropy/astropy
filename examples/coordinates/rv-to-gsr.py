@@ -89,7 +89,6 @@ def rv_to_gsr(c, v_sun=None):
     -------
     v_gsr : `~astropy.units.Quantity`
         The input radial velocity transformed to a GSR frame.
-
     """
     if v_sun is None:
         v_sun = coord.Galactocentric().galcen_v_sun.to_cartesian()

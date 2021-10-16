@@ -39,7 +39,8 @@ class PolynomialBase(FittableModel):
 
     @property
     def param_names(self):
-        """Coefficient names generated based on the model's polynomial degree
+        """
+        Coefficient names generated based on the model's polynomial degree
         and number of dimensions.
 
         Subclasses should implement this to return parameter names in the
@@ -160,7 +161,6 @@ class _PolyDomainWindow1D(PolynomialModel):
     def _set_default_domain_window(self, domain, window):
         """
         This method sets the ``domain`` and ``window`` attributes on 1D subclasses.
-
         """
 
         self._default_domain_window = {'domain': None,
@@ -885,7 +885,6 @@ class Polynomial1D(_PolyDomainWindow1D):
         Fitters will remap the domain to this window
     **params : dict
         keyword: value pairs, representing parameter_name: value
-
     """
 
     n_inputs = 1
@@ -1672,7 +1671,6 @@ class InverseSIP(Model):
         coefficients for the inverse transform
     bp_coeff : dict
         coefficients for the inverse transform
-
     """
 
     n_inputs = 2

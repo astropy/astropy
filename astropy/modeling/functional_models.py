@@ -521,7 +521,6 @@ class Scale(Fittable1DModel):
 
     If ``factor`` is a `~astropy.units.Quantity` then the units will be
     stripped before the scaling operation.
-
     """
 
     factor = Parameter(default=1, description="Factor by which to scale a model")
@@ -1517,7 +1516,6 @@ class Lorentz1D(Fittable1DModel):
             Default is chosen to include most (99%) of the
             area under the curve, while still showing the
             central feature of interest.
-
         """
         x0 = self.x_0
         dx = factor * self.fwhm
@@ -2290,7 +2288,6 @@ class Box2D(Fittable2DModel):
             0 : & \\text{else}
                      \\end{array}
                    \\right.
-
     """
 
     amplitude = Parameter(default=1, description="Amplitude")
@@ -2589,7 +2586,6 @@ class RickerWavelet1D(Fittable1DModel):
         ----------
         factor : float
             The multiple of sigma used to define the limits.
-
         """
         x0 = self.x_0
         dx = factor * self.sigma

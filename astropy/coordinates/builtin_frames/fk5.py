@@ -14,7 +14,8 @@ __all__ = ['FK5']
 
 
 doc_footer = """
-    Other parameters
+
+    Other Parameters
     ----------------
     equinox : `~astropy.time.Time`
         The equinox of this frame.

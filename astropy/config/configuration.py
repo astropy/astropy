@@ -34,7 +34,8 @@ __all__ = ('InvalidConfigurationItemWarning', 'ConfigurationMissingWarning',
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
-    """ A Warning that is issued when the configuration value specified in the
+    """
+    A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
     """
@@ -44,7 +45,8 @@ class InvalidConfigurationItemWarning(AstropyWarning):
 # It is kept for compatibility and should be removed at some point.
 @deprecated('5.0')
 class ConfigurationMissingWarning(AstropyWarning):
-    """ A Warning that is issued when the configuration directory cannot be
+    """
+    A Warning that is issued when the configuration directory cannot be
     accessed (usually due to a permissions problem). If this warning appears,
     configuration items will be set to their defaults rather than read from the
     configuration file, and no configuration will persist across sessions.
@@ -53,7 +55,8 @@ class ConfigurationMissingWarning(AstropyWarning):
 
 # these are not in __all__ because it's not intended that a user ever see them
 class ConfigurationDefaultMissingError(ValueError):
-    """ An exception that is raised when the configuration defaults (which
+    """
+    An exception that is raised when the configuration defaults (which
     should be generated at build-time) are missing.
     """
 
@@ -348,7 +351,6 @@ class ConfigItem:
         ----------
         value
             The value to set this item to inside the with block.
-
         """
         initval = self()
         self.set(value)
@@ -365,7 +367,6 @@ class ConfigItem:
         -------
         val : object
             The new value loaded from the configuration file.
-
         """
         self.set(self.defaultvalue)
         baseobj = get_config(self.module, True, rootname=self.rootname)
@@ -416,7 +417,6 @@ class ConfigItem:
         ------
         TypeError
             If the configuration value as stored is not this item's type.
-
         """
         def section_name(section):
             if section == '':
@@ -604,7 +604,6 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
         The package for which to retrieve the configuration object.
     filename : str or file-like or None
         If None, the default configuration path is taken from `get_config`.
-
     """
     if verbose:
         verbosity = nullcontext
@@ -756,7 +755,6 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='as
     ------
     AttributeError
         If the version number of the package could not determined.
-
     """
 
     if path.isdir(default_cfg_dir_or_fn):
@@ -845,7 +843,6 @@ def create_config_file(pkg, rootname='astropy', overwrite=False):
     -------
     updated : bool
         If the profile was updated, `True`, otherwise `False`.
-
     """
 
     # local import to prevent using the logger before it is configured

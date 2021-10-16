@@ -124,7 +124,6 @@ def get_icrs_coordinates(name, parse=False, cache=False):
     -------
     coord : `astropy.coordinates.ICRS` object
         The object's coordinates in the ICRS frame.
-
     """
 
     # if requested, first try extract coordinates embedded in the object name.

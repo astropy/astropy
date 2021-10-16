@@ -281,7 +281,6 @@ class ArrayDistribution(Distribution, np.ndarray):
         `~astropy.uncertainty.Distribution` instance.  If the requested
         ``type`` is a `~astropy.uncertainty.Distribution`, then no change in
         ``dtype`` is allowed.
-
         """
         if type is None and (isinstance(dtype, builtins.type)
                              and issubclass(dtype, np.ndarray)):

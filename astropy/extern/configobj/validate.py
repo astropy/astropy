@@ -337,7 +337,6 @@ def numToDottedQuad(num):
     >>> numToDottedQuad(4294967296)
     Traceback (most recent call last):
     ValueError: Not a good numeric IP: 4294967296
-
     """
 
     # import here to avoid it when ip_addr values are not used
@@ -936,7 +935,6 @@ def is_boolean(value):
     >>> vtor.check('boolean', 'up')
     Traceback (most recent call last):
     VdtTypeError: the value "up" is of the wrong type.
-
     """
     if isinstance(value, string_type):
         try:

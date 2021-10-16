@@ -817,7 +817,7 @@ class Quantity(np.ndarray):
     value = property(to_value,
                      doc="""The numerical value of this instance.
 
-    See also
+    See Also
     --------
     to_value : Get the numerical value in a given unit.
     """)
@@ -1343,7 +1343,6 @@ class Quantity(np.ndarray):
         If the format specifier correctly applies itself to the value,
         then it is used to format only the value. If it cannot be
         applied to the value, then it is applied to the whole string.
-
         """
         try:
             value = format(self.value, format_spec)
@@ -1401,7 +1400,6 @@ class Quantity(np.ndarray):
         -------
         newq : `~astropy.units.Quantity`
             A new object equal to this quantity with units decomposed.
-
         """
 
         new_unit = self.unit.decompose(bases=bases)
@@ -1424,7 +1422,6 @@ class Quantity(np.ndarray):
 
         Like :meth:`~numpy.ndarray.item` except that it always
         returns a `Quantity`, not a Python scalar.
-
         """
         return self._new_view(super().item(*args))
 
@@ -1798,7 +1795,6 @@ class Quantity(np.ndarray):
         >>> q.insert(1, 10 * u.m, axis=1)
         <Quantity [[  1., 10.,  2.],
                    [  3., 10.,  4.]] m>
-
         """
         out_array = np.insert(self.value, obj, self._to_own_unit(values), axis)
         return self._new_view(out_array)
@@ -1884,7 +1880,7 @@ def isclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs):
         If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
         or if ``rtol`` is not dimensionless.
 
-    See also
+    See Also
     --------
     allclose
     """
@@ -1928,7 +1924,7 @@ def allclose(a, b, rtol=1.e-5, atol=None, equal_nan=False, **kwargs) -> bool:
         If the dimensions of ``a``, ``b``, or ``atol`` are incompatible,
         or if ``rtol`` is not dimensionless.
 
-    See also
+    See Also
     --------
     isclose
     """

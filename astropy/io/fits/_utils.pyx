@@ -17,7 +17,6 @@ def parse_header(fileobj):
     The implementation is straightforward: first iterate on the 2880-bytes
     blocks, then iterate on the 80-bytes cards, find the value separator, and
     store the parsed (keyword, card image) in a dictionary.
-
     """
 
     cards = OrderedDict()

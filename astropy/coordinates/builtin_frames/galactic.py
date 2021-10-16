@@ -35,6 +35,7 @@ doc_components = """
 """
 
 doc_footer = """
+
     Notes
     -----
     .. [1] Blaauw, A.; Gum, C. S.; Pawsey, J. L.; Westerhout, G. (1960), "The

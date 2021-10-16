@@ -128,7 +128,6 @@ def test_ccddata_write_help_fits():
 def test_ccddata_read_help_fits():
     """Test dynamically created documentation help via the I/O registry for
     CCDData 'fits'.
-
     """
     out = StringIO()
     CCDData.read.help('fits', out)

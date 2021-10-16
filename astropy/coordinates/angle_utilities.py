@@ -75,7 +75,6 @@ def position_angle(lon1, lat1, lon2, lat2):
         The (positive) position angle of the vector pointing from position 1 to
         position 2.  If any of the angles are arrays, this will contain an array
         following the appropriate `numpy` broadcasting rules.
-
     """
     from .angles import Angle
 

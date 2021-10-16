@@ -273,7 +273,6 @@ class Fitter(metaclass=_FitterMeta):
         A callable implementing an optimization algorithm
     statistic : callable
         Statistic function
-
     """
 
     supported_constraints = []
@@ -313,7 +312,6 @@ class Fitter(metaclass=_FitterMeta):
         The list of arguments (args) is set in the `__call__` method.
         Fitters may overwrite this method, e.g. when statistic functions
         require other arguments.
-
         """
         model = args[0]
         meas = args[-1]
@@ -516,8 +514,7 @@ class LinearLSQFitter(metaclass=_FitterMeta):
         Returns
         -------
         model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
-
+            A copy of the input model with parameters set by the fitter.
         """
 
         if not model.fittable:
@@ -1041,7 +1038,6 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
     covariance matrix of the parameters as a 2D numpy array.  The order of the
     matrix elements matches the order of the parameters in the fitted model
     (i.e., the same order as ``model.param_names``).
-
     """
 
     supported_constraints = ['fixed', 'tied', 'bounds']
@@ -1072,7 +1068,6 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
             parameters returned by the fitter
         args : list
             [model, [weights], [input coordinates]]
-
         """
 
         model = args[0]
@@ -1139,8 +1134,7 @@ class LevMarLSQFitter(metaclass=_FitterMeta):
         Returns
         -------
         model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
-
+            A copy of the input model with parameters set by the fitter.
         """
 
         from scipy import optimize
@@ -1255,9 +1249,8 @@ class SLSQPLSQFitter(Fitter):
         A linear model is passed to a nonlinear fitter
 
     Notes
-    ------
+    -----
     See also the `~astropy.modeling.optimizers.SLSQP` optimizer.
-
     """
 
     supported_constraints = SLSQP.supported_constraints
@@ -1304,8 +1297,7 @@ class SLSQPLSQFitter(Fitter):
         Returns
         -------
         model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
-
+            A copy of the input model with parameters set by the fitter.
         """
 
         model_copy = _validate_model(model, self._opt_method.supported_constraints)
@@ -1329,7 +1321,6 @@ class SimplexLSQFitter(Fitter):
     ------
     `ModelLinearityError`
         A linear model is passed to a nonlinear fitter
-
     """
 
     supported_constraints = Simplex.supported_constraints
@@ -1370,8 +1361,7 @@ class SimplexLSQFitter(Fitter):
         Returns
         -------
         model_copy : `~astropy.modeling.FittableModel`
-            a copy of the input model with parameters set by the fitter
-
+            A copy of the input model with parameters set by the fitter.
         """
 
         model_copy = _validate_model(model,
@@ -1403,7 +1393,6 @@ class JointFitter(metaclass=_FitterMeta):
         a list of joint parameters
     initvals : list
         a list of initial values
-
     """
 
     def __init__(self, models, jointparameters, initvals):
@@ -1442,8 +1431,7 @@ class JointFitter(metaclass=_FitterMeta):
             fitting algorithm
         args : dict
             tuple of measured and input coordinates
-            args is always passed as a tuple from optimize.leastsq
-
+            args is always passed as a tuple from ``optimize.leastsq``.
         """
 
         lstsqargs = list(args)

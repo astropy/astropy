@@ -276,7 +276,6 @@ class BinnedTimeSeries(BaseTimeSeries):
         -------
         out : `astropy.timeseries.binned.BinnedTimeSeries`
             BinnedTimeSeries corresponding to the file.
-
         """
 
         try:

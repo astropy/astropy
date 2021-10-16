@@ -130,7 +130,6 @@ def _expand_string_array_for_values(arr, values):
     Returns
     -------
     arr_expanded : np.ndarray
-
     """
     if arr.dtype.kind in ('U', 'S') and values is not np.ma.masked:
         # Find the length of the longest string in the new values.
@@ -176,7 +175,6 @@ def _convert_sequence_data_to_array(data, dtype=None):
     Returns
     -------
     np_data : np.ndarray or np.ma.MaskedArray
-
     """
     np_ma_masked = np.ma.masked  # Avoid repeated lookups of this object
 
@@ -367,7 +365,6 @@ class ColumnInfo(BaseColumnInfo):
         -------
         col : Column (or subclass)
             New instance of this class consistent with ``cols``
-
         """
         attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
                                            ('meta', 'unit', 'format', 'description'))
@@ -744,7 +741,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         -------
         lines : list
             List of lines with header and formatted column values
-
         """
         _pformat_col = self._formatter._pformat_col
         lines, outs = _pformat_col(self, max_lines, show_name=show_name,
@@ -812,7 +808,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         show_unit : bool
             Include a header row for unit. Default is False.
-
         """
         _more_tabcol = self._formatter._more_tabcol
         _more_tabcol(self, max_lines=max_lines, show_name=show_name,

@@ -843,7 +843,6 @@ def test_aa_hd_high_precision():
     not necessarily absolute precision.  If this test starts failing, the
     tolerance can and should be weakened *if* it is clear that the change is
     due to an improvement (e.g., a new IAU precession model).
-
     """
     lat = -22.959748*u.deg
     lon = -67.787260*u.deg

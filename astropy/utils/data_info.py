@@ -693,7 +693,6 @@ class BaseColumnInfo(DataInfo):
         -------
         attrs : dict
             Of merged attributes.
-
         """
         from astropy.table.np_utils import TableMergeError
 

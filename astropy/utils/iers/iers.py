@@ -195,7 +195,6 @@ class IERS(QTable):
         download_file.
 
         For the IERS class itself, an IERS_B sub-class instance is opened.
-
         """
         if file is not None or cls.iers_table is None:
             if file is not None:
@@ -663,7 +662,6 @@ class IERS_Auto(IERS_A):
         -------
         `~astropy.table.QTable` instance
             With IERS (Earth rotation) data columns
-
         """
         if not conf.auto_download:
             cls.iers_table = IERS_B.open()

@@ -1385,7 +1385,6 @@ class ColDefs(NotifierMixin):
 
         ascii : bool
             Use True to ensure that ASCII table columns are used.
-
         """
         from .hdu.table import _TableBaseHDU
         from .fitsrec import FITS_rec
@@ -2516,7 +2515,6 @@ def _parse_tdisp_format(tdisp):
         The precision int value from TDISPn
     exponential: str
         The exponential int value from TDISPn
-
     """
 
     # Use appropriate regex for format type

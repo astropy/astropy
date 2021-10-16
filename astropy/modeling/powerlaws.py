@@ -36,7 +36,6 @@ class PowerLaw1D(Fittable1DModel):
     Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha` for ``alpha``):
 
         .. math:: f(x) = A (x / x_0) ^ {-\\alpha}
-
     """
 
     amplitude = Parameter(default=1, description="Peak value at the reference point")
@@ -45,13 +44,15 @@ class PowerLaw1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
-        """One dimensional power law model function"""
+        """One dimensional power law model function.
+        """
         xx = x / x_0
         return amplitude * xx ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha):
-        """One dimensional power law derivative with respect to parameters"""
+        """One dimensional power law derivative with respect to parameters.
+        """
 
         xx = x / x_0
 
@@ -235,7 +236,6 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         plt.legend(loc='lower center')
         plt.grid(True)
         plt.show()
-
     """
 
     amplitude = Parameter(default=1, min=0, description="Peak value at break point")
@@ -403,7 +403,6 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha` for ``alpha``):
 
         .. math:: f(x) = A (x / x_0) ^ {-\\alpha} \\exp (-x / x_{cutoff})
-
     """
 
     amplitude = Parameter(default=1, description="Peak value of model")
@@ -468,7 +467,6 @@ class LogParabola1D(Fittable1DModel):
     Model formula (with :math:`A` for ``amplitude`` and :math:`\\alpha` for ``alpha`` and :math:`\\beta` for ``beta``):
 
         .. math:: f(x) = A \\left(\\frac{x}{x_{0}}\\right)^{- \\alpha - \\beta \\log{\\left (\\frac{x}{x_{0}} \\right )}}
-
     """
 
     amplitude = Parameter(default=1, description="Peak value of model")

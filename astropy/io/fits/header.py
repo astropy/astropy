@@ -313,7 +313,6 @@ class Header:
         Comments can also be updated through this interface:
 
             >>> header.comments['NAXIS'] = 'Number of data axes'
-
         """
 
         return _HeaderComments(self)
@@ -949,7 +948,6 @@ class Header:
         after : str, int, optional
             Name of the keyword, or index of the `Card` after which this card
             should be located in the header.
-
         """
 
         # Create a temporary card that looks like the one being set; if the
@@ -1115,7 +1113,6 @@ class Header:
             See also :meth:`Header.set` which is a new method that provides an
             interface similar to the old ``Header.update()`` and may help make
             transition a little easier.
-
         """
 
         if args:
@@ -1194,7 +1191,6 @@ class Header:
         end : bool, optional
             If True, ignore the useblanks and bottom options, and append at the
             very end of the Header.
-
         """
 
         if isinstance(card, str):
@@ -1361,7 +1357,6 @@ class Header:
         ----------
         keyword : str
             The keyword to count instances of in the header
-
         """
 
         keyword = Card.normalize_keyword(keyword)
@@ -1389,7 +1384,6 @@ class Header:
 
         stop : int, optional
             The upper bound for the index
-
         """
 
         if start is None:
@@ -1522,7 +1516,6 @@ class Header:
         remove_all : bool, optional
             When True, all instances of keyword will be removed.
             Otherwise only the first instance of the given keyword is removed.
-
         """
         keyword = Card.normalize_keyword(keyword)
         if keyword in self._keyword_indices:
@@ -1986,7 +1979,6 @@ class _BasicHeaderCards:
     This is needed because during the HDU class detection, some HDUs uses
     the .cards interface.  Cards cannot be modified here as the _BasicHeader
     object will be deleted once the HDU object is created.
-
     """
 
     def __init__(self, header):
@@ -2017,7 +2009,6 @@ class _BasicHeader(collections.abc.Mapping):
     Once a card is parsed, which is deferred to the Card class, the Card object
     is kept in a cache. This is useful because a small subset of cards is used
     a lot in the HDU creation process (NAXIS, XTENSION, ...).
-
     """
 
     def __init__(self, cards):

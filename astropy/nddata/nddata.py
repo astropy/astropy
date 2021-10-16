@@ -32,7 +32,7 @@ class NDData(NDDataBase):
     See also: https://docs.astropy.org/en/stable/nddata/
 
     Parameters
-    -----------
+    ----------
     data : `numpy.ndarray`-like or `NDData`-like
         The dataset.
 
@@ -106,7 +106,7 @@ class NDData(NDDataBase):
         >>> nd2.unit
         Unit("cm")
 
-    See also
+    See Also
     --------
     NDDataRef
     NDDataArray

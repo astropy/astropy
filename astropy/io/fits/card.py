@@ -42,7 +42,9 @@ UNDEFINED = Undefined()
 class Card(_Verify):
 
     length = CARD_LENGTH
-    """The length of a Card image; should always be 80 for valid FITS files."""
+    """
+    The length of a Card image; should always be 80 for valid FITS files.
+    """
 
     # String for a FITS standard compliant (FSC) keyword.
     _keywd_FSC_RE = re.compile(r'^[A-Z0-9_-]{0,%d}$' % KEYWORD_LENGTH)

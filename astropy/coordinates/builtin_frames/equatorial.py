@@ -22,7 +22,8 @@ from .utils import DEFAULT_OBSTIME, EARTH_CENTER
 __all__ = ['TEME', 'TETE']
 
 doc_footer_teme = """
-    Other parameters
+
+    Other Parameters
     ----------------
     obstime : `~astropy.time.Time`
         The time at which the frame is defined.  Used for determining the
@@ -30,7 +31,8 @@ doc_footer_teme = """
 """
 
 doc_footer_tete = """
-    Other parameters
+
+    Other Parameters
     ----------------
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the

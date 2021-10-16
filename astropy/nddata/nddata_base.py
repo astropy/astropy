@@ -17,7 +17,6 @@ class NDDataBase(metaclass=ABCMeta):
     ``data``.
 
     See also: https://docs.astropy.org/en/stable/nddata/
-
     """
 
     @abstractmethod

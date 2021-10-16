@@ -35,7 +35,6 @@ def _is_bit_flag(n):
     -------
     bool
         ``True`` if input ``n`` is a bit flag and ``False`` if it is not.
-
     """
     if n < 1:
         return False
@@ -213,7 +212,6 @@ class BitFlagNameMap(metaclass=BitFlagNameMeta):
         >>> class ST_CAM1_DQ(ST_DQ):
         ...     HOT = 16
         ...     DEAD = 32
-
     """
     pass
 
@@ -246,7 +244,6 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
         16
         >>> ST_CAM1_DQ.HOT  # <-- Access flags as class attributes
         16
-
     """
     new_cls = BitFlagNameMeta.__new__(
         BitFlagNameMeta,
@@ -343,7 +340,6 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
         '0000000000011100'
         >>> "{0:016b}".format(0xFFFF & interpret_bit_flags([4, 8, 16], flip_bits=True))
         '1111111111100011'
-
     """
     has_flip_bits = flip_bits is not None
     flip_bits = bool(flip_bits)
@@ -667,7 +663,6 @@ good_mask_value=False, dtype=numpy.bool_)
         ...                                  flag_name_map=flag_map)
         array([[0, 0, 0, 1, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0, 1, 0]])
-
     """
     bitfield = np.asarray(bitfield)
     if not np.issubdtype(bitfield.dtype, np.integer):

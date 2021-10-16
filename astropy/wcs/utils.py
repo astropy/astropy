@@ -209,7 +209,6 @@ def wcs_to_celestial_frame(wcs):
         >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_wcs_to_frame_mappings
         >>> with custom_wcs_to_frame_mappings(my_function):
         ...     wcs_to_celestial_frame(...)
-
     """
     for mapping_set in WCS_FRAME_MAPPINGS:
         for func in mapping_set:
@@ -280,7 +279,6 @@ def celestial_frame_to_wcs(frame, projection='TAN'):
         >>> from astropy.wcs.utils import celestial_frame_to_wcs, custom_frame_to_wcs_mappings
         >>> with custom_frame_to_wcs_mappings(my_function):
         ...     celestial_frame_to_wcs(...)
-
     """
     for mapping_set in FRAME_WCS_MAPPINGS:
         for func in mapping_set:
@@ -330,7 +328,6 @@ def proj_plane_pixel_scales(wcs):
     See Also
     --------
     astropy.wcs.utils.proj_plane_pixel_area
-
     """
     return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=float))
 
@@ -388,7 +385,6 @@ def proj_plane_pixel_area(wcs):
     See Also
     --------
     astropy.wcs.utils.proj_plane_pixel_scales
-
     """
     psm = wcs.celestial.pixel_scale_matrix
     if psm.shape != (2, 2):
@@ -439,7 +435,6 @@ def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
     distorted : bool
         Returns `True` if focal (projection) plane is distorted and `False`
         otherwise.
-
     """
     cwcs = wcs.celestial
     return (not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or
@@ -905,7 +900,6 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
 
 
 def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
-
     """ Objective function for fitting SIP.
 
     Parameters
@@ -1165,7 +1159,6 @@ def obsgeo_to_frame(obsgeo, obstime):
 
     Notes
     -----
-
     The obsgeo array as accessed on a `.WCS` object is a length 6 numpy array
     where the first three elements are the coordinate in a cartesian
     representation and the second 3 are the coordinate in a spherical
@@ -1178,7 +1171,6 @@ def obsgeo_to_frame(obsgeo, obstime):
     In the case where both the spherical and cartesian coordinates have some
     non-finite values the spherical coordinates will be returned with the
     non-finite values included.
-
     """
     if (obsgeo is None
         or len(obsgeo) != 6

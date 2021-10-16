@@ -28,11 +28,12 @@ class FixedWidthSplitter(core.BaseSplitter):
     style so line[start:end] is the desired substring for a column.  This splitter
     class does not have a hook for ``process_lines`` since that is generally not
     useful for fixed-width input.
-
     """
     delimiter_pad = ''
     bookend = False
     delimiter = '|'
+    """one-character string used to separate fields.
+    """
 
     def __call__(self, lines):
         for line in lines:
@@ -90,7 +91,6 @@ class FixedWidthHeader(basic.BasicHeader):
         ----------
         lines : list
             List of table lines
-
         """
 
         # See "else" clause below for explanation of start_line and position_line
@@ -184,9 +184,7 @@ class FixedWidthHeader(basic.BasicHeader):
             List of starting indices.
         ends : list
             List of ending indices.
-
         """
-
         # If column positions are already specified then just use those.
         # If neither column starts or ends are given, figure out positions
         # between delimiters. Otherwise, either the starts or the ends have
@@ -232,11 +230,11 @@ class FixedWidthHeader(basic.BasicHeader):
 
 
 class FixedWidthData(basic.BasicData):
+    """Base table data reader.
     """
-    Base table data reader.
-    """
+
     splitter_class = FixedWidthSplitter
-    """ Splitter class for splitting data lines into columns """
+    """Splitter class for splitting data lines into columns."""
 
     def write(self, lines):
         vals_list = []
@@ -269,7 +267,9 @@ class FixedWidthData(basic.BasicData):
 
 
 class FixedWidth(basic.Basic):
-    """Fixed width table with single header line defining column names and positions.
+    """
+    Fixed width table with single header line defining column names and
+    positions.
 
     Examples::
 
@@ -292,7 +292,6 @@ class FixedWidth(basic.Basic):
        2.4many words    7
 
     See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
-
     """
     _format_name = 'fixed_width'
     _description = 'Fixed width'
@@ -309,12 +308,14 @@ class FixedWidth(basic.Basic):
 
 
 class FixedWidthNoHeaderHeader(FixedWidthHeader):
-    '''Header reader for fixed with tables with no header line'''
+    """Header reader for fixed with tables with no header line.
+    """
     start_line = None
 
 
 class FixedWidthNoHeaderData(FixedWidthData):
-    '''Data reader for fixed width tables with no header line'''
+    """Data reader for fixed width tables with no header line.
+    """
     start_line = 0
 
 
@@ -343,7 +344,6 @@ class FixedWidthNoHeader(FixedWidth):
     but with ``header_start=None`` and ``data_start=0``.
 
     See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
-
     """
     _format_name = 'fixed_width_no_header'
     _description = 'Fixed width with no header'
@@ -400,7 +400,6 @@ class FixedWidthTwoLine(FixedWidth):
       +------+------------+
 
     See the :ref:`astropy:fixed_width_gallery` for specific usage examples.
-
     """
     _format_name = 'fixed_width_two_line'
     _description = 'Fixed width with second header line'

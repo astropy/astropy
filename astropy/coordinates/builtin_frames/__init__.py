@@ -113,7 +113,6 @@ def make_transform_graph_docs(transform_graph):
     .. container:: frametransformgraph
 
         .. graphviz::
-
     """
 
     docstr = dedent(docstr) + '        ' + graphstr.replace('\n', '\n        ')

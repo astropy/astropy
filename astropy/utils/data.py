@@ -152,7 +152,6 @@ def is_url(string):
     -------
     status : bool
         String is URL or not.
-
     """
     url = urllib.parse.urlparse(string)
     # we can't just check that url.scheme is not an empty string, because
@@ -925,7 +924,6 @@ def get_pkg_data_path(*path, package=None):
         Given package or module is not importable.
     RuntimeError
         If the local data file is outside of the package's tree.
-
     """
     if package is None:
         module = find_current_module(1, finddiff=['astropy.utils.data', 'contextlib'])
@@ -993,7 +991,6 @@ def get_free_space_in_dir(path, unit=False):
     free_space : int or `~astropy.units.Quantity`
         The amount of free space on the partition that the directory is on.
         If ``unit=False``, it is returned as plain integer (in bytes).
-
     """
     if not os.path.isdir(path):
         raise OSError(
@@ -1025,7 +1022,7 @@ def check_free_space_in_dir(path, size):
         A proposed filesize. If not a Quantity, assume it is in bytes.
 
     Raises
-    -------
+    ------
     OSError
         There is not enough room on the filesystem.
     """

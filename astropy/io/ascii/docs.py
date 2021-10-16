@@ -83,7 +83,6 @@ READ_DOCSTRING = """
     -------
     dat : `~astropy.table.Table` or <generator>
         Output table
-
     """
 
 # Specify allowed types for core write() keyword arguments.  Each entry
@@ -161,7 +160,6 @@ WRITE_DOCSTRING = """
         If ``overwrite=False`` (default) and the file exists, then an OSError
         is raised. This parameter is ignored when the ``output`` arg is not a
         string (e.g., a file object).
-
     """
 # Specify allowed types for core write() keyword arguments.  Each entry
 # corresponds to the name of an argument and either a type (e.g. int) or a

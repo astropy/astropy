@@ -613,7 +613,6 @@ def get_index(table, table_copy=None, names=None):
     Returns
     -------
     Index of columns or None
-
     """
     if names is not None and table_copy is not None:
         raise ValueError('one and only one argument from "table_copy" or'

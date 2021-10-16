@@ -90,7 +90,6 @@ def test_g0():
 def test_b_wien():
     """b_wien should give the correct peak wavelength for
     given blackbody temperature. The Sun is used in this test.
-
     """
     from astropy.constants import b_wien
     from astropy import units as u

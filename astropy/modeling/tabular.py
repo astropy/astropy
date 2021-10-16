@@ -75,7 +75,6 @@ class _Tabular(Model):
     Notes
     -----
     Uses `scipy.interpolate.interpn`.
-
     """
 
     linear = False
@@ -191,7 +190,6 @@ class _Tabular(Model):
         ...                lookup_table=[[10, 20, 30], [20, 30, 40]])
         >>> t2.bounding_box
         ((2, 4), (1, 3))
-
         """
         bbox = [(min(p), max(p)) for p in self.points][::-1]
         if len(bbox) == 1:
@@ -292,7 +290,6 @@ def tabular_model(dim, name=None):
     >>> xinterp = [0, 1, 1.5, 2.72, 3.14]
     >>> m(xinterp, xinterp)  # doctest: +FLOAT_CMP
     array([3., 3., 3., 0., 0.])
-
     """
     if dim < 1:
         raise ValueError('Lookup table must have at least one dimension.')

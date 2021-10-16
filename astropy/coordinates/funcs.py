@@ -107,8 +107,6 @@ def spherical_to_cartesian(r, lat, lon):
         The second cartesian coordinate.
     z : float or array
         The third cartesian coordinate.
-
-
     """
     if not hasattr(r, 'unit'):
         r = r * u.dimensionless_unscaled
@@ -147,7 +145,6 @@ def get_sun(time):
     JPL's ephemeris, it should be good to about 4 km (in the Sun-Earth
     vector) from 1900-2100 C.E., 8 km for the 1800-2200 span, and perhaps
     250 km over the 1000-3000.
-
     """
     earth_pv_helio, earth_pv_bary = erfa.epv00(*get_jd12(time, 'tdb'))
 
@@ -299,7 +296,6 @@ def concatenate_representations(reps):
     rep : `~astropy.coordinates.BaseRepresentation` subclass instance
         A single representation object with its data set to the concatenation of
         all the elements of the input sequence of representations.
-
     """
     if not isinstance(reps, (Sequence, np.ndarray)):
         raise TypeError('Input must be a list or iterable of representation '

@@ -54,7 +54,6 @@ class Masked(NDArrayShapeMethods):
         The initial mask to assign.  If not given, taken from the data.
     copy : bool
         Whether the data and mask should be copied. Default: `False`.
-
     """
 
     _base_classes = {}
@@ -93,7 +92,6 @@ class Masked(NDArrayShapeMethods):
             and auto-generate a docstring if not present already.
         **kwargs
             Passed on for possible further initialization by superclasses.
-
         """
         if base_cls is not None:
             Masked._base_classes[base_cls] = cls
@@ -182,7 +180,6 @@ class Masked(NDArrayShapeMethods):
         ------
         ValueError
             If `~numpy.ma.masked` is passed in and ``allow_ma_masked`` is not set.
-
         """
         mask = getattr(data, 'mask', None)
         if mask is not None:
@@ -572,7 +569,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         ------
         AttributeError
             If a copy is required, of either the data or the mask.
-
         """
         # Redefinition to allow defining a setter and add a docstring.
         return super().shape
@@ -878,7 +874,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         Generally, the default should be to skip all masked elements.  For
         reductions such as np.minimum.reduce, we also need an initial value,
         which can be determined using ``initial_func``.
-
         """
         if 'where' not in kwargs:
             kwargs['where'] = ~self.mask
@@ -955,7 +950,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             Array of indices that sorts along the specified ``axis``.  Use
             ``np.take_along_axis(self, index_array, axis=axis)`` to obtain
             the sorted array.
-
         """
         if axis is None:
             data = self.ravel()

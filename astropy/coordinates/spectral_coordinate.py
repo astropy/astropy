@@ -382,7 +382,6 @@ class SpectralCoord(SpectralQuantity):
         -------
         `~astropy.units.Quantity`
             This object viewed as a `~astropy.units.Quantity`.
-
         """
         return self.view(u.Quantity)
 

@@ -74,7 +74,6 @@ def test_write_overwrite(tmpdir, fmt):
 
 def test_read_fixed_width_format():
     """Test reading with pandas read_fwf()
-
     """
     tbl = """\
     a   b   c

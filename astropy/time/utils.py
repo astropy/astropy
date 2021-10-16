@@ -174,7 +174,6 @@ def split(a):
     Uses the procedure of Shewchuk, 1997,
     Discrete & Computational Geometry 18(3):305-363
     http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
-
     """
     c = 134217729. * a  # 2**27+1.
     abig = c - a

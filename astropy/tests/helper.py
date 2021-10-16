@@ -98,7 +98,6 @@ class raises:
     flexible).
 
     .. note:: Usage of ``pytest.raises`` is preferred.
-
     """
 
     # pep-8 naming exception -- this is a decorator class
@@ -184,7 +183,6 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True,
         Python version-agnostic warnings should be mapped to `None` key.
         This is in addition of those already ignored by default
         (see ``_warnings_to_ignore_by_pyver`` values).
-
     """
     global _deprecations_as_exceptions
     _deprecations_as_exceptions = True
@@ -290,7 +288,6 @@ class catch_warnings(warnings.catch_warnings):
         assert len(w) > 0
 
     .. note:: Usage of :ref:`pytest.warns <pytest:warns>` is preferred.
-
     """
 
     def __init__(self, *classes):

@@ -89,7 +89,6 @@ class Sagittarius(coord.BaseCoordinateFrame):
         also be given).
     radial_velocity : `~astropy.units.Quantity`, optional, keyword-only
         The radial velocity of this object.
-
     """
 
     default_representation = coord.SphericalRepresentation

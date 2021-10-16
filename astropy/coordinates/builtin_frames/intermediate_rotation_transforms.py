@@ -103,7 +103,6 @@ def get_location_gcrs(location, obstime, ref_to_itrs, gcrs_to_ref):
     recalculate matrices that are already available below (and return a GCRS
     coordinate, rather than a frame with obsgeoloc and obsgeovel).  Instead,
     it uses the private method that allows passing in the matrices.
-
     """
     obsgeoloc, obsgeovel = location._get_gcrs_posvel(obstime,
                                                      ref_to_itrs, gcrs_to_ref)

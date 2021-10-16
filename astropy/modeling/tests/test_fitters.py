@@ -132,7 +132,6 @@ class TestICheb2D:
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestJointFitter:
-
     """
     Tests the joint fitting routine using 2 gaussian models
     """

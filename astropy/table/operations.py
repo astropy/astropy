@@ -154,7 +154,6 @@ def join_skycoord(distance, distance_func='search_around_sky'):
           1 1.0,0.0 1.05,0.0
           1 1.1,0.0 1.05,0.0
           2 2.0,0.0  2.1,0.0
-
     """
     if isinstance(distance_func, str):
         import astropy.coordinates as coords
@@ -256,7 +255,6 @@ def join_distance(distance, kdtree_args=None, query_args=None):
            2   2.0   2.1
            3   0.0    --
            4    --   0.5
-
     """
     try:
         from scipy.spatial import cKDTree
@@ -822,7 +820,6 @@ def unique(input_table, keys=None, silent=False, keep='first'):
     int32 int32 int32
     ----- ----- -----
         1     2     3
-
     """
 
     if keep not in ('first', 'last', 'none'):

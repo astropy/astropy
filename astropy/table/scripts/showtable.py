@@ -58,7 +58,6 @@ def showtable(filename, args):
     ----------
     filename : str
         The path to a FITS file.
-
     """
     if args.info and args.stats:
         warnings.warn('--info and --stats cannot be used together',

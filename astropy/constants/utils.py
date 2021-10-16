@@ -25,7 +25,6 @@ def _get_c(codata, iaudata, module, not_in_module_only=True):
     -------
     _c : Constant
         Constant object to process.
-
     """
     from .constant import Constant
 
@@ -62,7 +61,6 @@ def _set_c(codata, iaudata, module, not_in_module_only=True, doclines=None,
     set_class : bool
         Namespace of ``module`` is populated with ``_c.__class__``
         instead of just ``_c`` from :func:`_get_c`.
-
     """
     for _c in _get_c(codata, iaudata, module,
                      not_in_module_only=not_in_module_only):

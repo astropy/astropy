@@ -728,7 +728,6 @@ class TableHDU(_TableBaseHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
-
     """
 
     _extension = 'TABLE'
@@ -844,7 +843,6 @@ class BinTableHDU(_TableBaseHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
-
     """
 
     _extension = 'BINTABLE'

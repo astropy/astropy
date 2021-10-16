@@ -119,7 +119,6 @@ class JSViewer:
         Use local files or a CDN for JavaScript libraries. Default False.
     display_length : int, optional
         Number or rows to show. Default to 50.
-
     """
 
     def __init__(self, use_local_files=False, display_length=50):

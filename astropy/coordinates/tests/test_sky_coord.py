@@ -63,7 +63,6 @@ def test_is_transformable_to_str_input():
     The only difference from the frame method of the same name is that
     strings are allowed. As the frame tests cover ``is_transform_to``, here
     we only test the added string option.
-
     """
     # make example SkyCoord
     c = SkyCoord(90*u.deg, -11*u.deg)

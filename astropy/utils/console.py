@@ -944,7 +944,6 @@ class Spinner:
         ----------
         value : int, optional
             Ignored (present just for compatibility with `ProgressBar.update`).
-
         """
 
         next(self)

@@ -108,7 +108,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
     -------
     votable : `~astropy.io.votable.tree.VOTableFile` object
 
-    See also
+    See Also
     --------
     astropy.io.votable.exceptions : The exceptions this function may raise.
     """
@@ -397,7 +397,6 @@ def reset_vo_warnings():
     have already been emitted will be emitted again. This is
     used, for example, by `validate` which must emit all
     warnings each time it is called.
-
     """
     from . import converters, xmlutil
 

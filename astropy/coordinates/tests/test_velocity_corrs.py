@@ -44,7 +44,6 @@ def test_helio_iraf():
     Compare the heliocentric correction to the IRAF rvcorrect.
     `generate_IRAF_input` function is provided to show how the comparison data
     was produced
-
     """
     # this is based on running IRAF with the output of `generate_IRAF_input` below
     rvcorr_result = """

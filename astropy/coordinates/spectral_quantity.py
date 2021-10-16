@@ -163,7 +163,6 @@ class SpectralQuantity(SpecificTypeQuantity):
         References
         ----------
         .. [1] Astropy documentation: https://docs.astropy.org/en/stable/units/equivalencies.html#spectral-doppler-equivalencies
-
         """
 
         if self._doppler_convention is not None:

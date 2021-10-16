@@ -77,7 +77,6 @@ class RotationSequence3D(Model):
     Examples
     --------
     >>> model = RotationSequence3D([1.1, 2.1, 3.1, 4.1], axes_order='xyzx')
-
     """
     standard_broadcasting = False
     _separable = False
@@ -136,7 +135,6 @@ class SphericalRotationSequence(RotationSequence3D):
     axes_order : str
         A sequence of characters ('x', 'y', or 'z') corresponding to the
         axis of rotation and matching the order in ``angles``.
-
     """
     def __init__(self, angles, axes_order, name=None, **kwargs):
         self._n_inputs = 2
@@ -418,7 +416,6 @@ class RotateCelestial2Native(_SkyRotation):
         phi_N, theta_N : float or `~astropy.units.Quantity` ['angle']
             Angles on the Native sphere.
             If float, in degrees.
-
         """
         if isinstance(lon, u.Quantity):
             lon = lon.value
@@ -479,7 +476,6 @@ class Rotation2D(Model):
         angle : float or `~astropy.units.Quantity` ['angle']
             Angle of rotations.
             If float, assumed in degrees.
-
         """
 
         if x.shape != y.shape:

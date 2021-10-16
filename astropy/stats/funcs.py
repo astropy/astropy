@@ -248,7 +248,6 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     >>> binom_conf_interval([1, 2], 5, interval='wald', confidence_level=0.99)  # doctest: +FLOAT_CMP
     array([[-0.26077835, -0.16433593],
            [ 0.66077835,  0.96433593]])
-
     """  # noqa
     if confidence_level < 0. or confidence_level > 1.:
         raise ValueError('confidence_level must be between 0. and 1.')
@@ -466,7 +465,6 @@ def binned_binom_proportion(x, success, bins=10, range=None,
        plt.ylabel('Detection efficiency')
        plt.legend()
        plt.show()
-
     """
     x = np.ravel(x)
     success = np.ravel(success).astype(bool)
@@ -705,7 +703,6 @@ def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
     ...     10, background=1.5, confidence_level=0.95,
     ...     interval='kraft-burrows-nousek').T  # doctest: +FLOAT_CMP
     array([[ 3.47894005, 16.113329533]])
-
     """  # noqa
 
     if not np.isscalar(n):
@@ -1051,7 +1048,6 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     array([40., 46., 35.])
     >>> bootresult.shape
     (3,)
-
     """
     if samples is None:
         samples = data.shape[0]
@@ -1333,7 +1329,6 @@ def kuiper_false_positive_probability(D, N):
 
     .. [2] Stephens, M. A., "The goodness-of-fit statistic VN: distribution
            and significance points", Biometrika, v.52, p.309, 1965.
-
     """
     try:
         from scipy.special import factorial, comb
@@ -1435,8 +1430,6 @@ def kuiper(data, cdf=lambda x: x, args=()):
            and Related Statistics Without Extensive Tables", Journal of the
            Royal Statistical Society. Series B (Methodological), Vol. 32,
            No. 1. (1970), pp. 115-122.
-
-
     """
 
     data = np.sort(data)
@@ -1468,7 +1461,6 @@ def kuiper_two(data1, data2):
 
     .. warning::
         The fpp is quite approximate, especially for small samples.
-
     """
     data1 = np.sort(data1)
     data2 = np.sort(data2)
@@ -1514,7 +1506,6 @@ def fold_intervals(intervals):
         The ith element is the sum of number of times the interval
         breaks[i],breaks[i+1] is included in each interval times the weight
         associated with that interval.
-
     """
     r = []
     breaks = set()
@@ -1558,7 +1549,6 @@ def cdf_from_intervals(breaks, totals):
     f : callable
         A cumulative distribution function corresponding to the
         piecewise-constant probability distribution given by breaks, weights
-
     """
     if breaks[0] != 0 or breaks[-1] != 1:
         raise ValueError("Intervals must be restricted to [0,1]")
@@ -1587,7 +1577,6 @@ def interval_overlap_length(i1, i2):
     -------
     l : float
         The length of the overlap between the two intervals.
-
     """
     (a, b) = i1
     (c, d) = i2
@@ -1626,7 +1615,6 @@ def histogram_intervals(n, breaks, totals):
     -------
     h : array of float
         The average weight for each bin
-
     """
     h = np.zeros(n)
     start = breaks[0]

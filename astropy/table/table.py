@@ -266,7 +266,6 @@ class TableColumns(OrderedDict):
         NOTE: it is easily possible to corrupt a table by directly *adding* a new
         key to the TableColumns attribute of a Table, e.g.
         ``t.columns['jane'] = 'doe'``.
-
         """
         if item in self and not validated:
             raise ValueError("Cannot replace column '{}'.  Use Table.replace_column() instead."
@@ -1549,7 +1548,6 @@ class Table:
 
         This does not check for mixin columns that may have masked values, use the
         ``has_masked_values`` property in that case.
-
         """
         return any(isinstance(col, MaskedColumn) for col in self.itercols())
 
@@ -1592,7 +1590,6 @@ class Table:
 
         The same applies for max_width except the configuration item is
         ``astropy.conf.max_width``.
-
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
@@ -1617,7 +1614,6 @@ class Table:
         the default ``max_lines`` and ``max_width`` are both -1 so that by
         default the entire table is printed instead of restricting to the size
         of the screen terminal.
-
         """
         return self.pprint(max_lines, max_width, show_name,
                            show_unit, show_dtype, align)
@@ -1789,7 +1785,6 @@ class Table:
 
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
-
         """
 
         lines, outs = self.formatter._pformat_table(
@@ -1818,7 +1813,6 @@ class Table:
 
         The same applies for ``max_width`` except the configuration item  is
         ``astropy.conf.max_width``.
-
         """
 
         return self.pformat(max_lines, max_width, show_name,
@@ -2555,7 +2549,6 @@ class Table:
             1 x
             2 y
             3 z
-
         """
         if len(names) == 0:
             names = self.colnames
@@ -3455,7 +3448,6 @@ class Table:
             >>> t2 = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
             >>> t1._rows_equal(t2)
             array([ True,  True])
-
         """
 
         if isinstance(other, Table):
@@ -3505,7 +3497,6 @@ class Table:
           ---- ----- -----
           True False False
           True  True  True
-
         """
         if isinstance(other, Table):
             names = other.colnames
@@ -3654,7 +3645,6 @@ class Table:
           tm
           1998-01-01  1.0    5.0     7.0 0 days 00:00:03
           2002-01-01  2.0    6.0     8.0 0 days 00:03:20
-
         """
         from pandas import DataFrame, Series
 
@@ -3821,7 +3811,6 @@ class Table:
           ----------------------- --------- -------
           1998-01-01T00:00:00.000       1.0     3.0
           2002-01-01T00:00:00.000     300.0     4.0
-
         """
 
         out = OrderedDict()
@@ -3938,7 +3927,6 @@ class QTable(Table):
         Copy any indices in the input data. Default is True.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
-
     """
 
     def _is_mixin_for_table(self, col):

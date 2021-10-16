@@ -81,8 +81,10 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     start_line = None
 
     def process_lines(self, lines):
-        """Generator to yield IPAC header lines, i.e. those starting and ending with
-        delimiter character (with trailing whitespace stripped)"""
+        """
+        Generator to yield IPAC header lines, i.e. those starting and ending
+        with delimiter character (with trailing whitespace stripped).
+        """
         delim = self.splitter.delimiter
         for line in lines:
             line = line.rstrip()
@@ -169,7 +171,6 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         ----------
         lines : list
             List of table lines
-
         """
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
@@ -296,7 +297,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         The width of each column is determined in Ipac.write. Writing the header
         must be delayed until that time.
         This function is called from there, once the width information is
-        available.'''
+        available.
+        '''
 
         for vals in self.str_vals():
             lines.append(self.splitter.join(vals, widths))
@@ -317,7 +319,7 @@ class IpacData(fixedwidth.FixedWidthData):
     fill_values = [(core.masked, 'null')]
 
     def write(self, lines, widths, vals_list):
-        """ IPAC writer, modified from FixedWidth writer """
+        """IPAC writer, modified from FixedWidth writer."""
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
         return lines
@@ -459,7 +461,6 @@ class Ipac(basic.Basic):
         -------
         lines : list
             List of strings corresponding to ASCII table
-
         """
         # Set a default null value for all columns by adding at the end, which
         # is the position with the lowest priority.

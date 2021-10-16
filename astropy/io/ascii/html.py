@@ -305,7 +305,6 @@ class HTML(core.BaseReader):
         * js : js script to include in the body when writing table.
 
         * table_class : css class for the table
-
     """
 
     _format_name = 'html'

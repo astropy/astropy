@@ -75,7 +75,6 @@ class LocaleTime(object):
         Only other possible issue is if someone changed the timezone and did
         not call tz.tzset .  That is an issue for the programmer, though,
         since changing the timezone is worthless without that call.
-
         """
         self.lang = _getlang()
         self.__calc_weekday()
@@ -194,7 +193,6 @@ class TimeRE(dict):
         """Create keys/values.
 
         Order of execution is important for dependency reasons.
-
         """
         if locale_time:
             self.locale_time = locale_time
@@ -240,7 +238,6 @@ class TimeRE(dict):
         prevents the possibility of a match occurring for a value that also
         a substring of a larger value that should have matched (e.g., 'abc'
         matching when 'abcdef' should have been the match).
-
         """
         to_convert = sorted(to_convert, key=len, reverse=True)
         for value in to_convert:
@@ -257,7 +254,6 @@ class TimeRE(dict):
 
         Need to make sure that any characters that might be interpreted as
         regex syntax are escaped.
-
         """
         processed_format = ''
         # The sub() call escapes all characters that might be misconstrued

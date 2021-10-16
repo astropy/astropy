@@ -188,7 +188,6 @@ class TestSingleTable:
 
         This should work for any shape and be independent of whether the
         Table is formally masked or not.
-
         """
         filename = str(tmpdir.join('test_masked_nan.fits'))
         a = np.ma.MaskedArray([5.25, 8.5, 3.75, 6.25], mask=[1, 0, 1, 0])

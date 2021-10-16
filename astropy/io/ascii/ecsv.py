@@ -31,8 +31,11 @@ class EcsvHeader(basic.BasicHeader):
     """
 
     def process_lines(self, lines):
-        """Return only non-blank lines that start with the comment regexp.  For these
-        lines strip out the matching characters and leading/trailing whitespace."""
+        """
+        Return only non-blank lines that start with the comment regexp.
+        For these lines, strip out the matching characters and leading/trailing
+        whitespace.
+        """
         re_comment = re.compile(self.comment)
         for line in lines:
             line = line.strip()
@@ -51,8 +54,8 @@ class EcsvHeader(basic.BasicHeader):
         """
         Write header information in the ECSV ASCII format.
 
-        This function is called at the point when preprocessing has been done to
-        convert the input table columns to `self.cols` which is a list of
+        This function is called at the point when preprocessing has been done
+        to convert the input table columns to `self.cols` which is a list of
         `astropy.io.ascii.core.Column` objects. In particular `col.str_vals`
         is available for each column with the string representation of each
         column item for output.
@@ -86,15 +89,15 @@ class EcsvHeader(basic.BasicHeader):
 
     def write_comments(self, lines, meta):
         """
-        WRITE: Override the default write_comments to do nothing since this is handled
-        in the custom write method.
+        WRITE: Override the default write_comments to do nothing since this is
+        handled in the custom write method.
         """
         pass
 
     def update_meta(self, lines, meta):
         """
-        READ: Override the default update_meta to do nothing.  This process is done
-        in get_cols() for this reader.
+        READ: Override the default update_meta to do nothing.
+        This process is done in get_cols() for this reader.
         """
         pass
 
@@ -106,7 +109,6 @@ class EcsvHeader(basic.BasicHeader):
         ----------
         lines : list
             List of table lines
-
         """
         # Cache a copy of the original input lines before processing below
         raw_lines = lines
@@ -225,10 +227,11 @@ class EcsvOutputter(core.TableOutputter):
     def _convert_vals(self, cols):
         """READ: Convert str_vals in `cols` to final arrays with correct dtypes.
 
-        This is adapted from ``BaseOutputter._convert_vals``. In the case of ECSV
-        there is no guessing and all types are known in advance. A big change
-        is handling the possibility of JSON-encoded values, both unstructured
-        object data and structured values that may contain masked data.
+        This is adapted from ``BaseOutputter._convert_vals``. In the case of
+        ECSV there is no guessing and all types are known in advance. A big
+        change is handling the possibility of JSON-encoded values, both
+        unstructured object data and structured values that may contain masked
+        data.
         """
         for col in cols:
             try:
@@ -331,7 +334,9 @@ class EcsvOutputter(core.TableOutputter):
 
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
-        """READ: Set the fill values of the individual cols based on fill_values of BaseData
+        """
+        READ: Set the fill values of the individual cols based on fill_values
+        of BaseData.
 
         For ECSV handle the corner case of data that has been serialized using
         the serialize_method='data_mask' option, which writes the full data and
@@ -360,7 +365,7 @@ class EcsvData(basic.BasicData):
                 col.fill_values = {}  # No data value replacement
 
     def str_vals(self):
-        """WRITE: convert all values in table to a list of lists of strings
+        """WRITE: convert all values in table to a list of lists of strings.
 
         This version considerably simplifies the base method:
         - No need to set fill values and column formats
@@ -428,7 +433,6 @@ class Ecsv(basic.Basic):
     ----- -----
       001     2
       004     3
-
     """
     _format_name = 'ecsv'
     _description = 'Enhanced CSV'

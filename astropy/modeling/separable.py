@@ -52,7 +52,6 @@ def is_separable(transform):
         array([False, False]...)
     >>> is_separable(Shift(1) & Shift(2) | Mapping([0, 1, 0, 1]))
         array([ True,  True,  True,  True]...)
-
     """
     if transform.n_inputs == 1 and transform.n_outputs > 1:
         is_separable = np.array([False] * transform.n_outputs).T
@@ -92,7 +91,6 @@ def separability_matrix(transform):
         array([[ True,  True], [ True,  True]]...)
     >>> separability_matrix(Shift(1) & Shift(2) | Mapping([0, 1, 0, 1]))
         array([[ True, False], [False,  True], [ True, False], [False,  True]]...)
-
     """
     if transform.n_inputs == 1 and transform.n_outputs > 1:
         return np.ones((transform.n_outputs, transform.n_inputs),
@@ -113,7 +111,6 @@ def _compute_n_outputs(left, right):
     ----------
     left, right : `astropy.modeling.Model` or ndarray
         If input is of an array, it is the output of `coord_matrix`.
-
     """
     if isinstance(left, Model):
         lnout = left.n_outputs
@@ -184,7 +181,6 @@ def _coord_matrix(model, pos, noutp):
     noutp : int
         Number of outputs of the compound model of which the input model
         is a left or right child.
-
     """
     if isinstance(model, Mapping):
         axes = []
@@ -229,7 +225,6 @@ def _cstack(left, right):
     -------
     result : ndarray
         Result from this operation.
-
     """
     noutp = _compute_n_outputs(left, right)
 

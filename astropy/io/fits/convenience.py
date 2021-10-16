@@ -668,7 +668,6 @@ def append(filename, data, header=None, checksum=False, verify=True, **kwargs):
         - `~astropy.io.fits.open` if ``verify`` is True or if ``filename``
           is a file object.
         - Otherwise no additional arguments can be used.
-
     """
     name, closed, noexist_or_empty = _stat_filename_or_fileobj(filename)
 

@@ -115,7 +115,6 @@ def spectral():
 
         * spectroscopic - :math:`1 / \\lambda` (per meter)
         * angular - :math:`2 \\pi / \\lambda` (radian per meter)
-
     """
     hc = _si.h.value * _si.c.value
     two_pi = 2.0 * np.pi
@@ -154,7 +153,6 @@ def spectral_density(wav, factor=None):
     The ``factor`` argument is left for backward-compatibility with the syntax
     ``spectral_density(unit, factor)`` but users are encouraged to use
     ``spectral_density(factor * unit)`` instead.
-
     """
     from .core import UnitBase
 
@@ -690,7 +688,6 @@ def thermodynamic_temperature(frequency, T_cmb=None):
         >>> equiv = u.thermodynamic_temperature(freq, Planck15.Tcmb0)
         >>> (1. * u.mK).to(u.MJy / u.sr, equivalencies=equiv)  # doctest: +FLOAT_CMP
         <Quantity 0.37993172 MJy / sr>
-
     """
     nu = frequency.to(si.GHz, spectral())
 

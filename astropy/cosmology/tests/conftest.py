@@ -32,7 +32,6 @@ def read_json(filename, **kwargs):
     Returns
     -------
     `~astropy.cosmology.Cosmology` instance
-
     """
     # read
     if isinstance(filename, (str, bytes, os.PathLike)):

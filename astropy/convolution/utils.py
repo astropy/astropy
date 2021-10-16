@@ -147,8 +147,6 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
         plt.ylabel('value')
         plt.legend()
         plt.show()
-
-
     """
     if not callable(model):
         raise TypeError('Model must be callable.')

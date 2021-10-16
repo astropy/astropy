@@ -306,13 +306,13 @@ def load_all(stream):
     -------
     obj : object
         Object corresponding to YAML document
-
     """
     return yaml.load_all(stream, Loader=AstropyLoader)
 
 
 def dump(data, stream=None, **kwargs):
-    """Serialize a Python object into a YAML stream using the AstropyDumper class.
+    """
+    Serialize a Python object into a YAML stream using the AstropyDumper class.
     If stream is None, return the produced string instead.
 
     Parameters
@@ -328,7 +328,6 @@ def dump(data, stream=None, **kwargs):
     -------
     out : str or None
         If no ``stream`` is supplied then YAML output is returned as str
-
     """
     kwargs['Dumper'] = AstropyDumper
     kwargs.setdefault('default_flow_style', None)

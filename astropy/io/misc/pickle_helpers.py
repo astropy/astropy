@@ -84,7 +84,6 @@ def fnpickle(object, fileorname, protocol=None, append=False):
         If True, the object is appended to the end of the file, otherwise the
         file will be overwritten (if a file object is given instead of a
         file name, this has no effect).
-
     """
     if protocol is None:
         protocol = pickle.HIGHEST_PROTOCOL

@@ -187,7 +187,6 @@ class TableFormatter:
         Returns
         -------
         max_lines, max_width : int
-
         """
         # Declare to keep static type checker happy.
         lines = None
@@ -258,7 +257,6 @@ class TableFormatter:
         outs : dict
             Dict which is used to pass back additional values
             defined within the iterator.
-
         """
         if show_unit is None:
             show_unit = col.info.unit is not None
@@ -538,7 +536,6 @@ class TableFormatter:
         outs : dict
             Dict which is used to pass back additional values
             defined within the iterator.
-
         """
         # "Print" all the values into temporary lists by column for subsequent
         # use and to determine the width

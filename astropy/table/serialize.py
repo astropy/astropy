@@ -219,7 +219,6 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     ------- ------- -------------- -------------- -------
         1.0     3.0      2451180.0          -0.25   100.0
         2.0     4.0      2451545.0            0.0   200.0
-
     """
     # Dict of metadata for serializing each column, keyed by column name.
     # Gets filled in place by _represent_mixin_as_column().

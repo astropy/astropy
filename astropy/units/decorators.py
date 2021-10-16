@@ -161,7 +161,6 @@ class QuantityInput:
             @u.quantity_input(myenergy=u.eV, equivalencies=u.mass_energy())
             def myfunction(myenergy):
                 return myenergy**2
-
         """
         self = cls(**kwargs)
         if func is not None and not kwargs:

@@ -147,7 +147,6 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     -------
     hdulist : `HDUList`
         `HDUList` containing all of the header data units in the file.
-
     """
 
     from astropy.io.fits import conf
@@ -181,8 +180,7 @@ class HDUList(list, _Verify):
     """
 
     def __init__(self, hdus=[], file=None):
-        """
-        Construct a `HDUList` object.
+        """Construct a `HDUList` object.
 
         Parameters
         ----------
@@ -333,7 +331,6 @@ class HDUList(list, _Verify):
         extension specification (e.g., integer extension number, extension
         name, or a tuple of extension name and an extension version)
         of a ``HDU`` in ``self``.
-
         """
         try:
             self._try_while_unread_hdus(self.index_of, item)
@@ -492,7 +489,6 @@ class HDUList(list, _Verify):
             datLoc     Starting byte location of data block in file
             datSpan    Data size including padding
             ========== ========================================================
-
         """
 
         if self._file is not None:
@@ -531,7 +527,6 @@ class HDUList(list, _Verify):
         -------
         copy : `HDUList`
             A shallow copy of this `HDUList` object.
-
         """
 
         return self[:]
@@ -722,7 +717,6 @@ class HDUList(list, _Verify):
            If an HDU specified by the ``key`` that is an extension number,
            extension name, or a tuple of extension name and version is not
            found in the ``HDUList``.
-
         """
 
         if _is_int(key):
@@ -1041,7 +1035,6 @@ class HDUList(list, _Verify):
         filename : str
             A string containing the file name associated with the HDUList
             object if an association exists.  Otherwise returns None.
-
         """
         if self._file is not None:
             if hasattr(self._file, 'name'):

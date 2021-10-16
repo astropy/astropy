@@ -117,7 +117,6 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         The WCS to slice.
     slices : `slice` or `tuple` or `int`
         A valid array slice to apply to the WCS.
-
     """
     def __init__(self, wcs, slices):
 

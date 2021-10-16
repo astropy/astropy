@@ -318,7 +318,6 @@ def test_doubled_quotes(read_csv):
     """
     Test #8283 (fix for #8281), parsing doubled-quotes "ab""cd" in a quoted
     field was incorrect.
-
     """
     tbl = '\n'.join(['a,b',
                      '"d""","d""q"',
@@ -990,7 +989,6 @@ def test_read_big_table(tmpdir):
     https://github.com/astropy/astropy/pull/5319). The test is run only if the
     environment variable ``TEST_READ_HUGE_FILE`` is defined. Note that running
     the test requires quite a lot of memory (~18Gb when reading the file) !!
-
     """
     NB_ROWS = 250000
     NB_COLS = 500

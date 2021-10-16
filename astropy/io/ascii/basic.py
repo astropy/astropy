@@ -92,7 +92,6 @@ class NoHeader(Basic):
       # Table data
       1 2 "hello there"
       3 4 world
-
     """
     _format_name = 'no_header'
     _description = 'Basic table with no headers'
@@ -138,7 +137,6 @@ class CommentedHeader(Basic):
       # Comment line
       1 2 3
       4 5 6
-
     """
     _format_name = 'commented_header'
     _description = 'Column names in a commented line'
@@ -148,8 +146,8 @@ class CommentedHeader(Basic):
 
     def read(self, table):
         """
-        Read input data (file-like object, filename, list of strings, or
-        single string) into a Table and return the result.
+        Read input data (file-like object, filename, list of strings, or single
+        string) into a Table and return the result.
         """
         out = super().read(table)
 
@@ -212,7 +210,6 @@ class Tab(Basic):
       col1 <tab> col2 <tab> col3
       # Comment line
       1 <tab> 2 <tab> 5
-
     """
     _format_name = 'tab'
     _description = 'Basic table with tab-separated values'
@@ -269,7 +266,6 @@ class Csv(Basic):
       num,ra,dec,radius,mag
       1,32.23222,10.1211
       2,38.12321,-88.1321,2.2,17.0
-
     """
     _format_name = 'csv'
     _io_registry_format_aliases = ['csv']
@@ -308,7 +304,7 @@ class Csv(Basic):
 
 class RdbHeader(TabHeader):
     """
-    Header for RDB tables
+    Header for RDB tables.
     """
     col_type_map = {'n': core.NumType,
                     's': core.StrType}
@@ -334,7 +330,6 @@ class RdbHeader(TabHeader):
         Returns
         -------
         None
-
         """
         header_lines = self.process_lines(lines)   # this is a generator
         header_vals_list = [hl for _, hl in zip(range(2), self.splitter(header_lines))]
@@ -374,7 +369,8 @@ class RdbData(TabData):
 
 
 class Rdb(Tab):
-    """Tab-separated file with an extra line after the column definition line that
+    """
+    Tab-separated file with an extra line after the column definition line that
     specifies either numeric (N) or string (S) data.
 
     See: https://www.drdobbs.com/rdb-a-unix-command-line-database/199101326
@@ -384,7 +380,6 @@ class Rdb(Tab):
       col1 <tab> col2 <tab> col3
       N <tab> S <tab> N
       1 <tab> 2 <tab> 5
-
     """
     _format_name = 'rdb'
     _io_registry_format_aliases = ['rdb']

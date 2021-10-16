@@ -84,7 +84,6 @@ class BoxLeastSquares(BasePeriodogram):
         (arXiv:astro-ph/0206099)
     .. [2] Hartman & Bakos (2016), Astronomy & Computing, 17, 1
         (arXiv:1605.06811)
-
     """
 
     def __init__(self, t, y, dy=None):
@@ -167,7 +166,6 @@ class BoxLeastSquares(BasePeriodogram):
 
         so the grid can be made finer by decreasing ``frequency_factor`` or
         coarser by increasing ``frequency_factor``.
-
         """
 
         duration = self._validate_duration(duration)
@@ -221,7 +219,6 @@ class BoxLeastSquares(BasePeriodogram):
         This method calls :func:`BoxLeastSquares.autoperiod` to determine
         the period grid and then :func:`BoxLeastSquares.power` to compute
         the periodogram. See those methods for documentation of the arguments.
-
         """
         period = self.autoperiod(duration,
                                  minimum_n_transit=minimum_n_transit,
@@ -269,7 +266,6 @@ class BoxLeastSquares(BasePeriodogram):
         ValueError
             If ``oversample`` is not an integer greater than 0 or if
             ``objective`` or ``method`` are not valid.
-
         """
         period, duration = self._validate_period_and_duration(period, duration)
 
@@ -390,7 +386,6 @@ class BoxLeastSquares(BasePeriodogram):
         -------
         y_model : array-like or `~astropy.units.Quantity`
             The model evaluated at the times ``t_model`` with units of ``y``.
-
         """
 
         period, duration = self._validate_period_and_duration(period, duration)
@@ -467,7 +462,6 @@ class BoxLeastSquares(BasePeriodogram):
             - ``per_transit_log_likelihood``: An array with the value of the
                 log likelihood for each unique transit included in the
                 baseline.
-
         """
 
         period, duration = self._validate_period_and_duration(period, duration)
@@ -588,7 +582,6 @@ class BoxLeastSquares(BasePeriodogram):
         transit_mask : array-like
             A boolean array where ``True`` indicates and in transit point and
             ``False`` indicates and out-of-transit point.
-
         """
 
         period, duration = self._validate_period_and_duration(period, duration)
@@ -624,7 +617,6 @@ class BoxLeastSquares(BasePeriodogram):
         ValueError
             If the dimensions are incompatible or if the units of dy cannot be
             converted to the units of y.
-
         """
 
         # Validate shapes of inputs
@@ -658,7 +650,6 @@ class BoxLeastSquares(BasePeriodogram):
         ------
         ValueError
             If the units of duration cannot be converted to the units of t.
-
         """
         duration = np.atleast_1d(np.abs(duration))
         if duration.ndim != 1 or duration.size == 0:
@@ -685,7 +676,6 @@ class BoxLeastSquares(BasePeriodogram):
         ValueError
             If the units of period or duration cannot be converted to the
             units of t.
-
         """
         duration = self._validate_duration(duration)
         period = np.atleast_1d(np.abs(period))
@@ -712,7 +702,6 @@ class BoxLeastSquares(BasePeriodogram):
             The set of trial periods.
         results : tuple
             The output of one of the periodogram implementations.
-
         """
         (power, depth, depth_err, duration, transit_time, depth_snr,
          log_likelihood) = results
@@ -791,7 +780,6 @@ class BoxLeastSquaresResults(dict):
         The signal-to-noise with which the depth is measured at maximum power.
     log_likelihood : array-like or `~astropy.units.Quantity`
         The log likelihood of the maximum power model.
-
     """
     def __init__(self, *args):
         super().__init__(zip(

@@ -96,13 +96,12 @@ def _probably_html(table, maxchars=100000):
 
 def set_guess(guess):
     """
-    Set the default value of the ``guess`` parameter for read()
+    Set the default value of the ``guess`` parameter for read().
 
     Parameters
     ----------
     guess : bool
         New default ``guess`` value (e.g., True or False)
-
     """
     global _GUESS
     _GUESS = guess

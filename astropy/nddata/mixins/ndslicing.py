@@ -48,7 +48,7 @@ class NDSlicingMixin:
         >>> nd2
         NDDataSliceable([  1, 100,   3,   4,   5])
 
-    See also
+    See Also
     --------
     NDDataRef
     NDDataArray

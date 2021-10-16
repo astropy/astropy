@@ -13,7 +13,8 @@ __all__ = ['GCRS', 'PrecessedGeocentric']
 
 
 doc_footer_gcrs = """
-    Other parameters
+
+    Other Parameters
     ----------------
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the
@@ -64,7 +65,8 @@ class GCRS(BaseRADecFrame):
 
 
 doc_footer_prec_geo = """
-    Other parameters
+
+    Other Parameters
     ----------------
     equinox : `~astropy.time.Time`
         The (mean) equinox to precess the coordinates to.

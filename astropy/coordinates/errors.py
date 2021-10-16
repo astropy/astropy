@@ -81,7 +81,6 @@ class IllegalMinuteError(RangeError):
 
         if not 0 <= min < 60:
             raise IllegalMinuteError(minute)
-
     """
     def __init__(self, minute):
         self.minute = minute

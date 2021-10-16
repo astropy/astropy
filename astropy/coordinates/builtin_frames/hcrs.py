@@ -11,7 +11,8 @@ __all__ = ['HCRS']
 
 
 doc_footer = """
-    Other parameters
+
+    Other Parameters
     ----------------
     obstime : `~astropy.time.Time`
         The time at which the observation is taken.  Used for determining the

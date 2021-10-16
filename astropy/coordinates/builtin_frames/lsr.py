@@ -25,7 +25,8 @@ __all__ = ['LSR', 'GalacticLSR', 'LSRK', 'LSRD']
 
 
 doc_footer_lsr = """
-    Other parameters
+
+    Other Parameters
     ----------------
     v_bary : `~astropy.coordinates.representation.CartesianDifferential`
         The velocity of the solar system barycenter with respect to the LSR, in

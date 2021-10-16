@@ -238,7 +238,6 @@ class TimeInfo(MixinInfo):
         -------
         col : Time (or subclass)
             Empty instance of this class consistent with ``cols``
-
         """
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
@@ -306,7 +305,6 @@ class TimeDeltaInfo(TimeInfo):
         -------
         col : Time (or subclass)
             Empty instance of this class consistent with ``cols``
-
         """
         # Get merged info attributes like shape, dtype, format, description, etc.
         attrs = self.merge_cols_attributes(cols, metadata_conflicts, name,
@@ -762,7 +760,6 @@ class TimeBase(ShapedLikeNDArray):
             values should be given.  The default of '*' picks the first
             available for a given format, i.e., 'float' or 'date_hms'.
             If `None`, use the instance's ``out_subfmt``.
-
         """
         # TODO: add a precision argument (but ensure it is keyword argument
         # only, to make life easier for TimeDelta.to_value()).
@@ -852,7 +849,6 @@ class TimeBase(ShapedLikeNDArray):
         -------
         out : `~astropy.time.Time` subclass
             New time object with inserted value(s)
-
         """
         # Validate inputs: obj arg is integer, axis=0, self is not a scalar, and
         # input index is in bounds.
@@ -1483,10 +1479,12 @@ class Time(TimeBase):
         Make a copy of the input values
     """
     SCALES = TIME_SCALES
-    """List of time scales"""
+    """List of time scales.
+    """
 
     FORMATS = TIME_FORMATS
-    """Dict of time formats"""
+    """Dict of time formats.
+    """
 
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
@@ -1629,7 +1627,6 @@ class Time(TimeBase):
         time_obj : `~astropy.time.Time`
             A new `~astropy.time.Time` object corresponding to the input
             ``time_string``.
-
         """
         time_array = np.asarray(time_string)
 
@@ -1672,7 +1669,6 @@ class Time(TimeBase):
         formatted : str or numpy.array
             String or numpy.array of strings formatted according to the given
             format string.
-
         """
         formatted_strings = []
         for sk in self.replicate('iso')._time.str_kwargs():
@@ -1778,7 +1774,7 @@ class Time(TimeBase):
         """Calculate local Earth rotation angle.
 
         Parameters
-        ---------------
+        ----------
         longitude : `~astropy.units.Quantity`, `~astropy.coordinates.EarthLocation`, str, or None; optional
             The longitude on the Earth at which to compute the Earth rotation
             angle (taken from a location as needed).  If `None` (default), taken
@@ -1813,7 +1809,6 @@ class Time(TimeBase):
         Intermediate Origin on the equator of the Celestial Intermediate Pole (CIP)
         and is rigorously corrected for polar motion.
         (except when ``longitude='tio'``).
-
         """
         if isinstance(longitude, str) and longitude == 'tio':
             longitude = 0
@@ -1829,7 +1824,7 @@ class Time(TimeBase):
         """Calculate sidereal time.
 
         Parameters
-        ---------------
+        ----------
         kind : str
             ``'mean'`` or ``'apparent'``, i.e., accounting for precession
             only, or also for nutation.
@@ -1875,7 +1870,6 @@ class Time(TimeBase):
         TIO locator (s'), which positions the Terrestrial Intermediate Origin on
         the equator of the Celestial Intermediate Pole (CIP) and is rigorously
         corrected for polar motion (except when ``longitude='tio'`` or ``'greenwich'``).
-
         """  # docstring is formatted below
 
         if kind.lower() not in SIDEREAL_TIME_MODELS.keys():
@@ -1927,7 +1921,6 @@ class Time(TimeBase):
         -------
         `~astropy.coordinates.Longitude`
             Local sidereal time or Earth rotation angle, with units of hourangle.
-
         """
         from astropy.coordinates import Longitude, EarthLocation
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
@@ -2583,7 +2576,6 @@ class TimeDelta(TimeBase):
         --------
         to : Convert to a `~astropy.units.Quantity` instance in a given unit.
         value : The time value in the current format.
-
         """
         if not (args or kwargs):
             raise TypeError('to_value() missing required format or unit argument')
@@ -2798,7 +2790,6 @@ def update_leap_seconds(files=None):
     -------
     n_update : int
         Number of items updated.
-
     """
     try:
         from astropy.utils import iers

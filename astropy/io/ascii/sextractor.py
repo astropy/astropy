@@ -19,15 +19,14 @@ class SExtractorHeader(core.BaseHeader):
 
     def get_cols(self, lines):
         """
-        Initialize the header Column objects from the table ``lines`` for a SExtractor
-        header.  The SExtractor header is specialized so that we just copy the entire BaseHeader
-        get_cols routine and modify as needed.
+        Initialize the header Column objects from the table ``lines`` for a
+        SExtractor header. The SExtractor header is specialized so that we just
+        copy the entire BaseHeader get_cols routine and modify as needed.
 
         Parameters
         ----------
         lines : list
             List of table lines
-
         """
 
         # This assumes that the columns are listed in order, one per line with a
@@ -131,7 +130,6 @@ class SExtractor(core.BaseReader):
     FLUX_RADIUS columns will be named FLUX_RADIUS, FLUX_RADIUS_1, FLUX_RADIUS_2
     Also note that a post-ID description (e.g. "Variance along x") is optional
     and that units may be specified at the end of a line in brackets.
-
     """
     _format_name = 'sextractor'
     _io_registry_can_write = False
@@ -143,8 +141,8 @@ class SExtractor(core.BaseReader):
 
     def read(self, table):
         """
-        Read input data (file-like object, filename, list of strings, or
-        single string) into a Table and return the result.
+        Read input data (file-like object, filename, list of strings, or single
+        string) into a Table and return the result.
         """
         out = super().read(table)
         # remove the comments

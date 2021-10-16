@@ -405,7 +405,6 @@ class TransformGraph:
         called than other transform classes. Specifically, it takes care of
         intermediate steps of transformations in a way that is consistent with
         1-hop transformations.
-
         """
         if not inspect.isclass(fromsys):
             raise TypeError('fromsys is not a class')
@@ -662,8 +661,6 @@ class TransformGraph:
             def f1_to_f2(f1_obj):
                 ... do something with f1_obj ...
                 return f2_obj
-
-
         """
         def deco(func):
             # this doesn't do anything directly with the transform because
@@ -893,8 +890,6 @@ class FunctionTransform(CoordinateTransform):
         If ``func`` is not callable.
     ValueError
         If ``func`` cannot accept two arguments.
-
-
     """
 
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
@@ -963,7 +958,6 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
     All other parameters are identical to the initializer for
     `FunctionTransform`.
-
     """
 
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None,
@@ -1291,7 +1285,6 @@ class AffineTransform(BaseAffineTransform):
     ------
     TypeError
         If ``transform_func`` is not callable
-
     """
 
     def __init__(self, transform_func, fromsys, tosys, priority=1,
@@ -1338,7 +1331,6 @@ class StaticMatrixTransform(BaseAffineTransform):
     ------
     ValueError
         If the matrix is not 3 x 3
-
     """
 
     def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
@@ -1385,7 +1377,6 @@ class DynamicMatrixTransform(BaseAffineTransform):
     ------
     TypeError
         If ``matrix_func`` is not callable
-
     """
 
     def __init__(self, matrix_func, fromsys, tosys, priority=1,
@@ -1428,7 +1419,6 @@ class CompositeTransform(CoordinateTransform):
     collapse_static_mats : bool
         If `True`, consecutive `StaticMatrixTransform` will be collapsed into a
         single transformation to speed up the calculation.
-
     """
 
     def __init__(self, transforms, fromsys, tosys, priority=1,

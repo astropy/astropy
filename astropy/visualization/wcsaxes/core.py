@@ -290,7 +290,6 @@ class WCSAxes(Axes):
         --------
 
         matplotlib.axes.Axes.plot : This method is called from this function with all arguments passed to it.
-
         """
 
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):

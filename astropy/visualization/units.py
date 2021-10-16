@@ -30,7 +30,6 @@ def quantity_support(format='latex_inline'):
     format : `astropy.units.format.Base` instance or str
         The name of a format or a formatter object.  If not
         provided, defaults to ``latex_inline``.
-
     """
     from astropy import units as u
     # import Angle just so we have a more or less complete list of Quantity
