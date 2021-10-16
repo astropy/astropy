@@ -192,8 +192,8 @@ numpydoc_validation_checks = {
     # "GL03",
     # Tabs found at the start of line {X}, please use whitespace only
     "GL05",
-    # # Found unknown section {section}. Allowed sections are: {allowed_sections}
-    # "GL06",
+    # Found unknown section {section}. Allowed sections are: {allowed_sections}
+    "GL06",
     # # Sections are in the wrong order. Correct order is: {correct_sections}",
     # "GL07",
     # # The object does not have a docstring",
