@@ -32,7 +32,7 @@ class FixedWidthSplitter(core.BaseSplitter):
     delimiter_pad = ''
     bookend = False
     delimiter = '|'
-    """one-character string used to separate fields.
+    """One-character string used to separate fields.
     """
 
     def __call__(self, lines):

@@ -388,7 +388,7 @@ class BaseSplitter:
     """
 
     delimiter = None
-    """one-character string used to separate fields.
+    """One-character string used to separate fields.
     """
 
     def process_line(self, line):
@@ -436,22 +436,22 @@ class DefaultSplitter(BaseSplitter):
     """
 
     delimiter = ' '
-    """one-character string used to separate fields.
+    """One-character string used to separate fields.
     """
     quotechar = '"'
-    """control how instances of *quotechar* in a field are quoted.
+    """Control how instances of *quotechar* in a field are quoted.
     """
     doublequote = True
-    """character to remove special meaning from following character.
+    """Character to remove special meaning from following character.
     """
     escapechar = None
-    """one-character stringto quote fields containing special characters.
+    """One-character stringto quote fields containing special characters.
     """
     quoting = csv.QUOTE_MINIMAL
-    """control when quotes are recognized by the reader.
+    """Control when quotes are recognized by the reader.
     """
     skipinitialspace = True
-    """ignore whitespace immediately following the delimiter.
+    """Ignore whitespace immediately following the delimiter.
     """
     csv_writer = None
     csv_writer_out = StringIO()
@@ -572,19 +572,19 @@ class BaseHeader:
     Base table header reader.
     """
     auto_format = 'col{}'
-    """format string for auto-generating column names.
+    """Format string for auto-generating column names.
     """
     start_line = None
     """None, int, or a function of ``lines`` that returns None or int.
     """
     comment = None
-    """regular expression for comment lines.
+    """Regular expression for comment lines.
     """
     splitter_class = DefaultSplitter
     """Splitter class for splitting data lines into columns.
     """
     names = None
-    """list of names corresponding to each data column.
+    """List of names corresponding to each data column.
     """
     write_comment = False
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
