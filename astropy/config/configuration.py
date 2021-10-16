@@ -405,7 +405,7 @@ class ConfigItem:
         return out
 
     def __call__(self):
-        """ Returns the value of this ``ConfigItem``
+        """Returns the value of this ``ConfigItem``.
 
         Returns
         -------

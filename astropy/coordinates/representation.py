@@ -1873,8 +1873,7 @@ def _spherical_op_funcs(op, *args):
 
 
 class SphericalRepresentation(BaseRepresentation):
-    """
-    Representation of points in 3D spherical coordinates.
+    """Representation of points in 3D spherical coordinates.
 
     Parameters
     ----------

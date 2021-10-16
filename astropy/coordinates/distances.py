@@ -194,7 +194,7 @@ class Distance(u.SpecificTypeQuantity):
 
     @property
     def z(self):
-        """Short for ``self.compute_z()``"""
+        """Short for ``self.compute_z()``."""
         return self.compute_z()
 
     def compute_z(self, cosmology=None, **atzkw):
@@ -242,7 +242,7 @@ class Distance(u.SpecificTypeQuantity):
 
     @property
     def distmod(self):
-        """The distance modulus as a `~astropy.units.Quantity`"""
+        """The distance modulus as a `~astropy.units.Quantity`."""
         val = 5. * np.log10(self.to_value(u.pc)) - 5.
         return u.Quantity(val, u.mag, copy=False)
 
@@ -253,5 +253,5 @@ class Distance(u.SpecificTypeQuantity):
 
     @property
     def parallax(self):
-        """The parallax angle as an `~astropy.coordinates.Angle` object"""
+        """The parallax angle as an `~astropy.coordinates.Angle` object."""
         return Angle(self.to(u.milliarcsecond, u.parallax()))
