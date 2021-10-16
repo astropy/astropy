@@ -190,8 +190,8 @@ numpydoc_validation_checks = {
     # # Double line break found; please use only 1 blank line to separate sections
     # # or paragraphs, and do not leave blank lines at the end of docstrings.
     # "GL03",
-    # # Tabs found at the start of line {X}, please use whitespace only
-    # "GL05",
+    # Tabs found at the start of line {X}, please use whitespace only
+    "GL05",
     # # Found unknown section {section}. Allowed sections are: {allowed_sections}
     # "GL06",
     # # Sections are in the wrong order. Correct order is: {correct_sections}",
