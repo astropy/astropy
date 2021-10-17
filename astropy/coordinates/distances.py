@@ -215,6 +215,12 @@ class Distance(u.SpecificTypeQuantity):
         z : `~astropy.units.Quantity`
             The redshift of this distance given the provided ``cosmology``.
 
+        See Also
+        --------
+        :func:`astropy.cosmology.z_at_value`
+            Find the redshift corresponding to a
+            :meth:`astropy.cosmology.FLRW.luminosity_distance`.
+
         Notes
         -----
         This method can be slow for large arrays.
@@ -224,11 +230,6 @@ class Distance(u.SpecificTypeQuantity):
         For faster results consider using an interpolation table;
         :func:`astropy.cosmology.z_at_value` provides details.
 
-        See Also
-        --------
-        :func:`astropy.cosmology.z_at_value`
-            Find the redshift corresponding to a
-            :meth:`astropy.cosmology.FLRW.luminosity_distance`.
         """
         from astropy.cosmology import z_at_value
 

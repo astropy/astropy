@@ -180,6 +180,53 @@ class SkyCoord(ShapedLikeNDArray):
 
     See also: https://docs.astropy.org/en/stable/coordinates/
 
+    Parameters
+    ----------
+    frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
+        Type of coordinate frame this `SkyCoord` should represent. Defaults to
+        to ICRS if not given or given as None.
+    unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
+        Units for supplied coordinate values.
+        If only one unit is supplied then it applies to all values.
+        Note that passing only one unit might lead to unit conversion errors
+        if the coordinate values are expected to have mixed physical meanings
+        (e.g., angles and distances).
+    obstime : time-like, optional
+        Time(s) of observation.
+    equinox : time-like, optional
+        Coordinate frame equinox time.
+    representation_type : str or Representation class
+        Specifies the representation, e.g. 'spherical', 'cartesian', or
+        'cylindrical'.  This affects the positional args and other keyword args
+        which must correspond to the given representation.
+    copy : bool, optional
+        If `True` (default), a copy of any coordinate data is made.  This
+        argument can only be passed in as a keyword argument.
+    **keyword_args
+        Other keyword arguments as applicable for user-defined coordinate frames.
+        Common options include:
+
+        ra, dec : angle-like, optional
+            RA and Dec for frames where ``ra`` and ``dec`` are keys in the
+            frame's ``representation_component_names``, including `ICRS`,
+            `FK5`, `FK4`, and `FK4NoETerms`.
+        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity` ['angular speed'], optional
+            Proper motion components, in angle per time units.
+        l, b : angle-like, optional
+            Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
+            keys in the frame's ``representation_component_names``, including
+            the `Galactic` frame.
+        pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
+            Proper motion components in the `Galactic` frame, in angle per time
+            units.
+        x, y, z : float or `~astropy.units.Quantity` ['length'], optional
+            Cartesian coordinates values
+        u, v, w : float or `~astropy.units.Quantity` ['length'], optional
+            Cartesian coordinates values for the Galactic frame.
+        radial_velocity : `~astropy.units.Quantity` ['speed'], optional
+            The component of the velocity along the line-of-sight (i.e., the
+            radial direction), in velocity units.
+
     Examples
     --------
     The examples below illustrate common ways of initializing a `SkyCoord`
@@ -229,53 +276,6 @@ class SkyCoord(ShapedLikeNDArray):
     The string aliases are simply lower-case versions of the class name, and
     allow for creating a `SkyCoord` object and transforming frames without
     explicitly importing the frame classes.
-
-    Parameters
-    ----------
-    frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
-        Type of coordinate frame this `SkyCoord` should represent. Defaults to
-        to ICRS if not given or given as None.
-    unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
-        Units for supplied coordinate values.
-        If only one unit is supplied then it applies to all values.
-        Note that passing only one unit might lead to unit conversion errors
-        if the coordinate values are expected to have mixed physical meanings
-        (e.g., angles and distances).
-    obstime : time-like, optional
-        Time(s) of observation.
-    equinox : time-like, optional
-        Coordinate frame equinox time.
-    representation_type : str or Representation class
-        Specifies the representation, e.g. 'spherical', 'cartesian', or
-        'cylindrical'.  This affects the positional args and other keyword args
-        which must correspond to the given representation.
-    copy : bool, optional
-        If `True` (default), a copy of any coordinate data is made.  This
-        argument can only be passed in as a keyword argument.
-    **keyword_args
-        Other keyword arguments as applicable for user-defined coordinate frames.
-        Common options include:
-
-        ra, dec : angle-like, optional
-            RA and Dec for frames where ``ra`` and ``dec`` are keys in the
-            frame's ``representation_component_names``, including `ICRS`,
-            `FK5`, `FK4`, and `FK4NoETerms`.
-        pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity` ['angular speed'], optional
-            Proper motion components, in angle per time units.
-        l, b : angle-like, optional
-            Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
-            keys in the frame's ``representation_component_names``, including
-            the `Galactic` frame.
-        pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
-            Proper motion components in the `Galactic` frame, in angle per time
-            units.
-        x, y, z : float or `~astropy.units.Quantity` ['length'], optional
-            Cartesian coordinates values
-        u, v, w : float or `~astropy.units.Quantity` ['length'], optional
-            Cartesian coordinates values for the Galactic frame.
-        radial_velocity : `~astropy.units.Quantity` ['speed'], optional
-            The component of the velocity along the line-of-sight (i.e., the
-            radial direction), in velocity units.
     """
 
     # Declare that SkyCoord can be used as a Table column by defining the
@@ -1207,17 +1207,16 @@ class SkyCoord(ShapedLikeNDArray):
             methods because the offset components depend critically on the
             specific choice of frame.
 
-        Notes
-        -----
-        This uses the sky offset frame machinery, and hence will produce a new
-        sky offset frame if one does not already exist for this object's frame
-        class.
-
         See Also
         --------
         separation : for the *total* angular offset (not broken out into components).
         position_angle : for the direction of the offset.
 
+        Notes
+        -----
+        This uses the sky offset frame machinery, and hence will produce a new
+        sky offset frame if one does not already exist for this object's frame
+        class.
         """
         if not self.is_equivalent_frame(tocoord):
             raise ValueError('Tried to use spherical_offsets_to with two non-matching frames!')
@@ -1252,6 +1251,11 @@ class SkyCoord(ShapedLikeNDArray):
             ``d_lat`` in the latitude direction and ``d_lon`` in the longitude
             direction.
 
+        See Also
+        --------
+        spherical_offsets_to : compute the angular offsets to another coordinate
+        directional_offset_by : offset a coordinate by an angle in a direction
+
         Notes
         -----
         This internally uses `~astropy.coordinates.SkyOffsetFrame` to do the
@@ -1259,11 +1263,6 @@ class SkyCoord(ShapedLikeNDArray):
         `~astropy.coordinates.SkyOffsetFrame` or `~astropy.wcs.WCS` manually.
         This specific method can be reproduced by doing
         ``SkyCoord(SkyOffsetFrame(d_lon, d_lat, origin=self.frame).transform_to(self))``.
-
-        See Also
-        --------
-        spherical_offsets_to : compute the angular offsets to another coordinate
-        directional_offset_by : offset a coordinate by an angle in a direction
         """
         return self.__class__(
             SkyOffsetFrame(d_lon, d_lat, origin=self.frame).transform_to(self))
@@ -1285,6 +1284,11 @@ class SkyCoord(ShapedLikeNDArray):
             The coordinates for the location that corresponds to offsetting by
             the given `position_angle` and `separation`.
 
+        See Also
+        --------
+        position_angle : inverse operation for the ``position_angle`` component
+        separation : inverse operation for the ``separation`` component
+
         Notes
         -----
         Returned SkyCoord frame retains only the frame attributes that are for
@@ -1297,11 +1301,6 @@ class SkyCoord(ShapedLikeNDArray):
         create a spherical frame with (lat=0, lon=0) at a reference point,
         approximating an xy cartesian system for small offsets. This method
         is distinct in that it is accurate on the sphere.
-
-        See Also
-        --------
-        position_angle : inverse operation for the ``position_angle`` component
-        separation : inverse operation for the ``separation`` component
         """
         from . import angle_utilities
 
@@ -1353,15 +1352,15 @@ class SkyCoord(ShapedLikeNDArray):
             distances, this quantity assumes that all sources are at a
             distance of 1 (dimensionless).
 
-        Notes
-        -----
-        This method requires `SciPy <https://www.scipy.org/>`_ to be
-        installed or it will fail.
-
         See Also
         --------
         astropy.coordinates.match_coordinates_sky
         SkyCoord.match_to_catalog_3d
+
+        Notes
+        -----
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
+        installed or it will fail.
         """
         from .matching import match_coordinates_sky
 
@@ -1416,15 +1415,15 @@ class SkyCoord(ShapedLikeNDArray):
             in this object in ``catalogcoord``. Shape matches this
             object.
 
-        Notes
-        -----
-        This method requires `SciPy <https://www.scipy.org/>`_ to be
-        installed or it will fail.
-
         See Also
         --------
         astropy.coordinates.match_coordinates_3d
         SkyCoord.match_to_catalog_sky
+
+        Notes
+        -----
+        This method requires `SciPy <https://www.scipy.org/>`_ to be
+        installed or it will fail.
         """
         from .matching import match_coordinates_3d
 
@@ -1478,6 +1477,11 @@ class SkyCoord(ShapedLikeNDArray):
             The 3D distance between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
 
+        See Also
+        --------
+        astropy.coordinates.search_around_sky
+        SkyCoord.search_around_3d
+
         Notes
         -----
         This method requires `SciPy <https://www.scipy.org/>`_ to be
@@ -1487,11 +1491,6 @@ class SkyCoord(ShapedLikeNDArray):
         the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
         in ascending order).  This is considered an implementation detail,
         though, so it could change in a future release.
-
-        See Also
-        --------
-        astropy.coordinates.search_around_sky
-        SkyCoord.search_around_3d
         """
         from .matching import search_around_sky
 
@@ -1537,6 +1536,11 @@ class SkyCoord(ShapedLikeNDArray):
             The 3D distance between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
 
+        See Also
+        --------
+        astropy.coordinates.search_around_3d
+        SkyCoord.search_around_sky
+
         Notes
         -----
         This method requires `SciPy <https://www.scipy.org/>`_ to be
@@ -1546,11 +1550,6 @@ class SkyCoord(ShapedLikeNDArray):
         the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
         in ascending order).  This is considered an implementation detail,
         though, so it could change in a future release.
-
-        See Also
-        --------
-        astropy.coordinates.search_around_3d
-        SkyCoord.search_around_sky
         """
         from .matching import search_around_3d
 
@@ -1642,16 +1641,16 @@ class SkyCoord(ShapedLikeNDArray):
             constellation.  If it is an array `SkyCoord`, it returns an array of
             names.
 
+        See Also
+        --------
+        :func:`astropy.coordinates.get_constellation`
+
         Notes
         -----
         To determine which constellation a point on the sky is in, this first
         precesses to B1875, and then uses the Delporte boundaries of the 88
         modern constellations, as tabulated by
         `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
-
-        See Also
-        --------
-        astropy.coordinates.get_constellation
         """
         from .funcs import get_constellation
 
@@ -1785,6 +1784,14 @@ class SkyCoord(ShapedLikeNDArray):
             ``obstime`` will be used, and if that is None, the ``location``
             frame attribute on the `SkyCoord` will be used.
 
+        Returns
+        -------
+        vcorr : `~astropy.units.Quantity` ['speed']
+            The  correction with a positive sign.  I.e., *add* this
+            to an observed radial velocity to get the barycentric (or
+            heliocentric) velocity. If m/s precision or better is needed,
+            see the notes below.
+
         Raises
         ------
         ValueError
@@ -1793,14 +1800,6 @@ class SkyCoord(ShapedLikeNDArray):
         TypeError
             If ``obstime`` or ``location`` aren't provided, either as arguments
             or as frame attributes.
-
-        Returns
-        -------
-        vcorr : `~astropy.units.Quantity` ['speed']
-            The  correction with a positive sign.  I.e., *add* this
-            to an observed radial velocity to get the barycentric (or
-            heliocentric) velocity. If m/s precision or better is needed,
-            see the notes below.
 
         Notes
         -----

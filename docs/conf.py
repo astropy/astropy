@@ -195,7 +195,7 @@ numpydoc_validation_checks = {
     # Found unknown section {section}. Allowed sections are: {allowed_sections}
     "GL06",
     # # Sections are in the wrong order. Correct order is: {correct_sections}",
-    # "GL07",
+    "GL07",
     # # The object does not have a docstring",
     # "GL08",
     # # Deprecation warning should precede extended summary",

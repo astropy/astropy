@@ -2504,6 +2504,14 @@ class w0waCDM(FLRW):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
+    References
+    ----------
+    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
+           Scaling Dark Matter. International Journal of Modern Physics D,
+           10(2), 213-223.
+    .. [2] Linder, E. (2003). Exploring the Expansion History of the
+           Universe. Phys. Rev. Lett., 90, 091301.
+
     Examples
     --------
     >>> from astropy.cosmology import w0waCDM
@@ -2513,14 +2521,6 @@ class w0waCDM(FLRW):
 
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
-
-    References
-    ----------
-    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
-           Scaling Dark Matter. International Journal of Modern Physics D,
-           10(2), 213-223.
-    .. [2] Linder, E. (2003). Exploring the Expansion History of the
-           Universe. Phys. Rev. Lett., 90, 091301.
     """
 
     w0 = Parameter(doc="Dark energy equation of state at z=0.")
@@ -2659,6 +2659,14 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
+    References
+    ----------
+    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
+           Scaling Dark Matter. International Journal of Modern Physics D,
+           10(2), 213-223.
+    .. [2] Linder, E. (2003). Exploring the Expansion History of the
+           Universe. Phys. Rev. Lett., 90, 091301.
+
     Examples
     --------
     >>> from astropy.cosmology import Flatw0waCDM
@@ -2668,14 +2676,6 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
 
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
-
-    References
-    ----------
-    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
-           Scaling Dark Matter. International Journal of Modern Physics D,
-           10(2), 213-223.
-    .. [2] Linder, E. (2003). Exploring the Expansion History of the
-           Universe. Phys. Rev. Lett., 90, 091301.
     """
 
     def __init__(self, H0, Om0, w0=-1.0, wa=0.0, Tcmb0=0.0*u.K, Neff=3.04,
@@ -2765,16 +2765,6 @@ class wpwaCDM(FLRW):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
-    Examples
-    --------
-    >>> from astropy.cosmology import wpwaCDM
-    >>> cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.7, wp=-0.9, wa=0.2, zp=0.4)
-
-    The comoving distance in Mpc at redshift z:
-
-    >>> z = 0.5
-    >>> dc = cosmo.comoving_distance(z)
-
     References
     ----------
     .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
@@ -2786,6 +2776,16 @@ class wpwaCDM(FLRW):
            D., Guzzo, L., Hirata, C., Huterer, D., Kirshner, R., Kolb, E., &
            Nichol, R. (2009). Findings of the Joint Dark Energy Mission Figure
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
+
+    Examples
+    --------
+    >>> from astropy.cosmology import wpwaCDM
+    >>> cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.7, wp=-0.9, wa=0.2, zp=0.4)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> z = 0.5
+    >>> dc = cosmo.comoving_distance(z)
     """
 
     wp = Parameter(doc="Dark energy equation of state at the pivot redshift zp.")

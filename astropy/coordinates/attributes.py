@@ -20,6 +20,14 @@ class Attribute:
     This class must be used to define frame attributes (e.g. ``equinox`` or
     ``obstime``) that are included in a frame class definition.
 
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+
     Examples
     --------
     The `~astropy.coordinates.FK4` class uses the following class attributes::
@@ -39,14 +47,6 @@ class Attribute:
     and use the ``TimeAttributeFrame`` class.  This subclass overrides the
     ``convert_input`` method to validate and convert inputs into a ``Time``
     object.
-
-    Parameters
-    ----------
-    default : object
-        Default value for the attribute if not provided
-    secondary_attribute : str
-        Name of a secondary instance attribute which supplies the value if
-        ``default is None`` and no value was supplied during initialization.
     """
 
     name = '<unbound>'

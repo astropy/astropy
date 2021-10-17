@@ -23,12 +23,6 @@ def fnunpickle(fileorname, number=0):
         be returned with exactly that many objects. If <0, all objects in the
         file will be unpickled and returned as a list.
 
-    Raises
-    ------
-    EOFError
-        If ``number`` is >0 and there are fewer than ``number`` objects in the
-        pickled file.
-
     Returns
     -------
     contents : object or list
@@ -36,6 +30,11 @@ def fnunpickle(fileorname, number=0):
         unpickled from the file. Otherwise, it is a list of objects unpickled
         from the file.
 
+    Raises
+    ------
+    EOFError
+        If ``number`` is >0 and there are fewer than ``number`` objects in the
+        pickled file.
     """
 
     if isinstance(fileorname, str):

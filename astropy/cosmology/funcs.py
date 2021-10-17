@@ -174,14 +174,6 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
       The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
       fval`` within ``ztol``. Has units of cosmological redshift.
 
-    Warns
-    -----
-    :class:`~astropy.utils.exceptions.AstropyUserWarning`
-        If ``fval`` is not bracketed by ``func(zmin)=fval(zmin)`` and
-        ``func(zmax)=fval(zmax)``.
-
-        If the solver was not successful.
-
     Raises
     ------
     :class:`astropy.cosmology.CosmologyError`
@@ -192,6 +184,14 @@ def z_at_value(func, fval, zmin=1e-8, zmax=1000, ztol=1e-8, maxfun=500,
         If ``bracket`` is not an object array. 2 (or 3) element sequences will
         be turned into object arrays, so this error should only occur if a
         non-object array is used for ``bracket``.
+
+    Warns
+    -----
+    :class:`~astropy.utils.exceptions.AstropyUserWarning`
+        If ``fval`` is not bracketed by ``func(zmin)=fval(zmin)`` and
+        ``func(zmax)=fval(zmax)``.
+
+        If the solver was not successful.
 
     Notes
     -----

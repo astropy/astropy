@@ -550,6 +550,13 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
 
+    Returns
+    -------
+    default : ndarray
+        ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
+        ``fft(array) * fft(kernel)``.  If crop is not set, returns the
+        image, but with the fft-padded size instead of the input size
+
     Raises
     ------
     ValueError:
@@ -561,13 +568,6 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     convolve:
         Convolve is a non-fft version of this code.  It is more memory
         efficient and for small kernels can be faster.
-
-    Returns
-    -------
-    default : ndarray
-        ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
-        ``fft(array) * fft(kernel)``.  If crop is not set, returns the
-        image, but with the fft-padded size instead of the input size
 
     Notes
     -----

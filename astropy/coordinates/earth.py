@@ -330,7 +330,6 @@ class EarthLocation(u.Quantity):
             but it currently only contains the Greenwich Royal Observatory as an
             example case.
 
-
         Parameters
         ----------
         site_name : str
@@ -342,9 +341,12 @@ class EarthLocation(u.Quantity):
             The location of the observatory. The returned class will be the same
             as this class.
 
+        See Also
+        --------
+        get_site_names : the list of sites that this function can access
+
         Examples
         --------
-
         >>> from astropy.coordinates import EarthLocation
         >>> keck = EarthLocation.of_site('Keck Observatory')  # doctest: +REMOTE_DATA
         >>> keck.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
@@ -356,11 +358,7 @@ class EarthLocation(u.Quantity):
         class = EarthLocation
         n_bad = 0
         >>> keck.info.meta  # doctest: +REMOTE_DATA
-        {'source': 'IRAF Observatory Database', 'timezone': 'US/Hawaii'}
-
-        See Also
-        --------
-        get_site_names : the list of sites that this function can access
+        {'source': 'IRAF Observatory Database', 'timezone': 'US/Aleutian'}
         """  # noqa
         registry = cls._get_site_registry()
         try:
