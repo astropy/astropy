@@ -641,7 +641,7 @@ class FLRW(Cosmology):
         return 1.0 + self.w(exp(ln1pz) - 1.0)
 
     def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
+        r"""Evaluate the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -1581,7 +1581,7 @@ class LambdaCDM(FLRW):
             self._lookback_time = self._flat_lookback_time
 
     def w(self, z):
-        r"""Returns dark energy equation of state at redshift ``z``.
+        r"""Return dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
@@ -1605,7 +1605,7 @@ class LambdaCDM(FLRW):
         return -1.0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
     def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
+        r"""Evaluate the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2222,7 +2222,7 @@ class wCDM(FLRW):
                                            self._nu_y_list, self._w0)
 
     def w(self, z):
-        r"""Returns dark energy equation of state at redshift ``z``.
+        r"""Return dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
@@ -2246,7 +2246,7 @@ class wCDM(FLRW):
         return self._w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
     def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
+        r"""Evaluate the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2553,7 +2553,7 @@ class w0waCDM(FLRW):
                                            self._wa)
 
     def w(self, z):
-        r"""Returns dark energy equation of state at redshift ``z``.
+        r"""Return dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
@@ -2578,7 +2578,7 @@ class w0waCDM(FLRW):
         return self._w0 + self._wa * z / (z + 1.0)
 
     def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
+        r"""Evaluate the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2821,7 +2821,7 @@ class wpwaCDM(FLRW):
                                            apiv, self._wa)
 
     def w(self, z):
-        r"""Returns dark energy equation of state at redshift ``z``.
+        r"""Return dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
@@ -2846,7 +2846,7 @@ class wpwaCDM(FLRW):
         return self._wp + self._wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
     def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
+        r"""Evaluate the redshift dependence of the dark energy density.
 
         Parameters
         ----------
@@ -2977,7 +2977,7 @@ class w0wzCDM(FLRW):
                                            self._wz)
 
     def w(self, z):
-        r"""Returns dark energy equation of state at redshift ``z``.
+        r"""Return dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
@@ -3000,7 +3000,7 @@ class w0wzCDM(FLRW):
         return self._w0 + self._wz * aszarr(z)
 
     def de_density_scale(self, z):
-        r"""Evaluates the redshift dependence of the dark energy density.
+        r"""Evaluate the redshift dependence of the dark energy density.
 
         Parameters
         ----------

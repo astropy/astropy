@@ -165,7 +165,7 @@ class NumpyRNGContext:
 
 def find_api_page(obj, version=None, openinbrowser=True, timeout=None):
     """
-    Determines the URL of the API page for the specified object, and
+    Determine the URL of the API page for the specified object, and
     optionally open that page in a web browser.
 
     .. note::
@@ -301,7 +301,7 @@ if sys.platform == 'win32':
 
     def _has_hidden_attribute(filepath):
         """
-        Returns True if the given filepath has the hidden attribute on
+        Return True if the given filepath has the hidden attribute on
         MS-Windows.  Based on a post here:
         https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection
         """
@@ -320,7 +320,7 @@ else:
 
 def is_path_hidden(filepath):
     """
-    Determines if a given file or directory is hidden.
+    Determine if a given file or directory is hidden.
 
     Parameters
     ----------

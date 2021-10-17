@@ -244,7 +244,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
     def convert_unit_to(self, unit, equivalencies=[]):
         """
-        Returns a new `NDData` object whose values have been converted
+        Return a new `NDData` object whose values have been converted
         to a new unit.
 
         Parameters

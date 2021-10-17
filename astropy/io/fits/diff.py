@@ -83,7 +83,7 @@ class _BaseDiff:
     @classmethod
     def fromdiff(cls, other, a, b):
         """
-        Returns a new Diff object of a specific subclass from an existing diff
+        Return a new Diff object of a specific subclass from an existing diff
         object, passing on the values for any arguments they share in common
         (such as ignore_keywords).
 
@@ -124,7 +124,7 @@ class _BaseDiff:
     @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
     def report(self, fileobj=None, indent=0, overwrite=False):
         """
-        Generates a text report on the differences (if any) between two
+        Generate a text report on the differences (if any) between two
         objects, and either returns it as a string or writes it to a file-like
         object.
 

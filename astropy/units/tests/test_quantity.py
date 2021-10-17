@@ -1363,7 +1363,7 @@ def test_quantity_fraction_power():
 
 def test_quantity_from_table():
     """
-    Checks that units from tables are respected when converted to a Quantity.
+    Check that units from tables are respected when converted to a Quantity.
     This also generically checks the use of *anything* with a `unit` attribute
     passed into Quantity
     """

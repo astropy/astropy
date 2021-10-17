@@ -141,7 +141,7 @@ class Angle(u.SpecificTypeQuantity):
     @staticmethod
     def _tuple_to_float(angle, unit):
         """
-        Converts an angle represented as a 3-tuple or 2-tuple into a floating
+        Convert an angle represented as a 3-tuple or 2-tuple into a floating
         point number in the given unit.
         """
         # TODO: Numpy array of tuples?

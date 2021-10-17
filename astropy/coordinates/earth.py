@@ -630,7 +630,7 @@ class EarthLocation(u.Quantity):
 
     def get_itrs(self, obstime=None):
         """
-        Generates an `~astropy.coordinates.ITRS` object with the location of
+        Generate an `~astropy.coordinates.ITRS` object with the location of
         this object at the requested ``obstime``.
 
         Parameters
@@ -894,7 +894,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
+        Convert WGS84 geodetic coordinates to 3D rectangular (geocentric)
         cartesian coordinates.
         """
         xyz = erfa.gd2gc(getattr(erfa, self._ellipsoid),
@@ -904,7 +904,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates (assumed geocentric) to
+        Convert 3D rectangular cartesian coordinates (assumed geocentric) to
         WGS84 geodetic coordinates.
         """
         lon, lat, height = erfa.gc2gd(getattr(erfa, cls._ellipsoid),

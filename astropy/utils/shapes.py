@@ -48,7 +48,7 @@ class NDArrayShapeMethods:
         return self._apply('copy', *args, **kwargs)
 
     def reshape(self, *args, **kwargs):
-        """Returns an instance containing the same data with a new shape.
+        """Return an instance containing the same data with a new shape.
 
         Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
         not always possible to change the shape of an array without copying the
@@ -304,7 +304,7 @@ class IncompatibleShapeError(ValueError):
 
 def check_broadcast(*shapes):
     """
-    Determines whether two or more Numpy arrays can be broadcast with each
+    Determine whether two or more Numpy arrays can be broadcast with each
     other based on their shape tuple alone.
 
     Parameters

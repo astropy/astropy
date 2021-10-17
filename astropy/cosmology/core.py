@@ -296,7 +296,7 @@ class Cosmology(metaclass=abc.ABCMeta):
         return self._name
 
     def clone(self, *, meta=None, **kwargs):
-        """Returns a copy of this object with updated parameters, as specified.
+        """Return a copy of this object with updated parameters, as specified.
 
         This cannot be used to change the type of the cosmology, so ``clone()``
         cannot be used to change between flat and non-flat cosmologies.

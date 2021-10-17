@@ -55,7 +55,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def low_level_wcs(self):
         """
-        Returns a reference to the underlying low-level WCS object.
+        Return a reference to the underlying low-level WCS object.
         """
 
     @abc.abstractmethod

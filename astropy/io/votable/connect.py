@@ -15,7 +15,7 @@ from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 def is_votable(origin, filepath, fileobj, *args, **kwargs):
     """
-    Reads the header of a file to determine if it is a VOTable file.
+    Read the header of a file to determine if it is a VOTable file.
 
     Parameters
     ----------

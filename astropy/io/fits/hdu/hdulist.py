@@ -327,7 +327,7 @@ class HDUList(list, _Verify):
 
     def __contains__(self, item):
         """
-        Returns `True` if ``item`` is an ``HDU`` _in_ ``self`` or a valid
+        Return `True` if ``item`` is an ``HDU`` _in_ ``self`` or a valid
         extension specification (e.g., integer extension number, extension
         name, or a tuple of extension name and an extension version)
         of a ``HDU`` in ``self``.
@@ -455,7 +455,7 @@ class HDUList(list, _Verify):
 
     def fileinfo(self, index):
         """
-        Returns a dictionary detailing information about the locations
+        Return a dictionary detailing information about the locations
         of the indexed HDU within any associated file.  The values are
         only valid after a read or write of the associated file with
         no intervening changes to the `HDUList`.

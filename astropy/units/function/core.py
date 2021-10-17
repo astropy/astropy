@@ -168,7 +168,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
     def is_equivalent(self, other, equivalencies=[]):
         """
-        Returns `True` if this unit is equivalent to ``other``.
+        Return `True` if this unit is equivalent to ``other``.
 
         Parameters
         ----------

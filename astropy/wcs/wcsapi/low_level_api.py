@@ -303,7 +303,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     @property
     def axis_correlation_matrix(self):
         """
-        Returns an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`,
+        Return an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`,
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`) matrix that
         indicates using booleans whether a given world coordinate depends on a
         given pixel coordinate.

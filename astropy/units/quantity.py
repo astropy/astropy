@@ -859,7 +859,7 @@ class Quantity(np.ndarray):
     @property
     def si(self):
         """
-        Returns a copy of the current `Quantity` instance with SI units. The
+        Return a copy of the current `Quantity` instance with SI units. The
         value of the resulting object will be scaled.
         """
         if self.dtype.names:
@@ -871,7 +871,7 @@ class Quantity(np.ndarray):
     @property
     def cgs(self):
         """
-        Returns a copy of the current `Quantity` instance with CGS units. The
+        Return a copy of the current `Quantity` instance with CGS units. The
         value of the resulting object will be scaled.
         """
         if self.dtype.names:
@@ -1356,7 +1356,7 @@ class Quantity(np.ndarray):
 
     def decompose(self, bases=[]):
         """
-        Generates a new `Quantity` with the units
+        Generate a new `Quantity` with the units
         decomposed. Decomposed units have only irreducible units in
         them (see `astropy.units.UnitBase.decompose`).
 
@@ -1378,7 +1378,7 @@ class Quantity(np.ndarray):
 
     def _decompose(self, allowscaledunits=False, bases=[]):
         """
-        Generates a new `Quantity` with the units decomposed. Decomposed
+        Generate a new `Quantity` with the units decomposed. Decomposed
         units have only irreducible units in them (see
         `astropy.units.UnitBase.decompose`).
 

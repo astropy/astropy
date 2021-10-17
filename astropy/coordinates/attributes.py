@@ -212,7 +212,7 @@ class CartesianRepresentationAttribute(Attribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a CartesianRepresentation with the correct
+        Check that the input is a CartesianRepresentation with the correct
         unit, or the special value ``[0, 0, 0]``.
 
         Parameters
@@ -298,7 +298,7 @@ class QuantityAttribute(Attribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a Quantity with the necessary units (or the
+        Check that the input is a Quantity with the necessary units (or the
         special value ``0``).
 
         Parameters
@@ -359,7 +359,7 @@ class EarthLocationAttribute(Attribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a Quantity with the necessary units (or the
+        Check that the input is a Quantity with the necessary units (or the
         special value ``0``).
 
         Parameters
@@ -421,7 +421,7 @@ class CoordinateAttribute(Attribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a SkyCoord with the necessary units (or the
+        Check that the input is a SkyCoord with the necessary units (or the
         special value ``None``).
 
         Parameters
@@ -482,7 +482,7 @@ class DifferentialAttribute(Attribute):
 
     def convert_input(self, value):
         """
-        Checks that the input is a differential object and is one of the
+        Check that the input is a differential object and is one of the
         allowed class types.
 
         Parameters

@@ -1478,7 +1478,7 @@ class CartesianRepresentation(BaseRepresentation):
                               other_c.get_xyz(xyz_axis=-1))
 
     def cross(self, other):
-        """Cross product of two representations.
+        """Compute cross product of two representations.
 
         Parameters
         ----------
@@ -1579,7 +1579,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts spherical polar coordinates to 3D rectangular cartesian
+        Convert spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
         # erfa s2c: Convert [unit]spherical coordinates to Cartesian.
@@ -1589,7 +1589,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to spherical polar
+        Convert 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
         p = cart.get_xyz(xyz_axis=-1)
@@ -1727,7 +1727,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
             self.to_cartesian().sum(*args, **kwargs))
 
     def cross(self, other):
-        """Cross product of two representations.
+        """Compute cross product of two representations.
 
         The calculation is done by converting both ``self`` and ``other``
         to `~astropy.coordinates.CartesianRepresentation`, and converting the
@@ -1804,7 +1804,7 @@ class RadialRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to radial coordinate.
+        Convert 3D rectangular cartesian coordinates to radial coordinate.
         """
         return cls(distance=cart.norm(), copy=False)
 
@@ -1992,7 +1992,7 @@ class SphericalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts spherical polar coordinates to 3D rectangular cartesian
+        Convert spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
 
@@ -2010,7 +2010,7 @@ class SphericalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to spherical polar
+        Convert 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
         p = cart.get_xyz(xyz_axis=-1)
@@ -2188,7 +2188,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts spherical polar coordinates to 3D rectangular cartesian
+        Convert spherical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
 
@@ -2207,7 +2207,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to spherical polar
+        Convert 3D rectangular cartesian coordinates to spherical polar
         coordinates.
         """
 
@@ -2357,7 +2357,7 @@ class CylindricalRepresentation(BaseRepresentation):
     @classmethod
     def from_cartesian(cls, cart):
         """
-        Converts 3D rectangular cartesian coordinates to cylindrical polar
+        Convert 3D rectangular cartesian coordinates to cylindrical polar
         coordinates.
         """
 
@@ -2369,7 +2369,7 @@ class CylindricalRepresentation(BaseRepresentation):
 
     def to_cartesian(self):
         """
-        Converts cylindrical polar coordinates to 3D rectangular cartesian
+        Convert cylindrical polar coordinates to 3D rectangular cartesian
         coordinates.
         """
         x = self.rho * np.cos(self.phi)

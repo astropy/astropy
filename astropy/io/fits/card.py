@@ -215,7 +215,7 @@ class Card(_Verify):
 
     @property
     def keyword(self):
-        """Returns the keyword name parsed from the card image."""
+        """Return the keyword name parsed from the card image."""
         if self._keyword is not None:
             return self._keyword
         elif self._image:
@@ -1197,7 +1197,7 @@ class Card(_Verify):
 
 def _int_or_float(s):
     """
-    Converts an a string to an int if possible, or to a float.
+    Convert an a string to an int if possible, or to a float.
 
     If the string is neither a string or a float a value error is raised.
     """
@@ -1217,7 +1217,7 @@ def _int_or_float(s):
 
 def _format_value(value):
     """
-    Converts a card value to its appropriate string representation as
+    Convert a card value to its appropriate string representation as
     defined by the FITS format.
     """
 

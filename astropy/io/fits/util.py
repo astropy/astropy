@@ -94,7 +94,7 @@ class NotifierMixin:
 
     def _remove_listener(self, listener):
         """
-        Removes the specified listener from the listeners list.  This relies
+        Remove the specified listener from the listeners list.  This relies
         on object identity (i.e. the ``is`` operator).
         """
 
@@ -709,7 +709,7 @@ def _write_string(f, s):
 
 def _convert_array(array, dtype):
     """
-    Converts an array to a new dtype--if the itemsize of the new dtype is
+    Convert an array to a new dtype--if the itemsize of the new dtype is
     the same as the old dtype and both types are not numeric, a view is
     returned.  Otherwise a new array must be created.
     """

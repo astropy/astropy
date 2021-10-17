@@ -117,7 +117,7 @@ class Row:
 
     def as_void(self):
         """
-        Returns a *read-only* copy of the row values in the form of np.void or
+        Return a *read-only* copy of the row values in the form of np.void or
         np.ma.mvoid objects.  This corresponds to the object types returned for
         row indexing of a pure numpy structured array or masked array. This
         method is slow and its use is discouraged when possible.

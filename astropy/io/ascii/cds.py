@@ -248,7 +248,7 @@ class CdsHeader(core.BaseHeader):
 
     def _set_column_val_limits(self, col):
         """
-        Sets the ``col.min`` and ``col.max`` column attributes,
+        Set the ``col.min`` and ``col.max`` column attributes,
         taking into account columns with Null values.
         """
         col.max = max(col)

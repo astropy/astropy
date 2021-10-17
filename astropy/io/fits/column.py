@@ -276,14 +276,14 @@ class _ColumnFormat(_BaseColumnFormat):
 
     @lazyproperty
     def recformat(self):
-        """Returns the equivalent Numpy record format string."""
+        """Return the equivalent Numpy record format string."""
 
         return _convert_format(self)
 
     @lazyproperty
     def canonical(self):
         """
-        Returns a 'canonical' string representation of this format.
+        Return a 'canonical' string representation of this format.
 
         This is in the proper form of rTa where T is the single character data
         type code, a is the optional part, and r is the repeat.  If repeat == 1
@@ -345,14 +345,14 @@ class _AsciiColumnFormat(_BaseColumnFormat):
 
     @lazyproperty
     def recformat(self):
-        """Returns the equivalent Numpy record format string."""
+        """Return the equivalent Numpy record format string."""
 
         return _convert_ascii_format(self)
 
     @lazyproperty
     def canonical(self):
         """
-        Returns a 'canonical' string representation of this format.
+        Return a 'canonical' string representation of this format.
 
         This is in the proper form of Tw.d where T is the single character data
         type code, w is the width in characters for this field, and d is the
@@ -1633,7 +1633,7 @@ class ColDefs(NotifierMixin):
 
     @lazyproperty
     def _dims(self):
-        """Returns the values of the TDIMn keywords parsed into tuples."""
+        """Return the values of the TDIMn keywords parsed into tuples."""
 
         return [col._dims for col in self.columns]
 

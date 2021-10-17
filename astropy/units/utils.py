@@ -35,7 +35,7 @@ def _get_first_sentence(s):
 
 def _iter_unit_summary(namespace):
     """
-    Generates the ``(unit, doc, represents, aliases, prefixes)``
+    Generate the ``(unit, doc, represents, aliases, prefixes)``
     tuple used to format the unit summary docs in `generate_unit_summary`.
     """
 
@@ -76,7 +76,7 @@ def _iter_unit_summary(namespace):
 
 def generate_unit_summary(namespace):
     """
-    Generates a summary of units from a given namespace.  This is used
+    Generate a summary of units from a given namespace.  This is used
     to generate the docstring for the modules that define the actual
     units.
 
@@ -119,7 +119,7 @@ def generate_unit_summary(namespace):
 
 def generate_prefixonly_unit_summary(namespace):
     """
-    Generates table entries for units in a namespace that are just prefixes
+    Generate table entries for units in a namespace that are just prefixes
     without the base unit.  Note that this is intended to be used *after*
     `generate_unit_summary` and therefore does not include the table header.
 

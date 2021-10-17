@@ -111,7 +111,7 @@ class HeaderFormatter:
         self._hdulist = fits.open(filename)
 
     def parse(self, extensions=None, keywords=None, compressed=False):
-        """Returns the FITS file header(s) in a readable format.
+        """Return the FITS file header(s) in a readable format.
 
         Parameters
         ----------
@@ -175,7 +175,7 @@ class HeaderFormatter:
         return ''.join(result)
 
     def _get_cards(self, hdukey, keywords, compressed):
-        """Returns a list of `astropy.io.fits.card.Card` objects.
+        """Return a list of `astropy.io.fits.card.Card` objects.
 
         This function will return the desired header cards, taking into
         account the user's preference to see the compressed or uncompressed

@@ -791,7 +791,7 @@ class _CorruptedHDU(_BaseHDU):
     @property
     def size(self):
         """
-        Returns the size (in bytes) of the HDU's data part.
+        Return the size (in bytes) of the HDU's data part.
         """
 
         # Note: On compressed files this might report a negative size; but the
@@ -848,7 +848,7 @@ class _NonstandardHDU(_BaseHDU, _Verify):
     @property
     def size(self):
         """
-        Returns the size (in bytes) of the HDU's data part.
+        Return the size (in bytes) of the HDU's data part.
         """
 
         if self._buffer is not None:
@@ -972,7 +972,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     def fileinfo(self):
         """
-        Returns a dictionary detailing information about the locations
+        Return a dictionary detailing information about the locations
         of this HDU within any associated file.  The values are only
         valid after a read or write of the associated file with no
         intervening changes to the `HDUList`.

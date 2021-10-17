@@ -157,7 +157,7 @@ _warning_pat = re.compile(
 
 def parse_vowarning(line):
     """
-    Parses the vo warning string back into its parts.
+    Parse the vo warning string back into its parts.
     """
     result = {}
     match = _warning_pat.search(line)

@@ -75,7 +75,7 @@ def _find_home():
 
 def get_config_dir(rootname='astropy'):
     """
-    Determines the package configuration directory name and creates the
+    Determine the package configuration directory name and creates the
     directory if it doesn't exist.
 
     This directory is typically ``$HOME/.astropy/config``, but if the
@@ -122,7 +122,7 @@ def get_config_dir(rootname='astropy'):
 
 def get_cache_dir(rootname="astropy"):
     """
-    Determines the Astropy cache directory name and creates the directory if it
+    Determine the Astropy cache directory name and creates the directory if it
     doesn't exist.
 
     This directory is typically ``$HOME/.astropy/cache``, but if the

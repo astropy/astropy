@@ -194,7 +194,7 @@ def test_transform_path_pri():
 
 def test_obstime():
     """
-    Checks to make sure observation time is
+    Check to make sure observation time is
     accounted for at least in FK4 <-> ICRS transformations
     """
     b1950 = Time('B1950')

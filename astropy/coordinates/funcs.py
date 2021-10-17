@@ -29,7 +29,7 @@ __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
 
 def cartesian_to_spherical(x, y, z):
     """
-    Converts 3D rectangular cartesian coordinates to spherical polar
+    Convert 3D rectangular cartesian coordinates to spherical polar
     coordinates.
 
     Note that the resulting angles are latitude/longitude or
@@ -77,7 +77,7 @@ def cartesian_to_spherical(x, y, z):
 
 def spherical_to_cartesian(r, lat, lon):
     """
-    Converts spherical polar coordinates to rectangular cartesian
+    Convert spherical polar coordinates to rectangular cartesian
     coordinates.
 
     Note that the input angles should be in latitude/longitude or
@@ -123,7 +123,7 @@ def spherical_to_cartesian(r, lat, lon):
 
 def get_sun(time):
     """
-    Determines the location of the sun at a given time (or times, if the input
+    Determine the location of the sun at a given time (or times, if the input
     is an array `~astropy.time.Time` object), in geocentric coordinates.
 
     Parameters
@@ -173,7 +173,7 @@ _constellation_data = {}
 
 def get_constellation(coord, short_name=False, constellation_list='iau'):
     """
-    Determines the constellation(s) a given coordinate object contains.
+    Determine the constellation(s) a given coordinate object contains.
 
     Parameters
     ----------

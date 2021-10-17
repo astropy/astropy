@@ -226,7 +226,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
     def set_color(self, color):
         """
-        Sets the color of the frame.
+        Set the color of the frame.
 
         Parameters
         ----------
@@ -240,7 +240,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
 
     def set_linewidth(self, linewidth):
         """
-        Sets the linewidth of the frame.
+        Set the linewidth of the frame.
 
         Parameters
         ----------

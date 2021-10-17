@@ -1117,7 +1117,7 @@ class Model(metaclass=_ModelMeta):
 
     def has_inverse(self):
         """
-        Returns True if the model has an analytic or user
+        Return True if the model has an analytic or user
         inverse defined.
         """
         try:
@@ -1130,7 +1130,7 @@ class Model(metaclass=_ModelMeta):
     @property
     def inverse(self):
         """
-        Returns a new `~astropy.modeling.Model` instance which performs the
+        Return a new `~astropy.modeling.Model` instance which performs the
         inverse transform, if an analytic inverse is defined for this model.
 
         Even on models that don't have an inverse defined, this property can be

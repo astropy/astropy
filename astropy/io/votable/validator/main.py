@@ -79,7 +79,7 @@ def make_validation_report(
     """
     Validates a large collection of web-accessible VOTable files.
 
-    Generates a report as a directory tree of HTML files.
+    Generate a report as a directory tree of HTML files.
 
     Parameters
     ----------

@@ -1010,7 +1010,7 @@ def get_free_space_in_dir(path, unit=False):
 
 def check_free_space_in_dir(path, size):
     """
-    Determines if a given directory has enough space to hold a file of
+    Determine if a given directory has enough space to hold a file of
     a given size.
 
     Parameters

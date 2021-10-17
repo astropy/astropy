@@ -283,7 +283,7 @@ class TestRunner(TestRunnerBase):
 
     def packages_path(self, packages, base_path, error=None, warning=None):
         """
-        Generates the path for multiple packages.
+        Generate the path for multiple packages.
 
         Parameters
         ----------

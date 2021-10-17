@@ -77,7 +77,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     def deprecate_doc(old_doc, message):
         """
-        Returns a given docstring with a deprecation message prepended
+        Return a given docstring with a deprecation message prepended
         to it.
         """
         if not old_doc:
@@ -103,7 +103,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
     def deprecate_function(func, message, warning_type=warning_type):
         """
-        Returns a wrapped function that displays ``warning_type``
+        Return a wrapped function that displays ``warning_type``
         when it is called.
         """
 

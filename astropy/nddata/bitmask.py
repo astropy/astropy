@@ -264,7 +264,7 @@ def extend_bit_flag_map(cls_name, base_cls=BitFlagNameMap, **kwargs):
 
 def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     """
-    Converts input bit flags to a single integer value (bit mask) or `None`.
+    Convert input bit flags to a single integer value (bit mask) or `None`.
 
     When input is a list of flags (either a Python list of integer flags or a
     string of comma-, ``'|'``-, or ``'+'``-separated list of flags),

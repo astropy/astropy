@@ -74,7 +74,7 @@ __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
 
 def make_transform_graph_docs(transform_graph):
     """
-    Generates a string that can be used in other docstrings to include a
+    Generate a string that can be used in other docstrings to include a
     transformation graph, showing the available transforms and
     coordinate systems.
 

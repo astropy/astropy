@@ -926,7 +926,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         return at_max.filled(False).argmax(axis=axis, out=out)
 
     def argsort(self, axis=-1, kind=None, order=None):
-        """Returns the indices that would sort an array.
+        """Return the indices that would sort an array.
 
         Perform an indirect sort along the given axis on both the array
         and the mask, with masked items being sorted to the end.

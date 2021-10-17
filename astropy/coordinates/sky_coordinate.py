@@ -551,7 +551,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def is_transformable_to(self, new_frame):
         """
-        Determines if this coordinate frame can be transformed to another
+        Determine if this coordinate frame can be transformed to another
         given frame.
 
         Parameters
@@ -812,7 +812,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def _is_name(self, string):
         """
-        Returns whether a string is one of the aliases for the frame.
+        Return whether a string is one of the aliases for the frame.
         """
         return (self.frame.name == string or
                 (isinstance(self.frame.name, list) and string in self.frame.name))
@@ -1045,7 +1045,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def is_equivalent_frame(self, other):
         """
-        Checks if this object's frame as the same as that of the ``other``
+        Check if this object's frame as the same as that of the ``other``
         object.
 
         To be the same frame, two objects must be the same frame class and have
@@ -1087,7 +1087,7 @@ class SkyCoord(ShapedLikeNDArray):
     # High-level convenience methods
     def separation(self, other):
         """
-        Computes on-sky separation between this coordinate and another.
+        Compute on-sky separation between this coordinate and another.
 
         .. note::
 
@@ -1139,7 +1139,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def separation_3d(self, other):
         """
-        Computes three dimensional separation between this coordinate
+        Compute three dimensional separation between this coordinate
         and another.
 
         For more on how to use this (and related) functionality, see the
@@ -1181,7 +1181,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def spherical_offsets_to(self, tocoord):
         r"""
-        Computes angular offsets to go *from* this coordinate *to* another.
+        Compute angular offsets to go *from* this coordinate *to* another.
 
         Parameters
         ----------
@@ -1230,7 +1230,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def spherical_offsets_by(self, d_lon, d_lat):
         """
-        Computes the coordinate that is a specified pair of angular offsets away
+        Compute the coordinate that is a specified pair of angular offsets away
         from this coordinate.
 
         Parameters
@@ -1269,7 +1269,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def directional_offset_by(self, position_angle, separation):
         """
-        Computes coordinates at the given offset from this coordinate.
+        Compute coordinates at the given offset from this coordinate.
 
         Parameters
         ----------
@@ -1315,7 +1315,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def match_to_catalog_sky(self, catalogcoord, nthneighbor=1):
         """
-        Finds the nearest on-sky matches of this coordinate in a set of
+        Find the nearest on-sky matches of this coordinate in a set of
         catalog coordinates.
 
         For more on how to use this (and related) functionality, see the
@@ -1376,7 +1376,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def match_to_catalog_3d(self, catalogcoord, nthneighbor=1):
         """
-        Finds the nearest 3-dimensional matches of this coordinate to a set
+        Find the nearest 3-dimensional matches of this coordinate to a set
         of catalog coordinates.
 
         This finds the 3-dimensional closest neighbor, which is only different
@@ -1440,7 +1440,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def search_around_sky(self, searcharoundcoords, seplimit):
         """
-        Searches for all coordinates in this object around a supplied set of
+        Search for all coordinates in this object around a supplied set of
         points within a given on-sky separation.
 
         This is intended for use on `~astropy.coordinates.SkyCoord` objects
@@ -1499,7 +1499,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def search_around_3d(self, searcharoundcoords, distlimit):
         """
-        Searches for all coordinates in this object around a supplied set of
+        Search for all coordinates in this object around a supplied set of
         points within a given 3D radius.
 
         This is intended for use on `~astropy.coordinates.SkyCoord` objects
@@ -1558,7 +1558,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def position_angle(self, other):
         """
-        Computes the on-sky position angle (East of North) between this
+        Compute the on-sky position angle (East of North) between this
         `SkyCoord` and another.
 
         Parameters
@@ -1604,7 +1604,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def skyoffset_frame(self, rotation=None):
         """
-        Returns the sky offset frame with this `SkyCoord` at the origin.
+        Return the sky offset frame with this `SkyCoord` at the origin.
 
         Returns
         -------
@@ -1622,7 +1622,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def get_constellation(self, short_name=False, constellation_list='iau'):
         """
-        Determines the constellation(s) of the coordinates this `SkyCoord`
+        Determine the constellation(s) of the coordinates this `SkyCoord`
         contains.
 
         Parameters
@@ -1728,7 +1728,7 @@ class SkyCoord(ShapedLikeNDArray):
 
     def contained_by(self, wcs, image=None, **kwargs):
         """
-        Determines if the SkyCoord is contained in the given wcs footprint.
+        Determine if the SkyCoord is contained in the given wcs footprint.
 
         Parameters
         ----------

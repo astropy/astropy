@@ -928,7 +928,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
-        Reads `distortion paper`_ table-lookup keywords and data, and
+        Read `distortion paper`_ table-lookup keywords and data, and
         returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
         objects.
 
@@ -1057,7 +1057,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     def _read_sip_kw(self, header, wcskey=""):
         """
-        Reads `SIP`_ header keywords and returns a `~astropy.wcs.Sip`
+        Read `SIP`_ header keywords and returns a `~astropy.wcs.Sip`
         object.
 
         If no `SIP`_ header keywords are found, ``None`` is returned.
@@ -3208,7 +3208,7 @@ reduce these to 2 dimensions using the naxis kwarg.
     @property
     def has_distortion(self):
         """
-        Returns `True` if any distortion terms are present.
+        Return `True` if any distortion terms are present.
         """
         return (self.sip is not None or
                 self.cpdis1 is not None or self.cpdis2 is not None or
@@ -3241,7 +3241,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     def footprint_contains(self, coord, **kwargs):
         """
-        Determines if a given SkyCoord is contained in the wcs footprint.
+        Determine if a given SkyCoord is contained in the wcs footprint.
 
         Parameters
         ----------

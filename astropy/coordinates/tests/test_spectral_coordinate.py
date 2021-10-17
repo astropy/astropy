@@ -136,7 +136,7 @@ def test_create_spectral_coord_observer_target(observer, target):
 
 def test_create_from_spectral_coord(observer, target):
     """
-    Checks that parameters are correctly copied to the new SpectralCoord object
+    Check that parameters are correctly copied to the new SpectralCoord object
     """
     with nullcontext() if target is None else pytest.warns(AstropyUserWarning, match='No velocity defined on frame'):
         spec_coord1 = SpectralCoord([100, 200, 300] * u.nm, observer=observer,
@@ -574,7 +574,7 @@ def test_relativistic_radial_velocity():
 
 def test_spectral_coord_jupiter():
     """
-    Checks radial velocity between Earth and Jupiter
+    Check radial velocity between Earth and Jupiter
     """
     obstime = time.Time('2018-12-13 9:00')
     obs = get_greenwich_earthlocation().get_gcrs(obstime)
@@ -593,7 +593,7 @@ def test_spectral_coord_jupiter():
 
 def test_spectral_coord_alphacen():
     """
-    Checks radial velocity between Earth and Alpha Centauri
+    Check radial velocity between Earth and Alpha Centauri
     """
     obstime = time.Time('2018-12-13 9:00')
     obs = get_greenwich_earthlocation().get_gcrs(obstime)
@@ -614,7 +614,7 @@ def test_spectral_coord_alphacen():
 
 def test_spectral_coord_m31():
     """
-    Checks radial velocity between Earth and M31
+    Check radial velocity between Earth and M31
     """
     obstime = time.Time('2018-12-13 9:00')
     obs = get_greenwich_earthlocation().get_gcrs(obstime)

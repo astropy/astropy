@@ -657,7 +657,7 @@ class Header:
 
     def tostring(self, sep='', endcard=True, padding=True):
         r"""
-        Returns a string representation of the header.
+        Return a string representation of the header.
 
         By default this uses no separator between cards, adds the END card, and
         pads the string with spaces to the next multiple of 2880 bytes.  That
@@ -1350,7 +1350,7 @@ class Header:
 
     def count(self, keyword):
         """
-        Returns the count of the given keyword in the header, similar to
+        Return the count of the given keyword in the header, similar to
         `list.count` if the Header object is treated as a list of keywords.
 
         Parameters
@@ -1370,7 +1370,7 @@ class Header:
 
     def index(self, keyword, start=None, stop=None):
         """
-        Returns the index if the first instance of the given keyword in the
+        Return the index if the first instance of the given keyword in the
         header, similar to `list.index` if the Header object is treated as a
         list of keywords.
 
@@ -1501,7 +1501,7 @@ class Header:
 
     def remove(self, keyword, ignore_missing=False, remove_all=False):
         """
-        Removes the first instance of the given keyword from the header similar
+        Remove the first instance of the given keyword from the header similar
         to `list.remove` if the Header object is treated as a list of keywords.
 
         Parameters
@@ -1694,7 +1694,7 @@ class Header:
             self.append(card)
 
     def _cardindex(self, key):
-        """Returns an index into the ._cards list given a valid lookup key."""
+        """Return an index into the ._cards list given a valid lookup key."""
 
         # This used to just set key = (key, 0) and then go on to act as if the
         # user passed in a tuple, but it's much more common to just be given a
@@ -1840,7 +1840,7 @@ class Header:
                         indices[jdx] += increment
 
     def _countblanks(self):
-        """Returns the number of blank cards at the end of the Header."""
+        """Return the number of blank cards at the end of the Header."""
 
         for idx in range(1, len(self._cards)):
             if not self._cards[-idx].is_blank:
@@ -1862,7 +1862,7 @@ class Header:
 
     def _wildcardmatch(self, pattern):
         """
-        Returns a list of indices of the cards matching the given wildcard
+        Return a list of indices of the cards matching the given wildcard
         pattern.
 
          * '*' matches 0 or more characters
@@ -2147,7 +2147,7 @@ class _HeaderComments(_CardAccessor):
             yield card.comment
 
     def __repr__(self):
-        """Returns a simple list of all keywords and their comments."""
+        """Return a simple list of all keywords and their comments."""
 
         keyword_length = KEYWORD_LENGTH
         for card in self._header._cards:

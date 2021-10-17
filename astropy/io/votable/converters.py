@@ -75,7 +75,7 @@ def _make_masked_array(data, mask):
 
 def bitarray_to_bool(data, length):
     """
-    Converts a bit array (a string of bits in a bytes object) to a
+    Convert a bit array (a string of bits in a bytes object) to a
     boolean Numpy array.
 
     Parameters
@@ -107,7 +107,7 @@ def bitarray_to_bool(data, length):
 
 def bool_to_bitarray(value):
     """
-    Converts a numpy boolean array to a bit array (a string of bits in
+    Convert a numpy boolean array to a bit array (a string of bits in
     a bytes object).
 
     Parameters
@@ -172,7 +172,7 @@ class Converter:
 
     def supports_empty_values(self, config):
         """
-        Returns True when the field can be completely empty.
+        Return True when the field can be completely empty.
         """
         return config.get('version_1_3_or_later')
 
@@ -241,7 +241,7 @@ class Converter:
 
     def binparse(self, read):
         """
-        Reads some number of bytes from the BINARY_ format
+        Read some number of bytes from the BINARY_ format
         representation by calling the function *read*, and returns the
         native in-memory object representation for the datatype
         handled by *self*.
@@ -1360,7 +1360,7 @@ def _all_matching_dtype(column):
 
 def numpy_to_votable_dtype(dtype, shape):
     """
-    Converts a numpy dtype and shape to a dictionary of attributes for
+    Convert a numpy dtype and shape to a dictionary of attributes for
     a VOTable FIELD element and correspond to that type.
 
     Parameters

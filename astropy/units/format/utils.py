@@ -116,7 +116,7 @@ def decompose_to_known_units(unit, func):
 
 def format_power(power):
     """
-    Converts a value for a power (which may be floating point or a
+    Convert a value for a power (which may be floating point or a
     `fractions.Fraction` object), into a string looking like either
     an integer or a fraction, if the power is close to that.
     """

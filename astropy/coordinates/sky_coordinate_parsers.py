@@ -62,7 +62,7 @@ _conflict_err_msg = ("Coordinate attribute '{0}'={1!r} conflicts with keyword "
 
 def _get_frame_without_data(args, kwargs):
     """
-    Determines the coordinate frame from input SkyCoord args and kwargs.
+    Determine the coordinate frame from input SkyCoord args and kwargs.
 
     This function extracts (removes) all frame attributes from the kwargs and
     determines the frame class either using the kwargs, or using the first

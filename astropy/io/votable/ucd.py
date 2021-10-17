@@ -42,26 +42,26 @@ class UCDWords:
 
     def is_primary(self, name):
         """
-        Returns True if *name* is a valid primary name.
+        Return True if *name* is a valid primary name.
         """
         return name.lower() in self._primary
 
     def is_secondary(self, name):
         """
-        Returns True if *name* is a valid secondary name.
+        Return True if *name* is a valid secondary name.
         """
         return name.lower() in self._secondary
 
     def get_description(self, name):
         """
-        Returns the official English description of the given UCD
+        Return the official English description of the given UCD
         *name*.
         """
         return self._descriptions[name.lower()]
 
     def normalize_capitalization(self, name):
         """
-        Returns the standard capitalization form of the given name.
+        Return the standard capitalization form of the given name.
         """
         return self._capitalization[name.lower()]
 

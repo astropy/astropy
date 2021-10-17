@@ -1521,7 +1521,7 @@ class Field(SimpleElement, _IDProperty, _NameProperty, _XtypeProperty,
 
     def to_table_column(self, column):
         """
-        Sets the attributes of a given `astropy.table.Column` instance
+        Set the attributes of a given `astropy.table.Column` instance
         to match the information in this `Field`.
         """
         for key in ['ucd', 'width', 'precision', 'utype', 'xtype']:
@@ -2321,7 +2321,7 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
 
     def is_empty(self):
         """
-        Returns True if this table doesn't contain any real data
+        Return True if this table doesn't contain any real data
         because it was skipped over by the parser (through use of the
         ``table_number`` kwarg).
         """
@@ -3053,19 +3053,19 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     get_field_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_fields_and_params', 'FIELD or PARAM',
         """
-        Looks up a FIELD or PARAM element by the given ID.
+        Look up a FIELD or PARAM element by the given ID.
         """)
 
     get_field_by_id_or_name = _lookup_by_id_or_name_factory(
         'iter_fields_and_params', 'FIELD or PARAM',
         """
-        Looks up a FIELD or PARAM element by the given ID or name.
+        Look up a FIELD or PARAM element by the given ID or name.
         """)
 
     get_fields_by_utype = _lookup_by_attr_factory(
         'utype', False, 'iter_fields_and_params', 'FIELD or PARAM',
         """
-        Looks up a FIELD or PARAM element by the given utype and
+        Look up a FIELD or PARAM element by the given utype and
         returns an iterator emitting all matches.
         """)
 
@@ -3081,14 +3081,14 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
     get_group_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_groups', 'GROUP',
         """
-        Looks up a GROUP element by the given ID.  Used by the group's
+        Look up a GROUP element by the given ID.  Used by the group's
         "ref" attribute
         """)
 
     get_groups_by_utype = _lookup_by_attr_factory(
         'utype', False, 'iter_groups', 'GROUP',
         """
-        Looks up a GROUP element by the given utype and returns an
+        Look up a GROUP element by the given utype and returns an
         iterator emitting all matches.
         """)
 
@@ -3317,7 +3317,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def iter_tables(self):
         """
-        Recursively iterates over all tables in the resource and
+        Recursively iterate over all tables in the resource and
         nested resources.
         """
         for table in self.tables:
@@ -3328,7 +3328,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def iter_fields_and_params(self):
         """
-        Recursively iterates over all FIELD_ and PARAM_ elements in
+        Recursively iterate over all FIELD_ and PARAM_ elements in
         the resource, its tables and nested resources.
         """
         for param in self.params:
@@ -3342,7 +3342,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def iter_coosys(self):
         """
-        Recursively iterates over all the COOSYS_ elements in the
+        Recursively iterate over all the COOSYS_ elements in the
         resource and nested resources.
         """
         for coosys in self.coordinate_systems:
@@ -3353,7 +3353,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def iter_timesys(self):
         """
-        Recursively iterates over all the TIMESYS_ elements in the
+        Recursively iterate over all the TIMESYS_ elements in the
         resource and nested resources.
         """
         for timesys in self.time_systems:
@@ -3364,7 +3364,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
     def iter_info(self):
         """
-        Recursively iterates over all the INFO_ elements in the
+        Recursively iterate over all the INFO_ elements in the
         resource and nested resources.
         """
         for info in self.infos:
@@ -3701,7 +3701,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     def iter_tables(self):
         """
-        Iterates over all tables in the VOTable file in a "flat" way,
+        Iterate over all tables in the VOTable file in a "flat" way,
         ignoring the nesting of resources etc.
         """
         for resource in self.resources:
@@ -3721,14 +3721,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_table_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_tables', 'TABLE',
         """
-        Looks up a TABLE_ element by the given ID.  Used by the table
+        Look up a TABLE_ element by the given ID.  Used by the table
         "ref" attribute.
         """)
 
     get_tables_by_utype = _lookup_by_attr_factory(
         'utype', False, 'iter_tables', 'TABLE',
         """
-        Looks up a TABLE_ element by the given utype, and returns an
+        Look up a TABLE_ element by the given utype, and returns an
         iterator emitting all matches.
         """)
 
@@ -3754,21 +3754,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_field_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_fields_and_params', 'FIELD',
         """
-        Looks up a FIELD_ element by the given ID_.  Used by the field's
+        Look up a FIELD_ element by the given ID_.  Used by the field's
         "ref" attribute.
         """)
 
     get_fields_by_utype = _lookup_by_attr_factory(
         'utype', False, 'iter_fields_and_params', 'FIELD',
         """
-        Looks up a FIELD_ element by the given utype and returns an
+        Look up a FIELD_ element by the given utype and returns an
         iterator emitting all matches.
         """)
 
     get_field_by_id_or_name = _lookup_by_id_or_name_factory(
         'iter_fields_and_params', 'FIELD',
         """
-        Looks up a FIELD_ element by the given ID_ or name.
+        Look up a FIELD_ element by the given ID_ or name.
         """)
 
     def iter_values(self):
@@ -3782,7 +3782,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_values_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_values', 'VALUES',
         """
-        Looks up a VALUES_ element by the given ID.  Used by the values
+        Look up a VALUES_ element by the given ID.  Used by the values
         "ref" attribute.
         """)
 
@@ -3798,14 +3798,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_group_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_groups', 'GROUP',
         """
-        Looks up a GROUP_ element by the given ID.  Used by the group's
+        Look up a GROUP_ element by the given ID.  Used by the group's
         "ref" attribute
         """)
 
     get_groups_by_utype = _lookup_by_attr_factory(
         'utype', False, 'iter_groups', 'GROUP',
         """
-        Looks up a GROUP_ element by the given utype and returns an
+        Look up a GROUP_ element by the given utype and returns an
         iterator emitting all matches.
         """)
 
@@ -3822,7 +3822,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     get_coosys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_coosys', 'COOSYS',
-        """Looks up a COOSYS_ element by the given ID.""")
+        """Look up a COOSYS_ element by the given ID.""")
 
     def iter_timesys(self):
         """
@@ -3837,7 +3837,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     get_timesys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_timesys', 'TIMESYS',
-        """Looks up a TIMESYS_ element by the given ID.""")
+        """Look up a TIMESYS_ element by the given ID.""")
 
     def iter_info(self):
         """
@@ -3852,7 +3852,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
     get_info_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_info', 'INFO',
-        """Looks up a INFO element by the given ID.""")
+        """Look up a INFO element by the given ID.""")
 
     def set_all_tables_format(self, format):
         """

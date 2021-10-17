@@ -368,7 +368,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     @property
     def size(self):
         """
-        Returns the size (in bytes) of the HDU's data part.
+        Return the size (in bytes) of the HDU's data part.
         """
 
         size = 0

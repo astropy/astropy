@@ -969,7 +969,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def realize_frame(self, data, **kwargs):
         """
-        Generates a new frame with new data from another frame (which may or
+        Generate a new frame with new data from another frame (which may or
         may not have data). Roughly speaking, the converse of
         `replicate_without_data`.
 
@@ -1233,7 +1233,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def is_transformable_to(self, new_frame):
         """
-        Determines if this coordinate frame can be transformed to another
+        Determine if this coordinate frame can be transformed to another
         given frame.
 
         Parameters
@@ -1356,7 +1356,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def is_equivalent_frame(self, other):
         """
-        Checks if this object is the same frame as the ``other`` object.
+        Check if this object is the same frame as the ``other`` object.
 
         To be the same frame, two objects must be the same frame class and have
         the same frame attributes.  Note that it does *not* matter what, if any,
@@ -1402,7 +1402,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
             return f'<{self.__class__.__name__} Frame{frameattrs}>'
 
     def _data_repr(self):
-        """Returns a string representation of the coordinate data."""
+        """Return a string representation of the coordinate data."""
 
         if not self.has_data:
             return ''
@@ -1471,7 +1471,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def _frame_attrs_repr(self):
         """
-        Returns a string representation of the frame's attributes, if any.
+        Return a string representation of the frame's attributes, if any.
         """
         attr_strs = []
         for attribute_name in self.get_frame_attr_names():
@@ -1704,7 +1704,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def separation(self, other):
         """
-        Computes on-sky separation between this coordinate and another.
+        Compute on-sky separation between this coordinate and another.
 
         .. note::
 
@@ -1745,7 +1745,7 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
 
     def separation_3d(self, other):
         """
-        Computes three dimensional separation between this coordinate
+        Compute three dimensional separation between this coordinate
         and another.
 
         Parameters

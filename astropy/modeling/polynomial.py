@@ -458,7 +458,7 @@ class Chebyshev1D(_PolyDomainWindow1D):
 
     def fit_deriv(self, x, *params):
         """
-        Computes the Vandermonde matrix.
+        Compute the Vandermonde matrix.
 
         Parameters
         ----------
@@ -565,7 +565,7 @@ class Hermite1D(_PolyDomainWindow1D):
 
     def fit_deriv(self, x, *params):
         """
-        Computes the Vandermonde matrix.
+        Compute the Vandermonde matrix.
 
         Parameters
         ----------
@@ -817,7 +817,7 @@ class Legendre1D(_PolyDomainWindow1D):
 
     def fit_deriv(self, x, *params):
         """
-        Computes the Vandermonde matrix.
+        Compute the Vandermonde matrix.
 
         Parameters
         ----------
@@ -919,7 +919,7 @@ class Polynomial1D(_PolyDomainWindow1D):
 
     def fit_deriv(self, x, *params):
         """
-        Computes the Vandermonde matrix.
+        Compute the Vandermonde matrix.
 
         Parameters
         ----------
@@ -1076,7 +1076,7 @@ class Polynomial2D(PolynomialModel):
 
     def fit_deriv(self, x, y, *params):
         """
-        Computes the Vandermonde matrix.
+        Compute the Vandermonde matrix.
 
         Parameters
         ----------

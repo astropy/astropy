@@ -32,7 +32,7 @@ from astropy import units as u
 
 class _AngleParser:
     """
-    Parses the various angle formats including:
+    Parse the various angle formats including:
 
        * 01:02:30.43 degrees
        * 1 2 0 hours
@@ -316,7 +316,7 @@ class _AngleParser:
 
 def _check_hour_range(hrs):
     """
-    Checks that the given value is in the range (-24, 24).
+    Check that the given value is in the range (-24, 24).
     """
     if np.any(np.abs(hrs) == 24.):
         warn(IllegalHourWarning(hrs, 'Treating as 24 hr'))
@@ -326,7 +326,7 @@ def _check_hour_range(hrs):
 
 def _check_minute_range(m):
     """
-    Checks that the given value is in the range [0,60].  If the value
+    Check that the given value is in the range [0,60].  If the value
     is equal to 60, then a warning is raised.
     """
     if np.any(m == 60.):
@@ -338,7 +338,7 @@ def _check_minute_range(m):
 
 def _check_second_range(sec):
     """
-    Checks that the given value is in the range [0,60].  If the value
+    Check that the given value is in the range [0,60].  If the value
     is equal to 60, then a warning is raised.
     """
     if np.any(sec == 60.):
@@ -352,7 +352,7 @@ def _check_second_range(sec):
 
 def check_hms_ranges(h, m, s):
     """
-    Checks that the given hour, minute and second are all within
+    Check that the given hour, minute and second are all within
     reasonable range.
     """
     _check_hour_range(h)
@@ -363,7 +363,7 @@ def check_hms_ranges(h, m, s):
 
 def parse_angle(angle, unit=None, debug=False):
     """
-    Parses an input string value into an angle value.
+    Parse an input string value into an angle value.
 
     Parameters
     ----------

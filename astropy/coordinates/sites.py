@@ -38,7 +38,7 @@ class SiteRegistry(Mapping):
 
     def __getitem__(self, site_name):
         """
-        Returns an EarthLocation for a known site in this registry.
+        Return an EarthLocation for a known site in this registry.
 
         Parameters
         ----------

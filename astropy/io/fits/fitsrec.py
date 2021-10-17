@@ -662,7 +662,7 @@ class FITS_rec(np.recarray):
     @property
     def _raw_itemsize(self):
         """
-        Returns the size of row items that would be written to the raw FITS
+        Return the size of row items that would be written to the raw FITS
         file, taking into account the possibility of unicode columns being
         compactified.
 
@@ -1007,7 +1007,7 @@ class FITS_rec(np.recarray):
 
     def _get_heap_data(self):
         """
-        Returns a pointer into the table's raw data to its heap (if present).
+        Return a pointer into the table's raw data to its heap (if present).
 
         This is returned as a numpy byte array.
         """
@@ -1021,7 +1021,7 @@ class FITS_rec(np.recarray):
 
     def _get_raw_data(self):
         """
-        Returns the base array of self that "raw data array" that is the
+        Return the base array of self that "raw data array" that is the
         array in the format that it was first read from a file before it was
         sliced or viewed as a different type in any way.
 

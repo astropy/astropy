@@ -160,7 +160,7 @@ class _UnitRegistry:
 
     def set_enabled_units(self, units):
         """
-        Sets the units enabled in the unit registry.
+        Set the units enabled in the unit registry.
 
         These units are searched when using
         `UnitBase.find_equivalent_units`, for example.
@@ -232,7 +232,7 @@ class _UnitRegistry:
 
     def set_enabled_equivalencies(self, equivalencies):
         """
-        Sets the equivalencies enabled in the unit registry.
+        Set the equivalencies enabled in the unit registry.
 
         These equivalencies are used if no explicit equivalencies are given,
         both in unit conversion and in finding equivalent units.
@@ -661,7 +661,7 @@ class UnitBase:
 
     def _get_physical_type_id(self):
         """
-        Returns an identifier that uniquely identifies the physical
+        Return an identifier that uniquely identifies the physical
         type of this unit.  It is comprised of the bases and powers of
         this unit, without the scale.  Since it is hashable, it is
         useful as a dictionary key.
@@ -676,7 +676,7 @@ class UnitBase:
     @property
     def names(self):
         """
-        Returns all of the names associated with this unit.
+        Return all of the names associated with this unit.
         """
         raise AttributeError(
             "Can not get names from unnamed units. "
@@ -685,7 +685,7 @@ class UnitBase:
     @property
     def name(self):
         """
-        Returns the canonical (short) name associated with this unit.
+        Return the canonical (short) name associated with this unit.
         """
         raise AttributeError(
             "Can not get names from unnamed units. "
@@ -694,7 +694,7 @@ class UnitBase:
     @property
     def aliases(self):
         """
-        Returns the alias (long) names for this unit.
+        Return the alias (long) names for this unit.
         """
         raise AttributeError(
             "Can not get aliases from unnamed units. "
@@ -916,7 +916,7 @@ class UnitBase:
 
     def is_equivalent(self, other, equivalencies=[]):
         """
-        Returns `True` if this unit is equivalent to ``other``.
+        Return `True` if this unit is equivalent to ``other``.
 
         Parameters
         ----------
@@ -946,7 +946,7 @@ class UnitBase:
         return self._is_equivalent(other, equivalencies)
 
     def _is_equivalent(self, other, equivalencies=[]):
-        """Returns `True` if this unit is equivalent to `other`.
+        """Return `True` if this unit is equivalent to `other`.
         See `is_equivalent`, except that a proper Unit object should be
         given (i.e., no string) and that the equivalency list should be
         normalized using `_normalize_equivalencies`.
@@ -1062,7 +1062,7 @@ class UnitBase:
 
     def _to(self, other):
         """
-        Returns the scale to the specified unit.
+        Return the scale to the specified unit.
 
         See `to`, except that a Unit object should be given (i.e., no
         string), and that all defaults are used, i.e., no
@@ -1411,7 +1411,7 @@ class UnitBase:
 
     def to_system(self, system):
         """
-        Converts this unit into ones belonging to the given system.
+        Convert this unit into ones belonging to the given system.
         Since more than one result may be possible, a list is always
         returned.
 
@@ -1457,7 +1457,7 @@ class UnitBase:
     @lazyproperty
     def si(self):
         """
-        Returns a copy of the current `Unit` instance in SI units.
+        Return a copy of the current `Unit` instance in SI units.
         """
 
         from . import si
@@ -1466,7 +1466,7 @@ class UnitBase:
     @lazyproperty
     def cgs(self):
         """
-        Returns a copy of the current `Unit` instance with CGS units.
+        Return a copy of the current `Unit` instance with CGS units.
         """
         from . import cgs
         return self.to_system(cgs)[0]
@@ -1650,7 +1650,7 @@ class UnitBase:
 
     def is_unity(self):
         """
-        Returns `True` if the unit is unscaled and dimensionless.
+        Return `True` if the unit is unscaled and dimensionless.
         """
         return False
 
@@ -1768,35 +1768,35 @@ class NamedUnit(UnitBase):
     @property
     def names(self):
         """
-        Returns all of the names associated with this unit.
+        Return all of the names associated with this unit.
         """
         return self._names
 
     @property
     def name(self):
         """
-        Returns the canonical (short) name associated with this unit.
+        Return the canonical (short) name associated with this unit.
         """
         return self._names[0]
 
     @property
     def aliases(self):
         """
-        Returns the alias (long) names for this unit.
+        Return the alias (long) names for this unit.
         """
         return self._names[1:]
 
     @property
     def short_names(self):
         """
-        Returns all of the short names associated with this unit.
+        Return all of the short names associated with this unit.
         """
         return self._short_names
 
     @property
     def long_names(self):
         """
-        Returns all of the long names associated with this unit.
+        Return all of the long names associated with this unit.
         """
         return self._long_names
 

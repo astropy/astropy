@@ -355,7 +355,7 @@ class BaseInputter:
 
     def process_lines(self, lines):
         """
-        Process lines for subsequent use.  In the default case do nothing.
+        Adjust lines for subsequent use.  In the default case do nothing.
         This routine is not generally intended for removing comment lines or
         stripping whitespace.  These are done (if needed) in the header and
         data line processing.
@@ -798,7 +798,7 @@ class BaseData:
 
     def process_lines(self, lines):
         """
-        READ: Strip out comment lines and blank lines from list of ``lines``.
+        Strip out comment lines and blank lines from list of ``lines``.
 
         Parameters
         ----------

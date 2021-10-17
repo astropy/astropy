@@ -837,7 +837,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
-        Converts the values of the column in-place from the current
+        Convert the values of the column in-place from the current
         unit to the given unit.
 
         To change the unit associated with this column without
@@ -923,7 +923,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def to(self, unit, equivalencies=[], **kwargs):
         """
-        Converts this table column to a `~astropy.units.Quantity` object with
+        Convert this table column to a `~astropy.units.Quantity` object with
         the requested units.
 
         Parameters

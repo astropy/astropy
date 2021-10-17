@@ -43,7 +43,7 @@ class ListWriter:
 
 def identify_table(soup, htmldict, numtable):
     """
-    Checks whether the given BeautifulSoup tag is the table
+    Check whether the given BeautifulSoup tag is the table
     the user intends to process.
     """
 

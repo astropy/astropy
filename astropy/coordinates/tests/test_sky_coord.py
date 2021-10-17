@@ -897,7 +897,7 @@ def test_directional_offset_by():
 
 def test_table_to_coord():
     """
-    Checks "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`
+    Check "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`
     initializer is the intermediary that translate the table columns into
     something coordinates understands.
 

@@ -197,7 +197,7 @@ def test_regression_4210():
 
 def test_regression_futuretimes_4302():
     """
-    Checks that an error is not raised for future times not covered by IERS
+    Check that an error is not raised for future times not covered by IERS
     tables (at least in a simple transform like CIRS->ITRS that simply requires
     the UTC<->UT1 conversion).
 

@@ -134,7 +134,7 @@ class TransformGraph:
 
     def invalidate_cache(self):
         """
-        Invalidates the cache that stores optimizations for traversing the
+        Invalidate the cache that stores optimizations for traversing the
         transform graph.  This is called automatically when transforms
         are added or removed, but will need to be called manually if
         weights on transforms are modified inplace.
@@ -206,7 +206,7 @@ class TransformGraph:
 
     def remove_transform(self, fromsys, tosys, transform):
         """
-        Removes a coordinate transform from the graph.
+        Remove a coordinate transform from the graph.
 
         Parameters
         ----------
@@ -263,7 +263,7 @@ class TransformGraph:
 
     def find_shortest_path(self, fromsys, tosys):
         """
-        Computes the shortest distance along the transform graph from
+        Compute the shortest distance along the transform graph from
         one system to another.
 
         Parameters
@@ -381,7 +381,7 @@ class TransformGraph:
 
     def get_transform(self, fromsys, tosys):
         """
-        Generates and returns the `CompositeTransform` for a transformation
+        Generate and returns the `CompositeTransform` for a transformation
         between two coordinate systems.
 
         Parameters
@@ -431,7 +431,7 @@ class TransformGraph:
 
     def lookup_name(self, name):
         """
-        Tries to locate the coordinate class with the provided alias.
+        Try to locate the coordinate class with the provided alias.
 
         Parameters
         ----------
@@ -449,7 +449,7 @@ class TransformGraph:
 
     def get_names(self):
         """
-        Returns all available transform names. They will all be
+        Return all available transform names. They will all be
         valid arguments to `lookup_name`.
 
         Returns
@@ -462,7 +462,7 @@ class TransformGraph:
     def to_dot_graph(self, priorities=True, addnodes=[], savefn=None,
                      savelayout='plain', saveformat=None, color_edges=True):
         """
-        Converts this transform graph to the graphviz_ DOT format.
+        Convert this transform graph to the graphviz_ DOT format.
 
         Optionally saves it (requires `graphviz`_ be installed and on your path).
 
@@ -573,7 +573,7 @@ class TransformGraph:
 
     def to_networkx_graph(self):
         """
-        Converts this transform graph into a networkx graph.
+        Convert this transform graph into a networkx graph.
 
         .. note::
             You must have the `networkx <https://networkx.github.io/>`_
@@ -840,8 +840,8 @@ class CoordinateTransform(metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, fromcoord, toframe):
         """
-        Does the actual coordinate transformation from the ``fromsys`` class to
-        the ``tosys`` class.
+        Perform the actual coordinate transformation from the ``fromsys`` class
+        to the ``tosys`` class.
 
         Parameters
         ----------

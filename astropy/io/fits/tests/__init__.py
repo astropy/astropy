@@ -50,7 +50,7 @@ class FitsTestCase:
         os.chmod(self.temp(filename), stat.S_IREAD | stat.S_IWRITE)
 
     def data(self, filename):
-        """Returns the path to a test data file."""
+        """Return the path to a test data file."""
 
         return os.path.join(self.data_dir, filename)
 

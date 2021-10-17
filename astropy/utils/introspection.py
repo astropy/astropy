@@ -171,7 +171,7 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
 
 def find_current_module(depth=1, finddiff=False):
     """
-    Determines the module/package from which this function is called.
+    Determine the module/package from which this function is called.
 
     This function has two modes, determined by the ``finddiff`` option. it
     will either simply go the requested number of frames up the call

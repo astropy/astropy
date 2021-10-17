@@ -267,7 +267,7 @@ class TestPositionKittPeak:
     @pytest.mark.parametrize('bodyname', ('mercury', 'jupiter'))
     def test_custom_kernel_spec_body(self, bodyname):
         """
-        Checks that giving a kernel specifier instead of a body name works
+        Check that giving a kernel specifier instead of a body name works
         """
         coord_by_name = get_body(bodyname, self.t, ephemeris='de432s')
         kspec = BODY_NAME_TO_KERNEL_SPEC[bodyname]

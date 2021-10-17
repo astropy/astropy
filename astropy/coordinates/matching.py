@@ -17,7 +17,7 @@ __all__ = ['match_coordinates_3d', 'match_coordinates_sky', 'search_around_3d',
 
 def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='kdtree_3d'):
     """
-    Finds the nearest 3-dimensional matches of a coordinate or coordinates in
+    Find the nearest 3-dimensional matches of a coordinate or coordinates in
     a set of catalog coordinates.
 
     This finds the 3-dimensional closest neighbor, which is only different
@@ -93,7 +93,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='k
 
 def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='kdtree_sky'):
     """
-    Finds the nearest on-sky matches of a coordinate or coordinates in
+    Find the nearest on-sky matches of a coordinate or coordinates in
     a set of catalog coordinates.
 
     This finds the on-sky closest neighbor, which is only different from the
@@ -180,7 +180,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
 
 def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
     """
-    Searches for pairs of points that are at least as close as a specified
+    Search for pairs of points that are at least as close as a specified
     distance in 3D space.
 
     This is intended for use on coordinate objects with arrays of coordinates,
@@ -283,7 +283,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='kdtree_3d'):
 
 def search_around_sky(coords1, coords2, seplimit, storekdtree='kdtree_sky'):
     """
-    Searches for pairs of points that have an angular separation at least as
+    Search for pairs of points that have an angular separation at least as
     close as a specified angle.
 
     This is intended for use on coordinate objects with arrays of coordinates,

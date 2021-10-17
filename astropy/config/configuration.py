@@ -306,8 +306,7 @@ class ConfigItem:
         return self()
 
     def set(self, value):
-        """
-        Sets the current value of this ``ConfigItem``.
+        """Set the current value of this ``ConfigItem``.
 
         This also updates the comments that give the description and type
         information.
@@ -334,8 +333,7 @@ class ConfigItem:
 
     @contextmanager
     def set_temp(self, value):
-        """
-        Sets this item to a specified value only inside a with block.
+        """Set this item to a specified value only inside a with block.
 
         Use as::
 
@@ -360,7 +358,7 @@ class ConfigItem:
             self.set(initval)
 
     def reload(self):
-        """ Reloads the value of this ``ConfigItem`` from the relevant
+        """Reload the value of this ``ConfigItem`` from the relevant
         configuration file.
 
         Returns
@@ -405,7 +403,7 @@ class ConfigItem:
         return out
 
     def __call__(self):
-        """Returns the value of this ``ConfigItem``.
+        """Return the value of this ``ConfigItem``.
 
         Returns
         -------
@@ -474,7 +472,7 @@ class ConfigItem:
             raise TypeError('Configuration value not valid:' + e.args[0])
 
     def _validate_val(self, val):
-        """ Validates the provided value based on cfgtype and returns the
+        """Validate the provided value based on cfgtype and returns the
         type-cast value
 
         throws the underlying configobj exception if it fails
@@ -508,7 +506,7 @@ _override_config_file = None
 
 
 def get_config(packageormod=None, reload=False, rootname=None):
-    """ Gets the configuration object or section associated with a particular
+    """Get the configuration object or section associated with a particular
     package or module.
 
     Parameters
@@ -593,7 +591,7 @@ def get_config(packageormod=None, reload=False, rootname=None):
 
 
 def generate_config(pkgname='astropy', filename=None, verbose=False):
-    """Generates a configuration file, from the list of `ConfigItem`
+    """Generate a configuration file, from the list of `ConfigItem`
     objects for each subpackage.
 
     .. versionadded:: 4.1
@@ -684,7 +682,7 @@ def generate_config(pkgname='astropy', filename=None, verbose=False):
 
 
 def reload_config(packageormod=None, rootname=None):
-    """ Reloads configuration settings from a configuration file for the root
+    """Reload configuration settings from a configuration file for the root
     package of the requested package/module.
 
     This overwrites any changes that may have been made in `ConfigItem`
@@ -710,7 +708,7 @@ def reload_config(packageormod=None, rootname=None):
 
 def is_unedited_config_file(content, template_content=None):
     """
-    Determines if a config file can be safely replaced because it doesn't
+    Determine if a config file can be safely replaced because it doesn't
     actually contain any meaningful content, i.e. if it contains only comments
     or is completely empty.
     """
@@ -727,7 +725,7 @@ def is_unedited_config_file(content, template_content=None):
 @deprecated('5.0')
 def update_default_config(pkg, default_cfg_dir_or_fn, version=None, rootname='astropy'):
     """
-    Checks if the configuration file for the specified package exists,
+    Check if the configuration file for the specified package exists,
     and if not, copy over the default configuration.  If the
     configuration file looks like it has already been edited, we do
     not write over it, but instead write a file alongside it named

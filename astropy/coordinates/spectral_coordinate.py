@@ -247,7 +247,7 @@ class SpectralCoord(SpectralQuantity):
     @staticmethod
     def _validate_coordinate(coord, label=''):
         """
-        Checks the type of the frame and whether a velocity differential and a
+        Check the type of the frame and whether a velocity differential and a
         distance has been defined on the frame object.
 
         If no distance is defined, the target is assumed to be "really far
@@ -714,9 +714,7 @@ class SpectralCoord(SpectralQuantity):
                               target=new_target)
 
     def to_rest(self):
-        """
-        Transforms the spectral axis to the rest frame.
-        """
+        """Transform the spectral axis to the rest frame."""
 
         if self.observer is not None and self.target is not None:
             return self.with_observer_stationary_relative_to(self.target)

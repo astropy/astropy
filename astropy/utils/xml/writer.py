@@ -305,14 +305,14 @@ class XMLWriter:
 
     def get_indentation(self):
         """
-        Returns the number of indentation levels the file is currently
+        Return the number of indentation levels the file is currently
         in.
         """
         return len(self._tags)
 
     def get_indentation_spaces(self, offset=0):
         """
-        Returns a string of spaces that matches the current
+        Return a string of spaces that matches the current
         indentation level.
         """
         return self._indentation[:len(self._tags) + offset]
@@ -320,7 +320,7 @@ class XMLWriter:
     @staticmethod
     def object_attrs(obj, attrs):
         """
-        Converts an object with a bunch of attributes on an object
+        Convert an object with a bunch of attributes on an object
         into a dictionary for use by the `XMLWriter`.
 
         Parameters

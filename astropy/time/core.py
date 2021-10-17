@@ -924,7 +924,7 @@ class TimeBase(ShapedLikeNDArray):
         self._time.jd2[item] = value._time.jd2
 
     def isclose(self, other, atol=None):
-        """Returns a boolean or boolean array where two Time objects are
+        """Return a boolean or boolean array where two Time objects are
         element-wise equal within a time tolerance.
 
         This evaluates the expression below::
@@ -1223,7 +1223,7 @@ class TimeBase(ShapedLikeNDArray):
         return dt.argmax(axis, out)
 
     def argsort(self, axis=-1):
-        """Returns the indices that would sort the time array.
+        """Return the indices that would sort the time array.
 
         This is similar to :meth:`~numpy.ndarray.argsort`, but adapted to ensure
         that the full precision given by the two doubles ``jd1`` and ``jd2``
@@ -2613,7 +2613,7 @@ class TimeDelta(TimeBase):
         return value
 
     def isclose(self, other, atol=None, rtol=0.0):
-        """Returns a boolean or boolean array where two TimeDelta objects are
+        """Return a boolean or boolean array where two TimeDelta objects are
         element-wise equal within a time tolerance.
 
         This effectively evaluates the expression below::

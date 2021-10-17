@@ -31,7 +31,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
           table_id=None, filename=None, unit_format=None,
           datatype_mapping=None, _debug_python_based_parser=False):
     """
-    Parses a VOTABLE_ xml file (or file-like object), and returns a
+    Parse a VOTABLE_ xml file (or file-like object), and returns a
     `~astropy.io.votable.tree.VOTableFile` object.
 
     Parameters
@@ -162,7 +162,7 @@ def parse(source, columns=None, invalid='exception', verify=None,
 
 def parse_single_table(source, **kwargs):
     """
-    Parses a VOTABLE_ xml file (or file-like object), reading and
+    Parse a VOTABLE_ xml file (or file-like object), reading and
     returning only the first `~astropy.io.votable.tree.Table`
     instance.
 
@@ -361,7 +361,7 @@ def from_table(table, table_id=None):
 
 def is_votable(source):
     """
-    Reads the header of a file to determine if it is a VOTable file.
+    Read the header of a file to determine if it is a VOTable file.
 
     Parameters
     ----------
