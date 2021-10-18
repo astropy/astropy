@@ -71,7 +71,7 @@ def test_proj_separations():
     # returns an Angle object
     assert isinstance(sep, Angle)
 
-    assert sep.degree == 1
+    assert_allclose(sep.degree, 1.)
     assert_allclose(sep.arcminute, 60.)
 
     # these operations have ambiguous interpretations for points on a sphere
