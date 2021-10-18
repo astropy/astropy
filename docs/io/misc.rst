@@ -1,6 +1,6 @@
-***********************************************************
-Miscellaneous: HDF5, YAML, ASDF, pickle (`astropy.io.misc`)
-***********************************************************
+********************************************************************
+Miscellaneous: HDF5, YAML, ASDF, Parquet, pickle (`astropy.io.misc`)
+********************************************************************
 
 The `astropy.io.misc` module contains miscellaneous input/output routines that
 do not fit elsewhere, and are often used by other ``astropy`` sub-packages. For
@@ -18,6 +18,9 @@ listed in the `astropy.io.misc` section.
    :headings: =-
 
 .. automodapi:: astropy.io.misc.yaml
+   :headings: =-
+
+.. automodapi:: astropy.io.misc.parquet
    :headings: =-
 
 astropy.io.misc.asdf Package

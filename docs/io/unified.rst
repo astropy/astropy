@@ -175,7 +175,7 @@ Built-In Table Readers/Writers
 The :class:`~astropy.table.Table` class has built-in support for various input
 and output formats including :ref:`table_io_ascii`,
 -:ref:`table_io_fits`, :ref:`table_io_hdf5`, :ref:`table_io_pandas`,
-and :ref:`table_io_votable`.
+:ref:`table_io_parquet`, and :ref:`table_io_votable`.
 
 A full list of the supported formats and corresponding classes is shown in the
 table below. The ``Write`` column indicates those formats that support write
@@ -209,6 +209,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                   ascii.tab    Yes          :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
                        fits    Yes    auto  :mod:`~astropy.io.fits`: Flexible Image Transport System file
                        hdf5    Yes    auto  HDF5_: Hierarchical Data Format binary file
+                    parquet    Yes    auto  Parquet_: Apache Parquet binary file
                  pandas.csv    Yes          Wrapper around ``pandas.read_csv()`` and ``pandas.to_csv()``
                  pandas.fwf     No          Wrapper around ``pandas.read_fwf()`` (fixed width format)
                 pandas.html    Yes          Wrapper around ``pandas.read_html()`` and ``pandas.to_html()``
@@ -956,6 +957,57 @@ Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
+
+..
+  EXAMPLE END
+
+.. doctest-skip-all
+
+.. _table_io_parquet:
+
+Parquet
+-------
+
+.. _Parquet: https://parquet.apache.org/
+.. _pyarrow: https://arrow.apache.org/docs/python/
+
+Reading/writing from/to Parquet_ files is supported with ``format='parquet'``
+(this requires pyarrow_ to be installed). However, the ``.parquet`` or
+``.parq`` file extensions are automatically recognized when writing files, and
+Parquet files are automatically identified (even with a different extension)
+when reading in (using the first few bytes of the file to identify the format),
+so it most cases you will not need to explicitly specify ``format='parquet'``.
+
+Multiple-file Parquet datasets are not currently supported for reading and
+writing.
+
+Examples
+^^^^^^^^
+
+..
+  EXAMPLE START
+  Reading from and Writing to Parquet Files
+
+To read a table from a Parquet file named ``observations.parquet``, you can do::
+
+    >>> t = Table.read('observations.parquet')
+
+To write a table to a new file, simply do::
+
+    >>> t.write('new_file.parquet')
+
+As with other formats, the ``overwrite=True`` argument is supported for
+overwriting existing files.
+
+One big advantage of the Parquet files is that each column is stored independently,
+and thus reading a subset of columns is fast and efficient.  To find out which
+columns are stored in a table without reading the data, use the ``schema_only=True``::
+
+    >>> schema = Table.read('observations.parquet', schema_only=True)
+
+And to read only a subset of the columns, use ``include_names=[]``::
+
+    >>> t_sub = Table.read('observations.parquet', include_names=['mjd', 'airmass']
 
 ..
   EXAMPLE END
