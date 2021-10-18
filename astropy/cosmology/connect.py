@@ -4,6 +4,7 @@ import copy
 import warnings
 
 from astropy.io import registry as io_registry
+from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = ["CosmologyRead", "CosmologyWrite",
@@ -14,7 +15,15 @@ __doctest_skip__ = __all__
 # ==============================================================================
 # Read / Write
 
-class CosmologyRead(io_registry.UnifiedReadWrite):
+class CosmologyIO(io_registry.UnifiedReadWrite):
+
+    @classproperty
+    def registry(cls):
+        """Return I/O registry relevant to Cosmology file I/O."""
+        return io_registry
+
+
+class CosmologyRead(CosmologyIO):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
     This function provides the Cosmology interface to the Astropy unified I/O
@@ -84,11 +93,11 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
                     "keyword argument `cosmology` must be either the class "
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
-        cosmo = io_registry.read(self._cls, *args, **kwargs)
+        cosmo = self.registry.read(self._cls, *args, **kwargs)
         return cosmo
 
 
-class CosmologyWrite(io_registry.UnifiedReadWrite):
+class CosmologyWrite(CosmologyIO):
     """Write this Cosmology object out in the specified format.
 
     This function provides the Cosmology interface to the astropy unified I/O
@@ -131,14 +140,22 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
         super().__init__(instance, cls, "write")
 
     def __call__(self, *args, **kwargs):
-        io_registry.write(self._instance, *args, **kwargs)
+        self.registry.write(self._instance, *args, **kwargs)
 
 
 # ==============================================================================
 # Format Interchange
 # for transforming instances, e.g. Cosmology <-> dict
 
-class CosmologyFromFormat(io_registry.UnifiedReadWrite):
+class CosmologyConvert(io_registry.UnifiedReadWrite):
+
+    @classproperty
+    def registry(cls):
+        """Return I/O registry relevant to Cosmology conversion."""
+        return io_registry
+
+
+class CosmologyFromFormat(CosmologyConvert):
     """Transform object to a `~astropy.cosmology.Cosmology`.
 
     This function provides the Cosmology interface to the Astropy unified I/O
@@ -206,11 +223,11 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
                     "keyword argument `cosmology` must be either the class "
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
-        cosmo = io_registry.read(self._cls, obj, *args, **kwargs)
+        cosmo = self.registry.read(self._cls, obj, *args, **kwargs)
         return cosmo
 
 
-class CosmologyToFormat(io_registry.UnifiedReadWrite):
+class CosmologyToFormat(CosmologyConvert):
     """Transform this Cosmology to another format.
 
     This function provides the Cosmology interface to the astropy unified I/O
@@ -256,5 +273,5 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
         super().__init__(instance, cls, "write")
 
     def __call__(self, format, *args, **kwargs):
-        return io_registry.write(self._instance, None, *args, format=format,
-                                 **kwargs)
+        return self.registry.write(self._instance, None, *args, format=format,
+                                   **kwargs)

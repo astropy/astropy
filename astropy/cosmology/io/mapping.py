@@ -180,6 +180,6 @@ def mapping_identify(origin, format, *args, **kwargs):
 # ===================================================================
 # Register
 
-io_registry.register_reader("mapping", Cosmology, from_mapping)
-io_registry.register_writer("mapping", Cosmology, to_mapping)
-io_registry.register_identifier("mapping", Cosmology, mapping_identify)
+Cosmology.from_format.registry.register_reader("mapping", Cosmology, from_mapping)
+Cosmology.from_format.registry.register_writer("mapping", Cosmology, to_mapping)
+Cosmology.from_format.registry.register_identifier("mapping", Cosmology, mapping_identify)

@@ -136,6 +136,6 @@ def mypackage_identify(origin, format, *args, **kwargs):
 # -------------------------------------------------------------------
 # Register to/from_format & identify methods with Astropy Unified I/O
 
-io_registry.register_reader("mypackage", Cosmology, from_mypackage)
-io_registry.register_writer("mypackage", Cosmology, to_mypackage)
-io_registry.register_identifier("mypackage", Cosmology, mypackage_identify)
+Cosmology.from_format.registry.register_reader("mypackage", Cosmology, from_mypackage)
+Cosmology.from_format.registry.register_writer("mypackage", Cosmology, to_mypackage)
+Cosmology.from_format.registry.register_identifier("mypackage", Cosmology, mypackage_identify)

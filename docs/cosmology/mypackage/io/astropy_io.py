@@ -83,6 +83,6 @@ def myformat_identify(origin, filepath, fileobj, *args, **kwargs):
 # -------------------------------------------------------------------
 # Register read/write/identify methods with Astropy Unified I/O
 
-io_registry.register_reader("myformat", Cosmology, read_myformat)
-io_registry.register_writer("myformat", Cosmology, write_myformat)
-io_registry.register_identifier("myformat", Cosmology, myformat_identify)
+Cosmology.read.registry.register_reader("myformat", Cosmology, read_myformat)
+Cosmology.read.registry.register_writer("myformat", Cosmology, write_myformat)
+Cosmology.read.registry.register_identifier("myformat", Cosmology, myformat_identify)
