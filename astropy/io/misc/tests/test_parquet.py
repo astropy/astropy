@@ -16,6 +16,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.utils.compat.optional_deps import HAS_PANDAS  # noqa 401
 
 # Skip all tests in this file if we cannot import pyarrow
@@ -55,9 +56,8 @@ def test_read_write_existing(tmpdir):
     t1 = Table()
     t1.add_column(Column(name='a', data=[1, 2, 3]))
 
-    with pytest.raises(OSError) as exc:
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         t1.write(test_file)
-    assert exc.value.args[0].startswith("File exists:")
 
 
 def test_read_write_existing_overwrite(tmpdir):
