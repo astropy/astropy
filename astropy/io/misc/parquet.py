@@ -14,12 +14,7 @@ import numpy as np
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
 from astropy.utils.exceptions import AstropyUserWarning
-
-from astropy.utils.compat.optional_deps import HAS_PYARROW
-
-if HAS_PYARROW:
-    import pyarrow as pa
-    from pyarrow import parquet
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 PARQUET_SIGNATURE = b'PAR1'
 
@@ -100,13 +95,11 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
         If a string or path-like object, the filename to read the table from.
         If a file-like object, the stream to read data.
     include_names : list [str], optional
-        List of names to include in output.
-        This will automatically expand to all serialized columns if
-        necessary.
+        List of names to include in output. If not supplied, then
+        include all columns.
     exclude_names : list [str], optional
         List of names to exclude from output (applied after ``include_names``).
-        This will automatically expand to all serialized columns if
-        necessary.
+        If not supplied then no columns are excluded.
     schema_only : bool, optional
         Only read the schema/metadata with table information.
     filters : list [tuple] or list [list [tuple] ] or None, optional
@@ -119,8 +112,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
         Table will have zero rows and only metadata information
         if schema_only is True.
     """
-    if not HAS_PYARROW:
-        raise Exception("pyarrow is required to read and write parquet files")
+    pa, parquet = get_pyarrow()
 
     if not isinstance(input, (str, os.PathLike)):
         # The 'read' attribute is the key component of a generic
@@ -269,8 +261,7 @@ def write_table_parquet(table, output, overwrite=False):
     from astropy.table import meta, serialize
     from astropy.utils.data_info import serialize_context_as
 
-    if not HAS_PYARROW:
-        raise Exception("pyarrow is required to read and write Parquet files")
+    pa, parquet = get_pyarrow()
 
     if not isinstance(output, (str, os.PathLike)):
         raise TypeError(f'`output` should be a string or path-like, not {output}')
@@ -310,7 +301,7 @@ def write_table_parquet(table, output, overwrite=False):
             # We must remove the file prior to writing below.
             os.remove(output)
         else:
-            raise OSError(f"File exists: {output}")
+            raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     # We use version='2.0' for full support of datatypes including uint32.
     with parquet.ParquetWriter(output, schema, version='2.0') as writer:
@@ -354,3 +345,12 @@ def register_parquet():
     io_registry.register_reader('parquet', Table, read_table_parquet)
     io_registry.register_writer('parquet', Table, write_table_parquet)
     io_registry.register_identifier('parquet', Table, parquet_identify)
+
+
+def get_pyarrow():
+    try:
+        import pyarrow as pa
+        from pyarrow import parquet
+    except ImportError:
+        raise Exception("pyarrow is required to read and write parquet files")
+    return pa, parquet
