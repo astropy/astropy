@@ -663,7 +663,7 @@ def test_sep():
     i2 = ICRS(ra=0*u.deg, dec=2*u.deg)
 
     sep = i1.separation(i2)
-    assert sep.deg == 1
+    assert_allclose(sep.deg, 1.)
 
     i3 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[5, 6]*u.kpc)
     i4 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[4, 5]*u.kpc)
