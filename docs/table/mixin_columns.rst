@@ -233,8 +233,8 @@ when it is read back.
 
 **Binary table writing**
 
-Tables with mixin columns can be written to binary files using both FITS and
-HDF5 formats. These can be read back to recover exactly the original |Table|
+Tables with mixin columns can be written to binary files using FITS, HDF5 and
+Parquet formats. These can be read back to recover exactly the original |Table|
 including mixin columns and metadata. See :ref:`table_io` for details.
 
 .. _mixin_protocol:
