@@ -811,7 +811,13 @@ class SkyCoord(ShapedLikeNDArray):
         frattrs = {attrnm: getattr(self, attrnm)
                    for attrnm in self._extra_frameattr_names}
         frattrs['obstime'] = new_obstime
-        return self.__class__(icrs2, **frattrs).transform_to(self.frame)
+        result = self.__class__(icrs2, **frattrs).transform_to(self.frame)
+
+        # Without this the output might not have the right differential type.
+        # Not sure if this fixes the problem or just hides it.  See #11932
+        result.differential_type = self.differential_type
+
+        return result
 
     def _is_name(self, string):
         """
