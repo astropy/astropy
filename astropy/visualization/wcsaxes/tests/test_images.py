@@ -687,7 +687,7 @@ class TestBasic(BaseImageTests):
         # the input(center) is a tuple or a SkyCoord object.
         assert (r1.get_xy() == r2.get_xy()).all()
         assert np.allclose(r1.get_xy(), r3.get_xy())
-        assert (r2.get_xy()[0] == [266.4, -29.25]).all()
+        assert np.allclose(r2.get_xy()[0], [266.4, -29.25])
 
         return fig
 
