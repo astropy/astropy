@@ -971,15 +971,16 @@ Parquet
 .. _Parquet: https://parquet.apache.org/
 .. _pyarrow: https://arrow.apache.org/docs/python/
 
-Reading/writing from/to Parquet_ files is supported with ``format='parquet'``
-(this requires pyarrow_ to be installed). However, the ``.parquet`` or
-``.parq`` file extensions are automatically recognized when writing files, and
-Parquet files are automatically identified (even with a different extension)
-when reading in (using the first few bytes of the file to identify the format),
-so it most cases you will not need to explicitly specify ``format='parquet'``.
+Reading and writing Parquet_ files is supported with ``format='parquet'``
+if the pyarrow_ package is installed. For writing, the file extensions ``.parquet`` or
+``.parq`` will automatically imply the ``'parquet'`` format. For reading,
+Parquet files are automatically identified regardless of the extension
+if the first four bytes of the file are ``b'PAR1'``.
+In many cases you do not need to explicitly specify ``format='parquet'``,
+but it may be a good idea anyway if there is any ambiguity about the
+file format.
 
-Multiple-file Parquet datasets are not currently supported for reading and
-writing.
+Multiple-file Parquet datasets are not supported for reading and writing.
 
 Examples
 ^^^^^^^^
@@ -1001,13 +1002,14 @@ overwriting existing files.
 
 One big advantage of the Parquet files is that each column is stored independently,
 and thus reading a subset of columns is fast and efficient.  To find out which
-columns are stored in a table without reading the data, use the ``schema_only=True``::
+columns are stored in a table without reading the data, use the ``schema_only=True``
+as shown below. This returns a zero-length table with the appropriate columns::
 
     >>> schema = Table.read('observations.parquet', schema_only=True)
 
-And to read only a subset of the columns, use ``include_names=[]``::
+To read only a subset of the columns, use the ``include_names`` and/or ``exclude_names`` keywords::
 
-    >>> t_sub = Table.read('observations.parquet', include_names=['mjd', 'airmass']
+    >>> t_sub = Table.read('observations.parquet', include_names=['mjd', 'airmass'])
 
 ..
   EXAMPLE END
