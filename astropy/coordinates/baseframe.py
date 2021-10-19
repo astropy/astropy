@@ -111,30 +111,6 @@ def _get_repr_classes(base, **differentials):
     return repr_classes
 
 
-def _representation_deprecation():
-    """
-    Raises a deprecation warning for the "representation" keyword
-    """
-    warnings.warn('The `representation` keyword/property name is deprecated in '
-                  'favor of `representation_type`', AstropyDeprecationWarning)
-
-
-def _normalize_representation_type(kwargs):
-    """ This is added for backwards compatibility: if the user specifies the
-    old-style argument ``representation``, add it back in to the kwargs dict
-    as ``representation_type``.
-    """
-    # TODO: remove this in a future LTS release, along with properties below
-    if 'representation' in kwargs:
-        if 'representation_type' in kwargs:
-            raise ValueError("Both `representation` and `representation_type` "
-                             "were passed to a frame initializer. Please use "
-                             "only `representation_type` (`representation` is "
-                             "now pending deprecation).")
-        _representation_deprecation()
-        kwargs['representation_type'] = kwargs.pop('representation')
-
-
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',
                ('reprname', 'framename', 'defaultunit'))
@@ -318,13 +294,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     def __init__(self, *args, copy=True, representation_type=None,
                  differential_type=None, **kwargs):
         self._attr_names_with_defaults = []
-
-        # This is here for backwards compatibility. It should be possible
-        # to use either the kwarg representation_type, or representation.
-        if representation_type is not None:
-            kwargs['representation_type'] = representation_type
-        _normalize_representation_type(kwargs)
-        representation_type = kwargs.pop('representation_type', representation_type)
 
         self._representation = self._infer_representation(representation_type, differential_type)
         self._data = self._infer_data(args, copy, kwargs)  # possibly None.
@@ -777,17 +746,6 @@ class BaseCoordinateFrame(ShapedLikeNDArray):
     @differential_type.setter
     def differential_type(self, value):
         self.set_representation_cls(s=value)
-
-    # TODO: remove this property in a future LTS release
-    @property
-    def representation(self):
-        _representation_deprecation()
-        return self.representation_type
-
-    @representation.setter
-    def representation(self, value):
-        _representation_deprecation()
-        self.representation_type = value
 
     @classmethod
     def _get_representation_info(cls):

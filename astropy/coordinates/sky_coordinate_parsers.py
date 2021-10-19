@@ -10,8 +10,7 @@ from astropy.units import Unit, IrreducibleUnit
 from astropy import units as u
 
 from .baseframe import (BaseCoordinateFrame, frame_transform_graph,
-                        _get_repr_cls, _get_diff_cls,
-                        _normalize_representation_type)
+                        _get_repr_cls, _get_diff_cls)
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
@@ -196,9 +195,6 @@ def _get_frame_without_data(args, kwargs):
     for attr in frame_cls.frame_attributes:
         if attr in kwargs:
             frame_cls_kwargs[attr] = kwargs.pop(attr)
-
-    # TODO: remove this in a future LTS release
-    _normalize_representation_type(kwargs)
 
     if 'representation_type' in kwargs:
         frame_cls_kwargs['representation_type'] = _get_repr_cls(
