@@ -216,7 +216,7 @@ def test_frame_api():
     coo1 = ICRS(ra=0*u.hour, dec=0*u.deg)
     coo2 = ICRS(ra=0*u.hour, dec=1*u.deg)
     # `separation` is the on-sky separation
-    assert coo1.separation(coo2).degree == 1.0
+    assert_allclose(coo1.separation(coo2).degree, 1.0)
 
     # while `separation_3d` includes the 3D distance information
     coo3 = ICRS(ra=0*u.hour, dec=0*u.deg, distance=1*u.kpc)
