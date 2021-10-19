@@ -1,0 +1,2 @@
+Removed deprecated ``representation`` attribute from
+``astropy.coordinates.BaseCoordinateFrame`` class.
