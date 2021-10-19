@@ -47,6 +47,7 @@ class UnifiedReadWrite:
 
     @property
     def registry(self):
+        """Unified I/O registry instance."""
         return self._registry
 
     def help(self, format=None, out=None):

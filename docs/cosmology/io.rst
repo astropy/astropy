@@ -1,4 +1,4 @@
-.. _read_write_cosmologies:
+.. _cosmology_io:
 
 Read, Write, and Convert Cosmology Objects
 ******************************************
@@ -135,6 +135,8 @@ Custom Cosmology To/From Formats
 Custom representation formats may also be registered into the Astropy Cosmology
 I/O framework for use by these methods. For details of the framework see
 :ref:`io_registry`.
+Note |Cosmology| ``to/from_format`` uses a custom registry, available at
+``Cosmology.<to/from>_format.registry``.
 
 .. EXAMPLE START : custom to/from format
 
@@ -247,6 +249,8 @@ Custom Cosmology Readers/Writers
 
 Custom ``read`` / ``write`` formats may be registered into the Astropy Cosmology
 I/O framework. For details of the framework see :ref:`io_registry`.
+Note |Cosmology| ``read/write`` uses a custom registry, available at
+``Cosmology.<read/write>.registry``.
 
 .. EXAMPLE START : custom read/write
 
