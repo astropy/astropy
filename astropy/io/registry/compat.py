@@ -11,7 +11,7 @@ __all__ = ["register_reader", "register_writer", "register_identifier",  # noqa:
            "read", "write",
            "identify_format", "delay_doc_updates"]
 
-# make a default global-state registry  (not publicly scoped)
+# make a default global-state registry  (not publicly scoped, but often accessed)
 # this is for backward compatibility when ``io.registry`` was a file.
 default_registry = UnifiedIORegistry()
 # also need to expose the enclosed registries
