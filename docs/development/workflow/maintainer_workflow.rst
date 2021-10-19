@@ -169,4 +169,69 @@ when a feature was added.  Likewise it lists any features or APIs that were
 changed (and how they were changed) or removed.  It also lists all bug fixes.
 Affiliated packages are encouraged to maintain a similar changelog.
 
+.. _stale-policies:
+
+==============
+Stale Policies
+==============
+
+The ``astropy`` GitHub repository has the following stale policies, which are
+enforced by `action-astropy-stalebot <https://github.com/pllim/action-astropy-stalebot/>`_
+in `.github/workflows/stalebot.yml <https://github.com/astropy/astropy/blob/main/.github/workflows/stalebot.yml>`_
+that runs on a schedule. Hereafter, we refer to this automated enforcer as stale-bot.
+
+All the timing mentioned depends on a successful stale-bot run. GitHub API limits,
+spam protection, or server maintenance could affect the run. The former might
+especially be relevant when there is a significant backlog of stale issues and
+pull requests accumulated.
+
+If you notice unintended stale-bot behaviors, please report them to the Astropy
+maintainers.
+
+Issues
+------
+
+A maintainer applies the "Closed?" label to mark an issue as stale, otherwise it
+stays open until someone manually closes it. Once marked as stale, a warning will
+be issued.
+
+A maintainer can apply "keep-open" label or remove "Closed?" label to remove the
+stale status. Otherwise, stale-bot will close the issue after about a week and
+apply a "closed-by-bot" label.
+
+When both "keep-open" and "Close?" labels exist, the former will take precedence
+and the latter will be removed from the issue.
+
+Pull Requests
+-------------
+
+A pull request becomes stale after about 4-5 months since the last commit (stale-bot
+counts in seconds and naively assumes 30 days per month). When this happens, stale-bot
+applies the "Close?" label to it. A maintainer can also fast-track its staleness by
+manually applying the "Close?" label. Once marked as stale, a warning will be issued.
+
+A maintainer can apply "keep-open" label or remove "Closed?" label to remove the
+stale status. The pull request author (or maintainer) can reset the stale timer by
+pushing out a commit (e.g., by rebasing). Otherwise, stale-bot will close the
+pull request after about a month and apply a "closed-by-bot" label.
+
+.. note::
+
+    The "keep-open" label should be used very sparingly, only for pull requests that
+    *must* be kept open. For example, a pull request that has been completed but cannot be
+    merged until a blocker is removed can use this label. An abandoned or incomplete
+    pull request should not use this label as it can be re-opened later when the author
+    has a renewed interest to wrap it up.
+
+When both "keep-open" and "Close?" labels exist, the former will take precedence
+and the latter will be removed from the pull request. If maintainer removes "Close?"
+without applying "keep-open" or pushing a new commit, stale-bot will mark it as
+stale again in the next run.
+
+If a new commit is pushed but the "Close?" label remains, stale-bot will close
+it without another warning after another 4-5 months.
+
+In short, to truly reset the stale timer for a pull request, it is recommended
+that a new commit be pushed *and* the "Close?" label be removed.
+
 .. include:: links.inc
