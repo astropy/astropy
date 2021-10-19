@@ -1433,18 +1433,7 @@ def test_component_names_repr():
     assert repr(frame).count("JUSTONCE") == 1
 
 
-@pytest.fixture
-def reset_galactocentric_defaults():
-    # TODO: this can be removed, along with the "warning" test below, once we
-    # switch the default to 'latest' in v4.1
-
-    # Resets before each test, and after (the yield is pytest magic)
-    galactocentric_frame_defaults.set('v4.0')
-    yield
-    galactocentric_frame_defaults.set('v4.0')
-
-
-def test_galactocentric_defaults(reset_galactocentric_defaults):
+def test_galactocentric_defaults():
 
     with galactocentric_frame_defaults.set('pre-v4.0'):
         galcen_pre40 = Galactocentric()
@@ -1491,7 +1480,7 @@ def test_galactocentric_defaults(reset_galactocentric_defaults):
     )
 
 
-def test_galactocentric_references(reset_galactocentric_defaults):
+def test_galactocentric_references():
     # references in the "scientific paper"-sense
 
     with galactocentric_frame_defaults.set('pre-v4.0'):
