@@ -228,16 +228,14 @@ Now the registered functions can be used in
 .. doctest::
     :hide:
 
-    >>> import pytest
     >>> from astropy.io.registry import IORegistryError
-    >>> with pytest.warns(None):
-    ...     convert_registry.unregister_reader("row", Cosmology)
-    ...     convert_registry.unregister_writer("row", Cosmology)
-    ...     convert_registry.unregister_identifier("row", Cosmology)
-    ...     try:
-    ...         convert_registry.get_reader("row", Cosmology)
-    ...     except IORegistryError:
-    ...         pass
+    >>> convert_registry.unregister_reader("row", Cosmology)
+    >>> convert_registry.unregister_writer("row", Cosmology)
+    >>> convert_registry.unregister_identifier("row", Cosmology)
+    >>> try:
+    ...     convert_registry.get_reader("row", Cosmology)
+    ... except IORegistryError:
+    ...     pass
 
 .. EXAMPLE END
 
@@ -360,16 +358,14 @@ Now the registered functions can be used in
 .. doctest::
     :hide:
 
-    >>> import pytest
     >>> from astropy.io.registry import IORegistryError
-    >>> with pytest.warns(None):
-    ...     readwrite_registry.unregister_reader("json", Cosmology)
-    ...     readwrite_registry.unregister_writer("json", Cosmology)
-    ...     readwrite_registry.unregister_identifier("json", Cosmology)
-    ...     try:
-    ...         readwrite_registry.get_reader("json", Cosmology)
-    ...     except IORegistryError:
-    ...         pass
+    >>> readwrite_registry.unregister_reader("json", Cosmology)
+    >>> readwrite_registry.unregister_writer("json", Cosmology)
+    >>> readwrite_registry.unregister_identifier("json", Cosmology)
+    >>> try:
+    ...     readwrite_registry.get_reader("json", Cosmology)
+    ... except IORegistryError:
+    ...     pass
 
 .. EXAMPLE END
 

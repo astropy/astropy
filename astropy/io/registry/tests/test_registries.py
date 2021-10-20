@@ -154,7 +154,7 @@ class TestUnifiedIORegistryBase:
         # (kw)args don't matter
         assert registry.get_formats(data_class=24) is None
 
-    def test_delay_doc_updates(self, registry, fmtcls1, recwarn):
+    def test_delay_doc_updates(self, registry, fmtcls1):
         """Test ``registry.delay_doc_updates()``."""
         # TODO! figure out what can be tested
         with registry.delay_doc_updates(EmptyData):
@@ -331,14 +331,9 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         """Test ``registry.get_formats()``."""
         assert False
 
-    def test_delay_doc_updates(self, registry, fmtcls1, recwarn):
-        """Test ``registry.delay_doc_updates()``.
-
-        capture and ignore warnings with ``recwarn``. Empty registries
-        emit a FutureWarning and there's a race condition when other
-        tests are run simultaneously.
-        """
-        super().test_delay_doc_updates(registry, fmtcls1, recwarn)
+    def test_delay_doc_updates(self, registry, fmtcls1):
+        """Test ``registry.delay_doc_updates()``."""
+        super().test_delay_doc_updates(registry, fmtcls1)
 
         with registry.delay_doc_updates(EmptyData):
             registry.register_reader("test", EmptyData, empty_reader)
@@ -408,9 +403,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         registry.register_reader(*fmtcls1, empty_reader, force=True)
         assert fmtcls1 in registry._readers
 
-    def test_register_readers_with_same_name_on_different_classes(
-        self, registry, recwarn
-    ):
+    def test_register_readers_with_same_name_on_different_classes(self, registry):
         # No errors should be generated if the same name is registered for
         # different objects...but this failed under python3
         registry.register_reader("test", EmptyData, lambda: EmptyData())
@@ -427,8 +420,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         registry.register_reader(*fmtcls1, empty_reader)
         assert fmtcls1 in registry._readers
 
-        with pytest.warns(FutureWarning):
-            registry.unregister_reader(*fmtcls1)
+        registry.unregister_reader(*fmtcls1)
         assert fmtcls1 not in registry._readers
 
     def test_unregister_reader_invalid(self, registry, fmtcls1):
@@ -442,7 +434,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_get_reader(self, registry, fmtcls, recwarn):
+    def test_get_reader(self, registry, fmtcls):
         """Test ``registry.get_reader()``."""
         fmt, cls = fmtcls
         with pytest.raises(IORegistryError):
@@ -455,8 +447,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
     def test_get_reader_invalid(self, registry, fmtcls):
         fmt, cls = fmtcls
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                registry.get_reader(fmt, cls)
+            registry.get_reader(fmt, cls)
         assert str(exc.value).startswith(
             f"No reader defined for format '{fmt}' and class '{cls.__name__}'"
         )
@@ -466,8 +457,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
     def test_read_noformat(self, registry, fmtcls1):
         """Test ``registry.read()`` when there isn't a reader."""
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                fmtcls1[1].read(registry=registry)
+            fmtcls1[1].read(registry=registry)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
@@ -478,8 +468,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         """Test that all identifier functions can accept arbitrary input"""
         registry._identifiers.update(original["identifiers"])
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                fmtcls1[1].read(object(), registry=registry)
+            fmtcls1[1].read(object(), registry=registry)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
@@ -494,15 +483,14 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             f.write("Hello world")
 
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                Table.read(testfile)
+            Table.read(testfile)
         assert str(exc.value).startswith(
             "Format could not be identified based"
             " on the file name or contents, "
             "please provide a 'format' argument."
         )
 
-    def test_read_toomanyformats(self, registry, fmtcls1, fmtcls2, recwarn):
+    def test_read_toomanyformats(self, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
         fmt2, _ = fmtcls2
 
@@ -512,7 +500,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             cls.read(registry=registry)
         assert str(exc.value) == (f"Format is ambiguous - options are: {fmt1}, {fmt2}")
 
-    def test_read_uses_priority(self, registry, fmtcls1, fmtcls2, recwarn):
+    def test_read_uses_priority(self, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
         fmt2, _ = fmtcls2
         counter = Counter()
@@ -537,13 +525,12 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
     def test_read_format_noreader(self, registry, fmtcls1):
         fmt, cls = fmtcls1
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                cls.read(format=fmt, registry=registry)
+            cls.read(format=fmt, registry=registry)
         assert str(exc.value).startswith(
             f"No reader defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
-    def test_read_identifier(self, tmpdir, registry, fmtcls1, fmtcls2, recwarn):
+    def test_read_identifier(self, tmpdir, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
         fmt2, _ = fmtcls2
 
@@ -569,8 +556,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         filename = tmpdir.join("testfile.b").strpath
         open(filename, "w").close()
         with pytest.raises(IORegistryError) as exc:
-            with pytest.warns(FutureWarning):
-                cls.read(filename, registry=registry)
+            cls.read(filename, registry=registry)
         assert str(exc.value).startswith(
             f"No reader defined for format '{fmt2}' and class '{cls.__name__}'"
         )
@@ -630,7 +616,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             finally:
                 default_registry._readers.pop(fmtcls1)
 
-    def test_compat_unregister_reader(self, registry, fmtcls1, recwarn):
+    def test_compat_unregister_reader(self, registry, fmtcls1):
         # with registry specified
         registry.register_reader(*fmtcls1, empty_reader)
         assert fmtcls1 in registry._readers
@@ -645,7 +631,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             compat.unregister_reader(*fmtcls1)
             assert fmtcls1 not in registry._readers
 
-    def test_compat_get_reader(self, registry, fmtcls1, recwarn):
+    def test_compat_get_reader(self, registry, fmtcls1):
         # with registry specified
         registry.register_reader(*fmtcls1, empty_reader)
         reader = compat.get_reader(*fmtcls1, registry=registry)
@@ -659,7 +645,7 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
             assert reader is empty_reader
             default_registry.unregister_reader(*fmtcls1)
 
-    def test_compat_read(self, registry, fmtcls1, recwarn):
+    def test_compat_read(self, registry, fmtcls1):
         fmt, cls = fmtcls1
         # with registry specified
         registry.register_reader(*fmtcls1, empty_reader)
@@ -713,14 +699,9 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # ===========================================
 
-    def test_delay_doc_updates(self, registry, fmtcls1, recwarn):
-        """Test ``registry.delay_doc_updates()``.
-
-        capture and ignore warnings with ``recwarn``. Empty registries
-        emit a FutureWarning and there's a race condition when other
-        tests are run simultaneously.
-        """
-        super().test_delay_doc_updates(registry, fmtcls1, recwarn)
+    def test_delay_doc_updates(self, registry, fmtcls1):
+        """Test ``registry.delay_doc_updates()``."""
+        super().test_delay_doc_updates(registry, fmtcls1)
         fmt, cls = fmtcls1
 
         with registry.delay_doc_updates(EmptyData):
@@ -803,8 +784,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         registry.register_writer(*fmtcls1, empty_writer)
         assert fmtcls1 in registry._writers
 
-        with pytest.warns(FutureWarning):
-            registry.unregister_writer(*fmtcls1)
+        registry.unregister_writer(*fmtcls1)
         assert fmtcls1 not in registry._writers
 
     def test_unregister_writer_invalid(self, registry, fmtcls):
@@ -819,7 +799,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_get_writer(self, registry, fmtcls1, recwarn):
+    def test_get_writer(self, registry, fmtcls1):
         """Test ``registry.get_writer()``."""
         with pytest.raises(IORegistryError):
             registry.get_writer(*fmtcls1)
@@ -828,7 +808,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         writer = registry.get_writer(*fmtcls1)
         assert writer is empty_writer
 
-    def test_get_writer_invalid(self, registry, fmtcls1, recwarn):
+    def test_get_writer_invalid(self, registry, fmtcls1):
         """Test invalid ``registry.get_writer()``."""
         fmt, cls = fmtcls1
         with pytest.raises(IORegistryError) as exc:
@@ -839,7 +819,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
 
     # -----------------------
 
-    def test_write_noformat(self, registry, fmtcls1, recwarn):
+    def test_write_noformat(self, registry, fmtcls1):
         """Test ``registry.write()`` when there isn't a writer."""
         with pytest.raises(IORegistryError) as exc:
             fmtcls1[1]().write(registry=registry)
@@ -849,7 +829,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             "please provide a 'format' argument."
         )
 
-    def test_write_noformat_arbitrary(self, registry, original, fmtcls1, recwarn):
+    def test_write_noformat_arbitrary(self, registry, original, fmtcls1):
         """Test that all identifier functions can accept arbitrary input"""
 
         registry._identifiers.update(original["identifiers"])
@@ -861,7 +841,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             "please provide a 'format' argument."
         )
 
-    def test_write_noformat_arbitrary_file(self, tmpdir, registry, original, recwarn):
+    def test_write_noformat_arbitrary_file(self, tmpdir, registry, original):
         """Tests that all identifier functions can accept arbitrary files"""
         registry._writers.update(original["writers"])
         testfile = str(tmpdir.join("foo.example"))
@@ -883,7 +863,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             f"Format is ambiguous - options are: {fmtcls1[0]}, {fmtcls2[0]}"
         )
 
-    def test_write_uses_priority(self, registry, fmtcls1, fmtcls2, recwarn):
+    def test_write_uses_priority(self, registry, fmtcls1, fmtcls2):
         fmt1, cls1 = fmtcls1
         fmt2, cls2 = fmtcls2
         counter = Counter()
@@ -903,7 +883,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         assert counter[fmt2] == 1
         assert counter[fmt1] == 0
 
-    def test_write_format_nowriter(self, registry, fmtcls1, recwarn):
+    def test_write_format_nowriter(self, registry, fmtcls1):
         fmt, cls = fmtcls1
         with pytest.raises(IORegistryError) as exc:
             cls().write(format=fmt, registry=registry)
@@ -911,7 +891,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             f"No writer defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
-    def test_write_identifier(self, registry, fmtcls1, fmtcls2, recwarn):
+    def test_write_identifier(self, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
         fmt2, _ = fmtcls2
 
@@ -943,7 +923,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
     # ===========================================
     # Compat tests
 
-    def test_compat_register_writer(self, registry, fmtcls1, recwarn):
+    def test_compat_register_writer(self, registry, fmtcls1):
 
         # with registry specified
         assert fmtcls1 not in registry._writers
@@ -963,7 +943,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             finally:
                 default_registry._writers.pop(fmtcls1)
 
-    def test_compat_unregister_writer(self, registry, fmtcls1, recwarn):
+    def test_compat_unregister_writer(self, registry, fmtcls1):
         # with registry specified
         registry.register_writer(*fmtcls1, empty_writer)
         assert fmtcls1 in registry._writers
@@ -978,7 +958,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             compat.unregister_writer(*fmtcls1)
             assert fmtcls1 not in default_registry._writers
 
-    def test_compat_get_writer(self, registry, fmtcls1, recwarn):
+    def test_compat_get_writer(self, registry, fmtcls1):
         # with registry specified
         registry.register_writer(*fmtcls1, empty_writer)
         writer = compat.get_writer(*fmtcls1, registry=registry)
@@ -994,7 +974,7 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
             default_registry.unregister_writer(*fmtcls1)
             assert fmtcls1 not in default_registry._writers
 
-    def test_compat_write(self, registry, fmtcls1, recwarn):
+    def test_compat_write(self, registry, fmtcls1):
         fmt, cls = fmtcls1
 
         # with registry specified
@@ -1025,14 +1005,9 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
         """Test ``registry.get_formats()``."""
         assert False
 
-    def test_delay_doc_updates(self, registry, fmtcls1, recwarn):
-        """Test ``registry.delay_doc_updates()``.
-
-        capture and ignore warnings with ``recwarn``. Empty registries
-        emit a FutureWarning and there's a race condition when other
-        tests are run simultaneously.
-        """
-        super().test_delay_doc_updates(registry, fmtcls1, recwarn)
+    def test_delay_doc_updates(self, registry, fmtcls1):
+        """Test ``registry.delay_doc_updates()``."""
+        super().test_delay_doc_updates(registry, fmtcls1)
 
     # -----------------------
 
