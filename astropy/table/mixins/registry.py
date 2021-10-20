@@ -4,9 +4,15 @@
 # then add objects to tables that are not formally mixin columns and where
 # adding an info attribute is beyond our control.
 
+__all__ = ['MixinRegistryError', 'register_mixin_handler', 'mixin_handler']
+
 # The internal dictionary of handlers maps fully qualified names of classes
 # to a function that can take an object and return a mixin-compatible object.
 _handlers = {}
+
+
+class MixinRegistryError(Exception):
+    pass
 
 
 def register_mixin_handler(fully_qualified_name, handler, force=False):
@@ -35,7 +41,7 @@ def register_mixin_handler(fully_qualified_name, handler, force=False):
     if fully_qualified_name not in _handlers or force:
         _handlers[fully_qualified_name] = handler
     else:
-        raise Exception(f"Handler for class {fully_qualified_name} is already defined")
+        raise MixinRegistryError(f"Handler for class {fully_qualified_name} is already defined")
 
 
 def mixin_handler(obj):
