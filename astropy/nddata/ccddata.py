@@ -224,7 +224,7 @@ class CCDData(NDDataArray):
 
     @wcs.setter
     def wcs(self, value):
-        if not isinstance(value, WCS):
+        if value is not None and not isinstance(value, WCS):
             raise TypeError("the wcs must be a WCS instance.")
         self._wcs = value
 
