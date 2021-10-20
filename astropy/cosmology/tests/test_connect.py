@@ -38,9 +38,9 @@ class ReadWriteTestMixin:
     def setup_readwrite(self):
         """Setup & teardown for read/write tests."""
         # register
-        readwrite_registry.register_reader("json", Cosmology, read_json)
-        readwrite_registry.register_writer("json", Cosmology, write_json)
-        readwrite_registry.register_identifier("json", Cosmology, json_identify)
+        readwrite_registry.register_reader("json", Cosmology, read_json, force=True)
+        readwrite_registry.register_writer("json", Cosmology, write_json, force=True)
+        readwrite_registry.register_identifier("json", Cosmology, json_identify, force=True)
 
         yield  # run all tests in class
 

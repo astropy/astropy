@@ -3,6 +3,7 @@
 import abc
 import contextlib
 import re
+import warnings
 from collections import OrderedDict
 from operator import itemgetter
 
@@ -140,9 +141,14 @@ class _UnifiedIORegistryBase(metaclass=abc.ABCMeta):
             data = None
 
         # make table
-        format_table = Table(data, names=colnames)
-        if not np.any(format_table['Deprecated'] == 'Yes'):
-            format_table.remove_column('Deprecated')
+        # need to filter elementwise comparison failure issue
+        # https://github.com/numpy/numpy/issues/6784
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=FutureWarning)
+
+            format_table = Table(data, names=colnames)
+            if not np.any(format_table['Deprecated'].data == 'Yes'):
+                format_table.remove_column('Deprecated')
 
         return format_table
 
