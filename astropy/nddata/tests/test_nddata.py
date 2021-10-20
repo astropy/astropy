@@ -488,3 +488,10 @@ def test_nddata_wcs_setter_with_low_level_wcs():
     ndd.wcs = low_level
 
     assert isinstance(ndd.wcs, BaseHighLevelWCS)
+
+
+def test_nddata_init_with_low_level_wcs():
+    wcs = WCS()
+    low_level = SlicedLowLevelWCS(wcs, 5)
+    ndd = NDData(np.ones((5, 5)), wcs=low_level)
+    assert isinstance(ndd.wcs, BaseHighLevelWCS)
