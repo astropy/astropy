@@ -1233,10 +1233,13 @@ class Table:
         # check the registry of mixin 'handlers' to see if the column can be
         # converted to a mixin class
         if (handler := mixin_handler(data)) is not None:
+            original_data = data
             data = handler(data)
             if not (data_is_mixin := self._is_mixin_for_table(data)):
+                fully_qualified_name = (original_data.__class__.__module__ + '.'
+                                        + original_data.__class__.__name__)
                 raise TypeError('Mixin handler for object of type '
-                                f'{data.__class__.__module__ + data.__class__.__name__}'
+                                f'{fully_qualified_name} '
                                 'did not return a valid mixin column')
 
         # Structured ndarray gets viewed as a mixin unless already a valid
