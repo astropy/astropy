@@ -34,7 +34,7 @@ from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
 from .connect import TableRead, TableWrite
 from .ndarray_mixin import NdarrayMixin
-from .mixin_handlers import mixin_handler
+from .mixins.registry import mixin_handler
 from . import conf
 
 
