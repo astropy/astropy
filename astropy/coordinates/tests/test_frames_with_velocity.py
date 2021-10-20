@@ -313,13 +313,15 @@ def test_negative_distance():
 def test_velocity_units():
     """Check that the differential data given has compatible units
     with the time-derivative of representation data"""
-    with pytest.raises(ValueError) as excinfo:
+    msg = ('x has unit "" with physical type "dimensionless", but v_x has '
+           'incompatible unit "" with physical type "dimensionless" instead '
+           r'of the expected "frequency"\.')
+    with pytest.raises(ValueError, match=msg):
         c = ICRS(
             x=1, y=2, z=3,
             v_x=1, v_y=2, v_z=3,
             representation_type=r.CartesianRepresentation,
             differential_type=r.CartesianDifferential)
-    assert "data units are not compatible with" in str(excinfo.value)
 
 
 def test_frame_with_velocity_without_distance_can_be_transformed():
