@@ -87,4 +87,3 @@ conversion, with an 'origin' argument:
 
   - 1: places the origin at (1, 1), which is the Fortran/FITS
     convention.
-

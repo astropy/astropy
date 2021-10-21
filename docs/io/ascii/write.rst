@@ -338,20 +338,20 @@ After execution, the contents of ``coords_cols.dat`` will be::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name                   
-   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature 
-   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH         
-   32- 36  F5.3   10+12Jy Flux        ? Description of Flux                 
+    1- 11  A11     ---    Name        Description of Name
+   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH
+   32- 36  F5.3   10+12Jy Flux        ? Description of Flux
    38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation   
-   51- 53  I3      s      Cadence     [100] Description of Cadence          
-   55- 58  F4.1    h      RAh         Right Ascension (hour)                
-   60- 63  F4.1    min    RAm         Right Ascension (minute)              
-   65- 79  F15.12  s      RAs         Right Ascension (second)              
-       81  A1      ---    DE-         Sign of Declination                   
-   82- 85  F5.1    deg    DEd         Declination (degree)                  
-   87- 90  F4.1    arcmin DEm         Declination (arcmin)                  
-   92-106  F15.12  arcsec DEs         Declination (arcsec)                  
+   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+   51- 53  I3      s      Cadence     [100] Description of Cadence
+   55- 58  F4.1    h      RAh         Right Ascension (hour)
+   60- 63  F4.1    min    RAm         Right Ascension (minute)
+   65- 79  F15.12  s      RAs         Right Ascension (second)
+       81  A1      ---    DE-         Sign of Declination
+   82- 85  F5.1    deg    DEd         Declination (degree)
+   87- 90  F4.1    arcmin DEm         Declination (arcmin)
+   92-106  F15.12  arcsec DEs         Declination (arcsec)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
@@ -368,15 +368,15 @@ And the file ``ecliptic_cols.dat`` will look like::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name                        
-   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
-   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH              
-   32- 36  F5.3   10+12Jy Flux        ? Description of Flux                      
-   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation        
-   51- 53  I3      s      Cadence     [100] Description of Cadence               
+    1- 11  A11     ---    Name        Description of Name
+   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH
+   32- 36  F5.3   10+12Jy Flux        ? Description of Flux
+   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+   51- 53  I3      s      Cadence     [100] Description of Cadence
    55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
@@ -399,7 +399,7 @@ The following example shows a similar situation, using the option to send the ou
   >>> # re-order so that related columns are placed next to eachother.
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
   ...                 'Temperature', 'Flux', 'e_Flux']  # doctest: +REMOTE_DATA
-  
+
   >>> ascii.write(outtab, format='cds')  # doctest: +REMOTE_DATA
   Title:
   Authors:
@@ -409,16 +409,16 @@ The following example shows a similar situation, using the option to send the ou
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name                        
-   13- 18  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation        
-   20- 22  I3      s      Cadence     [100] Description of Cadence               
-   24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH              
-   31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude     
-   37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature      
-   49- 53  F5.3   10+12Jy Flux        ? Description of Flux                      
-   55- 61  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux      
+    1- 11  A11     ---    Name        Description of Name
+   13- 18  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+   20- 22  I3      s      Cadence     [100] Description of Cadence
+   24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH
+   31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+   37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+   49- 53  F5.3   10+12Jy Flux        ? Description of Flux
+   55- 61  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux
    63- 78  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   80- 95  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic) 
+   80- 95  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------

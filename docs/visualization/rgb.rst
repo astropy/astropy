@@ -90,4 +90,3 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 
 
 .. _SDSS Skyserver image: http://skyserver.sdss.org/dr13/en/tools/chart/navi.aspx?ra=313.12381&dec=-5.74611
-
