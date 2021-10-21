@@ -69,7 +69,7 @@ signature.
     >>> cosmo = FlatLambdaCDM.read('<file name>')
     >>> cosmo == Planck18
     True
-    
+
 Reading and writing :class:`~astropy.cosmology.Cosmology` objects go through
 intermediate representations, often a dict or `~astropy.table.QTable` instance.
 These intermediate representations are accessible through the methods
@@ -154,7 +154,7 @@ treatment are in ``Cosmology.from_format.help("mapping")``.
 
     >>> import copy
     >>> from astropy.cosmology import Cosmology
-    
+
     >>> def from_table_row(row, *, move_to_meta=False, cosmology=None):
     ...     # get name from column
     ...     name = row['name'] if 'name' in row.columns else None
@@ -176,7 +176,7 @@ implements `astropy.cosmology.Cosmology.to_format`).
     :emphasize-lines: 4
 
     >>> from astropy.table import QTable
-    
+
     >>> def to_table_row(cosmology, *args):
     ...     p = cosmology.to_format("mapping")
     ...     p["cosmology"] = p["cosmology"].__qualname__  # as string
@@ -215,8 +215,8 @@ Now the registered functions can be used in
     >>> row = Planck18.to_format("row")
     >>> row
     <Row index=0>
-      cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0  
-                           km / (Mpc s)            K                 eV            
+      cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+                           km / (Mpc s)            K                 eV
         str13       str8     float64    float64 float64 float64   float64   float64
     ------------- -------- ------------ ------- ------- ------- ----------- -------
     FlatLambdaCDM Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
@@ -332,7 +332,7 @@ register everything into `astropy.io.registry`.
     >>> io_registry.register_reader("json", Cosmology, read_json)
     >>> io_registry.register_writer("json", Cosmology, write_json)
     >>> io_registry.register_identifier("json", Cosmology, json_identify)
-    
+
 Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.read` and
 :meth:`astropy.cosmology.Cosmology.write`.

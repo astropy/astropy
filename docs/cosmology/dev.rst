@@ -104,7 +104,7 @@ the definition of :class:`~astropy.cosmology.FLRW`.
         m_nu = Parameter(doc="Mass of neutrino species",
                          unit="eV", equivalencies=u.mass_energy(), fmt="")
         Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0")
-        
+
         def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                      Ob0=None, *, name=None, meta=None):
             cls = self.__class__
@@ -120,7 +120,7 @@ the definition of :class:`~astropy.cosmology.FLRW`.
 
 First note that all the parameters are also arguments in ``__init__``. This is
 not strictly necessary, but is good practice. If the parameter has units (and
-related equivalencies) these must be specified on the Parameter, as seen in 
+related equivalencies) these must be specified on the Parameter, as seen in
 :attr:`~astropy.cosmology.FLRW.H0` and :attr:`~astropy.cosmology.FLRW.m_nu`.
 
 The next important thing to note is how the parameter value is set, in
@@ -184,7 +184,7 @@ this, the key thing is to explicitly set the instance variables
 constructor for the subclass, where the latter are all the arguments except
 ``z`` to ``_inv_efunc_scalar``. The provided classes do use this optimization,
 and in fact go even further and provide optimizations for no radiation, and for
-radiation with massless neutrinos coded in cython. Consult the 
+radiation with massless neutrinos coded in cython. Consult the
 :class:`~astropy.cosmology.FLRW` subclasses for details, and
 ``scalar_inv_efuncs`` for the details.
 

@@ -9,7 +9,7 @@ repos:
   - id: end-of-file-fixer
     exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py)$"
   - id: trailing-whitespace
-    exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py)$"
+    exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py|test_cds.py)$"
 # - repo: https://github.com/timothycrosley/isort
 #   rev: 5.9.2
 #   hooks:

@@ -11,7 +11,7 @@ will only cover:
   backports done by the original author, users, or institutions who are on LTS
   and need the fix.
 * New "features" that are absolutely necessary to accomplish the above.
-* Other critical additions absolutely necessary for users stuck to the LTS. 
+* Other critical additions absolutely necessary for users stuck to the LTS.
   In this case, the users themselves (e.g., developers from affected institutions)
   would perform the needed backports or implementation.
 
