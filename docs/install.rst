@@ -86,7 +86,7 @@ or::
 
     conda install -c conda-forge -c defaults scipy matplotlib \
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
-      pytz setuptools mpmath bottleneck jplephem asdf
+      pytz setuptools mpmath bottleneck jplephem asdf pyarrow
 
 To also be able to run tests (see below) and support :ref:`builddocs` use the
 following. We use ``pip`` for these packages to ensure getting the latest
@@ -204,6 +204,9 @@ The further dependencies provide more specific features:
   up-to-date root CA certificates on your system; this package is usually
   already included in many Python installations (e.g., as a dependency of
   the ``requests`` package).
+
+- `pyarrow <https://arrow.apache.org/docs/python/>`_ |minimum_pyarrow_version| or later:
+  To read/write :class:`~astropy.table.Table` objects from/to Parquet files.
 
 However, note that these packages require installation only if those particular
 features are needed. ``astropy`` will import even if these dependencies are not
