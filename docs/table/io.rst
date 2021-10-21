@@ -57,6 +57,47 @@ Any additional arguments specified will depend on the format. For examples of
 this see the section :ref:`built_in_readers_writers`. This section also
 provides the full list of choices for the ``format`` argument.
 
+.. _combining_units_and_quantities:
+
+Combining Units and Quantities
+==============================
+
+.. EXAMPLE START: Combining Units and Quantities
+
+A |QTable| can be used to store data as :ref:`user-defined units 
+<astropy:defining_units>` in a FITS file.
+
+  >>> import numpy as np
+  >>> from astropy.table import QTable
+  >>> import astropy.units as u
+  >>> lps = u.def_unit('Lps', u.L / u.s)
+  >>> qt = QTable()
+  >>> qt['speeds'] = np.arange(5) * lps
+  >>> qt.write('Lps_output.fits', overwrite=True, format='fits')
+
+In order to parse and read the file contents, it is necessary to enable the
+new defined unit by calling :func:`~astropy.units.add_enabled_units`, otherwise
+the unit will fail to parse::
+
+  >>> qt2 = QTable.read('Lps_output.fits', format='fits') # doctest: +SHOW_WARNINGS
+  Traceback (most recent call last):
+  astropy.table.meta.YamlParseError
+  >>> u.add_enabled_units(lps)
+  <astropy.units.core._UnitContext object at 0x...>
+  >>> qt2 = QTable.read('Lps_output.fits', format='fits')
+  <QTable length=5>
+       speeds
+    1000 cm3 / s
+      float64
+    ------------
+             0.0
+             1.0
+             2.0
+             3.0
+             4.0
+
+.. EXAMPLE END
+
 Supported Formats
 =================
 

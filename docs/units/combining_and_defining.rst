@@ -48,10 +48,10 @@ complex operations. To do this, it is recommended to use
 
 .. EXAMPLE END
 
+.. _defining_units:
+
 Defining units
 ==============
-
-.. _defining_units:
 
 .. EXAMPLE START: Defining New Units
 
@@ -99,5 +99,8 @@ can be enabled by calling :func:`~astropy.units.add_enabled_units`::
   [
     kmph         | 0.277778 m / s  |         ,
   ]
+
+Enabling custom units is also required in order to :ref:`parse and read new 
+defined units from FITS files. <astropy:combining_units_and_quantities>`
 
 .. EXAMPLE END

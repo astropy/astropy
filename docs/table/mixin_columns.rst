@@ -141,6 +141,12 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
    ordinary `~astropy.table.Table` then it gets converted to an ordinary
    `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
+.. Note::
+
+  For reading data as :ref:`user-defined units <astropy:defining_units>` into
+  a |QTable|, it is required to :ref:`enable the new defined unit first.
+  <astropy:combining_units_and_quantities>`
+
 .. attention::
 
    When a column of ``int`` ``dtype`` is converted to `~astropy.units.Quantity`,
@@ -150,40 +156,6 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
    assigned with the :ref:`dimensionless unit <doc_dimensionless_unit>`, it will still
    be converted to ``float``. Therefore such columns typically should not be
    assigned with any unit.
-
-.. EXAMPLE END
-
-.. EXAMPLE START: Combining Units and Quantities
-
-In the following example, a |QTable| is used to store data as :ref:`user-defined
-units <astropy:defining_units>` in a FITS file.
-
-  >>> import numpy as np
-  >>> lps = u.def_unit('Lps', u.L / u.s)
-  >>> qt3 = QTable()
-  >>> qt3['speeds'] = np.arange(5) * lps
-  >>> qt3.write('Lps_output.fits', overwrite=True, format='fits')
-
-In order to parse and read the file contents, it is necessary to enable the
-new defined unit by calling :func:`~astropy.units.add_enabled_units`, otherwise
-the unit will fail to parse::
-
-  >>> QTable.read('Lps_output.fits', format='fits')
-  Traceback (most recent call last):
-  astropy.table.meta.YamlParseError
-  >>> u.add_enabled_units(lps)
-  <astropy.units.core._UnitContext object at 0x...>
-  >>> QTable.read('Lps_output.fits', format='fits')
-  <QTable length=5>
-       speeds
-    1000 cm3 / s
-      float64
-    ------------
-             0.0
-             1.0
-             2.0
-             3.0
-             4.0
 
 .. EXAMPLE END
 
@@ -239,6 +211,7 @@ Masking of mixin columns is enabled by the |Masked| class. See
 Some :ref:`grouped-operations` can be used with a |QTable| with |Quantity|
 columns, but performing aggregation on such a |QTable| fails::
 
+  >>> import numpy as np
   >>> t = QTable()
   >>> t['name'] = ['foo', 'foo', 'bar']
   >>> t['a'] = np.arange(3)*u.m
