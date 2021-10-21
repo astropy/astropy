@@ -1,0 +1,3 @@
+Adding a dask array to a Table will no longer convert
+that dask to a Numpy array, so accessing t['dask_column']
+will now return a dask array instead of a Numpy array.

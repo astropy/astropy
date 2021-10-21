@@ -1,0 +1,3 @@
+It is now possible to add dask arrays as columns in tables
+and have them remain as dask arrays rather than be converted
+to Numpy arrays.
