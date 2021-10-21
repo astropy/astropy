@@ -1,1 +1,0 @@
-Developer notes in the code and docs are moved to a dedicated page.
