@@ -59,3 +59,15 @@ def mixin_handler(obj):
         Then matching handler, if found, or `None`
     """
     return _handlers.get(obj.__class__.__module__ + '.' + obj.__class__.__name__, None)
+
+
+# Add built-in handlers to registry. Note that any third-party package imports
+# required by the handlers should go inside the handler function to delay
+# the imports until they are actually needed.
+
+def dask_handler(arr):
+    from astropy.table.mixins.dask import as_dask_column
+    return as_dask_column(arr)
+
+
+register_mixin_handler('dask.array.core.Array', dask_handler)
