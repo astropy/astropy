@@ -15,8 +15,10 @@ from astropy.io.votable.table import parse, writeto
 from astropy.io.votable import tree, conf
 from astropy.io.votable.exceptions import VOWarning, W39, E25
 from astropy.table import Column, Table
+from astropy.table.table_helpers import simple_table
 from astropy.units import Unit
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 
 def test_table(tmpdir):
@@ -180,6 +182,15 @@ def test_write_with_format():
     assert b'TABLEDATA' not in obuff
 
 
+def test_write_overwrite(tmpdir):
+    t = simple_table(3, 3)
+    filename = os.path.join(tmpdir, 'overwrite_test.vot')
+    t.write(filename, format='votable')
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+        t.write(filename, format='votable')
+    t.write(filename, format='votable', overwrite=True)
+
+
 def test_empty_table():
     votable = parse(get_pkg_data_filename('data/empty_table.xml'))
     table = votable.get_first_table()
@@ -234,16 +245,17 @@ class TestVerifyOptions:
         with pytest.raises(VOWarning):
             parse(get_pkg_data_filename('data/gemini.xml'), verify='exception')
 
-    # Make sure the pedantic option still works for now (pending deprecation)
+    # Make sure the deprecated pedantic option still works for now
 
     def test_pedantic_false(self):
         with pytest.warns(VOWarning) as w:
             parse(get_pkg_data_filename('data/gemini.xml'), pedantic=False)
-        assert len(w) == 24
+        assert len(w) == 25
 
     def test_pedantic_true(self):
-        with pytest.raises(VOWarning):
-            parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
+        with pytest.raises(AstropyDeprecationWarning):
+            with pytest.raises(VOWarning):
+                parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
 
     # Make sure that the default behavior can be set via configuration items
 
@@ -275,7 +287,7 @@ class TestVerifyOptions:
 
             with pytest.warns(VOWarning) as w:
                 parse(get_pkg_data_filename('data/gemini.xml'))
-            assert len(w) == 24
+            assert len(w) == 25
 
     def test_conf_pedantic_true(self, tmpdir):
 
@@ -286,5 +298,6 @@ class TestVerifyOptions:
 
             reload_config('astropy.io.votable')
 
-            with pytest.raises(VOWarning):
-                parse(get_pkg_data_filename('data/gemini.xml'))
+            with pytest.raises(AstropyDeprecationWarning):
+                with pytest.raises(VOWarning):
+                    parse(get_pkg_data_filename('data/gemini.xml'))

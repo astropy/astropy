@@ -288,6 +288,52 @@ def _convert_sequence_data_to_array(data, dtype=None):
     return np_data
 
 
+def _make_compare(oper):
+    """
+    Make Column comparison methods which encode the ``other`` object to utf-8
+    in the case of a bytestring dtype for Py3+.
+
+    Parameters
+    ----------
+    oper : str
+        Operator name
+    """
+    swapped_oper = {'__eq__': '__eq__',
+                    '__ne__': '__ne__',
+                    '__gt__': '__lt__',
+                    '__lt__': '__gt__',
+                    '__ge__': '__le__',
+                    '__le__': '__ge__'}[oper]
+
+    def _compare(self, other):
+        op = oper  # copy enclosed ref to allow swap below
+
+        # Special case to work around #6838.  Other combinations work OK,
+        # see tests.test_column.test_unicode_sandwich_compare().  In this
+        # case just swap self and other.
+        #
+        # This is related to an issue in numpy that was addressed in np 1.13.
+        # However that fix does not make this problem go away, but maybe
+        # future numpy versions will do so.  NUMPY_LT_1_13 to get the
+        # attention of future maintainers to check (by deleting or versioning
+        # the if block below).  See #6899 discussion.
+        # 2019-06-21: still needed with numpy 1.16.
+        if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U'
+                and isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
+            self, other = other, self
+            op = swapped_oper
+
+        if self.dtype.char == 'S':
+            other = self._encode_str(other)
+
+        # Now just let the regular ndarray.__eq__, etc., take over.
+        result = getattr(super(Column, self), op)(other)
+        # But we should not return Column instances for this case.
+        return result.data if isinstance(result, Column) else result
+
+    return _compare
+
+
 class ColumnInfo(BaseColumnInfo):
     """
     Container for meta information like name, description, format.
@@ -608,8 +654,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self._format = prev_format
             raise ValueError(
                 "Invalid format for column '{}': could not display "
-                "values in this column using this format ({})".format(
-                    self.name, err.args[0]))
+                "values in this column using this format".format(
+                    self.name)) from err
 
     @property
     def descr(self):
@@ -1122,46 +1168,6 @@ class Column(BaseColumn):
         # order-of-magnitude speed-up. [#2994]
         self.data[index] = value
 
-    def _make_compare(oper):
-        """
-        Make comparison methods which encode the ``other`` object to utf-8
-        in the case of a bytestring dtype for Py3+.
-        """
-        swapped_oper = {'__eq__': '__eq__',
-                        '__ne__': '__ne__',
-                        '__gt__': '__lt__',
-                        '__lt__': '__gt__',
-                        '__ge__': '__le__',
-                        '__le__': '__ge__'}[oper]
-
-        def _compare(self, other):
-            op = oper  # copy enclosed ref to allow swap below
-
-            # Special case to work around #6838.  Other combinations work OK,
-            # see tests.test_column.test_unicode_sandwich_compare().  In this
-            # case just swap self and other.
-            #
-            # This is related to an issue in numpy that was addressed in np 1.13.
-            # However that fix does not make this problem go away, but maybe
-            # future numpy versions will do so.  NUMPY_LT_1_13 to get the
-            # attention of future maintainers to check (by deleting or versioning
-            # the if block below).  See #6899 discussion.
-            # 2019-06-21: still needed with numpy 1.16.
-            if (isinstance(self, MaskedColumn) and self.dtype.kind == 'U'
-                    and isinstance(other, MaskedColumn) and other.dtype.kind == 'S'):
-                self, other = other, self
-                op = swapped_oper
-
-            if self.dtype.char == 'S':
-                other = self._encode_str(other)
-
-            # Now just let the regular ndarray.__eq__, etc., take over.
-            result = getattr(super(), op)(other)
-            # But we should not return Column instances for this case.
-            return result.data if isinstance(result, Column) else result
-
-        return _compare
-
     __eq__ = _make_compare('__eq__')
     __ne__ = _make_compare('__ne__')
     __gt__ = _make_compare('__gt__')
@@ -1254,6 +1260,7 @@ class MaskedColumnInfo(ColumnInfo):
             self.serialize_method = {'fits': 'null_value',
                                      'ecsv': 'null_value',
                                      'hdf5': 'data_mask',
+                                     'parquet': 'data_mask',
                                      None: 'null_value'}
 
     def _represent_as_dict(self):

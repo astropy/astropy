@@ -58,7 +58,7 @@ class BaseFormatterLocator:
                  unit=None, format_unit=None):
 
         if len([x for x in (values, number, spacing) if x is None]) < 2:
-            raise ValueError("At most one of values/number/spacing can be specifed")
+            raise ValueError("At most one of values/number/spacing can be specified")
 
         self._unit = unit
         self._format_unit = format_unit or unit

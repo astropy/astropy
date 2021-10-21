@@ -155,7 +155,7 @@ void
 wcs_to_python_exc(const struct wcsprm *wcs);
 
 void
-wcshdr_err_to_python_exc(int status);
+wcshdr_err_to_python_exc(int status, const struct wcsprm *wcs);
 
 void
 wcserr_fix_to_python_exc(const struct wcserr *err);

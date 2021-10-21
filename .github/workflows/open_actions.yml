@@ -31,6 +31,14 @@ jobs:
             and make sure you've provided the requested details.
 
 
+            GitHub issues in the Astropy repository are used to track bug
+            reports and feature requests; If your issue poses a question about
+            how to use Astropy, please instead raise your question in the
+            [Astropy Discourse user
+            forum](https://community.openastronomy.org/c/astropy/8) and close
+            this issue.
+
+
             If you feel that this issue has not been responded to in a timely
             manner, please leave a comment mentioning our software support
             engineer @embray, or send a message directly to the [development

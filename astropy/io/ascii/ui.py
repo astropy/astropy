@@ -38,7 +38,8 @@ from .docs import READ_KWARG_TYPES, WRITE_KWARG_TYPES
 
 from astropy.table import Table, MaskedColumn
 from astropy.utils.data import get_readable_fileobj
-from astropy.utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 _read_trace = []
 
@@ -62,8 +63,9 @@ def _probably_html(table, maxchars=100000):
             for i, line in enumerate(table):
                 size += len(line)
                 if size > maxchars:
+                    table = table[:i + 1]
                     break
-            table = os.linesep.join(table[:i + 1])
+            table = os.linesep.join(table)
         except Exception:
             pass
 
@@ -247,6 +249,10 @@ def _validate_read_write_kwargs(read_write, **kwargs):
 
 
 def read(table, guess=None, **kwargs):
+    # This the final output from reading. Static analysis indicates the reading
+    # logic (which is indeed complex) might not define `dat`, thus do so here.
+    dat = None
+
     # Docstring defined below
     del _read_trace[:]
 
@@ -371,6 +377,12 @@ def read(table, guess=None, **kwargs):
                                 'Reader': reader.__class__,
                                 'status': 'Success with specified Reader class '
                                           '(no guessing)'})
+
+    # Static analysis (pyright) indicates `dat` might be left undefined, so just
+    # to be sure define it at the beginning and check here.
+    if dat is None:
+        raise RuntimeError('read() function failed due to code logic error, '
+                           'please report this bug on github')
 
     return dat
 
@@ -514,7 +526,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             return dat
 
         except guess_exception_classes as err:
-            _read_trace.append({'kwargs': copy.deepcopy(guess_kwargs),
+            _read_trace.append({'kwargs': copy.deepcopy(read_kwargs),
                                 'status': f'{err.__class__.__name__}: {str(err)}'})
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
@@ -782,22 +794,15 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
 
 
 def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
-          overwrite=None, **kwargs):
+          overwrite=False, **kwargs):
     # Docstring inserted below
 
     _validate_read_write_kwargs('write', format=format, fast_writer=fast_writer,
                                 overwrite=overwrite, **kwargs)
 
     if isinstance(output, str):
-        if os.path.lexists(output):
-            if overwrite is None:
-                warnings.warn(
-                    "{} already exists. "
-                    "Automatically overwriting ASCII files is deprecated. "
-                    "Use the argument 'overwrite=True' in the future.".format(
-                        output), AstropyDeprecationWarning)
-            elif not overwrite:
-                raise OSError(f"{output} already exists")
+        if not overwrite and os.path.lexists(output):
+            raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     if output is None:
         output = sys.stdout

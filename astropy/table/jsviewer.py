@@ -4,8 +4,8 @@ from os.path import abspath, dirname, join
 
 from .table import Table
 
-from astropy.io import registry as io_registry
-from astropy import config as _config
+import astropy.io.registry as io_registry
+import astropy.config as _config
 from astropy import extern
 
 
@@ -24,7 +24,7 @@ class Conf(_config.ConfigNamespace):
 
     css_urls = _config.ConfigItem(
         ['https://cdn.datatables.net/1.10.12/css/jquery.dataTables.css'],
-        'The URLs to the css file(s) to include.', cfgtype='list')
+        'The URLs to the css file(s) to include.', cfgtype='string_list')
 
 
 conf = Conf()

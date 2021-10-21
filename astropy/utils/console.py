@@ -121,7 +121,7 @@ def isatty(file):
     ttys.
     """
     if (multiprocessing.current_process().name != 'MainProcess' or
-            threading.current_thread().getName() != 'MainThread'):
+            threading.current_thread().name != 'MainThread'):
         return False
 
     if hasattr(file, 'isatty'):
@@ -804,10 +804,8 @@ class ProgressBar:
                         bar.update(i)
             else:
                 ctx = multiprocessing.get_context(multiprocessing_start_method)
-                if sys.version_info >= (3, 7):
-                    kwargs = dict(mp_context=ctx)
-                else:
-                    kwargs = {}
+                kwargs = dict(mp_context=ctx)
+
                 with ProcessPoolExecutor(
                         max_workers=(int(multiprocess)
                                      if multiprocess is not True
@@ -1080,7 +1078,7 @@ def print_code_line(line, col=None, file=None, tabwidth=8, width=70):
 
     if col is not None:
         if col >= len(line):
-            raise ValueError('col must be less the the line lenght.')
+            raise ValueError('col must be less the the line length.')
         ntabs = line[:col].count('\t')
         col += ntabs * (tabwidth - 1)
 

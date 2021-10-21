@@ -28,7 +28,7 @@ _config_ccd_requires_unit = True
 
 
 def _arithmetic(op):
-    """Decorator factory which temporarly disables the need for a unit when
+    """Decorator factory which temporarily disables the need for a unit when
     creating a new CCDData instance. The final result must have a unit.
 
     Parameters
@@ -192,7 +192,7 @@ class CCDData(NDDataArray):
                 raise TypeError("the wcs must be a WCS instance.")
             self._wcs = llwcs
 
-        # Check if a unit is set. This can be temporarly disabled by the
+        # Check if a unit is set. This can be temporarily disabled by the
         # _CCDDataUnit contextmanager.
         if _config_ccd_requires_unit and self.unit is None:
             raise ValueError("a unit for CCDData must be specified.")
@@ -224,7 +224,7 @@ class CCDData(NDDataArray):
 
     @wcs.setter
     def wcs(self, value):
-        if not isinstance(value, WCS):
+        if value is not None and not isinstance(value, WCS):
             raise TypeError("the wcs must be a WCS instance.")
         self._wcs = value
 
@@ -474,7 +474,7 @@ def _generate_wcs_and_update_header(hdr):
     except Exception as exc:
         # Normally WCS only raises Warnings and doesn't fail but in rare
         # cases (malformed header) it could fail...
-        log.info('An exception happened while extracting WCS informations from '
+        log.info('An exception happened while extracting WCS information from '
                  'the Header.\n{}: {}'.format(type(exc).__name__, str(exc)))
         return hdr, None
     # Test for success by checking to see if the wcs ctype has a non-empty

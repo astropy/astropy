@@ -66,3 +66,4 @@ The :ref:`table_io` has built-in support for the following data file formats:
 * :ref:`table_io_hdf5`
 * :ref:`table_io_fits`
 * :ref:`table_io_votable`
+* :ref:`table_io_parquet`

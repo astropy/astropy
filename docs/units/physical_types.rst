@@ -1,3 +1,5 @@
+.. _physical_types:
+
 Physical Types
 **************
 
@@ -11,7 +13,7 @@ Accessing Physical Types
 
 .. EXAMPLE START: Accessing Physical Types
 
-Using `~astropy.units.get_physical_type` lets us acquire |PhysicalType|
+Using :func:`~astropy.units.get_physical_type` lets us acquire |PhysicalType|
 instances from strings with a name of a physical type, units, |Quantity|
 instances, objects that can become quantities (e.g., numbers), and
 |PhysicalType| instances.
@@ -27,7 +29,7 @@ instances, objects that can become quantities (e.g., numbers), and
   PhysicalType('dimensionless')
 
 The physical type of a unit can be accessed via its
-`~astropy.units.UnitBase.physical_type` attribute.
+:attr:`~astropy.units.UnitBase.physical_type` attribute::
 
   >>> u.coulomb.physical_type
   PhysicalType('electrical charge')
@@ -42,20 +44,19 @@ Using Physical Types
 .. EXAMPLE START: Using Physical Types
 
 An equality comparison between a |PhysicalType| and a string will return
-`True` if the string is a name of the |PhysicalType|.
+`True` if the string is a name of the |PhysicalType|::
 
-  >>> import astropy.units as u
   >>> acceleration = u.get_physical_type(u.m / u.s ** 2)
   >>> acceleration == 'acceleration'
   True
 
 Some units may correspond to multiple physical types because compatible
-units can be used to quantify different phenomena.
+units can be used to quantify different phenomena::
 
   >>> u.get_physical_type('pressure')
   PhysicalType({'energy density', 'pressure', 'stress'})
 
-We can iterate through the names of a |PhysicalType|.
+We can iterate through the names of a |PhysicalType|::
 
   >>> for name in u.J.physical_type: print(name)
   energy
@@ -63,7 +64,7 @@ We can iterate through the names of a |PhysicalType|.
   work
 
 We can test for membership or equality with a string that has the name
-of a |PhysicalType|.
+of a |PhysicalType|::
 
   >>> 'energy' == u.J.physical_type
   True
@@ -79,9 +80,8 @@ Dimensional Analysis
 
 |PhysicalType| instances support multiplication, division,
 and exponentiation. Because of this, they can be used for
-dimensional analysis.
+dimensional analysis::
 
-  >>> import astropy.units as u
   >>> length = u.get_physical_type('length')
   >>> time = u.get_physical_type('time')
   >>> length ** 2
@@ -91,7 +91,7 @@ dimensional analysis.
 
 Dimensional analysis can be performed between a |PhysicalType| and a
 unit or between a |PhysicalType| and a string with a name of a
-|PhysicalType|.
+|PhysicalType|::
 
   >>> length ** 2 / u.s
   PhysicalType({'diffusivity', 'kinematic viscosity'})

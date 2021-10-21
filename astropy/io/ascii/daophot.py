@@ -238,8 +238,8 @@ class DaophotInputter(core.ContinuationLinesInputter):
         # this case we have to figure out how many apertures there are based on
         # the file structure.
 
-        comment, special, cont = zip(*(self.re_multiline.search(l).groups()
-                                       for l in lines[:depth]))
+        comment, special, cont = zip(*(self.re_multiline.search(line).groups()
+                                       for line in lines[:depth]))
 
         # Find first non-comment line
         data_start = first_false_index(comment)

@@ -2,19 +2,35 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-
+import collections
 import inspect
-import re
 import os
 import sys
 import types
 import importlib
+from importlib import metadata
+from packaging.version import Version
+
+from astropy.utils.decorators import deprecated_renamed_argument
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
            'isinstancemethod']
 
-
 __doctest_skip__ = ['find_current_module']
+
+if sys.version_info[:2] >= (3, 10):
+    from importlib.metadata import packages_distributions
+else:
+    def packages_distributions():
+        """
+        Return a mapping of top-level packages to their distributions.
+        Note: copied from https://github.com/python/importlib_metadata/pull/287
+        """
+        pkg_to_dist = collections.defaultdict(list)
+        for dist in metadata.distributions():
+            for pkg in (dist.read_text('top_level.txt') or '').split():
+                pkg_to_dist[pkg].append(dist.metadata['Name'])
+        return dict(pkg_to_dist)
 
 
 def resolve_name(name, *additional_parts):
@@ -89,10 +105,15 @@ def resolve_name(name, *additional_parts):
     return ret
 
 
+@deprecated_renamed_argument('version_path', None, '5.0')
 def minversion(module, version, inclusive=True, version_path='__version__'):
     """
     Returns `True` if the specified Python module satisfies a minimum version
     requirement, and `False` if not.
+
+    .. deprecated::
+        ``version_path`` is not used anymore and is deprecated in
+        ``astropy`` 5.0.
 
     Parameters
     ----------
@@ -109,11 +130,6 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
         The specified version meets the requirement inclusively (i.e. ``>=``)
         as opposed to strictly greater than (default: `True`).
 
-    version_path : `str`
-        A dotted attribute path to follow in the module for the version.
-        Defaults to just ``'__version__'``, which should work for most Python
-        modules.
-
     Examples
     --------
 
@@ -121,14 +137,12 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     >>> minversion(astropy, '0.4.4')
     True
     """
-    # import LooseVersion here to avoid conflicts between setuptools and
-    # distutils. See https://github.com/astropy/astropy/pull/10571
-    from distutils.version import LooseVersion
-
     if isinstance(module, types.ModuleType):
         module_name = module.__name__
+        module_version = getattr(module, '__version__', None)
     elif isinstance(module, str):
         module_name = module
+        module_version = None
         try:
             module = resolve_name(module_name)
         except ImportError:
@@ -136,30 +150,23 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     else:
         raise ValueError('module argument must be an actual imported '
                          'module, or the import name of the module; '
-                         'got {!r}'.format(module))
+                         f'got {repr(module)}')
 
-    if '.' not in version_path:
-        have_version = getattr(module, version_path)
-    else:
-        have_version = resolve_name(module.__name__, version_path)
-
-    # LooseVersion raises a TypeError when strings like dev, rc1 are part
-    # of the version number. Match the dotted numbers only. Regex taken
-    # from PEP440, https://www.python.org/dev/peps/pep-0440/, Appendix B
-    expr = '^([1-9]\\d*!)?(0|[1-9]\\d*)(\\.(0|[1-9]\\d*))*'
-    m = re.match(expr, version)
-    if m:
-        version = m.group(0)
-
-    # have_version can have the same issue as version, so also regex it
-    m = re.match(expr, have_version)
-    if m:
-        have_version = m.group(0)
+    if module_version is None:
+        try:
+            module_version = metadata.version(module_name)
+        except metadata.PackageNotFoundError:
+            # Maybe the distribution name is different from package name.
+            # Calling packages_distributions is costly so we do it only
+            # if necessary, as only a few packages don't have the same
+            # distribution name.
+            dist_names = packages_distributions()
+            module_version = metadata.version(dist_names[module_name][0])
 
     if inclusive:
-        return LooseVersion(have_version) >= LooseVersion(version)
+        return Version(module_version) >= Version(version)
     else:
-        return LooseVersion(have_version) > LooseVersion(version)
+        return Version(module_version) > Version(version)
 
 
 def find_current_module(depth=1, finddiff=False):

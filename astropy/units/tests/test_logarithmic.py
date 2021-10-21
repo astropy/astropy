@@ -161,7 +161,7 @@ def test_predefined_string_roundtrip():
 
 
 def test_inequality():
-    """Check __ne__ works (regresssion for #5342)."""
+    """Check __ne__ works (regression for #5342)."""
     lu1 = u.mag(u.Jy)
     lu2 = u.dex(u.Jy)
     lu3 = u.mag(u.Jy**2)

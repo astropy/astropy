@@ -346,3 +346,18 @@ def test_ExponentialAndLogarithmic1D_fit():
     log_model = models.Logarithmic1D(amplitude=1, tau=1)
     assert_allclose(xarr, em_model.inverse(em_model(xarr)))
     assert_allclose(xarr, log_model.inverse(log_model(xarr)))
+
+
+@pytest.mark.parametrize('trig', [(models.Sine1D, [-0.25, 0.25]),
+                                  (models.ArcSine1D, [-0.25, 0.25]),
+                                  (models.Cosine1D, [0, 0.5]),
+                                  (models.ArcCosine1D, [0, 0.5]),
+                                  (models.Tangent1D, [-0.25, 0.25]),
+                                  (models.ArcTangent1D, [-0.25, 0.25])])
+def test_trig_inverse(trig):
+    mdl = trig[0]()
+    lower, upper = trig[1]
+
+    x = np.arange(lower, upper, 0.01)
+    assert_allclose(mdl.inverse(mdl(x)), x, atol=1e-10)
+    assert_allclose(mdl(mdl.inverse(x)), x, atol=1e-10)

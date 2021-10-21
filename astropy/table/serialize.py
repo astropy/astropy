@@ -132,7 +132,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols,
         # (e.g. skycoord.ra, skycoord.dec).unless it is the primary data
         # attribute for the column (e.g. value for Quantity or data for
         # MaskedColumn).  For primary data, we attempt to store any info on
-        # the format, etc., on the column, but not for ancilliary data (e.g.,
+        # the format, etc., on the column, but not for ancillary data (e.g.,
         # no sense to use a float format for a mask).
         if data_attr == col.info._represent_as_dict_primary_data:
             new_name = name
@@ -329,14 +329,18 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     # example would be a formatted time object that would have (e.g.)
     # "time_col" and "value", respectively.
     for name, data_attr in data_attrs_map.items():
-        col = out[name]
-        obj_attrs[data_attr] = col
+        obj_attrs[data_attr] = out[name]
         del out[name]
 
     info = obj_attrs.pop('__info__', {})
     if len(data_attrs_map) == 1:
         # col is the first and only serialized column; in that case, use info
-        # stored on the column.
+        # stored on the column. First step is to get that first column which
+        # has been moved from `out` to `obj_attrs` above.
+        data_attr = next(iter(data_attrs_map.values()))
+        col = obj_attrs[data_attr]
+
+        # Now copy the relevant attributes
         for attr, nontrivial in (('unit', lambda x: x not in (None, '')),
                                  ('format', lambda x: x is not None),
                                  ('description', lambda x: x is not None),

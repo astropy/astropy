@@ -10,6 +10,7 @@ from astropy.table import Table, QTable
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io.misc.pandas import connect
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Check dependencies
 pandas = pytest.importorskip("pandas")
@@ -64,7 +65,7 @@ def test_write_overwrite(tmpdir, fmt):
     t.write(tmpfile, format=pandas_fmt)
 
     # fails when cannot overwrite
-    with pytest.raises(OSError, match="already exists"):
+    with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         t.write(tmpfile, format=pandas_fmt, overwrite=False)
 
     # passes when it can

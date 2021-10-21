@@ -14,7 +14,7 @@ from astropy.io.fits import conf
 from astropy.io.fits.file import _File
 from astropy.io.fits.header import (Header, _BasicHeader, _pad_length,
                                     _DelayedHeader)
-from astropy.io.fits.util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
+from astropy.io.fits.util import (_is_int, _is_pseudo_integer, _pseudo_zero,
                     itersubclasses, decode_ascii, _get_array_mmap, first,
                     _free_space_check, _extract_number)
 from astropy.io.fits.verify import _Verify, _ErrList
@@ -44,9 +44,9 @@ BITPIX2DTYPE = {8: 'uint8', 16: 'int16', 32: 'int32', 64: 'int64',
                 -32: 'float32', -64: 'float64'}
 """Maps FITS BITPIX values to Numpy dtype names."""
 
-DTYPE2BITPIX = {'uint8': 8, 'int16': 16, 'uint16': 16, 'int32': 32,
-                'uint32': 32, 'int64': 64, 'uint64': 64, 'float32': -32,
-                'float64': -64}
+DTYPE2BITPIX = {'int8': 8, 'uint8': 8, 'int16': 16, 'uint16': 16,
+                'int32': 32, 'uint32': 32, 'int64': 64, 'uint64': 64,
+                'float32': -32, 'float64': -64}
 """
 Maps Numpy dtype names to FITS BITPIX values (this includes unsigned
 integers, with the assumption that the pseudo-unsigned integer convention
@@ -107,40 +107,9 @@ def _hdu_class_from_header(cls, header):
     return klass
 
 
-class _BaseHDUMeta(type):
-    def __init__(cls, name, bases, members):
-        # The sole purpose of this metaclass right now is to add the same
-        # data.deleter to all HDUs with a data property.
-        # It's unfortunate, but there's otherwise no straightforward way
-        # that a property can inherit setters/deleters of the property of the
-        # same name on base classes
-        if 'data' in members:
-            data_prop = members['data']
-            if (isinstance(data_prop, (lazyproperty, property)) and
-                    data_prop.fdel is None):
-                # Don't do anything if the class has already explicitly
-                # set the deleter for its data property
-                def data(self):
-                    # The deleter
-                    if self._file is not None and self._data_loaded:
-                        data_refcount = sys.getrefcount(self.data)
-                        # Manually delete *now* so that FITS_rec.__del__
-                        # cleanup can happen if applicable
-                        del self.__dict__['data']
-                        # Don't even do this unless the *only* reference to the
-                        # .data array was the one we're deleting by deleting
-                        # this attribute; if any other references to the array
-                        # are hanging around (perhaps the user ran ``data =
-                        # hdu.data``) don't even consider this:
-                        if data_refcount == 2:
-                            self._file._maybe_close_mmap()
-
-                setattr(cls, 'data', data_prop.deleter(data))
-
-
 # TODO: Come up with a better __repr__ for HDUs (and for HDULists, for that
 # matter)
-class _BaseHDU(metaclass=_BaseHDUMeta):
+class _BaseHDU:
     """Base class for all HDU (header data unit) classes."""
 
     _hdu_registry = set()
@@ -181,6 +150,35 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             self._output_checksum = 'datasum'
         elif 'CHECKSUM' in self._header:
             self._output_checksum = True
+
+    def __init_subclass__(cls, **kwargs):
+        # Add the same data.deleter to all HDUs with a data property.
+        # It's unfortunate, but there's otherwise no straightforward way
+        # that a property can inherit setters/deleters of the property of the
+        # same name on base classes.
+        data_prop = cls.__dict__.get('data', None)
+        if (isinstance(data_prop, (lazyproperty, property))
+                and data_prop.fdel is None):
+            # Don't do anything if the class has already explicitly
+            # set the deleter for its data property
+            def data(self):
+                # The deleter
+                if self._file is not None and self._data_loaded:
+                    data_refcount = sys.getrefcount(self.data)
+                    # Manually delete *now* so that FITS_rec.__del__
+                    # cleanup can happen if applicable
+                    del self.__dict__['data']
+                    # Don't even do this unless the *only* reference to the
+                    # .data array was the one we're deleting by deleting
+                    # this attribute; if any other references to the array
+                    # are hanging around (perhaps the user ran ``data =
+                    # hdu.data``) don't even consider this:
+                    if data_refcount == 2:
+                        self._file._maybe_close_mmap()
+
+            setattr(cls, 'data', data_prop.deleter(data))
+
+        return super().__init_subclass__(**kwargs)
 
     @property
     def header(self):
@@ -535,19 +533,19 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
     # TODO: The BaseHDU class shouldn't even handle checksums since they're
     # only implemented on _ValidHDU...
     def _prewriteto(self, checksum=False, inplace=False):
-        self._update_uint_scale_keywords()
+        self._update_pseudo_int_scale_keywords()
 
         # Handle checksum
         self._update_checksum(checksum)
 
-    def _update_uint_scale_keywords(self):
+    def _update_pseudo_int_scale_keywords(self):
         """
-        If the data is unsigned int 16, 32, or 64 add BSCALE/BZERO cards to
-        header.
+        If the data is signed int 8, unsigned int 16, 32, or 64,
+        add BSCALE/BZERO cards to header.
         """
 
         if (self._has_data and self._standard and
-                _is_pseudo_unsigned(self.data.dtype)):
+                _is_pseudo_integer(self.data.dtype)):
             # CompImageHDUs need TFIELDS immediately after GCOUNT,
             # so BSCALE has to go after TFIELDS if it exists.
             if 'TFIELDS' in self._header:
@@ -556,7 +554,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
                 self._header.set('BSCALE', 1, after='GCOUNT')
             else:
                 self._header.set('BSCALE', 1)
-            self._header.set('BZERO', _unsigned_zero(self.data.dtype),
+            self._header.set('BZERO', _pseudo_zero(self.data.dtype),
                              after='BSCALE')
 
     def _update_checksum(self, checksum, checksum_keyword='CHECKSUM',
@@ -592,7 +590,7 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
         # If data is unsigned integer 16, 32 or 64, remove the
         # BSCALE/BZERO cards
         if (self._has_data and self._standard and
-                _is_pseudo_unsigned(self.data.dtype)):
+                _is_pseudo_integer(self.data.dtype)):
             for keyword in ('BSCALE', 'BZERO'):
                 with suppress(KeyError):
                     del self._header[keyword]
@@ -623,7 +621,9 @@ class _BaseHDU(metaclass=_BaseHDUMeta):
             if self.data is not None:
                 size += self._writedata_internal(fileobj)
             # pad the FITS data block
-            if size > 0:
+            # to avoid a bug in the lustre filesystem client, don't
+            # write zero-byte objects
+            if size > 0 and _pad_length(size) > 0:
                 padding = _pad_length(size) * self._padding_byte
                 # TODO: Not that this is ever likely, but if for some odd
                 # reason _padding_byte is > 0x80 this will fail; but really if

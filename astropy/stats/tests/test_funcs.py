@@ -9,7 +9,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY, HAS_MPMATH  # noqa
 
 from astropy.stats import funcs
 from astropy import units as u
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -160,13 +159,6 @@ def test_binom_conf_interval():
                       [0.36941, 0.52650, 0.65085, 0.75513, 0.84298]])
     assert_allclose(result, table, atol=1.e-3, rtol=0.)
 
-    # Test scalar version
-    with pytest.warns(AstropyDeprecationWarning):
-        result = np.array([funcs.binom_conf_interval(kval, n, conf=conf,
-                                                     interval='flat')
-                           for kval in k]).transpose()
-    assert_allclose(result, table, atol=1.e-3, rtol=0.)
-
     # Test Wald interval
     result = funcs.binom_conf_interval(0, 5, interval='wald')
     assert_allclose(result, 0.)  # conf interval is [0, 0] when k = 0
@@ -233,8 +225,7 @@ def test_binned_binom_proportion():
 
 def test_binned_binom_proportion_exception():
     with pytest.raises(ValueError):
-        with pytest.warns(AstropyDeprecationWarning):
-            funcs.binned_binom_proportion([0], [1, 2], conf=0.75)
+        funcs.binned_binom_proportion([0], [1, 2], confidence_level=0.75)
 
 
 def test_signal_to_noise_oir_ccd():
@@ -677,9 +668,8 @@ def test_poisson_conf_kbn_value_errors():
 @pytest.mark.skipif('HAS_SCIPY or HAS_MPMATH')
 def test_poisson_limit_nodependencies():
     with pytest.raises(ImportError):
-        with pytest.warns(AstropyDeprecationWarning):
-            funcs.poisson_conf_interval(20, interval='kraft-burrows-nousek',
-                                        background=10., conflevel=.95)
+        funcs.poisson_conf_interval(20, interval='kraft-burrows-nousek',
+                                    background=10., confidence_level=.95)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

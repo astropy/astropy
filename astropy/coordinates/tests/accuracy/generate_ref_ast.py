@@ -1,6 +1,6 @@
 """
 This series of functions are used to generate the reference CSV files
-used by the accuracy tests.  Running this as a comand-line script will
+used by the accuracy tests.  Running this as a command-line script will
 generate them all.
 """
 

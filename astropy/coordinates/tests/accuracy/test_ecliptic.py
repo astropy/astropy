@@ -10,7 +10,12 @@ import pytest
 from astropy.units import allclose as quantity_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates.builtin_frames import FK5, ICRS, GCRS, GeocentricMeanEcliptic, BarycentricMeanEcliptic, HeliocentricMeanEcliptic, GeocentricTrueEcliptic, BarycentricTrueEcliptic, HeliocentricTrueEcliptic, HeliocentricEclipticIAU76
+from astropy.coordinates.builtin_frames import (FK5, ICRS, GCRS,
+                                                GeocentricMeanEcliptic, GeocentricTrueEcliptic,
+                                                BarycentricMeanEcliptic, BarycentricTrueEcliptic,
+                                                CustomBarycentricEcliptic,
+                                                HeliocentricMeanEcliptic, HeliocentricTrueEcliptic,
+                                                HeliocentricEclipticIAU76)
 from astropy.coordinates.solar_system import get_body_barycentric_posvel
 from astropy.constants import R_sun, R_earth
 from astropy.time import Time
@@ -164,3 +169,68 @@ def test_roundtrip_scalar():
     assert quantity_allclose(bary_icrs.cartesian.xyz, icrs.cartesian.xyz)
     assert quantity_allclose(helio_icrs.cartesian.xyz, icrs.cartesian.xyz)
     assert quantity_allclose(geo_gcrs.cartesian.xyz, gcrs.cartesian.xyz)
+
+
+@pytest.mark.parametrize('frame',
+                        [HeliocentricMeanEcliptic, HeliocentricTrueEcliptic,
+                         GeocentricMeanEcliptic, GeocentricTrueEcliptic,
+                         HeliocentricEclipticIAU76])
+def test_loopback_obstime(frame):
+    # Test that the loopback properly handles a change in obstime
+    from_coo = frame(1*u.deg, 2*u.deg, 3*u.AU, obstime='2001-01-01')
+    to_frame = frame(obstime='2001-06-30')
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the coordinate
+    assert not quantity_allclose(explicit_coo.lon, from_coo.lon, rtol=1e-10)
+    assert not quantity_allclose(explicit_coo.lat, from_coo.lat, rtol=1e-10)
+    assert not quantity_allclose(explicit_coo.distance, from_coo.distance, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert quantity_allclose(explicit_coo.lon, implicit_coo.lon, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.lat, implicit_coo.lat, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.distance, implicit_coo.distance, rtol=1e-10)
+
+
+@pytest.mark.parametrize('frame',
+                        [BarycentricMeanEcliptic, BarycentricTrueEcliptic,
+                         HeliocentricMeanEcliptic, HeliocentricTrueEcliptic,
+                         GeocentricMeanEcliptic, GeocentricTrueEcliptic])
+def test_loopback_equinox(frame):
+    # Test that the loopback properly handles a change in equinox
+    from_coo = frame(1*u.deg, 2*u.deg, 3*u.AU, equinox='2001-01-01')
+    to_frame = frame(equinox='2001-06-30')
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the lon/lat but not the distance
+    assert not quantity_allclose(explicit_coo.lon, from_coo.lon, rtol=1e-10)
+    assert not quantity_allclose(explicit_coo.lat, from_coo.lat, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.distance, from_coo.distance, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert quantity_allclose(explicit_coo.lon, implicit_coo.lon, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.lat, implicit_coo.lat, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.distance, implicit_coo.distance, rtol=1e-10)
+
+
+def test_loopback_obliquity():
+    # Test that the loopback properly handles a change in obliquity
+    from_coo = CustomBarycentricEcliptic(1*u.deg, 2*u.deg, 3*u.AU, obliquity=84000*u.arcsec)
+    to_frame = CustomBarycentricEcliptic(obliquity=85000*u.arcsec)
+
+    explicit_coo = from_coo.transform_to(ICRS()).transform_to(to_frame)
+    implicit_coo = from_coo.transform_to(to_frame)
+
+    # Confirm that the explicit transformation changes the lon/lat but not the distance
+    assert not quantity_allclose(explicit_coo.lon, from_coo.lon, rtol=1e-10)
+    assert not quantity_allclose(explicit_coo.lat, from_coo.lat, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.distance, from_coo.distance, rtol=1e-10)
+
+    # Confirm that the loopback matches the explicit transformation
+    assert quantity_allclose(explicit_coo.lon, implicit_coo.lon, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.lat, implicit_coo.lat, rtol=1e-10)
+    assert quantity_allclose(explicit_coo.distance, implicit_coo.distance, rtol=1e-10)

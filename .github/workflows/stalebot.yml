@@ -1,0 +1,20 @@
+name: Astropy stalebot
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # run every day at 5:30 am UTC
+    - cron: '30 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  stalebot:
+    runs-on: ubuntu-latest
+    if: github.repository == 'astropy/astropy'
+    steps:
+      - uses: pllim/action-astropy-stalebot@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STALEBOT_MAX_ISSUES: -1
+          STALEBOT_MAX_PRS: -1
+          STALEBOT_SLEEP: 10

@@ -16,39 +16,18 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
-# parameters module and creates a cosmology instance with the same name as the
-# parameter set in the current module's namespace.
+# parameters module and creates a corresponding cosmology instance
 for key in parameters.available:
-    params = getattr(parameters, key)
+    params = getattr(parameters, key)  # get parameters dictionary
+    params.setdefault("name", key)
+    # make cosmology
+    cosmo = Cosmology.from_format(params, format="mapping", move_to_meta=True)
+    cosmo.__doc__ = (f"{key} instance of {cosmo.__class__.__qualname__} "
+                     f"cosmology\n(from {cosmo.meta['reference']})")
+    # put in this namespace
+    setattr(sys.modules[__name__], key, cosmo)
 
-    # TODO! this will need refactoring again when: parameter I/O is JSON/ECSSV
-    cosmo_cls_name = params.pop("cosmology", None)
-
-    if cosmo_cls_name in _COSMOLOGY_CLASSES:
-        cosmo_cls = _COSMOLOGY_CLASSES[cosmo_cls_name]
-
-        par = dict()
-        meta = params.pop("meta", None) or {}
-        for k, v in params.items():
-            if k not in cosmo_cls._init_signature.parameters:
-                meta.setdefault(k, v)  # merge into meta w/out overwriting
-            elif k == "H0":
-                par["H0"] = u.Quantity(v, u.km / u.s / u.Mpc)
-            elif k == "m_nu":
-                par["m_nu"] = u.Quantity(v, u.eV)
-            else:
-                par[k] = v
-
-        ba = cosmo_cls._init_signature.bind_partial(**par, name=key, meta=meta)
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
-        cosmo.__doc__ = (f"{key} instance of {cosmo_cls.__qualname__} cosmology"
-                         f"\n(from {meta['reference']})")
-
-        setattr(sys.modules[__name__], key, cosmo)
-
-# don't leave these variables floating around in the namespace
-        del cosmo_cls, par, k, v, ba, cosmo
-del key, params, cosmo_cls_name
+del key, params, cosmo  # clean the namespace
 
 #########################################################################
 # The science state below contains the current cosmology.

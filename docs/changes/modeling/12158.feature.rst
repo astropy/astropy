@@ -1,0 +1,1 @@
+Added ``Cosine1D`` model to ``astropy.modeling.models``.

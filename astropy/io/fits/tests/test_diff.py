@@ -6,13 +6,27 @@ from astropy.io.fits.column import Column
 from astropy.io.fits.diff import (FITSDiff, HeaderDiff, ImageDataDiff,
                                   TableDataDiff, HDUDiff)
 from astropy.io.fits.hdu import HDUList, PrimaryHDU, ImageHDU
+from astropy.io.fits.hdu.base import NonstandardExtHDU
 from astropy.io.fits.hdu.table import BinTableHDU
 from astropy.io.fits.header import Header
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.io import fits
 
 from . import FitsTestCase
+
+
+class DummyNonstandardExtHDU(NonstandardExtHDU):
+
+    def __init__(self, data=None, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
+        self._buffer = np.asarray(data).tobytes()
+        self._data_offset = 0
+
+    @property
+    def size(self):
+        return len(self._buffer)
 
 
 class TestDiff(FitsTestCase):
@@ -163,7 +177,8 @@ class TestDiff(FitsTestCase):
             assert not diff.identical
             assert diff.diff_keyword_values == {'C': [('A       ', 'A')]}
 
-    def test_ignore_blank_cards(self):
+    @pytest.mark.parametrize("differ", [HeaderDiff, HDUDiff, FITSDiff])
+    def test_ignore_blank_cards(self, differ):
         """Test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/152
 
         Ignore blank cards.
@@ -172,27 +187,41 @@ class TestDiff(FitsTestCase):
         ha = Header([('A', 1), ('B', 2), ('C', 3)])
         hb = Header([('A', 1), ('', ''), ('B', 2), ('', ''), ('C', 3)])
         hc = ha.copy()
-        hc.append()
-        hc.append()
+        if differ is HeaderDiff:
+            hc.append()
+            hc.append()
+        else:  # Ensure blanks are not at the end as they are stripped by HDUs
+            hc.add_blank(after=-2)
+            hc.add_blank(after=-2)
+
+        if differ in (HDUDiff, FITSDiff):  # wrap it in a PrimaryHDU
+            ha, hb, hc = (PrimaryHDU(np.arange(10), h) for h in (ha, hb, hc))
+            hc_header = hc.header
+        if differ is FITSDiff:  # wrap it in a HDUList
+            ha, hb, hc = (HDUList([h]) for h in (ha, hb, hc))
+            hc_header = hc[0].header
 
         # We now have a header with interleaved blanks, and a header with end
         # blanks, both of which should ignore the blanks
-        assert HeaderDiff(ha, hb).identical
-        assert HeaderDiff(ha, hc).identical
-        assert HeaderDiff(hb, hc).identical
+        assert differ(ha, hb).identical
+        assert differ(ha, hc).identical
+        assert differ(hb, hc).identical
 
-        assert not HeaderDiff(ha, hb, ignore_blank_cards=False).identical
-        assert not HeaderDiff(ha, hc, ignore_blank_cards=False).identical
+        assert not differ(ha, hb, ignore_blank_cards=False).identical
+        assert not differ(ha, hc, ignore_blank_cards=False).identical
 
         # Both hb and hc have the same number of blank cards; since order is
         # currently ignored, these should still be identical even if blank
         # cards are not ignored
-        assert HeaderDiff(hb, hc, ignore_blank_cards=False).identical
+        assert differ(hb, hc, ignore_blank_cards=False).identical
 
-        hc.append()
+        if differ is HeaderDiff:
+            hc.append()
+        else:  # Ensure blanks are not at the end as they are stripped by HDUs
+            hc_header.add_blank(after=-2)
         # But now there are different numbers of blanks, so they should not be
         # ignored:
-        assert not HeaderDiff(hb, hc, ignore_blank_cards=False).identical
+        assert not differ(hb, hc, ignore_blank_cards=False).identical
 
     def test_ignore_hdus(self):
         a = np.arange(100).reshape(10, 10)
@@ -761,7 +790,7 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
 
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
             diffobj.report(fileobj=outpath)
 
     def test_file_output_overwrite_success(self):
@@ -790,6 +819,53 @@ class TestDiff(FitsTestCase):
                           r'deprecated in version 2\.0 and will be removed in a '
                           r'future version\. Use argument "overwrite" instead\.'):
             diffobj.report(fileobj=outpath, clobber=True)
+
+    def test_rawdatadiff_nodiff(self):
+        a = np.arange(100, dtype='uint8').reshape(10, 10)
+        b = a.copy()
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+        assert diff.identical
+        report = diff.report()
+        assert 'No differences found.' in report
+
+    def test_rawdatadiff_dimsdiff(self):
+        a = np.arange(100, dtype='uint8') + 10
+        b = a[:80].copy()
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+        assert not diff.identical
+        report = diff.report()
+        assert 'Data sizes differ:' in report
+        assert 'a: 100 bytes' in report
+        assert 'b: 80 bytes' in report
+        assert 'No further data comparison performed.' in report
+
+    def test_rawdatadiff_bytesdiff(self):
+        a = np.arange(100, dtype='uint8') + 10
+        b = a.copy()
+        changes = [(30, 200), (89, 170)]
+        for i, v in changes:
+            b[i] = v
+
+        hdu_a = DummyNonstandardExtHDU(data=a)
+        hdu_b = DummyNonstandardExtHDU(data=b)
+        diff = HDUDiff(hdu_a, hdu_b)
+
+        assert not diff.identical
+
+        diff_bytes = diff.diff_data.diff_bytes
+        assert len(changes) == len(diff_bytes)
+        for j, (i, v) in enumerate(changes):
+            assert diff_bytes[j] == (i, (i+10, v))
+
+        report = diff.report()
+        assert 'Data contains differences:' in report
+        for i, _ in changes:
+            assert f'Data differs at byte {i}:' in report
+        assert '2 different bytes found (2.00% different).' in report
 
 
 def test_fitsdiff_hdu_name(tmpdir):

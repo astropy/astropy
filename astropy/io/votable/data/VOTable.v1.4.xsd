@@ -155,7 +155,7 @@
   <!-- The LINK is a URL (href) or some other kind of reference (gref) -->
   <xs:complexType name="Link">
     <xs:annotation><xs:documentation> 
-    content-role was previsouly restricted as: <![CDATA[
+    content-role was previously restricted as: <![CDATA[
     <xs:attribute name="content-role">
       <xs:simpleType>
         <xs:restriction base="xs:NMTOKEN">

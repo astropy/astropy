@@ -4,6 +4,7 @@ import warnings
 
 import os
 import ctypes
+import warnings
 from functools import partial
 
 import numpy as np
@@ -22,7 +23,10 @@ from .utils import KernelSizeError, has_even_axis, raise_even_kernel_exception
 LIBRARY_PATH = os.path.dirname(__file__)
 
 try:
-    _convolve = load_library("_convolve", LIBRARY_PATH)
+    with warnings.catch_warnings():
+        # distutils.sysconfig module is deprecated in Python 3.10
+        warnings.simplefilter('ignore', DeprecationWarning)
+        _convolve = load_library("_convolve", LIBRARY_PATH)
 except Exception:
     raise ImportError("Convolution C extension is missing. Try re-building astropy.")
 
@@ -379,7 +383,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                   nan_interpolate, embed_result_within_padded_region,
                   n_threads)
 
-    # So far, normalization has only occured for nan_treatment == 'interpolate'
+    # So far, normalization has only occurred for nan_treatment == 'interpolate'
     # because this had to happen within the C extension so as to ignore
     # any NaNs
     if normalize_kernel:

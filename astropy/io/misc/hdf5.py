@@ -13,6 +13,7 @@ import numpy as np
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 META_KEY = '__table_column_meta__'
@@ -162,7 +163,8 @@ def read_table_hdf5(input, path=None, character_as_bytes=True):
         if new_version_meta:
             header = meta.get_header_from_yaml(
                 h.decode('utf-8') for h in input_save[meta_path(path)])
-        elif old_version_meta:
+        else:
+            # Must be old_version_meta is True. if (A or B) and not A then B is True
             header = meta.get_header_from_yaml(
                 h.decode('utf-8') for h in input.attrs[META_KEY])
         if 'meta' in list(header.keys()):
@@ -280,7 +282,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             if overwrite and not append:
                 os.remove(output)
             else:
-                raise OSError(f"File exists: {output}")
+                raise OSError(NOT_OVERWRITING_MSG.format(output))
 
         # Open the file for appending or writing
         f = h5py.File(output, 'a' if append else 'w')

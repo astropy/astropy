@@ -674,6 +674,62 @@ class TransformGraph:
             return func
         return deco
 
+    def _add_merged_transform(self, fromsys, tosys, *furthersys, priority=1):
+        """
+        Add a single-step transform that encapsulates a multi-step transformation path,
+        using the transforms that already exist in the graph.
+
+        The created transform internally calls the existing transforms.  If all of the
+        transforms are affine, the merged transform is
+        `~astropy.coordinates.transformations.DynamicMatrixTransform` (if there are no
+        origin shifts) or `~astropy.coordinates.transformations.AffineTransform`
+        (otherwise).  If at least one of the transforms is not affine, the merged
+        transform is
+        `~astropy.coordinates.transformations.FunctionTransformWithFiniteDifference`.
+
+        This method is primarily useful for defining loopback transformations
+        (i.e., where ``fromsys`` and the final ``tosys`` are the same).
+
+        Parameters
+        ----------
+        fromsys : class
+            The coordinate frame class to start from.
+        tosys : class
+            The coordinate frame class to transform to.
+        furthersys : class
+            Additional coordinate frame classes to transform to in order.
+        priority : number
+            The priority of this transform when finding the shortest
+            coordinate transform path - large numbers are lower priorities.
+
+        Notes
+        -----
+        Even though the created transform is a single step in the graph, it
+        will still internally call the constituent transforms.  Thus, there is
+        no performance benefit for using this created transform.
+
+        For Astropy's built-in frames, loopback transformations typically use
+        `~astropy.coordinates.ICRS` to be safe.  Tranforming through an inertial
+        frame ensures that changes in observation time and observer
+        location/velocity are properly accounted for.
+
+        An error will be raised if a direct transform between ``fromsys`` and
+        ``tosys`` already exist.
+        """
+        frames = [fromsys, tosys, *furthersys]
+        lastsys = frames[-1]
+        full_path = self.get_transform(fromsys, lastsys)
+        transforms = [self.get_transform(frame_a, frame_b)
+                      for frame_a, frame_b in zip(frames[:-1], frames[1:])]
+        if None in transforms:
+            raise ValueError(f"This transformation path is not possible")
+        if len(full_path.transforms) == 1:
+            raise ValueError(f"A direct transform for {fromsys.__name__}->{lastsys.__name__} already exists")
+
+        self.add_transform(fromsys, lastsys,
+                           CompositeTransform(transforms, fromsys, lastsys,
+                                              priority=priority)._as_single_transform())
+
     @contextmanager
     def impose_finite_difference_dt(self, dt):
         """
@@ -1030,8 +1086,8 @@ class BaseAffineTransform(CoordinateTransform):
     subclasses.
 
     This base class is needed because ``AffineTransform`` and the matrix
-    transform classes share the ``_apply_transform()`` method, but have
-    different ``__call__()`` methods. ``StaticMatrixTransform`` passes in a
+    transform classes share the ``__call__()`` method, but differ in how they
+    generate the affine parameters.  ``StaticMatrixTransform`` passes in a
     matrix stored as a class attribute, and both of the matrix transforms pass
     in ``None`` for the offset. Hence, user subclasses would likely want to
     subclass this (rather than ``AffineTransform``) if they want to provide
@@ -1047,6 +1103,10 @@ class BaseAffineTransform(CoordinateTransform):
 
         data = fromcoord.data
         has_velocity = 's' in data.differentials
+
+        # Bail out if no transform is actually requested
+        if matrix is None and offset is None:
+            return data
 
         # list of unit differentials
         _unit_diffs = (SphericalDifferential._unit_differential,
@@ -1189,6 +1249,15 @@ class BaseAffineTransform(CoordinateTransform):
 
         return newrep
 
+    def __call__(self, fromcoord, toframe):
+        params = self._affine_params(fromcoord, toframe)
+        newrep = self._apply_transform(fromcoord, *params)
+        return toframe.realize_frame(newrep)
+
+    @abstractmethod
+    def _affine_params(self, fromcoord, toframe):
+        pass
+
 
 class AffineTransform(BaseAffineTransform):
     """
@@ -1235,12 +1304,8 @@ class AffineTransform(BaseAffineTransform):
         super().__init__(fromsys, tosys, priority=priority,
                          register_graph=register_graph)
 
-    def __call__(self, fromcoord, toframe):
-
-        M, vec = self.transform_func(fromcoord, toframe)
-        newrep = self._apply_transform(fromcoord, M, vec)
-
-        return toframe.realize_frame(newrep)
+    def _affine_params(self, fromcoord, toframe):
+        return self.transform_func(fromcoord, toframe)
 
 
 class StaticMatrixTransform(BaseAffineTransform):
@@ -1287,9 +1352,8 @@ class StaticMatrixTransform(BaseAffineTransform):
         super().__init__(fromsys, tosys, priority=priority,
                          register_graph=register_graph)
 
-    def __call__(self, fromcoord, toframe):
-        newrep = self._apply_transform(fromcoord, self.matrix, None)
-        return toframe.realize_frame(newrep)
+    def _affine_params(self, fromcoord, toframe):
+        return self.matrix, None
 
 
 class DynamicMatrixTransform(BaseAffineTransform):
@@ -1330,16 +1394,11 @@ class DynamicMatrixTransform(BaseAffineTransform):
             raise TypeError('matrix_func is not callable')
         self.matrix_func = matrix_func
 
-        def _transform_func(fromcoord, toframe):
-            return self.matrix_func(fromcoord, toframe), None
-
         super().__init__(fromsys, tosys, priority=priority,
                          register_graph=register_graph)
 
-    def __call__(self, fromcoord, toframe):
-        M = self.matrix_func(fromcoord, toframe)
-        newrep = self._apply_transform(fromcoord, M, None)
-        return toframe.realize_frame(newrep)
+    def _affine_params(self, fromcoord, toframe):
+        return self.matrix_func(fromcoord, toframe), None
 
 
 class CompositeTransform(CoordinateTransform):
@@ -1405,7 +1464,7 @@ class CompositeTransform(CoordinateTransform):
         curr_coord = fromcoord
         for t in self.transforms:
             # build an intermediate frame with attributes taken from either
-            # `fromframe`, or if not there, `toframe`, or if not there, use
+            # `toframe`, or if not there, `fromcoord`, or if not there, use
             # the defaults
             # TODO: caching this information when creating the transform may
             # speed things up a lot
@@ -1422,8 +1481,126 @@ class CompositeTransform(CoordinateTransform):
             curr_coord = t(curr_coord, curr_toframe)
 
         # this is safe even in the case where self.transforms is empty, because
-        # coordinate objects are immutible, so copying is not needed
+        # coordinate objects are immutable, so copying is not needed
         return curr_coord
+
+    def _as_single_transform(self):
+        """
+        Return an encapsulated version of the composite transform so that it appears to
+        be a single transform.
+
+        The returned transform internally calls the constituent transforms.  If all of
+        the transforms are affine, the merged transform is
+        `~astropy.coordinates.transformations.DynamicMatrixTransform` (if there are no
+        origin shifts) or `~astropy.coordinates.transformations.AffineTransform`
+        (otherwise).  If at least one of the transforms is not affine, the merged
+        transform is
+        `~astropy.coordinates.transformations.FunctionTransformWithFiniteDifference`.
+        """
+        # Create a list of the transforms including flattening any constituent CompositeTransform
+        transforms = [t if not isinstance(t, CompositeTransform) else t._as_single_transform()
+                      for t in self.transforms]
+
+        if all([isinstance(t, BaseAffineTransform) for t in transforms]):
+            # Check if there may be an origin shift
+            fixed_origin = all([isinstance(t, (StaticMatrixTransform, DynamicMatrixTransform))
+                                for t in transforms])
+
+            # Dynamically define the transformation function
+            def single_transform(from_coo, to_frame):
+                if from_coo.is_equivalent_frame(to_frame):  # loopback to the same frame
+                    return None if fixed_origin else (None, None)
+
+                # Create a merged attribute dictionary for any intermediate frames
+                # For any attributes shared by the "from"/"to" frames, the "to" frame takes
+                #   precedence because this is the same choice implemented in __call__()
+                merged_attr = {name: getattr(from_coo, name)
+                               for name in from_coo.frame_attributes}
+                merged_attr.update({name: getattr(to_frame, name)
+                                    for name in to_frame.frame_attributes})
+
+                affine_params = (None, None)
+                # Step through each transform step (frame A -> frame B)
+                for i, t in enumerate(transforms):
+                    # Extract the relevant attributes for frame A
+                    if i == 0:
+                        # If frame A is actually the initial frame, preserve its attributes
+                        a_attr = {name: getattr(from_coo, name)
+                                  for name in from_coo.frame_attributes}
+                    else:
+                        a_attr = {k: v for k, v in merged_attr.items()
+                                  if k in t.fromsys.frame_attributes}
+
+                    # Extract the relevant attributes for frame B
+                    b_attr = {k: v for k, v in merged_attr.items()
+                              if k in t.tosys.frame_attributes}
+
+                    # Obtain the affine parameters for the transform
+                    # Note that we insert some dummy data into frame A because the transformation
+                    #   machinery requires there to be data present.  Removing that limitation
+                    #   is a possible TODO, but some care would need to be taken because some affine
+                    #   transforms have branching code depending on the presence of differentials.
+                    next_affine_params = t._affine_params(t.fromsys(from_coo.data, **a_attr),
+                                                          t.tosys(**b_attr))
+
+                    # Combine the affine parameters with the running set
+                    affine_params = _combine_affine_params(affine_params, next_affine_params)
+
+                # If there is no origin shift, return only the matrix
+                return affine_params[0] if fixed_origin else affine_params
+
+            # The return type depends on whether there is any origin shift
+            transform_type = DynamicMatrixTransform if fixed_origin else AffineTransform
+        else:
+            # Dynamically define the transformation function
+            def single_transform(from_coo, to_frame):
+                if from_coo.is_equivalent_frame(to_frame):  # loopback to the same frame
+                    return to_frame.realize_frame(from_coo.data)
+                return self(from_coo, to_frame)
+
+            transform_type = FunctionTransformWithFiniteDifference
+
+        return transform_type(single_transform, self.fromsys, self.tosys, priority=self.priority)
+
+
+def _combine_affine_params(params, next_params):
+    """
+    Combine two sets of affine parameters.
+
+    The parameters for an affine transformation are a 3 x 3 Cartesian
+    transformation matrix and a displacement vector, which can include an
+    attached velocity.  Either type of parameter can be ``None``.
+    """
+    M, vec = params
+    next_M, next_vec = next_params
+
+    # Multiply the transformation matrices if they both exist
+    if M is not None and next_M is not None:
+        new_M = next_M @ M
+    else:
+        new_M = M if M is not None else next_M
+
+    if vec is not None:
+        # Transform the first displacement vector by the second transformation matrix
+        if next_M is not None:
+            vec = vec.transform(next_M)
+
+        # Calculate the new displacement vector
+        if next_vec is not None:
+            if 's' in vec.differentials and 's' in next_vec.differentials:
+                # Adding vectors with velocities takes more steps
+                # TODO: Add support in representation.py
+                new_vec_velocity = vec.differentials['s'] + next_vec.differentials['s']
+                new_vec = vec.without_differentials() + next_vec.without_differentials()
+                new_vec = new_vec.with_differentials({'s': new_vec_velocity})
+            else:
+                new_vec = vec + next_vec
+        else:
+            new_vec = vec
+    else:
+        new_vec = next_vec
+
+    return new_M, new_vec
 
 
 # map class names to colorblind-safe colors

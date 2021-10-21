@@ -98,12 +98,12 @@ def get_descrs(arrays, col_name_map):
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
             raise TableMergeError("The '{}' columns have incompatible types: {}"
-                                  .format(names[0], tme._incompat_types))
+                                  .format(names[0], tme._incompat_types)) from tme
 
         # Make sure all input shapes are the same
         uniq_shapes = set(col.shape[1:] for col in in_cols)
         if len(uniq_shapes) != 1:
-            raise TableMergeError(f'Key columns have different shape')
+            raise TableMergeError('Key columns have different shape')
         shape = uniq_shapes.pop()
 
         out_descrs.append((fix_column_name(out_name), dtype, shape))

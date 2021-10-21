@@ -9,7 +9,9 @@ import pytest
 from astropy.utils.decorators import (deprecated_attribute, deprecated, wraps,
                                       sharedmethod, classproperty, lazyproperty,
                                       format_doc, deprecated_renamed_argument)
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import (AstropyDeprecationWarning,
+                                      AstropyPendingDeprecationWarning,
+                                      AstropyUserWarning)
 
 
 class NewDeprecationWarning(AstropyDeprecationWarning):
@@ -57,15 +59,28 @@ def test_deprecated_attribute():
         def __init__(self):
             self._foo = 42
             self._bar = 4242
+            self._message = '42'
+            self._alternative = [42]
+            self._pending = {42}
 
         def set_private(self):
             self._foo = 100
             self._bar = 1000
+            self._message = '100'
+            self._alternative = [100]
+            self._pending = {100}
 
         foo = deprecated_attribute('foo', '0.2')
 
         bar = deprecated_attribute('bar', '0.2',
                                    warning_type=NewDeprecationWarning)
+
+        alternative = deprecated_attribute('alternative', '0.2',
+                                           alternative='other')
+
+        message = deprecated_attribute('message', '0.2', message='MSG')
+
+        pending = deprecated_attribute('pending', '0.2', pending=True)
 
     dummy = DummyClass()
 
@@ -78,6 +93,15 @@ def test_deprecated_attribute():
                       "deprecated and may be removed in a future version.") as w:
         dummy.bar
     assert len(w) == 1
+
+    with pytest.warns(AstropyDeprecationWarning, match="MSG"):
+        dummy.message
+
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use other instead\."):
+        dummy.alternative
+
+    with pytest.warns(AstropyPendingDeprecationWarning):
+        dummy.pending
 
     dummy.set_private()
 

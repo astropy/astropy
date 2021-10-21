@@ -224,6 +224,17 @@ class TestChecksumFunctions(FitsTestCase):
                 assert 'DATASUM' in h2[1].header
                 assert h2[1].header['DATASUM'] == '113055149'
 
+    def test_failing_compressed_datasum(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/4587
+        """
+        n = np.ones((10, 10), dtype='float32')
+        comp_hdu = fits.CompImageHDU(n)
+        comp_hdu.writeto(self.temp('tmp.fits'), checksum=True)
+
+        with fits.open(self.temp('tmp.fits'), checksum=True) as hdul:
+            assert np.all(hdul[1].data == comp_hdu.data)
+
     def test_compressed_image_data_int16(self):
         n = np.arange(100, dtype='int16')
         hdu = fits.ImageHDU(n)
@@ -419,7 +430,7 @@ class TestChecksumFunctions(FitsTestCase):
 
     def test_overwrite_invalid(self):
         """
-        Tests that invalid checksum or datasum are overwriten when the file is
+        Tests that invalid checksum or datasum are overwritten when the file is
         saved.
         """
 

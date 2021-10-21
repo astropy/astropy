@@ -4,6 +4,7 @@
 import functools
 import os.path
 
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 from astropy.table import Table
 import astropy.io.registry as io_registry
 
@@ -105,7 +106,7 @@ def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
             pass
         else:
             if exists:  # only error if file already exists
-                raise OSError(f"{filespec} already exists")
+                raise OSError(NOT_OVERWRITING_MSG.format(filespec))
 
     return write_method(filespec, **write_kwargs)
 

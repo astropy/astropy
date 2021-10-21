@@ -23,6 +23,7 @@ from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
 from astropy.utils.data import download_file, _is_url
 from astropy.utils.decorators import classproperty, deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
@@ -434,11 +435,12 @@ class _File:
                         fileobj.close()
                     os.remove(self.name)
             else:
-                raise OSError(f"File {self.name!r} already exists.")
+                raise OSError(NOT_OVERWRITING_MSG.format(self.name))
 
     def _try_read_compressed(self, obj_or_name, magic, mode, ext=''):
         """Attempt to determine if the given file is compressed"""
-        if ext == '.gz' or magic.startswith(GZIP_MAGIC):
+        is_ostream = mode == 'ostream'
+        if (is_ostream and ext == '.gz') or magic.startswith(GZIP_MAGIC):
             if mode == 'append':
                 raise OSError("'append' mode is not supported with gzip files."
                               "Use 'update' mode instead")
@@ -450,11 +452,11 @@ class _File:
                 kwargs['fileobj'] = obj_or_name
             self._file = gzip.GzipFile(**kwargs)
             self.compression = 'gzip'
-        elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
+        elif (is_ostream and ext == '.zip') or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
             self._open_zipfile(self.name, mode)
             self.compression = 'zip'
-        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
+        elif (is_ostream and ext == '.bz2') or magic.startswith(BZIP2_MAGIC):
             # Handle bzip2 files
             if mode in ['update', 'append']:
                 raise OSError("update and append modes are not supported "
@@ -463,7 +465,7 @@ class _File:
                 raise ModuleNotFoundError(
                     "This Python installation does not provide the bz2 module.")
             # bzip2 only supports 'w' and 'r' modes
-            bzip2_mode = 'w' if mode == 'ostream' else 'r'
+            bzip2_mode = 'w' if is_ostream else 'r'
             self._file = bz2.BZ2File(obj_or_name, mode=bzip2_mode)
             self.compression = 'bzip2'
         return self.compression is not None

@@ -1,0 +1,5 @@
+Added the following trigonometric models and linked them to their appropriate inverse models:
+  * ``Tangent1D``
+  * ``ArcSine1D``
+  * ``ArcCosine1D``
+  * ``ArcTangent1D``

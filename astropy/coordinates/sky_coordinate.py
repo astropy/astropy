@@ -11,6 +11,7 @@ from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.utils.data_info import MixinInfo
 from astropy.utils import ShapedLikeNDArray
+from astropy.table import QTable
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -603,7 +604,7 @@ class SkyCoord(ShapedLikeNDArray):
         Note that in either case, any explicitly set attributes on the source
         `SkyCoord` that are not part of the destination frame's definition are
         kept (stored on the resulting `SkyCoord`), and thus one can round-trip
-        (e.g., from FK4 to ICRS to FK4 without loosing obstime).
+        (e.g., from FK4 to ICRS to FK4 without losing obstime).
 
         Parameters
         ----------
@@ -760,7 +761,7 @@ class SkyCoord(ShapedLikeNDArray):
                 # for anything except a delta-t in starpm, so it's OK that it's
                 # not necessarily the "real" obstime
                 t1 = Time('J2000')
-                new_obstime = None  # we don't actually know the inital obstime
+                new_obstime = None  # we don't actually know the initial obstime
                 t2 = t1 + dt
             else:
                 t2 = t1 + dt
@@ -1002,6 +1003,48 @@ class SkyCoord(ShapedLikeNDArray):
                 coord_string = np.array(coord_string).reshape(sph_coord.shape)
 
         return coord_string
+
+    def to_table(self):
+        """
+        Convert this |SkyCoord| to a |QTable|.
+
+        Any attributes that have the same length as the |SkyCoord| will be
+        converted to columns of the |QTable|. All other attributes will be
+        recorded as metadata.
+
+        Returns
+        -------
+        `~astropy.table.QTable`
+            A |QTable| containing the data of this |SkyCoord|.
+
+        Examples
+        --------
+        >>> sc = SkyCoord(ra=[40, 70]*u.deg, dec=[0, -20]*u.deg,
+        ...               obstime=Time([2000, 2010], format='jyear'))
+        >>> t =  sc.to_table()
+        >>> t
+        <QTable length=2>
+           ra     dec   obstime
+          deg     deg
+        float64 float64   Time
+        ------- ------- -------
+           40.0     0.0  2000.0
+           70.0   -20.0  2010.0
+        >>> t.meta
+        {'representation_type': 'spherical', 'frame': 'icrs'}
+        """
+        self_as_dict = self.info._represent_as_dict()
+        tabledata = {}
+        metadata = {}
+        # Record attributes that have the same length as self as columns in the
+        # table, and the other attributes as table metadata.  This matches
+        # table.serialize._represent_mixin_as_column().
+        for key, value in self_as_dict.items():
+            if getattr(value, 'shape', ())[:1] == (len(self),):
+                tabledata[key] = value
+            else:
+                metadata[key] = value
+        return QTable(tabledata, meta=metadata)
 
     def is_equivalent_frame(self, other):
         """
@@ -1619,7 +1662,7 @@ class SkyCoord(ShapedLikeNDArray):
 
         # because of issue #7028, the conversion to a PrecessedGeocentric
         # system fails in some cases.  Work around is to  drop the velocities.
-        # they are not needed here since only position infromation is used
+        # they are not needed here since only position information is used
         extra_frameattrs = {nm: getattr(self, nm)
                             for nm in self._extra_frameattr_names}
         novel = SkyCoord(self.realize_frame(self.data.without_differentials()),

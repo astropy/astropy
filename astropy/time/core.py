@@ -155,6 +155,7 @@ class TimeInfo(MixinInfo):
                                      'ecsv': 'formatted_value',
                                      'hdf5': 'jd1_jd2',
                                      'yaml': 'jd1_jd2',
+                                     'parquet': 'jd1_jd2',
                                      None: 'jd1_jd2'}
 
     def get_sortable_arrays(self):
@@ -940,7 +941,7 @@ class TimeBase(ShapedLikeNDArray):
         other : `~astropy.time.Time`
             Time object for comparison.
         atol : `~astropy.units.Quantity` or `~astropy.time.TimeDelta`
-            Absoute tolerance for equality with units of time (e.g. ``u.s`` or
+            Absolute tolerance for equality with units of time (e.g. ``u.s`` or
             ``u.day``). Default is two bits in the 128-bit JD time representation,
             equivalent to about 40 picosecs.
         """

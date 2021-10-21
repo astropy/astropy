@@ -10,7 +10,7 @@ from numpy.testing import assert_allclose
 # LOCAL
 from astropy import units as u
 from astropy.units.equivalencies import Equivalency
-from astropy import constants, cosmology
+from astropy import constants
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -36,7 +36,7 @@ def test_dimensionless_angles():
     # and check that value is correct
     assert_allclose(Erot_in_erg1.value, (Erot/u.radian**2).to_value(u.erg))
 
-    # test build-in equivalency in subclass
+    # test built-in equivalency in subclass
     class MyRad1(u.Quantity):
         _equivalencies = rad1
 
@@ -527,7 +527,7 @@ def test_equivalent_units():
 def test_equivalent_units2():
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
-        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
          u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
          u.jupiterRad])
     assert units == match
@@ -538,14 +538,14 @@ def test_equivalent_units2():
         match = set(
             [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
              imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
-             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
+             imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi, u.lsec,
              imperial.mil, u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
              imperial.nmi, u.k, u.earthRad, u.jupiterRad])
         assert units == match
 
     units = set(u.Hz.find_equivalent_units(u.spectral()))
     match = set(
-        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr,
+        [u.AU, u.Angstrom, u.Hz, u.J, u.Ry, u.cm, u.eV, u.erg, u.lyr, u.lsec,
          u.m, u.micron, u.pc, u.solRad, u.Bq, u.Ci, u.k, u.earthRad,
          u.jupiterRad])
     assert units == match
@@ -691,7 +691,10 @@ def test_equivalency_context_manager():
 
     tf_dimensionless_angles = just_to_from_units(u.dimensionless_angles())
     tf_spectral = just_to_from_units(u.spectral())
-    assert base_registry.equivalencies == []
+
+    # <=1 b/c might have the dimensionless_redshift equivalency enabled.
+    assert len(base_registry.equivalencies) <= 1
+
     with u.set_enabled_equivalencies(u.dimensionless_angles()):
         new_registry = u.get_current_unit_registry()
         assert (set(just_to_from_units(new_registry.equivalencies)) ==
@@ -835,28 +838,6 @@ def test_plate_scale():
 
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale)), mm)
     assert_quantity_allclose(asec.to(u.mm, u.plate_scale(platescale2)), mm)
-
-
-def test_littleh():
-    H0_70 = 70*u.km/u.s/u.Mpc
-    h70dist = 70 * u.Mpc/u.littleh
-
-    assert_quantity_allclose(h70dist.to(u.Mpc, u.with_H0(H0_70)), 100*u.Mpc)
-
-    # make sure using the default cosmology works
-    cosmodist = cosmology.default_cosmology.get().H0.value * u.Mpc/u.littleh
-    assert_quantity_allclose(cosmodist.to(u.Mpc, u.with_H0()), 100*u.Mpc)
-
-    # Now try a luminosity scaling
-    h1lum = .49 * u.Lsun * u.littleh**-2
-    assert_quantity_allclose(h1lum.to(u.Lsun, u.with_H0(H0_70)), 1*u.Lsun)
-
-    # And the trickiest one: magnitudes.  Using H0=10 here for the round numbers
-    H0_10 = 10*u.km/u.s/u.Mpc
-    # assume the "true" magnitude M = 12.
-    # Then M - 5*log_10(h)  = M + 5 = 17
-    withlittlehmag = 17 * (u.mag - u.MagUnit(u.littleh**2))
-    assert_quantity_allclose(withlittlehmag.to(u.mag, u.with_H0(H0_10)), 12*u.mag)
 
 
 def test_equivelency():

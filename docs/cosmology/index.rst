@@ -7,15 +7,23 @@ Cosmological Calculations (`astropy.cosmology`)
 Introduction
 ============
 
-The `astropy.cosmology` sub-package contains classes for representing
+The :mod:`astropy.cosmology` sub-package contains classes for representing
 cosmologies and utility functions for calculating commonly used
 quantities that depend on a cosmological model. This includes
 distances, ages, and lookback times corresponding to a measured
 redshift or the transverse separation corresponding to a measured
 angular separation.
 
+:mod:`astropy.cosmology.units` extends the :mod:`astropy.units` sub-package,
+adding and collecting cosmological units and equivalencies, like :math:`h` for
+keeping track of (dimensionless) factors of the Hubble constant.
+
 For details on reading and writing cosmologies from files,
 see :ref:`read_write_cosmologies`.
+
+For notes on building custom Cosmology classes and interfacing
+:mod:`astropy.cosmology` with 3rd-party packages,
+see :ref:`astropy-cosmology-for-developers`.
 
 
 Getting Started
@@ -58,8 +66,9 @@ redshifts as input:
 
 .. doctest-requires:: scipy
 
+  >>> import numpy as np
   >>> from astropy.cosmology import WMAP9 as cosmo
-  >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
+  >>> cosmo.comoving_distance(np.array([0.5, 1.0, 1.5]))  # doctest: +FLOAT_CMP
   <Quantity [1916.06941724, 3363.07062107, 4451.7475201 ] Mpc>
 
 You can create your own FLRW-like cosmology using one of the cosmology
@@ -99,6 +108,8 @@ listed below.
    :maxdepth: 1
 
    Reading and Writing <io>
+   Units and Equivalencies <units>
+
 
 Most of the functionality is enabled by the `~astropy.cosmology.FLRW`
 object. This represents a homogeneous and isotropic cosmology
@@ -156,8 +167,9 @@ They also accept arrays of redshifts:
 
 .. doctest-requires:: scipy
 
-  >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +FLOAT_CMP
-  array([8.42128013, 5.74698021, 4.19645373])
+  >>> import astropy.cosmology.units as cu
+  >>> cosmo.age([0.5, 1, 1.5] * cu.redshift)  # doctest: +FLOAT_CMP
+  <Quantity [8.42128013, 5.74698021, 4.19645373] Gyr>
 
 See the `~astropy.cosmology.FLRW` and
 `~astropy.cosmology.FlatLambdaCDM` object docstring for all of the
@@ -181,10 +193,12 @@ parameters already defined are also available
 
 You can see how the density parameters evolve with redshift as well::
 
+  >>> import numpy as np
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
-  >>> WMAP7.Om([0, 1.0, 2.0]), WMAP7.Ode([0., 1.0, 2.0])  # doctest: +FLOAT_CMP
-  (array([0.272     , 0.74898522, 0.90905234]),
-   array([0.72791572, 0.2505506 , 0.0901026 ]))
+  >>> WMAP7.Om(np.array([0, 1.0, 2.0]))  # doctest: +FLOAT_CMP
+  array([0.272     , 0.74898522, 0.90905234])
+  >>> WMAP7.Ode(np.array([0., 1.0, 2.0]))  # doctest: +FLOAT_CMP
+  array([0.72791572, 0.2505506 , 0.0901026 ])
 
 Note that these do not quite add up to one, even though WMAP7 assumes a
 flat universe, because photons and neutrinos are included. Also note
@@ -279,7 +293,7 @@ To find the redshift using ``z_at_value``:
   >>> import astropy.units as u
   >>> from astropy.cosmology import Planck13, z_at_value
   >>> z_at_value(Planck13.age, 2 * u.Gyr)  # doctest: +FLOAT_CMP
-  3.1981226843560968
+  <Quantity 3.19812061 redshift>
 
 ..
   EXAMPLE END
@@ -411,7 +425,7 @@ can be found as a function of redshift::
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Ogamma0, WMAP7.Onu0  # Current epoch values  # doctest: +FLOAT_CMP
   (4.985694972799396e-05, 3.442154948307989e-05)
-  >>> z = [0, 1.0, 2.0]
+  >>> z = np.array([0, 1.0, 2.0])
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)  # doctest: +FLOAT_CMP
   (array([4.98603986e-05, 2.74593395e-04, 4.99915942e-04]),
    array([3.44239306e-05, 1.89580995e-04, 3.45145089e-04]))
@@ -431,9 +445,9 @@ Universe) but setting ``Neff`` to 0::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Tcmb0=2.725, Neff=0)
-  >>> cos.Ogamma([0, 1, 2])  # Photons are still present  # doctest: +FLOAT_CMP
+  >>> cos.Ogamma(np.array([0, 1, 2]))  # Photons are still present  # doctest: +FLOAT_CMP
   array([4.98603986e-05, 2.74642208e-04, 5.00086413e-04])
-  >>> cos.Onu([0, 1, 2])  # But not neutrinos  # doctest: +FLOAT_CMP
+  >>> cos.Onu(np.array([0, 1, 2]))  # But not neutrinos  # doctest: +FLOAT_CMP
   array([0., 0., 0.])
 
 The number of neutrino species is assumed to be the floor of ``Neff``,
@@ -459,7 +473,7 @@ value is provided, all of the species are assumed to have the same mass.
   True
   >>> cosmo.m_nu  # doctest: +FLOAT_CMP
   <Quantity [0.  , 0.05, 0.1 ] eV>
-  >>> cosmo.Onu([0, 1.0, 15.0])  # doctest: +FLOAT_CMP
+  >>> cosmo.Onu(np.array([0, 1.0, 15.0]))  # doctest: +FLOAT_CMP
   array([0.00327011, 0.00896845, 0.01257946])
   >>> cosmo.Onu(1) * cosmo.critical_density(1)  # doctest: +FLOAT_CMP
   <Quantity 2.444380380370406e-31 g / cm3>
@@ -469,51 +483,6 @@ the above examples also apply for all of the other cosmology classes.
 
 ..
   EXAMPLE END
-
-For Developers: Using `astropy.cosmology` Inside ``astropy``
-============================================================
-
-If you are writing code for the ``astropy`` core or an affiliated package,
-it is often useful to assume a default cosmology so that the exact
-cosmology does not have to be specified every time a function or method
-is called. In this case, it is possible to specify a "default"
-cosmology.
-
-You can set the default cosmology to a predefined value by using the
-"default_cosmology" option in the ``[cosmology.core]`` section of the
-configuration file (see :ref:`astropy_config`). Alternatively, you can
-use the ``set`` function of `~astropy.cosmology.default_cosmology` to
-set a cosmology for the current Python session. If you have not set a
-default cosmology using one of the methods described above, then the
-cosmology module will default to using the nine-year WMAP parameters.
-
-It is strongly recommended that you use the default cosmology through
-the `~astropy.cosmology.default_cosmology` science state object. An
-override option can then be provided using something like the
-following::
-
-    def myfunc(..., cosmo=None):
-	from astropy.cosmology import default_cosmology
-
-	if cosmo is None:
-	    cosmo = default_cosmology.get()
-
-	... your code here ...
-
-This ensures that all code consistently uses the default cosmology
-unless explicitly overridden.
-
-.. note::
-    In general it is better to use an explicit cosmology (for example
-    ``WMAP9.H(0)`` instead of
-    ``cosmology.default_cosmology.get().H(0)``). Use of the default
-    cosmology should generally be reserved for code that will be
-    included in the ``astropy`` core or an affiliated package.
-
-.. note that if this section gets too long, it should be moved to a separate
-   doc page - see the top of performance.inc.rst for the instructions on how to do
-   that
-.. include:: performance.inc.rst
 
 See Also
 ========
@@ -556,4 +525,15 @@ the fact that five digits are quoted in the papers.
 Reference/API
 =============
 
+More detailed information on using the package is provided on separate pages,
+listed below.
+
+.. toctree::
+   :maxdepth: 1
+
+   Reading and Writing <io>
+   For Developers <dev>
+
+
 .. automodapi:: astropy.cosmology
+   :inherited-members:

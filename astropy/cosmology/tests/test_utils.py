@@ -6,29 +6,38 @@ import pytest
 
 import numpy as np
 
-from astropy.cosmology.utils import _float_or_none, inf_like, vectorize_if_needed
+from astropy.cosmology.utils import inf_like, vectorize_if_needed, vectorize_redshift_method
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
-@pytest.mark.parametrize("x, digits, expected",
-                         [(None, 1, "None"),
-                          (10.1234, 3, "10.1"),
-                          (10.1234, 7, "10.1234"),  # no more digits
-                          # some edge cases I can think of
-                          (10.0, 0, "1e+01"),  # weird
-                          (10, 5, "10"),  # integer
-                          # errors
-                          (10, None, "missing precision"),
-                          (10, 1.2, "Invalid format specifier"),
-                          (10, -3, "missing precision")])
-def test__float_or_none(x, digits, expected):
-    """Test :func:`astropy.cosmology.utils._float_or_none`."""
-    # handle errors
-    if not isinstance(digits, int) or digits < 0:
-        with pytest.raises(ValueError, match=expected):
-            _float_or_none(x, digits=digits)
-    # normal use cases
-    else:
-        assert _float_or_none(x, digits=digits) == expected
+def test_vectorize_redshift_method():
+    """Test :func:`astropy.cosmology.utils.vectorize_redshift_method`."""
+    class Class:
+
+        @vectorize_redshift_method
+        def method(self, z):
+            return z
+
+    c = Class()
+
+    assert hasattr(c.method, "__vectorized__")
+    assert isinstance(c.method.__vectorized__, np.vectorize)
+
+    # calling with Number
+    assert c.method(1) == 1
+    assert isinstance(c.method(1), int)
+
+    # calling with a numpy scalar
+    assert c.method(np.float64(1)) == np.float64(1)
+    assert isinstance(c.method(np.float64(1)), np.float64)
+
+    # numpy array
+    assert all(c.method(np.array([1, 2])) == np.array([1, 2]))
+    assert isinstance(c.method(np.array([1, 2])), np.ndarray)
+
+    # non-scalar
+    assert all(c.method([1, 2]) == np.array([1, 2]))
+    assert isinstance(c.method([1, 2]), np.ndarray)
 
 
 def test_vectorize_if_needed():
@@ -40,11 +49,11 @@ def test_vectorize_if_needed():
     """
     func = lambda x: x ** 2
 
-    # not vectorized
-    assert vectorize_if_needed(func, 2) == 4
-
-    # vectorized
-    assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
+    with pytest.warns(AstropyDeprecationWarning):
+        # not vectorized
+        assert vectorize_if_needed(func, 2) == 4
+        # vectorized
+        assert all(vectorize_if_needed(func, [2, 3]) == [4, 9])
 
 
 @pytest.mark.parametrize("arr, expected",
@@ -60,4 +69,5 @@ def test_inf_like(arr, expected):
     These tests are also in the docstring, but it's better to have them also
     in one consolidated location.
     """
-    assert np.all(inf_like(arr) == expected)
+    with pytest.warns(AstropyDeprecationWarning):
+        assert np.all(inf_like(arr) == expected)

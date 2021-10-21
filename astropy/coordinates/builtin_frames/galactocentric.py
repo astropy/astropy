@@ -508,7 +508,7 @@ class Galactocentric(BaseCoordinateFrame):
         """
         # note that the actual value is defined at the module level.  We make at
         # a property here because this module isn't actually part of the public
-        # API, so it's better for it to be accessable from Galactocentric
+        # API, so it's better for it to be accessible from Galactocentric
         return _ROLL0
 
 # ICRS to/from Galactocentric ----------------------->
@@ -585,3 +585,7 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
 def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     _check_coord_repr_diff_types(galactocentric_coord)
     return get_matrix_vectors(galactocentric_coord, inverse=True)
+
+
+# Create loopback transformation
+frame_transform_graph._add_merged_transform(Galactocentric, ICRS, Galactocentric)

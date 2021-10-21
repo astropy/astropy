@@ -303,7 +303,7 @@ class TestRunner(TestRunnerBase):
         Returns
         -------
         paths : list of str
-            List of stings of existing package paths.
+            List of strings of existing package paths.
         """
         packages = packages.split(",")
 

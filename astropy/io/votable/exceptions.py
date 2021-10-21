@@ -266,8 +266,8 @@ class W01(VOTableSpecWarning):
         encoded as multiple numbers separated by whitespace.
 
     Many VOTable files in the wild use commas as a separator instead,
-    and ``astropy.io.votable`` supports this convention when not in
-    :ref:`astropy:pedantic-mode`.
+    and ``astropy.io.votable`` can support this convention depending on the
+    :ref:`astropy:verifying-votables` setting.
 
     ``astropy.io.votable`` always outputs files using only spaces, regardless of
     how they were input.
@@ -1460,7 +1460,7 @@ class E22(VOWarning, ValueError):
 class E23(VOTableSpecWarning):
     """
     The ``timeorigin`` attribute on the ``TIMESYS`` element must be
-    either a floating point literal specifiying a valid Julian Date,
+    either a floating point literal specifying a valid Julian Date,
     or, for convenience, the string "MJD-origin" (standing for 2400000.5)
     or the string "JD-origin" (standing for 0).
 

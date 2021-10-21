@@ -128,7 +128,7 @@ class Parameter:
 
     2) Managing the handling of allowable parameter values and once defined,
     ensuring updates are consistent with the Parameter definition. This
-    includes the optional use of units and quantities as well as tranforming
+    includes the optional use of units and quantities as well as transforming
     values to an internally consistent representation (e.g., from degrees to
     radians through the use of getters and setters).
 

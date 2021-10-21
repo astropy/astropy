@@ -29,14 +29,14 @@ jobs:
           # that gives too many false positives due to URL timeouts. We also
           # install all dependencies via pip here so we pick up the latest
           # releases.
-          - name: Python 3.7 with dev version of key dependencies
+          - name: Python 3.10 with dev version of key dependencies
             os: ubuntu-latest
-            python: 3.7
-            toxenv: py37-test-devdeps
+            python: '3.10.0-alpha - 3.10.0'
+            toxenv: py310-test-devdeps
 
           - name: Documentation link check
             os: ubuntu-latest
-            python: 3.7
+            python: 3.8
             toxenv: linkcheck
 
           # TODO: Uncomment when 3.10 is more mature. Should we use devdeps?
@@ -57,7 +57,9 @@ jobs:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt-get install language-pack-de tzdata
+      run: |
+        sudo apt-get update
+        sudo apt-get install language-pack-de tzdata
     - name: Install graphviz
       if: ${{ matrix.toxenv == 'linkcheck' }}
       run: sudo apt-get install graphviz
@@ -74,7 +76,7 @@ jobs:
     # of using system libraries and using pytest directly.
 
     runs-on: ubuntu-18.04
-    name: Python 3.7
+    name: Python 3.9
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
@@ -92,17 +94,17 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: uraimo/run-on-arch-action@v2.0.5
+      - uses: uraimo/run-on-arch-action@v2.1.1
         name: Run tests
         id: build
         with:
           arch: ${{ matrix.arch }}
-          distro: buster
+          distro: bullseye
 
           shell: /bin/bash
 
           install: |
-            echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list
+            echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.list
             apt-get update -q -y
             apt-get install -q -y git \
                                   g++ \
@@ -113,7 +115,8 @@ jobs:
                                   python3-ply \
                                   python3-venv \
                                   cython3 \
-                                  wcslib-dev/buster-backports \
+                                  libwcs7/bullseye-backports \
+                                  wcslib-dev/bullseye-backports \
                                   libcfitsio-dev \
                                   liberfa1
 

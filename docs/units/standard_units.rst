@@ -21,8 +21,9 @@ irreducible units include:
   - Amount of substance (mole)
   - Photon count (photon)
 
-(There are also some more obscure base units required by the FITS
-standard that are no longer recommended for use.)
+(There are also some more obscure base units required by the `FITS Standard
+<https://fits.gsfc.nasa.gov/fits_standard.html>`_ that are no longer
+recommended for use.)
 
 Units that involve combinations of fundamental units are instances of
 `~astropy.units.CompositeUnit`. In most cases, you do not need
@@ -30,7 +31,7 @@ to worry about the various kinds of unit classes unless you want to
 design a more complex case.
 
 There are many units already predefined in the module. You may use the
-`~astropy.units.core.UnitBase.find_equivalent_units` method to list
+:meth:`~astropy.units.core.UnitBase.find_equivalent_units` method to list
 all of the existing predefined units of a given type::
 
   >>> from astropy import units as u
@@ -52,8 +53,11 @@ all of the existing predefined units of a given type::
 Prefixes
 ========
 
-Most units can be used with prefixes, with both the standard SI prefixes and
-the IEEE 1514 binary prefixes (for ``bit`` and ``byte``) supported:
+Most units can be used with prefixes, with both the standard `SI
+<https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_ prefixes
+and the `IEEE 1514-2002
+<https://ieeexplore.ieee.org/servlet/opac?punumber=5254929>`_ binary prefixes
+(for ``bit`` and ``byte``) supported:
 
 +------------------------------+
 |  Available decimal prefixes  |
@@ -134,7 +138,6 @@ or by the user.
 For convenience, there is a unit that is both dimensionless and
 unscaled: the ``dimensionless_unscaled`` object::
 
-   >>> from astropy import units as u
    >>> u.dimensionless_unscaled
    Unit(dimensionless)
 
@@ -152,7 +155,7 @@ To use the ``dimensionless_unscaled`` object::
    >>> u.m / u.m
    Unit(dimensionless)
 
-For compatibility with the supported unit string formats, this is
+For compatibility with the :ref:`astropy-units-format`, this is
 equivalent to ``Unit('')`` and ``Unit(1)``, though using
 ``u.dimensionless_unscaled`` in Python code is preferred for
 readability::
@@ -207,10 +210,12 @@ Enabling Other Units
 ====================
 
 By default, only the "default" units are searched by
-`~astropy.units.core.UnitBase.find_equivalent_units` and similar
-methods that do searching. This includes SI, CGS, and astrophysical
-units. However, you may wish to enable the Imperial or other
-user-defined units.
+:meth:`~astropy.units.core.UnitBase.find_equivalent_units` and similar methods
+that do searching. This includes `SI
+<https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf>`_, `CGS
+<https://en.wikipedia.org/wiki/Centimetre-gram-second_system_of_units>`_, and
+astrophysical units. However, you may wish to enable the `Imperial
+<https://en.wikipedia.org/wiki/Imperial_units>`_ or other user-defined units.
 
 Example
 -------
@@ -220,42 +225,43 @@ Example
 To enable Imperial units, do::
 
     >>> from astropy.units import imperial
-    >>> imperial.enable()  # doctest: +SKIP
-    >>> u.m.find_equivalent_units()  # doctest: +SKIP
+    >>> imperial.enable()
+    <astropy.units.core._UnitContext object at ...>
+    >>> u.m.find_equivalent_units()
       Primary name | Unit definition | Aliases
     [
-      AU           | 1.49598e+11 m   | au, astronomical_unit ,
-      Angstrom     | 1e-10 m         | AA, angstrom          ,
-      cm           | 0.01 m          | centimeter            ,
-      ft           | 0.3048 m        | foot                  ,
-      fur          | 201.168 m       | furlong               ,
-      inch         | 0.0254 m        |                       ,
-      lyr          | 9.46073e+15 m   | lightyear             ,
-      m            | irreducible     | meter                 ,
-      mi           | 1609.34 m       | mile                  ,
-      micron       | 1e-06 m         |                       ,
-      mil          | 2.54e-05 m      | thou                  ,
-      nmi          | 1852 m          | nauticalmile, NM      ,
-      pc           | 3.08568e+16 m   | parsec                ,
-      solRad       | 6.957e+08 m     | R_sun, Rsun           ,
-      yd           | 0.9144 m        | yard                  ,
+      AU           | 1.49598e+11 m   | au, astronomical_unit            ,
+      Angstrom     | 1e-10 m         | AA, angstrom                     ,
+      cm           | 0.01 m          | centimeter                       ,
+      earthRad     | 6.3781e+06 m    | R_earth, Rearth                  ,
+      ft           | 0.3048 m        | foot                             ,
+      fur          | 201.168 m       | furlong                          ,
+      inch         | 0.0254 m        |                                  ,
+      jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
+      lsec         | 2.99792e+08 m   | lightsecond                      ,
+      lyr          | 9.46073e+15 m   | lightyear                        ,
+      m            | irreducible     | meter                            ,
+      mi           | 1609.34 m       | mile                             ,
+      micron       | 1e-06 m         |                                  ,
+      mil          | 2.54e-05 m      | thou                             ,
+      nmi          | 1852 m          | nauticalmile, NM                 ,
+      pc           | 3.08568e+16 m   | parsec                           ,
+      solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
+      yd           | 0.9144 m        | yard                             ,
     ]
 
 
-This may also be used with the ``with`` statement, to temporarily
-enable additional units::
+This may also be used with the `Python "with" statement
+<https://docs.python.org/3/reference/compound_stmts.html#with>`_, to
+temporarily enable additional units::
 
-    >>> from astropy import units as u
-    >>> from astropy.units import imperial
     >>> with imperial.enable():
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases
     ...
 
-To enable only specific units, use `~astropy.units.add_enabled_units`::
+To enable only specific units, use :func:`~astropy.units.add_enabled_units`::
 
-    >>> from astropy import units as u
-    >>> from astropy.units import imperial
     >>> with u.add_enabled_units([imperial.knot]):
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases

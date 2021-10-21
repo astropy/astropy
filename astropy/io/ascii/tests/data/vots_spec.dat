@@ -4,7 +4,7 @@
 ##
 ## This is the specification of the VOTable-Simple (VOTS) format, given as an
 ## example data table with comments and references.  This data table format is
-## intented to provide a way of specifying metadata and data for simple tabular
+## intended to provide a way of specifying metadata and data for simple tabular
 ## data sets.  This specification is intended as a subset of the VOTable data
 ## model and allow easy generation of a VOTable-compliant data structure.  This
 ## provides a uniform starting point for generating table documentation and
@@ -34,7 +34,7 @@
 ## VOTable elements and attributes.
 ##
 ## The actual table data must follow the header and consist of space or tab delimited 
-## data fields.  The chosen delimiter must be used consistently througout the table.
+## data fields.  The chosen delimiter must be used consistently throughout the table.
 ##
 ##----------------------------------------------------------------------------------
 ## Table description, corresponding to the VOTable TABLE::DESCRIPTION element.
@@ -66,7 +66,7 @@
 ## 'datatype', 'unit', and 'description' are required.  Optional attributes are:
 ## 'width', 'precision', 'ucd', 'utype', 'ref', and 'type'.
 ## See http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#ToC25 for
-## the VOTable defintions.
+## the VOTable definitions.
 ## Allowed values of datatype are:
 ##   boolean, unsignedByte, short, int, long, string, float, double
 ## Units: (from http://www.ivoa.net/Documents/REC/VOTable/VOTable-20040811.html#sec:unit)

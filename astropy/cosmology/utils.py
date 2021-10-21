@@ -1,41 +1,70 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import functools
 from math import inf
+from numbers import Number
 
 import numpy as np
 
+from astropy.units import Quantity
 from astropy.utils import isiterable
+from astropy.utils.decorators import deprecated
+
+from . import units as cu
 
 __all__ = []  # nothing is publicly scoped
 
+__doctest_skip__ = ["inf_like", "vectorize_if_needed"]
 
-def _float_or_none(x, digits=3):
-    """Helper function to format a variable that can be a float or None.
+
+def vectorize_redshift_method(func=None, nin=1):
+    """Vectorize a method of redshift(s).
 
     Parameters
     ----------
-    x : float or None
-    digits : int
-        Number of digits to display. This includes left of the decimal place.
-        Must be positive.
+    func : callable or None
+        method to wrap. If `None` returns a :func:`functools.partial`
+        with ``nin`` loaded.
+    nin : int
+        Number of positional redshift arguments.
 
     Returns
     -------
-    str
-
-    Examples
-    --------
-    >>> _float_or_none(None)
-    'None'
-    >>> _float_or_none(10.1234, 3)
-    '10.1'
+    wrapper : callable
+        :func:`functools.wraps` of ``func`` where the first ``nin``
+        arguments are converted from |Quantity| to :class:`numpy.ndarray`.
     """
-    if x is None:
-        return str(x)
-    fmtstr = "{0:.{digits}g}".format(x, digits=digits)
-    return fmtstr.format(x)
+    # allow for pie-syntax & setting nin
+    if func is None:
+        return functools.partial(vectorize_redshift_method, nin=nin)
+
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        """
+        :func:`functools.wraps` of ``func`` where the first ``nin``
+        arguments are converted from |Quantity| to `numpy.ndarray` or scalar.
+        """
+        # process inputs
+        # TODO! quantity-aware vectorization can simplify this.
+        zs = [z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
+              for z in args[:nin]]
+        # scalar inputs
+        if all(isinstance(z, (Number, np.generic)) for z in zs):
+            return func(self, *zs, *args[nin:], **kwargs)
+        # non-scalar. use vectorized func
+        return wrapper.__vectorized__(self, *zs, *args[nin:], **kwargs)
+
+    wrapper.__vectorized__ = np.vectorize(func)  # attach vectorized function
+    # TODO! use frompyfunc when can solve return type errors
+
+    return wrapper
 
 
+@deprecated(
+    since="5.0",
+    message="vectorize_if_needed has been removed because it constructs a new ufunc on each call",
+    alternative="use a pre-vectorized function instead for a target array 'z'"
+)
 def vectorize_if_needed(f, *x, **vkw):
     """Helper function to vectorize scalar functions on array inputs.
 
@@ -60,6 +89,11 @@ def vectorize_if_needed(f, *x, **vkw):
     return np.vectorize(f, **vkw)(*x) if any(map(isiterable, x)) else f(*x)
 
 
+@deprecated(
+    since="5.0",
+    message="inf_like has been removed because it duplicates functionality provided by numpy.full_like()",
+    alternative="Use numpy.full_like(z, numpy.inf) instead for a target array 'z'"
+)
 def inf_like(x):
     """Return the shape of x with value infinity and dtype='float'.
 
@@ -90,3 +124,18 @@ def inf_like(x):
     array([inf, inf, inf, inf])
     """
     return inf if np.isscalar(x) else np.full_like(x, inf, dtype=float)
+
+
+def aszarr(z):
+    """
+    Redshift as a `~numbers.Number` or `~numpy.ndarray` / |Quantity|.
+    Allows for any ndarray ducktype by checking for attribute "shape".
+    """
+    if isinstance(z, (Number, np.generic)):  # scalars
+        return z
+    elif hasattr(z, "shape"):  # ducktypes NumPy array
+        if hasattr(z, "unit"):  # Quantity
+            return z.to_value(cu.redshift)  # for speed only use enabled equivs
+        return z
+    # not one of the preferred types: Number / array ducktype
+    return Quantity(z, cu.redshift).value

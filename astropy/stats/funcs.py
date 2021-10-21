@@ -13,7 +13,7 @@ import math
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated_renamed_argument
+import astropy.units as u
 from . import _stats
 
 __all__ = ['gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
@@ -87,7 +87,6 @@ def _expand_dims(data, axis):
     return data.reshape(shape)
 
 
-@deprecated_renamed_argument('conf', 'confidence_level', '4.0')
 def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     r"""Binomial proportion confidence interval given k successes,
     n trials.
@@ -315,7 +314,6 @@ def binom_conf_interval(k, n, confidence_level=0.68269, interval='wilson'):
     return conf_interval
 
 
-@deprecated_renamed_argument('conf', 'confidence_level', '4.0')
 def binned_binom_proportion(x, success, bins=10, range=None,
                             confidence_level=0.68269, interval='wilson'):
     """Binomial proportion and confidence interval in bins of a continuous
@@ -505,7 +503,6 @@ def _check_poisson_conf_inputs(sigma, background, confidence_level, name):
         raise ValueError(f"confidence_level not supported for interval {name}")
 
 
-@deprecated_renamed_argument('conflevel', 'confidence_level', '4.0')
 def poisson_conf_interval(n, interval='root-n', sigma=1, background=0,
                           confidence_level=None):
     r"""Poisson parameter confidence interval given observed counts
@@ -834,7 +831,7 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
             func = np.nanmedian
         else:
             is_masked = False
-            func = np.median
+            func = np.median  # drops units if result is NaN
     else:
         is_masked = None
 
@@ -842,12 +839,22 @@ def median_absolute_deviation(data, axis=None, func=None, ignore_nan=False):
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
     # user-passed functions here
     data_median = func(data, axis=axis)
+    # this conditional can be removed after this PR is merged:
+    # https://github.com/astropy/astropy/issues/12165
+    if (isinstance(data, u.Quantity) and func is np.median
+            and data_median.ndim == 0 and np.isnan(data_median)):
+        data_median = data.__array_wrap__(data_median)
 
     # broadcast the median array before subtraction
     if axis is not None:
         data_median = _expand_dims(data_median, axis=axis)  # NUMPY_LT_1_18
 
     result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
+    # this conditional can be removed after this PR is merged:
+    # https://github.com/astropy/astropy/issues/12165
+    if (isinstance(data, u.Quantity) and func is np.median
+            and result.ndim == 0 and np.isnan(result)):
+        result = data.__array_wrap__(result)
 
     if axis is None and np.ma.isMaskedArray(result):
         # return scalar version

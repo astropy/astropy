@@ -36,16 +36,19 @@ These models provide shapes, often used to model general x, y data.
 - :class:`~astropy.modeling.functional_models.Sine1D` model provides a sine
   parameterized by an amplitude, frequency, and phase.
 
+- :class:`~astropy.modeling.functional_models.Cosine1D` model provides a
+  cosine parameterized by an amplitude, frequency, and phase.
+
 .. plot::
 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from astropy.modeling.models import (Linear1D, Sine1D)
+    from astropy.modeling.models import (Linear1D, Sine1D, Cosine1D)
 
     x = np.linspace(-4.0, 6.0, num=100)
 
-    fig, sax = plt.subplots(ncols=2, figsize=(10, 5))
+    fig, sax = plt.subplots(ncols=3, figsize=(10, 5))
     ax = sax.flatten()
 
     linemod = Linear1D(slope=2., intercept=1.)
@@ -55,7 +58,11 @@ These models provide shapes, often used to model general x, y data.
     ax[1].plot(x, sinemod(x), label="Sine1D")
     ax[1].set_ylim(-11.0, 13.0)
 
-    for k in range(2):
+    cosinemod = Cosine1D(amplitude=10., frequency=0.5, phase=0)
+    ax[2].plot(x, cosinemod(x), label="Cosine1D")
+    ax[2].set_ylim(-11.0, 13.0)
+
+    for k in range(3):
         ax[k].set_xlabel("x")
         ax[k].set_ylabel("y")
         ax[k].legend()
@@ -93,7 +100,7 @@ These models provide profiles, often used for lines in spectra.
 
 - :class:`~astropy.modeling.functional_models.Trapezoid1D` model computes a
   box with sloping sides with an amplitude centered at x_0 with the specified
-  width and sides wit the specified slope.
+  width and sides with the specified slope.
 
 - :class:`~astropy.modeling.functional_models.Voigt1D` model computes a
   Voigt function with an amplitude centered at x_0 with the specified

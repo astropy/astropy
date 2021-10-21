@@ -247,8 +247,8 @@ Version 1.1
 and `Version 1.4
 <https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_.
 Some flexibility is provided to support the 1.0 draft version and
-other nonstandard usage in the wild. To support these cases, set the
-keyword argument ``pedantic`` to ``False`` when parsing.
+other nonstandard usage in the wild, see :ref:`verifying-votables` for more
+details.
 
 .. note::
 
@@ -259,28 +259,42 @@ keyword argument ``pedantic`` to ``False`` when parsing.
 Output always conforms to the 1.1, 1.2, 1.3, or 1.4 spec, depending on the
 input.
 
-.. _pedantic-mode:
+.. _verifying-votables:
 
-Pedantic mode
-^^^^^^^^^^^^^
+Verifying VOTables
+^^^^^^^^^^^^^^^^^^
 
-Many VOTable files in the wild do not conform to the VOTable
-specification. If reading one of these files causes exceptions, you
-may turn off pedantic mode in `astropy.io.votable` by passing
-``pedantic=False`` to the `~astropy.io.votable.parse` or
-`~astropy.io.votable.parse_single_table` functions::
+Many VOTable files in the wild do not conform to the VOTable specification. You
+can set what should happen when a violation is encountered with the ``verify``
+keyword, which can take three values:
+
+    * ``'ignore'`` - Attempt to parse the VOTable silently. This is the default
+      setting.
+    * ``'warn'`` - Attempt to parse the VOTable, but raise appropriate
+      :ref:`warnings`. It is possible to limit the number of warnings of the
+      same type to a maximum value using the
+      `astropy.io.votable.exceptions.conf.max_warnings
+      <astropy.io.votable.exceptions.Conf.max_warnings>` item in the
+      :ref:`astropy_config`.
+    * ``'exception'`` - Do not parse the VOTable and raise an exception.
+
+The ``verify`` keyword can be used with the :func:`~astropy.io.votable.parse`
+or :func:`~astropy.io.votable.parse_single_table` functions::
 
   from astropy.io.votable import parse
-  votable = parse("votable.xml", pedantic=False)
+  votable = parse("votable.xml", verify='warn')
 
-Note, however, that it is good practice to report these errors to the
-author of the application that generated the VOTable file to bring the
-file into compliance with the specification.
+It is possible to change the default ``verify`` value through the
+`astropy.io.votable.conf.verify <astropy.io.votable.Conf.verify>` item in the
+:ref:`astropy_config`.
 
-Even with ``pedantic`` turned off, many warnings may still be omitted.
-These warnings are all of the type
-`~astropy.io.votable.exceptions.VOTableSpecWarning` and can be turned
-off using the standard Python `warnings` module.
+Note that ``'ignore'`` or ``'warn'``  mean that ``astropy`` will attempt to
+parse the VOTable, but if the specification has been violated then success
+cannot be guaranteed.
+
+It is good practice to report any errors to the author of the application that
+generated the VOTable file to bring the file into compliance with the
+specification.
 
 Missing Values
 --------------

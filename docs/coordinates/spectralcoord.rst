@@ -60,7 +60,7 @@ specify the :ref:`u.spectral <astropy-units-spectral-equivalency>` equivalency::
     <SpectralCoord [458.25811373, 458.11805929, 457.97809044] THz>
 
 As is the case with |Quantity| and the :ref:`Doppler equivalencies
-<astropy-units-doppler-equivalencies>`, it is also posible to convert these
+<astropy-units-doppler-equivalencies>`, it is also possible to convert these
 absolute spectral coordinates into velocities, assuming a particular rest
 frequency or wavelength (such as that of a spectral line). For example, to
 convert the above values into velocities relative to the Halpha line at 656.65
@@ -571,7 +571,7 @@ References
 ..                            the Solar System Barycenter [4]_.
 .. ``CMBDIPOL_WMAP1``         Velocity frame representing the motion of the
 ..                            cosmic microwave background (CMB) dipole based on the
-..                            1-year WMAP data, and defined as a tempreature
+..                            1-year WMAP data, and defined as a temperature
 ..                            difference of 3.346mK (corresponding to approximately
 ..                            368 km/s) in the direction of l=263.85, b=48.25 [5]_
 .. .. [3] Kerr, F. J., & Lynden-Bell, D. 1986, MNRAS, 221, 1023

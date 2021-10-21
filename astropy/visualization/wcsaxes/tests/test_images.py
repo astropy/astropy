@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-import os
-
 import matplotlib.lines
 import matplotlib.pyplot as plt
 import pytest
@@ -689,7 +687,7 @@ class TestBasic(BaseImageTests):
         # the input(center) is a tuple or a SkyCoord object.
         assert (r1.get_xy() == r2.get_xy()).all()
         assert np.allclose(r1.get_xy(), r3.get_xy())
-        assert (r2.get_xy()[0] == [266.4, -29.25]).all()
+        assert np.allclose(r2.get_xy()[0], [266.4, -29.25])
 
         return fig
 
@@ -957,7 +955,7 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(spatial_wcs_2d_small_angle, slic
     actually changes on the bottom.
 
     For example an aligned wcs, pixel grid where you plot a lon slice through a
-    lat axis, you would end up with no ticks on the bottom as the lon dosen't
+    lat axis, you would end up with no ticks on the bottom as the lon doesn't
     change, and a set of lat ticks on the top because it does but it's the
     correlated axis not the actual one you are plotting against.
     """

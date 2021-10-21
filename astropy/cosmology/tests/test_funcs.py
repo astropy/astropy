@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 
 from astropy import units as u
-from astropy.cosmology import core
+from astropy.cosmology import core, flrw
 from astropy.cosmology.funcs import _z_at_scalar_value, z_at_value
 from astropy.cosmology.realizations import WMAP5, WMAP7, WMAP9, Planck13, Planck15, Planck18
 from astropy.units import allclose
@@ -107,10 +107,11 @@ class Test_ZatValue:
 
     def test_scalar_input_to_output(self):
         """Test scalar input returns a scalar."""
-        assert isinstance(
-            z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
-                       zmin=0, zmax=2),
-            np.float64)
+        z = z_at_value(self.cosmo.angular_diameter_distance, 1500 * u.Mpc,
+                       zmin=0, zmax=2)
+        assert isinstance(z, u.Quantity)
+        assert z.dtype == np.float64
+        assert z.shape == ()
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -135,7 +136,7 @@ def test_z_at_value_verbose(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', mock_stdout)
 
     resx = z_at_value(cosmo.age, 2 * u.Gyr, verbose=True)
-    assert str(resx) in mock_stdout.getvalue()  # test "verbose" prints res
+    assert str(resx.value) in mock_stdout.getvalue()  # test "verbose" prints res
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -212,8 +213,8 @@ def test_z_at_value_unconverged(method):
 
 @pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('cosmo', [Planck13, Planck15, Planck18, WMAP5, WMAP7, WMAP9,
-                                   core.LambdaCDM, core.FlatLambdaCDM, core.wpwaCDM, core.w0wzCDM,
-                                   core.wCDM, core.FlatwCDM, core.w0waCDM, core.Flatw0waCDM])
+                                   flrw.LambdaCDM, flrw.FlatLambdaCDM, flrw.wpwaCDM, flrw.w0wzCDM,
+                                   flrw.wCDM, flrw.FlatwCDM, flrw.w0waCDM, flrw.Flatw0waCDM])
 def test_z_at_value_roundtrip(cosmo):
     """
     Calculate values from a known redshift, and then check that
@@ -229,7 +230,7 @@ def test_z_at_value_roundtrip(cosmo):
     # nu_relative_density is not redshift-dependent in the WMAP cosmologies
     skip = ('Ok',
             'angular_diameter_distance_z1z2',
-            'clone',
+            'clone', 'is_equivalent',
             'de_density_scale', 'w')
     if str(cosmo.name).startswith('WMAP'):
         skip += ('nu_relative_density', )

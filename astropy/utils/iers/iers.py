@@ -121,7 +121,7 @@ class Conf(_config.ConfigNamespace):
     auto_max_age = _config.ConfigItem(
         30.0,
         'Maximum age (days) of predictive data before auto-downloading. '
-        'See "Auto refresh behavior" in astropy.utils.iers documentation for details.'
+        'See "Auto refresh behavior" in astropy.utils.iers documentation for details. '
         'Default is 30.')
     iers_auto_url = _config.ConfigItem(
         IERS_A_URL,
@@ -1163,7 +1163,7 @@ class LeapSeconds(QTable):
         ValueError
             If the leap seconds in the table are not on 1st of January or July,
             or if the matches are inconsistent.  This would normally suggest
-            a currupted leap second table, but might also indicate that the
+            a corrupted leap second table, but might also indicate that the
             ERFA table was corrupted.  If needed, the ERFA table can be reset
             by calling this method with an appropriate value for
             ``initialize_erfa``.

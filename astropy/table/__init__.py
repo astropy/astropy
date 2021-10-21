@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from astropy import config as _config
+import astropy.config as _config
 from .column import Column, MaskedColumn, StringTruncateWarning, ColumnInfo
 
 __all__ = ['BST', 'Column', 'ColumnGroups', 'ColumnInfo', 'Conf',
@@ -33,7 +33,7 @@ class Conf(_config.ConfigNamespace):  # noqa
         'List of conditions for issuing a warning when replacing a table '
         "column using setitem, e.g. t['a'] = value.  Allowed options are "
         "'always', 'slice', 'refcount', 'attributes'.",
-        'list')
+        'string_list')
     replace_inplace = _config.ConfigItem(
         False,
         'Always use in-place update of a table column when using setitem, '

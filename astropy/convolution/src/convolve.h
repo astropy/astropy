@@ -19,7 +19,7 @@
 
 #endif
 
-// MSVC implements OpenMP 2.0 which mandates singed integers for its parallel loops
+// MSVC implements OpenMP 2.0 which mandates signed integers for its parallel loops
 #if defined(_MSC_VER)
 typedef signed omp_iter_var;
 #else

@@ -59,14 +59,16 @@ Examine the NumPy documentation for more examples with :func:`numpy.array_str`.
 
 Units, or the unit part of a quantity, can also be formatted in a number of
 different styles. By default, the string format used is referred to as the
-"generic" format, which is based on syntax of the FITS standard format for
-representing units, but supports all of the units defined within the
-`astropy.units` framework, including user-defined units. The format specifier
-(and `~astropy.units.core.UnitBase.to_string`) functions also take an optional
+"generic" format, which is based on syntax of the `FITS standard
+<https://fits.gsfc.nasa.gov/fits_standard.html>`_ format for representing
+units, but supports all of the units defined within the :mod:`astropy.units`
+framework, including user-defined units. The format specifier (and
+:meth:`~astropy.units.core.UnitBase.to_string`) functions also take an optional
 parameter to select a different format, including ``"latex"``, ``"unicode"``,
-``"cds"``, and others, defined below.
+``"cds"``, and others, defined below::
 
-    >>> f"{q.value:0.003f} in {q.unit:latex}"  # doctest: +SKIP
+    >>> q = 10 * u.km
+    >>> f"{q.value:0.003f} in {q.unit:latex}"
     '10.000 in $\\mathrm{km}$'
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
     >>> f"{fluxunit}"
@@ -80,8 +82,8 @@ parameter to select a different format, including ``"latex"``, ``"unicode"``,
     >>> f"{fluxunit:>20s}"
     u'       erg / (cm2 s)'
 
-The `~astropy.units.core.UnitBase.to_string` method is an alternative way to
-format units as strings, and is the underlying implementation of the
+The :meth:`~astropy.units.core.UnitBase.to_string` method is an alternative way
+to format units as strings, and is the underlying implementation of the
 `format`-style usage::
 
     >>> fluxunit = u.erg / (u.cm ** 2 * u.s)
@@ -96,7 +98,6 @@ Creating Units from Strings
 Units can also be created from strings in a number of different
 formats using the `~astropy.units.Unit` class::
 
-  >>> from astropy import units as u
   >>> u.Unit("m")
   Unit("m")
   >>> u.Unit("erg / (s cm2)")
@@ -183,9 +184,9 @@ following formats:
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
 
-      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +SKIP
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
                       m² kg
-      2.1798721×10-¹⁸ ─────
+      2.1798724×10⁻¹⁸ ─────
                        s²
 
 .. _astropy-units-format-unrecognized:
@@ -217,20 +218,21 @@ However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control
 this behavior:
 
-  - ``'raise'``: (default) raise a ValueError exception.
+  - ``'raise'``: (default) raise a :class:`ValueError`.
 
-  - ``'warn'``: emit a Warning, and return an
+  - ``'warn'``: emit a :class:`~astropy.units.UnitsWarning`, and return an
     `~astropy.units.UnrecognizedUnit` instance.
 
   - ``'silent'``: return an `~astropy.units.UnrecognizedUnit`
     instance.
 
 By either adding additional unit aliases for the misspelt units with
-`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom'; as
-demonstrated below), or defining new units via `~astropy.units.def_unit` and
-`~astropy.units.add_enabled_units`, we can use ``parse_strict='raise'`` to
-rapidly find issues with the units used, while also being able to read in
-older datasets where the unit usage may have been less standard.
+:func:`~astropy.units.set_enabled_aliases` (e.g., 'Angstroms' for 'Angstrom';
+as demonstrated below), or defining new units via
+:func:`~astropy.units.def_unit` and :func:`~astropy.units.add_enabled_units`,
+we can use ``parse_strict='raise'`` to rapidly find issues with the units used,
+while also being able to read in older datasets where the unit usage may have
+been less standard.
 
 
 Examples
@@ -238,9 +240,9 @@ Examples
 
 .. EXAMPLE START: Define Aliases for Units
 
-To set unit aliases, pass `~astropy.units.set_enabled_aliases` a
-dictionary mapping the misspelt string to an astropy unit. The following code
-snippet shows how to set up Angstroem -> Angstrom::
+To set unit aliases, pass :func:`~astropy.units.set_enabled_aliases` a
+:class:`dict` mapping the misspelt string to an astropy unit. The following
+code snippet shows how to set up Angstroem -> Angstrom::
 
     >>> u.set_enabled_aliases({"Angstroem": u.Angstrom})
     <astropy.units.core._UnitContext object at 0x...>
@@ -263,9 +265,10 @@ The aliases can be reset by passing an empty dictionary::
     >>> u.set_enabled_aliases({})
     <astropy.units.core._UnitContext object at 0x...>
 
-You can use both `~astropy.units.set_enabled_aliases` and
-`~astropy.units.add_enabled_aliases` as context manager, limiting where a
-particular alias is used::
+You can use both :func:`~astropy.units.set_enabled_aliases` and
+:func:`~astropy.units.add_enabled_aliases` as a `context manager
+<https://docs.python.org/3/reference/datamodel.html#context-managers>`_,
+limiting where a particular alias is used::
 
     >>> with u.add_enabled_aliases({"Angstroem": u.Angstrom}):
     ...     print(u.Unit("Angstroem") == u.Angstrom)
@@ -286,24 +289,27 @@ particular alias is used::
 
 To pass an unrecognized unit string::
 
-   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")  # doctest: +SKIP
-   WARNING: UnitsWarning: 'Angstroem' did not parse as unit format
-   'fits': At col 0, 'Angstroem' is not a valid unit in string
-   'Angstroem' [astropy.units.core]
+   >>> x = u.Unit("Angstroem", format="fits", parse_strict="warn")  # doctest: +SHOW_WARNINGS
+   UnitsWarning: 'Angstroem' did not parse as fits unit: At col 0, Unit
+   'Angstroem' not supported by the FITS standard. Did you mean Angstrom or
+   angstrom? If this is meant to be a custom unit, define it with 'u.def_unit'.
+   To have it recognized inside a file reader or other code, enable it with
+   'u.add_enabled_units'. For details, see
+   https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
 This `~astropy.units.UnrecognizedUnit` object remembers the
 original string it was created with, so it can be written back out,
 but any meaningful operations on it, such as converting to another
 unit or composing with other units, will fail.
 
-   >>> x.to_string()  # doctest: +SKIP
+   >>> x.to_string()
    'Angstroem'
-   >>> x.to(u.km)  # doctest: +SKIP
+   >>> x.to(u.km)
    Traceback (most recent call last):
      ...
    ValueError: The unit 'Angstroem' is unrecognized.  It can not be
    converted to other units.
-   >>> x / u.m  # doctest: +SKIP
+   >>> x / u.m
    Traceback (most recent call last):
      ...
    ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic

@@ -56,7 +56,7 @@ def serialize_context_as(context):
     Parameters
     ----------
     context : str
-        Context name, e.g. 'fits', 'hdf5', 'ecsv', 'yaml'
+        Context name, e.g. 'fits', 'hdf5', 'parquet', 'ecsv', 'yaml'
     """
     old_context = BaseColumnInfo._serialize_context
     BaseColumnInfo._serialize_context = context
@@ -116,9 +116,9 @@ def data_info_factory(names, funcs):
     >>> mystats = data_info_factory(names=['min', 'median', 'max'],
     ...                             funcs=[np.min, np.median, np.max])
     >>> c.info(option=mystats)
-    min = 1.0
+    min = 1
     median = 2.5
-    max = 4.0
+    max = 4
     n_bad = 0
     length = 4
 
@@ -145,7 +145,10 @@ def data_info_factory(names, funcs):
             except Exception:
                 outs.append('--')
             else:
-                outs.append(str(out))
+                try:
+                    outs.append(f'{out:g}')
+                except (TypeError, ValueError):
+                    outs.append(str(out))
 
         return OrderedDict(zip(names, outs))
     return func
@@ -520,9 +523,9 @@ class BaseColumnInfo(DataInfo):
     # Context for serialization.  This can be set temporarily via
     # ``serialize_context_as(context)`` context manager to allow downstream
     # code to understand the context in which a column is being serialized.
-    # Typical values are 'fits', 'hdf5', 'ecsv', 'yaml'.  Objects like Time or
-    # SkyCoord will have different default serialization representations
-    # depending on context.
+    # Typical values are 'fits', 'hdf5', 'parquet', 'ecsv', 'yaml'.  Objects
+    # like Time or SkyCoord will have different default serialization
+    # representations depending on context.
     _serialize_context = None
     __slots__ = ['_format_funcs', '_copy_indices']
 

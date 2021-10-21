@@ -1,0 +1,1 @@
+Add support for reading and writing int8 images

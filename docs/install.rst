@@ -80,13 +80,13 @@ for the list of available versions with ``conda search astropy``.
 If you want to install ``astropy`` along with recommended or all of the
 available optional :ref:`dependencies <astropy-main-req>`, you can do::
 
-    conda install -c astropy -c defaults scipy matplotlib
+    conda install -c conda-forge -c defaults scipy matplotlib
 
 or::
 
-    conda install -c astropy -c defaults scipy matplotlib \
+    conda install -c conda-forge -c defaults scipy matplotlib \
       h5py beautifulsoup4 html5lib bleach pandas sortedcontainers \
-      pytz setuptools mpmath bottleneck jplephem asdf
+      pytz setuptools mpmath bottleneck jplephem asdf pyarrow
 
 To also be able to run tests (see below) and support :ref:`builddocs` use the
 following. We use ``pip`` for these packages to ensure getting the latest
@@ -140,6 +140,8 @@ Requirements
 - `PyERFA`_ |minimum_pyerfa_version| or later
 
 - `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
+
+- `packaging`_ |minimum_packaging_version| or later
 
 ``astropy`` also depends on a number of other packages for optional features.
 The following are particularly recommended:
@@ -202,6 +204,9 @@ The further dependencies provide more specific features:
   up-to-date root CA certificates on your system; this package is usually
   already included in many Python installations (e.g., as a dependency of
   the ``requests`` package).
+
+- `pyarrow <https://arrow.apache.org/docs/python/>`_ |minimum_pyarrow_version| or later:
+  To read/write :class:`~astropy.table.Table` objects from/to Parquet files.
 
 However, note that these packages require installation only if those particular
 features are needed. ``astropy`` will import even if these dependencies are not
@@ -446,7 +451,7 @@ documentation, you will need to make sure that a number of dependencies are
 installed. If you use conda, the easiest way to install the dependencies is
 with::
 
-    conda install -c astropy sphinx-astropy
+    conda install -c conda-forge sphinx-astropy
 
 Without conda, you install the dependencies by specifying ``[docs]`` when
 installing ``astropy`` with pip::

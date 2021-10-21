@@ -210,9 +210,9 @@ def ignore_sigint(func):
     def wrapped(*args, **kwargs):
         # Get the name of the current thread and determine if this is a single
         # threaded application
-        curr_thread = threading.currentThread()
-        single_thread = (threading.activeCount() == 1 and
-                         curr_thread.getName() == 'MainThread')
+        curr_thread = threading.current_thread()
+        single_thread = (threading.active_count() == 1 and
+                         curr_thread.name == 'MainThread')
 
         class SigintHandler:
             def __init__(self):
@@ -726,18 +726,25 @@ def _convert_array(array, dtype):
         return array.astype(dtype)
 
 
-def _unsigned_zero(dtype):
+def _pseudo_zero(dtype):
     """
     Given a numpy dtype, finds its "zero" point, which is exactly in the
     middle of its range.
     """
 
+    # special case for int8
+    if dtype.kind == 'i' and dtype.itemsize == 1:
+        return -128
+
     assert dtype.kind == 'u'
     return 1 << (dtype.itemsize * 8 - 1)
 
 
-def _is_pseudo_unsigned(dtype):
-    return dtype.kind == 'u' and dtype.itemsize >= 2
+def _is_pseudo_integer(dtype):
+    return (
+        (dtype.kind == 'u' and dtype.itemsize >= 2)
+        or (dtype.kind == 'i' and dtype.itemsize == 1)
+    )
 
 
 def _is_int(val):

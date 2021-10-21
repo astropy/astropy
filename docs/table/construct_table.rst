@@ -11,12 +11,6 @@ best way to understand how to make a table is by example.
 Examples
 ========
 
-Much of the flexibility lies in the types of data structures
-which can be used to initialize the table data. The examples below show how to
-create a table from scratch with no initial data, as well as create a table
-with a list of columns, a dictionary of columns, or from ``numpy`` arrays
-(either structured or homogeneous).
-
 Setup
 -----
 
@@ -540,6 +534,13 @@ from another table, or generated on the fly::
       2     5.0 False
 
 .. EXAMPLE END
+
+SkyCoord
+--------
+
+A |SkyCoord| object can be converted to a |QTable| using its
+:meth:`~astropy.coordinates.SkyCoord.to_table` method. For details and examples
+see :ref:`skycoord-table-conversion`.
 
 Pandas DataFrame
 ----------------

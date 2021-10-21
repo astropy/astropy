@@ -218,7 +218,7 @@ class TestColumn():
         d.to(u.km)[:] = q
         np.testing.assert_allclose(d, [1, 2, 3])
 
-        # explcit copying of the quantity should not change the column
+        # explicit copying of the quantity should not change the column
         d.quantity.copy()[:] = q
         np.testing.assert_allclose(d, [1, 2, 3])
 

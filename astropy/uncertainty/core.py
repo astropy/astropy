@@ -201,7 +201,7 @@ class Distribution:
         Parameters
         ----------
         percentile : float or array of float or `~astropy.units.Quantity`
-            The desired  precentiles of the distribution (i.e., on [0,100]).
+            The desired percentiles of the distribution (i.e., on [0,100]).
             `~astropy.units.Quantity` will be converted to percent, meaning
             that a ``dimensionless_unscaled`` `~astropy.units.Quantity` will
             be interpreted as a quantile.
@@ -268,7 +268,7 @@ class ScalarDistribution(Distribution, np.void):
 
 
 class ArrayDistribution(Distribution, np.ndarray):
-    # This includes the important overrride of view and __getitem__
+    # This includes the important override of view and __getitem__
     # which are needed for all ndarray subclass Distributions, but not
     # for the scalar one.
     _samples_cls = np.ndarray

@@ -289,7 +289,7 @@ class TestRoundtripOGIP(RoundtripBase):
         if str(unit) in ('mag', 'byte', 'Crab'):
             # Skip mag and byte, which decompose into dex and bit, resp.,
             # both of which are unknown to OGIP, as well as Crab, which does
-            # not decompose, and thus gives a depecated unit warning.
+            # not decompose, and thus gives a deprecated unit warning.
             return
 
         power_of_ten = np.log10(unit.decompose().scale)

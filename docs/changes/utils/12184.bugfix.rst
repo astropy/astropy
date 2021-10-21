@@ -1,0 +1,2 @@
+The function ``astropy.utils.decorators.deprecated_attribute()`` no longer
+ignores its ``message``, ``alternative``, and ``pending`` arguments.

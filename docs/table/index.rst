@@ -73,7 +73,8 @@ Comments:
 
 There are many other ways of :ref:`construct_table`, including from a list of
 rows (either tuples or dicts), from a ``numpy`` structured or 2D array, by
-adding columns or rows incrementally, or even from a :class:`pandas.DataFrame`.
+adding columns or rows incrementally, or even converting from a |SkyCoord| or a
+:class:`pandas.DataFrame`.
 
 There are a few ways of :ref:`access_table`. You can get detailed information
 about the table values and column definitions as follows::
@@ -126,7 +127,8 @@ then a formatted version appears::
     5 8.5   z  30.0
 
 
-If you do not like the format of a particular column, you can change it::
+If you do not like the format of a particular column, you can change it through
+:ref:`the 'info' property <mixin_attributes>`::
 
   >>> t['b'].info.format = '7.3f'
   >>> print(t)

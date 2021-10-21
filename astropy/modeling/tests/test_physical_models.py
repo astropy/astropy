@@ -145,7 +145,7 @@ def test_blackbody_array_temperature():
 
 @pytest.mark.parametrize("mass", (2.0000000000000E15 * u.M_sun, 3.976819741e+45 * u.kg))
 def test_NFW_evaluate(mass):
-    """Evalution, density, and radii validation of NFW model."""
+    """Evaluation, density, and radii validation of NFW model."""
     # Test parameters
     concentration = 8.5
     redshift = 0.63

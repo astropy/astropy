@@ -29,6 +29,7 @@ from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 from astropy.utils.diff import (report_diff_values, fixed_width_indent,
                                 where_not_allclose, diff_values)
+from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 __all__ = ['FITSDiff', 'HDUDiff', 'HeaderDiff', 'ImageDataDiff', 'RawDataDiff',
            'TableDataDiff']
@@ -156,8 +157,7 @@ class _BaseDiff:
 
         if isinstance(fileobj, str):
             if os.path.exists(fileobj) and not overwrite:
-                raise OSError("File {} exists, aborting (pass in "
-                              "overwrite=True to overwrite)".format(fileobj))
+                raise OSError(NOT_OVERWRITING_MSG.format(fileobj))
             else:
                 filepath = fileobj
                 fileobj = open(filepath, 'w')
@@ -459,11 +459,11 @@ class HDUDiff(_BaseDiff):
         """
         Parameters
         ----------
-        a : `HDUList`
-            An `HDUList` object.
+        a : BaseHDU
+            An HDU object.
 
-        b : str or `HDUList`
-            An `HDUList` object to compare to the first `HDUList` object.
+        b : BaseHDU
+            An HDU object to compare to the first HDU object.
 
         ignore_keywords : sequence, optional
             Header keywords to ignore when comparing two headers; the presence
@@ -523,6 +523,7 @@ class HDUDiff(_BaseDiff):
 
         self.numdiffs = numdiffs
         self.ignore_blanks = ignore_blanks
+        self.ignore_blank_cards = ignore_blank_cards
 
         self.diff_extnames = ()
         self.diff_extvers = ()
@@ -655,11 +656,11 @@ class HeaderDiff(_BaseDiff):
         """
         Parameters
         ----------
-        a : `HDUList`
-            An `HDUList` object.
+        a : `~astropy.io.fits.Header` or string or bytes
+            A header.
 
-        b : `HDUList`
-            An `HDUList` object to compare to the first `HDUList` object.
+        b : `~astropy.io.fits.Header` or string or bytes
+            A header to compare to the first header.
 
         ignore_keywords : sequence, optional
             Header keywords to ignore when comparing two headers; the presence
@@ -949,11 +950,11 @@ class ImageDataDiff(_BaseDiff):
         """
         Parameters
         ----------
-        a : `HDUList`
-            An `HDUList` object.
+        a : BaseHDU
+            An HDU object.
 
-        b : `HDUList`
-            An `HDUList` object to compare to the first `HDUList` object.
+        b : BaseHDU
+            An HDU object to compare to the first HDU object.
 
         numdiffs : int, optional
             The number of pixel/table values to output when reporting HDU data
@@ -1089,11 +1090,11 @@ class RawDataDiff(ImageDataDiff):
         """
         Parameters
         ----------
-        a : `HDUList`
-            An `HDUList` object.
+        a : BaseHDU
+            An HDU object.
 
-        b : `HDUList`
-            An `HDUList` object to compare to the first `HDUList` object.
+        b : BaseHDU
+            An HDU object to compare to the first HDU object.
 
         numdiffs : int, optional
             The number of pixel/table values to output when reporting HDU data
@@ -1193,11 +1194,11 @@ class TableDataDiff(_BaseDiff):
         """
         Parameters
         ----------
-        a : `HDUList`
-            An `HDUList` object.
+        a : BaseHDU
+            An HDU object.
 
-        b : `HDUList`
-            An `HDUList` object to compare to the first `HDUList` object.
+        b : BaseHDU
+            An HDU object to compare to the first HDU object.
 
         ignore_fields : sequence, optional
             The (case-insensitive) names of any table columns to ignore if any

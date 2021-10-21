@@ -13,7 +13,7 @@ import erfa
 
 from astropy.utils.decorators import lazyproperty, classproperty
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy import units as u
+import astropy.units as u
 
 from . import _parse_times
 from . import utils
@@ -76,37 +76,7 @@ def _regexify_subfmts(subfmts):
     return tuple(new_subfmts)
 
 
-class TimeFormatMeta(type):
-    """
-    Metaclass that adds `TimeFormat` and `TimeDeltaFormat` to the
-    `TIME_FORMATS` and `TIME_DELTA_FORMATS` registries, respectively.
-    """
-
-    _registry = TIME_FORMATS
-
-    def __new__(mcls, name, bases, members):
-        cls = super().__new__(mcls, name, bases, members)
-
-        # Register time formats that have a name, but leave out astropy_time since
-        # it is not a user-accessible format and is only used for initialization into
-        # a different format.
-        if 'name' in members and cls.name != 'astropy_time':
-            # FIXME: check here that we're not introducing a collision with
-            # an existing method or attribute; problem is it could be either
-            # astropy.time.Time or astropy.time.TimeDelta, and at the point
-            # where this is run neither of those classes have necessarily been
-            # constructed yet.
-            if 'value' in members and not hasattr(members['value'], "fget"):
-                raise ValueError("If defined, 'value' must be a property")
-            mcls._registry[cls.name] = cls
-
-        if 'subfmts' in members:
-            cls.subfmts = _regexify_subfmts(members['subfmts'])
-
-        return cls
-
-
-class TimeFormat(metaclass=TimeFormatMeta):
+class TimeFormat:
     """
     Base class for time representations.
 
@@ -131,6 +101,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
 
     _default_scale = 'utc'  # As of astropy 0.4
     subfmts = ()
+    _registry = TIME_FORMATS
 
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
@@ -147,6 +118,27 @@ class TimeFormat(metaclass=TimeFormatMeta):
         else:
             val1, val2 = self._check_val_type(val1, val2)
             self.set_jds(val1, val2)
+
+    def __init_subclass__(cls, **kwargs):
+        # Register time formats that define a name, but leave out astropy_time since
+        # it is not a user-accessible format and is only used for initialization into
+        # a different format.
+        if 'name' in cls.__dict__ and cls.name != 'astropy_time':
+            # FIXME: check here that we're not introducing a collision with
+            # an existing method or attribute; problem is it could be either
+            # astropy.time.Time or astropy.time.TimeDelta, and at the point
+            # where this is run neither of those classes have necessarily been
+            # constructed yet.
+            if 'value' in cls.__dict__ and not hasattr(cls.value, "fget"):
+                raise ValueError("If defined, 'value' must be a property")
+
+            cls._registry[cls.name] = cls
+
+        # If this class defines its own subfmts, preprocess the definitions.
+        if 'subfmts' in cls.__dict__:
+            cls.subfmts = _regexify_subfmts(cls.subfmts)
+
+        return super().__init_subclass__(**kwargs)
 
     @classmethod
     def _get_allowed_subfmt(cls, subfmt):
@@ -265,7 +257,7 @@ class TimeFormat(metaclass=TimeFormatMeta):
         if getattr(val1, 'unit', None) is not None:
             # Convert any quantity-likes to days first, attempting to be
             # careful with the conversion, so that, e.g., large numbers of
-            # seconds get converted without loosing precision because
+            # seconds get converted without losing precision because
             # 1/86400 is not exactly representable as a float.
             val1 = u.Quantity(val1, copy=False)
             if val2 is not None:
@@ -457,7 +449,7 @@ class TimeNumeric(TimeFormat):
         Subclasses that require ``parent`` or to adjust the jds should
         override this method.
         """
-        # TODO: do this in metaclass.
+        # TODO: do this in __init_subclass__?
         if self.__class__.value.fget is not self.__class__.to_value:
             return self.value
 
@@ -1409,11 +1401,8 @@ class TimeString(TimeUnique):
         # Get the str_fmt element of the first allowed output subformat
         _, _, str_fmt = self._select_subfmts(self.out_subfmt)[0]
 
-        if '{yday:' in str_fmt:
-            has_yday = True
-        else:
-            has_yday = False
-            yday = None
+        yday = None
+        has_yday = '{yday:' in str_fmt
 
         ihrs = ihmsfs['h']
         imins = ihmsfs['m']
@@ -1533,7 +1522,7 @@ class TimeISOT(TimeISO):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
-    # See TimeISO for expanation
+    # See TimeISO for explanation
     fast_parser_pars = dict(
         delims=(0, ord('-'), ord('-'), ord('T'), ord(':'), ord(':'), ord('.')),
         starts=(0, 4, 7, 10, 13, 16, 19),
@@ -1792,7 +1781,7 @@ class TimeEpochDateString(TimeString):
                 if epoch_type.upper() != epoch_prefix:
                     raise ValueError
             except (IndexError, ValueError, UnicodeEncodeError):
-                raise ValueError(f'Time {time_str} does not match {self.name} format')
+                raise ValueError(f'Time {val} does not match {self.name} format')
             else:
                 years[...] = year
 
@@ -1827,12 +1816,10 @@ class TimeJulianEpochString(TimeEpochDateString):
     epoch_prefix = 'J'
 
 
-class TimeDeltaFormatMeta(TimeFormatMeta):
-    _registry = TIME_DELTA_FORMATS
-
-
-class TimeDeltaFormat(TimeFormat, metaclass=TimeDeltaFormatMeta):
+class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations"""
+
+    _registry = TIME_DELTA_FORMATS
 
     def _check_scale(self, scale):
         """

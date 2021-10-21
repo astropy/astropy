@@ -273,7 +273,7 @@ def test_compound_pipe_equiv_call():
 
 def test_compound_and_equiv_call():
     """
-    Check that equivalencies work when passed to evaluate, for a compsite model
+    Check that equivalencies work when passed to evaluate, for a composite model
     with two inputs.
     """
     s1 = Shift(10 * u.deg)

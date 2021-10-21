@@ -1,6 +1,6 @@
-***********************************************************
-Miscellaneous: HDF5, YAML, ASDF, pickle (`astropy.io.misc`)
-***********************************************************
+********************************************************************
+Miscellaneous: HDF5, YAML, ASDF, Parquet, pickle (`astropy.io.misc`)
+********************************************************************
 
 The `astropy.io.misc` module contains miscellaneous input/output routines that
 do not fit elsewhere, and are often used by other ``astropy`` sub-packages. For
@@ -18,6 +18,9 @@ listed in the `astropy.io.misc` section.
    :headings: =-
 
 .. automodapi:: astropy.io.misc.yaml
+   :headings: =-
+
+.. automodapi:: astropy.io.misc.parquet
    :headings: =-
 
 astropy.io.misc.asdf Package
@@ -208,7 +211,7 @@ model would look like::
 All new transform schemas reference the base transform schema of the latest
 type. This schema describes the other model attributes that are common to all
 or many models, so that individual schemas only handle the parameters specific
-to that model. Additionally, this schema references the latest verison
+to that model. Additionally, this schema references the latest version
 of the ``quantity`` schema, so that models can retain information about units
 and quantities. References allow previously defined objects to be used inside
 new custom types.

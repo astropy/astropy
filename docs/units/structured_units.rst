@@ -53,7 +53,7 @@ respectively. In addition, you can index any given field using its name::
              [-0.125,  0.   ,  0.   ]] km / s>
 
 Structures can be nested, as in this example taken from an PyERFA_ test case
-for `erfa.ldn`::
+for :func:`erfa.ldn`::
 
   >>> ldbody = [
   ...     (0.00028574, 3e-10, ([-7.81014427, -5.60956681, -1.98079819],

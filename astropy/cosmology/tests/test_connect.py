@@ -1,120 +1,64 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
-import json
+import inspect
 import os
 
 import pytest
 
-import numpy as np
-
-import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import CosmologyRead
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
+from astropy.cosmology.core import Cosmology
 from astropy.io import registry as io_registry
 
-cosmo_instances = cosmology.parameters.available
-save_formats = ["json"]
-
+from .conftest import json_identify, read_json, write_json
 
 ###############################################################################
-# Setup
+# SETUP
 
-def from_mapping(map, **kwargs):
-    params = copy.deepcopy(map)  # so can pop
+cosmo_instances = cosmology.parameters.available
+readwrite_formats = ["json"]
+tofrom_formats = [("mapping", dict)]  # (format, data type)
 
-    # get cosmology. if string, parse to class
-    # 1st from 'kwargs'. Allows for override of the cosmology, if on file.
-    # 2nd from params. This MUST have the cosmology if 'kwargs' did not.
-    if "cosmology" in kwargs:
-        cosmology = kwargs.pop("cosmology")
-    else:
-        cosmology = params.pop("cosmology")
-    if isinstance(cosmology, str):
-        cosmology = _COSMOLOGY_CLASSES[cosmology]
-
-    # select arguments from mapping that are in the cosmo's signature.
-    ba = cosmology._init_signature.bind_partial()  # blank set of args
-    ba.apply_defaults()  # fill in the defaults
-    for k in cosmology._init_signature.parameters.keys():  # iter thru sig
-        if k in params:  # transfer argument, if in params
-            ba.arguments[k] = params.pop(k)
-
-    return cosmology(*ba.args, **ba.kwargs)
+###############################################################################
 
 
-def to_mapping(cosmology, *args, **kwargs):
-    m = {}
-    m["cosmology"] = cosmology.__class__
-    m.update({k: v for k, v in cosmology._init_arguments.items()
-              if k not in ("meta",)})
-    m["meta"] = copy.deepcopy(cosmology.meta)
+class ReadWriteTestMixin:
+    """
+    Tests for a CosmologyRead/Write on a |Cosmology|.
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
+    ``cosmo`` that returns/yields an instance of a |Cosmology|.
+    See ``TestReadWriteCosmology`` or ``TestCosmology`` for examples.
+    """
 
-    return m
+    @pytest.fixture(scope="class", autouse=True)
+    def setup_readwrite(self):
+        """Setup & teardown for read/write tests."""
+        # register
+        io_registry.register_reader("json", Cosmology, read_json)
+        io_registry.register_writer("json", Cosmology, write_json)
+        io_registry.register_identifier("json", Cosmology, json_identify)
 
+        yield  # run all tests in class
 
-def read_json(filename, key=None, **kwargs):
-    with open(filename, "r") as file:
-        data = file.read()
-    mapping = json.loads(data)  # parse json mappable to dict
-    # deserialize Quantity
-    for k, v in mapping.items():
-        if isinstance(v, dict) and "value" in v and "unit" in v:
-            mapping[k] = u.Quantity(v["value"], v["unit"])
-    return from_mapping(mapping, **kwargs)
-
-
-def write_json(cosmology, file, *, overwrite=False, **kwargs):
-    data = to_mapping(cosmology)  # start by turning into dict
-    data["cosmology"] = data["cosmology"].__name__  # change class field to str
-    # serialize Quantity
-    for k, v in data.items():
-        if isinstance(v, u.Quantity):
-            data[k] = {"value": v.value.tolist(),
-                       "unit": str(v.unit)}
-
-    # check that file exists and whether to overwrite.
-    if os.path.exists(file) and not overwrite:
-        raise IOError(f"{file} exists. Set 'overwrite' to write over.")
-    with open(file, "w") as write_file:
-        json.dump(data, write_file)
-
-
-def json_identify(origin, filepath, fileobj, *args, **kwargs):
-    return filepath is not None and filepath.endswith(".json")
-
-
-def setup_module(module):
-    """Setup module for tests."""
-    io_registry.register_reader("json", Cosmology, read_json)
-    io_registry.register_writer("json", Cosmology, write_json)
-    io_registry.register_identifier("json", Cosmology, json_identify)
-
-
-def teardown_module(module):
-    """clean up module after tests."""
-    with pytest.warns(FutureWarning):  # idk
+        # unregister
         io_registry.unregister_reader("json", Cosmology)
         io_registry.unregister_writer("json", Cosmology)
         io_registry.unregister_identifier("json", Cosmology)
 
+    # ===============================================================
+    # Method & Attribute Tests
 
-###############################################################################
-# Tests
-
-class TestReadWriteCosmology:
-
-    @pytest.mark.parametrize("format", save_formats)
-    @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_complete_info(self, tmpdir, instance, format):
+    @pytest.mark.parametrize("format", readwrite_formats)
+    def test_readwrite_complete_info(self, cosmo, tmpdir, format):
         """
         Test writing from an instance and reading from the base class.
         This requires full information.
         """
-        cosmo = getattr(cosmology.realizations, instance)
-        fname = tmpdir / f"{instance}.{format}"
+        fname = tmpdir / f"{cosmo.name}.{format}"
 
         cosmo.write(str(fname), format=format)
 
@@ -132,15 +76,13 @@ class TestReadWriteCosmology:
         assert got == cosmo
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("format", save_formats)
-    @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_from_subclass_complete_info(self, tmpdir, instance, format):
+    @pytest.mark.parametrize("format", readwrite_formats)
+    def test_readwrite_from_subclass_complete_info(self, cosmo, tmpdir, format):
         """
         Test writing from an instance and reading from that class, when there's
         full information saved.
         """
-        cosmo = getattr(cosmology.realizations, instance)
-        fname = tmpdir / f"{instance}.{format}"
+        fname = tmpdir / f"{cosmo.name}.{format}"
         cosmo.write(str(fname), format=format)
 
         # read with the same class that wrote.
@@ -158,32 +100,66 @@ class TestReadWriteCosmology:
         assert got == cosmo
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_from_subclass_partial_info(self, tmpdir, instance):
+    @pytest.mark.skip("TODO: generalize over all save formats for this test.")
+    def test_readwrite_from_subclass_partial_info(self, cosmo, tmpdir):
         """
         Test writing from an instance and reading from that class.
         This requires partial information.
 
         .. todo::
 
-            generalize over all save formats for this test.
+            - generalize over all save formats for this test.
+            - remove the method defined in subclass
         """
-        format = "json"
+
+
+class TestCosmologyReadWrite(ReadWriteTestMixin):
+    """Test the classes CosmologyRead/Write."""
+
+    @pytest.fixture(params=cosmo_instances)
+    def cosmo(self, request):
+        return getattr(cosmology.realizations, request.param)
+
+    # ==============================================================
+
+    @pytest.mark.parametrize("format", readwrite_formats)
+    def test_write_methods_have_explicit_kwarg_overwrite(self, format):
+        writer = io_registry.get_writer(format, Cosmology)
+        # test in signature
+        sig = inspect.signature(writer)
+        assert "overwrite" in sig.parameters
+
+        # also in docstring
+        assert "overwrite : bool" in writer.__doc__
+
+    # @pytest.mark.parametrize("format", readwrite_formats)
+    @pytest.mark.parametrize("instance", cosmo_instances)
+    def test_readwrite_from_subclass_partial_info(self, instance, tmpdir):
+        """
+        Test writing from an instance and reading from that class.
+        This requires partial information.
+
+        .. todo::
+
+            remove when fix method in super
+        """
         cosmo = getattr(cosmology.realizations, instance)
-        fname = tmpdir / f"{instance}.{format}"
+
+        format = "json"
+        fname = tmpdir / f"{cosmo.name}.{format}"
 
         cosmo.write(str(fname), format=format)
 
         # partial information
         with open(fname, "r") as file:
-            L = file.readlines()
-        L[0] = L[0][:L[0].index('"cosmology":')]+L[0][L[0].index(', ')+2:]
-        i = L[0].index('"Tcmb0":')  # delete Tcmb0
-        L[0] = L[0][:i] + L[0][L[0].index(', ', i)+2:]
+            L = file.readlines()[0]
+        L = L[: L.index('"cosmology":')] + L[L.index(", ") + 2 :]  # remove cosmology
+        i = L.index('"Tcmb0":')  # delete Tcmb0
+        L = L[:i] + L[L.index(", ", L.index(", ", i) + 1) + 2 :]  # second occurence
 
-        tempfname = tmpdir / f"{instance}_temp.{format}"
+        tempfname = tmpdir / f"{cosmo.name}_temp.{format}"
         with open(tempfname, "w") as file:
-            file.writelines(L)
+            file.writelines([L])
 
         # read with the same class that wrote fills in the missing info with
         # the default value
@@ -196,16 +172,17 @@ class TestReadWriteCosmology:
         # not equal, because Tcmb0 is changed
         assert got != cosmo
         assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
-        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0.value) == cosmo
+        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("format", save_formats)
     @pytest.mark.parametrize("instance", cosmo_instances)
-    def test_reader_class_mismatch(self, tmpdir, instance, format):
+    @pytest.mark.parametrize("format", readwrite_formats)
+    def test_readwrite_reader_class_mismatch(self, instance, tmpdir, format):
         """Test when the reader class doesn't match the file."""
         cosmo = getattr(cosmology.realizations, instance)
-        fname = tmpdir / f"{instance}.{format}"
+
+        fname = tmpdir / f"{cosmo.name}.{format}"
         cosmo.write(str(fname), format=format)
 
         # class mismatch
@@ -219,3 +196,132 @@ class TestReadWriteCosmology:
         # when specifying the class
         with pytest.raises(ValueError, match="`cosmology` must be either"):
             w0wzCDM.read(fname, format=format, cosmology="FlatLambdaCDM")
+
+
+###############################################################################
+# To/From_Format Tests
+
+
+class ToFromFormatTestMixin:
+    """
+    Tests for a Cosmology[To/From]Format on a |Cosmology|.
+    This class will not be directly called by :mod:`pytest` since its name does
+    not begin with ``Test``. To activate the contained tests this class must
+    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
+    ``cosmo`` that returns/yields an instance of a |Cosmology|.
+    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    """
+
+    @pytest.mark.parametrize("format_type", tofrom_formats)
+    def test_tofromformat_complete_info(self, cosmo, format_type):
+        """Read tests happen later."""
+        format, objtype = format_type
+
+        # test to_format
+        obj = cosmo.to_format(format)
+        assert isinstance(obj, objtype)
+
+        # test from_format
+        got = Cosmology.from_format(obj, format=format)
+        # and autodetect
+        got2 = Cosmology.from_format(obj)
+
+        assert got2 == got  # internal consistency
+        assert got == cosmo  # external consistency
+        assert got.meta == cosmo.meta
+
+    @pytest.mark.parametrize("format_type", tofrom_formats)
+    def test_fromformat_subclass_complete_info(self, cosmo, format_type):
+        """
+        Test transforming an instance and parsing from that class, when there's
+        full information available.
+        """
+        format, objtype = format_type
+
+        # test to_format
+        obj = cosmo.to_format(format)
+        assert isinstance(obj, objtype)
+
+        # read with the same class that wrote.
+        got = cosmo.__class__.from_format(obj, format=format)
+        got2 = Cosmology.from_format(obj)  # and autodetect
+
+        assert got2 == got  # internal consistency
+        assert got == cosmo  # external consistency
+        assert got.meta == cosmo.meta
+
+        # this should be equivalent to
+        got = Cosmology.from_format(obj, format=format, cosmology=cosmo.__class__)
+        assert got == cosmo
+        assert got.meta == cosmo.meta
+
+        # and also
+        got = Cosmology.from_format(obj, format=format, cosmology=cosmo.__class__.__qualname__)
+        assert got == cosmo
+        assert got.meta == cosmo.meta
+
+    def test_fromformat_subclass_partial_info(self, cosmo):
+        """
+        Test writing from an instance and reading from that class.
+        This requires partial information.
+
+        .. todo::
+
+            generalize over all formats for this test.
+        """
+        format, objtype = ("mapping", dict)
+
+        # test to_format
+        obj = cosmo.to_format(format)
+        assert isinstance(obj, objtype)
+
+        # partial information
+        tempobj = copy.deepcopy(obj)
+        tempobj.pop("cosmology", None)
+        tempobj.pop("Tcmb0", None)
+
+        # read with the same class that wrote fills in the missing info with
+        # the default value
+        got = cosmo.__class__.from_format(tempobj, format=format)
+        got2 = Cosmology.from_format(tempobj, format=format, cosmology=cosmo.__class__)
+        got3 = Cosmology.from_format(tempobj, format=format, cosmology=cosmo.__class__.__qualname__)
+
+        assert (got == got2) and (got2 == got3)  # internal consistency
+
+        # not equal, because Tcmb0 is changed
+        assert got != cosmo
+        assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
+        assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
+        # but the metadata is the same
+        assert got.meta == cosmo.meta
+
+
+class TestCosmologyToFromFormat(ToFromFormatTestMixin):
+    """Test Cosmology[To/From]Format classes."""
+
+    @pytest.fixture(params=cosmo_instances)
+    def cosmo(self, request):
+        return getattr(cosmology.realizations, request.param)
+
+    # ==============================================================
+
+    @pytest.mark.parametrize("format_type", tofrom_formats)
+    @pytest.mark.parametrize("instance", cosmo_instances)
+    def test_fromformat_class_mismatch(self, instance, format_type):
+        cosmo = getattr(cosmology.realizations, instance)
+        format, objtype = format_type
+
+        # test to_format
+        obj = cosmo.to_format(format)
+        assert isinstance(obj, objtype)
+
+        # class mismatch
+        with pytest.raises(TypeError, match="missing 1 required"):
+            w0wzCDM.from_format(obj, format=format)
+
+        with pytest.raises(TypeError, match="missing 1 required"):
+            Cosmology.from_format(obj, format=format, cosmology=w0wzCDM)
+
+        # when specifying the class
+        with pytest.raises(ValueError, match="`cosmology` must be either"):
+            w0wzCDM.from_format(obj, format=format, cosmology="FlatLambdaCDM")

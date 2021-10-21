@@ -33,7 +33,7 @@ class IORegistryError(Exception):
 
 
 # If multiple formats are added to one class the update of the docs is quite
-# expensive. Classes for which the doc update is temporarly delayed are added
+# expensive. Classes for which the doc update is temporarily delayed are added
 # to this set.
 _delayed_docs_classes = set()
 

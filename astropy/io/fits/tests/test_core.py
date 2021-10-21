@@ -6,6 +6,7 @@ import mmap
 import errno
 import os
 import pathlib
+import shutil
 import urllib.request
 import zipfile
 from unittest.mock import patch
@@ -22,7 +23,10 @@ from astropy.io.fits.file import _File, GZIP_MAGIC
 from astropy.io import fits
 from astropy.utils.data import conf
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 from astropy.utils import data
+
+from astropy.io.tests import safeio
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2
@@ -897,7 +901,7 @@ class TestFileFunctions(FitsTestCase):
             h[0].header['EXPFLAG'] = 'ABNORMAL'
             h[1].data[0, 0] = 1
         with fits.open(gf) as h:
-            # Just to make sur ethe update worked; if updates work
+            # Just to make sure the update worked; if updates work
             # normal writes should work too...
             assert h[0].header['EXPFLAG'] == 'ABNORMAL'
             assert h[1].data[0, 0] == 1
@@ -918,6 +922,19 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.temp('test.fits.gz')) as hdul:
             assert np.all(hdul[0].data == data)
+
+    @pytest.mark.parametrize('ext', ['gz', 'bz2', 'zip'])
+    def test_compressed_ext_but_not_compressed(self, ext):
+        testfile = self.temp(f'test0.fits.{ext}')
+        shutil.copy(self.data('test0.fits'), testfile)
+
+        with fits.open(testfile) as hdul:
+            assert len(hdul) == 5
+
+        fits.append(testfile, np.arange(5))
+
+        with fits.open(testfile) as hdul:
+            assert len(hdul) == 6
 
     def test_read_file_like_object(self):
         """Test reading a FITS file from a file-like object."""
@@ -1164,7 +1181,7 @@ class TestFileFunctions(FitsTestCase):
         """
         Regression test for https://github.com/astropy/astropy/issues/2463
 
-        Test againt `io.BytesIO`.  `io.StringIO` is not supported.
+        Test against `io.BytesIO`.  `io.StringIO` is not supported.
         """
 
         self._test_write_string_bytes_io(io.BytesIO())
@@ -1262,6 +1279,14 @@ class TestFileFunctions(FitsTestCase):
 
         return gzfile
 
+    def test_write_overwrite(self):
+        filename = self.temp('test_overwrite.fits')
+        hdu = fits.PrimaryHDU(data=np.arange(10))
+        hdu.writeto(filename)
+        with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
+            hdu.writeto(filename)
+        hdu.writeto(filename, overwrite=True)
+
     def _make_zip_file(self, mode='copyonwrite', filename='test0.fits.zip'):
         zfile = zipfile.ZipFile(self.temp(filename), 'w')
         zfile.write(self.data('test0.fits'))
@@ -1285,6 +1310,32 @@ class TestFileFunctions(FitsTestCase):
             hdul.writeto(None)
             hdul[0].writeto(None)
             hdul[0].header.tofile(None)
+
+    def test_bintablehdu_zero_bytes(self):
+        """Make sure we don't have any zero-byte writes in BinTableHDU"""
+
+        bright = np.rec.array([(1, 'Sirius', -1.45, 'A1V'),
+                            (2, 'Canopus', -0.73, 'F0Ib'),
+                            (3, 'Rigil Kent', -0.1, 'G2V')],
+                           formats='int16,a20,float32,a10', names='order,name,mag,Sp')
+
+        hdu_non_zero = fits.BinTableHDU(bright)
+        # use safeio, a special file handler meant to fail on zero-byte writes
+        fh = safeio.CatchZeroByteWriter(open(self.temp('bright.fits'), mode='wb'))
+        hdu_non_zero.writeto(fh)
+        fh.close()
+
+    def test_primaryhdu_zero_bytes(self):
+        """
+        Make sure we don't have any zero-byte writes from an ImageHDU
+        (or other) of `size % BLOCK_SIZE == 0`
+        """
+
+        hdu_img_2880 = fits.PrimaryHDU(data=np.arange(720, dtype='i4'))
+        # use safeio, a special file handler meant to fail on zero-byte writes
+        fh = safeio.CatchZeroByteWriter(open(self.temp('image.fits'), mode='wb'))
+        hdu_img_2880.writeto(fh)
+        fh.close()
 
 
 class TestStreamingFunctions(FitsTestCase):

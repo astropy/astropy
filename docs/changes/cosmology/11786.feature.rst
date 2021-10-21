@@ -1,0 +1,4 @@
+A new unit, ``redshift``, is defined. It is a dimensionless unit to distinguish
+redshift quantities from other non-redshift values. For compatibility with
+dimensionless quantities the equivalency ``dimensionless_redshift`` is added.
+This equivalency is enabled by default.

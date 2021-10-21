@@ -44,7 +44,7 @@ In UT1 seconds, this would be 2 pi / (24 * 3600), but we need the value
 in SI seconds, so multiply by the ratio of stellar to solar day.
 See Explanatory Supplement to the Astronomical Almanac, ed. P. Kenneth
 Seidelmann (1992), University Science Books. The constant is the
-convential, exact one (IERS conventions 2003); see
+conventional, exact one (IERS conventions 2003); see
 http://hpiers.obspm.fr/eop-pc/index.php?index=constants.
 """
 
@@ -356,7 +356,7 @@ class EarthLocation(u.Quantity):
         class = EarthLocation
         n_bad = 0
         >>> keck.info.meta  # doctest: +REMOTE_DATA
-        {'source': 'IRAF Observatory Database', 'timezone': 'US/Aleutian'}
+        {'source': 'IRAF Observatory Database', 'timezone': 'US/Hawaii'}
 
         See Also
         --------
@@ -897,7 +897,7 @@ class BaseGeodeticRepresentation(BaseRepresentation):
     def to_cartesian(self):
         """
         Converts WGS84 geodetic coordinates to 3D rectangular (geocentric)
-        cartesian coordiantes.
+        cartesian coordinates.
         """
         xyz = erfa.gd2gc(getattr(erfa, self._ellipsoid),
                          self.lon, self.lat, self.height)

@@ -9,6 +9,93 @@ What's New in Astropy 5.0?
 Overview
 ========
 
+.. _whatsnew-5.0-cosmology-io:
+
+Support for reading, writing, and converting ``Cosmology``
+==========================================================
+
+Four new methods -- ``read``, ``write``, ``to_format``, ``from_format`` -- have
+been added to the ``Cosmology`` class, enabling reading from and writing to
+files and converting between different python objects.
+The methods use Astropy's Unified I/O registry so custom formats can be
+registered. Details are discussed in an addition to the docs.
+
+Currently no file formats are registered, but the syntax is as follows:
+
+.. doctest-skip::
+
+    >>> from astropy.cosmology import Planck18
+    >>> Planck18.write('<file name>.<format>')
+    >>>
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.read('<file name>.<format>')
+    >>> cosmo == Planck18
+    True
+
+
+The transformation between ``Cosmology`` and `dict` is pre-registered,
+e.g. enabling::
+
+    >>> from astropy.cosmology import Planck18
+    >>> cm = Planck18.to_format("mapping")
+    >>> cm
+    {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
+     'name': 'Planck18',
+     'H0': <Quantity 67.66 km / (Mpc s)>,
+     'Om0': 0.30966,
+     ...
+
+    >>> from astropy.cosmology import Cosmology
+    >>> cosmo = Cosmology.from_format(cm, format="mapping")
+    >>> cosmo == Planck18
+    True
+
+.. _whatsnew-5.0-cosmology-units:
+
+``Cosmology`` units module
+==========================
+
+A new module -- ``cosmology.units`` -- is added to the cosmology subpackage for
+defining and collecting cosmological units and equivalencies.
+The unit ``littleh`` and equivalency ``with_H0`` are deprecated from the main
+``astropy.units`` subpackage and moved to ``cosmology.units``.
+A new unit, ``redshift``, is added for tracking factors of cosmological redshift.
+As this is a pseudo-unit an equivalency ``dimensionless_redshift`` is added
+(and enabled by default) to allow for redshift - dimensionless conversions.
+To convert between redshift and other cosmological distance measures, e.g.
+CMB temperature, the equivalency ``with_redshift`` is also added.
+
+    >>> import astropy.units as u
+    >>> import astropy.cosmology.units as cu
+    >>> z = 1100 * cu.redshift
+
+    >>> z.to(u.dimensionless_unscaled)
+    <Quantity 1100.>
+
+    >>> from astropy.cosmology import WMAP9
+    >>> z.to(u.K, cu.with_redshift(WMAP9))
+    <Quantity 3000.225 K>
+
+Further details are available in an addition to the docs.
+
+.. _whatsnew-5.0-modeling-new-models:
+
+New Models
+==========
+
+The following models have now been added:
+
+* :class:`~astropy.modeling.functional_models.Cosine1D`: a one-dimensional
+  cosine model.
+* :class:`~astropy.modeling.functional_models.Tangent1D`: a one-dimensional
+  Tangent model.
+* :class:`~astropy.modeling.functional_models.ArcSine1D`: a one-dimensional
+  inverse sine model.
+* :class:`~astropy.modeling.functional_models.ArcCosine1D`: a one-dimensional
+  inverse cosine model.
+* :class:`~astropy.modeling.functional_models.ArcTangent1D`: a one-dimensional
+  inverse tangent model.
+
 
 Full change log
 ===============

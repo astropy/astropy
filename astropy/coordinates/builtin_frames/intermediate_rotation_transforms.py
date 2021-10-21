@@ -13,7 +13,7 @@ from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 from astropy.coordinates.matrix_utilities import matrix_transpose
 
-
+from .icrs import ICRS
 from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
@@ -218,11 +218,10 @@ def itrs_to_cirs(itrs_coo, cirs_frame):
     return cirs.transform_to(cirs_frame)
 
 
-@frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, ITRS)
-def itrs_to_itrs(from_coo, to_frame):
-    # this self-transform goes through CIRS right now, which implicitly also
-    # goes back to ICRS
-    return from_coo.transform_to(CIRS()).transform_to(to_frame)
+# TODO: implement GCRS<->CIRS if there's call for it.  The thing that's awkward
+# is that they both have obstimes, so an extra set of transformations are necessary.
+# so unless there's a specific need for that, better to just have it go through the above
+# two steps anyway
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, GCRS, PrecessedGeocentric)
@@ -244,9 +243,9 @@ def precessedgeo_to_gcrs(from_coo, to_frame):
     pmat = gcrs_precession_mat(from_coo.equinox)
     crepr = from_coo.cartesian.transform(matrix_transpose(pmat))
     gcrs_coo = GCRS(crepr,
-                    obstime=to_frame.obstime,
-                    obsgeoloc=to_frame.obsgeoloc,
-                    obsgeovel=to_frame.obsgeovel)
+                    obstime=from_coo.obstime,
+                    obsgeoloc=from_coo.obsgeoloc,
+                    obsgeovel=from_coo.obsgeovel)
 
     # then move to the GCRS that's actually desired
     return gcrs_coo.transform_to(to_frame)
@@ -254,22 +253,28 @@ def precessedgeo_to_gcrs(from_coo, to_frame):
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TEME, ITRS)
 def teme_to_itrs(teme_coo, itrs_frame):
-    # first get us to TEME at the target obstime
-    # TODO: self transform?
-    teme_coo2 = teme_coo.transform_to(TEME(obstime=itrs_frame.obstime))
+    # use the pmatrix to transform to ITRS in the source obstime
+    pmat = teme_to_itrs_mat(teme_coo.obstime)
+    crepr = teme_coo.cartesian.transform(pmat)
+    itrs = ITRS(crepr, obstime=teme_coo.obstime)
 
-    # now get the pmatrix
-    pmat = teme_to_itrs_mat(itrs_frame.obstime)
-    crepr = teme_coo2.cartesian.transform(pmat)
-    return itrs_frame.realize_frame(crepr)
+    # transform the ITRS coordinate to the target obstime
+    return itrs.transform_to(itrs_frame)
 
 
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, ITRS, TEME)
 def itrs_to_teme(itrs_coo, teme_frame):
-    # compute the pmatrix, and then multiply by its transpose
-    pmat = teme_to_itrs_mat(itrs_coo.obstime)
-    newrepr = itrs_coo.cartesian.transform(matrix_transpose(pmat))
-    teme = TEME(newrepr, obstime=itrs_coo.obstime)
+    # transform the ITRS coordinate to the target obstime
+    itrs_coo2 = itrs_coo.transform_to(ITRS(obstime=teme_frame.obstime))
 
-    # now do any needed offsets (no-op if same obstime)
-    return teme.transform_to(teme_frame)
+    # compute the pmatrix, and then multiply by its transpose
+    pmat = teme_to_itrs_mat(teme_frame.obstime)
+    newrepr = itrs_coo2.cartesian.transform(matrix_transpose(pmat))
+    return teme_frame.realize_frame(newrepr)
+
+
+# Create loopback transformations
+frame_transform_graph._add_merged_transform(ITRS, CIRS, ITRS)
+frame_transform_graph._add_merged_transform(PrecessedGeocentric, GCRS, PrecessedGeocentric)
+frame_transform_graph._add_merged_transform(TEME, ITRS, TEME)
+frame_transform_graph._add_merged_transform(TETE, ICRS, TETE)
