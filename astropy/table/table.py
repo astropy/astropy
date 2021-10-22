@@ -34,7 +34,7 @@ from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
 from .connect import TableRead, TableWrite
 from .ndarray_mixin import NdarrayMixin
-from .mixins.registry import mixin_handler
+from .mixins.registry import get_mixin_handler
 from . import conf
 
 
@@ -1232,7 +1232,7 @@ class Table:
         # If the data is not an instance of Column or a mixin class, we can
         # check the registry of mixin 'handlers' to see if the column can be
         # converted to a mixin class
-        if (handler := mixin_handler(data)) is not None:
+        if (handler := get_mixin_handler(data)) is not None:
             original_data = data
             data = handler(data)
             if not (data_is_mixin := self._is_mixin_for_table(data)):

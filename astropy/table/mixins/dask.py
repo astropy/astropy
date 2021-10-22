@@ -21,7 +21,11 @@ class DaskColumn(da.Array):
         return as_dask_column(self)
 
     def __getitem__(self, item):
-        return as_dask_column(super().__getitem__(item))
+        result = super().__getitem__(item)
+        if isinstance(item, int):
+            return result
+        else:
+            return as_dask_column(result)
 
 
 def as_dask_column(array):

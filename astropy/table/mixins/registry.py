@@ -4,7 +4,7 @@
 # then add objects to tables that are not formally mixin columns and where
 # adding an info attribute is beyond our control.
 
-__all__ = ['MixinRegistryError', 'register_mixin_handler', 'mixin_handler']
+__all__ = ['MixinRegistryError', 'register_mixin_handler', 'get_mixin_handler']
 
 # The internal dictionary of handlers maps fully qualified names of classes
 # to a function that can take an object and return a mixin-compatible object.
@@ -44,21 +44,24 @@ def register_mixin_handler(fully_qualified_name, handler, force=False):
         raise MixinRegistryError(f"Handler for class {fully_qualified_name} is already defined")
 
 
-def mixin_handler(obj):
+def get_mixin_handler(obj):
     """
     Given an arbitrary object, return the matching mixin handler (if any).
 
     Parameters
     ----------
-    obj : object
-        The object to find a mixin handler for
+    obj : object or str
+        The object to find a mixin handler for, or a fully qualified name.
 
     Returns
     -------
     handler : None or func
         Then matching handler, if found, or `None`
     """
-    return _handlers.get(obj.__class__.__module__ + '.' + obj.__class__.__name__, None)
+    if isinstance(obj, str):
+        return _handlers.get(obj, None)
+    else:
+        return _handlers.get(obj.__class__.__module__ + '.' + obj.__class__.__name__, None)
 
 
 # Add built-in handlers to registry. Note that any third-party package imports
