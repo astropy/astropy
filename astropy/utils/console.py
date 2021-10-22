@@ -909,7 +909,7 @@ class Spinner:
             flush()
             yield
 
-            for i in range(self._step):
+            for i in range(self._step - 1):
                 yield
 
             index = (index + 1) % len(chars)
