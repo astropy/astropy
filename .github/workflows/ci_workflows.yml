@@ -52,6 +52,7 @@ jobs:
             os: ubuntu-latest
             python: 3.x
             toxenv: codestyle
+            toxposargs: --all-files -v
 
           # NOTE: this 2nd coverage test is needed for tests and code that
           #       run only with minimal dependencies.
