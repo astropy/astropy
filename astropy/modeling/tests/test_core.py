@@ -777,7 +777,7 @@ def test_bounding_box_general_inverse():
     with pytest.raises(NotImplementedError):
         model.bounding_box
     model.bounding_box = ()
-    assert model.bounding_box == ()
+    assert model.bounding_box.bounding_box() == ()
 
     model.inverse = NonFittableModel(3.14)
     inverse_model = model.inverse
