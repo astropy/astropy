@@ -525,3 +525,15 @@ def test_nddata_init_with_low_level_wcs():
     low_level = SlicedLowLevelWCS(wcs, 5)
     ndd = NDData(np.ones((5, 5)), wcs=low_level)
     assert isinstance(ndd.wcs, BaseHighLevelWCS)
+
+
+class NDDataCustomWCS(NDData):
+    @property
+    def wcs(self):
+        return WCS()
+
+
+def test_overriden_wcs():
+    # Check that a sub-class that overrides `.wcs` without providing a setter
+    # works
+    NDDataCustomWCS(np.ones((5, 5)))
