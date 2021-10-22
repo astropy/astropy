@@ -27,6 +27,7 @@ from astropy.modeling.powerlaws import (
 from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 
 from astropy.modeling.fitting import LevMarLSQFitter
+from astropy.modeling.bounding_box import BoundingBox
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,
@@ -327,6 +328,8 @@ def test_models_bounding_box(model):
         # values one by one.
         for i in range(len(model['bounding_box'])):
             bbox = m.bounding_box
+            if isinstance(bbox, BoundingBox):
+                bbox = bbox.bounding_box()
             assert_quantity_allclose(bbox[i], model['bounding_box'][i])
 
 

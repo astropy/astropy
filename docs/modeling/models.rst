@@ -239,7 +239,15 @@ with `~astropy.modeling.custom_model` or as a `~astropy.modeling.core.CompoundMo
     ...
     >>> model = Ellipsoid3D()
     >>> model.bounding_box
-    ((-4.0, 4.0), (-3.0, 3.0), (-2.0, 2.0))
+    BoundingBox(
+        intervals={
+            x0: Interval(lower=-2.0, upper=2.0)
+            x1: Interval(lower=-3.0, upper=3.0)
+            x2: Interval(lower=-4.0, upper=4.0)
+        }
+        model=Ellipsoid3D(inputs=('x0', 'x1', 'x2'))
+        order='C'
+    )
 
 By default models are evaluated on any inputs. By passing a flag they can be evaluated
 only on inputs within the bounding box. For inputs outside of the bounding_box a ``fill_value`` is
