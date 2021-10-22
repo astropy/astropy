@@ -221,7 +221,7 @@ Adding Data to the Time Series
 
 The above examples show how to initialize |TimeSeries| objects, but these do not
 include any data aside from the times. There are different ways of adding data,
-as with the |Table| class. 
+as with the |Table| class.
 
 Passing Data During Initialization
 ----------------------------------

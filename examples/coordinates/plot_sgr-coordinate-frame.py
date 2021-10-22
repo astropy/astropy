@@ -63,6 +63,7 @@ import astropy.units as u
 # ``Sagittarius`` and make it a subclass of
 # `~astropy.coordinates.BaseCoordinateFrame`:
 
+
 class Sagittarius(coord.BaseCoordinateFrame):
     """
     A Heliocentric spherical coordinate system defined by the orbit
@@ -102,6 +103,7 @@ class Sagittarius(coord.BaseCoordinateFrame):
             coord.RepresentationMapping('distance', 'distance')]
     }
 
+
 ##############################################################################
 # Breaking this down line-by-line, we define the class as a subclass of
 # `~astropy.coordinates.BaseCoordinateFrame`. Then we include a descriptive
@@ -133,6 +135,7 @@ B = rotation_matrix(SGR_PSI, "z")
 A = np.diag([1.,1.,-1.])
 SGR_MATRIX = matrix_product(A, B, C, D)
 
+
 ##############################################################################
 # Since we already constructed the transformation (rotation) matrix above, and
 # the inverse of a rotation matrix is just its transpose, the required
@@ -144,6 +147,7 @@ def galactic_to_sgr():
         heliocentric Sgr coordinates.
     """
     return SGR_MATRIX
+
 
 ##############################################################################
 # The decorator ``@frame_transform_graph.transform(coord.StaticMatrixTransform,
@@ -160,6 +164,7 @@ def sgr_to_galactic():
         spherical Galactic.
     """
     return matrix_transpose(SGR_MATRIX)
+
 
 ##############################################################################
 # Now that we've registered these transformations between ``Sagittarius`` and
