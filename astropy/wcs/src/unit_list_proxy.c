@@ -385,4 +385,3 @@ _setup_unit_list_proxy_type(
 
   return 0;
 }
-

@@ -205,7 +205,7 @@ indices while column slices will not::
   --- ----
     2    0
     4    1>>]
-    
+
 .. EXAMPLE END
 
 .. EXAMPLE START: Table Indexing with the "discard_on_copy" Index Mode

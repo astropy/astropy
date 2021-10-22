@@ -1,0 +1,77 @@
+repos:
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.0.1
+  hooks:
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-yaml
+  - id: debug-statements
+  - id: end-of-file-fixer
+    exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py)$"
+  - id: trailing-whitespace
+    exclude: ".*(data.*|extern.*|licenses.*|_parsetab.py|test_cds.py)$"
+
+# - repo: https://github.com/timothycrosley/isort
+#   rev: 5.9.2
+#   hooks:
+#   - id: isort
+# - repo: https://github.com/asottile/pyupgrade
+#   rev: v2.21.0
+#   hooks:
+#     - id: pyupgrade
+
+# We list the warnings/errors to check for here rather than in setup.cfg because
+# we don't want these options to apply whenever anyone calls flake8 from the
+# command-line or their code editor - in this case all warnings/errors should be
+# checked for. The warnings/errors we check for here are:
+# E101 - mix of tabs and spaces
+# W191 - use of tabs
+# E201 - whitespace after '('
+# E202 - whitespace before ')'
+# W291 - trailing whitespace
+# W292 - no newline at end of file
+# W293 - trailing whitespace
+# W391 - blank line at end of file
+# E111 - 4 spaces per indentation level
+# E112 - 4 spaces per indentation level
+# E113 - 4 spaces per indentation level
+# E301 - expected 1 blank line, found 0
+# E302 - expected 2 blank lines, found 0
+# E303 - too many blank lines (3)
+# E304 - blank lines found after function decorator
+# E305 - expected 2 blank lines after class or function definition
+# E306 - expected 1 blank line before a nested definition
+# E502 - the backslash is redundant between brackets
+# E722 - do not use bare except
+# E901 - SyntaxError or IndentationError
+# E902 - IOError
+# E999: SyntaxError -- failed to compile a file into an Abstract Syntax Tree
+# F822: undefined name in __all__
+# F823: local variable name referenced before assignment
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+    - id: flake8
+      args: ['--count', '--select', 'E101,W191,E201,E202,W291,W292,W293,W391,E111,E112,E113,E30,E502,E722,E901,E902,E999,F822,F823']
+      exclude: ".*(data.*|extern.*|cextern)$"
+
+- repo: local
+  hooks:
+    - id: changelogs-rst
+      name: changelog filenames
+      language: fail
+      entry: >-
+        changelog files must be named <sub-package>/####.(bugfix|feature|api).rst
+        or ####.other.rst (in the root directory only)
+      exclude: >-
+        ^docs/changes/[\w\.]+/(\d+\.(bugfix|feature|api)(\.\d)?.rst|.gitkeep)
+      files: ^docs/changes/[\w\.]+/
+    - id: changelogs-rst-other
+      name: changelog filenames for other category
+      language: fail
+      entry: >-
+        only "other" changelog files must be placed in the root directory
+      exclude: >-
+        ^docs/changes/(\d+\.other.rst|README.rst|template.rst)
+      files: ^docs/changes/\d+.\w+.rst

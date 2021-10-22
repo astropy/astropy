@@ -1,5 +1,5 @@
 .. include:: links.inc
-	     
+
 .. _polynomial_models:
 
 *****************
@@ -78,6 +78,4 @@ confusion in meaning.
 - :class:`~astropy.modeling.polynomial.Hermite2D`
 
 - :class:`~astropy.modeling.polynomial.SIP` model implements the
-  Simple Imaging Polynomial (`SIP`_) convention 
-
-  
+  Simple Imaging Polynomial (`SIP`_) convention
