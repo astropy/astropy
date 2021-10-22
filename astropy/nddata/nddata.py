@@ -222,13 +222,13 @@ class NDData(NDDataBase):
             # than sorry :-)
             unit = deepcopy(unit)
 
-        # Validate the wcs
-
         # Store the attributes
         self._data = data
         self.mask = mask
         self._wcs = None
-        self.wcs = wcs
+        if wcs is not None:
+            # Validate the wcs
+            self.wcs = wcs
         self.meta = meta  # TODO: Make this call the setter sometime
         self._unit = unit
         # Call the setter for uncertainty to further check the uncertainty
