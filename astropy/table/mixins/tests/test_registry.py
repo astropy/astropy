@@ -8,7 +8,7 @@ from numpy.testing import assert_equal
 from astropy.table import Table
 from astropy.table.table_helpers import ArrayWrapper
 from astropy.table.mixins.registry import (_handlers, register_mixin_handler,
-                                           MixinRegistryError, mixin_handler)
+                                           MixinRegistryError, get_mixin_handler)
 
 ORIGINAL = {}
 
@@ -45,12 +45,12 @@ def handle_spam_alt(obj):
 
 def test_no_handler():
     data = SpamData()
-    assert mixin_handler(data) is None
+    assert get_mixin_handler(data) is None
 
 
 def test_register_handler():
     register_mixin_handler(FULL_QUALNAME, handle_spam)
-    assert mixin_handler(SpamData()) is handle_spam
+    assert get_mixin_handler(SpamData()) is handle_spam
 
 
 def test_register_handler_override():
@@ -59,7 +59,13 @@ def test_register_handler_override():
         register_mixin_handler(FULL_QUALNAME, handle_spam_alt)
     assert exc.value.args[0] == 'Handler for class astropy.table.mixins.tests.test_registry.SpamData is already defined'
     register_mixin_handler(FULL_QUALNAME, handle_spam_alt, force=True)
-    assert mixin_handler(SpamData()) is handle_spam_alt
+    assert get_mixin_handler(SpamData()) is handle_spam_alt
+
+
+def test_get_mixin_handler_str():
+    # Check that we can also pass a fully qualified name to get_mixin_handler
+    register_mixin_handler(FULL_QUALNAME, handle_spam)
+    assert get_mixin_handler(FULL_QUALNAME) is handle_spam
 
 
 def test_add_column():
