@@ -4,7 +4,6 @@ colorbars.
 """
 
 import inspect
-import warnings
 
 import numpy as np
 from numpy import ma
@@ -13,7 +12,6 @@ from .interval import (PercentileInterval, AsymmetricPercentileInterval,
                        ManualInterval, MinMaxInterval, BaseInterval)
 from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
                       AsinhStretch, BaseStretch)
-from ..utils.exceptions import AstropyDeprecationWarning
 
 try:
     import matplotlib  # pylint: disable=W0611
@@ -305,7 +303,7 @@ def simple_norm(data, stretch='linear', power=1.0, asinh_a=0.1, min_cut=None,
 _norm_sig = inspect.signature(ImageNormalize)
 
 
-def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
+def imshow_norm(data, ax=None, **kwargs):
     """ A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
     function, using an `ImageNormalize` object as the normalization.
 
@@ -317,15 +315,6 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
     ax : None or `~matplotlib.axes.Axes`, optional
         If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of
         the supplied axes.
-    imshow_only_kwargs : dict, optional
-        Deprecated since Astropy v4.1.  Note that setting both ``norm``
-        and ``vmin/vmax`` is deprecated in ``matplotlib >= 3.3``.
-
-        Arguments to be passed directly to `~matplotlib.pyplot.imshow` without
-        first trying `ImageNormalize`.  This is only for keywords that have the
-        same name in both `ImageNormalize` and `~matplotlib.pyplot.imshow` - if
-        you want to set the `~matplotlib.pyplot.imshow` keywords only, supply
-        them in this dictionary.
     kwargs : dict, optional
         All other keyword arguments are parsed first by the
         `ImageNormalize` initializer, then to
@@ -361,12 +350,6 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
                                stretch=SqrtStretch())
         fig.colorbar(im)
     """
-
-    if imshow_only_kwargs:
-        warnings.warn('imshow_only_kwargs is deprecated since v4.1 and will '
-                      'be removed in a future version.',
-                      AstropyDeprecationWarning)
-
     if 'X' in kwargs:
         raise ValueError('Cannot give both ``X`` and ``data``')
 
@@ -381,19 +364,6 @@ def imshow_norm(data, ax=None, imshow_only_kwargs={}, **kwargs):
     for pname in _norm_sig.parameters:
         if pname in kwargs:
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
-
-    for k, v in imshow_only_kwargs.items():
-        if k not in _norm_sig.parameters:
-            # the below is not strictly "has to be true", but is here so that
-            # users don't start using both imshow_only_kwargs *and* keyword
-            # arguments to this function, as that makes for more confusing
-            # user code
-            raise ValueError('You provided a keyword to imshow_only_kwargs '
-                             '({}) that is not a keyword for ImageNormalize. '
-                             'This is not supported. Instead you should '
-                             'pass the keyword directly into imshow_norm'
-                             .format(k))
-        imshow_kwargs[k] = v
 
     imshow_kwargs['norm'] = ImageNormalize(**norm_kwargs)
 
