@@ -4,9 +4,6 @@ This module includes helper functions for array operations.
 """
 
 from copy import deepcopy
-import sys
-import types
-import warnings
 
 import numpy as np
 
