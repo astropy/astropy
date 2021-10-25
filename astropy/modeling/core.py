@@ -865,6 +865,10 @@ class Model(metaclass=_ModelMeta):
     def __len__(self):
         return self._n_models
 
+    @staticmethod
+    def _strip_ones(intup):
+        return tuple(item for item in intup if item != 1)
+
     def __setattr__(self, attr, value):
         if isinstance(self, CompoundModel):
             param_names = self._param_names
@@ -884,7 +888,7 @@ class Model(metaclass=_ModelMeta):
                 vshape = (1,)
             esize = self._param_metrics[attr]['size']
             if (np.size(value) != esize or
-                    _strip_ones(vshape) != _strip_ones(eshape)):
+                    self._strip_ones(vshape) != self._strip_ones(eshape)):
                 raise InputParameterError(
                     "Value for parameter {0} does not match shape or size\n"
                     "expected by model ({1}, {2}) vs ({3}, {4})".format(
@@ -908,14 +912,151 @@ class Model(metaclass=_ModelMeta):
             else:
                 super().__setattr__(attr, value)
 
+    def _pre_evaluate(self, *args, **kwargs):
+        """
+        Model specific input setup that needs to occur prior to model evaluation
+        """
+
+        # Broadcast inputs into common size
+        inputs, format_info = self.prepare_inputs(*args, **kwargs)
+
+        # Setup actual model evaluation method
+        parameters = self._param_sets(raw=True, units=True)
+
+        def evaluate(_inputs):
+            return self.evaluate(*chain(_inputs, parameters))
+
+        return evaluate, inputs, format_info, kwargs
+
+    def get_bounding_box(self, with_bbox=True):
+        """
+        Return the ``bounding_box`` of a model if it exists.
+        """
+        bbox = None
+
+        if with_bbox:
+            try:
+                bbox = self.bounding_box
+            except NotImplementedError:
+                pass
+        return bbox
+
+    @property
+    def _argnames(self):
+        """The inputs used to determine input_shape for bounding_box evaluation"""
+        return self.inputs
+
+    def _validate_input_shape(self, _input, idx, argnames, model_set_axis, check_model_set_axis):
+        """
+        Perform basic validation of a single model input's shape
+            -- it has the minimum dimensions for the given model_set_axis
+
+        Returns the shape of the input if validation succeeds.
+        """
+        input_shape = np.shape(_input)
+        # Ensure that the input's model_set_axis matches the model's
+        # n_models
+        if input_shape and check_model_set_axis:
+            # Note: Scalar inputs *only* get a pass on this
+            if len(input_shape) < model_set_axis + 1:
+                raise ValueError(
+                    f"For model_set_axis={model_set_axis}, all inputs must be at "
+                    f"least {model_set_axis + 1}-dimensional.")
+            if input_shape[model_set_axis] != self._n_models:
+                try:
+                    argname = argnames[idx]
+                except IndexError:
+                    # the case of model.inputs = ()
+                    argname = str(idx)
+
+                raise ValueError(
+                    f"Input argument '{argname}' does not have the correct "
+                    f"dimensions in model_set_axis={model_set_axis} for a model set with "
+                    f"n_models={self._n_models}.")
+
+        return input_shape
+
+    def _validate_input_shapes(self, inputs, argnames, model_set_axis):
+        """
+        Perform basic validation of model inputs
+            --that they are mutually broadcastable and that they have
+            the minimum dimensions for the given model_set_axis.
+
+        If validation succeeds, returns the total shape that will result from
+        broadcasting the input arrays with each other.
+        """
+
+        check_model_set_axis = self._n_models > 1 and model_set_axis is not False
+
+        all_shapes = []
+        for idx, _input in enumerate(inputs):
+            all_shapes.append(self._validate_input_shape(_input, idx, argnames,
+                                                         model_set_axis, check_model_set_axis))
+
+        input_shape = check_broadcast(*all_shapes)
+        if input_shape is None:
+            raise ValueError(
+                "All inputs must have identical shapes or must be scalars.")
+
+        return input_shape
+
+    def _generic_evaluate(self, evaluate, _inputs, fill_value, with_bbox, with_units):
+        """
+        Generic model evaluation routine
+            Selects and evaluates model with or without bounding_box enforcement
+        """
+
+        # Evaluate the model using the prepared evaluation method either
+        #   enforcing the bounding_box or not.
+        bbox = self.get_bounding_box(with_bbox)
+        if with_bbox and bbox is not None:
+            # TODO: this part should move inside bounding_box when compound bounding box is merged.
+            input_shape = self._validate_input_shapes(_inputs, self._argnames, self.model_set_axis)
+
+            outputs = bbox.evaluate(evaluate, input_shape, _inputs, fill_value, with_units)
+        else:
+            outputs = evaluate(_inputs)
+        return outputs
+
+    def _post_evaluate(self, inputs, outputs, format_info, with_bbox, **kwargs):
+        """
+        Model specific post evaluation processing of outputs
+        """
+        if not with_bbox and self.n_outputs == 1:
+            outputs = (outputs,)
+
+        outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
+        outputs = self._process_output_units(inputs, outputs)
+
+        if self.n_outputs == 1:
+            return outputs[0]
+        return outputs
+
     def __call__(self, *args, **kwargs):
         """
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
-        new_args, kwargs = self._get_renamed_inputs_as_positional(*args, **kwargs)
+        # Turn any keyword arguments into positional arguments.
+        args, kwargs = self._get_renamed_inputs_as_positional(*args, **kwargs)
 
-        return generic_call(self, *new_args, **kwargs)
+        # Read model evaluation related parameters
+        with_bbox = kwargs.pop('with_bounding_box', False)
+        fill_value = kwargs.pop('fill_value', np.nan)
+
+        # prepare for model evaluation (overridden in CompoundModel)
+        evaluate, inputs, format_info, kwargs = self._pre_evaluate(*args, **kwargs)
+
+        # NOTE: CompoundModel does not currently support units during
+        #   evaluation for bounding_box so this feature is turned off
+        #   for CompoundModel(s).
+        # TODO: eliminate this in CompoundBoundingBox
+        outputs = self._generic_evaluate(evaluate, inputs,
+                                         fill_value, with_bbox,
+                                         (not isinstance(self, CompoundModel)))
+
+        # post-process evaluation results (overridden in CompoundModel)
+        return self._post_evaluate(inputs, outputs, format_info, with_bbox, **kwargs)
 
     def _get_renamed_inputs_as_positional(self, *args, **kwargs):
         def _keyword2positional(kwargs):
@@ -1654,6 +1795,139 @@ class Model(metaclass=_ModelMeta):
             # None means any unit is accepted
             return None
 
+    def _prepare_inputs_single_model(self, params, inputs, **kwargs):
+        broadcasts = []
+
+        for idx, _input in enumerate(inputs):
+            input_shape = _input.shape
+
+            # Ensure that array scalars are always upgrade to 1-D arrays for the
+            # sake of consistency with how parameters work.  They will be cast back
+            # to scalars at the end
+            if not input_shape:
+                inputs[idx] = _input.reshape((1,))
+
+            if not params:
+                max_broadcast = input_shape
+            else:
+                max_broadcast = ()
+
+            for param in params:
+                try:
+                    if self.standard_broadcasting:
+                        broadcast = check_broadcast(input_shape, param.shape)
+                    else:
+                        broadcast = input_shape
+                except IncompatibleShapeError:
+                    raise ValueError(
+                        "self input argument {0!r} of shape {1!r} cannot be "
+                        "broadcast with parameter {2!r} of shape "
+                        "{3!r}.".format(self.inputs[idx], input_shape,
+                                        param.name, param.shape))
+
+                if len(broadcast) > len(max_broadcast):
+                    max_broadcast = broadcast
+                elif len(broadcast) == len(max_broadcast):
+                    max_broadcast = max(max_broadcast, broadcast)
+
+            broadcasts.append(max_broadcast)
+
+        if self.n_outputs > self.n_inputs:
+            extra_outputs = self.n_outputs - self.n_inputs
+            if not broadcasts:
+                # If there were no inputs then the broadcasts list is empty
+                # just add a None since there is no broadcasting of outputs and
+                # inputs necessary (see _prepare_outputs_single_self)
+                broadcasts.append(None)
+            broadcasts.extend([broadcasts[0]] * extra_outputs)
+
+        return inputs, (broadcasts,)
+
+    @staticmethod
+    def _remove_axes_from_shape(shape, axis):
+        """
+        Given a shape tuple as the first input, construct a new one by  removing
+        that particular axis from the shape and all preceeding axes. Negative axis
+        numbers are permittted, where the axis is relative to the last axis.
+        """
+        if len(shape) == 0:
+            return shape
+        if axis < 0:
+            axis = len(shape) + axis
+            return shape[:axis] + shape[axis+1:]
+        if axis >= len(shape):
+            axis = len(shape)-1
+        shape = shape[axis+1:]
+        return shape
+
+    def _prepare_inputs_model_set(self, params, inputs, model_set_axis_input,
+                                  **kwargs):
+        reshaped = []
+        pivots = []
+
+        model_set_axis_param = self.model_set_axis  # needed to reshape param
+        for idx, _input in enumerate(inputs):
+            max_param_shape = ()
+            if self._n_models > 1 and model_set_axis_input is not False:
+                # Use the shape of the input *excluding* the model axis
+                input_shape = (_input.shape[:model_set_axis_input] +
+                               _input.shape[model_set_axis_input + 1:])
+            else:
+                input_shape = _input.shape
+
+            for param in params:
+                try:
+                    check_broadcast(input_shape,
+                                    self._remove_axes_from_shape(param.shape,
+                                                                 model_set_axis_param))
+                except IncompatibleShapeError:
+                    raise ValueError(
+                        "Model input argument {0!r} of shape {1!r} cannot be "
+                        "broadcast with parameter {2!r} of shape "
+                        "{3!r}.".format(self.inputs[idx], input_shape,
+                                        param.name,
+                                        self._remove_axes_from_shape(param.shape,
+                                                                     model_set_axis_param)))
+
+                if len(param.shape) - 1 > len(max_param_shape):
+                    max_param_shape = self._remove_axes_from_shape(param.shape,
+                                                                   model_set_axis_param)
+
+            # We've now determined that, excluding the model_set_axis, the
+            # input can broadcast with all the parameters
+            input_ndim = len(input_shape)
+            if model_set_axis_input is False:
+                if len(max_param_shape) > input_ndim:
+                    # Just needs to prepend new axes to the input
+                    n_new_axes = 1 + len(max_param_shape) - input_ndim
+                    new_axes = (1,) * n_new_axes
+                    new_shape = new_axes + _input.shape
+                    pivot = model_set_axis_param
+                else:
+                    pivot = input_ndim - len(max_param_shape)
+                    new_shape = (_input.shape[:pivot] + (1,) +
+                                 _input.shape[pivot:])
+                new_input = _input.reshape(new_shape)
+            else:
+                if len(max_param_shape) >= input_ndim:
+                    n_new_axes = len(max_param_shape) - input_ndim
+                    pivot = self.model_set_axis
+                    new_axes = (1,) * n_new_axes
+                    new_shape = (_input.shape[:pivot + 1] + new_axes +
+                                 _input.shape[pivot + 1:])
+                    new_input = _input.reshape(new_shape)
+                else:
+                    pivot = _input.ndim - len(max_param_shape) - 1
+                    new_input = np.rollaxis(_input, model_set_axis_input,
+                                            pivot + 1)
+            pivots.append(pivot)
+            reshaped.append(new_input)
+
+        if self.n_inputs < self.n_outputs:
+            pivots.extend([model_set_axis_input] * (self.n_outputs - self.n_inputs))
+
+        return reshaped, (pivots,)
+
     def prepare_inputs(self, *inputs, model_set_axis=None, equivalencies=None,
                        **kwargs):
         """
@@ -1674,13 +1948,10 @@ class Model(metaclass=_ModelMeta):
             # TODO: Ensure that negative model_set_axis arguments are respected
             model_set_axis = self.model_set_axis
 
-        n_models = len(self)
-
         params = [getattr(self, name) for name in self.param_names]
         inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
 
-        _validate_input_shapes(inputs, self.inputs, n_models,
-                               model_set_axis, self.standard_broadcasting)
+        self._validate_input_shapes(inputs, self.inputs, model_set_axis)
 
         inputs_map = kwargs.get('inputs_map', None)
 
@@ -1689,12 +1960,11 @@ class Model(metaclass=_ModelMeta):
         # The input formatting required for single models versus a multiple
         # model set are different enough that they've been split into separate
         # subroutines
-        if n_models == 1:
-            return _prepare_inputs_single_model(self, params, inputs,
-                                                **kwargs)
+        if self._n_models == 1:
+            return self._prepare_inputs_single_model(params, inputs, **kwargs)
         else:
-            return _prepare_inputs_model_set(self, params, inputs, n_models,
-                                             model_set_axis, **kwargs)
+            return self._prepare_inputs_model_set(params, inputs,
+                                                  model_set_axis, **kwargs)
 
     def _validate_input_units(self, inputs, equivalencies=None, inputs_map=None):
         inputs = list(inputs)
@@ -1800,13 +2070,55 @@ class Model(metaclass=_ModelMeta):
                              for out, out_name in zip(outputs, self.outputs)])
         return outputs
 
+    @staticmethod
+    def _prepare_output_single_model(output, broadcast_shape):
+        if broadcast_shape is not None:
+            if not broadcast_shape:
+                return output.item()
+            else:
+                try:
+                    return output.reshape(broadcast_shape)
+                except ValueError:
+                    try:
+                        return output.item()
+                    except ValueError:
+                        return output
+
+        return output
+
+    def _prepare_outputs_single_model(self, outputs, format_info):
+        outputs = list(outputs)
+        for idx, output in enumerate(outputs):
+            try:
+                broadcast_shape = check_broadcast(*format_info[0])
+            except (IndexError, TypeError):
+                broadcast_shape = format_info[0][idx]
+
+            outputs[idx] = self._prepare_output_single_model(output, broadcast_shape)
+
+        return tuple(outputs)
+
+    def _prepare_outputs_model_set(self, outputs, format_info, model_set_axis):
+        pivots = format_info[0]
+        # If model_set_axis = False was passed then use
+        # self._model_set_axis to format the output.
+        if model_set_axis is None or model_set_axis is False:
+            model_set_axis = self.model_set_axis
+        outputs = list(outputs)
+        for idx, output in enumerate(outputs):
+            pivot = pivots[idx]
+            if pivot < output.ndim and pivot != model_set_axis:
+                outputs[idx] = np.rollaxis(output, pivot,
+                                           model_set_axis)
+        return tuple(outputs)
+
     def prepare_outputs(self, format_info, *outputs, **kwargs):
         model_set_axis = kwargs.get('model_set_axis', None)
 
         if len(self) == 1:
-            return _prepare_outputs_single_model(outputs, format_info)
+            return self._prepare_outputs_single_model(outputs, format_info)
         else:
-            return _prepare_outputs_model_set(self, outputs, format_info, model_set_axis)
+            return self._prepare_outputs_model_set(outputs, format_info, model_set_axis)
 
     def copy(self):
         """
@@ -2780,42 +3092,67 @@ class CompoundModel(Model):
                 newnames.append(item)
         return tuple(newnames)
 
-    def __call__(self, *args, **kw):
-        # Turn any keyword arguments into positional arguments.
-        args, kw = self._get_renamed_inputs_as_positional(*args, **kw)
+    def both_inverses_exist(self):
+        '''
+        if both members of this compound model have inverses return True
+        '''
+        warnings.warn(
+            "CompoundModel.both_inverses_exist is deprecated. "
+            "Use has_inverse instead.",
+            AstropyDeprecationWarning
+        )
+
+        try:
+            linv = self.left.inverse
+            rinv = self.right.inverse
+        except NotImplementedError:
+            return False
+
+        return True
+
+    def _pre_evaluate(self, *args, **kwargs):
+        """
+        CompoundModel specific input setup that needs to occur prior to
+            model evaluation.
+
+        Note
+        ----
+            All of the _pre_evaluate for each component model will be
+            performed at the time that the individual model is evaluated.
+        """
 
         # If equivalencies are provided, necessary to map parameters and pass
         # the leaflist as a keyword input for use by model evaluation so that
         # the compound model input names can be matched to the model input
         # names.
-
-        if 'equivalencies' in kw:
+        if 'equivalencies' in kwargs:
             # Restructure to be useful for the individual model lookup
-            kw['inputs_map'] = [(value[0], (value[1], key)) for
-                                key, value in self.inputs_map().items()]
-        with_bbox = kw.pop('with_bounding_box', False)
-        fill_value = kw.pop('fill_value', np.nan)
-        # Use of bounding box for compound models requires special treatment
-        # in selecting only valid inputs to pass along to constituent models.
-        if with_bbox:
-            bbox = get_bounding_box(self)
-        else:
-            bbox = None
-        if with_bbox and bbox is not None:
-            # first check inputs are consistent in shape
-            input_shape = _validate_input_shapes(args, (), self._n_models,
-                                                 self.model_set_axis, self.standard_broadcasting)
-            valid_inputs, valid_index, all_out = bbox.prepare_inputs(input_shape, args)
-            if not all_out:
-                valid_outputs = self._evaluate(*valid_inputs, **kw)
-                outputs = bbox.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
-            else:
-                outputs = [np.zeros(input_shape) + fill_value for _ in range(self.n_outputs)]
-            if self.n_outputs == 1:
-                return outputs[0]
-            return outputs
-        else:
-            return self._evaluate(*args, **kw)
+            kwargs['inputs_map'] = [(value[0], (value[1], key)) for
+                                    key, value in self.inputs_map().items()]
+
+        # Setup actual model evaluation method
+        def evaluate(_inputs):
+            return self._evaluate(*_inputs, **kwargs)
+
+        return evaluate, args, None, kwargs
+
+    @property
+    def _argnames(self):
+        """No inputs should be used to determine input_shape when handling compound models"""
+        return ()
+
+    def _post_evaluate(self, inputs, outputs, format_info, with_bbox, **kwargs):
+        """
+        CompoundModel specific post evaluation processing of outputs
+
+        Note
+        ----
+            All of the _post_evaluate for each component model will be
+            performed at the time that the individual model is evaluated.
+        """
+        if with_bbox and self.n_outputs == 1:
+            return outputs[0]
+        return outputs
 
     def _evaluate(self, *args, **kw):
         op = self.op
@@ -3362,10 +3699,7 @@ class CompoundModel(Model):
         :ref:`astropy:bounding-boxes`
         """
 
-        try:
-            bbox = self.bounding_box
-        except NotImplementedError:
-            bbox = None
+        bbox = self.get_bounding_box()
 
         ndim = self.n_inputs
 
@@ -3865,305 +4199,6 @@ def render_model(model, arr=None, coords=None):
         arr += model(*coords[::-1])
 
     return arr
-
-
-def _prepare_inputs_single_model(model, params, inputs, **kwargs):
-    broadcasts = []
-
-    for idx, _input in enumerate(inputs):
-        input_shape = _input.shape
-
-        # Ensure that array scalars are always upgrade to 1-D arrays for the
-        # sake of consistency with how parameters work.  They will be cast back
-        # to scalars at the end
-        if not input_shape:
-            inputs[idx] = _input.reshape((1,))
-
-        if not params:
-            max_broadcast = input_shape
-        else:
-            max_broadcast = ()
-
-        for param in params:
-            try:
-                if model.standard_broadcasting:
-                    broadcast = check_broadcast(input_shape, param.shape)
-                else:
-                    broadcast = input_shape
-            except IncompatibleShapeError:
-                raise ValueError(
-                    "Model input argument {0!r} of shape {1!r} cannot be "
-                    "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.inputs[idx], input_shape,
-                                    param.name, param.shape))
-
-            if len(broadcast) > len(max_broadcast):
-                max_broadcast = broadcast
-            elif len(broadcast) == len(max_broadcast):
-                max_broadcast = max(max_broadcast, broadcast)
-
-        broadcasts.append(max_broadcast)
-
-    if model.n_outputs > model.n_inputs:
-        extra_outputs = model.n_outputs - model.n_inputs
-        if not broadcasts:
-            # If there were no inputs then the broadcasts list is empty
-            # just add a None since there is no broadcasting of outputs and
-            # inputs necessary (see _prepare_outputs_single_model)
-            broadcasts.append(None)
-        broadcasts.extend([broadcasts[0]] * extra_outputs)
-
-    return inputs, (broadcasts,)
-
-
-def _prepare_outputs_single_model(outputs, format_info):
-    outputs = list(outputs)
-    for idx, output in enumerate(outputs):
-        try:
-            broadcast_shape = check_broadcast(*format_info[0])
-        except (IndexError, TypeError) as e:
-            broadcast_shape = format_info[0][idx]
-
-        if broadcast_shape is not None:
-            if not broadcast_shape:
-                outputs[idx] = output.item()
-            else:
-                try:
-                    outputs[idx] = output.reshape(broadcast_shape)
-                except ValueError:
-                    try:
-                        outputs[idx] = output.item()
-                    except ValueError:
-                        outputs[idx] = output
-
-    return tuple(outputs)
-
-
-def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis_input,
-                              **kwargs):
-    reshaped = []
-    pivots = []
-
-    model_set_axis_param = model.model_set_axis  # needed to reshape param
-    for idx, _input in enumerate(inputs):
-        max_param_shape = ()
-        if n_models > 1 and model_set_axis_input is not False:
-            # Use the shape of the input *excluding* the model axis
-            input_shape = (_input.shape[:model_set_axis_input] +
-                           _input.shape[model_set_axis_input + 1:])
-        else:
-            input_shape = _input.shape
-
-        for param in params:
-            try:
-                check_broadcast(input_shape,
-                                remove_axes_from_shape(param.shape,
-                                                       model_set_axis_param))
-            except IncompatibleShapeError:
-                raise ValueError(
-                    "Model input argument {0!r} of shape {1!r} cannot be "
-                    "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.inputs[idx], input_shape,
-                                    param.name,
-                                    remove_axes_from_shape(param.shape,
-                                                           model_set_axis_param)))
-
-            if len(param.shape) - 1 > len(max_param_shape):
-                max_param_shape = remove_axes_from_shape(param.shape,
-                                                         model_set_axis_param)
-
-        # We've now determined that, excluding the model_set_axis, the
-        # input can broadcast with all the parameters
-        input_ndim = len(input_shape)
-        if model_set_axis_input is False:
-            if len(max_param_shape) > input_ndim:
-                # Just needs to prepend new axes to the input
-                n_new_axes = 1 + len(max_param_shape) - input_ndim
-                new_axes = (1,) * n_new_axes
-                new_shape = new_axes + _input.shape
-                pivot = model_set_axis_param
-            else:
-                pivot = input_ndim - len(max_param_shape)
-                new_shape = (_input.shape[:pivot] + (1,) +
-                             _input.shape[pivot:])
-            new_input = _input.reshape(new_shape)
-        else:
-            if len(max_param_shape) >= input_ndim:
-                n_new_axes = len(max_param_shape) - input_ndim
-                pivot = model.model_set_axis
-                new_axes = (1,) * n_new_axes
-                new_shape = (_input.shape[:pivot + 1] + new_axes +
-                             _input.shape[pivot + 1:])
-                new_input = _input.reshape(new_shape)
-            else:
-                pivot = _input.ndim - len(max_param_shape) - 1
-                new_input = np.rollaxis(_input, model_set_axis_input,
-                                        pivot + 1)
-        pivots.append(pivot)
-        reshaped.append(new_input)
-
-    if model.n_inputs < model.n_outputs:
-        pivots.extend([model_set_axis_input] * (model.n_outputs - model.n_inputs))
-
-    return reshaped, (pivots,)
-
-
-def _prepare_outputs_model_set(model, outputs, format_info, model_set_axis):
-    pivots = format_info[0]
-    # If model_set_axis = False was passed then use
-    # model._model_set_axis to format the output.
-    if model_set_axis is None or model_set_axis is False:
-        model_set_axis = model.model_set_axis
-    outputs = list(outputs)
-    for idx, output in enumerate(outputs):
-        pivot = pivots[idx]
-        if pivot < output.ndim and pivot != model_set_axis:
-            outputs[idx] = np.rollaxis(output, pivot,
-                                       model_set_axis)
-    return tuple(outputs)
-
-
-def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
-                           validate_broadcasting):
-    """
-    Perform basic validation of model inputs--that they are mutually
-    broadcastable and that they have the minimum dimensions for the given
-    model_set_axis.
-
-    If validation succeeds, returns the total shape that will result from
-    broadcasting the input arrays with each other.
-    """
-
-    check_model_set_axis = n_models > 1 and model_set_axis is not False
-
-    all_shapes = []
-    for idx, _input in enumerate(inputs):
-        input_shape = np.shape(_input)
-        # Ensure that the input's model_set_axis matches the model's
-        # n_models
-        if input_shape and check_model_set_axis:
-            # Note: Scalar inputs *only* get a pass on this
-            if len(input_shape) < model_set_axis + 1:
-                raise ValueError(
-                    "For model_set_axis={0}, all inputs must be at "
-                    "least {1}-dimensional.".format(
-                        model_set_axis, model_set_axis + 1))
-            if input_shape[model_set_axis] != n_models:
-                try:
-                    argname = argnames[idx]
-                except IndexError:
-                    # the case of model.inputs = ()
-                    argname = str(idx)
-                raise ValueError(
-                    "Input argument {0!r} does not have the correct "
-                    "dimensions in model_set_axis={1} for a model set with "
-                    "n_models={2}.".format(argname, model_set_axis,
-                                           n_models))
-        all_shapes.append(input_shape)
-
-    input_shape = check_broadcast(*all_shapes)
-    if input_shape is None:
-        raise ValueError(
-            "All inputs must have identical shapes or must be scalars.")
-
-    return input_shape
-
-
-def remove_axes_from_shape(shape, axis):
-    """
-    Given a shape tuple as the first input, construct a new one by  removing
-    that particular axis from the shape and all preceding axes. Negative axis
-    numbers are permittted, where the axis is relative to the last axis.
-    """
-    if len(shape) == 0:
-        return shape
-    if axis < 0:
-        axis = len(shape) + axis
-        return shape[:axis] + shape[axis+1:]
-    if axis >= len(shape):
-        axis = len(shape)-1
-    shape = shape[axis+1:]
-    return shape
-
-
-def check_consistent_shapes(*shapes):
-    """
-    Given shapes as arguments, check to see if all are the same (excluding
-    scalars, i.e., shape==(); if all the same, return the common shape; if
-    not, return None)
-    """
-    # remove scalars from the list
-    ashapes = [shape for shape in shapes if shape != ()]
-    if len(ashapes) == 0:
-        return ()
-    if len(ashapes) == 1:
-        return ashapes[0]
-    rshape = ashapes[0]
-    for shape in ashapes[1:]:
-        if shape != rshape:
-            return None
-    return rshape
-
-
-def get_bounding_box(self):
-    """
-    Return the ``bounding_box`` of a model.
-
-    Raises
-    ------
-    NotImplementedError
-        If ``bounding_box`` is not defined.
-    """
-    try:
-        bbox = self.bounding_box
-    except NotImplementedError:
-        bbox = None
-    return bbox
-
-
-def generic_call(self, *inputs, **kwargs):
-    """ The base ``Model. __call__`` method."""
-    inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-    if isinstance(self, CompoundModel):
-        # CompoundModels do not normally hold parameters at that level
-        parameters = ()
-    else:
-        parameters = self._param_sets(raw=True, units=True)
-    with_bbox = kwargs.pop('with_bounding_box', False)
-    fill_value = kwargs.pop('fill_value', np.nan)
-    if with_bbox:
-        bbox = get_bounding_box(self)
-    else:
-        bbox = None
-    if with_bbox and bbox is not None:
-        input_shape = _validate_input_shapes(
-            inputs, self.inputs, self._n_models, self.model_set_axis,
-            self.standard_broadcasting)
-        valid_inputs, valid_index, all_out = bbox.prepare_inputs(input_shape, inputs)
-        valid_outputs_unit = None
-        if not all_out:
-            valid_outputs = self.evaluate(*chain(valid_inputs, parameters))
-            valid_outputs_unit = getattr(valid_outputs, 'unit', None)
-            outputs = bbox.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
-        else:
-            outputs = [np.zeros(input_shape) + fill_value for _ in range(self.n_outputs)]
-        if valid_outputs_unit is not None:
-            outputs = Quantity(outputs, valid_outputs_unit, copy=False)
-    else:
-        outputs = self.evaluate(*chain(inputs, parameters))
-        if self.n_outputs == 1:
-            outputs = (outputs,)
-    outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
-
-    outputs = self._process_output_units(inputs, outputs)
-
-    if self.n_outputs == 1:
-        return outputs[0]
-    return outputs
-
-
-def _strip_ones(intup):
-    return tuple(item for item in intup if item != 1)
 
 
 def hide_inverse(model):

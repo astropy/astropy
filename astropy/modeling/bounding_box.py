@@ -6,9 +6,10 @@ This module is to contain an improved bounding box
 """
 
 from collections import namedtuple
-from typing import Dict
+from typing import Dict, Callable
 
 from astropy.utils import isiterable
+from astropy.units import Quantity
 
 import warnings
 import numpy as np
@@ -492,6 +493,10 @@ class BoundingBox(object):
         """
         return np.zeros(input_shape) + fill_value
 
+    def _all_out_output(self, input_shape, fill_value):
+        return [self._base_output(input_shape, fill_value)
+                for _ in range(self._model.n_outputs)], None
+
     def _modify_output(self, valid_output, valid_index, input_shape, fill_value):
         """
         For a single output fill in all the parts corresponding to inputs
@@ -575,3 +580,39 @@ class BoundingBox(object):
             valid_outputs = [valid_outputs]
 
         return self._prepare_outputs(valid_outputs, valid_index, input_shape, fill_value)
+
+    @staticmethod
+    def _get_valid_outputs_unit(valid_outputs, with_units: bool):
+        if with_units:
+            return getattr(valid_outputs, 'unit', None)
+
+    def _evaluate_model(self, evaluate: Callable, valid_inputs, valid_index, input_shape,
+                        fill_value, with_units: bool):
+        valid_outputs = evaluate(valid_inputs)
+        valid_outputs_unit = self._get_valid_outputs_unit(valid_outputs, with_units)
+
+        return self.prepare_outputs(valid_outputs, valid_index, input_shape, fill_value), valid_outputs_unit
+
+    def _evaluate(self, evaluate: Callable, inputs, input_shape,
+                  fill_value, with_units: bool):
+        valid_inputs, valid_index, all_out = self.prepare_inputs(input_shape, inputs)
+
+        if all_out:
+            return self._all_out_output(input_shape, fill_value)
+        else:
+            return self._evaluate_model(evaluate, valid_inputs, valid_index,
+                                        input_shape, fill_value, with_units)
+
+    @staticmethod
+    def _set_valid_outputs_unit(outputs, valid_outputs_unit):
+        if valid_outputs_unit is not None:
+            return Quantity(outputs, valid_outputs_unit, copy=False)
+        else:
+            return outputs
+
+    def evaluate(self, evaluate: Callable, input_shape, inputs, fill_value, with_units: bool=True):
+        outputs, valid_outputs_unit = self._evaluate(evaluate, inputs, input_shape,
+                                                     fill_value, with_units)
+        outputs = self._set_valid_outputs_unit(outputs, valid_outputs_unit)
+
+        return outputs
