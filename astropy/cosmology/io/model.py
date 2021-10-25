@@ -23,7 +23,7 @@ from astropy.utils.decorators import classproperty
 __all__ = []  # nothing is publicly scoped
 
 
-class CosmologyModel(FittableModel):
+class _CosmologyModel(FittableModel):
     """Base class for Cosmology redshift-method Models.
 
     .. note::
@@ -32,7 +32,7 @@ class CosmologyModel(FittableModel):
         Instead, from a Cosmology instance use ``.to_format("astropy.model")``
         to create an instance of a subclass of this class.
 
-    `CosmologyModel` (subclasses) wrap a redshift-method of a
+    `_CosmologyModel` (subclasses) wrap a redshift-method of a
     :class:`~astropy.cosmology.Cosmology` class, converting each
     |Cosmology| :class:`~astropy.cosmology.Parameter` to a
     :class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`
@@ -129,7 +129,7 @@ def from_model(model):
 
     Parameters
     ----------
-    model : `CosmologyModel` subclass instance
+    model : `_CosmologyModel` subclass instance
         See ``Cosmology.to_format.help("astropy.model") for details.
 
     Returns
@@ -144,8 +144,8 @@ def from_model(model):
     FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
                   Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
     """
-    if not isinstance(model, CosmologyModel):
-        raise TypeError("`model` must be <CosmologyModel>.")
+    if not isinstance(model, _CosmologyModel):
+        raise TypeError("`model` must be <_CosmologyModel>.")
 
     cosmology = model.cosmology_class
     meta = copy.deepcopy(model.meta)
@@ -174,7 +174,7 @@ def to_model(cosmology, *_, method):
 
     Returns
     -------
-    `CosmologyModel` subclass instance
+    `_CosmologyModel` subclass instance
 
     Examples
     --------
@@ -185,40 +185,43 @@ def to_model(cosmology, *_, method):
         Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
         name='Planck18')>
     """
-    method_name = method
-    # get unbound method (& sig) from class
-    method = getattr(cosmology.__class__, method_name)
-    msig = inspect.signature(method)
+    cosmo_cls = cosmology.__class__
 
-    # introspect for number of inputs, ignoring "self"
-    n_inputs = len([p for p in tuple(msig.parameters.values())[1:]
-                    if (p.kind in (0, 1))])
+    # get bound method & sig from cosmology (unbound if class).
+    if not hasattr(cosmology, method):
+        raise AttributeError(f"{method} is not a method on {cosmology.__class__}.")
+    func = getattr(cosmology, method)
+    if not callable(func):
+        raise ValueError(f"{cosmology.__class__}.{method} is not callable.")
+    msig = inspect.signature(func)
 
-    d = {}  # class attributes
-    d["_cosmology_class"] = cosmology.__class__
-    d["_method_name"] = method_name
-    d["n_inputs"] = n_inputs
-    d["n_outputs"] = 1
+    # introspect for number of positional inputs, ignoring "self"
+    n_inputs = len([p for p in tuple(msig.parameters.values()) if (p.kind in (0, 1))])
+
+    attrs = {}  # class attributes
+    attrs["_cosmology_class"] = cosmo_cls
+    attrs["_method_name"] = method
+    attrs["n_inputs"] = n_inputs
+    attrs["n_outputs"] = 1
 
     params = {}  # Parameters (also class attributes)
     for n in cosmology.__parameters__:
         params[n] = ModelParameter(default=getattr(cosmology, n),
-                                   unit=getattr(cosmology.__class__, n).unit,
+                                   unit=getattr(cosmo_cls, n).unit,
                                    **cosmology.meta.get(n, {}))
 
-    # class name is cosmology name + method name + CosmologyModel
-    clsname = (cosmology.__class__.__qualname__.replace(".", "_")
+    # class name is cosmology name + method name + _CosmologyModel
+    clsname = (cosmo_cls.__qualname__.replace(".", "_")
                + "Cosmology"
-               + method_name.replace("_", " ").title().replace(" ", "")
+               + method.replace("_", " ").title().replace(" ", "")
                + "Model")
 
     # make Model class
-    CosmoModel = type(clsname, (CosmologyModel, ), {**d, **params})
+    CosmoModel = type(clsname, (_CosmologyModel, ), {**attrs, **params})
     # override __signature__ and format the doc.
     setattr(CosmoModel.evaluate, "__signature__", msig)
     CosmoModel.evaluate.__doc__ = CosmoModel.evaluate.__doc__.format(
-        cosmo_cls=cosmology.__class__.__qualname__,
-        method=method_name)
+        cosmo_cls=cosmo_cls.__qualname__, method=method)
 
     # instantiate class using default values
     model = CosmoModel(name=cosmology.name, meta=copy.deepcopy(cosmology.meta))

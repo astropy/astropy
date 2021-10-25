@@ -14,7 +14,7 @@ import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import Cosmology, Planck18, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
-from astropy.cosmology.io.model import CosmologyModel, from_model, to_model
+from astropy.cosmology.io.model import _CosmologyModel, from_model, to_model
 from astropy.cosmology.parameters import available
 from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
@@ -58,12 +58,9 @@ class ToFromModelTestMixin(IOTestMixinBase):
             if len(params) == 0 or not params[0].startswith("z"):
                 methods.discard(n)
                 continue
-            # remove instance-only methods
-            elif not hasattr(cosmo.__class__, n):
-                methods.discard(n)
-                continue
 
-            if not HAS_SCIPY:  # dynamically detect optional dependencies
+            # dynamically detect optional dependencies
+            if not HAS_SCIPY:
                 args = np.arange(len(params)) + 1
 
                 # remove if doesn't have dependency
@@ -79,18 +76,28 @@ class ToFromModelTestMixin(IOTestMixinBase):
 
     # ===============================================================
 
-    def test_from_model_wrong_cls(self, from_format):
+    def test_fromformat_model_wrong_cls(self, from_format):
         """Test when Model is not the correct class."""
         model = Gaussian1D(amplitude=10, mean=14)
 
         with pytest.raises(TypeError, match="`model` must be"):
             from_format(model)
 
+    def test_toformat_model_not_method(self, to_format):
+        """Test when method is not a method."""
+        with pytest.raises(AttributeError):
+            to_format("astropy.model", method="this is definitely not a method.")
+
+    def test_toformat_model_not_callable(self, cosmo, to_format):
+        """Test when method is actually an attribute."""
+        with pytest.raises(ValueError):
+            to_format("astropy.model", method="name")
+
     def test_toformat_model(self, cosmo, to_format, method_name):
         """Test cosmology -> astropy.model."""
 
         model = to_format("astropy.model", method=method_name)
-        assert isinstance(model, CosmologyModel)
+        assert isinstance(model, _CosmologyModel)
 
         # Parameters
         assert model.param_names == cosmo.__parameters__
@@ -119,16 +126,16 @@ class ToFromModelTestMixin(IOTestMixinBase):
             expected = getattr(cosmo, method_name)(*args)
             assert np.all(got == expected)
 
-    def test_tofrom_model_instance(self, cosmo, to_format, from_format, method_name):
+    def test_tofromformat_model_instance(self, cosmo, to_format, from_format, method_name):
         """Test cosmology -> astropy.model -> cosmology."""
         # ------------
         # To Model
         # this also serves as a test of all added methods / attributes
-        # in CosmologyModel.
+        # in _CosmologyModel.
 
         model = to_format("astropy.model", method=method_name)
 
-        assert isinstance(model, CosmologyModel)
+        assert isinstance(model, _CosmologyModel)
         assert model.cosmology_class is cosmo.__class__
         assert model.cosmology == cosmo
         assert model.method_name == method_name
@@ -147,7 +154,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         assert got == cosmo
         assert set(cosmo.meta.keys()).issubset(got.meta.keys())
 
-    def test_fromformat_subclass_partial_info_model(self, cosmo):
+    def test_fromformat_model_subclass_partial_info(self, cosmo):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
