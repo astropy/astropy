@@ -6,7 +6,7 @@ from asdf.versioning import AsdfVersion
 from astropy.modeling.bounding_box import BoundingBox
 from astropy.modeling import mappings
 from astropy.modeling import functional_models
-from astropy.modeling.core import CompoundModel, get_bounding_box
+from astropy.modeling.core import CompoundModel
 from astropy.io.misc.asdf.types import AstropyAsdfType, AstropyType
 from . import _parameter_to_value
 
@@ -111,7 +111,7 @@ class TransformType(AstropyAsdfType):
         assert a.name == b.name
         # TODO: Assert inverses are the same
         # assert the bounding_boxes are the same
-        assert get_bounding_box(a) == get_bounding_box(b)
+        assert a.get_bounding_box() == b.get_bounding_box()
 
 
 class IdentityType(TransformType):
