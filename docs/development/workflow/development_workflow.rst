@@ -504,6 +504,13 @@ start make a branch to serve as a backup copy of your work::
 After altering the history, e.g. with ``git rebase``, a normal ``git push``
 is prevented, and a ``git push --force`` will be required.
 
+.. warning::
+
+    Do not update your branch with ``git pull``. Pulling changes from
+    ``astropy/main`` includes merging the branches, which combines them in a
+    way that preserves the commit history of both. The purpose of rebasing is
+    rewriting the commit history of your branch, not preserving it.
+
 .. _howto_rebase:
 
 How to rebase
