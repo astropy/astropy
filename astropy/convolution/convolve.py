@@ -436,7 +436,7 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
                  preserve_nan=False, mask=None, crop=True, return_fft=False,
                  fft_pad=None, psf_pad=None, min_wt=0.0, allow_huge=False,
                  fftn=np.fft.fftn, ifftn=np.fft.ifftn,
-                 complex_dtype=complex):
+                 complex_dtype=complex, dealias=False):
     """
     Convolve an ndarray with an nd-kernel.  Returns a convolved image with
     ``shape = array.shape``.  Assumes kernel is centered.
@@ -549,6 +549,12 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     complex_dtype : complex type, optional
         Which complex dtype to use.  `numpy` has a range of options, from 64 to
         256.
+    dealias: bool, optional
+        Default off. Zero-pad image to enable explicit dealiasing
+        of convolution. With ``boundary='wrap'``, this will be disabled.
+        Note that for an input of nd dimensions this will increase
+        the size of the temporary arrays by at least ``1.5**nd``.
+        This may result in significantly more memory usage.
 
     Raises
     ------
@@ -575,6 +581,24 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         large and consume a lot of memory.  See Issue
         https://github.com/astropy/astropy/pull/4366 and the update in
         https://github.com/astropy/astropy/pull/11533 for further details.
+
+        Dealiasing of pseudospectral convolutions is necessary for numerical
+        stability of the underlying algorithms. A common method for handling
+        this is to zero pad the image by at least 1/2 to eliminate the wavenumbers
+        which have been aliased by convolution. This is so that the aliased
+        1/3 of the results of the convolution computation can be thrown out.
+        See https://doi.org/10.1175/1520-0469(1971)028%3C1074:OTEOAI%3E2.0.CO;2
+        https://iopscience.iop.org/article/10.1088/1742-6596/318/7/072037
+
+        Note that if dealiasing is necessary to your application, but
+        your process is memory constrained, you may want to consider
+        using FFTW++: https://github.com/dealias/fftwpp. It includes
+        python wrappers for a pseudospectral convolution which will
+        implicitly dealias your convolution without the need for
+        additional padding. Note that one cannot use FFTW++'s convlution
+        directly in this method as in handles the entire convolution
+        process internally. Additionally, FFTW++ includes other useful
+        pseudospectral methods to consider.
 
     Examples
     --------
@@ -716,6 +740,8 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         if fft_pad:
             raise ValueError("With boundary='wrap', fft_pad cannot be enabled.")
         fft_pad = False
+        if dealias:
+            raise ValueError("With boundary='wrap', dealias cannot be enabled.")
         fill_value = 0  # force zero; it should not be used
     elif boundary == 'extend':
         raise NotImplementedError("The 'extend' option is not implemented "
@@ -728,6 +754,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
     else:
         # take the larger shape in each dimension (smaller)
         newshape = np.maximum(arrayshape, kernshape)
+
+    if dealias:
+        # Extend shape by 1/2 for dealiasing
+        newshape += np.ceil(newshape / 2).astype(int)
 
     # Find ideal size for fft (was power of 2, now any powers of prime factors 2, 3, 5).
     if fft_pad:  # default=True
