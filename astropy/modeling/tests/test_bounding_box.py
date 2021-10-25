@@ -107,8 +107,8 @@ class TestInterval:
                           "less than lower bound 2."):
             Interval._validate_bounds(2, 1)
         with pytest.warns(RuntimeWarning,
-                          match="Invalid interval: upper bound 1.0 m is strictly "
-                          "less than lower bound 2.0 m."):
+                          match=r"Invalid interval: upper bound 1\.0 m is strictly "
+                          r"less than lower bound 2\.0 m\."):
             Interval._validate_bounds(2*u.m, 1*u.m)
 
     def test_validate(self):
