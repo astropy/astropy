@@ -1,0 +1,1 @@
+``VOUnit.to_string`` output is now compliant with IVOA VOUnits 1.0 standards.

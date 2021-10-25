@@ -503,20 +503,28 @@ def test_vounit_details():
 
     # The da- prefix is not allowed, and the d- prefix is discouraged
     assert u.dam.to_string('vounit') == '10m'
-    assert u.Unit('dam dag').to_string('vounit') == '100g m'
+    assert u.Unit('dam dag').to_string('vounit') == '100g.m'
+
+    # Parse round-trip
+    with pytest.warns(UnitsWarning, match='deprecated'):
+        flam = u.erg / u.cm / u.cm / u.s / u.AA
+        x = u.format.VOUnit.to_string(flam)
+        assert x == 'Angstrom**-1.cm**-2.erg.s**-1'
+        new_flam = u.format.VOUnit.parse(x)
+        assert new_flam == flam
 
 
 def test_vounit_custom():
     x = u.Unit("'foo' m", format='vounit')
     x_vounit = x.to_string('vounit')
-    assert x_vounit == "'foo' m"
+    assert x_vounit == "'foo'.m"
     x_string = x.to_string()
     assert x_string == "foo m"
 
     x = u.Unit("m'foo' m", format='vounit')
     assert x.bases[1]._represents.scale == 0.001
     x_vounit = x.to_string('vounit')
-    assert x_vounit == "m m'foo'"
+    assert x_vounit == "m.m'foo'"
     x_string = x.to_string()
     assert x_string == 'm mfoo'
 
