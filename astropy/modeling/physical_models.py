@@ -77,6 +77,48 @@ class BlackBody(Fittable1DModel):
     # We enable the spectral equivalency by default for the spectral axis
     input_units_equivalencies = {'x': u.spectral()}
 
+    # Store the native units returned by B_nu equation
+    _native_units = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+
+    # Until unit-support on scale is removed, let's raise a warning for the ambiguous cases
+    # when calling bolometric_flux
+    _bolometric_flux_ambig_warn = False
+
+    def __init__(self, *args, **kwargs):
+        output_units = kwargs.pop('output_units', None)
+        scale = kwargs.get('scale', None)
+
+        # DEPRECATE: for now we'll continue to support scale with non-dimensionless units
+        # IF by stripping the unit and applying that to output_units.
+        if hasattr(scale, 'unit') and not scale.unit.is_equivalent(u.dimensionless_unscaled):
+            if output_units is None:
+                # NOTE: output_units will have to pass validation when assigned below
+                # so we don't need to duplicate the checks here
+                output_units = scale.unit
+                
+                # if the scale had FNU or FLAM units, then the scale quantity INCLUDES
+                # pi*u.sr.  We need to remove the pi when passing the dimensionless 
+                # scale as it will be re-added later in evaluate.
+                if output_units.is_equivalent(self._native_units*u.sr, u.spectral_density(1*u.Hz)):
+                    kwargs['scale'] = scale.value / np.pi
+                else:
+                    kwargs['scale'] = scale.value
+
+                self._bolometric_flux_ambig_warn = True
+
+                warnings.warn(
+                    f"Support for scale with units is deprecated in favor of passing output_units. "
+                    f"Adopting scale={kwargs['scale']} and output_units={output_units}.",
+                    AstropyUserWarning,
+                )
+            else:
+                # Do not allow passing scale with unit AND output_units
+                # (even though they may be the same)
+                raise ValueError("cannot pass output_units and scale with units")
+
+        self.output_units = output_units
+        return super().__init__(*args, **kwargs)
+
     def evaluate(self, x, temperature, scale):
         """Evaluate the model.
 
@@ -125,25 +167,6 @@ class BlackBody(Fittable1DModel):
             freq = u.Quantity(x, u.Hz, dtype=np.float64)
             temp = u.Quantity(in_temp, u.K)
 
-        # check the units of scale and setup the output units
-        bb_unit = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)  # default unit
-        # use the scale that was used at initialization for determining the units to return
-        # to support returning the right units when fitting where units are stripped
-        if hasattr(self.scale, "unit") and self.scale.unit is not None:
-            # check that the units on scale are covertable to surface brightness units
-            if not self.scale.unit.is_equivalent(bb_unit, u.spectral_density(x)):
-                raise ValueError(
-                    f"scale units not surface brightness: {self.scale.unit}"
-                )
-            # use the scale passed to get the value for scaling
-            if hasattr(scale, "unit"):
-                mult_scale = scale.value
-            else:
-                mult_scale = scale
-            bb_unit = self.scale.unit
-        else:
-            mult_scale = scale
-
         # Check if input values are physically possible
         if np.any(temp < 0):
             raise ValueError(f"Temperature should be positive: {temp}")
@@ -159,7 +182,18 @@ class BlackBody(Fittable1DModel):
         # Calculate blackbody flux
         bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1) / u.sr
 
-        y = mult_scale * bb_nu.to(bb_unit, u.spectral_density(freq))
+        if self.output_units.is_equivalent(self._native_units, u.spectral_density(freq)):
+            # then requesting SNU or SLAM
+            bb_unit = self.output_units
+            scale = scale  # dimensionless
+        else:
+            # then requesting FNU or FLAM, which means the bb_unit
+            # needs to be the requested output units without sr
+            # and we'll then multiply by pi * u.sr separately
+            bb_unit = self.output_units / u.sr
+            scale = scale * np.pi * u.sr
+
+        y = scale * bb_nu.to(bb_unit, u.spectral_density(freq))
 
         # If the temperature parameter has no unit, we should return a unitless
         # value. This occurs for instance during fitting, since we drop the
@@ -167,6 +201,36 @@ class BlackBody(Fittable1DModel):
         if hasattr(temperature, "unit"):
             return y
         return y.value
+
+    @property
+    def output_units(self):
+        if self._output_units is None:
+            # default to SNU if not passed (or set internally from units on scale)
+            return u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
+        return self._output_units
+
+    @output_units.setter
+    def output_units(self, unit):
+        """ Ensure `output_units` is valid."""
+        if isinstance(unit, str) and unit in ['SNU', 'SLAM', 'FNU', 'FLAM']:
+            # let's provide some convenience for passing these as strings
+            unit = {'FNU': u.erg / (u.cm ** 2 * u.s * u.Hz),
+                    'FLAM': u.erg / (u.cm ** 2 * u.s * u.AA),
+                    'SNU': u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr),
+                    'SLAM': u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)}.get(unit)
+        
+        if unit is None:
+            pass
+        elif isinstance(unit, u.CompositeUnit):
+            # support SNU, SLAM, FNU, FLAM output units (and equivalent)
+            if not (unit.is_equivalent(self._native_units, u.spectral_density(1*u.AA)) or
+                    unit.is_equivalent(self._native_units*u.sr, u.spectral_density(1*u.AA))):
+                raise ValueError(f"output_units not in surface brightness or flux density: {unit}")
+        else:
+            raise ValueError("output_units must be of type CompositeUnit, None, "
+                             "or one of 'SNU', 'SLAM', 'FNU', 'FLAM'")
+
+        self._output_units = unit
 
     @property
     def input_units(self):
@@ -181,6 +245,12 @@ class BlackBody(Fittable1DModel):
     @property
     def bolometric_flux(self):
         """Bolometric flux."""
+        if self._bolometric_flux_ambig_warn:
+            warnings.warn(
+                f"scale was passed with units, but being treated as unitless with value={self.scale.value}",
+                AstropyUserWarning,
+            )
+        
         # bolometric flux in the native units of the planck function
         native_bolflux = (
             self.scale.value * const.sigma_sb * self.temperature ** 4 / np.pi
