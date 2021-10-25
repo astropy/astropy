@@ -102,13 +102,13 @@ class TestInterval:
         assert (interval.upper == np.array([2.5, 3.5])).all()
 
         # Fails
-        with pytest.raises(RuntimeWarning) as err:
+        with pytest.warns(RuntimeWarning) as err:
             Interval._validate_bounds(2, 1)
-        assert str(err.value) == \
+        assert str(err[0].message.args[0]) == \
             "Invalid interval: upper bound 1 is strictly less than lower bound 2."
-        with pytest.raises(RuntimeWarning) as err:
+        with pytest.warns(RuntimeWarning) as err:
             Interval._validate_bounds(2*u.m, 1*u.m)
-        assert str(err.value) == \
+        assert str(err[0].message.args[0]) == \
             "Invalid interval: upper bound 1.0 m is strictly less than lower bound 2.0 m."
 
     def test_validate(self):
@@ -141,7 +141,7 @@ class TestInterval:
             Interval.validate((1, 2, 3))
 
         # Fail bounds
-        with pytest.raises(RuntimeWarning):
+        with pytest.warns(RuntimeWarning):
             Interval.validate((2, 1))
 
     def test_outside(self):
