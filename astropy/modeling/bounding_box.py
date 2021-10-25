@@ -341,7 +341,7 @@ class BoundingBox(object):
 
         return new
 
-    def copy(self) -> 'BoundingBox':
+    def copy(self):
         return BoundingBox(self._intervals.copy(), self._model, self._order)
 
     def fix_inputs(self, model, fixed_inputs: list):
