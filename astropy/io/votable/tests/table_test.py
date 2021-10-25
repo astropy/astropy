@@ -253,7 +253,7 @@ class TestVerifyOptions:
         assert len(w) == 25
 
     def test_pedantic_true(self):
-        with pytest.raises(AstropyDeprecationWarning):
+        with pytest.warns(AstropyDeprecationWarning):
             with pytest.raises(VOWarning):
                 parse(get_pkg_data_filename('data/gemini.xml'), pedantic=True)
 
@@ -298,6 +298,6 @@ class TestVerifyOptions:
 
             reload_config('astropy.io.votable')
 
-            with pytest.raises(AstropyDeprecationWarning):
+            with pytest.warns(AstropyDeprecationWarning):
                 with pytest.raises(VOWarning):
                     parse(get_pkg_data_filename('data/gemini.xml'))
