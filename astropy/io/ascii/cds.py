@@ -25,6 +25,8 @@ __doctest_skip__ = ['*']
 
 
 class CdsHeader(core.BaseHeader):
+    _subfmt = 'CDS'
+
     col_type_map = {'e': core.FloatType,
                     'f': core.FloatType,
                     'i': core.IntType,
@@ -36,13 +38,13 @@ class CdsHeader(core.BaseHeader):
     def get_type_map_key(self, col):
         match = re.match(r'\d*(\S)', col.raw_type.lower())
         if not match:
-            raise ValueError('Unrecognized CDS format "{}" for column "{}"'.format(
-                col.raw_type, col.name))
+            raise ValueError('Unrecognized {} format "{}" for column "{}"'.format(
+                self._subfmt, col.raw_type, col.name))
         return match.group(1)
 
     def get_cols(self, lines):
         """
-        Initialize the header Column objects from the table ``lines`` for a CDS
+        Initialize the header Column objects from the table ``lines`` for a CDS/MRT
         header.
 
         Parameters
@@ -96,6 +98,8 @@ class CdsHeader(core.BaseHeader):
             elif found_line:  # First line after list of file descriptions
                 i_col_def -= 1  # Set i_col_def to last description line
                 break
+        else:
+            raise ValueError('no line with "Byte-by-byte Description" found')
 
         re_col_def = re.compile(r"""\s*
                                     (?P<start> \d+ \s* -)? \s*
@@ -118,7 +122,7 @@ class CdsHeader(core.BaseHeader):
                 col.end = int(match.group('end'))
                 unit = match.group('units')
                 if unit == '---':
-                    col.unit = None  # "---" is the marker for no unit in CDS table
+                    col.unit = None  # "---" is the marker for no unit in CDS/MRT table
                 else:
                     col.unit = Unit(unit, format='cds', parse_strict='warn')
                 col.description = (match.group('descr') or '').strip()
@@ -146,7 +150,7 @@ class CdsHeader(core.BaseHeader):
 
                     if match.group('nullval') == '-':
                         col.null = '---'
-                        # CDS tables can use -, --, ---, or ---- to mark missing values
+                        # CDS/MRT tables can use -, --, ---, or ---- to mark missing values
                         # see https://github.com/astropy/astropy/issues/1335
                         for i in [1, 2, 3, 4]:
                             self.data.fill_values.append(('-' * i, fillval, col.name))
@@ -171,10 +175,11 @@ class CdsHeader(core.BaseHeader):
 class CdsData(core.BaseData):
     """CDS table data reader
     """
+    _subfmt = 'CDS'
     splitter_class = fixedwidth.FixedWidthSplitter
 
     def process_lines(self, lines):
-        """Skip over CDS header by finding the last section delimiter"""
+        """Skip over CDS/MRT header by finding the last section delimiter"""
         # If the header has a ReadMe and data has a filename
         # then no need to skip, as the data lines do not have header
         # info. The ``read`` method adds the table_name to the ``data``
@@ -184,7 +189,7 @@ class CdsData(core.BaseData):
         i_sections = [i for i, x in enumerate(lines)
                       if x.startswith(('------', '======='))]
         if not i_sections:
-            raise core.InconsistentTableError('No CDS section delimiter found')
+            raise core.InconsistentTableError(f'No {self._subfmt} section delimiter found')
         return lines[i_sections[-1]+1:]  # noqa
 
 
@@ -306,7 +311,7 @@ class Cds(core.BaseReader):
         self.header.readme = readme
 
     def write(self, table=None):
-        """Not available for the Cds class (raises NotImplementedError)"""
+        """Not available for the CDS class (raises NotImplementedError)"""
         raise NotImplementedError
 
     def read(self, table):
