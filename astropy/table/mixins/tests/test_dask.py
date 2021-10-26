@@ -13,6 +13,10 @@ class TestDaskHandler:
         self.t = Table()
         self.t['a'] = da.arange(10)
 
+    def test_add_row(self):
+        self.t.add_row(self.t[0])
+        assert_equal(self.t['a'].compute(), np.hstack([np.arange(10), 0]))
+
     def test_get_column(self):
         assert isinstance(self.t['a'], da.Array)
         assert_equal(self.t['a'].compute(), np.arange(10))
@@ -39,3 +43,19 @@ class TestDaskHandler:
         assert self.t.pformat_all() == [' a ', '---', '  0', '  1', '  2',
                                         '  3', '  4', '  5', '  6', '  7',
                                         '  8', '  9']
+
+    def test_info_preserved(self):
+
+        self.t['a'].info.description = 'A dask column'
+
+        sub = self.t[1:3]
+        assert sub['a'].info.name == 'a'
+        assert sub['a'].info.description == 'A dask column'
+
+        col = self.t['a'].copy()
+        assert col.info.name == 'a'
+        assert col.info.description == 'A dask column'
+
+        self.t.add_row(self.t[0])
+        assert self.t['a'].info.name == 'a'
+        assert self.t['a'].info.description == 'A dask column'
