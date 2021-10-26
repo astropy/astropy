@@ -14,7 +14,7 @@ from collections.abc import Mapping
 import numpy as np
 
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
-from astropy.io import registry as io_registry
+from astropy.cosmology.connect import convert_registry
 from astropy.table import QTable
 
 __all__ = ["from_mapping", "to_mapping"]
@@ -182,6 +182,6 @@ def mapping_identify(origin, format, *args, **kwargs):
 # ===================================================================
 # Register
 
-io_registry.register_reader("mapping", Cosmology, from_mapping)
-io_registry.register_writer("mapping", Cosmology, to_mapping)
-io_registry.register_identifier("mapping", Cosmology, mapping_identify)
+convert_registry.register_reader("mapping", Cosmology, from_mapping)
+convert_registry.register_writer("mapping", Cosmology, to_mapping)
+convert_registry.register_identifier("mapping", Cosmology, mapping_identify)
