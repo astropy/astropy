@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.contour import QuadContourSet
+import numpy as np
 
 from astropy import units as u
 from astropy.wcs import WCS
@@ -14,6 +15,7 @@ from astropy.coordinates import SkyCoord
 
 from astropy.utils.compat.context import nullcontext
 from astropy.utils.data import get_pkg_data_filename
+from astropy.wcs.wcsapi import SlicedLowLevelWCS, HighLevelWCSWrapper
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
@@ -523,3 +525,13 @@ def test_bbox_size(atol):
     if atol < 0.1 and not FREETYPE_261:
         pytest.xfail("Exact BoundingBox dimensions are only ensured with FreeType 2.6.1")
     assert np.allclose(ax_bbox.extents, extents, atol=atol)
+
+
+def test_wcs_type_transform_regression():
+    wcs = WCS(TARGET_HEADER)
+    sliced_wcs = SlicedLowLevelWCS(wcs, np.s_[1:-1, 1:-1])
+    ax = plt.subplot(1, 1, 1, projection=wcs)
+    ax.get_transform(sliced_wcs)
+
+    high_wcs = HighLevelWCSWrapper(sliced_wcs)
+    ax.get_transform(sliced_wcs)
