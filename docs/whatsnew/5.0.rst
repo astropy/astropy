@@ -96,6 +96,59 @@ The following models have now been added:
 * :class:`~astropy.modeling.functional_models.ArcTangent1D`: a one-dimensional
   inverse tangent model.
 
+.. _whatsnew-5.0-dask-in-table:
+
+Added support for dask arrays in tables
+=======================================
+
+`Dask arrays <https://docs.dask.org/en/stable/>`_ are now preserved instead
+of being converted to Numpy arrays when added to tables:
+
+.. doctest-requires:: dask
+
+    >>> from astropy.table import Table
+    >>> import dask.array as da
+    >>> t = Table()
+    >>> t['a'] = da.arange(1_000_000_000_000)
+    >>> t
+    <Table length=1000000000000>
+         a
+       int64
+    ------------
+               0
+               1
+               2
+               3
+               4
+             ...
+    999999999995
+    999999999996
+    999999999997
+    999999999998
+    999999999999
+    >>> t['a'][100:200].compute()
+    array([100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112,
+           113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125,
+           126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138,
+           139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151,
+           152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164,
+           165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177,
+           178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190,
+           191, 192, 193, 194, 195, 196, 197, 198, 199])
+
+.. _whatsnew-5.0-mixin-registry:
+
+Added support for registering array-like objects as mixin columns
+=================================================================
+
+It is now possible to register functions (which we call mixin 'handlers') which
+can be used by astropy tables to convert, on-the-fly, any array-like object into
+a 'mixin' column that can be used in a table. As an example, this is used
+internally to provide the seamless integration of dask arrays into tables, as
+shown in :ref:`whatsnew-5.0-dask-in-table`.
+
+For more information about how to write your own handlers and register them,
+see :ref:`table_mixin_registry`.
 
 Full change log
 ===============

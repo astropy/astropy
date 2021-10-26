@@ -361,10 +361,12 @@ the ``astropy`` mixin test suite and is fully compliant as a mixin column.
       def __repr__(self):
           return f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>"
 
+.. _table_mixin_registry:
+
 Registering array-like objects as mixin columns
 ===============================================
 
-In some cases, you may want to directly add an array-like 
+In some cases, you may want to directly add an array-like
 object as a table column while maintaining the original object properties
 (instead of the default conversion of the object to a `~astropy.table.Column`).
 This is done by registering the object class as a mixin column and
