@@ -1,2 +1,3 @@
-Add features to ``astropy.io.ascii.Cds`` class to write tables in the MRT format,
+Added a new ``astropy.io.ascii.Mrt`` class to write tables in the American
+Astronomical Society Machine-Readable Table format,
 including documentation and tests for the same.
