@@ -22,6 +22,7 @@ from contextlib import suppress
 
 from . import core
 from . import fixedwidth
+from .cds import CdsHeader, Cds, CdsData
 
 from astropy import units as u
 
@@ -65,149 +66,8 @@ class MrtSplitter(fixedwidth.FixedWidthSplitter):
         return self.delimiter.join(vals)
 
 
-class MrtHeader(core.BaseHeader):
-    col_type_map = {'e': core.FloatType,
-                    'f': core.FloatType,
-                    'i': core.IntType,
-                    'a': core.StrType}
-
-    'The ReadMe file to construct header from.'
-    readme = None
-
-    def get_type_map_key(self, col):
-        match = re.match(r'\d*(\S)', col.raw_type.lower())
-        if not match:
-            raise ValueError('Unrecognized MRT format "{}" for column "{}"'.format(
-                col.raw_type, col.name))
-        return match.group(1)
-
-    def get_cols(self, lines):
-        """
-        Initialize the header Column objects from the table ``lines`` for a MRT
-        header.
-
-        Parameters
-        ----------
-        lines : list
-            List of table lines
-
-        """
-
-        # Read header block for the table ``self.data.table_name`` from the read
-        # me file ``self.readme``.
-        if self.readme and self.data.table_name:
-            in_header = False
-            readme_inputter = core.BaseInputter()
-            f = readme_inputter.get_lines(self.readme)
-            # Header info is not in data lines but in a separate file.
-            lines = []
-            comment_lines = 0
-            for line in f:
-                line = line.strip()
-                if in_header:
-                    lines.append(line)
-                    if line.startswith(('------', '=======')):
-                        comment_lines += 1
-                        if comment_lines == 3:
-                            break
-                else:
-                    match = re.match(r'Byte-by-byte Description of file: (?P<name>.+)$',
-                                     line, re.IGNORECASE)
-                    if match:
-                        # Split 'name' in case in contains multiple files
-                        names = [s for s in re.split('[, ]+', match.group('name'))
-                                 if s]
-                        # Iterate on names to find if one matches the tablename
-                        # including wildcards.
-                        for pattern in names:
-                            if fnmatch.fnmatch(self.data.table_name, pattern):
-                                in_header = True
-                                lines.append(line)
-                                break
-
-            else:
-                raise core.InconsistentTableError("Can't find table {} in {}".format(
-                    self.data.table_name, self.readme))
-
-        found_line = False
-
-        for i_col_def, line in enumerate(lines):
-            if re.match(r'Byte-by-byte Description', line, re.IGNORECASE):
-                found_line = True
-            elif found_line:  # First line after list of file descriptions
-                i_col_def -= 1  # Set i_col_def to last description line
-                break
-        else:
-            raise ValueError('no line with "Byte-by-byte Description" found')
-
-        re_col_def = re.compile(r"""\s*
-                                    (?P<start> \d+ \s* -)? \s*
-                                    (?P<end>   \d+)        \s+
-                                    (?P<format> [\w.]+)     \s+
-                                    (?P<units> \S+)        \s+
-                                    (?P<name>  \S+)
-                                    (\s+ (?P<descr> \S.*))?""",
-                                re.VERBOSE)
-
-        cols = []
-        for line in itertools.islice(lines, i_col_def + 4, None):
-            if line.startswith(('------', '=======')):
-                break
-            match = re_col_def.match(line)
-            if match:
-                col = core.Column(name=match.group('name'))
-                col.start = int(re.sub(r'[-\s]', '',
-                                       match.group('start') or match.group('end'))) - 1
-                col.end = int(match.group('end'))
-                unit = match.group('units')
-                if unit == '---':
-                    col.unit = None  # "---" is the marker for no unit in MRT table
-                else:
-                    col.unit = u.Unit(unit, format='cds', parse_strict='warn')
-                col.description = (match.group('descr') or '').strip()
-                col.raw_type = match.group('format')
-                col.type = self.get_col_type(col)
-
-                match = re.match(
-                    r'(?P<limits>[\[\]] \S* [\[\]])?'  # Matches limits specifier (eg [])
-                                                       # that may or may not be present
-                    r'\?'  # Matches '?' directly
-                    r'((?P<equal>=)(?P<nullval> \S*))?'  # Matches to nullval if and only
-                                                         # if '=' is present
-                    r'(?P<order>[-+]?[=]?)'  # Matches to order specifier:
-                                             # ('+', '-', '+=', '-=')
-                    r'(\s* (?P<descriptiontext> \S.*))?',  # Matches description text even
-                                                           # even if no whitespace is
-                                                           # present after '?'
-                    col.description, re.VERBOSE)
-                if match:
-                    col.description = (match.group('descriptiontext') or '').strip()
-                    if issubclass(col.type, core.FloatType):
-                        fillval = 'nan'
-                    else:
-                        fillval = '0'
-
-                    if match.group('nullval') == '-':
-                        col.null = '---'
-                        # MRT tables can use -, --, ---, or ---- to mark missing values
-                        # see https://github.com/astropy/astropy/issues/1335
-                        for i in [1, 2, 3, 4]:
-                            self.data.fill_values.append(('-' * i, fillval, col.name))
-                    else:
-                        col.null = match.group('nullval')
-                        if (col.null is None):
-                            col.null = ''
-                        self.data.fill_values.append((col.null, fillval, col.name))
-
-                cols.append(col)
-            else:  # could be a continuation of the previous col's description
-                if cols:
-                    cols[-1].description += line.strip()
-                else:
-                    raise ValueError(f'Line "{line}" not parsable as MRT header')
-
-        self.names = [x.name for x in cols]
-        self.cols = cols
+class MrtHeader(CdsHeader):
+    _subfmt = 'CDS'
 
     def _split_float_format(self, value):
         """
@@ -690,24 +550,11 @@ class MrtHeader(core.BaseHeader):
         lines.append(readme_filled)
 
 
-class MrtData(fixedwidth.FixedWidthData):
+class MrtData(CdsData):
     """MRT table data reader
     """
+    _subfmt = 'MRT'
     splitter_class = MrtSplitter
-
-    def process_lines(self, lines):
-        """Skip over MRT header by finding the last section delimiter"""
-        # If the header has a ReadMe and data has a filename
-        # then no need to skip, as the data lines do not have header
-        # info. The ``read`` method adds the table_name to the ``data``
-        # attribute.
-        if self.header.readme and self.table_name:
-            return lines
-        i_sections = [i for i, x in enumerate(lines)
-                      if x.startswith(('------', '======='))]
-        if not i_sections:
-            raise core.InconsistentTableError('No MRT section delimiter found')
-        return lines[i_sections[-1]+1:]  # noqa
 
     def write(self, lines):
         self.splitter.delimiter = ' '
@@ -716,8 +563,6 @@ class MrtData(fixedwidth.FixedWidthData):
 
 class Mrt(core.BaseReader):
     """MRT format table.
-
-
 
     **Basic usage**
 
@@ -742,19 +587,11 @@ class Mrt(core.BaseReader):
     """
     _format_name = 'mrt'
     _io_registry_format_aliases = ['mrt']
+    _io_registry_can_write = True
     _description = 'MRT format table'
 
     data_class = MrtData
     header_class = MrtHeader
-
-    def __init__(self, readme=None):
-        super().__init__()
-        self.header.readme = readme
-
-        # ``MrtData`` class inherits from ``FixedWidthData`` which has the
-        # default ``start_line`` at 1. For MRT format writing start line
-        # should be at 0.
-        self.data.start_line = None
 
     def write(self, table=None):
         # Construct for writing empty table is not yet done.
