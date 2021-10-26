@@ -224,17 +224,7 @@ class VOUnit(generic.Generic):
                     .format(unit.scale))
             s = ''
             if unit.scale != 1:
-                m, ex = utils.split_mantissa_exponent(unit.scale)
-                parts = []
-                if m:
-                    parts.append(m)
-                if ex:
-                    fex = '10'
-                    if not ex.startswith('-'):
-                        fex += '+'
-                    fex += ex
-                    parts.append(fex)
-                s += ' '.join(parts)
+                s += f'{unit.scale:.8g}'
 
             pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=operator.itemgetter(1), reverse=True)
