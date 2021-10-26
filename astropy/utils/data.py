@@ -1777,15 +1777,14 @@ class CacheDamaged(ValueError):
         self.bad_files = bad_files if bad_files is not None else []
 
 
-@deprecated_renamed_argument('check_hashes', None, '4.2')
-def check_download_cache(check_hashes=False, pkgname='astropy'):
+def check_download_cache(pkgname='astropy'):
     """Do a consistency check on the cache.
 
     .. note::
 
-        This function will not return anything in a future release.
+        Since v5.0, this function no longer returns anything.
 
-    Because the cache is shared by all versions of astropy in all virtualenvs
+    Because the cache is shared by all versions of ``astropy`` in all virtualenvs
     run by your user, possibly concurrently, it could accumulate problems.
     This could lead to hard-to-debug problems or wasted space. This function
     detects a number of incorrect conditions, including nonexistent files that
@@ -1797,31 +1796,26 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
     used but will probably be based on ``urlmap``. The presence of other files
     probably indicates that something has gone wrong and inaccessible files
     have accumulated in the cache. These can be removed with
-    `clear_download_cache`, either passing the filename returned here, or
+    :func:`clear_download_cache`, either passing the filename returned here, or
     with no arguments to empty the entire cache and return it to a
     reasonable, if empty, state.
 
     Parameters
     ----------
     pkgname : str, optional
-        The package name to use to locate the download cache. i.e. for
+        The package name to use to locate the download cache, i.e., for
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
-
-    Returns
-    -------
-    strays : set
-        Deprecated. The empty set.
 
     Raises
     ------
     `~astropy.utils.data.CacheDamaged`
         To indicate a problem with the cache contents; the exception contains
         a ``.bad_files`` attribute containing a set of filenames to allow the
-        user to use `clear_download_cache` to remove the offending items.
+        user to use :func:`clear_download_cache` to remove the offending items.
     OSError, RuntimeError
         To indicate some problem with the cache structure. This may need a full
-        `clear_download_cache` to resolve, or may indicate some kind of
+        :func:`clear_download_cache` to resolve, or may indicate some kind of
         misconfiguration.
     """
     bad_files = set()
@@ -1867,7 +1861,6 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
                 messages.add(f"Left-over non-directory {f} in cache")
     if bad_files:
         raise CacheDamaged("\n".join(messages), bad_files=bad_files)
-    return set()
 
 
 @contextlib.contextmanager
