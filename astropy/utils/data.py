@@ -1916,9 +1916,7 @@ def _rmtree(path, replace=None):
                     raise
 
 
-@deprecated_renamed_argument('hexdigest', None, '4.2')
 def import_file_to_cache(url_key, filename,
-                         hexdigest=None,
                          remove_original=False,
                          pkgname='astropy',
                          *,
@@ -1928,7 +1926,7 @@ def import_file_to_cache(url_key, filename,
     The provided ``url_key`` will be the name used in the cache. The file
     should contain the contents of this URL, at least notionally (the URL may
     be temporarily or permanently unavailable). It is using ``url_key`` that
-    users will request these contents from the cache. See `~download_file` for
+    users will request these contents from the cache. See :func:`download_file` for
     details.
 
     If ``url_key`` already exists in the cache, it will be updated to point to
