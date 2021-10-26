@@ -35,7 +35,7 @@ import os
 # THIRD PARTY
 import astropy.units as u
 from astropy.cosmology import Cosmology
-from astropy.io import registry as io_registry
+from astropy.cosmology.connect import readwrite_registry
 
 # LOCAL
 from .core import file_reader, file_writer
@@ -83,6 +83,6 @@ def myformat_identify(origin, filepath, fileobj, *args, **kwargs):
 # -------------------------------------------------------------------
 # Register read/write/identify methods with Astropy Unified I/O
 
-io_registry.register_reader("myformat", Cosmology, read_myformat)
-io_registry.register_writer("myformat", Cosmology, write_myformat)
-io_registry.register_identifier("myformat", Cosmology, myformat_identify)
+readwrite_registry.register_reader("myformat", Cosmology, read_myformat)
+readwrite_registry.register_writer("myformat", Cosmology, write_myformat)
+readwrite_registry.register_identifier("myformat", Cosmology, myformat_identify)
