@@ -1,0 +1,1 @@
+Refactored how ``astropy.modeling.Model`` handles model evaluation in order to better organize the code.
