@@ -1,28 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""An extensible ASCII table reader and writer.
+"""Classes to read AAS MRT table format
 
-mrt.py:
-  Classes to read MRT / Vizier table format
+Ref: https://journals.aas.org/mrt-standards
 
 :Copyright: Smithsonian Astrophysical Observatory (2011)
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu), \
          Suyog Garg (suyog7130@gmail.com)
 """
 
-
-import fnmatch
-import itertools
 import re
-import os
 import math
 import warnings
 import numpy as np
 from io import StringIO
-from contextlib import suppress
 
 from . import core
-from . import fixedwidth
-from .cds import CdsHeader, Cds, CdsData
+from . import fixedwidth, cds
 
 from astropy import units as u
 
@@ -66,8 +59,8 @@ class MrtSplitter(fixedwidth.FixedWidthSplitter):
         return self.delimiter.join(vals)
 
 
-class MrtHeader(CdsHeader):
-    _subfmt = 'CDS'
+class MrtHeader(cds.CdsHeader):
+    _subfmt = 'MRT'
 
     def _split_float_format(self, value):
         """
@@ -550,7 +543,7 @@ class MrtHeader(CdsHeader):
         lines.append(readme_filled)
 
 
-class MrtData(CdsData):
+class MrtData(cds.CdsData):
     """MRT table data reader
     """
     _subfmt = 'MRT'
@@ -562,22 +555,23 @@ class MrtData(CdsData):
 
 
 class Mrt(core.BaseReader):
-    """MRT format table.
+    """AAS MRT (Machine-Readable Table) format table.
 
-    **Basic usage**
+    **Reading**
+    ::
 
       >>> from astropy.io import ascii
-      >>> table = ascii.read("data/cds.dat")
+      >>> table = ascii.read('data.mrt', format='mrt')
 
     **Writing**
 
-    Use ``ascii.write(format='mrt')`` to  write tables to Machine Readable Table (MRT)
-    format.
+    Use ``ascii.write(table, 'data.mrt', format='mrt')`` to  write tables to
+    Machine Readable Table (MRT) format.
 
-    Note that the metadata of the table, apart from units, column names and description,
-    will not be written. These have to be filled in by hand later.
+    Note that the metadata of the table, apart from units, column names and
+    description, will not be written. These have to be filled in by hand later.
 
-    See also: :ref:`cds_mrt_format`
+    See also: :ref:`cds_mrt_format`.
 
     Caveats:
 
@@ -597,38 +591,12 @@ class Mrt(core.BaseReader):
         # Construct for writing empty table is not yet done.
         if len(table) == 0:
             raise NotImplementedError
+
         self.data.header = self.header
         self.header.position_line = None
         self.header.start_line = None
+
         # Create a copy of the ``table``, so that it the copy gets modified and
         # written to the file, while the original table remains as it is.
         table = table.copy()
         return super().write(table)
-
-    def read(self, table):
-        # If the read kwarg `data_start` is 'guess' then the table may have extraneous
-        # lines between the end of the header and the beginning of data.
-        if self.data.start_line == 'guess':
-            # Replicate the first part of BaseReader.read up to the point where
-            # the table lines are initially read in.
-            with suppress(TypeError):
-                # For strings only
-                if os.linesep not in table + '':
-                    self.data.table_name = os.path.basename(table)
-
-            self.data.header = self.header
-            self.header.data = self.data
-
-            # Get a list of the lines (rows) in the table
-            lines = self.inputter.get_lines(table)
-
-            # Now try increasing data.start_line by one until the table reads successfully.
-            # For efficiency use the in-memory list of lines instead of `table`, which
-            # could be a file.
-            for data_start in range(len(lines)):
-                self.data.start_line = data_start
-                with suppress(Exception):
-                    table = super().read(lines)
-                    return table
-        else:
-            return super().read(table)
