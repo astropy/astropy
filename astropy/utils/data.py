@@ -33,7 +33,6 @@ except ImportError:
 
 import astropy.config.paths
 from astropy import config as _config
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
@@ -113,14 +112,6 @@ class Conf(_config.ConfigNamespace):
     download_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
         'Number of bytes of remote data to download per step.')
-    download_cache_lock_attempts = _config.ConfigItem(
-        5,
-        'Unused; cache no longer locked. Was: '
-        'Number of seconds to wait for the cache lock to be free. It should '
-        'normally only ever be held long enough to copy an already-downloaded '
-        'file into the cache, so this will normally only run over if '
-        'something goes wrong and the lock is left held by a dead process; '
-        'the exception raised should indicate this and what to do to fix it.')
     delete_temporary_downloads_at_exit = _config.ConfigItem(
         True,
         'If True, temporary download files created when the cache is '
@@ -1129,8 +1120,8 @@ def _try_url_open(source_url, timeout=None, http_headers=None, ftp_tls=False,
                 msg += '. Re-trying with allow_insecure=True.'
                 warn(msg, AstropyWarning)
                 # Try again with a new urlopener allowing insecure connections
-                urlopener = _build_urlopener(ftp_tls=ftp_tls,
-                        ssl_context=ssl_context, allow_insecure=True)
+                urlopener = _build_urlopener(ftp_tls=ftp_tls, ssl_context=ssl_context,
+                                             allow_insecure=True)
                 return urlopener.open(req, timeout=timeout)
 
         raise
@@ -1179,8 +1170,8 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                 raise
 
     with _try_url_open(source_url, timeout=timeout, http_headers=http_headers,
-            ftp_tls=ftp_tls, ssl_context=ssl_context,
-            allow_insecure=allow_insecure) as remote:
+                       ftp_tls=ftp_tls, ssl_context=ssl_context,
+                       allow_insecure=allow_insecure) as remote:
         info = remote.info()
         try:
             size = int(info['Content-Length'])
