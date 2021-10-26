@@ -99,9 +99,7 @@ class Conf(_config.ConfigNamespace):
         'This only provides the default value when not set by https_headers.')
     remote_timeout = _config.ConfigItem(
         10.,
-        'Time to wait for remote data queries (in seconds). Set this to zero '
-        'to prevent any attempt to download anything (this will stop working '
-        'in a future release, use allow_internet=False instead).',
+        'Time to wait for remote data queries (in seconds).',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     allow_internet = _config.ConfigItem(
         True,
@@ -1132,13 +1130,6 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                http_headers=None, ftp_tls=None,
                                ssl_context=None, allow_insecure=False):
     from astropy.utils.console import ProgressBarOrSpinner
-
-    if timeout == 0:
-        raise urllib.error.URLError(
-            f"URL {remote_url} was supposed to be downloaded but timeout was set to 0; "
-            f"if this is unexpected check the astropy.cfg file for the option "
-            f"remote_timeout. If this is intentional, this will stop working "
-            f"in a future release. Use astropy.utils.data.conf.allow_internet=False instead.")
 
     if not conf.allow_internet:
         raise urllib.error.URLError(

@@ -1,0 +1,1 @@
+Setting ``remote_timeout`` configuration item in ``astropy.utils.data`` to 0 will no longer disable download from the Internet; Set ``allow_internet`` configuration item to ``False`` instead.
