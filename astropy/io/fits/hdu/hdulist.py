@@ -99,7 +99,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         ``END`` card in the last header. Default is `False`.
 
     ignore_missing_simple : bool, optional
-        Do not raise an exception when the SIMPLE keyword is missing.
+        Do not raise an exception when the SIMPLE keyword is missing. Note
+        that io.fits will raise a warning if a SIMPLE card is present but
+        written in a way that does not follow the FITS Standard.
         Default is `False`.
 
         .. versionadded:: 4.2
@@ -1083,11 +1085,15 @@ class HDUList(list, _Verify):
                 hdulist._file.mode != 'ostream' and
                 hdulist._file.size > 0):
             pos = hdulist._file.tell()
-            simple = hdulist._file.read(30)
-            match_sig = (simple[:-1] == FITS_SIGNATURE[:-1] and
-                         simple[-1:] in (b'T', b'F'))
+            # FITS signature is supposed to be in the first 30 bytes, but to
+            # allow reading various invalid files we will check in the first
+            # card (80 bytes).
+            simple = hdulist._file.read(80)
+            match_sig = (simple[:29] == FITS_SIGNATURE[:-1] and
+                         simple[29:30] in (b'T', b'F'))
 
             if not match_sig:
+                # Check the SIMPLE card is there but not written correctly
                 match_sig_relaxed = re.match(rb"SIMPLE\s*=\s*[T|F]", simple)
 
                 if match_sig_relaxed:
