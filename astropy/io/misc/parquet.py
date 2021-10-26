@@ -16,6 +16,14 @@ import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
+from astropy.utils import minversion
+
+if minversion('pyarrow', '6.0.0'):
+    writer_version = '2.4'
+else:
+    writer_version = '2.0'
+
+
 PARQUET_SIGNATURE = b'PAR1'
 
 __all__ = []  # nothing is publicly scoped
@@ -304,7 +312,7 @@ def write_table_parquet(table, output, overwrite=False):
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     # We use version='2.0' for full support of datatypes including uint32.
-    with parquet.ParquetWriter(output, schema, version='2.0') as writer:
+    with parquet.ParquetWriter(output, schema, version=writer_version) as writer:
         # Convert each Table column to a pyarrow array
         arrays = [pa.array(col) for col in encode_table.itercols()]
         # Create a pyarrow table from the list of arrays and the schema

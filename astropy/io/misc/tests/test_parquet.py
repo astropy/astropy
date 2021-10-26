@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import (SkyCoord, Latitude, Longitude, Angle, EarthLocation,
                                  SphericalRepresentation, CartesianRepresentation,
                                  SphericalCosLatDifferential)
-from astropy.io.misc.parquet import parquet_identify
+from astropy.io.misc.parquet import parquet_identify, writer_version
 from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
@@ -644,7 +644,7 @@ def test_parquet_read_generic(tmpdir):
 
     from pyarrow import parquet
     # We use version='2.0' for full support of datatypes including uint32.
-    with parquet.ParquetWriter(filename, schema, version='2.0') as writer:
+    with parquet.ParquetWriter(filename, schema, version=writer_version) as writer:
         arrays = [pyarrow.array(t1[name].data)
                   for name in names]
         writer.write_table(pyarrow.Table.from_arrays(arrays, schema=schema))
@@ -671,7 +671,7 @@ def test_parquet_read_pandas(tmpdir):
 
     df = t1.to_pandas()
     # We use version='2.0' for full support of datatypes including uint32.
-    df.to_parquet(filename, version='2.0')
+    df.to_parquet(filename, version=writer_version)
 
     with pytest.warns(AstropyUserWarning, match='No table::len'):
         t2 = Table.read(filename)
