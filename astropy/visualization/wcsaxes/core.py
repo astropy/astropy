@@ -13,7 +13,7 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 import astropy.units as u
 from astropy.coordinates import SkyCoord, BaseCoordinateFrame
 from astropy.wcs import WCS
-from astropy.wcs.wcsapi import BaseHighLevelWCS
+from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
 from .transforms import CoordinateTransform
 from .coordinates_map import CoordinatesMap
@@ -570,7 +570,9 @@ class WCSAxes(Axes):
         Return a transform from data to the specified frame
         """
 
-        if isinstance(frame, WCS):
+        if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
+            if isinstance(frame, BaseHighLevelWCS):
+                frame = frame.low_level_wcs
 
             transform, coord_meta = transform_coord_meta_from_wcs(frame, self.frame_class)
             transform_world2pixel = transform.inverted()
