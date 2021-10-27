@@ -445,7 +445,7 @@ def test_from_string(fast_reader):
     f = 'data/simple.txt'
     with open(f) as fd:
         table = fd.read()
-    testfile = get_testfiles(f)
+    testfile = get_testfiles(f)[0]
     data = ascii.read(table, fast_reader=fast_reader, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
@@ -454,7 +454,7 @@ def test_from_string(fast_reader):
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_from_filelike(fast_reader):
     f = 'data/simple.txt'
-    testfile = get_testfiles(f)
+    testfile = get_testfiles(f)[0]
     with open(f, 'rb') as fd:
         data = ascii.read(fd, fast_reader=fast_reader, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
@@ -466,7 +466,7 @@ def test_from_lines(fast_reader):
     f = 'data/simple.txt'
     with open(f) as fd:
         table = fd.readlines()
-    testfile = get_testfiles(f)
+    testfile = get_testfiles(f)[0]
     data = ascii.read(table, fast_reader=fast_reader, **testfile['opts'])
     assert_equal(data.dtype.names, testfile['cols'])
     assert_equal(len(data), testfile['nrows'])
@@ -539,18 +539,18 @@ def test_fill_values_list(fast_reader):
     assert_true((data['a'] == [42, 42]).all())
 
 
-def test_masking_Cds():
-    f = 'data/cds.dat'
-    testfile = get_testfiles(f)
-    data = ascii.read(f,
-                      **testfile['opts'])
-    assert_true(data['AK'].mask[0])
-    assert not hasattr(data['Fit'], 'mask')
+def test_masking_Cds_Mrt():
+    f = 'data/cds.dat'  # Tested for CDS and MRT
+    for testfile in get_testfiles(f):
+        data = ascii.read(f,
+                          **testfile['opts'])
+        assert_true(data['AK'].mask[0])
+        assert not hasattr(data['Fit'], 'mask')
 
 
 def test_null_Ipac():
     f = 'data/ipac.dat'
-    testfile = get_testfiles(f)
+    testfile = get_testfiles(f)[0]
     data = ascii.read(f, **testfile['opts'])
     mask = np.array([(True, False, True, False, True),
                      (False, False, False, False, False)],
@@ -569,7 +569,7 @@ def test_Ipac_meta():
                             ('key_continue', 'IPAC keywords can continue across lines')))
     comments = ['This is an example of a valid comment']
     f = 'data/ipac.dat'
-    testfile = get_testfiles(f)
+    testfile = get_testfiles(f)[0]
     data = ascii.read(f, **testfile['opts'])
     assert data.meta['keywords'].keys() == keywords.keys()
     for data_kv, kv in zip(data.meta['keywords'].values(), keywords.values()):
@@ -671,6 +671,21 @@ def get_testfiles(name=None):
          'name': 'data/cds.dat',
          'nrows': 1,
          'opts': {'Reader': ascii.Cds}},
+        {'cols': ('Index',
+                  'RAh',
+                  'RAm',
+                  'RAs',
+                  'DE-',
+                  'DEd',
+                  'DEm',
+                  'DEs',
+                  'Match',
+                  'Class',
+                  'AK',
+                  'Fit'),
+         'name': 'data/cds.dat',
+         'nrows': 1,
+         'opts': {'Reader': ascii.Mrt}},
         # Test malformed CDS file (issues #2241 #467)
         {'cols': ('Index',
                   'RAh',
@@ -764,6 +779,21 @@ def get_testfiles(name=None):
          'name': 'data/no_data_cds.dat',
          'nrows': 0,
          'opts': {'Reader': ascii.Cds}},
+        {'cols': ('Index',
+                  'RAh',
+                  'RAm',
+                  'RAs',
+                  'DE-',
+                  'DEd',
+                  'DEm',
+                  'DEs',
+                  'Match',
+                  'Class',
+                  'AK',
+                  'Fit'),
+         'name': 'data/no_data_cds.dat',
+         'nrows': 0,
+         'opts': {'Reader': ascii.Mrt}},
         {'cols': ('ID',
                   'XCENTER',
                   'YCENTER',
@@ -896,9 +926,15 @@ def get_testfiles(name=None):
         pass
 
     if name is not None:
-        return [x for x in testfiles if x['name'] == name][0]
+        # If there are multiple matches then return a list, else return just
+        # the one match.
+        out = [x for x in testfiles if x['name'] == name]
+        if len(out) == 1:
+            out = out[0]
     else:
-        return testfiles
+        out = testfiles
+
+    return out
 
 
 def test_header_start_exception():
@@ -910,7 +946,7 @@ def test_header_start_exception():
     '''
     for readerclass in [ascii.NoHeader, ascii.SExtractor, ascii.Ipac,
                         ascii.BaseReader, ascii.FixedWidthNoHeader,
-                        ascii.Cds, ascii.Daophot]:
+                        ascii.Cds, ascii.Mrt, ascii.Daophot]:
         with pytest.raises(ValueError):
             ascii.core._get_reader(readerclass, header_start=5)
 
