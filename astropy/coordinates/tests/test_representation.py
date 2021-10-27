@@ -141,6 +141,17 @@ class TestSphericalRepresentation:
         assert isinstance(s3.lat, Latitude)
         assert isinstance(s3.distance, Distance)
 
+    def test_init_no_mutate_input(self):
+
+        lon = -1 * u.hourangle
+        s = SphericalRepresentation(lon=lon, lat=-1 * u.deg, distance=1 * u.kpc, copy=True)
+
+        # The longitude component should be wrapped at 24 hours
+        assert_allclose_quantity(s.lon, 23 * u.hourangle)
+
+        # The input should not have been mutated by the constructor
+        assert_allclose_quantity(lon, -1 * u.hourangle)
+
     def test_init_lonlat(self):
 
         s2 = SphericalRepresentation(Longitude(8, u.hour),
