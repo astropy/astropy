@@ -1,0 +1,1 @@
+BlackBody model: deprecate support for non-dimensionless units on ``scale`` parameter, and add support for flux-units with introduction of new `output_units` argument.
