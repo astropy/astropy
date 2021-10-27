@@ -317,6 +317,14 @@ def test_deprecated_argument():
             method(1, clobber=2)
 
 
+def test_deprecated_argument_custom_message():
+    @deprecated_renamed_argument('foo', 'bar', '4.0', message='Custom msg')
+    def test(bar=0):
+        pass
+    with pytest.warns(AstropyDeprecationWarning, match='Custom msg'):
+        test(foo=0)
+
+
 def test_deprecated_argument_in_kwargs():
     # To rename an argument that is consumed by "kwargs" the "arg_in_kwargs"
     # parameter is used.
