@@ -11,11 +11,13 @@ from functools import wraps
 
 import numpy as np
 
-from .core import (Unit, UnitBase, UnitsError, add_enabled_equivalencies,
-                   dimensionless_unscaled, is_unitlike)
+from ._typing import Annotated
+from .core import (Unit, UnitBase, UnitsError,
+                   add_enabled_equivalencies, dimensionless_unscaled)
 from .function.core import FunctionUnitBase
-from .physical import PhysicalType, is_physicaltypelike
-from .quantity import Quantity, HAS_ANNOTATED, Annotated
+from .physical import PhysicalType, get_physical_type
+from .quantity import Quantity
+from .structured import StructuredUnit
 
 
 NoneType = type(None)
@@ -28,12 +30,14 @@ def _get_allowed_units(targets):
     """
     allowed_units = []
     for target in targets:
-        if unit := is_unitlike(target, True):
-            pass
-        elif ptype := is_physicaltypelike(target):
-            unit = ptype._unit
-        else:
-            raise ValueError(f"Invalid unit or physical type '{target}'.")
+
+        try:
+            unit = Unit(target)
+        except (TypeError, ValueError):
+            try:
+                unit = get_physical_type(target)._unit
+            except (TypeError, ValueError, KeyError):  # KeyError for Enum
+                raise ValueError(f"Invalid unit or physical type {target!r}.") from None
 
         allowed_units.append(unit)
 
@@ -95,12 +99,20 @@ def _parse_annotation(target):
 
     if target in (None, NoneType, inspect._empty):
         return target
-    elif unit := is_unitlike(target, allow_structured=False):
+
+    # check if unit-like
+    try:
+        unit = Unit(target)
+    except (TypeError, ValueError):
+        try:
+            ptype = get_physical_type(target)
+        except (TypeError, ValueError, KeyError):  # KeyError for Enum
+            if isinstance(target, str):
+                raise ValueError(f"invalid unit or physical type {target!r}.") from None
+        else:
+            return ptype
+    else:
         return unit
-    elif unit := is_physicaltypelike(target):
-        return unit
-    elif isinstance(target, str):
-        raise ValueError(f"Invalid unit or physical type '{target}'.")
 
     # could be a type hint
     origin = T.get_origin(target)
@@ -305,7 +317,7 @@ class QuantityInput:
                 _validate_arg_value("return", wrapped_function.__name__,
                                     return_, valid_targets, self.equivalencies,
                                     self.strict_dimensionless)
-                if len(valid_targets) == 1 and isinstance(valid_targets[0], UnitBase):
+                if len(valid_targets) > 0:
                     return_ <<= valid_targets[0]
             return return_
 

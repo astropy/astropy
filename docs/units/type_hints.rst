@@ -43,8 +43,10 @@ the unit.
 Unit information may be included by the syntax
 ``Quantity[unit or "physical_type", shape, numpy.dtype]``.:
 
+..
+   All following doctests can be unskipped when py3.9+
+
 .. doctest-skip::
-   :options: ELLIPSIS
 
    >>> Quantity[u.m]
    typing.Annotated[astropy.units.quantity.Quantity, Unit("m")]
@@ -56,9 +58,9 @@ See ``typing.Annotated`` for explanation of ``Annotated``
 
 These can also be used on functions
 
-.. doctest::
+.. doctest-skip::
 
-   >>> def func(x: Quantity[u.kpc, "input"]) -> Quantity[u.m, "output"]:
+   >>> def func(x: Quantity[u.kpc]) -> Quantity[u.m]:
    ...     return x << u.m
 
 
@@ -71,7 +73,6 @@ Multiple Quantity and unit-aware |Quantity| annotations are supported using
 :class:`~typing.Union` or :class:`~typing.Optional`
 
 .. doctest-skip::
-   :options: ELLIPSIS
 
    >>> T.Union[Quantity[u.m], None]
    typing.Optional[typing.Annotated[astropy.units.quantity.Quantity, Unit("m")]]

@@ -27,7 +27,7 @@ __all__ = [
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
     'set_enabled_aliases', 'add_enabled_aliases',
-    'dimensionless_unscaled', 'one', "is_unitlike",
+    'dimensionless_unscaled', 'one',
 ]
 
 UNITY = 1.0
@@ -2367,40 +2367,6 @@ class CompositeUnit(UnitBase):
     def is_unity(self):
         unit = self.decompose()
         return len(unit.bases) == 0 and unit.scale == 1.0
-
-
-def is_unitlike(target, allow_structured=True):
-    """Check if target is `~astropy.units.Unit`-like.
-
-    Parameters
-    ----------
-    target : Any
-    allow_structured : bool
-        Whether to count a `~astropy.units.StructuredUnit` as a
-        `~astropy.units.Unit`, allowing for a distinction between a list of
-        units and a structured unit.
-
-    Returns
-    -------
-    `~astropy.units.Unit` or `False`
-        Unit if target is `~astropy.units.Unit`-like, False otherwise.
-    """
-    # check if unit-like
-    try:
-        unit = Unit(target)
-    except (TypeError, ValueError):
-        return False
-
-    # distinguish between list of units and a structured unit
-    ulike = True
-    if not allow_structured:
-        from astropy.units.structured import StructuredUnit
-        # don't import unless really needed
-
-        if isinstance(unit, StructuredUnit):
-            ulike = False
-
-    return unit if ulike else False
 
 
 si_prefixes = [

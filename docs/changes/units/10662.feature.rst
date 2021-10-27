@@ -2,4 +2,3 @@
  with the syntax ``Quantity[unit or physical_type, shape, numpy.dtype]``.
  If the python version is 3.9+ or ``typing_extensions`` is installed,
  these are valid static type annotations.
- 

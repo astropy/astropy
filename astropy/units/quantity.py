@@ -18,11 +18,11 @@ import numpy as np
 
 # AstroPy
 from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
-                   UnitBase, UnitsError, UnitConversionError, UnitTypeError,
-                   is_unitlike)
+                   UnitBase, UnitsError, UnitConversionError, UnitTypeError)
 from .structured import StructuredUnit
 from .utils import is_effectively_unity
 from .format.latex import Latex
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import minversion
@@ -34,20 +34,6 @@ from .quantity_helper import (converters_and_unit, can_have_arbitrary_unit,
 from .quantity_helper.function_helpers import (
     SUBCLASS_SAFE_FUNCTIONS, FUNCTION_HELPERS, DISPATCHED_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS)
-
-HAS_ANNOTATED = True  # assume, then check
-try:  # py 3.9+
-    from typing import Annotated
-except (ImportError, ModuleNotFoundError):  # optional dependency
-    try:
-        from typing_extensions import Annotated
-    except (ImportError, ModuleNotFoundError):
-        HAS_ANNOTATED = False
-
-        Annotated = NotImplemented
-
-        warnings.warn("Python is not v3.9+ and the package `typing_extensions`"
-                      " is not installed. Quantity annotations will not work.")
 
 
 __all__ = ["Quantity", "SpecificTypeQuantity",
@@ -357,9 +343,9 @@ class Quantity(np.ndarray):
         -------
         `typing.Annotated`, `typing_extensions.Annotated`, `astropy.units.Unit`, or `astropy.units.PhysicalType`
             Return type in this preference order:
-            `typing.Annotated` if python v3.9+; `typing_extensions.Annotated`
-            if :mod:`typing_extensions` is installed, a `astropy.units.Unit`
-            or `astropy.units.PhysicalType` else-wise, depending on the input.
+            * if python v3.9+ : `typing.Annotated`
+            * if :mod:`typing_extensions` is installed : `typing_extensions.Annotated`
+            * `astropy.units.Unit` or `astropy.units.PhysicalType`
 
         Raises
         ------
@@ -385,7 +371,7 @@ class Quantity(np.ndarray):
         static-type compatible.
         """
         # LOCAL
-        from .physical import is_physicaltypelike
+        from ._typing import HAS_ANNOTATED, Annotated
 
         # process whether [unit] or [unit, shape, ptype]
         if isinstance(unit_shape_dtype, tuple):  # unit, shape, dtype
@@ -396,19 +382,27 @@ class Quantity(np.ndarray):
             shape_dtype = ()
 
         # Allowed unit/physical types. Errors if neither.
-        unit = x if (x := is_unitlike(target, True)) else is_physicaltypelike(target)
-        if not unit:
-            raise TypeError("target is not a Unit or PhysicalType")
+        try:
+            unit = Unit(target)
+        except (TypeError, ValueError):
+            from astropy.units.physical import get_physical_type
+
+            try:
+                unit = get_physical_type(target)
+            except (TypeError, ValueError, KeyError):  # KeyError for Enum
+                raise TypeError("unit annotation is not a Unit or PhysicalType") from None
 
         # Allow to sort of work for python 3.8- / no typing_extensions
         # instead of bailing out, return the unit for `quantity_input`
         if not HAS_ANNOTATED:
+            warnings.warn("Quantity annotations are valid static type annotations only"
+                          " if Python is v3.9+ or `typing_extensions` is installed.")
             return unit
 
         # Quantity does not (yet) properly extend the NumPy generics types,
-        # introduce in numpy v1.22+, instead just including the unit info as
+        # introduced in numpy v1.22+, instead just including the unit info as
         # metadata using Annotated.
-        if minversion('numpy', '1.22'):
+        if not NUMPY_LT_1_22:
             cls = super().__class_getitem__((cls, *shape_dtype))
         return Annotated.__class_getitem__((cls, unit))
 
