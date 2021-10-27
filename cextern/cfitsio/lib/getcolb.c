@@ -662,7 +662,7 @@ int ffgclb( fitsfile *fptr,   /* I - FITS file pointer                       */
     int tcode, maxelem2, hdutype, xcode, decimals;
     long twidth, incre, ntodo;
     long ii, xwidth;
-    int convert, nulcheck, readcheck = 0;
+    int convert, nulcheck, readcheck = 16; /* see note below on readcheck */
     LONGLONG repeat, startpos, elemnum, readptr, tnull;
     LONGLONG rowlen, rownum, remain, next, rowincre, maxelem;
     char tform[20];
@@ -692,7 +692,17 @@ int ffgclb( fitsfile *fptr,   /* I - FITS file pointer                       */
     /*  Check input and get parameters about the column: */
     /*---------------------------------------------------*/
     if (elemincre < 0)
-        readcheck = -1;  /* don't do range checking in this case */
+        readcheck -= 1;  /* don't do range checking in this case */
+
+    /* IMPORTANT NOTE: that the special case of using this subroutine
+       to read bytes from a character column are handled internally
+       by the call to ffgcprll() below.  It will adjust the effective
+       *tcode, repeats, etc, to appear as a TBYTE column. */
+
+    /* Note that readcheck = 16 is equivalent to readcheck = 0 
+       and readcheck = 15 is equivalent to readcheck = -1, 
+       but either of those settings allow TSTRINGS to be 
+       treated as TBYTE vectors, but with full error checking */
 
     ffgcprll( fptr, colnum, firstrow, firstelem, nelem, readcheck, &scale, &zero,
          tform, &twidth, &tcode, &maxelem2, &startpos, &elemnum, &incre,
@@ -707,30 +717,6 @@ int ffgclb( fitsfile *fptr,   /* I - FITS file pointer                       */
                u.charval, (char *) array, nularray, anynul, status);
 
         return(*status);
-    }
-
-    if (strchr(tform,'A') != NULL) 
-    {
-        if (*status == BAD_ELEM_NUM)
-        {
-            /* ignore this error message */
-            *status = 0;
-            ffcmsg();   /* clear error stack */
-        }
-
-        /*  interpret a 'A' ASCII column as a 'B' byte column ('8A' == '8B') */
-        /*  This is an undocumented 'feature' in CFITSIO */
-
-        /*  we have to reset some of the values returned by ffgcpr */
-        
-        tcode = TBYTE;
-        incre = 1;         /* each element is 1 byte wide */
-        repeat = twidth;   /* total no. of chars in the col */
-        twidth = 1;        /* width of each element */
-        scale = 1.0;       /* no scaling */
-        zero  = 0.0;
-        tnull = NULL_UNDEFINED;  /* don't test for nulls */
-        maxelem = DBUFFSIZE;
     }
 
     if (*status > 0)

@@ -1,4 +1,48 @@
                    Log of Changes Made to CFITSIO
+                   
+Version 4.0.0 - May 2021                   
+
+  - Removed separate directory for zlib/gzip code, and updated
+    configuration to check for zlib on the user's system (required).
+    When use of cURL is enabled, it may also pull in zlib such
+    that user applications may not need to link with it separately.
+
+  - Changed version numbering to 3-field format.
+      
+  - Added new calculator functions SETNULL(x,y) to allow substitution of
+    NULL values into tables, and GTIOVERLAP() for calculating the amount
+    of GTI overlap exposure for a time bin.
+    
+  - Fix added for proper handling of string columns with zero repeat
+    count.
+    
+  - Fix to column filtering expressions which write #NULL values to
+    columns of type (J) format.
+    
+  - Fix to memory clearing when using polygon shapes in region files.
+     
+  - Fix to fits_str2time function so that it now flags a particular case
+    of bad syntax which was previously getting through.
+    
+  - In ffgclb and ffpclb (read/write byte columns), the "undocumented"
+    feature of being able to transfer columns 'A' string columnss as
+    byte arrays is now handled correctly, with improved error checking
+    via updates to ffgcprll.  More documentation on string handling is
+    in cfitsio.tex.
+
+  - Fix bug in 'colfilter' functionality.  When performing a
+    column deletion of the form -COLNAM*, and multiple matches
+    existed, then none of the matches got deleted.  Now the
+    first is deleted as expected.
+    
+  - Improved handling of corner case in ffpkn functions.
+
+  - In ffgky, modified TULONG case to allow it to read unsigned
+    values greater than the 8-byte signed limit.
+    
+  - Fix to parsing of corner case of extended file syntax.
+
+  - Major updates to CMake configuration.
 		   
 Version 3.49 - Aug 2020
 

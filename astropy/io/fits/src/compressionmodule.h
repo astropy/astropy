@@ -18,28 +18,13 @@
 #endif
 
 
-#if CFITSIO_MAJOR >= 3
-    #if CFITSIO_MINOR >= 35
-        #define CFITSIO_SUPPORTS_Q_FORMAT_COMPRESSION
-        #define CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
+#if CFITSIO_MAJOR == 3 && CFITSIO_MINOR < 35
+    #ifdef _MSC_VER
+        #pragma warning ( "your CFITSIO version is too old; use 3.35 or later" )
     #else
-        /* This constant isn't defined in older versions and has a different */
-        /* value anyways. */
-        #define NO_DITHER 0
-    #endif
-    #if CFITSIO_MINOR >= 28
-        #define CFITSIO_SUPPORTS_GZIPDATA
-    #else
-        #ifdef _MSC_VER
-            #pragma warning ( "GZIP_COMPRESSED_DATA columns not supported" )
-        #else
-            #warning "GZIP_COMPRESSED_DATA columns not supported"
-        #endif
+        #warning "your CFITSIO version is too old; use 3.35 or later"
     #endif
 #endif
-
-
-#define CFITSIO_LOSSLESS_COMP_SUPPORTED_VERS 3.22
 
 
 /* These defaults mirror the defaults in io.fits.hdu.compressed */

@@ -223,13 +223,11 @@ int compress_type_from_string(char* zcmptype) {
     } else if (0 == strcmp(zcmptype, "HCOMPRESS_1")) {
         return HCOMPRESS_1;
     }
-#ifdef CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
     /* CFITSIO adds a compression type alias for RICE_1 compression
        as a flag for using subtractive_dither_2 */
     else if (0 == strcmp(zcmptype, "RICE_ONE")) {
         return RICE_1;
     }
-#endif
     else {
         PyErr_Format(PyExc_ValueError, "Unrecognized compression type: %s",
                      zcmptype);
@@ -531,9 +529,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     // BLANK in the header
     Fptr->cn_zblank = Fptr->cn_zzero = Fptr->cn_zscale = -1;
     Fptr->cn_uncompressed = 0;
-#ifdef CFITSIO_SUPPORTS_GZIPDATA
     Fptr->cn_gzip_data = 0;
-#endif
 
     // Check for a ZBLANK, ZZERO, ZSCALE, and
     // UNCOMPRESSED_DATA/GZIP_COMPRESSED_DATA columns in the compressed data
@@ -541,11 +537,9 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
     for (idx = 0; idx < tfields; idx++) {
         if (0 == strncmp(columns[idx].ttype, "UNCOMPRESSED_DATA", 18)) {
             Fptr->cn_uncompressed = idx + 1;
-#ifdef CFITSIO_SUPPORTS_GZIPDATA
         } else if (0 == strncmp(columns[idx].ttype,
                                 "GZIP_COMPRESSED_DATA", 21)) {
             Fptr->cn_gzip_data = idx + 1;
-#endif
         } else if (0 == strncmp(columns[idx].ttype, "ZSCALE", 7)) {
             Fptr->cn_zscale = idx + 1;
         } else if (0 == strncmp(columns[idx].ttype, "ZZERO", 6)) {
@@ -706,11 +700,9 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         /* Ugh; the fact that cfitsio defines its version as a float makes
            preprocessor comparison impossible */
         fits_get_version(&version);
-        if ((version >= CFITSIO_LOSSLESS_COMP_SUPPORTED_VERS) &&
-                (0 == strcmp(tmp, "NONE"))) {
+        if (0 == strcmp(tmp, "NONE")) {
             Fptr->quantize_level = NO_QUANTIZE;
         } else if (0 == strcmp(tmp, "SUBTRACTIVE_DITHER_1")) {
-#ifdef CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
             // Added in CFITSIO 3.35, this also changed the name of the
             // quantize_dither struct member to quantize_method
             Fptr->quantize_method = SUBTRACTIVE_DITHER_1;
@@ -735,29 +727,6 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
             break;
         }
     }
-#else
-            Fptr->quantize_dither = SUBTRACTIVE_DITHER_1;
-        } else {
-            Fptr->quantize_dither = NO_DITHER;
-        }
-    } else {
-        Fptr->quantize_dither = NO_DITHER;
-    }
-
-    if (Fptr->quantize_dither != NO_DITHER) {
-        switch (get_header_int(header, "ZDITHER0", &(Fptr->dither_offset), 0, HDR_NOFLAG)) {
-          case GET_HEADER_FAILED:
-            return;
-          case GET_HEADER_DEFAULT_USED: // ZDITHER0 keyword no found
-            /* TODO: Find out if that's actually working and not invalid... */
-            Fptr->dither_offset = 0;
-            Fptr->request_dither_offset = 0;
-            break;
-          default:
-            break;
-        }
-    }
-#endif
 
     Fptr->compressimg = 1;
     Fptr->maxelem = imcomp_calc_max_elem(Fptr->compress_type,
