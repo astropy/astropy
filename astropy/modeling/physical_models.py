@@ -30,12 +30,30 @@ class BlackBody(Fittable1DModel):
     scale : float or `~astropy.units.Quantity` ['dimensionless']
         Scale factor
 
+    output_units: `~astropy.units.CompositeUnit` or string
+        Desired output units when evaluating.  If a unit object, 
+        must be equivalent to one of erg / (cm ** 2 * s * Hz * sr)
+        or erg / (cm ** 2 * s * AA * sr) for surface brightness
+        or erg / (cm ** 2 * s * Hz) or erg / (cm ** 2 * s * AA) for
+        flux density (in which case the pi is included internally
+        and should not be passed in `scale` - see notes below).
+        If a string, can be one of 'SNU', 'SLAM', 'FNU', 'FLAM'
+        which reference the units above, respectively.
+
     Notes
     -----
 
     Model formula:
 
         .. math:: B_{\\nu}(T) = A \\frac{2 h \\nu^{3} / c^{2}}{exp(h \\nu / k T) - 1}
+
+    Deprecated support for non-dimensionless units in `scale`:
+
+        If `scale` is passed with non-dimensionless units that are equivalent
+        to one of the supported `output_units`, the unit is stripped and interpreted
+        as `output_units` and the float value is adopted as the unitless `scale`
+        (without conversion).  Note that this can result in ambiguous and unexpected results.
+        To avoid confusion, pass unitless `scale` and `output_units` separately.
 
     Examples
     --------
@@ -89,7 +107,7 @@ class BlackBody(Fittable1DModel):
         scale = kwargs.get('scale', None)
 
         # DEPRECATE: for now we'll continue to support scale with non-dimensionless units
-        # IF by stripping the unit and applying that to output_units.
+        # by stripping the unit and applying that to output_units.
         if hasattr(scale, 'unit') and not scale.unit.is_equivalent(u.dimensionless_unscaled):
             if output_units is None:
                 # NOTE: output_units will have to pass validation when assigned below
@@ -104,7 +122,7 @@ class BlackBody(Fittable1DModel):
                 # See https://github.com/astropy/astropy/issues/11547#issuecomment-823772098
 
                 # If the scale had FNU or FLAM units, then the scale quantity INCLUDES
-                # pi*u.sr.  We need to remove the pi when passing the dimensionless 
+                # pi*u.sr.  We need to remove the pi when passing the dimensionless
                 # scale as it will be re-added later in evaluate.
                 if output_units.is_equivalent(self._native_units*u.sr, u.spectral_density(1*u.Hz)):
                     kwargs['scale'] = scale.value / np.pi
