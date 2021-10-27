@@ -16,6 +16,9 @@ import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
+from astropy.utils import minversion
+
+
 PARQUET_SIGNATURE = b'PAR1'
 
 __all__ = []  # nothing is publicly scoped
@@ -112,7 +115,7 @@ def read_table_parquet(input, include_names=None, exclude_names=None,
         Table will have zero rows and only metadata information
         if schema_only is True.
     """
-    pa, parquet = get_pyarrow()
+    pa, parquet, _ = get_pyarrow()
 
     if not isinstance(input, (str, os.PathLike)):
         # The 'read' attribute is the key component of a generic
@@ -261,7 +264,7 @@ def write_table_parquet(table, output, overwrite=False):
     from astropy.table import meta, serialize
     from astropy.utils.data_info import serialize_context_as
 
-    pa, parquet = get_pyarrow()
+    pa, parquet, writer_version = get_pyarrow()
 
     if not isinstance(output, (str, os.PathLike)):
         raise TypeError(f'`output` should be a string or path-like, not {output}')
@@ -304,7 +307,7 @@ def write_table_parquet(table, output, overwrite=False):
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     # We use version='2.0' for full support of datatypes including uint32.
-    with parquet.ParquetWriter(output, schema, version='2.0') as writer:
+    with parquet.ParquetWriter(output, schema, version=writer_version) as writer:
         # Convert each Table column to a pyarrow array
         arrays = [pa.array(col) for col in encode_table.itercols()]
         # Create a pyarrow table from the list of arrays and the schema
@@ -353,4 +356,10 @@ def get_pyarrow():
         from pyarrow import parquet
     except ImportError:
         raise Exception("pyarrow is required to read and write parquet files")
-    return pa, parquet
+
+    if minversion('pyarrow', '6.0.0'):
+        writer_version = '2.4'
+    else:
+        writer_version = '2.0'
+
+    return pa, parquet, writer_version
