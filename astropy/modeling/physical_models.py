@@ -95,8 +95,15 @@ class BlackBody(Fittable1DModel):
                 # NOTE: output_units will have to pass validation when assigned below
                 # so we don't need to duplicate the checks here
                 output_units = scale.unit
-                
-                # if the scale had FNU or FLAM units, then the scale quantity INCLUDES
+
+                # NOTE: if the scale units are equivalent (but not identical) to the
+                # "native" output units, this may result in confusing behavior (as the
+                # float value of the scale is adopted directly).  We keep this behavior
+                # for backwards compatibility as the ambiguity is removed by deprecating
+                # non-dimensionless support.
+                # See https://github.com/astropy/astropy/issues/11547#issuecomment-823772098
+
+                # If the scale had FNU or FLAM units, then the scale quantity INCLUDES
                 # pi*u.sr.  We need to remove the pi when passing the dimensionless 
                 # scale as it will be re-added later in evaluate.
                 if output_units.is_equivalent(self._native_units*u.sr, u.spectral_density(1*u.Hz)):
