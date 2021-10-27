@@ -51,9 +51,12 @@ class BlackBody(Fittable1DModel):
 
         If `scale` is passed with non-dimensionless units that are equivalent
         to one of the supported `output_units`, the unit is stripped and interpreted
-        as `output_units` and the float value is adopted as the unitless `scale`
-        (without conversion).  Note that this can result in ambiguous and unexpected results.
-        To avoid confusion, pass unitless `scale` and `output_units` separately.
+        as `output_units` and the float value will account for the scale between
+        the passed units and native `output_units`.  If `scale` includes flux units,
+        the value will be divided by pi (since solid angle is included in the units),
+        and re-added internally when returning results.  Note that this can result in
+        ambiguous and unexpected results.  To avoid confusion, pass unitless
+        `scale` and `output_units` separately.
 
     Examples
     --------
@@ -98,6 +101,14 @@ class BlackBody(Fittable1DModel):
     # Store the native units returned by B_nu equation
     _native_units = u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 
+    # Store the base native output units.  If scale is passed with units
+    # equivalent to these, the dimensionless factor is converted to these
+    # units.
+    _native_output_units = {'FNU': u.erg / (u.cm ** 2 * u.s * u.Hz),
+                            'FLAM': u.erg / (u.cm ** 2 * u.s * u.AA),
+                            'SNU': u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr),
+                            'SLAM': u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)}
+
     # Until unit-support on scale is removed, let's raise a warning for the ambiguous cases
     # when calling bolometric_flux
     _bolometric_flux_ambig_warn = False
@@ -115,11 +126,16 @@ class BlackBody(Fittable1DModel):
                 output_units = scale.unit
 
                 # NOTE: if the scale units are equivalent (but not identical) to the
-                # "native" output units, this may result in confusing behavior (as the
-                # float value of the scale is adopted directly).  We keep this behavior
-                # for backwards compatibility as the ambiguity is removed by deprecating
-                # non-dimensionless support.
-                # See https://github.com/astropy/astropy/issues/11547#issuecomment-823772098
+                # "native" output units, we want to convert the dimensionless scale
+                # to account for the scaling between these units.  This is self-consistent
+                # with the treatment of pi below for flux units, and addresses
+                # https://github.com/astropy/astropy/issues/11547#issuecomment-823772098
+                # but is a change in behavior from the previous treatment where the
+                # float value was treated as the scale factor, ignoring units
+                for native_output_unit in self._native_output_units.values():
+                    if output_units.is_equivalent(native_output_unit):
+                        scale = scale.to(native_output_unit)
+                        break
 
                 # If the scale had FNU or FLAM units, then the scale quantity INCLUDES
                 # pi*u.sr.  We need to remove the pi when passing the dimensionless
@@ -248,10 +264,7 @@ class BlackBody(Fittable1DModel):
         """ Ensure `output_units` is valid."""
         if isinstance(unit, str) and unit in ['SNU', 'SLAM', 'FNU', 'FLAM']:
             # let's provide some convenience for passing these as strings
-            unit = {'FNU': u.erg / (u.cm ** 2 * u.s * u.Hz),
-                    'FLAM': u.erg / (u.cm ** 2 * u.s * u.AA),
-                    'SNU': u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr),
-                    'SLAM': u.erg / (u.cm ** 2 * u.s * u.AA * u.sr)}.get(unit)
+            unit = self._native_output_units.get(unit)
         
         if unit is None:
             pass

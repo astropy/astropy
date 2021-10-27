@@ -145,11 +145,12 @@ def test_blackbody_exceptions_and_warnings():
         bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
         bb.bolometric_flux
     assert len(w) == 2
-    # and that passing flux units to scale also divides internal scale by pi
-    # (since units include steradians)
-    assert(bb.scale == 1.0/np.pi)
+    # and that passing flux units to scale both converts to native units AND
+    # divides internal scale by pi (since units include steradians)
+    assert(bb.scale == 1.0*u.Jy.to(u.erg / (u.cm ** 2 * u.s * u.Hz))/np.pi)
     assert(bb.output_units == u.Jy)
-    # ... but not for surface brightness
+    # ... but surface brightness is not divided by pi (and in this case have
+    # native units passed)
     with pytest.warns(AstropyUserWarning, match='deprecated') as w:
         bb = BlackBody(5000 * u.K, scale=1.0 * u.erg / (u.cm ** 2 * u.s * u.AA * u.sr))
         bb.bolometric_flux
