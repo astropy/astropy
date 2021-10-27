@@ -546,12 +546,3 @@ def test_physical_types_module_access():
     # a failed access
     with pytest.raises(AttributeError, match="has no attribute"):
         physical.not_a_valid_physical_type_name
-
-
-def test_is_physicaltypelike():
-    """Test `~astropy.units.physical.is_physicaltypelike`"""
-    # is physical-type like
-    assert u.is_physicaltypelike("length") == u.m.physical_type
-
-    # is not like
-    assert u.is_physicaltypelike(TypeError) is False

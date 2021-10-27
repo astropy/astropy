@@ -14,8 +14,7 @@ from . import misc
 from . import quantity
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-__all__ = ["def_physical_type", "get_physical_type", "PhysicalType",
-           "is_physicaltypelike"]
+__all__ = ["def_physical_type", "get_physical_type", "PhysicalType"]
 
 _units_and_physical_types = [
     (core.dimensionless_unscaled, "dimensionless"),
@@ -549,31 +548,6 @@ def get_physical_type(obj):
         return _physical_unit_mapping[physical_type_id]
     else:
         return PhysicalType(unit, "unknown")
-
-
-def is_physicaltypelike(target):
-    """Check if target is `~astropy.units.PhysicalType`-like.
-
-    Parameters
-    ----------
-    target : Any
-        recognized types are:
-        - `~astropy.units.PhysicalType`
-        - `str`
-        - `~astropy.units.Unit`
-        - `~astropy.units.Quantity`
-
-    Returns
-    -------
-    `~astropy.units.PhysicalType` or `False`
-        PhysicalType if target is `~astropy.units.PhysicalType`-like,
-        False otherwise.
-    """
-    try:
-        ptype = get_physical_type(target)
-    except (TypeError, ValueError, KeyError):  # KeyError for Enum
-        return False
-    return ptype
 
 
 # ------------------------------------------------------------------------------

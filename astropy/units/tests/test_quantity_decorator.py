@@ -3,6 +3,7 @@
 
 # STDLIB
 import sys
+import typing
 
 # THIRD PARTY
 import pytest
@@ -10,6 +11,7 @@ import numpy as np
 
 # LOCAL
 from astropy import units as u
+from astropy.units._typing import HAS_ANNOTATED
 
 # list of pairs (target unit/physical type, input unit)
 x_inputs = [(u.arcsec, u.deg), ('angle', u.deg),
@@ -91,11 +93,8 @@ def test_wrong_unit_annotated(x_input, y_input):
     def myfunc_args(x: x_target, y: y_target):
         return x, y
 
-    with pytest.raises(u.UnitsError) as e:
+    with pytest.raises(u.UnitsError, match="Argument 'y' to function 'myfunc_args'"):
         x, y = myfunc_args(1*x_unit, 100*u.Joule)  # has to be an unspecified unit
-
-    str_to = str(y_target)
-    assert f"Argument 'y' to function 'myfunc_args' must be in units convertible to '{str_to}" in str(e.value)
 
 
 def test_not_quantity(x_input, y_input):
@@ -327,20 +326,12 @@ def test_str_unit_typo():
         result = myfunc_args(u.kg)
 
 
-def parameters_quantity_annotations():
-    if u.quantity.HAS_ANNOTATED:
-        parameters = [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]]
-    else:
-        parameters = [None]
-    return parameters
-
-
-@pytest.mark.skipif(not u.quantity.HAS_ANNOTATED, reason="need `Annotated`")
+@pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
 class TestTypeAnnotations:
 
     @pytest.mark.parametrize("annot",
-                             [None] if not u.quantity.HAS_ANNOTATED
-                             else [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]])
+                             [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]]
+                             if HAS_ANNOTATED else [None])  # Note: parametrization is done even if test class is skipped
     def test_single_annotation_unit(self, annot):
         """Try a variety of valid annotations."""
         @u.quantity_input
@@ -351,8 +342,6 @@ class TestTypeAnnotations:
         o_q, o_str = myfunc_args(i_q, i_str)
         assert o_q == i_q
         assert o_str == i_str
-
-    # TODO! test return Union[valid, something else]
 
 
 def test_args_None():
@@ -446,11 +435,7 @@ def test_dimensionless_with_nondimensionless_input(val):
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
 def test_annotated_not_quantity():
-    """
-    When Quantity[].
-    """
-    import typing
-
+    """Test when annotation looks like a Quantity[X], but isn't."""
     @u.quantity_input()
     def myfunc(x: typing.Annotated[object, u.m]):
         return x
@@ -463,11 +448,7 @@ def test_annotated_not_quantity():
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
 def test_annotated_not_unit():
-    """
-    When Quantity[].
-    """
-    import typing
-
+    """Test when annotation looks like a Quantity[X], but the unit's wrong."""
     @u.quantity_input()
     def myfunc(x: typing.Annotated[u.Quantity, object()]):
         return x

@@ -406,17 +406,17 @@ unit-aware Quantity-annotation syntax.
 This requires Python 3.9 or the package ``typing_extensions``.
 
 ``Quantity[unit or "string", metadata, ...]``
-::
+.. doctest-skip::
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec]):
     ...     return myarg.unit
-
+    >>>
     >>> myfunction(100*u.arcsec)
     Unit("arcsec")
 
 You can also annotate for different types in non-unit expecting arguments:
-::
+.. doctest-skip::
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec], nice_string: str):
@@ -425,14 +425,13 @@ You can also annotate for different types in non-unit expecting arguments:
     (Unit("arcsec"), 'a nice string')
 
 The output can be specified to have a desired unit with a function annotation,
-for example:
-
-.. doctest::
+for example
+.. doctest-skip::
 
     >>> @u.quantity_input
     ... def myfunction(myarg: u.Quantity[u.arcsec]) -> u.deg:
     ...     return myarg*1000
-
+    >>>
     >>> myfunction(100*u.arcsec)  # doctest: +FLOAT_CMP
     <Quantity 27.77777778 deg>
 

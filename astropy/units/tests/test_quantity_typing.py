@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
-from astropy.units.quantity import Annotated, HAS_ANNOTATED
+from astropy.units._typing import Annotated, HAS_ANNOTATED
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="requires py3.9+")
