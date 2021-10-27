@@ -200,7 +200,7 @@ and provide examples for enabling Astropy to read and write your file formats,
 but also convert your cosmology objects to and from Astropy's |Cosmology|.
 
 The following presumes knowledge of how Astropy structures I/O functions. For
-a quick tutorial see :ref:`read_write_cosmologies`.
+a quick tutorial see :ref:`cosmology_io`.
 
 Now that we know how to build and register functions into
 :meth:`~astropy.cosmology.Cosmology.read`,

@@ -1,0 +1,4 @@
+The registry functions are refactored into a class-based system.
+New Read-only, write-only, and read/write registries can be created.
+All functions accept a new argument ``registry``, which if not specified,
+defaults to the global default registry.
