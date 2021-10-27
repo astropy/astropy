@@ -701,7 +701,11 @@ class Header:
             s += ' ' * _pad_length(len(s))
         return s
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
+    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
+                                 message='"clobber" was deprecated in version '
+                                         '2.0 and will be removed in version '
+                                         '5.1. Use argument "overwrite" '
+                                         'instead.')
     def tofile(self, fileobj, sep='', endcard=True, padding=True,
                overwrite=False):
         r"""
@@ -778,7 +782,11 @@ class Header:
 
         return cls.fromfile(fileobj, sep='\n', endcard=endcard, padding=False)
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
+    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
+                                 message='"clobber" was deprecated in version '
+                                         '2.0 and will be removed in version '
+                                         '5.1. Use argument "overwrite" '
+                                         'instead.')
     def totextfile(self, fileobj, endcard=False, overwrite=False):
         """
         Write the header as text to a file or a file-like object.

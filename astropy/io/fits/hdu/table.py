@@ -1052,7 +1052,11 @@ class BinTableHDU(_TableBaseHDU):
           image.
       """)
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
+    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
+                                 message='"clobber" was deprecated in version '
+                                         '2.0 and will be removed in version '
+                                         '5.1. Use argument "overwrite" '
+                                         'instead.')
     def dump(self, datafile=None, cdfile=None, hfile=None, overwrite=False):
         """
         Dump the table HDU to a file in ASCII format.  The table may be dumped
