@@ -33,7 +33,7 @@ class _CosmologyModel(FittableModel):
         to create an instance of a subclass of this class.
 
     `_CosmologyModel` (subclasses) wrap a redshift-method of a
-    :class:`~astropy.cosmology.Cosmology` class, converting each
+    :class:`~astropy.cosmology.Cosmology` class, converting each non-`None`
     |Cosmology| :class:`~astropy.cosmology.Parameter` to a
     :class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`
     and the redshift-method to the model's ``__call__ / evaluate``.
@@ -77,7 +77,8 @@ class _CosmologyModel(FittableModel):
 
         The Model wraps the :class:`~astropy.cosmology.Cosmology` method,
         converting each |Cosmology| :class:`~astropy.cosmology.Parameter` to a
-        :class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`.
+        :class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`
+        (unless the Parameter is None, in which case it is skipped).
         Here an instance of the cosmology is created using the current
         Parameter values and the method is evaluated given the input.
 
@@ -175,6 +176,10 @@ def to_model(cosmology, *_, method):
     Returns
     -------
     `_CosmologyModel` subclass instance
+        The Model wraps the |Cosmology| method, converting each non-`None`
+        :class:`~astropy.cosmology.Parameter` to a
+        :class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`
+        and the method to the model's ``__call__ / evaluate``.
 
     Examples
     --------
@@ -206,6 +211,11 @@ def to_model(cosmology, *_, method):
 
     params = {}  # Parameters (also class attributes)
     for n in cosmology.__parameters__:
+        v = getattr(cosmology, n)  # parameter value
+
+        if v is None:  # skip unspecified parameters
+            continue
+
         params[n] = ModelParameter(default=getattr(cosmology, n),
                                    unit=getattr(cosmo_cls, n).unit,
                                    **cosmology.meta.get(n, {}))
@@ -224,7 +234,8 @@ def to_model(cosmology, *_, method):
         cosmo_cls=cosmo_cls.__qualname__, method=method)
 
     # instantiate class using default values
-    model = CosmoModel(name=cosmology.name, meta=copy.deepcopy(cosmology.meta))
+    ps = {n: getattr(cosmology, n) for n in params.keys()}
+    model = CosmoModel(**ps, name=cosmology.name, meta=copy.deepcopy(cosmology.meta))
 
     return model
 

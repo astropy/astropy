@@ -59,20 +59,22 @@ class ToFromModelTestMixin(IOTestMixinBase):
                 methods.discard(n)
                 continue
 
-            # dynamically detect optional dependencies
+            # dynamically detect ABC and optional dependencies
+            ERROR_SEIVE = (NotImplementedError, ValueError)
+            #              # ABC                can't introspect for good input
             if not HAS_SCIPY:
-                args = np.arange(len(params)) + 1
+                ERROR_SEIVE = ERROR_SEIVE + (ModuleNotFoundError, )
 
-                # remove if doesn't have dependency
-                try:
-                    getattr(cosmo, n)(*args)
-                except ModuleNotFoundError:
-                    methods.discard(n)
+            args = np.arange(len(params)) + 1
+            try:
+                getattr(cosmo, n)(*args)
+            except ERROR_SEIVE:
+                methods.discard(n)
 
         # TODO! pytest doesn't currently allow multiple yields (`cosmo`) so
         # testing with 1 random method
         # yield from methods
-        return random.choice(tuple(methods))
+        return random.choice(tuple(methods)) if methods else None
 
     # ===============================================================
 
@@ -95,12 +97,15 @@ class ToFromModelTestMixin(IOTestMixinBase):
 
     def test_toformat_model(self, cosmo, to_format, method_name):
         """Test cosmology -> astropy.model."""
+        if method_name is None:  # no test if no method
+            return
 
         model = to_format("astropy.model", method=method_name)
         assert isinstance(model, _CosmologyModel)
 
         # Parameters
-        assert model.param_names == cosmo.__parameters__
+        expect = tuple([n for n in cosmo.__parameters__ if getattr(cosmo, n) is not None])
+        assert model.param_names == expect
 
         # scalar result
         args = np.arange(model.n_inputs) + 1
@@ -128,6 +133,9 @@ class ToFromModelTestMixin(IOTestMixinBase):
 
     def test_tofromformat_model_instance(self, cosmo, to_format, from_format, method_name):
         """Test cosmology -> astropy.model -> cosmology."""
+        if method_name is None:  # no test if no method
+            return
+
         # ------------
         # To Model
         # this also serves as a test of all added methods / attributes
