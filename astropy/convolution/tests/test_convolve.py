@@ -1007,3 +1007,13 @@ def test_regressiontest_issue9168():
                           preserve_nan=True)
     result = convolve(x, kernel, boundary='fill', fill_value=np.nan,
                       preserve_nan=True)
+
+
+def test_convolve_nan_zero_sum_kernel():
+    with pytest.raises(ValueError,
+                      match="Setting nan_treatment='interpolate' "
+                      "requires the kernel to be normalized, but the "
+                      "input kernel has a sum close to zero. For a "
+                      "zero-sum kernel and data with NaNs, set "
+                      "nan_treatment='fill'."):
+        convolve([1, np.nan, 3], [-1, 2, -1], normalize_kernel=False)
