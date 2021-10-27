@@ -186,7 +186,15 @@ def test_regression_4210():
     # and for good measure, check the other ecliptic systems are all the same
     # names for their attributes
     from astropy.coordinates.builtin_frames import ecliptic
-    for frame_name in ecliptic.__all__:
+    for frame_name in ['GeocentricMeanEcliptic',
+                       'BarycentricMeanEcliptic',
+                       'HeliocentricMeanEcliptic',
+                       'BaseEclipticFrame',
+                       'GeocentricTrueEcliptic',
+                       'BarycentricTrueEcliptic',
+                       'HeliocentricTrueEcliptic',
+                       'HeliocentricEclipticIAU76',
+                       'CustomBarycentricEcliptic']:
         eclcls = getattr(ecliptic, frame_name)
         eclobj = eclcls(1*u.deg, 2*u.deg, 3*u.AU)
 
