@@ -282,7 +282,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
                                 arg_in_kwargs=False, relax=False,
                                 pending=False,
                                 warning_type=AstropyDeprecationWarning,
-                                alternative=''):
+                                alternative='', message=''):
     """Deprecate a _renamed_ or _removed_ function argument.
 
     The decorator assumes that the argument with the ``old_name`` was removed
@@ -331,6 +331,9 @@ def deprecated_renamed_argument(old_name, new_name, since,
         place of the deprecated object if ``new_name`` is None. The deprecation
         warning will tell the user about this alternative if provided.
 
+    message : str, optional
+        A custom warning message. If provided then ``since`` and
+        ``alternative`` options will have no effect.
 
     Raises
     ------
@@ -424,6 +427,8 @@ def deprecated_renamed_argument(old_name, new_name, since,
             relax = [relax] * n
         if not isinstance(pending, cls_iter):
             pending = [pending] * n
+        if not isinstance(message, cls_iter):
+            message = [message] * n
     else:
         # To allow a uniform approach later on, wrap all arguments in lists.
         n = 1
@@ -433,6 +438,7 @@ def deprecated_renamed_argument(old_name, new_name, since,
         arg_in_kwargs = [arg_in_kwargs]
         relax = [relax]
         pending = [pending]
+        message = [message]
 
     def decorator(function):
         # The named arguments of the function.
@@ -483,10 +489,9 @@ def deprecated_renamed_argument(old_name, new_name, since,
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             for i in range(n):
-                message = (f'"{old_name[i]}" was deprecated in version '
-                           f'{since[i]} and will be removed in a future '
-                           'version. ')
-
+                msg = message[i] or (f'"{old_name[i]}" was deprecated in '
+                                     f'version {since[i]} and will be removed '
+                                     'in a future version. ')
                 # The only way to have oldkeyword inside the function is
                 # that it is passed as kwarg because the oldkeyword
                 # parameter was renamed to newkeyword.
@@ -495,11 +500,12 @@ def deprecated_renamed_argument(old_name, new_name, since,
                     # Display the deprecation warning only when it's not
                     # pending.
                     if not pending[i]:
-                        if new_name[i] is not None:
-                            message += f'Use argument "{new_name[i]}" instead.'
-                        elif alternative:
-                            message += f'\n        Use {alternative} instead.'
-                        warnings.warn(message, warning_type, stacklevel=2)
+                        if not message[i]:
+                            if new_name[i] is not None:
+                                msg += f'Use argument "{new_name[i]}" instead.'
+                            elif alternative:
+                                msg += f'\n        Use {alternative} instead.'
+                        warnings.warn(msg, warning_type, stacklevel=2)
 
                     # Check if the newkeyword was given as well.
                     newarg_in_args = (position[i] is not None and
@@ -534,9 +540,9 @@ def deprecated_renamed_argument(old_name, new_name, since,
                 # positional argument.
                 elif (not pending[i] and not new_name[i] and position[i] and
                       len(args) > position[i]):
-                    if alternative:
-                        message += f'\n        Use {alternative} instead.'
-                    warnings.warn(message, warning_type, stacklevel=2)
+                    if alternative and not message[i]:
+                        msg += f'\n        Use {alternative} instead.'
+                    warnings.warn(msg, warning_type, stacklevel=2)
 
             return function(*args, **kwargs)
 
