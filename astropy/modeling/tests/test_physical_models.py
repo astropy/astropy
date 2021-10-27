@@ -159,7 +159,7 @@ def test_blackbody_exceptions_and_warnings():
     # or when passing in output_units instead of scale
     bb = BlackBody(5000 * u.K, scale=1.0, output_units=u.Jy)
     assert(bb.scale == 1.0)
-    
+
 
 def test_blackbody_array_temperature():
     """Regression test to make sure that the temperature can be an array."""

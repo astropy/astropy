@@ -31,7 +31,7 @@ class BlackBody(Fittable1DModel):
         Scale factor
 
     output_units: `~astropy.units.CompositeUnit` or string
-        Desired output units when evaluating.  If a unit object, 
+        Desired output units when evaluating.  If a unit object,
         must be equivalent to one of erg / (cm ** 2 * s * Hz * sr)
         or erg / (cm ** 2 * s * AA * sr) for surface brightness
         or erg / (cm ** 2 * s * Hz) or erg / (cm ** 2 * s * AA) for
@@ -265,7 +265,7 @@ class BlackBody(Fittable1DModel):
         if isinstance(unit, str) and unit in ['SNU', 'SLAM', 'FNU', 'FLAM']:
             # let's provide some convenience for passing these as strings
             unit = self._native_output_units.get(unit)
-        
+
         if unit is None:
             pass
         elif isinstance(unit, u.UnitBase):
