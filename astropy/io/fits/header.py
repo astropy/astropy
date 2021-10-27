@@ -989,7 +989,7 @@ class Header:
         """Like :meth:`dict.items`."""
 
         for card in self._cards:
-            yield (card.keyword, card.value)
+            yield card.keyword, None if card.value == UNDEFINED else card.value
 
     def keys(self):
         """
@@ -1004,7 +1004,7 @@ class Header:
         """Like :meth:`dict.values`."""
 
         for card in self._cards:
-            yield card.value
+            yield None if card.value == UNDEFINED else card.value
 
     def pop(self, *args):
         """
