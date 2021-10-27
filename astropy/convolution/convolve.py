@@ -325,12 +325,21 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # Check if kernel is normalizable
     if normalize_kernel or nan_interpolate:
         kernel_sum = kernel_internal.sum()
-        kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+        kernel_sums_to_zero = np.isclose(kernel_sum, 0,
+                                         atol=normalization_zero_tol)
 
         if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
-            raise ValueError("The kernel can't be normalized, because its sum is "
-                             "close to zero. The sum of the given kernel is < {}"
-                             .format(1. / MAX_NORMALIZATION))
+            if nan_interpolate:
+                raise ValueError("Setting nan_treatment='interpolate' "
+                                 "requires the kernel to be normalized, "
+                                 "but the input kernel has a sum close "
+                                 "to zero. For a zero-sum kernel and "
+                                 "data with NaNs, set nan_treatment='fill'.")
+            else:
+                raise ValueError("The kernel can't be normalized, because "
+                                 "its sum is close to zero. The sum of the "
+                                 "given kernel is < {}"
+                                 .format(1. / MAX_NORMALIZATION))
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
