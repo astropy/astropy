@@ -1106,7 +1106,7 @@ int ffiter(int n_cols,
     void *dataptr, *defaultnull;
     colNulls *col;
     int ii, jj, tstatus, naxis, bitpix;
-    int typecode, hdutype, jtype, type, anynul, nfiles, nbytes;
+    int typecode, hdutype, jtype, type, anynul=0, nfiles, nbytes;
     long totaln, nleft, frow, felement, n_optimum, i_optimum, ntodo;
     long rept, rowrept, width, tnull, naxes[9] = {1,1,1,1,1,1,1,1,1}, groups;
     double zeros = 0.;
@@ -1423,8 +1423,11 @@ int ffiter(int n_cols,
         /* calc total number of elements to do on each iteration */
         if (hdutype == IMAGE_HDU || cols[jj].datatype == TSTRING)
         {
-            ntodo = n_optimum; 
+            ntodo = n_optimum;
             cols[jj].repeat = 1;
+            /* handle special case of a 0-width string column */
+            if (hdutype == BINARY_TBL && rept == 0)
+               cols[jj].repeat = 0;
 
             /* get the BLANK keyword value, if it exists */
             if (abs(typecode) == TBYTE || abs(typecode) == TSHORT || abs(typecode) == TLONG
@@ -1701,7 +1704,8 @@ int ffiter(int n_cols,
           {
             /* allocate string to store the null string value */
             col[jj].null.stringnull = calloc(rept + 1, sizeof(char) );
-            col[jj].null.stringnull[1] = 1; /* to make sure string != 0 */
+            if (rept > 0)
+               col[jj].null.stringnull[1] = 1; /* to make sure string != 0 */
 
             /* allocate big block for the array of table column strings */
             stringptr[0] = calloc((ntodo + 1) * (rept + 1), sizeof(char) );

@@ -640,8 +640,12 @@ int ffcalc_rng( fitsfile *infptr,   /* I - Input FITS file                  */
                   nullVal = SHRT_MIN;
                else if( typecode==TINT )
                   nullVal = INT_MIN;
-               else if( typecode==TLONG )
-                  nullVal = LONG_MIN;
+               else if( typecode==TLONG ) {
+                  if (sizeof(long) == 8 && sizeof(int) == 4)
+                     nullVal = INT_MIN;
+                  else
+                     nullVal = LONG_MIN;
+               }
                else if( typecode==TLONGLONG )
                   nullVal = LONGLONG_MIN;
 		  
@@ -2748,8 +2752,12 @@ int fits_pixel_filter (PixelFilter * filter, int * status)
                 nullVal = UCHAR_MAX;
             else if (bitpix == SHORT_IMG)
                 nullVal = SHRT_MIN;
-            else if (bitpix == LONG_IMG)
-                nullVal = LONG_MIN;
+            else if (bitpix == LONG_IMG) {
+               if (sizeof(long) == 8 && sizeof(int) == 4)
+                  nullVal = INT_MIN;
+               else
+                  nullVal = LONG_MIN;
+            }
             else
                 printf("unhandled positive output BITPIX %d\n", bitpix);
          }
