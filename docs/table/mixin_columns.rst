@@ -360,3 +360,61 @@ the ``astropy`` mixin test suite and is fully compliant as a mixin column.
 
       def __repr__(self):
           return f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>"
+
+.. _table_mixin_registry:
+
+Registering array-like objects as mixin columns
+===============================================
+
+In some cases, you may want to directly add an array-like
+object as a table column while maintaining the original object properties
+(instead of the default conversion of the object to a `~astropy.table.Column`).
+This is done by registering the object class as a mixin column and
+defining a handler which allows `~astropy.table.Table` to treat that object
+class as a mixin similar to the built-in mixin columns such as `~astropy.time.Time`
+or `~astropy.units.quantity.Quantity`.
+
+This can be done for data classes that are defined in third-party packages and which
+you have no control over. As an example, we define a class
+that is not numpy-like and stores the data in a private attribute::
+
+    >>> class ExampleDataClass:
+    ...     def __init__(self):
+    ...         self._data = np.array([0, 1, 3, 4], dtype=float)
+
+By default, this cannot be used as a table column::
+
+    >>> t = Table()
+    >>> t['data'] = ExampleDataClass()
+    Traceback (most recent call last):
+    ...
+    TypeError: Empty table cannot have column set to scalar value
+
+However, you can create a function (or 'handler') which takes
+an instance of the data class you want to have automatically
+handled and returns a mixin column::
+
+    >>> from astropy.table.table_helpers import ArrayWrapper
+    >>> def handle_example_data_class(obj):
+    ...     return ArrayWrapper(obj._data)
+
+You can then register this by providing the fully qualified name
+of the class and the handler function::
+
+    >>> from astropy.table.mixins.registry import register_mixin_handler
+    >>> register_mixin_handler('__main__.ExampleDataClass', handle_example_data_class)
+    >>> t['data'] = ExampleDataClass()
+    >>> t
+    <Table length=4>
+      data
+    float64
+    -------
+        0.0
+        1.0
+        3.0
+        4.0
+
+Because we defined the data class as part of the example
+above, the fully qualified name starts with ``__main__``,
+but for a class in a third-party package, this might look
+like ``package.Class`` for example.

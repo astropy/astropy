@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from .index import SlicedIndex, TableIndices, TableLoc, TableILoc, TableLocIndices
 
 import sys
@@ -35,6 +34,7 @@ from .info import TableInfo
 from .index import Index, _IndexModeContext, get_index
 from .connect import TableRead, TableWrite
 from .ndarray_mixin import NdarrayMixin
+from .mixins.registry import get_mixin_handler
 from . import conf
 
 
@@ -1217,6 +1217,7 @@ class Table:
         col : Column, MaskedColumn, mixin-column type
             Object that can be used as a column in self
         """
+
         data_is_mixin = self._is_mixin_for_table(data)
         masked_col_cls = (self.ColumnClass
                           if issubclass(self.ColumnClass, self.MaskedColumn)
@@ -1227,6 +1228,19 @@ class Table:
         except Exception:
             # Need broad exception, cannot predict what data[0] raises for arbitrary data
             data0_is_mixin = False
+
+        # If the data is not an instance of Column or a mixin class, we can
+        # check the registry of mixin 'handlers' to see if the column can be
+        # converted to a mixin class
+        if (handler := get_mixin_handler(data)) is not None:
+            original_data = data
+            data = handler(data)
+            if not (data_is_mixin := self._is_mixin_for_table(data)):
+                fully_qualified_name = (original_data.__class__.__module__ + '.'
+                                        + original_data.__class__.__name__)
+                raise TypeError('Mixin handler for object of type '
+                                f'{fully_qualified_name} '
+                                'did not return a valid mixin column')
 
         # Structured ndarray gets viewed as a mixin unless already a valid
         # mixin class
