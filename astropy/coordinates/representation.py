@@ -227,7 +227,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 raise TypeError(f'unexpected keyword arguments: {kwargs}')
 
         # Pass attributes through the required initializing classes.
-        attrs = [self.attr_classes[component](attr, copy=False, subok=True)
+        attrs = [self.attr_classes[component](attr, copy=copy, subok=True)
                  for component, attr in zip(components, attrs)]
         try:
             attrs = np.broadcast_arrays(*attrs, subok=True)
