@@ -45,13 +45,18 @@ def test_blackbody_return_units():
     b = BlackBody(1000.0 * u.K, scale=1.0)
     assert not isinstance(b.evaluate(1.0 * u.micron, 1000.0, 1.0), u.Quantity)
 
-    # return has "standard" units when scale has no units
+    # return has "standard" units when scale has no units and output_units not passed
     b = BlackBody(1000.0 * u.K, scale=1.0)
     assert isinstance(b(1.0 * u.micron), u.Quantity)
     assert b(1.0 * u.micron).unit == u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 
-    # return has scale units when scale has units
+    # DEPRECATED: return has scale units when scale has units
     b = BlackBody(1000.0 * u.K, scale=1.0 * u.MJy / u.sr)
+    assert isinstance(b(1.0 * u.micron), u.Quantity)
+    assert b(1.0 * u.micron).unit == u.MJy / u.sr
+
+    # return has output_units when passed
+    b = BlackBody(1000.0 * u.K, scale=1.0, output_units=u.MJy / u.sr)
     assert isinstance(b(1.0 * u.micron), u.Quantity)
     assert b(1.0 * u.micron).unit == u.MJy / u.sr
 
@@ -61,7 +66,7 @@ def test_blackbody_fit():
 
     fitter = LevMarLSQFitter()
 
-    b = BlackBody(3000 * u.K, scale=5e-17 * u.Jy / u.sr)
+    b = BlackBody(3000 * u.K, scale=5e-17,  output_units=u.Jy / u.sr)
 
     wav = np.array([0.5, 5, 10]) * u.micron
     fnu = np.array([1, 10, 5]) * u.Jy / u.sr
@@ -69,7 +74,7 @@ def test_blackbody_fit():
     b_fit = fitter(b, wav, fnu, maxiter=1000)
 
     assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K)
-    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17 * u.Jy / u.sr)
+    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17)
 
 
 def test_blackbody_overflow():
@@ -118,12 +123,42 @@ def test_blackbody_exceptions_and_warnings():
         bb(-1.0 * u.AA)
     assert len(w) == 1
 
-    # Test that a non surface brightness converatable scale unit
+    # Test that a non-supported converatable output_unit raise an error
     with pytest.raises(ValueError) as exc:
-        bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
-        bb(1.0 * u.micron)
-    assert exc.value.args[0] == "scale units not surface brightness: Jy"
+        bb = BlackBody(5000 * u.K, scale=1.0, output_units=u.m)
+    assert exc.value.args[0] == "output_units not in surface brightness or flux density: m"
 
+    # Test that non-supported type to output_unit raises an error
+    with pytest.raises(ValueError) as exc:
+        bb = BlackBody(5000 * u.K, scale=1.0, output_units='invalid_string')
+    assert exc.value.args[0] == "output_units must be of type Unit, None, or one of 'SNU', 'SLAM', 'FNU', 'FLAM'"
+
+    # Test that passing units in scale and output_unit raises an error
+    # NOTE: support for (non-dimensionless) units in scale is deprecated
+    with pytest.raises(ValueError) as exc:
+        bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy, output_units=u.Jy)
+    assert exc.value.args[0] == "cannot pass output_units and scale with units"
+
+    # Test that passing (valid) unit to scale raises a deprecation warning
+    # both at initialization and calls to bolometric_flux
+    with pytest.warns(AstropyUserWarning, match='deprecated') as w:
+        bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
+        bb.bolometric_flux
+    assert len(w) == 2
+    # and that passing flux units to scale also divides internal scale by pi
+    # (since units include steradians)
+    assert(bb.scale == 1.0/np.pi)
+    assert(bb.output_units == u.Jy)
+    # ... but not for surface brightness
+    with pytest.warns(AstropyUserWarning, match='deprecated') as w:
+        bb = BlackBody(5000 * u.K, scale=1.0 * u.erg / (u.cm ** 2 * u.s * u.AA * u.sr))
+        bb.bolometric_flux
+    assert len(w) == 2
+    assert(bb.scale == 1.0)
+    # or when passing in output_units instead of scale
+    bb = BlackBody(5000 * u.K, scale=1.0, output_units=u.Jy)
+    assert(bb.scale == 1.0)
+    
 
 def test_blackbody_array_temperature():
     """Regression test to make sure that the temperature can be an array."""

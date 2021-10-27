@@ -255,13 +255,13 @@ class BlackBody(Fittable1DModel):
         
         if unit is None:
             pass
-        elif isinstance(unit, u.CompositeUnit):
+        elif isinstance(unit, u.UnitBase):
             # support SNU, SLAM, FNU, FLAM output units (and equivalent)
             if not (unit.is_equivalent(self._native_units, u.spectral_density(1*u.AA)) or
                     unit.is_equivalent(self._native_units*u.sr, u.spectral_density(1*u.AA))):
                 raise ValueError(f"output_units not in surface brightness or flux density: {unit}")
         else:
-            raise ValueError("output_units must be of type CompositeUnit, None, "
+            raise ValueError("output_units must be of type Unit, None, "
                              "or one of 'SNU', 'SLAM', 'FNU', 'FLAM'")
 
         self._output_units = unit
