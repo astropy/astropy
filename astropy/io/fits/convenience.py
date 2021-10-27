@@ -401,7 +401,10 @@ def delval(filename, keyword, *args, **kwargs):
         hdulist.close(closed=closed)
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '2.0')
+@deprecated_renamed_argument('clobber', 'overwrite', '2.0',
+                             message='"clobber" was deprecated in version 2.0 '
+                                     'and will be removed in version 5.1. Use '
+                                     'argument "overwrite" instead.')
 def writeto(filename, data, header=None, output_verify='exception',
             overwrite=False, checksum=False):
     """
@@ -911,7 +914,10 @@ def printdiff(inputa, inputb, *args, **kwargs):
         print(FITSDiff(inputa, inputb, **kwargs).report())
 
 
-@deprecated_renamed_argument('clobber', 'overwrite', '2.0')
+@deprecated_renamed_argument('clobber', 'overwrite', '2.0',
+                             message='"clobber" was deprecated in version 2.0 '
+                                     'and will be removed in version 5.1. Use '
+                                     'argument "overwrite" instead.')
 def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1,
               overwrite=False):
     """

@@ -896,8 +896,8 @@ class TestHDUListFunctions(FitsTestCase):
         hdulist.writeto(self.temp('test_overwrite.fits'))
         hdulist.writeto(self.temp('test_overwrite.fits'), overwrite=True)
         with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
-                          r'deprecated in version 2\.0 and will be removed in a '
-                          r'future version\. Use argument "overwrite" instead\.'):
+                          r'deprecated in version 2\.0 and will be removed in '
+                          r'version 5\.1\. Use argument "overwrite" instead\.'):
             hdulist.writeto(self.temp('test_overwrite.fits'), clobber=True)
 
     def test_invalid_hdu_key_in_contains(self):
