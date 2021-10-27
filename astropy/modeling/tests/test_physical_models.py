@@ -9,7 +9,7 @@ from astropy.modeling.fitting import LevMarLSQFitter
 
 from astropy.tests.helper import assert_quantity_allclose
 from astropy import units as u
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from astropy import cosmology
 from astropy.utils.compat.optional_deps import HAS_SCIPY  # noqa
 
@@ -51,7 +51,8 @@ def test_blackbody_return_units():
     assert b(1.0 * u.micron).unit == u.erg / (u.cm ** 2 * u.s * u.Hz * u.sr)
 
     # DEPRECATED: return has scale units when scale has units
-    b = BlackBody(1000.0 * u.K, scale=1.0 * u.MJy / u.sr)
+    with pytest.warns(AstropyDeprecationWarning, match='deprecated') as w:
+        b = BlackBody(1000.0 * u.K, scale=1.0 * u.MJy / u.sr)
     assert isinstance(b(1.0 * u.micron), u.Quantity)
     assert b(1.0 * u.micron).unit == u.MJy / u.sr
 
@@ -106,10 +107,11 @@ def test_blackbody_exceptions_and_warnings():
     """Test exceptions."""
 
     # Negative temperature
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+            ValueError,
+            match="Temperature should be positive: \\[-100.\\] K"):
         bb = BlackBody(-100 * u.K)
         bb(1.0 * u.micron)
-    assert exc.value.args[0] == "Temperature should be positive: [-100.] K"
 
     bb = BlackBody(5000 * u.K)
 
@@ -124,24 +126,27 @@ def test_blackbody_exceptions_and_warnings():
     assert len(w) == 1
 
     # Test that a non-supported converatable output_unit raise an error
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+            ValueError,
+            match="output_units not in surface brightness or flux density: m"):
         bb = BlackBody(5000 * u.K, scale=1.0, output_units=u.m)
-    assert exc.value.args[0] == "output_units not in surface brightness or flux density: m"
 
     # Test that non-supported type to output_unit raises an error
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+            ValueError,
+            match="output_units must be of type Unit, None, or one of 'SNU', 'SLAM', 'FNU', 'FLAM'"):
         bb = BlackBody(5000 * u.K, scale=1.0, output_units='invalid_string')
-    assert exc.value.args[0] == "output_units must be of type Unit, None, or one of 'SNU', 'SLAM', 'FNU', 'FLAM'"
 
     # Test that passing units in scale and output_unit raises an error
     # NOTE: support for (non-dimensionless) units in scale is deprecated
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+            ValueError,
+            match="cannot pass output_units and scale with units"):
         bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy, output_units=u.Jy)
-    assert exc.value.args[0] == "cannot pass output_units and scale with units"
 
     # Test that passing (valid) unit to scale raises a deprecation warning
     # both at initialization and calls to bolometric_flux
-    with pytest.warns(AstropyUserWarning, match='deprecated') as w:
+    with pytest.warns(AstropyDeprecationWarning, match='deprecated') as w:
         bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
         bb.bolometric_flux
     assert len(w) == 2
@@ -151,7 +156,7 @@ def test_blackbody_exceptions_and_warnings():
     assert(bb.output_units == u.Jy)
     # ... but surface brightness is not divided by pi (and in this case have
     # native units passed)
-    with pytest.warns(AstropyUserWarning, match='deprecated') as w:
+    with pytest.warns(AstropyDeprecationWarning, match='deprecated') as w:
         bb = BlackBody(5000 * u.K, scale=1.0 * u.erg / (u.cm ** 2 * u.s * u.AA * u.sr))
         bb.bolometric_flux
     assert len(w) == 2

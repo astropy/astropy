@@ -11,7 +11,7 @@ import numpy as np
 from astropy import constants as const
 from astropy import units as u
 from astropy import cosmology
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
 
@@ -150,7 +150,7 @@ class BlackBody(Fittable1DModel):
                 warnings.warn(
                     f"Support for scale with units is deprecated in favor of passing output_units. "
                     f"Adopting scale={kwargs['scale']} and output_units={output_units}.",
-                    AstropyUserWarning,
+                    AstropyDeprecationWarning,
                 )
             else:
                 # Do not allow passing scale with unit AND output_units
