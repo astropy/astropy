@@ -8,10 +8,9 @@ import pytest
 
 from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
-from astropy.cosmology.connect import CosmologyRead
+from astropy.cosmology.connect import CosmologyRead, readwrite_registry
 from astropy.cosmology.core import Cosmology
 from astropy.cosmology.io.tests import test_mapping
-from astropy.io import registry as io_registry
 
 from .conftest import json_identify, read_json, write_json
 
@@ -39,16 +38,16 @@ class ReadWriteTestMixin:
     def setup_readwrite(self):
         """Setup & teardown for read/write tests."""
         # register
-        io_registry.register_reader("json", Cosmology, read_json)
-        io_registry.register_writer("json", Cosmology, write_json)
-        io_registry.register_identifier("json", Cosmology, json_identify)
+        readwrite_registry.register_reader("json", Cosmology, read_json, force=True)
+        readwrite_registry.register_writer("json", Cosmology, write_json, force=True)
+        readwrite_registry.register_identifier("json", Cosmology, json_identify, force=True)
 
         yield  # run all tests in class
 
         # unregister
-        io_registry.unregister_reader("json", Cosmology)
-        io_registry.unregister_writer("json", Cosmology)
-        io_registry.unregister_identifier("json", Cosmology)
+        readwrite_registry.unregister_reader("json", Cosmology)
+        readwrite_registry.unregister_writer("json", Cosmology)
+        readwrite_registry.unregister_identifier("json", Cosmology)
 
     # ===============================================================
     # Method & Attribute Tests
@@ -125,7 +124,7 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 
     @pytest.mark.parametrize("format", readwrite_formats)
     def test_write_methods_have_explicit_kwarg_overwrite(self, format):
-        writer = io_registry.get_writer(format, Cosmology)
+        writer = readwrite_registry.get_writer(format, Cosmology)
         # test in signature
         sig = inspect.signature(writer)
         assert "overwrite" in sig.parameters

@@ -25,7 +25,7 @@ to a ``mypackage`` object.
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import FLRW, Cosmology, FlatLambdaCDM
-from astropy.io import registry as io_registry
+from astropy.cosmology.connect import convert_registry
 
 # LOCAL
 from mypackage.cosmology import MyCosmology
@@ -136,6 +136,6 @@ def mypackage_identify(origin, format, *args, **kwargs):
 # -------------------------------------------------------------------
 # Register to/from_format & identify methods with Astropy Unified I/O
 
-io_registry.register_reader("mypackage", Cosmology, from_mypackage)
-io_registry.register_writer("mypackage", Cosmology, to_mypackage)
-io_registry.register_identifier("mypackage", Cosmology, mypackage_identify)
+convert_registry.register_reader("mypackage", Cosmology, from_mypackage)
+convert_registry.register_writer("mypackage", Cosmology, to_mypackage)
+convert_registry.register_identifier("mypackage", Cosmology, mypackage_identify)

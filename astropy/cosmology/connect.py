@@ -14,6 +14,9 @@ __doctest_skip__ = __all__
 # ==============================================================================
 # Read / Write
 
+readwrite_registry = io_registry.UnifiedIORegistry()
+
+
 class CosmologyRead(io_registry.UnifiedReadWrite):
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
@@ -66,7 +69,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cosmo_cls):
-        super().__init__(instance, cosmo_cls, "read")
+        super().__init__(instance, cosmo_cls, "read", registry=readwrite_registry)
 
     def __call__(self, *args, **kwargs):
         from astropy.cosmology.core import Cosmology
@@ -84,7 +87,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
                     "keyword argument `cosmology` must be either the class "
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
-        cosmo = io_registry.read(self._cls, *args, **kwargs)
+        cosmo = self.registry.read(self._cls, *args, **kwargs)
         return cosmo
 
 
@@ -128,15 +131,18 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, "write")
+        super().__init__(instance, cls, "write", registry=readwrite_registry)
 
     def __call__(self, *args, **kwargs):
-        io_registry.write(self._instance, *args, **kwargs)
+        self.registry.write(self._instance, *args, **kwargs)
 
 
 # ==============================================================================
 # Format Interchange
 # for transforming instances, e.g. Cosmology <-> dict
+
+convert_registry = io_registry.UnifiedIORegistry()
+
 
 class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     """Transform object to a `~astropy.cosmology.Cosmology`.
@@ -188,7 +194,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cosmo_cls):
-        super().__init__(instance, cosmo_cls, "read")
+        super().__init__(instance, cosmo_cls, "read", registry=convert_registry)
 
     def __call__(self, obj, *args, **kwargs):
         from astropy.cosmology.core import Cosmology
@@ -206,7 +212,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
                     "keyword argument `cosmology` must be either the class "
                     f"{valid[0]} or its qualified name '{valid[1]}'")
 
-        cosmo = io_registry.read(self._cls, obj, *args, **kwargs)
+        cosmo = self.registry.read(self._cls, obj, *args, **kwargs)
         return cosmo
 
 
@@ -253,8 +259,8 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
     """
 
     def __init__(self, instance, cls):
-        super().__init__(instance, cls, "write")
+        super().__init__(instance, cls, "write", registry=convert_registry)
 
     def __call__(self, format, *args, **kwargs):
-        return io_registry.write(self._instance, None, *args, format=format,
-                                 **kwargs)
+        return self.registry.write(self._instance, None, *args, format=format,
+                                    **kwargs)

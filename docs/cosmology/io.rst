@@ -1,4 +1,4 @@
-.. _read_write_cosmologies:
+.. _cosmology_io:
 
 Read, Write, and Convert Cosmology Objects
 ******************************************
@@ -85,12 +85,11 @@ To see the a list of the available formats:
       Format  Read Write Auto-identify
     --------- ---- ----- -------------
       mapping  Yes   Yes           Yes
-     myformat  Yes   Yes           Yes
     mypackage  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
 For instance, in the above, "mapping" is built-in while "mypackage" and
-"myformat" are from an `example 3rd-party package
+is from an `example 3rd-party package
 <https://github.com/astropy/astropy/tree/main/docs/cosmology/mypackage>`_.
 
 :meth:`~astropy.cosmology.Cosmology.to_format` /
@@ -136,6 +135,8 @@ Custom Cosmology To/From Formats
 Custom representation formats may also be registered into the Astropy Cosmology
 I/O framework for use by these methods. For details of the framework see
 :ref:`io_registry`.
+Note |Cosmology| ``to/from_format`` uses a custom registry, available at
+``Cosmology.<to/from>_format.registry``.
 
 .. EXAMPLE START : custom to/from format
 
@@ -192,7 +193,7 @@ register everything into `astropy.io.registry`.
     :emphasize-lines: 11, 12, 13
 
     >>> from astropy.cosmology import Cosmology
-    >>> from astropy.io import registry as io_registry
+    >>> from astropy.cosmology.connect import convert_registry
     >>> from astropy.table import Row
 
     >>> def row_identify(origin, format, *args, **kwargs):
@@ -201,9 +202,9 @@ register everything into `astropy.io.registry`.
     ...         return isinstance(args[1], Row) and (format in (None, "row"))
     ...     return False
 
-    >>> io_registry.register_reader("row", Cosmology, from_table_row)
-    >>> io_registry.register_writer("row", Cosmology, to_table_row)
-    >>> io_registry.register_identifier("row", Cosmology, row_identify)
+    >>> convert_registry.register_reader("row", Cosmology, from_table_row)
+    >>> convert_registry.register_writer("row", Cosmology, to_table_row)
+    >>> convert_registry.register_identifier("row", Cosmology, row_identify)
 
 Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.from_format` and
@@ -229,12 +230,13 @@ Now the registered functions can be used in
 .. doctest::
     :hide:
 
-    >>> io_registry.unregister_reader("row", Cosmology)
-    >>> io_registry.unregister_writer("row", Cosmology)
-    >>> io_registry.unregister_identifier("row", Cosmology)
+    >>> from astropy.io.registry import IORegistryError
+    >>> convert_registry.unregister_reader("row", Cosmology)
+    >>> convert_registry.unregister_writer("row", Cosmology)
+    >>> convert_registry.unregister_identifier("row", Cosmology)
     >>> try:
-    ...     io_registry.get_reader("row", Cosmology)
-    ... except io_registry.IORegistryError:
+    ...     convert_registry.get_reader("row", Cosmology)
+    ... except IORegistryError:
     ...     pass
 
 .. EXAMPLE END
@@ -247,6 +249,8 @@ Custom Cosmology Readers/Writers
 
 Custom ``read`` / ``write`` formats may be registered into the Astropy Cosmology
 I/O framework. For details of the framework see :ref:`io_registry`.
+Note |Cosmology| ``read/write`` uses a custom registry, available at
+``Cosmology.<read/write>.registry``.
 
 .. EXAMPLE START : custom read/write
 
@@ -323,15 +327,15 @@ register everything into `astropy.io.registry`.
 .. code-block:: python
     :emphasize-lines: 7,8,9
 
-    >>> from astropy.io import registry as io_registry
+    >>> from astropy.cosmology.connect import readwrite_registry
 
     >>> def json_identify(origin, filepath, fileobj, *args, **kwargs):
     ...     """Identify if object uses the JSON format."""
     ...     return filepath is not None and filepath.endswith(".json")
 
-    >>> io_registry.register_reader("json", Cosmology, read_json)
-    >>> io_registry.register_writer("json", Cosmology, write_json)
-    >>> io_registry.register_identifier("json", Cosmology, json_identify)
+    >>> readwrite_registry.register_reader("json", Cosmology, read_json)
+    >>> readwrite_registry.register_writer("json", Cosmology, write_json)
+    >>> readwrite_registry.register_identifier("json", Cosmology, json_identify)
 
 Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.read` and
@@ -358,12 +362,13 @@ Now the registered functions can be used in
 .. doctest::
     :hide:
 
-    >>> io_registry.unregister_reader("json", Cosmology)
-    >>> io_registry.unregister_writer("json", Cosmology)
-    >>> io_registry.unregister_identifier("json", Cosmology)
+    >>> from astropy.io.registry import IORegistryError
+    >>> readwrite_registry.unregister_reader("json", Cosmology)
+    >>> readwrite_registry.unregister_writer("json", Cosmology)
+    >>> readwrite_registry.unregister_identifier("json", Cosmology)
     >>> try:
-    ...     io_registry.get_reader("json", Cosmology)
-    ... except io_registry.IORegistryError:
+    ...     readwrite_registry.get_reader("json", Cosmology)
+    ... except IORegistryError:
     ...     pass
 
 .. EXAMPLE END

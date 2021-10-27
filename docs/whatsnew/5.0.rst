@@ -78,6 +78,23 @@ CMB temperature, the equivalency ``with_redshift`` is also added.
 
 Further details are available in an addition to the docs.
 
+
+.. _whatsnew-5.0-io-unified:
+
+New Unified I/O architecture
+============================
+
+I/O registry submodule has switched to a class-based architecture, allowing for
+the creation of custom registries. The three supported registry types are:
+
+* read-only : ``astropy.io.registry.UnifiedInputRegistry``
+* write-only : ``astropy.io.registry.UnifiedOutputRegistry``
+* read/write : ``astropy.io.registry.UnifiedIORegistry``
+
+For backward compatibility all the methods on the read/write have corresponding
+module-level functions, which work with a default global read/write registry.
+
+
 .. _whatsnew-5.0-modeling-new-models:
 
 New Models
