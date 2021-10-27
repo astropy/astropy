@@ -356,6 +356,7 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
   and will be inverse-scaled by the FITS TSCALn and TZEROn values if necessary.
 */
 {
+    int writemode;
     int tcode, maxelem2, hdutype, writeraw;
     long twidth, incre;
     long  ntodo;
@@ -377,7 +378,15 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
     /*---------------------------------------------------*/
     /*  Check input and get parameters about the column: */
     /*---------------------------------------------------*/
-    if (ffgcprll( fptr, colnum, firstrow, firstelem, nelem, 1, &scale, &zero,
+
+    /* IMPORTANT NOTE: that the special case of using this subroutine
+       to write bytes to a character column are handled internally
+       by the call to ffgcprll() below.  It will adjust the effective
+       *tcode, repeats, etc, to appear as a TBYTE column. */
+
+    writemode = 17; /* Equivalent to writemode = 1 but allow TSTRING -> TBYTE */
+
+    if (ffgcprll( fptr, colnum, firstrow, firstelem, nelem, writemode, &scale, &zero,
         tform, &twidth, &tcode, &maxelem2, &startpos,  &elemnum, &incre,
         &repeat, &rowlen, &hdutype, &tnull, snull, status) > 0)
         return(*status);
@@ -481,18 +490,19 @@ int ffpclb( fitsfile *fptr,  /* I - FITS file pointer                       */
 
             case (TSTRING):  /* numerical column in an ASCII table */
 
-                if (strchr(tform,'A'))
+	        if (strchr(tform,'A')) 
                 {
                     /* write raw input bytes without conversion        */
                     /* This case is a hack to let users write a stream */
                     /* of bytes directly to the 'A' format column      */
 
-                    if (incre == twidth)
+		  if (incre == twidth) {
                         ffpbyt(fptr, ntodo, &array[next], status);
-                    else
+		  } else {
                         ffpbytoff(fptr, twidth, ntodo/twidth, incre - twidth, 
                                 &array[next], status);
-                    break;
+		  }
+		  break;
                 }
                 else if (cform[1] != 's')  /*  "%s" format is a string */
                 {

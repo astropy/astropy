@@ -286,6 +286,7 @@ int ffgky( fitsfile *fptr,     /* I - FITS file pointer        */
 */
 {
     LONGLONG longval;
+    ULONGLONG ulongval;
     double doubleval;
 
     if (*status > 0)           /* inherit input status value if > 0 */
@@ -361,12 +362,12 @@ int ffgky( fitsfile *fptr,     /* I - FITS file pointer        */
     }
     else if (datatype == TULONG)
     {
-        if (ffgkyjj(fptr, keyname, &longval, comm, status) <= 0)
+        if (ffgkyujj(fptr, keyname, &ulongval, comm, status) <= 0)
         {
-            if (longval > ULONG_MAX || longval < 0)
+            if (ulongval > ULONG_MAX)
                 *status = NUM_OVERFLOW;
             else
-                 *(unsigned long *) value = longval;
+                 *(unsigned long *) value = ulongval;
         }
     }
     else if (datatype == TLONG)

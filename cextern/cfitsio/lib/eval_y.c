@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.5.  */
+/* A Bison parser, made by GNU Bison 3.7.4.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,6 +34,10 @@
 /* C LALR(1) parser skeleton written by Richard Stallman, by
    simplifying the original so-called "semantic" parser.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with FF_ or ff_.  They are
+   private implementation details that can be changed or removed.  */
+
 /* All symbols defined below should begin with ff or FF, to avoid
    infringing on user name space.  This should be done even for local
    variables, as they might otherwise be expanded by user macros.
@@ -40,11 +45,11 @@
    define necessary library symbols; they are noted "INFRINGES ON
    USER NAME SPACE" below.  */
 
-/* Identify Bison output.  */
-#define FFBISON 1
+/* Identify Bison output, and Bison version.  */
+#define FFBISON 30704
 
-/* Bison version.  */
-#define FFBISON_VERSION "3.0.5"
+/* Bison version string.  */
+#define FFBISON_VERSION "3.7.4"
 
 /* Skeleton name.  */
 #define FFSKELETON_NAME "yacc.c"
@@ -61,8 +66,8 @@
 
 
 
-/* Copy the first part of user declarations.  */
-#line 1 "eval.y" /* yacc.c:339  */
+/* First part of user prologue.  */
+#line 1 "eval.y"
 
 /************************************************************************/
 /*                                                                      */
@@ -128,6 +133,9 @@
 /*                              determine the output dimensions         */
 /*  Craig B Markwardt Aug 2009  Add substring STRMID() and string search*/
 /*                              STRSTR() functions; more overflow checks*/
+/*  Craig B Markwardt Dec 2019  Add bit/hex/oct literal strings and     */
+/*                              bitwise operatiosn between integers     */
+/*  Craig B Markwardt Mar 2021  Add SETNULL() function                  */
 /*                                                                      */
 /************************************************************************/
 
@@ -205,7 +213,7 @@ static int  New_FuncSize( int returnType, funcOp Op, int nNodes,
 			  int Node5, int Node6, int Node7, int Size);
 static int  New_Deref ( int Var,  int nDim,
 			int Dim1, int Dim2, int Dim3, int Dim4, int Dim5 );
-static int  New_GTI   ( char *fname, int Node1, char *start, char *stop );
+static int  New_GTI   ( funcOp Op, char *fname, int Node1, int Node2, char *start, char *stop );
 static int  New_REG   ( char *fname, int NodeX, int NodeY, char *colNames );
 static int  New_Vector( int subNode );
 static int  Close_Vec ( int vecNode );
@@ -224,11 +232,15 @@ static void Do_BinOp_dbl ( Node *this );
 static void Do_Func      ( Node *this );
 static void Do_Deref     ( Node *this );
 static void Do_GTI       ( Node *this );
+static void Do_GTI_Over  ( Node *this );
 static void Do_REG       ( Node *this );
 static void Do_Vector    ( Node *this );
 
 static long Search_GTI   ( double evtTime, long nGTI, double *start,
-			   double *stop, int ordered );
+			   double *stop, int ordered, long *nextGTI );
+static double GTI_Over(double evtStart, double evtStop,
+		       long nGTI, double *start, double *stop,
+		       long *gtiout);
 
 static char  saobox (double xcen, double ycen, double xwid, double ywid,
 		     double rot,  double xcol, double ycol);
@@ -253,26 +265,31 @@ static void  fferror(char *msg);
 #endif
 
 
-#line 257 "y.tab.c" /* yacc.c:339  */
+#line 269 "y.tab.c"
 
-# ifndef FF_NULLPTR
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define FF_NULLPTR nullptr
+# ifndef FF_CAST
+#  ifdef __cplusplus
+#   define FF_CAST(Type, Val) static_cast<Type> (Val)
+#   define FF_REINTERPRET_CAST(Type, Val) reinterpret_cast<Type> (Val)
 #  else
-#   define FF_NULLPTR 0
+#   define FF_CAST(Type, Val) ((Type) (Val))
+#   define FF_REINTERPRET_CAST(Type, Val) ((Type) (Val))
+#  endif
+# endif
+# ifndef FF_NULLPTR
+#  if defined __cplusplus
+#   if 201103L <= __cplusplus
+#    define FF_NULLPTR nullptr
+#   else
+#    define FF_NULLPTR 0
+#   endif
+#  else
+#   define FF_NULLPTR ((void*)0)
 #  endif
 # endif
 
-/* Enabling verbose error messages.  */
-#ifdef FFERROR_VERBOSE
-# undef FFERROR_VERBOSE
-# define FFERROR_VERBOSE 1
-#else
-# define FFERROR_VERBOSE 0
-#endif
-
-/* In a future release of Bison, this section will be replaced
-   by #include "y.tab.h".  */
+/* Use api.header.include to #include this header
+   instead of duplicating it here.  */
 #ifndef FF_FF_Y_TAB_H_INCLUDED
 # define FF_FF_Y_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -283,47 +300,57 @@ static void  fferror(char *msg);
 extern int ffdebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef FFTOKENTYPE
 # define FFTOKENTYPE
   enum fftokentype
   {
-    BOOLEAN = 258,
-    LONG = 259,
-    DOUBLE = 260,
-    STRING = 261,
-    BITSTR = 262,
-    FUNCTION = 263,
-    BFUNCTION = 264,
-    IFUNCTION = 265,
-    GTIFILTER = 266,
-    REGFILTER = 267,
-    COLUMN = 268,
-    BCOLUMN = 269,
-    SCOLUMN = 270,
-    BITCOL = 271,
-    ROWREF = 272,
-    NULLREF = 273,
-    SNULLREF = 274,
-    OR = 275,
-    AND = 276,
-    EQ = 277,
-    NE = 278,
-    GT = 279,
-    LT = 280,
-    LTE = 281,
-    GTE = 282,
-    XOR = 283,
-    POWER = 284,
-    NOT = 285,
-    INTCAST = 286,
-    FLTCAST = 287,
-    UMINUS = 288,
-    ACCUM = 289,
-    DIFF = 290
+    FFEMPTY = -2,
+    FFEOF = 0,                     /* "end of file"  */
+    FFerror = 256,                 /* error  */
+    FFUNDEF = 257,                 /* "invalid token"  */
+    BOOLEAN = 258,                 /* BOOLEAN  */
+    LONG = 259,                    /* LONG  */
+    DOUBLE = 260,                  /* DOUBLE  */
+    STRING = 261,                  /* STRING  */
+    BITSTR = 262,                  /* BITSTR  */
+    FUNCTION = 263,                /* FUNCTION  */
+    BFUNCTION = 264,               /* BFUNCTION  */
+    IFUNCTION = 265,               /* IFUNCTION  */
+    GTIFILTER = 266,               /* GTIFILTER  */
+    GTIOVERLAP = 267,              /* GTIOVERLAP  */
+    REGFILTER = 268,               /* REGFILTER  */
+    COLUMN = 269,                  /* COLUMN  */
+    BCOLUMN = 270,                 /* BCOLUMN  */
+    SCOLUMN = 271,                 /* SCOLUMN  */
+    BITCOL = 272,                  /* BITCOL  */
+    ROWREF = 273,                  /* ROWREF  */
+    NULLREF = 274,                 /* NULLREF  */
+    SNULLREF = 275,                /* SNULLREF  */
+    OR = 276,                      /* OR  */
+    AND = 277,                     /* AND  */
+    EQ = 278,                      /* EQ  */
+    NE = 279,                      /* NE  */
+    GT = 280,                      /* GT  */
+    LT = 281,                      /* LT  */
+    LTE = 282,                     /* LTE  */
+    GTE = 283,                     /* GTE  */
+    XOR = 284,                     /* XOR  */
+    POWER = 285,                   /* POWER  */
+    NOT = 286,                     /* NOT  */
+    INTCAST = 287,                 /* INTCAST  */
+    FLTCAST = 288,                 /* FLTCAST  */
+    UMINUS = 289,                  /* UMINUS  */
+    ACCUM = 290,                   /* ACCUM  */
+    DIFF = 291                     /* DIFF  */
   };
+  typedef enum fftokentype fftoken_kind_t;
 #endif
-/* Tokens.  */
+/* Token kinds.  */
+#define FFEMPTY -2
+#define FFEOF 0
+#define FFerror 256
+#define FFUNDEF 257
 #define BOOLEAN 258
 #define LONG 259
 #define DOUBLE 260
@@ -333,37 +360,37 @@ extern int ffdebug;
 #define BFUNCTION 264
 #define IFUNCTION 265
 #define GTIFILTER 266
-#define REGFILTER 267
-#define COLUMN 268
-#define BCOLUMN 269
-#define SCOLUMN 270
-#define BITCOL 271
-#define ROWREF 272
-#define NULLREF 273
-#define SNULLREF 274
-#define OR 275
-#define AND 276
-#define EQ 277
-#define NE 278
-#define GT 279
-#define LT 280
-#define LTE 281
-#define GTE 282
-#define XOR 283
-#define POWER 284
-#define NOT 285
-#define INTCAST 286
-#define FLTCAST 287
-#define UMINUS 288
-#define ACCUM 289
-#define DIFF 290
+#define GTIOVERLAP 267
+#define REGFILTER 268
+#define COLUMN 269
+#define BCOLUMN 270
+#define SCOLUMN 271
+#define BITCOL 272
+#define ROWREF 273
+#define NULLREF 274
+#define SNULLREF 275
+#define OR 276
+#define AND 277
+#define EQ 278
+#define NE 279
+#define GT 280
+#define LT 281
+#define LTE 282
+#define GTE 283
+#define XOR 284
+#define POWER 285
+#define NOT 286
+#define INTCAST 287
+#define FLTCAST 288
+#define UMINUS 289
+#define ACCUM 290
+#define DIFF 291
 
 /* Value type.  */
 #if ! defined FFSTYPE && ! defined FFSTYPE_IS_DECLARED
-
 union FFSTYPE
 {
-#line 192 "eval.y" /* yacc.c:355  */
+#line 199 "eval.y"
 
     int    Node;        /* Index of Node */
     double dbl;         /* real value    */
@@ -371,9 +398,9 @@ union FFSTYPE
     char   log;         /* logical value */
     char   str[MAX_STRLEN];    /* string value  */
 
-#line 375 "y.tab.c" /* yacc.c:355  */
-};
+#line 402 "y.tab.c"
 
+};
 typedef union FFSTYPE FFSTYPE;
 # define FFSTYPE_IS_TRIVIAL 1
 # define FFSTYPE_IS_DECLARED 1
@@ -385,37 +412,154 @@ extern FFSTYPE fflval;
 int ffparse (void);
 
 #endif /* !FF_FF_Y_TAB_H_INCLUDED  */
+/* Symbol kind.  */
+enum ffsymbol_kind_t
+{
+  FFSYMBOL_FFEMPTY = -2,
+  FFSYMBOL_FFEOF = 0,                      /* "end of file"  */
+  FFSYMBOL_FFerror = 1,                    /* error  */
+  FFSYMBOL_FFUNDEF = 2,                    /* "invalid token"  */
+  FFSYMBOL_BOOLEAN = 3,                    /* BOOLEAN  */
+  FFSYMBOL_LONG = 4,                       /* LONG  */
+  FFSYMBOL_DOUBLE = 5,                     /* DOUBLE  */
+  FFSYMBOL_STRING = 6,                     /* STRING  */
+  FFSYMBOL_BITSTR = 7,                     /* BITSTR  */
+  FFSYMBOL_FUNCTION = 8,                   /* FUNCTION  */
+  FFSYMBOL_BFUNCTION = 9,                  /* BFUNCTION  */
+  FFSYMBOL_IFUNCTION = 10,                 /* IFUNCTION  */
+  FFSYMBOL_GTIFILTER = 11,                 /* GTIFILTER  */
+  FFSYMBOL_GTIOVERLAP = 12,                /* GTIOVERLAP  */
+  FFSYMBOL_REGFILTER = 13,                 /* REGFILTER  */
+  FFSYMBOL_COLUMN = 14,                    /* COLUMN  */
+  FFSYMBOL_BCOLUMN = 15,                   /* BCOLUMN  */
+  FFSYMBOL_SCOLUMN = 16,                   /* SCOLUMN  */
+  FFSYMBOL_BITCOL = 17,                    /* BITCOL  */
+  FFSYMBOL_ROWREF = 18,                    /* ROWREF  */
+  FFSYMBOL_NULLREF = 19,                   /* NULLREF  */
+  FFSYMBOL_SNULLREF = 20,                  /* SNULLREF  */
+  FFSYMBOL_21_ = 21,                       /* ','  */
+  FFSYMBOL_22_ = 22,                       /* '='  */
+  FFSYMBOL_23_ = 23,                       /* ':'  */
+  FFSYMBOL_24_ = 24,                       /* '{'  */
+  FFSYMBOL_25_ = 25,                       /* '}'  */
+  FFSYMBOL_26_ = 26,                       /* '?'  */
+  FFSYMBOL_OR = 27,                        /* OR  */
+  FFSYMBOL_AND = 28,                       /* AND  */
+  FFSYMBOL_EQ = 29,                        /* EQ  */
+  FFSYMBOL_NE = 30,                        /* NE  */
+  FFSYMBOL_31_ = 31,                       /* '~'  */
+  FFSYMBOL_GT = 32,                        /* GT  */
+  FFSYMBOL_LT = 33,                        /* LT  */
+  FFSYMBOL_LTE = 34,                       /* LTE  */
+  FFSYMBOL_GTE = 35,                       /* GTE  */
+  FFSYMBOL_36_ = 36,                       /* '+'  */
+  FFSYMBOL_37_ = 37,                       /* '-'  */
+  FFSYMBOL_38_ = 38,                       /* '%'  */
+  FFSYMBOL_39_ = 39,                       /* '*'  */
+  FFSYMBOL_40_ = 40,                       /* '/'  */
+  FFSYMBOL_41_ = 41,                       /* '|'  */
+  FFSYMBOL_42_ = 42,                       /* '&'  */
+  FFSYMBOL_XOR = 43,                       /* XOR  */
+  FFSYMBOL_POWER = 44,                     /* POWER  */
+  FFSYMBOL_NOT = 45,                       /* NOT  */
+  FFSYMBOL_INTCAST = 46,                   /* INTCAST  */
+  FFSYMBOL_FLTCAST = 47,                   /* FLTCAST  */
+  FFSYMBOL_UMINUS = 48,                    /* UMINUS  */
+  FFSYMBOL_49_ = 49,                       /* '['  */
+  FFSYMBOL_ACCUM = 50,                     /* ACCUM  */
+  FFSYMBOL_DIFF = 51,                      /* DIFF  */
+  FFSYMBOL_52_n_ = 52,                     /* '\n'  */
+  FFSYMBOL_53_ = 53,                       /* ']'  */
+  FFSYMBOL_54_ = 54,                       /* '('  */
+  FFSYMBOL_55_ = 55,                       /* ')'  */
+  FFSYMBOL_FFACCEPT = 56,                  /* $accept  */
+  FFSYMBOL_lines = 57,                     /* lines  */
+  FFSYMBOL_line = 58,                      /* line  */
+  FFSYMBOL_bvector = 59,                   /* bvector  */
+  FFSYMBOL_vector = 60,                    /* vector  */
+  FFSYMBOL_expr = 61,                      /* expr  */
+  FFSYMBOL_bexpr = 62,                     /* bexpr  */
+  FFSYMBOL_bits = 63,                      /* bits  */
+  FFSYMBOL_sexpr = 64                      /* sexpr  */
+};
+typedef enum ffsymbol_kind_t ffsymbol_kind_t;
 
-/* Copy the second part of user declarations.  */
 
-#line 392 "y.tab.c" /* yacc.c:358  */
+
 
 #ifdef short
 # undef short
 #endif
 
-#ifdef FFTYPE_UINT8
-typedef FFTYPE_UINT8 fftype_uint8;
-#else
-typedef unsigned char fftype_uint8;
+/* On compilers that do not define __PTRDIFF_MAX__ etc., make sure
+   <limits.h> and (if available) <stdint.h> are included
+   so that the code can choose integer types of a good width.  */
+
+#ifndef __PTRDIFF_MAX__
+# include <limits.h> /* INFRINGES ON USER NAME SPACE */
+# if defined __STDC_VERSION__ && 199901 <= __STDC_VERSION__
+#  include <stdint.h> /* INFRINGES ON USER NAME SPACE */
+#  define FF_STDINT_H
+# endif
 #endif
 
-#ifdef FFTYPE_INT8
-typedef FFTYPE_INT8 fftype_int8;
+/* Narrow types that promote to a signed type and that can represent a
+   signed or unsigned integer of at least N bits.  In tables they can
+   save space and decrease cache pressure.  Promoting to a signed type
+   helps avoid bugs in integer arithmetic.  */
+
+#ifdef __INT_LEAST8_MAX__
+typedef __INT_LEAST8_TYPE__ fftype_int8;
+#elif defined FF_STDINT_H
+typedef int_least8_t fftype_int8;
 #else
 typedef signed char fftype_int8;
 #endif
 
-#ifdef FFTYPE_UINT16
-typedef FFTYPE_UINT16 fftype_uint16;
+#ifdef __INT_LEAST16_MAX__
+typedef __INT_LEAST16_TYPE__ fftype_int16;
+#elif defined FF_STDINT_H
+typedef int_least16_t fftype_int16;
 #else
-typedef unsigned short int fftype_uint16;
+typedef short fftype_int16;
 #endif
 
-#ifdef FFTYPE_INT16
-typedef FFTYPE_INT16 fftype_int16;
+#if defined __UINT_LEAST8_MAX__ && __UINT_LEAST8_MAX__ <= __INT_MAX__
+typedef __UINT_LEAST8_TYPE__ fftype_uint8;
+#elif (!defined __UINT_LEAST8_MAX__ && defined FF_STDINT_H \
+       && UINT_LEAST8_MAX <= INT_MAX)
+typedef uint_least8_t fftype_uint8;
+#elif !defined __UINT_LEAST8_MAX__ && UCHAR_MAX <= INT_MAX
+typedef unsigned char fftype_uint8;
 #else
-typedef short int fftype_int16;
+typedef short fftype_uint8;
+#endif
+
+#if defined __UINT_LEAST16_MAX__ && __UINT_LEAST16_MAX__ <= __INT_MAX__
+typedef __UINT_LEAST16_TYPE__ fftype_uint16;
+#elif (!defined __UINT_LEAST16_MAX__ && defined FF_STDINT_H \
+       && UINT_LEAST16_MAX <= INT_MAX)
+typedef uint_least16_t fftype_uint16;
+#elif !defined __UINT_LEAST16_MAX__ && USHRT_MAX <= INT_MAX
+typedef unsigned short fftype_uint16;
+#else
+typedef int fftype_uint16;
+#endif
+
+#ifndef FFPTRDIFF_T
+# if defined __PTRDIFF_TYPE__ && defined __PTRDIFF_MAX__
+#  define FFPTRDIFF_T __PTRDIFF_TYPE__
+#  define FFPTRDIFF_MAXIMUM __PTRDIFF_MAX__
+# elif defined PTRDIFF_MAX
+#  ifndef ptrdiff_t
+#   include <stddef.h> /* INFRINGES ON USER NAME SPACE */
+#  endif
+#  define FFPTRDIFF_T ptrdiff_t
+#  define FFPTRDIFF_MAXIMUM PTRDIFF_MAX
+# else
+#  define FFPTRDIFF_T long
+#  define FFPTRDIFF_MAXIMUM LONG_MAX
+# endif
 #endif
 
 #ifndef FFSIZE_T
@@ -423,15 +567,28 @@ typedef short int fftype_int16;
 #  define FFSIZE_T __SIZE_TYPE__
 # elif defined size_t
 #  define FFSIZE_T size_t
-# elif ! defined FFSIZE_T
+# elif defined __STDC_VERSION__ && 199901 <= __STDC_VERSION__
 #  include <stddef.h> /* INFRINGES ON USER NAME SPACE */
 #  define FFSIZE_T size_t
 # else
-#  define FFSIZE_T unsigned int
+#  define FFSIZE_T unsigned
 # endif
 #endif
 
-#define FFSIZE_MAXIMUM ((FFSIZE_T) -1)
+#define FFSIZE_MAXIMUM                                  \
+  FF_CAST (FFPTRDIFF_T,                                 \
+           (FFPTRDIFF_MAXIMUM < FF_CAST (FFSIZE_T, -1)  \
+            ? FFPTRDIFF_MAXIMUM                         \
+            : FF_CAST (FFSIZE_T, -1)))
+
+#define FFSIZEOF(X) FF_CAST (FFPTRDIFF_T, sizeof (X))
+
+
+/* Stored state numbers (used for stacks). */
+typedef fftype_int16 ff_state_t;
+
+/* State numbers in computations.  */
+typedef int ff_state_fast_t;
 
 #ifndef FF_
 # if defined FFENABLE_NLS && FFENABLE_NLS
@@ -445,30 +602,20 @@ typedef short int fftype_int16;
 # endif
 #endif
 
-#ifndef FF_ATTRIBUTE
-# if (defined __GNUC__                                               \
-      && (2 < __GNUC__ || (__GNUC__ == 2 && 96 <= __GNUC_MINOR__)))  \
-     || defined __SUNPRO_C && 0x5110 <= __SUNPRO_C
-#  define FF_ATTRIBUTE(Spec) __attribute__(Spec)
+
+#ifndef FF_ATTRIBUTE_PURE
+# if defined __GNUC__ && 2 < __GNUC__ + (96 <= __GNUC_MINOR__)
+#  define FF_ATTRIBUTE_PURE __attribute__ ((__pure__))
 # else
-#  define FF_ATTRIBUTE(Spec) /* empty */
+#  define FF_ATTRIBUTE_PURE
 # endif
 #endif
 
-#ifndef FF_ATTRIBUTE_PURE
-# define FF_ATTRIBUTE_PURE   FF_ATTRIBUTE ((__pure__))
-#endif
-
 #ifndef FF_ATTRIBUTE_UNUSED
-# define FF_ATTRIBUTE_UNUSED FF_ATTRIBUTE ((__unused__))
-#endif
-
-#if !defined _Noreturn \
-     && (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112)
-# if defined _MSC_VER && 1200 <= _MSC_VER
-#  define _Noreturn __declspec (noreturn)
+# if defined __GNUC__ && 2 < __GNUC__ + (7 <= __GNUC_MINOR__)
+#  define FF_ATTRIBUTE_UNUSED __attribute__ ((__unused__))
 # else
-#  define _Noreturn FF_ATTRIBUTE ((__noreturn__))
+#  define FF_ATTRIBUTE_UNUSED
 # endif
 #endif
 
@@ -479,13 +626,13 @@ typedef short int fftype_int16;
 # define FFUSE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
+#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about fflval being uninitialized.  */
-# define FF_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
-    _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")\
+# define FF_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
-# define FF_IGNORE_MAYBE_UNINITIALIZED_END \
+# define FF_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
 # define FF_INITIAL_VALUE(Value) Value
@@ -498,8 +645,22 @@ typedef short int fftype_int16;
 # define FF_INITIAL_VALUE(Value) /* Nothing. */
 #endif
 
+#if defined __cplusplus && defined __GNUC__ && ! defined __ICC && 6 <= __GNUC__
+# define FF_IGNORE_USELESS_CAST_BEGIN                          \
+    _Pragma ("GCC diagnostic push")                            \
+    _Pragma ("GCC diagnostic ignored \"-Wuseless-cast\"")
+# define FF_IGNORE_USELESS_CAST_END            \
+    _Pragma ("GCC diagnostic pop")
+#endif
+#ifndef FF_IGNORE_USELESS_CAST_BEGIN
+# define FF_IGNORE_USELESS_CAST_BEGIN
+# define FF_IGNORE_USELESS_CAST_END
+#endif
 
-#if ! defined ffoverflow || FFERROR_VERBOSE
+
+#define FF_ASSERT(E) ((void) (0 && (E)))
+
+#if !defined ffoverflow
 
 /* The parser invokes alloca or malloc; define the necessary symbols.  */
 
@@ -564,8 +725,7 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 #   endif
 #  endif
 # endif
-#endif /* ! defined ffoverflow || FFERROR_VERBOSE */
-
+#endif /* !defined ffoverflow */
 
 #if (! defined ffoverflow \
      && (! defined __cplusplus \
@@ -574,17 +734,17 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union ffalloc
 {
-  fftype_int16 ffss_alloc;
+  ff_state_t ffss_alloc;
   FFSTYPE ffvs_alloc;
 };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
-# define FFSTACK_GAP_MAXIMUM (sizeof (union ffalloc) - 1)
+# define FFSTACK_GAP_MAXIMUM (FFSIZEOF (union ffalloc) - 1)
 
 /* The size of an array large to enough to hold all stacks, each with
    N elements.  */
 # define FFSTACK_BYTES(N) \
-     ((N) * (sizeof (fftype_int16) + sizeof (FFSTYPE)) \
+     ((N) * (FFSIZEOF (ff_state_t) + FFSIZEOF (FFSTYPE)) \
       + FFSTACK_GAP_MAXIMUM)
 
 # define FFCOPY_NEEDED 1
@@ -597,11 +757,11 @@ union ffalloc
 # define FFSTACK_RELOCATE(Stack_alloc, Stack)                           \
     do                                                                  \
       {                                                                 \
-        FFSIZE_T ffnewbytes;                                            \
+        FFPTRDIFF_T ffnewbytes;                                         \
         FFCOPY (&ffptr->Stack_alloc, Stack, ffsize);                    \
         Stack = &ffptr->Stack_alloc;                                    \
-        ffnewbytes = ffstacksize * sizeof (*Stack) + FFSTACK_GAP_MAXIMUM; \
-        ffptr += ffnewbytes / sizeof (*ffptr);                          \
+        ffnewbytes = ffstacksize * FFSIZEOF (*Stack) + FFSTACK_GAP_MAXIMUM; \
+        ffptr += ffnewbytes / FFSIZEOF (*ffptr);                        \
       }                                                                 \
     while (0)
 
@@ -613,12 +773,12 @@ union ffalloc
 # ifndef FFCOPY
 #  if defined __GNUC__ && 1 < __GNUC__
 #   define FFCOPY(Dst, Src, Count) \
-      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
+      __builtin_memcpy (Dst, Src, FF_CAST (FFSIZE_T, (Count)) * sizeof (*(Src)))
 #  else
 #   define FFCOPY(Dst, Src, Count)              \
       do                                        \
         {                                       \
-          FFSIZE_T ffi;                         \
+          FFPTRDIFF_T ffi;                      \
           for (ffi = 0; ffi < (Count); ffi++)   \
             (Dst)[ffi] = (Src)[ffi];            \
         }                                       \
@@ -630,42 +790,45 @@ union ffalloc
 /* FFFINAL -- State number of the termination state.  */
 #define FFFINAL  2
 /* FFLAST -- Last index in FFTABLE.  */
-#define FFLAST   1630
+#define FFLAST   1725
 
 /* FFNTOKENS -- Number of terminals.  */
-#define FFNTOKENS  55
+#define FFNTOKENS  56
 /* FFNNTS -- Number of nonterminals.  */
 #define FFNNTS  9
 /* FFNRULES -- Number of rules.  */
-#define FFNRULES  128
+#define FFNRULES  130
 /* FFNSTATES -- Number of states.  */
-#define FFNSTATES  296
+#define FFNSTATES  308
 
-/* FFTRANSLATE[FFX] -- Symbol number corresponding to FFX as returned
-   by fflex, with out-of-bounds checking.  */
-#define FFUNDEFTOK  2
-#define FFMAXUTOK   290
+/* FFMAXUTOK -- Last valid token kind.  */
+#define FFMAXUTOK   291
 
-#define FFTRANSLATE(FFX)                                                \
-  ((unsigned int) (FFX) <= FFMAXUTOK ? fftranslate[FFX] : FFUNDEFTOK)
+
+/* FFTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
+   as returned by fflex, with out-of-bounds checking.  */
+#define FFTRANSLATE(FFX)                                \
+  (0 <= (FFX) && (FFX) <= FFMAXUTOK                     \
+   ? FF_CAST (ffsymbol_kind_t, fftranslate[FFX])        \
+   : FFSYMBOL_FFUNDEF)
 
 /* FFTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
-   as returned by fflex, without out-of-bounds checking.  */
-static const fftype_uint8 fftranslate[] =
+   as returned by fflex.  */
+static const fftype_int8 fftranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      51,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      52,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,    37,    41,     2,
-      53,    54,    38,    35,    20,    36,     2,    39,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    22,     2,
-       2,    21,     2,    25,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    48,     2,    52,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,    38,    42,     2,
+      54,    55,    39,    36,    21,    37,     2,    40,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    23,     2,
+       2,    22,     2,    26,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    23,    40,    24,    30,     2,     2,     2,
+       2,    49,     2,    53,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,    24,    41,    25,    31,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -680,105 +843,121 @@ static const fftype_uint8 fftranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    26,    27,    28,    29,    31,
-      32,    33,    34,    42,    43,    44,    45,    46,    47,    49,
-      50
+      15,    16,    17,    18,    19,    20,    27,    28,    29,    30,
+      32,    33,    34,    35,    43,    44,    45,    46,    47,    48,
+      50,    51
 };
 
 #if FFDEBUG
   /* FFRLINE[FFN] -- Source line where rule number FFN was defined.  */
-static const fftype_uint16 ffrline[] =
+static const fftype_int16 ffrline[] =
 {
-       0,   244,   244,   245,   248,   249,   255,   261,   267,   273,
-     276,   278,   291,   293,   306,   317,   331,   335,   339,   343,
-     345,   354,   357,   360,   369,   371,   373,   375,   377,   379,
-     382,   386,   388,   390,   392,   401,   403,   405,   408,   411,
-     414,   417,   420,   429,   438,   447,   450,   452,   454,   456,
-     460,   464,   483,   502,   521,   532,   546,   558,   589,   684,
-     692,   754,   778,   780,   782,   784,   786,   788,   790,   792,
-     794,   798,   800,   802,   811,   814,   817,   820,   823,   826,
-     829,   832,   835,   838,   841,   844,   847,   850,   853,   856,
-     859,   862,   865,   868,   870,   872,   874,   877,   884,   901,
-     914,   927,   938,   954,   978,  1006,  1043,  1047,  1051,  1054,
-    1058,  1062,  1065,  1069,  1071,  1073,  1075,  1077,  1079,  1081,
-    1085,  1088,  1090,  1099,  1101,  1103,  1112,  1131,  1150
+       0,   252,   252,   253,   256,   257,   263,   269,   275,   281,
+     284,   286,   299,   301,   314,   325,   339,   343,   347,   351,
+     353,   362,   365,   368,   377,   379,   381,   383,   385,   387,
+     390,   394,   396,   398,   400,   409,   411,   413,   416,   419,
+     422,   425,   428,   437,   446,   455,   458,   460,   462,   464,
+     468,   472,   491,   510,   529,   540,   554,   566,   597,   692,
+     700,   761,   785,   787,   789,   791,   793,   795,   797,   799,
+     801,   805,   807,   809,   818,   821,   824,   827,   830,   833,
+     836,   839,   842,   845,   848,   851,   854,   857,   860,   863,
+     866,   869,   872,   875,   877,   879,   881,   884,   891,   908,
+     921,   934,   945,   961,   985,  1013,  1050,  1054,  1058,  1061,
+    1066,  1069,  1074,  1078,  1081,  1085,  1087,  1089,  1091,  1093,
+    1095,  1097,  1101,  1104,  1106,  1115,  1117,  1119,  1128,  1147,
+    1166
 };
 #endif
 
-#if FFDEBUG || FFERROR_VERBOSE || 0
+/** Accessing symbol of state STATE.  */
+#define FF_ACCESSING_SYMBOL(State) FF_CAST (ffsymbol_kind_t, ffstos[State])
+
+#if FFDEBUG || 0
+/* The user-facing name of the symbol whose (internal) number is
+   FFSYMBOL.  No bounds checking.  */
+static const char *ffsymbol_name (ffsymbol_kind_t ffsymbol) FF_ATTRIBUTE_UNUSED;
+
 /* FFTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at FFNTOKENS, nonterminals.  */
 static const char *const fftname[] =
 {
-  "$end", "error", "$undefined", "BOOLEAN", "LONG", "DOUBLE", "STRING",
-  "BITSTR", "FUNCTION", "BFUNCTION", "IFUNCTION", "GTIFILTER", "REGFILTER",
-  "COLUMN", "BCOLUMN", "SCOLUMN", "BITCOL", "ROWREF", "NULLREF",
-  "SNULLREF", "','", "'='", "':'", "'{'", "'}'", "'?'", "OR", "AND", "EQ",
-  "NE", "'~'", "GT", "LT", "LTE", "GTE", "'+'", "'-'", "'%'", "'*'", "'/'",
-  "'|'", "'&'", "XOR", "POWER", "NOT", "INTCAST", "FLTCAST", "UMINUS",
-  "'['", "ACCUM", "DIFF", "'\\n'", "']'", "'('", "')'", "$accept", "lines",
-  "line", "bvector", "vector", "expr", "bexpr", "bits", "sexpr", FF_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "BOOLEAN", "LONG",
+  "DOUBLE", "STRING", "BITSTR", "FUNCTION", "BFUNCTION", "IFUNCTION",
+  "GTIFILTER", "GTIOVERLAP", "REGFILTER", "COLUMN", "BCOLUMN", "SCOLUMN",
+  "BITCOL", "ROWREF", "NULLREF", "SNULLREF", "','", "'='", "':'", "'{'",
+  "'}'", "'?'", "OR", "AND", "EQ", "NE", "'~'", "GT", "LT", "LTE", "GTE",
+  "'+'", "'-'", "'%'", "'*'", "'/'", "'|'", "'&'", "XOR", "POWER", "NOT",
+  "INTCAST", "FLTCAST", "UMINUS", "'['", "ACCUM", "DIFF", "'\\n'", "']'",
+  "'('", "')'", "$accept", "lines", "line", "bvector", "vector", "expr",
+  "bexpr", "bits", "sexpr", FF_NULLPTR
 };
+
+static const char *
+ffsymbol_name (ffsymbol_kind_t ffsymbol)
+{
+  return fftname[ffsymbol];
+}
 #endif
 
-# ifdef FFPRINT
+#ifdef FFPRINT
 /* FFTOKNUM[NUM] -- (External) token number corresponding to the
    (internal) symbol number NUM (which must be that of a token).  */
-static const fftype_uint16 fftoknum[] =
+static const fftype_int16 fftoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-      44,    61,    58,   123,   125,    63,   275,   276,   277,   278,
-     126,   279,   280,   281,   282,    43,    45,    37,    42,    47,
-     124,    38,   283,   284,   285,   286,   287,   288,    91,   289,
-     290,    10,    93,    40,    41
+     275,    44,    61,    58,   123,   125,    63,   276,   277,   278,
+     279,   126,   280,   281,   282,   283,    43,    45,    37,    42,
+      47,   124,    38,   284,   285,   286,   287,   288,   289,    91,
+     290,   291,    10,    93,    40,    41
 };
-# endif
+#endif
 
-#define FFPACT_NINF -50
+#define FFPACT_NINF (-40)
 
-#define ffpact_value_is_default(Yystate) \
-  (!!((Yystate) == (-50)))
+#define ffpact_value_is_default(Yyn) \
+  ((Yyn) == FFPACT_NINF)
 
-#define FFTABLE_NINF -1
+#define FFTABLE_NINF (-1)
 
-#define fftable_value_is_error(Yytable_value) \
+#define fftable_value_is_error(Yyn) \
   0
 
   /* FFPACT[STATE-NUM] -- Index in FFTABLE of the portion describing
      STATE-NUM.  */
 static const fftype_int16 ffpact[] =
 {
-     -50,   306,   -50,   -49,   -50,   -50,   -50,   -50,   -50,   357,
-     409,   409,    -5,    -2,   -18,     5,     6,    34,   -50,   -50,
-     -50,   409,   409,   409,   409,   409,   409,   -50,   409,   -50,
-      49,    87,  1126,   246,  1484,   -17,   -50,   -50,   436,    10,
-     350,   164,   465,    17,  1550,   302,  1431,  1511,  1513,   -14,
-     -50,   -13,   409,   409,   409,   409,  1431,  1511,  1522,   -22,
-     -22,    18,    44,   -22,    18,   -22,    18,   638,   117,  1449,
-     405,   409,   -50,   409,   -50,   409,   409,   409,   409,   409,
-     409,   409,   409,   409,   409,   409,   409,   409,   409,   409,
-     409,   409,   409,   -50,   409,   409,   409,   409,   409,   409,
-     409,   -50,     3,     3,     3,     3,     3,     3,     3,     3,
-       3,   409,   -50,   409,   409,   409,   409,   409,   409,   409,
-     -50,   409,   -50,   409,   -50,   -50,   409,   -50,   409,   -50,
-     -50,   -50,   409,   409,   -50,   409,   -50,  1293,  1316,  1339,
-    1362,   -50,   -50,   -50,   -50,  1431,  1511,  1431,  1511,  1385,
-    1568,  1568,  1568,  1582,  1582,  1582,  1582,   305,   305,   305,
-      19,    18,    19,    20,    20,    20,    20,   751,  1408,   260,
-     205,   129,    67,   -35,   -35,    19,   776,     3,     3,   112,
-     112,   112,   112,   112,   112,    60,    44,    44,   801,   268,
-     268,    62,    62,    62,    62,   -50,   494,   177,  1150,  1467,
-    1174,  1476,   523,  1198,   -50,   -50,   -50,   -50,   409,   409,
-     -50,   409,   409,   409,   409,   -50,    44,   128,   409,   -50,
-     409,   -50,   -50,   409,   -50,   409,   -50,    98,   -50,   409,
-    1532,   826,  1532,  1511,  1532,  1511,  1522,   851,   876,  1222,
-     666,   552,    86,   581,   409,   -50,   409,   -50,   409,   -50,
-     409,   -50,   409,   -50,   103,   106,   -50,   901,   926,   951,
-     694,  1246,    59,    68,   409,   -50,   409,   -50,   409,   -50,
-     -50,   409,   -50,   -50,   976,  1001,  1026,   610,   409,   -50,
-     409,   -50,   409,   -50,   409,   -50,  1051,  1076,  1101,  1270,
-     -50,   -50,   -50,   409,   722,   -50
+     -40,   337,   -40,   -39,   -40,   -40,   -40,   -40,   -40,   389,
+     442,   442,    -5,    21,    29,    17,    25,    44,    45,   -40,
+     -40,   -40,   442,   442,   442,   442,   442,   442,   -40,   442,
+     -40,   -15,    19,  1159,   443,  1584,  1605,   -40,   -40,   276,
+     -10,   330,   133,   469,   144,  1647,   248,  1526,   209,  1689,
+     -19,   -40,    49,   -18,   442,   442,   442,   442,  1526,   209,
+     294,    -6,    -6,    24,    26,    -6,    24,    -6,    24,   671,
+    1186,   382,  1544,   442,   -40,   442,   -40,   442,   442,   442,
+     442,   442,   442,   442,   442,   442,   442,   442,   442,   442,
+     442,   442,   442,   442,   442,   -40,   442,   442,   442,   442,
+     442,   442,   442,   -40,    -3,    -3,    -3,    -3,    -3,    -3,
+      -3,    -3,    -3,   442,   -40,   442,   442,   442,   442,   442,
+     442,   442,   -40,   442,   -40,   442,   -40,   -40,   442,   -40,
+     442,   -40,   -40,   -40,   442,   442,   -40,   442,   442,   -40,
+    1388,  1411,  1434,  1457,   -40,   -40,   -40,   -40,  1526,   209,
+    1526,   209,  1480,  1665,  1665,  1665,    22,    22,    22,    22,
+     203,   203,   203,   148,    24,   148,   -37,   -37,   -37,   -37,
+     784,  1503,  1558,  1619,    18,    69,   -34,   -34,   148,   809,
+      -3,    -3,   111,   111,   111,   111,   111,   111,   -11,    26,
+      26,   834,   406,   406,    58,    58,    58,    58,   -40,   498,
+    1191,  1221,  1560,  1245,  1576,   527,  1269,  1293,   -40,   -40,
+     -40,   -40,   442,   442,   -40,   442,   442,   442,   442,   -40,
+      26,    68,   442,   -40,   442,   -40,   -40,   442,   -40,   442,
+     -40,    90,   -40,   442,   442,  1629,   859,  1629,   209,  1629,
+     209,   294,   884,   909,  1317,   699,   556,    76,   585,   614,
+     442,   -40,   442,   -40,   442,   -40,   442,   -40,   442,   -40,
+      96,    97,   -40,    99,   -40,   934,   959,   984,   727,  1341,
+      51,    92,    56,   442,   -40,   442,   -40,   442,   -40,   -40,
+     442,   -40,   108,   -40,  1009,  1034,  1059,   643,    65,   442,
+     -40,   442,   -40,   442,   -40,   442,   -40,   -40,  1084,  1109,
+    1134,  1365,   -40,   -40,   -40,   442,   755,   -40
 };
 
   /* FFDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -786,445 +965,466 @@ static const fftype_int16 ffpact[] =
      means the default is an error.  */
 static const fftype_uint8 ffdefact[] =
 {
-       2,     0,     1,     0,    71,    31,    32,   120,    18,     0,
-       0,     0,     0,     0,    33,    72,   121,    19,    35,    36,
-     123,     0,     0,     0,     0,     0,     0,     4,     0,     3,
-       0,     0,     0,     0,     0,     0,     9,    54,     0,     0,
+       2,     0,     1,     0,    71,    31,    32,   122,    18,     0,
+       0,     0,     0,     0,     0,    33,    72,   123,    19,    35,
+      36,   125,     0,     0,     0,     0,     0,     0,     4,     0,
+       3,     0,     0,     0,     0,     0,     0,     9,    54,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-     106,     0,     0,     0,     0,     0,    12,    10,     0,    46,
-      47,   118,    29,    67,    68,    69,    70,     0,     0,     0,
-       0,     0,    17,     0,    16,     0,     0,     0,     0,     0,
+       0,   106,     0,     0,     0,     0,     0,     0,    12,    10,
+       0,    46,    47,   120,    29,    67,    68,    69,    70,     0,
+       0,     0,     0,     0,    17,     0,    16,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     5,     0,     0,     0,     0,     0,     0,
-       0,     6,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     8,     0,     0,     0,     0,     0,     0,     0,
-       7,     0,    58,     0,    55,    57,     0,    56,     0,    99,
-     100,   101,     0,     0,   107,     0,   110,     0,     0,     0,
-       0,    48,   119,    30,   124,    15,    11,    13,    14,     0,
-      85,    86,    84,    80,    81,    83,    82,    38,    39,    37,
-      40,    49,    41,    43,    42,    44,    45,     0,     0,     0,
-       0,    94,    93,    95,    96,    50,     0,     0,     0,    74,
-      75,    78,    76,    77,    79,    23,    22,    21,     0,    87,
-      88,    89,    91,    92,    90,   125,     0,     0,     0,     0,
-       0,     0,     0,     0,    34,    73,   122,    20,     0,     0,
-      62,     0,     0,     0,     0,   113,    29,     0,     0,    24,
-       0,    60,   102,     0,   127,     0,    59,     0,   108,     0,
-      97,     0,    51,    53,    52,    98,   126,     0,     0,     0,
-       0,     0,     0,     0,     0,    63,     0,   114,     0,    25,
-       0,   128,     0,   103,     0,     0,   111,     0,     0,     0,
-       0,     0,     0,     0,     0,    64,     0,   115,     0,    26,
-      61,     0,   109,   112,     0,     0,     0,     0,     0,    65,
-       0,   116,     0,    27,     0,   104,     0,     0,     0,     0,
-      66,   117,    28,     0,     0,   105
+       0,     0,     0,     0,     0,     5,     0,     0,     0,     0,
+       0,     0,     0,     6,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     8,     0,     0,     0,     0,     0,
+       0,     0,     7,     0,    58,     0,    55,    57,     0,    56,
+       0,    99,   100,   101,     0,     0,   107,     0,     0,   112,
+       0,     0,     0,     0,    48,   121,    30,   126,    15,    11,
+      13,    14,     0,    85,    86,    84,    80,    81,    83,    82,
+      38,    39,    37,    40,    49,    41,    43,    42,    44,    45,
+       0,     0,     0,     0,    94,    93,    95,    96,    50,     0,
+       0,     0,    74,    75,    78,    76,    77,    79,    23,    22,
+      21,     0,    87,    88,    89,    91,    92,    90,   127,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,    34,    73,
+     124,    20,     0,     0,    62,     0,     0,     0,     0,   115,
+      29,     0,     0,    24,     0,    60,   102,     0,   129,     0,
+      59,     0,   108,     0,     0,    97,     0,    51,    53,    52,
+      98,   128,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    63,     0,   116,     0,    25,     0,   130,     0,   103,
+       0,     0,   110,     0,   113,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    64,     0,   117,     0,    26,    61,
+       0,   109,     0,   114,     0,     0,     0,     0,     0,     0,
+      65,     0,   118,     0,    27,     0,   104,   111,     0,     0,
+       0,     0,    66,   119,    28,     0,     0,   105
 };
 
   /* FFPGOTO[NTERM-NUM].  */
 static const fftype_int16 ffpgoto[] =
 {
-     -50,   -50,   -50,   -50,   -50,    -1,    93,   150,    22
+     -40,   -40,   -40,   -40,   -40,    -1,   106,   155,    23
 };
 
   /* FFDEFGOTO[NTERM-NUM].  */
 static const fftype_int8 ffdefgoto[] =
 {
-      -1,     1,    29,    30,    31,    46,    47,    44,    58
+      -1,     1,    30,    31,    32,    47,    48,    45,    60
 };
 
   /* FFTABLE[FFPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If FFTABLE_NINF, syntax error.  */
-static const fftype_uint16 fftable[] =
+static const fftype_int16 fftable[] =
 {
-      32,    49,    36,    99,    51,    52,   133,   135,    38,    42,
-       8,   113,   114,   100,   115,   116,   117,   118,   119,    17,
-      56,    59,    60,    35,    63,    65,    92,    67,    53,    54,
-     123,    41,    45,    48,   120,    94,    95,    96,    97,    98,
-     134,   136,    94,    95,    96,    97,    98,   177,    99,    50,
-      70,   137,   138,   139,   140,    99,   178,    55,   100,    88,
-      89,    90,    91,    91,   124,   100,   100,    92,    92,    71,
-     145,   130,   147,    72,   149,   150,   151,   152,   153,   154,
-     155,   156,   157,   158,   159,   160,   162,   163,   164,   165,
-     166,   167,   111,   168,    33,    97,    98,   119,   175,   176,
-     109,   110,    39,    43,   242,    99,   254,    73,   111,   262,
-     188,    74,   263,   272,    57,   100,   170,    61,    64,    66,
-     196,    68,   273,     0,     0,   198,     0,   200,     0,     0,
-       0,     0,   202,     0,   203,   189,   190,   191,   192,   193,
-     194,   195,    94,    95,    96,    97,    98,   108,   199,     0,
-       0,    34,   109,   110,   201,    99,    96,    97,    98,    40,
-     111,     0,     0,   108,   146,   100,   148,    99,   109,   110,
-       0,   142,     0,     0,    62,     0,   111,   100,    69,   161,
-       0,     0,   143,     0,   126,     0,     0,   169,   171,   172,
-     173,   174,   113,   114,     0,   115,   116,   117,   118,   119,
-       0,     0,    94,    95,    96,    97,    98,   230,   231,     0,
-     232,   234,     0,   237,     0,    99,   197,   238,   127,   239,
-       0,     0,   240,     0,   241,   100,     0,   213,   243,     0,
-       0,   222,     0,   113,   114,   236,   115,   116,   117,   118,
-     119,     0,     0,   257,     0,   258,     0,   259,     0,   260,
-       0,   261,   179,   180,   181,   182,   183,   184,   185,   186,
-     187,     0,     0,   274,     0,   275,     0,   276,     0,     0,
-     277,    94,    95,    96,    97,    98,     0,   286,     0,   287,
-       0,   288,   212,   289,    99,    94,    95,    96,    97,    98,
-       0,     0,   294,     0,   100,     0,     0,   101,    99,   115,
-     116,   117,   118,   119,   233,   235,     2,     3,   100,     4,
-       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,     0,   216,   217,    21,
-     113,   114,     0,   115,   116,   117,   118,   119,     0,     0,
-       0,    22,    23,    86,    87,    88,    89,    90,    91,     0,
-      24,    25,    26,    92,     0,     0,   131,    27,     0,    28,
+      33,    50,   135,   138,     8,   101,    73,    93,    39,    43,
+      74,   125,    94,    37,    18,   102,    96,    97,    98,    99,
+     100,    58,    61,    62,    36,    65,    67,    52,    69,   101,
+     111,   112,    42,    46,    49,    53,   136,   139,   113,   102,
+      75,    54,   180,    94,    76,   126,    98,    99,   100,    55,
+      51,   181,    72,   140,   141,   142,   143,   101,    85,    86,
+      87,    88,    89,    90,    91,    92,    93,   102,    56,    57,
+     137,    94,   148,   102,   150,   113,   152,   153,   154,   155,
+     156,   157,   158,   159,   160,   161,   162,   163,   165,   166,
+     167,   168,   169,   170,   121,   171,   247,   260,    99,   100,
+     178,   179,   270,   271,   110,   272,   281,    34,   101,   111,
+     112,   283,   191,   282,   288,    40,    44,   113,   102,   173,
+     297,     0,   199,   146,     0,     0,     0,   201,    59,   203,
+       0,    63,    66,    68,   205,    70,   206,   207,   192,   193,
+     194,   195,   196,   197,   198,     0,     0,   110,     0,     0,
+       0,   202,   111,   112,   128,     0,    35,   204,     0,     0,
+     113,     0,   115,   116,    41,   117,   118,   119,   120,   121,
+      96,    97,    98,    99,   100,     0,     0,     0,     0,   149,
+      64,   151,     0,   101,    71,     0,     0,     0,   129,    90,
+      91,    92,    93,   102,   164,     0,     0,    94,     0,   132,
+       0,     0,   172,   174,   175,   176,   177,     0,     0,     0,
+       0,   235,   236,     0,   237,   239,     0,   242,     0,     0,
+       0,   243,     0,   244,     0,     0,   245,     0,   246,     0,
+       0,   200,   248,   249,     0,    96,    97,    98,    99,   100,
+     241,     0,    88,    89,    90,    91,    92,    93,   101,   265,
+       0,   266,    94,   267,     0,   268,     0,   269,   102,   182,
+     183,   184,   185,   186,   187,   188,   189,   190,     0,     0,
+       0,     0,   284,     0,   285,     0,   286,   115,   116,   287,
+     117,   118,   119,   120,   121,     0,     0,     0,   298,     0,
+     299,     0,   300,     0,   301,     0,     0,   123,    77,     0,
+       0,     0,     0,   133,   306,    78,    79,    80,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,   238,   240,   115,   116,    94,   117,   118,   119,   120,
+     121,   124,     0,     0,     0,   220,   221,     2,     3,     0,
        4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
-      14,    15,    16,    17,    18,    19,    20,     0,   102,   103,
-      21,   104,   105,   106,   107,   108,     0,     0,     0,     0,
-     109,   110,    22,    23,     0,     0,     0,     0,   111,     0,
-       0,    24,    25,    26,   125,     0,     0,     0,     0,     0,
-      28,    37,     4,     5,     6,     7,     8,     9,    10,    11,
-      12,    13,    14,    15,    16,    17,    18,    19,    20,     0,
-       0,     0,    21,   113,   114,     0,   115,   116,   117,   118,
-     119,     0,     0,     0,    22,    23,     0,     0,     0,     0,
-       0,     0,     0,    24,    25,    26,   121,    75,     0,   144,
-       0,     0,    28,     0,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,     0,     0,     0,    92,   128,    75,     0,     0,     0,
-     122,     0,     0,    76,    77,    78,    79,    80,    81,    82,
-      83,    84,    85,    86,    87,    88,    89,    90,    91,     0,
-       0,     0,     0,    92,   220,    75,     0,     0,     0,   129,
-       0,     0,    76,    77,    78,    79,    80,    81,    82,    83,
-      84,    85,    86,    87,    88,    89,    90,    91,     0,     0,
-       0,     0,    92,   227,    75,     0,     0,     0,   221,     0,
-       0,    76,    77,    78,    79,    80,    81,    82,    83,    84,
-      85,    86,    87,    88,    89,    90,    91,     0,     0,     0,
-       0,    92,   252,    75,     0,     0,     0,   228,     0,     0,
-      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,     0,     0,     0,     0,
-      92,   255,    75,     0,     0,     0,   253,     0,     0,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,     0,     0,     0,    92,
-     284,    75,     0,     0,     0,   256,     0,     0,    76,    77,
-      78,    79,    80,    81,    82,    83,    84,    85,    86,    87,
-      88,    89,    90,    91,     0,     0,     0,     0,    92,    75,
-       0,     0,     0,     0,   285,     0,    76,    77,    78,    79,
+      14,    15,    16,    17,    18,    19,    20,    21,     0,   104,
+     105,    22,   106,   107,   108,   109,   110,     0,     0,     0,
+       0,   111,   112,    23,    24,     0,     0,     0,     0,   113,
+       0,     0,    25,    26,    27,   127,     0,     0,     0,    28,
+       0,    29,     4,     5,     6,     7,     8,     9,    10,    11,
+      12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+       0,   104,   105,    22,   106,   107,   108,   109,   110,     0,
+       0,     0,     0,   111,   112,    23,    24,     0,     0,     0,
+       0,   113,     0,     0,    25,    26,    27,   146,   117,   118,
+     119,   120,   121,    29,    38,     4,     5,     6,     7,     8,
+       9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
+      19,    20,    21,     0,     0,     0,    22,     0,     0,    96,
+      97,    98,    99,   100,     0,     0,     0,     0,    23,    24,
+       0,     0,   101,     0,     0,     0,     0,    25,    26,    27,
+     130,    77,   102,     0,     0,   103,    29,     0,    78,    79,
       80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
-      90,    91,     0,     0,     0,     0,    92,    75,     0,     0,
-       0,     0,   141,     0,    76,    77,    78,    79,    80,    81,
+      90,    91,    92,    93,     0,     0,     0,     0,    94,   224,
+      77,     0,     0,     0,   131,     0,     0,    78,    79,    80,
+      81,    82,    83,    84,    85,    86,    87,    88,    89,    90,
+      91,    92,    93,     0,     0,     0,     0,    94,   231,    77,
+       0,     0,     0,   225,     0,     0,    78,    79,    80,    81,
       82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,     0,     0,     0,    92,    75,     0,     0,     0,     0,
-     251,     0,    76,    77,    78,    79,    80,    81,    82,    83,
-      84,    85,    86,    87,    88,    89,    90,    91,     0,     0,
-       0,     0,    92,    75,     0,     0,     0,     0,   270,     0,
-      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,     0,     0,     0,     0,
-      92,   209,    75,     0,     0,     0,   295,     0,     0,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,   214,    75,     0,    92,
-       0,     0,     0,   210,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,   218,    75,     0,    92,     0,     0,     0,   215,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,   244,    75,     0,    92,
-       0,     0,     0,   219,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,   246,    75,     0,    92,     0,     0,     0,   245,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,   248,    75,     0,    92,
-       0,     0,     0,   247,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,   264,    75,     0,    92,     0,     0,     0,   249,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,   266,    75,     0,    92,
-       0,     0,     0,   265,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,   268,    75,     0,    92,     0,     0,     0,   267,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,   278,    75,     0,    92,
-       0,     0,     0,   269,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,   280,    75,     0,    92,     0,     0,     0,   279,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,   282,    75,     0,    92,
-       0,     0,     0,   281,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,     0,    75,     0,    92,     0,     0,     0,   283,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,     0,    75,     0,    92,
-       0,     0,     0,   290,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-       0,     0,    75,     0,    92,     0,     0,     0,   291,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,     0,    75,     0,    92,
-       0,     0,     0,   292,    76,    77,    78,    79,    80,    81,
-      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-     223,    75,     0,     0,    92,     0,     0,    93,    76,    77,
+      92,    93,     0,     0,     0,     0,    94,   258,    77,     0,
+       0,     0,   232,     0,     0,    78,    79,    80,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,     0,     0,     0,     0,    94,   261,    77,     0,     0,
+       0,   259,     0,     0,    78,    79,    80,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
+       0,     0,     0,     0,    94,   263,    77,     0,     0,     0,
+     262,     0,     0,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+       0,     0,     0,    94,   295,    77,     0,     0,     0,   264,
+       0,     0,    78,    79,    80,    81,    82,    83,    84,    85,
+      86,    87,    88,    89,    90,    91,    92,    93,     0,     0,
+       0,     0,    94,    77,     0,     0,     0,     0,   296,     0,
       78,    79,    80,    81,    82,    83,    84,    85,    86,    87,
-      88,    89,    90,    91,   225,    75,     0,     0,    92,     0,
-       0,     0,    76,    77,    78,    79,    80,    81,    82,    83,
-      84,    85,    86,    87,    88,    89,    90,    91,   229,    75,
-       0,     0,    92,     0,     0,     0,    76,    77,    78,    79,
+      88,    89,    90,    91,    92,    93,     0,     0,     0,     0,
+      94,    77,     0,     0,     0,     0,   144,     0,    78,    79,
       80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
-      90,    91,   250,    75,     0,     0,    92,     0,     0,     0,
-      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,   271,    75,     0,     0,
-      92,     0,     0,     0,    76,    77,    78,    79,    80,    81,
+      90,    91,    92,    93,     0,     0,     0,     0,    94,    77,
+       0,     0,     0,     0,   257,     0,    78,    79,    80,    81,
       82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-     293,    75,     0,     0,    92,     0,     0,     0,    76,    77,
+      92,    93,     0,     0,     0,     0,    94,    77,     0,     0,
+       0,     0,   279,     0,    78,    79,    80,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
+       0,     0,     0,     0,    94,   213,    77,     0,     0,     0,
+     307,     0,     0,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+     218,    77,     0,    94,     0,     0,     0,   214,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,   222,    77,     0,    94,     0,
+       0,     0,   219,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+     250,    77,     0,    94,     0,     0,     0,   223,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,   252,    77,     0,    94,     0,
+       0,     0,   251,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+     254,    77,     0,    94,     0,     0,     0,   253,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,   273,    77,     0,    94,     0,
+       0,     0,   255,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+     275,    77,     0,    94,     0,     0,     0,   274,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,   277,    77,     0,    94,     0,
+       0,     0,   276,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+     289,    77,     0,    94,     0,     0,     0,   278,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,   291,    77,     0,    94,     0,
+       0,     0,   290,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+     293,    77,     0,    94,     0,     0,     0,   292,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,     0,    77,     0,    94,     0,
+       0,     0,   294,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+       0,    77,     0,    94,     0,     0,     0,   302,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,     0,    77,     0,    94,     0,
+       0,     0,   303,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,     0,
+       0,    77,     0,    94,     0,     0,     0,   304,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,     0,     0,     0,     0,    94,     0,
+       0,    95,    96,    97,    98,    99,   100,    96,    97,    98,
+      99,   100,     0,     0,     0,   101,     0,     0,     0,     0,
+     101,     0,     0,     0,     0,   102,     0,     0,     0,     0,
+     102,   145,   227,    77,     0,     0,   226,     0,     0,     0,
       78,    79,    80,    81,    82,    83,    84,    85,    86,    87,
-      88,    89,    90,    91,    75,     0,     0,   204,    92,     0,
-       0,    76,    77,    78,    79,    80,    81,    82,    83,    84,
-      85,    86,    87,    88,    89,    90,    91,    75,     0,     0,
-     205,    92,     0,     0,    76,    77,    78,    79,    80,    81,
+      88,    89,    90,    91,    92,    93,   229,    77,     0,     0,
+      94,     0,     0,     0,    78,    79,    80,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
+     233,    77,     0,     0,    94,     0,     0,     0,    78,    79,
+      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,   234,    77,     0,     0,    94,     0,
+       0,     0,    78,    79,    80,    81,    82,    83,    84,    85,
+      86,    87,    88,    89,    90,    91,    92,    93,   256,    77,
+       0,     0,    94,     0,     0,     0,    78,    79,    80,    81,
       82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
-      75,     0,     0,   206,    92,     0,     0,    76,    77,    78,
+      92,    93,   280,    77,     0,     0,    94,     0,     0,     0,
+      78,    79,    80,    81,    82,    83,    84,    85,    86,    87,
+      88,    89,    90,    91,    92,    93,   305,    77,     0,     0,
+      94,     0,     0,     0,    78,    79,    80,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
+      77,     0,     0,   208,    94,     0,     0,    78,    79,    80,
+      81,    82,    83,    84,    85,    86,    87,    88,    89,    90,
+      91,    92,    93,    77,     0,     0,   209,    94,     0,     0,
+      78,    79,    80,    81,    82,    83,    84,    85,    86,    87,
+      88,    89,    90,    91,    92,    93,    77,     0,     0,   210,
+      94,     0,     0,    78,    79,    80,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,    77,
+       0,     0,   211,    94,     0,     0,    78,    79,    80,    81,
+      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
+      92,    93,    77,   212,     0,     0,    94,     0,     0,    78,
       79,    80,    81,    82,    83,    84,    85,    86,    87,    88,
-      89,    90,    91,    75,     0,     0,   207,    92,     0,     0,
-      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,    75,   208,     0,     0,
-      92,     0,     0,    76,    77,    78,    79,    80,    81,    82,
-      83,    84,    85,    86,    87,    88,    89,    90,    91,    75,
-     211,     0,     0,    92,     0,     0,    76,    77,    78,    79,
+      89,    90,    91,    92,    93,    77,   215,     0,     0,    94,
+       0,     0,    78,    79,    80,    81,    82,    83,    84,    85,
+      86,    87,    88,    89,    90,    91,    92,    93,    77,     0,
+       0,     0,    94,     0,     0,    78,    79,    80,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,     0,     0,   115,   116,    94,   117,   118,   119,   120,
+     121,   216,     0,     0,    96,    97,    98,    99,   100,   115,
+     116,     0,   117,   118,   119,   120,   121,   101,     0,   147,
+       0,     0,     0,     0,     0,   115,   116,   102,   117,   118,
+     119,   120,   121,   104,   105,   228,   106,   107,   108,   109,
+     110,     0,     0,     0,     0,   111,   112,     0,     0,     0,
+       0,   230,     0,   113,   115,   116,   114,   117,   118,   119,
+     120,   121,   217,     0,     0,     0,     0,     0,   115,   116,
+       0,   117,   118,   119,   120,   121,     0,   122,    78,    79,
       80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
-      90,    91,    75,     0,     0,     0,    92,     0,     0,    76,
-      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
-      87,    88,    89,    90,    91,     0,     0,   102,   103,    92,
-     104,   105,   106,   107,   108,     0,     0,     0,     0,   109,
-     110,     0,     0,     0,     0,   113,   114,   111,   115,   116,
-     117,   118,   119,   143,   113,   114,     0,   115,   116,   117,
-     118,   119,   102,   103,     0,   104,   105,   106,   107,   108,
-       0,   224,     0,     0,   109,   110,     0,     0,     0,     0,
-     226,     0,   111,   132,     0,   112,    94,    95,    96,    97,
-      98,   113,   114,     0,   115,   116,   117,   118,   119,    99,
-     113,   114,     0,   115,   116,   117,   118,   119,     0,   100,
-      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,     0,     0,   102,   103,
-      92,   104,   105,   106,   107,   108,     0,     0,     0,     0,
-     109,   110,     0,     0,     0,     0,     0,     0,   111,    79,
-      80,    81,    82,    83,    84,    85,    86,    87,    88,    89,
-      90,    91,     0,     0,     0,     0,    92,    83,    84,    85,
-      86,    87,    88,    89,    90,    91,     0,     0,     0,     0,
-      92
+      90,    91,    92,    93,     0,     0,   104,   105,    94,   106,
+     107,   108,   109,   110,     0,     0,     0,     0,   111,   112,
+       0,     0,     0,     0,     0,     0,   113,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
+     134,     0,     0,     0,    94,     0,     0,     0,   115,   116,
+       0,   117,   118,   119,   120,   121
 };
 
 static const fftype_int16 ffcheck[] =
 {
-       1,     6,    51,    38,     6,    23,    20,    20,     9,    10,
-       7,    28,    29,    48,    31,    32,    33,    34,    35,    16,
-      21,    22,    23,     1,    25,    26,    48,    28,    23,    23,
-      20,     9,    10,    11,    51,    25,    26,    27,    28,    29,
-      54,    54,    25,    26,    27,    28,    29,    44,    38,    54,
-      28,    52,    53,    54,    55,    38,    53,    23,    48,    40,
-      41,    42,    43,    43,    54,    48,    48,    48,    48,    20,
-      71,    54,    73,    24,    75,    76,    77,    78,    79,    80,
+       1,     6,    21,    21,     7,    39,    21,    44,     9,    10,
+      25,    21,    49,    52,    17,    49,    26,    27,    28,    29,
+      30,    22,    23,    24,     1,    26,    27,     6,    29,    39,
+      41,    42,     9,    10,    11,     6,    55,    55,    49,    49,
+      21,    24,    45,    49,    25,    55,    28,    29,    30,    24,
+      55,    54,    29,    54,    55,    56,    57,    39,    36,    37,
+      38,    39,    40,    41,    42,    43,    44,    49,    24,    24,
+      21,    49,    73,    49,    75,    49,    77,    78,    79,    80,
       81,    82,    83,    84,    85,    86,    87,    88,    89,    90,
-      91,    92,    48,    94,     1,    28,    29,    35,    99,   100,
-      40,    41,     9,    10,     6,    38,    20,    20,    48,     6,
-     111,    24,     6,    54,    21,    48,    94,    24,    25,    26,
-     121,    28,    54,    -1,    -1,   126,    -1,   128,    -1,    -1,
-      -1,    -1,   133,    -1,   135,   113,   114,   115,   116,   117,
-     118,   119,    25,    26,    27,    28,    29,    35,   126,    -1,
-      -1,     1,    40,    41,   132,    38,    27,    28,    29,     9,
-      48,    -1,    -1,    35,    71,    48,    73,    38,    40,    41,
-      -1,    54,    -1,    -1,    24,    -1,    48,    48,    28,    86,
-      -1,    -1,    54,    -1,    20,    -1,    -1,    94,    95,    96,
-      97,    98,    28,    29,    -1,    31,    32,    33,    34,    35,
-      -1,    -1,    25,    26,    27,    28,    29,   208,   209,    -1,
-     211,   212,    -1,   214,    -1,    38,   123,   218,    54,   220,
-      -1,    -1,   223,    -1,   225,    48,    -1,    22,   229,    -1,
-      -1,    54,    -1,    28,    29,   213,    31,    32,    33,    34,
-      35,    -1,    -1,   244,    -1,   246,    -1,   248,    -1,   250,
-      -1,   252,   102,   103,   104,   105,   106,   107,   108,   109,
-     110,    -1,    -1,   264,    -1,   266,    -1,   268,    -1,    -1,
-     271,    25,    26,    27,    28,    29,    -1,   278,    -1,   280,
-      -1,   282,    22,   284,    38,    25,    26,    27,    28,    29,
-      -1,    -1,   293,    -1,    48,    -1,    -1,    51,    38,    31,
-      32,    33,    34,    35,   211,   212,     0,     1,    48,     3,
-       4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
-      14,    15,    16,    17,    18,    19,    -1,   177,   178,    23,
-      28,    29,    -1,    31,    32,    33,    34,    35,    -1,    -1,
-      -1,    35,    36,    38,    39,    40,    41,    42,    43,    -1,
-      44,    45,    46,    48,    -1,    -1,    54,    51,    -1,    53,
+      91,    92,    93,    94,    36,    96,     6,    21,    29,    30,
+     101,   102,     6,     6,    36,     6,    55,     1,    39,    41,
+      42,    55,   113,    21,     6,     9,    10,    49,    49,    96,
+      55,    -1,   123,    55,    -1,    -1,    -1,   128,    22,   130,
+      -1,    25,    26,    27,   135,    29,   137,   138,   115,   116,
+     117,   118,   119,   120,   121,    -1,    -1,    36,    -1,    -1,
+      -1,   128,    41,    42,    21,    -1,     1,   134,    -1,    -1,
+      49,    -1,    29,    30,     9,    32,    33,    34,    35,    36,
+      26,    27,    28,    29,    30,    -1,    -1,    -1,    -1,    73,
+      25,    75,    -1,    39,    29,    -1,    -1,    -1,    55,    41,
+      42,    43,    44,    49,    88,    -1,    -1,    49,    -1,    55,
+      -1,    -1,    96,    97,    98,    99,   100,    -1,    -1,    -1,
+      -1,   212,   213,    -1,   215,   216,    -1,   218,    -1,    -1,
+      -1,   222,    -1,   224,    -1,    -1,   227,    -1,   229,    -1,
+      -1,   125,   233,   234,    -1,    26,    27,    28,    29,    30,
+     217,    -1,    39,    40,    41,    42,    43,    44,    39,   250,
+      -1,   252,    49,   254,    -1,   256,    -1,   258,    49,   104,
+     105,   106,   107,   108,   109,   110,   111,   112,    -1,    -1,
+      -1,    -1,   273,    -1,   275,    -1,   277,    29,    30,   280,
+      32,    33,    34,    35,    36,    -1,    -1,    -1,   289,    -1,
+     291,    -1,   293,    -1,   295,    -1,    -1,    21,    22,    -1,
+      -1,    -1,    -1,    55,   305,    29,    30,    31,    32,    33,
+      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
+      44,   215,   216,    29,    30,    49,    32,    33,    34,    35,
+      36,    55,    -1,    -1,    -1,   180,   181,     0,     1,    -1,
        3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    17,    18,    19,    -1,    28,    29,
-      23,    31,    32,    33,    34,    35,    -1,    -1,    -1,    -1,
-      40,    41,    35,    36,    -1,    -1,    -1,    -1,    48,    -1,
-      -1,    44,    45,    46,    54,    -1,    -1,    -1,    -1,    -1,
-      53,    54,     3,     4,     5,     6,     7,     8,     9,    10,
-      11,    12,    13,    14,    15,    16,    17,    18,    19,    -1,
-      -1,    -1,    23,    28,    29,    -1,    31,    32,    33,    34,
-      35,    -1,    -1,    -1,    35,    36,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    44,    45,    46,    20,    21,    -1,    54,
-      -1,    -1,    53,    -1,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    -1,    -1,    -1,    48,    20,    21,    -1,    -1,    -1,
-      54,    -1,    -1,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    42,    43,    -1,
-      -1,    -1,    -1,    48,    20,    21,    -1,    -1,    -1,    54,
-      -1,    -1,    28,    29,    30,    31,    32,    33,    34,    35,
-      36,    37,    38,    39,    40,    41,    42,    43,    -1,    -1,
-      -1,    -1,    48,    20,    21,    -1,    -1,    -1,    54,    -1,
-      -1,    28,    29,    30,    31,    32,    33,    34,    35,    36,
-      37,    38,    39,    40,    41,    42,    43,    -1,    -1,    -1,
-      -1,    48,    20,    21,    -1,    -1,    -1,    54,    -1,    -1,
-      28,    29,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    -1,    -1,    -1,    -1,
-      48,    20,    21,    -1,    -1,    -1,    54,    -1,    -1,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    -1,    -1,    -1,    48,
-      20,    21,    -1,    -1,    -1,    54,    -1,    -1,    28,    29,
-      30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
-      40,    41,    42,    43,    -1,    -1,    -1,    -1,    48,    21,
-      -1,    -1,    -1,    -1,    54,    -1,    28,    29,    30,    31,
-      32,    33,    34,    35,    36,    37,    38,    39,    40,    41,
-      42,    43,    -1,    -1,    -1,    -1,    48,    21,    -1,    -1,
-      -1,    -1,    54,    -1,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    -1,    -1,    -1,    48,    21,    -1,    -1,    -1,    -1,
-      54,    -1,    28,    29,    30,    31,    32,    33,    34,    35,
-      36,    37,    38,    39,    40,    41,    42,    43,    -1,    -1,
-      -1,    -1,    48,    21,    -1,    -1,    -1,    -1,    54,    -1,
-      28,    29,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    -1,    -1,    -1,    -1,
-      48,    20,    21,    -1,    -1,    -1,    54,    -1,    -1,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    20,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    20,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    20,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    20,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    20,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    20,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    20,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    20,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    20,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    20,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    20,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    -1,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    -1,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    -1,    21,    -1,    48,    -1,    -1,    -1,    52,    28,
-      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    -1,    21,    -1,    48,
-      -1,    -1,    -1,    52,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      20,    21,    -1,    -1,    48,    -1,    -1,    51,    28,    29,
-      30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
-      40,    41,    42,    43,    20,    21,    -1,    -1,    48,    -1,
-      -1,    -1,    28,    29,    30,    31,    32,    33,    34,    35,
-      36,    37,    38,    39,    40,    41,    42,    43,    20,    21,
-      -1,    -1,    48,    -1,    -1,    -1,    28,    29,    30,    31,
-      32,    33,    34,    35,    36,    37,    38,    39,    40,    41,
-      42,    43,    20,    21,    -1,    -1,    48,    -1,    -1,    -1,
-      28,    29,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    20,    21,    -1,    -1,
-      48,    -1,    -1,    -1,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      20,    21,    -1,    -1,    48,    -1,    -1,    -1,    28,    29,
-      30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
-      40,    41,    42,    43,    21,    -1,    -1,    24,    48,    -1,
-      -1,    28,    29,    30,    31,    32,    33,    34,    35,    36,
-      37,    38,    39,    40,    41,    42,    43,    21,    -1,    -1,
-      24,    48,    -1,    -1,    28,    29,    30,    31,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      21,    -1,    -1,    24,    48,    -1,    -1,    28,    29,    30,
+      13,    14,    15,    16,    17,    18,    19,    20,    -1,    29,
+      30,    24,    32,    33,    34,    35,    36,    -1,    -1,    -1,
+      -1,    41,    42,    36,    37,    -1,    -1,    -1,    -1,    49,
+      -1,    -1,    45,    46,    47,    55,    -1,    -1,    -1,    52,
+      -1,    54,     3,     4,     5,     6,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    17,    18,    19,    20,
+      -1,    29,    30,    24,    32,    33,    34,    35,    36,    -1,
+      -1,    -1,    -1,    41,    42,    36,    37,    -1,    -1,    -1,
+      -1,    49,    -1,    -1,    45,    46,    47,    55,    32,    33,
+      34,    35,    36,    54,    55,     3,     4,     5,     6,     7,
+       8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
+      18,    19,    20,    -1,    -1,    -1,    24,    -1,    -1,    26,
+      27,    28,    29,    30,    -1,    -1,    -1,    -1,    36,    37,
+      -1,    -1,    39,    -1,    -1,    -1,    -1,    45,    46,    47,
+      21,    22,    49,    -1,    -1,    52,    54,    -1,    29,    30,
       31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
-      41,    42,    43,    21,    -1,    -1,    24,    48,    -1,    -1,
-      28,    29,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    21,    22,    -1,    -1,
-      48,    -1,    -1,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    42,    43,    21,
-      22,    -1,    -1,    48,    -1,    -1,    28,    29,    30,    31,
+      41,    42,    43,    44,    -1,    -1,    -1,    -1,    49,    21,
+      22,    -1,    -1,    -1,    55,    -1,    -1,    29,    30,    31,
       32,    33,    34,    35,    36,    37,    38,    39,    40,    41,
-      42,    43,    21,    -1,    -1,    -1,    48,    -1,    -1,    28,
+      42,    43,    44,    -1,    -1,    -1,    -1,    49,    21,    22,
+      -1,    -1,    -1,    55,    -1,    -1,    29,    30,    31,    32,
+      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
+      43,    44,    -1,    -1,    -1,    -1,    49,    21,    22,    -1,
+      -1,    -1,    55,    -1,    -1,    29,    30,    31,    32,    33,
+      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
+      44,    -1,    -1,    -1,    -1,    49,    21,    22,    -1,    -1,
+      -1,    55,    -1,    -1,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      -1,    -1,    -1,    -1,    49,    21,    22,    -1,    -1,    -1,
+      55,    -1,    -1,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      -1,    -1,    -1,    49,    21,    22,    -1,    -1,    -1,    55,
+      -1,    -1,    29,    30,    31,    32,    33,    34,    35,    36,
+      37,    38,    39,    40,    41,    42,    43,    44,    -1,    -1,
+      -1,    -1,    49,    22,    -1,    -1,    -1,    -1,    55,    -1,
       29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    -1,    -1,    28,    29,    48,
-      31,    32,    33,    34,    35,    -1,    -1,    -1,    -1,    40,
-      41,    -1,    -1,    -1,    -1,    28,    29,    48,    31,    32,
-      33,    34,    35,    54,    28,    29,    -1,    31,    32,    33,
-      34,    35,    28,    29,    -1,    31,    32,    33,    34,    35,
-      -1,    54,    -1,    -1,    40,    41,    -1,    -1,    -1,    -1,
-      54,    -1,    48,    20,    -1,    51,    25,    26,    27,    28,
-      29,    28,    29,    -1,    31,    32,    33,    34,    35,    38,
-      28,    29,    -1,    31,    32,    33,    34,    35,    -1,    48,
-      28,    29,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    -1,    -1,    28,    29,
-      48,    31,    32,    33,    34,    35,    -1,    -1,    -1,    -1,
-      40,    41,    -1,    -1,    -1,    -1,    -1,    -1,    48,    31,
+      39,    40,    41,    42,    43,    44,    -1,    -1,    -1,    -1,
+      49,    22,    -1,    -1,    -1,    -1,    55,    -1,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    -1,    -1,    -1,    49,    22,
+      -1,    -1,    -1,    -1,    55,    -1,    29,    30,    31,    32,
+      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
+      43,    44,    -1,    -1,    -1,    -1,    49,    22,    -1,    -1,
+      -1,    -1,    55,    -1,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      -1,    -1,    -1,    -1,    49,    21,    22,    -1,    -1,    -1,
+      55,    -1,    -1,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      21,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    21,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      21,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    21,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      21,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    21,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      21,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    21,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      21,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    21,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      21,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    -1,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      -1,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    -1,    22,    -1,    49,    -1,
+      -1,    -1,    53,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    -1,
+      -1,    22,    -1,    49,    -1,    -1,    -1,    53,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    -1,    -1,    -1,    49,    -1,
+      -1,    52,    26,    27,    28,    29,    30,    26,    27,    28,
+      29,    30,    -1,    -1,    -1,    39,    -1,    -1,    -1,    -1,
+      39,    -1,    -1,    -1,    -1,    49,    -1,    -1,    -1,    -1,
+      49,    55,    21,    22,    -1,    -1,    55,    -1,    -1,    -1,
+      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
+      39,    40,    41,    42,    43,    44,    21,    22,    -1,    -1,
+      49,    -1,    -1,    -1,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      21,    22,    -1,    -1,    49,    -1,    -1,    -1,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    21,    22,    -1,    -1,    49,    -1,
+      -1,    -1,    29,    30,    31,    32,    33,    34,    35,    36,
+      37,    38,    39,    40,    41,    42,    43,    44,    21,    22,
+      -1,    -1,    49,    -1,    -1,    -1,    29,    30,    31,    32,
+      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
+      43,    44,    21,    22,    -1,    -1,    49,    -1,    -1,    -1,
+      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
+      39,    40,    41,    42,    43,    44,    21,    22,    -1,    -1,
+      49,    -1,    -1,    -1,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      22,    -1,    -1,    25,    49,    -1,    -1,    29,    30,    31,
       32,    33,    34,    35,    36,    37,    38,    39,    40,    41,
-      42,    43,    -1,    -1,    -1,    -1,    48,    35,    36,    37,
-      38,    39,    40,    41,    42,    43,    -1,    -1,    -1,    -1,
-      48
+      42,    43,    44,    22,    -1,    -1,    25,    49,    -1,    -1,
+      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
+      39,    40,    41,    42,    43,    44,    22,    -1,    -1,    25,
+      49,    -1,    -1,    29,    30,    31,    32,    33,    34,    35,
+      36,    37,    38,    39,    40,    41,    42,    43,    44,    22,
+      -1,    -1,    25,    49,    -1,    -1,    29,    30,    31,    32,
+      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
+      43,    44,    22,    23,    -1,    -1,    49,    -1,    -1,    29,
+      30,    31,    32,    33,    34,    35,    36,    37,    38,    39,
+      40,    41,    42,    43,    44,    22,    23,    -1,    -1,    49,
+      -1,    -1,    29,    30,    31,    32,    33,    34,    35,    36,
+      37,    38,    39,    40,    41,    42,    43,    44,    22,    -1,
+      -1,    -1,    49,    -1,    -1,    29,    30,    31,    32,    33,
+      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
+      44,    -1,    -1,    29,    30,    49,    32,    33,    34,    35,
+      36,    23,    -1,    -1,    26,    27,    28,    29,    30,    29,
+      30,    -1,    32,    33,    34,    35,    36,    39,    -1,    55,
+      -1,    -1,    -1,    -1,    -1,    29,    30,    49,    32,    33,
+      34,    35,    36,    29,    30,    55,    32,    33,    34,    35,
+      36,    -1,    -1,    -1,    -1,    41,    42,    -1,    -1,    -1,
+      -1,    55,    -1,    49,    29,    30,    52,    32,    33,    34,
+      35,    36,    23,    -1,    -1,    -1,    -1,    -1,    29,    30,
+      -1,    32,    33,    34,    35,    36,    -1,    52,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    -1,    -1,    29,    30,    49,    32,
+      33,    34,    35,    36,    -1,    -1,    -1,    -1,    41,    42,
+      -1,    -1,    -1,    -1,    -1,    -1,    49,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      21,    -1,    -1,    -1,    49,    -1,    -1,    -1,    29,    30,
+      -1,    32,    33,    34,    35,    36
 };
 
   /* FFSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
-static const fftype_uint8 ffstos[] =
+static const fftype_int8 ffstos[] =
 {
-       0,    56,     0,     1,     3,     4,     5,     6,     7,     8,
+       0,    57,     0,     1,     3,     4,     5,     6,     7,     8,
        9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
-      19,    23,    35,    36,    44,    45,    46,    51,    53,    57,
-      58,    59,    60,    61,    62,    63,    51,    54,    60,    61,
-      62,    63,    60,    61,    62,    63,    60,    61,    63,     6,
-      54,     6,    23,    23,    23,    23,    60,    61,    63,    60,
-      60,    61,    62,    60,    61,    60,    61,    60,    61,    62,
-      63,    20,    24,    20,    24,    21,    28,    29,    30,    31,
-      32,    33,    34,    35,    36,    37,    38,    39,    40,    41,
-      42,    43,    48,    51,    25,    26,    27,    28,    29,    38,
-      48,    51,    28,    29,    31,    32,    33,    34,    35,    40,
-      41,    48,    51,    28,    29,    31,    32,    33,    34,    35,
-      51,    20,    54,    20,    54,    54,    20,    54,    20,    54,
-      54,    54,    20,    20,    54,    20,    54,    60,    60,    60,
-      60,    54,    54,    54,    54,    60,    61,    60,    61,    60,
-      60,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60,    61,    60,    60,    60,    60,    60,    60,    60,    61,
-      63,    61,    61,    61,    61,    60,    60,    44,    53,    62,
-      62,    62,    62,    62,    62,    62,    62,    62,    60,    63,
-      63,    63,    63,    63,    63,    63,    60,    61,    60,    63,
-      60,    63,    60,    60,    24,    24,    24,    24,    22,    20,
-      52,    22,    22,    22,    20,    52,    62,    62,    20,    52,
-      20,    54,    54,    20,    54,    20,    54,    20,    54,    20,
-      60,    60,    60,    61,    60,    61,    63,    60,    60,    60,
-      60,    60,     6,    60,    20,    52,    20,    52,    20,    52,
-      20,    54,    20,    54,    20,    20,    54,    60,    60,    60,
-      60,    60,     6,     6,    20,    52,    20,    52,    20,    52,
-      54,    20,    54,    54,    60,    60,    60,    60,    20,    52,
-      20,    52,    20,    52,    20,    54,    60,    60,    60,    60,
-      52,    52,    52,    20,    60,    54
+      19,    20,    24,    36,    37,    45,    46,    47,    52,    54,
+      58,    59,    60,    61,    62,    63,    64,    52,    55,    61,
+      62,    63,    64,    61,    62,    63,    64,    61,    62,    64,
+       6,    55,     6,     6,    24,    24,    24,    24,    61,    62,
+      64,    61,    61,    62,    63,    61,    62,    61,    62,    61,
+      62,    63,    64,    21,    25,    21,    25,    22,    29,    30,
+      31,    32,    33,    34,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    44,    49,    52,    26,    27,    28,    29,
+      30,    39,    49,    52,    29,    30,    32,    33,    34,    35,
+      36,    41,    42,    49,    52,    29,    30,    32,    33,    34,
+      35,    36,    52,    21,    55,    21,    55,    55,    21,    55,
+      21,    55,    55,    55,    21,    21,    55,    21,    21,    55,
+      61,    61,    61,    61,    55,    55,    55,    55,    61,    62,
+      61,    62,    61,    61,    61,    61,    61,    61,    61,    61,
+      61,    61,    61,    61,    62,    61,    61,    61,    61,    61,
+      61,    61,    62,    64,    62,    62,    62,    62,    61,    61,
+      45,    54,    63,    63,    63,    63,    63,    63,    63,    63,
+      63,    61,    64,    64,    64,    64,    64,    64,    64,    61,
+      62,    61,    64,    61,    64,    61,    61,    61,    25,    25,
+      25,    25,    23,    21,    53,    23,    23,    23,    21,    53,
+      63,    63,    21,    53,    21,    55,    55,    21,    55,    21,
+      55,    21,    55,    21,    21,    61,    61,    61,    62,    61,
+      62,    64,    61,    61,    61,    61,    61,     6,    61,    61,
+      21,    53,    21,    53,    21,    53,    21,    55,    21,    55,
+      21,    21,    55,    21,    55,    61,    61,    61,    61,    61,
+       6,     6,     6,    21,    53,    21,    53,    21,    53,    55,
+      21,    55,    21,    55,    61,    61,    61,    61,     6,    21,
+      53,    21,    53,    21,    53,    21,    55,    55,    61,    61,
+      61,    61,    53,    53,    53,    21,    61,    55
 };
 
   /* FFR1[FFN] -- Symbol number of symbol that rule FFN derives.  */
-static const fftype_uint8 ffr1[] =
+static const fftype_int8 ffr1[] =
 {
-       0,    55,    56,    56,    57,    57,    57,    57,    57,    57,
-      58,    58,    59,    59,    59,    59,    60,    61,    62,    62,
+       0,    56,    57,    57,    58,    58,    58,    58,    58,    58,
+      59,    59,    60,    60,    60,    60,    61,    62,    63,    63,
+      63,    63,    63,    63,    63,    63,    63,    63,    63,    63,
+      63,    61,    61,    61,    61,    61,    61,    61,    61,    61,
+      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
+      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
+      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
+      61,    62,    62,    62,    62,    62,    62,    62,    62,    62,
       62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
-      62,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60,    60,    60,    60,    60,    60,    60,    60,    60,    60,
-      60,    61,    61,    61,    61,    61,    61,    61,    61,    61,
-      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
-      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
-      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
-      61,    61,    61,    61,    61,    61,    61,    61,    61,    61,
-      63,    63,    63,    63,    63,    63,    63,    63,    63
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,    64,    64,    64,    64,    64,    64,    64,    64,
+      64
 };
 
   /* FFR2[FFN] -- Number of symbols on the right hand side of rule FFN.  */
-static const fftype_uint8 ffr2[] =
+static const fftype_int8 ffr2[] =
 {
        0,     2,     0,     2,     1,     2,     2,     2,     2,     2,
        2,     3,     2,     3,     3,     3,     2,     2,     1,     1,
@@ -1237,15 +1437,16 @@ static const fftype_uint8 ffr2[] =
        3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
        3,     3,     3,     3,     3,     3,     3,     5,     5,     3,
        3,     3,     5,     7,    11,    15,     2,     3,     5,     9,
-       3,     7,     9,     4,     6,     8,    10,    12,     2,     3,
-       1,     1,     4,     1,     3,     3,     5,     5,     7
+       7,    11,     3,     7,     9,     4,     6,     8,    10,    12,
+       2,     3,     1,     1,     4,     1,     3,     3,     5,     5,
+       7
 };
 
 
+enum { FFENOMEM = -2 };
+
 #define fferrok         (fferrstatus = 0)
 #define ffclearin       (ffchar = FFEMPTY)
-#define FFEMPTY         (-2)
-#define FFEOF           0
 
 #define FFACCEPT        goto ffacceptlab
 #define FFABORT         goto ffabortlab
@@ -1254,27 +1455,26 @@ static const fftype_uint8 ffr2[] =
 
 #define FFRECOVERING()  (!!fferrstatus)
 
-#define FFBACKUP(Token, Value)                                  \
-do                                                              \
-  if (ffchar == FFEMPTY)                                        \
-    {                                                           \
-      ffchar = (Token);                                         \
-      fflval = (Value);                                         \
-      FFPOPSTACK (fflen);                                       \
-      ffstate = *ffssp;                                         \
-      goto ffbackup;                                            \
-    }                                                           \
-  else                                                          \
-    {                                                           \
-      fferror (FF_("syntax error: cannot back up")); \
-      FFERROR;                                                  \
-    }                                                           \
-while (0)
+#define FFBACKUP(Token, Value)                                    \
+  do                                                              \
+    if (ffchar == FFEMPTY)                                        \
+      {                                                           \
+        ffchar = (Token);                                         \
+        fflval = (Value);                                         \
+        FFPOPSTACK (fflen);                                       \
+        ffstate = *ffssp;                                         \
+        goto ffbackup;                                            \
+      }                                                           \
+    else                                                          \
+      {                                                           \
+        fferror (FF_("syntax error: cannot back up")); \
+        FFERROR;                                                  \
+      }                                                           \
+  while (0)
 
-/* Error token number */
-#define FFTERROR        1
-#define FFERRCODE       256
-
+/* Backward compatibility with an undocumented macro.
+   Use FFerror or FFUNDEF. */
+#define FFERRCODE FFUNDEF
 
 
 /* Enable debugging if requested.  */
@@ -1292,54 +1492,58 @@ do {                                            \
 } while (0)
 
 /* This macro is provided for backward compatibility. */
-#ifndef FF_LOCATION_PRINT
-# define FF_LOCATION_PRINT(File, Loc) ((void) 0)
-#endif
+# ifndef FF_LOCATION_PRINT
+#  define FF_LOCATION_PRINT(File, Loc) ((void) 0)
+# endif
 
 
-# define FF_SYMBOL_PRINT(Title, Type, Value, Location)                    \
+# define FF_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
 do {                                                                      \
   if (ffdebug)                                                            \
     {                                                                     \
       FFFPRINTF (stderr, "%s ", Title);                                   \
       ff_symbol_print (stderr,                                            \
-                  Type, Value); \
+                  Kind, Value); \
       FFFPRINTF (stderr, "\n");                                           \
     }                                                                     \
 } while (0)
 
 
-/*----------------------------------------.
-| Print this symbol's value on FFOUTPUT.  |
-`----------------------------------------*/
+/*-----------------------------------.
+| Print this symbol's value on FFO.  |
+`-----------------------------------*/
 
 static void
-ff_symbol_value_print (FILE *ffoutput, int fftype, FFSTYPE const * const ffvaluep)
+ff_symbol_value_print (FILE *ffo,
+                       ffsymbol_kind_t ffkind, FFSTYPE const * const ffvaluep)
 {
-  FILE *ffo = ffoutput;
-  FFUSE (ffo);
+  FILE *ffoutput = ffo;
+  FFUSE (ffoutput);
   if (!ffvaluep)
     return;
 # ifdef FFPRINT
-  if (fftype < FFNTOKENS)
-    FFPRINT (ffoutput, fftoknum[fftype], *ffvaluep);
+  if (ffkind < FFNTOKENS)
+    FFPRINT (ffo, fftoknum[ffkind], *ffvaluep);
 # endif
-  FFUSE (fftype);
+  FF_IGNORE_MAYBE_UNINITIALIZED_BEGIN
+  FFUSE (ffkind);
+  FF_IGNORE_MAYBE_UNINITIALIZED_END
 }
 
 
-/*--------------------------------.
-| Print this symbol on FFOUTPUT.  |
-`--------------------------------*/
+/*---------------------------.
+| Print this symbol on FFO.  |
+`---------------------------*/
 
 static void
-ff_symbol_print (FILE *ffoutput, int fftype, FFSTYPE const * const ffvaluep)
+ff_symbol_print (FILE *ffo,
+                 ffsymbol_kind_t ffkind, FFSTYPE const * const ffvaluep)
 {
-  FFFPRINTF (ffoutput, "%s %s (",
-             fftype < FFNTOKENS ? "token" : "nterm", fftname[fftype]);
+  FFFPRINTF (ffo, "%s %s (",
+             ffkind < FFNTOKENS ? "token" : "nterm", ffsymbol_name (ffkind));
 
-  ff_symbol_value_print (ffoutput, fftype, ffvaluep);
-  FFFPRINTF (ffoutput, ")");
+  ff_symbol_value_print (ffo, ffkind, ffvaluep);
+  FFFPRINTF (ffo, ")");
 }
 
 /*------------------------------------------------------------------.
@@ -1348,7 +1552,7 @@ ff_symbol_print (FILE *ffoutput, int fftype, FFSTYPE const * const ffvaluep)
 `------------------------------------------------------------------*/
 
 static void
-ff_stack_print (fftype_int16 *ffbottom, fftype_int16 *fftop)
+ff_stack_print (ff_state_t *ffbottom, ff_state_t *fftop)
 {
   FFFPRINTF (stderr, "Stack now");
   for (; ffbottom <= fftop; ffbottom++)
@@ -1371,21 +1575,21 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-ff_reduce_print (fftype_int16 *ffssp, FFSTYPE *ffvsp, int ffrule)
+ff_reduce_print (ff_state_t *ffssp, FFSTYPE *ffvsp,
+                 int ffrule)
 {
-  unsigned long int fflno = ffrline[ffrule];
+  int fflno = ffrline[ffrule];
   int ffnrhs = ffr2[ffrule];
   int ffi;
-  FFFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
+  FFFPRINTF (stderr, "Reducing stack by rule %d (line %d):\n",
              ffrule - 1, fflno);
   /* The symbols being reduced.  */
   for (ffi = 0; ffi < ffnrhs; ffi++)
     {
       FFFPRINTF (stderr, "   $%d = ", ffi + 1);
       ff_symbol_print (stderr,
-                       ffstos[ffssp[ffi + 1 - ffnrhs]],
-                       &(ffvsp[(ffi + 1) - (ffnrhs)])
-                                              );
+                       FF_ACCESSING_SYMBOL (+ffssp[ffi + 1 - ffnrhs]),
+                       &ffvsp[(ffi + 1) - (ffnrhs)]);
       FFFPRINTF (stderr, "\n");
     }
 }
@@ -1400,8 +1604,8 @@ do {                                    \
    multiple parsers can coexist.  */
 int ffdebug;
 #else /* !FFDEBUG */
-# define FFDPRINTF(Args)
-# define FF_SYMBOL_PRINT(Title, Type, Value, Location)
+# define FFDPRINTF(Args) ((void) 0)
+# define FF_SYMBOL_PRINT(Title, Kind, Value, Location)
 # define FF_STACK_PRINT(Bottom, Top)
 # define FF_REDUCE_PRINT(Rule)
 #endif /* !FFDEBUG */
@@ -1424,256 +1628,38 @@ int ffdebug;
 #endif
 
 
-#if FFERROR_VERBOSE
 
-# ifndef ffstrlen
-#  if defined __GLIBC__ && defined _STRING_H
-#   define ffstrlen strlen
-#  else
-/* Return the length of FFSTR.  */
-static FFSIZE_T
-ffstrlen (const char *ffstr)
-{
-  FFSIZE_T fflen;
-  for (fflen = 0; ffstr[fflen]; fflen++)
-    continue;
-  return fflen;
-}
-#  endif
-# endif
 
-# ifndef ffstpcpy
-#  if defined __GLIBC__ && defined _STRING_H && defined _GNU_SOURCE
-#   define ffstpcpy stpcpy
-#  else
-/* Copy FFSRC to FFDEST, returning the address of the terminating '\0' in
-   FFDEST.  */
-static char *
-ffstpcpy (char *ffdest, const char *ffsrc)
-{
-  char *ffd = ffdest;
-  const char *ffs = ffsrc;
 
-  while ((*ffd++ = *ffs++) != '\0')
-    continue;
-
-  return ffd - 1;
-}
-#  endif
-# endif
-
-# ifndef fftnamerr
-/* Copy to FFRES the contents of FFSTR after stripping away unnecessary
-   quotes and backslashes, so that it's suitable for fferror.  The
-   heuristic is that double-quoting is unnecessary unless the string
-   contains an apostrophe, a comma, or backslash (other than
-   backslash-backslash).  FFSTR is taken from fftname.  If FFRES is
-   null, do not copy; instead, return the length of what the result
-   would have been.  */
-static FFSIZE_T
-fftnamerr (char *ffres, const char *ffstr)
-{
-  if (*ffstr == '"')
-    {
-      FFSIZE_T ffn = 0;
-      char const *ffp = ffstr;
-
-      for (;;)
-        switch (*++ffp)
-          {
-          case '\'':
-          case ',':
-            goto do_not_strip_quotes;
-
-          case '\\':
-            if (*++ffp != '\\')
-              goto do_not_strip_quotes;
-            /* Fall through.  */
-          default:
-            if (ffres)
-              ffres[ffn] = *ffp;
-            ffn++;
-            break;
-
-          case '"':
-            if (ffres)
-              ffres[ffn] = '\0';
-            return ffn;
-          }
-    do_not_strip_quotes: ;
-    }
-
-  if (! ffres)
-    return ffstrlen (ffstr);
-
-  return ffstpcpy (ffres, ffstr) - ffres;
-}
-# endif
-
-/* Copy into *FFMSG, which is of size *FFMSG_ALLOC, an error message
-   about the unexpected token FFTOKEN for the state stack whose top is
-   FFSSP.
-
-   Return 0 if *FFMSG was successfully written.  Return 1 if *FFMSG is
-   not large enough to hold the message.  In that case, also set
-   *FFMSG_ALLOC to the required number of bytes.  Return 2 if the
-   required number of bytes is too large to store.  */
-static int
-ffsyntax_error (FFSIZE_T *ffmsg_alloc, char **ffmsg,
-                fftype_int16 *ffssp, int fftoken)
-{
-  FFSIZE_T ffsize0 = fftnamerr (FF_NULLPTR, fftname[fftoken]);
-  FFSIZE_T ffsize = ffsize0;
-  enum { FFERROR_VERBOSE_ARGS_MAXIMUM = 5 };
-  /* Internationalized format string. */
-  const char *ffformat = FF_NULLPTR;
-  /* Arguments of ffformat. */
-  char const *ffarg[FFERROR_VERBOSE_ARGS_MAXIMUM];
-  /* Number of reported tokens (one for the "unexpected", one per
-     "expected"). */
-  int ffcount = 0;
-
-  /* There are many possibilities here to consider:
-     - If this state is a consistent state with a default action, then
-       the only way this function was invoked is if the default action
-       is an error action.  In that case, don't check for expected
-       tokens because there are none.
-     - The only way there can be no lookahead present (in ffchar) is if
-       this state is a consistent state with a default action.  Thus,
-       detecting the absence of a lookahead is sufficient to determine
-       that there is no unexpected or expected token to report.  In that
-       case, just report a simple "syntax error".
-     - Don't assume there isn't a lookahead just because this state is a
-       consistent state with a default action.  There might have been a
-       previous inconsistent state, consistent state with a non-default
-       action, or user semantic action that manipulated ffchar.
-     - Of course, the expected token list depends on states to have
-       correct lookahead information, and it depends on the parser not
-       to perform extra reductions after fetching a lookahead from the
-       scanner and before detecting a syntax error.  Thus, state merging
-       (from LALR or IELR) and default reductions corrupt the expected
-       token list.  However, the list is correct for canonical LR with
-       one exception: it will still contain any token that will not be
-       accepted due to an error action in a later state.
-  */
-  if (fftoken != FFEMPTY)
-    {
-      int ffn = ffpact[*ffssp];
-      ffarg[ffcount++] = fftname[fftoken];
-      if (!ffpact_value_is_default (ffn))
-        {
-          /* Start FFX at -FFN if negative to avoid negative indexes in
-             FFCHECK.  In other words, skip the first -FFN actions for
-             this state because they are default actions.  */
-          int ffxbegin = ffn < 0 ? -ffn : 0;
-          /* Stay within bounds of both ffcheck and fftname.  */
-          int ffchecklim = FFLAST - ffn + 1;
-          int ffxend = ffchecklim < FFNTOKENS ? ffchecklim : FFNTOKENS;
-          int ffx;
-
-          for (ffx = ffxbegin; ffx < ffxend; ++ffx)
-            if (ffcheck[ffx + ffn] == ffx && ffx != FFTERROR
-                && !fftable_value_is_error (fftable[ffx + ffn]))
-              {
-                if (ffcount == FFERROR_VERBOSE_ARGS_MAXIMUM)
-                  {
-                    ffcount = 1;
-                    ffsize = ffsize0;
-                    break;
-                  }
-                ffarg[ffcount++] = fftname[ffx];
-                {
-                  FFSIZE_T ffsize1 = ffsize + fftnamerr (FF_NULLPTR, fftname[ffx]);
-                  if (! (ffsize <= ffsize1
-                         && ffsize1 <= FFSTACK_ALLOC_MAXIMUM))
-                    return 2;
-                  ffsize = ffsize1;
-                }
-              }
-        }
-    }
-
-  switch (ffcount)
-    {
-# define FFCASE_(N, S)                      \
-      case N:                               \
-        ffformat = S;                       \
-      break
-    default: /* Avoid compiler warnings. */
-      FFCASE_(0, FF_("syntax error"));
-      FFCASE_(1, FF_("syntax error, unexpected %s"));
-      FFCASE_(2, FF_("syntax error, unexpected %s, expecting %s"));
-      FFCASE_(3, FF_("syntax error, unexpected %s, expecting %s or %s"));
-      FFCASE_(4, FF_("syntax error, unexpected %s, expecting %s or %s or %s"));
-      FFCASE_(5, FF_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
-# undef FFCASE_
-    }
-
-  {
-    FFSIZE_T ffsize1 = ffsize + ffstrlen (ffformat);
-    if (! (ffsize <= ffsize1 && ffsize1 <= FFSTACK_ALLOC_MAXIMUM))
-      return 2;
-    ffsize = ffsize1;
-  }
-
-  if (*ffmsg_alloc < ffsize)
-    {
-      *ffmsg_alloc = 2 * ffsize;
-      if (! (ffsize <= *ffmsg_alloc
-             && *ffmsg_alloc <= FFSTACK_ALLOC_MAXIMUM))
-        *ffmsg_alloc = FFSTACK_ALLOC_MAXIMUM;
-      return 1;
-    }
-
-  /* Avoid sprintf, as that infringes on the user's name space.
-     Don't have undefined behavior even if the translation
-     produced a string with the wrong number of "%s"s.  */
-  {
-    char *ffp = *ffmsg;
-    int ffi = 0;
-    while ((*ffp = *ffformat) != '\0')
-      if (*ffp == '%' && ffformat[1] == 's' && ffi < ffcount)
-        {
-          ffp += fftnamerr (ffp, ffarg[ffi++]);
-          ffformat += 2;
-        }
-      else
-        {
-          ffp++;
-          ffformat++;
-        }
-  }
-  return 0;
-}
-#endif /* FFERROR_VERBOSE */
 
 /*-----------------------------------------------.
 | Release the memory associated to this symbol.  |
 `-----------------------------------------------*/
 
 static void
-ffdestruct (const char *ffmsg, int fftype, FFSTYPE *ffvaluep)
+ffdestruct (const char *ffmsg,
+            ffsymbol_kind_t ffkind, FFSTYPE *ffvaluep)
 {
   FFUSE (ffvaluep);
   if (!ffmsg)
     ffmsg = "Deleting";
-  FF_SYMBOL_PRINT (ffmsg, fftype, ffvaluep, fflocationp);
+  FF_SYMBOL_PRINT (ffmsg, ffkind, ffvaluep, fflocationp);
 
   FF_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-  FFUSE (fftype);
+  FFUSE (ffkind);
   FF_IGNORE_MAYBE_UNINITIALIZED_END
 }
 
 
-
-
-/* The lookahead symbol.  */
+/* Lookahead token kind.  */
 int ffchar;
 
 /* The semantic value of the lookahead symbol.  */
 FFSTYPE fflval;
 /* Number of syntax errors so far.  */
 int ffnerrs;
+
+
 
 
 /*----------.
@@ -1683,43 +1669,36 @@ int ffnerrs;
 int
 ffparse (void)
 {
-    int ffstate;
+    ff_state_fast_t ffstate = 0;
     /* Number of tokens to shift before error messages enabled.  */
-    int fferrstatus;
+    int fferrstatus = 0;
 
-    /* The stacks and their tools:
-       'ffss': related to states.
-       'ffvs': related to semantic values.
-
-       Refer to the stacks through separate pointers, to allow ffoverflow
+    /* Refer to the stacks through separate pointers, to allow ffoverflow
        to reallocate them elsewhere.  */
 
-    /* The state stack.  */
-    fftype_int16 ffssa[FFINITDEPTH];
-    fftype_int16 *ffss;
-    fftype_int16 *ffssp;
+    /* Their size.  */
+    FFPTRDIFF_T ffstacksize = FFINITDEPTH;
 
-    /* The semantic value stack.  */
+    /* The state stack: array, bottom, top.  */
+    ff_state_t ffssa[FFINITDEPTH];
+    ff_state_t *ffss = ffssa;
+    ff_state_t *ffssp = ffss;
+
+    /* The semantic value stack: array, bottom, top.  */
     FFSTYPE ffvsa[FFINITDEPTH];
-    FFSTYPE *ffvs;
-    FFSTYPE *ffvsp;
-
-    FFSIZE_T ffstacksize;
+    FFSTYPE *ffvs = ffvsa;
+    FFSTYPE *ffvsp = ffvs;
 
   int ffn;
+  /* The return value of ffparse.  */
   int ffresult;
-  /* Lookahead token as an internal (translated) token number.  */
-  int fftoken = 0;
+  /* Lookahead symbol kind.  */
+  ffsymbol_kind_t fftoken = FFSYMBOL_FFEMPTY;
   /* The variables used to return semantic value and location from the
      action routines.  */
   FFSTYPE ffval;
 
-#if FFERROR_VERBOSE
-  /* Buffer for error messages, and its allocated size.  */
-  char ffmsgbuf[128];
-  char *ffmsg = ffmsgbuf;
-  FFSIZE_T ffmsg_alloc = sizeof ffmsgbuf;
-#endif
+
 
 #define FFPOPSTACK(N)   (ffvsp -= (N), ffssp -= (N))
 
@@ -1727,58 +1706,60 @@ ffparse (void)
      Keep to zero when no symbol should be popped.  */
   int fflen = 0;
 
-  ffssp = ffss = ffssa;
-  ffvsp = ffvs = ffvsa;
-  ffstacksize = FFINITDEPTH;
-
   FFDPRINTF ((stderr, "Starting parse\n"));
 
-  ffstate = 0;
-  fferrstatus = 0;
-  ffnerrs = 0;
   ffchar = FFEMPTY; /* Cause a token to be read.  */
   goto ffsetstate;
 
+
 /*------------------------------------------------------------.
-| ffnewstate -- Push a new state, which is found in ffstate.  |
+| ffnewstate -- push a new state, which is found in ffstate.  |
 `------------------------------------------------------------*/
- ffnewstate:
+ffnewstate:
   /* In all cases, when you get here, the value and location stacks
      have just been pushed.  So pushing a state here evens the stacks.  */
   ffssp++;
 
- ffsetstate:
-  *ffssp = ffstate;
+
+/*--------------------------------------------------------------------.
+| ffsetstate -- set current state (the top of the stack) to ffstate.  |
+`--------------------------------------------------------------------*/
+ffsetstate:
+  FFDPRINTF ((stderr, "Entering state %d\n", ffstate));
+  FF_ASSERT (0 <= ffstate && ffstate < FFNSTATES);
+  FF_IGNORE_USELESS_CAST_BEGIN
+  *ffssp = FF_CAST (ff_state_t, ffstate);
+  FF_IGNORE_USELESS_CAST_END
+  FF_STACK_PRINT (ffss, ffssp);
 
   if (ffss + ffstacksize - 1 <= ffssp)
+#if !defined ffoverflow && !defined FFSTACK_RELOCATE
+    goto ffexhaustedlab;
+#else
     {
       /* Get the current used size of the three stacks, in elements.  */
-      FFSIZE_T ffsize = ffssp - ffss + 1;
+      FFPTRDIFF_T ffsize = ffssp - ffss + 1;
 
-#ifdef ffoverflow
+# if defined ffoverflow
       {
         /* Give user a chance to reallocate the stack.  Use copies of
            these so that the &'s don't force the real ones into
            memory.  */
+        ff_state_t *ffss1 = ffss;
         FFSTYPE *ffvs1 = ffvs;
-        fftype_int16 *ffss1 = ffss;
 
         /* Each stack pointer address is followed by the size of the
            data in use in that stack, in bytes.  This used to be a
            conditional around just the two extra args, but that might
            be undefined if ffoverflow is a macro.  */
         ffoverflow (FF_("memory exhausted"),
-                    &ffss1, ffsize * sizeof (*ffssp),
-                    &ffvs1, ffsize * sizeof (*ffvsp),
+                    &ffss1, ffsize * FFSIZEOF (*ffssp),
+                    &ffvs1, ffsize * FFSIZEOF (*ffvsp),
                     &ffstacksize);
-
         ffss = ffss1;
         ffvs = ffvs1;
       }
-#else /* no ffoverflow */
-# ifndef FFSTACK_RELOCATE
-      goto ffexhaustedlab;
-# else
+# else /* defined FFSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (FFMAXDEPTH <= ffstacksize)
         goto ffexhaustedlab;
@@ -1787,9 +1768,10 @@ ffparse (void)
         ffstacksize = FFMAXDEPTH;
 
       {
-        fftype_int16 *ffss1 = ffss;
+        ff_state_t *ffss1 = ffss;
         union ffalloc *ffptr =
-          (union ffalloc *) FFSTACK_ALLOC (FFSTACK_BYTES (ffstacksize));
+          FF_CAST (union ffalloc *,
+                   FFSTACK_ALLOC (FF_CAST (FFSIZE_T, FFSTACK_BYTES (ffstacksize))));
         if (! ffptr)
           goto ffexhaustedlab;
         FFSTACK_RELOCATE (ffss_alloc, ffss);
@@ -1799,30 +1781,30 @@ ffparse (void)
           FFSTACK_FREE (ffss1);
       }
 # endif
-#endif /* no ffoverflow */
 
       ffssp = ffss + ffsize - 1;
       ffvsp = ffvs + ffsize - 1;
 
-      FFDPRINTF ((stderr, "Stack size increased to %lu\n",
-                  (unsigned long int) ffstacksize));
+      FF_IGNORE_USELESS_CAST_BEGIN
+      FFDPRINTF ((stderr, "Stack size increased to %ld\n",
+                  FF_CAST (long, ffstacksize)));
+      FF_IGNORE_USELESS_CAST_END
 
       if (ffss + ffstacksize - 1 <= ffssp)
         FFABORT;
     }
-
-  FFDPRINTF ((stderr, "Entering state %d\n", ffstate));
+#endif /* !defined ffoverflow && !defined FFSTACK_RELOCATE */
 
   if (ffstate == FFFINAL)
     FFACCEPT;
 
   goto ffbackup;
 
+
 /*-----------.
 | ffbackup.  |
 `-----------*/
 ffbackup:
-
   /* Do appropriate processing given the current state.  Read a
      lookahead token if we need one and don't already have one.  */
 
@@ -1833,17 +1815,28 @@ ffbackup:
 
   /* Not known => get a lookahead token if don't already have one.  */
 
-  /* FFCHAR is either FFEMPTY or FFEOF or a valid lookahead symbol.  */
+  /* FFCHAR is either empty, or end-of-input, or a valid lookahead.  */
   if (ffchar == FFEMPTY)
     {
-      FFDPRINTF ((stderr, "Reading a token: "));
+      FFDPRINTF ((stderr, "Reading a token\n"));
       ffchar = fflex ();
     }
 
   if (ffchar <= FFEOF)
     {
-      ffchar = fftoken = FFEOF;
+      ffchar = FFEOF;
+      fftoken = FFSYMBOL_FFEOF;
       FFDPRINTF ((stderr, "Now at end of input.\n"));
+    }
+  else if (ffchar == FFerror)
+    {
+      /* The scanner already issued an error message, process directly
+         to error recovery.  But do not keep the error token as
+         lookahead, it is too special and may lead us to an endless
+         loop in error recovery. */
+      ffchar = FFUNDEF;
+      fftoken = FFSYMBOL_FFerror;
+      goto fferrlab1;
     }
   else
     {
@@ -1872,15 +1865,13 @@ ffbackup:
 
   /* Shift the lookahead token.  */
   FF_SYMBOL_PRINT ("Shifting", fftoken, &fflval, &fflloc);
-
-  /* Discard the shifted token.  */
-  ffchar = FFEMPTY;
-
   ffstate = ffn;
   FF_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++ffvsp = fflval;
   FF_IGNORE_MAYBE_UNINITIALIZED_END
 
+  /* Discard the shifted token.  */
+  ffchar = FFEMPTY;
   goto ffnewstate;
 
 
@@ -1895,7 +1886,7 @@ ffdefault:
 
 
 /*-----------------------------.
-| ffreduce -- Do a reduction.  |
+| ffreduce -- do a reduction.  |
 `-----------------------------*/
 ffreduce:
   /* ffn is the number of a rule to reduce with.  */
@@ -1915,67 +1906,67 @@ ffreduce:
   FF_REDUCE_PRINT (ffn);
   switch (ffn)
     {
-        case 4:
-#line 248 "eval.y" /* yacc.c:1648  */
-    {}
-#line 1922 "y.tab.c" /* yacc.c:1648  */
+  case 4: /* line: '\n'  */
+#line 256 "eval.y"
+                     {}
+#line 1913 "y.tab.c"
     break;
 
-  case 5:
-#line 250 "eval.y" /* yacc.c:1648  */
-    { if( (ffvsp[-1].Node)<0 ) {
+  case 5: /* line: expr '\n'  */
+#line 258 "eval.y"
+                { if( (ffvsp[-1].Node)<0 ) {
 		     fferror("Couldn't build node structure: out of memory?");
 		     FFERROR;  }
                   gParse.resultNode = (ffvsp[-1].Node);
 		}
-#line 1932 "y.tab.c" /* yacc.c:1648  */
+#line 1923 "y.tab.c"
     break;
 
-  case 6:
-#line 256 "eval.y" /* yacc.c:1648  */
-    { if( (ffvsp[-1].Node)<0 ) {
+  case 6: /* line: bexpr '\n'  */
+#line 264 "eval.y"
+                { if( (ffvsp[-1].Node)<0 ) {
 		     fferror("Couldn't build node structure: out of memory?");
 		     FFERROR;  }
                   gParse.resultNode = (ffvsp[-1].Node);
 		}
-#line 1942 "y.tab.c" /* yacc.c:1648  */
+#line 1933 "y.tab.c"
     break;
 
-  case 7:
-#line 262 "eval.y" /* yacc.c:1648  */
-    { if( (ffvsp[-1].Node)<0 ) {
+  case 7: /* line: sexpr '\n'  */
+#line 270 "eval.y"
+                { if( (ffvsp[-1].Node)<0 ) {
 		     fferror("Couldn't build node structure: out of memory?");
 		     FFERROR;  } 
                   gParse.resultNode = (ffvsp[-1].Node);
 		}
-#line 1952 "y.tab.c" /* yacc.c:1648  */
+#line 1943 "y.tab.c"
     break;
 
-  case 8:
-#line 268 "eval.y" /* yacc.c:1648  */
-    { if( (ffvsp[-1].Node)<0 ) {
+  case 8: /* line: bits '\n'  */
+#line 276 "eval.y"
+                { if( (ffvsp[-1].Node)<0 ) {
 		     fferror("Couldn't build node structure: out of memory?");
 		     FFERROR;  }
                   gParse.resultNode = (ffvsp[-1].Node);
 		}
-#line 1962 "y.tab.c" /* yacc.c:1648  */
+#line 1953 "y.tab.c"
     break;
 
-  case 9:
-#line 273 "eval.y" /* yacc.c:1648  */
-    {  fferrok;  }
-#line 1968 "y.tab.c" /* yacc.c:1648  */
+  case 9: /* line: error '\n'  */
+#line 281 "eval.y"
+                     {  fferrok;  }
+#line 1959 "y.tab.c"
     break;
 
-  case 10:
-#line 277 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Vector( (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 1974 "y.tab.c" /* yacc.c:1648  */
+  case 10: /* bvector: '{' bexpr  */
+#line 285 "eval.y"
+                { (ffval.Node) = New_Vector( (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 1965 "y.tab.c"
     break;
 
-  case 11:
-#line 279 "eval.y" /* yacc.c:1648  */
-    {
+  case 11: /* bvector: bvector ',' bexpr  */
+#line 287 "eval.y"
+                {
                   if( gParse.Nodes[(ffvsp[-2].Node)].nSubNodes >= MAXSUBS ) {
 		     (ffvsp[-2].Node) = Close_Vec( (ffvsp[-2].Node) ); TEST((ffvsp[-2].Node));
 		     (ffval.Node) = New_Vector( (ffvsp[-2].Node) ); TEST((ffval.Node));
@@ -1985,18 +1976,18 @@ ffreduce:
 		  gParse.Nodes[(ffval.Node)].SubNodes[ gParse.Nodes[(ffval.Node)].nSubNodes++ ]
 		     = (ffvsp[0].Node);
                 }
-#line 1989 "y.tab.c" /* yacc.c:1648  */
+#line 1980 "y.tab.c"
     break;
 
-  case 12:
-#line 292 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Vector( (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 1995 "y.tab.c" /* yacc.c:1648  */
+  case 12: /* vector: '{' expr  */
+#line 300 "eval.y"
+                { (ffval.Node) = New_Vector( (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 1986 "y.tab.c"
     break;
 
-  case 13:
-#line 294 "eval.y" /* yacc.c:1648  */
-    {
+  case 13: /* vector: vector ',' expr  */
+#line 302 "eval.y"
+                {
                   if( TYPE((ffvsp[-2].Node)) < TYPE((ffvsp[0].Node)) )
                      TYPE((ffvsp[-2].Node)) = TYPE((ffvsp[0].Node));
                   if( gParse.Nodes[(ffvsp[-2].Node)].nSubNodes >= MAXSUBS ) {
@@ -2008,12 +1999,12 @@ ffreduce:
 		  gParse.Nodes[(ffval.Node)].SubNodes[ gParse.Nodes[(ffval.Node)].nSubNodes++ ]
 		     = (ffvsp[0].Node);
                 }
-#line 2012 "y.tab.c" /* yacc.c:1648  */
+#line 2003 "y.tab.c"
     break;
 
-  case 14:
-#line 307 "eval.y" /* yacc.c:1648  */
-    {
+  case 14: /* vector: vector ',' bexpr  */
+#line 315 "eval.y"
+                {
                   if( gParse.Nodes[(ffvsp[-2].Node)].nSubNodes >= MAXSUBS ) {
 		     (ffvsp[-2].Node) = Close_Vec( (ffvsp[-2].Node) ); TEST((ffvsp[-2].Node));
 		     (ffval.Node) = New_Vector( (ffvsp[-2].Node) ); TEST((ffval.Node));
@@ -2023,12 +2014,12 @@ ffreduce:
 		  gParse.Nodes[(ffval.Node)].SubNodes[ gParse.Nodes[(ffval.Node)].nSubNodes++ ]
 		     = (ffvsp[0].Node);
                 }
-#line 2027 "y.tab.c" /* yacc.c:1648  */
+#line 2018 "y.tab.c"
     break;
 
-  case 15:
-#line 318 "eval.y" /* yacc.c:1648  */
-    {
+  case 15: /* vector: bvector ',' expr  */
+#line 326 "eval.y"
+                {
                   TYPE((ffvsp[-2].Node)) = TYPE((ffvsp[0].Node));
                   if( gParse.Nodes[(ffvsp[-2].Node)].nSubNodes >= MAXSUBS ) {
 		     (ffvsp[-2].Node) = Close_Vec( (ffvsp[-2].Node) ); TEST((ffvsp[-2].Node));
@@ -2039,38 +2030,38 @@ ffreduce:
 		  gParse.Nodes[(ffval.Node)].SubNodes[ gParse.Nodes[(ffval.Node)].nSubNodes++ ]
 		     = (ffvsp[0].Node);
                 }
-#line 2043 "y.tab.c" /* yacc.c:1648  */
+#line 2034 "y.tab.c"
     break;
 
-  case 16:
-#line 332 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = Close_Vec( (ffvsp[-1].Node) ); TEST((ffval.Node)); }
-#line 2049 "y.tab.c" /* yacc.c:1648  */
+  case 16: /* expr: vector '}'  */
+#line 340 "eval.y"
+                { (ffval.Node) = Close_Vec( (ffvsp[-1].Node) ); TEST((ffval.Node)); }
+#line 2040 "y.tab.c"
     break;
 
-  case 17:
-#line 336 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = Close_Vec( (ffvsp[-1].Node) ); TEST((ffval.Node)); }
-#line 2055 "y.tab.c" /* yacc.c:1648  */
+  case 17: /* bexpr: bvector '}'  */
+#line 344 "eval.y"
+                { (ffval.Node) = Close_Vec( (ffvsp[-1].Node) ); TEST((ffval.Node)); }
+#line 2046 "y.tab.c"
     break;
 
-  case 18:
-#line 340 "eval.y" /* yacc.c:1648  */
-    {
+  case 18: /* bits: BITSTR  */
+#line 348 "eval.y"
+                {
                   (ffval.Node) = New_Const( BITSTR, (ffvsp[0].str), strlen((ffvsp[0].str))+1 ); TEST((ffval.Node));
 		  SIZE((ffval.Node)) = strlen((ffvsp[0].str)); }
-#line 2063 "y.tab.c" /* yacc.c:1648  */
+#line 2054 "y.tab.c"
     break;
 
-  case 19:
-#line 344 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
-#line 2069 "y.tab.c" /* yacc.c:1648  */
+  case 19: /* bits: BITCOL  */
+#line 352 "eval.y"
+                { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
+#line 2060 "y.tab.c"
     break;
 
-  case 20:
-#line 346 "eval.y" /* yacc.c:1648  */
-    {
+  case 20: /* bits: BITCOL '{' expr '}'  */
+#line 354 "eval.y"
+                {
                   if( TYPE((ffvsp[-1].Node)) != LONG
 		      || OPER((ffvsp[-1].Node)) != CONST_OP ) {
 		     fferror("Offset argument must be a constant integer");
@@ -2078,26 +2069,26 @@ ffreduce:
 		  }
                   (ffval.Node) = New_Offset( (ffvsp[-3].lng), (ffvsp[-1].Node) ); TEST((ffval.Node));
                 }
-#line 2082 "y.tab.c" /* yacc.c:1648  */
+#line 2073 "y.tab.c"
     break;
 
-  case 21:
-#line 355 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BITSTR, (ffvsp[-2].Node), '&', (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 21: /* bits: bits '&' bits  */
+#line 363 "eval.y"
+                { (ffval.Node) = New_BinOp( BITSTR, (ffvsp[-2].Node), '&', (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = ( SIZE((ffvsp[-2].Node))>SIZE((ffvsp[0].Node)) ? SIZE((ffvsp[-2].Node)) : SIZE((ffvsp[0].Node)) );  }
-#line 2089 "y.tab.c" /* yacc.c:1648  */
+#line 2080 "y.tab.c"
     break;
 
-  case 22:
-#line 358 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BITSTR, (ffvsp[-2].Node), '|', (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 22: /* bits: bits '|' bits  */
+#line 366 "eval.y"
+                { (ffval.Node) = New_BinOp( BITSTR, (ffvsp[-2].Node), '|', (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = ( SIZE((ffvsp[-2].Node))>SIZE((ffvsp[0].Node)) ? SIZE((ffvsp[-2].Node)) : SIZE((ffvsp[0].Node)) );  }
-#line 2096 "y.tab.c" /* yacc.c:1648  */
+#line 2087 "y.tab.c"
     break;
 
-  case 23:
-#line 361 "eval.y" /* yacc.c:1648  */
-    { 
+  case 23: /* bits: bits '+' bits  */
+#line 369 "eval.y"
+                { 
 		  if (SIZE((ffvsp[-2].Node))+SIZE((ffvsp[0].Node)) >= MAX_STRLEN) {
 		    fferror("Combined bit string size exceeds " MAX_STRLEN_S " bits");
 		    FFERROR;
@@ -2105,72 +2096,72 @@ ffreduce:
 		  (ffval.Node) = New_BinOp( BITSTR, (ffvsp[-2].Node), '+', (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = SIZE((ffvsp[-2].Node)) + SIZE((ffvsp[0].Node)); 
 		}
-#line 2109 "y.tab.c" /* yacc.c:1648  */
+#line 2100 "y.tab.c"
     break;
 
-  case 24:
-#line 370 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-3].Node), 1, (ffvsp[-1].Node),  0,  0,  0,   0 ); TEST((ffval.Node)); }
-#line 2115 "y.tab.c" /* yacc.c:1648  */
+  case 24: /* bits: bits '[' expr ']'  */
+#line 378 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-3].Node), 1, (ffvsp[-1].Node),  0,  0,  0,   0 ); TEST((ffval.Node)); }
+#line 2106 "y.tab.c"
     break;
 
-  case 25:
-#line 372 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-5].Node), 2, (ffvsp[-3].Node), (ffvsp[-1].Node),  0,  0,   0 ); TEST((ffval.Node)); }
-#line 2121 "y.tab.c" /* yacc.c:1648  */
+  case 25: /* bits: bits '[' expr ',' expr ']'  */
+#line 380 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-5].Node), 2, (ffvsp[-3].Node), (ffvsp[-1].Node),  0,  0,   0 ); TEST((ffval.Node)); }
+#line 2112 "y.tab.c"
     break;
 
-  case 26:
-#line 374 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-7].Node), 3, (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),  0,   0 ); TEST((ffval.Node)); }
-#line 2127 "y.tab.c" /* yacc.c:1648  */
+  case 26: /* bits: bits '[' expr ',' expr ',' expr ']'  */
+#line 382 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-7].Node), 3, (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),  0,   0 ); TEST((ffval.Node)); }
+#line 2118 "y.tab.c"
     break;
 
-  case 27:
-#line 376 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-9].Node), 4, (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),   0 ); TEST((ffval.Node)); }
-#line 2133 "y.tab.c" /* yacc.c:1648  */
+  case 27: /* bits: bits '[' expr ',' expr ',' expr ',' expr ']'  */
+#line 384 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-9].Node), 4, (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),   0 ); TEST((ffval.Node)); }
+#line 2124 "y.tab.c"
     break;
 
-  case 28:
-#line 378 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-11].Node), 5, (ffvsp[-9].Node), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node) ); TEST((ffval.Node)); }
-#line 2139 "y.tab.c" /* yacc.c:1648  */
+  case 28: /* bits: bits '[' expr ',' expr ',' expr ',' expr ',' expr ']'  */
+#line 386 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-11].Node), 5, (ffvsp[-9].Node), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node) ); TEST((ffval.Node)); }
+#line 2130 "y.tab.c"
     break;
 
-  case 29:
-#line 380 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( BITSTR, NOT, (ffvsp[0].Node) ); TEST((ffval.Node));     }
-#line 2145 "y.tab.c" /* yacc.c:1648  */
+  case 29: /* bits: NOT bits  */
+#line 388 "eval.y"
+                { (ffval.Node) = New_Unary( BITSTR, NOT, (ffvsp[0].Node) ); TEST((ffval.Node));     }
+#line 2136 "y.tab.c"
     break;
 
-  case 30:
-#line 383 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = (ffvsp[-1].Node); }
-#line 2151 "y.tab.c" /* yacc.c:1648  */
+  case 30: /* bits: '(' bits ')'  */
+#line 391 "eval.y"
+                { (ffval.Node) = (ffvsp[-1].Node); }
+#line 2142 "y.tab.c"
     break;
 
-  case 31:
-#line 387 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Const( LONG,   &((ffvsp[0].lng)), sizeof(long)   ); TEST((ffval.Node)); }
-#line 2157 "y.tab.c" /* yacc.c:1648  */
+  case 31: /* expr: LONG  */
+#line 395 "eval.y"
+                { (ffval.Node) = New_Const( LONG,   &((ffvsp[0].lng)), sizeof(long)   ); TEST((ffval.Node)); }
+#line 2148 "y.tab.c"
     break;
 
-  case 32:
-#line 389 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Const( DOUBLE, &((ffvsp[0].dbl)), sizeof(double) ); TEST((ffval.Node)); }
-#line 2163 "y.tab.c" /* yacc.c:1648  */
+  case 32: /* expr: DOUBLE  */
+#line 397 "eval.y"
+                { (ffval.Node) = New_Const( DOUBLE, &((ffvsp[0].dbl)), sizeof(double) ); TEST((ffval.Node)); }
+#line 2154 "y.tab.c"
     break;
 
-  case 33:
-#line 391 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
-#line 2169 "y.tab.c" /* yacc.c:1648  */
+  case 33: /* expr: COLUMN  */
+#line 399 "eval.y"
+                { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
+#line 2160 "y.tab.c"
     break;
 
-  case 34:
-#line 393 "eval.y" /* yacc.c:1648  */
-    {
+  case 34: /* expr: COLUMN '{' expr '}'  */
+#line 401 "eval.y"
+                {
                   if( TYPE((ffvsp[-1].Node)) != LONG
 		      || OPER((ffvsp[-1].Node)) != CONST_OP ) {
 		     fferror("Offset argument must be a constant integer");
@@ -2178,59 +2169,59 @@ ffreduce:
 		  }
                   (ffval.Node) = New_Offset( (ffvsp[-3].lng), (ffvsp[-1].Node) ); TEST((ffval.Node));
                 }
-#line 2182 "y.tab.c" /* yacc.c:1648  */
+#line 2173 "y.tab.c"
     break;
 
-  case 35:
-#line 402 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Func( LONG, row_fct,  0, 0, 0, 0, 0, 0, 0, 0 ); }
-#line 2188 "y.tab.c" /* yacc.c:1648  */
+  case 35: /* expr: ROWREF  */
+#line 410 "eval.y"
+                { (ffval.Node) = New_Func( LONG, row_fct,  0, 0, 0, 0, 0, 0, 0, 0 ); }
+#line 2179 "y.tab.c"
     break;
 
-  case 36:
-#line 404 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Func( LONG, null_fct, 0, 0, 0, 0, 0, 0, 0, 0 ); }
-#line 2194 "y.tab.c" /* yacc.c:1648  */
+  case 36: /* expr: NULLREF  */
+#line 412 "eval.y"
+                { (ffval.Node) = New_Func( LONG, null_fct, 0, 0, 0, 0, 0, 0, 0, 0 ); }
+#line 2185 "y.tab.c"
     break;
 
-  case 37:
-#line 406 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '%', (ffvsp[0].Node) );
+  case 37: /* expr: expr '%' expr  */
+#line 414 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '%', (ffvsp[0].Node) );
 		  TEST((ffval.Node));                                                }
-#line 2201 "y.tab.c" /* yacc.c:1648  */
+#line 2192 "y.tab.c"
     break;
 
-  case 38:
-#line 409 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '+', (ffvsp[0].Node) );
+  case 38: /* expr: expr '+' expr  */
+#line 417 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '+', (ffvsp[0].Node) );
 		  TEST((ffval.Node));                                                }
-#line 2208 "y.tab.c" /* yacc.c:1648  */
+#line 2199 "y.tab.c"
     break;
 
-  case 39:
-#line 412 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '-', (ffvsp[0].Node) ); 
+  case 39: /* expr: expr '-' expr  */
+#line 420 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '-', (ffvsp[0].Node) ); 
 		  TEST((ffval.Node));                                                }
-#line 2215 "y.tab.c" /* yacc.c:1648  */
+#line 2206 "y.tab.c"
     break;
 
-  case 40:
-#line 415 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '*', (ffvsp[0].Node) ); 
+  case 40: /* expr: expr '*' expr  */
+#line 423 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '*', (ffvsp[0].Node) ); 
 		  TEST((ffval.Node));                                                }
-#line 2222 "y.tab.c" /* yacc.c:1648  */
+#line 2213 "y.tab.c"
     break;
 
-  case 41:
-#line 418 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '/', (ffvsp[0].Node) ); 
+  case 41: /* expr: expr '/' expr  */
+#line 426 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '/', (ffvsp[0].Node) ); 
 		  TEST((ffval.Node));                                                }
-#line 2229 "y.tab.c" /* yacc.c:1648  */
+#line 2220 "y.tab.c"
     break;
 
-  case 42:
-#line 421 "eval.y" /* yacc.c:1648  */
-    { 
+  case 42: /* expr: expr '&' expr  */
+#line 429 "eval.y"
+                { 
                    if (TYPE((ffvsp[-2].Node)) != LONG ||
 		       TYPE((ffvsp[0].Node)) != LONG) {
                      fferror("Bitwise operations with incompatible types; only (bit OP bit) and (int OP int) are allowed");
@@ -2238,12 +2229,12 @@ ffreduce:
                    }
                    (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '&', (ffvsp[0].Node) );
                 }
-#line 2242 "y.tab.c" /* yacc.c:1648  */
+#line 2233 "y.tab.c"
     break;
 
-  case 43:
-#line 430 "eval.y" /* yacc.c:1648  */
-    { 
+  case 43: /* expr: expr '|' expr  */
+#line 438 "eval.y"
+                { 
                    if (TYPE((ffvsp[-2].Node)) != LONG ||
 		       TYPE((ffvsp[0].Node)) != LONG) {
                      fferror("Bitwise operations with incompatible types; only (bit OP bit) and (int OP int) are allowed");
@@ -2251,12 +2242,12 @@ ffreduce:
                    }
                    (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '|', (ffvsp[0].Node) );
                 }
-#line 2255 "y.tab.c" /* yacc.c:1648  */
+#line 2246 "y.tab.c"
     break;
 
-  case 44:
-#line 439 "eval.y" /* yacc.c:1648  */
-    { 
+  case 44: /* expr: expr XOR expr  */
+#line 447 "eval.y"
+                { 
                    if (TYPE((ffvsp[-2].Node)) != LONG ||
 		       TYPE((ffvsp[0].Node)) != LONG) {
                      fferror("Bitwise operations with incompatible types; only (bit OP bit) and (int OP int) are allowed");
@@ -2264,53 +2255,53 @@ ffreduce:
                    }
                    (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '^', (ffvsp[0].Node) );
                 }
-#line 2268 "y.tab.c" /* yacc.c:1648  */
+#line 2259 "y.tab.c"
     break;
 
-  case 45:
-#line 448 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), POWER, (ffvsp[0].Node) );
+  case 45: /* expr: expr POWER expr  */
+#line 456 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), POWER, (ffvsp[0].Node) );
 		  TEST((ffval.Node));                                                }
-#line 2275 "y.tab.c" /* yacc.c:1648  */
+#line 2266 "y.tab.c"
     break;
 
-  case 46:
-#line 451 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = (ffvsp[0].Node); }
-#line 2281 "y.tab.c" /* yacc.c:1648  */
+  case 46: /* expr: '+' expr  */
+#line 459 "eval.y"
+                { (ffval.Node) = (ffvsp[0].Node); }
+#line 2272 "y.tab.c"
     break;
 
-  case 47:
-#line 453 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( TYPE((ffvsp[0].Node)), UMINUS, (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 2287 "y.tab.c" /* yacc.c:1648  */
+  case 47: /* expr: '-' expr  */
+#line 461 "eval.y"
+                { (ffval.Node) = New_Unary( TYPE((ffvsp[0].Node)), UMINUS, (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 2278 "y.tab.c"
     break;
 
-  case 48:
-#line 455 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = (ffvsp[-1].Node); }
-#line 2293 "y.tab.c" /* yacc.c:1648  */
+  case 48: /* expr: '(' expr ')'  */
+#line 463 "eval.y"
+                { (ffval.Node) = (ffvsp[-1].Node); }
+#line 2284 "y.tab.c"
     break;
 
-  case 49:
-#line 457 "eval.y" /* yacc.c:1648  */
-    { (ffvsp[0].Node) = New_Unary( TYPE((ffvsp[-2].Node)), 0, (ffvsp[0].Node) );
+  case 49: /* expr: expr '*' bexpr  */
+#line 465 "eval.y"
+                { (ffvsp[0].Node) = New_Unary( TYPE((ffvsp[-2].Node)), 0, (ffvsp[0].Node) );
                   (ffval.Node) = New_BinOp( TYPE((ffvsp[-2].Node)), (ffvsp[-2].Node), '*', (ffvsp[0].Node) ); 
 		  TEST((ffval.Node));                                }
-#line 2301 "y.tab.c" /* yacc.c:1648  */
+#line 2292 "y.tab.c"
     break;
 
-  case 50:
-#line 461 "eval.y" /* yacc.c:1648  */
-    { (ffvsp[-2].Node) = New_Unary( TYPE((ffvsp[0].Node)), 0, (ffvsp[-2].Node) );
+  case 50: /* expr: bexpr '*' expr  */
+#line 469 "eval.y"
+                { (ffvsp[-2].Node) = New_Unary( TYPE((ffvsp[0].Node)), 0, (ffvsp[-2].Node) );
                   (ffval.Node) = New_BinOp( TYPE((ffvsp[0].Node)), (ffvsp[-2].Node), '*', (ffvsp[0].Node) );
                   TEST((ffval.Node));                                }
-#line 2309 "y.tab.c" /* yacc.c:1648  */
+#line 2300 "y.tab.c"
     break;
 
-  case 51:
-#line 465 "eval.y" /* yacc.c:1648  */
-    {
+  case 51: /* expr: bexpr '?' expr ':' expr  */
+#line 473 "eval.y"
+                {
                   PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node));
                   if( ! Test_Dims((ffvsp[-2].Node),(ffvsp[0].Node)) ) {
                      fferror("Incompatible dimensions in '?:' arguments");
@@ -2328,12 +2319,12 @@ ffreduce:
                   TYPE((ffvsp[-4].Node)) = BOOLEAN;
                   if( SIZE((ffval.Node))<SIZE((ffvsp[-4].Node)) )  Copy_Dims((ffval.Node), (ffvsp[-4].Node));
                 }
-#line 2332 "y.tab.c" /* yacc.c:1648  */
+#line 2323 "y.tab.c"
     break;
 
-  case 52:
-#line 484 "eval.y" /* yacc.c:1648  */
-    {
+  case 52: /* expr: bexpr '?' bexpr ':' expr  */
+#line 492 "eval.y"
+                {
                   PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node));
                   if( ! Test_Dims((ffvsp[-2].Node),(ffvsp[0].Node)) ) {
                      fferror("Incompatible dimensions in '?:' arguments");
@@ -2351,12 +2342,12 @@ ffreduce:
                   TYPE((ffvsp[-4].Node)) = BOOLEAN;
                   if( SIZE((ffval.Node))<SIZE((ffvsp[-4].Node)) )  Copy_Dims((ffval.Node), (ffvsp[-4].Node));
                 }
-#line 2355 "y.tab.c" /* yacc.c:1648  */
+#line 2346 "y.tab.c"
     break;
 
-  case 53:
-#line 503 "eval.y" /* yacc.c:1648  */
-    {
+  case 53: /* expr: bexpr '?' expr ':' bexpr  */
+#line 511 "eval.y"
+                {
                   PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node));
                   if( ! Test_Dims((ffvsp[-2].Node),(ffvsp[0].Node)) ) {
                      fferror("Incompatible dimensions in '?:' arguments");
@@ -2374,12 +2365,12 @@ ffreduce:
                   TYPE((ffvsp[-4].Node)) = BOOLEAN;
                   if( SIZE((ffval.Node))<SIZE((ffvsp[-4].Node)) )  Copy_Dims((ffval.Node), (ffvsp[-4].Node));
                 }
-#line 2378 "y.tab.c" /* yacc.c:1648  */
+#line 2369 "y.tab.c"
     break;
 
-  case 54:
-#line 522 "eval.y" /* yacc.c:1648  */
-    { if (FSTRCMP((ffvsp[-1].str),"RANDOM(") == 0) {  /* Scalar RANDOM() */
+  case 54: /* expr: FUNCTION ')'  */
+#line 530 "eval.y"
+                { if (FSTRCMP((ffvsp[-1].str),"RANDOM(") == 0) {  /* Scalar RANDOM() */
                      (ffval.Node) = New_Func( DOUBLE, rnd_fct, 0, 0, 0, 0, 0, 0, 0, 0 );
 		  } else if (FSTRCMP((ffvsp[-1].str),"RANDOMN(") == 0) {/*Scalar RANDOMN()*/
 		     (ffval.Node) = New_Func( DOUBLE, gasrnd_fct, 0, 0, 0, 0, 0, 0, 0, 0 );
@@ -2389,12 +2380,12 @@ ffreduce:
 		  }
                   TEST((ffval.Node)); 
                 }
-#line 2393 "y.tab.c" /* yacc.c:1648  */
+#line 2384 "y.tab.c"
     break;
 
-  case 55:
-#line 533 "eval.y" /* yacc.c:1648  */
-    { if (FSTRCMP((ffvsp[-2].str),"SUM(") == 0) {
+  case 55: /* expr: FUNCTION bexpr ')'  */
+#line 541 "eval.y"
+                { if (FSTRCMP((ffvsp[-2].str),"SUM(") == 0) {
 		     (ffval.Node) = New_Func( LONG, sum_fct, 1, (ffvsp[-1].Node), 0, 0, 0, 0, 0, 0 );
                   } else if (FSTRCMP((ffvsp[-2].str),"NELEM(") == 0) {
                      (ffval.Node) = New_Const( LONG, &( SIZE((ffvsp[-1].Node)) ), sizeof(long) );
@@ -2407,12 +2398,12 @@ ffreduce:
 		  }
                   TEST((ffval.Node)); 
 		}
-#line 2411 "y.tab.c" /* yacc.c:1648  */
+#line 2402 "y.tab.c"
     break;
 
-  case 56:
-#line 547 "eval.y" /* yacc.c:1648  */
-    { if (FSTRCMP((ffvsp[-2].str),"NELEM(") == 0) {
+  case 56: /* expr: FUNCTION sexpr ')'  */
+#line 555 "eval.y"
+                { if (FSTRCMP((ffvsp[-2].str),"NELEM(") == 0) {
                      (ffval.Node) = New_Const( LONG, &( SIZE((ffvsp[-1].Node)) ), sizeof(long) );
 		  } else if (FSTRCMP((ffvsp[-2].str),"NVALID(") == 0) {
 		     (ffval.Node) = New_Func( LONG, nonnull_fct, 1, (ffvsp[-1].Node),
@@ -2423,12 +2414,12 @@ ffreduce:
 		  }
                   TEST((ffval.Node)); 
 		}
-#line 2427 "y.tab.c" /* yacc.c:1648  */
+#line 2418 "y.tab.c"
     break;
 
-  case 57:
-#line 559 "eval.y" /* yacc.c:1648  */
-    { if (FSTRCMP((ffvsp[-2].str),"NELEM(") == 0) {
+  case 57: /* expr: FUNCTION bits ')'  */
+#line 567 "eval.y"
+                { if (FSTRCMP((ffvsp[-2].str),"NELEM(") == 0) {
                      (ffval.Node) = New_Const( LONG, &( SIZE((ffvsp[-1].Node)) ), sizeof(long) );
 		} else if (FSTRCMP((ffvsp[-2].str),"NVALID(") == 0) { /* Bit arrays do not have NULL */
                      (ffval.Node) = New_Const( LONG, &( SIZE((ffvsp[-1].Node)) ), sizeof(long) );
@@ -2458,12 +2449,12 @@ ffreduce:
 		  }
                   TEST((ffval.Node)); 
 		}
-#line 2462 "y.tab.c" /* yacc.c:1648  */
+#line 2453 "y.tab.c"
     break;
 
-  case 58:
-#line 590 "eval.y" /* yacc.c:1648  */
-    { if (FSTRCMP((ffvsp[-2].str),"SUM(") == 0)
+  case 58: /* expr: FUNCTION expr ')'  */
+#line 598 "eval.y"
+                { if (FSTRCMP((ffvsp[-2].str),"SUM(") == 0)
 		     (ffval.Node) = New_Func( TYPE((ffvsp[-1].Node)), sum_fct, 1, (ffvsp[-1].Node),
 				    0, 0, 0, 0, 0, 0 );
 		  else if (FSTRCMP((ffvsp[-2].str),"AVERAGE(") == 0)
@@ -2557,24 +2548,24 @@ ffreduce:
 		  }
                   TEST((ffval.Node)); 
                 }
-#line 2561 "y.tab.c" /* yacc.c:1648  */
+#line 2552 "y.tab.c"
     break;
 
-  case 59:
-#line 685 "eval.y" /* yacc.c:1648  */
-    { 
+  case 59: /* expr: IFUNCTION sexpr ',' sexpr ')'  */
+#line 693 "eval.y"
+                { 
 		  if (FSTRCMP((ffvsp[-4].str),"STRSTR(") == 0) {
 		    (ffval.Node) = New_Func( LONG, strpos_fct, 2, (ffvsp[-3].Node), (ffvsp[-1].Node), 0, 
 				   0, 0, 0, 0 );
 		    TEST((ffval.Node));
 		  }
                 }
-#line 2573 "y.tab.c" /* yacc.c:1648  */
+#line 2564 "y.tab.c"
     break;
 
-  case 60:
-#line 693 "eval.y" /* yacc.c:1648  */
-    { 
+  case 60: /* expr: FUNCTION expr ',' expr ')'  */
+#line 701 "eval.y"
+                { 
 		   if (FSTRCMP((ffvsp[-4].str),"DEFNULL(") == 0) {
 		      if( SIZE((ffvsp[-3].Node))>=SIZE((ffvsp[-1].Node)) && Test_Dims( (ffvsp[-3].Node), (ffvsp[-1].Node) ) ) {
 			 PROMOTE((ffvsp[-3].Node),(ffvsp[-1].Node));
@@ -2620,27 +2611,26 @@ ffreduce:
 				"are not compatible");
 			FFERROR;
 		      }
-#if 0
-		   } else if (FSTRCMP((ffvsp[-4].str),"STRSTR(") == 0) {
-		     if( TYPE((ffvsp[-3].Node)) != STRING || TYPE((ffvsp[-1].Node)) != STRING) {
-		       fferror("Arguments to strstr(s,r) must be strings");
+		   } else if (FSTRCMP((ffvsp[-4].str),"SETNULL(") == 0) {
+		     if (OPER((ffvsp[-3].Node)) != CONST_OP
+			 || SIZE((ffvsp[-3].Node)) != 1) {
+		       fferror("SETNULL first argument must be a scalar constant");
 		       FFERROR;
 		     }
-		     (ffval.Node) = New_Func( LONG, strpos_fct, 2, (ffvsp[-3].Node), (ffvsp[-1].Node), 0, 
-				    0, 0, 0, 0 );
-		     TEST((ffval.Node));
-#endif
+		     /* Make sure first arg is same type as second arg */
+		     if ( TYPE((ffvsp[-3].Node)) != TYPE((ffvsp[-1].Node)) ) (ffvsp[-3].Node) = New_Unary( TYPE((ffvsp[-1].Node)), 0, (ffvsp[-3].Node) );
+		     (ffval.Node) = New_Func( 0, setnull_fct, 2, (ffvsp[-1].Node), (ffvsp[-3].Node), 0, 0, 0, 0, 0 );
 		   } else {
 		      fferror("Function(expr,expr) not supported");
 		      FFERROR;
 		   }
                 }
-#line 2639 "y.tab.c" /* yacc.c:1648  */
+#line 2629 "y.tab.c"
     break;
 
-  case 61:
-#line 755 "eval.y" /* yacc.c:1648  */
-    { 
+  case 61: /* expr: FUNCTION expr ',' expr ',' expr ',' expr ')'  */
+#line 762 "eval.y"
+                { 
 		  if (FSTRCMP((ffvsp[-8].str),"ANGSEP(") == 0) {
 		    if( TYPE((ffvsp[-7].Node)) != DOUBLE ) (ffvsp[-7].Node) = New_Unary( DOUBLE, 0, (ffvsp[-7].Node) );
 		    if( TYPE((ffvsp[-5].Node)) != DOUBLE ) (ffvsp[-5].Node) = New_Unary( DOUBLE, 0, (ffvsp[-5].Node) );
@@ -2663,78 +2653,78 @@ ffreduce:
 		      FFERROR;
 		   }
                 }
-#line 2667 "y.tab.c" /* yacc.c:1648  */
+#line 2657 "y.tab.c"
     break;
 
-  case 62:
-#line 779 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-3].Node), 1, (ffvsp[-1].Node),  0,  0,  0,   0 ); TEST((ffval.Node)); }
-#line 2673 "y.tab.c" /* yacc.c:1648  */
+  case 62: /* expr: expr '[' expr ']'  */
+#line 786 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-3].Node), 1, (ffvsp[-1].Node),  0,  0,  0,   0 ); TEST((ffval.Node)); }
+#line 2663 "y.tab.c"
     break;
 
-  case 63:
-#line 781 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-5].Node), 2, (ffvsp[-3].Node), (ffvsp[-1].Node),  0,  0,   0 ); TEST((ffval.Node)); }
-#line 2679 "y.tab.c" /* yacc.c:1648  */
+  case 63: /* expr: expr '[' expr ',' expr ']'  */
+#line 788 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-5].Node), 2, (ffvsp[-3].Node), (ffvsp[-1].Node),  0,  0,   0 ); TEST((ffval.Node)); }
+#line 2669 "y.tab.c"
     break;
 
-  case 64:
-#line 783 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-7].Node), 3, (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),  0,   0 ); TEST((ffval.Node)); }
-#line 2685 "y.tab.c" /* yacc.c:1648  */
+  case 64: /* expr: expr '[' expr ',' expr ',' expr ']'  */
+#line 790 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-7].Node), 3, (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),  0,   0 ); TEST((ffval.Node)); }
+#line 2675 "y.tab.c"
     break;
 
-  case 65:
-#line 785 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-9].Node), 4, (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),   0 ); TEST((ffval.Node)); }
-#line 2691 "y.tab.c" /* yacc.c:1648  */
+  case 65: /* expr: expr '[' expr ',' expr ',' expr ',' expr ']'  */
+#line 792 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-9].Node), 4, (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),   0 ); TEST((ffval.Node)); }
+#line 2681 "y.tab.c"
     break;
 
-  case 66:
-#line 787 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-11].Node), 5, (ffvsp[-9].Node), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node) ); TEST((ffval.Node)); }
-#line 2697 "y.tab.c" /* yacc.c:1648  */
+  case 66: /* expr: expr '[' expr ',' expr ',' expr ',' expr ',' expr ']'  */
+#line 794 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-11].Node), 5, (ffvsp[-9].Node), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node) ); TEST((ffval.Node)); }
+#line 2687 "y.tab.c"
     break;
 
-  case 67:
-#line 789 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( LONG,   INTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
-#line 2703 "y.tab.c" /* yacc.c:1648  */
+  case 67: /* expr: INTCAST expr  */
+#line 796 "eval.y"
+                { (ffval.Node) = New_Unary( LONG,   INTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
+#line 2693 "y.tab.c"
     break;
 
-  case 68:
-#line 791 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( LONG,   INTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
-#line 2709 "y.tab.c" /* yacc.c:1648  */
+  case 68: /* expr: INTCAST bexpr  */
+#line 798 "eval.y"
+                { (ffval.Node) = New_Unary( LONG,   INTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
+#line 2699 "y.tab.c"
     break;
 
-  case 69:
-#line 793 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( DOUBLE, FLTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
-#line 2715 "y.tab.c" /* yacc.c:1648  */
+  case 69: /* expr: FLTCAST expr  */
+#line 800 "eval.y"
+                { (ffval.Node) = New_Unary( DOUBLE, FLTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
+#line 2705 "y.tab.c"
     break;
 
-  case 70:
-#line 795 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( DOUBLE, FLTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
-#line 2721 "y.tab.c" /* yacc.c:1648  */
+  case 70: /* expr: FLTCAST bexpr  */
+#line 802 "eval.y"
+                { (ffval.Node) = New_Unary( DOUBLE, FLTCAST, (ffvsp[0].Node) );  TEST((ffval.Node));  }
+#line 2711 "y.tab.c"
     break;
 
-  case 71:
-#line 799 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Const( BOOLEAN, &((ffvsp[0].log)), sizeof(char) ); TEST((ffval.Node)); }
-#line 2727 "y.tab.c" /* yacc.c:1648  */
+  case 71: /* bexpr: BOOLEAN  */
+#line 806 "eval.y"
+                { (ffval.Node) = New_Const( BOOLEAN, &((ffvsp[0].log)), sizeof(char) ); TEST((ffval.Node)); }
+#line 2717 "y.tab.c"
     break;
 
-  case 72:
-#line 801 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
-#line 2733 "y.tab.c" /* yacc.c:1648  */
+  case 72: /* bexpr: BCOLUMN  */
+#line 808 "eval.y"
+                { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
+#line 2723 "y.tab.c"
     break;
 
-  case 73:
-#line 803 "eval.y" /* yacc.c:1648  */
-    {
+  case 73: /* bexpr: BCOLUMN '{' expr '}'  */
+#line 810 "eval.y"
+                {
                   if( TYPE((ffvsp[-1].Node)) != LONG
 		      || OPER((ffvsp[-1].Node)) != CONST_OP ) {
 		     fferror("Offset argument must be a constant integer");
@@ -2742,179 +2732,179 @@ ffreduce:
 		  }
                   (ffval.Node) = New_Offset( (ffvsp[-3].lng), (ffvsp[-1].Node) ); TEST((ffval.Node));
                 }
-#line 2746 "y.tab.c" /* yacc.c:1648  */
+#line 2736 "y.tab.c"
     break;
 
-  case 74:
-#line 812 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 74: /* bexpr: bits EQ bits  */
+#line 819 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) ); TEST((ffval.Node));
 		  SIZE((ffval.Node)) = 1;                                     }
-#line 2753 "y.tab.c" /* yacc.c:1648  */
+#line 2743 "y.tab.c"
     break;
 
-  case 75:
-#line 815 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) ); TEST((ffval.Node)); 
+  case 75: /* bexpr: bits NE bits  */
+#line 822 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) ); TEST((ffval.Node)); 
 		  SIZE((ffval.Node)) = 1;                                     }
-#line 2760 "y.tab.c" /* yacc.c:1648  */
+#line 2750 "y.tab.c"
     break;
 
-  case 76:
-#line 818 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LT,  (ffvsp[0].Node) ); TEST((ffval.Node)); 
+  case 76: /* bexpr: bits LT bits  */
+#line 825 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LT,  (ffvsp[0].Node) ); TEST((ffval.Node)); 
 		  SIZE((ffval.Node)) = 1;                                     }
-#line 2767 "y.tab.c" /* yacc.c:1648  */
+#line 2757 "y.tab.c"
     break;
 
-  case 77:
-#line 821 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[0].Node) ); TEST((ffval.Node)); 
+  case 77: /* bexpr: bits LTE bits  */
+#line 828 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[0].Node) ); TEST((ffval.Node)); 
 		  SIZE((ffval.Node)) = 1;                                     }
-#line 2774 "y.tab.c" /* yacc.c:1648  */
+#line 2764 "y.tab.c"
     break;
 
-  case 78:
-#line 824 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GT,  (ffvsp[0].Node) ); TEST((ffval.Node)); 
+  case 78: /* bexpr: bits GT bits  */
+#line 831 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GT,  (ffvsp[0].Node) ); TEST((ffval.Node)); 
 		  SIZE((ffval.Node)) = 1;                                     }
-#line 2781 "y.tab.c" /* yacc.c:1648  */
+#line 2771 "y.tab.c"
     break;
 
-  case 79:
-#line 827 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GTE, (ffvsp[0].Node) ); TEST((ffval.Node)); 
+  case 79: /* bexpr: bits GTE bits  */
+#line 834 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GTE, (ffvsp[0].Node) ); TEST((ffval.Node)); 
 		  SIZE((ffval.Node)) = 1;                                     }
-#line 2788 "y.tab.c" /* yacc.c:1648  */
+#line 2778 "y.tab.c"
     break;
 
-  case 80:
-#line 830 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GT,  (ffvsp[0].Node) );
+  case 80: /* bexpr: expr GT expr  */
+#line 837 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GT,  (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2795 "y.tab.c" /* yacc.c:1648  */
+#line 2785 "y.tab.c"
     break;
 
-  case 81:
-#line 833 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LT,  (ffvsp[0].Node) );
+  case 81: /* bexpr: expr LT expr  */
+#line 840 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LT,  (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2802 "y.tab.c" /* yacc.c:1648  */
+#line 2792 "y.tab.c"
     break;
 
-  case 82:
-#line 836 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GTE, (ffvsp[0].Node) );
+  case 82: /* bexpr: expr GTE expr  */
+#line 843 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GTE, (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2809 "y.tab.c" /* yacc.c:1648  */
+#line 2799 "y.tab.c"
     break;
 
-  case 83:
-#line 839 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[0].Node) );
+  case 83: /* bexpr: expr LTE expr  */
+#line 846 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2816 "y.tab.c" /* yacc.c:1648  */
+#line 2806 "y.tab.c"
     break;
 
-  case 84:
-#line 842 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), '~', (ffvsp[0].Node) );
+  case 84: /* bexpr: expr '~' expr  */
+#line 849 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), '~', (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2823 "y.tab.c" /* yacc.c:1648  */
+#line 2813 "y.tab.c"
     break;
 
-  case 85:
-#line 845 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) );
+  case 85: /* bexpr: expr EQ expr  */
+#line 852 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2830 "y.tab.c" /* yacc.c:1648  */
+#line 2820 "y.tab.c"
     break;
 
-  case 86:
-#line 848 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) );
+  case 86: /* bexpr: expr NE expr  */
+#line 855 "eval.y"
+                { PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node)); (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) );
                   TEST((ffval.Node));                                               }
-#line 2837 "y.tab.c" /* yacc.c:1648  */
+#line 2827 "y.tab.c"
     break;
 
-  case 87:
-#line 851 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 87: /* bexpr: sexpr EQ sexpr  */
+#line 858 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = 1; }
-#line 2844 "y.tab.c" /* yacc.c:1648  */
+#line 2834 "y.tab.c"
     break;
 
-  case 88:
-#line 854 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 88: /* bexpr: sexpr NE sexpr  */
+#line 861 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = 1; }
-#line 2851 "y.tab.c" /* yacc.c:1648  */
+#line 2841 "y.tab.c"
     break;
 
-  case 89:
-#line 857 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GT,  (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 89: /* bexpr: sexpr GT sexpr  */
+#line 864 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GT,  (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = 1; }
-#line 2858 "y.tab.c" /* yacc.c:1648  */
+#line 2848 "y.tab.c"
     break;
 
-  case 90:
-#line 860 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GTE, (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 90: /* bexpr: sexpr GTE sexpr  */
+#line 867 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), GTE, (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = 1; }
-#line 2865 "y.tab.c" /* yacc.c:1648  */
+#line 2855 "y.tab.c"
     break;
 
-  case 91:
-#line 863 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LT,  (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 91: /* bexpr: sexpr LT sexpr  */
+#line 870 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LT,  (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = 1; }
-#line 2872 "y.tab.c" /* yacc.c:1648  */
+#line 2862 "y.tab.c"
     break;
 
-  case 92:
-#line 866 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[0].Node) ); TEST((ffval.Node));
+  case 92: /* bexpr: sexpr LTE sexpr  */
+#line 873 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[0].Node) ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = 1; }
-#line 2879 "y.tab.c" /* yacc.c:1648  */
+#line 2869 "y.tab.c"
     break;
 
-  case 93:
-#line 869 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), AND, (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 2885 "y.tab.c" /* yacc.c:1648  */
+  case 93: /* bexpr: bexpr AND bexpr  */
+#line 876 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), AND, (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 2875 "y.tab.c"
     break;
 
-  case 94:
-#line 871 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), OR,  (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 2891 "y.tab.c" /* yacc.c:1648  */
+  case 94: /* bexpr: bexpr OR bexpr  */
+#line 878 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), OR,  (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 2881 "y.tab.c"
     break;
 
-  case 95:
-#line 873 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 2897 "y.tab.c" /* yacc.c:1648  */
+  case 95: /* bexpr: bexpr EQ bexpr  */
+#line 880 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), EQ,  (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 2887 "y.tab.c"
     break;
 
-  case 96:
-#line 875 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 2903 "y.tab.c" /* yacc.c:1648  */
+  case 96: /* bexpr: bexpr NE bexpr  */
+#line 882 "eval.y"
+                { (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), NE,  (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 2893 "y.tab.c"
     break;
 
-  case 97:
-#line 878 "eval.y" /* yacc.c:1648  */
-    { PROMOTE((ffvsp[-4].Node),(ffvsp[-2].Node)); PROMOTE((ffvsp[-4].Node),(ffvsp[0].Node)); PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node));
+  case 97: /* bexpr: expr '=' expr ':' expr  */
+#line 885 "eval.y"
+                { PROMOTE((ffvsp[-4].Node),(ffvsp[-2].Node)); PROMOTE((ffvsp[-4].Node),(ffvsp[0].Node)); PROMOTE((ffvsp[-2].Node),(ffvsp[0].Node));
 		  (ffvsp[-2].Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), LTE, (ffvsp[-4].Node) );
                   (ffvsp[0].Node) = New_BinOp( BOOLEAN, (ffvsp[-4].Node), LTE, (ffvsp[0].Node) );
                   (ffval.Node) = New_BinOp( BOOLEAN, (ffvsp[-2].Node), AND, (ffvsp[0].Node) );
                   TEST((ffval.Node));                                         }
-#line 2913 "y.tab.c" /* yacc.c:1648  */
+#line 2903 "y.tab.c"
     break;
 
-  case 98:
-#line 885 "eval.y" /* yacc.c:1648  */
-    {
+  case 98: /* bexpr: bexpr '?' bexpr ':' bexpr  */
+#line 892 "eval.y"
+                {
                   if( ! Test_Dims((ffvsp[-2].Node),(ffvsp[0].Node)) ) {
                      fferror("Incompatible dimensions in '?:' arguments");
 		     FFERROR;
@@ -2929,12 +2919,12 @@ ffreduce:
                   }
                   if( SIZE((ffval.Node))<SIZE((ffvsp[-4].Node)) )  Copy_Dims((ffval.Node), (ffvsp[-4].Node));
                 }
-#line 2933 "y.tab.c" /* yacc.c:1648  */
+#line 2923 "y.tab.c"
     break;
 
-  case 99:
-#line 902 "eval.y" /* yacc.c:1648  */
-    {
+  case 99: /* bexpr: BFUNCTION expr ')'  */
+#line 909 "eval.y"
+                {
 		   if (FSTRCMP((ffvsp[-2].str),"ISNULL(") == 0) {
 		      (ffval.Node) = New_Func( 0, isnull_fct, 1, (ffvsp[-1].Node), 0, 0,
 				     0, 0, 0, 0 );
@@ -2946,12 +2936,12 @@ ffreduce:
 		      FFERROR;
 		   }
 		}
-#line 2950 "y.tab.c" /* yacc.c:1648  */
+#line 2940 "y.tab.c"
     break;
 
-  case 100:
-#line 915 "eval.y" /* yacc.c:1648  */
-    {
+  case 100: /* bexpr: BFUNCTION bexpr ')'  */
+#line 922 "eval.y"
+                {
 		   if (FSTRCMP((ffvsp[-2].str),"ISNULL(") == 0) {
 		      (ffval.Node) = New_Func( 0, isnull_fct, 1, (ffvsp[-1].Node), 0, 0,
 				     0, 0, 0, 0 );
@@ -2963,12 +2953,12 @@ ffreduce:
 		      FFERROR;
 		   }
 		}
-#line 2967 "y.tab.c" /* yacc.c:1648  */
+#line 2957 "y.tab.c"
     break;
 
-  case 101:
-#line 928 "eval.y" /* yacc.c:1648  */
-    {
+  case 101: /* bexpr: BFUNCTION sexpr ')'  */
+#line 935 "eval.y"
+                {
 		   if (FSTRCMP((ffvsp[-2].str),"ISNULL(") == 0) {
 		      (ffval.Node) = New_Func( BOOLEAN, isnull_fct, 1, (ffvsp[-1].Node), 0, 0,
 				     0, 0, 0, 0 );
@@ -2978,12 +2968,12 @@ ffreduce:
 		      FFERROR;
 		   }
 		}
-#line 2982 "y.tab.c" /* yacc.c:1648  */
+#line 2972 "y.tab.c"
     break;
 
-  case 102:
-#line 939 "eval.y" /* yacc.c:1648  */
-    {
+  case 102: /* bexpr: FUNCTION bexpr ',' bexpr ')'  */
+#line 946 "eval.y"
+                {
 		   if (FSTRCMP((ffvsp[-4].str),"DEFNULL(") == 0) {
 		      if( SIZE((ffvsp[-3].Node))>=SIZE((ffvsp[-1].Node)) && Test_Dims( (ffvsp[-3].Node), (ffvsp[-1].Node) ) ) {
 			 (ffval.Node) = New_Func( 0, defnull_fct, 2, (ffvsp[-3].Node), (ffvsp[-1].Node), 0,
@@ -2998,12 +2988,12 @@ ffreduce:
 		      FFERROR;
 		   }
 		}
-#line 3002 "y.tab.c" /* yacc.c:1648  */
+#line 2992 "y.tab.c"
     break;
 
-  case 103:
-#line 955 "eval.y" /* yacc.c:1648  */
-    {
+  case 103: /* bexpr: BFUNCTION expr ',' expr ',' expr ')'  */
+#line 962 "eval.y"
+                {
 		   if( TYPE((ffvsp[-5].Node)) != DOUBLE ) (ffvsp[-5].Node) = New_Unary( DOUBLE, 0, (ffvsp[-5].Node) );
 		   if( TYPE((ffvsp[-3].Node)) != DOUBLE ) (ffvsp[-3].Node) = New_Unary( DOUBLE, 0, (ffvsp[-3].Node) );
 		   if( TYPE((ffvsp[-1].Node)) != DOUBLE ) (ffvsp[-1].Node) = New_Unary( DOUBLE, 0, (ffvsp[-1].Node) );
@@ -3026,12 +3016,12 @@ ffreduce:
 		     if( SIZE((ffvsp[-3].Node))<SIZE((ffvsp[-1].Node)) )  Copy_Dims((ffval.Node), (ffvsp[-1].Node));
 		   }
 		}
-#line 3030 "y.tab.c" /* yacc.c:1648  */
+#line 3020 "y.tab.c"
     break;
 
-  case 104:
-#line 979 "eval.y" /* yacc.c:1648  */
-    {
+  case 104: /* bexpr: BFUNCTION expr ',' expr ',' expr ',' expr ',' expr ')'  */
+#line 986 "eval.y"
+                {
 		   if( TYPE((ffvsp[-9].Node)) != DOUBLE ) (ffvsp[-9].Node) = New_Unary( DOUBLE, 0, (ffvsp[-9].Node) );
 		   if( TYPE((ffvsp[-7].Node)) != DOUBLE ) (ffvsp[-7].Node) = New_Unary( DOUBLE, 0, (ffvsp[-7].Node) );
 		   if( TYPE((ffvsp[-5].Node)) != DOUBLE ) (ffvsp[-5].Node) = New_Unary( DOUBLE, 0, (ffvsp[-5].Node) );
@@ -3058,12 +3048,12 @@ ffreduce:
 		     if( SIZE((ffvsp[-3].Node))<SIZE((ffvsp[-1].Node)) ) Copy_Dims((ffval.Node), (ffvsp[-1].Node));
 		   }
 		}
-#line 3062 "y.tab.c" /* yacc.c:1648  */
+#line 3052 "y.tab.c"
     break;
 
-  case 105:
-#line 1007 "eval.y" /* yacc.c:1648  */
-    {
+  case 105: /* bexpr: BFUNCTION expr ',' expr ',' expr ',' expr ',' expr ',' expr ',' expr ')'  */
+#line 1014 "eval.y"
+                {
 		   if( TYPE((ffvsp[-13].Node)) != DOUBLE ) (ffvsp[-13].Node) = New_Unary( DOUBLE, 0, (ffvsp[-13].Node) );
 		   if( TYPE((ffvsp[-11].Node)) != DOUBLE ) (ffvsp[-11].Node) = New_Unary( DOUBLE, 0, (ffvsp[-11].Node) );
 		   if( TYPE((ffvsp[-9].Node)) != DOUBLE ) (ffvsp[-9].Node) = New_Unary( DOUBLE, 0, (ffvsp[-9].Node) );
@@ -3098,119 +3088,133 @@ ffreduce:
 		     if( SIZE((ffvsp[-3].Node))<SIZE((ffvsp[-1].Node)) ) Copy_Dims((ffval.Node), (ffvsp[-1].Node));
 		   }
 		}
-#line 3102 "y.tab.c" /* yacc.c:1648  */
+#line 3092 "y.tab.c"
     break;
 
-  case 106:
-#line 1044 "eval.y" /* yacc.c:1648  */
-    { /* Use defaults for all elements */
-                   (ffval.Node) = New_GTI( "", -99, "*START*", "*STOP*" );
+  case 106: /* bexpr: GTIFILTER ')'  */
+#line 1051 "eval.y"
+                { /* Use defaults for all elements */
+		   (ffval.Node) = New_GTI(gtifilt_fct,  "", -99, -99, "*START*", "*STOP*" );
                    TEST((ffval.Node));                                        }
-#line 3110 "y.tab.c" /* yacc.c:1648  */
+#line 3100 "y.tab.c"
     break;
 
-  case 107:
-#line 1048 "eval.y" /* yacc.c:1648  */
-    { /* Use defaults for all except filename */
-                   (ffval.Node) = New_GTI( (ffvsp[-1].str), -99, "*START*", "*STOP*" );
+  case 107: /* bexpr: GTIFILTER STRING ')'  */
+#line 1055 "eval.y"
+                { /* Use defaults for all except filename */
+		  (ffval.Node) = New_GTI(gtifilt_fct,  (ffvsp[-1].str), -99, -99, "*START*", "*STOP*" );
                    TEST((ffval.Node));                                        }
-#line 3118 "y.tab.c" /* yacc.c:1648  */
+#line 3108 "y.tab.c"
     break;
 
-  case 108:
-#line 1052 "eval.y" /* yacc.c:1648  */
-    {  (ffval.Node) = New_GTI( (ffvsp[-3].str), (ffvsp[-1].Node), "*START*", "*STOP*" );
+  case 108: /* bexpr: GTIFILTER STRING ',' expr ')'  */
+#line 1059 "eval.y"
+                {  (ffval.Node) = New_GTI(gtifilt_fct,  (ffvsp[-3].str), (ffvsp[-1].Node), -99, "*START*", "*STOP*" );
                    TEST((ffval.Node));                                        }
-#line 3125 "y.tab.c" /* yacc.c:1648  */
+#line 3115 "y.tab.c"
     break;
 
-  case 109:
-#line 1055 "eval.y" /* yacc.c:1648  */
-    {  (ffval.Node) = New_GTI( (ffvsp[-7].str), (ffvsp[-5].Node), (ffvsp[-3].str), (ffvsp[-1].str) );
+  case 109: /* bexpr: GTIFILTER STRING ',' expr ',' STRING ',' STRING ')'  */
+#line 1062 "eval.y"
+                {  (ffval.Node) = New_GTI(gtifilt_fct,  (ffvsp[-7].str), (ffvsp[-5].Node), -99, (ffvsp[-3].str), (ffvsp[-1].str) );
                    TEST((ffval.Node));                                        }
-#line 3132 "y.tab.c" /* yacc.c:1648  */
+#line 3122 "y.tab.c"
     break;
 
-  case 110:
-#line 1059 "eval.y" /* yacc.c:1648  */
-    { /* Use defaults for all except filename */
+  case 110: /* bexpr: GTIOVERLAP STRING ',' expr ',' expr ')'  */
+#line 1067 "eval.y"
+                {  (ffval.Node) = New_GTI(gtiover_fct,  (ffvsp[-5].str), (ffvsp[-3].Node), (ffvsp[-1].Node), "*START*", "*STOP*");
+                   TEST((ffval.Node));                                        }
+#line 3129 "y.tab.c"
+    break;
+
+  case 111: /* bexpr: GTIOVERLAP STRING ',' expr ',' expr ',' STRING ',' STRING ')'  */
+#line 1070 "eval.y"
+                {  (ffval.Node) = New_GTI(gtiover_fct,  (ffvsp[-9].str), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].str), (ffvsp[-1].str) );
+                   TEST((ffval.Node));                                        }
+#line 3136 "y.tab.c"
+    break;
+
+  case 112: /* bexpr: REGFILTER STRING ')'  */
+#line 1075 "eval.y"
+                { /* Use defaults for all except filename */
                    (ffval.Node) = New_REG( (ffvsp[-1].str), -99, -99, "" );
                    TEST((ffval.Node));                                        }
-#line 3140 "y.tab.c" /* yacc.c:1648  */
+#line 3144 "y.tab.c"
     break;
 
-  case 111:
-#line 1063 "eval.y" /* yacc.c:1648  */
-    {  (ffval.Node) = New_REG( (ffvsp[-5].str), (ffvsp[-3].Node), (ffvsp[-1].Node), "" );
+  case 113: /* bexpr: REGFILTER STRING ',' expr ',' expr ')'  */
+#line 1079 "eval.y"
+                {  (ffval.Node) = New_REG( (ffvsp[-5].str), (ffvsp[-3].Node), (ffvsp[-1].Node), "" );
                    TEST((ffval.Node));                                        }
-#line 3147 "y.tab.c" /* yacc.c:1648  */
+#line 3151 "y.tab.c"
     break;
 
-  case 112:
-#line 1066 "eval.y" /* yacc.c:1648  */
-    {  (ffval.Node) = New_REG( (ffvsp[-7].str), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].str) );
+  case 114: /* bexpr: REGFILTER STRING ',' expr ',' expr ',' STRING ')'  */
+#line 1082 "eval.y"
+                {  (ffval.Node) = New_REG( (ffvsp[-7].str), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].str) );
                    TEST((ffval.Node));                                        }
-#line 3154 "y.tab.c" /* yacc.c:1648  */
+#line 3158 "y.tab.c"
     break;
 
-  case 113:
-#line 1070 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-3].Node), 1, (ffvsp[-1].Node),  0,  0,  0,   0 ); TEST((ffval.Node)); }
-#line 3160 "y.tab.c" /* yacc.c:1648  */
+  case 115: /* bexpr: bexpr '[' expr ']'  */
+#line 1086 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-3].Node), 1, (ffvsp[-1].Node),  0,  0,  0,   0 ); TEST((ffval.Node)); }
+#line 3164 "y.tab.c"
     break;
 
-  case 114:
-#line 1072 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-5].Node), 2, (ffvsp[-3].Node), (ffvsp[-1].Node),  0,  0,   0 ); TEST((ffval.Node)); }
-#line 3166 "y.tab.c" /* yacc.c:1648  */
+  case 116: /* bexpr: bexpr '[' expr ',' expr ']'  */
+#line 1088 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-5].Node), 2, (ffvsp[-3].Node), (ffvsp[-1].Node),  0,  0,   0 ); TEST((ffval.Node)); }
+#line 3170 "y.tab.c"
     break;
 
-  case 115:
-#line 1074 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-7].Node), 3, (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),  0,   0 ); TEST((ffval.Node)); }
-#line 3172 "y.tab.c" /* yacc.c:1648  */
+  case 117: /* bexpr: bexpr '[' expr ',' expr ',' expr ']'  */
+#line 1090 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-7].Node), 3, (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),  0,   0 ); TEST((ffval.Node)); }
+#line 3176 "y.tab.c"
     break;
 
-  case 116:
-#line 1076 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-9].Node), 4, (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),   0 ); TEST((ffval.Node)); }
-#line 3178 "y.tab.c" /* yacc.c:1648  */
+  case 118: /* bexpr: bexpr '[' expr ',' expr ',' expr ',' expr ']'  */
+#line 1092 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-9].Node), 4, (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node),   0 ); TEST((ffval.Node)); }
+#line 3182 "y.tab.c"
     break;
 
-  case 117:
-#line 1078 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Deref( (ffvsp[-11].Node), 5, (ffvsp[-9].Node), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node) ); TEST((ffval.Node)); }
-#line 3184 "y.tab.c" /* yacc.c:1648  */
+  case 119: /* bexpr: bexpr '[' expr ',' expr ',' expr ',' expr ',' expr ']'  */
+#line 1094 "eval.y"
+                { (ffval.Node) = New_Deref( (ffvsp[-11].Node), 5, (ffvsp[-9].Node), (ffvsp[-7].Node), (ffvsp[-5].Node), (ffvsp[-3].Node), (ffvsp[-1].Node) ); TEST((ffval.Node)); }
+#line 3188 "y.tab.c"
     break;
 
-  case 118:
-#line 1080 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Unary( BOOLEAN, NOT, (ffvsp[0].Node) ); TEST((ffval.Node)); }
-#line 3190 "y.tab.c" /* yacc.c:1648  */
+  case 120: /* bexpr: NOT bexpr  */
+#line 1096 "eval.y"
+                { (ffval.Node) = New_Unary( BOOLEAN, NOT, (ffvsp[0].Node) ); TEST((ffval.Node)); }
+#line 3194 "y.tab.c"
     break;
 
-  case 119:
-#line 1082 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = (ffvsp[-1].Node); }
-#line 3196 "y.tab.c" /* yacc.c:1648  */
+  case 121: /* bexpr: '(' bexpr ')'  */
+#line 1098 "eval.y"
+                { (ffval.Node) = (ffvsp[-1].Node); }
+#line 3200 "y.tab.c"
     break;
 
-  case 120:
-#line 1086 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Const( STRING, (ffvsp[0].str), strlen((ffvsp[0].str))+1 ); TEST((ffval.Node));
+  case 122: /* sexpr: STRING  */
+#line 1102 "eval.y"
+                { (ffval.Node) = New_Const( STRING, (ffvsp[0].str), strlen((ffvsp[0].str))+1 ); TEST((ffval.Node));
                   SIZE((ffval.Node)) = strlen((ffvsp[0].str)); }
-#line 3203 "y.tab.c" /* yacc.c:1648  */
+#line 3207 "y.tab.c"
     break;
 
-  case 121:
-#line 1089 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
-#line 3209 "y.tab.c" /* yacc.c:1648  */
+  case 123: /* sexpr: SCOLUMN  */
+#line 1105 "eval.y"
+                { (ffval.Node) = New_Column( (ffvsp[0].lng) ); TEST((ffval.Node)); }
+#line 3213 "y.tab.c"
     break;
 
-  case 122:
-#line 1091 "eval.y" /* yacc.c:1648  */
-    {
+  case 124: /* sexpr: SCOLUMN '{' expr '}'  */
+#line 1107 "eval.y"
+                {
                   if( TYPE((ffvsp[-1].Node)) != LONG
 		      || OPER((ffvsp[-1].Node)) != CONST_OP ) {
 		     fferror("Offset argument must be a constant integer");
@@ -3218,24 +3222,24 @@ ffreduce:
 		  }
                   (ffval.Node) = New_Offset( (ffvsp[-3].lng), (ffvsp[-1].Node) ); TEST((ffval.Node));
                 }
-#line 3222 "y.tab.c" /* yacc.c:1648  */
+#line 3226 "y.tab.c"
     break;
 
-  case 123:
-#line 1100 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = New_Func( STRING, null_fct, 0, 0, 0, 0, 0, 0, 0, 0 ); }
-#line 3228 "y.tab.c" /* yacc.c:1648  */
+  case 125: /* sexpr: SNULLREF  */
+#line 1116 "eval.y"
+                { (ffval.Node) = New_Func( STRING, null_fct, 0, 0, 0, 0, 0, 0, 0, 0 ); }
+#line 3232 "y.tab.c"
     break;
 
-  case 124:
-#line 1102 "eval.y" /* yacc.c:1648  */
-    { (ffval.Node) = (ffvsp[-1].Node); }
-#line 3234 "y.tab.c" /* yacc.c:1648  */
+  case 126: /* sexpr: '(' sexpr ')'  */
+#line 1118 "eval.y"
+                { (ffval.Node) = (ffvsp[-1].Node); }
+#line 3238 "y.tab.c"
     break;
 
-  case 125:
-#line 1104 "eval.y" /* yacc.c:1648  */
-    { 
+  case 127: /* sexpr: sexpr '+' sexpr  */
+#line 1120 "eval.y"
+                { 
 		  if (SIZE((ffvsp[-2].Node))+SIZE((ffvsp[0].Node)) >= MAX_STRLEN) {
 		    fferror("Combined string size exceeds " MAX_STRLEN_S " characters");
 		    FFERROR;
@@ -3243,12 +3247,12 @@ ffreduce:
 		  (ffval.Node) = New_BinOp( STRING, (ffvsp[-2].Node), '+', (ffvsp[0].Node) );  TEST((ffval.Node));
 		  SIZE((ffval.Node)) = SIZE((ffvsp[-2].Node)) + SIZE((ffvsp[0].Node));
 		}
-#line 3247 "y.tab.c" /* yacc.c:1648  */
+#line 3251 "y.tab.c"
     break;
 
-  case 126:
-#line 1113 "eval.y" /* yacc.c:1648  */
-    {
+  case 128: /* sexpr: bexpr '?' sexpr ':' sexpr  */
+#line 1129 "eval.y"
+                {
 		  int outSize;
                   if( SIZE((ffvsp[-4].Node))!=1 ) {
                      fferror("Cannot have a vector string column");
@@ -3265,12 +3269,12 @@ ffreduce:
                   TEST((ffval.Node));
                   if( SIZE((ffvsp[-2].Node))<SIZE((ffvsp[0].Node)) )  Copy_Dims((ffval.Node), (ffvsp[0].Node));
                 }
-#line 3269 "y.tab.c" /* yacc.c:1648  */
+#line 3273 "y.tab.c"
     break;
 
-  case 127:
-#line 1132 "eval.y" /* yacc.c:1648  */
-    { 
+  case 129: /* sexpr: FUNCTION sexpr ',' sexpr ')'  */
+#line 1148 "eval.y"
+                { 
 		  if (FSTRCMP((ffvsp[-4].str),"DEFNULL(") == 0) {
 		     int outSize;
 		     /* Since the output can be calculated now, as a constant
@@ -3288,12 +3292,12 @@ ffreduce:
 		     FFERROR;
 		  }
 		}
-#line 3292 "y.tab.c" /* yacc.c:1648  */
+#line 3296 "y.tab.c"
     break;
 
-  case 128:
-#line 1151 "eval.y" /* yacc.c:1648  */
-    { 
+  case 130: /* sexpr: FUNCTION sexpr ',' expr ',' expr ')'  */
+#line 1167 "eval.y"
+                { 
 		  if (FSTRCMP((ffvsp[-6].str),"STRMID(") == 0) {
 		    int len;
 		    if( TYPE((ffvsp[-3].Node)) != LONG || SIZE((ffvsp[-3].Node)) != 1 ||
@@ -3319,11 +3323,12 @@ ffreduce:
 		     FFERROR;
 		  }
 		}
-#line 3323 "y.tab.c" /* yacc.c:1648  */
+#line 3327 "y.tab.c"
     break;
 
 
-#line 3327 "y.tab.c" /* yacc.c:1648  */
+#line 3331 "y.tab.c"
+
       default: break;
     }
   /* User semantic actions sometimes alter ffchar, and that requires
@@ -3337,25 +3342,23 @@ ffreduce:
      case of FFERROR or FFBACKUP, subsequent parser actions might lead
      to an incorrect destructor call or verbose syntax error message
      before the lookahead is translated.  */
-  FF_SYMBOL_PRINT ("-> $$ =", ffr1[ffn], &ffval, &ffloc);
+  FF_SYMBOL_PRINT ("-> $$ =", FF_CAST (ffsymbol_kind_t, ffr1[ffn]), &ffval, &ffloc);
 
   FFPOPSTACK (fflen);
   fflen = 0;
-  FF_STACK_PRINT (ffss, ffssp);
 
   *++ffvsp = ffval;
 
   /* Now 'shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
      number reduced by.  */
-
-  ffn = ffr1[ffn];
-
-  ffstate = ffpgoto[ffn - FFNTOKENS] + *ffssp;
-  if (0 <= ffstate && ffstate <= FFLAST && ffcheck[ffstate] == *ffssp)
-    ffstate = fftable[ffstate];
-  else
-    ffstate = ffdefgoto[ffn - FFNTOKENS];
+  {
+    const int fflhs = ffr1[ffn] - FFNTOKENS;
+    const int ffi = ffpgoto[fflhs] + *ffssp;
+    ffstate = (0 <= ffi && ffi <= FFLAST && ffcheck[ffi] == *ffssp
+               ? fftable[ffi]
+               : ffdefgoto[fflhs]);
+  }
 
   goto ffnewstate;
 
@@ -3366,49 +3369,13 @@ ffreduce:
 fferrlab:
   /* Make sure we have latest lookahead translation.  See comments at
      user semantic actions for why this is necessary.  */
-  fftoken = ffchar == FFEMPTY ? FFEMPTY : FFTRANSLATE (ffchar);
-
+  fftoken = ffchar == FFEMPTY ? FFSYMBOL_FFEMPTY : FFTRANSLATE (ffchar);
   /* If not already recovering from an error, report this error.  */
   if (!fferrstatus)
     {
       ++ffnerrs;
-#if ! FFERROR_VERBOSE
       fferror (FF_("syntax error"));
-#else
-# define FFSYNTAX_ERROR ffsyntax_error (&ffmsg_alloc, &ffmsg, \
-                                        ffssp, fftoken)
-      {
-        char const *ffmsgp = FF_("syntax error");
-        int ffsyntax_error_status;
-        ffsyntax_error_status = FFSYNTAX_ERROR;
-        if (ffsyntax_error_status == 0)
-          ffmsgp = ffmsg;
-        else if (ffsyntax_error_status == 1)
-          {
-            if (ffmsg != ffmsgbuf)
-              FFSTACK_FREE (ffmsg);
-            ffmsg = (char *) FFSTACK_ALLOC (ffmsg_alloc);
-            if (!ffmsg)
-              {
-                ffmsg = ffmsgbuf;
-                ffmsg_alloc = sizeof ffmsgbuf;
-                ffsyntax_error_status = 2;
-              }
-            else
-              {
-                ffsyntax_error_status = FFSYNTAX_ERROR;
-                ffmsgp = ffmsg;
-              }
-          }
-        fferror (ffmsgp);
-        if (ffsyntax_error_status == 2)
-          goto ffexhaustedlab;
-      }
-# undef FFSYNTAX_ERROR
-#endif
     }
-
-
 
   if (fferrstatus == 3)
     {
@@ -3438,12 +3405,10 @@ fferrlab:
 | fferrorlab -- error raised explicitly by FFERROR.  |
 `---------------------------------------------------*/
 fferrorlab:
-
-  /* Pacify compilers like GCC when the user code never invokes
-     FFERROR and the label fferrorlab therefore never appears in user
-     code.  */
-  if (/*CONSTCOND*/ 0)
-     goto fferrorlab;
+  /* Pacify compilers when the user code never invokes FFERROR and the
+     label fferrorlab therefore never appears in user code.  */
+  if (0)
+    FFERROR;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this FFERROR.  */
@@ -3460,13 +3425,14 @@ fferrorlab:
 fferrlab1:
   fferrstatus = 3;      /* Each real token shifted decrements this.  */
 
+  /* Pop stack until we find a state that shifts the error token.  */
   for (;;)
     {
       ffn = ffpact[ffstate];
       if (!ffpact_value_is_default (ffn))
         {
-          ffn += FFTERROR;
-          if (0 <= ffn && ffn <= FFLAST && ffcheck[ffn] == FFTERROR)
+          ffn += FFSYMBOL_FFerror;
+          if (0 <= ffn && ffn <= FFLAST && ffcheck[ffn] == FFSYMBOL_FFerror)
             {
               ffn = fftable[ffn];
               if (0 < ffn)
@@ -3480,7 +3446,7 @@ fferrlab1:
 
 
       ffdestruct ("Error: popping",
-                  ffstos[ffstate], ffvsp);
+                  FF_ACCESSING_SYMBOL (ffstate), ffvsp);
       FFPOPSTACK (1);
       ffstate = *ffssp;
       FF_STACK_PRINT (ffss, ffssp);
@@ -3492,7 +3458,7 @@ fferrlab1:
 
 
   /* Shift the error token.  */
-  FF_SYMBOL_PRINT ("Shifting", ffstos[ffn], ffvsp, fflsp);
+  FF_SYMBOL_PRINT ("Shifting", FF_ACCESSING_SYMBOL (ffn), ffvsp, fflsp);
 
   ffstate = ffn;
   goto ffnewstate;
@@ -3505,6 +3471,7 @@ ffacceptlab:
   ffresult = 0;
   goto ffreturn;
 
+
 /*-----------------------------------.
 | ffabortlab -- FFABORT comes here.  |
 `-----------------------------------*/
@@ -3512,16 +3479,21 @@ ffabortlab:
   ffresult = 1;
   goto ffreturn;
 
-#if !defined ffoverflow || FFERROR_VERBOSE
+
+#if !defined ffoverflow
 /*-------------------------------------------------.
 | ffexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 ffexhaustedlab:
   fferror (FF_("memory exhausted"));
   ffresult = 2;
-  /* Fall through.  */
+  goto ffreturn;
 #endif
 
+
+/*-------------------------------------------------------.
+| ffreturn -- parsing is finished, clean up and return.  |
+`-------------------------------------------------------*/
 ffreturn:
   if (ffchar != FFEMPTY)
     {
@@ -3538,20 +3510,18 @@ ffreturn:
   while (ffssp != ffss)
     {
       ffdestruct ("Cleanup: popping",
-                  ffstos[*ffssp], ffvsp);
+                  FF_ACCESSING_SYMBOL (+*ffssp), ffvsp);
       FFPOPSTACK (1);
     }
 #ifndef ffoverflow
   if (ffss != ffssa)
     FFSTACK_FREE (ffss);
 #endif
-#if FFERROR_VERBOSE
-  if (ffmsg != ffmsgbuf)
-    FFSTACK_FREE (ffmsg);
-#endif
+
   return ffresult;
 }
-#line 1180 "eval.y" /* yacc.c:1907  */
+
+#line 1196 "eval.y"
 
 
 /*************************************************************************/
@@ -3871,10 +3841,10 @@ static int New_Deref( int Var,  int nDim,
 
 extern int ffGetVariable( char *varName, FFSTYPE *varVal );
 
-static int New_GTI( char *fname, int Node1, char *start, char *stop )
+static int New_GTI( funcOp Op, char *fname, int Node1, int Node2, char *start, char *stop )
 {
    fitsfile *fptr;
-   Node *this, *that0, *that1;
+   Node *this, *that0, *that1, *that2;
    int  type,i,n, startCol, stopCol, Node0;
    int  hdutype, hdunum, evthdu, samefile, extvers, movetotype, tstat;
    char extname[100];
@@ -3883,7 +3853,7 @@ static int New_GTI( char *fname, int Node1, char *start, char *stop )
    char xcol[20], xexpr[20];
    FFSTYPE colVal;
 
-   if( Node1==-99 ) {
+   if( Op == gtifilt_fct && Node1==-99 ) {
       type = ffGetVariable( "TIME", &colVal );
       if( type==COLUMN ) {
 	 Node1 = New_Column( (int)colVal.lng );
@@ -3892,6 +3862,19 @@ static int New_GTI( char *fname, int Node1, char *start, char *stop )
 	 return(-1);
       }
    }
+
+   if (Op == gtiover_fct) {
+     if (Node1 == -99 || Node2 == -99) {
+       fferror("startExpr and stopExpr values must be defined for GTIOVERLAP");
+       return(-1);
+     }
+     /* Also case TIME_STOP to double precision */
+     Node2 = New_Unary( DOUBLE, 0, Node2 );
+     if (Node2 < 0) return(-1);
+
+   }
+
+   /* Type cast TIME to double precision */
    Node1 = New_Unary( DOUBLE, 0, Node1 );
    Node0 = Alloc_Node(); /* This will hold the START/STOP times */
    if( Node1<0 || Node0<0 ) return(-1);
@@ -4005,16 +3988,30 @@ static int New_GTI( char *fname, int Node1, char *start, char *stop )
    n = Alloc_Node();
    if( n >= 0 ) {
       this                 = gParse.Nodes + n;
-      this->nSubNodes      = 2;
       this->SubNodes[1]    = Node1;
-      this->operation      = (int)gtifilt_fct;
-      this->DoOp           = Do_GTI;
-      this->type           = BOOLEAN;
+      this->operation      = (int) Op;
+      if (Op == gtifilt_fct) {
+	this->nSubNodes      = 2;
+	this->DoOp           = Do_GTI;
+	this->type           = BOOLEAN;
+      } else {
+	this->nSubNodes      = 3;
+	this->DoOp           = Do_GTI_Over;
+	this->type           = DOUBLE;
+      }
       that1                = gParse.Nodes + Node1;
       this->value.nelem    = that1->value.nelem;
       this->value.naxis    = that1->value.naxis;
       for( i=0; i < that1->value.naxis; i++ )
 	 this->value.naxes[i] = that1->value.naxes[i];
+      if (Op == gtiover_fct) {
+	this->SubNodes[2]  = Node2;
+	that2 = gParse.Nodes + Node2;
+	if (that1->value.nelem != that2->value.nelem) {
+	  fferror("Dimensions of TIME and TIME_STOP must match for GTIOVERLAP");
+	  return(-1);
+	}
+      }
 
       /* Init START/STOP node to be treated as a "constant" */
 
@@ -4058,6 +4055,12 @@ static int New_GTI( char *fname, int Node1, char *start, char *stop )
 	       that0->type = 0;
 	       break;
 	    }
+
+	 /* GTIOVERLAP() requires ordered GTI */
+	 if (that0->type != 1 && Op == gtiover_fct) {
+	   fferror("Input GTI must be time-ordered for GTIOVERLAP");
+	   return(-1);
+	 }
 	 
 	 /*  Handle TIMEZERO offset, if any  */
 	 
@@ -4070,8 +4073,11 @@ static int New_GTI( char *fname, int Node1, char *start, char *stop )
 	       that0->value.data.dblptr[i] += dt;
 	 }
       }
-      if( OPER(Node1)==CONST_OP )
-	 this->DoOp( this );
+      /* If Node1 is constant (gtifilt_fct) or
+	 Node1 and Node2 are constant (gtiover_fct), then evaluate now */
+      if( OPER(Node1)==CONST_OP && (Op == gtifilt_fct || OPER(Node2)==CONST_OP)) {
+	this->DoOp( this );
+      }
    }
 
    if( samefile )
@@ -5877,6 +5883,12 @@ static void Do_Func( Node *this )
             else if( this->type==STRING )
 	       strcpy(this->value.data.str,pVals[0].data.str);
 	    break;
+        case setnull_fct: /* Only defined for numeric expressions */
+            if( this->type==LONG )
+ 	      this->value.data.lng = pVals[0].data.lng;
+            else if( this->type==DOUBLE )
+	       this->value.data.dbl = pVals[0].data.dbl;
+	    break;
 
 	    /* Math functions with 1 double argument */
 
@@ -6558,6 +6570,34 @@ static void Do_Func( Node *this )
 		     strcpy(this->value.data.strptr[row],pVals[0].data.str);
 		  }
 	       }
+	    }
+	    break;
+         case setnull_fct:
+	    switch( this->type ) {
+	    case LONG:
+	      while( elem-- ) {
+		if ( theParams[1]->value.data.lng == 
+		     theParams[0]->value.data.lngptr[elem] ) {
+		  this->value.data.lngptr[elem] = 0;
+		  this->value.undef[elem] = 1;
+		} else {
+		  this->value.data.lngptr[elem] = theParams[0]->value.data.lngptr[elem];
+		  this->value.undef[elem] = theParams[0]->value.undef[elem];
+		}
+	      }
+	      break;
+	    case DOUBLE:
+	      while( elem-- ) {
+		if ( theParams[1]->value.data.dbl == 
+		     theParams[0]->value.data.dblptr[elem] ) {
+		  this->value.data.dblptr[elem] = 0;
+		  this->value.undef[elem] = 1;
+		} else {
+		  this->value.data.dblptr[elem] = theParams[0]->value.data.dblptr[elem];
+		  this->value.undef[elem] = theParams[0]->value.undef[elem];
+		}
+	      }
+	      break;
 	    }
 	    break;
 
@@ -7591,7 +7631,7 @@ static void Do_GTI( Node *this )
    if( theExpr->operation==CONST_OP ) {
 
       this->value.data.log = 
-	 (Search_GTI( theExpr->value.data.dbl, nGTI, start, stop, ordered )>=0);
+	(Search_GTI( theExpr->value.data.dbl, nGTI, start, stop, ordered, 0 )>=0);
       this->operation      = CONST_OP;
 
    } else {
@@ -7610,7 +7650,7 @@ static void Do_GTI( Node *this )
 
             /*  Before searching entire GTI, check the GTI found last time  */
 	       if( gti<0 || times[elem]<start[gti] || times[elem]>stop[gti] ) {
-		  gti = Search_GTI( times[elem], nGTI, start, stop, ordered );
+		 gti = Search_GTI( times[elem], nGTI, start, stop, ordered, 0 );
 	       }
 	       this->value.data.logptr[elem] = ( gti>=0 );
 	    }
@@ -7626,10 +7666,158 @@ static void Do_GTI( Node *this )
       free( theExpr->value.data.ptr );
 }
 
-static long Search_GTI( double evtTime, long nGTI, double *start,
-			double *stop, int ordered )
+static void Do_GTI_Over( Node *this )
 {
-   long gti, step;
+   Node *theTimes, *theStart, *theStop;
+   double *gtiStart, *gtiStop;
+   double *evtStart, *evtStop;
+   long elem, nGTI, gti, nextGTI;
+   int ordered;
+
+   theTimes = gParse.Nodes + this->SubNodes[0]; /* GTI times */
+   theStop  = gParse.Nodes + this->SubNodes[2]; /* User start time */
+   theStart = gParse.Nodes + this->SubNodes[1]; /* User stop time */
+
+   nGTI     = theTimes->value.nelem;
+   gtiStart = theTimes->value.data.dblptr;        /* GTI start */
+   gtiStop  = theTimes->value.data.dblptr + nGTI; /* GTI stop */
+
+   if( theStart->operation==CONST_OP && theStop->operation==CONST_OP) {
+
+      this->value.data.dbl = 
+	(GTI_Over( theStart->value.data.dbl, theStop->value.data.dbl,
+		   nGTI, gtiStart, gtiStop, &gti));
+      this->operation      = CONST_OP;
+
+   } else {
+      char undefStart = 0, undefStop = 0; /* Input values are undef? */
+      double uStart, uStop;       /* User start/stop values */
+      if (theStart->operation==CONST_OP) uStart = theStart->value.data.dbl;
+      if (theStop ->operation==CONST_OP) uStop  = theStop ->value.data.dbl;
+
+      Allocate_Ptrs( this );
+
+      evtStart = theStart->value.data.dblptr;
+      evtStop  = theStop ->value.data.dblptr;
+      if( !gParse.status ) {
+
+	 elem = gParse.nRows * this->value.nelem;
+	 if( nGTI ) {
+	    double toverlap = 0.0;
+	    gti = -1;
+	    while( elem-- ) {
+	      if (theStart->operation!=CONST_OP) {
+		undefStart = theStart->value.undef[elem];
+		uStart     = evtStart[elem];
+	      }
+	      if (theStop->operation!=CONST_OP) {
+		undefStop  = theStop ->value.undef[elem];
+		uStop      = evtStop[elem];
+	      }
+	      /* This works because at least one of the values is not const */
+	      if( (this->value.undef[elem] = (undefStart||undefStop)) )
+		  continue;
+
+            /*  Before searching entire GTI, check the GTI found last time  */
+	       if( gti<0 || 
+		   uStart<gtiStart[gti] || uStart>gtiStop[gti] ||
+		   uStop <gtiStart[gti] || uStop >gtiStop[gti]) {
+		 /* Nope, need to recalculate */
+		 toverlap = GTI_Over(uStart, uStop, 
+				     nGTI, gtiStart, gtiStop, 
+				     &gti);
+	       } else {
+		 /* We are in same GTI, the overlap is just stop-start of user range */
+		 toverlap = (uStop-uStart);
+	       }
+
+	       /* This works because at least one of the values is not const */
+	       this->value.data.dblptr[elem] = toverlap;
+	    }
+	 } else
+	    /* nGTI == 0; there is no overlap so set all values to 0.0 */
+	    while( elem-- ) {
+	       this->value.data.dblptr[elem] = 0.0;
+	       this->value.undef[elem]       = 0;
+	    }
+      }
+   }
+
+   if( theStart->operation>0 ) {
+     free( theStart->value.data.ptr );
+   }
+   if( theStop->operation>0 ) {
+     free( theStop->value.data.ptr );
+   }
+}
+
+static double GTI_Over(double evtStart, double evtStop,
+		       long nGTI, double *start, double *stop,
+		       long *gtiout)
+{
+  long gti1, gti2, nextGTI1, nextGTI2;
+  long gti, nMax;
+  double overlap = 0.0;
+
+  *gtiout = -1L;
+  /* Zero or negative bin size */
+  if (evtStop <= evtStart) return 0.0;
+
+  /* Locate adjacent GTIs for evtStart and evtStop */
+  gti1 = Search_GTI(evtStart, nGTI, start, stop, 1, &nextGTI1);
+  gti2 = Search_GTI(evtStop,  nGTI, start, stop, 1, &nextGTI2);
+
+  /* evtStart is in gti1, we return that for future processing */
+  if (gti1 >= 0) *gtiout = gti1;
+
+  /* Both evtStart/evtStop are beyond the last GTI */
+  if (nextGTI1 < 0 && nextGTI2 < 0) return 0.0;
+
+  /* Both evtStart/evtStop are in the same gap between GTIs */
+  if (gti1 < 0 && gti2 < 0 && nextGTI1 == nextGTI2) return 0.0;
+
+  /* Both evtStart/evtStop are in the same GTI */
+  if (gti1 >= 0 && gti1 == gti2) return (evtStop-evtStart);
+
+  /* Count through the remaining GTIs; there will be at least one */
+  /* The largest GTI to consider is either nextGTI2-1, if it exists,
+     or nGTI-1 */
+  if (nextGTI2 < 0) nMax = nGTI-1;
+  else if (gti2 >= 0) nMax = nextGTI2;
+  else nMax = nextGTI2-1;
+  for (gti = nextGTI1; gti <= nMax; gti++) {
+    double starti = start[gti], stopi = stop[gti];
+    /* Trim the GTI by actual evtStart/Stop times */
+    if (evtStart > starti) starti = evtStart;
+    if (evtStop  < stopi ) stopi  = evtStop;
+    overlap += (stopi - starti);
+  }
+    
+  return overlap;
+}
+
+/*
+ * Search_GTI - search GTI for requested evtTime
+ * 
+ * double evtTime - requested event time
+ * long nGTI - number of entries in start[] and stop[]
+ * double start[], stop[] - start and stop of each GTI
+ * int ordered - set to 1 if time-ordered
+ * long *nextGTI0 - upon return, *nextGTI0 is either
+ *                   the GTI evtTime is inside
+ *                   the next GTI if evtTime is not inside
+ *                   -1L if there is no next GTI
+ *                   not set if nextGTI0 is a null pointer
+ *
+ * NOTE: for *nextGTI to be well-defined, the GTI must
+ *   be ordered.  This is true when called by Do_GTI.
+ *
+ * RETURNS: gti index that evtTime is located inside, or -1L
+ */
+static long Search_GTI( double evtTime, long nGTI, double *start,
+			double *stop, int ordered, long *nextGTI0 )
+{
+   long gti, nextGTI = -1L, step;
                              
    if( ordered && nGTI>15 ) { /*  If time-ordered and lots of GTIs,   */
                               /*  use "FAST" Binary search algorithm  */
@@ -7642,6 +7830,7 @@ static long Search_GTI( double evtTime, long nGTI, double *start,
 	       if( evtTime>=start[gti+1] )
 		  gti += step;
 	       else {
+		  nextGTI = gti+1;
 		  gti = -1L;
 		  break;
 	       }
@@ -7649,22 +7838,35 @@ static long Search_GTI( double evtTime, long nGTI, double *start,
 	       if( evtTime<=stop[gti-1] )
 		  gti -= step;
 	       else {
+		  nextGTI = gti;
 		  gti = -1L;
 		  break;
 	       }
 	    } else {
+	       nextGTI = gti;
 	       break;
 	    }
 	 }
-      } else
+      } else {
+	 if (start[0] > evtTime) nextGTI = 0;
 	 gti = -1L;
+      }
       
-   } else { /*  Use "SLOW" linear search  */
+   } else { /*  Use "SLOW" linear search.  Not required to be 
+	        ordered, so we have to search the whole table
+		no matter what.
+	    */
       gti = nGTI;
-      while( gti-- )
-	 if( evtTime>=start[gti] && evtTime<=stop[gti] )
+      while( gti-- ) {
+	if( stop[gti] >= evtTime ) nextGTI = gti;
+	if( evtTime>=start[gti] && evtTime<=stop[gti] )
 	    break;
+      }
    }
+
+   if (nextGTI >= nGTI) nextGTI = -1;
+   if (nextGTI0) *nextGTI0 = nextGTI;
+
    return( gti );
 }
 
