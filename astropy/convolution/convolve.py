@@ -188,14 +188,15 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
         The value to use outside the array when using ``boundary='fill'``
     normalize_kernel : bool, optional
         Whether to normalize the kernel to have a sum of one.
-    nan_treatment : {'interpolate', 'fill'}
-        interpolate will result in renormalization of the kernel at each
-        position ignoring (pixels that are NaN in the image) in both the image
-        and the kernel.
-        'fill' will replace the NaN pixels with a fixed numerical value (default
-        zero, see ``fill_value``) prior to convolution
-        Note that if the kernel has a sum equal to zero, NaN interpolation
-        is not possible and will raise an exception.
+    nan_treatment : {'interpolate', 'fill'}, optional
+        The method used to handle NaNs in the input ``array``:
+            * ``'interpolate'``: ``NaN`` values are replaced with
+              interpolated values using the kernel as an interpolation
+              function. Note that if the kernel has a sum equal to
+              zero, NaN interpolation is not possible and will raise an
+              exception.
+            * ``'fill'``: ``NaN`` values are replaced by ``fill_value``
+              prior to convolution.
     preserve_nan : bool
         After performing convolution, should pixels that were originally NaN
         again become NaN?
@@ -487,13 +488,15 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         convolution
     fill_value : float, optional
         The value to use outside the array when using boundary='fill'
-    nan_treatment : {'interpolate', 'fill'}
-        ``interpolate`` will result in renormalization of the kernel at each
-        position ignoring (pixels that are NaN in the image) in both the image
-        and the kernel.  ``fill`` will replace the NaN pixels with a fixed
-        numerical value (default zero, see ``fill_value``) prior to
-        convolution.  Note that if the kernel has a sum equal to zero, NaN
-        interpolation is not possible and will raise an exception.
+    nan_treatment : {'interpolate', 'fill'}, optional
+        The method used to handle NaNs in the input ``array``:
+            * ``'interpolate'``: ``NaN`` values are replaced with
+              interpolated values using the kernel as an interpolation
+              function. Note that if the kernel has a sum equal to
+              zero, NaN interpolation is not possible and will raise an
+              exception.
+            * ``'fill'``: ``NaN`` values are replaced by ``fill_value``
+              prior to convolution.
     normalize_kernel : callable or boolean, optional
         If specified, this is the function to divide kernel by to normalize it.
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
