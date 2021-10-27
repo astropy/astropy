@@ -182,6 +182,15 @@ class BlackBody(Fittable1DModel):
         # Calculate blackbody flux
         bb_nu = 2.0 * const.h * freq ** 3 / (const.c ** 2 * boltzm1) / u.sr
 
+        if self.scale.unit is not None:
+            # Will be dimensionless at this point, but may not be dimensionless_unscaled
+            if not hasattr(scale, 'unit'):
+                # during fitting, scale will be passed without units
+                # but we still need to convert from the input dimensionless
+                # to dimensionless unscaled
+                scale = scale * self.scale.unit
+            scale = scale.to(u.dimensionless_unscaled)
+
         if self.output_units.is_equivalent(self._native_units, u.spectral_density(freq)):
             # then requesting SNU or SLAM
             bb_unit = self.output_units
@@ -245,15 +254,22 @@ class BlackBody(Fittable1DModel):
     @property
     def bolometric_flux(self):
         """Bolometric flux."""
+        if self.scale.unit is not None:
+            # Will be dimensionless at this point, but may not be dimensionless_unscaled
+            scale = self.scale.quantity.to(u.dimensionless_unscaled)
+        else:
+            scale = self.scale.value
+
         if self._bolometric_flux_ambig_warn:
             warnings.warn(
-                f"scale was passed with units, but being treated as unitless with value={self.scale.value}",
+                f"scale was originally passed with units, "
+                f"but being treated as unitless with value={scale}",
                 AstropyUserWarning,
             )
-        
+
         # bolometric flux in the native units of the planck function
         native_bolflux = (
-            self.scale.value * const.sigma_sb * self.temperature ** 4 / np.pi
+            scale * const.sigma_sb * self.temperature ** 4 / np.pi
         )
         # return in more "astro" units
         return native_bolflux.to(u.erg / (u.cm ** 2 * u.s))
