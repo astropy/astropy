@@ -28,7 +28,7 @@ and writing data in different formats.
 Getting Started
 ===============
 
-The :class:`~astropy.cosmology.Cosmology` class includes two methods,
+The |Cosmology| class includes two methods,
 :meth:`~astropy.cosmology.Cosmology.read` and
 :meth:`~astropy.cosmology.Cosmology.write`, that make it possible to read from
 and write to files.
@@ -57,6 +57,20 @@ to have all necessary information to describe a cosmology.
     >>> cosmo == Planck18
     True
 
+To see a list of the available read/write file formats:
+
+.. code-block:: python
+
+    >>> from astropy.cosmology import Cosmology
+    >>> Cosmology.read.list_formats()
+    Format   Read Write Auto-identify
+    -------- ---- ----- -------------
+    myformat  Yes   Yes           Yes
+
+This list will include both built-in and registered 3rd-party formats.
+"myformat" is from an `example 3rd-party package
+<https://github.com/astropy/astropy/tree/main/docs/cosmology/mypackage>`_.
+
 When a subclass of ``Cosmology`` is used to read a file, the subclass will
 provide a keyword argument ``cosmology=<class>`` to the registered read
 method. The method uses this cosmology class, regardless of the class
@@ -70,22 +84,23 @@ signature.
     >>> cosmo == Planck18
     True
 
-Reading and writing :class:`~astropy.cosmology.Cosmology` objects go through
-intermediate representations, often a dict or `~astropy.table.QTable` instance.
-These intermediate representations are accessible through the methods
+Reading and writing |Cosmology| objects go through intermediate
+representations, often a dict or |QTable| instance. These intermediate
+representations are accessible through the methods
 :meth:`~astropy.cosmology.Cosmology.to_format` /
 :meth:`~astropy.cosmology.Cosmology.from_format`.
 
-To see the a list of the available formats:
+To see the a list of the available conversion formats:
 
 .. code-block:: python
 
     >>> from astropy.cosmology import Cosmology
     >>> Cosmology.to_format.list_formats()
-      Format  Read Write Auto-identify
-    --------- ---- ----- -------------
-      mapping  Yes   Yes           Yes
-    mypackage  Yes   Yes           Yes
+        Format    Read Write Auto-identify
+    ------------- ---- ----- -------------
+    astropy.table  Yes   Yes           Yes
+          mapping  Yes   Yes           Yes
+        mypackage  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
 For instance, in the above, "mapping" is built-in while "mypackage" and
@@ -125,6 +140,37 @@ to the ``Planck18`` cosmology from which it was created.
 
 .. EXAMPLE END
 
+.. EXAMPLE START: Planck18 to QTable and back
+
+    Another pre-registered format is "table", for converting a |Cosmology| to
+    and from a |QTable|.
+
+.. code-block::
+
+    >>> ct = Planck18.to_format("astropy.table")
+    >>> ct
+    <QTable length=1>
+      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+             km / (Mpc s)            K                 eV
+      str8     float64    float64 float64 float64   float64   float64
+    -------- ------------ ------- ------- ------- ----------- -------
+    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+Now this :class:|QTable| can be used to load a new cosmological
+instance identical to the ``Planck18`` cosmology from which it was created.
+
+.. code-block::
+
+    >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
+    >>> cosmo
+    FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
+                  Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
+
+Perhaps more usefully, :class:|QTable| can be saved to ``latex``
+and ``html`` formats, which can be copied into journal articles and websites,
+respectively.
+
+.. EXAMPLE END
 
 
 .. _custom_cosmology_converters:
@@ -140,15 +186,16 @@ Note |Cosmology| ``to/from_format`` uses a custom registry, available at
 
 .. EXAMPLE START : custom to/from format
 
-As an example, the following is an implementation of an `astropy.table.Row`
-converter. Note that we can use other registered parsers -- here "mapping"
--- to make the implementation much simpler.
+As an example, the following is an implementation of an
+:class:`astropy.table.Row` converter. We can and should use inbuilt parsers,
+like |QTable|, but to show a more complete example we limit ourselves to only
+the "mapping" parser.
 
 We start by defining the function to parse a `astropy.table.Row` into a
-`~astropy.cosmology.Cosmology`. This function should take 1 positional
-argument, the row object, and 2 keyword arguments, for how to handle
-extra metadata and which Cosmology class to use. Details about metadata
-treatment are in ``Cosmology.from_format.help("mapping")``.
+|Cosmology|. This function should take 1 positional argument, the row object,
+and 2 keyword arguments, for how to handle extra metadata and which Cosmology
+class to use. Details about metadata treatment are in
+``Cosmology.from_format.help("mapping")``.
 
 .. code-block:: python
     :emphasize-lines: 12,13
@@ -162,16 +209,17 @@ treatment are in ``Cosmology.from_format.help("mapping")``.
     ...     meta = copy.deepcopy(row.meta)
     ...     # turn row into mapping (dict of the arguments)
     ...     mapping = dict(row)
+    ...     mapping['name'] = name
     ...     mapping["meta"] = meta
     ...     # build cosmology from map
-    ...     return Cosmology.from_format(mapping,
-    ...                                  move_to_meta=move_to_meta, cosmology=cosmology)
+    ...     return Cosmology.from_format(mapping, move_to_meta=move_to_meta,
+    ...                                  cosmology=cosmology)
 
 The next step is a function to perform the reverse operation: parse a
-`~astropy.cosmology.Cosmology` into a `~astropy.table.Row`. This function
-requires only the cosmology object and a ``*args`` to absorb unneeded
-information passed by `astropy.io.registry.UnifiedReadWrite` (which
-implements `astropy.cosmology.Cosmology.to_format`).
+|Cosmology| into a `~astropy.table.Row`. This function requires only the
+cosmology object and a ``*args`` to absorb unneeded information passed by
+:class:`astropy.io.registry.UnifiedReadWrite` (which implements
+:meth:`astropy.cosmology.Cosmology.to_format`).
 
 .. code-block:: python
     :emphasize-lines: 4
@@ -254,16 +302,15 @@ Note |Cosmology| ``read/write`` uses a custom registry, available at
 
 .. EXAMPLE START : custom read/write
 
-As an example, in the following we will fully work out a
-`~astropy.cosmology.Cosmology` <-> JSON (de)serializer.
-Note that we can use other registered parsers -- here "mapping"
+As an example, in the following we will fully work out a |Cosmology| <-> JSON
+(de)serializer. Note that we can use other registered parsers -- here "mapping"
 -- to make the implementation much simpler.
 
-We start by defining the function to parse JSON into a
-`~astropy.cosmology.Cosmology`. This function should take 1 positional
-argument, the file object or file path. We will also pass kwargs through to
-:meth:`~astropy.cosmology.Cosmology.from_format`, which handles metadata
-and which Cosmology class to use. Details of are in
+We start by defining the function to parse JSON into a |Cosmology|. This
+function should take 1 positional argument, the file object or file path. We
+will also pass kwargs through to
+:meth:`~astropy.cosmology.Cosmology.from_format`, which handles metadata and
+which Cosmology class to use. Details of are in
 ``Cosmology.from_format.help("mapping")``.
 
 .. code-block:: python
@@ -291,12 +338,11 @@ and which Cosmology class to use. Details of are in
     ...     return Cosmology.from_format(mapping, **kwargs)
 
 
-The next step is a function to write a `~astropy.cosmology.Cosmology` to
-JSON. This function requires the cosmology object and a file object/path.
-We also require the boolean flag "overwrite" to set behavior for existing
-files. Note that `~astropy.units.Quantity` is not natively compatible with
-JSON. In both the ``write`` and ``read`` methods we have to create custom
-parsers.
+The next step is a function to write a |Cosmology| to JSON. This function
+requires the cosmology object and a file object/path. We also require the
+boolean flag "overwrite" to set behavior for existing files. Note that
+|Quantity| is not natively compatible with JSON. In both the ``write`` and
+``read`` methods we have to create custom parsers.
 
 .. code-block:: python
     :emphasize-lines: 2,19
@@ -322,7 +368,7 @@ parsers.
     ...        json.dump(data, file)
 
 Last we write a function to help with format auto-identification and then
-register everything into `astropy.io.registry`.
+register everything into :mod:`astropy.io.registry`.
 
 .. code-block:: python
     :emphasize-lines: 7,8,9
