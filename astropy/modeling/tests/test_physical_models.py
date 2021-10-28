@@ -72,7 +72,7 @@ def test_blackbody_fit():
     b_fit = fitter(b, wav, fnu, maxiter=1000)
 
     assert_quantity_allclose(b_fit.temperature, 2840.7438355865065 * u.K)
-    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17 * u.Jy / u.sr)
+    assert_quantity_allclose(b_fit.scale, 5.803783292762381e-17)
 
 
 def test_blackbody_overflow():
@@ -104,10 +104,11 @@ def test_blackbody_exceptions_and_warnings():
     """Test exceptions."""
 
     # Negative temperature
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+            ValueError,
+            match="Temperature should be positive: \\[-100.\\] K"):
         bb = BlackBody(-100 * u.K)
         bb(1.0 * u.micron)
-    assert exc.value.args[0] == "Temperature should be positive: [-100.] K"
 
     bb = BlackBody(5000 * u.K)
 
@@ -121,11 +122,11 @@ def test_blackbody_exceptions_and_warnings():
         bb(-1.0 * u.AA)
     assert len(w) == 1
 
-    # Test that a non surface brightness converatable scale unit
-    with pytest.raises(ValueError) as exc:
+    # Test that a non surface brightness convertible scale unit raises an error
+    with pytest.raises(
+            ValueError,
+            match="scale units not dimensionless or in surface brightness: Jy"):
         bb = BlackBody(5000 * u.K, scale=1.0 * u.Jy)
-        bb(1.0 * u.micron)
-    assert exc.value.args[0] == "scale units not surface brightness: Jy"
 
 
 def test_blackbody_array_temperature():
