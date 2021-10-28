@@ -185,21 +185,22 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
                 Set values outside the array to the nearest ``array``
                 value.
     fill_value : float, optional
-        The value to use outside the array when using ``boundary='fill'``
+        The value to use outside the array when using ``boundary='fill'``.
     normalize_kernel : bool, optional
         Whether to normalize the kernel to have a sum of one.
-    nan_treatment : {'interpolate', 'fill'}
-        interpolate will result in renormalization of the kernel at each
-        position ignoring (pixels that are NaN in the image) in both the image
-        and the kernel.
-        'fill' will replace the NaN pixels with a fixed numerical value (default
-        zero, see ``fill_value``) prior to convolution
-        Note that if the kernel has a sum equal to zero, NaN interpolation
-        is not possible and will raise an exception.
-    preserve_nan : bool
+    nan_treatment : {'interpolate', 'fill'}, optional
+        The method used to handle NaNs in the input ``array``:
+            * ``'interpolate'``: ``NaN`` values are replaced with
+              interpolated values using the kernel as an interpolation
+              function. Note that if the kernel has a sum equal to
+              zero, NaN interpolation is not possible and will raise an
+              exception.
+            * ``'fill'``: ``NaN`` values are replaced by ``fill_value``
+              prior to convolution.
+    preserve_nan : bool, optional
         After performing convolution, should pixels that were originally NaN
         again become NaN?
-    mask : None or ndarray
+    mask : None or ndarray, optional
         A "mask" array.  Shape must match ``array``, and anything that is masked
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
@@ -324,12 +325,21 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # Check if kernel is normalizable
     if normalize_kernel or nan_interpolate:
         kernel_sum = kernel_internal.sum()
-        kernel_sums_to_zero = np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+        kernel_sums_to_zero = np.isclose(kernel_sum, 0,
+                                         atol=normalization_zero_tol)
 
         if kernel_sum < 1. / MAX_NORMALIZATION or kernel_sums_to_zero:
-            raise ValueError("The kernel can't be normalized, because its sum is "
-                             "close to zero. The sum of the given kernel is < {}"
-                             .format(1. / MAX_NORMALIZATION))
+            if nan_interpolate:
+                raise ValueError("Setting nan_treatment='interpolate' "
+                                 "requires the kernel to be normalized, "
+                                 "but the input kernel has a sum close "
+                                 "to zero. For a zero-sum kernel and "
+                                 "data with NaNs, set nan_treatment='fill'.")
+            else:
+                raise ValueError("The kernel can't be normalized, because "
+                                 "its sum is close to zero. The sum of the "
+                                 "given kernel is < {}"
+                                 .format(1. / MAX_NORMALIZATION))
 
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
@@ -484,16 +494,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
             * 'wrap': periodic boundary
 
         The `None` and 'extend' parameters are not supported for FFT-based
-        convolution
+        convolution.
     fill_value : float, optional
-        The value to use outside the array when using boundary='fill'
-    nan_treatment : {'interpolate', 'fill'}
-        ``interpolate`` will result in renormalization of the kernel at each
-        position ignoring (pixels that are NaN in the image) in both the image
-        and the kernel.  ``fill`` will replace the NaN pixels with a fixed
-        numerical value (default zero, see ``fill_value``) prior to
-        convolution.  Note that if the kernel has a sum equal to zero, NaN
-        interpolation is not possible and will raise an exception.
+        The value to use outside the array when using boundary='fill'.
+    nan_treatment : {'interpolate', 'fill'}, optional
+        The method used to handle NaNs in the input ``array``:
+            * ``'interpolate'``: ``NaN`` values are replaced with
+              interpolated values using the kernel as an interpolation
+              function. Note that if the kernel has a sum equal to
+              zero, NaN interpolation is not possible and will raise an
+              exception.
+            * ``'fill'``: ``NaN`` values are replaced by ``fill_value``
+              prior to convolution.
     normalize_kernel : callable or boolean, optional
         If specified, this is the function to divide kernel by to normalize it.
         e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
@@ -503,10 +515,10 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         The absolute tolerance on whether the kernel is different than zero.
         If the kernel sums to zero to within this precision, it cannot be
         normalized. Default is "1e-8".
-    preserve_nan : bool
+    preserve_nan : bool, optional
         After performing convolution, should pixels that were originally NaN
         again become NaN?
-    mask : None or ndarray
+    mask : None or ndarray, optional
         A "mask" array.  Shape must match ``array``, and anything that is masked
         (i.e., not 0/`False`) will be set to NaN for the convolution.  If
         `None`, no masking will be performed unless ``array`` is a masked array.
@@ -556,11 +568,18 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         the size of the temporary arrays by at least ``1.5**nd``.
         This may result in significantly more memory usage.
 
+    Returns
+    -------
+    default : ndarray
+        ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
+        ``fft(array) * fft(kernel)``.  If crop is not set, returns the
+        image, but with the fft-padded size instead of the input size.
+
     Raises
     ------
-    ValueError:
+    `ValueError`
         If the array is bigger than 1 GB after padding, will raise this
-        exception unless ``allow_huge`` is True
+        exception unless ``allow_huge`` is True.
 
     See Also
     --------
@@ -568,37 +587,31 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0.,
         Convolve is a non-fft version of this code.  It is more memory
         efficient and for small kernels can be faster.
 
-    Returns
-    -------
-    default : ndarray
-        ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
-        ``fft(array) * fft(kernel)``.  If crop is not set, returns the
-        image, but with the fft-padded size instead of the input size
-
     Notes
     -----
-        With ``psf_pad=True`` and a large PSF, the resulting data can become
-        large and consume a lot of memory.  See Issue
-        https://github.com/astropy/astropy/pull/4366 and the update in
-        https://github.com/astropy/astropy/pull/11533 for further details.
+    With ``psf_pad=True`` and a large PSF, the resulting data
+    can become large and consume a lot of memory. See Issue
+    https://github.com/astropy/astropy/pull/4366 and the update in
+    https://github.com/astropy/astropy/pull/11533 for further details.
 
-        Dealiasing of pseudospectral convolutions is necessary for numerical
-        stability of the underlying algorithms. A common method for handling
-        this is to zero pad the image by at least 1/2 to eliminate the wavenumbers
-        which have been aliased by convolution. This is so that the aliased
-        1/3 of the results of the convolution computation can be thrown out.
-        See https://doi.org/10.1175/1520-0469(1971)028%3C1074:OTEOAI%3E2.0.CO;2
-        https://iopscience.iop.org/article/10.1088/1742-6596/318/7/072037
+    Dealiasing of pseudospectral convolutions is necessary for
+    numerical stability of the underlying algorithms. A common
+    method for handling this is to zero pad the image by at least
+    1/2 to eliminate the wavenumbers which have been aliased
+    by convolution. This is so that the aliased 1/3 of the
+    results of the convolution computation can be thrown out. See
+    https://doi.org/10.1175/1520-0469(1971)028%3C1074:OTEOAI%3E2.0.CO;2
+    https://iopscience.iop.org/article/10.1088/1742-6596/318/7/072037
 
-        Note that if dealiasing is necessary to your application, but
-        your process is memory constrained, you may want to consider
-        using FFTW++: https://github.com/dealias/fftwpp. It includes
-        python wrappers for a pseudospectral convolution which will
-        implicitly dealias your convolution without the need for
-        additional padding. Note that one cannot use FFTW++'s convlution
-        directly in this method as in handles the entire convolution
-        process internally. Additionally, FFTW++ includes other useful
-        pseudospectral methods to consider.
+    Note that if dealiasing is necessary to your application, but your
+    process is memory constrained, you may want to consider using
+    FFTW++: https://github.com/dealias/fftwpp. It includes python
+    wrappers for a pseudospectral convolution which will implicitly
+    dealias your convolution without the need for additional padding.
+    Note that one cannot use FFTW++'s convlution directly in this
+    method as in handles the entire convolution process internally.
+    Additionally, FFTW++ includes other useful pseudospectral methods to
+    consider.
 
     Examples
     --------
