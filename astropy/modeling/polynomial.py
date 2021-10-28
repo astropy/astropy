@@ -399,14 +399,14 @@ class OrthoPolynomialBase(PolynomialBase):
         return self.imhorner(x, y, invcoeff)
 
     def prepare_inputs(self, x, y, **kwargs):
-        inputs, format_info = super().prepare_inputs(x, y, **kwargs)
+        inputs, broadcasted_shapes = super().prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
 
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
-        return (x, y), format_info
+        return (x, y), broadcasted_shapes
 
 
 class Chebyshev1D(_PolyDomainWindow1D):
@@ -484,11 +484,11 @@ class Chebyshev1D(_PolyDomainWindow1D):
         return np.rollaxis(v, 0, v.ndim)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = super().prepare_inputs(x, **kwargs)
+        inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
 
-        return (x,), format_info
+        return (x,), broadcasted_shapes
 
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
@@ -591,11 +591,11 @@ class Hermite1D(_PolyDomainWindow1D):
         return np.rollaxis(v, 0, v.ndim)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = super().prepare_inputs(x, **kwargs)
+        inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
 
-        return (x,), format_info
+        return (x,), broadcasted_shapes
 
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
@@ -804,11 +804,11 @@ class Legendre1D(_PolyDomainWindow1D):
             model_set_axis=model_set_axis, name=name, meta=meta, **params)
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = super().prepare_inputs(x, **kwargs)
+        inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
 
-        return (x,), format_info
+        return (x,), broadcasted_shapes
 
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
@@ -908,10 +908,10 @@ class Polynomial1D(_PolyDomainWindow1D):
         self._domain = _validate_domain_window(window or self._default_domain_window['window'])
 
     def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = super().prepare_inputs(x, **kwargs)
+        inputs, broadcasted_shapes = super().prepare_inputs(x, **kwargs)
 
         x = inputs[0]
-        return (x,), format_info
+        return (x,), broadcasted_shapes
 
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
@@ -1034,10 +1034,10 @@ class Polynomial2D(PolynomialModel):
 
     def prepare_inputs(self, x, y, **kwargs):
 
-        inputs, format_info = super().prepare_inputs(x, y, **kwargs)
+        inputs, broadcasted_shapes = super().prepare_inputs(x, y, **kwargs)
 
         x, y = inputs
-        return (x, y), format_info
+        return (x, y), broadcasted_shapes
 
     def evaluate(self, x, y, *coeffs):
         if self.x_domain is not None:
