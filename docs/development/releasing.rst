@@ -45,22 +45,67 @@ packages that use the full bugfix/maintenance branch approach.)
    re-assign them to the next relevant milestone.
 
 #. (Only for major versions) Make sure to update the "What's new"
-   section with the stats on the number of issues, PRs, and contributors.  For
-   the first two, the `astropy-procedures repository`_ script ``gh_issuereport.py``
-   can provide the numbers since the last major release.  For the final one, you
-   will likely need to update the Astropy ``.mailmap`` file, as there are often
-   contributors who are not careful about using the same e-mail address for
-   every commit.  The easiest way to do this is to run the command
-   ``git shortlog -n -s -e`` to see the list of all contributors and their email
-   addresses.  Look for any misnamed entries or duplicates, and add them to the
-   ``.mailmap`` file (matched to the appropriate canonical name/email address.)
-   Once you have finished this, you can count the number of lines in
-   ``git shortlog -s`` to get the final contributor count.
+   section with the stats on the number of issues, PRs, and contributors. To do
+   this, use the `generate_releaserst.xsh`_ script. This requires `xonsh
+   <https://xon.sh/>`_ and `docopt <http://docopt.org/>`_ which you can install
+   with::
 
-#. Also be sure to update the ``docs/credits.rst`` file to include any new
-   contributors from the above step. (This
-   step is only required on major releases, but can be done for bugfix releases
-   as time allows.)
+      pip install xonsh docopt
+
+   You should then run the script in the root of the astropy repository as follows::
+
+      xonsh generate_releaserst.xsh 4.3 v4.3.dev \
+                                    --project-name=astropy \
+                                    --pretty-project-name=astropy \
+                                    --pat=<a GitHub personal access token>
+
+   The first argument should be the last major version (before any bug fix
+   releases, while the second argument should be the ``.dev`` tag that was just
+   after the branching of the last major version. Finally, you will need a
+   GitHub personal access token with default permissions (no scopes selected).
+
+   The output will look similar to::
+
+      This release of astropy contains 2573 commits in 163 merged pull requests
+      closing 104 issues from 98 people, 50 of which are first-time contributors
+      to astropy.
+
+      * 2573 commits have been added since 4.3
+      * 104 issues have been closed since 4.3
+      * 163 pull requests have been merged since 4.3
+      * 98 people have contributed since 4.3
+      * 50 of which are new contributors
+
+      The people who have contributed to the code for this release are:
+
+      - Name 1 *
+      - Name 2 *
+      - Name 3
+
+   At this point, you will likely need to update the Astropy ``.mailmap`` file,
+   which maps contributor emails to names, as there are often contributors who
+   are not careful about using the same e-mail address for every commit, meaning
+   that they appear multiple times in the contributor list above, sometimes with
+   different spelling, and sometimes you may also just see their GitHub username
+   with no full name.
+
+   The easiest way to get a full list of contributors and email addresses is
+   to do::
+
+      git shortlog -n -s -e
+
+   Edit the ``.mailmap`` file to add entries for new email addresses for already
+   known contributors (matched to the appropriate canonical name/email address).
+   You can also try and investigate users with no name to see if you can determine
+   their full name from other sources - if you do, add a new entry for them in
+   the ``.mailmap`` file. Once you have done this, you can re-run the
+   ``generate_releaserst.xsh`` script (you will likely need to iterate a few times).
+   Once you are happy with the output, copy it into the 'What's new' page for
+   the current release and commit.
+
+#. Update the ``docs/credits.rst`` file to include any new
+   contributors from the above step. (This step is only required on major
+   releases, but can be done for bugfix releases as time allows.)
 
 #. (astropy specific) Ensure the built-in IERS earth rotation parameter and
    leap second tables are up to date by changing directory to
@@ -368,7 +413,7 @@ Backporting fixes from main
 
 .. note::
 
-    The changelog script in ``astropy-procedures`` (``pr_consistency`` scripts
+    The changelog script in ``astropy-tools`` (``pr_consistency`` scripts
     in particular) does not know about minor releases, thus please be careful.
     For example, let's say we have two branches (``main`` and ``v1.2.x``).
     Both 1.2.0 and 1.2.1 releases will come out of the same v1.2.x branch.
@@ -479,7 +524,7 @@ right version number).
    the process of backporting.  See :ref:`changelog-format` for more details.
 
 To aid this process, there are a series of related scripts in the
-`astropy-procedures repository`_, in the ``pr_consistency`` directory.  These scripts
+`astropy-tools repository`_, in the ``pr_consistency`` directory.  These scripts
 essentially check that the above two conditions are met. Detailed documentation
 for these scripts is given in their repository, but here we summarize the basic
 workflow.  Run the scripts in order (they are numbered ``1.<something>.py``,
@@ -669,7 +714,8 @@ that for you.  You can delete this tag by doing::
 .. _astropy core repository: https://github.com/astropy/astropy
 .. _signed tags: https://git-scm.com/book/en/v2/Git-Basics-Tagging#Signed-Tags
 .. _cython: http://www.cython.org/
-.. _astropy-procedures repository: https://github.com/astropy/astropy-procedures
+.. _astropy-tools repository: https://github.com/astropy/astropy-tools
 .. _Anaconda: https://conda.io/docs/
 .. _twine: https://packaging.python.org/key_projects/#twine
 .. _Azure core package pipeline: https://dev.azure.com/astropy-project/astropy/_build
+.. _generate_releaserst.xsh: https://raw.githubusercontent.com/sunpy/sunpy/main/tools/generate_releaserst.xsh

@@ -154,8 +154,8 @@ as a whole, see :doc:`development/vision`.
    changelog
 
 There are some additional tools, mostly of use for maintainers, in the
-`astropy/astropy-procedures repository
-<https://github.com/astropy/astropy-procedures>`__.
+`astropy/astropy-tools repository
+<https://github.com/astropy/astropy-tools>`__.
 
 {%else%}
 
