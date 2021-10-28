@@ -230,7 +230,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
         attrs = [self.attr_classes[component](attr, copy=copy, subok=True)
                  for component, attr in zip(components, attrs)]
         try:
-            attrs = np.broadcast_arrays(*attrs, subok=True)
+            bc_attrs = np.broadcast_arrays(*attrs, subok=True)
         except ValueError:
             if len(components) <= 2:
                 c_str = ' and '.join(components)
@@ -238,8 +238,14 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                 c_str = ', '.join(components[:2]) + ', and ' + components[2]
             raise ValueError(f"Input parameters {c_str} cannot be broadcast")
 
+        # If inputs have been copied, there is no reason to output a broadcasted array for a
+        # component, so we perform another copy of any component that has been broadcasted
+        # TODO: Look for some way to avoid the double copy in these situations
         if copy:
-            attrs = [attr.copy() for attr in attrs]
+            attrs = [bc_attr.copy() if bc_attr.shape != attr.shape else attr
+                     for attr, bc_attr in zip(attrs, bc_attrs)]
+        else:
+            attrs = bc_attrs
 
         # Set private attributes for the attributes. (If not defined explicitly
         # on the class, the metaclass will define properties to access these.)
