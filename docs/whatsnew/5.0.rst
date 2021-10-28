@@ -174,6 +174,19 @@ shown in :ref:`whatsnew-5.0-dask-in-table`.
 For more information about how to write your own handlers and register them,
 see :ref:`table_mixin_registry`.
 
+.. _whatsnew-5.0-parquet-tables:
+
+Support for reading and writing tables to Parquet format
+========================================================
+
+.. _Parquet: https://parquet.apache.org/
+.. _pyarrow: https://arrow.apache.org/docs/python/
+
+The :ref:`table_io` now supports reading and writing files in the Parquet_ format if the pyarrow_ package is installed.
+Apache Parquet is a columnar storage format related to the Hadoop ecosystem which supports a wide variety of data processing frameworks and programming languages.
+A key benefit of Parquet files is that each column is stored independently, and thus reading a subset of columns is fast and efficient.
+For more details see the :ref:`table_io_parquet` section.
+
 Full change log
 ===============
 
