@@ -33,8 +33,8 @@ Currently no file formats are registered, but the syntax is as follows:
     True
 
 
-The transformation between ``Cosmology`` and `dict` is pre-registered,
-e.g. enabling::
+The transformations between ``Cosmology`` and `dict`/``QTable`` are
+pre-registered, e.g. enabling::
 
     >>> from astropy.cosmology import Planck18
     >>> cm = Planck18.to_format("mapping")
@@ -44,6 +44,14 @@ e.g. enabling::
      'H0': <Quantity 67.66 km / (Mpc s)>,
      'Om0': 0.30966,
      ...
+    >>> ct = Planck18.to_format("astropy.table")
+    >>> ct
+    <QTable length=1>
+      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+             km / (Mpc s)                              eV
+      str8     float64    float64 float64 float64   float64   float64
+    -------- ------------ ------- ------- ------- ----------- -------
+    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
     >>> from astropy.cosmology import Cosmology
     >>> cosmo = Cosmology.from_format(cm, format="mapping")
