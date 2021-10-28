@@ -3,7 +3,7 @@
 
 Ref: https://journals.aas.org/mrt-standards
 
-:Copyright: Smithsonian Astrophysical Observatory (2011)
+:Copyright: Smithsonian Astrophysical Observatory (2021)
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu), \
          Suyog Garg (suyog7130@gmail.com)
 """
