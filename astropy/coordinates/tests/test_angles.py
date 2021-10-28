@@ -1032,8 +1032,10 @@ def test_latitude_nan():
 
 
 def test_angle_wrap_at_nan():
-    # Check that passing a NaN to Latitude doesn't raise a warning
-    Angle([0, np.nan, 1] * u.deg).wrap_at(180*u.deg)
+    # Check that no attempt is made to wrap a NaN angle
+    angle = Angle([0, np.nan, 1] * u.deg)
+    angle.flags.writeable = False  # to force an error if a write is attempted
+    angle.wrap_at(180*u.deg, inplace=True)
 
 
 def test_angle_multithreading():
