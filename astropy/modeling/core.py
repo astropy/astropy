@@ -918,7 +918,7 @@ class Model(metaclass=_ModelMeta):
         """
 
         # Broadcast inputs into common size
-        inputs, format_info = self.prepare_inputs(*args, **kwargs)
+        inputs, broadcasted_shapes = self.prepare_inputs(*args, **kwargs)
 
         # Setup actual model evaluation method
         parameters = self._param_sets(raw=True, units=True)
@@ -926,7 +926,7 @@ class Model(metaclass=_ModelMeta):
         def evaluate(_inputs):
             return self.evaluate(*chain(_inputs, parameters))
 
-        return evaluate, inputs, format_info, kwargs
+        return evaluate, inputs, broadcasted_shapes, kwargs
 
     def get_bounding_box(self, with_bbox=True):
         """
@@ -1018,14 +1018,14 @@ class Model(metaclass=_ModelMeta):
             outputs = evaluate(_inputs)
         return outputs
 
-    def _post_evaluate(self, inputs, outputs, format_info, with_bbox, **kwargs):
+    def _post_evaluate(self, inputs, outputs, broadcasted_shapes, with_bbox, **kwargs):
         """
         Model specific post evaluation processing of outputs
         """
         if not with_bbox and self.n_outputs == 1:
             outputs = (outputs,)
 
-        outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
+        outputs = self.prepare_outputs(broadcasted_shapes, *outputs, **kwargs)
         outputs = self._process_output_units(inputs, outputs)
 
         if self.n_outputs == 1:
@@ -1045,7 +1045,7 @@ class Model(metaclass=_ModelMeta):
         fill_value = kwargs.pop('fill_value', np.nan)
 
         # prepare for model evaluation (overridden in CompoundModel)
-        evaluate, inputs, format_info, kwargs = self._pre_evaluate(*args, **kwargs)
+        evaluate, inputs, broadcasted_shapes, kwargs = self._pre_evaluate(*args, **kwargs)
 
         # NOTE: CompoundModel does not currently support units during
         #   evaluation for bounding_box so this feature is turned off
@@ -1056,7 +1056,7 @@ class Model(metaclass=_ModelMeta):
                                          (not isinstance(self, CompoundModel)))
 
         # post-process evaluation results (overridden in CompoundModel)
-        return self._post_evaluate(inputs, outputs, format_info, with_bbox, **kwargs)
+        return self._post_evaluate(inputs, outputs, broadcasted_shapes, with_bbox, **kwargs)
 
     def _get_renamed_inputs_as_positional(self, *args, **kwargs):
         def _keyword2positional(kwargs):
@@ -2086,20 +2086,20 @@ class Model(metaclass=_ModelMeta):
 
         return output
 
-    def _prepare_outputs_single_model(self, outputs, format_info):
+    def _prepare_outputs_single_model(self, outputs, broadcasted_shapes):
         outputs = list(outputs)
         for idx, output in enumerate(outputs):
             try:
-                broadcast_shape = check_broadcast(*format_info[0])
+                broadcast_shape = check_broadcast(*broadcasted_shapes[0])
             except (IndexError, TypeError):
-                broadcast_shape = format_info[0][idx]
+                broadcast_shape = broadcasted_shapes[0][idx]
 
             outputs[idx] = self._prepare_output_single_model(output, broadcast_shape)
 
         return tuple(outputs)
 
-    def _prepare_outputs_model_set(self, outputs, format_info, model_set_axis):
-        pivots = format_info[0]
+    def _prepare_outputs_model_set(self, outputs, broadcasted_shapes, model_set_axis):
+        pivots = broadcasted_shapes[0]
         # If model_set_axis = False was passed then use
         # self._model_set_axis to format the output.
         if model_set_axis is None or model_set_axis is False:
@@ -2112,13 +2112,13 @@ class Model(metaclass=_ModelMeta):
                                            model_set_axis)
         return tuple(outputs)
 
-    def prepare_outputs(self, format_info, *outputs, **kwargs):
+    def prepare_outputs(self, broadcasted_shapes, *outputs, **kwargs):
         model_set_axis = kwargs.get('model_set_axis', None)
 
         if len(self) == 1:
-            return self._prepare_outputs_single_model(outputs, format_info)
+            return self._prepare_outputs_single_model(outputs, broadcasted_shapes)
         else:
-            return self._prepare_outputs_model_set(outputs, format_info, model_set_axis)
+            return self._prepare_outputs_model_set(outputs, broadcasted_shapes, model_set_axis)
 
     def copy(self):
         """
@@ -3141,7 +3141,7 @@ class CompoundModel(Model):
         """No inputs should be used to determine input_shape when handling compound models"""
         return ()
 
-    def _post_evaluate(self, inputs, outputs, format_info, with_bbox, **kwargs):
+    def _post_evaluate(self, inputs, outputs, broadcasted_shapes, with_bbox, **kwargs):
         """
         CompoundModel specific post evaluation processing of outputs
 
