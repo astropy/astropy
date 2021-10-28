@@ -8,8 +8,11 @@ import astropy.units as u
 from astropy.units.utils import generate_unit_summary as _generate_unit_summary
 
 __all__ = ["littleh", "redshift",
-           # equivalencies
-           "dimensionless_redshift", "with_redshift", "with_H0"]
+           # redshift equivalencies
+           "dimensionless_redshift", "with_redshift", "redshift_temperature",
+           "redshift_hubble",
+           # other equivalencies
+           "with_H0"]
 
 _ns = globals()
 
@@ -80,11 +83,63 @@ def redshift_temperature(cosmology=None, **atzkw):
     def Tcmb_to_z(T):
         return z_at_value(cosmology.Tcmb, T << u.K, **atzkw)
 
-    return u.Equivalency([(redshift, u.K, z_to_Tcmb, Tcmb_to_z)], "redshift_temperature",
+    return u.Equivalency([(redshift, u.K, z_to_Tcmb, Tcmb_to_z)],
+                         "redshift_temperature",
                          {'cosmology': cosmology})
 
 
-def with_redshift(cosmology=None, *, Tcmb=True, atzkw=None):
+def redshift_hubble(cosmology=None, **atzkw):
+    """Convert quantities between redshift and Hubble parameter and little-h.
+
+    Care should be taken to not misinterpret a relativistic, gravitational, etc
+    redshift as a cosmological one.
+
+    Parameters
+    ----------
+    cosmology : `~astropy.cosmology.Cosmology`, str, or None, optional
+        A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
+        If None, will use the default cosmology
+        (controlled by :class:`~astropy.cosmology.default_cosmology`).
+    **atzkw
+        keyword arguments for :func:`~astropy.cosmology.z_at_value`
+
+    Returns
+    -------
+    `~astropy.units.equivalencies.Equivalency`
+        Equivalency between redshift and Hubble parameter and little-h unit.
+    """
+    from astropy.cosmology import default_cosmology, z_at_value
+
+    # get cosmology: None -> default and process str / class
+    cosmology = cosmology if cosmology is not None else default_cosmology.get()
+    with default_cosmology.set(cosmology):  # if already cosmo, passes through
+        cosmology = default_cosmology.get()
+
+    def z_to_hubble(z):
+        """Redshift to Hubble parameter."""
+        return cosmology.H(z)
+
+    def hubble_to_z(H):
+        """Hubble parameter to redshift."""
+        return z_at_value(cosmology.H, H << (u.km / u.s / u.Mpc), **atzkw)
+
+    def z_to_littleh(z):
+        """Redshift to :math:`h`-unit Quantity."""
+        return z_to_hubble(z).to_value(u.km / u.s / u.Mpc) / 100 * littleh
+
+    def littleh_to_z(h):
+        """:math:`h`-unit Quantity to redshift."""
+        return hubble_to_z(h * 100)
+
+    return u.Equivalency([(redshift, u.km / u.s / u.Mpc, z_to_hubble, hubble_to_z),
+                          (redshift, littleh, z_to_littleh, littleh_to_z)],
+                         "redshift_hubble",
+                         {'cosmology': cosmology})
+
+
+def with_redshift(cosmology=None, *,
+                  Tcmb=True, hubble=True,
+                  atzkw=None):
     """Convert quantities between measures of cosmological distance.
 
     Note: by default all equivalencies are on and must be explicitly turned off.
@@ -97,16 +152,21 @@ def with_redshift(cosmology=None, *, Tcmb=True, atzkw=None):
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
         (controlled by :class:`~astropy.cosmology.default_cosmology`).
+
     Tcmb : bool (optional, keyword-only)
         Whether to create a CMB temperature <-> redshift equivalency, using
-        ``Cosmology.Tcmb``. Default is False.
+        ``Cosmology.Tcmb``. Default is `True`.
+    hubble : bool (optional, keyword-only)
+        Whether to create a Hubble parameter <-> redshift equivalency, using
+        ``Cosmology.H``. Default is `True`.
+
     atzkw : dict or None (optional, keyword-only)
         keyword arguments for :func:`~astropy.cosmology.z_at_value`
 
     Returns
     -------
     `~astropy.units.equivalencies.Equivalency`
-        With equivalencies between redshift and temperature.
+        With equivalencies between redshift and temperature / Hubble.
     """
     from astropy.cosmology import default_cosmology, z_at_value
 
@@ -118,16 +178,18 @@ def with_redshift(cosmology=None, *, Tcmb=True, atzkw=None):
     atzkw = atzkw if atzkw is not None else {}
     equivs = []  # will append as built
 
-    # -----------
-    # CMB Temperature <-> Redshift
+    # Hubble <-> Redshift
+    if hubble:
+        equivs.extend(redshift_hubble(cosmology, **atzkw))
 
+    # CMB Temperature <-> Redshift
     if Tcmb:
         equivs.extend(redshift_temperature(cosmology, **atzkw))
 
     # -----------
-
     return u.Equivalency(equivs, "with_redshift",
-                         {'cosmology': cosmology, 'Tcmb': Tcmb})
+                         {'cosmology': cosmology,
+                          'hubble': hubble, 'Tcmb': Tcmb})
 
 
 # ===================================================================
@@ -153,7 +215,7 @@ def with_H0(H0=None):
         from .realizations import default_cosmology
         H0 = default_cosmology.get().H0
 
-    h100_val_unit = u.Unit(100/(H0.to_value((u.km/u.s)/u.Mpc)) * littleh)
+    h100_val_unit = u.Unit(100/(H0.to_value(u.km / u.s / u.Mpc)) * littleh)
 
     return u.Equivalency([(h100_val_unit, None)], "with_H0", kwargs={"H0": H0})
 

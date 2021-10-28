@@ -45,6 +45,7 @@ def test_has_expected_equivalencies():
 
 
 def test_littleh():
+    """Test :func:`astropy.cosmology.units.with_H0`."""
     H0_70 = 70 * u.km / u.s / u.Mpc
     h70dist = 70 * u.Mpc / cu.littleh
 
@@ -68,7 +69,7 @@ def test_littleh():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 def test_dimensionless_redshift():
-    """Test the equivalency  ``dimensionless_redshift``."""
+    """Test :func:`astropy.cosmology.units.dimensionless_redshift`."""
     z = 3 * cu.redshift
     val = 3 * u.one
 
@@ -99,7 +100,7 @@ def test_dimensionless_redshift():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 def test_redshift_temperature():
-    """Test the equivalency  ``with_redshift``."""
+    """Test :func:`astropy.cosmology.units.redshift_temperature`."""
     cosmo = Planck13.clone(Tcmb0=3 * u.K)
     default_cosmo = default_cosmology.get()
     z = 15 * cu.redshift
@@ -128,28 +129,71 @@ def test_redshift_temperature():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
+def test_redshift_hubble():
+    """Test :func:`astropy.cosmology.units.redshift_hubble`."""
+    unit = u.km / u.s / u.Mpc
+    cosmo = Planck13.clone(H0=100 * unit)
+    default_cosmo = default_cosmology.get()
+    z = 15 * cu.redshift
+    H = cosmo.H(z)
+    h = H.to_value(u.km/u.s/u.Mpc) / 100 * cu.littleh
+
+    # 1) Default (without specifying the cosmology)
+    with default_cosmology.set(cosmo):
+        equivalency = cu.redshift_hubble()
+        # H
+        assert_quantity_allclose(z.to(unit, equivalency), H)
+        assert_quantity_allclose(H.to(cu.redshift, equivalency), z)
+        # little-h
+        assert_quantity_allclose(z.to(cu.littleh, equivalency), h)
+        assert_quantity_allclose(h.to(cu.redshift, equivalency), z)
+
+    # showing the answer changes if the cosmology changes
+    # this test uses the default cosmology
+    equivalency = cu.redshift_hubble()
+    assert_quantity_allclose(z.to(unit, equivalency), default_cosmo.H(z))
+    assert default_cosmo.H(z) != H
+
+    # 2) Specifying the cosmology
+    equivalency = cu.redshift_hubble(cosmo)
+    # H
+    assert_quantity_allclose(z.to(unit, equivalency), H)
+    assert_quantity_allclose(H.to(cu.redshift, equivalency), z)
+    # little-h
+    assert_quantity_allclose(z.to(cu.littleh, equivalency), h)
+    assert_quantity_allclose(h.to(cu.redshift, equivalency), z)
+
+    # Test `atzkw`
+    equivalency = cu.redshift_hubble(cosmo, ztol=1e-10)
+    assert_quantity_allclose(H.to(cu.redshift, equivalency), z)  # H
+    assert_quantity_allclose(h.to(cu.redshift, equivalency), z)  # little-h
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 class Test_with_redshift:
+    """Test `astropy.cosmology.units.with_redshift`."""
+
     @pytest.fixture
     def cosmo(self):
+        """Test cosmology."""
         return Planck13.clone(Tcmb0=3 * u.K)
 
     # ===========================================
 
     def test_cosmo_different(self, cosmo):
+        """The default is different than the test cosmology."""
         default_cosmo = default_cosmology.get()
         assert default_cosmo != cosmo  # shows changing default
 
     def test_no_equivalency(self, cosmo):
         """Test the equivalency  ``with_redshift`` without any enabled."""
-        z = 15 * cu.redshift
-
-        equivalency = cu.with_redshift(Tcmb=False)
+        equivalency = cu.with_redshift(Tcmb=False, hubble=False)
         assert len(equivalency) == 0
 
     # -------------------------------------------
 
     def test_temperature_off(self, cosmo):
-        """Test the equivalency  ``with_redshift``."""
+        """Test ``with_redshift`` with the temperature off."""
         default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
         Tcmb = cosmo.Tcmb(z)
@@ -166,7 +210,7 @@ class Test_with_redshift:
             z.to(u.K, equivalency)
 
     def test_temperature(self, cosmo):
-        """Test the equivalency  ``with_redshift``."""
+        """Test temperature equivalency component."""
         default_cosmo = default_cosmology.get()
         z = 15 * cu.redshift
         Tcmb = cosmo.Tcmb(z)
@@ -192,6 +236,65 @@ class Test_with_redshift:
         # this is really just a test that 'atzkw' doesn't fail
         equivalency = cu.with_redshift(cosmo, Tcmb=True, atzkw={"ztol": 1e-10})
         assert_quantity_allclose(Tcmb.to(cu.redshift, equivalency), z)
+
+    # -------------------------------------------
+
+    def test_hubble_off(self, cosmo):
+        """Test ``with_redshift`` with Hubble off."""
+        unit = u.km / u.s / u.Mpc
+        default_cosmo = default_cosmology.get()
+        z = 15 * cu.redshift
+        H = cosmo.H(z)
+
+        # 1) Default (without specifying the cosmology)
+        with default_cosmology.set(cosmo):
+            equivalency = cu.with_redshift(hubble=False)
+            with pytest.raises(u.UnitConversionError, match="'redshift' and 'km / "):
+                z.to(unit, equivalency)
+
+        # 2) Specifying the cosmology
+        equivalency = cu.with_redshift(cosmo, hubble=False)
+        with pytest.raises(u.UnitConversionError, match="'redshift' and 'km / "):
+            z.to(unit, equivalency)
+
+    def test_hubble(self, cosmo):
+        """Test Hubble equivalency component."""
+        unit = u.km/u.s/u.Mpc
+        default_cosmo = default_cosmology.get()
+        z = 15 * cu.redshift
+        H = cosmo.H(z)
+        h = H.to_value(u.km / u.s / u.Mpc) / 100 * cu.littleh
+
+        # 1) Default (without specifying the cosmology)
+        with default_cosmology.set(cosmo):
+            equivalency = cu.with_redshift(hubble=True)
+            # H
+            assert_quantity_allclose(z.to(unit, equivalency), H)
+            assert_quantity_allclose(H.to(cu.redshift, equivalency), z)
+            # little-h
+            assert_quantity_allclose(z.to(cu.littleh, equivalency), h)
+            assert_quantity_allclose(h.to(cu.redshift, equivalency), z)
+
+        # showing the answer changes if the cosmology changes
+        # this test uses the default cosmology
+        equivalency = cu.with_redshift(hubble=True)
+        assert_quantity_allclose(z.to(unit, equivalency), default_cosmo.H(z))
+        assert default_cosmo.H(z) != H
+
+        # 2) Specifying the cosmology
+        equivalency = cu.with_redshift(cosmo, hubble=True)
+        # H
+        assert_quantity_allclose(z.to(unit, equivalency), H)
+        assert_quantity_allclose(H.to(cu.redshift, equivalency), z)
+        # little-h
+        assert_quantity_allclose(z.to(cu.littleh, equivalency), h)
+        assert_quantity_allclose(h.to(cu.redshift, equivalency), z)
+
+        # Test `atzkw`
+        # this is really just a test that 'atzkw' doesn't fail
+        equivalency = cu.with_redshift(cosmo, hubble=True, atzkw={"ztol": 1e-10})
+        assert_quantity_allclose(H.to(cu.redshift, equivalency), z)  # H
+        assert_quantity_allclose(h.to(cu.redshift, equivalency), z)  # h
 
 
 # FIXME! get "dimensionless_redshift", "with_redshift" to work in this

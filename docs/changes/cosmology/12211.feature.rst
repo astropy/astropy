@@ -1,0 +1,3 @@
+A new equivalency is added between redshift and the Hubble parameter and values
+with units of little-h.
+This equivalency is also available in the catch-all equivalency ``with_redshift``.
