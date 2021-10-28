@@ -73,8 +73,15 @@ CMB temperature, the equivalency ``with_redshift`` is also added.
     <Quantity 1100.>
 
     >>> from astropy.cosmology import WMAP9
-    >>> z.to(u.K, cu.with_redshift(WMAP9))
+    >>> equivalency = cu.with_redshift(WMAP9)  # construct equivalency
+    >>> z.to(u.K, equivalency)
     <Quantity 3000.225 K>
+
+    >>> z.to(u.km / u.s / u.Mpc, equivalency)
+    <Quantity 1565637.40154275 km / (Mpc s)>
+
+    >>> z.to(cu.littleh, equivalency)
+    <Quantity 15656.37401543 littleh>
 
 Further details are available in an addition to the docs.
 
