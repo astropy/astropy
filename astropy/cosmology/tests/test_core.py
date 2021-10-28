@@ -16,6 +16,7 @@ import numpy as np
 import astropy.units as u
 from astropy.cosmology import Cosmology, core
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.table import QTable, Table
 from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
@@ -462,6 +463,30 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
             assert (k + '=' + sv) in r
             assert r.index(k) == 0
             r = r[len((k + '=' + sv)) + 2:]  # remove
+
+    # ------------------------------------------------
+
+    @pytest.mark.parametrize("in_meta", [True, False])
+    @pytest.mark.parametrize("table_cls", [Table, QTable])
+    def test_astropy_table(self, cosmo, table_cls, in_meta):
+        """Test ``astropy.table.Table(cosmology)``."""
+        tbl = table_cls(cosmo, cosmology_in_meta=in_meta)
+
+        assert isinstance(tbl, table_cls)
+        # the name & all parameters are columns
+        for n in ("name", *cosmo.__parameters__):
+            assert n in tbl.colnames
+            assert all(tbl[n] == getattr(cosmo, n))
+        # check if Cosmology is in metadata or a column
+        if in_meta:
+            assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
+            assert "cosmology" not in tbl.colnames
+        else:
+            assert "cosmology" not in tbl.meta
+            assert tbl["cosmology"][0] == cosmo.__class__.__qualname__
+        # the metadata is transferred
+        for k, v in cosmo.meta.items():
+            assert np.all(tbl.meta[k] == v)
 
 
 class CosmologySubclassTest(TestCosmology):

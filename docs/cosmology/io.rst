@@ -142,12 +142,27 @@ to the ``Planck18`` cosmology from which it was created.
 
 .. EXAMPLE START: Planck18 to QTable and back
 
-    Another pre-registered format is "table", for converting a |Cosmology| to
-    and from a |QTable|.
+Another pre-registered format is "table", for converting a |Cosmology| to
+and from a |QTable|.
 
 .. code-block::
 
     >>> ct = Planck18.to_format("astropy.table")
+    >>> ct
+    <QTable length=1>
+      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
+             km / (Mpc s)            K                 eV
+      str8     float64    float64 float64 float64   float64   float64
+    -------- ------------ ------- ------- ------- ----------- -------
+    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
+
+Cosmology supports the astropy Table-like protocol (see :ref:`Table-like Objects`)
+to the same effect:
+
+.. code-block::
+
+    >>> from astropy.table import QTable
+    >>> ct = QTable(Planck18)
     >>> ct
     <QTable length=1>
       name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0

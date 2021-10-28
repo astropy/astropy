@@ -110,8 +110,9 @@ class ToFromTableTestMixin(IOTestMixinBase):
         got = from_format(tbl, format="astropy.table")
         assert got == cosmo
 
-        # and it will also work if the cosmology is a string
-        tbl.meta["cosmology"] = _COSMOLOGY_CLASSES[tbl.meta["cosmology"]].__qualname__
+        # and it will also work if the cosmology is a class
+        # Note this is not the default output of ``to_format``.
+        tbl.meta["cosmology"] = _COSMOLOGY_CLASSES[tbl.meta["cosmology"]]
         got = from_format(tbl, format="astropy.table")
         assert got == cosmo
 
@@ -194,4 +195,4 @@ class TestToFromTable(ToFromFormatTestBase, ToFromTableTestMixin):
     """
 
     def setup_class(self):
-        self.io_functions = {"to": to_table, "from": from_table}
+        self.functions = {"to": to_table, "from": from_table}
