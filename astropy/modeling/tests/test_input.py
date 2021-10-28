@@ -918,7 +918,7 @@ def test_more_outputs():
             return a*x, a-x, a+y
 
         def __call__(self, *args, **kwargs):
-            inputs, format_info = super().prepare_inputs(*args, **kwargs)
+            inputs, _ = super().prepare_inputs(*args, **kwargs)
 
             outputs = self.evaluate(*inputs, *self.parameters)
             output_shapes = [out.shape for out in outputs]
