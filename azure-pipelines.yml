@@ -65,7 +65,8 @@ jobs:
       targets:
       # These builds are run always, to test PRs
       # Only run one job on PRs, so exclude musllinux here
-      - wheels_cp39-manylinux_x86_64
+      - wheels_cp39-manylinux_aarch64
+      # - wheels_cp39-manylinux_x86_64
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - sdist
         - wheels_cp38-manylinux_i686
@@ -89,5 +90,4 @@ jobs:
         # - wheels_cp310-musllinux_x86_64
         # TODO: The aarch64 builds take longer than an hour to complete so get killed
         # - wheels_cp38-manylinux_aarch64
-        # - wheels_cp39-manylinux_aarch64
         # - wheels_cp310-manylinux_aarch64
