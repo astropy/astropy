@@ -170,6 +170,34 @@ def test_redshift_hubble():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
+@pytest.mark.parametrize(
+    "distance_kind",
+    [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"]
+)
+def test_redshift_distance(distance_kind):
+    """Test :func:`astropy.cosmology.units.redshift_distance`."""
+    z = 15 * cu.redshift
+    d = getattr(Planck13, distance_kind + "_distance")(z)
+
+    equivalency = cu.redshift_distance(cosmology=Planck13, distance_kind=distance_kind)
+
+    # properties of Equivalency
+    assert equivalency.name[0] == "redshift_distance"
+    assert equivalency.kwargs[0]["cosmology"] == Planck13
+    assert equivalency.kwargs[0]["distance"] == distance_kind
+
+    # roundtrip
+    assert_quantity_allclose(z.to(u.Mpc, equivalency), d)
+    assert_quantity_allclose(d.to(cu.redshift, equivalency), z)
+
+
+def test_redshift_distance_wrong_kind():
+    """Test :func:`astropy.cosmology.units.redshift_distance` wrong kind."""
+    with pytest.raises(ValueError, match="`distance_kind`"):
+        cu.redshift_distance(distance_kind=None)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 class Test_with_redshift:
     """Test `astropy.cosmology.units.with_redshift`."""
 
@@ -187,7 +215,7 @@ class Test_with_redshift:
 
     def test_no_equivalency(self, cosmo):
         """Test the equivalency  ``with_redshift`` without any enabled."""
-        equivalency = cu.with_redshift(Tcmb=False, hubble=False)
+        equivalency = cu.with_redshift(distance=None, hubble=False, Tcmb=False)
         assert len(equivalency) == 0
 
     # -------------------------------------------
@@ -295,6 +323,70 @@ class Test_with_redshift:
         equivalency = cu.with_redshift(cosmo, hubble=True, atzkw={"ztol": 1e-10})
         assert_quantity_allclose(H.to(cu.redshift, equivalency), z)  # H
         assert_quantity_allclose(h.to(cu.redshift, equivalency), z)  # h
+
+    # -------------------------------------------
+
+    def test_distance_off(self, cosmo):
+        """Test ``with_redshift`` with the distance off."""
+        default_cosmo = default_cosmology.get()
+        z = 15 * cu.redshift
+
+        # 1) Default (without specifying the cosmology)
+        with default_cosmology.set(cosmo):
+            equivalency = cu.with_redshift(distance=None)
+            with pytest.raises(u.UnitConversionError, match="'redshift' and 'Mpc'"):
+                z.to(u.Mpc, equivalency)
+
+        # 2) Specifying the cosmology
+        equivalency = cu.with_redshift(cosmo, distance=None)
+        with pytest.raises(u.UnitConversionError, match="'redshift' and 'Mpc'"):
+            z.to(u.Mpc, equivalency)
+
+    def test_distance_default(self):
+        """Test distance equivalency default."""
+        z = 15 * cu.redshift
+        d = default_cosmology.get().comoving_distance(z)
+
+        equivalency = cu.with_redshift()
+        assert_quantity_allclose(z.to(u.Mpc, equivalency), d)
+        assert_quantity_allclose(d.to(cu.redshift, equivalency), z)
+
+    def test_distance_wrong_kind(self):
+        """Test distance equivalency, but the wrong kind."""
+        with pytest.raises(ValueError, match="`distance_kind`"):
+            cu.with_redshift(distance=ValueError)
+
+    @pytest.mark.parametrize("kind", ["comoving", "lookback", "luminosity"])
+    def test_distance(self, kind):
+        """Test distance equivalency."""
+        cosmo = Planck13
+        z = 15 * cu.redshift
+        dist = getattr(cosmo, kind + "_distance")(z)
+
+        default_cosmo = default_cosmology.get()
+        assert default_cosmo != cosmo  # shows changing default
+
+        # 1) without specifying the cosmology
+        with default_cosmology.set(cosmo):
+            equivalency = cu.with_redshift(distance=kind)
+            assert_quantity_allclose(z.to(u.Mpc, equivalency), dist)
+
+        # showing the answer changes if the cosmology changes
+        # this test uses the default cosmology
+        equivalency = cu.with_redshift(distance=kind)
+        assert_quantity_allclose(z.to(u.Mpc, equivalency),
+                                 getattr(default_cosmo, kind + "_distance")(z))
+        assert not u.allclose(getattr(default_cosmo, kind + "_distance")(z), dist)
+
+        # 2) Specifying the cosmology
+        equivalency = cu.with_redshift(cosmo, distance=kind)
+        assert_quantity_allclose(z.to(u.Mpc, equivalency), dist)
+        assert_quantity_allclose(dist.to(cu.redshift, equivalency), z)
+
+        # Test atzkw
+        # this is really just a test that 'atzkw' doesn't fail
+        equivalency = cu.with_redshift(cosmo, distance=kind, atzkw={"ztol": 1e-10})
+        assert_quantity_allclose(dist.to(cu.redshift, equivalency), z)
 
 
 # FIXME! get "dimensionless_redshift", "with_redshift" to work in this
