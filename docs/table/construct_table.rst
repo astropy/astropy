@@ -1184,6 +1184,8 @@ units, see the :ref:`columns_with_units` section.
 
 .. EXAMPLE END
 
+.. _Table-like Objects:
+
 Table-like Objects
 ==================
 
