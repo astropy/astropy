@@ -1,0 +1,1 @@
+Wrapping an ``Angle`` array will now ignore NaN values instead of attempting to wrap them, which would produce unexpected warnings/errors when working with coordinates and representations due to internal broadcasting.

@@ -388,6 +388,7 @@ class Angle(u.SpecificTypeQuantity):
         # any more for >= 1.19 (NUMPY_LT_1_19), but former is).
         with np.errstate(invalid='ignore'):
             wraps = (self_angle - wrap_angle_floor) // a360
+            np.nan_to_num(wraps, copy=False)
             if np.any(wraps != 0):
                 self_angle -= wraps*a360
                 # Rounding errors can cause problems.
