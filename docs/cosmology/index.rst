@@ -323,6 +323,8 @@ A full list of the predefined cosmologies is given by
 ========  ============================== ====  ===== =======
 Name      Source                         H0    Om    Flat
 ========  ============================== ====  ===== =======
+WMAP1     Spergel et al. 2003            72.0  0.257 Yes
+WMAP3     Spergel et al. 2007            70.1  0.276 Yes
 WMAP5     Komatsu et al. 2009            70.2  0.277 Yes
 WMAP7     Komatsu et al. 2011            70.4  0.272 Yes
 WMAP9     Hinshaw et al. 2013            69.3  0.287 Yes
