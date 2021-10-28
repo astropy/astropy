@@ -46,6 +46,16 @@ doi: 10.1088/0067-0049/192/2/18. Table 1 (WMAP + BAO + H0 ML).
 WMAP 5 year (WMAP5) parameters from Komatsu et al. 2009, ApJS, 180, 330,
 doi: 10.1088/0067-0049/180/2/330. Table 1 (WMAP + BAO + SN ML).
 
+WMAP 3 year (WMAP3) parameters from Spergel et al. 2007, ApJS, 170, 377,
+doi:  10.1086/513700. Table 6. (WMAP + SNGold) Obtained from https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm
+Tcmb0 and Neff are the standard values as also used for WMAP5, 7, 9.
+Pending WMAP team approval and subject to change.
+
+WMAP 1 year (WMAP1) parameters from Spergel et al. 2003, ApJS, 148, 175,
+doi:  10.1086/377226. Table 7 (WMAP + CBI + ACBAR + 2dFGRS + Lya)
+Tcmb0 and Neff are the standard values as also used for WMAP5, 7, 9.
+Pending WMAP team approval and subject to change.
+
 """
 
 import astropy.units as u
@@ -199,6 +209,50 @@ WMAP5 = dict(
                "Table 1 (WMAP + BAO + SN ML).")
 )
 
+WMAP3 = dict(
+    cosmology="FlatLambdaCDM",
+    Oc0=0.230,
+    Ob0=0.0454,
+    Om0=0.276,
+    H0=70.1 * (u.km / u.s / u.Mpc),
+    n=0.946,
+    sigma8=0.784,
+    tau=0.079,
+    z_reion=10.3,
+    t0=13.78 * u.Gyr,
+    Tcmb0=2.725 * u.K,
+    Neff=3.04,
+    m_nu=0.0 * u.eV,
+    flat=True,
+    reference=("Spergel et al. 2007, ApJS, 170, 377, "
+               "doi:  10.1086/513700. "
+               "Table 6 (WMAP + SNGold) "
+               "obtained from: https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm"
+               "\nPending WMAP team approval and subject to change.")
+)
+
+WMAP1 = dict(
+    cosmology="FlatLambdaCDM",
+    Oc0=0.213,
+    Ob0=0.0436,
+    Om0=0.257,
+    H0=72. * (u.km / u.s / u.Mpc),
+    n=0.96,
+    sigma8=0.75,
+    tau=0.117,
+    z_reion=17.0,  # Only from WMAP1. Does not exist in the combined analysis.
+    t0=13.4 * u.Gyr,
+    Tcmb0=2.725 * u.K,
+    Neff=3.04,
+    m_nu=0.0 * u.eV,
+    flat=True,
+    reference=("Spergel et al. 2003, ApJS, 148, 175, "
+               "doi:  10.1086/377226. "
+               "Table 7 (WMAP + CBI + ACBAR + 2dFGRS + Lya)."
+               "\nPending WMAP team approval and subject to change.")
+)
+
+
 # If new parameters are added, this list must be updated
 available = ['Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
-             'WMAP9', 'WMAP7', 'WMAP5']
+             'WMAP9', 'WMAP7', 'WMAP5', 'WMAP3', 'WMAP1']
