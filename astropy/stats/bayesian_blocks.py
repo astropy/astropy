@@ -36,6 +36,12 @@ References
 ----------
 .. [1] https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
 .. [2] https://www.astroml.org/ https://github.com//astroML/astroML/
+.. [3] Bellman, R.E., Dreyfus, S.E., 1962. Applied Dynamic
+   Programming. Princeton University Press, Princeton.
+   https://press.princeton.edu/books/hardcover/9780691651873/applied-dynamic-programming
+.. [4] Bellman, R., Roth, R., 1969. Curve fitting by segmented
+   straight lines. J. Amer. Statist. Assoc. 64, 1079–1084.
+   https://www.tandfonline.com/doi/abs/10.1080/01621459.1969.10501038
 """
 import warnings
 
@@ -138,6 +144,14 @@ def bayesian_blocks(t, x=None, sigma=None,
     ----------
     .. [1] Scargle, J et al. (2012)
        https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
+
+    .. [2] Bellman, R.E., Dreyfus, S.E., 1962. Applied Dynamic
+       Programming. Princeton University Press, Princeton.
+       https://press.princeton.edu/books/hardcover/9780691651873/applied-dynamic-programming
+
+    .. [3] Bellman, R., Roth, R., 1969. Curve fitting by segmented
+       straight lines. J. Amer. Statist. Assoc. 64, 1079–1084.
+       https://www.tandfonline.com/doi/abs/10.1080/01621459.1969.10501038
 
     See Also
     --------
