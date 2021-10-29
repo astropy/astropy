@@ -16,7 +16,7 @@ from astropy.table import Column, MaskedColumn
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
-from .common import assert_equal, assert_almost_equal
+from .common import assert_almost_equal
 
 
 test_dat = ['names e d s i',
@@ -123,6 +123,7 @@ def test_write_readme_with_default_options():
 
 def test_write_empty_table():
     out = StringIO()
+    import pytest
     with pytest.raises(NotImplementedError):
         Table().write(out, format='ascii.mrt')
 
@@ -194,18 +195,18 @@ exp_coord_cols_output = dict(generic=[
     '33-35  I3     ---    i       [-30/67] Description of i         ',
     '37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ',
     '41-42  I2     ---    sameI   [20] Description of sameI         ',
-    '44-47  F4.1   h      RAh     Right Ascension (hour)            ',
-    '49-52  F4.1   min    RAm     Right Ascension (minute)          ',
-    '54-68  F15.12 s      RAs     Right Ascension (second)          ',
-    '   70  A1     ---    DE-     Sign of Declination               ',
-    '71-74  F5.1   deg    DEd     Declination (degree)              ',
-    '76-79  F4.1   arcmin DEm     Declination (arcmin)              ',
-    '81-95  F15.12 arcsec DEs     Declination (arcsec)              ',
+    '44-45  I2     h      RAh     Right Ascension (hour)            ',
+    '47-48  I2     min    RAm     Right Ascension (minute)          ',
+    '50-64  F15.12 s      RAs     Right Ascension (second)          ',
+    '   66  A1     ---    DE-     Sign of Declination               ',
+    '67-68  I2     deg    DEd     Declination (degree)              ',
+    '70-71  I2     arcmin DEm     Declination (arcmin)              ',
+    '73-87  F15.12 arcsec DEs     Declination (arcsec)              ',
     '--------------------------------------------------------------------------------',
     'Notes:',
     '--------------------------------------------------------------------------------',
-    'HD81809  1e-07  22.25608   2e+00  67 5.0 20 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001',  # noqa
-    'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004'],  # noqa
+    'HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.450000000007 -61 39 34.599996000001',
+    'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.224407200005 +17 46 26.496624000004'],
 
     positive_de=[
         '================================================================================',
@@ -220,17 +221,18 @@ exp_coord_cols_output = dict(generic=[
         '33-35  I3     ---    i       [-30/67] Description of i         ',
         '37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ',
         '41-42  I2     ---    sameI   [20] Description of sameI         ',
-        '44-47  F4.1   h      RAh     Right Ascension (hour)            ',
-        '49-52  F4.1   min    RAm     Right Ascension (minute)          ',
-        '54-68  F15.12 s      RAs     Right Ascension (second)          ',
-        '70-73  F4.1   deg    DEd     Declination (degree)              ',
-        '75-78  F4.1   arcmin DEm     Declination (arcmin)              ',
-        '80-94  F15.12 arcsec DEs     Declination (arcsec)              ',
+        '44-45  I2     h      RAh     Right Ascension (hour)            ',
+        '47-48  I2     min    RAm     Right Ascension (minute)          ',
+        '50-64  F15.12 s      RAs     Right Ascension (second)          ',
+        '   66  A1     ---    DE-     Sign of Declination               ',
+        '67-68  I2     deg    DEd     Declination (degree)              ',
+        '70-71  I2     arcmin DEm     Declination (arcmin)              ',
+        '73-87  F15.12 arcsec DEs     Declination (arcsec)              ',
         '--------------------------------------------------------------------------------',
         'Notes:',
         '--------------------------------------------------------------------------------',
-        'HD81809  1e-07  22.25608   2e+00  67 5.0 20 12.0 48.0 15.224407200005 17.0 46.0 26.496624000004',  # noqa
-        'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12.0 48.0 15.224407200005 17.0 46.0 26.496624000004'],  # noqa
+        'HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.224407200005 +17 46 26.496624000004',
+        'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.224407200005 +17 46 26.496624000004'],
 
     galactic=[
         '================================================================================',
@@ -327,21 +329,21 @@ def test_write_byte_by_byte_bytes_col_format():
         '--------------------------------------------------------------------------------',
         ' Bytes Format Units  Label     Explanations',
         '--------------------------------------------------------------------------------',
-        '  1-  8  A8     ---    names         Description of names              ',
-        ' 10- 21  E12.6  ---    e             [-3160000.0/0.01] Description of e',
-        ' 23- 30  F8.5   ---    d             [22.25/27.25] Description of d    ',
-        ' 32- 38  E7.1   ---    s             [-9e+34/2.0] Description of s     ',
-        ' 40- 42  I3     ---    i             [-30/67] Description of i         ',
-        ' 44- 46  F3.1   ---    sameF         [5.0/5.0] Description of sameF    ',
-        ' 48- 49  I2     ---    sameI         [20] Description of sameI         ',
-        '     51  I1     ---    singleByteCol [2] Description of singleByteCol  ',
-        ' 53- 56  F4.1   h      RAh           Right Ascension (hour)            ',
-        ' 58- 60  F3.1   min    RAm           Right Ascension (minute)          ',
-        ' 62- 76  F15.12 s      RAs           Right Ascension (second)          ',
-        '     78  A1     ---    DE-           Sign of Declination               ',
-        ' 79- 82  F5.1   deg    DEd           Declination (degree)              ',
-        ' 84- 87  F4.1   arcmin DEm           Declination (arcmin)              ',
-        ' 89-103  F15.12 arcsec DEs           Declination (arcsec)              ',
+        ' 1- 8  A8     ---    names         Description of names              ',
+        '10-21  E12.6  ---    e             [-3160000.0/0.01] Description of e',
+        '23-30  F8.5   ---    d             [22.25/27.25] Description of d    ',
+        '32-38  E7.1   ---    s             [-9e+34/2.0] Description of s     ',
+        '40-42  I3     ---    i             [-30/67] Description of i         ',
+        '44-46  F3.1   ---    sameF         [5.0/5.0] Description of sameF    ',
+        '48-49  I2     ---    sameI         [20] Description of sameI         ',
+        '   51  I1     ---    singleByteCol [2] Description of singleByteCol  ',
+        '53-54  I2     h      RAh           Right Ascension (hour)            ',
+        '56-57  I2     min    RAm           Right Ascension (minute)          ',
+        '59-73  F15.12 s      RAs           Right Ascension (second)          ',
+        '   75  A1     ---    DE-           Sign of Declination               ',
+        '76-77  I2     deg    DEd           Declination (degree)              ',
+        '79-80  I2     arcmin DEm           Declination (arcmin)              ',
+        '82-96  F15.12 arcsec DEs           Declination (arcsec)              ',
         '--------------------------------------------------------------------------------']
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
@@ -437,7 +439,7 @@ def test_write_mixin_and_broken_cols():
     assert lines == exp_output
 
 
-def test_write_extra_SkyCoord_cols():
+def test_write_extra_skycoord_cols():
     """
     Tests output for cases when table contains multiple ``SkyCoord`` columns.
     """
@@ -473,7 +475,7 @@ HD81809 22 02 15.450000000007 -61 39 34.599996000001 330.564 -61.66
 
     lines = out.getvalue().splitlines()
     i_bbb = lines.index('=' * 80)
-    lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
     # Check the written table.
     assert lines[:-2] == exp_output.splitlines()[:-2]
 
