@@ -1,9 +1,121 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+# STDLIB
+import typing as T
+
+# THIRD PARTY
 import pytest
 
-from astropy import units as u  # pylint: disable=W0611
+# LOCAL
+from astropy import units as u
+from astropy.units import Quantity
+from astropy.units._typing import HAS_ANNOTATED, Annotated
+
+
+def test_ignore_generic_type_annotations():
+    """Test annotations that are not unit related are ignored.
+
+    This test passes if the function works.
+    """
+    # one unit, one not (should be ignored)
+    @u.quantity_input
+    def func(x: u.m, y: str):
+        return x, y
+
+    i_q, i_str = 2 * u.m, "cool string"
+    o_q, o_str = func(i_q, i_str)  # if this doesn't fail, it worked.
+    assert i_q == o_q
+    assert i_str == o_str
+
+
+@pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
+class TestQuantityUnitAnnotations:
+    """Test Quantity[Unit] type annotation."""
+
+    def test_simple_annotation(self):
+        @u.quantity_input
+        def func(x: Quantity[u.m], y: str):
+            return x, y
+
+        i_q, i_str = 2 * u.m, "cool string"
+        o_q, o_str = func(i_q, i_str)
+        assert i_q == o_q
+        assert i_str == o_str
+
+        # checks the input on the 1st arg
+        with pytest.raises(u.UnitsError):
+            func(1 * u.s, i_str)
+
+        # but not the second
+        o_q, o_str = func(i_q, {"not": "a string"})
+        assert i_q == o_q
+        assert i_str != o_str
+
+    def test_multiple_annotation(self):
+        @u.quantity_input
+        def multi_func(a: Quantity[u.km]) -> Quantity[u.m]:
+            return a
+
+        i_q = 2 * u.km
+        o_q = multi_func(i_q)
+        assert o_q == i_q
+        assert o_q.unit == u.m
+
+    @pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
+    def test_optional_and_annotated(self):
+        @u.quantity_input
+        def opt_func(x: T.Optional[Quantity[u.m]] = None) -> Quantity[u.km]:
+            if x is None:
+                return 1 * u.km
+            return x
+
+        i_q = 250 * u.m
+        o_q = opt_func(i_q)
+        assert o_q.unit == u.km
+        assert o_q == i_q
+
+        i_q = None
+        o_q = opt_func(i_q)
+        assert o_q == 1 * u.km
+
+    @pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
+    def test_union_and_annotated(self):
+        #  Union and Annotated
+        @u.quantity_input
+        def union_func(x: T.Union[Quantity[u.m], Quantity[u.s], None]):
+            if x is None:
+                return None
+            else:
+                return 2 * x
+
+        i_q = 1 * u.m
+        o_q = union_func(i_q)
+        assert o_q == 2 * i_q
+
+        i_q = 1 * u.s
+        o_q = union_func(i_q)
+        assert o_q == 2 * i_q
+
+        i_q = None
+        o_q = union_func(i_q)
+        assert o_q is None
+
+    def test_not_unit_or_ptype(self):
+        with pytest.raises(TypeError, match="unit annotation is not"):
+            Quantity["definitely not a unit"]
+
+
+@pytest.mark.skipif(HAS_ANNOTATED, reason="requires py3.8 behavior")
+def test_not_unit_or_ptype():
+    """
+    Same as above test, but different behavior for python 3.8 b/c it passes
+    Quantity right through.
+    """
+    with pytest.warns(Warning):
+        annot = Quantity[u.km]
+
+    assert annot == u.km
 
 
 @pytest.mark.parametrize("solarx_unit,solary_unit", [
@@ -16,8 +128,8 @@ def test_args3(solarx_unit, solary_unit):
 
     solarx, solary = myfunc_args(1*u.arcsec, 1*u.arcsec)
 
-    assert isinstance(solarx, u.Quantity)
-    assert isinstance(solary, u.Quantity)
+    assert isinstance(solarx, Quantity)
+    assert isinstance(solary, Quantity)
 
     assert solarx.unit == u.arcsec
     assert solary.unit == u.arcsec
@@ -33,8 +145,8 @@ def test_args_noconvert3(solarx_unit, solary_unit):
 
     solarx, solary = myfunc_args(1*u.deg, 1*u.arcmin)
 
-    assert isinstance(solarx, u.Quantity)
-    assert isinstance(solary, u.Quantity)
+    assert isinstance(solarx, Quantity)
+    assert isinstance(solary, Quantity)
 
     assert solarx.unit == u.deg
     assert solary.unit == u.arcmin
@@ -49,7 +161,7 @@ def test_args_nonquantity3(solarx_unit):
 
     solarx, solary = myfunc_args(1*u.arcsec, 100)
 
-    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solarx, Quantity)
     assert isinstance(solary, int)
 
     assert solarx.unit == u.arcsec
@@ -65,8 +177,8 @@ def test_arg_equivalencies3(solarx_unit, solary_unit):
 
     solarx, solary = myfunc_args(1*u.arcsec, 100*u.gram)
 
-    assert isinstance(solarx, u.Quantity)
-    assert isinstance(solary, u.Quantity)
+    assert isinstance(solarx, Quantity)
+    assert isinstance(solary, Quantity)
 
     assert solarx.unit == u.arcsec
     assert solary.unit == u.gram
@@ -107,8 +219,8 @@ def test_decorator_override():
 
     solarx, solary = myfunc_args(1*u.arcsec, 1*u.arcsec)
 
-    assert isinstance(solarx, u.Quantity)
-    assert isinstance(solary, u.Quantity)
+    assert isinstance(solarx, Quantity)
+    assert isinstance(solary, Quantity)
 
     assert solarx.unit == u.arcsec
     assert solary.unit == u.arcsec
@@ -124,9 +236,9 @@ def test_kwargs3(solarx_unit, solary_unit):
 
     solarx, solary, myk = myfunc_args(1*u.arcsec, 100, myk=100*u.deg)
 
-    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solarx, Quantity)
     assert isinstance(solary, int)
-    assert isinstance(myk, u.Quantity)
+    assert isinstance(myk, Quantity)
 
     assert myk.unit == u.deg
 
@@ -141,9 +253,9 @@ def test_unused_kwargs3(solarx_unit, solary_unit):
 
     solarx, solary, myk, myk2 = myfunc_args(1*u.arcsec, 100, myk=100*u.deg, myk2=10)
 
-    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solarx, Quantity)
     assert isinstance(solary, int)
-    assert isinstance(myk, u.Quantity)
+    assert isinstance(myk, Quantity)
     assert isinstance(myk2, int)
 
     assert myk.unit == u.deg
@@ -160,8 +272,8 @@ def test_kwarg_equivalencies3(solarx_unit, energy):
 
     solarx, energy = myfunc_args(1*u.arcsec, 100*u.gram)
 
-    assert isinstance(solarx, u.Quantity)
-    assert isinstance(energy, u.Quantity)
+    assert isinstance(solarx, Quantity)
+    assert isinstance(energy, Quantity)
 
     assert solarx.unit == u.arcsec
     assert energy.unit == u.gram

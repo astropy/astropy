@@ -400,30 +400,38 @@ input is only checked when a value other than `None` is passed::
     (<Quantity 1. km>, <Quantity 1. deg>)
 
 Alternatively, you can use the `annotations syntax
-<https://docs.python.org/3/library/typing.html>`_ to provide the units::
+<https://docs.python.org/3/library/typing.html>`_ to provide the units.
+While the raw unit or string can be used, the preferred method is with the
+unit-aware Quantity-annotation syntax.
+This requires Python 3.9 or the package ``typing_extensions``.
+
+``Quantity[unit or "string", metadata, ...]``
+.. doctest-skip::
 
     >>> @u.quantity_input
-    ... def myfunction(myarg: u.arcsec):
+    ... def myfunction(myarg: u.Quantity[u.arcsec]):
     ...     return myarg.unit
-
+    >>>
     >>> myfunction(100*u.arcsec)
     Unit("arcsec")
 
 You can also annotate for different types in non-unit expecting arguments:
+.. doctest-skip::
 
     >>> @u.quantity_input
-    ... def myfunction(myarg: u.arcsec, nice_string: str):
+    ... def myfunction(myarg: u.Quantity[u.arcsec], nice_string: str):
     ...     return myarg.unit, nice_string
     >>> myfunction(100*u.arcsec, "a nice string")
     (Unit("arcsec"), 'a nice string')
 
 The output can be specified to have a desired unit with a function annotation,
-for example::
+for example
+.. doctest-skip::
 
     >>> @u.quantity_input
-    ... def myfunction(myarg: u.arcsec) -> u.deg:
+    ... def myfunction(myarg: u.Quantity[u.arcsec]) -> u.deg:
     ...     return myarg*1000
-
+    >>>
     >>> myfunction(100*u.arcsec)  # doctest: +FLOAT_CMP
     <Quantity 27.77777778 deg>
 

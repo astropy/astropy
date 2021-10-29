@@ -155,6 +155,7 @@ numpydoc_xref_ignore.update({
 # so here we mostly need to define Astropy-specific x-refs
 numpydoc_xref_aliases.update({
     # python & adjacent
+    "Any": "`~typing.Any`",
     "file-like": ":term:`python:file-like object`",
     "file": ":term:`python:file object`",
     "path-like": ":term:`python:path-like object`",
