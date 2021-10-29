@@ -5,6 +5,8 @@ This module tests some methods related to ``CDS`` format
 reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
+import numpy as np
+import pytest
 from io import StringIO
 
 from astropy.io import ascii
@@ -14,6 +16,7 @@ from astropy.table import Column, MaskedColumn
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
+from .common import assert_equal, assert_almost_equal
 
 
 test_dat = ['names e d s i',
@@ -120,7 +123,6 @@ def test_write_readme_with_default_options():
 
 def test_write_empty_table():
     out = StringIO()
-    import pytest
     with pytest.raises(NotImplementedError):
         Table().write(out, format='ascii.mrt')
 
@@ -437,8 +439,7 @@ def test_write_mixin_and_broken_cols():
 
 def test_write_extra_SkyCoord_cols():
     """
-    Tests output for cases when table contains multiple ``SkyCoord``
-    columns.
+    Tests output for cases when table contains multiple ``SkyCoord`` columns.
     """
     exp_output = '''\
 ================================================================================
@@ -446,31 +447,37 @@ Byte-by-byte Description of file: table.dat
 --------------------------------------------------------------------------------
  Bytes Format Units  Label     Explanations
 --------------------------------------------------------------------------------
- 1- 7  A7     ---    name    Description of name
- 9-24  A16    ---    Unknown Description of Unknown
-26-29  F4.1   h      RAh     Right Ascension (hour)
-31-33  F3.1   min    RAm     Right Ascension (minute)
-35-52  F18.15 s      RAs     Right Ascension (second)
-   54  A1     ---    DE-     Sign of Declination
-55-58  F5.1   deg    DEd     Declination (degree)
-60-63  F4.1   arcmin DEm     Declination (arcmin)
-65-80  F16.13 arcsec DEs     Declination (arcsec)
+ 1- 7  A7     ---    name    Description of name     
+ 9-10  I2     h      RAh     Right Ascension (hour)  
+12-13  I2     min    RAm     Right Ascension (minute)
+15-29  F15.12 s      RAs     Right Ascension (second)
+   31  A1     ---    DE-     Sign of Declination     
+32-33  I2     deg    DEd     Declination (degree)    
+35-36  I2     arcmin DEm     Declination (arcmin)    
+38-52  F15.12 arcsec DEs     Declination (arcsec)    
+54-67  A14    ---    coord2  Description of coord2   
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
-HD81809 330.564 -61.6596 22.0 2.0 15.450000000007265 -61.0 39.0 34.5999960000006
+HD4760   0 49 39.900000000000 +06 24 07.999200000000 12.4163 6.407 
+HD81809 22 02 15.450000000007 -61 39 34.599996000001 330.564 -61.66
 '''  # noqa: W291
-    import pytest
     t = Table()
-    t['name'] = ['HD81809']
-    coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
-    t['coord1'] = coord
-    t['coord2'] = coord
+    t['name'] = ['HD4760', 'HD81809']
+    t['coord1'] = SkyCoord([12.41625, 330.564375], [6.402222, -61.65961111], unit=u.deg)
+    t['coord2'] = SkyCoord([12.41630, 330.564400], [6.407, -61.66], unit=u.deg)
     out = StringIO()
-    with pytest.raises(UserWarning):
+    with pytest.warns(UserWarning, match=r'column 2 is being skipped with designation of a '
+                                         r'string valued column `coord2`'):
         t.write(out, format='ascii.mrt')
-        lines = out.getvalue().splitlines()
-        i_bbb = lines.index('=' * 80)
-        lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
-        # Check the written table.
-        assert lines == exp_output.splitlines()
+
+    lines = out.getvalue().splitlines()
+    i_bbb = lines.index('=' * 80)
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
+    # Check the written table.
+    assert lines[:-2] == exp_output.splitlines()[:-2]
+
+    for a, b in zip(lines[-2:], exp_output.splitlines()[-2:]):
+        assert a[:18] == b[:18]
+        assert a[30:42] == b[30:42]
+        assert_almost_equal(np.fromstring(a[2:], sep=' '), np.fromstring(b[2:], sep=' '))

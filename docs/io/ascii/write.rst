@@ -336,25 +336,25 @@ After execution, the contents of ``coords_cols.dat`` will be::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name
-   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
-   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH
-   32- 36  F5.3   10+12Jy Flux        ? Description of Flux
-   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
-   51- 53  I3      s      Cadence     [100] Description of Cadence
-   55- 58  F4.1    h      RAh         Right Ascension (hour)
-   60- 63  F4.1    min    RAm         Right Ascension (minute)
-   65- 79  F15.12  s      RAs         Right Ascension (second)
-       81  A1      ---    DE-         Sign of Declination
-   82- 85  F5.1    deg    DEd         Declination (degree)
-   87- 90  F4.1    arcmin DEm         Declination (arcmin)
-   92-106  F15.12  arcsec DEs         Declination (arcsec)
+    1-11  A11     ---    Name        Description of Name
+   13-23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+   25-30  F6.4    10+22  nH          [0.01/0.03] Description of nH
+   32-36  F5.3   10+12Jy Flux        ? Description of Flux
+   38-42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+   44-49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+   51-53  I3      s      Cadence     [100] Description of Cadence
+   55-56  I2     h      RAh           Right Ascension (hour)
+   58-59  I2     min    RAm           Right Ascension (minute)
+   61-75  F15.12 s      RAs           Right Ascension (second)
+      77  A1     ---    DE-           Sign of Declination
+   78-79  I2     deg    DEd           Declination (degree)
+   81-82  I2     arcmin DEm           Declination (arcmin)
+   84-98  F15.12 arcsec DEs           Declination (arcsec)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 22.0  2.0 15.450000000007 -61.0 39.0 34.599996000001
-  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 12.0 48.0 15.224407200005  17.0 46.0 26.496624000004
+  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 22 02 15.450000000007 -61 39 34.599996000001
+  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 12 48 15.224407200005 +17 46 26.496624000004
 
 And the file ``ecliptic_cols.dat`` will look like::
 
