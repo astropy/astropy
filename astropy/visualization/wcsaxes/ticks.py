@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from collections import defaultdict
-import warnings
 
 import numpy as np
 
@@ -155,18 +154,10 @@ class Ticks(Line2D):
 
     _tickvert_path = Path([[0., 0.], [1., 0.]])
 
-    def draw(self, renderer, ticks_locs=None):
+    def draw(self, renderer):
         """
         Draw the ticks.
         """
-        if ticks_locs is None:
-            # Deprecated in astropy 4.3
-            warnings.warn(
-                "The ticks_loc argument is deprecated, and no longer has any effect. "
-                "Set the .ticks_locs attribute before drawing "
-                "to modify the ticks being drawn.",
-                AstropyDeprecationWarning)
-
         self.ticks_locs = defaultdict(list)
 
         if not self.get_visible():
