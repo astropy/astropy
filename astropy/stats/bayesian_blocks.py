@@ -6,7 +6,7 @@ Bayesian Blocks for Time Series Analysis
 
 Dynamic programming algorithm for solving a piecewise-constant model for
 various datasets. This is based on the algorithm presented in Scargle
-et al 2012 [1]_. This code was ported from the astroML project [2]_.
+et al 2013 [1]_. This code was ported from the astroML project [2]_.
 
 Applications include:
 
@@ -50,7 +50,7 @@ import numpy as np
 from inspect import signature
 from astropy.utils.exceptions import AstropyUserWarning
 
-# TODO: implement other fitness functions from appendix B of Scargle 2012
+# TODO: implement other fitness functions from appendix C of Scargle 2013
 
 __all__ = ['FitnessFunc', 'Events', 'RegularEvents', 'PointMeasures',
            'bayesian_blocks']
@@ -61,7 +61,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     r"""Compute optimal segmentation of data with Scargle's Bayesian Blocks
 
     This is a flexible implementation of the Bayesian Blocks algorithm
-    described in Scargle 2012 [1]_.
+    described in Scargle 2013 [1]_.
 
     Parameters
     ----------
@@ -142,7 +142,7 @@ def bayesian_blocks(t, x=None, sigma=None,
 
     References
     ----------
-    .. [1] Scargle, J et al. (2012)
+    .. [1] Scargle, J et al. (2013)
        https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
 
     .. [2] Bellman, R.E., Dreyfus, S.E., 1962. Applied Dynamic
@@ -205,7 +205,7 @@ class FitnessFunc:
 
     References
     ----------
-    .. [1] Scargle, J et al. (2012)
+    .. [1] Scargle, J et al. (2013)
        https://ui.adsabs.harvard.edu/abs/2013ApJ...764..167S
     """
     def __init__(self, p0=0.05, gamma=None, ncp_prior=None):
@@ -285,7 +285,7 @@ class FitnessFunc:
     def p0_prior(self, N):
         """
         Empirical prior, parametrized by the false alarm probability ``p0``
-        See  eq. 21 in Scargle (2012)
+        See  eq. 21 in Scargle (2013)
 
         Note that there was an error in this equation in the original Scargle
         paper (the "log" was missing). The following corrected form is taken
@@ -420,7 +420,7 @@ class Events(FitnessFunc):
     ----------
     p0 : float, optional
         False alarm probability, used to compute the prior on
-        :math:`N_{\rm blocks}` (see eq. 21 of Scargle 2012). For the Events
+        :math:`N_{\rm blocks}` (see eq. 21 of Scargle 2013). For the Events
         type data, ``p0`` does not seem to be an accurate representation of the
         actual false alarm probability. If you are using this fitness function
         for a triggering type condition, it is recommended that you run
@@ -439,7 +439,7 @@ class Events(FitnessFunc):
     """
 
     def fitness(self, N_k, T_k):
-        # eq. 19 from Scargle 2012
+        # eq. 19 from Scargle 2013
         return N_k * (np.log(N_k / T_k))
 
     def validate_input(self, t, x, sigma):
@@ -462,7 +462,7 @@ class RegularEvents(FitnessFunc):
         tick rate for data
     p0 : float, optional
         False alarm probability, used to compute the prior on :math:`N_{\rm
-        blocks}` (see eq. 21 of Scargle 2012). If gamma is specified, p0 is
+        blocks}` (see eq. 21 of Scargle 2013). If gamma is specified, p0 is
         ignored.
     ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
@@ -481,7 +481,7 @@ class RegularEvents(FitnessFunc):
         return t, x, sigma
 
     def fitness(self, T_k, N_k):
-        # Eq. 75 of Scargle 2012
+        # Eq. C23 of Scargle 2013
         M_k = T_k / self.dt
         N_over_M = N_k / M_k
 
@@ -504,7 +504,7 @@ class PointMeasures(FitnessFunc):
     ----------
     p0 : float, optional
         False alarm probability, used to compute the prior on :math:`N_{\rm
-        blocks}` (see eq. 21 of Scargle 2012). If gamma is specified, p0 is
+        blocks}` (see eq. 21 of Scargle 2013). If gamma is specified, p0 is
         ignored.
     ncp_prior : float, optional
         If specified, use the value of ``ncp_prior`` to compute the prior as
@@ -516,7 +516,7 @@ class PointMeasures(FitnessFunc):
         super().__init__(p0, gamma, ncp_prior)
 
     def fitness(self, a_k, b_k):
-        # eq. 41 from Scargle 2012
+        # eq. 41 from Scargle 2013
         return (b_k * b_k) / (4 * a_k)
 
     def validate_input(self, t, x, sigma):
