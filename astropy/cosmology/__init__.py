@@ -15,7 +15,7 @@ from . import realizations
 from .core import *
 from .flrw import *
 from .funcs import *
-from .parameter import Parameter
+from .parameter import *
 from .realizations import *
 from .utils import *
 

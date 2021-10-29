@@ -17,7 +17,7 @@ import numpy as np
 import astropy.units as u
 from astropy.cosmology import Cosmology
 from astropy.cosmology.core import _COSMOLOGY_CLASSES
-from astropy.cosmology.parameter import Parameter, _set_to_float, _set_with_unit
+from astropy.cosmology.parameter import Parameter, _validate_to_float, _validate_with_unit
 
 ##############################################################################
 # TESTS
@@ -55,37 +55,35 @@ class ParameterTestMixin:
 
     def test_Parameter_class_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes on class."""
-        # _registry_setters
-        assert hasattr(all_parameter, "_registry_setters")
-        assert isinstance(all_parameter._registry_setters, dict)
-        assert all(isinstance(k, str) for k in all_parameter._registry_setters.keys())
-        assert all(callable(v) for v in all_parameter._registry_setters.values())
+        # _registry_validators
+        assert hasattr(all_parameter, "_registry_validators")
+        assert isinstance(all_parameter._registry_validators, dict)
+        assert all(isinstance(k, str) for k in all_parameter._registry_validators.keys())
+        assert all(callable(v) for v in all_parameter._registry_validators.values())
 
     def test_Parameter_init(self):
         """Test :class:`astropy.cosmology.Parameter` instantiation."""
         # defaults
         parameter = Parameter()
         assert parameter.fget is None
-        assert parameter.fset is _set_with_unit
+        assert parameter.fvalidate is _validate_with_unit
         assert parameter.unit is None
         assert parameter.equivalencies == []
         assert parameter.format_spec == ".3g"
         assert parameter.derived is False
         assert parameter.__wrapped__ is parameter.fget
-        assert parameter.__name__ is None
 
         # setting all kwargs
-        parameter = Parameter(fget=lambda x: x, fset="float", doc="DOCSTRING",
+        parameter = Parameter(fget=lambda x: x, fvalidate="float", doc="DOCSTRING",
                               unit="km", equivalencies=[u.mass_energy()],
                               fmt=".4f", derived=True)
         assert parameter.fget(2) == 2
-        assert parameter.fset is _set_to_float
+        assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
         assert parameter.format_spec == ".4f"
         assert parameter.derived is True
         assert parameter.__wrapped__ is parameter.fget
-        assert parameter.__name__ == "<lambda>"
 
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
@@ -93,11 +91,8 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "fget")
         assert all_parameter.fget is None or callable(all_parameter.fget)
 
-        assert hasattr(all_parameter, "fset")
-        assert callable(all_parameter.fset)
-
-        assert hasattr(all_parameter, "fdel")
-        assert all_parameter.fdel is None
+        assert hasattr(all_parameter, "fvalidate")
+        assert callable(all_parameter.fvalidate)
 
         assert hasattr(all_parameter, "__doc__")
 
@@ -107,7 +102,6 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "_fmt")
         assert hasattr(all_parameter, "_derived")
         assert hasattr(all_parameter, "__wrapped__")
-        assert hasattr(all_parameter, "__name__")
 
         # __set_name__
         assert hasattr(all_parameter, "_attr_name")
@@ -118,14 +112,10 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "fget")
         assert callable(all_parameter.fget) or all_parameter.fget is None
 
-    def test_Parameter_fset(self, all_parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fset`."""
-        assert hasattr(all_parameter, "fset")
-        assert callable(all_parameter.fset)
-
-    def test_Parameter_fdel(self, all_parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fdel`."""
-        assert all_parameter.fdel is None
+    def test_Parameter_fvalidate(self, all_parameter):
+        """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
+        assert hasattr(all_parameter, "fvalidate")
+        assert callable(all_parameter.fvalidate)
 
     def test_Parameter_name(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.name`."""
@@ -186,20 +176,8 @@ class ParameterTestMixin:
         with pytest.raises(AttributeError, match="can't set attribute"):
             setattr(cosmo, all_parameter._attr_name, None)
 
-    def test_Parameter_descriptor_delete(self, cosmo, all_parameter):
-        """Test :attr:`astropy.cosmology.Parameter.__delete__`."""
-        with pytest.raises(AttributeError, match="can't delete attribute"):
-            assert delattr(cosmo, all_parameter._attr_name)
-
     # -------------------------------------------
-    # 'property' descriptor overrides
-
-    # def test_Parameter_getter(self, cosmo):
-    # def test_Parameter_setter(self, cosmo):
-    # def test_Parameter_deleter(self, cosmo):
-
-    # -------------------------------------------
-    # set value
+    # validate value
     # tested later.
 
     # -------------------------------------------
@@ -291,12 +269,12 @@ class TestParameter(ParameterTestMixin):
             def __init__(self, param=15):
                 self.param = param
 
-        # with setter
+        # with validator
         class Example2(Example1):
             def __init__(self, param=15 * u.m):
                 self.param = param
 
-            @Example1.param.setter
+            @Example1.param.validator
             def param(self, param, value):
                 return value.to(u.km)
 
@@ -341,13 +319,12 @@ class TestParameter(ParameterTestMixin):
         assert param._attr_name == "param"
         assert param._attr_name_private == "_param"
         assert hasattr(param, "__wrapped__")
-        assert hasattr(param, "__name__")
 
-    def test_Parameter_fset(self, cosmo, param):
-        """Test :attr:`astropy.cosmology.Parameter.fset`."""
-        super().test_Parameter_fset(param)
+    def test_Parameter_fvalidate(self, cosmo, param):
+        """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
+        super().test_Parameter_fvalidate(param)
 
-        value = param.fset(cosmo, param, 1000 * u.m)
+        value = param.fvalidate(cosmo, param, 1000 * u.m)
         assert value == 1 * u.km
 
     def test_Parameter_name(self, param):
@@ -392,70 +369,57 @@ class TestParameter(ParameterTestMixin):
         assert value == 15 * u.m
 
     # -------------------------------------------
-    # property-style methods
-
-    def test_Parameter_getter(self, param):
-        """Test :meth:`astropy.cosmology.Parameter.getter`."""
-        with pytest.raises(AttributeError, match="can't create custom Parameter getter."):
-            param.getter(None)
-
-    def test_Parameter_setter(self, param):
-        """Test :meth:`astropy.cosmology.Parameter.setter`."""
-        for k in Parameter._registry_setters:
-            newparam = param.setter(k)
-            assert newparam.fset == newparam._registry_setters[k]
-
-        # error for non-registered str
-        with pytest.raises(ValueError, match="`fset` if str"):
-            Parameter(fset="NOT REGISTERED")
-
-        # error if wrong type
-        with pytest.raises(TypeError, match="`fset` must be a function or"):
-            Parameter(fset=object())
-
-    def test_Parameter_deleter(self, param):
-        """Test :meth:`astropy.cosmology.Parameter.deleter`."""
-        with pytest.raises(AttributeError, match="can't create custom Parameter deleter."):
-            param.deleter(None)
-
-    # -------------------------------------------
     # validation
 
-    def test_Parameter_set(self, cosmo, param):
-        """Test :meth:`astropy.cosmology.Parameter.set`."""
-        value = param.set(cosmo, 1000 * u.m)
+    def test_Parameter_validator(self, param):
+        """Test :meth:`astropy.cosmology.Parameter.validator`."""
+        for k in Parameter._registry_validators:
+            newparam = param.validator(k)
+            assert newparam.fvalidate == newparam._registry_validators[k]
 
-        # whether has custom setter
-        if param.fset is param._registry_setters["default"]:
+        # error for non-registered str
+        with pytest.raises(ValueError, match="`fvalidate`, if str"):
+            Parameter(fvalidate="NOT REGISTERED")
+
+        # error if wrong type
+        with pytest.raises(TypeError, match="`fvalidate` must be a function or"):
+            Parameter(fvalidate=object())
+
+    def test_Parameter_validate(self, cosmo, param):
+        """Test :meth:`astropy.cosmology.Parameter.validate`."""
+        value = param.validate(cosmo, 1000 * u.m)
+
+        # whether has custom validator
+        if param.fvalidate is param._registry_validators["default"]:
             assert value.unit == u.m
             assert value.value == 1000
         else:
             assert value.unit == u.km
             assert value.value == 1
 
-    def test_Parameter_register_setter(self, param):
-        """Test :meth:`astropy.cosmology.Parameter.register_setter`."""
+    def test_Parameter_register_validator(self, param):
+        """Test :meth:`astropy.cosmology.Parameter.register_validator`."""
         # already registered
-        with pytest.raises(KeyError, match="setter 'default' already"):
-            param.__class__.register_setter("default", None)
+        with pytest.raises(KeyError, match="validator 'default' already"):
+            param.__class__.register_validator("default", None)
 
-        # setter not None
+        # validator not None
         try:
             func = lambda x: x
-            setter = param.__class__.register_setter("newsetter", func)
-            assert setter is func
+            validator = param.__class__.register_validator("newvalidator", func)
+            assert validator is func
         finally:
-            param.__class__._registry_setters.pop("newsetter", None)
+            param.__class__._registry_validators.pop("newvalidator", None)
 
         # used as decorator
         try:
-            @param.__class__.register_setter("newsetter")
+            @param.__class__.register_validator("newvalidator")
             def func(cosmology, param, value):
                 return value
 
-            assert param.__class__._registry_setters["newsetter"] is func
+            assert param.__class__._registry_validators["newvalidator"] is func
         finally:
-            param.__class__._registry_setters.pop("newsetter", None)
+            param.__class__._registry_validators.pop("newvalidator", None)
 
     # ==============================================================
 
