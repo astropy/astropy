@@ -1,0 +1,1 @@
+Added ``CompoundBoundingBox`` feature to ``~astropy.modeling``.

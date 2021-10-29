@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # -*- coding: utf-8 -*-
+import numpy as np
 
 from asdf.versioning import AsdfVersion
 
-from astropy.modeling.bounding_box import BoundingBox
+from astropy.modeling.bounding_box import BoundingBox, CompoundBoundingBox
 from astropy.modeling import mappings
 from astropy.modeling import functional_models
 from astropy.modeling.core import CompoundModel
@@ -23,9 +24,6 @@ class TransformType(AstropyAsdfType):
         if 'name' in node:
             model.name = node['name']
 
-        if 'bounding_box' in node:
-            model.bounding_box = node['bounding_box']
-
         if "inputs" in node:
             if model.n_inputs == 1:
                 model.inputs = (node["inputs"],)
@@ -37,6 +35,16 @@ class TransformType(AstropyAsdfType):
                 model.outputs = (node["outputs"],)
             else:
                 model.outputs = tuple(node["outputs"])
+
+        if 'bounding_box' in node:
+            model.bounding_box = node['bounding_box']
+
+        elif 'selector_args' in node:
+            cbbox_keys = [tuple(key) for key in node['cbbox_keys']]
+            bbox_dict = dict(zip(cbbox_keys, node['cbbox_values']))
+
+            selector_args = node['selector_args']
+            model.bounding_box = CompoundBoundingBox.validate(model, bbox_dict, selector_args)
 
         param_and_model_constraints = {}
         for constraint in ['fixed', 'bounds']:
@@ -67,6 +75,10 @@ class TransformType(AstropyAsdfType):
         if model.name is not None:
             node['name'] = model.name
 
+        if type(model.__class__.inputs) != property:
+            node['inputs'] = model.inputs
+            node['outputs'] = model.outputs
+
         try:
             bb = model.bounding_box
         except NotImplementedError:
@@ -75,15 +87,23 @@ class TransformType(AstropyAsdfType):
         if isinstance(bb, BoundingBox):
             bb = bb.bounding_box(order='C')
 
-        if bb is not None:
             if model.n_inputs == 1:
                 bb = list(bb)
             else:
                 bb = [list(item) for item in bb]
-            node['bounding_box'] = bb
-        if type(model.__class__.inputs) != property:
-            node['inputs'] = model.inputs
-            node['outputs'] = model.outputs
+                node['bounding_box'] = bb
+
+        elif isinstance(bb, CompoundBoundingBox):
+            selector_args = [[sa.index, sa.ignore] for sa in bb.selector_args]
+            node['selector_args'] = selector_args
+            node['cbbox_keys'] = list(bb.bounding_boxes.keys())
+
+            bounding_boxes = list(bb.bounding_boxes.values())
+            if len(model.inputs) - len(selector_args) == 1:
+                node['cbbox_values'] = [list(sbbox.bounding_box()) for sbbox in bounding_boxes]
+            else:
+                node['cbbox_values'] = [[list(item) for item in sbbox.bounding_box()
+                                         if np.isfinite(item[0])] for sbbox in bounding_boxes]
 
         # model / parameter constraints
         if not isinstance(model, CompoundModel):

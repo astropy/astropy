@@ -8,10 +8,13 @@ import pytest
 import unittest.mock as mk
 import numpy as np
 from inspect import signature
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 import astropy
-from astropy.modeling.core import Model, custom_model, SPECIAL_OPERATORS, _add_special_operator
+from astropy.modeling.core import (Model, CompoundModel, custom_model,
+                                   SPECIAL_OPERATORS, _add_special_operator,
+                                   bind_compound_bounding_box, fix_inputs)
+from astropy.modeling.bounding_box import BoundingBox, CompoundBoundingBox
 from astropy.modeling.separable import separability_matrix
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
@@ -940,3 +943,297 @@ def test__remove_axes_from_shape():
     assert model._remove_axes_from_shape((1, 2, 3), 0) == (2, 3)
     assert model._remove_axes_from_shape((1, 2, 3), 1) == (3,)
     assert model._remove_axes_from_shape((1, 2, 3), 2) == ()
+
+
+def test_get_bounding_box():
+    model = models.Const2D(2)
+
+    # No with_bbox
+    assert model.get_bounding_box(False) is None
+
+    # No bounding_box
+    with pytest.raises(NotImplementedError):
+        model.bounding_box
+    assert model.get_bounding_box(True) is None
+
+    # Normal bounding_box
+    model.bounding_box = ((0, 1), (0, 1))
+    assert not isinstance(model.bounding_box, CompoundBoundingBox)
+    assert model.get_bounding_box(True) == ((0, 1), (0, 1))
+
+    # CompoundBoundingBox with no removal
+    bbox = CompoundBoundingBox.validate(model, {(1,): ((-1, 0), (-1, 0)), (2,): ((0, 1), (0, 1))},
+                                        selector_args=[('y', False)])
+    model.bounding_box = bbox
+    assert isinstance(model.bounding_box, CompoundBoundingBox)
+    # Get using argument not with_bbox
+    assert model.get_bounding_box(True) == bbox
+    # Get using with_bbox not argument
+    assert model.get_bounding_box((1,)) == ((-1, 0), (-1, 0))
+    assert model.get_bounding_box((2,)) == ((0, 1), (0, 1))
+
+
+def test_compound_bounding_box():
+    model = models.Gaussian1D()
+    truth = models.Gaussian1D()
+    bbox1 = CompoundBoundingBox.validate(model, {(1,): (-1, 0), (2,): (0, 1)},
+                                         selector_args=[('x', False)])
+    bbox2 = CompoundBoundingBox.validate(model, {(-0.5,): (-1, 0), (0.5,): (0, 1)},
+                                         selector_args=[('x', False)])
+
+    # Using with_bounding_box to pass a selector
+    model.bounding_box = bbox1
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=(1,)) == truth(-0.5)
+    assert np.isnan(model(-0.5, with_bounding_box=(2,)))
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=(2,)) == truth(0.5)
+    assert np.isnan(model(0.5, with_bounding_box=(1,)))
+
+    # Using argument value to pass bounding_box
+    model.bounding_box = bbox2
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=True) == truth(-0.5)
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=True) == truth(0.5)
+    with pytest.raises(RuntimeError):
+        model(0, with_bounding_box=True)
+
+    model1 = models.Gaussian1D()
+    truth1 = models.Gaussian1D()
+    model2 = models.Const1D(2)
+    truth2 = models.Const1D(2)
+    model = model1 + model2
+    truth = truth1 + truth2
+    assert isinstance(model, CompoundModel)
+
+    model.bounding_box = bbox1
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=1) == truth(-0.5)
+    assert np.isnan(model(-0.5, with_bounding_box=(2,)))
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=2) == truth(0.5)
+    assert np.isnan(model(0.5, with_bounding_box=(1,)))
+
+    model.bounding_box = bbox2
+    assert model(-0.5) == truth(-0.5)
+    assert model(-0.5, with_bounding_box=True) == truth(-0.5)
+    assert model(0.5) == truth(0.5)
+    assert model(0.5, with_bounding_box=True) == truth(0.5)
+    with pytest.raises(RuntimeError):
+        model(0, with_bounding_box=True)
+
+
+def test_bind_compound_bounding_box_using_with_bounding_box_select():
+    """
+    This demonstrates how to bind multiple bounding_boxes which are
+    selectable using the `with_bounding_box`, note there must be a
+    fall-back to implicit.
+    """
+    model = models.Gaussian1D()
+    truth = models.Gaussian1D()
+
+    bbox = (0, 1)
+    with pytest.raises(AttributeError):
+        bind_compound_bounding_box(model, bbox, 'x')
+
+    bbox = {0: (-1, 0), 1: (0, 1)}
+    bind_compound_bounding_box(model, bbox, [('x', False)])
+
+    # No bounding box
+    assert model(-0.5) == truth(-0.5)
+    assert model(0.5) == truth(0.5)
+    assert model(0) == truth(0)
+    assert model(1) == truth(1)
+
+    # `with_bounding_box` selects as `-0.5` will not be a key
+    assert model(-0.5, with_bounding_box=0) == truth(-0.5)
+    assert np.isnan(model(-0.5, with_bounding_box=1))
+
+    # `with_bounding_box` selects as `0.5` will not be a key
+    assert model(0.5, with_bounding_box=1) == truth(0.5)
+    assert np.isnan(model(0.5, with_bounding_box=(0,)))
+
+    # Fall back onto implicit selector
+    assert model(0, with_bounding_box=True) == truth(0)
+    assert model(1, with_bounding_box=True) == truth(1)
+
+    # Attempt to fall-back on implicit selector, but no bounding_box
+    with pytest.raises(RuntimeError):
+        model(0.5, with_bounding_box=True)
+
+    # Override implicit selector
+    assert np.isnan(model(1, with_bounding_box=0))
+
+
+def test_fix_inputs_compound_bounding_box():
+    base_model = models.Gaussian2D(1, 2, 3, 4, 5)
+    bbox = {2.5: (-1, 1), 3.14: (-7, 3)}
+
+    model = fix_inputs(base_model, {'y': 2.5}, bounding_boxes=bbox)
+    assert model.bounding_box == (-1, 1)
+    model = fix_inputs(base_model, {'x': 2.5}, bounding_boxes=bbox)
+    assert model.bounding_box == (-1, 1)
+
+    model = fix_inputs(base_model, {'y': 2.5}, bounding_boxes=bbox, selector_args=(('y', True),))
+    assert model.bounding_box == (-1, 1)
+    model = fix_inputs(base_model, {'x': 2.5}, bounding_boxes=bbox, selector_args=(('x', True),))
+    assert model.bounding_box == (-1, 1)
+    model = fix_inputs(base_model, {'x': 2.5}, bounding_boxes=bbox, selector_args=((0, True),))
+    assert model.bounding_box == (-1, 1)
+
+    base_model = models.Identity(4)
+    bbox = {(2.5, 1.3): ((-1, 1), (-3, 3)), (2.5, 2.71): ((-3, 3), (-1, 1))}
+
+    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bounding_boxes=bbox)
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+
+    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bounding_boxes=bbox,
+                       selector_args=(('x0', True), ('x1', True)))
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+    model = fix_inputs(base_model, {'x0': 2.5, 'x1': 1.3}, bounding_boxes=bbox,
+                       selector_args=((0, True), (1, True)))
+    assert model.bounding_box == ((-1, 1), (-3, 3))
+
+
+def test_model_copy_with_bounding_box():
+    model = models.Polynomial2D(2)
+    bbox = BoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5)), order='F')
+
+    # No bbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+
+    # with bbox
+    model.bounding_box = bbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert id(model_copy.bounding_box) != id(model.bounding_box)
+    for index, interval in model.bounding_box.intervals.items():
+        interval_copy = model_copy.bounding_box.intervals[index]
+        assert interval == interval_copy
+        assert id(interval) != interval_copy
+
+    # add model to compound model
+    model1 = model | models.Identity(1)
+    model_copy = model1.copy()
+    assert id(model_copy) != id(model1)
+    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+
+
+def test_compound_model_copy_with_bounding_box():
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bbox = BoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
+
+    # No bbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+
+    # with bbox
+    model.bounding_box = bbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert id(model_copy.bounding_box) != id(model.bounding_box)
+    for index, interval in model.bounding_box.intervals.items():
+        interval_copy = model_copy.bounding_box.intervals[index]
+        assert interval == interval_copy
+        assert id(interval) != interval_copy
+
+    # add model to compound model
+    model1 = model | models.Identity(3)
+    model_copy = model1.copy()
+    assert id(model_copy) != id(model1)
+    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+
+
+def test_model_copy_with_compound_bounding_box():
+    model = models.Polynomial2D(2)
+    bbox = {(0,): (-0.5, 1047.5),
+            (1,): (-0.5, 3047.5)}
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('x', True)], order='F')
+
+    # No cbbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+
+    # with cbbox
+    model.bounding_box = cbbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert id(model_copy.bounding_box) != id(model.bounding_box)
+    assert model_copy.bounding_box.selector_args == model.bounding_box.selector_args
+    assert id(model_copy.bounding_box.selector_args) != id(model.bounding_box.selector_args)
+    for selector, bbox in model.bounding_box.bounding_boxes.items():
+        for index, interval in bbox.intervals.items():
+            interval_copy = model_copy.bounding_box.bounding_boxes[selector].intervals[index]
+            assert interval == interval_copy
+            assert id(interval) != interval_copy
+
+    # add model to compound model
+    model1 = model | models.Identity(1)
+    model_copy = model1.copy()
+    assert id(model_copy) != id(model1)
+    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+
+
+def test_compound_model_copy_with_compound_bounding_box():
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bbox = {(0,): ((-0.5, 1047.5), (-0.5, 2047.5)),
+            (1,): ((-0.5, 3047.5), (-0.5, 4047.5)), }
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)], order='F')
+
+    # No cbbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert model_copy.get_bounding_box() == model.get_bounding_box() == None
+
+    # with cbbox
+    model.bounding_box = cbbox
+    model_copy = model.copy()
+    assert id(model_copy) != id(model)
+    assert id(model_copy.bounding_box) != id(model.bounding_box)
+    assert model_copy.bounding_box.selector_args == model.bounding_box.selector_args
+    assert id(model_copy.bounding_box.selector_args) != id(model.bounding_box.selector_args)
+    for selector, bbox in model.bounding_box.bounding_boxes.items():
+        for index, interval in bbox.intervals.items():
+            interval_copy = model_copy.bounding_box.bounding_boxes[selector].intervals[index]
+            assert interval == interval_copy
+            assert id(interval) != interval_copy
+
+    # add model to compound model
+    model1 = model | models.Identity(3)
+    model_copy = model1.copy()
+    assert id(model_copy) != id(model1)
+    assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
+
+
+def test_model_mixed_array_scalar_bounding_box():
+    model = models.Gaussian2D()
+    bbox = BoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order='F')
+    model.bounding_box = bbox
+
+    x = np.array([-0.5, 0.5])
+    y = 0
+
+    # Everything works when its all in the bounding box
+    assert (model(x, y) == (model(x, y, with_bounding_box=True))).all()
+
+
+def test_compound_model_mixed_array_scalar_bounding_box():
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bbox = BoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
+    model.bounding_box = bbox
+    x = np.array([1000, 1001])
+    y = np.array([2000, 2001])
+    slit_id = 0
+
+    # Everything works when its all in the bounding box
+    value0 = model(x, y, slit_id)
+    value1 = model(x, y, slit_id, with_bounding_box=True)
+    assert_equal(value0, value1)
