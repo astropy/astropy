@@ -346,6 +346,14 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('ABC     =    ')
         assert str(c) == _pad("ABC     =")
 
+    def test_undefined_keys_values(self):
+        header = fits.Header()
+        header['FOO'] = 'BAR'
+        header['UNDEF'] = None
+
+        assert list(header.values()) == ['BAR', None]
+        assert list(header.items()) == [('FOO', 'BAR'), ('UNDEF', None)]
+
     def test_mislocated_equal_sign(self, capsys):
         # test mislocated "=" sign
         c = fits.Card.fromstring('XYZ= 100')
