@@ -267,18 +267,8 @@ class MrtHeader(cds.CdsHeader):
             # Check if column is MaskedColumn
             col.has_null = isinstance(col, MaskedColumn)
 
-            min_width = None
-            # Check if the column format was set by the passed ``formats`` argument.
-            if col.format is None:
-                if col.info.format is not None:
-                    col.format = col.info.format
-
             if col.format is not None:
-                min_width = re.match(r'^(\+?)(\d+)', col.format)
-                if min_width is None:
-                    col.formatted_width = max([len(sval) for sval in col.str_vals])
-                else:
-                    col.formatted_width = int(min_width.groups()[1])
+                col.formatted_width = max([len(sval) for sval in col.str_vals])
 
             # Set MRTColumn type, size and format.
             if np.issubdtype(col.dtype, np.integer):
@@ -287,7 +277,7 @@ class MrtHeader(cds.CdsHeader):
                 if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
                     col.formatted_width = max(len(str(col.max)), len(str(col.min)))
                 col.fortran_format = "I" + str(col.formatted_width)
-                if min_width is None:
+                if col.format is None:
                     col.format = ">" + col.fortran_format[1:]
 
             elif np.issubdtype(col.dtype, np.dtype(float).type):
