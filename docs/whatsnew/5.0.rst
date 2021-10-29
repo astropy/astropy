@@ -149,6 +149,21 @@ The following models have now been added:
 * :class:`~astropy.modeling.functional_models.ArcTangent1D`: a one-dimensional
   inverse tangent model.
 
+A new module -- ``modeling.spline`` -- has been added to the modeling subpackage
+for defining spline models for astropy. Currently this only contains a one-dimensional
+spline model: :class:`~astropy.modeling.spline.Spline1D`. Since splines have
+unique fitting requirements four fitters have been introduced:
+
+* :class:`~astropy.modeling.spline.SplineInterpolateFitter`: fits an interpolating
+  spline to data.
+* :class:`~astropy.modeling.spline.SplineSmoothingFitter`: fits a smoothing spline
+  to data.
+* :class:`~astropy.modeling.spline.SplineExactKnotsFitter`: fits a spline to data
+  using the knots specified.
+* :class:`~astropy.modeling.spline.SplineSplrepFitter`: provides an interface
+  to fit a spline using the `scipy.interpolate.splrep` function.
+
+
 .. _whatsnew-5.0-dask-in-table:
 
 Added support for dask arrays in tables
