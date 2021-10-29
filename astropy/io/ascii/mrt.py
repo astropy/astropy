@@ -335,7 +335,7 @@ class MrtHeader(cds.CdsHeader):
             # Add col limit values to col description
             lim_vals = ""
             if (col.min and col.max and
-                    not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT'])):
+                    not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT', 'PLN', 'PLT'])):
                 # No col limit values for coordinate columns.
                 if col.fortran_format[0] == 'I':
                     if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
@@ -416,6 +416,13 @@ class MrtHeader(cds.CdsHeader):
         """
         from astropy.coordinates import SkyCoord
 
+        # Recognised ``SkyCoord.name`` forms with their default column names (helio* require SunPy).
+        coord_systems = {'galactic': ('GLAT', 'GLON', 'b', 'l'),
+                         'ecliptic': ('ELAT', 'ELON', 'lat', 'lon'),      # 'geocentric*ecliptic'
+                         'heliographic': ('HLAT', 'HLON', 'lat', 'lon'),  # '_carrington|stonyhurst'
+                         'helioprojective': ('HPLT', 'HPLN', 'Ty', 'Tx')}
+        eqtnames = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
+
         # list to store indices of columns that are modified.
         to_pop = []
 
@@ -444,18 +451,18 @@ class MrtHeader(cds.CdsHeader):
             if isinstance(col, SkyCoord):
                 # If coordinates are given in RA/DEC, divide each them into hour/deg,
                 # minute/arcminute, second/arcsecond columns.
-                if 'ra' in col.representation_component_names.keys() and 'RAh' not in self.colnames:
+                if ('ra' in col.representation_component_names.keys() and
+                        len(set(eqtnames) - set(self.colnames)) == 6):
                     ra_c, dec_c = col.ra.hms, col.dec.dms
                     coords = [ra_c.h.round().astype('i1'), ra_c.m.round().astype('i1'), ra_c.s,
                               dec_c.d.round().astype('i1'), dec_c.m.round().astype('i1'), dec_c.s]
-                    names = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
                     coord_units = [u.h, u.min, u.second,
                                    u.deg, u.arcmin, u.arcsec]
                     coord_descrip = ['Right Ascension (hour)', 'Right Ascension (minute)',
                                      'Right Ascension (second)', 'Declination (degree)',
                                      'Declination (arcmin)', 'Declination (arcsec)']
                     for coord, name, coord_unit, descrip in zip(
-                            coords, names, coord_units, coord_descrip):
+                            coords, eqtnames, coord_units, coord_descrip):
                         # Have Sign of Declination only in the DEd column.
                         if name in ['DEm', 'DEs']:
                             coord_col = Column(list(np.abs(coord)), name=name,
@@ -474,34 +481,28 @@ class MrtHeader(cds.CdsHeader):
                         elif name.startswith(('RA', 'DE')):
                             coord_col.format = '02d'
                         self.cols.append(coord_col)
+                    to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
                 # For all other coordinate types, simply divide into two columns
                 # for latitude and longitude resp. with the unit used been as it is.
-                # Galactic coordinates.
-                elif col.name == 'galactic' and 'GLAT' not in self.colnames:
-                    lon_col = Column(col.l, name='GLON',
-                                     description='Galactic Longitude',
-                                     unit=col.representation_component_units['l'],
-                                     format='.12f')
-                    lat_col = Column(col.b, name='GLAT',
-                                     description='Galactic Latitude',
-                                     unit=col.representation_component_units['b'],
-                                     format='+.12f')
-                    self.cols.append(lon_col)
-                    self.cols.append(lat_col)
 
-                # Ecliptic coordinates, can be any of various available.
-                elif 'ecliptic' in col.name and 'ELON' not in self.colnames:
-                    lon_col = Column(col.lon, name='ELON',
-                                     description='Ecliptic Longitude (' + col.name + ')',
-                                     unit=col.representation_component_units['lon'],
-                                     format='.12f')
-                    lat_col = Column(col.lat, name='ELAT',
-                                     description='Ecliptic Latitude (' + col.name + ')',
-                                     unit=col.representation_component_units['lat'],
-                                     format='+.12f')
-                    self.cols.append(lon_col)
-                    self.cols.append(lat_col)
+                else:
+                    frminfo = ''
+                    for frame, latlon in coord_systems.items():
+                        if frame in col.name and len(set(latlon[:2]) - set(self.colnames)) == 2:
+                            if frame != col.name:
+                                frminfo = f' ({col.name})'
+                            lon_col = Column(getattr(col, latlon[3]), name=latlon[1],
+                                             description=f'{frame.capitalize()} Longitude{frminfo}',
+                                             unit=col.representation_component_units[latlon[3]],
+                                             format='.12f')
+                            lat_col = Column(getattr(col, latlon[2]), name=latlon[0],
+                                             description=f'{frame.capitalize()} Latitude{frminfo}',
+                                             unit=col.representation_component_units[latlon[2]],
+                                             format='+.12f')
+                            self.cols.append(lon_col)
+                            self.cols.append(lat_col)
+                            to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
                 # Convert all other ``SkyCoord`` columns that are not in the above three
                 # representations to string valued columns. Those could either be types not
@@ -511,14 +512,13 @@ class MrtHeader(cds.CdsHeader):
                 # This is done in order to not create duplicate component columns.
                 # Explicit renaming of the extra coordinate component columns by appending some
                 # suffix to their name, so as to distinguish them, is not yet implemented.
-                else:
+                if i not in to_pop:
                     warnings.warn(f"Coordinate system of type '{col.name}' already stored in table "
                                   f"as CDS/MRT-syle columns or of unrecognized type. So column {i} "
                                   f"is being skipped with designation of a string valued column "
                                   f"`{self.colnames[i]}`.", UserWarning)
                     self.cols.append(Column(col.to_string(), name=self.colnames[i]))
-
-                to_pop.append(i)   # Delete original ``SkyCoord`` column.
+                    to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
