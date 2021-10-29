@@ -2676,8 +2676,8 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu.dump(datafile, cdfile, hfile)
             tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
             with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
-                              r'deprecated in version 2\.0 and will be removed in a '
-                              r'future version\. Use argument "overwrite" instead\.'):
+                              r'deprecated in version 2\.0 and will be removed in '
+                              r'version 5\.1\. Use argument "overwrite" instead\.'):
                 tbhdu.dump(datafile, cdfile, hfile, clobber=True)
 
     def test_pseudo_unsigned_ints(self):
