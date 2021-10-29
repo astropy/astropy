@@ -15,9 +15,8 @@ import numpy as np
 
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
-from astropy.table import QTable
 
-__all__ = ["from_mapping", "to_mapping"]
+__all__ = []  # nothing is publicly scoped
 
 
 def from_mapping(map, *, move_to_meta=False, cosmology=None):

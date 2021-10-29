@@ -10,7 +10,6 @@ import numpy as np
 
 from astropy import constants as const
 from astropy import units as u
-from astropy import cosmology
 from astropy.utils.exceptions import AstropyUserWarning
 from .core import Fittable1DModel
 from .parameters import Parameter, InputParameterError
@@ -439,7 +438,10 @@ class NFW(Fittable1DModel):
                  massfactor=("critical", 200), cosmo=None,  **kwargs):
         # Set default cosmology
         if cosmo is None:
-            cosmo = cosmology.default_cosmology.get()
+            # LOCAL
+            from astropy.cosmology import default_cosmology
+
+            cosmo = default_cosmology.get()
 
         # Set mass overdensity type and factor
         self._density_delta(massfactor, cosmo, redshift)

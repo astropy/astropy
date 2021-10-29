@@ -45,7 +45,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         params = to_format('mapping', cls=map_cls)
         assert isinstance(params, map_cls)  # test type
 
-    def test_to_from_mapping_instance(self, cosmo, to_format, from_format):
+    def test_tofrom_mapping_instance(self, cosmo, to_format, from_format):
         """Test cosmology -> Mapping -> cosmology."""
         # ------------
         # To Mapping
@@ -82,15 +82,18 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         params.pop("mismatching")
         got = from_format(params, format="mapping")
         assert got == cosmo
+        assert got.meta == cosmo.meta
 
         # and it will also work if the cosmology is a string
         params["cosmology"] = params["cosmology"].__qualname__
         got = from_format(params, format="mapping")
         assert got == cosmo
+        assert got.meta == cosmo.meta
 
         # also it auto-identifies 'format'
         got = from_format(params)
         assert got == cosmo
+        assert got.meta == cosmo.meta
 
     def test_fromformat_subclass_partial_info_mapping(self, cosmo):
         """

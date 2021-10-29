@@ -6,11 +6,11 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy import cosmology
-from astropy.cosmology import Cosmology, realizations, Planck18
+from astropy.cosmology import Cosmology, Planck18, realizations
 from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
 from astropy.cosmology.io.table import from_table, to_table
-from astropy.table import Table, QTable, vstack
 from astropy.cosmology.parameters import available
+from astropy.table import QTable, Table, vstack
 
 from .base import IOTestMixinBase, ToFromFormatTestBase
 
