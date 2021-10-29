@@ -432,6 +432,26 @@ class Cosmology(metaclass=abc.ABCMeta):
 
         return namelead + ", ".join(fmtps) + ")"
 
+    def __astropy_table__(self, cls, copy, **kwargs):
+        """Return a `~astropy.table.Table` of type ``cls``.
+
+        Parameters
+        ----------
+        cls : type
+            Astropy ``Table`` class or subclass.
+        copy : bool
+            Ignored.
+        **kwargs : dict, optional
+            Additional keyword arguments. Passed to ``self.to_format()``.
+            See ``Cosmology.to_format.help("astropy.table")`` for allowed kwargs.
+
+        Returns
+        -------
+        `astropy.table.Table` or subclass instance
+            Instance of type ``cls``.
+        """
+        return self.to_format("astropy.table", cls=cls, **kwargs)
+
 
 class FlatCosmologyMixin(metaclass=abc.ABCMeta):
     """
