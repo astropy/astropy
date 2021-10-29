@@ -32,7 +32,6 @@ def test_sun():
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
 
-@pytest.mark.xfail
 def test_constellations(recwarn):
     from astropy.coordinates import ICRS, FK5, SkyCoord
     from astropy.coordinates.funcs import get_constellation
@@ -63,12 +62,18 @@ def test_constellations(recwarn):
     assert boores == 'Boötes'
     assert isinstance(boores, str) or getattr(boores, 'shape', None) == tuple()
 
+
+@pytest.mark.xfail
+def test_constellation_edge_cases():
+    from astropy.coordinates import FK5
+    from astropy.coordinates.funcs import get_constellation
     # Test edge cases close to borders, using B1875.0 coordinates
     # Look for HMS / DMS roundoff-to-decimal issues from Roman (1987) data
     # as documented in https://github.com/astropy/astropy/issues/9855
     # The actual boundary on the west side of Orion at Dec +3.0 is
     # 06h14m30 == 6.2416666666666...
     ras = [6.24100, 6.24160, 6.24166, 6.24168]
+
     # aka ['6h14m27.6s' '6h14m29.76s' '6h14m29.976s' '6h14m30.048s']
     decs = [3.0, 3.0, 3.0, 3.0]
     shortnames = ['Ori', 'Ori', 'Ori', 'Mon']
