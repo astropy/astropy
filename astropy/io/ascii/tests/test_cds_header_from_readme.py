@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pytest
 import numpy as np
 from astropy.io import ascii
 from .common import (assert_equal, assert_almost_equal,  # noqa
@@ -148,19 +149,21 @@ def test_header_from_readme():
             assert val == Q[i]
 
 
-def test_cds_units():
+@pytest.mark.parametrize('reader_cls', (ascii.Cds, ascii.Mrt))
+def test_cds_units(reader_cls):
     from astropy import units
     data_and_readme = 'data/cds.dat'
-    reader = ascii.get_reader(ascii.Cds)
+    reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     # column unit is GMsun (giga solar masses)
     # make sure this is parsed correctly, not as a "string" unit
     assert table['Fit'].to(units.solMass).unit == units.solMass
 
 
-def test_cds_function_units():
+@pytest.mark.parametrize('reader_cls', (ascii.Cds, ascii.Mrt))
+def test_cds_function_units(reader_cls):
     data_and_readme = 'data/cdsFunctional.dat'
-    reader = ascii.get_reader(ascii.Cds)
+    reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     assert table['logg'].unit == u.dex(u.cm/u.s**2)
     assert table['logTe'].unit == u.dex(u.K)
@@ -170,10 +173,11 @@ def test_cds_function_units():
     assert table['e_Age'].unit == u.Myr
 
 
-def test_cds_function_units2():
+@pytest.mark.parametrize('reader_cls', (ascii.Cds, ascii.Mrt))
+def test_cds_function_units2(reader_cls):
     # This one includes some dimensionless dex.
     data_and_readme = 'data/cdsFunctional2.dat'
-    reader = ascii.get_reader(ascii.Cds)
+    reader = ascii.get_reader(reader_cls)
     table = reader.read(data_and_readme)
     assert table['Teff'].unit == u.K
     assert table['logg'].unit == u.dex(u.cm/u.s**2)

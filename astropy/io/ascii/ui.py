@@ -24,6 +24,7 @@ import numpy as np
 from . import core
 from . import basic
 from . import cds
+from . import mrt
 from . import daophot
 from . import ecsv
 from . import sextractor
@@ -597,7 +598,7 @@ def _get_guess_kwargs_list(read_kwargs):
                    fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastRdb, basic.Rdb,
                    fastbasic.FastTab, basic.Tab,
-                   cds.Cds, daophot.Daophot, sextractor.SExtractor,
+                   cds.Cds, mrt.Mrt, daophot.Daophot, sextractor.SExtractor,
                    ipac.Ipac, latex.Latex, latex.AASTex):
         guess_kwargs_list.append(dict(Reader=reader))
 

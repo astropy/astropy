@@ -232,43 +232,41 @@ details.
 
 .. _cds_mrt_format:
 
-CDS/MRT Format
---------------
+Machine-Readable Table Format
+-----------------------------
 
-Both `CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ and
-`Machine Readable Table (MRT) <https://journals.aas.org/mrt-standards/>`_ formats
-consist of a table description (``ReadMe``) and the table data itself. MRT differs
-slightly from the CDS format in table description sections. CDS format includes more
-detailed description in the form of ``Abstract``, ``Notes``, ``References`` fields etc.
-and often has it in a separate file called ``ReadMe``. On the other hand, MRT format
-includes just the table ``Title``, ``Authors``, Table Caption and ``Notes`` and always
-has the ``ReadMe`` section together with the data.
+The American Astronomical Society Journals' `Machine-Readable Table (MRT)
+<https://journals.aas.org/mrt-standards/>`_ format consists of single file with
+the table description header and the table data itself. MRT is similar to the
+`CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ format standard, but differs
+in the table description sections and the lack of a separate ``ReadMe`` file.
+Astropy does not support writing in the CDS format.
 
-The :class:`~astropy.io.ascii.Cds` writer supports writing tables to MRT format.
+The :class:`~astropy.io.ascii.Mrt` writer supports writing tables to MRT format.
 
 .. note::
 
-    The metadata of the table, apart from column ``unit``, ``name`` and ``description``,
-    will not be written in the output file. This also includes CDS/MRT format specific
-    ``ReadMe`` fields. The table lines where these fields can be filled in by
-    hand later, are however left empty.
+    The metadata of the table, apart from column ``unit``, ``name`` and
+    ``description``, are not written in the output file. Placeholders for
+    the title, authors, and table name fields are put into the output file and
+    can be edited after writing.
 
 Examples
 """"""""
 
 ..
   EXAMPLE START
-  Writing CDS/MRT Format Tables Using astropy.io.ascii
+  Writing MRT Format Tables Using astropy.io.ascii
 
-The command ``ascii.write(format='cds')`` writes an ``astropy`` `~astropy.table.Table`
+The command ``ascii.write(format='mrt')`` writes an ``astropy`` `~astropy.table.Table`
 to the MRT format. Section dividers ``---`` and ``===`` are used to divide the table
 into different sections, with the last section always been the actual data.
 
-As the CDS/MRT standard requires,
+As the MRT standard requires,
 for columns that have a ``unit`` attribute not set to ``None``,
 the unit names are tabulated in the Byte-By-Byte
 description of the column. When columns do not contain any units, ``---`` is put instead.
-Also, a ``?`` is prefixed to the column description in the Byte-By-Byte for ``Masked``
+A ``?`` is prefixed to the column description in the Byte-By-Byte for ``Masked``
 columns or columns that have null values, indicating them as such.
 
 The example below initializes a table with columns that have a ``unit`` attribute and
@@ -294,7 +292,7 @@ the table. Thus::
 
   >>> from astropy.time import Time, TimeDelta
   >>> from astropy.timeseries import TimeSeries
-  >>> ts = TimeSeries(time_start=Time('2019-1-1'), time_delta=2*u.day, n_samples=1)
+  >>> ts = TimeSeries(time_start=Time('2019-01-01'), time_delta=2*u.day, n_samples=1)
   >>> table['Obs'] = Column(ts.time.decimalyear, description='Time of Observation')
   >>> table['Cadence'] = Column(TimeDelta(100.0, format='sec').datetime.seconds,
   ...                           unit=u.s)
@@ -323,10 +321,10 @@ The following code illustrates the above.
   >>> from astropy.coordinates import SkyCoord
   >>> table['coord'] = [SkyCoord.from_name('ASASSN-15lh'),
   ...                   SkyCoord.from_name('ASASSN-14li')]  # doctest: +REMOTE_DATA
-  >>> table.write('coord_cols.dat', format='ascii.cds')     # doctest: +SKIP
+  >>> table.write('coord_cols.dat', format='ascii.mrt')     # doctest: +SKIP
   >>> table['coord'] = table['coord'].geocentrictrueecliptic  # doctest: +REMOTE_DATA
   >>> table['Temperature'].format = '.5E' # Set default column format.
-  >>> table.write('ecliptic_cols.dat', format='ascii.cds')    # doctest: +SKIP
+  >>> table.write('ecliptic_cols.dat', format='ascii.mrt')    # doctest: +SKIP
 
 After execution, the contents of ``coords_cols.dat`` will be::
 
@@ -383,13 +381,13 @@ And the file ``ecliptic_cols.dat`` will look like::
   ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 306.224208650096 -45.621789850825
   ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 183.754980099243  21.051410763027
 
-Finally, MRT and CDS have some specific naming conventions for columns
+Finally, MRT has some specific naming conventions for columns
 (`<https://journals.aas.org/mrt-labels/#reflab>`_). For example, if a column contains
 the mean error for the data in a column named ``label``, then this column should be named ``e_label``.
-These kind of relative column naming cannot be enforced by the CDS/MRT writer
+These kinds of relative column naming cannot be enforced by the MRT writer
 because it does not know what the column data means and thus, the relation between the
-columns cannot be figured out. Therefore, it is up to the user to use ``Table.rename_colums``
-to appropriately rename any columns before writing the table to MRT/CDS format.
+columns cannot be figured out. Therefore, it is up to the user to use ``Table.rename_columns``
+to appropriately rename any columns before writing the table to MRT format.
 The following example shows a similar situation, using the option to send the output to
 ``sys.stdout`` instead of a file::
 
@@ -400,7 +398,7 @@ The following example shows a similar situation, using the option to send the ou
   >>> outtab = outtab['Name', 'Obs', 'coord', 'Cadence', 'nH', 'magnitude',
   ...                 'Temperature', 'Flux', 'e_Flux']  # doctest: +REMOTE_DATA
 
-  >>> ascii.write(outtab, format='cds')  # doctest: +REMOTE_DATA
+  >>> ascii.write(outtab, format='mrt')  # doctest: +REMOTE_DATA
   Title:
   Authors:
   Table:
@@ -430,9 +428,9 @@ The following example shows a similar situation, using the option to send the ou
 
 .. attention::
 
-    The CDS writer currently supports automatic writing of a single coordinate
+    The MRT writer supports automatic writing of a single coordinate
     column in ``Tables``. For tables with more
     than one coordinate columns, only the first found coordinate column will be
     converted to its component columns and the rest of the coordinate columns will
-    be converted to string columns. Thus, it should be taken care that the additional
+    be converted to string columns. Thus you should take care that the additional
     coordinate columns are dealt with before using ``SkyCoord`` methods.
