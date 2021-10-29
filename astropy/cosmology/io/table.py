@@ -111,9 +111,18 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
         if not table.indices:  # no indexing column, find by string match
-            index = np.where(table['name'] == index)[0][0]
+            indices = np.where(table['name'] == index)[0]
         else:  # has indexing column
-            index = table.loc_indices[index]  # need to convert to row index (int)
+            indices = table.loc_indices[index]  # need to convert to row index (int)
+
+        if isinstance(indices, (int, np.integer)):  # loc_indices
+            index = indices
+        elif len(indices) == 1:  # only happens w/ np.where
+            index = indices[0]
+        elif len(indices) == 0:  # matches from loc_indices
+            raise KeyError(f"No matches found for key {indices}")
+        else:  # like the Highlander, there can be only 1 Cosmology
+            raise ValueError(f"more than one cosmology found for key {indices}")
 
     # no index is needed for a 1-row table. For a multi-row table...
     if index is None:
@@ -222,7 +231,9 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):
     # package parameters into lists for Table parsing
     params = {k: [v] for k, v in p.items()}
 
-    return cls(params, meta=meta)
+    tbl = cls(params, meta=meta)
+    tbl.add_index("name", unique=True)
+    return tbl
 
 
 def table_identify(origin, format, *args, **kwargs):

@@ -39,7 +39,7 @@ class ToFromTableTestMixin(IOTestMixinBase):
             from_format(tbl, index=2, format="astropy.table")
 
         # string index where doesn't match
-        with pytest.raises(IndexError, match="index 0 is out of bounds"):
+        with pytest.raises(KeyError, match="No matches found for key"):
             from_format(tbl, index="row 0", format="astropy.table")
 
     # -----------------------
@@ -71,7 +71,7 @@ class ToFromTableTestMixin(IOTestMixinBase):
 
     # -----------------------
 
-    def test_to_from_table_instance(self, cosmo, to_format, from_format):
+    def test_tofrom_table_instance(self, cosmo, to_format, from_format):
         """Test cosmology -> astropy.table -> cosmology."""
         # ------------
         # To Table
@@ -80,6 +80,7 @@ class ToFromTableTestMixin(IOTestMixinBase):
         assert isinstance(tbl, QTable)
         assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
         assert tbl["name"] == cosmo.name
+        assert tbl.indices  # indexed!
 
         # ------------
         # From Table
@@ -149,7 +150,8 @@ class ToFromTableTestMixin(IOTestMixinBase):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    def test_to_from_table_mutlirow(self, cosmo, to_format, from_format):
+    @pytest.mark.parametrize("add_index", [True, False])
+    def test_tofrom_table_mutlirow(self, cosmo, to_format, from_format, add_index):
         """Test if table has multiple rows."""
         # ------------
         # To Table
@@ -162,6 +164,10 @@ class ToFromTableTestMixin(IOTestMixinBase):
         assert isinstance(tbl, QTable)
         assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
         assert tbl[1]["name"] == cosmo.name
+
+        # whether to add an index. `from_format` can work with or without.
+        if add_index:
+            tbl.add_index("name", unique=True)
 
         # ------------
         # From Table
@@ -178,21 +184,14 @@ class ToFromTableTestMixin(IOTestMixinBase):
         got = from_format(tbl, index=cosmo.name, format="astropy.table")
         assert got == cosmo
 
-        # it's better if the table already has an index
-        # this will be identical to the previous ``got``
-        tbl.add_index("name")
-        got2 = from_format(tbl, index=cosmo.name, format="astropy.table")
-        assert got2 == cosmo
+        # when there's more than one cosmology found
+        tbls = vstack([tbl, tbl], metadata_conflicts="silent")
+        with pytest.raises(ValueError, match="more than one"):
+            from_format(tbls, index=cosmo.name, format="astropy.table")
 
 
 class TestToFromTable(ToFromFormatTestBase, ToFromTableTestMixin):
-    """
-    Directly test ``to/from_table``.
-    These are not public API and are discouraged from use, in favor of
-    ``Cosmology.to/from_format(..., format="astropy.table")``, but should be
-    tested regardless b/c 3rd party packages might use these in their Cosmology
-    I/O. Also, it's cheap to test.
-    """
+    """Directly test ``to/from_table``."""
 
     def setup_class(self):
         self.functions = {"to": to_table, "from": from_table}
