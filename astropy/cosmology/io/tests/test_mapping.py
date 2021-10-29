@@ -122,13 +122,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
 
 
 class TestToFromMapping(ToFromFormatTestBase, ToFromMappingTestMixin):
-    """
-    Directly test ``to/from_mapping``.
-    These are not public API and are discouraged from use, in favor of
-    ``Cosmology.to/from_format(..., format="mapping")``, but should be tested
-    regardless b/c 3rd party packages might use these in their Cosmology I/O.
-    Also, it's cheap to test.
-    """
+    """Directly test ``to/from_mapping``."""
 
     def setup_class(self):
         self.functions = {"to": to_mapping, "from": from_mapping}
