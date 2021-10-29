@@ -38,6 +38,8 @@ from .utils import poly_map_domain, _combine_equivalency_dict
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)
 from .optimizers import (DEFAULT_MAXITER, DEFAULT_EPS, DEFAULT_ACC)
+from .spline import (SplineInterpolateFitter, SplineSmoothingFitter,
+                     SplineExactKnotsFitter, SplineSplrepFitter)
 
 __all__ = ['LinearLSQFitter', 'LevMarLSQFitter', 'FittingWithOutlierRemoval',
            'SLSQPLSQFitter', 'SimplexLSQFitter', 'JointFitter', 'Fitter',
