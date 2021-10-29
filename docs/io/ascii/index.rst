@@ -19,13 +19,14 @@ The following shows a few of the ASCII formats that are available, while the
 section on `Supported formats`_ contains the full list.
 
 * :class:`~astropy.io.ascii.Basic`: basic table with customizable delimiters and header configurations
-* :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier and ApJ `Machine Readable Tables (MRT) <https://journals.aas.org/mrt-standards/>`_)
+* :class:`~astropy.io.ascii.Cds`: `CDS format table <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ (also Vizier)
 * :class:`~astropy.io.ascii.Daophot`: table from the IRAF DAOphot package
 * :class:`~astropy.io.ascii.Ecsv`: :ref:`ecsv_format` for lossless round-trip of data tables (**recommended**)
 * :class:`~astropy.io.ascii.FixedWidth`: table with fixed-width columns (see also :ref:`fixed_width_gallery`)
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
+* :class:`~astropy.io.ascii.Mrt`: AAS `Machine-Readable Tables (MRT) <https://journals.aas.org/mrt-standards/>`_)
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <https://sextractor.readthedocs.io/en/latest/>`_
 
 The strength of `astropy.io.ascii` is the support for astronomy-specific
@@ -177,6 +178,7 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``html``                    Yes      :class:`~astropy.io.ascii.HTML`: HTML format table
 ``ipac``                    Yes      :class:`~astropy.io.ascii.Ipac`: IPAC format table
 ``latex``                   Yes      :class:`~astropy.io.ascii.Latex`: LaTeX table
+``mrt``                     Yes      :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
 ``no_header``               Yes  Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
 ``qdp``                     Yes      :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
 ``rdb``                     Yes  Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line

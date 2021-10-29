@@ -190,7 +190,7 @@ detection.
                       ascii    Yes          ASCII table in any supported format (uses guessing)
                ascii.aastex    Yes          :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
                 ascii.basic    Yes          :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
-                  ascii.cds    Yes          :class:`~astropy.io.ascii.Cds`: CDS format table
+                  ascii.cds     No          :class:`~astropy.io.ascii.Cds`: CDS format table
      ascii.commented_header    Yes          :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
                   ascii.csv    Yes    .csv  :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
               ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
@@ -201,6 +201,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                  ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table
                  ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
                 ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+                  ascii.mrt    Yes          :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
             ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
                   ascii.qdp    Yes    .qdp   :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
                   ascii.rdb    Yes    .rdb  :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
