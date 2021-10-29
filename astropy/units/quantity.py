@@ -22,8 +22,10 @@ from .core import (Unit, dimensionless_unscaled, get_current_unit_registry,
 from .structured import StructuredUnit
 from .utils import is_effectively_unity
 from .format.latex import Latex
+from astropy.utils.compat import NUMPY_LT_1_22
 from astropy.utils.compat.misc import override__dir__
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
+from astropy.utils.introspection import minversion
 from astropy.utils.misc import isiterable
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy import config as _config
@@ -313,6 +315,96 @@ class Quantity(np.ndarray):
     _unit = None
 
     __array_priority__ = 10000
+
+    def __class_getitem__(cls, unit_shape_dtype):
+        """Quantity Type Hints.
+
+        Unit-aware type hints are ``Annotated`` objects that encode the class,
+        the unit, and possibly shape and dtype information, depending on the
+        python and :mod:`numpy` versions.
+
+        Schematically, ``Annotated[cls[shape, dtype], unit]``
+
+        As a classmethod, the type is the class, ie ``Quantity``
+        produces an ``Annotated[Quantity, ...]`` while a subclass
+        like :class:`~astropy.coordinates.Angle` returns
+        ``Annotated[Angle, ...]``.
+
+        Parameters
+        ----------
+        unit_shape_dtype : :class:`~astropy.units.UnitBase`, str, `~astropy.units.PhysicalType`, or tuple
+            Unit specification, can be the physical type (ie str or class).
+            If tuple, then the first element is the unit specification
+            and all other elements are for `numpy.ndarray` type annotations.
+            Whether they are included depends on the python and :mod:`numpy`
+            versions.
+
+        Returns
+        -------
+        `typing.Annotated`, `typing_extensions.Annotated`, `astropy.units.Unit`, or `astropy.units.PhysicalType`
+            Return type in this preference order:
+            * if python v3.9+ : `typing.Annotated`
+            * if :mod:`typing_extensions` is installed : `typing_extensions.Annotated`
+            * `astropy.units.Unit` or `astropy.units.PhysicalType`
+
+        Raises
+        ------
+        TypeError
+            If the unit/physical_type annotation is not Unit-like or
+            PhysicalType-like.
+
+        Examples
+        --------
+        Create a unit-aware Quantity type annotation
+
+            >>> Quantity[Unit("s")]
+            Annotated[Quantity, Unit("s")]
+
+        See Also
+        --------
+        `~astropy.units.quantity_input`
+            Use annotations for unit checks on function arguments and results.
+
+        Notes
+        -----
+        With Python 3.9+ or :mod:`typing_extensions`, |Quantity| types are also
+        static-type compatible.
+        """
+        # LOCAL
+        from ._typing import HAS_ANNOTATED, Annotated
+
+        # process whether [unit] or [unit, shape, ptype]
+        if isinstance(unit_shape_dtype, tuple):  # unit, shape, dtype
+            target = unit_shape_dtype[0]
+            shape_dtype = unit_shape_dtype[1:]
+        else:  # just unit
+            target = unit_shape_dtype
+            shape_dtype = ()
+
+        # Allowed unit/physical types. Errors if neither.
+        try:
+            unit = Unit(target)
+        except (TypeError, ValueError):
+            from astropy.units.physical import get_physical_type
+
+            try:
+                unit = get_physical_type(target)
+            except (TypeError, ValueError, KeyError):  # KeyError for Enum
+                raise TypeError("unit annotation is not a Unit or PhysicalType") from None
+
+        # Allow to sort of work for python 3.8- / no typing_extensions
+        # instead of bailing out, return the unit for `quantity_input`
+        if not HAS_ANNOTATED:
+            warnings.warn("Quantity annotations are valid static type annotations only"
+                          " if Python is v3.9+ or `typing_extensions` is installed.")
+            return unit
+
+        # Quantity does not (yet) properly extend the NumPy generics types,
+        # introduced in numpy v1.22+, instead just including the unit info as
+        # metadata using Annotated.
+        if not NUMPY_LT_1_22:
+            cls = super().__class_getitem__((cls, *shape_dtype))
+        return Annotated.__class_getitem__((cls, unit))
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
