@@ -890,7 +890,11 @@ class HDUList(list, _Verify):
                 n = hdr['NAXIS']
                 hdr.set('EXTEND', True, after='NAXIS' + str(n))
 
-    @deprecated_renamed_argument('clobber', 'overwrite', '2.0')
+    @deprecated_renamed_argument('clobber', 'overwrite', '2.0',
+                                 message='"clobber" was deprecated in version '
+                                         '2.0 and will be removed in version '
+                                         '5.1. Use argument "overwrite" '
+                                         'instead.')
     def writeto(self, fileobj, output_verify='exception', overwrite=False,
                 checksum=False):
         """

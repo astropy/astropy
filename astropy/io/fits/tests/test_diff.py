@@ -816,8 +816,8 @@ class TestDiff(FitsTestCase):
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
         with pytest.warns(AstropyDeprecationWarning, match=r'"clobber" was '
-                          r'deprecated in version 2\.0 and will be removed in a '
-                          r'future version\. Use argument "overwrite" instead\.'):
+                          r'deprecated in version 2\.0 and will be removed in '
+                          r'version 5\.1\. Use argument "overwrite" instead\.'):
             diffobj.report(fileobj=outpath, clobber=True)
 
     def test_rawdatadiff_nodiff(self):
