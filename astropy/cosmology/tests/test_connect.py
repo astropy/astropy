@@ -10,7 +10,8 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import CosmologyRead, readwrite_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.io.tests import test_mapping
+from astropy.cosmology.io.tests import test_mapping, test_table
+from astropy.table import QTable
 
 from .conftest import json_identify, read_json, write_json
 
@@ -19,7 +20,8 @@ from .conftest import json_identify, read_json, write_json
 
 cosmo_instances = cosmology.parameters.available
 readwrite_formats = ["json"]
-tofrom_formats = [("mapping", dict)]  # (format, data type)
+tofrom_formats = [("mapping", dict), ("astropy.table", QTable)]
+#                 (format, data type)
 
 ###############################################################################
 
@@ -200,7 +202,7 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 # To/From_Format Tests
 
 
-class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin):
+class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin, test_table.ToFromTableTestMixin):
     """
     Tests for a Cosmology[To/From]Format on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does

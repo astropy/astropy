@@ -15,6 +15,7 @@ from astropy.cosmology.io.mapping import from_mapping, to_mapping
 from astropy.cosmology.parameters import available
 from astropy.table import QTable, vstack
 
+from .base import IOTestMixinBase, ToFromFormatTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromMapping.setup.<locals>.CosmologyWithKwargs")
@@ -23,7 +24,7 @@ cosmo_instances.append("TestToFromMapping.setup.<locals>.CosmologyWithKwargs")
 ###############################################################################
 
 
-class ToFromMappingTestMixin:
+class ToFromMappingTestMixin(IOTestMixinBase):
     """
     Tests for a Cosmology[To/From]Format with ``format="mapping"``.
     This class will not be directly called by :mod:`pytest` since its name does
@@ -32,18 +33,6 @@ class ToFromMappingTestMixin:
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
     See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
     """
-
-    @pytest.fixture
-    def to_format(self, cosmo):
-        """Convert Cosmology instance using ``.to_format()``."""
-        return cosmo.to_format
-
-    @pytest.fixture
-    def from_format(self, cosmo):
-        """Convert mapping to Cosmology using ``Cosmology.from_format()``."""
-        return Cosmology.from_format
-
-    # ==============================================================
 
     def test_failed_cls_to_mapping(self, cosmo, to_format):
         """Test incorrect argument ``cls`` in ``to_mapping()``."""
@@ -132,49 +121,8 @@ class ToFromMappingTestMixin:
         assert got.meta == cosmo.meta
 
 
-class TestToFromMapping(ToFromMappingTestMixin):
-    """
-    Directly test ``to/from_mapping``.
-    These are not public API and are discouraged from use, in favor of
-    ``Cosmology.to/from_format(..., format="mapping")``, but should be tested
-    regardless b/c 3rd party packages might use these in their Cosmology I/O.
-    Also, it's cheap to test.
-    """
+class TestToFromMapping(ToFromFormatTestBase, ToFromMappingTestMixin):
+    """Directly test ``to/from_mapping``."""
 
-    @pytest.fixture(scope="class", autouse=True)
-    def setup(self):
-        """Setup and teardown for tests."""
-
-        class CosmologyWithKwargs(Cosmology):
-            Tcmb0 = Parameter(unit=u.K)
-
-            def __init__(self, Tcmb0=0, name="cosmology with kwargs", meta=None, **kwargs):
-                super().__init__(name=name, meta=meta)
-                self._Tcmb0 = Tcmb0 << u.K
-
-        yield  # run tests
-
-        # pop CosmologyWithKwargs from registered classes
-        # but don't error b/c it can fail in parallel
-        _COSMOLOGY_CLASSES.pop(CosmologyWithKwargs.__qualname__, None)
-
-    @pytest.fixture(params=cosmo_instances)
-    def cosmo(self, request):
-        """Cosmology instance."""
-        if isinstance(request.param, str):  # CosmologyWithKwargs
-            return _COSMOLOGY_CLASSES[request.param](Tcmb0=3)
-        return request.param
-
-    @pytest.fixture
-    def to_format(self, cosmo):
-        """Convert Cosmology to mapping using function ``to_mapping()``."""
-        return lambda *args, **kwargs: to_mapping(cosmo, *args, **kwargs)
-
-    @pytest.fixture
-    def from_format(self):
-        """Convert mapping to Cosmology using function ``from_mapping()``."""
-        def use_from_mapping(*args, **kwargs):
-            kwargs.pop("format", None)  # specific to Cosmology.from_format
-            return from_mapping(*args, **kwargs)
-
-        return use_from_mapping
+    def setup_class(self):
+        self.functions = {"to": to_mapping, "from": from_mapping}

@@ -1,0 +1,3 @@
+Register Astropy Table into Cosmology's ``to/from_format`` I/O, allowing
+a Cosmology instance to be parsed from or converted to a Table instance.
+Also adds the ``__astropy_table__`` method allowing ``Table(cosmology)``.
