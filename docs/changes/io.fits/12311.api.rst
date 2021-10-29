@@ -1,0 +1,3 @@
+The deprecated ``clobber`` argument will be removed from the
+``astropy.io.fits`` functions in version 5.1, and the deprecation warnings now
+announce that too.
