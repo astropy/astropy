@@ -1,0 +1,2 @@
+Reading files where the SIMPLE card is present but with an invalid format now
+issues a warning instead of raising an exception

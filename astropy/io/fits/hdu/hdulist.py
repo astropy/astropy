@@ -3,6 +3,7 @@
 import gzip
 import itertools
 import os
+import re
 import shutil
 import sys
 import warnings
@@ -98,7 +99,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         ``END`` card in the last header. Default is `False`.
 
     ignore_missing_simple : bool, optional
-        Do not raise an exception when the SIMPLE keyword is missing.
+        Do not raise an exception when the SIMPLE keyword is missing. Note
+        that io.fits will raise a warning if a SIMPLE card is present but
+        written in a way that does not follow the FITS Standard.
         Default is `False`.
 
         .. versionadded:: 4.2
@@ -1077,18 +1080,32 @@ class HDUList(list, _Verify):
             # fromstring case; the data type of ``data`` will be checked in the
             # _BaseHDU.fromstring call.
 
-        if (hdulist._file and hdulist._file.mode != 'ostream' and
+        if (not ignore_missing_simple and
+                hdulist._file and
+                hdulist._file.mode != 'ostream' and
                 hdulist._file.size > 0):
             pos = hdulist._file.tell()
-            simple = hdulist._file.read(30)
-            match_sig = (simple[:-1] == FITS_SIGNATURE[:-1] and
-                         simple[-1:] in (b'T', b'F'))
+            # FITS signature is supposed to be in the first 30 bytes, but to
+            # allow reading various invalid files we will check in the first
+            # card (80 bytes).
+            simple = hdulist._file.read(80)
+            match_sig = (simple[:29] == FITS_SIGNATURE[:-1] and
+                         simple[29:30] in (b'T', b'F'))
 
-            if not match_sig and not ignore_missing_simple:
-                if hdulist._file.close_on_error:
-                    hdulist._file.close()
-                raise OSError('No SIMPLE card found, this file does not '
-                              'appear to be a valid FITS file')
+            if not match_sig:
+                # Check the SIMPLE card is there but not written correctly
+                match_sig_relaxed = re.match(rb"SIMPLE\s*=\s*[T|F]", simple)
+
+                if match_sig_relaxed:
+                    warnings.warn("Found a SIMPLE card but its format doesn't"
+                                  " respect the FITS Standard", VerifyWarning)
+                else:
+                    if hdulist._file.close_on_error:
+                        hdulist._file.close()
+                    raise OSError(
+                        'No SIMPLE card found, this file does not appear to '
+                        'be a valid FITS file. If this is really a FITS file, '
+                        'try with ignore_missing_simple=True')
 
             hdulist._file.seek(pos)
 
