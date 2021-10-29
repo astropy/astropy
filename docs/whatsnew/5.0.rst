@@ -33,7 +33,7 @@ Currently no file formats are registered, but the syntax is as follows:
     True
 
 
-The transformations between ``Cosmology`` and `dict`/``QTable`` are
+The transformations between ``Cosmology`` and `dict`/``QTable``/``Model`` are
 pre-registered, e.g. enabling::
 
     >>> from astropy.cosmology import Cosmology, Planck18
@@ -67,6 +67,14 @@ pre-registered, e.g. enabling::
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
+    Models can be created from any redshift method of a Cosmology:
+
+    >>> model = Planck18.to_format("astropy.model", method="lookback_time")
+    >>> model
+    <FlatLambdaCDMCosmologyLookbackTimeModel(H0=67.66 km / (Mpc s), Om0=0.30966,
+        Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
+        name='Planck18')>
+
     All the format conversions can be reversed:
 
     >>> cosmo = Cosmology.from_format(cm, format="mapping")
@@ -75,6 +83,10 @@ pre-registered, e.g. enabling::
                   Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
 
     >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
+    >>> cosmo == Planck18
+    True
+
+    >>> cosmo = Cosmology.from_format(model, format="astropy.modeling")
     >>> cosmo == Planck18
     True
 
