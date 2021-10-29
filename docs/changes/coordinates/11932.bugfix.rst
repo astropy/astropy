@@ -1,0 +1,2 @@
+The output of ``SkyCoord.apply_space_motion()`` now always has the same
+differential type as the ``SkyCoord`` itself.

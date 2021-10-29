@@ -1679,7 +1679,7 @@ def test_apply_space_motion():
     assert isinstance(applied1.frame, c1.frame.__class__)
     assert isinstance(applied2.frame, c1.frame.__class__)
     assert_allclose(applied1.ra, applied2.ra)
-    assert_allclose(applied1.pm_ra, applied2.pm_ra)
+    assert_allclose(applied1.pm_ra_cosdec, applied2.pm_ra_cosdec)
     assert_allclose(applied1.dec, applied2.dec)
     assert_allclose(applied1.distance, applied2.distance)
 
