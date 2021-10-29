@@ -302,15 +302,14 @@ values that are such objects are recognized as such, and some predefined labels 
 description is used for them. Coordinate columns that have `~astropy.coordinates.SphericalRepresentation`
 are additionally sub-divided into their coordinate component columns. Representations that have
 ``ra`` and ``dec`` components are divided into their ``hour``-``min``-``sec``
-and ``deg``-``arcmin``-``arcsec`` components respectively. Whereas, columns with
+and ``deg``-``arcmin``-``arcsec`` components respectively. Whereas columns with
 ``SkyCoord`` objects in the ``Galactic`` or any of the ``Ecliptic`` frames are divided
 into their latitude(``ELAT``/``GLAT``) and longitude components (``ELON``/``GLAT``) only.
-The original table remains accessible as such, while the file is written from a
-modified copy of the table. The new coordinate component columns are added at the end
-of the table.
+The original table remains accessible as such, while the file is written from a modified
+copy of the table. The new coordinate component columns are appended to the end of the table.
 
 It should be noted that the precision of the latitude and longitude and ``sec``, ``arcsec``
-columns is set at a default number of 12 digits after the decimal. Since, these component
+columns is set at a default number of 12 digits after the decimal. Since these component
 columns are obtained by dividing up ``SkyCoord`` columns, this precision is internally set,
 and cannot be changed. For all other columns though, the format can be set by passing the
 ``formats`` keyword to the ``write`` function or by setting the ``format`` attribute of
@@ -336,20 +335,20 @@ After execution, the contents of ``coords_cols.dat`` will be::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1-11  A11     ---    Name        Description of Name
-   13-23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
-   25-30  F6.4    10+22  nH          [0.01/0.03] Description of nH
-   32-36  F5.3   10+12Jy Flux        ? Description of Flux
-   38-42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44-49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
-   51-53  I3      s      Cadence     [100] Description of Cadence
-   55-56  I2     h      RAh           Right Ascension (hour)
-   58-59  I2     min    RAm           Right Ascension (minute)
-   61-75  F15.12 s      RAs           Right Ascension (second)
-      77  A1     ---    DE-           Sign of Declination
-   78-79  I2     deg    DEd           Declination (degree)
-   81-82  I2     arcmin DEm           Declination (arcmin)
-   84-98  F15.12 arcsec DEs           Declination (arcsec)
+   1-11  A11     ---    Name        Description of Name
+  13-23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+  25-30  F6.4    10+22  nH          [0.01/0.03] Description of nH
+  32-36  F5.3   10+12Jy Flux        ? Description of Flux
+  38-42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+  44-49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+  51-53  I3      s      Cadence     [100] Description of Cadence
+  55-56  I2     h      RAh           Right Ascension (hour)
+  58-59  I2     min    RAm           Right Ascension (minute)
+  61-75  F15.12 s      RAs           Right Ascension (second)
+     77  A1     ---    DE-           Sign of Declination
+  78-79  I2     deg    DEd           Declination (degree)
+  81-82  I2     arcmin DEm           Declination (arcmin)
+  84-98  F15.12 arcsec DEs           Declination (arcsec)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
@@ -366,15 +365,15 @@ And the file ``ecliptic_cols.dat`` will look like::
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name
-   13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
-   25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH
-   32- 36  F5.3   10+12Jy Flux        ? Description of Flux
-   38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
-   51- 53  I3      s      Cadence     [100] Description of Cadence
-   55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic)
+   1- 11  A11     ---    Name        Description of Name
+  13- 23  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+  25- 30  F6.4    10+22  nH          [0.01/0.03] Description of nH
+  32- 36  F5.3   10+12Jy Flux        ? Description of Flux
+  38- 42  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+  44- 49  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+  51- 53  I3      s      Cadence     [100] Description of Cadence
+  55- 70  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+  72- 87  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
@@ -407,16 +406,16 @@ The following example shows a similar situation, using the option to send the ou
   --------------------------------------------------------------------------------
    Bytes Format Units  Label     Explanations
   --------------------------------------------------------------------------------
-    1- 11  A11     ---    Name        Description of Name
-   13- 18  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
-   20- 22  I3      s      Cadence     [100] Description of Cadence
-   24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH
-   31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
-   37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
-   49- 53  F5.3   10+12Jy Flux        ? Description of Flux
-   55- 61  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux
-   63- 78  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
-   80- 95  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic)
+   1- 11  A11     ---    Name        Description of Name
+  13- 18  F6.1    ---    Obs         [2019.0/2019.0] Time of Observation
+  20- 22  I3      s      Cadence     [100] Description of Cadence
+  24- 29  F6.4    10+22  nH          [0.01/0.03] Description of nH
+  31- 35  E5.1    mag    magnitude   [0.0/3981.08] Description of magnitude
+  37- 47  E11.6   keV    Temperature [0.0/0.01] Description of Temperature
+  49- 53  F5.3   10+12Jy Flux        ? Description of Flux
+  55- 61  F7.1    Jy     e_Flux      [450.0/10000.0] Description of e_Flux
+  63- 78  F16.12  deg    ELON        Ecliptic Longitude (geocentrictrueecliptic)
+  80- 95  F16.12  deg    ELAT        Ecliptic Latitude (geocentrictrueecliptic)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
@@ -428,9 +427,10 @@ The following example shows a similar situation, using the option to send the ou
 
 .. attention::
 
-    The MRT writer supports automatic writing of a single coordinate
-    column in ``Tables``. For tables with more
-    than one coordinate columns, only the first found coordinate column will be
-    converted to its component columns and the rest of the coordinate columns will
-    be converted to string columns. Thus you should take care that the additional
-    coordinate columns are dealt with before using ``SkyCoord`` methods.
+    The MRT writer currently supports automatic writing of a single coordinate column
+    in ``Tables``. For tables with more than one coordinate column of a given kind
+    (e.g. equatorial, galactic or ecliptic), only the first found coordinate column
+    will be decomposed into its component columns, and the rest of the coordinate
+    columns will be converted to string columns. Thus users should take care that the
+    additional coordinate columns are dealt with (e.g. by converting them into unique
+    ``float``-valued columns) before using ``SkyCoord`` methods.
