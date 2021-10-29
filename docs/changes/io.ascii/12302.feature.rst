@@ -1,0 +1,3 @@
+Added a new ``astropy.io.ascii.Mrt`` class to write tables in the American
+Astronomical Society Machine-Readable Table format,
+including documentation and tests for the same.
