@@ -235,7 +235,7 @@ details.
 Machine-Readable Table Format
 -----------------------------
 
-The American Astronomical Society Journal's `Machine-Readable Table (MRT)
+The American Astronomical Society Journals' `Machine-Readable Table (MRT)
 <https://journals.aas.org/mrt-standards/>`_ format consists of single file with
 the table description header and the table data itself. MRT is similar to the
 `CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_ format standard, but differs
@@ -384,7 +384,7 @@ And the file ``ecliptic_cols.dat`` will look like::
 Finally, MRT has some specific naming conventions for columns
 (`<https://journals.aas.org/mrt-labels/#reflab>`_). For example, if a column contains
 the mean error for the data in a column named ``label``, then this column should be named ``e_label``.
-These kind of relative column naming cannot be enforced by the MRT writer
+These kinds of relative column naming cannot be enforced by the MRT writer
 because it does not know what the column data means and thus, the relation between the
 columns cannot be figured out. Therefore, it is up to the user to use ``Table.rename_columns``
 to appropriately rename any columns before writing the table to MRT format.
