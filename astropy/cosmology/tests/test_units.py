@@ -171,20 +171,20 @@ def test_redshift_hubble():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 @pytest.mark.parametrize(
-    "distance_kind",
+    "kind",
     [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"]
 )
-def test_redshift_distance(distance_kind):
+def test_redshift_distance(kind):
     """Test :func:`astropy.cosmology.units.redshift_distance`."""
     z = 15 * cu.redshift
-    d = getattr(Planck13, distance_kind + "_distance")(z)
+    d = getattr(Planck13, kind + "_distance")(z)
 
-    equivalency = cu.redshift_distance(cosmology=Planck13, distance_kind=distance_kind)
+    equivalency = cu.redshift_distance(cosmology=Planck13, kind=kind)
 
     # properties of Equivalency
     assert equivalency.name[0] == "redshift_distance"
     assert equivalency.kwargs[0]["cosmology"] == Planck13
-    assert equivalency.kwargs[0]["distance"] == distance_kind
+    assert equivalency.kwargs[0]["distance"] == kind
 
     # roundtrip
     assert_quantity_allclose(z.to(u.Mpc, equivalency), d)
@@ -193,8 +193,8 @@ def test_redshift_distance(distance_kind):
 
 def test_redshift_distance_wrong_kind():
     """Test :func:`astropy.cosmology.units.redshift_distance` wrong kind."""
-    with pytest.raises(ValueError, match="`distance_kind`"):
-        cu.redshift_distance(distance_kind=None)
+    with pytest.raises(ValueError, match="`kind`"):
+        cu.redshift_distance(kind=None)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
@@ -353,7 +353,7 @@ class Test_with_redshift:
 
     def test_distance_wrong_kind(self):
         """Test distance equivalency, but the wrong kind."""
-        with pytest.raises(ValueError, match="`distance_kind`"):
+        with pytest.raises(ValueError, match="`kind`"):
             cu.with_redshift(distance=ValueError)
 
     @pytest.mark.parametrize("kind", ["comoving", "lookback", "luminosity"])

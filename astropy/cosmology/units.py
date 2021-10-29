@@ -52,7 +52,7 @@ def dimensionless_redshift():
     return u.Equivalency([(redshift, None)], "dimensionless_redshift")
 
 
-def redshift_distance(cosmology=None, distance_kind="comoving", **atzkw):
+def redshift_distance(cosmology=None, kind="comoving", **atzkw):
     """Convert quantities between redshift and distance.
 
     Care should be taken to not misinterpret a relativistic, gravitational, etc
@@ -64,7 +64,7 @@ def redshift_distance(cosmology=None, distance_kind="comoving", **atzkw):
         A cosmology realization or built-in cosmology's name (e.g. 'Planck18').
         If None, will use the default cosmology
         (controlled by :class:`~astropy.cosmology.default_cosmology`).
-    distance_kind : {'comoving', 'lookback', 'luminosity'} or None, optional
+    kind : {'comoving', 'lookback', 'luminosity'} or None, optional
         The distance type for the Equivalency.
         Note this does NOT include the angular diameter distance as this
         distance measure is not monotonic.
@@ -83,7 +83,7 @@ def redshift_distance(cosmology=None, distance_kind="comoving", **atzkw):
     >>> from astropy.cosmology import WMAP9
 
     >>> z = 1100 * cu.redshift
-    >>> z.to(u.Mpc, cu.redshift_distance(WMAP9, distance="comoving"))  # doctest: +FLOAT_CMP
+    >>> z.to(u.Mpc, cu.redshift_distance(WMAP9, kind="comoving"))  # doctest: +FLOAT_CMP
     <Quantity 14004.03157418 Mpc>
     """
     from astropy.cosmology import default_cosmology, z_at_value
@@ -93,11 +93,11 @@ def redshift_distance(cosmology=None, distance_kind="comoving", **atzkw):
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
         cosmology = default_cosmology.get()
 
-    allowed_distances = ('comoving', 'lookback', 'luminosity')
-    if distance_kind not in allowed_distances:
-        raise ValueError(f"`distance_kind` is not one of {allowed_distances}")
+    allowed_kinds = ('comoving', 'lookback', 'luminosity')
+    if kind not in allowed_kinds:
+        raise ValueError(f"`kind` is not one of {allowed_kinds}")
 
-    method = getattr(cosmology, distance_kind + "_distance")
+    method = getattr(cosmology, kind + "_distance")
 
     def z_to_distance(z):
         """Redshift to distance."""
@@ -109,7 +109,7 @@ def redshift_distance(cosmology=None, distance_kind="comoving", **atzkw):
 
     return u.Equivalency([(redshift, u.Mpc, z_to_distance, distance_to_z)],
                          "redshift_distance",
-                         {'cosmology': cosmology, "distance": distance_kind})
+                         {'cosmology': cosmology, "distance": kind})
 
 
 def redshift_hubble(cosmology=None, **atzkw):
@@ -305,7 +305,7 @@ def with_redshift(cosmology=None, *,
 
     # Distance <-> Redshift, but need to choose which distance
     if distance is not None:
-        equivs.extend(redshift_distance(cosmology, distance_kind=distance, **atzkw))
+        equivs.extend(redshift_distance(cosmology, kind=distance, **atzkw))
 
     # -----------
     return u.Equivalency(equivs, "with_redshift",
