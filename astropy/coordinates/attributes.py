@@ -181,7 +181,7 @@ class TimeAttribute(Attribute):
                 out = Time(value)
             except Exception as err:
                 raise ValueError(
-                    f'Invalid time input {self.name}={value!r}\n{err}')
+                    f'Invalid time input {self.name}={value!r}.') from err
             converted = True
 
         # Set attribute as read-only for arrays (not allowed by numpy

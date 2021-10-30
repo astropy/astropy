@@ -150,7 +150,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
             try:
                 out[0] = rep[0]
             except Exception as err:
-                raise ValueError(f'input representations are inconsistent: {err}')
+                raise ValueError(f'input representations are inconsistent.') from err
 
         # Set (merged) info attributes.
         for attr in ('name', 'meta', 'description'):
@@ -203,7 +203,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                     attr = args.pop(0) if args else kwargs.pop(component)
                 except KeyError:
                     raise TypeError(f'__init__() missing 1 required positional '
-                                    f'argument: {component!r}')
+                                    f'argument: {component!r}') from None
 
                 if attr is None:
                     raise TypeError(f'__init__() missing 1 required positional '
@@ -231,12 +231,12 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
                  for component, attr in zip(components, attrs)]
         try:
             bc_attrs = np.broadcast_arrays(*attrs, subok=True)
-        except ValueError:
+        except ValueError  as err:
             if len(components) <= 2:
                 c_str = ' and '.join(components)
             else:
                 c_str = ', '.join(components[:2]) + ', and ' + components[2]
-            raise ValueError(f"Input parameters {c_str} cannot be broadcast")
+            raise ValueError(f"Input parameters {c_str} cannot be broadcast") from err
 
         # If inputs have been copied, there is no reason to output a broadcasted array for a
         # component, so we perform another copy of any component that has been broadcasted
@@ -697,9 +697,9 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         for key in differentials:
             try:
                 diff = differentials[key]
-            except TypeError:
+            except TypeError as err:
                 raise TypeError("'differentials' argument must be a "
-                                "dictionary-like object")
+                                "dictionary-like object") from err
 
             diff._check_base(self)
 
@@ -823,14 +823,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             try:
                 new_diffs[k] = diff.represent_as(differential_class[k],
                                                  base=self)
-            except Exception:
+            except Exception as err:
                 if (differential_class[k] not in
                         new_rep._compatible_differentials):
                     raise TypeError("Desired differential class {} is not "
                                     "compatible with the desired "
                                     "representation class {}"
                                     .format(differential_class[k],
-                                            new_rep.__class__))
+                                            new_rep.__class__)) from err
                 else:
                     raise
 
@@ -1478,10 +1478,10 @@ class CartesianRepresentation(BaseRepresentation):
         """
         try:
             other_c = other.to_cartesian()
-        except Exception:
+        except Exception as err:
             raise TypeError("cannot only take dot product with another "
                             "representation, not a {} instance."
-                            .format(type(other)))
+                            .format(type(other))) from err
         # erfa pdp: p-vector inner (=scalar=dot) product.
         return erfa_ufunc.pdp(self.get_xyz(xyz_axis=-1),
                               other_c.get_xyz(xyz_axis=-1))
@@ -1502,10 +1502,10 @@ class CartesianRepresentation(BaseRepresentation):
         self._raise_if_has_differentials('cross')
         try:
             other_c = other.to_cartesian()
-        except Exception:
+        except Exception as err:
             raise TypeError("cannot only take cross product with another "
                             "representation, not a {} instance."
-                            .format(type(other)))
+                            .format(type(other))) from err
         # erfa pxp: p-vector outer (=vector=cross) product.
         sxo = erfa_ufunc.pxp(self.get_xyz(xyz_axis=-1),
                              other_c.get_xyz(xyz_axis=-1))
@@ -1934,7 +1934,7 @@ class SphericalRepresentation(BaseRepresentation):
                     raise ValueError("Distance must be >= 0. To allow negative "
                                      "distance values, you must explicitly pass"
                                      " in a `Distance` object with the the "
-                                     "argument 'allow_negative=True'.")
+                                     "argument 'allow_negative=True'.") from e
                 else:
                     raise
 
