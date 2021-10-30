@@ -4,9 +4,9 @@ import copy
 
 import numpy as np
 
-from astropy.table import Table, QTable
 from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
+from astropy.table import QTable, Table
 
 from .mapping import from_mapping, to_mapping
 

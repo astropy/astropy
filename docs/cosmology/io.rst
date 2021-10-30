@@ -98,6 +98,7 @@ To see the a list of the available conversion formats:
     >>> Cosmology.to_format.list_formats()
         Format    Read Write Auto-identify
     ------------- ---- ----- -------------
+    astropy.model  Yes   Yes           Yes
     astropy.table  Yes   Yes           Yes
           mapping  Yes   Yes           Yes
         mypackage  Yes   Yes           Yes
@@ -112,7 +113,7 @@ is from an `example 3rd-party package
 another python object. This can be useful for e.g., iterating through an MCMC
 of cosmological parameters or printing out a cosmological model to a journal
 format, like latex or HTML. When 3rd party cosmology packages register with
-Astropy' Cosmology I/O, ``to/from_format`` can be used to convert cosmology
+Astropy's Cosmology I/O, ``to/from_format`` can be used to convert cosmology
 instances between packages!
 
 .. EXAMPLE START: Planck18 to mapping and back
@@ -186,6 +187,26 @@ and ``html`` formats, which can be copied into journal articles and websites,
 respectively.
 
 .. EXAMPLE END
+
+.. EXAMPLE START: Planck18 to Model and back
+
+Using ``format="astropy.model`` any redshift(s) method of a cosmology may be
+turned into a :class:`astropy.modeling.Model`. Each |Cosmology|
+:class:`~astropy.cosmology.Parameter` is converted to a
+:class:`astropy.modeling.Model` :class:`~astropy.modeling.Parameter`
+and the redshift-method to the model's ``__call__ / evaluate``.
+Now you can fit cosmologies with data!
+
+.. code-block::
+
+    >>> model = Planck18.to_format("astropy.model", method="lookback_time")
+    >>> model
+    <FlatLambdaCDMCosmologyLookbackTimeModel(H0=67.66 km / (Mpc s), Om0=0.30966,
+        Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
+        name='Planck18')>
+
+Like for the other formats, the ``Planck18`` cosmology can be recovered with
+`~astropy.cosmology.Cosmology.from_format`.
 
 
 .. _custom_cosmology_converters:
