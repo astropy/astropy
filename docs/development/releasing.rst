@@ -28,6 +28,9 @@ Standard Release Procedure
 This is the standard release procedure for releasing Astropy (or affiliated
 packages that use the full bugfix/maintenance branch approach.)
 
+#. If you are about to branch a new major version, first follow the
+   instructions in :ref:`release-procedure-new-major`.
+
 #. Create a GitHub milestone for the next bugfix version, move any remaining
    issues from the version you are about to release, and close the milestone.
    When releasing a major release, close the last milestone on the previous
@@ -274,30 +277,43 @@ The procedure for this is straightforward:
 
       $ git branch v<version>.x
 
-#. Render the changelog with towncrier, as above.
+#. Update the "what's new" section of the docs to include a section for the
+   next major version.  E.g.::
+
+      $ cp docs/whatsnew/<current_version>.rst docs/whatsnew/<next_version>.rst
+
+   You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
+   the content but leaving the basic structure.  You may also need to
+   replace the "by the numbers" numbers with "xxx" as a reminder to update them
+   before the next release. Then add the new version to the top of
+   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` to
+   point to the that version.
+
+#. Update the "what's new" section of the current version,
+  ``docs/whatsnew/<current_version>.rst``, and remove all content, replacing it
+  with::
+
+      :orphan:
+
+      `What's New in Astropy <current_version>?
+      <https://docs.astropy.org/en/v<current_version>/whatsnew/<current_version>.html>`__
+
+This is because we want to make sure that links in the previous what's new pages continue
+to work and reference the original link they referenced at the time of writing.
+
+#. Commit these changes ::
+
+      $ git add docs/whatsnew/<current_version>.rst
+      $ git add docs/whatsnew/<next_version>.rst
+      $ git add docs/whatsnew/index.rst
+      $ git add docs/index.rst
+      $ git commit -m "Added <next_version> what's new page and redirect <current_version> what's new page"
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
    if you have just branched ``4.0``, create the ``v4.1.dev`` tag on the commit
    adding the ``4.1`` section to the changelog::
 
       $ git tag -s "v<next_version>.dev" -m "Back to development: v<next_version>"
-
-#. Also update the "what's new" section of the docs to include a section for the
-   next major version.  E.g.::
-
-      $ cp docs/whatsnew/<current_version>.rst docs/whatsnew/<next_version>.rst
-
-   You'll then need to edit ``docs/whatsnew/<next_version>.rst``, removing all
-   the content but leaving the basic structure.  You may also need  to
-   replace the "by the numbers" numbers with "xxx" as a reminder to update them
-   before the next release. Then add the new version to the top of
-   ``docs/whatsnew/index.rst``, update the reference in ``docs/index.rst`` to
-   point to the that version, and commit these changes ::
-
-      $ git add docs/whatsnew/<next_version>.rst
-      $ git add docs/whatsnew/index.rst
-      $ git add docs/index.rst
-      $ git commit -m "Added <next_version> whats new section"
 
 #. Push all of these changes up to github::
 
@@ -309,7 +325,8 @@ The procedure for this is straightforward:
       You may need to replace ``upstream`` here with ``astropy`` or
       whatever remote name you use for the `astropy core repository`_.
 
-#. On the github issue tracker, add a new milestone for the next major version.
+#. On the github issue tracker, add a new milestone for the next major version
+   and for the next bugfix version.
 
 .. _release-procedure-bug-fix:
 
