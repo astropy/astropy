@@ -1,0 +1,2 @@
+Register Astropy Model into Cosmology's ``to/from_format`` I/O, allowing
+a Cosmology instance to be parsed from or converted to a Model instance.

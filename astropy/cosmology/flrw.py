@@ -682,7 +682,7 @@ class FLRW(Cosmology):
         # so it is probably a good idea for subclasses to overload this
         # method if an analytic form is available.
         z = aszarr(z)
-        if hasattr(z, "shape"):  # array/Quantity
+        if not isinstance(z, (Number, np.generic)):  # array/Quantity
             ival = np.array([quad(self._w_integrand, 0, log(1 + redshift))[0]
                              for redshift in z])
             return np.exp(3 * ival)
