@@ -18,33 +18,22 @@ Four new methods -- ``read``, ``write``, ``to_format``, ``from_format`` -- have
 been added to the ``Cosmology`` class, enabling reading from and writing to
 files and converting between different Python objects.
 The methods use Astropy's Unified I/O registry so custom formats can be
-registered. Details are discussed in an addition to the docs.
+registered. For further details see :ref:`cosmology_io`.
 
-Currently the only registered read/write format is "ascii.ecsv", like for Table.
-
-.. doctest-skip::
+For writing the representation of a ``Cosmology`` to a file, the
+`ECSV <https://github.com/astropy/astropy-APEs/blob/main/APE6.rst>`_ table
+format is available. Astropy is encouraging the use of this format as a
+standard interoperable way of storing and communicating cosmology parameters.
 
     >>> from astropy.cosmology import Cosmology, Planck18
-    >>> Planck18.write('<file name>.ecsv')
-    >>>
-    >>> cosmo = Cosmology.read('<file name>.ecsv')
+    >>> Planck18.write('planck18.ecsv', format="ascii.ecsv")
+    >>> # and reading back
+    >>> cosmo = Cosmology.read('planck18.ecsv', format="ascii.ecsv")
     >>> cosmo == Planck18
     True
 
-
-The transformations between ``Cosmology`` and `dict`/``QTable``/``Model`` are
-pre-registered, e.g. enabling::
-
-    >>> from astropy.cosmology import Cosmology, Planck18
-    >>> cm = Planck18.to_format("mapping")
-    >>> cm
-    {'cosmology': <class 'astropy.cosmology.flrw.FlatLambdaCDM'>,
-     'name': 'Planck18',
-     'H0': <Quantity 67.66 km / (Mpc s)>,
-     'Om0': 0.30966,
-     ...
-
-    or to a Table with:
+The transformations between ``Cosmology`` and `dict`, ``QTable``, and ``Model``
+are pre-registered, e.g. enabling::
 
     >>> ct = Planck18.to_format("astropy.table")
     >>> ct
@@ -55,18 +44,7 @@ pre-registered, e.g. enabling::
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
-    Even more succinctly:
-
-    >>> from astropy.table import QTable
-    >>> QTable(Planck18)
-    <QTable length=1>
-      name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
-             km / (Mpc s)                              eV
-      str8     float64    float64 float64 float64   float64   float64
-    -------- ------------ ------- ------- ------- ----------- -------
-    Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
-
-    Models can be created from any redshift method of a Cosmology:
+Models can be created from any redshift method of a Cosmology:
 
     >>> model = Planck18.to_format("astropy.model", method="lookback_time")
     >>> model
@@ -74,20 +52,7 @@ pre-registered, e.g. enabling::
         Tcmb0=2.7255 K, Neff=3.046, m_nu=[0.  , 0.  , 0.06] eV, Ob0=0.04897,
         name='Planck18')>
 
-    All the format conversions can be reversed:
-
-    >>> cosmo = Cosmology.from_format(cm, format="mapping")
-    >>> cosmo
-    FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
-                  Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
-
-    >>> cosmo = Cosmology.from_format(ct, format="astropy.table")
-    >>> cosmo == Planck18
-    True
-
-    >>> cosmo = Cosmology.from_format(model, format="astropy.modeling")
-    >>> cosmo == Planck18
-    True
+For details, e.g. how to parse a QTable to a Cosmology, see :ref:`cosmology_io`.
 
 
 .. _whatsnew-5.0-cosmology-units:
