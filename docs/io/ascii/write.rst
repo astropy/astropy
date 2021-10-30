@@ -308,12 +308,18 @@ into their latitude(``ELAT``/``GLAT``) and longitude components (``ELON``/``GLAT
 The original table remains accessible as such, while the file is written from a modified
 copy of the table. The new coordinate component columns are appended to the end of the table.
 
-It should be noted that the precision of the latitude and longitude and ``sec``, ``arcsec``
-columns is set at a default number of 12 digits after the decimal. Since these component
-columns are obtained by dividing up ``SkyCoord`` columns, this precision is internally set,
-and cannot be changed. For all other columns though, the format can be set by passing the
-``formats`` keyword to the ``write`` function or by setting the ``format`` attribute of
-individual columns.
+It should be noted that the default precision of the latitude, longitude and seconds (of arc)
+columns is set at a default number of 12, 10 and 9 digits after the decimal for ``deg``, ``sec``
+and ``arcsec`` values, repsectively. This default is set to match a machine precision of 1e-15
+relative to the original ``SkyCoord`` those columns were extracted from.
+As all other columns, the format can be expliclty set by passing the ``formats`` keyword to the
+``write`` function or by setting the ``format`` attribute of individual columns (the latter
+will only work for columns that are not decomposed).
+To customize the number of significant digits, presicions should therefore be specified in the
+``formats`` dictionary for the *output* column names, such as
+``formats={'RAs': '07.4f', 'DEs': '06.3f'}`` or ``formats={'GLAT': '+10.6f', 'GLON': '9.6f'}``
+for milliarcsecond accuracy. Note that the forms with leading zeros for the seconds and
+including the sign for latitudes are recommended for better consistency and readability.
 
 The following code illustrates the above.
 
@@ -344,16 +350,16 @@ After execution, the contents of ``coords_cols.dat`` will be::
   51-53  I3      s      Cadence     [100] Description of Cadence
   55-56  I2     h      RAh           Right Ascension (hour)
   58-59  I2     min    RAm           Right Ascension (minute)
-  61-75  F15.12 s      RAs           Right Ascension (second)
-     77  A1     ---    DE-           Sign of Declination
-  78-79  I2     deg    DEd           Declination (degree)
-  81-82  I2     arcmin DEm           Declination (arcmin)
-  84-98  F15.12 arcsec DEs           Declination (arcsec)
+  61-73  F13.10 s      RAs           Right Ascension (second)
+     75  A1     ---    DE-           Sign of Declination
+  76-77  I2     deg    DEd           Declination (degree)
+  79-80  I2     arcmin DEm           Declination (arcmin)
+  82-93  F12.9  arcsec DEs           Declination (arcsec)
   --------------------------------------------------------------------------------
   Notes:
   --------------------------------------------------------------------------------
-  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 22 02 15.450000000007 -61 39 34.599996000001
-  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 12 48 15.224407200005 +17 46 26.496624000004
+  ASASSN-15lh 2.87819e-09 0.0250       1e-10 2019.0 100 22 02 15.4500000000 -61 39 34.599996000
+  ASASSN-14li 2.55935e-08 0.0188 2.044 4e+03 2019.0 100 12 48 15.2244072000 +17 46 26.496624000
 
 And the file ``ecliptic_cols.dat`` will look like::
 
@@ -431,6 +437,6 @@ The following example shows a similar situation, using the option to send the ou
     in ``Tables``. For tables with more than one coordinate column of a given kind
     (e.g. equatorial, galactic or ecliptic), only the first found coordinate column
     will be decomposed into its component columns, and the rest of the coordinate
-    columns will be converted to string columns. Thus users should take care that the
-    additional coordinate columns are dealt with (e.g. by converting them into unique
-    ``float``-valued columns) before using ``SkyCoord`` methods.
+    columns of the same type will be converted to string columns. Thus users should take
+    care that the additional coordinate columns are dealt with (e.g. by converting them
+    to unique ``float``-valued columns) before using ``SkyCoord`` methods.

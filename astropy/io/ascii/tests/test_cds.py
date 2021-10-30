@@ -16,6 +16,7 @@ from astropy.table import Column, MaskedColumn
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyWarning
 from .common import assert_almost_equal
 
 
@@ -197,16 +198,16 @@ exp_coord_cols_output = dict(generic=[
     '41-42  I2     ---    sameI   [20] Description of sameI         ',
     '44-45  I2     h      RAh     Right Ascension (hour)            ',
     '47-48  I2     min    RAm     Right Ascension (minute)          ',
-    '50-64  F15.12 s      RAs     Right Ascension (second)          ',
-    '   66  A1     ---    DE-     Sign of Declination               ',
-    '67-68  I2     deg    DEd     Declination (degree)              ',
-    '70-71  I2     arcmin DEm     Declination (arcmin)              ',
-    '73-87  F15.12 arcsec DEs     Declination (arcsec)              ',
+    '50-62  F13.10 s      RAs     Right Ascension (second)          ',
+    '   64  A1     ---    DE-     Sign of Declination               ',
+    '65-66  I2     deg    DEd     Declination (degree)              ',
+    '68-69  I2     arcmin DEm     Declination (arcmin)              ',
+    '71-82  F12.9  arcsec DEs     Declination (arcsec)              ',
     '--------------------------------------------------------------------------------',
     'Notes:',
     '--------------------------------------------------------------------------------',
-    'HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.450000000007 -61 39 34.599996000001',
-    'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.224407200005 +17 46 26.496624000004'],
+    'HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.4500000000 -61 39 34.599996000',
+    'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000'],
 
     positive_de=[
         '================================================================================',
@@ -223,16 +224,16 @@ exp_coord_cols_output = dict(generic=[
         '41-42  I2     ---    sameI   [20] Description of sameI         ',
         '44-45  I2     h      RAh     Right Ascension (hour)            ',
         '47-48  I2     min    RAm     Right Ascension (minute)          ',
-        '50-64  F15.12 s      RAs     Right Ascension (second)          ',
-        '   66  A1     ---    DE-     Sign of Declination               ',
-        '67-68  I2     deg    DEd     Declination (degree)              ',
-        '70-71  I2     arcmin DEm     Declination (arcmin)              ',
-        '73-87  F15.12 arcsec DEs     Declination (arcsec)              ',
+        '50-62  F13.10 s      RAs     Right Ascension (second)          ',
+        '   64  A1     ---    DE-     Sign of Declination               ',
+        '65-66  I2     deg    DEd     Declination (degree)              ',
+        '68-69  I2     arcmin DEm     Declination (arcmin)              ',
+        '71-82  F12.9  arcsec DEs     Declination (arcsec)              ',
         '--------------------------------------------------------------------------------',
         'Notes:',
         '--------------------------------------------------------------------------------',
-        'HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.224407200005 +17 46 26.496624000004',
-        'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.224407200005 +17 46 26.496624000004'],
+        'HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.2244072000 +17 46 26.496624000',
+        'HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000'],
 
     galactic=[
         '================================================================================',
@@ -339,11 +340,11 @@ def test_write_byte_by_byte_bytes_col_format():
         '   51  I1     ---    singleByteCol [2] Description of singleByteCol  ',
         '53-54  I2     h      RAh           Right Ascension (hour)            ',
         '56-57  I2     min    RAm           Right Ascension (minute)          ',
-        '59-73  F15.12 s      RAs           Right Ascension (second)          ',
-        '   75  A1     ---    DE-           Sign of Declination               ',
-        '76-77  I2     deg    DEd           Declination (degree)              ',
-        '79-80  I2     arcmin DEm           Declination (arcmin)              ',
-        '82-96  F15.12 arcsec DEs           Declination (arcsec)              ',
+        '59-71  F13.10 s      RAs           Right Ascension (second)          ',
+        '   73  A1     ---    DE-           Sign of Declination               ',
+        '74-75  I2     deg    DEd           Declination (degree)              ',
+        '77-78  I2     arcmin DEm           Declination (arcmin)              ',
+        '80-91  F12.9  arcsec DEs           Declination (arcsec)              ',
         '--------------------------------------------------------------------------------']
     t = ascii.read(test_dat)
     t.add_column([5.0, 5.0], name='sameF')
@@ -452,17 +453,17 @@ Byte-by-byte Description of file: table.dat
  1- 7  A7     ---    name    Description of name     
  9-10  I2     h      RAh     Right Ascension (hour)  
 12-13  I2     min    RAm     Right Ascension (minute)
-15-29  F15.12 s      RAs     Right Ascension (second)
-   31  A1     ---    DE-     Sign of Declination     
-32-33  I2     deg    DEd     Declination (degree)    
-35-36  I2     arcmin DEm     Declination (arcmin)    
-38-52  F15.12 arcsec DEs     Declination (arcsec)    
-54-67  A14    ---    coord2  Description of coord2   
+15-27  F13.10 s      RAs     Right Ascension (second)
+   29  A1     ---    DE-     Sign of Declination     
+30-31  I2     deg    DEd     Declination (degree)    
+33-34  I2     arcmin DEm     Declination (arcmin)    
+36-47  F12.9  arcsec DEs     Declination (arcsec)    
+49-62  A14    ---    coord2  Description of coord2   
 --------------------------------------------------------------------------------
 Notes:
 --------------------------------------------------------------------------------
-HD4760   0 49 39.900000000000 +06 24 07.999200000000 12.4163 6.407 
-HD81809 22 02 15.450000000007 -61 39 34.599996000001 330.564 -61.66
+HD4760   0 49 39.9000000000 +06 24 07.999200000 12.4163 6.407 
+HD81809 22 02 15.4500000000 -61 39 34.599996000 330.564 -61.66
 '''  # noqa: W291
     t = Table()
     t['name'] = ['HD4760', 'HD81809']
@@ -483,3 +484,45 @@ HD81809 22 02 15.450000000007 -61 39 34.599996000001 330.564 -61.66
         assert a[:18] == b[:18]
         assert a[30:42] == b[30:42]
         assert_almost_equal(np.fromstring(a[2:], sep=' '), np.fromstring(b[2:], sep=' '))
+
+
+def test_write_skycoord_with_format():
+    """
+    Tests output with custom setting for ``SkyCoord`` (second) columns.
+    """
+    exp_output = '''\
+================================================================================
+Byte-by-byte Description of file: table.dat
+--------------------------------------------------------------------------------
+ Bytes Format Units  Label     Explanations
+--------------------------------------------------------------------------------
+ 1- 7  A7     ---    name    Description of name     
+ 9-10  I2     h      RAh     Right Ascension (hour)  
+12-13  I2     min    RAm     Right Ascension (minute)
+15-19  F5.2   s      RAs     Right Ascension (second)
+   21  A1     ---    DE-     Sign of Declination     
+22-23  I2     deg    DEd     Declination (degree)    
+25-26  I2     arcmin DEm     Declination (arcmin)    
+28-31  F4.1   arcsec DEs     Declination (arcsec)    
+--------------------------------------------------------------------------------
+Notes:
+--------------------------------------------------------------------------------
+HD4760   0 49 39.90 +06 24 08.0
+HD81809 22 02 15.45 -61 39 34.6
+'''  # noqa: W291
+    t = Table()
+    t['name'] = ['HD4760', 'HD81809']
+    t['coord'] = SkyCoord([12.41625, 330.564375], [6.402222, -61.65961111], unit=u.deg)
+
+    out = StringIO()
+    # This will raise a warning because `formats` is checked before the writer creating the
+    # final list of columns is called.
+    with pytest.warns(AstropyWarning, match=r"The key.s. {'[RD][AE]s', '[RD][AE]s'} specified in "
+                                            r"the formats argument do not match a column name."):
+        t.write(out, format='ascii.mrt', formats={'RAs': '05.2f', 'DEs': '04.1f'})
+
+    lines = out.getvalue().splitlines()
+    i_bbb = lines.index('=' * 80)
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
+    # Check the written table.
+    assert lines == exp_output.splitlines()
