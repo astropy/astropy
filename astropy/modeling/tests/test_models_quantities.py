@@ -16,9 +16,11 @@ from astropy.modeling.functional_models import (
     Moffat1D, Gaussian2D, Const2D, Ellipse2D,
     Disk2D, Ring2D, Box2D, TrapezoidDisk2D,
     RickerWavelet2D, AiryDisk2D, Moffat2D, Sersic2D,
-    KingProjectedAnalytic1D)
+    KingProjectedAnalytic1D,
+    Scale, Multiply,
+    Planar2D, Logarithmic1D, Exponential1D)
 
-from astropy.modeling.physical_models import Plummer1D
+from astropy.modeling.physical_models import Plummer1D, Drude1D
 
 from astropy.modeling.powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, SmoothlyBrokenPowerLaw1D,
@@ -28,6 +30,8 @@ from astropy.modeling.polynomial import Polynomial1D, Polynomial2D
 
 from astropy.modeling.fitting import LevMarLSQFitter
 from astropy.modeling.bounding_box import BoundingBox
+
+from astropy.modeling.parameters import InputParameterError
 
 FUNC_MODELS_1D = [
 {'class': Gaussian1D,
@@ -98,14 +102,37 @@ FUNC_MODELS_1D = [
 {'class': KingProjectedAnalytic1D,
  'parameters': {'amplitude': 1. * u.Msun/u.pc**2, 'r_core': 1. * u.pc, 'r_tide': 2. * u.pc},
  'evaluation': [(0.5 * u.pc, 0.2 * u.Msun/u.pc**2)],
- 'bounding_box': [0. * u.pc, 2. * u.pc]}
+ 'bounding_box': [0. * u.pc, 2. * u.pc]},
+{'class': Logarithmic1D,
+ 'parameters': {'amplitude': 5*u.m, 'tau': 2 * u.m},
+ 'evaluation': [(4 * u.m, 3.4657359027997265 * u.m)],
+ 'bounding_box': False},
+{'class': Exponential1D,
+ 'parameters': {'amplitude': 5*u.m, 'tau': 2 * u.m},
+ 'evaluation': [(4 * u.m, 36.945280494653254 * u.m)],
+ 'bounding_box': False}
  ]
+
+SCALE_MODELS = [
+{'class': Scale,
+ 'parameters': {'factor': 2*u.m},
+ 'evaluation': [(1*u.m, 2*u.m)],
+ 'bounding_box': False},
+{'class': Multiply,
+ 'parameters': {'factor': 2*u.m},
+ 'evaluation': [(1 * u.m/u.m, 2*u.m)],
+ 'bounding_box': False},
+]
 
 PHYS_MODELS_1D = [
 {'class': Plummer1D,
  'parameters': {'mass': 3 * u.kg, 'r_plum': 0.5 * u.m},
  'evaluation': [(1* u.m, 0.10249381 * u.kg / (u.m **3))],
- 'bounding_box': False}
+ 'bounding_box': False},
+{'class': Drude1D,
+ 'parameters': {'amplitude': 1.0 * u.m, 'x_0': 2175. * u.AA, 'fwhm': 400. * u.AA},
+ 'evaluation': [(2000*u.AA, 0.5452317018423869 * u.m)],
+ 'bounding_box': [-17825, 22175] * u.AA},
  ]
 
 FUNC_MODELS_2D = [
@@ -164,6 +191,10 @@ FUNC_MODELS_2D = [
                 'ellip': 0, 'theta': 0},
  'evaluation': [(3 * u.arcsec, 2.5 * u.arcsec, 2.829990489 * u.MJy/u.sr)],
  'bounding_box': False},
+{'class': Planar2D,
+ 'parameters': {'slope_x': 2*u.m, 'slope_y': 3*u.m, 'intercept': 4*u.m},
+ 'evaluation': [(5*u.m/u.m, 6*u.m/u.m, 32*u.m)],
+ 'bounding_box': False},
 ]
 
 POWERLAW_MODELS = [
@@ -220,7 +251,8 @@ POLY_MODELS = [
  ]
 
 
-MODELS = FUNC_MODELS_1D + FUNC_MODELS_2D + POWERLAW_MODELS + PHYS_MODELS_1D
+MODELS = FUNC_MODELS_1D + SCALE_MODELS + FUNC_MODELS_2D + POWERLAW_MODELS +\
+    PHYS_MODELS_1D + POLY_MODELS
 
 SCIPY_MODELS = set([Sersic1D, Sersic2D, AiryDisk2D])
 
@@ -303,6 +335,13 @@ def test_models_evaluate_with_units_param_array(model):
             result = m(x_arr, y_arr)
             assert_quantity_allclose(result, u.Quantity([z, z]))
 
+    if model['class'] == Drude1D:
+        params['x_0'][-1] = 0 * u.AA
+        with pytest.raises(InputParameterError) as err:
+            model['class'](**params)
+        assert str(err.value) ==\
+            '0 is not an allowed value for x_0'
+
 
 @pytest.mark.parametrize('model', MODELS)
 def test_models_bounding_box(model):
@@ -365,3 +404,83 @@ def test_models_fitting(model):
             assert par_aft.unit is None or par_aft.unit is u.rad
         else:
             assert par_aft.unit.is_equivalent(par_bef.unit)
+
+
+unit_mismatch_models = [
+    {'class': Gaussian2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_mean': 2 * u.m, 'y_mean': 1 * u.m,
+                    'x_stddev': 3 * u.m, 'y_stddev': 2 * u.m, 'theta': 45 * u.deg},
+     'evaluation': [(412.1320343 * u.cm, 3.121320343 * u.K, 3 * u.Jy * np.exp(-0.5)),
+                    (412.1320343 * u.K, 3.121320343 * u.m, 3 * u.Jy * np.exp(-0.5))],
+     'bounding_box': [[-14.18257445, 16.18257445], [-10.75693665, 14.75693665]] * u.m},
+    {'class': Ellipse2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                    'a': 300 * u.cm, 'b': 200 * u.cm, 'theta': 45 * u.deg},
+     'evaluation': [(4 * u.m, 300 * u.K, 3 * u.Jy),
+                    (4 * u.K, 300 * u.cm, 3 * u.Jy)],
+     'bounding_box': [[-0.76046808, 4.76046808], [0.68055697, 5.31944302]] * u.m},
+    {'class': Disk2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                    'R_0': 300 * u.cm},
+     'evaluation': [(5.8 * u.m, 201 * u.K, 3 * u.Jy),
+                    (5.8 * u.K, 201 * u.cm, 3 * u.Jy)],
+     'bounding_box': [[-1, 5], [0, 6]] * u.m},
+    {'class': Ring2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                    'r_in': 2 * u.cm, 'r_out': 2.1 * u.cm},
+     'evaluation': [(302.05 * u.cm, 2 * u.K + 10 * u.K, 3 * u.Jy),
+                    (302.05 * u.K, 2 * u.m + 10 * u.um, 3 * u.Jy)],
+     'bounding_box': [[1.979, 2.021], [2.979, 3.021]] * u.m},
+    {'class': TrapezoidDisk2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 1 * u.m, 'y_0': 2 * u.m,
+                    'R_0': 100 * u.cm, 'slope': 1 * u.Jy / u.m},
+     'evaluation': [(3.5 * u.m, 2 * u.K, 1.5 * u.Jy),
+                    (3.5 * u.K, 2 * u.m, 1.5 * u.Jy)],
+     'bounding_box': [[-2, 6], [-3, 5]] * u.m},
+    {'class': RickerWavelet2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                    'sigma': 1 * u.m},
+     'evaluation': [(4 * u.m, 2.5 * u.K, 0.602169107 * u.Jy),
+                    (4 * u.K, 2.5 * u.m, 0.602169107 * u.Jy)],
+     'bounding_box': False},
+    {'class': AiryDisk2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 3 * u.m, 'y_0': 2 * u.m,
+                    'radius': 1 * u.m},
+     'evaluation': [(4 * u.m, 2.1 * u.K, 4.76998480e-05 * u.Jy),
+                    (4 * u.K, 2.1 * u.m, 4.76998480e-05 * u.Jy)],
+     'bounding_box': False},
+    {'class': Moffat2D,
+     'parameters': {'amplitude': 3 * u.Jy, 'x_0': 4.4 * u.um, 'y_0': 3.5 * u.um,
+                    'gamma': 1e-3 * u.mm, 'alpha': 1},
+     'evaluation': [(1000 * u.nm, 2 * u.K, 0.202565833 * u.Jy),
+                    (1000 * u.K, 2 * u.um, 0.202565833 * u.Jy)],
+     'bounding_box': False},
+    {'class': Sersic2D,
+     'parameters': {'amplitude': 3 * u.MJy / u.sr, 'x_0': 1 * u.arcsec,
+                    'y_0': 2 * u.arcsec, 'r_eff': 2 * u.arcsec, 'n': 4,
+                    'ellip': 0, 'theta': 0},
+     'evaluation': [(3 * u.arcsec, 2.5 * u.m, 2.829990489 * u.MJy/u.sr),
+                    (3 * u.m, 2.5 * u.arcsec, 2.829990489 * u.MJy/u.sr)],
+     'bounding_box': False},
+]
+
+
+@pytest.mark.parametrize('model', unit_mismatch_models)
+def test_input_unit_mismatch_error(model):
+    if not HAS_SCIPY and model['class'] in SCIPY_MODELS:
+        pytest.skip()
+
+    message = "Units of 'x' and 'y' inputs should match"
+
+    m = model['class'](**model['parameters'])
+
+    for args in model['evaluation']:
+        if len(args) == 2:
+            kwargs = dict(zip(('x', 'y'), args))
+        else:
+            kwargs = dict(zip(('x', 'y', 'z'), args))
+            if kwargs['x'].unit.is_equivalent(kwargs['y'].unit):
+                kwargs['x'] = kwargs['x'].to(kwargs['y'].unit)
+        with pytest.raises(u.UnitsError) as err:
+            m.without_units_for_data(**kwargs)
+        assert str(err.value) == message

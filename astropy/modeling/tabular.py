@@ -83,11 +83,6 @@ class _Tabular(Model):
 
     standard_broadcasting = False
 
-    @property
-    @abc.abstractmethod
-    def lookup_table(self):
-        pass
-
     _is_dynamic = True
 
     _id = 0
@@ -138,9 +133,8 @@ class _Tabular(Model):
         self.fill_value = fill_value
 
     def __repr__(self):
-        fmt = "<{}(points={}, lookup_table={})>".format(
+        return "<{}(points={}, lookup_table={})>".format(
             self.__class__.__name__, self.points, self.lookup_table)
-        return fmt
 
     def __str__(self):
         default_keywords = [
@@ -223,8 +217,6 @@ class _Tabular(Model):
         """
         inputs = np.broadcast_arrays(*inputs)
 
-        if isinstance(inputs, u.Quantity):
-            inputs = inputs.value
         shape = inputs[0].shape
         inputs = [inp.flatten() for inp in inputs[: self.n_inputs]]
         inputs = np.array(inputs).T

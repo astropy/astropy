@@ -300,7 +300,7 @@ class Drude1D(Fittable1DModel):
     @x_0.validator
     def x_0(self, val):
         """ Ensure `x_0` is not 0."""
-        if val == 0:
+        if np.any(val == 0):
             raise InputParameterError("0 is not an allowed value for x_0")
 
     def bounding_box(self, factor=50):
@@ -563,9 +563,7 @@ class NFW(Fittable1DModel):
             self.density_delta = delta * cosmo.critical_density(redshift)
         elif masstype == 'm':
             self.density_delta = delta * cosmo.critical_density(redshift) * cosmo.Om(redshift)
-        else:
-            raise ValueError("Invalid masstype '" + str(masstype) +
-                             "'. Should be one of 'virial','c', or 'm'")
+
         return self.density_delta
 
     @staticmethod
@@ -713,12 +711,9 @@ class NFW(Fittable1DModel):
     @property
     def return_units(self):
         # The units for the 'density' variable should be a matter density (default M_sun / kpc^3)
-        if (self.mass.unit is None) and (self.input_units[self.inputs[0]] is None):
-            return {self.outputs[0]: u.M_sun / u.kpc ** 3}
-        elif (self.mass.unit is None):
+
+        if (self.mass.unit is None):
             return {self.outputs[0]: u.M_sun / self.input_units[self.inputs[0]] ** 3}
-        elif (self.input_units[self.inputs[0]] is None):
-            return {self.outputs[0]: self.mass.unit / u.kpc ** 3}
         else:
             return {self.outputs[0]: self.mass.unit / self.input_units[self.inputs[0]] ** 3}
 

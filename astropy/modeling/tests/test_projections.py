@@ -6,6 +6,7 @@ import os
 
 import pytest
 import numpy as np
+import unittest.mock as mk
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from astropy.modeling import projections
@@ -195,6 +196,25 @@ class TestZenithalPerspective:
         assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
         assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
+    def test_validate(self):
+        message = "Zenithal perspective projection is not defined for mu = -1"
+
+        with pytest.raises(InputParameterError) as err:
+            projections.Pix2Sky_ZenithalPerspective(-1)
+        assert str(err.value) == message
+
+        with pytest.raises(InputParameterError) as err:
+            projections.Sky2Pix_ZenithalPerspective(-1)
+        assert str(err.value) == message
+
+        with pytest.raises(InputParameterError) as err:
+            projections.Pix2Sky_SlantZenithalPerspective(-1)
+        assert str(err.value) == message
+
+        with pytest.raises(InputParameterError) as err:
+            projections.Sky2Pix_SlantZenithalPerspective(-1)
+        assert str(err.value) == message
+
 
 class TestCylindricalPerspective:
     """Test cylindrical perspective projection"""
@@ -226,6 +246,40 @@ class TestCylindricalPerspective:
         assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
         assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
+    def test_validate(self):
+        message0 = "CYP projection is not defined for mu = -lambda"
+        message1 = "CYP projection is not defined for lambda = -mu"
+
+        # Pix2Sky_CylindricalPerspective
+        with pytest.raises(InputParameterError) as err:
+            projections.Pix2Sky_CylindricalPerspective(1, -1)
+        assert str(err.value) == message0 or str(err.value) == message1
+        with pytest.raises(InputParameterError) as err:
+            projections.Pix2Sky_CylindricalPerspective(-1, 1)
+        assert str(err.value) == message0 or str(err.value) == message1
+        model = projections.Pix2Sky_CylindricalPerspective()
+        with pytest.raises(InputParameterError) as err:
+            model.mu = -1
+        assert str(err.value) == message0
+        with pytest.raises(InputParameterError) as err:
+            model.lam = -1
+        assert str(err.value) == message1
+
+        # Sky2Pix_CylindricalPerspective
+        with pytest.raises(InputParameterError) as err:
+            projections.Sky2Pix_CylindricalPerspective(1, -1)
+        assert str(err.value) == message0 or str(err.value) == message1
+        with pytest.raises(InputParameterError) as err:
+            projections.Sky2Pix_CylindricalPerspective(-1, 1)
+        assert str(err.value) == message0 or str(err.value) == message1
+        model = projections.Sky2Pix_CylindricalPerspective()
+        with pytest.raises(InputParameterError) as err:
+            model.mu = -1
+        assert str(err.value) == message0
+        with pytest.raises(InputParameterError) as err:
+            model.lam = -1
+        assert str(err.value) == message1
+
 
 def test_AffineTransformation2D():
     # Simple test with a scale and translation
@@ -240,6 +294,49 @@ def test_AffineTransformation2D():
     new_rect = np.vstack(model(x, y)).T
 
     assert np.all(new_rect == [[1, 1], [3, 1], [1, 7], [3, 7]])
+
+    # Matrix validation error
+    with pytest.raises(InputParameterError) as err:
+        model.matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    assert str(err.value) ==\
+        "Expected transformation matrix to be a 2x2 array"
+
+    # Translation validation error
+    with pytest.raises(InputParameterError) as err:
+        model.translation = [1, 2, 3]
+    assert str(err.value) ==\
+        "Expected translation vector to be a 2 element row or column vector array"
+    with pytest.raises(InputParameterError) as err:
+        model.translation = [[1], [2]]
+    assert str(err.value) ==\
+        "Expected translation vector to be a 2 element row or column vector array"
+    with pytest.raises(InputParameterError) as err:
+        model.translation = [[1, 2, 3]]
+    assert str(err.value) ==\
+        "Expected translation vector to be a 2 element row or column vector array"
+
+    # Incompatible shape error
+    a = np.array([[1], [2], [3], [4]])
+    b = a.ravel()
+    with mk.patch.object(np, 'vstack', autospec=True,
+                         side_effect=[a, b]) as mk_vstack:
+        message = "Incompatible input shapes"
+        with pytest.raises(ValueError) as err:
+            model(x, y)
+        assert str(err.value) == message
+        with pytest.raises(ValueError) as err:
+            model(x, y)
+        assert str(err.value) == message
+
+        assert mk_vstack.call_count == 2
+
+    # Input shape evaluation error
+    x = np.array([1, 2])
+    y = np.array([1, 2, 3])
+    with pytest.raises(ValueError) as err:
+        model.evaluate(x, y, model.matrix, model.translation)
+    assert str(err.value) ==\
+        "Expected input arrays to have the same shape"
 
 
 def test_AffineTransformation2D_inverse():
@@ -259,8 +356,20 @@ def test_AffineTransformation2D_inverse():
     x, y = zip(*rect)
 
     x_new, y_new = model2.inverse(*model2(x, y))
-
     assert_allclose([x, y], [x_new, y_new], atol=1e-10)
+
+    model3 = projections.AffineTransformation2D(
+        matrix=[[1.2, 3.4], [5.6, 7.8]] * u.m, translation=[9.1, 10.11] * u.m)
+
+    x_new, y_new = model3.inverse(*model3(x * u.m, y * u.m))
+    assert_allclose([x, y], [x_new, y_new], atol=1e-10)
+
+    model4 = projections.AffineTransformation2D(
+        matrix=[[1.2, 3.4], [5.6, 7.8]] * u.m, translation=[9.1, 10.11] * u.km)
+    with pytest.raises(ValueError) as err:
+        model4.inverse(*model4(x * u.m, y * u.m))
+    assert str(err.value) ==\
+        "matrix and translation must have the same units."
 
 
 def test_c_projection_striding():
@@ -348,3 +457,837 @@ def test_affine_with_quantities():
         'y': u.pixel_scale(1 * u.deg / u.pix)})
     assert_quantity_allclose(x1, xpix)
     assert_quantity_allclose(y1, ypix)
+
+
+def test_Pix2Sky_ZenithalPerspective_inverse():
+    model = projections.Pix2Sky_ZenithalPerspective(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ZenithalPerspective)
+    assert inverse.mu == model.mu == 2
+    assert_allclose(inverse.gamma, model.gamma)
+    assert_allclose(inverse.gamma, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ZenithalPerspective_inverse():
+    model = projections.Sky2Pix_ZenithalPerspective(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_AZP)
+    assert inverse.mu == model.mu == 2
+    assert_allclose(inverse.gamma, model.gamma)
+    assert_allclose(inverse.gamma, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_SlantZenithalPerspective_inverse():
+    model = projections.Pix2Sky_SlantZenithalPerspective(2, 30, 40)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_SlantZenithalPerspective)
+    assert inverse.mu == model.mu == 2
+    assert_allclose(inverse.phi0, model.phi0)
+    assert_allclose(inverse.theta0, model.theta0)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_SlantZenithalPerspective_inverse():
+    model = projections.Sky2Pix_SlantZenithalPerspective(2, 30, 40)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_SlantZenithalPerspective)
+    assert inverse.mu == model.mu == 2
+    assert_allclose(inverse.phi0, model.phi0)
+    assert_allclose(inverse.theta0, model.theta0)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Gnomonic_inverse():
+    model = projections.Pix2Sky_Gnomonic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Gnomonic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Gnomonic_inverse():
+    model = projections.Sky2Pix_Gnomonic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Gnomonic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Stereographic_inverse():
+    model = projections.Pix2Sky_Stereographic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Stereographic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Stereographic_inverse():
+    model = projections.Sky2Pix_Stereographic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Stereographic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_SlantOrthographic_inverse():
+    model = projections.Pix2Sky_SlantOrthographic(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_SlantOrthographic)
+    assert inverse.xi == model.xi == 2
+    assert inverse.eta == model.eta == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-8)
+    assert_allclose(b, y, atol=1e-8)
+
+
+def test_Sky2Pix_SlantOrthographic_inverse():
+    model = projections.Sky2Pix_SlantOrthographic(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_SlantOrthographic)
+    assert inverse.xi == model.xi == 2
+    assert inverse.eta == model.eta == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-8)
+    assert_allclose(b, y, atol=1e-8)
+
+
+def test_Pix2Sky_ZenithalEquidistant_inverse():
+    model = projections.Pix2Sky_ZenithalEquidistant()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ZenithalEquidistant)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ZenithalEquidistant_inverse():
+    model = projections.Sky2Pix_ZenithalEquidistant()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_ZenithalEquidistant)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_ZenithalEqualArea_inverse():
+    model = projections.Pix2Sky_ZenithalEqualArea()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ZenithalEqualArea)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ZenithalEqualArea_inverse():
+    model = projections.Sky2Pix_ZenithalEqualArea()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_ZenithalEqualArea)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Airy_inverse():
+    model = projections.Pix2Sky_Airy(30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Airy)
+    assert inverse.theta_b == model.theta_b == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Airy_inverse():
+    model = projections.Sky2Pix_Airy(30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Airy)
+    assert inverse.theta_b == model.theta_b == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_CylindricalPerspective_inverse():
+    model = projections.Pix2Sky_CylindricalPerspective(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_CylindricalPerspective)
+    assert inverse.mu == model.mu == 2
+    assert inverse.lam == model.lam == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_CylindricalPerspective_inverse():
+    model = projections.Sky2Pix_CylindricalPerspective(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_CylindricalPerspective)
+    assert inverse.mu == model.mu == 2
+    assert inverse.lam == model.lam == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_CylindricalEqualArea_inverse():
+    model = projections.Pix2Sky_CylindricalEqualArea(30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_CylindricalEqualArea)
+    assert inverse.lam == model.lam == 30
+
+
+def test_Sky2Pix_CylindricalEqualArea_inverse():
+    model = projections.Sky2Pix_CylindricalEqualArea(30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_CylindricalEqualArea)
+    assert inverse.lam == model.lam == 30
+
+
+def test_Pix2Sky_PlateCarree_inverse():
+    model = projections.Pix2Sky_PlateCarree()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_PlateCarree)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_PlateCarree_inverse():
+    model = projections.Sky2Pix_PlateCarree()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_PlateCarree)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Mercator_inverse():
+    model = projections.Pix2Sky_Mercator()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Mercator)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Mercator_inverse():
+    model = projections.Sky2Pix_Mercator()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Mercator)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_SansonFlamsteed_inverse():
+    model = projections.Pix2Sky_SansonFlamsteed()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_SansonFlamsteed)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_SansonFlamsteed_inverse():
+    model = projections.Sky2Pix_SansonFlamsteed()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_SansonFlamsteed)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Parabolic_inverse():
+    model = projections.Pix2Sky_Parabolic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Parabolic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Parabolic_inverse():
+    model = projections.Sky2Pix_Parabolic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Parabolic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Molleweide_inverse():
+    model = projections.Pix2Sky_Molleweide()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Molleweide)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Molleweide_inverse():
+    model = projections.Sky2Pix_Molleweide()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Molleweide)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_HammerAitoff_inverse():
+    model = projections.Pix2Sky_HammerAitoff()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_HammerAitoff)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_HammerAitoff_inverse():
+    model = projections.Sky2Pix_HammerAitoff()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_HammerAitoff)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_ConicPerspective_inverse():
+    model = projections.Pix2Sky_ConicPerspective(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ConicPerspective)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ConicPerspective_inverse():
+    model = projections.Sky2Pix_ConicPerspective(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_ConicPerspective)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_ConicEqualArea_inverse():
+    model = projections.Pix2Sky_ConicEqualArea(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ConicEqualArea)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ConicEqualArea_inverse():
+    model = projections.Sky2Pix_ConicEqualArea(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_ConicEqualArea)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_ConicEquidistant_inverse():
+    model = projections.Pix2Sky_ConicEquidistant(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ConicEquidistant)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ConicEquidistant_inverse():
+    model = projections.Sky2Pix_ConicEquidistant(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_ConicEquidistant)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_ConicOrthomorphic_inverse():
+    model = projections.Pix2Sky_ConicOrthomorphic(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_ConicOrthomorphic)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_ConicOrthomorphic_inverse():
+    model = projections.Sky2Pix_ConicOrthomorphic(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_ConicOrthomorphic)
+    assert inverse.sigma == model.sigma == 2
+    assert_allclose(inverse.delta, model.delta)
+    assert_allclose(inverse.delta, 30)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_BonneEqualArea_inverse():
+    model = projections.Pix2Sky_BonneEqualArea(2)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_BonneEqualArea)
+    assert inverse.theta1 == model.theta1 == 2
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_BonneEqualArea_inverse():
+    model = projections.Sky2Pix_BonneEqualArea(2)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_BonneEqualArea)
+    assert inverse.theta1 == model.theta1 == 2
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_Polyconic_inverse():
+    model = projections.Pix2Sky_Polyconic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_Polyconic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_Polyconic_inverse():
+    model = projections.Sky2Pix_Polyconic()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_Polyconic)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_TangentialSphericalCube_inverse():
+    model = projections.Pix2Sky_TangentialSphericalCube()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_TangentialSphericalCube)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_TangentialSphericalCube_inverse():
+    model = projections.Sky2Pix_TangentialSphericalCube()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_TangentialSphericalCube)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_COBEQuadSphericalCube_inverse():
+    model = projections.Pix2Sky_COBEQuadSphericalCube()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_COBEQuadSphericalCube)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-3)
+    assert_allclose(b, y, atol=1e-3)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-3)
+    assert_allclose(b, y, atol=1e-3)
+
+
+def test_Sky2Pix_COBEQuadSphericalCube_inverse():
+    model = projections.Sky2Pix_COBEQuadSphericalCube()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_COBEQuadSphericalCube)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-3)
+    assert_allclose(b, y, atol=1e-3)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-3)
+    assert_allclose(b, y, atol=1e-3)
+
+
+def test_Pix2Sky_QuadSphericalCube_inverse():
+    model = projections.Pix2Sky_QuadSphericalCube()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_QuadSphericalCube)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_QuadSphericalCube_inverse():
+    model = projections.Sky2Pix_QuadSphericalCube()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_QuadSphericalCube)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_HEALPix_inverse():
+    model = projections.Pix2Sky_HEALPix(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_HEALPix)
+    assert inverse.H == model.H == 2
+    assert inverse.X == model.X == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_HEALPix_inverse():
+    model = projections.Sky2Pix_HEALPix(2, 30)
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_HEALPix)
+    assert inverse.H == model.H == 2
+    assert inverse.X == model.X == 30
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Pix2Sky_HEALPixPolar_inverse():
+    model = projections.Pix2Sky_HEALPixPolar()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Sky2Pix_HEALPixPolar)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+
+
+def test_Sky2Pix_HEALPixPolar_inverse():
+    model = projections.Sky2Pix_HEALPixPolar()
+    inverse = model.inverse
+    assert isinstance(inverse, projections.Pix2Sky_HEALPixPolar)
+
+    x = np.linspace(0, 1, 100)
+    y = np.linspace(0, 1, 100)
+    a, b = model(*inverse(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
+    a, b = inverse(*model(x, y))
+    assert_allclose(a, x, atol=1e-12)
+    assert_allclose(b, y, atol=1e-12)
