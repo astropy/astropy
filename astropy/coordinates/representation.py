@@ -150,7 +150,7 @@ class BaseRepresentationOrDifferentialInfo(MixinInfo):
             try:
                 out[0] = rep[0]
             except Exception as err:
-                raise ValueError(f'Input representations are inconsistent.') from err
+                raise ValueError(f'input representations are inconsistent.') from err
 
         # Set (merged) info attributes.
         for attr in ('name', 'meta', 'description'):
@@ -201,7 +201,7 @@ class BaseRepresentationOrDifferential(ShapedLikeNDArray):
             for component in components:
                 try:
                     attr = args.pop(0) if args else kwargs.pop(component)
-                except KeyError as err:
+                except KeyError:
                     raise TypeError(f'__init__() missing 1 required positional '
                                     f'argument: {component!r}') from None
 

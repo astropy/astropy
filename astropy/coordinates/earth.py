@@ -236,7 +236,7 @@ class EarthLocation(u.Quantity):
         if unit is None:
             try:
                 unit = x.unit
-            except AttributeError as err:
+            except AttributeError:
                 raise TypeError("Geocentric coordinates should be Quantities "
                                 "unless an explicit unit is given.") from None
         else:
@@ -789,7 +789,7 @@ class EarthLocation(u.Quantity):
             try:
                 GMs.append(_masses[body].to(u.m**3/u.s**2, [M_GM_equivalency]))
             except KeyError as err:
-                raise KeyError(f'Body "{body}" does not have a mass.') from err
+                raise KeyError(f'body "{body}" does not have a mass.') from err
             except u.UnitsError as exc:
                 exc.args += ('"masses" argument values must be masses or '
                              'gravitational parameters.',)
