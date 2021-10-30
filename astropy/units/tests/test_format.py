@@ -514,6 +514,20 @@ def test_vounit_details():
         assert new_flam == flam
 
 
+@pytest.mark.parametrize('unit, vounit, number, scale, voscale',
+                         [('nm', 'nm', 0.1, '10^-1', '0.1'),
+                          ('fm', 'fm', 100.0, '10+2', '100'),
+                          ('m^2', 'm**2', 100.0, '100.0', '100'),
+                          ('cm', 'cm', 2.54, '2.54', '2.54'),
+                          ('kg', 'kg', 1.898124597e27, '1.898124597E27', '1.8981246e+27'),
+                          ('m/s', 'm.s**-1', 299792458.0, '299792458', '2.9979246e+08'),
+                          ('cm2', 'cm**2', 1.e-20, '10^(-20)', '1e-20')])
+def test_vounit_scale_factor(unit, vounit, number, scale, voscale):
+    x = u.Unit(f'{scale} {unit}')
+    assert x == number * u.Unit(unit)
+    assert x.to_string(format='vounit') == voscale + vounit
+
+
 def test_vounit_custom():
     x = u.Unit("'foo' m", format='vounit')
     x_vounit = x.to_string('vounit')
