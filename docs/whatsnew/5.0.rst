@@ -104,7 +104,8 @@ A new unit, ``redshift``, is added for tracking factors of cosmological redshift
 As this is a pseudo-unit an equivalency ``dimensionless_redshift`` is added
 (and enabled by default) to allow for redshift - dimensionless conversions.
 To convert between redshift and other cosmological distance measures, e.g.
-CMB temperature, the equivalency ``with_redshift`` is also added.
+CMB temperature or comoving distance, the equivalency ``with_redshift`` is
+also added.
 
     >>> import astropy.units as u
     >>> import astropy.cosmology.units as cu
@@ -115,6 +116,7 @@ CMB temperature, the equivalency ``with_redshift`` is also added.
 
     >>> from astropy.cosmology import WMAP9
     >>> equivalency = cu.with_redshift(WMAP9)  # construct equivalency
+
     >>> z.to(u.K, equivalency)
     <Quantity 3000.225 K>
 
@@ -123,6 +125,13 @@ CMB temperature, the equivalency ``with_redshift`` is also added.
 
     >>> z.to(cu.littleh, equivalency)
     <Quantity 15656.37401543 littleh>
+
+    >>> z.to(u.Mpc, equivalency)
+    <Quantity 14004.03157418 Mpc>
+
+``with_redshift`` is actually a composite of other equivalencies:
+``redshift_distance``, ``redshift_hubble``, and ``redshift_temperature``,
+which may be used separately.
 
 Further details are available in an addition to the docs.
 

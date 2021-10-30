@@ -95,11 +95,18 @@ enabling redshift to be converted to other units, like CMB temperature:
 
 or the Hubble parameter:
 
-    >>> z.to(u.km / u.s / u.Mpc, cu.with_redshift(WMAP9))
+    >>> z.to(u.km / u.s / u.Mpc, cu.with_redshift(WMAP9))  # doctest: +FLOAT_CMP
     <Quantity 1565637.40154275 km / (Mpc s)>
 
-    >>> z.to(cu.littleh, cu.with_redshift(WMAP9))
+    >>> z.to(cu.littleh, cu.with_redshift(WMAP9))  # doctest: +FLOAT_CMP
     <Quantity 15656.37401543 littleh>
+
+or a physical distance (comoving, lookback, or luminosity):
+
+.. doctest-requires:: scipy
+
+    >>> z.to(u.Mpc, cu.with_redshift(WMAP9, distance="luminosity"))  # doctest: +FLOAT_CMP
+    <Quantity 15418438.76317008 Mpc>
 
 These conversions are cosmology dependent, so if the cosmology changes,
 so too will the conversions.
