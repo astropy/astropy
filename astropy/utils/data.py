@@ -33,7 +33,6 @@ except ImportError:
 
 import astropy.config.paths
 from astropy import config as _config
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.introspection import find_current_module, resolve_name
 
@@ -100,9 +99,7 @@ class Conf(_config.ConfigNamespace):
         'This only provides the default value when not set by https_headers.')
     remote_timeout = _config.ConfigItem(
         10.,
-        'Time to wait for remote data queries (in seconds). Set this to zero '
-        'to prevent any attempt to download anything (this will stop working '
-        'in a future release, use allow_internet=False instead).',
+        'Time to wait for remote data queries (in seconds).',
         aliases=['astropy.coordinates.name_resolve.name_resolve_timeout'])
     allow_internet = _config.ConfigItem(
         True,
@@ -113,14 +110,6 @@ class Conf(_config.ConfigNamespace):
     download_block_size = _config.ConfigItem(
         2 ** 16,  # 64K
         'Number of bytes of remote data to download per step.')
-    download_cache_lock_attempts = _config.ConfigItem(
-        5,
-        'Unused; cache no longer locked. Was: '
-        'Number of seconds to wait for the cache lock to be free. It should '
-        'normally only ever be held long enough to copy an already-downloaded '
-        'file into the cache, so this will normally only run over if '
-        'something goes wrong and the lock is left held by a dead process; '
-        'the exception raised should indicate this and what to do to fix it.')
     delete_temporary_downloads_at_exit = _config.ConfigItem(
         True,
         'If True, temporary download files created when the cache is '
@@ -1129,8 +1118,8 @@ def _try_url_open(source_url, timeout=None, http_headers=None, ftp_tls=False,
                 msg += '. Re-trying with allow_insecure=True.'
                 warn(msg, AstropyWarning)
                 # Try again with a new urlopener allowing insecure connections
-                urlopener = _build_urlopener(ftp_tls=ftp_tls,
-                        ssl_context=ssl_context, allow_insecure=True)
+                urlopener = _build_urlopener(ftp_tls=ftp_tls, ssl_context=ssl_context,
+                                             allow_insecure=True)
                 return urlopener.open(req, timeout=timeout)
 
         raise
@@ -1141,13 +1130,6 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                                http_headers=None, ftp_tls=None,
                                ssl_context=None, allow_insecure=False):
     from astropy.utils.console import ProgressBarOrSpinner
-
-    if timeout == 0:
-        raise urllib.error.URLError(
-            f"URL {remote_url} was supposed to be downloaded but timeout was set to 0; "
-            f"if this is unexpected check the astropy.cfg file for the option "
-            f"remote_timeout. If this is intentional, this will stop working "
-            f"in a future release. Use astropy.utils.data.conf.allow_internet=False instead.")
 
     if not conf.allow_internet:
         raise urllib.error.URLError(
@@ -1179,8 +1161,8 @@ def _download_file_from_source(source_url, show_progress=True, timeout=None,
                 raise
 
     with _try_url_open(source_url, timeout=timeout, http_headers=http_headers,
-            ftp_tls=ftp_tls, ssl_context=ssl_context,
-            allow_insecure=allow_insecure) as remote:
+                       ftp_tls=ftp_tls, ssl_context=ssl_context,
+                       allow_insecure=allow_insecure) as remote:
         info = remote.info()
         try:
             size = int(info['Content-Length'])
@@ -1777,15 +1759,14 @@ class CacheDamaged(ValueError):
         self.bad_files = bad_files if bad_files is not None else []
 
 
-@deprecated_renamed_argument('check_hashes', None, '4.2')
-def check_download_cache(check_hashes=False, pkgname='astropy'):
+def check_download_cache(pkgname='astropy'):
     """Do a consistency check on the cache.
 
     .. note::
 
-        This function will not return anything in a future release.
+        Since v5.0, this function no longer returns anything.
 
-    Because the cache is shared by all versions of astropy in all virtualenvs
+    Because the cache is shared by all versions of ``astropy`` in all virtualenvs
     run by your user, possibly concurrently, it could accumulate problems.
     This could lead to hard-to-debug problems or wasted space. This function
     detects a number of incorrect conditions, including nonexistent files that
@@ -1797,31 +1778,26 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
     used but will probably be based on ``urlmap``. The presence of other files
     probably indicates that something has gone wrong and inaccessible files
     have accumulated in the cache. These can be removed with
-    `clear_download_cache`, either passing the filename returned here, or
+    :func:`clear_download_cache`, either passing the filename returned here, or
     with no arguments to empty the entire cache and return it to a
     reasonable, if empty, state.
 
     Parameters
     ----------
     pkgname : str, optional
-        The package name to use to locate the download cache. i.e. for
+        The package name to use to locate the download cache, i.e., for
         ``pkgname='astropy'`` the default cache location is
         ``~/.astropy/cache``.
-
-    Returns
-    -------
-    strays : set
-        Deprecated. The empty set.
 
     Raises
     ------
     `~astropy.utils.data.CacheDamaged`
         To indicate a problem with the cache contents; the exception contains
         a ``.bad_files`` attribute containing a set of filenames to allow the
-        user to use `clear_download_cache` to remove the offending items.
+        user to use :func:`clear_download_cache` to remove the offending items.
     OSError, RuntimeError
         To indicate some problem with the cache structure. This may need a full
-        `clear_download_cache` to resolve, or may indicate some kind of
+        :func:`clear_download_cache` to resolve, or may indicate some kind of
         misconfiguration.
     """
     bad_files = set()
@@ -1867,7 +1843,6 @@ def check_download_cache(check_hashes=False, pkgname='astropy'):
                 messages.add(f"Left-over non-directory {f} in cache")
     if bad_files:
         raise CacheDamaged("\n".join(messages), bad_files=bad_files)
-    return set()
 
 
 @contextlib.contextmanager
@@ -1923,9 +1898,7 @@ def _rmtree(path, replace=None):
                     raise
 
 
-@deprecated_renamed_argument('hexdigest', None, '4.2')
 def import_file_to_cache(url_key, filename,
-                         hexdigest=None,
                          remove_original=False,
                          pkgname='astropy',
                          *,
@@ -1935,7 +1908,7 @@ def import_file_to_cache(url_key, filename,
     The provided ``url_key`` will be the name used in the cache. The file
     should contain the contents of this URL, at least notionally (the URL may
     be temporarily or permanently unavailable). It is using ``url_key`` that
-    users will request these contents from the cache. See `~download_file` for
+    users will request these contents from the cache. See :func:`download_file` for
     details.
 
     If ``url_key`` already exists in the cache, it will be updated to point to
