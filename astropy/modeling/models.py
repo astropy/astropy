@@ -14,6 +14,7 @@ from .polynomial import *
 from .functional_models import *
 from .physical_models import *
 from .powerlaws import *
+from .spline import *
 from .tabular import *
 from . import math_functions as math
 

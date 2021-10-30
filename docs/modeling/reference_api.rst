@@ -21,4 +21,5 @@ Pre-Defined Models
 .. automodapi:: astropy.modeling.polynomial
 .. automodapi:: astropy.modeling.projections
 .. automodapi:: astropy.modeling.rotations
+.. automodapi:: astropy.modeling.spline
 .. automodapi:: astropy.modeling.tabular
