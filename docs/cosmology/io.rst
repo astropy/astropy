@@ -3,8 +3,9 @@
 Read, Write, and Convert Cosmology Objects
 ******************************************
 
-An easy way to serialize and deserialize a Cosmology object is using the
-:mod:`pickle` module.
+For *temporary* storage an easy means to serialize and deserialize a Cosmology
+object is using the :mod:`pickle` module. This is good for e.g. passing a
+Cosmology between threads.
 
 .. doctest-skip::
 
@@ -19,7 +20,8 @@ An easy way to serialize and deserialize a Cosmology object is using the
    FlatLambdaCDM(name="Planck18", ...
 
 However this method has all the attendant drawbacks of :mod:`pickle` — security
-vulnerabilities and non-human-readable files.
+vulnerabilities and non-human-readable files. Pickle files just generally don't
+make for good persistent storage.
 
 Solving both these issues, ``astropy`` provides a unified interface for reading
 and writing data in different formats.
@@ -33,9 +35,9 @@ The |Cosmology| class includes two methods,
 :meth:`~astropy.cosmology.Cosmology.write`, that make it possible to read from
 and write to files.
 
-There are currently no built-in Cosmology readers nor writers, but custom
-``read`` / ``write`` formats may be registered into the Astropy Cosmology I/O
-framework.
+Currently the only registered ``read`` / ``write`` format is "ascii.ecsv",
+like for Table. Also, custom ``read`` / ``write`` formats may be registered
+into the Astropy Cosmology I/O framework.
 
 Writing a cosmology instance requires only the file location and optionally,
 if the file format cannot be inferred, a keyword argument "format". Additional
@@ -44,7 +46,7 @@ positional arguments and keyword arguments are passed to the reader methods.
 .. doctest-skip::
 
     >>> from astropy.cosmology import Planck18
-    >>> Planck18.write('<file name>')
+    >>> Planck18.write("example_cosmology.ecsv", format="ascii.ecsv")
 
 Reading back the cosmology is most safely done from ``Cosmology``, the base
 class, as it provides no default information and therefore requires the file
@@ -53,7 +55,7 @@ to have all necessary information to describe a cosmology.
 .. doctest-skip::
 
     >>> from astropy.cosmology import Cosmology
-    >>> cosmo = Cosmology.read('<file name>')
+    >>> cosmo = Cosmology.read("example_cosmology.ecsv", format="ascii.ecsv")
     >>> cosmo == Planck18
     True
 
@@ -63,9 +65,10 @@ To see a list of the available read/write file formats:
 
     >>> from astropy.cosmology import Cosmology
     >>> Cosmology.read.list_formats()
-    Format   Read Write Auto-identify
-    -------- ---- ----- -------------
-    myformat  Yes   Yes           Yes
+      Format   Read Write Auto-identify
+    ---------- ---- ----- -------------
+    ascii.ecsv  Yes   Yes           Yes
+      myformat  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
 "myformat" is from an `example 3rd-party package
@@ -172,7 +175,7 @@ to the same effect:
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
 
-Now this :class:|QTable| can be used to load a new cosmological
+Now this |QTable| can be used to load a new cosmological
 instance identical to the ``Planck18`` cosmology from which it was created.
 
 .. code-block::
@@ -182,7 +185,7 @@ instance identical to the ``Planck18`` cosmology from which it was created.
     FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
                   Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
 
-Perhaps more usefully, :class:|QTable| can be saved to ``latex``
+Perhaps more usefully, |QTable| can be saved to ``latex``
 and ``html`` formats, which can be copied into journal articles and websites,
 respectively.
 

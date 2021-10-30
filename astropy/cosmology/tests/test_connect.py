@@ -10,7 +10,7 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import CosmologyRead, readwrite_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.io.tests import test_mapping, test_model, test_table
+from astropy.cosmology.io.tests import test_ecsv, test_mapping, test_model, test_table
 from astropy.table import QTable
 
 from .conftest import json_identify, read_json, write_json
@@ -202,15 +202,20 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 # To/From_Format Tests
 
 
-class ToFromFormatTestMixin(test_mapping.ToFromMappingTestMixin,
-                            test_model.ToFromModelTestMixin, test_table.ToFromTableTestMixin):
+class ToFromFormatTestMixin(
+    # convert
+    test_mapping.ToFromMappingTestMixin, test_model.ToFromModelTestMixin,
+    test_table.ToFromTableTestMixin,
+    # read/write
+    test_ecsv.ReadWriteECSVTestMixin,
+):
     """
     Tests for a Cosmology[To/From]Format on a |Cosmology|.
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
-    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    See ``TestCosmology`` for an example.
     """
 
     @pytest.mark.parametrize("format_type", tofrom_formats)
@@ -269,6 +274,10 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     @pytest.fixture(params=cosmo_instances)
     def cosmo(self, request):
         return getattr(cosmology.realizations, request.param)
+
+    @pytest.fixture
+    def cosmo_cls(self, cosmo):
+        return cosmo.__class__
 
     # ==============================================================
 
