@@ -303,10 +303,10 @@ class _AngleParser:
                 angle, lexer=self._thread_local._lexer, debug=debug)
         except ValueError as e:
             if str(e):
-                raise ValueError(f"{str(e)} in angle {angle!r}")
+                raise ValueError(f"{str(e)} in angle {angle!r}") from e
             else:
                 raise ValueError(
-                    f"Syntax error parsing angle {angle!r}")
+                    f"Syntax error parsing angle {angle!r}")  from e
 
         if unit is None and found_unit is None:
             raise u.UnitsError("No unit specified")
@@ -428,10 +428,10 @@ def dms_to_degrees(d, m, s=None):
         else:
             m = np.floor(np.abs(m))
             s = np.abs(s)
-    except ValueError:
+    except ValueError as err:
         raise ValueError(format_exception(
             "{func}: dms values ({1[0]},{2[1]},{3[2]}) could not be "
-            "converted to numbers.", d, m, s))
+            "converted to numbers.", d, m, s)) from err
 
     return sign * (d + m / 60. + s / 3600.)
 
@@ -454,10 +454,10 @@ def hms_to_hours(h, m, s=None):
         else:
             m = np.floor(np.abs(m))
             s = np.abs(s)
-    except ValueError:
+    except ValueError as err:
         raise ValueError(format_exception(
             "{func}: HMS values ({1[0]},{2[1]},{3[2]}) could not be "
-            "converted to numbers.", h, m, s))
+            "converted to numbers.", h, m, s)) from err
 
     return sign * (h + m / 60. + s / 3600.)
 
