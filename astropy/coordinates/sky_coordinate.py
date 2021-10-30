@@ -148,7 +148,7 @@ class SkyCoordInfo(MixinInfo):
             try:
                 out[0] = skycoord[0]
             except Exception as err:
-                raise ValueError(f'input skycoords are inconsistent: {err}')
+                raise ValueError(f'Input skycoords are inconsistent.') from err
 
         # Set (merged) info attributes
         for attr in ('name', 'meta', 'description'):
