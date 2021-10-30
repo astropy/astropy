@@ -1256,7 +1256,7 @@ class TestVStack():
 
         rep3 = UnitSphericalRepresentation([0]*u.deg, [0]*u.deg)
         t3 = Table([rep3])
-        with pytest.raises(ValueError, match='loss of information'):
+        with pytest.raises(ValueError, match='representations are inconsistent'):
             table.vstack([t1, t3])
 
 
