@@ -2,8 +2,9 @@
 
 import abc
 import copy
+import functools
 import inspect
-from types import MappingProxyType
+from types import FunctionType, MappingProxyType
 
 import numpy as np
 
@@ -235,8 +236,18 @@ class Cosmology(metaclass=abc.ABCMeta):
     def __init_subclass__(cls):
         super().__init_subclass__()
 
-        # registry of Cosmology's subclasses
-        _COSMOLOGY_CLASSES[cls.__qualname__] = cls
+        # override signature of __new__ to match __init__ so IDEs and Sphinx
+        # will display the correct signature
+        new = FunctionType(  # almost exact copy of __new__
+            cls.__new__.__code__, cls.__new__.__globals__, name=cls.__new__.__name__,
+            argdefs=cls.__new__.__defaults__, closure=cls.__new__.__closure__)
+        new = functools.update_wrapper(new, cls.__new__)  # update further
+        new.__kwdefaults__ = cls.__init__.__kwdefaults__  # fill in kwdefaults
+        sig = cls._init_signature  # override signature to look like init
+        sig = sig.replace(parameters=[inspect.Parameter("cls", 0)] + list(sig.parameters.values()))
+        new.__signature__ = sig
+        # set __new__ with copied & modified version
+        cls.__new__ = new
 
         # -------------------
         # Parameters
@@ -254,6 +265,10 @@ class Cosmology(metaclass=abc.ABCMeta):
                    if n in parameters]
         parameters = ordered + parameters  # place "unordered" at the end
         cls.__parameters__ = tuple(parameters)
+
+        # -------------------
+        # register as a Cosmology subclass
+        _COSMOLOGY_CLASSES[cls.__qualname__] = cls
 
     @classproperty(lazy=True)
     def _init_signature(cls):
