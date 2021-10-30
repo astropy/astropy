@@ -30,7 +30,6 @@ def test_ignore_generic_type_annotations():
     assert i_str == o_str
 
 
-@pytest.mark.skipif(sys.version_info < (3, 9), reason="temporary fix")
 @pytest.mark.skipif(not HAS_ANNOTATED, reason="need `Annotated`")
 class TestQuantityUnitAnnotations:
     """Test Quantity[Unit] type annotation."""

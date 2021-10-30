@@ -3,6 +3,8 @@
 Support for ``typing`` py3.9+ features while min version is py3.8.
 """
 
+from typing import *
+
 try:  # py 3.9+
     from typing import Annotated
 except (ImportError, ModuleNotFoundError):  # optional dependency
@@ -11,5 +13,8 @@ except (ImportError, ModuleNotFoundError):  # optional dependency
     except (ImportError, ModuleNotFoundError):
 
         Annotated = NotImplemented
+
+    else:
+        from typing_extensions import *  # override typing
 
 HAS_ANNOTATED = Annotated is not NotImplemented
