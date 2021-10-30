@@ -33,9 +33,9 @@ The |Cosmology| class includes two methods,
 :meth:`~astropy.cosmology.Cosmology.write`, that make it possible to read from
 and write to files.
 
-There are currently no built-in Cosmology readers nor writers, but custom
-``read`` / ``write`` formats may be registered into the Astropy Cosmology I/O
-framework.
+Currently the only registered ``read`` / ``write`` format is "ascii.ecsv",
+like for Table. Also, custom ``read`` / ``write`` formats may be registered
+into the Astropy Cosmology I/O framework.
 
 Writing a cosmology instance requires only the file location and optionally,
 if the file format cannot be inferred, a keyword argument "format". Additional
@@ -44,7 +44,7 @@ positional arguments and keyword arguments are passed to the reader methods.
 .. doctest-skip::
 
     >>> from astropy.cosmology import Planck18
-    >>> Planck18.write('<file name>')
+    >>> Planck18.write('<file name>', format="ascii.ecsv")
 
 Reading back the cosmology is most safely done from ``Cosmology``, the base
 class, as it provides no default information and therefore requires the file
@@ -53,7 +53,7 @@ to have all necessary information to describe a cosmology.
 .. doctest-skip::
 
     >>> from astropy.cosmology import Cosmology
-    >>> cosmo = Cosmology.read('<file name>')
+    >>> cosmo = Cosmology.read('<file name>', format="ascii.ecsv")
     >>> cosmo == Planck18
     True
 
@@ -63,9 +63,10 @@ To see a list of the available read/write file formats:
 
     >>> from astropy.cosmology import Cosmology
     >>> Cosmology.read.list_formats()
-    Format   Read Write Auto-identify
-    -------- ---- ----- -------------
-    myformat  Yes   Yes           Yes
+      Format   Read Write Auto-identify
+    ---------- ---- ----- -------------
+    ascii.ecsv  Yes   Yes           Yes
+      myformat  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
 "myformat" is from an `example 3rd-party package

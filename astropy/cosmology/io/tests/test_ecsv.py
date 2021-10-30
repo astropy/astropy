@@ -6,23 +6,23 @@ import pytest
 # LOCAL
 import astropy.units as u
 from astropy import cosmology
-from astropy.cosmology import Cosmology, Planck18, realizations
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
-from astropy.cosmology.io.table import from_table, to_table
-from astropy.cosmology.parameters import available
+from astropy.cosmology import Cosmology, realizations
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.io.ecsv import read_ecsv, write_ecsv
 from astropy.table import QTable, Table, vstack
+from astropy.cosmology.parameters import available
 
 from .base import IOTestMixinBase, IOFormatTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
-cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
+cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")
 
 ###############################################################################
 
 
-class ToFromTableTestMixin(IOTestMixinBase):
+class ReadWriteECSVTestMixin(IOTestMixinBase):
     """
-    Tests for a Cosmology[To/From]Format with ``format="astropy.table"``.
+    Tests for a Cosmology[To/From]Format with ``format="ascii.ecsv"``.
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
@@ -30,38 +30,44 @@ class ToFromTableTestMixin(IOTestMixinBase):
     See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
     """
 
-    def test_to_table_bad_index(self, cosmo, from_format, to_format):
+    def test_to_ecsv_bad_index(self, cosmo, read, write, tmp_path):
         """Test if argument ``index`` is incorrect"""
-        tbl = to_format("astropy.table")
+        fp = tmp_path / "test_to_ecsv_bad_index.ecsv"
+
+        write(fp, format="ascii.ecsv")
 
         # single-row table and has a non-0/None index
         with pytest.raises(IndexError, match="index 2 out of range"):
-            from_format(tbl, index=2, format="astropy.table")
+            read(fp, index=2, format="ascii.ecsv")
 
         # string index where doesn't match
         with pytest.raises(KeyError, match="No matches found for key"):
-            from_format(tbl, index="row 0", format="astropy.table")
+            read(fp, index="row 0", format="ascii.ecsv")
 
     # -----------------------
 
-    def test_to_table_failed_cls(self, cosmo, to_format):
+    def test_to_ecsv_failed_cls(self, cosmo, write, tmp_path):
         """Test failed table type."""
+        fp = tmp_path / "test_to_ecsv_failed_cls.ecsv"
+
         with pytest.raises(TypeError, match="'cls' must be"):
-            to_format('astropy.table', cls=list)
+            write(fp, format='ascii.ecsv', cls=list)
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
-    def test_to_table_cls(self, cosmo, to_format, tbl_cls):
-        tbl = to_format('astropy.table', cls=tbl_cls)
-        assert isinstance(tbl, tbl_cls)  # test type
+    def test_to_ecsv_cls(self, cosmo, write, tbl_cls, tmp_path):
+        fp = tmp_path / "test_to_ecsv_cls.ecsv"
+        write(fp, format='ascii.ecsv', cls=tbl_cls)
 
     # -----------------------
 
     @pytest.mark.parametrize("in_meta", [True, False])
-    def test_to_table_in_meta(self, cosmo, to_format, in_meta):
+    def test_to_ecsv_in_meta(self, cosmo, write, in_meta, tmp_path):
         """Test where the cosmology class is placed."""
-        tbl = to_format('astropy.table', cosmology_in_meta=in_meta)
+        fp = tmp_path / "test_to_ecsv_in_meta.ecsv"
+        write(fp, format='ascii.ecsv', cosmology_in_meta=in_meta)
 
         # if it's in metadata, it's not a column. And vice versa.
+        tbl = QTable.read(fp)
         if in_meta:
             assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
             assert "cosmology" not in tbl.colnames  # not also a column
@@ -71,25 +77,29 @@ class ToFromTableTestMixin(IOTestMixinBase):
 
     # -----------------------
 
-    def test_tofrom_table_instance(self, cosmo, from_format, to_format):
-        """Test cosmology -> astropy.table -> cosmology."""
+    def test_tofrom_ecsv_instance(self, cosmo, read, write, tmp_path):
+        """Test cosmology -> ascii.ecsv -> cosmology."""
+        fp = tmp_path / "test_tofrom_ecsv_instance.ecsv"
+
         # ------------
         # To Table
 
-        tbl = to_format("astropy.table")
-        assert isinstance(tbl, QTable)
+        write(fp, format="ascii.ecsv")
+
+        # some checks on the saved file
+        tbl = QTable.read(fp)
         assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
         assert tbl["name"] == cosmo.name
-        assert tbl.indices  # indexed!
 
         # ------------
         # From Table
 
         tbl["mismatching"] = "will error"
+        tbl.write(fp, format="ascii.ecsv", overwrite=True)
 
         # tests are different if the last argument is a **kwarg
         if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
-            got = from_format(tbl, format="astropy.table")
+            got = read(fp, format="ascii.ecsv")
 
             assert got.__class__ is cosmo.__class__
             assert got.name == cosmo.name
@@ -99,46 +109,50 @@ class ToFromTableTestMixin(IOTestMixinBase):
 
         # read with mismatching parameters errors
         with pytest.raises(TypeError, match="there are unused parameters"):
-            from_format(tbl, format="astropy.table")
+            read(fp, format="ascii.ecsv")
 
         # unless mismatched are moved to meta
-        got = from_format(tbl, format="astropy.table", move_to_meta=True)
+        got = read(fp, format="ascii.ecsv", move_to_meta=True)
         assert got == cosmo
         assert got.meta["mismatching"] == "will error"
 
         # it won't error if everything matches up
         tbl.remove_column("mismatching")
-        got = from_format(tbl, format="astropy.table")
+        tbl.write(fp, format="ascii.ecsv", overwrite=True)
+        got = read(fp, format="ascii.ecsv")
         assert got == cosmo
 
         # and it will also work if the cosmology is a class
-        # Note this is not the default output of ``to_format``.
+        # Note this is not the default output of ``write``.
         tbl.meta["cosmology"] = _COSMOLOGY_CLASSES[tbl.meta["cosmology"]]
-        got = from_format(tbl, format="astropy.table")
+        got = read(fp, format="ascii.ecsv")
         assert got == cosmo
 
         # also it auto-identifies 'format'
-        got = from_format(tbl)
+        got = read(fp)
         assert got == cosmo
 
-    def test_fromformat_subclass_partial_info_table(self, cosmo, from_format, to_format):
+    def test_fromformat_ecsv_subclass_partial_info(self, cosmo, read, write, tmp_path):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
         """
-        # test to_format
-        tbl = to_format("astropy.table")
-        assert isinstance(tbl, QTable)
+        fp = tmp_path / "test_fromformat_ecsv_subclass_partial_info.ecsv"
+
+        # test write
+        write(fp, format="ascii.ecsv")
 
         # partial information
+        tbl = QTable.read(fp)
         tbl.meta.pop("cosmology", None)
         del tbl["Tcmb0"]
+        tbl.write(fp, overwrite=True)
 
         # read with the same class that wrote fills in the missing info with
         # the default value
-        got = cosmo.__class__.from_format(tbl, format="astropy.table")
-        got2 = from_format(tbl, format="astropy.table", cosmology=cosmo.__class__)
-        got3 = from_format(tbl, format="astropy.table", cosmology=cosmo.__class__.__qualname__)
+        got = cosmo.__class__.read(fp, format="ascii.ecsv")
+        got2 = read(fp, format="ascii.ecsv", cosmology=cosmo.__class__)
+        got3 = read(fp, format="ascii.ecsv", cosmology=cosmo.__class__.__qualname__)
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 
@@ -149,48 +163,46 @@ class ToFromTableTestMixin(IOTestMixinBase):
         # but the metadata is the same
         assert got.meta == cosmo.meta
 
-    @pytest.mark.parametrize("add_index", [True, False])
-    def test_tofrom_table_mutlirow(self, cosmo, to_format, from_format, add_index):
+    def test_tofrom_ecsv_mutlirow(self, cosmo, read, write, tmp_path):
         """Test if table has multiple rows."""
-        # ------------
-        # To Table
+        fp = tmp_path / "test_tofrom_ecsv_mutlirow.ecsv"
 
+        # Make
         cosmo1 = cosmo.clone(name="row 0")
         cosmo2 = cosmo.clone(name="row 2")
         tbl = vstack([c.to_format("astropy.table") for c in (cosmo1, cosmo, cosmo2)],
                      metadata_conflicts='silent')
-
-        assert isinstance(tbl, QTable)
-        assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
-        assert tbl[1]["name"] == cosmo.name
-
-        # whether to add an index. `from_format` can work with or without.
-        if add_index:
-            tbl.add_index("name", unique=True)
+        tbl.write(fp, format="ascii.ecsv")
 
         # ------------
         # From Table
 
         # it will error on a multi-row table
         with pytest.raises(ValueError, match="need to select a specific row"):
-            from_format(tbl, format="astropy.table")
+            read(fp, format="ascii.ecsv")
 
         # unless the index argument is provided
-        got = from_format(tbl, index=1, format="astropy.table")
+        got = read(fp, index=1, format="ascii.ecsv")
         assert got == cosmo
 
         # the index can be a string
-        got = from_format(tbl, index=cosmo.name, format="astropy.table")
+        got = read(fp, index=cosmo.name, format="ascii.ecsv")
         assert got == cosmo
 
-        # when there's more than one cosmology found
-        tbls = vstack([tbl, tbl], metadata_conflicts="silent")
-        with pytest.raises(ValueError, match="more than one"):
-            from_format(tbls, index=cosmo.name, format="astropy.table")
+        # it's better if the table already has an index
+        # this will be identical to the previous ``got``
+        tbl.add_index("name")
+        got2 = read(fp, index=cosmo.name, format="ascii.ecsv")
+        assert got2 == cosmo
 
 
-class TestToFromTable(IOFormatTestBase, ToFromTableTestMixin):
-    """Directly test ``to/from_table``."""
+class TestReadWriteECSV(IOFormatTestBase, ReadWriteECSVTestMixin):
+    """
+    Directly test ``read/write``.
+    These are not public API and are discouraged from use, in favor of
+    ``Cosmology.read/write(..., format="ascii.ecsv")``, but should be
+    tested regardless b/c they are used internally.
+    """
 
     def setup_class(self):
-        self.functions = {"to": to_table, "from": from_table}
+        self.functions = {"read": read_ecsv, "write": write_ecsv}

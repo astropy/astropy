@@ -20,15 +20,14 @@ files and converting between different Python objects.
 The methods use Astropy's Unified I/O registry so custom formats can be
 registered. Details are discussed in an addition to the docs.
 
-Currently no file formats are registered, but the syntax is as follows:
+Currently the only registered read/write format is "ascii.ecsv", like for Table.
 
 .. doctest-skip::
 
-    >>> from astropy.cosmology import Planck18
-    >>> Planck18.write('<file name>.<format>')
+    >>> from astropy.cosmology import Cosmology, Planck18
+    >>> Planck18.write('<file name>.ecsv')
     >>>
-    >>> from astropy.cosmology import Cosmology
-    >>> cosmo = Cosmology.read('<file name>.<format>')
+    >>> cosmo = Cosmology.read('<file name>.ecsv')
     >>> cosmo == Planck18
     True
 
