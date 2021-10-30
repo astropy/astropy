@@ -182,12 +182,17 @@ class MrtHeader(cds.CdsHeader):
             col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxprec)
             col.format = str(col.formatted_width) + "." + str(maxdec) + "e"
         else:
+            lead = ''
             if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
                 col.formatted_width = maxent + maxdec + 1
                 if sign:
                     col.formatted_width += 1
+            elif col.format.startswith('0'):
+                # Keep leading zero, if already set in format - primarily for `seconds` columns
+                # in coordinates; may need extra case if this is to be also supported with `sign`.
+                lead = '0'
             col.fortran_format = fformat + str(col.formatted_width) + "." + str(maxdec)
-            col.format = col.fortran_format[1:] + "f"
+            col.format = lead + col.fortran_format[1:] + "f"
 
     def write_byte_by_byte(self):
         """
@@ -208,20 +213,20 @@ class MrtHeader(cds.CdsHeader):
         --------------------------------------------------------------------------------
         Bytes Format Units  Label     Explanations
         --------------------------------------------------------------------------------
-         1-  8  A8     ---    names   Description of names
-        10- 14  E5.1   ---    e       [-3160000.0/0.01] Description of e
-        16- 23  F8.5   ---    d       [22.25/27.25] Description of d
-        25- 31  E7.1   ---    s       [-9e+34/2.0] Description of s
-        33- 35  I3     ---    i       [-30/67] Description of i
-        37- 39  F3.1   ---    sameF   [5.0/5.0] Description of sameF
-        41- 42  I2     ---    sameI   [20] Description of sameI
-        44- 47  F4.1   h      RAh     Right Ascension (hour)
-        49- 51  F3.1   min    RAm     Right Ascension (minute)
-        53- 70  F18.15 s      RAs     Right Ascension (second)
-            72  A1     ---    DE-     Sign of Declination
-        73- 76  F5.1   deg    DEd     Declination (degree)
-        78- 81  F4.1   arcmin DEm     Declination (arcmin)
-        83- 98  F16.13 arcsec DEs     Declination (arcsec)
+         1- 8  A8     ---    names   Description of names
+        10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e
+        16-23  F8.5   ---    d       [22.25/27.25] Description of d
+        25-31  E7.1   ---    s       [-9e+34/2.0] Description of s
+        33-35  I3     ---    i       [-30/67] Description of i
+        37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF
+        41-42  I2     ---    sameI   [20] Description of sameI
+        44-45  I2     h      RAh     Right Ascension (hour)
+        47-48  I2     min    RAm     Right Ascension (minute)
+        50-67  F18.15 s      RAs     Right Ascension (second)
+           69  A1     ---    DE-     Sign of Declination
+        70-71  I2     deg    DEd     Declination (degree)
+        73-74  I2     arcmin DEm     Declination (arcmin)
+        76-91  F16.13 arcsec DEs     Declination (arcsec)
 
         --------------------------------------------------------------------------------
         """
@@ -262,11 +267,6 @@ class MrtHeader(cds.CdsHeader):
             # Check if column is MaskedColumn
             col.has_null = isinstance(col, MaskedColumn)
 
-            # Check if the column format was set by the passed ``formats`` argument.
-            if col.format is None:
-                if col.info.format is not None:
-                    col.format = col.info.format
-
             if col.format is not None:
                 col.formatted_width = max([len(sval) for sval in col.str_vals])
 
@@ -277,7 +277,8 @@ class MrtHeader(cds.CdsHeader):
                 if getattr(col, 'formatted_width', None) is None:  # If ``formats`` not passed.
                     col.formatted_width = max(len(str(col.max)), len(str(col.min)))
                 col.fortran_format = "I" + str(col.formatted_width)
-                col.format = ">" + col.fortran_format[1:]
+                if col.format is None:
+                    col.format = ">" + col.fortran_format[1:]
 
             elif np.issubdtype(col.dtype, np.dtype(float).type):
                 # Float formatter
@@ -334,7 +335,7 @@ class MrtHeader(cds.CdsHeader):
             # Add col limit values to col description
             lim_vals = ""
             if (col.min and col.max and
-                    not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT'])):
+                    not any(x in col.name for x in ['RA', 'DE', 'LON', 'LAT', 'PLN', 'PLT'])):
                 # No col limit values for coordinate columns.
                 if col.fortran_format[0] == 'I':
                     if abs(col.min) < MAX_COL_INTLIMIT and abs(col.max) < MAX_COL_INTLIMIT:
@@ -356,10 +357,11 @@ class MrtHeader(cds.CdsHeader):
                 max_descrip_size = len(description)
 
             # Add a row for the Sign of Declination in the bbb table
-            if col.name == 'DEd' and col[0] < 0.0:
+            if col.name == 'DEd':
                 bbb.add_row([singlebfmt.format(startb),
                              "A1", "---", "DE-",
                              "Sign of Declination"])
+                col.fortran_format = 'I2'
                 startb += 1
 
             # Add Byte-By-Byte row to bbb table
@@ -414,6 +416,13 @@ class MrtHeader(cds.CdsHeader):
         """
         from astropy.coordinates import SkyCoord
 
+        # Recognised ``SkyCoord.name`` forms with their default column names (helio* require SunPy).
+        coord_systems = {'galactic': ('GLAT', 'GLON', 'b', 'l'),
+                         'ecliptic': ('ELAT', 'ELON', 'lat', 'lon'),      # 'geocentric*ecliptic'
+                         'heliographic': ('HLAT', 'HLON', 'lat', 'lon'),  # '_carrington|stonyhurst'
+                         'helioprojective': ('HPLT', 'HPLN', 'Ty', 'Tx')}
+        eqtnames = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
+
         # list to store indices of columns that are modified.
         to_pop = []
 
@@ -437,22 +446,23 @@ class MrtHeader(cds.CdsHeader):
                     self.cols[i] = col
                     continue
 
-            # Replace single ``SkyCoord`` column by its coordinate components.
+            # Replace single ``SkyCoord`` column by its coordinate components if no coordinate
+            # columns of the correspoding type exist yet.
             if isinstance(col, SkyCoord):
                 # If coordinates are given in RA/DEC, divide each them into hour/deg,
                 # minute/arcminute, second/arcsecond columns.
-                if 'ra' in col.representation_component_names.keys():
-                    ra_col, dec_col = col.ra.hms, col.dec.dms
-                    coords = [ra_col.h, ra_col.m, ra_col.s,
-                              dec_col.d, dec_col.m, dec_col.s]
-                    names = ['RAh', 'RAm', 'RAs', 'DEd', 'DEm', 'DEs']
+                if ('ra' in col.representation_component_names.keys() and
+                        len(set(eqtnames) - set(self.colnames)) == 6):
+                    ra_c, dec_c = col.ra.hms, col.dec.dms
+                    coords = [ra_c.h.round().astype('i1'), ra_c.m.round().astype('i1'), ra_c.s,
+                              dec_c.d.round().astype('i1'), dec_c.m.round().astype('i1'), dec_c.s]
                     coord_units = [u.h, u.min, u.second,
                                    u.deg, u.arcmin, u.arcsec]
                     coord_descrip = ['Right Ascension (hour)', 'Right Ascension (minute)',
                                      'Right Ascension (second)', 'Declination (degree)',
                                      'Declination (arcmin)', 'Declination (arcsec)']
                     for coord, name, coord_unit, descrip in zip(
-                            coords, names, coord_units, coord_descrip):
+                            coords, eqtnames, coord_units, coord_descrip):
                         # Have Sign of Declination only in the DEd column.
                         if name in ['DEm', 'DEs']:
                             coord_col = Column(list(np.abs(coord)), name=name,
@@ -461,46 +471,56 @@ class MrtHeader(cds.CdsHeader):
                             coord_col = Column(list(coord), name=name, unit=coord_unit,
                                                description=descrip)
                         # Set default number of digits after decimal point for the
-                        # second values.
-                        if name in ['RAs', 'DEs']:
-                            coord_col.format = '.12f'
+                        # second values, and deg-min to (signed) 2-digit zero-padded integer.
+                        if name == 'RAs':
+                            coord_col.format = '013.10f'
+                        elif name == 'DEs':
+                            coord_col.format = '012.9f'
+                        elif name == 'RAh':
+                            coord_col.format = '2d'
+                        elif name == 'DEd':
+                            coord_col.format = '+03d'
+                        elif name.startswith(('RA', 'DE')):
+                            coord_col.format = '02d'
                         self.cols.append(coord_col)
+                    to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
                 # For all other coordinate types, simply divide into two columns
                 # for latitude and longitude resp. with the unit used been as it is.
+
                 else:
-                    # Galactic coordinates.
-                    if col.name == 'galactic':
-                        lon_col = Column(col.l, name='GLON',
-                                         description='Galactic Longitude',
-                                         unit=col.representation_component_units['l'],
-                                         format='.12f')
-                        lat_col = Column(col.b, name='GLAT',
-                                         description='Galactic Latitude',
-                                         unit=col.representation_component_units['b'],
-                                         format='.12f')
-                        self.cols.append(lon_col)
-                        self.cols.append(lat_col)
+                    frminfo = ''
+                    for frame, latlon in coord_systems.items():
+                        if frame in col.name and len(set(latlon[:2]) - set(self.colnames)) == 2:
+                            if frame != col.name:
+                                frminfo = f' ({col.name})'
+                            lon_col = Column(getattr(col, latlon[3]), name=latlon[1],
+                                             description=f'{frame.capitalize()} Longitude{frminfo}',
+                                             unit=col.representation_component_units[latlon[3]],
+                                             format='.12f')
+                            lat_col = Column(getattr(col, latlon[2]), name=latlon[0],
+                                             description=f'{frame.capitalize()} Latitude{frminfo}',
+                                             unit=col.representation_component_units[latlon[2]],
+                                             format='+.12f')
+                            self.cols.append(lon_col)
+                            self.cols.append(lat_col)
+                            to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
-                    # Ecliptic coordinates, can be any of various available.
-                    elif 'ecliptic' in col.name:
-                        lon_col = Column(col.lon, name='ELON',
-                                         description='Ecliptic Longitude (' + col.name + ')',
-                                         unit=col.representation_component_units['lon'],
-                                         format='.12f')
-                        lat_col = Column(col.lat, name='ELAT',
-                                         description='Ecliptic Latitude (' + col.name + ')',
-                                         unit=col.representation_component_units['lat'],
-                                         format='.12f')
-                        self.cols.append(lon_col)
-                        self.cols.append(lat_col)
-
-                    # Convert all other ``SkyCoord`` columns that are not in the above three
-                    # representations to string valued columns.
-                    else:
-                        self.cols.append(Column(col.to_string()))
-
-                to_pop.append(i)   # Delete original ``SkyCoord`` column.
+                # Convert all other ``SkyCoord`` columns that are not in the above three
+                # representations to string valued columns. Those could either be types not
+                # supported yet (e.g. 'helioprojective'), or already present and converted.
+                # If there were any extra ``SkyCoord`` columns of one kind after the first one,
+                # then their decomposition into their component columns has been skipped.
+                # This is done in order to not create duplicate component columns.
+                # Explicit renaming of the extra coordinate component columns by appending some
+                # suffix to their name, so as to distinguish them, is not yet implemented.
+                if i not in to_pop:
+                    warnings.warn(f"Coordinate system of type '{col.name}' already stored in table "
+                                  f"as CDS/MRT-syle columns or of unrecognized type. So column {i} "
+                                  f"is being skipped with designation of a string valued column "
+                                  f"`{self.colnames[i]}`.", UserWarning)
+                    self.cols.append(Column(col.to_string(), name=self.colnames[i]))
+                    to_pop.append(i)   # Delete original ``SkyCoord`` column.
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
@@ -511,26 +531,22 @@ class MrtHeader(cds.CdsHeader):
                     col = Column([str(val) for val in col])
                 self.cols[i] = col
 
-        # Delete original ``SkyCoord`` column, if there were any.
-        for i in to_pop:
+        # Delete original ``SkyCoord`` columns, if there were any.
+        for i in to_pop[::-1]:
             self.cols.pop(i)
 
         # Check for any left over extra coordinate columns.
         if any(x in self.colnames for x in ['RAh', 'DEd', 'ELON', 'GLAT']):
-            # If there were any ``SkyCoord`` columns after the first one, then they would
-            # have been skipped the division into their component columns. This is done in
-            # order to not replace the data in the component columns already obtained.
-            # Explicit renaming of the extra coordinate component columns by appending some
-            # suffix to their name, so as to distinguish them, is not implemented.
-            # Such extra ``SkyCoord`` columns are converted to string valued columns,
-            # together with issuance of a warning.
+            # At this point any extra ``SkyCoord`` columns should have been converted to string
+            # valued columns, together with issuance of a warning, by the coordinate parser above.
+            # This test is just left here as a safeguard.
             for i, col in enumerate(self.cols):
                 if isinstance(col, SkyCoord):
-                    self.cols[i] = Column(col.to_string())
-                    message = 'Table already has coordinate system in MRT-syle columns.' \
-                              + f' So column {i} is being skipped with designation' \
-                              + ' of an `Unknown` string valued column.'
-                    warnings.warn(message, UserWarning)
+                    self.cols[i] = Column(col.to_string(), name=self.colnames[i])
+                    message = ('Table already has coordinate system in CDS/MRT-syle columns. '
+                               f'So column {i} should have been replaced already with '
+                               f'a string valued column `{self.colnames[i]}`.')
+                    raise core.InconsistentTableError(message)
 
         # Get Byte-By-Byte description and fill the template
         bbb_template = Template('\n'.join(BYTE_BY_BYTE_TEMPLATE))
