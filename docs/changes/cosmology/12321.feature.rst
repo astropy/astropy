@@ -1,0 +1,2 @@
+Register an ECSV reader and writer into Cosmology's I/O, allowing a Cosmology
+instance to be read from from or written to an ECSV file.

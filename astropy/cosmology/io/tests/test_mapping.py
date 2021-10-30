@@ -15,7 +15,7 @@ from astropy.cosmology.io.mapping import from_mapping, to_mapping
 from astropy.cosmology.parameters import available
 from astropy.table import QTable, vstack
 
-from .base import IOTestMixinBase, ToFromFormatTestBase
+from .base import IOTestMixinBase, IOFormatTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromMapping.setup.<locals>.CosmologyWithKwargs")
@@ -124,7 +124,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         assert got.meta == cosmo.meta
 
 
-class TestToFromMapping(ToFromFormatTestBase, ToFromMappingTestMixin):
+class TestToFromMapping(IOFormatTestBase, ToFromMappingTestMixin):
     """Directly test ``to/from_mapping``."""
 
     def setup_class(self):

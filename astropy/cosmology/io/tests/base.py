@@ -26,17 +26,27 @@ class IOTestMixinBase:
     """
 
     @pytest.fixture
+    def from_format(self):
+        """Convert to Cosmology using ``Cosmology.from_format()``."""
+        return Cosmology.from_format
+
+    @pytest.fixture
     def to_format(self, cosmo):
         """Convert Cosmology instance using ``.to_format()``."""
         return cosmo.to_format
 
     @pytest.fixture
-    def from_format(self, cosmo):
-        """Convert yaml to Cosmology using ``Cosmology.from_format()``."""
-        return Cosmology.from_format
+    def read(self):
+        """Read Cosmology instance using ``Cosmology.read()``."""
+        return Cosmology.read
+
+    @pytest.fixture
+    def write(self, cosmo):
+        """Write Cosmology using ``.write()``."""
+        return cosmo.write
 
 
-class ToFromFormatTestBase(IOTestMixinBase):
+class IOFormatTestBase(IOTestMixinBase):
     """
     Directly test ``to/from_<format>``.
     These are not public API and are discouraged from use, in favor of
@@ -73,16 +83,34 @@ class ToFromFormatTestBase(IOTestMixinBase):
             return _COSMOLOGY_CLASSES[request.param](Tcmb0=3)
         return request.param
 
-    @pytest.fixture
-    def to_format(self, cosmo):
-        """Convert Cosmology to yaml using function ``self.to_function``."""
-        return lambda *args, **kwargs: self.functions["to"](cosmo, *args, **kwargs)
+    # -------------------------------------------
 
     @pytest.fixture
     def from_format(self):
-        """Convert yaml to Cosmology using function ``from_function``."""
+        """Convert to Cosmology using function ``from_function``."""
         def use_from_format(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["from"](*args, **kwargs)
 
         return use_from_format
+
+    @pytest.fixture
+    def to_format(self, cosmo):
+        """Convert Cosmology to format using function ``self.to_function``."""
+        return lambda *args, **kwargs: self.functions["to"](cosmo, *args, **kwargs)
+
+    # -------------------------------------------
+
+    @pytest.fixture
+    def read(self):
+        """Read Cosmology from file using function ``from_function``."""
+        def use_read(*args, **kwargs):
+            kwargs.pop("format", None)  # specific to Cosmology.from_format
+            return self.functions["read"](*args, **kwargs)
+
+        return use_read
+
+    @pytest.fixture
+    def write(self, cosmo):
+        """Write Cosmology to file using function ``self.to_function``."""
+        return lambda *args, **kwargs: self.functions["write"](cosmo, *args, **kwargs)
