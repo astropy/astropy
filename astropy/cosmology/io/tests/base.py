@@ -22,7 +22,7 @@ class IOTestMixinBase:
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
-    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    See ``TestCosmology`` for an example.
     """
 
     @pytest.fixture
@@ -49,10 +49,8 @@ class IOTestMixinBase:
 class IOFormatTestBase(IOTestMixinBase):
     """
     Directly test ``to/from_<format>``.
-    These are not public API and are discouraged from use, in favor of
-    ``Cosmology.to/from_format(..., format="<format>")``, but should be tested
-    regardless b/c 3rd party packages might use these in their Cosmology I/O.
-    Also, it's cheap to test.
+    These are not public API and are discouraged from public use, in favor of
+    ``Cosmology.to/from_format(..., format="<format>")``.
 
     Subclasses should have an attribute ``functions`` which is a dictionary
     containing two items: ``"to"=<function for to_format>`` and
@@ -83,11 +81,16 @@ class IOFormatTestBase(IOTestMixinBase):
             return _COSMOLOGY_CLASSES[request.param](Tcmb0=3)
         return request.param
 
+    @pytest.fixture
+    def cosmo_cls(self, cosmo):
+        """Cosmology classes."""
+        return cosmo.__class__
+
     # -------------------------------------------
 
     @pytest.fixture
     def from_format(self):
-        """Convert to Cosmology using function ``from_function``."""
+        """Convert to Cosmology using function ``from``."""
         def use_from_format(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["from"](*args, **kwargs)
@@ -96,14 +99,14 @@ class IOFormatTestBase(IOTestMixinBase):
 
     @pytest.fixture
     def to_format(self, cosmo):
-        """Convert Cosmology to format using function ``self.to_function``."""
+        """Convert Cosmology to format using function ``to``."""
         return lambda *args, **kwargs: self.functions["to"](cosmo, *args, **kwargs)
 
     # -------------------------------------------
 
     @pytest.fixture
     def read(self):
-        """Read Cosmology from file using function ``from_function``."""
+        """Read Cosmology from file using function ``read``."""
         def use_read(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
             return self.functions["read"](*args, **kwargs)
@@ -112,5 +115,5 @@ class IOFormatTestBase(IOTestMixinBase):
 
     @pytest.fixture
     def write(self, cosmo):
-        """Write Cosmology to file using function ``self.to_function``."""
+        """Write Cosmology to file using function ``write``."""
         return lambda *args, **kwargs: self.functions["write"](cosmo, *args, **kwargs)

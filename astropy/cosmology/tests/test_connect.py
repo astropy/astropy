@@ -215,7 +215,7 @@ class ToFromFormatTestMixin(
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
-    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    See ``TestCosmology`` for an example.
     """
 
     @pytest.mark.parametrize("format_type", tofrom_formats)
@@ -274,6 +274,10 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     @pytest.fixture(params=cosmo_instances)
     def cosmo(self, request):
         return getattr(cosmology.realizations, request.param)
+
+    @pytest.fixture
+    def cosmo_cls(self, cosmo):
+        return cosmo.__class__
 
     # ==============================================================
 

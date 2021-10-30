@@ -22,15 +22,15 @@ cosmo_instances.append("TestReadWriteECSV.setup.<locals>.CosmologyWithKwargs")
 
 class ReadWriteECSVTestMixin(IOTestMixinBase):
     """
-    Tests for a Cosmology[To/From]Format with ``format="ascii.ecsv"``.
+    Tests for a Cosmology[Read/Write] with ``format="ascii.ecsv"``.
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
-    be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
+    be inherited in a subclass. Subclasses must dfine a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
-    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    See ``TestCosmology`` for an example.
     """
 
-    def test_to_ecsv_bad_index(self, cosmo, read, write, tmp_path):
+    def test_to_ecsv_bad_index(self, read, write, tmp_path):
         """Test if argument ``index`` is incorrect"""
         fp = tmp_path / "test_to_ecsv_bad_index.ecsv"
 
@@ -46,7 +46,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
 
     # -----------------------
 
-    def test_to_ecsv_failed_cls(self, cosmo, write, tmp_path):
+    def test_to_ecsv_failed_cls(self, write, tmp_path):
         """Test failed table type."""
         fp = tmp_path / "test_to_ecsv_failed_cls.ecsv"
 
@@ -54,14 +54,14 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
             write(fp, format='ascii.ecsv', cls=list)
 
     @pytest.mark.parametrize("tbl_cls", [QTable, Table])
-    def test_to_ecsv_cls(self, cosmo, write, tbl_cls, tmp_path):
+    def test_to_ecsv_cls(self, write, tbl_cls, tmp_path):
         fp = tmp_path / "test_to_ecsv_cls.ecsv"
         write(fp, format='ascii.ecsv', cls=tbl_cls)
 
     # -----------------------
 
     @pytest.mark.parametrize("in_meta", [True, False])
-    def test_to_ecsv_in_meta(self, cosmo, write, in_meta, tmp_path):
+    def test_to_ecsv_in_meta(self, cosmo_cls, write, in_meta, tmp_path):
         """Test where the cosmology class is placed."""
         fp = tmp_path / "test_to_ecsv_in_meta.ecsv"
         write(fp, format='ascii.ecsv', cosmology_in_meta=in_meta)
@@ -69,15 +69,15 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         # if it's in metadata, it's not a column. And vice versa.
         tbl = QTable.read(fp)
         if in_meta:
-            assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
+            assert tbl.meta["cosmology"] == cosmo_cls.__qualname__
             assert "cosmology" not in tbl.colnames  # not also a column
         else:
-            assert tbl["cosmology"][0] == cosmo.__class__.__qualname__
+            assert tbl["cosmology"][0] == cosmo_cls.__qualname__
             assert "cosmology" not in tbl.meta
 
     # -----------------------
 
-    def test_tofrom_ecsv_instance(self, cosmo, read, write, tmp_path):
+    def test_tofrom_ecsv_instance(self, cosmo_cls, cosmo, read, write, tmp_path):
         """Test cosmology -> ascii.ecsv -> cosmology."""
         fp = tmp_path / "test_tofrom_ecsv_instance.ecsv"
 
@@ -88,7 +88,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
 
         # some checks on the saved file
         tbl = QTable.read(fp)
-        assert tbl.meta["cosmology"] == cosmo.__class__.__qualname__
+        assert tbl.meta["cosmology"] == cosmo_cls.__qualname__
         assert tbl["name"] == cosmo.name
 
         # ------------
@@ -101,7 +101,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
             got = read(fp, format="ascii.ecsv")
 
-            assert got.__class__ is cosmo.__class__
+            assert got.__class__ is cosmo_cls
             assert got.name == cosmo.name
             assert "mismatching" not in got.meta
 
@@ -132,7 +132,7 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
         got = read(fp)
         assert got == cosmo
 
-    def test_fromformat_ecsv_subclass_partial_info(self, cosmo, read, write, tmp_path):
+    def test_fromformat_ecsv_subclass_partial_info(self, cosmo_cls, cosmo, read, write, tmp_path):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -150,15 +150,15 @@ class ReadWriteECSVTestMixin(IOTestMixinBase):
 
         # read with the same class that wrote fills in the missing info with
         # the default value
-        got = cosmo.__class__.read(fp, format="ascii.ecsv")
-        got2 = read(fp, format="ascii.ecsv", cosmology=cosmo.__class__)
-        got3 = read(fp, format="ascii.ecsv", cosmology=cosmo.__class__.__qualname__)
+        got = cosmo_cls.read(fp, format="ascii.ecsv")
+        got2 = read(fp, format="ascii.ecsv", cosmology=cosmo_cls)
+        got3 = read(fp, format="ascii.ecsv", cosmology=cosmo_cls.__qualname__)
 
         assert (got == got2) and (got2 == got3)  # internal consistency
 
         # not equal, because Tcmb0 is changed
         assert got != cosmo
-        assert got.Tcmb0 == cosmo.__class__._init_signature.parameters["Tcmb0"].default
+        assert got.Tcmb0 == cosmo_cls._init_signature.parameters["Tcmb0"].default
         assert got.clone(name=cosmo.name, Tcmb0=cosmo.Tcmb0) == cosmo
         # but the metadata is the same
         assert got.meta == cosmo.meta
