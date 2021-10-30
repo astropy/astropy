@@ -1,0 +1,1 @@
+Removed deprecated ``hexdigest`` keyword from ``import_file_to_cache()``.

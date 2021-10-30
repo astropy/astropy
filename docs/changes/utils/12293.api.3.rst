@@ -1,0 +1,1 @@
+Removed unused ``download_cache_lock_attempts`` configuration item in ``astropy.utils.data``. Deprecation was not possible.
