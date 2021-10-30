@@ -472,8 +472,10 @@ class MrtHeader(cds.CdsHeader):
                                                description=descrip)
                         # Set default number of digits after decimal point for the
                         # second values, and deg-min to (signed) 2-digit zero-padded integer.
-                        if name in ['RAs', 'DEs']:
-                            coord_col.format = '015.12f'
+                        if name == 'RAs':
+                            coord_col.format = '013.10f'
+                        elif name == 'DEs':
+                            coord_col.format = '012.9f'
                         elif name == 'RAh':
                             coord_col.format = '2d'
                         elif name == 'DEd':
@@ -508,7 +510,7 @@ class MrtHeader(cds.CdsHeader):
                 # representations to string valued columns. Those could either be types not
                 # supported yet (e.g. 'helioprojective'), or already present and converted.
                 # If there were any extra ``SkyCoord`` columns of one kind after the first one,
-                # then they have been skipped the decomposition into their component columns.
+                # then their decomposition into their component columns has been skipped.
                 # This is done in order to not create duplicate component columns.
                 # Explicit renaming of the extra coordinate component columns by appending some
                 # suffix to their name, so as to distinguish them, is not yet implemented.

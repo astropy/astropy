@@ -825,7 +825,7 @@ def write(table, output=None, format=None, Writer=None, fast_writer=True, *,
 
     if diff_format_with_names:
         warnings.warn(
-            'The keys {} specified in the formats argument does not match a column name.'
+            'The key(s) {} specified in the formats argument do not match a column name.'
             .format(diff_format_with_names), AstropyWarning)
 
     if table.has_mixin_columns:
