@@ -5,5 +5,5 @@
 Read/Write/Interchange methods for `astropy.cosmology`. **NOT public API**.
 """
 
-# Import the interchange to register them into the io registry.
-from . import mapping, model, table  # noqa: F403
+# Import to register with the I/O machinery
+from . import ecsv, mapping, model, table  # noqa: F403

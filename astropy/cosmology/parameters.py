@@ -224,11 +224,11 @@ WMAP3 = dict(
     Neff=3.04,
     m_nu=0.0 * u.eV,
     flat=True,
-    reference=("Spergel et al. 2007, ApJS, 170, 377, "
-               "doi:  10.1086/513700. "
-               "Table 6 (WMAP + SNGold) "
-               "obtained from: https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm"
-               "\nPending WMAP team approval and subject to change.")
+    reference=(r"Spergel et al. 2007, ApJS, 170, 377, "
+               r"doi:  10.1086/513700. "
+               r"Table 6 (WMAP + SNGold) "
+               r"obtained from: https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm"
+               r"\nPending WMAP team approval and subject to change.")
 )
 
 WMAP1 = dict(
@@ -246,10 +246,10 @@ WMAP1 = dict(
     Neff=3.04,
     m_nu=0.0 * u.eV,
     flat=True,
-    reference=("Spergel et al. 2003, ApJS, 148, 175, "
-               "doi:  10.1086/377226. "
-               "Table 7 (WMAP + CBI + ACBAR + 2dFGRS + Lya)."
-               "\nPending WMAP team approval and subject to change.")
+    reference=(r"Spergel et al. 2003, ApJS, 148, 175, "
+               r"doi:  10.1086/377226. "
+               r"Table 7 (WMAP + CBI + ACBAR + 2dFGRS + Lya)."
+               r"\nPending WMAP team approval and subject to change.")
 )
 
 

@@ -15,7 +15,7 @@ from astropy.cosmology.io.mapping import from_mapping, to_mapping
 from astropy.cosmology.parameters import available
 from astropy.table import QTable, vstack
 
-from .base import IOTestMixinBase, ToFromFormatTestBase
+from .base import IOTestMixinBase, IOFormatTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromMapping.setup.<locals>.CosmologyWithKwargs")
@@ -31,7 +31,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
-    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    See ``TestCosmology`` for an example.
     """
 
     def test_failed_cls_to_mapping(self, cosmo, to_format):
@@ -124,7 +124,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
         assert got.meta == cosmo.meta
 
 
-class TestToFromMapping(ToFromFormatTestBase, ToFromMappingTestMixin):
+class TestToFromMapping(IOFormatTestBase, ToFromMappingTestMixin):
     """Directly test ``to/from_mapping``."""
 
     def setup_class(self):

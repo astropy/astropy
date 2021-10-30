@@ -249,7 +249,7 @@ I/O to be automatically available to
 :meth:`astropy.cosmology.Cosmology.from_format` and
 :meth:`astropy.cosmology.Cosmology.to_format`.
 
-.. literalinclude:: mypackage/io/astropy_convert.py
+.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/astropy_convert.py
    :language: python
 
 
@@ -262,7 +262,7 @@ write, and identify functions and how to register them with astropy's unified
 io to be automatically available to :meth:`astropy.cosmology.Cosmology.read`
 and :meth:`astropy.cosmology.Cosmology.write`.
 
-.. literalinclude:: mypackage/io/astropy_io.py
+.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/astropy_io.py
    :language: python
 
 
@@ -275,7 +275,7 @@ important to detect if Astropy is installed (and the correct version) before
 importing ``astropy_io`` and ``astropy_convert``.
 We do this in ``mypackage/io/__init__.py``:
 
-.. literalinclude:: mypackage/io/__init__.py
+.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/__init__.py
    :language: python
 
 
@@ -288,8 +288,8 @@ These tests require Astropy and will be skipped if it is not installed (and
 not the correct version), so at least one test in the test matrix should
 include ``astropy >= 5.0``.
 
-.. literalinclude:: mypackage/io/tests/test_astropy_convert.py
+.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/tests/test_astropy_convert.py
    :language: python
 
-.. literalinclude:: mypackage/io/tests/test_astropy_io.py
+.. literalinclude:: ../../astropy/cosmology/tests/mypackage/io/tests/test_astropy_io.py
    :language: python
