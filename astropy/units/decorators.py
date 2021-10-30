@@ -4,14 +4,13 @@
 __all__ = ['quantity_input']
 
 import inspect
-import typing as T
 from numbers import Number
 from collections.abc import Sequence
 from functools import wraps
 
 import numpy as np
 
-from ._typing import Annotated
+from . import _typing as T
 from .core import (Unit, UnitBase, UnitsError,
                    add_enabled_equivalencies, dimensionless_unscaled)
 from .function.core import FunctionUnitBase
@@ -118,7 +117,7 @@ def _parse_annotation(target):
     origin = T.get_origin(target)
     if origin is T.Union:
         return [_parse_annotation(t) for t in T.get_args(target)]
-    elif origin is not Annotated:  # can't be Quantity[]
+    elif origin is not T.Annotated:  # can't be Quantity[]
         return False
 
     # parse type hint
@@ -308,7 +307,7 @@ class QuantityInput:
             ra = wrapped_signature.return_annotation
             valid_empty = (inspect.Signature.empty, None, NoneType, T.NoReturn)
             if ra not in valid_empty:
-                target = (ra if T.get_origin(ra) not in (Annotated, T.Union)
+                target = (ra if T.get_origin(ra) not in (T.Annotated, T.Union)
                           else _parse_annotation(ra))
                 if isinstance(target, str) or not isinstance(target, Sequence):
                     target = [target]
