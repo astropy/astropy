@@ -1,0 +1,2 @@
+Fixed a bug where instantiating a representation with a longitude component
+could mutate input provided for that component even when copying is specified.
