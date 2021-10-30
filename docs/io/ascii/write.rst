@@ -310,7 +310,7 @@ copy of the table. The new coordinate component columns are appended to the end 
 
 It should be noted that the default precision of the latitude, longitude and seconds (of arc)
 columns is set at a default number of 12, 10 and 9 digits after the decimal for ``deg``, ``sec``
-and ``arcsec`` values, repsectively. This default is set to match a machine precision of 1e-15
+and ``arcsec`` values, respectively. This default is set to match a machine precision of 1e-15
 relative to the original ``SkyCoord`` those columns were extracted from.
 As all other columns, the format can be expliclty set by passing the ``formats`` keyword to the
 ``write`` function or by setting the ``format`` attribute of individual columns (the latter
