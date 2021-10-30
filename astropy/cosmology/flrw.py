@@ -16,6 +16,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from . import scalar_inv_efuncs
 from . import units as cu
 from .core import Cosmology, FlatCosmologyMixin, Parameter
+from .parameter import _set_non_negative, _set_with_unit
 from .utils import aszarr, vectorize_redshift_method
 
 # isort: split
@@ -115,12 +116,13 @@ class FLRW(Cosmology):
 
     H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0.",
                    unit="km/(s Mpc)", fset="scalar")
-    Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.")
+    Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0.",
+                    fset="non-negative")
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
                      fset="float")
     Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
                       unit="Kelvin", fmt="0.4g", fset="scalar")
-    Neff = Parameter(doc="Number of effective neutrino species.")
+    Neff = Parameter(doc="Number of effective neutrino species.", fset="non-negative")
     m_nu = Parameter(doc="Mass of neutrino species.",
                      unit="eV", equivalencies=u.mass_energy(), fmt="")
     Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
@@ -169,7 +171,7 @@ class FLRW(Cosmology):
         self._massivenu = False
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
             # not set yet, just validated
-            m_nu = Parameter._default_setter(self, self.__class__.m_nu, m_nu)
+            m_nu = _set_with_unit(self, self.__class__.m_nu, m_nu)
 
             self._neff_per_nu = self._Neff / self._nneutrinos
 
@@ -261,22 +263,6 @@ class FLRW(Cosmology):
     # ---------------------------------------------------------------
     # Parameter details
 
-    @Om0.setter
-    def Om0(self, param, value):
-        """Validate matter density to positive float."""
-        value = float(value)
-        if value < 0.0:
-            raise ValueError("matter density can not be negative.")
-        return value
-
-    @Neff.setter
-    def Neff(self, param, value):
-        """Validate neutrino species number to positive float."""
-        value = float(value)
-        if value < 0.0:
-            raise ValueError("effective number of neutrinos can not be negative.")
-        return value
-
     @m_nu.setter
     def m_nu(self, param, _):
         """Mass of neutrino species. Returns None if no neutrinos."""
@@ -298,9 +284,7 @@ class FLRW(Cosmology):
         if value is None:
             return value
 
-        value = float(value)
-        if value < 0.0:
-            raise ValueError("baryonic density can not be negative.")
+        value = _set_non_negative(self, param, value)
         if value > self.Om0:
             raise ValueError("baryonic density can not be larger than "
                              "total matter density.")
@@ -1449,7 +1433,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     """
 
     Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
-                     fixed=True)  # no longer a Parameter
+                     derived=True)  # no longer a Parameter
 
     def __init_subclass__(cls):
         super().__init_subclass__()

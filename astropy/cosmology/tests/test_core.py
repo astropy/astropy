@@ -5,279 +5,30 @@
 ##############################################################################
 # IMPORTS
 
+# STDLIB
 import abc
 import inspect
 from types import MappingProxyType
 
+# THIRD PARTY
 import pytest
 
 import numpy as np
 
+# LOCAL
 import astropy.units as u
 from astropy.cosmology import Cosmology, core
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
+from astropy.cosmology.parameter import Parameter
 from astropy.table import QTable, Table
 from astropy.utils.metadata import MetaData
 
 from .test_connect import ReadWriteTestMixin, ToFromFormatTestMixin
+from .test_parameter import ParameterTestMixin
 
 ##############################################################################
 # TESTS
 ##############################################################################
-
-
-class TestParameter:
-    """Test `astropy.cosmology.Parameter`."""
-
-    def setup_class(self):
-        class Example1(Cosmology):
-            param = Parameter(doc="example parameter",
-                              unit=u.m, equivalencies=u.mass_energy())
-
-            def __init__(self, param=15):
-                self.param = param
-
-        #  with setter
-        class Example2(Example1):
-            def __init__(self, param=15 * u.m):
-                self.param = param
-
-            @Example1.param.setter
-            def param(self, param, value):
-                return value.to(u.km)
-
-        # attributes
-        self.classes = {"Example1": Example1, "Example2": Example2}
-
-    def teardown_class(self):
-        for cls in self.classes.values():
-            _COSMOLOGY_CLASSES.pop(cls.__qualname__)
-
-    @pytest.fixture(params=["Example1", "Example2"])
-    def cosmo_cls(self, request):
-        return self.classes[request.param]
-
-    @pytest.fixture
-    def cosmo(self, cosmo_cls):
-        return cosmo_cls()
-
-    @pytest.fixture
-    def parameter(self, cosmo_cls):
-        return cosmo_cls.param
-
-    # ==============================================================
-
-    def test_has_expected_attributes(self, parameter):
-        # property
-        assert parameter.__doc__ == "example parameter"
-
-        # custom from init
-        assert parameter._unit == u.m
-        assert hasattr(parameter, "_equivalencies")
-        assert parameter._fmt == ".3g"
-        assert parameter._fixed == False
-
-        # custom from set_name
-        assert parameter._attr_name == "param"
-        assert parameter._attr_name_private == "_param"
-        assert hasattr(parameter, "__wrapped__")
-        assert hasattr(parameter, "__name__")
-
-    def test_name(self, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.name`."""
-        assert parameter.name == "param"
-
-    def test_unit(self, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.unit`."""
-        assert parameter.unit is parameter._unit
-        assert parameter.unit == u.m
-
-    def test_equivalencies(self, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.equivalencies`."""
-        assert parameter.equivalencies == u.mass_energy()
-
-    def test_format_spec(self, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.format_spec`."""
-        # see test_format for more in-depth tests
-        assert parameter.format_spec is parameter._fmt
-        assert parameter.format_spec == ".3g"
-
-    def test_fixed(self, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fixed`."""
-        assert parameter.fixed is parameter._fixed
-        assert parameter.fixed is False
-
-    # -------------------------------------------
-    # descriptor methods
-
-    def test_get(self, cosmo_cls):
-        """Test :meth:`astropy.cosmology.Parameter.__get__`."""
-        # from the class
-        parameter = cosmo_cls.param
-        assert isinstance(parameter, Parameter)
-
-        # from instance
-        value = cosmo_cls().param
-        assert value == 15 * u.m
-
-    def test_set(self, cosmo):
-        """Test :meth:`astropy.cosmology.Parameter.__set__`."""
-        # already set 1st time when instantiated Parameter
-
-        with pytest.raises(AttributeError, match="can't set attribute"):
-            cosmo.param = 2
-
-    def test_delete(self, cosmo):
-        """Test :meth:`astropy.cosmology.Parameter.__delete__`."""
-        with pytest.raises(AttributeError, match="can't delete attribute"):
-            del cosmo.param
-
-    # -------------------------------------------
-    # property-style methods
-
-    def test_fget(self, cosmo, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fget`."""
-        assert parameter.fget is None
-
-    def test_getter_method(self, parameter):
-        """Test :meth:`astropy.cosmology.Parameter.getter`."""
-        with pytest.raises(AttributeError, match="can't create custom Parameter getter."):
-            parameter.getter(None)
-
-    def test_fset(self, cosmo, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fset`."""
-        value = parameter.fset(cosmo, parameter, 1000 * u.m)
-        assert value == 1 * u.km
-
-    def test_setter_method(self, parameter):
-        """Test :meth:`astropy.cosmology.Parameter.setter`."""
-        newparam = parameter.setter("default")
-        assert newparam.fset == newparam._default_setter
-
-    def test_fdel(self, cosmo, parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fdel`."""
-        assert parameter.fdel is None
-
-    def test_deleter_method(self, parameter):
-        """Test :meth:`astropy.cosmology.Parameter.deleter`."""
-        with pytest.raises(AttributeError, match="can't create custom Parameter deleter."):
-            parameter.deleter(None)
-
-    # -------------------------------------------
-    # validation
-
-    def test_set(self, cosmo, parameter):
-        """Test :meth:`astropy.cosmology.Parameter.validate`."""
-        value = parameter.set(cosmo, 1000 * u.m)
-
-        # whether has custom setter
-        if parameter.fset is parameter._default_setter:
-            assert value.unit == u.m
-            assert value.value == 1000
-        else:
-            assert value.unit == u.km
-            assert value.value == 1
-
-    # -------------------------------------------
-    # misc
-
-    def test_repr(self, cosmo_cls):
-        r = repr(cosmo_cls.param)
-        assert f"Parameter 'param'" in r
-        assert str(hex(id(cosmo_cls.param))) in r
-
-    # ==============================================================
-
-    def test_parameter_doesnt_change_with_generic_class(self):
-        """Descriptors are initialized once and not updated on subclasses."""
-
-        class ExampleBase:
-            def __init__(self, param=15):
-                self._param = param
-
-            sig = inspect.signature(__init__)
-            _init_signature = sig.replace(parameters=list(sig.parameters.values())[1:])
-
-            param = Parameter(doc="example parameter")
-
-        class Example(ExampleBase): pass
-
-        assert Example.param is ExampleBase.param
-
-    def test_parameter_doesnt_change_with_cosmology(self, cosmo_cls):
-        """Cosmology reinitializes all descriptors when a subclass is defined."""
-
-        # define subclass to show param is same
-        class Example(cosmo_cls): pass
-
-        assert Example.param is cosmo_cls.param
-
-        # unregister
-        _COSMOLOGY_CLASSES.pop(Example.__qualname__)
-        assert Example.__qualname__ not in _COSMOLOGY_CLASSES
-
-
-# ========================================================================
-
-
-class ParameterTestMixin:
-    """Tests for a :class:`astropy.cosmology.Parameter` on a Cosmology."""
-
-    def test_Parameters(self, cosmo_cls):
-        """Test `astropy.cosmology.Parameter` attached to Cosmology."""
-        # first establish has expected attribute
-        assert hasattr(cosmo_cls, "__parameters__")
-
-        # check that each entry is a Parameter
-        for n in cosmo_cls.__parameters__:
-            assert hasattr(cosmo_cls, n)  # checks on the instance
-            assert isinstance(getattr(cosmo_cls, n), Parameter)
-
-        # the reverse: check that if it is a Parameter, it's listed.
-        # note have to check the more inclusive ``__all_parameters__``
-        for n in dir(cosmo_cls):
-            if isinstance(getattr(cosmo_cls, n), Parameter):
-                assert n in cosmo_cls.__all_parameters__
-
-    def test_Parameter_not_unique(self, cosmo_cls, clean_registry):
-        """Cosmology reinitializes Parameter when a class is defined."""
-
-        # define subclass to show param is same
-        class ExampleBase(cosmo_cls):
-            param = Parameter()
-
-        class Example(ExampleBase): pass
-
-        assert Example.param is ExampleBase.param
-        assert Example.__parameters__ == ExampleBase.__parameters__
-
-    def test_Parameters_reorder_by_signature(self, cosmo_cls, clean_registry):
-        """Test parameters are reordered."""
-
-        class Example(cosmo_cls):
-            param = Parameter()
-
-            def __init__(self, param, *, name=None, meta=None):
-                pass  # never actually initialized
-
-        # param should be 1st, all other parameters next
-        Example.__parameters__[0] == "param"
-        # Check the other parameters are as expected.
-        assert set(Example.__parameters__[1:]) == set(cosmo_cls.__parameters__)
-
-    def test_make_from_Parameter(self, cosmo_cls, clean_registry):
-        """Test the parameter creation process. Uses setter."""
-
-        class Example(cosmo_cls):
-            param = Parameter(unit=u.eV, equivalencies=u.mass_energy())
-
-            def __init__(self, param, *, name=None, meta=None):
-                self.param = param
-
-        assert Example(1).param == 1 * u.eV
-        assert Example(1 * u.eV).param == 1 * u.eV
-        assert Example(1 * u.J).param == (1 * u.J).to(u.eV)
-        assert Example(1 * u.kg).param == (1 * u.kg).to(u.eV, u.mass_energy())
 
 
 class MetaTestMixin:

@@ -76,7 +76,7 @@ Parameters
 An astropy |Cosmology| is characterized by 1) its class, which encodes the
 physics, and 2) its free parameter(s), which specify a cosmological realization.
 When defining the former, all parameters must be declared using |Parameter| and
-should have values assigned at instantiation (or appropriate ``getter`` methods).
+should have values assigned at instantiation.
 
 A |Parameter| is a `descriptor <https://docs.python.org/3/howto/descriptor.html>`_.
 When accessed from a class it transparently stores information, like the units

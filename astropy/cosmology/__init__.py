@@ -8,16 +8,17 @@ detailed usage examples and references.
 
 """
 
-from . import core, flrw, funcs, units, utils
+from . import core, flrw, funcs, parameter, units, utils
 
 from . import io  # needed before 'realizations'  # isort: split
 from . import realizations
 from .core import *
 from .flrw import *
 from .funcs import *
+from .parameter import Parameter
 from .realizations import *
 from .utils import *
 
 __all__ = (core.__all__ + flrw.__all__       # cosmology classes
            + realizations.__all__            # instances thereof
-           + funcs.__all__ + utils.__all__)  # utils
+           + funcs.__all__ + parameter.__all__ + utils.__all__)  # utils

@@ -11,8 +11,8 @@ import os
 
 import pytest
 
-import astropy.units as u
 import astropy.cosmology.units as cu
+import astropy.units as u
 from astropy.cosmology import core
 from astropy.cosmology.core import Cosmology
 from astropy.utils.misc import isiterable
