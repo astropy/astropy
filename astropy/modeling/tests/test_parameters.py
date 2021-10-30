@@ -5,13 +5,16 @@ Tests models.parameters
 # pylint: disable=invalid-name
 
 import itertools
+import functools
 
 import pytest
 import numpy as np
+import unittest.mock as mk
 
 from astropy.modeling import models, fitting
 from astropy.modeling.core import Model, FittableModel
-from astropy.modeling.parameters import Parameter, InputParameterError
+from astropy.modeling.parameters import Parameter, InputParameterError, _tofloat, param_repr_oneline
+from astropy import units as u
 from astropy.utils.data import get_pkg_data_filename
 from . import irafutil
 
@@ -71,6 +74,67 @@ class MockModel(FittableModel):
     @staticmethod
     def evaluate(*args):
         pass
+
+
+def test__tofloat():
+    # iterable
+    value = _tofloat([1, 2, 3])
+    assert isinstance(value, np.ndarray)
+    assert (value == np.array([1, 2, 3])).all()
+    assert np.all([isinstance(val, float) for val in value])
+    value = _tofloat(np.array([1, 2, 3]))
+    assert isinstance(value, np.ndarray)
+    assert (value == np.array([1, 2, 3])).all()
+    assert np.all([isinstance(val, float) for val in value])
+    with pytest.raises(InputParameterError) as err:
+        _tofloat('test')
+    assert str(err.value) == \
+        "Parameter of <class 'str'> could not be converted to float"
+
+    # quantity
+    assert _tofloat(1 * u.m) == 1 * u.m
+
+    # dimensions/scalar array
+    value = _tofloat(np.asanyarray(3))
+    assert isinstance(value, float)
+    assert value == 3
+
+    # A regular number
+    value = _tofloat(3)
+    assert isinstance(value, float)
+    assert value == 3
+    value = _tofloat(3.0)
+    assert isinstance(value, float)
+    assert value == 3
+    value = _tofloat(np.float32(3))
+    assert isinstance(value, float)
+    assert value == 3
+    value = _tofloat(np.float64(3))
+    assert isinstance(value, float)
+    assert value == 3
+    value = _tofloat(np.int32(3))
+    assert isinstance(value, float)
+    assert value == 3
+    value = _tofloat(np.int64(3))
+    assert isinstance(value, float)
+    assert value == 3
+
+    # boolean
+    message = "Expected parameter to be of numerical type, not boolean"
+    with pytest.raises(InputParameterError) as err:
+        _tofloat(True)
+    assert str(err.value) == message
+    with pytest.raises(InputParameterError) as err:
+        _tofloat(False)
+    assert str(err.value) == message
+
+    # other
+    class Value(object):
+        pass
+    with pytest.raises(InputParameterError) as err:
+        _tofloat(Value)
+    assert str(err.value) == \
+        "Don't know how to convert parameter of <class 'type'> to float"
 
 
 def test_parameter_properties():
@@ -323,6 +387,401 @@ class TestParameters:
         sc1.factor = [3, 3]
         assert np.all(sc1.factor == [3, 3])
         np.testing.assert_array_equal(sc1.factor.value, [3, 3])
+
+    def test_bounds(self):
+        # Valid __init__
+        param = Parameter(bounds=(1, 2))
+        assert param.bounds == (1, 2)
+        param = Parameter(min=1, max=2)
+        assert param.bounds == (1, 2)
+
+        # Errors __init__
+        message = "bounds may not be specified simultaneously with min or max" +\
+            " when instantiating Parameter test"
+        with pytest.raises(ValueError) as err:
+            Parameter(bounds=(1, 2), min=1, name='test')
+        assert str(err.value) == message
+        with pytest.raises(ValueError) as err:
+            Parameter(bounds=(1, 2), max=2, name='test')
+        assert str(err.value) == message
+        with pytest.raises(ValueError) as err:
+            Parameter(bounds=(1, 2), min=1, max=2, name='test')
+        assert str(err.value) == message
+
+        # Setters
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.bounds == (None, None) == param._bounds
+
+        # Set errors
+        with pytest.raises(TypeError) as err:
+            param.bounds = ('test', None)
+        assert str(err.value) == \
+            "Min value must be a number or a Quantity"
+        with pytest.raises(TypeError) as err:
+            param.bounds = (None, 'test')
+        assert str(err.value) == \
+            "Max value must be a number or a Quantity"
+
+        # Set number
+        param.bounds = (1, 2)
+        assert param.bounds == (1, 2) == param._bounds
+
+        # Set Quantity
+        param.bounds = (1 * u.m, 2 * u.m)
+        assert param.bounds == (1, 2) == param._bounds
+
+    def test_modify_value(self):
+        param = Parameter(name='test', default=[1, 2, 3])
+        assert (param.value == [1, 2, 3]).all()
+
+        # Errors
+        with pytest.raises(InputParameterError) as err:
+            param[slice(0, 0)] = 2
+        assert str(err.value) == \
+            "Slice assignment outside the parameter dimensions for 'test'"
+
+        with pytest.raises(InputParameterError) as err:
+            param[3] = np.array([5])
+        assert str(err.value) == \
+            "Input dimension 3 invalid for 'test' parameter with dimension 1"
+
+        # assignment of a slice
+        param[slice(0, 2)] = [4, 5]
+        assert (param.value == [4, 5, 3]).all()
+
+        # assignment of a value
+        param[2] = 6
+        assert (param.value == [4, 5, 6]).all()
+
+    def test__set_unit(self):
+        param = Parameter(name='test', default=[1, 2, 3])
+        assert param.unit is None
+
+        # No force Error (no existing unit)
+        with pytest.raises(ValueError) as err:
+            param._set_unit(u.m)
+        assert str(err.value) == \
+            "Cannot attach units to parameters that were not initially specified with units"
+
+        # Force
+        param._set_unit(u.m, True)
+        assert param.unit == u.m
+
+        # No force Error (existing unit)
+        with pytest.raises(ValueError) as err:
+            param._set_unit(u.K)
+        assert str(err.value) == \
+            "Cannot change the unit attribute directly, instead change the parameter to a new quantity"
+
+    def test_quantity(self):
+        param = Parameter(name='test', default=[1, 2, 3])
+        assert param.unit is None
+        assert param.quantity is None
+
+        param = Parameter(name='test', default=[1, 2, 3], unit=u.m)
+        assert param.unit == u.m
+        assert (param.quantity == np.array([1, 2, 3]) * u.m).all()
+
+    def test_shape(self):
+        # Array like
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.shape == (4,)
+        # Reshape error
+        with pytest.raises(ValueError) as err:
+            param.shape = (5,)
+        assert str(err.value) == \
+            "cannot reshape array of size 4 into shape (5,)"
+        # Reshape success
+        param.shape = (2, 2)
+        assert param.shape == (2, 2)
+        assert (param.value == [[1, 2], [3, 4]]).all()
+
+        # Scalar
+        param = Parameter(name='test', default=1)
+        assert param.shape == ()
+        # Reshape error
+        with pytest.raises(ValueError) as err:
+            param.shape = (5,)
+        assert str(err.value) == \
+            "Cannot assign this shape to a scalar quantity"
+        param.shape = (1,)
+
+        # single value
+        param = Parameter(name='test', default=np.array([1]))
+        assert param.shape == (1,)
+        # Reshape error
+        with pytest.raises(ValueError) as err:
+            param.shape = (5,)
+        assert str(err.value) == \
+            "Cannot assign this shape to a scalar quantity"
+        param.shape = ()
+
+    def test_size(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.size == 4
+
+        param = Parameter(name='test', default=[1])
+        assert param.size == 1
+
+        param = Parameter(name='test', default=1)
+        assert param.size == 1
+
+    def test_std(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.std == None == param._std
+
+        param.std = 5
+        assert param.std == 5 == param._std
+
+    def test_fixed(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.fixed == False == param._fixed
+
+        # Set error
+        with pytest.raises(ValueError) as err:
+            param.fixed = 3
+        assert str(err.value) == \
+            "Value must be boolean"
+
+        # Set
+        param.fixed = True
+        assert param.fixed == True == param._fixed
+
+    def test_tied(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.tied == False == param._tied
+
+        # Set error
+        with pytest.raises(TypeError) as err:
+            param.tied = mk.NonCallableMagicMock()
+        assert str(err.value) == \
+            "Tied must be a callable or set to False or None"
+
+        # Set None
+        param.tied = None
+        assert param.tied == None == param._tied
+
+        # Set False
+        param.tied = False
+        assert param.tied == False == param._tied
+
+        # Set other
+        tied = mk.MagicMock()
+        param.tied = tied
+        assert param.tied == tied == param._tied
+
+    def test_validator(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param._validator is None
+
+        valid = mk.MagicMock()
+        param.validator(valid)
+        assert param._validator == valid
+
+        with pytest.raises(ValueError) as err:
+            param.validator(mk.NonCallableMagicMock())
+        assert str(err.value) == \
+            "This decorator method expects a callable.\n" +\
+            "The use of this method as a direct validator is\n" +\
+            "deprecated; use the new validate method instead\n"
+
+    def test_validate(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param._validator is None
+        assert param.model is None
+
+        # Run without validator
+        param.validate(mk.MagicMock())
+
+        # Run with validator but no Model
+        validator = mk.MagicMock()
+        param.validator(validator)
+        assert param._validator == validator
+        param.validate(mk.MagicMock())
+        assert validator.call_args_list == []
+
+        # Full validate
+        param._model = mk.MagicMock()
+        value = mk.MagicMock()
+        param.validate(value)
+        assert validator.call_args_list == [mk.call(param._model, value)]
+
+    def test_copy(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        copy_param = param.copy()
+
+        assert (param == copy_param).all()
+        assert id(param) != id(copy_param)
+
+    def test_model(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param.model == None == param._model
+        assert param._model_required == False
+        assert (param._value == [1, 2, 3, 4]).all()
+
+        setter = mk.MagicMock()
+        getter = mk.MagicMock()
+        param._setter = setter
+        param._getter = getter
+
+        # No Model Required
+        param._value = [5, 6, 7, 8]
+        model0 = mk.MagicMock()
+        setter0 = mk.MagicMock()
+        getter0 = mk.MagicMock()
+        with mk.patch.object(Parameter, '_create_value_wrapper',
+                             side_effect=[setter0, getter0]) as mkCreate:
+            param.model = model0
+            assert param.model == model0 == param._model
+            assert param._setter == setter0
+            assert param._getter == getter0
+            assert mkCreate.call_args_list == [
+                mk.call(setter, model0),
+                mk.call(getter, model0)
+            ]
+            assert param._value == [5, 6, 7, 8]
+
+        param._setter = setter
+        param._getter = getter
+
+        # Model required
+        param._model_required = True
+        model1 = mk.MagicMock()
+        setter1 = mk.MagicMock()
+        getter1 = mk.MagicMock()
+        setter1.return_value = [9, 10, 11, 12]
+        getter1.return_value = [9, 10, 11, 12]
+        with mk.patch.object(Parameter, '_create_value_wrapper',
+                             side_effect=[setter1, getter1]) as mkCreate:
+            param.model = model1
+            assert param.model == model1 == param._model
+            assert param._setter == setter1
+            assert param._getter == getter1
+            assert mkCreate.call_args_list == [
+                mk.call(setter, model1),
+                mk.call(getter, model1)
+            ]
+            assert (param.value == [9, 10, 11, 12]).all()
+
+        param._setter = setter
+        param._getter = getter
+        param._default = None
+        with mk.patch.object(Parameter, '_create_value_wrapper',
+                             side_effect=[setter1, getter1]) as mkCreate:
+            param.model = model1
+            assert param.model == model1 == param._model
+            assert param._setter == setter1
+            assert param._getter == getter1
+            assert mkCreate.call_args_list == [
+                mk.call(setter, model1),
+                mk.call(getter, model1)
+            ]
+            assert param._value is None
+
+    def test_raw_value(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+
+        # Normal case
+        assert (param._raw_value == param.value).all()
+
+        # Bad setter
+        param._setter = True
+        param._internal_value = 4
+        assert param._raw_value == 4
+
+    def test__create_value_wrapper(self):
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+
+        # Bad ufunc
+        with pytest.raises(TypeError) as err:
+            param._create_value_wrapper(np.add, mk.MagicMock())
+        assert str(err.value) == \
+            "A numpy.ufunc used for Parameter getter/setter may only take one input argument"
+        # Good ufunc
+        assert param._create_value_wrapper(np.negative, mk.MagicMock()) == np.negative
+
+        # None
+        assert param._create_value_wrapper(None, mk.MagicMock()) is None
+
+        # wrapper with one argument
+        def wrapper1(a):
+            pass
+        assert param._create_value_wrapper(wrapper1, mk.MagicMock()) == wrapper1
+
+        # wrapper with two argument2
+        def wrapper2(a, b):
+            pass
+        # model is None
+        assert param._model_required == False
+        assert param._create_value_wrapper(wrapper2, None) == wrapper2
+        assert param._model_required == True
+        # model is not None
+        param._model_required = False
+        model = mk.MagicMock()
+        with mk.patch.object(functools, 'partial', autospec=True) as mkPartial:
+            assert param._create_value_wrapper(wrapper2, model) == mkPartial.return_value
+
+        # wrapper with more than 2 arguments
+        def wrapper3(a, b, c):
+            pass
+        with pytest.raises(TypeError) as err:
+            param._create_value_wrapper(wrapper3, mk.MagicMock())
+        assert str(err.value) == \
+            "Parameter getter/setter must be a function of either one or two arguments"
+
+    def test_bool(self):
+        # single value is true
+        param = Parameter(name='test', default=1)
+        assert param.value == 1
+        assert np.all(param)
+        if param:
+            assert True
+        else:
+            assert False
+
+        # single value is false
+        param = Parameter(name='test', default=0)
+        assert param.value == 0
+        assert not np.all(param)
+        if param:
+            assert False
+        else:
+            assert True
+
+        # vector value all true
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert np.all(param.value == [1, 2, 3, 4])
+        assert np.all(param)
+        if param:
+            assert True
+        else:
+            assert False
+
+        # vector value at least one false
+        param = Parameter(name='test', default=[1, 2, 0, 3, 4])
+        assert np.all(param.value == [1, 2, 0, 3, 4])
+        assert not np.all(param)
+        if param:
+            assert False
+        else:
+            assert True
+
+    def test_param_repr_oneline(self):
+        # Single value no units
+        param = Parameter(name='test', default=1)
+        assert param_repr_oneline(param) == '1.'
+
+        # Vector value no units
+        param = Parameter(name='test', default=[1, 2, 3, 4])
+        assert param_repr_oneline(param) == '[1., 2., 3., 4.]'
+
+        # Single value units
+        param = Parameter(name='test', default=1*u.m)
+        assert param_repr_oneline(param) == '1. m'
+
+        # Vector value units
+        param = Parameter(name='test', default=[1, 2, 3, 4] * u.m)
+        assert param_repr_oneline(param) == '[1., 2., 3., 4.] m'
 
 
 class TestMultipleParameterSets:

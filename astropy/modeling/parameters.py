@@ -53,7 +53,7 @@ def _tofloat(value):
     elif isinstance(value, np.ndarray):
         # A scalar/dimensionless array
         value = float(value.item())
-    elif isinstance(value, (numbers.Number, np.number)):
+    elif isinstance(value, (numbers.Number, np.number)) and not isinstance(value, bool):
         value = float(value)
     elif isinstance(value, bool):
         raise InputParameterError(
@@ -192,7 +192,7 @@ class Parameter:
 
     def __init__(self, name='', description='', default=None, unit=None,
                  getter=None, setter=None, fixed=False, tied=False, min=None,
-                 max=None, bounds=None):
+                 max=None, bounds=None, prior=None, posterior=None):
         super().__init__()
 
         self._model = None
@@ -231,7 +231,7 @@ class Parameter:
             if min is not None or max is not None:
                 raise ValueError(
                     'bounds may not be specified simultaneously with min or '
-                    'or max when instantiating Parameter {}'.format(name))
+                    'max when instantiating Parameter {}'.format(name))
         else:
             bounds = (min, max)
 
@@ -241,8 +241,8 @@ class Parameter:
         self._order = None
 
         self._validator = None
-        self._prior = None
-        self._posterior = None
+        self._prior = prior
+        self._posterior = posterior
 
         self._std = None
 
@@ -368,12 +368,7 @@ class Parameter:
         if force:
             self._unit = unit
         else:
-            if unit is None:
-                raise ValueError('Cannot attach units to parameters that were '
-                                 'not initially specified with units')
-            else:
-                raise ValueError('Cannot change the unit attribute directly, '
-                                 'instead change the parameter to a new quantity')
+            self.unit = unit
 
     @property
     def internal_unit(self):
@@ -508,7 +503,7 @@ class Parameter:
 
         if _max is not None:
             if not isinstance(_max, (numbers.Number, Quantity)):
-                raise TypeError("Max value must be a number")
+                raise TypeError("Max value must be a number or a Quantity")
             if isinstance(_max, Quantity):
                 _max = float(_max.value)
             else:
@@ -681,7 +676,7 @@ class Parameter:
         return arr
 
     def __bool__(self):
-        return bool(self.value)
+        return bool(np.all(self.value))
 
     __add__ = _binary_arithmetic_operation(operator.add)
     __radd__ = _binary_arithmetic_operation(operator.add, reflected=True)

@@ -1,0 +1,21 @@
+Minor bugfixes and improvements to modeling including the following:
+    * Fixed typos and clarified several errors and their messages throughout
+      modeling.
+    * Removed incorrect try/except blocks around scipy code in
+      ``convolution.py`` and ``functional_models.py``.
+    * Fixed ``Ring2D`` model's init to properly accept all combinations
+      of ``r_in``, ``r_out``, and ``width``.
+    * Fixed bug in ``tau`` validator for the ``Logarithmic1D`` and
+      ``Exponential1D`` models when using them as model sets.
+    * Fixed ``copy`` method for ``Parameter`` in order to prevent an
+      automatic ``KeyError``, and fixed ``bool`` for ``Parameter`` so
+      that it functions with vector values.
+    * Removed unreachable code from ``Parameter``, the ``_Tabular`` model,
+      and the ``Drude1D`` model.
+    * Fixed validators in ``Drude1D`` model so that it functions in a
+      model set.
+    * Removed duplicated code from ``polynomial.py`` for handing of
+      ``domain`` and ``window``.
+    * Fixed the ``Pix2Sky_HEALPixPolar`` and ``Sky2Pix_HEALPixPolar`` modes
+      so that their ``evaluate`` and ``inverse`` methods actually work
+      without raising an error.

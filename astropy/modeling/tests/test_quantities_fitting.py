@@ -44,7 +44,7 @@ compound_models_no_units = [
 ]
 
 
-class  CustomInputNamesModel(Fittable1DModel):
+class CustomInputNamesModel(Fittable1DModel):
 
     n_inputs = 1
     n_outputs = 1

@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal, assert_array_less
 
+from astropy import units as u
 from astropy.modeling import models, InputParameterError
 from astropy.coordinates import Angle
 from astropy.modeling import fitting
@@ -32,6 +33,16 @@ def test_Trapezoid1D():
     yy = model(xx)
     yy_ref = [0., 1.41428571, 3.12857143, 4.2, 4.2, 3.12857143, 1.41428571, 0.]
     assert_allclose(yy, yy_ref, rtol=0, atol=1e-6)
+
+
+def test_Gaussian1D():
+
+    model = models.Gaussian1D(4.2, 1.7, stddev=5.1)
+    x = np.mgrid[0:5]
+    g = model(x)
+    g_ref = [3.97302977, 4.16062403, 4.19273985, 4.06574509, 3.79389376]
+    assert_allclose(g, g_ref, rtol=0, atol=1e-6)
+    assert_allclose(model.fwhm, 12.009582229657841)
 
 
 def test_Gaussian2D():
@@ -70,6 +81,15 @@ def test_Gaussian2DCovariance():
              [16.26953638, 16.76048705, 16.44637743, 15.37184621, 13.68528889],
              [14.84113227, 14.02225593, 12.61946384, 10.81772851, 8.83290201]]
     assert_allclose(g, g_ref, rtol=0, atol=1e-6)
+
+    # Test bad cov_matrix shape
+    cov_matrix = [[49., 3.14, -16.],
+                  [3.14, -16., 9.],
+                  [-16, 27, 3.14]]
+    with pytest.raises(ValueError) as err:
+        models.Gaussian2D(17., 2.0, 2.5, cov_matrix=cov_matrix)
+    assert str(err.value) == \
+        "Covariance matrix must be 2x2"
 
 
 def test_Gaussian2DRotation():
@@ -154,6 +174,21 @@ def test_RedshiftScaleFactor_inverse_bounding_box():
     inverse_model = model.inverse
     assert inverse_model.bounding_box == (3, 15)
     assert_allclose(inverse_model(model(4, with_bounding_box=True), with_bounding_box=True), 4)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_RedshiftScaleFactor_model_levmar_fit():
+    """Test fitting RedshiftScaleFactor model with LevMarLSQFitter."""
+
+    init_model = models.RedshiftScaleFactor()
+
+    x = np.arange(10)
+    y = 2.7174 * x
+
+    fitter = fitting.LevMarLSQFitter()
+    fitted_model = fitter(init_model, x, y)
+
+    assert_allclose(fitted_model.parameters, [1.7174])
 
 
 def test_Ellipse2D():
@@ -241,7 +276,7 @@ def test_Shift_model_levmar_fit():
     init_model = models.Shift()
 
     x = np.arange(10)
-    y = x+0.1
+    y = x + 0.1
 
     fitter = fitting.LevMarLSQFitter()
     with pytest.warns(AstropyUserWarning,
@@ -280,10 +315,97 @@ def test_Scale_model_set_linear_fit(Model):
     assert_allclose(fitted_model.parameters, [1.15, 0.96], atol=1e-15)
 
 
+@pytest.mark.parametrize('Model', (models.Scale, models.Multiply))
+def test_Scale_model_evaluate_without_units(Model):
+    m = Model(factor=4*u.m)
+    kwargs = {'x': 3*u.m, 'y': 7*u.m}
+    mnu = m.without_units_for_data(**kwargs)
+
+    x = np.linspace(-1, 1, 100)
+    assert_allclose(mnu(x), 4*x)
+
+
 # https://github.com/astropy/astropy/issues/6178
 def test_Ring2D_rout():
+    # Test with none of r_in, r_out, width specified
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 1
+    assert m.width.value == 1
+
+    # Test with r_in specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=4)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 4
+    assert m.width.value == 1
+
+    # Test with r_out specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=7)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 1
+    assert m.width.value == 6
+    # Error when r_out is too small for default r_in
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=0.5)
+    assert str(err.value) == "r_in=1 and width=-0.5 must both be >=0"
+
+    # Test with width specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, width=11)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 1
+    assert m.width.value == 11
+
+    # Test with r_in and r_out specified only
     m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, r_out=5)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 2
     assert m.width.value == 3
+    # Error when r_out is smaller than r_in
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=1, r_in=4)
+    assert str(err.value) == "r_in=4 and width=-3 must both be >=0"
+
+    # Test with r_in and width specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=2, width=4)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 2
+    assert m.width.value == 4
+
+    # Test with r_out and width specified only
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=12, width=7)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 5
+    assert m.width.value == 7
+    # Error when width is larger than r_out
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_out=1, width=4)
+    assert str(err.value) == "r_in=-3 and width=4 must both be >=0"
+
+    # Test with r_in, r_out, and width all specified
+    m = models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=8)
+    assert m.amplitude.value == 1
+    assert m.x_0.value == 1
+    assert m.y_0.value == 1
+    assert m.r_in.value == 3
+    assert m.width.value == 8
+    # error when specifying all
+    with pytest.raises(InputParameterError) as err:
+        models.Ring2D(amplitude=1, x_0=1, y_0=1, r_in=3, r_out=11, width=7)
+    assert str(err.value) == "Width must be r_out - r_in"
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -295,6 +417,12 @@ def test_Voigt1D():
     fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
     assert_allclose(voi_fit.param_sets, voi.param_sets)
+
+    # Invalid method
+    with pytest.raises(ValueError) as err:
+        models.Voigt1D(method='test')
+    assert str(err.value) ==\
+        "Not a valid method for Voigt1D Faddeeva function: test."
 
 
 @pytest.mark.skipif("not HAS_SCIPY")
@@ -338,14 +466,30 @@ def test_KingProjectedAnalytic1D_fit():
     fitter = fitting.LevMarLSQFitter()
     km_fit = fitter(km_init, xarr, yarr)
     assert_allclose(km_fit.param_sets, km.param_sets)
+    assert_allclose(km_fit.concentration, 0.30102999566398136)
 
 
-def test_ExponentialAndLogarithmic1D_fit():
+@pytest.mark.parametrize('model', [models.Exponential1D(), models.Logarithmic1D()])
+def test_ExponentialAndLogarithmic1D_fit(model):
     xarr = np.linspace(0.1, 10., 200)
-    em_model = models.Exponential1D(amplitude=1, tau=1)
-    log_model = models.Logarithmic1D(amplitude=1, tau=1)
-    assert_allclose(xarr, em_model.inverse(em_model(xarr)))
-    assert_allclose(xarr, log_model.inverse(log_model(xarr)))
+    assert_allclose(xarr, model.inverse(model(xarr)))
+
+
+@pytest.mark.parametrize('model', [models.Exponential1D(), models.Logarithmic1D()])
+def test_ExponentialAndLogarithmic_set_tau(model):
+    message = "0 is not an allowed value for tau"
+
+    with pytest.raises(ValueError) as err:
+        model.tau = 0
+    assert str(err.value) == message
+
+
+def test_Linear1D_inverse():
+    model = models.Linear1D(slope=4, intercept=-12)
+    inverse = model.inverse
+
+    assert inverse.slope == 1/4
+    assert inverse.intercept == 3
 
 
 @pytest.mark.parametrize('trig', [(models.Sine1D, [-0.25, 0.25]),
