@@ -5,17 +5,21 @@
 ##############################################################################
 # IMPORTS
 
+# STDLIB
 import abc
 
+# THIRD PARTY
 import pytest
 
 import numpy as np
 
+# LOCAL
 import astropy.units as u
 from astropy.cosmology import (FLRW, FlatLambdaCDM, Flatw0waCDM, FlatwCDM,
                                LambdaCDM, Planck18, w0waCDM, w0wzCDM, wCDM, wpwaCDM)
-from astropy.cosmology.core import _COSMOLOGY_CLASSES, Parameter
+from astropy.cosmology.core import _COSMOLOGY_CLASSES
 from astropy.cosmology.flrw import ellipkinc, hyp2f1, quad
+from astropy.cosmology.parameter import Parameter
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .test_core import CosmologySubclassTest as CosmologyTest
@@ -102,7 +106,7 @@ class TestFLRW(CosmologyTest):
         # validation
         assert cosmo_cls.Om0.set(cosmo, 1) == 1
         assert cosmo_cls.Om0.set(cosmo, 10 * u.one) == 10
-        with pytest.raises(ValueError, match="matter density can not be negative"):
+        with pytest.raises(ValueError, match="Om0 can not be negative"):
             cosmo_cls.Om0.set(cosmo, -1)
 
         # on the instance
@@ -150,7 +154,7 @@ class TestFLRW(CosmologyTest):
         # validation
         assert cosmo_cls.Neff.set(cosmo, 1) == 1
         assert cosmo_cls.Neff.set(cosmo, 10 * u.one) == 10
-        with pytest.raises(ValueError, match="effective number of neutrinos can not be negative"):
+        with pytest.raises(ValueError, match="Neff can not be negative"):
             cosmo_cls.Neff.set(cosmo, -1)
 
         # on the instance
@@ -191,7 +195,7 @@ class TestFLRW(CosmologyTest):
         assert cosmo_cls.Ob0.set(cosmo, None) is None
         assert cosmo_cls.Ob0.set(cosmo, 0.1) == 0.1
         assert cosmo_cls.Ob0.set(cosmo, 0.1 * u.one) == 0.1
-        with pytest.raises(ValueError, match="baryonic density can not be negative"):
+        with pytest.raises(ValueError, match="Ob0 can not be negative"):
             cosmo_cls.Ob0.set(cosmo, -1)
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
             cosmo_cls.Ob0.set(cosmo, cosmo.Om0 + 1)
@@ -268,6 +272,8 @@ class TestFLRW(CosmologyTest):
             assert not cosmo.is_equivalent(Planck18)
             assert not Planck18.is_equivalent(cosmo)
 
+    # ---------------------------------------------------------------
+
     def test_efunc_vs_invefunc(self, cosmo):
         """
         Test that efunc and inv_efunc give inverse values.
@@ -315,6 +321,24 @@ class FLRWSubclassTest(TestFLRW):
 
 class FlatFLRWMixinTest(FlatCosmologyMixinTest):
     """Tests for :class:`astropy.cosmology.FlatFLRWMixin`."""
+
+    # ---------------------------------------------------------------
+    # class-level
+
+    def test_init_subclass(self, cosmo_cls):
+        """Test initializing subclass, mostly that can't have Ode0 in init."""
+        super().test_init_subclass(cosmo_cls)
+
+        with pytest.raises(TypeError, match="subclasses of"):
+
+            class HASOde0SubClass(cosmo_cls):
+                def __init__(self, Ode0):
+                    pass
+
+            _COSMOLOGY_CLASSES.pop(HASOde0SubClass.__qualname__, None)
+
+    # ---------------------------------------------------------------
+    # instance-level
 
     def test_init(self, cosmo_cls):
         super().test_init(cosmo_cls)
