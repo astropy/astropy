@@ -20,7 +20,7 @@ from astropy.modeling import FittableModel
 from astropy.modeling.models import Gaussian1D
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .base import IOTestMixinBase, ToFromFormatTestBase
+from .base import IOTestMixinBase, IOFormatTestBase
 
 cosmo_instances = [getattr(realizations, name) for name in available]
 cosmo_instances.append("TestToFromTable.setup.<locals>.CosmologyWithKwargs")
@@ -90,7 +90,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         with pytest.raises(AttributeError):
             to_format("astropy.model", method="this is definitely not a method.")
 
-    def test_toformat_model_not_callable(self, cosmo, to_format):
+    def test_toformat_model_not_callable(self, to_format):
         """Test when method is actually an attribute."""
         with pytest.raises(ValueError):
             to_format("astropy.model", method="name")
@@ -131,7 +131,8 @@ class ToFromModelTestMixin(IOTestMixinBase):
             expected = getattr(cosmo, method_name)(*args)
             assert np.all(got == expected)
 
-    def test_tofromformat_model_instance(self, cosmo, to_format, from_format, method_name):
+    def test_tofromformat_model_instance(self, cosmo_cls, cosmo, method_name,
+                                         to_format, from_format):
         """Test cosmology -> astropy.model -> cosmology."""
         if method_name is None:  # no test if no method
             return
@@ -144,7 +145,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         model = to_format("astropy.model", method=method_name)
 
         assert isinstance(model, _CosmologyModel)
-        assert model.cosmology_class is cosmo.__class__
+        assert model.cosmology_class is cosmo_cls
         assert model.cosmology == cosmo
         assert model.method_name == method_name
 
@@ -162,7 +163,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         assert got == cosmo
         assert set(cosmo.meta.keys()).issubset(got.meta.keys())
 
-    def test_fromformat_model_subclass_partial_info(self, cosmo):
+    def test_fromformat_model_subclass_partial_info(self):
         """
         Test writing from an instance and reading from that class.
         This works with missing information.
@@ -170,7 +171,7 @@ class ToFromModelTestMixin(IOTestMixinBase):
         pass  # there's no partial information with a Model
 
 
-class TestToFromModel(ToFromFormatTestBase, ToFromModelTestMixin):
+class TestToFromModel(IOFormatTestBase, ToFromModelTestMixin):
     """Directly test ``to/from_model``."""
 
     def setup_class(self):

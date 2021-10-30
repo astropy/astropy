@@ -31,7 +31,7 @@ class ToFromMappingTestMixin(IOTestMixinBase):
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
     ``cosmo`` that returns/yields an instance of a |Cosmology|.
-    See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
+    See ``TestCosmology`` for an example.
     """
 
     def test_failed_cls_to_mapping(self, cosmo, to_format):
