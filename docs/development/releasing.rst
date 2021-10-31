@@ -123,7 +123,7 @@ packages that use the full bugfix/maintenance branch approach.)
       $ git commit -m "Added contributor statistics and names"
 
    Update the ``docs/credits.rst`` file to include any new contributors from the
-   above step, and commit this and the ``.mailmap`` changes
+   above step, and commit this and the ``.mailmap`` changes::
 
       $ git add .mailmap
       $ git add docs/credits.rst
