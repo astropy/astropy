@@ -245,8 +245,8 @@ Post-Release procedures
    previous step).
 
 #. When releasing a patch release, also set the previous RTD version in the
-   release history to "protected".  For example when releasing v1.1.2, set
-   v1.1.1 to "protected".  This prevents the previous releases from
+   release history to "protected".  For example when releasing v5.0.2, set
+   v5.0.1 to "protected".  This prevents the previous releases from
    cluttering the list of versions that users see in the version dropdown
    (the previous versions are still accessible by their URL though).
 
@@ -257,12 +257,9 @@ Post-Release procedures
    list on the web site if you updated the ``docs/credits.rst`` at the outset.
 
 #. Cherry-pick the commit rendering the changelog and deleting the fragments and
-   open a PR to the astropy *main* branch. Note: updating this when doing the
-   next release with towncrier.
-   In the same PR, you also have to update ``docs/whatsnew/index.rst`` and
-   ``docs/whatsnew/X.Y.rst`` to link to "what's new" documentation in the
-   released RTD branch, using the existing text as example. See
-   `PR#12073 <https://github.com/astropy/astropy/pull/12073>`_ for an example.
+   open a PR to the astropy *main* branch. Also make sure you cherry-pick the
+   commit updating the ``.mailmap`` and ``docs/credits.rst`` files to the *main*
+   branch in a separate PR.
 
 #. ``conda-forge`` has a bot that automatically opens
    a PR from a new PyPI (stable) release, which you need to follow up on and
@@ -380,8 +377,7 @@ to work and reference the original link they referenced at the time of writing.
       $ git commit -m "Added <next_version> what's new page and redirect <current_version> what's new page"
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
-   if you have just branched ``4.0``, create the ``v4.1.dev`` tag on the commit
-   adding the ``4.1`` section to the changelog::
+   if you have just branched ``5.0``, create the ``v5.1.dev`` tag::
 
       $ git tag -s "v<next_version>.dev" -m "Back to development: v<next_version>"
 
@@ -440,9 +436,9 @@ Issues are assigned to an Astropy release by way of the Milestone feature in
 the GitHub issue tracker.  At any given time there are at least two versions
 under development: The next major/minor version, and the next bug fix release.
 For example, at the time of writing there are two release milestones open:
-v1.2.2 and v0.3.0.  In this case, v1.2.2 is the next bug fix release and all
+v5.1 and v5.0.1.  In this case, v5.0.1 is the next bug fix release and all
 issues that should include fixes in that release should be assigned that
-milestone.  Any issues that implement new features would go into the v0.3.0
+milestone.  Any issues that implement new features would go into the v5.1
 milestone--this is any work that goes in the main branch that should not
 be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
@@ -457,12 +453,12 @@ Backporting fixes from main
 
     The changelog script in ``astropy-tools`` (``pr_consistency`` scripts
     in particular) does not know about minor releases, thus please be careful.
-    For example, let's say we have two branches (``main`` and ``v1.2.x``).
-    Both 1.2.0 and 1.2.1 releases will come out of the same v1.2.x branch.
-    If a PR for 1.2.1 is merged into ``main`` before 1.2.0 is released,
-    it should not be backported into v5.0.x branch until after 1.2.0 is
+    For example, let's say we have two branches (``main`` and ``v5.0.x``).
+    Both 5.0.0 and 5.0.1 releases will come out of the same v5.0.x branch.
+    If a PR for 5.0.1 is merged into ``main`` before 5.0.0 is released,
+    it should not be backported into v5.0.x branch until after 5.0.0 is
     released, despite complaining from the aforementioned script.
-    This situation only arises in a very narrow time frame after 1.2.0
+    This situation only arises in a very narrow time frame after 5.0.0
     freeze but before its release.
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
@@ -626,8 +622,8 @@ Finally, not all issues assigned to a release milestone need to be fixed before
 making that release.  Usually, in the interest of getting a release with
 existing fixes out within some schedule, it's best to triage issues that won't
 be fixed soon to a new release milestone.  If the upcoming bug fix release is
-'v1.2.2', then go ahead and create a 'v1.2.3' milestone and reassign to it any
-issues that you don't expect to be fixed in time for 'v1.2.2'.
+'v5.0.2', then go ahead and create a 'v5.0.3' milestone and reassign to it any
+issues that you don't expect to be fixed in time for 'v5.0.2'.
 
 .. _key-signing-info:
 
