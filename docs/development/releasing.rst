@@ -181,8 +181,10 @@ packages that use the full bugfix/maintenance branch approach.)
    Push to GitHub and open a pull request for merging this into the release branch,
    e.g. v5.0.x.
 
-#. Tag the commit with ``v<version>``, being certain to sign the tag with the
-   ``-s`` option::
+#. Once the changelog pull request is merged, update your release branch to
+   match the upstream version, then (on the release branch), tag the merge
+   commit for the changelog changes with ``v<version>``, being certain to sign
+   the tag with the ``-s`` option::
 
       $ git tag -s v<version> -m "Tagging v<version>"
 
