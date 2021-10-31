@@ -308,6 +308,11 @@ The primary modifications to the release procedure are:
   is ordered "before" the main release by various automated tools, and also
   tells PyPI that this is a "pre-release."
 * Do not do steps in :ref:`post-release-procedure`.
+* Do not render the changelog with towncrier and open the pull request for these
+  changes to the release branch. This should only be done just before the final
+  release. However, it is up to the discretion of the release manager whether to
+  open 'practice' pull requests to do this as part of the beta/release candidate
+  process (but they should not be merged in).
 
 Once a release candidate is available, create a new Wiki page under
 `Astropy Project Wiki <https://github.com/astropy/astropy/wiki>`_ with the
