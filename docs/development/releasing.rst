@@ -457,8 +457,8 @@ Backporting fixes from main
 
     The changelog script in ``astropy-tools`` (``pr_consistency`` scripts
     in particular) does not know about minor releases, thus please be careful.
-    For example, let's say we have two branches (``main`` and ``v5.0.x``).
-    Both 1.2.0 and 1.2.1 releases will come out of the same v5.0.x branch.
+    For example, let's say we have two branches (``main`` and ``v1.2.x``).
+    Both 1.2.0 and 1.2.1 releases will come out of the same v1.2.x branch.
     If a PR for 1.2.1 is merged into ``main`` before 1.2.0 is released,
     it should not be backported into v5.0.x branch until after 1.2.0 is
     released, despite complaining from the aforementioned script.
