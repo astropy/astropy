@@ -10,7 +10,7 @@ from astropy import cosmology
 from astropy.cosmology import Cosmology, w0wzCDM
 from astropy.cosmology.connect import CosmologyRead, readwrite_registry
 from astropy.cosmology.core import Cosmology
-from astropy.cosmology.io.tests import test_ecsv, test_mapping, test_model, test_table
+from astropy.cosmology.io.tests import test_ecsv, test_mapping, test_model, test_row, test_table
 from astropy.table import QTable
 
 from .conftest import json_identify, read_json, write_json
@@ -205,7 +205,7 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 class ToFromFormatTestMixin(
     # convert
     test_mapping.ToFromMappingTestMixin, test_model.ToFromModelTestMixin,
-    test_table.ToFromTableTestMixin,
+    test_row.ToFromRowTestMixin, test_table.ToFromTableTestMixin,
     # read/write
     test_ecsv.ReadWriteECSVTestMixin,
 ):
