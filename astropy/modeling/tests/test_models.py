@@ -15,7 +15,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.models import Gaussian2D
-from astropy.modeling.bounding_box import BoundingBox
+from astropy.modeling.bounding_box import ModelBoundingBox
 from astropy.modeling.core import FittableModel
 from astropy.modeling.parameters import Parameter
 from astropy.modeling.polynomial import PolynomialBase
@@ -422,7 +422,7 @@ class Fittable1DModelTester:
             rtol = 1e-7
             ddx = 1
 
-        if isinstance(bbox, BoundingBox):
+        if isinstance(bbox, ModelBoundingBox):
             bbox = bbox.bounding_box()
 
         dx = np.diff(bbox) / 2

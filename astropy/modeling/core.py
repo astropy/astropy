@@ -38,7 +38,7 @@ from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _combine_equivalency_dict,
                     _ConstraintsDict, _SpecialOperatorsDict)
-from .bounding_box import BoundingDomain, BoundingBox, CompoundBoundingBox
+from .bounding_box import BoundingDomain, ModelBoundingBox, CompoundBoundingBox
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -285,7 +285,7 @@ class _ModelMeta(abc.ABCMeta):
             # See if it's a hard-coded bounding_box (as a sequence) and
             # normalize it
             try:
-                bounding_box = BoundingBox.validate(cls, bounding_box)
+                bounding_box = ModelBoundingBox.validate(cls, bounding_box)
             except ValueError as exc:
                 raise ModelDefinitionError(exc.args[0])
         else:
@@ -307,7 +307,7 @@ class _ModelMeta(abc.ABCMeta):
     def _create_bounding_box_subclass(cls, func, sig):
         """
         For Models that take optional arguments for defining their bounding
-        box, we create a subclass of BoundingBox with a ``__call__`` method
+        box, we create a subclass of ModelBoundingBox with a ``__call__`` method
         that supports those additional arguments.
 
         Takes the function's Signature as an argument since that is already
@@ -348,7 +348,7 @@ class _ModelMeta(abc.ABCMeta):
 
         __call__.__signature__ = sig
 
-        return type(f'{cls.name}BoundingBox', (BoundingBox,),
+        return type(f'{cls.name}ModelBoundingBox', (ModelBoundingBox,),
                     {'__call__': __call__})
 
     def _handle_special_methods(cls, members, pdict):
@@ -1404,14 +1404,14 @@ class Model(metaclass=_ModelMeta):
         elif self._bounding_box is None:
             raise NotImplementedError(
                 "No bounding box is defined for this model.")
-        elif isinstance(self._bounding_box, BoundingBox):
+        elif isinstance(self._bounding_box, ModelBoundingBox):
             # This typically implies a hard-coded bounding box.  This will
             # probably be rare, but it is an option
             return self._bounding_box
         elif isinstance(self._bounding_box, types.MethodType):
-            return BoundingBox.validate(self, self._bounding_box())
+            return ModelBoundingBox.validate(self, self._bounding_box())
         else:
-            # The only other allowed possibility is that it's a BoundingBox
+            # The only other allowed possibility is that it's a ModelBoundingBox
             # subclass, so we call it with its default arguments and return an
             # instance of it (that can be called to recompute the bounding box
             # with any optional parameters)
@@ -1434,10 +1434,10 @@ class Model(metaclass=_ModelMeta):
               isinstance(bounding_box, dict)):
             cls = CompoundBoundingBox
         elif (isinstance(self._bounding_box, type) and
-              issubclass(self._bounding_box, BoundingBox)):
+              issubclass(self._bounding_box, ModelBoundingBox)):
             cls = self._bounding_box
         else:
-            cls = BoundingBox
+            cls = ModelBoundingBox
 
         if cls is not None:
             try:
@@ -1693,7 +1693,7 @@ class Model(metaclass=_ModelMeta):
         except NotImplementedError:
             bbox = None
 
-        if isinstance(bbox, BoundingBox):
+        if isinstance(bbox, ModelBoundingBox):
             bbox = bbox.bounding_box()
 
         ndim = self.n_inputs
