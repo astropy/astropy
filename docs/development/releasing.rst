@@ -138,7 +138,7 @@ packages that use the full bugfix/maintenance branch approach.)
    environment::
 
       $ pip install tox --upgrade
-      $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
+      $ tox -e test-alldeps-intensive -- --remote-data=any
 
 #. Render the changelog with towncrier, and confirm that the fragments can be
    deleted. (Note: update this when doing the next release!)

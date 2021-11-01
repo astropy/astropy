@@ -980,15 +980,15 @@ def test_fast_tab_with_names(parallel, read_tab):
     read_tab(content, data_start=1, parallel=parallel, names=head)
 
 
-@pytest.mark.skipif(not os.getenv('TEST_READ_HUGE_FILE'),
-                    reason='Environment variable TEST_READ_HUGE_FILE must be '
+@pytest.mark.skipif(not os.getenv('TEST_INTENSIVE'),
+                    reason='Environment variable TEST_INTENSIVE must be '
                     'defined to run this test')
 def test_read_big_table(tmpdir):
     """Test reading of a huge file.
 
     This test generates a huge CSV file (~2.3Gb) before reading it (see
     https://github.com/astropy/astropy/pull/5319). The test is run only if the
-    environment variable ``TEST_READ_HUGE_FILE`` is defined. Note that running
+    environment variable ``TEST_INTENSIVE`` is defined. Note that running
     the test requires quite a lot of memory (~18Gb when reading the file) !!
 
     """
@@ -1014,8 +1014,8 @@ def test_read_big_table(tmpdir):
     assert len(t) == NB_ROWS
 
 
-@pytest.mark.skipif(not os.getenv('TEST_READ_HUGE_FILE'),
-                    reason='Environment variable TEST_READ_HUGE_FILE must be '
+@pytest.mark.skipif(not os.getenv('TEST_INTENSIVE'),
+                    reason='Environment variable TEST_INTENSIVE must be '
                     'defined to run this test')
 def test_read_big_table2(tmpdir):
     """Test reading of a file with a huge column.

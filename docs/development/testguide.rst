@@ -437,6 +437,29 @@ temporary directories. This can be done with the
 Python's built-in :ref:`tempfile module <python:tempfile-examples>`.
 
 
+Intensive tests
+===============
+
+In some cases, you may need to write tests that need a lot of resources,
+such as disk, memory, or runtime. Such tests should only be included if
+absolutely necessary, and should include the following ``skipif`` clause::
+
+    @pytest.mark.skipif(not os.getenv('TEST_INTENSIVE'),
+                        reason='Environment variable TEST_INTENSIVE must be '
+                                'defined to run this test')
+
+You can then include these tests when running tests by setting the
+environment variable ``TEST_INTENSIVE`` to e.g. ``1``::
+
+    TEST_INTENSIVE=1 pytest ...
+
+or you can use the ``-intensive`` factor when using tox, e.g.::
+
+    tox -e py39-test-intensive
+
+Tests that have large disk and/or memory requirements
+====================================
+
 Setting up/Tearing down tests
 =============================
 
