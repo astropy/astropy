@@ -8,19 +8,19 @@ from mypackage.io import ASTROPY_GE_5
 
 
 @pytest.fixture(scope="session", autouse=True)
-def teardown():
+def teardown_mypackage():
     """Clean up module after tests."""
 
     yield  # to let all tests within the scope run
 
     if ASTROPY_GE_5:
         from astropy.cosmology import Cosmology
-        from astropy.io import registry as io_registry
+        from astropy.cosmology.connect import convert_registry, readwrite_registry
 
-        io_registry.unregister_reader("myformat", Cosmology)
-        io_registry.unregister_writer("myformat", Cosmology)
-        io_registry.unregister_identifier("myformat", Cosmology)
+        readwrite_registry.unregister_reader("myformat", Cosmology)
+        readwrite_registry.unregister_writer("myformat", Cosmology)
+        readwrite_registry.unregister_identifier("myformat", Cosmology)
 
-        io_registry.unregister_reader("mypackage", Cosmology)
-        io_registry.unregister_writer("mypackage", Cosmology)
-        io_registry.unregister_identifier("mypackage", Cosmology)
+        convert_registry.unregister_reader("mypackage", Cosmology)
+        convert_registry.unregister_writer("mypackage", Cosmology)
+        convert_registry.unregister_identifier("mypackage", Cosmology)
