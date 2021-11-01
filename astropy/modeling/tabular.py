@@ -180,7 +180,7 @@ class _Tabular(Model):
         >>> from astropy.modeling.models import Tabular1D, Tabular2D
         >>> t1 = Tabular1D(points=[1, 2, 3], lookup_table=[10, 20, 30])
         >>> t1.bounding_box
-        BoundingBox(
+        ModelBoundingBox(
             intervals={
                 x: Interval(lower=1, upper=3)
             }
@@ -190,7 +190,7 @@ class _Tabular(Model):
         >>> t2 = Tabular2D(points=[[1, 2, 3], [2, 3, 4]],
         ...                lookup_table=[[10, 20, 30], [20, 30, 40]])
         >>> t2.bounding_box
-        BoundingBox(
+        ModelBoundingBox(
             intervals={
                 x: Interval(lower=1, upper=3)
                 y: Interval(lower=2, upper=4)
