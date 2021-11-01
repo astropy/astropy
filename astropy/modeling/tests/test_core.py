@@ -14,7 +14,7 @@ import astropy
 from astropy.modeling.core import (Model, CompoundModel, custom_model,
                                    SPECIAL_OPERATORS, _add_special_operator,
                                    bind_compound_bounding_box, fix_inputs)
-from astropy.modeling.bounding_box import BoundingBox, CompoundBoundingBox
+from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
 from astropy.modeling.separable import separability_matrix
 from astropy.modeling.parameters import Parameter
 from astropy.modeling import models
@@ -1098,7 +1098,7 @@ def test_fix_inputs_compound_bounding_box():
 
 def test_model_copy_with_bounding_box():
     model = models.Polynomial2D(2)
-    bbox = BoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5)), order='F')
 
     # No bbox
     model_copy = model.copy()
@@ -1125,7 +1125,7 @@ def test_model_copy_with_bounding_box():
 def test_compound_model_copy_with_bounding_box():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
     model.inputs = ('x', 'y', 'slit_id')
-    bbox = BoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
 
     # No bbox
     model_copy = model.copy()
@@ -1214,7 +1214,7 @@ def test_compound_model_copy_with_compound_bounding_box():
 
 def test_model_mixed_array_scalar_bounding_box():
     model = models.Gaussian2D()
-    bbox = BoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order='F')
     model.bounding_box = bbox
 
     x = np.array([-0.5, 0.5])
@@ -1227,7 +1227,7 @@ def test_model_mixed_array_scalar_bounding_box():
 def test_compound_model_mixed_array_scalar_bounding_box():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
     model.inputs = ('x', 'y', 'slit_id')
-    bbox = BoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
+    bbox = ModelBoundingBox.validate(model, ((-0.5, 1047.5), (-0.5, 2047.5), (-np.inf, np.inf)), order='F')
     model.bounding_box = bbox
     x = np.array([1000, 1001])
     y = np.array([2000, 2001])
