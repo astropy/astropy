@@ -40,6 +40,11 @@ class MetaTestMixin:
     def test_meta_on_instance(self, cosmo):
         assert isinstance(cosmo.meta, dict)
 
+    def test_meta_mutable(self, cosmo):
+        """The metadata is NOT immutable on a cosmology"""
+        key = tuple(cosmo.meta.keys())[0]  # select some key
+        cosmo.meta[key] = cosmo.meta.pop(key)  # will error if immutable
+
 
 class TestCosmology(ParameterTestMixin, MetaTestMixin,
                     ReadWriteTestMixin, ToFromFormatTestMixin,
@@ -154,6 +159,10 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         assert cosmo.name is cosmo._name  # accesses private attribute
         assert cosmo.name is None or isinstance(cosmo.name, str)  # type
         assert cosmo.name == self.cls_kwargs["name"]  # test has expected value
+
+        # immutable
+        with pytest.raises(AttributeError, match="can't set"):
+            cosmo.name = None
 
     # ------------------------------------------------
     # clone
@@ -284,6 +293,18 @@ class TestCosmology(ParameterTestMixin, MetaTestMixin,
         for k, v in cosmo.meta.items():
             assert np.all(tbl.meta[k] == v)
 
+    # ===============================================================
+    # Usage Tests
+
+    def test_immutability(self, cosmo):
+        """
+        Test immutability of cosmologies.
+        The metadata is mutable: see ``test_meta_mutable``.
+        """
+        for n in cosmo.__all_parameters__:
+            with pytest.raises(AttributeError):
+                setattr(cosmo, n, getattr(cosmo, n))
+
 
 class CosmologySubclassTest(TestCosmology):
     """
@@ -307,7 +328,7 @@ class FlatCosmologyMixinTest:
     def test_is_equivalent(self, cosmo):
         """Test :meth:`astropy.cosmology.core.FlatCosmologyMixin.is_equivalent`.
 
-        normally this would pass up via super(), but ``__equiv__`` is meant
+        Normally this would pass up via super(), but ``__equiv__`` is meant
         to be overridden, so we skip super().
         e.g. FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestCosmology
         vs   FlatFLRWMixinTest -> FlatCosmologyMixinTest -> TestFLRW -> TestCosmology
