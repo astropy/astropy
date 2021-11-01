@@ -1,0 +1,1 @@
+Fix ASDF serialization of model inputs and outputs and add relevant assertion to test helper.
