@@ -4,7 +4,7 @@ import numpy as np
 
 from asdf.versioning import AsdfVersion
 
-from astropy.modeling.bounding_box import BoundingBox, CompoundBoundingBox
+from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
 from astropy.modeling import mappings
 from astropy.modeling import functional_models
 from astropy.modeling.core import CompoundModel
@@ -84,7 +84,7 @@ class TransformType(AstropyAsdfType):
         except NotImplementedError:
             bb = None
 
-        if isinstance(bb, BoundingBox):
+        if isinstance(bb, ModelBoundingBox):
             bb = bb.bounding_box(order='C')
 
             if model.n_inputs == 1:

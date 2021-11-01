@@ -17,7 +17,7 @@ import warnings
 import numpy as np
 
 
-__all__ = ['Interval', 'BoundingDomain', 'BoundingBox', 'SelectorArgument',
+__all__ = ['Interval', 'BoundingDomain', 'ModelBoundingBox', 'SelectorArgument',
            'SelectorArguments', 'CompoundBoundingBox']
 
 
@@ -132,7 +132,7 @@ _ignored_interval = Interval.validate((-np.inf, np.inf))
 
 class BoundingDomain(object):
     """
-    Base class for BoundingBox and CompoundBoundingBox.
+    Base class for ModelBoundingBox and CompoundBoundingBox.
         This is where all the `~astropy.modeling.core.Model` evaluation
         code for evaluating with a bounding box is because it is common
         to both types of bounding box.
@@ -146,7 +146,7 @@ class BoundingDomain(object):
         Generates the necessary input information so that model can
         be evaluated only for input points entirely inside bounding_box.
         This needs to be implemented by a subclass. Note that most of
-        the implementation is in BoundingBox.
+        the implementation is in ModelBoundingBox.
 
     prepare_outputs :
         Fills the output values in for any input points outside the
@@ -497,7 +497,7 @@ def get_index(model, key) -> int:
     return index
 
 
-class BoundingBox(BoundingDomain):
+class ModelBoundingBox(BoundingDomain):
     """
     A model's bounding box
 
@@ -551,7 +551,7 @@ class BoundingBox(BoundingDomain):
         if ignored is None:
             ignored = self._ignored.copy()
 
-        return BoundingBox(intervals, self._model,
+        return ModelBoundingBox(intervals, self._model,
                            ignored=ignored,
                            order=copy.deepcopy(self._order))
 
@@ -583,7 +583,7 @@ class BoundingBox(BoundingDomain):
 
     def __repr__(self):
         parts = [
-            'BoundingBox(',
+            'ModelBoundingBox(',
             '    intervals={'
         ]
 
@@ -674,7 +674,7 @@ class BoundingBox(BoundingDomain):
         """Note equality can be either with old representation or new one."""
         if isinstance(value, tuple):
             return self.bounding_box() == value
-        elif isinstance(value, BoundingBox):
+        elif isinstance(value, ModelBoundingBox):
             return (self.intervals == value.intervals) and (self.ignored == value.ignored)
         else:
             return False
@@ -753,7 +753,7 @@ class BoundingBox(BoundingDomain):
             The order that a tuple representation will be assumed to be
                 Default: 'C'
         """
-        if isinstance(bounding_box, BoundingBox):
+        if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
             bounding_box = bounding_box.intervals
 
@@ -786,7 +786,7 @@ class BoundingBox(BoundingDomain):
         else:
             ignored = None
 
-        return BoundingBox.validate(model, new.named_intervals,
+        return ModelBoundingBox.validate(model, new.named_intervals,
                                     ignored=ignored, order=new._order)
 
     @property
@@ -954,7 +954,7 @@ class SelectorArgument(_BaseSelectorArgument):
         argument : int or str
             A representation of which evaluation input to use
         ignored : optional, bool
-            Whether or not to ignore this argument in the BoundingBox.
+            Whether or not to ignore this argument in the ModelBoundingBox.
 
         Returns
         -------
@@ -1227,9 +1227,9 @@ class CompoundBoundingBox(BoundingDomain):
     Parameters
     ----------
     bounding_boxes : dict
-        A dictionary containing all the BoundingBoxes that are possible
+        A dictionary containing all the ModelBoundingBoxes that are possible
             keys   -> _selector (extracted from model inputs)
-            values -> BoundingBox
+            values -> ModelBoundingBox
 
     model : `~astropy.modeling.Model`
         The Model this bounding_box is for.
@@ -1252,7 +1252,7 @@ class CompoundBoundingBox(BoundingDomain):
     validate :
         Contructs a valid complex bounding_box
     """
-    def __init__(self, bounding_boxes: Dict[Any, BoundingBox], model,
+    def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
                  selector_args: SelectorArguments, create_selector: Callable = None, order: str = 'C'):
         super().__init__(model)
         self._order = order
@@ -1293,7 +1293,7 @@ class CompoundBoundingBox(BoundingDomain):
         return '\n'.join(parts)
 
     @property
-    def bounding_boxes(self) -> Dict[Any, BoundingBox]:
+    def bounding_boxes(self) -> Dict[Any, ModelBoundingBox]:
         return self._bounding_boxes
 
     @property
@@ -1327,7 +1327,7 @@ class CompoundBoundingBox(BoundingDomain):
         if not self.selector_args.is_selector(_selector):
             raise ValueError(f"{_selector} is not a selector!")
 
-        self._bounding_boxes[_selector] = BoundingBox.validate(self._model, value,
+        self._bounding_boxes[_selector] = ModelBoundingBox.validate(self._model, value,
                                                                self.selector_args.ignore,
                                                                order=self._order)
 
@@ -1393,7 +1393,7 @@ class CompoundBoundingBox(BoundingDomain):
         else:
             raise RuntimeError(f"No bounding box is defined for selector: {_selector}.")
 
-    def _select_bounding_box(self, inputs) -> BoundingBox:
+    def _select_bounding_box(self, inputs) -> ModelBoundingBox:
         _selector = self.selector_args.get_selector(*inputs)
 
         return self[_selector]
@@ -1422,7 +1422,7 @@ class CompoundBoundingBox(BoundingDomain):
         bounding_box = self._select_bounding_box(inputs)
         return bounding_box.prepare_inputs(input_shape, inputs)
 
-    def _matching_bounding_boxes(self, argument, value) -> Dict[Any, BoundingBox]:
+    def _matching_bounding_boxes(self, argument, value) -> Dict[Any, ModelBoundingBox]:
         selector_index = self.selector_args.selector_index(argument)
         matching = {}
         for selector_key, bbox in self._bounding_boxes.items():
@@ -1492,7 +1492,7 @@ class CompoundBoundingBox(BoundingDomain):
         if isinstance(bbox, CompoundBoundingBox):
             selector_args = bbox.selector_args.named_tuple
             bbox_dict = bbox
-        elif isinstance(bbox, BoundingBox):
+        elif isinstance(bbox, ModelBoundingBox):
             selector_args = None
             bbox_dict = bbox.named_intervals
 
