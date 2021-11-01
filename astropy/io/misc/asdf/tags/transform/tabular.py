@@ -7,7 +7,7 @@ from numpy.testing import assert_array_equal
 from astropy import modeling
 from astropy import units as u
 from .basic import TransformType
-from astropy.modeling.bounding_box import BoundingBox
+from astropy.modeling.bounding_box import ModelBoundingBox
 
 __all__ = ['TabularType']
 
@@ -62,10 +62,10 @@ class TabularType(TransformType):
             assert u.allclose(a.lookup_table, b.lookup_table)
             assert u.allclose(a.points, b.points)
             a_box = a.bounding_box
-            if isinstance(a_box, BoundingBox):
+            if isinstance(a_box, ModelBoundingBox):
                 a_box = a_box.bounding_box()
             b_box = b.bounding_box
-            if isinstance(b_box, BoundingBox):
+            if isinstance(b_box, ModelBoundingBox):
                 b_box = b_box.bounding_box()
             for i in range(len(a_box)):
                 assert u.allclose(a_box[i], b_box[i])
@@ -73,10 +73,10 @@ class TabularType(TransformType):
             assert_array_equal(a.lookup_table, b.lookup_table)
             assert_array_equal(a.points, b.points)
             a_box = a.bounding_box
-            if isinstance(a_box, BoundingBox):
+            if isinstance(a_box, ModelBoundingBox):
                 a_box = a_box.bounding_box()
             b_box = b.bounding_box
-            if isinstance(b_box, BoundingBox):
+            if isinstance(b_box, ModelBoundingBox):
                 b_box = b_box.bounding_box()
             assert_array_equal(a_box, b_box)
         assert (a.method == b.method)
