@@ -371,7 +371,11 @@ to work and reference the original link they referenced at the time of writing.
       whatever remote name you use for the `astropy core repository`_.
 
 #. On the github issue tracker, add a new milestone for the next major version
-   and for the next bugfix version.
+   and for the next bugfix version, and also create a ``backport-v<version>.x``
+   label which can be used to label pull requests that should be backported
+   to the new release branch.
+
+#. Inform the Astropy developer community that the branching has occurred.
 
 .. _release-procedure-bug-fix:
 
