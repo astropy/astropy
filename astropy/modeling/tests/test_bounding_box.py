@@ -5,7 +5,7 @@ import numpy as np
 import unittest.mock as mk
 
 from astropy.modeling.bounding_box import (_BaseInterval, Interval, _ignored_interval,
-                                           BoundingDomain, BoundingBox,
+                                           BoundingDomain, ModelBoundingBox,
                                            _BaseSelectorArgument, SelectorArgument, SelectorArguments,
                                            CompoundBoundingBox)
 from astropy.modeling.models import Gaussian1D, Gaussian2D, Shift, Scale, Identity
@@ -453,11 +453,11 @@ class TestBoundingDomain:
                         assert mkUnits.call_args_list == [mk.call()]
 
 
-class TestBoundingBox:
+class TestModelBoundingBox:
     def test_create(self):
         intervals = ()
         model = mk.MagicMock()
-        bounding_box = BoundingBox(intervals, model)
+        bounding_box = ModelBoundingBox(intervals, model)
 
         assert isinstance(bounding_box, BoundingDomain)
         assert bounding_box._intervals == {}
@@ -468,7 +468,7 @@ class TestBoundingBox:
         # Set optional
         intervals = {}
         model = mk.MagicMock()
-        bounding_box = BoundingBox(intervals, model, order='test')
+        bounding_box = ModelBoundingBox(intervals, model, order='test')
 
         assert isinstance(bounding_box, BoundingDomain)
         assert bounding_box._intervals == {}
@@ -481,7 +481,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
-        bounding_box = BoundingBox(intervals, model)
+        bounding_box = ModelBoundingBox(intervals, model)
 
         assert isinstance(bounding_box, BoundingDomain)
         assert bounding_box._intervals == {0: (1, 2)}
@@ -492,7 +492,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 2
         model.inputs = ['x', 'y']
-        bounding_box = BoundingBox(intervals, model, ignored=[1])
+        bounding_box = ModelBoundingBox(intervals, model, ignored=[1])
 
         assert isinstance(bounding_box, BoundingDomain)
         assert bounding_box._intervals == {0: (1, 2)}
@@ -503,7 +503,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 3
         model.inputs = ['x', 'y', 'z']
-        bounding_box = BoundingBox(intervals, model, ignored=[2], order='F')
+        bounding_box = ModelBoundingBox(intervals, model, ignored=[2], order='F')
 
         assert isinstance(bounding_box, BoundingDomain)
         assert bounding_box._intervals == {0: (1, 2), 1: (3, 4)}
@@ -512,7 +512,7 @@ class TestBoundingBox:
         assert bounding_box._order == 'F'
 
     def test_copy(self):
-        bounding_box = BoundingBox.validate(Gaussian2D(), ((-4.5, 4.5), (-1.4, 1.4)))
+        bounding_box = ModelBoundingBox.validate(Gaussian2D(), ((-4.5, 4.5), (-1.4, 1.4)))
         copy = bounding_box.copy()
 
         assert bounding_box == copy
@@ -549,7 +549,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
-        bounding_box = BoundingBox(intervals, model)
+        bounding_box = ModelBoundingBox(intervals, model)
 
         assert bounding_box._intervals == intervals
         assert bounding_box.intervals == intervals
@@ -557,7 +557,7 @@ class TestBoundingBox:
     def test_order(self):
         intervals = {}
         model = mk.MagicMock()
-        bounding_box = BoundingBox(intervals, model, order='test')
+        bounding_box = ModelBoundingBox(intervals, model, order='test')
 
         assert bounding_box._order == 'test'
         assert bounding_box.order == 'test'
@@ -567,7 +567,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
-        bounding_box = BoundingBox({}, model, ignored=ignored)
+        bounding_box = ModelBoundingBox({}, model, ignored=ignored)
 
         assert bounding_box._ignored == ignored
         assert bounding_box.ignored == ignored
@@ -577,7 +577,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 1
         model.inputs = ['x']
-        bounding_box = BoundingBox(intervals, model)
+        bounding_box = ModelBoundingBox(intervals, model)
 
         index = mk.MagicMock()
         name = mk.MagicMock()
@@ -591,7 +591,7 @@ class TestBoundingBox:
         model = mk.MagicMock()
         model.n_inputs = 4
         model.inputs = [mk.MagicMock() for _ in range(4)]
-        bounding_box = BoundingBox(intervals, model)
+        bounding_box = ModelBoundingBox(intervals, model)
 
         named = bounding_box.named_intervals
         assert isinstance(named, dict)
@@ -609,7 +609,7 @@ class TestBoundingBox:
         ignored = list(range(4, 8))
         model.n_inputs = 8
         model.inputs = [mk.MagicMock() for _ in range(8)]
-        bounding_box = BoundingBox(intervals, model, ignored=ignored)
+        bounding_box = ModelBoundingBox(intervals, model, ignored=ignored)
 
         inputs = bounding_box.ignored_inputs
         assert isinstance(inputs, list)
@@ -625,10 +625,10 @@ class TestBoundingBox:
     def test___repr__(self):
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         assert bounding_box.__repr__() ==\
-            "BoundingBox(\n" +\
+            "ModelBoundingBox(\n" +\
             "    intervals={\n" +\
             "        x: Interval(lower=-1, upper=1)\n" +\
             "        y: Interval(lower=-4, upper=4)\n" +\
@@ -639,10 +639,10 @@ class TestBoundingBox:
 
         intervals = {0: Interval(-1, 1)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals, ignored=['y'])
+        bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'])
 
         assert bounding_box.__repr__() ==\
-            "BoundingBox(\n" +\
+            "ModelBoundingBox(\n" +\
             "    intervals={\n" +\
             "        x: Interval(lower=-1, upper=1)\n" +\
             "    }\n" +\
@@ -654,7 +654,7 @@ class TestBoundingBox:
     def test__get_index(self):
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Pass input name
         assert bounding_box._get_index('x') == 0
@@ -699,7 +699,7 @@ class TestBoundingBox:
 
     def test__validate_ignored(self):
         model = Gaussian2D()
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
 
         # Pass
         assert bounding_box._validate_ignored(None) == []
@@ -722,12 +722,12 @@ class TestBoundingBox:
     def test___len__(self):
         intervals = {0: Interval(-1, 1)}
         model = Gaussian1D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert len(bounding_box) == 1 == len(bounding_box._intervals)
 
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert len(bounding_box) == 2 == len(bounding_box._intervals)
 
         bounding_box._intervals = {}
@@ -736,7 +736,7 @@ class TestBoundingBox:
     def test___contains__(self):
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Contains with keys
         assert 'x' in bounding_box
@@ -767,7 +767,7 @@ class TestBoundingBox:
     def test___getitem__(self):
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Get using input key
         assert bounding_box['x'] == (-1, 1)
@@ -805,7 +805,7 @@ class TestBoundingBox:
     def test__get_order(self):
         intervals = {0: Interval(-1, 1)}
         model = Gaussian1D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Success (default 'C')
         assert bounding_box._order == 'C'
@@ -831,7 +831,7 @@ class TestBoundingBox:
     def test_bounding_box(self):
         # 0D
         model = Gaussian1D()
-        bounding_box = BoundingBox.validate(model, {}, ignored=['x'])
+        bounding_box = ModelBoundingBox.validate(model, {}, ignored=['x'])
         assert bounding_box.bounding_box() == (-np.inf, np.inf)
         assert bounding_box.bounding_box('C') == (-np.inf, np.inf)
         assert bounding_box.bounding_box('F') == (-np.inf, np.inf)
@@ -839,14 +839,14 @@ class TestBoundingBox:
         # 1D
         intervals = {0: Interval(-1, 1)}
         model = Gaussian1D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.bounding_box() == (-1, 1)
         assert bounding_box.bounding_box(mk.MagicMock()) == (-1, 1)
 
         # > 1D
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.bounding_box() == ((-4, 4), (-1, 1))
         assert bounding_box.bounding_box('C') == ((-4, 4), (-1, 1))
         assert bounding_box.bounding_box('F') == ((-1, 1), (-4, 4))
@@ -854,21 +854,21 @@ class TestBoundingBox:
     def test___eq__(self):
         intervals = {0: Interval(-1, 1)}
         model = Gaussian1D()
-        bounding_box = BoundingBox.validate(model.copy(), intervals.copy())
+        bounding_box = ModelBoundingBox.validate(model.copy(), intervals.copy())
 
         assert bounding_box == bounding_box
-        assert bounding_box == BoundingBox.validate(model.copy(), intervals.copy())
+        assert bounding_box == ModelBoundingBox.validate(model.copy(), intervals.copy())
         assert bounding_box == (-1, 1)
 
         assert not (bounding_box == mk.MagicMock())
         assert not (bounding_box == (-2, 2))
-        assert not (bounding_box == BoundingBox.validate(model, {0: Interval(-2, 2)}))
+        assert not (bounding_box == ModelBoundingBox.validate(model, {0: Interval(-2, 2)}))
 
         # Respect ordering
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box_1 = BoundingBox.validate(model, intervals)
-        bounding_box_2 = BoundingBox.validate(model, intervals, order='F')
+        bounding_box_1 = ModelBoundingBox.validate(model, intervals)
+        bounding_box_2 = ModelBoundingBox.validate(model, intervals, order='F')
         assert bounding_box_1._order == 'C'
         assert bounding_box_1 == ((-4, 4), (-1, 1))
         assert not (bounding_box_1 == ((-1, 1), (-4, 4)))
@@ -888,7 +888,7 @@ class TestBoundingBox:
 
     def test__setitem__(self):
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, {}, ignored=[0, 1])
+        bounding_box = ModelBoundingBox.validate(model, {}, ignored=[0, 1])
         assert bounding_box._ignored == [0, 1]
 
         # USING Intervals directly
@@ -972,7 +972,7 @@ class TestBoundingBox:
 
         # Model set support
         model = Gaussian1D([0.1, 0.2], [0, 0], [5, 7], n_models=2)
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
         # USING Intervals directly
         # Set interval using key
         assert 'x' not in bounding_box
@@ -1010,7 +1010,7 @@ class TestBoundingBox:
     def test___delitem__(self):
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Using index
         assert 0 in bounding_box.intervals
@@ -1048,7 +1048,7 @@ class TestBoundingBox:
 
     def test__validate_dict(self):
         model = Gaussian2D()
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
 
         # Input name keys
         intervals = {'x': Interval(-1, 1), 'y': Interval(-4, 4)}
@@ -1075,7 +1075,7 @@ class TestBoundingBox:
 
         # Model set support
         model = Gaussian1D([0.1, 0.2], [0, 0], [5, 7], n_models=2)
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
         # name keys
         intervals = {'x': Interval(np.array([-1, -2]), np.array([1, 2]))}
         assert 'x' not in bounding_box
@@ -1094,7 +1094,7 @@ class TestBoundingBox:
 
     def test__validate_sequence(self):
         model = Gaussian2D()
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
 
         # Default order
         assert 'x' not in bounding_box
@@ -1143,14 +1143,14 @@ class TestBoundingBox:
         model = Gaussian2D()
 
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box._n_inputs == 2
 
         intervals = {0: Interval(-1, 1)}
-        bounding_box = BoundingBox.validate(model, intervals, ignored=['y'])
+        bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'])
         assert bounding_box._n_inputs == 1
 
-        bounding_box = BoundingBox.validate(model, {}, ignored=['x', 'y'])
+        bounding_box = ModelBoundingBox.validate(model, {}, ignored=['x', 'y'])
         assert bounding_box._n_inputs == 0
 
         bounding_box._ignored = ['x', 'y', 'z']
@@ -1158,7 +1158,7 @@ class TestBoundingBox:
 
     def test__validate_iterable(self):
         model = Gaussian2D()
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
 
         # Pass sequence Default order
         assert 'x' not in bounding_box
@@ -1233,7 +1233,7 @@ class TestBoundingBox:
 
     def test__validate(self):
         model = Gaussian2D()
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
 
         # Pass sequence Default order
         assert 'x' not in bounding_box
@@ -1270,7 +1270,7 @@ class TestBoundingBox:
 
         # Pass single with ignored
         intervals = {0: Interval(-1, 1)}
-        bounding_box = BoundingBox({}, model, ignored=[1])
+        bounding_box = ModelBoundingBox({}, model, ignored=[1])
 
         assert 0 not in bounding_box.intervals
         assert 1 not in bounding_box.intervals
@@ -1282,7 +1282,7 @@ class TestBoundingBox:
 
         # Pass single
         model = Gaussian1D()
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
 
         assert 'x' not in bounding_box
         bounding_box._validate((-1, 1))
@@ -1292,7 +1292,7 @@ class TestBoundingBox:
 
         # Model set support
         model = Gaussian1D([0.1, 0.2], [0, 0], [5, 7], n_models=2)
-        bounding_box = BoundingBox({}, model)
+        bounding_box = ModelBoundingBox({}, model)
         sequence = (np.array([-1, -2]), np.array([1, 2]))
         assert 'x' not in bounding_box
         bounding_box._validate(sequence)
@@ -1305,7 +1305,7 @@ class TestBoundingBox:
         kwargs = {'test': mk.MagicMock()}
 
         # Pass sequence Default order
-        bounding_box = BoundingBox.validate(model, ((-4, 4), (-1, 1)), **kwargs)
+        bounding_box = ModelBoundingBox.validate(model, ((-4, 4), (-1, 1)), **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 'x' in bounding_box
         assert bounding_box['x'] == (-1, 1)
@@ -1314,7 +1314,7 @@ class TestBoundingBox:
         assert len(bounding_box.intervals) == 2
 
         # Pass sequence
-        bounding_box = BoundingBox.validate(model, ((-4, 4), (-1, 1)), order='F', **kwargs)
+        bounding_box = ModelBoundingBox.validate(model, ((-4, 4), (-1, 1)), order='F', **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 'x' in bounding_box
         assert bounding_box['x'] == (-4, 4)
@@ -1324,7 +1324,7 @@ class TestBoundingBox:
 
         # Pass Dict
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
-        bounding_box = BoundingBox.validate(model, intervals, order='F', **kwargs)
+        bounding_box = ModelBoundingBox.validate(model, intervals, order='F', **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 0 in bounding_box
         assert bounding_box[0] == (-1, 1)
@@ -1333,9 +1333,9 @@ class TestBoundingBox:
         assert len(bounding_box.intervals) == 2
         assert bounding_box.order == 'F'
 
-        # Pass BoundingBox
+        # Pass ModelBoundingBox
         bbox = bounding_box
-        bounding_box = BoundingBox.validate(model, bbox, **kwargs)
+        bounding_box = ModelBoundingBox.validate(model, bbox, **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 0 in bounding_box
         assert bounding_box[0] == (-1, 1)
@@ -1346,7 +1346,7 @@ class TestBoundingBox:
 
         # Pass single ignored
         intervals = {0: Interval(-1, 1)}
-        bounding_box = BoundingBox.validate(model, intervals, ignored=['y'], **kwargs)
+        bounding_box = ModelBoundingBox.validate(model, intervals, ignored=['y'], **kwargs)
         assert (bounding_box._model.parameters == model.parameters).all()
         assert 'x' in bounding_box
         assert bounding_box['x'] == (-1, 1)
@@ -1355,7 +1355,7 @@ class TestBoundingBox:
         assert len(bounding_box.intervals) == 1
 
         # Pass single
-        bounding_box = BoundingBox.validate(Gaussian1D(), (-1, 1), **kwargs)
+        bounding_box = ModelBoundingBox.validate(Gaussian1D(), (-1, 1), **kwargs)
         assert (bounding_box._model.parameters == Gaussian1D().parameters).all()
         assert 'x' in bounding_box
         assert bounding_box['x'] == (-1, 1)
@@ -1364,13 +1364,13 @@ class TestBoundingBox:
         # Model set support
         model = Gaussian1D([0.1, 0.2], [0, 0], [5, 7], n_models=2)
         sequence = (np.array([-1, -2]), np.array([1, 2]))
-        bounding_box = BoundingBox.validate(model, sequence, **kwargs)
+        bounding_box = ModelBoundingBox.validate(model, sequence, **kwargs)
         assert 'x' in bounding_box
         assert (bounding_box['x'].lower == np.array([-1, -2])).all()
         assert (bounding_box['x'].upper == np.array([1, 2])).all()
 
     def test_fix_inputs(self):
-        bounding_box = BoundingBox.validate(Gaussian2D(), ((-4, 4), (-1, 1)))
+        bounding_box = ModelBoundingBox.validate(Gaussian2D(), ((-4, 4), (-1, 1)))
 
         # keep_ignored = False (default)
         new_bounding_box = bounding_box.fix_inputs(Gaussian1D(), {1: mk.MagicMock()})
@@ -1399,12 +1399,12 @@ class TestBoundingBox:
     def test_dimension(self):
         intervals = {0: Interval(-1, 1)}
         model = Gaussian1D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.dimension == 1 == len(bounding_box._intervals)
 
         intervals = {0: Interval(-1, 1), 1: Interval(-4, 4)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
         assert bounding_box.dimension == 2 == len(bounding_box._intervals)
 
         bounding_box._intervals = {}
@@ -1413,7 +1413,7 @@ class TestBoundingBox:
     def test_domain(self):
         intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # test defaults
         assert (np.array(bounding_box.domain(0.25)) ==
@@ -1435,7 +1435,7 @@ class TestBoundingBox:
     def test__outside(self):
         intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Normal array input, all inside
         x = np.linspace(-1, 1, 13)
@@ -1484,7 +1484,7 @@ class TestBoundingBox:
     def test__valid_index(self):
         intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Normal array input, all inside
         x = np.linspace(-1, 1, 13)
@@ -1535,7 +1535,7 @@ class TestBoundingBox:
     def test_prepare_inputs(self):
         intervals = {0: Interval(-1, 1), 1: Interval(0, 2)}
         model = Gaussian2D()
-        bounding_box = BoundingBox.validate(model, intervals)
+        bounding_box = ModelBoundingBox.validate(model, intervals)
 
         # Normal array input, all inside
         x = np.linspace(-1, 1, 13)
@@ -2030,7 +2030,7 @@ class TestCompoundBoundingBox:
         for _selector, bbox in bounding_box._bounding_boxes.items():
             assert _selector in bounding_boxes
             assert bounding_boxes[_selector] == bbox
-            assert isinstance(bbox, BoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
         assert bounding_box._bounding_boxes == bounding_boxes
         assert bounding_box._create_selector == create_selector
         assert bounding_box._order == 'test'
@@ -2115,14 +2115,14 @@ class TestCompoundBoundingBox:
         assert bounding_box.__repr__() ==\
             "CompoundBoundingBox(\n" + \
             "    bounding_boxes={\n" + \
-            "        (1,) = BoundingBox(\n" + \
+            "        (1,) = ModelBoundingBox(\n" + \
             "                intervals={\n" + \
             "                    x: Interval(lower=-1, upper=1)\n" + \
             "                }\n" + \
             "                model=Gaussian2D(inputs=('x', 'y'))\n" + \
             "                order='C'\n" + \
             "            )\n" + \
-            "        (2,) = BoundingBox(\n" + \
+            "        (2,) = ModelBoundingBox(\n" + \
             "                intervals={\n" + \
             "                    x: Interval(lower=-2, upper=2)\n" + \
             "                }\n" + \
@@ -2202,7 +2202,7 @@ class TestCompoundBoundingBox:
         bounding_box[(15, )] = (-15, 15)
         assert len(bounding_box.bounding_boxes) == 1
         assert (15,) in bounding_box._bounding_boxes
-        assert isinstance(bounding_box._bounding_boxes[(15,)], BoundingBox)
+        assert isinstance(bounding_box._bounding_boxes[(15,)], ModelBoundingBox)
         assert bounding_box._bounding_boxes[(15,)] == (-15, 15)
         assert bounding_box._bounding_boxes[(15,)].order == 'F'
         # Invalid key
@@ -2227,7 +2227,7 @@ class TestCompoundBoundingBox:
         bounding_box[(15, )] = ((-15, 15), (-6, 6))
         assert len(bounding_box.bounding_boxes) == 1
         assert (15,) in bounding_box._bounding_boxes
-        assert isinstance(bounding_box._bounding_boxes[(15,)], BoundingBox)
+        assert isinstance(bounding_box._bounding_boxes[(15,)], ModelBoundingBox)
         assert bounding_box._bounding_boxes[(15,)] == ((-15, 15), (-6, 6))
         assert bounding_box._bounding_boxes[(15,)].order == 'F'
         # Invalid key
@@ -2259,7 +2259,7 @@ class TestCompoundBoundingBox:
         for _selector, bbox in bounding_box._bounding_boxes.items():
             assert _selector in bounding_boxes
             assert bounding_boxes[_selector] == bbox
-            assert isinstance(bbox, BoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
         assert bounding_box._bounding_boxes == bounding_boxes
 
     def test___eq__(self):
@@ -2347,11 +2347,11 @@ class TestCompoundBoundingBox:
         create_selector.return_value = ((-15, 15), (-23, 23))
         assert len(bounding_box._bounding_boxes) == 0
         bbox = bounding_box._create_bounding_box((7,))
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert bbox == ((-15, 15), (-23, 23))
         assert len(bounding_box._bounding_boxes) == 1
         assert (7,) in bounding_box
-        assert isinstance(bounding_box[(7,)], BoundingBox)
+        assert isinstance(bounding_box[(7,)], ModelBoundingBox)
         assert bounding_box[(7,)] == bbox
 
         # Create is unsuccessful
@@ -2366,13 +2366,13 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args)
 
         # already exists
-        assert isinstance(bounding_box[1], BoundingBox)
+        assert isinstance(bounding_box[1], ModelBoundingBox)
         assert bounding_box[1] == (-1, 1)
-        assert isinstance(bounding_box[(2,)], BoundingBox)
+        assert isinstance(bounding_box[(2,)], ModelBoundingBox)
         assert bounding_box[2] == (-2, 2)
-        assert isinstance(bounding_box[(1,)], BoundingBox)
+        assert isinstance(bounding_box[(1,)], ModelBoundingBox)
         assert bounding_box[(1,)] == (-1, 1)
-        assert isinstance(bounding_box[(2,)], BoundingBox)
+        assert isinstance(bounding_box[(2,)], ModelBoundingBox)
         assert bounding_box[(2,)] == (-2, 2)
 
         # no selector
@@ -2413,7 +2413,7 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args)
 
         input_shape = mk.MagicMock()
-        with mk.patch.object(BoundingBox, 'prepare_inputs',
+        with mk.patch.object(ModelBoundingBox, 'prepare_inputs',
                              autospec=True) as mkPrepare:
             assert bounding_box.prepare_inputs(input_shape, [1, 2, 3]) == mkPrepare.return_value
             assert mkPrepare.call_args_list == \
@@ -2435,7 +2435,7 @@ class TestCompoundBoundingBox:
             assert isinstance(matching, dict)
             assert () in matching
             bbox = matching[()]
-            assert isinstance(bbox, BoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
             assert 'x' in bbox
             assert 'x' in bbox.ignored_inputs
@@ -2454,7 +2454,7 @@ class TestCompoundBoundingBox:
             assert isinstance(matching, dict)
             assert (4 - value,) in matching
             bbox = matching[(4 - value,)]
-            assert isinstance(bbox, BoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
             assert 'x' in bbox
             assert 'x' in bbox.ignored_inputs
@@ -2467,7 +2467,7 @@ class TestCompoundBoundingBox:
             assert isinstance(matching, dict)
             assert (4 - value,) in matching
             bbox = matching[(4 - value,)]
-            assert isinstance(bbox, BoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
             assert 'y' in bbox
             assert 'y' in bbox.ignored_inputs
@@ -2486,7 +2486,7 @@ class TestCompoundBoundingBox:
         assert isinstance(matching, dict)
         assert () in matching
         bbox = matching[()]
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored_inputs == ['slit_id']
         assert bbox.named_intervals == {'x': (-0.5, 1047.5),
@@ -2497,7 +2497,7 @@ class TestCompoundBoundingBox:
         assert isinstance(matching, dict)
         assert () in matching
         bbox = matching[()]
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored_inputs == ['slit_id']
         assert bbox.named_intervals == {'x': (-0.5, 3047.5),
@@ -2518,7 +2518,7 @@ class TestCompoundBoundingBox:
 
         for value in [1, 2, 3]:
             bbox = bounding_box._fix_input_selector_arg('x', value)
-            assert isinstance(bbox, BoundingBox)
+            assert isinstance(bbox, ModelBoundingBox)
             assert (bbox._model.parameters == Gaussian2D().parameters).all()
             assert 'x' in bbox
             assert 'x' in bbox.ignored_inputs
@@ -2539,7 +2539,7 @@ class TestCompoundBoundingBox:
             assert bbox.selector_args == ((1, False),)
             assert (4 - value,) in bbox
             bbox_selector = bbox[(4 - value,)]
-            assert isinstance(bbox_selector, BoundingBox)
+            assert isinstance(bbox_selector, ModelBoundingBox)
             assert (bbox_selector._model.parameters == Gaussian2D().parameters).all()
             assert 'x' in bbox_selector
             assert 'x' in bbox_selector.ignored_inputs
@@ -2554,7 +2554,7 @@ class TestCompoundBoundingBox:
             assert bbox.selector_args == ((0, False),)
             assert (4 - value,) in bbox
             bbox_selector = bbox[(4 - value,)]
-            assert isinstance(bbox_selector, BoundingBox)
+            assert isinstance(bbox_selector, ModelBoundingBox)
             assert (bbox_selector._model.parameters == Gaussian2D().parameters).all()
             assert 'y' in bbox_selector
             assert 'y' in bbox_selector.ignored_inputs
@@ -2570,7 +2570,7 @@ class TestCompoundBoundingBox:
         bounding_box = CompoundBoundingBox.validate(model, bounding_boxes, selector_args=[('slit_id', True)], order='F')
 
         bbox = bounding_box._fix_input_selector_arg('slit_id', 0)
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored_inputs == ['slit_id']
         assert bbox.named_intervals == {'x': (-0.5, 1047.5),
@@ -2578,7 +2578,7 @@ class TestCompoundBoundingBox:
         assert bbox.order == 'F'
 
         bbox = bounding_box._fix_input_selector_arg('slit_id', 1)
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == model.parameters).all()
         assert bbox.ignored_inputs == ['slit_id']
         assert bbox.named_intervals == {'x': (-0.5, 3047.5),
@@ -2619,7 +2619,7 @@ class TestCompoundBoundingBox:
         # Fix selector argument
         new_model = fix_inputs(model, {'slit_id': 0})
         bbox = new_model.bounding_box
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == new_model.parameters).all()
         assert bbox.ignored_inputs == []
         assert bbox.named_intervals == {'x': (-0.5, 1047.5),
@@ -2653,14 +2653,14 @@ class TestCompoundBoundingBox:
         # Fix selector argument and a bounding_box field
         new_model = fix_inputs(model, {'slit_id': 0, 'x': 5})
         bbox = new_model.bounding_box
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == new_model.parameters).all()
         assert bbox.ignored_inputs == []
         assert bbox.named_intervals == {'y': (-0.5, 2047.5)}
         assert bbox.order == 'F'
         new_model = fix_inputs(model, {'y': 5, 'slit_id': 1})
         bbox = new_model.bounding_box
-        assert isinstance(bbox, BoundingBox)
+        assert isinstance(bbox, ModelBoundingBox)
         assert (bbox._model.parameters == new_model.parameters).all()
         assert bbox.ignored_inputs == []
         assert bbox.named_intervals == {'x': (-0.5, 3047.5)}
