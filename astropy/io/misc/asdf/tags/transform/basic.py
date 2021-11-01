@@ -25,16 +25,10 @@ class TransformType(AstropyAsdfType):
             model.name = node['name']
 
         if "inputs" in node:
-            if model.n_inputs == 1:
-                model.inputs = (node["inputs"],)
-            else:
-                model.inputs = tuple(node["inputs"])
+            model.inputs = tuple(node["inputs"])
 
         if "outputs" in node:
-            if model.n_outputs == 1:
-                model.outputs = (node["outputs"],)
-            else:
-                model.outputs = tuple(node["outputs"])
+            model.outputs = tuple(node["outputs"])
 
         if 'bounding_box' in node:
             model.bounding_box = node['bounding_box']
@@ -75,9 +69,8 @@ class TransformType(AstropyAsdfType):
         if model.name is not None:
             node['name'] = model.name
 
-        if type(model.__class__.inputs) != property:
-            node['inputs'] = model.inputs
-            node['outputs'] = model.outputs
+        node['inputs'] = list(model.inputs)
+        node['outputs'] = list(model.outputs)
 
         try:
             bb = model.bounding_box
@@ -132,6 +125,8 @@ class TransformType(AstropyAsdfType):
         # TODO: Assert inverses are the same
         # assert the bounding_boxes are the same
         assert a.get_bounding_box() == b.get_bounding_box()
+        assert a.inputs == b.inputs
+        assert a.outputs == b.outputs
 
 
 class IdentityType(TransformType):
