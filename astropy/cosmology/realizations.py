@@ -10,7 +10,7 @@ from astropy.utils.state import ScienceState
 from . import parameters
 from .core import _COSMOLOGY_CLASSES, Cosmology
 
-__all__ = ["default_cosmology"] + parameters.available
+__all__ = ["default_cosmology"] + list(parameters.available)
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -18,7 +18,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a corresponding cosmology instance
 for key in parameters.available:
-    params = getattr(parameters, key)  # get parameters dictionary
+    params = dict(getattr(parameters, key))  # get parameters dict (copy)
     params.setdefault("name", key)
     # make cosmology
     cosmo = Cosmology.from_format(params, format="mapping", move_to_meta=True)
