@@ -239,7 +239,7 @@ with `~astropy.modeling.custom_model` or as a `~astropy.modeling.core.CompoundMo
     ...
     >>> model = Ellipsoid3D()
     >>> model.bounding_box
-    BoundingBox(
+    ModelBoundingBox(
         intervals={
             x0: Interval(lower=-2.0, upper=2.0)
             x1: Interval(lower=-3.0, upper=3.0)
