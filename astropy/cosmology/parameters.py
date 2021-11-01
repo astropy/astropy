@@ -58,6 +58,10 @@ Pending WMAP team approval and subject to change.
 
 """
 
+# STDLIB
+from types import MappingProxyType
+
+# LOCAL
 import astropy.units as u
 
 # Note: if you add a new cosmology, please also update the table
@@ -68,7 +72,7 @@ import astropy.units as u
 # Planck 2018 paper VI
 # Unlike Planck 2015, the paper includes massive neutrinos in Om0, which here
 # are included in m_nu.  Hence, the Om0 value differs slightly from the paper.
-Planck18 = dict(
+Planck18 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.2607,
     Ob0=0.04897,
@@ -85,11 +89,11 @@ Planck18 = dict(
     m_nu=[0., 0., 0.06] * u.eV,
     reference=("Planck Collaboration 2018, 2020, A&A, 641, A6  (Paper VI),"
                " Table 2 (TT, TE, EE + lowE + lensing + BAO)")
-)
+))
 
 # Planck 2018 paper VI v2.  Identical to Planck18 above.
 # Warning: deprecated and will be removed in future versions.
-Planck18_arXiv_v2 = dict(
+Planck18_arXiv_v2 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.2607,
     Ob0=0.04897,
@@ -106,10 +110,10 @@ Planck18_arXiv_v2 = dict(
     m_nu=[0., 0., 0.06] * u.eV,
     reference=("DEPRECATED: Planck Collaboration 2018, arXiv:1807.06209 v2 (Paper VI),"
                " Table 2 (TT, TE, EE + lowE + lensing + BAO)")
-)
+))
 
 # Planck 2015 paper XII Table 4 final column (best fit)
-Planck15 = dict(
+Planck15 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.2589,
     Ob0=0.04860,
@@ -126,10 +130,10 @@ Planck15 = dict(
     m_nu=[0., 0., 0.06] * u.eV,
     reference=("Planck Collaboration 2016, A&A, 594, A13 (Paper XIII),"
                " Table 4 (TT, TE, EE + lowP + lensing + ext)")
-)
+))
 
 # Planck 2013 paper XVI Table 5 penultimate column (best fit)
-Planck13 = dict(
+Planck13 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.25886,
     Ob0=0.048252,
@@ -146,10 +150,10 @@ Planck13 = dict(
     m_nu=[0., 0., 0.06] * u.eV,
     reference=("Planck Collaboration 2014, A&A, 571, A16 (Paper XVI),"
                " Table 5 (Planck + WP + highL + BAO)")
-)
+))
 
 
-WMAP9 = dict(
+WMAP9 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.2402,
     Ob0=0.04628,
@@ -167,9 +171,9 @@ WMAP9 = dict(
     reference=("Hinshaw et al. 2013, ApJS, 208, 19, "
                "doi: 10.1088/0067-0049/208/2/19. "
                "Table 4 (WMAP9 + eCMB + BAO + H0, last column)")
-)
+))
 
-WMAP7 = dict(
+WMAP7 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.226,
     Ob0=0.0455,
@@ -187,9 +191,9 @@ WMAP7 = dict(
     reference=("Komatsu et al. 2011, ApJS, 192, 18, "
                "doi: 10.1088/0067-0049/192/2/18. "
                "Table 1 (WMAP + BAO + H0 ML).")
-)
+))
 
-WMAP5 = dict(
+WMAP5 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.231,
     Ob0=0.0459,
@@ -207,9 +211,9 @@ WMAP5 = dict(
     reference=("Komatsu et al. 2009, ApJS, 180, 330, "
                "doi: 10.1088/0067-0049/180/2/330. "
                "Table 1 (WMAP + BAO + SN ML).")
-)
+))
 
-WMAP3 = dict(
+WMAP3 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.230,
     Ob0=0.0454,
@@ -229,9 +233,9 @@ WMAP3 = dict(
                r"Table 6 (WMAP + SNGold) "
                r"obtained from: https://lambda.gsfc.nasa.gov/product/map/dr2/params/lcdm_wmap_sngold.cfm"
                r"\nPending WMAP team approval and subject to change.")
-)
+))
 
-WMAP1 = dict(
+WMAP1 = MappingProxyType(dict(
     cosmology="FlatLambdaCDM",
     Oc0=0.213,
     Ob0=0.0436,
@@ -250,9 +254,9 @@ WMAP1 = dict(
                r"doi:  10.1086/377226. "
                r"Table 7 (WMAP + CBI + ACBAR + 2dFGRS + Lya)."
                r"\nPending WMAP team approval and subject to change.")
-)
+))
 
 
 # If new parameters are added, this list must be updated
-available = ['Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
-             'WMAP9', 'WMAP7', 'WMAP5', 'WMAP3', 'WMAP1']
+available = ('Planck18', 'Planck18_arXiv_v2', 'Planck15', 'Planck13',
+             'WMAP9', 'WMAP7', 'WMAP5', 'WMAP3', 'WMAP1')
