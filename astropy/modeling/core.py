@@ -38,7 +38,7 @@ from astropy.nddata.utils import add_array, extract_array
 from .utils import (combine_labels, make_binary_operator_eval,
                     get_inputs_and_params, _combine_equivalency_dict,
                     _ConstraintsDict, _SpecialOperatorsDict)
-from .bounding_box import BoundingDomain, ModelBoundingBox, CompoundBoundingBox
+from .bounding_box import ModelBoundingBox, CompoundBoundingBox
 from .parameters import (Parameter, InputParameterError,
                          param_repr_oneline, _tofloat)
 
@@ -3963,8 +3963,14 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
     return model
 
 
+def bind_bounding_box(modelinstance, bounding_box, order='C'):
+    modelinstance.bounding_box = ModelBoundingBox.validate(modelinstance,
+                                                           bounding_box,
+                                                           order=order)
+
+
 def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
-                               create_selector=None, order=None):
+                               create_selector=None, order='C'):
     modelinstance.bounding_box = CompoundBoundingBox.validate(modelinstance,
                                                               bounding_boxes, selector_args, create_selector,
                                                               order=order)
