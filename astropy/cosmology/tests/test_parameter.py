@@ -65,32 +65,24 @@ class ParameterTestMixin:
         """Test :class:`astropy.cosmology.Parameter` instantiation."""
         # defaults
         parameter = Parameter()
-        assert parameter.fget is None
         assert parameter.fvalidate is _validate_with_unit
         assert parameter.unit is None
         assert parameter.equivalencies == []
         assert parameter.format_spec == ".3g"
         assert parameter.derived is False
-        assert parameter.__wrapped__ is parameter.fget
 
         # setting all kwargs
-        parameter = Parameter(fget=lambda x: x, fvalidate="float", doc="DOCSTRING",
+        parameter = Parameter(fvalidate="float", doc="DOCSTRING",
                               unit="km", equivalencies=[u.mass_energy()],
                               fmt=".4f", derived=True)
-        assert parameter.fget(2) == 2
         assert parameter.fvalidate is _validate_to_float
         assert parameter.unit is u.km
         assert parameter.equivalencies == [u.mass_energy()]
         assert parameter.format_spec == ".4f"
         assert parameter.derived is True
-        assert parameter.__wrapped__ is parameter.fget
 
     def test_Parameter_instance_attributes(self, all_parameter):
         """Test :class:`astropy.cosmology.Parameter` attributes from init."""
-        # property
-        assert hasattr(all_parameter, "fget")
-        assert all_parameter.fget is None or callable(all_parameter.fget)
-
         assert hasattr(all_parameter, "fvalidate")
         assert callable(all_parameter.fvalidate)
 
@@ -101,16 +93,10 @@ class ParameterTestMixin:
         assert hasattr(all_parameter, "_equivalencies")
         assert hasattr(all_parameter, "_fmt")
         assert hasattr(all_parameter, "_derived")
-        assert hasattr(all_parameter, "__wrapped__")
 
         # __set_name__
         assert hasattr(all_parameter, "_attr_name")
         assert hasattr(all_parameter, "_attr_name_private")
-
-    def test_Parameter_fget(self, all_parameter):
-        """Test :attr:`astropy.cosmology.Parameter.fget`."""
-        assert hasattr(all_parameter, "fget")
-        assert callable(all_parameter.fget) or all_parameter.fget is None
 
     def test_Parameter_fvalidate(self, all_parameter):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
@@ -318,7 +304,6 @@ class TestParameter(ParameterTestMixin):
         # custom from set_name
         assert param._attr_name == "param"
         assert param._attr_name_private == "_param"
-        assert hasattr(param, "__wrapped__")
 
     def test_Parameter_fvalidate(self, cosmo, param):
         """Test :attr:`astropy.cosmology.Parameter.fvalidate`."""
@@ -420,6 +405,13 @@ class TestParameter(ParameterTestMixin):
             assert param.__class__._registry_validators["newvalidator"] is func
         finally:
             param.__class__._registry_validators.pop("newvalidator", None)
+
+    def test_Parameter_registered_validators(self, param):
+        """
+        Test :attr:`astropy.cosmology.Parameter.registered_validators`
+        is just a keys view of the validators registry.
+        """
+        assert param.registered_validators == param._registry_validators.keys()
 
     # ==============================================================
 

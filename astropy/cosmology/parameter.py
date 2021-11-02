@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import astropy.units as u
+from astropy.utils.decorators import classproperty
 
 __all__ = ["Parameter"]
 
@@ -12,19 +13,16 @@ class Parameter:
 
     Parameters
     ----------
-    fget : callable[[type], Any] or None, optional
-        Function to get the value from instances of the cosmology class.
-        If None (default) returns the corresponding private attribute.
-        Often not set here, but as a decorator with ``getter``.
-    fvalidate : callable[[object, object, Any], Any] or {'default', 'float'}, optional
+    fvalidate : callable[[object, object, Any], Any] or str, optional
         Function to validate the Parameter value from instances of the
         cosmology class. If "default", uses default validator to assign units
-        (with equivalencies), if Parameter has units. If "float" will first do
-        units, then take the float value.
-        Often not set here, but through a decorator with ``validator``.
+        (with equivalencies), if Parameter has units.
+        For other valid string options,
+        see :attr:`~astropy.cosmology.Parameter.registered_validators`.
+        'fvalidate' can also be set through a decorator with
+        :meth:`~astropy.cosmology.Parameter.validator`.
     doc : str or None, optional
-        Parameter description. If 'doc' is None and 'fget' is not, then 'doc'
-        is taken from ``fget.__doc__``.
+        Parameter description.
     unit : unit-like or None (optional, keyword-only)
         The `~astropy.units.Unit` for the Parameter. If None (default) no
         unit as assumed.
@@ -49,7 +47,7 @@ class Parameter:
 
     _registry_validators = {}
 
-    def __init__(self, fget=None, fvalidate="default", doc=None, *,
+    def __init__(self, fvalidate="default", doc=None, *,
                  unit=None, equivalencies=[], fmt=".3g", derived=False):
         # parse registered fvalidate
         if callable(fvalidate):
@@ -63,9 +61,7 @@ class Parameter:
             raise TypeError("`fvalidate` must be a function or "
                             f"{self._registry_validators.keys()}")
 
-        self.__doc__ = fget.__doc__ if (doc is None and fget is not None) else doc
-        self._fget = fget if not hasattr(fget, "fget") else fget.__get__
-        # TODO! better detection if `fget` is a descriptor.
+        self.__doc__ = doc
         self._fvalidate = fvalidate
 
         # units stuff
@@ -75,7 +71,6 @@ class Parameter:
         # misc
         self._fmt = str(fmt)
         self._derived = derived
-        self.__wrapped__ = fget  # so always have access to `fget`
 
     def __set_name__(self, cosmo_cls, name):
         # attribute name
@@ -109,10 +104,6 @@ class Parameter:
 
     # -------------------------------------------
     # descriptor and property-like methods
-
-    @property
-    def fget(self):
-        return self._fget
 
     def __get__(self, cosmology, cosmo_cls=None):
         # get from class
@@ -152,7 +143,7 @@ class Parameter:
         `~astropy.cosmology.Parameter`
             Copy of this Parameter but with custom ``fvalidate``.
         """
-        desc = type(self)(fget=self.fget, fvalidate=fvalidate,
+        desc = type(self)(fvalidate=fvalidate,
                           doc=self.__doc__, fmt=self.format_spec,
                           unit=self.unit, equivalencies=self.equivalencies,
                           derived=self.derived)
@@ -218,6 +209,11 @@ class Parameter:
 
         return register
 
+    @classproperty
+    def registered_validators(cls):
+        """Return keys view of registered validators."""
+        return cls._registry_validators.keys()
+
     # -------------------------------------------
 
     def __repr__(self):
@@ -261,5 +257,5 @@ def _validate_non_negative(cosmology, param, value):
     """Parameter value validator where value is a positive float."""
     value = _validate_to_float(cosmology, param, value)
     if value < 0.0:
-        raise ValueError(f"{param.name} can not be negative.")
+        raise ValueError(f"{param.name} cannot be negative.")
     return value
