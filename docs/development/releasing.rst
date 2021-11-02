@@ -357,16 +357,16 @@ The procedure for this is straightforward:
    point to the that version.
 
 #. Update the "what's new" section of the current version,
-  ``docs/whatsnew/<current_version>.rst``, and remove all content, replacing it
-  with::
+   ``docs/whatsnew/<current_version>.rst``, and remove all content, replacing it
+   with::
 
       :orphan:
 
       `What's New in Astropy <current_version>?
       <https://docs.astropy.org/en/v<current_version>/whatsnew/<current_version>.html>`__
 
-This is because we want to make sure that links in the previous what's new pages continue
-to work and reference the original link they referenced at the time of writing.
+   This is because we want to make sure that links in the previous what's new pages continue
+   to work and reference the original link they referenced at the time of writing.
 
 #. Commit these changes ::
 
