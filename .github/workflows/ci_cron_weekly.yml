@@ -1,22 +1,19 @@
 name: Weekly cron
 
 on:
-  schedule:
-    # run every Monday at 6am UTC
-    - cron: '0 6 * * 1'
+  push:
+    branches:
+    - v5.0.x
   pull_request:
-    # We also want this workflow triggered if the 'Extra CI' label is added
-    # or present when PR is updated
-    types:
-      - synchronize
-      - labeled
+    branches:
+    - v5.0.x
+
 env:
   IS_CRON: 'true'
 
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: "normal"
     strategy:
@@ -77,7 +74,6 @@ jobs:
 
     runs-on: ubuntu-18.04
     name: Python 3.9
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
 
