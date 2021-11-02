@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _whatsnew-5.0:
 
 **************************
@@ -8,6 +6,30 @@ What's New in Astropy 5.0?
 
 Overview
 ========
+
+Astropy 5.0 is a major release that adds significant new functionality since
+the 4.3.x series of releases.  In addition, it is a long-term support release
+(LTS) which will be supported with bug fixes for two years.
+
+In particular, this release includes:
+
+* :ref:`whatsnew-5.0-cosmology-io`
+* :ref:`whatsnew-5.0-cosmology-units`
+* :ref:`whatsnew-5.0-io-unified`
+* :ref:`whatsnew-5.0-modeling-new-models`
+* :ref:`whatsnew-5.0-dask-in-table`
+* :ref:`whatsnew-5.0-mixin-registry`
+* :ref:`whatsnew-5.0-parquet-tables`
+
+In addition to these major changes, Astropy v4.3 includes a large number of
+smaller improvements and bug fixes, which are described in the
+:ref:`changelog`. By the numbers:
+
+* 2695 commits have been added since 4.3
+* 115 issues have been closed since 4.3
+* 205 pull requests have been merged since 4.3
+* 97 people have contributed since 4.3
+* 49 of which are new contributors
 
 .. _whatsnew-5.0-cosmology-io:
 
@@ -39,7 +61,7 @@ are pre-registered, e.g. enabling::
     >>> ct
     <QTable length=1>
       name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
-             km / (Mpc s)                              eV
+             km / (Mpc s)            K                 eV
       str8     float64    float64 float64 float64   float64   float64
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
@@ -222,6 +244,110 @@ Full change log
 To see a detailed list of all changes in version v5.0, including changes in
 API, please see the :ref:`changelog`.
 
+Contributors to the v5.0 release
+================================
 
-Renamed/removed functionality
-=============================
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  *  Aarya Patil
+  *  Adam Ginsburg
+  *  Adrian Price-Whelan
+  *  Akeem  *
+  *  Akshat Dixit  *
+  *  Akshat1Nar  *
+  *  Albert Y. Shih
+  *  Andrej Rode  *
+  *  Bhavya Khandelwal  *
+  *  Brett Morris
+  *  Brian Soto
+  *  Brigitta Sipőcz
+  *  Bruce Merry
+  *  Chiara Marmo  *
+  *  Christoph Gohlke
+  *  Conor MacBride  *
+  *  Daniel Ryan  *
+  *  Daria Cara
+  *  David Stansby
+  *  Derek Homeier
+  *  E. Madison Bray
+  *  E. Rykoff  *
+  *  Ed Slavich
+  *  Eero Vaher  *
+  *  Emir  *
+  *  Erik Tollerud
+  *  Gabriel Perren
+  *  Geert Barentsen
+  *  Gyanendra Shukla  *
+  *  Hans Moritz Günther
+  *  Jakob Maljaars  *
+  *  James Davies
+  *  James Tocknell  *
+  *  James Turner
+  *  Jane Rigby
+  *  Jason Segnini  *
+  *  Jero Bado
+  *  Jose Sabater  *
+  *  Juan Luis Cano Rodríguez
+  *  Julien Woillez
+  *  Karl Wessel  *
+  *  Larry Bradley
+  *  Laura Hayes  *
+  *  Laurie Stephey  *
+  *  Leo Singer
+  *  Ludwig Schwardt
+  *  Léni Gauffier  *
+  *  Maik Nijhuis  *
+  *  Markus Demleitner  *
+  *  Marten van Kerkwijk
+  *  Matteo Bachetti
+  *  Matthias Bussonnier  *
+  *  Maximilian Nöthe
+  *  Michael Brewer  *
+  *  Mihai Cara
+  *  Nadia Dencheva
+  *  Nathaniel Starkman
+  *  Nicholas Earl
+  *  Nick Murphy
+  *  Nikita Tewary  *
+  *  Ole Streicher
+  *  Param Patidar  *
+  *  Perry Greenfield
+  *  Pey Lian Lim
+  *  Pushkar Kopparla  *
+  *  Ricardo Fonseca
+  *  Richard R  *
+  *  Rik van Lieshout  *
+  *  Roy Smart  *
+  *  Sam Van Kooten  *
+  *  Shankar Kulumani  *
+  *  Simon Conseil
+  *  Steve Guest  *
+  *  Steven Bamford
+  *  Stuart Littlefair
+  *  Stuart Mumford
+  *  Suyog Garg  *
+  *  Thomas Robitaille
+  *  Tim Gates  *
+  *  Tim Jenness
+  *  Tom Aldcroft
+  *  Tom Donaldson
+  *  Volodymyr Savchenko  *
+  *  William Jamieson  *
+  *  Zé Vinicius
+  *  athul  *
+  *  bhavyakh  *
+  *  diegoasterio  *
+  *  homeboy445  *
+  *  iamsoto  *
+  *  ikkamens  *
+  *  luz paz  *
+  *  maggiesam  *
+  *  odidev  *
+  *  orionlee  *
+  *  sashmish  *
+  *  srirajshukla  *
+
+Where a * indicates that this release contains their first contribution to
