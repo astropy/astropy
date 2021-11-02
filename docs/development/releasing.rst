@@ -19,13 +19,12 @@ There are several different procedures below, depending on the situation:
 For a signed release, see :ref:`key-signing-info` for relevant setup
 instructions.
 
-
 .. _release-procedure:
 
 Standard Release Procedure
 ==========================
 
-This is the standard release procedure for releasing Astropy (or affiliated
+This is the standard release procedure for releasing the core astropy package (or other
 packages that use the full bugfix/maintenance branch approach.)
 
 #. If you are about to branch a new major version, first follow the
@@ -47,11 +46,25 @@ packages that use the full bugfix/maintenance branch approach.)
    ``affects-release``.  Similarly, if any issues remain open for this release,
    re-assign them to the next relevant milestone.
 
+#. (astropy specific) Ensure the built-in IERS earth rotation parameter and
+   leap second tables are up to date by changing directory to
+   ``astropy/utils/iers/data`` and executing ``update_builtin_iers.sh``.
+   Check the result with ``git diff`` (do not be surprised to find many lines
+   in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
+   periodically) and committing. Since in some cases updating the IERS tables
+   may result in test failures, this update should be done via a pull request
+   to the ``main`` branch, and then backported to the release branch.
+
 #. (Only for major versions) Make sure to update the "What's new"
-   section with the stats on the number of issues, PRs, and contributors. To do
-   this, use the `generate_releaserst.xsh`_ script. This requires `xonsh
-   <https://xon.sh/>`_ and `docopt <http://docopt.org/>`_ which you can install
-   with::
+   section with the stats on the number of issues, PRs, and contributors.
+   Since the What's New for the major release is now only present in the release
+   branch, you should switch to it to, e.g.::
+
+      $ git checkout v5.0.x
+
+   To find the statistics and contributors, use the `generate_releaserst.xsh`_
+   script. This requires `xonsh <https://xon.sh/>`_ and `docopt
+   <http://docopt.org/>`_ which you can install with::
 
       pip install xonsh docopt
 
@@ -104,18 +117,31 @@ packages that use the full bugfix/maintenance branch approach.)
    the ``.mailmap`` file. Once you have done this, you can re-run the
    ``generate_releaserst.xsh`` script (you will likely need to iterate a few times).
    Once you are happy with the output, copy it into the 'What's new' page for
-   the current release and commit.
+   the current release and commit this. E.g., ::
 
-#. Update the ``docs/credits.rst`` file to include any new
-   contributors from the above step. (This step is only required on major
-   releases, but can be done for bugfix releases as time allows.)
+      $ git add docs/whatsnew/5.0.rst
+      $ git commit -m "Added contributor statistics and names"
 
-#. (astropy specific) Ensure the built-in IERS earth rotation parameter and
-   leap second tables are up to date by changing directory to
-   ``astropy/utils/iers/data`` and executing ``update_builtin_iers.sh``.
-   Check the result with ``git diff`` (do not be surprised to find many lines
-   in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
-   periodically) and committing.
+   Update the ``docs/credits.rst`` file to include any new contributors from the
+   above step, and commit this and the ``.mailmap`` changes::
+
+      $ git add .mailmap
+      $ git add docs/credits.rst
+      $ git commit -m "Updated list of contributors and .mailmap file"
+
+   This last commit should be forward-ported to the ``main`` branch.
+
+#. Push the release branch back to GitHub, e.g.::
+
+      $ git push upstream v5.0.x
+
+   and make sure that the CI services mentioned above (includnig the Azure pipeline)
+   are still passing.
+
+   .. note::
+
+      You may need to replace ``upstream`` here with ``astropy`` or
+      whatever remote name you use for the `astropy core repository`_.
 
 #. Ensure you have a GPG key pair available for when git needs to sign the
    tag you create for the release.  See :ref:`key-signing-info` for more on
@@ -124,11 +150,6 @@ packages that use the full bugfix/maintenance branch approach.)
 #. Obtain a *clean* version of the `astropy core repository`_.  That is, one
    where you don't have any intermediate build files.  Either use a fresh
    ``git clone`` or do ``git clean -dfx``.
-
-#. Be sure you're on the branch appropriate for the version you're about to
-   release.  For example, if releasing version 1.2.2 make sure to::
-
-      $ git checkout v1.2.x
 
 #. Make sure that the continuous integration services (e.g., GitHub Actions or CircleCI) are passing
    for the `astropy core repository`_ branch you are going to release. Also check that
@@ -140,31 +161,30 @@ packages that use the full bugfix/maintenance branch approach.)
       $ pip install tox --upgrade
       $ TEST_READ_HUGE_FILE=1 tox -e test-alldeps -- --remote-data=any
 
-#. Render the changelog with towncrier, and confirm that the fragments can be
-   deleted. (Note: update this when doing the next release!)
-   ::
+#. We now need to render the changelog with towncrier. Since it is a good idea to
+   review the changelog and fix any line wrap and other issues, we do this on
+   a separate branch and open a pull request into the release branch to allow for
+   easy review. First, create and switch to a new branch based off the release
+   branch, e.g.::
 
-       towncrier [--draft] --version 4.3
+      $ git checkout -b v5.0-changelog
 
-#. Then add and commit those changes with::
+   Next, run towncrier and confirm that the fragments can be deleted::
+
+       towncrier --version 5.0
+
+   Then add and commit those changes with::
 
       $ git add CHANGES.rst
       $ git commit -m "Finalizing changelog for v<version>"
 
-#. Push the branch back to GitHub, e.g.::
+   Push to GitHub and open a pull request for merging this into the release branch,
+   e.g. v5.0.x.
 
-      $ git push upstream v1.2.x
-
-   and make sure that the CI services mentioned above (includnig the Azure pipeline)
-   are still passing.
-
-   .. note::
-
-      You may need to replace ``upstream`` here with ``astropy`` or
-      whatever remote name you use for the `astropy core repository`_.
-
-#. Tag the commit with ``v<version>``, being certain to sign the tag with the
-   ``-s`` option::
+#. Once the changelog pull request is merged, update your release branch to
+   match the upstream version, then (on the release branch), tag the merge
+   commit for the changelog changes with ``v<version>``, being certain to sign
+   the tag with the ``-s`` option::
 
       $ git tag -s v<version> -m "Tagging v<version>"
 
@@ -225,8 +245,8 @@ Post-Release procedures
    previous step).
 
 #. When releasing a patch release, also set the previous RTD version in the
-   release history to "protected".  For example when releasing v1.1.2, set
-   v1.1.1 to "protected".  This prevents the previous releases from
+   release history to "protected".  For example when releasing v5.0.2, set
+   v5.0.1 to "protected".  This prevents the previous releases from
    cluttering the list of versions that users see in the version dropdown
    (the previous versions are still accessible by their URL though).
 
@@ -237,12 +257,9 @@ Post-Release procedures
    list on the web site if you updated the ``docs/credits.rst`` at the outset.
 
 #. Cherry-pick the commit rendering the changelog and deleting the fragments and
-   open a PR to the astropy *main* branch. Note: updating this when doing the
-   next release with towncrier.
-   In the same PR, you also have to update ``docs/whatsnew/index.rst`` and
-   ``docs/whatsnew/X.Y.rst`` to link to "what's new" documentation in the
-   released RTD branch, using the existing text as example. See
-   `PR#12073 <https://github.com/astropy/astropy/pull/12073>`_ for an example.
+   open a PR to the astropy *main* branch. Also make sure you cherry-pick the
+   commit updating the ``.mailmap`` and ``docs/credits.rst`` files to the *main*
+   branch in a separate PR.
 
 #. ``conda-forge`` has a bot that automatically opens
    a PR from a new PyPI (stable) release, which you need to follow up on and
@@ -285,11 +302,16 @@ modified.
 The primary modifications to the release procedure are:
 
 * When entering tagging the release, include a ``b?`` or ``rc??`` suffix after
-  the version number, e.g. "1.2b1" or "1.2rc1".  It is critical that you follow this
+  the version number, e.g. "5.0b1" or "5.0rc1".  It is critical that you follow this
   numbering scheme (``X.Yb#`` or ``X.Y.Zrc#``), as it will ensure the release
   is ordered "before" the main release by various automated tools, and also
   tells PyPI that this is a "pre-release."
 * Do not do steps in :ref:`post-release-procedure`.
+* Do not render the changelog with towncrier and open the pull request for these
+  changes to the release branch. This should only be done just before the final
+  release. However, it is up to the discretion of the release manager whether to
+  open 'practice' pull requests to do this as part of the beta/release candidate
+  process (but they should not be merged in).
 
 Once a release candidate is available, create a new Wiki page under
 `Astropy Project Wiki <https://github.com/astropy/astropy/wiki>`_ with the
@@ -355,8 +377,7 @@ to work and reference the original link they referenced at the time of writing.
       $ git commit -m "Added <next_version> what's new page and redirect <current_version> what's new page"
 
 #. Tag this commit using the next major version followed by ``.dev``. For example,
-   if you have just branched ``4.0``, create the ``v4.1.dev`` tag on the commit
-   adding the ``4.1`` section to the changelog::
+   if you have just branched ``5.0``, create the ``v5.1.dev`` tag::
 
       $ git tag -s "v<next_version>.dev" -m "Back to development: v<next_version>"
 
@@ -419,9 +440,9 @@ Issues are assigned to an Astropy release by way of the Milestone feature in
 the GitHub issue tracker.  At any given time there are at least two versions
 under development: The next major/minor version, and the next bug fix release.
 For example, at the time of writing there are two release milestones open:
-v1.2.2 and v0.3.0.  In this case, v1.2.2 is the next bug fix release and all
+v5.1 and v5.0.1.  In this case, v5.0.1 is the next bug fix release and all
 issues that should include fixes in that release should be assigned that
-milestone.  Any issues that implement new features would go into the v0.3.0
+milestone.  Any issues that implement new features would go into the v5.1
 milestone--this is any work that goes in the main branch that should not
 be backported.  For a more detailed set of guidelines on using milestones, see
 :ref:`milestones-and-labels`.
@@ -436,23 +457,23 @@ Backporting fixes from main
 
     The changelog script in ``astropy-tools`` (``pr_consistency`` scripts
     in particular) does not know about minor releases, thus please be careful.
-    For example, let's say we have two branches (``main`` and ``v1.2.x``).
-    Both 1.2.0 and 1.2.1 releases will come out of the same v1.2.x branch.
-    If a PR for 1.2.1 is merged into ``main`` before 1.2.0 is released,
-    it should not be backported into v1.2.x branch until after 1.2.0 is
+    For example, let's say we have two branches (``main`` and ``v5.0.x``).
+    Both 5.0.0 and 5.0.1 releases will come out of the same v5.0.x branch.
+    If a PR for 5.0.1 is merged into ``main`` before 5.0.0 is released,
+    it should not be backported into v5.0.x branch until after 5.0.0 is
     released, despite complaining from the aforementioned script.
-    This situation only arises in a very narrow time frame after 1.2.0
+    This situation only arises in a very narrow time frame after 5.0.0
     freeze but before its release.
 
 Most fixes are backported using the ``git cherry-pick`` command, which applies
 the diff from a single commit like a patch.  For the sake of example, say the
-current bug fix branch is 'v1.2.x', and that a bug was fixed in main in a
-commit ``abcd1234``.  In order to backport the fix, checkout the v1.2.x
+current bug fix branch is 'v5.0.x', and that a bug was fixed in main in a
+commit ``abcd1234``.  In order to backport the fix, checkout the v5.0.x
 branch (it's also good to make sure it's in sync with the
 `astropy core repository`_) and cherry-pick the appropriate commit::
 
-    $ git checkout v1.2.x
-    $ git pull upstream v1.2.x
+    $ git checkout v5.0.x
+    $ git pull upstream v5.0.x
     $ git cherry-pick abcd1234
 
 Sometimes a cherry-pick does not apply cleanly, since the bug fix branch
@@ -471,8 +492,8 @@ combined.  What this means is that it is only necessary to cherry-pick the
 merge commit (this requires adding the ``-m 1`` option to the cherry-pick
 command).  For example, if ``5678abcd`` is a merge commit::
 
-    $ git checkout v1.2.x
-    $ git pull upstream v1.2.x
+    $ git checkout v5.0.x
+    $ git pull upstream v5.0.x
     $ git cherry-pick -m 1 5678abcd
 
 In fact, because Astropy emphasizes a pull request-based workflow, this is the
@@ -518,7 +539,7 @@ there are two choices:
    compares your branch to Astropy's main.  If you look on the left-hand
    side of the pull request page, under "base repo: astropy/astropy" there is
    a drop-down list labeled "base branch: main".  You can click on this
-   drop-down and instead select the bug fix branch ("v1.2.x" for example). Then
+   drop-down and instead select the bug fix branch ("v5.0.x" for example). Then
    GitHub will instead compare your fix against that branch, and merge into
    that branch when the PR is accepted.
 
@@ -605,8 +626,8 @@ Finally, not all issues assigned to a release milestone need to be fixed before
 making that release.  Usually, in the interest of getting a release with
 existing fixes out within some schedule, it's best to triage issues that won't
 be fixed soon to a new release milestone.  If the upcoming bug fix release is
-'v1.2.2', then go ahead and create a 'v1.2.3' milestone and reassign to it any
-issues that you don't expect to be fixed in time for 'v1.2.2'.
+'v5.0.2', then go ahead and create a 'v5.0.3' milestone and reassign to it any
+issues that you don't expect to be fixed in time for 'v5.0.2'.
 
 .. _key-signing-info:
 
