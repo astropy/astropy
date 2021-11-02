@@ -52,12 +52,12 @@ packages that use the full bugfix/maintenance branch approach.)
    Check the result with ``git diff`` (do not be surprised to find many lines
    in the ``eopc04_IAU2000.62-now`` file change; those data are reanalyzed
    periodically) and committing. Since in some cases updating the IERS tables
-   may result in test failures, this update is best done via a pull request
+   may result in test failures, this update should be done via a pull request
    to the ``main`` branch, and then backported to the release branch.
 
 #. (Only for major versions) Make sure to update the "What's new"
    section with the stats on the number of issues, PRs, and contributors.
-   Since the what's new for the major release is now only present in the release
+   Since the What's New for the major release is now only present in the release
    branch, you should switch to it to, e.g.::
 
       $ git checkout v5.0.x
@@ -117,7 +117,7 @@ packages that use the full bugfix/maintenance branch approach.)
    the ``.mailmap`` file. Once you have done this, you can re-run the
    ``generate_releaserst.xsh`` script (you will likely need to iterate a few times).
    Once you are happy with the output, copy it into the 'What's new' page for
-   the current release and commit this::
+   the current release and commit this. E.g., ::
 
       $ git add docs/whatsnew/5.0.rst
       $ git commit -m "Added contributor statistics and names"
