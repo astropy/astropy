@@ -4,6 +4,7 @@ import sys
 import warnings
 
 from astropy import units as u
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.state import ScienceState
 
@@ -50,33 +51,53 @@ class default_cosmology(ScienceState):
         ...     pass
     """
 
+    _default_value = "Planck18"
     _value = "Planck18"
 
-    @staticmethod
-    def get_cosmology_from_string(arg):
-        """ Return a cosmology instance from a string.
+    @classmethod
+    def get(cls, key=None):
+        """Get the science state value of ``key``.
+
+        If ``key`` is None get the current value.
+
+        Parameters
+        ----------
+        key : str
+
         """
-        if arg == "no_default":
-            cosmo = None
-        else:
+        if key is None:
+            key = cls._value
+        elif key == "no_default":
+            return None
+
+        if isinstance(key, str):
             try:
-                cosmo = getattr(sys.modules[__name__], arg)
+                value = getattr(sys.modules[__name__], key)
             except AttributeError:
-                s = "Unknown cosmology '{}'. Valid cosmologies:\n{}".format(
-                    arg, parameters.available
-                )
-                raise ValueError(s)
-        return cosmo
+                raise ValueError(f"Unknown cosmology {key!r}. "
+                                 f"Valid cosmologies:\n{parameters.available}")
+        elif isinstance(key, Cosmology):
+            value = key
+        else:
+            raise TypeError("'key' must be must be None, a string, or Cosmology instance, "
+                            f"not {type(key)}.")
+
+        return cls.validate(value)
+
+    @deprecated("5.0", alternative="get")
+    @classmethod
+    def get_cosmology_from_string(cls, arg):
+        """Return a cosmology instance from a string."""
+        return cls.get(arg)
 
     @classmethod
     def validate(cls, value):
         if value is None:
-            value = "Planck18"
+            value = cls._default_value
+
         if isinstance(value, str):
-            return cls.get_cosmology_from_string(value)
-        elif isinstance(value, Cosmology):
-            return value
-        else:
-            raise TypeError(
-                "default_cosmology must be a string or Cosmology instance."
-            )
+            value = cls.get(value)
+        elif not isinstance(value, Cosmology):
+            raise TypeError("default_cosmology must be a string or Cosmology instance.")
+
+        return value
