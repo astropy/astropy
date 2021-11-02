@@ -106,7 +106,7 @@ class TestFLRW(CosmologyTest):
         # validation
         assert cosmo_cls.Om0.validate(cosmo, 1) == 1
         assert cosmo_cls.Om0.validate(cosmo, 10 * u.one) == 10
-        with pytest.raises(ValueError, match="Om0 can not be negative"):
+        with pytest.raises(ValueError, match="Om0 cannot be negative"):
             cosmo_cls.Om0.validate(cosmo, -1)
 
         # on the instance
@@ -154,7 +154,7 @@ class TestFLRW(CosmologyTest):
         # validation
         assert cosmo_cls.Neff.validate(cosmo, 1) == 1
         assert cosmo_cls.Neff.validate(cosmo, 10 * u.one) == 10
-        with pytest.raises(ValueError, match="Neff can not be negative"):
+        with pytest.raises(ValueError, match="Neff cannot be negative"):
             cosmo_cls.Neff.validate(cosmo, -1)
 
         # on the instance
@@ -195,7 +195,7 @@ class TestFLRW(CosmologyTest):
         assert cosmo_cls.Ob0.validate(cosmo, None) is None
         assert cosmo_cls.Ob0.validate(cosmo, 0.1) == 0.1
         assert cosmo_cls.Ob0.validate(cosmo, 0.1 * u.one) == 0.1
-        with pytest.raises(ValueError, match="Ob0 can not be negative"):
+        with pytest.raises(ValueError, match="Ob0 cannot be negative"):
             cosmo_cls.Ob0.validate(cosmo, -1)
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
             cosmo_cls.Ob0.validate(cosmo, cosmo.Om0 + 1)

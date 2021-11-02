@@ -246,9 +246,8 @@ class FLRW(Cosmology):
             self._Tnu0 = 0.0 * u.K
             self._Onu0 = 0.0
 
-        # now set m_nu Parameter (Note the value is calculated and not
-        # influenced by this value)
-        self.m_nu = m_nu
+        # now set m_nu Parameter (Note the value is calculated by the validator)
+        self.m_nu = ...
 
         # -------------------
 
