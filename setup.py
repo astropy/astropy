@@ -62,8 +62,7 @@ if 'build_docs' in sys.argv or 'build_sphinx' in sys.argv:
 
 # Only import these if the above checks are okay
 # to avoid masking the real problem with import error.
-import os  # noqa
 from setuptools import setup  # noqa
 from extension_helpers import get_extensions  # noqa
 
-setup(use_scm_version=True, ext_modules=get_extensions())
+setup(ext_modules=get_extensions())
