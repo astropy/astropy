@@ -8,7 +8,8 @@ from astropy.cosmology.connect import convert_registry
 from astropy.cosmology.core import Cosmology
 from astropy.table import QTable, Table
 
-from .mapping import from_mapping, to_mapping
+from .mapping import to_mapping
+from .row import from_row
 
 
 def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
@@ -136,18 +137,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
     # ------------------
     # parse row to cosmo
 
-    # special values
-    name = row['name'] if 'name' in row.columns else None  # get name from column
-    meta = copy.deepcopy(row.meta)
-
-    # turn row into mapping, filling cosmo if not in a column
-    mapping = dict(row)
-    mapping["name"] = name
-    mapping.setdefault("cosmology", meta.pop("cosmology", None))
-    mapping["meta"] = meta
-
-    # build cosmology from map
-    return from_mapping(mapping, move_to_meta=move_to_meta, cosmology=cosmology)
+    return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology)
 
 
 def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True):

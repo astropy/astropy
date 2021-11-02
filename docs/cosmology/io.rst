@@ -102,6 +102,7 @@ To see the a list of the available conversion formats:
         Format    Read Write Auto-identify
     ------------- ---- ----- -------------
     astropy.model  Yes   Yes           Yes
+      astropy.row  Yes   Yes           Yes
     astropy.table  Yes   Yes           Yes
           mapping  Yes   Yes           Yes
         mypackage  Yes   Yes           Yes
@@ -249,6 +250,7 @@ class to use. Details about metadata treatment are in
     ...     # turn row into mapping (dict of the arguments)
     ...     mapping = dict(row)
     ...     mapping['name'] = name
+    ...     mapping.setdefault("cosmology", meta.pop("cosmology", None))
     ...     mapping["meta"] = meta
     ...     # build cosmology from map
     ...     return Cosmology.from_format(mapping, move_to_meta=move_to_meta,
@@ -286,12 +288,13 @@ register everything into `astropy.io.registry`.
     >>> def row_identify(origin, format, *args, **kwargs):
     ...     """Identify if object uses the Table format."""
     ...     if origin == "read":
-    ...         return isinstance(args[1], Row) and (format in (None, "row"))
+    ...         return isinstance(args[1], Row) and (format in (None, "astropy.row"))
     ...     return False
 
-    >>> convert_registry.register_reader("row", Cosmology, from_table_row)
-    >>> convert_registry.register_writer("row", Cosmology, to_table_row)
-    >>> convert_registry.register_identifier("row", Cosmology, row_identify)
+    >>> # These exact functions are already registered in astropy
+    >>> # convert_registry.register_reader("astropy.row", Cosmology, from_table_row)
+    >>> # convert_registry.register_writer("astropy.row", Cosmology, to_table_row)
+    >>> # convert_registry.register_identifier("astropy.row", Cosmology, row_identify)
 
 Now the registered functions can be used in
 :meth:`astropy.cosmology.Cosmology.from_format` and
@@ -300,7 +303,7 @@ Now the registered functions can be used in
 .. code-block:: python
 
     >>> from astropy.cosmology import Planck18
-    >>> row = Planck18.to_format("row")
+    >>> row = Planck18.to_format("astropy.row")
     >>> row
     <Row index=0>
       cosmology     name        H0        Om0    Tcmb0    Neff    m_nu [3]    Ob0
@@ -312,19 +315,6 @@ Now the registered functions can be used in
     >>> cosmo = Cosmology.from_format(row)
     >>> cosmo == Planck18  # test it round-trips
     True
-
-
-.. doctest::
-    :hide:
-
-    >>> from astropy.io.registry import IORegistryError
-    >>> convert_registry.unregister_reader("row", Cosmology)
-    >>> convert_registry.unregister_writer("row", Cosmology)
-    >>> convert_registry.unregister_identifier("row", Cosmology)
-    >>> try:
-    ...     convert_registry.get_reader("row", Cosmology)
-    ... except IORegistryError:
-    ...     pass
 
 .. EXAMPLE END
 

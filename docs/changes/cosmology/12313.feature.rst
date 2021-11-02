@@ -1,0 +1,2 @@
+Register "astropy.row" into Cosmology's to/from format I/O, allowing a
+Cosmology instance to be parse from or converted to an Astropy Table Row.
