@@ -13,7 +13,7 @@ class Test_default_cosmology(object):
     """Tests for :class:`~astropy.cosmology.realizations.default_cosmology`."""
 
     @staticmethod
-    def test_get_cosmology_from_string():
+    def test_get_cosmology_from_string(recwarn):
         """Test method ``get_cosmology_from_string``."""
         cosmo = default_cosmology.get_cosmology_from_string("no_default")
         assert cosmo is None
