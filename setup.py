@@ -66,5 +66,4 @@ import os  # noqa
 from setuptools import setup  # noqa
 from extension_helpers import get_extensions  # noqa
 
-setup(use_scm_version={'write_to': os.path.join('astropy', '_version.py')},
-      ext_modules=get_extensions())
+setup(use_scm_version=True, ext_modules=get_extensions())
