@@ -5,6 +5,7 @@
 This module is to contain an improved bounding box
 """
 
+import abc
 import copy
 
 from collections import namedtuple
@@ -17,7 +18,7 @@ import warnings
 import numpy as np
 
 
-__all__ = ['Interval', 'BoundingDomain', 'ModelBoundingBox', 'SelectorArgument',
+__all__ = ['Interval', 'ModelBoundingBox', 'SelectorArgument',
            'SelectorArguments', 'CompoundBoundingBox']
 
 
@@ -130,7 +131,7 @@ class Interval(_BaseInterval):
 _ignored_interval = Interval.validate((-np.inf, np.inf))
 
 
-class BoundingDomain(object):
+class _BoundingDomain(abc.ABC):
     """
     Base class for ModelBoundingBox and CompoundBoundingBox.
         This is where all the `~astropy.modeling.core.Model` evaluation
@@ -165,6 +166,7 @@ class BoundingDomain(object):
             "This bounding box is fixed by the model and does not have "
             "adjustable parameters.")
 
+    @abc.abstractmethod
     def fix_inputs(self, model, fixed_inputs: dict):
         """
         Fix the bounding_box for a `fix_inputs` compound model.
@@ -179,6 +181,7 @@ class BoundingDomain(object):
 
         raise NotImplementedError("This should be implemented by a child class.")
 
+    @abc.abstractmethod
     def prepare_inputs(self, input_shape, inputs) -> Tuple[Any, Any, Any]:
         """
         Get prepare the inputs with respect to the bounding box.
@@ -497,7 +500,7 @@ def get_index(model, key) -> int:
     return index
 
 
-class ModelBoundingBox(BoundingDomain):
+class ModelBoundingBox(_BoundingDomain):
     """
     A model's bounding box
 
@@ -657,14 +660,14 @@ class ModelBoundingBox(BoundingDomain):
             order='F' corresponds to the gwcs bounding_box ordering.
         """
         if len(self._intervals) == 1:
-            return list(self._intervals.values())[0]
+            return tuple(list(self._intervals.values())[0])
         else:
             order = self._get_order(order)
             inputs = self._model.inputs
             if order == 'C':
                 inputs = inputs[::-1]
 
-            bbox = tuple([self[input_name] for input_name in inputs])
+            bbox = tuple([tuple(self[input_name]) for input_name in inputs])
             if len(bbox) == 1:
                 bbox = bbox[0]
 
@@ -1220,7 +1223,7 @@ class SelectorArguments(tuple):
         return tuple([selector_arg.named_tuple for selector_arg in self])
 
 
-class CompoundBoundingBox(BoundingDomain):
+class CompoundBoundingBox(_BoundingDomain):
     """
     A model's compound bounding box
 

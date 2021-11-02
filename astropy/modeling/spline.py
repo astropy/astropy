@@ -5,6 +5,7 @@
 
 import warnings
 
+import abc
 import functools
 import numpy as np
 
@@ -172,9 +173,11 @@ class _Spline(FittableModel):
 
         return tuple(names)
 
+    @abc.abstractmethod
     def _init_parameters(self):
         raise NotImplementedError("This needs to be implemented")
 
+    @abc.abstractmethod
     def _init_data(self, knots, coeffs, bounds=None):
         raise NotImplementedError("This needs to be implemented")
 
@@ -554,7 +557,7 @@ class Spline1D(_Spline):
                              f"antiderivative degree will be {nu + self.degree}")
 
 
-class _SplineFitter():
+class _SplineFitter(abc.ABC):
     """
     Base Spline Fitter
     """
@@ -569,8 +572,9 @@ class _SplineFitter():
         self.fit_info['resid'] = spline.get_residual()
         self.fit_info['spline'] = spline
 
+    @abc.abstractmethod
     def _fit_method(self, model, x, y, **kwargs):
-        pass
+        raise NotImplementedError("This has not been implemented for _SplineFitter.")
 
     def __call__(self, model, x, y, z=None, **kwargs):
         model_copy = model.copy()

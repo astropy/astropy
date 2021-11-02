@@ -13,7 +13,8 @@ from numpy.testing import assert_allclose, assert_equal
 import astropy
 from astropy.modeling.core import (Model, CompoundModel, custom_model,
                                    SPECIAL_OPERATORS, _add_special_operator,
-                                   bind_compound_bounding_box, fix_inputs)
+                                   bind_bounding_box, bind_compound_bounding_box,
+                                   fix_inputs)
 from astropy.modeling.bounding_box import ModelBoundingBox, CompoundBoundingBox
 from astropy.modeling.separable import separability_matrix
 from astropy.modeling.parameters import Parameter
@@ -1022,6 +1023,23 @@ def test_compound_bounding_box():
     assert model(0.5, with_bounding_box=True) == truth(0.5)
     with pytest.raises(RuntimeError):
         model(0, with_bounding_box=True)
+
+
+def test_bind_bounding_box():
+    model = models.Polynomial2D(3)
+    bbox = ((-1, 1), (-2, 2))
+
+    bind_bounding_box(model, bbox)
+    assert model.get_bounding_box() is not None
+    assert model.bounding_box == bbox
+    assert model.bounding_box['x'] == (-2, 2)
+    assert model.bounding_box['y'] == (-1, 1)
+
+    bind_bounding_box(model, bbox, order='F')
+    assert model.get_bounding_box() is not None
+    assert model.bounding_box == bbox
+    assert model.bounding_box['x'] == (-1, 1)
+    assert model.bounding_box['y'] == (-2, 2)
 
 
 def test_bind_compound_bounding_box_using_with_bounding_box_select():
