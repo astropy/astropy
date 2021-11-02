@@ -5,7 +5,7 @@ import numpy as np
 import unittest.mock as mk
 
 from astropy.modeling.bounding_box import (_BaseInterval, Interval, _ignored_interval,
-                                           BoundingDomain, ModelBoundingBox,
+                                           _BoundingDomain, ModelBoundingBox,
                                            _BaseSelectorArgument, SelectorArgument, SelectorArguments,
                                            CompoundBoundingBox)
 from astropy.modeling.models import Gaussian1D, Gaussian2D, Shift, Scale, Identity
@@ -189,15 +189,25 @@ class TestInterval:
             assert not (_ignored_interval.outside(np.array([num]))).all()
 
 
-class TestBoundingDomain:
+class Test_BoundingDomain:
+    def setup(self):
+        class BoundingDomain(_BoundingDomain):
+            def fix_inputs(self, model, fix_inputs):
+                super().fix_inputs(model, fixed_inputs=fix_inputs)
+
+            def prepare_inputs(self, input_shape, inputs):
+                super().prepare_inputs(input_shape, inputs)
+
+        self.BoundingDomain = BoundingDomain
+
     def test_create(self):
         model = mk.MagicMock()
-        bounding_box = BoundingDomain(model)
+        bounding_box = self.BoundingDomain(model)
 
         assert bounding_box._model == model
 
     def test___call__(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         args = tuple([mk.MagicMock() for _ in range(3)])
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
@@ -209,7 +219,7 @@ class TestBoundingDomain:
             "adjustable parameters."
 
     def test_fix_inputs(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
         model = mk.MagicMock()
         fixed_inputs = mk.MagicMock()
 
@@ -219,7 +229,7 @@ class TestBoundingDomain:
             "This should be implemented by a child class."
 
     def test__prepare_inputs(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         with pytest.raises(NotImplementedError) as err:
             bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
@@ -227,7 +237,7 @@ class TestBoundingDomain:
             "This has not been implemented for BoundingDomain."
 
     def test__base_ouput(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # Simple shape
         input_shape = (13,)
@@ -255,7 +265,7 @@ class TestBoundingDomain:
 
     def test__all_out_output(self):
         model = mk.MagicMock()
-        bounding_box = BoundingDomain(model)
+        bounding_box = self.BoundingDomain(model)
 
         # Simple shape
         model.n_outputs = 1
@@ -274,34 +284,34 @@ class TestBoundingDomain:
         assert output_unit is None
 
     def test__modify_output(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
         valid_index = mk.MagicMock()
         input_shape = mk.MagicMock()
         fill_value = mk.MagicMock()
 
         # Simple shape
-        with mk.patch.object(BoundingDomain, '_base_output', autospec=True,
+        with mk.patch.object(_BoundingDomain, '_base_output', autospec=True,
                              return_value=np.asanyarray(0)) as mkBase:
             assert (np.array([1, 2, 3]) ==
                     bounding_box._modify_output([1, 2, 3], valid_index, input_shape, fill_value)).all()
             assert mkBase.call_args_list == [mk.call(input_shape, fill_value)]
 
         # Replacement
-        with mk.patch.object(BoundingDomain, '_base_output', autospec=True,
+        with mk.patch.object(_BoundingDomain, '_base_output', autospec=True,
                              return_value=np.array([1, 2, 3, 4, 5, 6])) as mkBase:
             assert (np.array([7, 2, 8, 4, 9, 6]) ==
                     bounding_box._modify_output([7, 8, 9], np.array([[0, 2, 4]]), input_shape, fill_value)).all()
             assert mkBase.call_args_list == [mk.call(input_shape, fill_value)]
 
     def test__prepare_outputs(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
         valid_index = mk.MagicMock()
         input_shape = mk.MagicMock()
         fill_value = mk.MagicMock()
 
         valid_outputs = [mk.MagicMock() for _ in range(3)]
         effects = [mk.MagicMock() for _ in range(3)]
-        with mk.patch.object(BoundingDomain, '_modify_output', autospec=True,
+        with mk.patch.object(_BoundingDomain, '_modify_output', autospec=True,
                              side_effect=effects) as mkModify:
             assert effects == bounding_box._prepare_outputs(valid_outputs, valid_index,
                                                             input_shape, fill_value)
@@ -311,14 +321,14 @@ class TestBoundingDomain:
 
     def test_prepare_outputs(self):
         model = mk.MagicMock()
-        bounding_box = BoundingDomain(model)
+        bounding_box = self.BoundingDomain(model)
 
         valid_outputs = mk.MagicMock()
         valid_index = mk.MagicMock()
         input_shape = mk.MagicMock()
         fill_value = mk.MagicMock()
 
-        with mk.patch.object(BoundingDomain, '_prepare_outputs', autospec=True) as mkPrepare:
+        with mk.patch.object(_BoundingDomain, '_prepare_outputs', autospec=True) as mkPrepare:
             # Reshape valid_outputs
             model.n_outputs = 1
             assert mkPrepare.return_value == \
@@ -335,7 +345,7 @@ class TestBoundingDomain:
                 [mk.call(bounding_box, valid_outputs, valid_index, input_shape, fill_value)]
 
     def test__get_valid_outputs_unit(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # Don't get unit
         assert bounding_box._get_valid_outputs_unit(mk.MagicMock(), False) is None
@@ -347,7 +357,7 @@ class TestBoundingDomain:
         assert bounding_box._get_valid_outputs_unit(25 * u.m, True) == u.m
 
     def test__evaluate_model(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         evaluate = mk.MagicMock()
         valid_inputs = mk.MagicMock()
@@ -356,9 +366,9 @@ class TestBoundingDomain:
         fill_value = mk.MagicMock()
         with_units = mk.MagicMock()
 
-        with mk.patch.object(BoundingDomain, '_get_valid_outputs_unit',
+        with mk.patch.object(_BoundingDomain, '_get_valid_outputs_unit',
                              autospec=True) as mkGet:
-            with mk.patch.object(BoundingDomain, 'prepare_outputs',
+            with mk.patch.object(_BoundingDomain, 'prepare_outputs',
                                  autospec=True) as mkPrepare:
                 assert bounding_box._evaluate_model(evaluate, valid_inputs,
                                                     valid_index, input_shape,
@@ -373,7 +383,7 @@ class TestBoundingDomain:
                     [mk.call(valid_inputs)]
 
     def test__evaluate(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         evaluate = mk.MagicMock()
         inputs = mk.MagicMock()
@@ -385,11 +395,11 @@ class TestBoundingDomain:
         valid_index = mk.MagicMock()
 
         effects = [(valid_inputs, valid_index, True), (valid_inputs, valid_index, False)]
-        with mk.patch.object(BoundingDomain, 'prepare_inputs', autospec=True,
+        with mk.patch.object(self.BoundingDomain, 'prepare_inputs', autospec=True,
                              side_effect=effects) as mkPrepare:
-            with mk.patch.object(BoundingDomain, '_all_out_output',
+            with mk.patch.object(_BoundingDomain, '_all_out_output',
                                  autospec=True) as mkAll:
-                with mk.patch.object(BoundingDomain, '_evaluate_model',
+                with mk.patch.object(_BoundingDomain, '_evaluate_model',
                                      autospec=True) as mkEvaluate:
                     # all_out
                     assert bounding_box._evaluate(evaluate, inputs, input_shape,
@@ -416,7 +426,7 @@ class TestBoundingDomain:
                         [mk.call(bounding_box, input_shape, inputs)]
 
     def test__set_outputs_unit(self):
-        bounding_box = BoundingDomain(mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # set no unit
         assert 27 == bounding_box._set_outputs_unit(27, None)
@@ -425,7 +435,7 @@ class TestBoundingDomain:
         assert 27 * u.m == bounding_box._set_outputs_unit(27, u.m)
 
     def test_evaluate(self):
-        bounding_box = BoundingDomain(Gaussian2D())
+        bounding_box = self.BoundingDomain(Gaussian2D())
 
         evaluate = mk.MagicMock()
         inputs = mk.MagicMock()
@@ -434,9 +444,9 @@ class TestBoundingDomain:
         outputs = mk.MagicMock()
         valid_outputs_unit = mk.MagicMock()
         value = (outputs, valid_outputs_unit)
-        with mk.patch.object(BoundingDomain, '_evaluate',
+        with mk.patch.object(_BoundingDomain, '_evaluate',
                              autospec=True, return_value=value) as mkEvaluate:
-            with mk.patch.object(BoundingDomain, '_set_outputs_unit',
+            with mk.patch.object(_BoundingDomain, '_set_outputs_unit',
                                  autospec=True) as mkSet:
                 with mk.patch.object(Model, 'input_shape', autospec=True) as mkShape:
                     with mk.patch.object(Model, 'bbox_with_units',
@@ -459,7 +469,7 @@ class TestModelBoundingBox:
         model = mk.MagicMock()
         bounding_box = ModelBoundingBox(intervals, model)
 
-        assert isinstance(bounding_box, BoundingDomain)
+        assert isinstance(bounding_box, _BoundingDomain)
         assert bounding_box._intervals == {}
         assert bounding_box._model == model
         assert bounding_box._ignored == []
@@ -470,7 +480,7 @@ class TestModelBoundingBox:
         model = mk.MagicMock()
         bounding_box = ModelBoundingBox(intervals, model, order='test')
 
-        assert isinstance(bounding_box, BoundingDomain)
+        assert isinstance(bounding_box, _BoundingDomain)
         assert bounding_box._intervals == {}
         assert bounding_box._model == model
         assert bounding_box._ignored == []
@@ -483,7 +493,7 @@ class TestModelBoundingBox:
         model.inputs = ['x']
         bounding_box = ModelBoundingBox(intervals, model)
 
-        assert isinstance(bounding_box, BoundingDomain)
+        assert isinstance(bounding_box, _BoundingDomain)
         assert bounding_box._intervals == {0: (1, 2)}
         assert bounding_box._model == model
 
@@ -494,7 +504,7 @@ class TestModelBoundingBox:
         model.inputs = ['x', 'y']
         bounding_box = ModelBoundingBox(intervals, model, ignored=[1])
 
-        assert isinstance(bounding_box, BoundingDomain)
+        assert isinstance(bounding_box, _BoundingDomain)
         assert bounding_box._intervals == {0: (1, 2)}
         assert bounding_box._model == model
         assert bounding_box._ignored == [1]
@@ -505,7 +515,7 @@ class TestModelBoundingBox:
         model.inputs = ['x', 'y', 'z']
         bounding_box = ModelBoundingBox(intervals, model, ignored=[2], order='F')
 
-        assert isinstance(bounding_box, BoundingDomain)
+        assert isinstance(bounding_box, _BoundingDomain)
         assert bounding_box._intervals == {0: (1, 2), 1: (3, 4)}
         assert bounding_box._model == model
         assert bounding_box._ignored == [2]

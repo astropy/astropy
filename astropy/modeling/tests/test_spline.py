@@ -39,12 +39,20 @@ class TestSpline:
         self.optional_inputs = {f'test{i}': mk.MagicMock() for i in range(self.num_opt)}
         self.extra_kwargs = {f'new{i}': mk.MagicMock() for i in range(self.num_opt)}
 
-    def test___init__(self):
         class Spline(_Spline):
             optional_inputs = {'test': 'test'}
 
+            def _init_parameters(self):
+                super()._init_parameters()
+
+            def _init_data(self, knots, coeffs, bounds=None):
+                super()._init_data(knots, coeffs, bounds=bounds)
+
+        self.Spline = Spline
+
+    def test___init__(self):
         # empty spline
-        spl = Spline()
+        spl = self.Spline()
         assert spl._t is None
         assert spl._c is None
         assert spl._user_knots is False
@@ -57,13 +65,13 @@ class TestSpline:
         with mk.patch.object(_Spline, '_init_spline',
                              autospec=True) as mkInit:
             # No call (knots=None)
-            spl = Spline()
+            spl = self.Spline()
             assert mkInit.call_args_list == []
 
             knots = mk.MagicMock()
             coeffs = mk.MagicMock()
             bounds = mk.MagicMock()
-            spl = Spline(knots=knots, coeffs=coeffs, bounds=bounds)
+            spl = self.Spline(knots=knots, coeffs=coeffs, bounds=bounds)
             assert mkInit.call_args_list == \
                 [mk.call(spl, knots, coeffs, bounds)]
 
@@ -75,13 +83,13 @@ class TestSpline:
 
         # Coeffs but no knots
         with pytest.raises(ValueError) as err:
-            Spline(coeffs=mk.MagicMock())
+            self.Spline(coeffs=mk.MagicMock())
         assert str(err.value) == \
             "If one passes a coeffs vector one needs to also pass knots!"
 
     def test_param_names(self):
         # no parameters
-        spl = _Spline()
+        spl = self.Spline()
         assert spl.param_names == ()
 
         knot_names = tuple([mk.MagicMock() for _ in range(3)])
@@ -93,14 +101,12 @@ class TestSpline:
         assert spl.param_names == knot_names + coeff_names
 
     def test__optional_arg(self):
-        class Spline(_Spline):
-            pass
 
-        spl = Spline()
+        spl = self.Spline()
         assert spl._optional_arg('test') == '_test'
 
     def test__create_optional_inputs(self):
-        class Spline(_Spline):
+        class Spline(self.Spline):
             optional_inputs = self.optional_inputs
 
             def __init__(self):
@@ -117,7 +123,7 @@ class TestSpline:
             spl._create_optional_inputs()
 
     def test__intercept_optional_inputs(self):
-        class Spline(_Spline):
+        class Spline(self.Spline):
             optional_inputs = self.optional_inputs
 
             def __init__(self):
@@ -148,7 +154,7 @@ class TestSpline:
             spl._intercept_optional_inputs(**kwargs)
 
     def test_evaluate(self):
-        class Spline(_Spline):
+        class Spline(self.Spline):
             optional_inputs = self.optional_inputs
 
         spl = Spline()
@@ -185,7 +191,7 @@ class TestSpline:
         assert new_kwargs == kwargs
 
     def test___call__(self):
-        spl = _Spline()
+        spl = self.Spline()
 
         args = tuple([mk.MagicMock() for _ in range(3)])
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
@@ -206,7 +212,7 @@ class TestSpline:
         test = base_vec.copy()
         fixed_test = base_vec.copy()
 
-        class Spline(_Spline):
+        class Spline(self.Spline):
             @property
             def test(self):
                 return test
@@ -259,7 +265,7 @@ class TestSpline:
         np.random.seed(37)
         test = np.random.random(20)
 
-        class Spline(_Spline):
+        class Spline(self.Spline):
             @property
             def test(self):
                 return test
@@ -275,7 +281,7 @@ class TestSpline:
                 [mk.call(spl, f"test_param{idx}", idx, 'test', fixed) for idx in range(20)]
 
     def test__init_parameters(self):
-        spl = _Spline()
+        spl = self.Spline()
 
         with pytest.raises(NotImplementedError) as err:
             spl._init_parameters()
@@ -283,7 +289,7 @@ class TestSpline:
             "This needs to be implemented"
 
     def test__init_data(self):
-        spl = _Spline()
+        spl = self.Spline()
 
         with pytest.raises(NotImplementedError) as err:
             spl._init_data(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
@@ -295,7 +301,7 @@ class TestSpline:
             "This needs to be implemented"
 
     def test__init_spline(self):
-        spl = _Spline()
+        spl = self.Spline()
 
         knots = mk.MagicMock()
         coeffs = mk.MagicMock()
@@ -310,17 +316,17 @@ class TestSpline:
 
                 spl._init_spline(knots, coeffs, bounds)
                 assert main.mock_calls == [
-                    mk.call.data(spl, knots, coeffs, bounds),
+                    mk.call.data(spl, knots, coeffs, bounds=bounds),
                     mk.call.parameters(spl)
                 ]
 
     def test__init_tck(self):
-        spl = _Spline()
+        spl = self.Spline()
         assert spl._c is None
         assert spl._t is None
         assert spl._degree is None
 
-        spl = _Spline(degree=4)
+        spl = self.Spline(degree=4)
         assert spl._c is None
         assert spl._t is None
         assert spl._degree == 4
@@ -1537,7 +1543,12 @@ class TestSpline1D:
 
     def test__SplineFitter_error(self):
         spl = Spline1D()
-        fitter = _SplineFitter()
+
+        class SplineFitter(_SplineFitter):
+            def _fit_method(self, model, x, y, **kwargs):
+                super()._fit_method(model, x, y, **kwargs)
+
+        fitter = SplineFitter()
 
         with pytest.raises(ValueError) as err:
             fitter(spl, mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
@@ -1548,3 +1559,8 @@ class TestSpline1D:
             fitter(mk.MagicMock(), mk.MagicMock(), mk.MagicMock())
         assert str(err.value) ==\
             "Only spline models are compatible with this fitter."
+
+        with pytest.raises(NotImplementedError) as err:
+            fitter(spl, mk.MagicMock(), mk.MagicMock())
+        assert str(err.value) ==\
+            "This has not been implemented for _SplineFitter."
