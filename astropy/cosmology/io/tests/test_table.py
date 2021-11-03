@@ -71,6 +71,11 @@ class ToFromTableTestMixin(IOTestMixinBase):
 
     # -----------------------
 
+    def test_from_not_table(self, cosmo, from_format):
+        """Test not passing a Table to the Table parser."""
+        with pytest.raises((TypeError, ValueError)):
+            from_format("NOT A TABLE", format="astropy.table")
+
     def test_tofrom_table_instance(self, cosmo_cls, cosmo, from_format, to_format):
         """Test cosmology -> astropy.table -> cosmology."""
         # ------------
