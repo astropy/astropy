@@ -611,7 +611,7 @@ class ModelBoundingBox(_BoundingDomain):
         return self._intervals
 
     @property
-    def named_intervals(self) -> Dict[str, Interval]:
+    def named_intervals(self) -> Dict[str, _Interval]:
         """Return bounding_box labeled using input names"""
         return {self._get_name(index): bbox for index, bbox in self._intervals.items()}
 
@@ -1305,8 +1305,9 @@ class CompoundBoundingBox(_BoundingDomain):
         Contructs a valid complex bounding_box
     """
     def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
-                 selector_args: _SelectorArguments, create_selector: Callable = None, order: str = 'C'):
-        super().__init__(model, None, order)
+                 selector_args: _SelectorArguments, create_selector: Callable = None,
+                 ignored: List[int] = None, order: str = 'C'):
+        super().__init__(model, ignored, order)
 
         self._create_selector = create_selector
         self._selector_args = _SelectorArguments.validate(model, selector_args)
@@ -1378,9 +1379,10 @@ class CompoundBoundingBox(_BoundingDomain):
         if not self.selector_args.is_selector(_selector):
             raise ValueError(f"{_selector} is not a selector!")
 
+        ignored = self.selector_args.ignore + self.ignored
         self._bounding_boxes[_selector] = ModelBoundingBox.validate(self._model, value,
-                                                               self.selector_args.ignore,
-                                                               order=self._order)
+                                                                    ignored,
+                                                                    order=self._order)
 
     def _validate(self, bounding_boxes: dict):
         for _selector, bounding_box in bounding_boxes.items():
@@ -1396,7 +1398,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @classmethod
     def validate(cls, model, bounding_box: dict, selector_args=None, create_selector=None,
-                 order: str = 'C', **kwarg):
+                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwarg):
         """
         Construct a valid compound bounding box for a model.
 
@@ -1420,12 +1422,15 @@ class CompoundBoundingBox(_BoundingDomain):
             if create_selector is None:
                 create_selector = bounding_box.create_selector
             order = bounding_box.order
+            if _preserve_ignore:
+                ignored = bounding_box.ignored
             bounding_box = bounding_box.bounding_boxes
 
         if selector_args is None:
             raise ValueError("Selector arguments must be provided (can be passed as part of bounding_box argument)!")
 
-        return cls(bounding_box, model, selector_args, create_selector, order)
+        return cls(bounding_box, model, selector_args,
+                   create_selector=create_selector, ignored=ignored, order=order)
 
     def __contains__(self, key):
         return key in self._bounding_boxes
