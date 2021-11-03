@@ -6,7 +6,7 @@ from astropy.cosmology import parameters, realizations
 from astropy.cosmology.realizations import Planck13, default_cosmology
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-cosmo_realz = [s for s in parameters.available if s != "Planck18_arXiv_v2"]
+cosmo_realz = parameters.available
 
 
 class Test_default_cosmology(object):
@@ -29,11 +29,6 @@ class Test_default_cosmology(object):
         """Test method ``validate`` for specific values."""
         value = default_cosmology.validate(None)
         assert value is realizations.Planck18
-
-        with pytest.warns(AstropyDeprecationWarning) as e:
-            value = default_cosmology.validate("Planck18_arXiv_v2")
-        assert "use Planck18 instead" in str(e.list[0].message)
-        assert value is realizations.Planck18_arXiv_v2
 
         with pytest.raises(TypeError) as e:
             default_cosmology.validate(TypeError)
