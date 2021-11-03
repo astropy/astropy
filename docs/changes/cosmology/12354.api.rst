@@ -1,0 +1,2 @@
+The already deprecated ``Planck18_arXiv_v2`` has been removed.
+Use ``Planck18`` instead
