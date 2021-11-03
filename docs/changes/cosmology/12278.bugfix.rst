@@ -1,0 +1,2 @@
+Dictionaries for in-built cosmology realizations are not altered by creating
+the realization and are also made immutable.
