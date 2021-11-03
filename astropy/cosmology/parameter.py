@@ -17,8 +17,7 @@ class Parameter:
         Function to validate the Parameter value from instances of the
         cosmology class. If "default", uses default validator to assign units
         (with equivalencies), if Parameter has units.
-        For other valid string options,
-        see :attr:`~astropy.cosmology.Parameter.registered_validators`.
+        For other valid string options, see ``Parameter._registry_validators``.
         'fvalidate' can also be set through a decorator with
         :meth:`~astropy.cosmology.Parameter.validator`.
     doc : str or None, optional
@@ -208,11 +207,6 @@ class Parameter:
             return fvalidate
 
         return register
-
-    @classproperty
-    def registered_validators(cls):
-        """Return keys view of registered validators."""
-        return cls._registry_validators.keys()
 
     # -------------------------------------------
 

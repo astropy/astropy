@@ -137,7 +137,7 @@ class FLRW(Cosmology):
         self.Ode0 = Ode0
         self.Tcmb0 = Tcmb0
         self.Neff = Neff
-        # self.m_nu = m_nu  # set later
+        self.m_nu = m_nu  # (reset later, this is just for unit validation)
         self.Ob0 = Ob0  # (must be after Om0)
 
         # Derived quantities
@@ -170,9 +170,6 @@ class FLRW(Cosmology):
         # neutrinos)
         self._massivenu = False
         if self._nneutrinos > 0 and self._Tcmb0.value > 0:
-            # not set yet, just validated
-            m_nu = _validate_with_unit(self, self.__class__.m_nu, m_nu)
-
             self._neff_per_nu = self._Neff / self._nneutrinos
 
             # Now, figure out if we have massive neutrinos to deal with,
@@ -180,6 +177,7 @@ class FLRW(Cosmology):
             # It is worth the effort to keep track of massless ones separately
             # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
+            m_nu = self._m_nu
             if m_nu.isscalar:
                 # Assume all neutrinos have the same mass
                 if m_nu.value == 0:
@@ -246,8 +244,18 @@ class FLRW(Cosmology):
             self._Tnu0 = 0.0 * u.K
             self._Onu0 = 0.0
 
-        # now set m_nu Parameter (Note the value is calculated by the validator)
-        self.m_nu = ...
+        # now set m_nu Parameter
+        if self._nneutrinos == 0 or self._Tnu0.value == 0:
+            self._m_nu = None
+        else:
+            if not self._massivenu:  # only massless
+                m = np.zeros(self._nmasslessnu)
+            elif self._nmasslessnu == 0:  # only massive
+                m = self._massivenu_mass
+            else:  # a mix -- the most complicated case
+                m = np.append(np.zeros(self._nmasslessnu),
+                              self._massivenu_mass.value)
+            self._m_nu = m << self._m_nu.unit
 
         # -------------------
 
@@ -262,21 +270,6 @@ class FLRW(Cosmology):
     # ---------------------------------------------------------------
     # Parameter details
 
-    @m_nu.validator
-    def m_nu(self, param, _):
-        """Mass of neutrino species. Returns None if no neutrinos."""
-        if self._nneutrinos == 0 or self._Tnu0.value == 0:
-            return None
-
-        if not self._massivenu:  # only massless
-            m = np.zeros(self._nmasslessnu)
-        elif self._nmasslessnu == 0:  # only massive
-            m = self._massivenu_mass
-        else:  # a mix -- the most complicated case
-            m = np.append(np.zeros(self._nmasslessnu),
-                          self._massivenu_mass.value)
-        return m << param.unit
-
     @Ob0.validator
     def Ob0(self, param, value):
         """Validate baryon density to None or positive float > matter density."""
@@ -285,8 +278,7 @@ class FLRW(Cosmology):
 
         value = _validate_non_negative(self, param, value)
         if value > self.Om0:
-            raise ValueError("baryonic density can not be larger than "
-                             "total matter density.")
+            raise ValueError("baryonic density can not be larger than total matter density.")
         return value
 
     # ---------------------------------------------------------------
