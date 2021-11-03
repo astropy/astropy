@@ -160,9 +160,27 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model, order):
+    def __init__(self, model, order: str = 'C'):
         self._model = model
-        self._order = order
+        self._order = self._get_order(order)
+
+    @property
+    def order(self) -> str:
+        return self._order
+
+    def _get_order(self, order: str = None) -> str:
+        """
+        Get if bounding_box is C/python ordered or Fortran/mathematically
+        ordered
+        """
+        if order is None:
+            order = self._order
+
+        if order not in ('C', 'F'):
+            raise ValueError("order must be either 'C' (C/python order) or "
+                             f"'F' (Fortran/mathematical order), got: {order}.")
+
+        return order
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
@@ -566,10 +584,6 @@ class ModelBoundingBox(_BoundingDomain):
         return self._intervals
 
     @property
-    def order(self) -> str:
-        return self._order
-
-    @property
     def ignored(self) -> List[int]:
         return self._ignored
 
@@ -640,20 +654,6 @@ class ModelBoundingBox(_BoundingDomain):
             return _ignored_interval
         else:
             return self._intervals[self._get_index(key)]
-
-    def _get_order(self, order: str = None) -> str:
-        """
-        Get if bounding_box is C/python ordered or Fortran/mathematically
-        ordered
-        """
-        if order is None:
-            order = self._order
-
-        if order not in ('C', 'F'):
-            raise ValueError("order must be either 'C' (C/python order) or "
-                             f"'F' (Fortran/mathematical order), got: {order}.")
-
-        return order
 
     def bounding_box(self, order: str = None):
         """
@@ -1366,10 +1366,6 @@ class CompoundBoundingBox(_BoundingDomain):
     @property
     def create_selector(self):
         return self._create_selector
-
-    @property
-    def order(self) -> str:
-        return self._order
 
     @staticmethod
     def _get_selector_key(key):
