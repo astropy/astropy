@@ -4115,7 +4115,7 @@ def bind_bounding_box(modelinstance, bounding_box, ignored=None, order='C'):
 
 
 def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
-                               create_selector=None, order='C'):
+                               create_selector=None, ignored=None, order='C'):
     """
     Add a validated compound bounding box to a model instance.
 
@@ -4140,9 +4140,9 @@ def bind_compound_bounding_box(modelinstance, bounding_boxes, selector_args,
         ``'F'``.
     """
     modelinstance.bounding_box = CompoundBoundingBox.validate(modelinstance,
-                                                              bounding_boxes,
-                                                              selector_args,
-                                                              create_selector,
+                                                              bounding_boxes, selector_args,
+                                                              create_selector=create_selector,
+                                                              ignored=ignored,
                                                               order=order)
 
 

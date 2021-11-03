@@ -1331,6 +1331,14 @@ def test_bounding_box_pass_with_ignored():
 def test_compound_bounding_box_pass_with_ignored():
     model = models.Shift(1) & models.Shift(2) & models.Identity(1)
     model.inputs = ('x', 'y', 'slit_id')
-    bbox = {(0,): ModelBoundingBox.validate(model, (-0.5, 1047.5), ignored=['y', 'slit_id']),
-            (1,): ModelBoundingBox.validate(model, (-0.5, 1047.5), ignored=['y', 'slit_id']), }
-    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)], order='F')
+    bbox = {(0,): (-0.5, 1047.5),
+            (1,): (-0.5, 2047.5), }
+    cbbox = CompoundBoundingBox.validate(model, bbox, selector_args=[('slit_id', True)],
+                                         ignored=['y'], order='F')
+    model.bounding_box = cbbox
+
+    model = models.Shift(1) & models.Shift(2) & models.Identity(1)
+    model.inputs = ('x', 'y', 'slit_id')
+    bind_compound_bounding_box(model, bbox, selector_args=[('slit_id', True)],
+                               ignored=['y'], order='F')
+    assert model.bounding_box == cbbox
