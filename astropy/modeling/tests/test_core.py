@@ -1311,3 +1311,18 @@ def test_compound_model_with_bounding_box_true_and_single_output():
     assert_equal(model(x, y), [4, 5])
     # Check with_bounding_box=True should be the same
     assert_equal(model(x, y, with_bounding_box=True), [4, 5])
+
+
+def test_bounding_box_pass_with_ignored():
+    """Test the possiblity of setting ignored variables in bounding box"""
+
+    model = models.Polynomial2D(2)
+    bbox = ModelBoundingBox.validate(model, (-1, 1), ignored=['y'])
+    model.bounding_box = bbox
+    assert model.bounding_box.bounding_box() == (-1, 1)
+    assert model.bounding_box == bbox
+
+    model = models.Polynomial2D(2)
+    bind_bounding_box(model, (-1, 1), ignored=['y'])
+    assert model.bounding_box.bounding_box() == (-1, 1)
+    assert model.bounding_box == bbox
