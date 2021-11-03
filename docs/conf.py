@@ -141,6 +141,7 @@ numpydoc_xref_param_type = True
 # name. The base set comes from sphinx-astropy. We add more here.
 numpydoc_xref_ignore.update({
     "mixin",
+    "Any",  # aka something that would be annotated with `typing.Any`
     # needed in subclassing numpy  # TODO! revisit
     "Arguments", "Path",
     # TODO! not need to ignore.
