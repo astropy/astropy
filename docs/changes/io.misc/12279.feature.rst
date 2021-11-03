@@ -1,0 +1,2 @@
+Built-in Cosmology subclasses can now be converted to/from YAML with the
+functions ``dump`` and ``load`` in ``astropy.io.misc.yaml``.
