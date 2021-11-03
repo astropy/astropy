@@ -114,7 +114,9 @@ the definition of :class:`~astropy.cosmology.FLRW`.
             """Validate baryon density to None or positive float > matter density."""
             if value is None:
                 return value
-            ...
+            value = _validate_non_negative(self, param, value)
+            if value > self.Om0:
+                raise ValueError("baryonic density can not be larger than total matter density.")
             return value
 
 First note that all the parameters are also arguments in ``__init__``. This is
@@ -127,7 +129,7 @@ The next important thing to note is how the parameter value is set, in
 auto-locking), so ``self.H0 = H0`` will use this setter and put the value on
 "._H0". The advantage of this method over direct assignment to the private
 attribute is the use of validators. |Parameter| allows for custom value
-validators, using the method-decorator ``validator``, that can check a values
+validators, using the method-decorator ``validator``, that can check a value's
 validity and modify the value, e.g to assign units. If no custom ``validator``
 is specified the default is to check if the |Parameter| has defined units and
 if so, return the value as a |Quantity| with those units, using all enabled and

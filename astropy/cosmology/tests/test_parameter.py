@@ -406,13 +406,6 @@ class TestParameter(ParameterTestMixin):
         finally:
             param.__class__._registry_validators.pop("newvalidator", None)
 
-    def test_Parameter_registered_validators(self, param):
-        """
-        Test :attr:`astropy.cosmology.Parameter.registered_validators`
-        is just a keys view of the validators registry.
-        """
-        assert param.registered_validators == param._registry_validators.keys()
-
     # ==============================================================
 
     def test_Parameter_doesnt_change_with_generic_class(self):
