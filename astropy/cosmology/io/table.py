@@ -17,7 +17,8 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
 
     Parameters
     ----------
-    table : `~astropy.table.QTable`
+    table : `~astropy.table.Table`
+        The object to parse into a |Cosmology|.
     index : int, str, or None, optional
         Needed to select the row in tables with multiple rows. ``index`` can be
         an integer for the row number or, if the table is indexed by a column,
@@ -106,9 +107,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
 
     For further examples, see :doc:`astropy:cosmology/io`.
     """
-    # ------------------
     # Get row from table
-
     # string index uses the indexed column on the table to find the row index.
     if isinstance(index, str):
         if not table.indices:  # no indexing column, find by string match
@@ -134,9 +133,7 @@ def from_table(table, index=None, *, move_to_meta=False, cosmology=None):
             index = 0
     row = table[index]  # index is now the row index (int)
 
-    # ------------------
     # parse row to cosmo
-
     return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology)
 
 

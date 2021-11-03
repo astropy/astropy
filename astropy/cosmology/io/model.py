@@ -145,9 +145,6 @@ def from_model(model):
     FlatLambdaCDM(name="Planck18", H0=67.7 km / (Mpc s), Om0=0.31,
                   Tcmb0=2.725 K, Neff=3.05, m_nu=[0. 0. 0.06] eV, Ob0=0.049)
     """
-    if not isinstance(model, _CosmologyModel):
-        raise TypeError("`model` must be <_CosmologyModel>.")
-
     cosmology = model.cosmology_class
     meta = copy.deepcopy(model.meta)
 
