@@ -117,7 +117,7 @@ def from_mapping(map, *, move_to_meta=False, cosmology=None):
 
 
 def to_mapping(cosmology, *args, cls=dict):
-    """Return the cosmology class, inputs, and metadata as a `dict`.
+    """Return the cosmology class, parameters, and metadata as a `dict`.
 
     Parameters
     ----------
