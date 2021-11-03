@@ -214,13 +214,18 @@ class Test_BoundingDomain:
     def test_create(self):
         model = mk.MagicMock()
         bounding_box = self.BoundingDomain(model)
-
         assert bounding_box._model == model
+        assert bounding_box._ignored == []
         assert bounding_box._order == 'C'
 
         bounding_box = self.BoundingDomain(model, order='F')
         assert bounding_box._model == model
+        assert bounding_box._ignored == []
         assert bounding_box._order == 'F'
+
+        bounding_box = self.BoundingDomain(Gaussian2D(), ['x'])
+        assert bounding_box._ignored == [0]
+        assert bounding_box._order == 'C'
 
         # Error
         with pytest.raises(ValueError):
@@ -237,6 +242,16 @@ class Test_BoundingDomain:
 
         bounding_box._order = 'test'
         assert bounding_box.order == 'test'
+
+    def test_ignored(self):
+        ignored = [0]
+        model = mk.MagicMock()
+        model.n_inputs = 1
+        model.inputs = ['x']
+        bounding_box = self.BoundingDomain(model, ignored=ignored)
+
+        assert bounding_box._ignored == ignored
+        assert bounding_box.ignored == ignored
 
     def test__get_order(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -261,6 +276,102 @@ class Test_BoundingDomain:
         assert str(err.value) ==\
             "order must be either 'C' (C/python order) or " +\
             f"'F' (Fortran/mathematical order), got: {order}."
+
+    def test__get_index(self):
+        bounding_box = self.BoundingDomain(Gaussian2D())
+
+        # Pass input name
+        assert bounding_box._get_index('x') == 0
+        assert bounding_box._get_index('y') == 1
+
+        # Pass invalid input name
+        with pytest.raises(ValueError) as err:
+            bounding_box._get_index('z')
+        assert str(err.value) ==\
+            "'z' is not one of the inputs: ('x', 'y')."
+
+        # Pass valid index
+        assert bounding_box._get_index(0) == 0
+        assert bounding_box._get_index(1) == 1
+        assert bounding_box._get_index(np.int32(0)) == 0
+        assert bounding_box._get_index(np.int32(1)) == 1
+        assert bounding_box._get_index(np.int64(0)) == 0
+        assert bounding_box._get_index(np.int64(1)) == 1
+
+        # Pass invalid index
+        MESSAGE = "Integer key: 2 must be non-negative and < 2."
+        with pytest.raises(IndexError) as err:
+            bounding_box._get_index(2)
+        assert str(err.value) == MESSAGE
+        with pytest.raises(IndexError) as err:
+            bounding_box._get_index(np.int32(2))
+        assert str(err.value) == MESSAGE
+        with pytest.raises(IndexError) as err:
+            bounding_box._get_index(np.int64(2))
+        assert str(err.value) == MESSAGE
+        with pytest.raises(IndexError) as err:
+            bounding_box._get_index(-1)
+        assert str(err.value) ==\
+            "Integer key: -1 must be non-negative and < 2."
+
+        # Pass invalid key
+        value = mk.MagicMock()
+        with pytest.raises(ValueError) as err:
+            bounding_box._get_index(value)
+        assert str(err.value) ==\
+            f"Key value: {value} must be string or integer."
+
+    def test__get_name(self):
+        model = mk.MagicMock()
+        model.n_inputs = 1
+        model.inputs = ['x']
+        bounding_box = self.BoundingDomain(model)
+
+        index = mk.MagicMock()
+        name = mk.MagicMock()
+        model.inputs = mk.MagicMock()
+        model.inputs.__getitem__.return_value = name
+        assert bounding_box._get_name(index) == name
+        assert model.inputs.__getitem__.call_args_list == [mk.call(index)]
+
+    def test_ignored_inputs(self):
+        model = mk.MagicMock()
+        ignored = list(range(4, 8))
+        model.n_inputs = 8
+        model.inputs = [mk.MagicMock() for _ in range(8)]
+        bounding_box = self.BoundingDomain(model, ignored=ignored)
+
+        inputs = bounding_box.ignored_inputs
+        assert isinstance(inputs, list)
+        for index, _input in enumerate(inputs):
+            assert _input in model.inputs
+            assert model.inputs[index + 4] == _input
+        for index, _input in enumerate(model.inputs):
+            if _input in inputs:
+                assert inputs[index - 4] == _input
+            else:
+                assert index < 4
+
+    def test__validate_ignored(self):
+        bounding_box = self.BoundingDomain(Gaussian2D())
+
+        # Pass
+        assert bounding_box._validate_ignored(None) == []
+        assert bounding_box._validate_ignored(['x', 'y']) == [0, 1]
+        assert bounding_box._validate_ignored([0, 1]) == [0, 1]
+        assert bounding_box._validate_ignored([np.int32(0), np.int64(1)]) == [0, 1]
+
+        # Fail
+        with pytest.raises(ValueError):
+            bounding_box._validate_ignored([mk.MagicMock()])
+        with pytest.raises(ValueError):
+            bounding_box._validate_ignored(['z'])
+        with pytest.raises(IndexError):
+            bounding_box._validate_ignored([3])
+        with pytest.raises(IndexError):
+            bounding_box._validate_ignored([np.int32(3)])
+        with pytest.raises(IndexError):
+            bounding_box._validate_ignored([np.int64(3)])
 
     def test___call__(self):
         bounding_box = self.BoundingDomain(mk.MagicMock())
@@ -620,30 +731,6 @@ class TestModelBoundingBox:
         assert bounding_box._intervals == intervals
         assert bounding_box.intervals == intervals
 
-    def test_ignored(self):
-        ignored = [0]
-        model = mk.MagicMock()
-        model.n_inputs = 1
-        model.inputs = ['x']
-        bounding_box = ModelBoundingBox({}, model, ignored=ignored)
-
-        assert bounding_box._ignored == ignored
-        assert bounding_box.ignored == ignored
-
-    def test__get_name(self):
-        intervals = {0: _Interval(1, 2)}
-        model = mk.MagicMock()
-        model.n_inputs = 1
-        model.inputs = ['x']
-        bounding_box = ModelBoundingBox(intervals, model)
-
-        index = mk.MagicMock()
-        name = mk.MagicMock()
-        model.inputs = mk.MagicMock()
-        model.inputs.__getitem__.return_value = name
-        assert bounding_box._get_name(index) == name
-        assert model.inputs.__getitem__.call_args_list == [mk.call(index)]
-
     def test_named_intervals(self):
         intervals = {idx: _Interval(idx, idx + 1) for idx in range(4)}
         model = mk.MagicMock()
@@ -660,25 +747,6 @@ class TestModelBoundingBox:
             assert index in intervals
             assert name in named
             assert intervals[index] == named[name]
-
-    def test_ignored_inputs(self):
-        intervals = {idx: _Interval(idx, idx + 1) for idx in range(4)}
-        model = mk.MagicMock()
-        ignored = list(range(4, 8))
-        model.n_inputs = 8
-        model.inputs = [mk.MagicMock() for _ in range(8)]
-        bounding_box = ModelBoundingBox(intervals, model, ignored=ignored)
-
-        inputs = bounding_box.ignored_inputs
-        assert isinstance(inputs, list)
-        for index, _input in enumerate(inputs):
-            assert _input in model.inputs
-            assert model.inputs[index + 4] == _input
-        for index, _input in enumerate(model.inputs):
-            if _input in inputs:
-                assert inputs[index - 4] == _input
-            else:
-                assert index < 4
 
     def test___repr__(self):
         intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
@@ -708,74 +776,6 @@ class TestModelBoundingBox:
             "    model=Gaussian2D(inputs=('x', 'y'))\n" +\
             "    order='C'\n" +\
             ")"
-
-    def test__get_index(self):
-        intervals = {0: _Interval(-1, 1), 1: _Interval(-4, 4)}
-        model = Gaussian2D()
-        bounding_box = ModelBoundingBox.validate(model, intervals)
-
-        # Pass input name
-        assert bounding_box._get_index('x') == 0
-        assert bounding_box._get_index('y') == 1
-
-        # Pass invalid input name
-        with pytest.raises(ValueError) as err:
-            bounding_box._get_index('z')
-        assert str(err.value) ==\
-            "'z' is not one of the inputs: ('x', 'y')."
-
-        # Pass valid index
-        assert bounding_box._get_index(0) == 0
-        assert bounding_box._get_index(1) == 1
-        assert bounding_box._get_index(np.int32(0)) == 0
-        assert bounding_box._get_index(np.int32(1)) == 1
-        assert bounding_box._get_index(np.int64(0)) == 0
-        assert bounding_box._get_index(np.int64(1)) == 1
-
-        # Pass invalid index
-        MESSAGE = "Integer key: 2 must be non-negative and < 2."
-        with pytest.raises(IndexError) as err:
-            bounding_box._get_index(2)
-        assert str(err.value) == MESSAGE
-        with pytest.raises(IndexError) as err:
-            bounding_box._get_index(np.int32(2))
-        assert str(err.value) == MESSAGE
-        with pytest.raises(IndexError) as err:
-            bounding_box._get_index(np.int64(2))
-        assert str(err.value) == MESSAGE
-        with pytest.raises(IndexError) as err:
-            bounding_box._get_index(-1)
-        assert str(err.value) ==\
-            "Integer key: -1 must be non-negative and < 2."
-
-        # Pass invalid key
-        value = mk.MagicMock()
-        with pytest.raises(ValueError) as err:
-            bounding_box._get_index(value)
-        assert str(err.value) ==\
-            f"Key value: {value} must be string or integer."
-
-    def test__validate_ignored(self):
-        model = Gaussian2D()
-        bounding_box = ModelBoundingBox({}, model)
-
-        # Pass
-        assert bounding_box._validate_ignored(None) == []
-        assert bounding_box._validate_ignored(['x', 'y']) == [0, 1]
-        assert bounding_box._validate_ignored([0, 1]) == [0, 1]
-        assert bounding_box._validate_ignored([np.int32(0), np.int64(1)]) == [0, 1]
-
-        # Fail
-        with pytest.raises(ValueError):
-            bounding_box._validate_ignored([mk.MagicMock()])
-        with pytest.raises(ValueError):
-            bounding_box._validate_ignored(['z'])
-        with pytest.raises(IndexError):
-            bounding_box._validate_ignored([3])
-        with pytest.raises(IndexError):
-            bounding_box._validate_ignored([np.int32(3)])
-        with pytest.raises(IndexError):
-            bounding_box._validate_ignored([np.int64(3)])
 
     def test___len__(self):
         intervals = {0: _Interval(-1, 1)}
