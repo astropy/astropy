@@ -160,8 +160,9 @@ class _BoundingDomain(abc.ABC):
         on the inputs and returns a complete output.
     """
 
-    def __init__(self, model):
+    def __init__(self, model, order):
         self._model = model
+        self._order = order
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError(
@@ -540,8 +541,7 @@ class ModelBoundingBox(_BoundingDomain):
 
     def __init__(self, intervals: Dict[int, _Interval], model,
                  ignored: List[int] = None, order: str = 'C'):
-        super().__init__(model)
-        self._order = order
+        super().__init__(model, order)
 
         self._ignored = self._validate_ignored(ignored)
 
@@ -1307,8 +1307,7 @@ class CompoundBoundingBox(_BoundingDomain):
     """
     def __init__(self, bounding_boxes: Dict[Any, ModelBoundingBox], model,
                  selector_args: _SelectorArguments, create_selector: Callable = None, order: str = 'C'):
-        super().__init__(model)
-        self._order = order
+        super().__init__(model, order)
 
         self._create_selector = create_selector
         self._selector_args = _SelectorArguments.validate(model, selector_args)
