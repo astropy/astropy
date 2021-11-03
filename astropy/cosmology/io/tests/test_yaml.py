@@ -29,24 +29,9 @@ cosmo_instances = [getattr(realizations, name) for name in available]
 
 def test_yaml_representer():
     """Test :func:`~astropy.cosmology.io.yaml.yaml_representer`."""
-    # test `yaml_representer`
-    assert callable(yaml_representer)
-
-    sig = inspect.signature(yaml_representer)
-    assert len(sig.parameters) == 1
-    assert "tag" in sig.parameters
-    assert sig.parameters["tag"].default is inspect._empty
-
     # test function `representer`
     representer = yaml_representer("!astropy.cosmology.flrw.LambdaCDM")
     assert callable(representer)
-
-    sig = inspect.signature(representer)
-    assert len(sig.parameters) == 2
-    assert "dumper" in sig.parameters
-    assert "obj" in sig.parameters
-    assert sig.parameters["dumper"].default is inspect._empty
-    assert sig.parameters["obj"].default is inspect._empty
 
     # test the normal method of dumping to YAML
     yml = dump(Planck18)
@@ -56,24 +41,9 @@ def test_yaml_representer():
 
 def test_yaml_constructor():
     """Test :func:`~astropy.cosmology.io.yaml.yaml_constructor`."""
-    # test `yaml_representer`
-    assert callable(yaml_constructor)
-
-    sig = inspect.signature(yaml_constructor)
-    assert len(sig.parameters) == 1
-    assert "cls" in sig.parameters
-    assert sig.parameters["cls"].default is inspect._empty
-
     # test function `constructor`
     constructor = yaml_constructor(FlatLambdaCDM)
     assert callable(constructor)
-
-    sig = inspect.signature(constructor)
-    assert len(sig.parameters) == 2
-    assert "loader" in sig.parameters
-    assert "node" in sig.parameters
-    assert sig.parameters["loader"].default is inspect._empty
-    assert sig.parameters["node"].default is inspect._empty
 
     # it's too hard to manually construct a node, so we only test dump/load
     # this is also a good round-trip test
@@ -98,8 +68,21 @@ class ToFromYAMLTestMixin(IOTestMixinBase):
     See ``TestCosmologyToFromFormat`` or ``TestCosmology`` for examples.
     """
 
-    def test_to_from_yaml_instance(self, cosmo, to_format, from_format):
+    @pytest.fixture
+    def registered_with_yaml(self, cosmo_cls):
+        """
+        YAML I/O only works on registered classes. So the thing to check is
+        if this class is registered. If not, skip this test.
+        Some of the tests define custom cosmologies. They are not registered.
+        """
+        return True if cosmo_cls in AstropyDumper.yaml_representers else False
+
+    def test_tofrom_yaml_instance(self, cosmo, to_format, from_format,
+                                  registered_with_yaml):
         """Test cosmology -> YAML -> cosmology."""
+        if not registered_with_yaml:
+            return
+
         # ------------
         # To YAML
 
@@ -110,24 +93,31 @@ class ToFromYAMLTestMixin(IOTestMixinBase):
         # ------------
         # From YAML
 
-        # tests are different if the last argument is a **kwarg
-        if tuple(cosmo._init_signature.parameters.values())[-1].kind == 4:
-            got = from_format(yml, format="yaml")
+        got = from_format(yml, format="yaml")
 
-            assert got.name == cosmo.name
-            assert got.meta == cosmo.meta
-
-            return  # don't continue testing
+        assert got.name == cosmo.name
+        assert got.meta == cosmo.meta
 
         # it won't error if everything matches up
         got = from_format(yml, format="yaml")
         assert got == cosmo
         assert got.meta == cosmo.meta
 
-        # it auto-identifies 'format'
-        got = from_format(yml)
-        assert got == cosmo
-        assert got.meta == cosmo.meta
+        # auto-identify test moved because it doesn't work.
+
+    def test_tofrom_yaml_autoidentify(self, cosmo, to_format, from_format,
+                                      registered_with_yaml):
+        """As a non-path string, it does NOT auto-identifies 'format'.
+
+        TODO! this says there should be different types of I/O registries.
+              not just hacking object conversion on top of file I/O.
+        """
+        if not registered_with_yaml:
+            return
+
+        yml = to_format('yaml')
+        with pytest.raises((FileNotFoundError, OSError)):  # OSError in Windows
+            from_format(yml)
 
     # # TODO! this is a challenging test to write. It's also unlikely to happen.
     # def test_fromformat_subclass_partial_info_yaml(self, cosmo):
@@ -147,9 +137,21 @@ class TestToFromYAML(IOFormatTestBase, ToFromYAMLTestMixin):
     """
 
     def setup_class(self):
+        """Set up fixtures to use ``to/from_yaml``, not the I/O abstractions."""
         self.functions = {"to": to_yaml, "from": from_yaml}
 
     @pytest.fixture(scope="class", autouse=True)
     def setup(self):
-        """Setup and teardown for tests."""
+        """
+        Setup and teardown for tests.
+        This overrides from super because `IOFormatTestBase` adds a custom
+        Cosmology ``CosmologyWithKwargs`` that is not registered with YAML.
+        """
         yield  # run tests
+
+    def test_tofrom_yaml_autoidentify(self, cosmo, to_format, from_format):
+        """
+        If directly calling the function there's no auto-identification.
+        So this overrides the test from `ToFromYAMLTestMixin`
+        """
+        pass

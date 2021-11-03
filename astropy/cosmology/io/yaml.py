@@ -12,6 +12,8 @@ from astropy.cosmology.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology.connect import convert_registry
 from astropy.io.misc.yaml import AstropyDumper, AstropyLoader, dump, load
 
+from .mapping import from_mapping
+
 __all__ = []  # nothing is publicly scoped
 
 
@@ -52,7 +54,7 @@ def yaml_representer(tag):
         map = obj.to_format("mapping")
         # remove the cosmology class info. It's already recorded in `tag`
         map.pop("cosmology")
-        # make the metadata serializable in a lossless way
+        # make the metadata serializable in an order-preserving way.
         map["meta"] = tuple(map["meta"].items())
 
         return dumper.represent_mapping(tag, map)
@@ -93,7 +95,7 @@ def yaml_constructor(cls):
         # get cosmology class qualified name from node
         cosmology = str(node.tag).split(".")[-1]
         # create Cosmology from mapping
-        return cls.from_format(map, format="mapping", cosmology=cosmology)
+        return from_mapping(map, move_to_meta=False, cosmology=cosmology)
 
     return constructor
 
@@ -107,7 +109,7 @@ def register_cosmology_yaml(cosmo_cls):
     """
     tag = f"!{cosmo_cls.__module__}.{cosmo_cls.__qualname__}"
 
-    AstropyDumper.add_multi_representer(cosmo_cls, yaml_representer(tag))
+    AstropyDumper.add_representer(cosmo_cls, yaml_representer(tag))
     AstropyLoader.add_constructor(tag, yaml_constructor(cosmo_cls))
 
 
@@ -148,19 +150,22 @@ def to_yaml(cosmology, *args):
     return dump(cosmology)
 
 
-def yaml_identify(origin, format, *args, **kwargs):
-    """Identify if object uses the yaml format.
-
-    Returns
-    -------
-    bool
-    """
-    itis = False
-    if origin == "read":
-        itis = isinstance(args[1], str) and args[1][0].startswith("!")
-        itis &= format in (None, "yaml")
-
-    return itis
+# ``read`` cannot handle non-path strings.
+#  TODO! this says there should be different types of I/O registries.
+#        not just hacking object conversion on top of file I/O.
+# def yaml_identify(origin, format, *args, **kwargs):
+#     """Identify if object uses the yaml format.
+#
+#     Returns
+#     -------
+#     bool
+#     """
+#     itis = False
+#     if origin == "read":
+#         itis = isinstance(args[1], str) and args[1][0].startswith("!")
+#         itis &= format in (None, "yaml")
+#
+#     return itis
 
 
 # ===================================================================
@@ -171,4 +176,4 @@ for cosmo_cls in _COSMOLOGY_CLASSES.values():
 
 convert_registry.register_reader("yaml", Cosmology, from_yaml)
 convert_registry.register_writer("yaml", Cosmology, to_yaml)
-convert_registry.register_identifier("yaml", Cosmology, yaml_identify)
+# convert_registry.register_identifier("yaml", Cosmology, yaml_identify)
