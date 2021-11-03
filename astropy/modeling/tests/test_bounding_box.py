@@ -213,14 +213,57 @@ class Test_BoundingDomain:
 
     def test_create(self):
         model = mk.MagicMock()
-        order = mk.MagicMock()
-        bounding_box = self.BoundingDomain(model, order)
+        bounding_box = self.BoundingDomain(model)
 
         assert bounding_box._model == model
-        assert bounding_box._order == order
+        assert bounding_box._order == 'C'
+
+        bounding_box = self.BoundingDomain(model, order='F')
+        assert bounding_box._model == model
+        assert bounding_box._order == 'F'
+
+        # Error
+        with pytest.raises(ValueError):
+            self.BoundingDomain(model, order=mk.MagicMock())
+
+    def test_order(self):
+        bounding_box = self.BoundingDomain(mk.MagicMock(), order='C')
+        assert bounding_box._order == 'C'
+        assert bounding_box.order == 'C'
+
+        bounding_box = self.BoundingDomain(mk.MagicMock(), order='F')
+        assert bounding_box._order == 'F'
+        assert bounding_box.order == 'F'
+
+        bounding_box._order = 'test'
+        assert bounding_box.order == 'test'
+
+    def test__get_order(self):
+        bounding_box = self.BoundingDomain(mk.MagicMock())
+
+        # Success (default 'C')
+        assert bounding_box._order == 'C'
+        assert bounding_box._get_order() == 'C'
+        assert bounding_box._get_order('C') == 'C'
+        assert bounding_box._get_order('F') == 'F'
+
+        # Success (default 'F')
+        bounding_box._order = 'F'
+        assert bounding_box._order == 'F'
+        assert bounding_box._get_order() == 'F'
+        assert bounding_box._get_order('C') == 'C'
+        assert bounding_box._get_order('F') == 'F'
+
+        # Error
+        order = mk.MagicMock()
+        with pytest.raises(ValueError) as err:
+            bounding_box._get_order(order)
+        assert str(err.value) ==\
+            "order must be either 'C' (C/python order) or " +\
+            f"'F' (Fortran/mathematical order), got: {order}."
 
     def test___call__(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         args = tuple([mk.MagicMock() for _ in range(3)])
         kwargs = {f"test{idx}": mk.MagicMock() for idx in range(3)}
@@ -232,7 +275,7 @@ class Test_BoundingDomain:
             "adjustable parameters."
 
     def test_fix_inputs(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
         model = mk.MagicMock()
         fixed_inputs = mk.MagicMock()
 
@@ -242,7 +285,7 @@ class Test_BoundingDomain:
             "This should be implemented by a child class."
 
     def test__prepare_inputs(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         with pytest.raises(NotImplementedError) as err:
             bounding_box.prepare_inputs(mk.MagicMock(), mk.MagicMock())
@@ -250,7 +293,7 @@ class Test_BoundingDomain:
             "This has not been implemented for BoundingDomain."
 
     def test__base_ouput(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # Simple shape
         input_shape = (13,)
@@ -278,7 +321,7 @@ class Test_BoundingDomain:
 
     def test__all_out_output(self):
         model = mk.MagicMock()
-        bounding_box = self.BoundingDomain(model, mk.MagicMock())
+        bounding_box = self.BoundingDomain(model)
 
         # Simple shape
         model.n_outputs = 1
@@ -297,7 +340,7 @@ class Test_BoundingDomain:
         assert output_unit is None
 
     def test__modify_output(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
         valid_index = mk.MagicMock()
         input_shape = mk.MagicMock()
         fill_value = mk.MagicMock()
@@ -317,7 +360,7 @@ class Test_BoundingDomain:
             assert mkBase.call_args_list == [mk.call(input_shape, fill_value)]
 
     def test__prepare_outputs(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
         valid_index = mk.MagicMock()
         input_shape = mk.MagicMock()
         fill_value = mk.MagicMock()
@@ -334,7 +377,7 @@ class Test_BoundingDomain:
 
     def test_prepare_outputs(self):
         model = mk.MagicMock()
-        bounding_box = self.BoundingDomain(model, mk.MagicMock())
+        bounding_box = self.BoundingDomain(model)
 
         valid_outputs = mk.MagicMock()
         valid_index = mk.MagicMock()
@@ -358,7 +401,7 @@ class Test_BoundingDomain:
                 [mk.call(bounding_box, valid_outputs, valid_index, input_shape, fill_value)]
 
     def test__get_valid_outputs_unit(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # Don't get unit
         assert bounding_box._get_valid_outputs_unit(mk.MagicMock(), False) is None
@@ -370,7 +413,7 @@ class Test_BoundingDomain:
         assert bounding_box._get_valid_outputs_unit(25 * u.m, True) == u.m
 
     def test__evaluate_model(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         evaluate = mk.MagicMock()
         valid_inputs = mk.MagicMock()
@@ -396,7 +439,7 @@ class Test_BoundingDomain:
                     [mk.call(valid_inputs)]
 
     def test__evaluate(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         evaluate = mk.MagicMock()
         inputs = mk.MagicMock()
@@ -439,7 +482,7 @@ class Test_BoundingDomain:
                         [mk.call(bounding_box, input_shape, inputs)]
 
     def test__set_outputs_unit(self):
-        bounding_box = self.BoundingDomain(mk.MagicMock(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(mk.MagicMock())
 
         # set no unit
         assert 27 == bounding_box._set_outputs_unit(27, None)
@@ -448,7 +491,7 @@ class Test_BoundingDomain:
         assert 27 * u.m == bounding_box._set_outputs_unit(27, u.m)
 
     def test_evaluate(self):
-        bounding_box = self.BoundingDomain(Gaussian2D(), mk.MagicMock())
+        bounding_box = self.BoundingDomain(Gaussian2D())
 
         evaluate = mk.MagicMock()
         inputs = mk.MagicMock()
@@ -491,13 +534,13 @@ class TestModelBoundingBox:
         # Set optional
         intervals = {}
         model = mk.MagicMock()
-        bounding_box = ModelBoundingBox(intervals, model, order='test')
+        bounding_box = ModelBoundingBox(intervals, model, order='F')
 
         assert isinstance(bounding_box, _BoundingDomain)
         assert bounding_box._intervals == {}
         assert bounding_box._model == model
         assert bounding_box._ignored == []
-        assert bounding_box._order == 'test'
+        assert bounding_box._order == 'F'
 
         # Set interval
         intervals = (1, 2)
@@ -576,14 +619,6 @@ class TestModelBoundingBox:
 
         assert bounding_box._intervals == intervals
         assert bounding_box.intervals == intervals
-
-    def test_order(self):
-        intervals = {}
-        model = mk.MagicMock()
-        bounding_box = ModelBoundingBox(intervals, model, order='test')
-
-        assert bounding_box._order == 'test'
-        assert bounding_box.order == 'test'
 
     def test_ignored(self):
         ignored = [0]
@@ -824,32 +859,6 @@ class TestModelBoundingBox:
         del bounding_box[1]
         assert bounding_box[0] == _ignored_interval
         assert bounding_box[1] == _ignored_interval
-
-    def test__get_order(self):
-        intervals = {0: _Interval(-1, 1)}
-        model = Gaussian1D()
-        bounding_box = ModelBoundingBox.validate(model, intervals)
-
-        # Success (default 'C')
-        assert bounding_box._order == 'C'
-        assert bounding_box._get_order() == 'C'
-        assert bounding_box._get_order('C') == 'C'
-        assert bounding_box._get_order('F') == 'F'
-
-        # Success (default 'F')
-        bounding_box._order = 'F'
-        assert bounding_box._order == 'F'
-        assert bounding_box._get_order() == 'F'
-        assert bounding_box._get_order('C') == 'C'
-        assert bounding_box._get_order('F') == 'F'
-
-        # Error
-        order = mk.MagicMock()
-        with pytest.raises(ValueError) as err:
-            bounding_box._get_order(order)
-        assert str(err.value) ==\
-            "order must be either 'C' (C/python order) or " +\
-            f"'F' (Fortran/mathematical order), got: {order}."
 
     def test_bounding_box(self):
         # 0D
@@ -1991,7 +2000,7 @@ class TestCompoundBoundingBox:
         bounding_boxes = {(1,): (-1, 1), (2,): (-2, 2)}
         create_selector = mk.MagicMock()
 
-        bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args, create_selector, 'test')
+        bounding_box = CompoundBoundingBox(bounding_boxes, model, selector_args, create_selector, order='F')
         assert (bounding_box._model.parameters == model.parameters).all()
         assert bounding_box._selector_args == selector_args
         for _selector, bbox in bounding_boxes.items():
@@ -2003,7 +2012,7 @@ class TestCompoundBoundingBox:
             assert isinstance(bbox, ModelBoundingBox)
         assert bounding_box._bounding_boxes == bounding_boxes
         assert bounding_box._create_selector == create_selector
-        assert bounding_box._order == 'test'
+        assert bounding_box._order == 'F'
 
     def test_copy(self):
         bounding_box = CompoundBoundingBox.validate(Gaussian2D(), {(1,): (-1.5, 1.3), (2,): (-2.7, 2.4)},
@@ -2132,14 +2141,6 @@ class TestCompoundBoundingBox:
 
         assert bounding_box._create_selector == create_selector
         assert bounding_box.create_selector == create_selector
-
-    def test_order(self):
-        model = Gaussian2D()
-        create_selector = mk.MagicMock()
-        bounding_box = CompoundBoundingBox({}, model, ((1,),), create_selector, 'test')
-
-        assert bounding_box._order == 'test'
-        assert bounding_box.order == 'test'
 
     def test__get_selector_key(self):
         bounding_box = CompoundBoundingBox({}, Gaussian2D(), ((1, True),))
