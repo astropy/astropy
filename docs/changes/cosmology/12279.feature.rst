@@ -1,2 +1,2 @@
-Register yaml into Cosmology's ``to/from_format`` I/O, allowing
-a Cosmology instance to be parsed from or converted to a yaml string.
+Register "yaml" into Cosmology's ``to/from_format`` I/O, allowing
+a Cosmology instance to be parsed from or converted to a YAML string.

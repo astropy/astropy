@@ -106,7 +106,7 @@ To see the a list of the available conversion formats:
     astropy.table  Yes   Yes           Yes
           mapping  Yes   Yes           Yes
         mypackage  Yes   Yes           Yes
-             yaml  Yes   Yes           Yes
+             yaml  Yes   Yes            No
 
 This list will include both built-in and registered 3rd-party formats.
 For instance, in the above, "mapping" is built-in while "mypackage" and
