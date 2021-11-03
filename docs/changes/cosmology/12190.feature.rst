@@ -1,0 +1,6 @@
+Cosmology Parameters allow for custom value setters.
+Values can be set once, but will error if set a second time.
+If not specified, the default setter is used, which will assign units
+using the Parameters ``units`` and ``equivalencies`` (if present).
+Alternate setters may be registered with Parameter to be specified by a str,
+not a decorator on the Cosmology.

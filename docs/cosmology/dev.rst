@@ -75,9 +75,8 @@ Parameters
 
 An astropy |Cosmology| is characterized by 1) its class, which encodes the
 physics, and 2) its free parameter(s), which specify a cosmological realization.
-When defining the former, all parameters must be declared using
-|Parameter| and should have values assigned at instantiation (or appropriate
-``getter`` methods).
+When defining the former, all parameters must be declared using |Parameter| and
+should have values assigned at instantiation.
 
 A |Parameter| is a `descriptor <https://docs.python.org/3/howto/descriptor.html>`_.
 When accessed from a class it transparently stores information, like the units
@@ -90,33 +89,35 @@ the definition of :class:`~astropy.cosmology.FLRW`.
 
 .. code-block:: python
 
-    from astropy.utils.decorators import lazyproperty
-
     class FLRW(Cosmology):
 
         H0 = Parameter(doc="Hubble constant as an `~astropy.units.Quantity` at z=0",
-                       unit="km/(s Mpc)")
-        Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0")
-        Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0")
-        Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0",
-                          unit="Kelvin", fmt="0.4g")
-        Neff = Parameter(doc="Number of effective neutrino species")
-        m_nu = Parameter(doc="Mass of neutrino species",
-                         unit="eV", equivalencies=u.mass_energy(), fmt="")
-        Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0")
+                       unit="km/(s Mpc)", fvalidate="scalar")
+        Om0 = Parameter(doc="Omega matter; matter density/critical density at z=0",
+                        fvalidate="non-negative")
+        Ode0 = Parameter(doc="Omega dark energy; dark energy density/critical density at z=0.",
+                         fvalidate="float")
+        Tcmb0 = Parameter(doc="Temperature of the CMB as `~astropy.units.Quantity` at z=0.",
+                  unit="Kelvin", fmt="0.4g", fvalidate="scalar")
+        Neff = Parameter(doc="Number of effective neutrino species.", fvalidate="non-negative")
+        m_nu = Parameter(doc="Mass of neutrino species.",
+                 unit="eV", equivalencies=u.mass_energy(), fmt="")
+        Ob0 = Parameter(doc="Omega baryon; baryonic matter density/critical density at z=0.")
 
         def __init__(self, H0, Om0, Ode0, Tcmb0=0.0*u.K, Neff=3.04, m_nu=0.0*u.eV,
                      Ob0=None, *, name=None, meta=None):
-            cls = self.__class__
-            self._H0 = H0 << cls.H0.unit
+            self.H0 = H0
             ...  # for each Parameter in turn
 
-        @m_nu.getter
-        @lazyproperty  # so only does expensive computation once
-        def m_nu(self):
-            """ Mass of neutrino species"""
-            ...
-            return u.Quantity(numass, self.__class__.m_nu.unit)
+        @Ob0.validator
+        def Ob0(self, param, value):
+            """Validate baryon density to None or positive float > matter density."""
+            if value is None:
+                return value
+            value = _validate_non_negative(self, param, value)
+            if value > self.Om0:
+                raise ValueError("baryonic density can not be larger than total matter density.")
+            return value
 
 First note that all the parameters are also arguments in ``__init__``. This is
 not strictly necessary, but is good practice. If the parameter has units (and
@@ -124,16 +125,15 @@ related equivalencies) these must be specified on the Parameter, as seen in
 :attr:`~astropy.cosmology.FLRW.H0` and :attr:`~astropy.cosmology.FLRW.m_nu`.
 
 The next important thing to note is how the parameter value is set, in
-``__init__``. Without a custom ``getter``, |Parameter| returns the
-corresponding private attribute: so the value for "H0" is set on "._H0".
-
-When a Parameter uses :meth:`~astropy.cosmology.Parameter.getter`, the
-value may be stored anywhere, anyhow. For instance
-:attr:`~astropy.cosmology.FLRW.m_nu` is declared a Parameter with all the rest,
-but has a custom ``getter``. On instances of FLRW its value depends on
-:attr:`~astropy.cosmology.FLRW.Neff` and :attr:`~astropy.cosmology.FLRW.Tcmb0`,
-so is not neatly stored in an attribute ``_m_nu``.
-Note: ``Parameter.getter`` must be the top-most decorator.
+``__init__``. |Parameter| allows for a value to be set once (before
+auto-locking), so ``self.H0 = H0`` will use this setter and put the value on
+"._H0". The advantage of this method over direct assignment to the private
+attribute is the use of validators. |Parameter| allows for custom value
+validators, using the method-decorator ``validator``, that can check a value's
+validity and modify the value, e.g to assign units. If no custom ``validator``
+is specified the default is to check if the |Parameter| has defined units and
+if so, return the value as a |Quantity| with those units, using all enabled and
+the parameter's unit equivalencies.
 
 The last thing to note is pretty formatting for the |Cosmology|. Each
 |Parameter| defaults to the `format specification
@@ -167,12 +167,11 @@ integrals.  It is not necessary for anyone subclassing
 :class:`~astropy.cosmology.FLRW` to use these tricks -- but if they do, such
 calculations may be a lot faster.
 
-The first, more basic, idea is that, in many
-cases, it's a big deal to provide explicit formulae for
-:meth:`~astropy.cosmology.FLRW.inv_efunc` rather than simply setting up
-``de_energy_scale`` -- assuming there is a nice expression. As noted above,
-almost all of the provided classes do this, and that template can pretty much
-be followed directly with the appropriate formula changes.
+The first, more basic, idea is that, in many cases, it's a big deal to provide
+explicit formulae for :meth:`~astropy.cosmology.FLRW.inv_efunc` rather than
+simply setting up ``de_energy_scale`` -- assuming there is a nice expression.
+As noted above, almost all of the provided classes do this, and that template
+can pretty much be followed directly with the appropriate formula changes.
 
 The second, and more advanced, option is to also explicitly provide a
 scalar only version of :meth:`~astropy.cosmology.FLRW.inv_efunc`. This results

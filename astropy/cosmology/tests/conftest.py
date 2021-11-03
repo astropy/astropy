@@ -11,6 +11,7 @@ import os
 
 import pytest
 
+import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology import core
 from astropy.cosmology.core import Cosmology
@@ -44,12 +45,13 @@ def read_json(filename, **kwargs):
     mapping = json.loads(data)  # parse json mappable to dict
 
     # deserialize Quantity
-    for k, v in mapping.items():
-        if isinstance(v, dict) and "value" in v and "unit" in v:
-            mapping[k] = u.Quantity(v["value"], v["unit"])
-    for k, v in mapping.get("meta", {}).items():  # also the metadata
-        if isinstance(v, dict) and "value" in v and "unit" in v:
-            mapping["meta"][k] = u.Quantity(v["value"], v["unit"])
+    with u.add_enabled_units(cu.redshift):
+        for k, v in mapping.items():
+            if isinstance(v, dict) and "value" in v and "unit" in v:
+                mapping[k] = u.Quantity(v["value"], v["unit"])
+        for k, v in mapping.get("meta", {}).items():  # also the metadata
+            if isinstance(v, dict) and "value" in v and "unit" in v:
+                mapping["meta"][k] = u.Quantity(v["value"], v["unit"])
 
     return Cosmology.from_format(mapping, **kwargs)
 

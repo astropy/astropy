@@ -239,7 +239,6 @@ class to use. Details about metadata treatment are in
 ``Cosmology.from_format.help("mapping")``.
 
 .. code-block:: python
-    :emphasize-lines: 12,13
 
     >>> import copy
     >>> from astropy.cosmology import Cosmology
@@ -264,7 +263,6 @@ cosmology object and a ``*args`` to absorb unneeded information passed by
 :meth:`astropy.cosmology.Cosmology.to_format`).
 
 .. code-block:: python
-    :emphasize-lines: 4
 
     >>> from astropy.table import QTable
 
@@ -280,7 +278,6 @@ Last we write a function to help with format auto-identification and then
 register everything into `astropy.io.registry`.
 
 .. code-block:: python
-    :emphasize-lines: 11, 12, 13
 
     >>> from astropy.cosmology import Cosmology
     >>> from astropy.cosmology.connect import convert_registry
@@ -344,7 +341,6 @@ which Cosmology class to use. Details of are in
 ``Cosmology.from_format.help("mapping")``.
 
 .. code-block:: python
-    :emphasize-lines: 9,12,17
 
     >>> import json, os
     >>> import astropy.units as u
@@ -375,7 +371,6 @@ boolean flag "overwrite" to set behavior for existing files. Note that
 ``read`` methods we have to create custom parsers.
 
 .. code-block:: python
-    :emphasize-lines: 2,19
 
     >>> def write_json(cosmology, file, *, overwrite=False, **kwargs):
     ...    data = cosmology.to_format("mapping")  # start by turning into dict
@@ -401,7 +396,6 @@ Last we write a function to help with format auto-identification and then
 register everything into :mod:`astropy.io.registry`.
 
 .. code-block:: python
-    :emphasize-lines: 7,8,9
 
     >>> from astropy.cosmology.connect import readwrite_registry
 
