@@ -744,7 +744,7 @@ class ModelBoundingBox(_BoundingDomain):
 
     @classmethod
     def validate(cls, model, bounding_box,
-                 ignored: list = None, order: str = 'C', **kwargs):
+                 ignored: list = None, order: str = 'C', _preserve_ignore: bool = False, **kwargs):
         """
         Construct a valid bounding box for a model.
 
@@ -760,6 +760,8 @@ class ModelBoundingBox(_BoundingDomain):
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
+            if _preserve_ignore:
+                ignored = bounding_box.ignored
             bounding_box = bounding_box.intervals
 
         new = cls({}, model, ignored=ignored, order=order)
@@ -1400,7 +1402,7 @@ class CompoundBoundingBox(_BoundingDomain):
 
     @classmethod
     def validate(cls, model, bounding_box: dict, selector_args=None, create_selector=None,
-                 order: str = 'C'):
+                 order: str = 'C', **kwarg):
         """
         Construct a valid compound bounding box for a model.
 
