@@ -92,8 +92,8 @@ def test_b_wien():
     given blackbody temperature. The Sun is used in this test.
 
     """
-    from astropy.constants import b_wien
     from astropy import units as u
+    from astropy.constants import b_wien
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
@@ -101,9 +101,8 @@ def test_b_wien():
 
 def test_unit():
 
-    from astropy import units as u
-
     from astropy import constants as const
+    from astropy import units as u
 
     for key, val in vars(const).items():
         if isinstance(val, Constant):

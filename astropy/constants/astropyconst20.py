@@ -7,8 +7,9 @@ in Astropy.
 import warnings
 
 from astropy.utils import find_current_module
-from . import utils as _utils
+
 from . import codata2014, iau2015
+from . import utils as _utils
 
 codata = codata2014
 iaudata = iau2015
