@@ -2139,19 +2139,7 @@ class Model(metaclass=_ModelMeta):
         values, are copied as well.
         """
 
-        if self._user_bounding_box is not None:
-            bbox = self._user_bounding_box
-            self._user_bounding_box = None
-        else:
-            bbox = None
-
-        model_copy = copy.deepcopy(self)
-
-        if bbox is not None:
-            self._user_bounding_box = bbox
-            model_copy.bounding_box = bbox.copy()
-
-        return model_copy
+        return copy.deepcopy(self)
 
     def deepcopy(self):
         """
@@ -3840,26 +3828,6 @@ class CompoundModel(Model):
         else:
             raise ValueError(f"No submodels found named {name}")
 
-    def copy(self):
-        if self._user_bounding_box is not None:
-            bbox = self._user_bounding_box
-            self._user_bounding_box = None
-        else:
-            bbox = None
-
-        op = copy.deepcopy(self.op)
-        left = self.left.copy()
-        right = self.right.copy()
-        name = copy.deepcopy(self.name)
-
-        model_copy = CompoundModel(op, left, right, name=name)
-
-        if bbox is not None:
-            self._user_bounding_box = bbox
-            model_copy.bounding_box = bbox.copy()
-
-        return model_copy
-
 
 def _get_submodel_path(model, name):
     """Find the route down a CompoundModel's tree to the model with the
@@ -3957,7 +3925,7 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
         if selector_args is None:
             selector_args = tuple([(key, True) for key in values.keys()])
         bbox = CompoundBoundingBox.validate(modelinstance, bounding_boxes, selector_args)
-        _selector = bbox.selector_args.get_fixed_values(values)
+        _selector = bbox.selector_args.get_fixed_values(modelinstance, values)
 
         model.bounding_box = bbox[_selector]
     return model
