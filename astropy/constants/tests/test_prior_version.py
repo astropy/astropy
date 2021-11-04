@@ -3,6 +3,7 @@
 import copy
 
 import pytest
+
 import numpy as np
 
 from astropy.constants import Constant
@@ -27,8 +28,8 @@ def test_c():
 
 def test_h():
 
-    from astropy.constants.codata2010 import h
     from astropy.constants import h as h_current
+    from astropy.constants.codata2010 import h
 
     # check that the value is the CODATA2010 value
     assert abs(h.value - 6.62606957e-34) < 1e-43
@@ -88,8 +89,8 @@ def test_b_wien():
     given blackbody temperature. The Sun is used in this test.
 
     """
-    from astropy.constants.astropyconst13 import b_wien
     from astropy import units as u
+    from astropy.constants.astropyconst13 import b_wien
     t = 5778 * u.K
     w = (b_wien / t).to(u.nm)
     assert round(w.value) == 502
@@ -99,8 +100,8 @@ def test_pc():
     """Parsec is defined to use small-angle limit per IAU 2015 Resolution B 2.
     iau2012 version still uses tan(parallax).
     """
-    from astropy.constants import iau2012
     from astropy import units as u
+    from astropy.constants import iau2012
     plx = np.radians(1 / 3600)
     assert np.allclose(u.pc.to('m') / iau2012.pc.si.value, np.tan(plx) / plx, rtol=1.e-14, atol=0)
 
@@ -109,8 +110,7 @@ def test_masses():
     """Ensure mass values are set up correctly.
     https://github.com/astropy/astropy/issues/8920
     """
-    from astropy.constants import (
-        astropyconst13, astropyconst20, astropyconst40)
+    from astropy.constants import astropyconst13, astropyconst20, astropyconst40
 
     ref_text = "Allen's Astrophysical Quantities 4th Ed."
     assert (astropyconst13.M_sun.reference == ref_text and
@@ -131,7 +131,6 @@ def test_masses():
 def test_unit():
 
     from astropy import units as u
-
     from astropy.constants import astropyconst13 as const
 
     for key, val in vars(const).items():

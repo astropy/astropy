@@ -7,7 +7,6 @@ import math
 
 from .constant import Constant, EMConstant
 
-
 # PHYSICAL CONSTANTS
 # https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
 

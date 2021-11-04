@@ -3,6 +3,7 @@
 import functools
 import types
 import warnings
+
 import numpy as np
 
 from astropy.units.core import Unit, UnitsError

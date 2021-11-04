@@ -5,8 +5,8 @@ for a complete listing of constants defined in Astropy.
 """
 import itertools
 
-from .constant import Constant
 from .config import codata, iaudata
+from .constant import Constant
 
 for _nm, _c in itertools.chain(sorted(vars(codata).items()),
                                sorted(vars(iaudata).items())):
