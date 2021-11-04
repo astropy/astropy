@@ -31,6 +31,13 @@ def custom_and_analytical_inverse():
     return m1
 
 
+def custom_inputs_outputs():
+    m = astmodels.Gaussian2D()
+    m.inputs = ('a', 'b')
+    m.outputs = ('c',)
+    return m
+
+
 test_models = [
     astmodels.Identity(2), astmodels.Polynomial1D(2, c0=1, c1=2, c2=3),
     astmodels.Polynomial2D(1, c0_0=1, c0_1=2, c1_0=3),
@@ -86,7 +93,9 @@ test_models = [
     astmodels.LogParabola1D(amplitude=10, x_0=0.5, alpha=2., beta=3.,),
     astmodels.PowerLaw1D(amplitude=10., x_0=0.5, alpha=2.0),
     astmodels.SmoothlyBrokenPowerLaw1D(amplitude=10., x_break=5.0, alpha_1=2.0, alpha_2=3.0, delta=0.5),
-    custom_and_analytical_inverse()]
+    custom_and_analytical_inverse(),
+    custom_inputs_outputs(),
+]
 
 
 math_models = []
