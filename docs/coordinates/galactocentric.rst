@@ -17,7 +17,7 @@ midplane, etc. Below, :ref:`we describe our generalized definition of the
 transformation <astropy-coordinates-galactocentric-transformation>` from the
 ICRS to/from Galactocentric coordinates, and :ref:`describe how to customize the
 default Galactocentric parameters
-<astropy-coordinates-galactocentric-defaults>`_ that are used when the
+<astropy-coordinates-galactocentric-defaults>` that are used when the
 `~astropy.coordinates.Galactocentric` frame is initialized without explicitly
 passing in parameter values.
 
