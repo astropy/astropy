@@ -13,7 +13,7 @@ functionality highlighted in these pages.
 
    5.1
 
-* `What's New in Astropy 5.0? <https://docs.astropy.org/en/v5.0/whatsnew/5.0.html>`__
+* `What's New in Astropy 5.0? <https://docs.astropy.org/en/v5.0rc1/whatsnew/5.0.html>`__
 * `What's New in Astropy 4.3? <https://docs.astropy.org/en/v4.3post1/whatsnew/4.3.html>`__
 * `What's New in Astropy 4.2? <https://docs.astropy.org/en/v4.2/whatsnew/4.2.html>`__
 * `What's New in Astropy 4.1? <https://docs.astropy.org/en/v4.1/whatsnew/4.1.html>`__
