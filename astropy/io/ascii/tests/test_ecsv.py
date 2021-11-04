@@ -35,7 +35,7 @@ from .common import TEST_DIR
 DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',
           'str']
-if os.name == 'nt' or sys.maxsize <= 2**32:
+if not hasattr(np, 'float128') or os.name == 'nt' or sys.maxsize <= 2**32:
     DTYPES.remove('float128')
 
 T_DTYPES = Table()
