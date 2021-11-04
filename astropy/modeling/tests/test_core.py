@@ -1230,6 +1230,20 @@ def test_compound_model_copy_with_compound_bounding_box():
     assert model_copy.get_bounding_box() == model1.get_bounding_box() == None
 
 
+def test_compound_model_copy_user_attribute():
+    """Regression test for issue #12370"""
+
+    model = models.Gaussian2D(100, 25, 25, 5, 5) | models.Identity(1)
+    model.xname = 'x_mean'  # user-defined attribute
+    assert hasattr(model, 'xname')
+    assert model.xname == 'x_mean'
+
+    model_copy = model.copy()
+    model_copy.xname
+    assert hasattr(model_copy, 'xname')
+    assert model_copy.xname == 'x_mean'
+
+
 def test_model_mixed_array_scalar_bounding_box():
     model = models.Gaussian2D()
     bbox = ModelBoundingBox.validate(model, ((-1, 1), (-np.inf, np.inf)), order='F')
