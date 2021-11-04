@@ -1,12 +1,15 @@
 [build-system]
 requires = ["setuptools",
-            "setuptools_scm",
+            "setuptools_scm>=6.2",
             "wheel",
             "cython==0.29.22",
             "jinja2==2.10.3",
             "oldest-supported-numpy",
             "extension-helpers"]
 build-backend = 'setuptools.build_meta'
+
+[tool.setuptools_scm]
+write_to = "astropy/_version.py"
 
 [tool.astropy-bot]
     [tool.astropy-bot.autolabel]
