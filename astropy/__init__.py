@@ -6,8 +6,8 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
-import sys
 import os
+import sys
 from warnings import warn
 
 from .version import version as __version__
@@ -133,6 +133,7 @@ class astronomical_constants(base_constants_version):
 
 # Create the test() function
 from .tests.runner import TestRunner  # noqa: E402
+
 test = TestRunner.make_test_runner_in(__path__[0])
 
 
@@ -189,8 +190,8 @@ def online_help(query):
     query : str
         The search query.
     """
-    from urllib.parse import urlencode
     import webbrowser
+    from urllib.parse import urlencode
 
     version = __version__
     if 'dev' in version:
@@ -209,6 +210,7 @@ __dir_inc__ = ['__version__', '__githash__',
 
 
 from types import ModuleType as __module_type__  # noqa: E402
+
 # Clean up top-level namespace--delete everything that isn't in __dir_inc__
 # or is a magic attribute, and that isn't a submodule of this package
 for varname in dir():
