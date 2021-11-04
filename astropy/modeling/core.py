@@ -1027,7 +1027,7 @@ class Model(metaclass=_ModelMeta):
         """
         Model specific post evaluation processing of outputs
         """
-        if not (not isinstance(with_bbox, bool) or with_bbox) and self.n_outputs == 1:
+        if self.get_bounding_box(with_bbox) is None and self.n_outputs == 1:
             outputs = (outputs,)
 
         outputs = self.prepare_outputs(broadcasted_shapes, *outputs, **kwargs)
@@ -3173,7 +3173,7 @@ class CompoundModel(Model):
             All of the _post_evaluate for each component model will be
             performed at the time that the individual model is evaluated.
         """
-        if (not isinstance(with_bbox, bool) or with_bbox) and self.n_outputs == 1:
+        if self.get_bounding_box(with_bbox) is not None and self.n_outputs == 1:
             return outputs[0]
         return outputs
 
