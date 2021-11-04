@@ -91,7 +91,7 @@ class TransformType(AstropyAsdfType):
                 bb = list(bb)
             else:
                 bb = [list(item) for item in bb]
-                node['bounding_box'] = bb
+            node['bounding_box'] = bb
 
         elif isinstance(bb, CompoundBoundingBox):
             selector_args = [[sa.index, sa.ignore] for sa in bb.selector_args]
