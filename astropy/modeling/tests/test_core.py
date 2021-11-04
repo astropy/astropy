@@ -1255,3 +1255,41 @@ def test_compound_model_mixed_array_scalar_bounding_box():
     value0 = model(x, y, slit_id)
     value1 = model(x, y, slit_id, with_bounding_box=True)
     assert_equal(value0, value1)
+
+
+def test_model_with_bounding_box_true_and_single_output():
+    """Regression test for issue #12373"""
+
+    model = models.Mapping((1,))
+    x = [1, 2]
+    y = [3, 4]
+
+    # Check baseline
+    assert_equal(model(x, y), [3, 4])
+    # Check with_bounding_box=True should be the same
+    assert_equal(model(x, y, with_bounding_box=True), [3, 4])
+
+    model.bounding_box = ((-np.inf, np.inf), (-np.inf, np.inf))
+    # Check baseline
+    assert_equal(model(x, y), [3, 4])
+    # Check with_bounding_box=True should be the same
+    assert_equal(model(x, y, with_bounding_box=True), [3, 4])
+
+
+def test_compound_model_with_bounding_box_true_and_single_output():
+    """Regression test for issue #12373"""
+
+    model = models.Mapping((1,)) | models.Shift(1)
+    x = [1, 2]
+    y = [3, 4]
+
+    # Check baseline
+    assert_equal(model(x, y), [4, 5])
+    # Check with_bounding_box=True should be the same
+    assert_equal(model(x, y, with_bounding_box=True), [4, 5])
+
+    model.bounding_box = ((-np.inf, np.inf), (-np.inf, np.inf))
+    # Check baseline
+    assert_equal(model(x, y), [4, 5])
+    # Check with_bounding_box=True should be the same
+    assert_equal(model(x, y, with_bounding_box=True), [4, 5])
