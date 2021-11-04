@@ -40,6 +40,7 @@ variables:
   CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
   CIBW_MANYLINUX_I686_IMAGE: manylinux2010
   CIBW_ARCHS_LINUX: "auto, aarch64"
+  CIBW_ARCHS_MACOS: "x86_64 arm64"
   CI: true
 
 jobs:
@@ -67,21 +68,34 @@ jobs:
       # Only run one job on PRs, so exclude musllinux here
       - wheels_cp39-manylinux_x86_64
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+
         - sdist
+
+        # Linux wheels
         - wheels_cp38-manylinux_i686
         - wheels_cp39-manylinux_i686
         # - wheels_cp310*linux_i686  # We can't build this as PyYAML doesn't have i686 wheels for 3.10 yet so the build takes too long
         - wheels_cp38-manylinux_x86_64
         - wheels_cp310-manylinux_x86_64
+
+        # MacOS X wheels - as noted in https://github.com/astropy/astropy/pull/12379 we deliberately
+        # do not build universal2 wheels. Note that the arm64 wheels are not actually tested so we
+        # rely on local manual testing of these to make sure they are ok.
         - wheels_cp38*macosx_x86_64
         - wheels_cp39*macosx_x86_64
         - wheels_cp310*macosx_x86_64
+        - wheels_cp38*macosx_arm64
+        - wheels_cp39*macosx_arm64
+        - wheels_cp310*macosx_arm64
+
+        # Windows wheels
         - wheels_cp38*win32
         - wheels_cp38*win_amd64
         - wheels_cp39*win32
         - wheels_cp39*win_amd64
         - wheels_cp310*win32
         - wheels_cp310*win_amd64
+
         # TODO: Add support for musllinux here (which seems to be new in cibuildwheel 2.2)
         # This seems to introduce real numerical issues
         # - wheels_cp38-musllinux_x86_64
