@@ -240,6 +240,24 @@ Apache Parquet is a columnar storage format related to the Hadoop ecosystem whic
 A key benefit of Parquet files is that each column is stored independently, and thus reading a subset of columns is fast and efficient.
 For more details see the :ref:`table_io_parquet` section.
 
+Support for reading and writing tables to MRT format
+=====================================================
+
+Astropy now supports reading and writing tables in the American Astronomical
+Society Journals' `Machine-Readable Table (MRT)
+<https://journals.aas.org/mrt-standards/>`_ format. This ASCII table format
+consists of single file with the table description header and the table data
+itself. MRT is similar to the `CDS <http://vizier.u-strasbg.fr/doc/catstd.htx>`_
+format standard, but differs in the table description sections and the lack of a
+separate ``ReadMe`` file.
+
+The writing functionality applies special handling to the first ``SkyCoord``
+column in the table to adhere to the MRT recommendations for presenting
+coordinate data. It also ensures that columns with units are written with the
+correct unit convention.
+
+For details see the :ref:`cds_mrt_format` section.
+
 Full change log
 ===============
 
